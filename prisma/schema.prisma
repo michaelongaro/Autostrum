@@ -1,17 +1,79 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-    provider = "prisma-client-js"
+    provider        = "prisma-client-js"
+    previewFeatures = ["jsonProtocol"]
 }
 
 datasource db {
-    provider = "sqlite"
-    url      = env("DATABASE_URL")
+    provider     = "mysql"
+    url          = env("DATABASE_URL")
+    relationMode = "prisma"
 }
 
-model Example {
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+model User {
+    id             Int             @id @default(autoincrement())
+    username       String          @unique
+    profilePicture String?
+    status         String?
+    featuredTab    Tab?            @relation("FeaturedTab")
+    featuredTabId  Int?
+    createdTabs    Tab[]           @relation("CreatedBy")
+    likedTabs      Tab[]           @relation("Likes")
+    comments       Comment[]
+    featuredArtist PromotedArtist?
+    createdAt      DateTime        @default(now())
+    updatedAt      DateTime        @updatedAt
+}
+
+model Tab {
+    id            Int       @id @default(autoincrement())
+    title         String
+    description   String?
+    bpm           Int
+    tuning        String
+    timeSignature String
+    tabData       Json
+    createdAt     DateTime  @default(now())
+    createdBy     User      @relation("CreatedBy", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+    createdById   Int
+    genre         Genre     @relation(fields: [genreId], references: [id])
+    genreId       Int
+    comments      Comment[]
+    featuredTab   User?     @relation("FeaturedTab", fields: [featuredTabId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+    featuredTabId Int?      @unique
+    likedBy       User[]    @relation("Likes")
+
+    @@index([featuredTabId])
+    @@index([createdById])
+    @@index([genreId])
+}
+
+model Genre {
+    id   Int    @id @default(autoincrement())
+    name String @unique
+    tabs Tab[]
+}
+
+model Comment {
+    id        Int       @id @default(autoincrement())
+    text      String
+    createdAt DateTime  @default(now())
+    author    User      @relation(fields: [authorId], references: [id])
+    authorId  Int
+    tab       Tab       @relation(fields: [tabId], references: [id])
+    tabId     Int
+    replyTo   Comment?  @relation("Replies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    replyToId Int?
+    replies   Comment[] @relation("Replies")
+
+    @@index([tabId])
+    @@index([authorId])
+    @@index([replyToId])
+}
+
+model PromotedArtist {
+    id        Int      @id @default(autoincrement())
+    artist    User     @relation(fields: [artistId], references: [id])
+    artistId  Int      @unique
+    startDate DateTime
+    endDate   DateTime
 }
