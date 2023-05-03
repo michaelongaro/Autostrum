@@ -1,8 +1,11 @@
 import { useState } from "react";
 import type { Tab } from "@prisma/client";
 import { useClerk, useAuth } from "@clerk/nextjs";
+import TabMetadata from "./TabMetadata";
+import TabSection from "./TabSection";
 
-interface TabSection {
+// not sure of best way to avoid having the same name for interface and component
+export interface ITabSection {
   title: string;
   data: string[][];
 }
@@ -11,13 +14,31 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
   const { user, loaded } = useClerk();
   const { userId, isLoaded } = useAuth();
 
+  const [editing, setEditing] = useState(false);
+
   const [title, setTitle] = useState(tab?.title ?? "");
   const [description, setDescription] = useState(tab?.description ?? "");
-  const [bpm, setBpm] = useState(tab?.bpm ?? 75);
-  const [tuning, setTuning] = useState(tab?.tuning ?? "standard"); // not sure how we want to handle this yet
-  const [tabData, setTabData] = useState<TabSection[]>(
+
+  // these two will need some more coddling to get working
+  const [genre, setGenre] = useState(tab?.genreId ?? 0);
+  const [tuning, setTuning] = useState(tab?.tuning ?? "EADGBE"); // not sure how we want to handle this yet
+
+  const [BPM, setBPM] = useState(tab?.bpm ?? 75);
+  const [timeSignature, setTimeSignature] = useState(
+    tab?.timeSignature ?? "4/4"
+  );
+  const [tabData, setTabData] = useState<ITabSection[]>(
     // @ts-expect-error asdf
-    tab?.tabData ?? []
+    tab?.tabData ?? [
+      {
+        title: "Intro",
+        data: [
+          ["", "-1", "-1", "-1", "-1", "-1", "2", ""],
+          ["", "-1", "-1", "-1", "-1", "-1", "2", ""],
+          ["", "-1", "-1", "-1", "-1", "-1", "2", ""],
+        ],
+      },
+    ]
   );
 
   // tabData.map((section) => {
@@ -30,56 +51,48 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
 
   // console.log(tab ? tab.tabData : [], user.);
 
+  // <input
+  //   type="text"
+  //   name="title"
+  //   id="title"
+  //   value={title}
+  //   onChange={(e) => setTitle(e.target.value)}
+  // />;
+
+  // TODO: validation + sanitization for inputs and also note effects for both mobile and desktop
+
+  // edit/save buttons prob right at the top of this markup below
   return (
-    <div className="baseVertFlex lightGlassmorphic md:w-8/12 w-11/12 gap-4 rounded-md p-4">
-      <div className="baseFlex w-full gap-4">
-        <div className="baseVertFlex w-1/2 gap-4">
-          <div className="baseFlex w-full gap-4">
-            <div className="baseVertFlex w-1/2 gap-4">
-              <label htmlFor="title">Title</label>
-              <input
-                type="text"
-                name="title"
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </div>
-            <div className="baseVertFlex w-1/2 gap-4">
-              <label htmlFor="description">Description</label>
-              <input
-                type="text"
-                name="description"
-                id="description"
-                value={description ? description : ""}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="baseFlex w-full gap-4">
-            <div className="baseVertFlex w-1/2 gap-4">
-              <label htmlFor="bpm">BPM</label>
-              <input
-                type="number"
-                name="bpm"
-                id="bpm"
-                value={bpm}
-                onChange={(e) => setBpm(parseInt(e.target.value))}
-              />
-            </div>
-            <div className="baseVertFlex w-1/2 gap-4">
-              <label htmlFor="tuning">Tuning</label>
-              <input
-                type="text"
-                name="tuning"
-                id="tuning"
-                value={tuning}
-                onChange={(e) => setTuning(e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="baseVertFlex lightGlassmorphic w-11/12 gap-4 rounded-md p-4 md:w-8/12">
+      <TabMetadata
+        editing={editing}
+        title={title}
+        setTitle={setTitle}
+        description={description}
+        setDescription={setDescription}
+        genre={genre}
+        setGenre={setGenre}
+        tuning={tuning}
+        setTuning={setTuning}
+        BPM={BPM}
+        setBPM={setBPM}
+        timeSignature={timeSignature}
+        setTimeSignature={setTimeSignature}
+      />
+
+      {/* Actual tab below */}
+      {tabData.map((section, index) => (
+        <TabSection
+          key={index}
+          tuning={tuning}
+          sectionData={{
+            title: section.title,
+            data: section.data,
+          }}
+          setTabData={setTabData}
+          sectionIndex={index}
+        />
+      ))}
     </div>
   );
 }
