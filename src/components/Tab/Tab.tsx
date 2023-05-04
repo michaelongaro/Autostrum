@@ -14,7 +14,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
   const { user, loaded } = useClerk();
   const { userId, isLoaded } = useAuth();
 
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(true);
 
   const [title, setTitle] = useState(tab?.title ?? "");
   const [description, setDescription] = useState(tab?.description ?? "");
@@ -33,9 +33,14 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
       {
         title: "Intro",
         data: [
-          ["", "-1", "-1", "-1", "-1", "-1", "2", ""],
-          ["", "-1", "-1", "-1", "-1", "-1", "2", ""],
-          ["", "-1", "-1", "-1", "-1", "-1", "2", ""],
+          ["", "", "", "", "", "", "2", ""],
+          ["", "", "", "", "", "", "", ""],
+          ["", "", "", "", "", "", "2", ""],
+          ["", "", "", "", "", "", "", ""],
+          ["", "", "", "", "", "", "2", ""],
+          ["", "", "", "", "", "", "", ""],
+          ["", "", "", "1", "", "", "", ""],
+          ["", "", "", "", "", "", "", ""],
         ],
       },
     ]
@@ -63,7 +68,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
 
   // edit/save buttons prob right at the top of this markup below
   return (
-    <div className="baseVertFlex lightGlassmorphic w-11/12 gap-4 rounded-md p-4 md:w-8/12">
+    <div className="baseVertFlex lightGlassmorphic mt-24 w-11/12 gap-4 rounded-md p-4 md:w-8/12">
       <TabMetadata
         editing={editing}
         title={title}
@@ -91,6 +96,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
           }}
           setTabData={setTabData}
           sectionIndex={index}
+          editing={editing}
         />
       ))}
     </div>
