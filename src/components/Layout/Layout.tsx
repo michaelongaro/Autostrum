@@ -19,6 +19,7 @@ function Layout({ children }: Layout) {
           interactable */}
       <Bubbles />
       <Header />
+      {/* add the marginTop here or on children separately? */}
       {children}
     </div>
   );
