@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { type ITabSection } from "./Tab";
+import { useTabStore } from "~/stores/TabStore";
+import { shallow } from "zustand/shallow";
 import TabColumn from "./TabColumn";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -7,52 +8,53 @@ import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
 
 interface TabSection {
-  tuning: string;
   sectionData: {
     title: string;
     data: string[][];
   };
-  setTabData: React.Dispatch<React.SetStateAction<ITabSection[]>>;
   sectionIndex: number;
-  editing: boolean;
 }
 
-function TabSection({
-  tuning,
-  sectionData,
-  setTabData,
-  sectionIndex,
-  editing,
-}: TabSection) {
+function TabSection({ sectionData, sectionIndex }: TabSection) {
   const [sectionTitle, setSectionTitle] = useState(sectionData.title);
-  const [addingNewPalmMuteSection, setAddingNewPalmMuteSection] =
-    useState(false);
-  const [newPalmMuteLocation, setNewPalmMuteLocation] = useState<
-    [number, number]
-  >([-1, -1]);
-  // TODO: move everything to zustand store soon
 
+  const {
+    tuning,
+    addingNewPalmMuteSection,
+    setAddingNewPalmMuteSection,
+    tabData,
+    setTabData,
+    editing,
+  } = useTabStore(
+    (state) => ({
+      tuning: state.tuning,
+      addingNewPalmMuteSection: state.addingNewPalmMuteSection,
+      setAddingNewPalmMuteSection: state.setAddingNewPalmMuteSection,
+      tabData: state.tabData,
+      setTabData: state.setTabData,
+      editing: state.editing,
+    }),
+    shallow
+  );
+
+  // should these functions below be in zustand?
   function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
     setSectionTitle(e.target.value);
-    setTabData((prevTabData) => {
-      const newTabData = [...prevTabData];
-      newTabData[sectionIndex]!.title = e.target.value;
-      return newTabData;
-    });
+    // pretty sure this is still necessary because zustand state is immutable I think
+    const newTabData = [...tabData];
+    newTabData[sectionIndex]!.title = e.target.value;
+
+    setTabData(newTabData);
   }
 
   function addNewColumns() {
-    setTabData((prevTabData) => {
-      const newTabData = [...prevTabData];
+    const newTabData = [...tabData];
 
-      for (let i = 0; i < 8; i++) {
-        newTabData[sectionIndex]!.data.push(
-          Array.from({ length: 8 }, () => "")
-        );
-      }
+    for (let i = 0; i < 8; i++) {
+      newTabData[sectionIndex]!.data.push(Array.from({ length: 8 }, () => ""));
+    }
 
-      return newTabData;
-    });
+    setTabData(newTabData);
   }
 
   function generateNewColumns() {
@@ -65,14 +67,13 @@ function TabSection({
   }
 
   function addNewSection() {
-    setTabData((prevTabData) => {
-      const newTabData = [...prevTabData];
-      newTabData.splice(sectionIndex + 1, 0, {
-        title: "New section",
-        data: generateNewColumns(),
-      });
-      return newTabData;
+    const newTabData = [...tabData];
+    newTabData.splice(sectionIndex + 1, 0, {
+      title: "New section",
+      data: generateNewColumns(),
     });
+
+    setTabData(newTabData);
   }
 
   return (
@@ -109,7 +110,7 @@ function TabSection({
           <div className="absolute left-0 top-[-7rem] w-[194px]">
             <Button
               onClick={() => {
-                setAddingNewPalmMuteSection((prev) => !prev);
+                setAddingNewPalmMuteSection(!addingNewPalmMuteSection);
               }}
             >
               {addingNewPalmMuteSection ? "x" : "Add palm mute section +"}
@@ -126,14 +127,8 @@ function TabSection({
           <TabColumn
             key={index}
             columnData={column}
-            setTabData={setTabData}
             sectionIndex={sectionIndex}
             columnIndex={index}
-            editing={editing}
-            addingNewPalmMuteSection={addingNewPalmMuteSection}
-            setAddingNewPalmMuteSection={setAddingNewPalmMuteSection}
-            newPalmMuteLocation={newPalmMuteLocation}
-            setNewPalmMuteLocation={setNewPalmMuteLocation}
           />
         ))}
 

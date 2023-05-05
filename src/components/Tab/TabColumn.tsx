@@ -5,28 +5,16 @@ import PalmMuteNode from "./PalmMuteNode";
 
 interface TabColumn {
   columnData: string[];
-  setTabData: React.Dispatch<React.SetStateAction<ITabSection[]>>;
   sectionIndex: number;
   columnIndex: number;
-  editing: boolean;
-  addingNewPalmMuteSection: boolean;
-  setAddingNewPalmMuteSection: React.Dispatch<React.SetStateAction<boolean>>;
-  newPalmMuteLocation: number[];
-  setNewPalmMuteLocation: React.Dispatch<React.SetStateAction<number[]>>;
 }
 
 function TabColumn({
   columnData,
-  setTabData,
   sectionIndex,
   columnIndex,
-  // finalColumnInSection, add later
-  editing,
-  addingNewPalmMuteSection,
-  setAddingNewPalmMuteSection,
-  newPalmMuteLocation,
-  setNewPalmMuteLocation,
-}: TabColumn) {
+}: // finalColumnInSection, add later
+TabColumn) {
   // need handling for when column is a measure line
 
   return (
@@ -43,11 +31,7 @@ function TabColumn({
               <PalmMuteNode
                 note={note}
                 columnIndex={columnIndex}
-                setTabData={setTabData}
-                addingNewPalmMuteSection={addingNewPalmMuteSection}
-                setAddingNewPalmMuteSection={setAddingNewPalmMuteSection}
-                newPalmMuteLocation={newPalmMuteLocation}
-                setNewPalmMuteLocation={setNewPalmMuteLocation}
+                sectionIndex={sectionIndex}
               />
 
               <div className="mt-4 h-[2px] w-full bg-pink-50"></div>
@@ -62,11 +46,9 @@ function TabColumn({
               )}
               <TabNote
                 note={note}
-                setTabData={setTabData}
                 sectionIndex={sectionIndex}
                 columnIndex={columnIndex}
                 noteIndex={index}
-                editing={editing}
               />
               {columnIndex % 2 === 0 && (
                 <div className="h-[1px] w-4 bg-pink-50"></div>
@@ -80,11 +62,9 @@ function TabColumn({
               {columnIndex % 2 === 0 && (
                 <TabNote
                   note={note}
-                  setTabData={setTabData}
                   sectionIndex={sectionIndex}
                   columnIndex={columnIndex}
                   noteIndex={index}
-                  editing={editing}
                 />
               )}
             </div>

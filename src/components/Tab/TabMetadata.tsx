@@ -1,4 +1,6 @@
-import React from "react";
+import { useAuth } from "@clerk/nextjs";
+import { useTabStore } from "~/stores/TabStore";
+import { shallow } from "zustand/shallow";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Select } from "../ui/select";
@@ -11,38 +13,49 @@ import { SelectItem } from "../ui/select";
 import { Separator } from "../ui/separator";
 import { CommandCombobox } from "../ui/CommandCombobox";
 import { Textarea } from "../ui/textarea";
+import { Button } from "../ui/button";
 
-interface TabMetadata {
-  editing: boolean;
-  title: string;
-  setTitle: React.Dispatch<React.SetStateAction<string>>;
-  description: string;
-  setDescription: React.Dispatch<React.SetStateAction<string>>;
-  genre: number;
-  setGenre: React.Dispatch<React.SetStateAction<number>>;
-  tuning: string;
-  setTuning: React.Dispatch<React.SetStateAction<string>>;
-  BPM: number;
-  setBPM: React.Dispatch<React.SetStateAction<number>>;
-  timeSignature: string;
-  setTimeSignature: React.Dispatch<React.SetStateAction<string>>;
-}
+function TabMetadata() {
+  // TODO: flesh out genre, tuning, and prob "edit" button/ save buttons
+  const { userId, isLoaded } = useAuth();
 
-function TabMetadata({
-  editing,
-  title,
-  setTitle,
-  description,
-  setDescription,
-  genre,
-  setGenre,
-  tuning,
-  setTuning,
-  BPM,
-  setBPM,
-  timeSignature,
-  setTimeSignature,
-}: TabMetadata) {
+  const {
+    createdById,
+    title,
+    setTitle,
+    description,
+    setDescription,
+    genre,
+    setGenre,
+    tuning,
+    setTuning,
+    BPM,
+    setBPM,
+    timeSignature,
+    setTimeSignature,
+    editing,
+    setEditing,
+  } = useTabStore(
+    (state) => ({
+      createdById: state.createdById,
+      title: state.title,
+      setTitle: state.setTitle,
+      description: state.description,
+      setDescription: state.setDescription,
+      genre: state.genre,
+      setGenre: state.setGenre,
+      tuning: state.tuning,
+      setTuning: state.setTuning,
+      BPM: state.BPM,
+      setBPM: state.setBPM,
+      timeSignature: state.timeSignature,
+      setTimeSignature: state.setTimeSignature,
+      editing: state.editing,
+      setEditing: state.setEditing,
+    }),
+    shallow
+  );
+
   return (
     <>
       {editing ? (
@@ -120,6 +133,17 @@ function TabMetadata({
         </>
       ) : (
         <>
+          {userId && createdById === parseInt(userId) && (
+            <Button
+              className="absolute right-4 top-4"
+              onClick={() => {
+                setEditing(true);
+              }}
+            >
+              Edit
+            </Button>
+          )}
+
           <div className="baseFlex w-full max-w-sm gap-1.5 md:w-1/2">
             <div className="text-lg font-bold">{title}</div>
             <div className="baseFlex gap-2">

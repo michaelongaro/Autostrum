@@ -1,42 +1,42 @@
 import { useMemo } from "react";
-import { type ITabSection } from "./Tab";
 import { Input } from "../ui/input";
+import { useTabStore } from "~/stores/TabStore";
+import { shallow } from "zustand/shallow";
 
 interface TabNote {
   note: string;
-  setTabData: React.Dispatch<React.SetStateAction<ITabSection[]>>;
   sectionIndex: number;
   columnIndex: number;
   noteIndex: number;
-  editing: boolean;
 }
 
-function TabNote({
-  note,
-  setTabData,
-  sectionIndex,
-  columnIndex,
-  noteIndex,
-  editing,
-}: TabNote) {
+function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
   // need handling for all cases obv
+
+  const { editing, tabData, setTabData } = useTabStore(
+    (state) => ({
+      editing: state.editing,
+      tabData: state.tabData,
+      setTabData: state.setTabData,
+    }),
+    shallow
+  );
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key !== "Backspace") return;
 
     e.preventDefault();
 
-    setTabData((prevTabData) => {
-      const newTabData = [...prevTabData];
-      const prevValue = newTabData[sectionIndex]!.data[columnIndex]![noteIndex];
-      if (prevValue === "" || prevValue === undefined) return newTabData;
+    const newTabData = [...tabData];
+    const prevValue = newTabData[sectionIndex]!.data[columnIndex]![noteIndex];
+    if (prevValue === "" || prevValue === undefined) return newTabData;
 
-      newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = prevValue.slice(
-        0,
-        -1
-      );
-      return newTabData;
-    });
+    newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = prevValue.slice(
+      0,
+      -1
+    );
+
+    setTabData(newTabData);
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -83,13 +83,12 @@ function TabNote({
         .slice(0, 1);
     }
 
-    setTabData((prevTabData) => {
-      const newTabData = [...prevTabData];
-      // const prevValue = newTabData[sectionIndex]!.data[columnIndex]![noteIndex];
+    const newTabData = [...tabData];
+    // const prevValue = newTabData[sectionIndex]!.data[columnIndex]![noteIndex];
 
-      newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = value;
-      return newTabData;
-    });
+    newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = value;
+
+    setTabData(newTabData);
   }
 
   // seems kind of hacky, but it al

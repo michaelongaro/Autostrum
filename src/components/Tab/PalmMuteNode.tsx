@@ -1,33 +1,37 @@
 import { useState } from "react";
-import type { ITabSection } from "./Tab";
 import { Button } from "../ui/button";
+import { useTabStore } from "~/stores/TabStore";
+import { shallow } from "zustand/shallow";
 
 interface PalmMuteNode {
   note: string;
-  addingNewPalmMuteSection: boolean;
-  setAddingNewPalmMuteSection: React.Dispatch<React.SetStateAction<boolean>>;
-  newPalmMuteLocation: [number, number];
-  setNewPalmMuteLocation: React.Dispatch<
-    React.SetStateAction<[number, number]>
-  >;
   columnIndex: number;
-  setTabData: React.Dispatch<React.SetStateAction<ITabSection[]>>;
   sectionIndex: number;
-  editing: boolean;
 }
 
-function PalmMuteNode({
-  note,
-  addingNewPalmMuteSection,
-  setAddingNewPalmMuteSection,
-  newPalmMuteLocation,
-  setNewPalmMuteLocation,
-  columnIndex,
-  sectionIndex,
-  setTabData,
-  editing,
-}: PalmMuteNode) {
+function PalmMuteNode({ note, columnIndex, sectionIndex }: PalmMuteNode) {
   const [hoveringOnPalmMuteNode, setHoveringOnPalmMuteNode] = useState(false);
+
+  const {
+    editing,
+    tabData,
+    setTabData,
+    newPalmMuteLocation,
+    setNewPalmMuteLocation,
+    addingNewPalmMuteSection,
+    setAddingNewPalmMuteSection,
+  } = useTabStore(
+    (state) => ({
+      editing: state.editing,
+      tabData: state.tabData,
+      setTabData: state.setTabData,
+      newPalmMuteLocation: state.newPalmMuteLocation,
+      setNewPalmMuteLocation: state.setNewPalmMuteLocation,
+      addingNewPalmMuteSection: state.addingNewPalmMuteSection,
+      setAddingNewPalmMuteSection: state.setAddingNewPalmMuteSection,
+    }),
+    shallow
+  );
 
   return (
     <>
@@ -50,39 +54,36 @@ function PalmMuteNode({
               className="rounded-full transition-all"
               onMouseEnter={() => setHoveringOnPalmMuteNode(true)}
               onMouseLeave={() => setHoveringOnPalmMuteNode(false)}
-              onClick={() =>
-                setNewPalmMuteLocation((prev) => {
-                  if (prev[0] === -1) {
-                    return [columnIndex, -1];
-                  } else {
-                    setAddingNewPalmMuteSection(false);
-                    setTabData((prevTabData) => {
-                      const newTabData = [...prevTabData];
+              onClick={() => {
+                if (newPalmMuteLocation[0] === -1) {
+                  setNewPalmMuteLocation([columnIndex, -1]);
+                } else {
+                  const newTabData = [...tabData];
 
-                      // ideally want to allow even just a singular palm mute node too...
+                  // ideally want to allow even just a singular palm mute node too...
 
-                      // still prob want to have the horiz lines coming from the main nodes and for odd columns
-                      // still have the horiz lines to connect the two nodes fully
+                  // still prob want to have the horiz lines coming from the main nodes and for odd columns
+                  // still have the horiz lines to connect the two nodes fully
 
-                      // should be saved as "start" "-" and "end" respectively
+                  // should be saved as "start" "-" and "end" respectively
 
-                      // loop over all columns in between start and end palm mute nodes
-                      for (let i = prev[0]!; i <= columnIndex; i++) {
-                        let value = "-";
-                        if (i === prev[0]!) {
-                          value = "start";
-                        } else if (i === columnIndex) {
-                          value = "end";
-                        }
+                  // loop over all columns in between start and end palm mute nodes
+                  for (let i = newPalmMuteLocation[0]!; i <= columnIndex; i++) {
+                    let value = "-";
+                    if (i === newPalmMuteLocation[0]!) {
+                      value = "start";
+                    } else if (i === columnIndex) {
+                      value = "end";
+                    }
 
-                        newTabData[sectionIndex]!.data[columnIndex]![i] = value;
-                      }
-                      return newTabData;
-                    });
-                    return [-1, -1];
+                    newTabData[sectionIndex]!.data[columnIndex]![i] = value;
                   }
-                })
-              }
+
+                  setTabData(newTabData);
+                  setAddingNewPalmMuteSection(false);
+                  setNewPalmMuteLocation([-1, -1]);
+                }
+              }}
             >
               {newPalmMuteLocation[0] === columnIndex ? "PM start" : "PM end"}
             </Button>
@@ -109,39 +110,36 @@ function PalmMuteNode({
           className="rounded-full transition-all"
           onMouseEnter={() => setHoveringOnPalmMuteNode(true)}
           onMouseLeave={() => setHoveringOnPalmMuteNode(false)}
-          onClick={() =>
-            setNewPalmMuteLocation((prev) => {
-              if (prev[0] === -1) {
-                return [columnIndex, -1];
-              } else {
-                setAddingNewPalmMuteSection(false);
-                setTabData((prevTabData) => {
-                  const newTabData = [...prevTabData];
+          onClick={() => {
+            if (newPalmMuteLocation[0] === -1) {
+              setNewPalmMuteLocation([columnIndex, -1]);
+            } else {
+              const newTabData = [...tabData];
 
-                  // ideally want to allow even just a singular palm mute node too...
+              // ideally want to allow even just a singular palm mute node too...
 
-                  // still prob want to have the horiz lines coming from the main nodes and for odd columns
-                  // still have the horiz lines to connect the two nodes fully
+              // still prob want to have the horiz lines coming from the main nodes and for odd columns
+              // still have the horiz lines to connect the two nodes fully
 
-                  // should be saved as "start" "-" and "end" respectively
+              // should be saved as "start" "-" and "end" respectively
 
-                  // loop over all columns in between start and end palm mute nodes
-                  for (let i = prev[0]!; i <= columnIndex; i++) {
-                    let value = "-";
-                    if (i === prev[0]!) {
-                      value = "start";
-                    } else if (i === columnIndex) {
-                      value = "end";
-                    }
+              // loop over all columns in between start and end palm mute nodes
+              for (let i = newPalmMuteLocation[0]!; i <= columnIndex; i++) {
+                let value = "-";
+                if (i === newPalmMuteLocation[0]!) {
+                  value = "start";
+                } else if (i === columnIndex) {
+                  value = "end";
+                }
 
-                    newTabData[sectionIndex]!.data[columnIndex]![i] = value;
-                  }
-                  return newTabData;
-                });
-                return [-1, -1];
+                newTabData[sectionIndex]!.data[columnIndex]![i] = value;
               }
-            })
-          }
+
+              setTabData(newTabData);
+              setAddingNewPalmMuteSection(false);
+              setNewPalmMuteLocation([-1, -1]);
+            }
+          }}
         >
           {newPalmMuteLocation[0] === columnIndex ? "PM start" : "PM end"}
         </Button>
