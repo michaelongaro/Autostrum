@@ -92,6 +92,8 @@ function Bubble({ position, size, velocity }: Bubble) {
   useFrame((state, delta) => {
     if (meshRef.current) {
       meshRef.current.position.y += velocity * 0.05;
+
+      // TODO: should be inversely proportional to the bubbles size
       meshRef.current.position.x +=
         Math.sin(meshRef.current.position.y) * 0.005;
 
