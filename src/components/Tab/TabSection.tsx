@@ -20,16 +20,20 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
 
   const {
     tuning,
-    addingNewPalmMuteSection,
-    setAddingNewPalmMuteSection,
+    editingPalmMuteNodes,
+    setEditingPalmMuteNodes,
+    lastModifiedHangingNode,
+    setLastModifiedHangingNode,
     tabData,
     setTabData,
     editing,
   } = useTabStore(
     (state) => ({
       tuning: state.tuning,
-      addingNewPalmMuteSection: state.addingNewPalmMuteSection,
-      setAddingNewPalmMuteSection: state.setAddingNewPalmMuteSection,
+      editingPalmMuteNodes: state.editingPalmMuteNodes,
+      setEditingPalmMuteNodes: state.setEditingPalmMuteNodes,
+      lastModifiedHangingNode: state.lastModifiedHangingNode,
+      setLastModifiedHangingNode: state.setLastModifiedHangingNode,
       tabData: state.tabData,
       setTabData: state.setTabData,
       editing: state.editing,
@@ -110,10 +114,22 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
           <div className="absolute left-0 top-[-7rem] w-[194px]">
             <Button
               onClick={() => {
-                setAddingNewPalmMuteSection(!addingNewPalmMuteSection);
+                if (!editingPalmMuteNodes) {
+                  setEditingPalmMuteNodes(true);
+                  return;
+                } else if (lastModifiedHangingNode) {
+                  const newTabData = [...tabData];
+                  newTabData[sectionIndex]!.data[
+                    lastModifiedHangingNode.columnIndex
+                  ]![0] = lastModifiedHangingNode.prevValue;
+
+                  setTabData(newTabData);
+                  setLastModifiedHangingNode(null);
+                }
+                setEditingPalmMuteNodes(false);
               }}
             >
-              {addingNewPalmMuteSection ? "x" : "Add palm mute section +"}
+              {editingPalmMuteNodes ? "x" : "Add new palm mute section"}
             </Button>
           </div>
 
@@ -143,7 +159,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
         </Button>
       </div>
 
-      <Button onClick={addNewSection}>Add section +</Button>
+      <Button onClick={addNewSection}>Add new section</Button>
     </div>
   );
 }
