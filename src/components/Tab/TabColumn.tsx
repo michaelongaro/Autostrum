@@ -1,5 +1,4 @@
 import React, { Fragment } from "react";
-import { type ITabSection } from "./Tab";
 import TabNote from "./TabNote";
 import PalmMuteNode from "./PalmMuteNode";
 
