@@ -17,54 +17,58 @@ TabColumn) {
   // need handling for when column is a measure line
 
   return (
-    <div
-      style={{
-        gap: `${columnIndex % 2 === 0 ? "0.5rem" : "0rem"}`,
-      }}
-      className="baseVertFlex my-4"
-    >
+    <div className="baseVertFlex my-14 gap-2">
       {columnData.map((note, index) => (
         <Fragment key={index}>
           {index === 0 && (
-            <div className="baseVertFlex w-full">
-              <PalmMuteNode
-                note={note}
-                columnIndex={columnIndex}
-                sectionIndex={sectionIndex}
-              />
-
-              <div className="mt-4 h-[2px] w-full bg-pink-50"></div>
+            // this positioning is still a bit off
+            <div className="relative h-0 w-full">
+              <div className="absolute bottom-0 left-1/2 right-1/2 w-[2rem] -translate-x-1/2">
+                <PalmMuteNode
+                  note={note}
+                  columnIndex={columnIndex}
+                  sectionIndex={sectionIndex}
+                />
+              </div>
             </div>
           )}
 
           {index > 0 && index < 7 && (
-            <div className="baseFlex">
-              {/* maybe w-4 needs to go down to w-2 on odd idx? */}
-              {columnIndex % 2 === 0 && (
-                <div className="h-[1px] w-4 bg-pink-50"></div>
-              )}
+            <div
+              style={{
+                borderTop: `${
+                  index === 1 ? "2px solid rgb(253 242 248)" : "none"
+                }`,
+                paddingTop: `${index === 1 ? "0.45rem" : "0rem"}`,
+                borderBottom: `${
+                  index === 6 ? "2px solid rgb(253 242 248)" : "none"
+                }`,
+                paddingBottom: `${index === 6 ? "0.45rem" : "0rem"}`,
+              }}
+              className="baseFlex border-spacing-4"
+            >
+              <div className="h-[1px] w-2 bg-pink-50 "></div>
               <TabNote
                 note={note}
                 sectionIndex={sectionIndex}
                 columnIndex={columnIndex}
                 noteIndex={index}
               />
-              {columnIndex % 2 === 0 && (
-                <div className="h-[1px] w-4 bg-pink-50"></div>
-              )}
+              <div className="h-[1px] w-2 bg-pink-50"></div>
             </div>
           )}
 
           {index === 7 && (
-            <div className="baseVertFlex w-full">
-              <div className="mb-4 h-[2px] w-full bg-pink-50"></div>
+            <div className="relative h-0 w-full">
               {columnIndex % 2 === 0 && (
-                <TabNote
-                  note={note}
-                  sectionIndex={sectionIndex}
-                  columnIndex={columnIndex}
-                  noteIndex={index}
-                />
+                <div className="absolute left-1/2 right-1/2 top-2 w-[3.35rem] -translate-x-1/2">
+                  <TabNote
+                    note={note}
+                    sectionIndex={sectionIndex}
+                    columnIndex={columnIndex}
+                    noteIndex={index}
+                  />
+                </div>
               )}
             </div>
           )}

@@ -112,8 +112,8 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
       </div>
 
       <div className="baseFlex mt-48 w-full !justify-start md:mt-24">
-        <div className="baseVertFlex relative gap-6 rounded-l-2xl border-2 border-pink-50 p-2">
-          <div className="absolute left-0 top-[-7rem] w-[194px]">
+        <div className="baseVertFlex relative h-[284px] gap-[1.35rem] rounded-l-2xl border-2 border-pink-50 p-2">
+          <div className="absolute left-0 top-[-7rem] w-[400px]">
             <Button
               onClick={() => {
                 if (!editingPalmMuteNodes) {
@@ -174,7 +174,9 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
         </Button>
       </div>
 
-      <Button onClick={addNewSection}>Add new section</Button>
+      <Button className="mt-12" onClick={addNewSection}>
+        Add new section
+      </Button>
     </div>
   );
 }

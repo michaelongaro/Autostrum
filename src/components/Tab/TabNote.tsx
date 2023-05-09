@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { Input } from "../ui/input";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
@@ -91,24 +90,11 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
     setTabData(newTabData);
   }
 
-  // seems kind of hacky, but it al
-  const margin = useMemo(() => {
-    if (columnIndex % 2 === 0) {
-      return "0";
-    } else {
-      if (noteIndex === 1) {
-        return "0.81rem 0";
-      }
-
-      return "0.75rem 0";
-    }
-  }, [columnIndex, noteIndex]);
-
   return (
     <Input
       id="note"
       style={{
-        height: `${columnIndex % 2 === 0 ? "2.35rem" : "1.4rem"}`,
+        height: `${columnIndex % 2 === 0 ? "2.35rem" : "1.35rem"}`,
         width: `${
           columnIndex % 2 === 0
             ? noteIndex === 7
@@ -119,14 +105,9 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
         fontSize: `${columnIndex % 2 === 0 ? "1rem" : "0.875rem"}`,
         lineHeight: `${columnIndex % 2 === 0 ? "1.5rem" : "1.25rem"}`,
         padding: `${columnIndex % 2 === 0 ? "0.5rem" : "0"}`,
-        // borderWidth: `${
-        //   columnIndex % 2 === 0 && (noteIndex < 0 || noteIndex > 7)
-        //     ? "2px"
-        //     : "1px"
-        // }`,
-        margin: margin,
+        margin: columnIndex % 2 === 0 ? "0" : "0.5rem 0",
       }}
-      className="rounded-full p-2 text-center"
+      className=" rounded-full p-2 text-center"
       type="text"
       autoComplete="off"
       value={note}
