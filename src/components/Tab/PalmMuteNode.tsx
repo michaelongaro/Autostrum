@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
@@ -17,104 +17,122 @@ function PalmMuteNode({ note, columnIndex, sectionIndex }: PalmMuteNode) {
     editing,
     tabData,
     setTabData,
-    lastModifiedHangingNode,
-    setLastModifiedHangingNode,
+    lastModifiedPalmMuteNode,
+    setLastModifiedPalmMuteNode,
     editingPalmMuteNodes,
     setEditingPalmMuteNodes,
+    modifyPalmMuteDashes,
   } = useTabStore(
     (state) => ({
       editing: state.editing,
       tabData: state.tabData,
       setTabData: state.setTabData,
-      lastModifiedHangingNode: state.lastModifiedHangingNode,
-      setLastModifiedHangingNode: state.setLastModifiedHangingNode,
+      lastModifiedPalmMuteNode: state.lastModifiedPalmMuteNode,
+      setLastModifiedPalmMuteNode: state.setLastModifiedPalmMuteNode,
       editingPalmMuteNodes: state.editingPalmMuteNodes,
       setEditingPalmMuteNodes: state.setEditingPalmMuteNodes,
+      modifyPalmMuteDashes: state.modifyPalmMuteDashes,
     }),
     shallow
   );
 
-  useEffect(() => {
-    if (editingPalmMuteNodes || note === "start" || note === "end") {
-      if (lastModifiedHangingNode !== null) {
-        if (
-          lastModifiedHangingNode.currentValue === "start" &&
-          columnIndex < lastModifiedHangingNode.columnIndex
-        ) {
-          setButtonOpacity("0.25");
-        } else if (
-          lastModifiedHangingNode.currentValue === "end" &&
-          columnIndex > lastModifiedHangingNode.columnIndex
-        ) {
-          setButtonOpacity("0.25");
-        }
+  const findColumnIndexOfPairNode = useCallback(() => {
+    let currentIndex = lastModifiedPalmMuteNode?.columnIndex;
+    const foundPairNodeColumnIndex = false;
+
+    if (currentIndex === undefined) return 0;
+
+    while (!foundPairNodeColumnIndex) {
+      const currentNode = tabData[sectionIndex]!.data[currentIndex]![0];
+
+      if (lastModifiedPalmMuteNode?.prevValue === "start") {
+        if (currentNode === "end") return currentIndex;
+
+        currentIndex++;
       } else {
-        setButtonOpacity("1");
+        if (currentNode === "start") return currentIndex;
+
+        currentIndex--;
       }
-    } else {
-      setButtonOpacity("0");
     }
-  }, [columnIndex, note, editingPalmMuteNodes, lastModifiedHangingNode]);
+
+    return 0;
+  }, [sectionIndex, tabData, lastModifiedPalmMuteNode]);
+
+  useEffect(() => {
+    setButtonOpacity("1");
+
+    if (!editingPalmMuteNodes && note !== "start" && note !== "end") {
+      setButtonOpacity("0");
+      return;
+    }
+
+    if (
+      lastModifiedPalmMuteNode?.prevValue === "" &&
+      columnIndex < lastModifiedPalmMuteNode?.columnIndex
+    ) {
+      setButtonOpacity("0.25");
+    } else {
+      if (
+        lastModifiedPalmMuteNode?.prevValue === "start" &&
+        columnIndex > findColumnIndexOfPairNode()
+      ) {
+        setButtonOpacity("0.25");
+      } else if (
+        lastModifiedPalmMuteNode?.prevValue === "end" &&
+        columnIndex < findColumnIndexOfPairNode()
+      ) {
+        setButtonOpacity("0.25");
+      }
+    }
+  }, [
+    columnIndex,
+    note,
+    editingPalmMuteNodes,
+    lastModifiedPalmMuteNode,
+    findColumnIndexOfPairNode,
+  ]);
 
   function handlePalmMuteNodeClick() {
-    if (lastModifiedHangingNode === null) {
-      // forces edit mode when editing placement of a palm mute node
-      if (!editingPalmMuteNodes) setEditingPalmMuteNodes(true);
+    // forces edit mode when editing placement of a palm mute node
+    if (!editingPalmMuteNodes) setEditingPalmMuteNodes(true);
 
-      setLastModifiedHangingNode({
+    if (lastModifiedPalmMuteNode === null) {
+      setLastModifiedPalmMuteNode({
         columnIndex,
         prevValue: note, // value before clicking
         currentValue: note === "start" || note === "end" ? "" : "start", // value after clicking
       });
 
-      // modify tabData here
-      const newTabData = [...tabData];
-      newTabData[sectionIndex]!.data[columnIndex]![0] =
-        note === "start" || note === "end" ? "" : "start";
-      setTabData(newTabData);
-    } else {
-      const newTabData = [...tabData];
-
-      // ideally want to allow even just a singular palm mute node too...
-
-      // startColumnIndex < endColumnIndex: loop over all columns in between start and end palm mute nodes
-      if (columnIndex > lastModifiedHangingNode.columnIndex) {
-        for (
-          let i = lastModifiedHangingNode.columnIndex;
-          i <= columnIndex;
-          i++
-        ) {
-          let value = "-";
-          if (i === lastModifiedHangingNode.columnIndex) {
-            value = "start";
-          } else if (i === columnIndex) {
-            value = "end";
-          }
-
-          newTabData[sectionIndex]!.data[i]![0] = value;
-        }
+      if (note === "") {
+        const newTabData = [...tabData];
+        newTabData[sectionIndex]!.data[columnIndex]![0] = "start";
+        setTabData(newTabData);
       } else {
-        // endColumnIndex < startColumnIndex: loop over all columns in between start and end palm mute nodes
-        for (
-          let i = columnIndex;
-          i <= lastModifiedHangingNode.columnIndex;
-          i++
-        ) {
-          let value = "-";
-          if (i === columnIndex) {
-            value = "start";
-          } else if (i === lastModifiedHangingNode.columnIndex) {
-            value = "end";
-          }
-
-          newTabData[sectionIndex]!.data[i]![0] = value;
-        }
+        // removing node + dashes in between
+        modifyPalmMuteDashes(
+          tabData,
+          setTabData,
+          sectionIndex,
+          columnIndex,
+          note
+        );
       }
-
-      setTabData(newTabData);
+    } else {
+      // adding node + dashes in between
+      modifyPalmMuteDashes(
+        tabData,
+        setTabData,
+        sectionIndex,
+        columnIndex,
+        note,
+        lastModifiedPalmMuteNode.prevValue
+      );
       setEditingPalmMuteNodes(false);
-      setLastModifiedHangingNode(null);
+      setLastModifiedPalmMuteNode(null);
     }
+
+    // setHoveringOnPalmMuteNode(false);
   }
 
   // opacity still messed up + maybe manually get rid of box shadow after click..
@@ -146,11 +164,8 @@ function PalmMuteNode({ note, columnIndex, sectionIndex }: PalmMuteNode) {
             columnIndex % 2 === 0 && (
               <Button
                 style={{
-                  boxShadow:
-                    lastModifiedHangingNode?.columnIndex === columnIndex ||
-                    hoveringOnPalmMuteNode
-                      ? "0 0 5px 2px #FFF"
-                      : "",
+                  pointerEvents: buttonOpacity === "1" ? "all" : "none",
+                  boxShadow: hoveringOnPalmMuteNode ? "0 0 5px 2px #FFF" : "",
                   opacity: buttonOpacity,
                 }}
                 className="rounded-full transition-all"
