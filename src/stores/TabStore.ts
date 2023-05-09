@@ -32,9 +32,13 @@ interface TabState {
   // used in <TabSection />
   editingPalmMuteNodes: boolean;
   setEditingPalmMuteNodes: (editingPalmMuteNodes: boolean) => void;
-  lastModifiedHangingNode: LastModifiedHangingNodeLocation | null;
-  setLastModifiedHangingNode: (
-    lastModifiedHangingNode: LastModifiedHangingNodeLocation | null
+  modifyPalmMuteDashes: (
+    tab: ITabSection[],
+    setTabData: (tabData: ITabSection[]) => void,
+    sectionIndex: number,
+    startColumnIndex: number,
+    prevValue: string,
+    pairNodeValue?: string
   ) => void;
 }
 
@@ -83,8 +87,60 @@ export const useTabStore = create<TabState>()(
     editingPalmMuteNodes: false,
     setEditingPalmMuteNodes: (editingPalmMuteNodes) =>
       set({ editingPalmMuteNodes }),
-    lastModifiedHangingNode: null,
-    setLastModifiedHangingNode: (lastModifiedHangingNode) =>
-      set({ lastModifiedHangingNode }),
+    modifyPalmMuteDashes: (
+      tab,
+      setTabData,
+      sectionIndex,
+      startColumnIndex,
+      prevValue,
+      pairNodeValue
+    ) => {
+      // technically could just use tabData/setter from the store right?
+      let finishedModification = false;
+      const newTabData = [...tab];
+      let currentColumnIndex = startColumnIndex;
+
+      // TODO: handle subsequent clicking on "remove" of both nodes as first rudimentary way to remove the
+      // whole palm mute section
+
+      while (!finishedModification) {
+        // start/end node already defined, meaning we just clicked on an empty node to be the other pair node
+        if (pairNodeValue !== undefined) {
+          if (currentColumnIndex === startColumnIndex) {
+            newTabData[sectionIndex]!.data[startColumnIndex]![0] =
+              pairNodeValue === "" ? "end" : pairNodeValue;
+
+            pairNodeValue === "start"
+              ? currentColumnIndex++
+              : currentColumnIndex--;
+          } else if (
+            newTabData[sectionIndex]!.data[currentColumnIndex]![0] ===
+            (pairNodeValue === "" || pairNodeValue === "end" ? "start" : "end")
+          ) {
+            finishedModification = true;
+          } else {
+            newTabData[sectionIndex]!.data[currentColumnIndex]![0] = "-";
+            pairNodeValue === "start"
+              ? currentColumnIndex++
+              : currentColumnIndex--;
+          }
+        }
+        // pair already defined, meaning we just removed either the start/end node and need to remove dashes
+        // in between until we hit the other node
+        else {
+          if (
+            newTabData[sectionIndex]!.data[currentColumnIndex]![0] ===
+            (prevValue === "start" ? "end" : "start")
+          ) {
+            finishedModification = true;
+          } else {
+            newTabData[sectionIndex]!.data[currentColumnIndex]![0] = "";
+            prevValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
+          }
+        }
+      }
+
+      setTabData(newTabData);
+    },
   }))
 );
