@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import type { ITabSection } from "~/components/Tab/Tab";
 
-interface LastModifiedHangingNodeLocation {
+interface LastModifiedPalmMuteNodeLocation {
   columnIndex: number;
   prevValue: string;
   currentValue: string;
@@ -32,6 +32,10 @@ interface TabState {
   // used in <TabSection />
   editingPalmMuteNodes: boolean;
   setEditingPalmMuteNodes: (editingPalmMuteNodes: boolean) => void;
+  lastModifiedPalmMuteNode: LastModifiedPalmMuteNodeLocation | null;
+  setLastModifiedPalmMuteNode: (
+    lastModifiedPalmMuteNode: LastModifiedPalmMuteNodeLocation | null
+  ) => void;
   modifyPalmMuteDashes: (
     tab: ITabSection[],
     setTabData: (tabData: ITabSection[]) => void,
@@ -87,6 +91,9 @@ export const useTabStore = create<TabState>()(
     editingPalmMuteNodes: false,
     setEditingPalmMuteNodes: (editingPalmMuteNodes) =>
       set({ editingPalmMuteNodes }),
+    lastModifiedPalmMuteNode: null,
+    setLastModifiedPalmMuteNode: (lastModifiedPalmMuteNode) =>
+      set({ lastModifiedPalmMuteNode }),
     modifyPalmMuteDashes: (
       tab,
       setTabData,
