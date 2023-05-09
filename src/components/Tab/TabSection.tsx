@@ -22,8 +22,9 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
     tuning,
     editingPalmMuteNodes,
     setEditingPalmMuteNodes,
-    lastModifiedHangingNode,
-    setLastModifiedHangingNode,
+    lastModifiedPalmMuteNode,
+    setLastModifiedPalmMuteNode,
+    modifyPalmMuteDashes,
     tabData,
     setTabData,
     editing,
@@ -32,8 +33,9 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
       tuning: state.tuning,
       editingPalmMuteNodes: state.editingPalmMuteNodes,
       setEditingPalmMuteNodes: state.setEditingPalmMuteNodes,
-      lastModifiedHangingNode: state.lastModifiedHangingNode,
-      setLastModifiedHangingNode: state.setLastModifiedHangingNode,
+      lastModifiedPalmMuteNode: state.lastModifiedPalmMuteNode,
+      setLastModifiedPalmMuteNode: state.setLastModifiedPalmMuteNode,
+      modifyPalmMuteDashes: state.modifyPalmMuteDashes,
       tabData: state.tabData,
       setTabData: state.setTabData,
       editing: state.editing,
@@ -117,18 +119,31 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
                 if (!editingPalmMuteNodes) {
                   setEditingPalmMuteNodes(true);
                   return;
-                } else if (lastModifiedHangingNode) {
-                  const newTabData = [...tabData];
-                  newTabData[sectionIndex]!.data[
-                    lastModifiedHangingNode.columnIndex
-                  ]![0] = lastModifiedHangingNode.prevValue;
+                } else if (lastModifiedPalmMuteNode) {
+                  // if prevValue was "" then can just do hardcoded solution as before
+                  if (lastModifiedPalmMuteNode.prevValue === "") {
+                    const newTabData = [...tabData];
+                    newTabData[sectionIndex]!.data[
+                      lastModifiedPalmMuteNode.columnIndex
+                    ]![0] = "";
+                    setTabData(newTabData);
+                  } else {
+                    modifyPalmMuteDashes(
+                      tabData,
+                      setTabData,
+                      sectionIndex,
+                      lastModifiedPalmMuteNode.columnIndex,
+                      "tempRemoveLater",
+                      lastModifiedPalmMuteNode.prevValue
+                    );
+                  }
 
-                  setTabData(newTabData);
-                  setLastModifiedHangingNode(null);
+                  setLastModifiedPalmMuteNode(null);
                 }
                 setEditingPalmMuteNodes(false);
               }}
             >
+              {/* maybe switch to "Add new..." and then "Edit ..." */}
               {editingPalmMuteNodes ? "x" : "Add new palm mute section"}
             </Button>
           </div>
