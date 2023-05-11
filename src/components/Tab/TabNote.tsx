@@ -39,51 +39,52 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    // maybe better to have all of the logic within setter below so that we can access
-    // the previous value and do some logic on it
-
-    const inputChar = e.target.value.slice(-1);
-    let value = e.target.value;
+    const value = e.target.value;
 
     // regular notes
     if (columnIndex % 2 === 0 && noteIndex !== 7) {
-      const isNumber = /^\d+$/.test(value); // Check if the value is a number
-      if (
-        value !== "" &&
-        !(isNumber && parseInt(value) >= 0 && parseInt(value) <= 22)
-      )
+      // Check if the value is between 0 and 22, a "|", or an "x"
+      const isValid = /^(?:(?:[0-1]?[0-9]|2[0-2])|[|x])$/g.test(value);
+      if (value !== "" && !isValid) return;
+
+      if (value === "|") {
+        const newTabData = [...tabData];
+        const palmMuteNode = newTabData[sectionIndex]!.data[columnIndex]![0];
+
+        if (palmMuteNode !== undefined) {
+          newTabData[sectionIndex]!.data[columnIndex] = [
+            palmMuteNode,
+            "|",
+            "|",
+            "|",
+            "|",
+            "|",
+            "|",
+            "",
+          ];
+        }
+
+        setTabData(newTabData);
         return;
+      }
     }
 
     // below the line effects
     else if (columnIndex % 2 === 0 && noteIndex === 7) {
-      const allowedChars = [".", "^", "v", ">", "s"];
-
-      if (!allowedChars.includes(inputChar)) return;
-
-      if (
-        (value.includes("^") && inputChar === "v") ||
-        (value.includes("v") && inputChar === "^")
-      )
-        return;
-
-      // can have multiple, but no repeats
-      value = Array.from(new Set(value.split(""))).join("");
+      // Check if the value is contains at most one of each of the following characters: . ^ v > s
+      // and that it doesn't contain both a ^ and a v
+      const isValid = /^(?!.*v.*\^)(?!.*\^.*v)[.\>sv\^]{1,5}$/g.test(value);
+      if (value !== "" && !isValid) return;
     }
 
     // inline effects
     else if (columnIndex % 2 === 1 && noteIndex !== 7) {
-      const allowedChars = ["x", "h", "p", "/", "\\", "~"];
-      if (!allowedChars.includes(inputChar)) return;
-
-      // only allow one at a time
-      value = Array.from(new Set(value.split("")))
-        .join("")
-        .slice(0, 1);
+      // Check if the value is one of the following characters: h p / \ ~
+      const isValid = /^[hp\/\\\\~]$/.test(value);
+      if (value !== "" && !isValid) return;
     }
 
     const newTabData = [...tabData];
-    // const prevValue = newTabData[sectionIndex]!.data[columnIndex]![noteIndex];
 
     newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = value;
 
