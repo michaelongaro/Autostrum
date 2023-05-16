@@ -4,12 +4,19 @@ import { shallow } from "zustand/shallow";
 
 interface TabNote {
   note: string;
+  inlineEffect: boolean;
   sectionIndex: number;
   columnIndex: number;
   noteIndex: number;
 }
 
-function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
+function TabNote({
+  note,
+  inlineEffect,
+  sectionIndex,
+  columnIndex,
+  noteIndex,
+}: TabNote) {
   // need handling for all cases obv
 
   const { editing, tabData, setTabData } = useTabStore(
@@ -42,7 +49,7 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
     const value = e.target.value;
 
     // regular notes
-    if (columnIndex % 2 === 0 && noteIndex !== 7) {
+    if (!inlineEffect && noteIndex !== 7) {
       // Check if the value is between 0 and 22, a "|", or an "x"
       const isValid = /^(?:(?:[0-1]?[0-9]|2[0-2])|[|x])$/g.test(value);
       if (value !== "" && !isValid) return;
@@ -70,7 +77,7 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
     }
 
     // below the line effects
-    else if (columnIndex % 2 === 0 && noteIndex === 7) {
+    else if (!inlineEffect && noteIndex === 7) {
       // Check if the value is contains at most one of each of the following characters: . ^ v > s
       // and that it doesn't contain both a ^ and a v
       const isValid = /^(?!.*v.*\^)(?!.*\^.*v)[.\>sv\^]{1,5}$/g.test(value);
@@ -78,7 +85,7 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
     }
 
     // inline effects
-    else if (columnIndex % 2 === 1 && noteIndex !== 7) {
+    else if (inlineEffect && noteIndex !== 7) {
       // Check if the value is one of the following characters: h p / \ ~
       const isValid = /^[hp\/\\\\~]$/.test(value);
       if (value !== "" && !isValid) return;
@@ -86,7 +93,10 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
 
     const newTabData = [...tabData];
 
-    newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = value;
+    const subIndex = inlineEffect ? 1 : 0;
+
+    // @ts-expect-error fix typing later
+    newTabData[sectionIndex]!.data[columnIndex]![noteIndex][subIndex] = value;
 
     setTabData(newTabData);
   }
@@ -95,18 +105,14 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
     <Input
       id="note"
       style={{
-        height: `${columnIndex % 2 === 0 ? "2.35rem" : "1.35rem"}`,
+        height: `${!inlineEffect ? "2.35rem" : "1.35rem"}`,
         width: `${
-          columnIndex % 2 === 0
-            ? noteIndex === 7
-              ? "3.35rem"
-              : "2.35rem"
-            : "1.4rem"
+          !inlineEffect ? (noteIndex === 7 ? "3.35rem" : "2.35rem") : "1.4rem"
         }`,
-        fontSize: `${columnIndex % 2 === 0 ? "1rem" : "0.875rem"}`,
-        lineHeight: `${columnIndex % 2 === 0 ? "1.5rem" : "1.25rem"}`,
-        padding: `${columnIndex % 2 === 0 ? "0.5rem" : "0"}`,
-        margin: columnIndex % 2 === 0 ? "0" : "0.5rem 0",
+        fontSize: `${!inlineEffect ? "1rem" : "0.875rem"}`,
+        lineHeight: `${!inlineEffect ? "1.5rem" : "1.25rem"}`,
+        padding: `${!inlineEffect ? "0.5rem" : "0"}`,
+        margin: !inlineEffect ? "0" : "0.5rem 0",
       }}
       className=" rounded-full p-2 text-center"
       type="text"
