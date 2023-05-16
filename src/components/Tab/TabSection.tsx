@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import TabColumn from "./TabColumn";
@@ -6,6 +6,22 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
+
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
 
 interface TabSection {
   sectionData: {
@@ -17,6 +33,18 @@ interface TabSection {
 
 function TabSection({ sectionData, sectionIndex }: TabSection) {
   const [sectionTitle, setSectionTitle] = useState(sectionData.title);
+  const [ids, setIds] = useState<number[]>([]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  useEffect(() => {
+    setIds(sectionData.data.map((_, i) => i));
+  }, [sectionData]);
 
   const {
     tuning,
@@ -80,6 +108,38 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
     });
 
     setTabData(newTabData);
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    console.log("active", active, "over", over);
+
+    if (over === null) return;
+
+    const prevTabData = [...tabData];
+    let prevSectionData = prevTabData[sectionIndex];
+
+    // "over" value seems to have a "disabled" prop, try and use this later
+
+    if (
+      prevSectionData !== undefined &&
+      typeof active.id === "number" &&
+      typeof over.id === "number" &&
+      active.id !== over.id
+    ) {
+      console.log("made it", prevSectionData);
+
+      prevSectionData = {
+        ...prevSectionData,
+        data: arrayMove(prevSectionData.data, active.id, over.id),
+      };
+      prevTabData[sectionIndex] = prevSectionData;
+
+      console.log(prevSectionData);
+
+      setTabData(prevTabData);
+    }
   }
 
   return (
@@ -154,14 +214,23 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
           ))}
         </div>
 
-        {sectionData.data.map((column, index) => (
-          <TabColumn
-            key={index}
-            columnData={column}
-            sectionIndex={sectionIndex}
-            columnIndex={index}
-          />
-        ))}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={ids} strategy={rectSortingStrategy}>
+            {sectionData.data.map((column, index) => (
+              <TabColumn
+                key={index}
+                id={index}
+                columnData={column}
+                sectionIndex={sectionIndex}
+                columnIndex={index}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
 
         {/* any way to not have to hardcode this? */}
         <div className="baseVertFlex h-[284px] rounded-r-2xl border-2 border-pink-50 p-1"></div>
