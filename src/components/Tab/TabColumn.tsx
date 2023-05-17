@@ -1,29 +1,43 @@
+import { useTabStore } from "~/stores/TabStore";
+import { shallow } from "zustand/shallow";
 import TabMeasureLine from "./TabMeasureLine";
 import TabNoteAndEffectCombo from "./TabNoteAndEffectCombo";
 
 export interface TabColumn {
-  id: number;
   columnData: string[];
   sectionIndex: number;
   columnIndex: number;
 }
 
-function TabColumn({ id, columnData, sectionIndex, columnIndex }: TabColumn) {
+function TabColumn({ columnData, sectionIndex, columnIndex }: TabColumn) {
+  const { editing, tabData, setTabData } = useTabStore(
+    (state) => ({
+      editing: state.editing,
+      tabData: state.tabData,
+      setTabData: state.setTabData,
+    }),
+    shallow
+  );
+
+  // Note + effect columns are combined below to allow easier sorting behavior while reordering
+  // measure lines.
+  if (tabData[sectionIndex]?.data[columnIndex]?.[8] === "inlineEffect")
+    return null;
+
   return (
     <>
       {columnData.includes("|") ? (
         <TabMeasureLine
-          id={id}
           columnData={columnData}
           sectionIndex={sectionIndex}
           columnIndex={columnIndex}
         />
       ) : (
         <TabNoteAndEffectCombo
-          id={id}
-          columnData={columnData}
+          noteColumnData={columnData}
+          effectColumnData={tabData[sectionIndex]?.data[columnIndex + 1]}
           sectionIndex={sectionIndex}
-          columnIndex={columnIndex}
+          noteColumnIndex={columnIndex}
         />
       )}
     </>
