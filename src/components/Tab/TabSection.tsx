@@ -22,6 +22,7 @@ import {
   sortableKeyboardCoordinates,
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
+import { SortableOverlay } from "./SortableOverlay";
 
 interface TabSection {
   sectionData: {
@@ -33,7 +34,7 @@ interface TabSection {
 
 function TabSection({ sectionData, sectionIndex }: TabSection) {
   const [sectionTitle, setSectionTitle] = useState(sectionData.title);
-  const [ids, setIds] = useState<number[]>([]);
+  const [ids, setIds] = useState<string[]>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -43,7 +44,15 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
   );
 
   useEffect(() => {
-    setIds(sectionData.data.map((_, i) => i));
+    const newIds = [];
+
+    for (const [index, columnData] of sectionData.data.entries()) {
+      if (columnData[8] !== "inlineEffect") {
+        newIds.push(`${index}`);
+      }
+    }
+
+    setIds(newIds);
   }, [sectionData]);
 
   const {
@@ -85,7 +94,15 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
     const newTabData = [...tabData];
 
     for (let i = 0; i < 8; i++) {
-      newTabData[sectionIndex]!.data.push(Array.from({ length: 8 }, () => ""));
+      newTabData[sectionIndex]!.data.push(
+        Array.from({ length: 9 }, (_, index) => {
+          if (index === 8) {
+            return i % 2 === 0 ? "note" : "inlineEffect";
+          } else {
+            return "";
+          }
+        })
+      );
     }
 
     setTabData(newTabData);
@@ -94,7 +111,15 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
   function generateNewColumns() {
     const baseArray = [];
     for (let i = 0; i < 8; i++) {
-      baseArray.push(Array.from({ length: 8 }, () => ""));
+      baseArray.push(
+        Array.from({ length: 9 }, (_, index) => {
+          if (index === 8) {
+            return i % 2 === 0 ? "note" : "inlineEffect";
+          } else {
+            return "";
+          }
+        })
+      );
     }
 
     return baseArray;
@@ -113,30 +138,30 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
 
-    console.log("active", active, "over", over);
-
     if (over === null) return;
 
     const prevTabData = [...tabData];
     let prevSectionData = prevTabData[sectionIndex];
 
-    // "over" value seems to have a "disabled" prop, try and use this later
-
     if (
       prevSectionData !== undefined &&
-      typeof active.id === "number" &&
-      typeof over.id === "number" &&
+      typeof active.id === "string" &&
+      typeof over.id === "string" &&
       active.id !== over.id
     ) {
-      console.log("made it", prevSectionData);
+      const start = parseInt(active.id);
+      const end = parseInt(over.id);
 
       prevSectionData = {
         ...prevSectionData,
-        data: arrayMove(prevSectionData.data, active.id, over.id),
+        data: arrayMove(
+          prevSectionData.data,
+          start,
+          end > start ? end + 1 : end // needed to account for shifting indices when moving measure line from left to right
+        ),
       };
-      prevTabData[sectionIndex] = prevSectionData;
 
-      console.log(prevSectionData);
+      prevTabData[sectionIndex] = prevSectionData;
 
       setTabData(prevTabData);
     }
@@ -223,13 +248,15 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
             {sectionData.data.map((column, index) => (
               <TabColumn
                 key={index}
-                id={index}
                 columnData={column}
                 sectionIndex={sectionIndex}
                 columnIndex={index}
               />
             ))}
           </SortableContext>
+          {/* <SortableOverlay>
+            {activeItem ? renderItem(activeItem) : null}
+          </SortableOverlay> */}
         </DndContext>
 
         {/* any way to not have to hardcode this? */}
