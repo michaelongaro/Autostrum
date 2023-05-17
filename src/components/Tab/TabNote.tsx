@@ -58,18 +58,20 @@ function TabNote({
         const newTabData = [...tabData];
         const palmMuteNode = newTabData[sectionIndex]!.data[columnIndex]![0];
 
-        if (palmMuteNode !== undefined) {
-          newTabData[sectionIndex]!.data[columnIndex] = [
-            palmMuteNode,
-            "|",
-            "|",
-            "|",
-            "|",
-            "|",
-            "|",
-            "",
-          ];
-        }
+        newTabData[sectionIndex]!.data[columnIndex] = [
+          palmMuteNode ?? "",
+          "|",
+          "|",
+          "|",
+          "|",
+          "|",
+          "|",
+          "",
+          "measureLine", // add more annotations [8]
+        ];
+
+        // deleting the inlineEffect column
+        newTabData[sectionIndex]!.data.splice(columnIndex + 1, 1);
 
         setTabData(newTabData);
         return;
@@ -93,10 +95,7 @@ function TabNote({
 
     const newTabData = [...tabData];
 
-    const subIndex = inlineEffect ? 1 : 0;
-
-    // @ts-expect-error fix typing later
-    newTabData[sectionIndex]!.data[columnIndex]![noteIndex][subIndex] = value;
+    newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = value;
 
     setTabData(newTabData);
   }
@@ -107,7 +106,7 @@ function TabNote({
       style={{
         height: `${!inlineEffect ? "2.35rem" : "1.35rem"}`,
         width: `${
-          !inlineEffect ? (noteIndex === 7 ? "3.35rem" : "2.35rem") : "1.4rem"
+          !inlineEffect ? (noteIndex === 7 ? "3rem" : "2.35rem") : "1.4rem"
         }`,
         fontSize: `${!inlineEffect ? "1rem" : "0.875rem"}`,
         lineHeight: `${!inlineEffect ? "1.5rem" : "1.25rem"}`,
