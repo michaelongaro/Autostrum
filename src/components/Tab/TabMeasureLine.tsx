@@ -1,25 +1,27 @@
-import { Fragment } from "react";
+import { Fragment, type CSSProperties } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { type TabColumn } from "./TabColumn";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { RxDragHandleDots2 } from "react-icons/rx";
 
-function TabMeasureLine({
-  id,
-  columnData,
-  sectionIndex,
-  columnIndex,
-}: TabColumn) {
-  // need handling for when column is a measure line
-
-  // package in docs if you can make it work + framer motion useId or whatever it is.
-  const { attributes, listeners, setNodeRef, transform, transition } =
+function TabMeasureLine({ columnData, sectionIndex, columnIndex }: TabColumn) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } =
     // hoping that columnIndex is fine here. if you can drag across sections we will need to modify.
-    useSortable({ id });
+    useSortable({ id: `${columnIndex}` });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
+  const style: CSSProperties = {
+    opacity: isDragging ? 0.4 : 1,
+    transform: CSS.Translate.toString(transform),
     transition,
   };
 
@@ -31,17 +33,11 @@ function TabMeasureLine({
     shallow
   );
 
-  if (tabData[sectionIndex]?.data[columnIndex - 1]?.includes("|")) return null;
-
   return (
     <div
       ref={setNodeRef}
-      // hmm maybe do need more unique id here
       style={style}
-      {...attributes}
-      {...listeners}
-      className="baseVertFlex my-14 gap-2"
-      // need the measure line handling to be done here?
+      className="baseVertFlex relative my-14 transition-opacity"
     >
       {columnData.map((note, index) => (
         <Fragment key={index}>
@@ -66,23 +62,36 @@ function TabMeasureLine({
                 borderTop: `${
                   index === 1 ? "2px solid rgb(253 242 248)" : "none"
                 }`,
+                height: `${index === 1 || index === 6 ? "46px" : "48px"}`,
                 borderBottom: `${
                   index === 6 ? "2px solid rgb(253 242 248)" : "none"
                 }`,
               }}
-              className="baseFlex"
+              className="w-[2px] bg-pink-50"
+              onMouseEnter={() => console.log("hovering on measure line")}
             >
+              {/* <div className="w-[4px] bg-pink-50"></div>
               <div
                 style={{
                   height: `${index === 1 || index === 6 ? "46px" : "47px"}`,
                 }}
                 className="baseFlex w-[2px] bg-pink-50"
-                onMouseEnter={() => console.log("hovering on measure line")}
               ></div>
+
+              <div className="w-[4px] bg-pink-50"></div> */}
             </div>
           )}
 
-          {/* drag handler grabber here? */}
+          {index === 8 && (
+            <div
+              ref={setActivatorNodeRef}
+              {...attributes}
+              {...listeners}
+              className="hover:box-shadow-md absolute bottom-[-3.25rem] cursor-grab rounded-md text-pink-50 active:cursor-grabbing"
+            >
+              <RxDragHandleDots2 className="h-8 w-6" />
+            </div>
+          )}
         </Fragment>
       ))}
     </div>
