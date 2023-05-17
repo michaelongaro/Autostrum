@@ -3,22 +3,25 @@ import TabNote from "./TabNote";
 import PalmMuteNode from "./PalmMuteNode";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
-import { type TabColumn } from "./TabColumn";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-function TabNoteAndEffectCombo({
-  id,
-  columnData,
-  sectionIndex,
-  columnIndex,
-}: TabColumn) {
-  // need handling for when column is a measure line
+interface TabNoteAndEffectCombo {
+  noteColumnData: string[];
+  effectColumnData: string[] | undefined;
+  sectionIndex: number;
+  noteColumnIndex: number;
+}
 
-  // package in docs if you can make it work + framer motion useId or whatever it is.
+function TabNoteAndEffectCombo({
+  noteColumnData,
+  effectColumnData,
+  sectionIndex,
+  noteColumnIndex,
+}: TabNoteAndEffectCombo) {
   const { attributes, listeners, setNodeRef, transform, transition } =
-    // hoping that columnIndex is fine here. if you can drag across sections we will need to modify.
-    useSortable({ id });
+    // hoping that noteColumnIndex is fine here. if you can drag across sections we will need to modify.
+    useSortable({ id: `${noteColumnIndex}`, disabled: true });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -39,12 +42,11 @@ function TabNoteAndEffectCombo({
       style={style}
       {...attributes}
       {...listeners}
-      className="baseFlex"
-      // TODO: disabled somehow, look at docs..
+      className="baseFlex cursor-default"
     >
       {/* TODO: don't want to be repeating twice below, find way to combine */}
       <div className="baseVertFlex my-14 gap-2">
-        {columnData.map((note, index) => (
+        {noteColumnData.map((note, index) => (
           <Fragment key={index}>
             {index === 0 && (
               // this positioning is still a bit off
@@ -52,7 +54,7 @@ function TabNoteAndEffectCombo({
                 <div className="absolute bottom-0 left-1/2 right-1/2 w-[2rem] -translate-x-1/2">
                   <PalmMuteNode
                     note={note}
-                    columnIndex={columnIndex}
+                    columnIndex={noteColumnIndex}
                     sectionIndex={sectionIndex}
                   />
                 </div>
@@ -73,31 +75,49 @@ function TabNoteAndEffectCombo({
                 }}
                 className="baseFlex"
               >
-                <div className="h-[1px] w-2 bg-pink-50 "></div>
+                <div
+                  style={{
+                    width: `${
+                      tabData[sectionIndex]?.data[noteColumnIndex - 1]?.[8] ===
+                      "measureLine"
+                        ? "1.25rem"
+                        : "8px"
+                    }`,
+                  }}
+                  className="h-[1px] bg-pink-50 "
+                ></div>
                 <TabNote
-                  note={note[0]!}
+                  note={note}
                   inlineEffect={false}
                   sectionIndex={sectionIndex}
-                  columnIndex={columnIndex}
+                  columnIndex={noteColumnIndex}
                   noteIndex={index}
                 />
                 <div className="h-[1px] w-2 bg-pink-50"></div>
               </div>
             )}
 
-            {index === 7 && !columnData.includes("|") && (
+            {index === 7 && (
               <div className="relative h-0 w-full">
-                {columnIndex % 2 === 0 && (
-                  <div className="absolute left-1/2 right-1/2 top-2 w-[3.35rem] -translate-x-1/2">
-                    <TabNote
-                      note={note}
-                      inlineEffect={false}
-                      sectionIndex={sectionIndex}
-                      columnIndex={columnIndex}
-                      noteIndex={index}
-                    />
-                  </div>
-                )}
+                <div
+                  style={{
+                    left: `${
+                      tabData[sectionIndex]?.data[noteColumnIndex - 1]?.[8] ===
+                      "measureLine"
+                        ? "60%"
+                        : "50%"
+                    }`,
+                  }}
+                  className="absolute left-1/2 right-1/2 top-2 w-[3rem] -translate-x-1/2"
+                >
+                  <TabNote
+                    note={note}
+                    inlineEffect={false}
+                    sectionIndex={sectionIndex}
+                    columnIndex={noteColumnIndex}
+                    noteIndex={index}
+                  />
+                </div>
               </div>
             )}
           </Fragment>
@@ -105,7 +125,7 @@ function TabNoteAndEffectCombo({
       </div>
 
       <div className="baseVertFlex my-14 gap-2">
-        {columnData.map((note, index) => (
+        {effectColumnData?.map((note, index) => (
           <Fragment key={index}>
             {index === 0 && (
               // this positioning is still a bit off
@@ -113,7 +133,7 @@ function TabNoteAndEffectCombo({
                 <div className="absolute bottom-0 left-1/2 right-1/2 w-[2rem] -translate-x-1/2">
                   <PalmMuteNode
                     note={note}
-                    columnIndex={columnIndex}
+                    columnIndex={noteColumnIndex + 1}
                     sectionIndex={sectionIndex}
                   />
                 </div>
@@ -136,13 +156,23 @@ function TabNoteAndEffectCombo({
               >
                 <div className="h-[1px] w-2 bg-pink-50 "></div>
                 <TabNote
-                  note={note[1]!}
+                  note={note}
                   inlineEffect={true}
                   sectionIndex={sectionIndex}
-                  columnIndex={columnIndex}
+                  columnIndex={noteColumnIndex + 1}
                   noteIndex={index}
                 />
-                <div className="h-[1px] w-2 bg-pink-50"></div>
+                <div
+                  style={{
+                    width: `${
+                      tabData[sectionIndex]?.data[noteColumnIndex + 2]?.[8] ===
+                      "measureLine"
+                        ? "1.25rem"
+                        : "8px"
+                    }`,
+                  }}
+                  className="h-[1px] w-2 bg-pink-50"
+                ></div>
               </div>
             )}
 
