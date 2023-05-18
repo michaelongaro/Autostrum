@@ -69,17 +69,7 @@ function TabMeasureLine({ columnData, sectionIndex, columnIndex }: TabColumn) {
               }}
               className="w-[2px] bg-pink-50"
               onMouseEnter={() => console.log("hovering on measure line")}
-            >
-              {/* <div className="w-[4px] bg-pink-50"></div>
-              <div
-                style={{
-                  height: `${index === 1 || index === 6 ? "46px" : "47px"}`,
-                }}
-                className="baseFlex w-[2px] bg-pink-50"
-              ></div>
-
-              <div className="w-[4px] bg-pink-50"></div> */}
-            </div>
+            ></div>
           )}
 
           {index === 8 && (
