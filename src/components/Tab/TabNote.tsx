@@ -35,7 +35,7 @@ function TabNote({
 
     const newTabData = [...tabData];
     const prevValue = newTabData[sectionIndex]!.data[columnIndex]![noteIndex];
-    if (prevValue === "" || prevValue === undefined) return newTabData;
+    if (prevValue === "" || prevValue === undefined) return;
 
     newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = prevValue.slice(
       0,
