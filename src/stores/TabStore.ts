@@ -28,6 +28,8 @@ interface TabState {
   setTabData: (tabData: ITabSection[]) => void;
   editing: boolean;
   setEditing: (editing: boolean) => void;
+  sectionProgression: [string, number][];
+  setSectionProgression: (sectionProgresstion: [string, number][]) => void;
 
   // used in <TabSection />
   editingPalmMuteNodes: boolean;
@@ -86,6 +88,8 @@ export const useTabStore = create<TabState>()(
     setTabData: (tabData) => set({ tabData }),
     editing: true, // temporary, should be false
     setEditing: (editing) => set({ editing }),
+    sectionProgression: [["Intro", 1]],
+    setSectionProgression: (sectionProgression) => set({ sectionProgression }),
 
     // used in <TabSection />
     editingPalmMuteNodes: false,
