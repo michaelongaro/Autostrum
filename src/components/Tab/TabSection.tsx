@@ -55,6 +55,12 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
     setIds(newIds);
   }, [sectionData]);
 
+  useEffect(() => {
+    if (sectionTitle !== sectionData.title) {
+      setSectionTitle(sectionData.title);
+    }
+  }, [sectionData, sectionTitle]);
+
   const {
     tuning,
     editingPalmMuteNodes,
@@ -179,18 +185,42 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
         <Button
           variant={"secondary"}
           className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
+          disabled={sectionIndex === 0}
+          onClick={() => {
+            let newTabData = [...tabData];
+
+            newTabData = arrayMove(newTabData, sectionIndex, sectionIndex - 1);
+
+            setTabData(newTabData);
+          }}
         >
           <BiUpArrowAlt className="h-5 w-5" />
         </Button>
         <Button
           variant={"secondary"}
           className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
+          disabled={sectionIndex === tabData.length - 1}
+          onClick={() => {
+            let newTabData = [...tabData];
+
+            newTabData = arrayMove(newTabData, sectionIndex, sectionIndex + 1);
+
+            setTabData(newTabData);
+          }}
         >
           <BiDownArrowAlt className="h-5 w-5" />
         </Button>
         <Button
           variant={"destructive"}
           className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
+          disabled={tabData.length === 1} // maybe allow this later, but currently messes up ui
+          onClick={() => {
+            const newTabData = [...tabData];
+
+            newTabData.splice(sectionIndex, 1);
+
+            setTabData(newTabData);
+          }}
         >
           <IoClose className="h-5 w-5" />
         </Button>
@@ -264,16 +294,10 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
               />
             ))}
           </SortableContext>
-          {/* <SortableOverlay>
-            {activeItem ? renderItem(activeItem) : null}
-          </SortableOverlay> */}
         </DndContext>
 
         {/* any way to not have to hardcode this? */}
         <div className="baseVertFlex h-[284px] rounded-r-2xl border-2 border-pink-50 p-1"></div>
-
-        {/* also add "repeat" button so that it will show a "x2" or "x5" or w/e
-            based on what multiplier the user typed */}
 
         <Button className="ml-4 rounded-full" onClick={addNewColumns}>
           +
