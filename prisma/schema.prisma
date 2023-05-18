@@ -17,7 +17,7 @@ model User {
     featuredTab    Tab?            @relation("FeaturedTab")
     featuredTabId  Int?
     createdTabs    Tab[]           @relation("CreatedBy")
-    likedTabs      Tab[]           @relation("Likes")
+    likes          Likes[]
     comments       Comment[]
     featuredArtist PromotedArtist?
     createdAt      DateTime        @default(now())
@@ -25,26 +25,49 @@ model User {
 }
 
 model Tab {
-    id            Int       @id @default(autoincrement())
-    title         String
-    description   String?
-    bpm           Int
-    tuning        String
-    timeSignature String
-    tabData       Json
-    createdAt     DateTime  @default(now())
-    createdBy     User      @relation("CreatedBy", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
-    createdById   Int
-    genre         Genre     @relation(fields: [genreId], references: [id])
-    genreId       Int
-    comments      Comment[]
-    featuredTab   User?     @relation("FeaturedTab", fields: [featuredTabId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-    featuredTabId Int?      @unique
-    likedBy       User[]    @relation("Likes")
+    id                 Int           @id @default(autoincrement())
+    title              String
+    description        String?
+    bpm                Int
+    tuning             String
+    timeSignature      String
+    tabData            Json
+    sectionProgression SongSection[]
+    createdAt          DateTime      @default(now())
+    createdBy          User          @relation("CreatedBy", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+    createdById        Int
+    genre              Genre         @relation(fields: [genreId], references: [id])
+    genreId            Int
+    comments           Comment[]
+    featuredTab        User?         @relation("FeaturedTab", fields: [featuredTabId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+    featuredTabId      Int?          @unique
+    likes              Likes[]
 
     @@index([featuredTabId])
     @@index([createdById])
     @@index([genreId])
+}
+
+// Junction table for likes
+model Likes {
+    id     Int  @id @default(autoincrement())
+    user   User @relation(fields: [userId], references: [id])
+    userId Int
+    tab    Tab  @relation(fields: [tabId], references: [id])
+    tabId  Int
+
+    @@index([userId])
+    @@index([tabId])
+}
+
+model SongSection {
+    id    Int    @id @default(autoincrement())
+    name  String
+    index Int
+    tab   Tab    @relation(fields: [tabId], references: [id])
+    tabId Int
+
+    @@index([tabId])
 }
 
 model Genre {
