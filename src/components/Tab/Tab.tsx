@@ -5,7 +5,10 @@ import TabMetadata from "./TabMetadata";
 import TabSection from "./TabSection";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
+import { AnimatePresence } from "framer-motion";
+
 import SectionProgression from "./SectionProgression";
+import SectionProgressionModal from "../modals/SectionProgressionModal";
 
 // not sure of best way to avoid having the same name for interface and component
 export interface ITabSection {
@@ -29,6 +32,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
     setTabData,
     editing,
     setEditing,
+    showSectionProgressionModal,
   } = useTabStore(
     (state) => ({
       setCreatedById: state.setCreatedById,
@@ -42,6 +46,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
       setTabData: state.setTabData,
       editing: state.editing,
       setEditing: state.setEditing,
+      showSectionProgressionModal: state.showSectionProgressionModal,
     }),
     shallow
   );
@@ -107,23 +112,29 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
 
   // edit/save buttons prob right at the top of this markup below
   return (
-    <div className="baseVertFlex lightGlassmorphic relative mt-24 w-11/12 gap-4 rounded-md p-4 md:w-8/12">
-      <TabMetadata />
+    <>
+      <div className="baseVertFlex lightGlassmorphic relative mt-24 w-11/12 gap-4 rounded-md p-4 md:w-8/12">
+        <TabMetadata />
 
-      <SectionProgression />
+        <SectionProgression />
 
-      {/* Actual tab below */}
-      {tabData.map((section, index) => (
-        <TabSection
-          key={index}
-          sectionData={{
-            title: section.title,
-            data: section.data,
-          }}
-          sectionIndex={index}
-        />
-      ))}
-    </div>
+        {/* Actual tab below */}
+        {tabData.map((section, index) => (
+          <TabSection
+            key={index}
+            sectionData={{
+              title: section.title,
+              data: section.data,
+            }}
+            sectionIndex={index}
+          />
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+        {showSectionProgressionModal && <SectionProgressionModal />}
+      </AnimatePresence>
+    </>
   );
 }
 

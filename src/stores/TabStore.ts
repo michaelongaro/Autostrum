@@ -46,6 +46,12 @@ interface TabState {
     prevValue: string,
     pairNodeValue?: string
   ) => void;
+
+  // modals
+  showSectionProgressionModal: boolean;
+  setShowSectionProgressionModal: (
+    showSectionProgressionModal: boolean
+  ) => void;
 }
 
 // if you ever come across a situation where you need the current value of tabData
@@ -153,5 +159,10 @@ export const useTabStore = create<TabState>()(
 
       setTabData(newTabData);
     },
+
+    // modals
+    showSectionProgressionModal: false,
+    setShowSectionProgressionModal: (showSectionProgressionModal) =>
+      set({ showSectionProgressionModal }),
   }))
 );
