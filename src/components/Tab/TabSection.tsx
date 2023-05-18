@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import TabColumn from "./TabColumn";
@@ -34,7 +34,6 @@ interface TabSection {
 
 function TabSection({ sectionData, sectionIndex }: TabSection) {
   const [sectionTitle, setSectionTitle] = useState(sectionData.title);
-  const [ids, setIds] = useState<string[]>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -43,7 +42,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
     })
   );
 
-  useEffect(() => {
+  const ids = useMemo(() => {
     const newIds = [];
 
     for (const [index, columnData] of sectionData.data.entries()) {
@@ -52,7 +51,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
       }
     }
 
-    setIds(newIds);
+    return newIds;
   }, [sectionData]);
 
   useEffect(() => {
@@ -134,7 +133,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
   function addNewSection() {
     const newTabData = [...tabData];
     newTabData.splice(sectionIndex + 1, 0, {
-      title: "New section",
+      title: `Section ${sectionIndex + 2}`,
       data: generateNewColumns(),
     });
 
@@ -181,7 +180,8 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
       </div>
 
       <div className="baseFlex absolute left-4 top-16 gap-2 md:left-auto md:right-4 md:top-4">
-        {/* logic for whether to disable up/down arrows */}
+        {/* try to use framer motion to animate sections sliding up/down to their new positions
+        (this would mean both sections would need to slide for each click of "up"/"down" ) */}
         <Button
           variant={"secondary"}
           className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
@@ -304,9 +304,11 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
         </Button>
       </div>
 
-      <Button className="mt-12" onClick={addNewSection}>
-        Add new section
-      </Button>
+      {sectionIndex === tabData.length - 1 && (
+        <Button className="mt-12" onClick={addNewSection}>
+          Add new section
+        </Button>
+      )}
     </div>
   );
 }
