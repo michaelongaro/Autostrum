@@ -22,7 +22,7 @@ import {
   sortableKeyboardCoordinates,
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
-import { SortableOverlay } from "./SortableOverlay";
+import { restrictToParentElement } from "@dnd-kit/modifiers";
 
 interface TabSection {
   sectionData: {
@@ -239,8 +239,18 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
           ))}
         </div>
 
+        {/* TODO: when dragging measure line, the first <TabNoteAndEffectCombo /> will
+        be shrunk down to 1px width and moved out of the way. I _believe_ that this is due to 
+        maybe the dnd thinking that the measure line is actually as wide as the other elems but
+        I'm not too sure. 
+        
+        Also when moving across other measure lines it moves them up out of
+        the way when really I just want things to move horizontally/jump to next line if need
+        be... Maybe somehow try to increase width of section as a whole? seems like it is doing
+        the best it can but just has no space to expand out to. */}
         <DndContext
           sensors={sensors}
+          modifiers={[restrictToParentElement]}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
