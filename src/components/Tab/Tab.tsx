@@ -5,6 +5,7 @@ import TabMetadata from "./TabMetadata";
 import TabSection from "./TabSection";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
+import SectionProgression from "./SectionProgression";
 
 // not sure of best way to avoid having the same name for interface and component
 export interface ITabSection {
@@ -108,6 +109,8 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
   return (
     <div className="baseVertFlex lightGlassmorphic relative mt-24 w-11/12 gap-4 rounded-md p-4 md:w-8/12">
       <TabMetadata />
+
+      <SectionProgression />
 
       {/* Actual tab below */}
       {tabData.map((section, index) => (
