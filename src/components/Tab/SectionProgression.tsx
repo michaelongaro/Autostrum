@@ -47,7 +47,7 @@ function SectionProgression() {
         style={{
           minWidth: aboveMediumViewportWidth
             ? sectionProgression.length === 0
-              ? "250px"
+              ? "450px"
               : "500px"
             : "auto",
         }}
@@ -60,18 +60,20 @@ function SectionProgression() {
             : "Section progression"}
         </p>
 
-        <div className="baseVertFlex gap-2 md:flex-row">
-          {sectionProgression.map((section, index) => (
-            <div key={index} className="baseFlex gap-2">
-              <p className="font-semibold">{section[0]}</p>
-              <p>x{section[1]}</p>
+        {sectionProgression.length > 0 && (
+          <div className="baseVertFlex gap-2 md:flex-row">
+            {sectionProgression.map((section) => (
+              <div key={section.id} className="baseFlex gap-2">
+                <p className="font-semibold">{section.title}</p>
+                <p>x{section.repetitions}</p>
 
-              {index !== sectionProgression.length - 1 && (
-                <BsArrowRightShort className="text-pink-50" />
-              )}
-            </div>
-          ))}
-        </div>
+                {section.index !== sectionProgression.length - 1 && (
+                  <BsArrowRightShort className="text-pink-50" />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
         <Button
           size={"sm"}
@@ -83,7 +85,7 @@ function SectionProgression() {
 
         <Button
           size={"sm"}
-          className="absolute right-4 top-4 hidden md:block"
+          className="absolute right-3 top-3 hidden md:block"
           onClick={() => setShowSectionProgressionModal(true)}
         >
           {sectionProgression.length === 0 ? "Add one" : "Edit"}
