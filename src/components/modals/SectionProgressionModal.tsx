@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, type CSSProperties } from "react";
-import { useTabStore } from "~/stores/TabStore";
+import { type SectionProgression, useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { AnimatePresence, motion } from "framer-motion";
 import { IoClose } from "react-icons/io5";
@@ -22,6 +22,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { restrictToFirstScrollableAncestor } from "@dnd-kit/modifiers";
+import { v4 as uuid } from "uuid";
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -67,6 +68,12 @@ const sectionVariants = {
     scale: 0,
   },
 };
+
+function reassignIndicies(array: SectionProgression[]) {
+  return array.map((item, index) => {
+    return { ...item, index };
+  });
+}
 
 function SectionProgressionModal() {
   // TODO: maybe create custom hook that will return boolean for aboveMediumViewportWidth
@@ -118,8 +125,8 @@ function SectionProgressionModal() {
   }, [tabData]);
 
   const sectionIds = useMemo(() => {
-    return tabData.map((_, index) => `${index}`);
-  }, [tabData]);
+    return sectionProgression.map((section) => section.id);
+  }, [sectionProgression]);
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -133,17 +140,39 @@ function SectionProgressionModal() {
       typeof over.id === "string" &&
       active.id !== over.id
     ) {
-      const start = parseInt(active.id);
-      const end = parseInt(over.id);
+      const startIndex = newSectionProgression.findIndex(
+        (section) => section.id === active.id
+      );
+      const endIndex = newSectionProgression.findIndex(
+        (section) => section.id === over.id
+      );
 
-      (newSectionProgression = arrayMove(newSectionProgression, start, end)),
-        setSectionProgression(newSectionProgression);
+      // need to adjust all affected index values as well
+
+      console.log(startIndex, endIndex);
+
+      newSectionProgression = arrayMove(
+        newSectionProgression,
+        startIndex,
+        endIndex
+      );
+
+      console.log(newSectionProgression);
+      newSectionProgression = reassignIndicies(newSectionProgression);
+      console.log(newSectionProgression);
+
+      setSectionProgression(newSectionProgression);
     }
   }
 
   function addNewSectionToProgression() {
     const newSectionProgression = [...sectionProgression];
-    newSectionProgression.push(["", 1]);
+    newSectionProgression.push({
+      id: uuid(),
+      title: "",
+      repetitions: 1,
+      index: newSectionProgression.length,
+    });
     setSectionProgression(newSectionProgression);
   }
 
@@ -157,10 +186,9 @@ function SectionProgressionModal() {
     const prunedSectionProgression = [];
 
     for (const section of newSectionProgression) {
-      if (section[0] !== "") {
-        if (section[1] < 1) {
-          section[1] = 1;
-        }
+      if (section.title !== "") {
+        section.repetitions = section.repetitions < 0 ? 1 : section.repetitions;
+
         prunedSectionProgression.push(section);
       }
     }
@@ -200,8 +228,7 @@ function SectionProgressionModal() {
             Section progression
           </div>
 
-          <div className="baseVertFlex max-h-[90vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto pb-8 pr-4 md:max-h-[500px] md:w-3/4">
-            {/* maybe need a drag overlay for this to work properly */}
+          <div className="baseVertFlex max-h-[90vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[500px]">
             <DndContext
               sensors={sensors}
               modifiers={[restrictToFirstScrollableAncestor]}
@@ -215,33 +242,33 @@ function SectionProgressionModal() {
                 {sectionProgression.length > 0 ? (
                   <AnimatePresence mode="wait">
                     <>
-                      {sectionProgression.map((section, index) => (
+                      {sectionProgression.map((section) => (
                         <Section
-                          key={index}
-                          index={index}
-                          title={section[0]}
-                          repetitions={section[1]}
+                          key={section.id}
+                          id={section.id}
+                          index={section.index}
+                          title={section.title}
+                          repetitions={section.repetitions}
                           titles={sectionTitles}
                         />
                       ))}
                     </>
                   </AnimatePresence>
                 ) : (
-                  <Section
-                    index={0}
-                    title={sectionTitles[0] ?? "Section 1"}
-                    repetitions={1}
-                    titles={sectionTitles}
-                  />
+                  <Button onClick={addNewSectionToProgression}>
+                    Add first section
+                  </Button>
                 )}
               </SortableContext>
             </DndContext>
-            <Button
-              className="rounded-full"
-              onClick={addNewSectionToProgression}
-            >
-              +
-            </Button>
+            {sectionProgression.length > 0 && (
+              <Button
+                className="rounded-full p-4"
+                onClick={addNewSectionToProgression}
+              >
+                +
+              </Button>
+            )}
           </div>
         </div>
       </motion.div>
@@ -251,15 +278,24 @@ function SectionProgressionModal() {
 
 export default SectionProgressionModal;
 
+const initialStyles = {
+  x: 0,
+  y: 0,
+  scale: 1,
+  opacity: 1,
+};
+
 interface Section {
+  id: string;
   titles: string[];
   index: number;
   title: string;
   repetitions: number;
 }
 
-function Section({ titles, index, title, repetitions }: Section) {
-  console.log(titles, index, title, repetitions);
+function Section({ id, title, repetitions, index, titles }: Section) {
+  const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
+  const [grabbingHandle, setGrabbingHandle] = useState(false);
 
   const {
     editing,
@@ -286,15 +322,7 @@ function Section({ titles, index, title, repetitions }: Section) {
     transform,
     transition,
     isDragging,
-  } =
-    // hoping that columnIndex is fine here. if you can drag across sections we will need to modify.
-    useSortable({ id: `${index}` });
-
-  const style: CSSProperties = {
-    opacity: isDragging ? 0.4 : 1,
-    transform: CSS.Translate.toString(transform),
-    transition,
-  };
+  } = useSortable({ id, transition: null });
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key !== "Backspace") return;
@@ -302,14 +330,14 @@ function Section({ titles, index, title, repetitions }: Section) {
     e.preventDefault();
 
     const newSectionProgression = [...sectionProgression];
-    const prevValue = newSectionProgression[index]![1];
+    const prevValue = newSectionProgression[index]!.repetitions;
 
     // changes number to string for easier manipulation; removes the last digit
     let stringifiedPrevValue = prevValue.toString();
     if (stringifiedPrevValue === "-1") return;
     stringifiedPrevValue = stringifiedPrevValue.slice(0, -1);
 
-    newSectionProgression[index]![1] =
+    newSectionProgression[index]!.repetitions =
       stringifiedPrevValue.length === 0 ? -1 : parseInt(stringifiedPrevValue);
 
     setSectionProgression(newSectionProgression);
@@ -327,41 +355,77 @@ function Section({ titles, index, title, repetitions }: Section) {
     }
 
     const newSectionProgression = [...sectionProgression];
-    if (type === "title") newSectionProgression[index]![0] = value;
-    else newSectionProgression[index]![1] = sanitizedValue;
+    if (type === "title") newSectionProgression[index]!.title = value;
+    else newSectionProgression[index]!.repetitions = sanitizedValue;
     setSectionProgression(newSectionProgression);
   }
 
   function deleteSection() {
-    const newSectionProgression = [...sectionProgression];
+    let newSectionProgression = [...sectionProgression];
     newSectionProgression.splice(index, 1);
+    newSectionProgression = reassignIndicies(newSectionProgression);
     setSectionProgression(newSectionProgression);
   }
 
   return (
     <motion.div
-      // I think this key is the culprit for the exit animation not playing properly
-      key={`sectionProgression${title}${repetitions}${index}`}
-      variants={sectionVariants}
+      key={`sectionProgressionOuter${id}`}
       initial="closed"
       animate="expanded"
       exit="closed"
-      className="baseFlex w-full gap-2"
+      variants={sectionVariants}
+      className="baseFlex relative w-full gap-2"
     >
-      <div
-        ref={setActivatorNodeRef}
-        {...attributes}
-        {...listeners}
-        className="hover:box-shadow-md cursor-grab rounded-md text-pink-50 active:cursor-grabbing"
-      >
-        <RxDragHandleDots2 className="h-8 w-6" />
-      </div>
-
-      <div
+      <motion.div
+        key={`sectionProgressionInner${id}`}
         ref={setNodeRef}
-        style={style}
+        layoutId={id}
+        style={initialStyles}
+        animate={
+          transform
+            ? {
+                x: transform.x,
+                y: transform.y,
+                scale: isDragging ? 1.05 : 1,
+                zIndex: isDragging ? 1 : 0,
+                boxShadow: isDragging
+                  ? "0 0 0 1px rgba(63, 63, 68, 0.05), 0px 15px 15px 0 rgba(34, 33, 81, 0.25)"
+                  : undefined,
+              }
+            : initialStyles
+        }
+        transition={{
+          duration: !isDragging ? 0.25 : 0,
+          easings: {
+            type: "spring",
+          },
+          scale: {
+            duration: 0.25,
+          },
+          zIndex: {
+            delay: isDragging ? 0 : 0.25,
+          },
+        }}
         className="baseFlex w-3/4 gap-4 rounded-md bg-pink-500 p-4 md:w-11/12 "
       >
+        <div
+          ref={setActivatorNodeRef}
+          {...attributes}
+          {...listeners}
+          className="relative cursor-grab rounded-md text-pink-50 active:cursor-grabbing"
+          onMouseEnter={() => setHoveringOnHandle(true)}
+          onMouseDown={() => setGrabbingHandle(true)}
+          onMouseLeave={() => setHoveringOnHandle(false)}
+          onMouseUp={() => setGrabbingHandle(false)}
+        >
+          <RxDragHandleDots2 className="h-8 w-6" />
+          <div
+            style={{
+              opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
+            }}
+            className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-pink-200/30 p-4 transition-all"
+          ></div>
+        </div>
         <Select
           value={title === "" ? undefined : title}
           onValueChange={(value) => handleChange(value, "title")}
@@ -397,15 +461,10 @@ function Section({ titles, index, title, repetitions }: Section) {
           />
         </div>
 
-        <Button
-          variant={"destructive"}
-          size={"sm"}
-          onClick={deleteSection}
-          disabled={sectionProgression.length === 1}
-        >
+        <Button variant={"destructive"} size={"sm"} onClick={deleteSection}>
           <FaTrashAlt className="h-5 w-5 text-pink-50" />
         </Button>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
