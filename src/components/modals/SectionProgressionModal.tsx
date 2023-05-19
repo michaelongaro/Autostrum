@@ -228,7 +228,7 @@ function SectionProgressionModal() {
             Section progression
           </div>
 
-          <div className="baseVertFlex max-h-[90vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[500px]">
+          <div className="baseVertFlex max-h-[90vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[500px] md:w-3/4">
             <DndContext
               sensors={sensors}
               modifiers={[restrictToFirstScrollableAncestor]}
@@ -369,63 +369,66 @@ function Section({ id, title, repetitions, index, titles }: Section) {
 
   return (
     <motion.div
-      key={`sectionProgressionOuter${id}`}
+      key={`sectionProgression${id}`}
+      ref={setNodeRef}
+      layoutId={id}
+      style={initialStyles}
       initial="closed"
-      animate="expanded"
+      animate={
+        transform
+          ? {
+              x: transform.x,
+              y: transform.y,
+              opacity: 1,
+              scale: isDragging ? 1.05 : 1,
+              zIndex: isDragging ? 1 : 0,
+              boxShadow: isDragging
+                ? "0 0 0 1px rgba(63, 63, 68, 0.05), 0px 15px 15px 0 rgba(34, 33, 81, 0.25)"
+                : undefined,
+            }
+          : initialStyles
+      }
       exit="closed"
+      transition={{
+        duration: !isDragging ? 0.25 : 0,
+        easings: {
+          type: "spring",
+        },
+        x: {
+          duration: !isDragging ? 0.3 : 0,
+        },
+        y: {
+          duration: !isDragging ? 0.3 : 0,
+        },
+        scale: {
+          duration: 0.25,
+        },
+        zIndex: {
+          delay: isDragging ? 0 : 0.25,
+        },
+      }}
       variants={sectionVariants}
-      className="baseFlex relative w-full gap-2"
+      className="baseFlex relative w-fit gap-2"
     >
-      <motion.div
-        key={`sectionProgressionInner${id}`}
-        ref={setNodeRef}
-        layoutId={id}
-        style={initialStyles}
-        animate={
-          transform
-            ? {
-                x: transform.x,
-                y: transform.y,
-                scale: isDragging ? 1.05 : 1,
-                zIndex: isDragging ? 1 : 0,
-                boxShadow: isDragging
-                  ? "0 0 0 1px rgba(63, 63, 68, 0.05), 0px 15px 15px 0 rgba(34, 33, 81, 0.25)"
-                  : undefined,
-              }
-            : initialStyles
-        }
-        transition={{
-          duration: !isDragging ? 0.25 : 0,
-          easings: {
-            type: "spring",
-          },
-          scale: {
-            duration: 0.25,
-          },
-          zIndex: {
-            delay: isDragging ? 0 : 0.25,
-          },
-        }}
-        className="baseFlex w-3/4 gap-4 rounded-md bg-pink-500 p-4 md:w-11/12 "
+      <div
+        ref={setActivatorNodeRef}
+        {...attributes}
+        {...listeners}
+        className="absolute left-2 cursor-grab rounded-md text-pink-50 active:cursor-grabbing md:-left-8"
+        onMouseEnter={() => setHoveringOnHandle(true)}
+        onMouseDown={() => setGrabbingHandle(true)}
+        onMouseLeave={() => setHoveringOnHandle(false)}
+        onMouseUp={() => setGrabbingHandle(false)}
       >
+        <RxDragHandleDots2 className="h-8 w-6" />
         <div
-          ref={setActivatorNodeRef}
-          {...attributes}
-          {...listeners}
-          className="relative cursor-grab rounded-md text-pink-50 active:cursor-grabbing"
-          onMouseEnter={() => setHoveringOnHandle(true)}
-          onMouseDown={() => setGrabbingHandle(true)}
-          onMouseLeave={() => setHoveringOnHandle(false)}
-          onMouseUp={() => setGrabbingHandle(false)}
-        >
-          <RxDragHandleDots2 className="h-8 w-6" />
-          <div
-            style={{
-              opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
-            }}
-            className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-pink-200/30 p-4 transition-all"
-          ></div>
-        </div>
+          style={{
+            opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
+          }}
+          className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-pink-200/30 p-4 transition-all"
+        ></div>
+      </div>
+      <div className="baseFlex w-full gap-4 rounded-md bg-pink-500 p-4 md:w-fit ">
         <Select
           value={title === "" ? undefined : title}
           onValueChange={(value) => handleChange(value, "title")}
@@ -464,7 +467,7 @@ function Section({ id, title, repetitions, index, titles }: Section) {
         <Button variant={"destructive"} size={"sm"} onClick={deleteSection}>
           <FaTrashAlt className="h-5 w-5 text-pink-50" />
         </Button>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }
