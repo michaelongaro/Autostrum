@@ -8,6 +8,13 @@ interface LastModifiedPalmMuteNodeLocation {
   currentValue: string;
 }
 
+export interface SectionProgression {
+  id: string;
+  title: string;
+  repetitions: number;
+  index: number;
+}
+
 interface TabState {
   // used in <Tab />
   createdById: number; // or maybe number need to figure out how clerk stores their stuff
@@ -28,8 +35,8 @@ interface TabState {
   setTabData: (tabData: ITabSection[]) => void;
   editing: boolean;
   setEditing: (editing: boolean) => void;
-  sectionProgression: [string, number][];
-  setSectionProgression: (sectionProgresstion: [string, number][]) => void;
+  sectionProgression: SectionProgression[];
+  setSectionProgression: (sectionProgresstion: SectionProgression[]) => void;
 
   // used in <TabSection />
   editingPalmMuteNodes: boolean;
@@ -94,7 +101,7 @@ export const useTabStore = create<TabState>()(
     setTabData: (tabData) => set({ tabData }),
     editing: true, // temporary, should be false
     setEditing: (editing) => set({ editing }),
-    sectionProgression: [["Intro", 1]],
+    sectionProgression: [],
     setSectionProgression: (sectionProgression) => set({ sectionProgression }),
 
     // used in <TabSection />

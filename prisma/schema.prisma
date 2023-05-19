@@ -61,11 +61,13 @@ model Likes {
 }
 
 model SongSection {
-    id    Int    @id @default(autoincrement())
-    name  String
-    index Int
-    tab   Tab    @relation(fields: [tabId], references: [id])
-    tabId Int
+    // gets uuid passed in from client since we need it before the tab is created
+    id          String @id
+    name        String
+    repetitions Int
+    index       Int
+    tab         Tab    @relation(fields: [tabId], references: [id])
+    tabId       Int
 
     @@index([tabId])
 }
