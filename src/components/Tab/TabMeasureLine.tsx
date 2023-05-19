@@ -1,12 +1,33 @@
-import { Fragment, type CSSProperties } from "react";
+import { useState, Fragment, type CSSProperties } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
+import { motion } from "framer-motion";
 import { type TabColumn } from "./TabColumn";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { RxDragHandleDots2 } from "react-icons/rx";
 
+const sectionVariants = {
+  expanded: {
+    opacity: 1,
+    scale: 1,
+  },
+  closed: {
+    opacity: 0,
+    scale: 0,
+  },
+};
+
+const initialStyles = {
+  x: 0,
+  y: 0,
+  scale: 1,
+  opacity: 1,
+};
+
 function TabMeasureLine({ columnData, sectionIndex, columnIndex }: TabColumn) {
+  const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
+  const [grabbingHandle, setGrabbingHandle] = useState(false);
   const {
     attributes,
     listeners,
@@ -34,10 +55,47 @@ function TabMeasureLine({ columnData, sectionIndex, columnIndex }: TabColumn) {
   );
 
   return (
-    <div
+    <motion.div
+      key={`tabColumn${columnIndex}`}
       ref={setNodeRef}
-      style={style}
-      className="baseVertFlex relative my-14 transition-opacity"
+      layoutId={`tabColumn${columnIndex}`}
+      style={initialStyles}
+      initial="closed"
+      animate={
+        transform
+          ? {
+              x: transform.x,
+              y: transform.y,
+              opacity: 1,
+              scale: isDragging ? 1.05 : 1,
+              zIndex: isDragging ? 1 : 0,
+              boxShadow: isDragging
+                ? "0 0 0 1px rgba(63, 63, 68, 0.05), 0px 15px 15px 0 rgba(34, 33, 81, 0.25)"
+                : undefined,
+            }
+          : initialStyles
+      }
+      exit="closed"
+      transition={{
+        duration: !isDragging ? 0.25 : 0,
+        easings: {
+          type: "spring",
+        },
+        x: {
+          duration: !isDragging ? 0.3 : 0,
+        },
+        y: {
+          duration: !isDragging ? 0.3 : 0,
+        },
+        scale: {
+          duration: 0.25,
+        },
+        zIndex: {
+          delay: isDragging ? 0 : 0.25,
+        },
+      }}
+      variants={sectionVariants}
+      className="baseVertFlex relative my-14"
     >
       {columnData.map((note, index) => (
         <Fragment key={index}>
@@ -78,13 +136,23 @@ function TabMeasureLine({ columnData, sectionIndex, columnIndex }: TabColumn) {
               {...attributes}
               {...listeners}
               className="hover:box-shadow-md absolute bottom-[-3.25rem] cursor-grab rounded-md text-pink-50 active:cursor-grabbing"
+              onMouseEnter={() => setHoveringOnHandle(true)}
+              onMouseDown={() => setGrabbingHandle(true)}
+              onMouseLeave={() => setHoveringOnHandle(false)}
+              onMouseUp={() => setGrabbingHandle(false)}
             >
               <RxDragHandleDots2 className="h-8 w-6" />
+              <div
+                style={{
+                  opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
+                }}
+                className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-pink-200/30 p-4 transition-all"
+              ></div>
             </div>
           )}
         </Fragment>
       ))}
-    </div>
+    </motion.div>
   );
 }
 
