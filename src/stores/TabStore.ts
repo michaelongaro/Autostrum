@@ -16,6 +16,9 @@ export interface SectionProgression {
 }
 
 interface TabState {
+  // not sure if this will hurt us later on, but I would like to avoid making all of these optional
+  // and instead just set them to default-ish values
+
   // used in <Tab />
   createdById: number; // or maybe number need to figure out how clerk stores their stuff
   setCreatedById: (createdById: number) => void;
@@ -23,8 +26,8 @@ interface TabState {
   setTitle: (title: string) => void;
   description: string;
   setDescription: (description: string) => void;
-  genre: string; // should be stringID? or just fetch the actual name and color from db based on id when needed?
-  setGenre: (genre: string) => void;
+  genreId: number;
+  setGenreId: (genre: number) => void;
   tuning: string;
   setTuning: (tuning: string) => void;
   BPM: number;
@@ -75,8 +78,8 @@ export const useTabStore = create<TabState>()(
     setTitle: (title) => set({ title }),
     description: "",
     setDescription: (description) => set({ description }),
-    genre: "",
-    setGenre: (genre) => set({ genre }),
+    genreId: -1,
+    setGenreId: (genreId) => set({ genreId }),
     tuning: "EADGBE",
     setTuning: (tuning) => set({ tuning }),
     BPM: 75,

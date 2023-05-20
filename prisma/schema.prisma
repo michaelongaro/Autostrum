@@ -73,9 +73,10 @@ model SongSection {
 }
 
 model Genre {
-    id   Int    @id @default(autoincrement())
-    name String @unique
-    tabs Tab[]
+    id    Int    @id @default(autoincrement())
+    name  String @unique
+    color String
+    tabs  Tab[]
 }
 
 model Comment {
