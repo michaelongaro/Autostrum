@@ -1,4 +1,6 @@
+import { useMemo } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { api } from "~/utils/api";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { Label } from "../ui/label";
@@ -14,10 +16,24 @@ import { Separator } from "../ui/separator";
 import { CommandCombobox } from "../ui/CommandCombobox";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
+import { type Genre } from "@prisma/client";
 
 function TabMetadata() {
   // TODO: flesh out genre, tuning, and prob "edit" button/ save buttons
+  // edit button on hover should show tooltip showing which sections need to be filled out
+  // before able to save/upload tab
   const { userId, isLoaded } = useAuth();
+
+  const genreArray = api.genre.getAll.useQuery();
+
+  const genreObject: Record<number, Genre> = useMemo(() => {
+    if (!genreArray.data) return {};
+
+    return genreArray.data.reduce((acc: Record<number, Genre>, genre) => {
+      acc[genre.id] = genre;
+      return acc;
+    }, {});
+  }, [genreArray.data]);
 
   const {
     createdById,
@@ -25,8 +41,8 @@ function TabMetadata() {
     setTitle,
     description,
     setDescription,
-    genre,
-    setGenre,
+    genreId,
+    setGenreId,
     tuning,
     setTuning,
     BPM,
@@ -42,8 +58,8 @@ function TabMetadata() {
       setTitle: state.setTitle,
       description: state.description,
       setDescription: state.setDescription,
-      genre: state.genre,
-      setGenre: state.setGenre,
+      genreId: state.genreId,
+      setGenreId: state.setGenreId,
       tuning: state.tuning,
       setTuning: state.setTuning,
       BPM: state.BPM,
@@ -55,6 +71,13 @@ function TabMetadata() {
     }),
     shallow
   );
+
+  function handleGenreChange(stringifiedId: string) {
+    const id = parseInt(stringifiedId);
+    if (isNaN(id)) return;
+
+    setGenreId(id);
+  }
 
   return (
     <>
@@ -82,20 +105,32 @@ function TabMetadata() {
               />
             </div>
 
-            {/* options should be loaded from Genre table in db */}
-            <Select>
+            <Select
+              value={genreObject[genreId]?.id.toString()}
+              onValueChange={(value) => handleGenreChange(value)}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select a genre" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel>Fruits</SelectLabel>
-                  {/* prob want a map of the different genres below */}
-                  <SelectItem value="rock">Rock</SelectItem>
-                  <SelectItem value="pop">Pop</SelectItem>
-                  <SelectItem value="indie">Blueberry</SelectItem>
-                  <SelectItem value="grapes">Grapes</SelectItem>
-                  <SelectItem value="pineapple">Pineapple</SelectItem>
+                  <SelectLabel>Genres</SelectLabel>
+
+                  {genreArray.data?.map((genre) => {
+                    return (
+                      <SelectItem key={genre.id} value={genre.id.toString()}>
+                        <div className="baseFlex gap-2">
+                          <div
+                            style={{
+                              backgroundColor: genre.color,
+                            }}
+                            className="h-3 w-3 rounded-full"
+                          ></div>
+                          {genre.name}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -146,9 +181,13 @@ function TabMetadata() {
 
           <div className="baseFlex w-full max-w-sm gap-1.5 md:w-1/2">
             <div className="text-lg font-bold">{title}</div>
-            <div className="baseFlex gap-2">
-              <div>icon</div>
-              {genre}
+            <div
+              style={{
+                backgroundColor: genreObject[genreId]?.color,
+              }}
+              className="baseFlex gap-2 p-4"
+            >
+              {genreObject[genreId]?.name}
             </div>
           </div>
 
