@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type ChangeEvent } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { api } from "~/utils/api";
 import { useTabStore } from "~/stores/TabStore";
@@ -49,6 +49,8 @@ function TabMetadata() {
     setBPM,
     timeSignature,
     setTimeSignature,
+    capo,
+    setCapo,
     editing,
     setEditing,
   } = useTabStore(
@@ -66,6 +68,8 @@ function TabMetadata() {
       setBPM: state.setBPM,
       timeSignature: state.timeSignature,
       setTimeSignature: state.setTimeSignature,
+      capo: state.capo,
+      setCapo: state.setCapo,
       editing: state.editing,
       setEditing: state.setEditing,
     }),
@@ -77,6 +81,56 @@ function TabMetadata() {
     if (isNaN(id)) return;
 
     setGenreId(id);
+  }
+
+  function handleBPMChange(event: ChangeEvent<HTMLInputElement>) {
+    const inputValue = event.target.value;
+
+    // Check if the input value is empty (backspace case) or a number between 1 and 200
+    if (
+      inputValue === "" ||
+      (Number(inputValue) >= 1 && Number(inputValue) <= 200)
+    ) {
+      setBPM(Number(inputValue) === 0 ? null : Number(inputValue));
+    }
+  }
+
+  function handleTimeSignatureChange(e: ChangeEvent<HTMLInputElement>) {
+    const newValue = e.target.value;
+    const parts = newValue.split("/");
+    if (parts.length > 2) return; // only allow one '/'
+
+    for (const part of parts) {
+      if (part !== "") {
+        // allow empty parts for ongoing inputs like '4/'
+        const num = parseInt(part, 10);
+        // adjust validation to allow for ongoing inputs like '4/1'
+        if (isNaN(num) || num < 1 || (part.length === 2 && num > 20)) return;
+      }
+    }
+
+    // check if newValue is purely numeric or slash
+    const regex = /^[0-9/]*$/;
+    if (!regex.test(newValue)) return;
+
+    setTimeSignature(newValue);
+  }
+
+  function handleCapoChange(event: ChangeEvent<HTMLInputElement>) {
+    const inputValue = event.target.value;
+
+    // Check if the input value is empty (backspace case)
+    if (inputValue === "") {
+      setCapo(Number(inputValue) === 0 ? null : Number(inputValue));
+      return;
+    }
+
+    // Check if the input value is a number between 1 and 12
+    const num = Number(inputValue);
+
+    if (!isNaN(num) && num >= 1 && num <= 12) {
+      setCapo(num);
+    }
   }
 
   return (
@@ -99,41 +153,44 @@ function TabMetadata() {
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
-                placeholder="Optional. Add any specific info about how to play this tab."
-                value={description}
+                placeholder="Add any specific info about how to play this tab."
+                value={description ?? ""}
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
 
-            <Select
-              value={genreObject[genreId]?.id.toString()}
-              onValueChange={(value) => handleGenreChange(value)}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select a genre" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Genres</SelectLabel>
+            <div className="baseVertFlex !items-start gap-1.5">
+              <Label htmlFor="tuning">Genre</Label>
+              <Select
+                value={genreObject[genreId]?.id.toString()}
+                onValueChange={(value) => handleGenreChange(value)}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select a genre" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Genres</SelectLabel>
 
-                  {genreArray.data?.map((genre) => {
-                    return (
-                      <SelectItem key={genre.id} value={genre.id.toString()}>
-                        <div className="baseFlex gap-2">
-                          <div
-                            style={{
-                              backgroundColor: genre.color,
-                            }}
-                            className="h-3 w-3 rounded-full"
-                          ></div>
-                          {genre.name}
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+                    {genreArray.data?.map((genre) => {
+                      return (
+                        <SelectItem key={genre.id} value={genre.id.toString()}>
+                          <div className="baseFlex gap-2">
+                            <div
+                              style={{
+                                backgroundColor: genre.color,
+                              }}
+                              className="h-3 w-3 rounded-full"
+                            ></div>
+                            {genre.name}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <Separator />
@@ -141,17 +198,27 @@ function TabMetadata() {
           <div className="baseFlex w-full gap-2">
             <div className="baseVertFlex max-w-sm !items-start gap-1.5">
               <Label htmlFor="tuning">Tuning</Label>
+              {/* TODO: ability to add custom tunings */}
               <CommandCombobox />
             </div>
 
-            {/* these two are rough, fix later */}
+            <div className="baseVertFlex w-16 max-w-sm !items-start gap-1.5">
+              <Label htmlFor="capo">Capo</Label>
+              <Input
+                type="text"
+                placeholder="0"
+                value={capo ?? ""}
+                onChange={handleCapoChange}
+              />
+            </div>
+
             <div className="baseVertFlex w-16 max-w-sm !items-start gap-1.5">
               <Label htmlFor="bpm">BPM</Label>
               <Input
                 type="text"
                 placeholder="75"
-                value={BPM}
-                onChange={(e) => setBPM(parseInt(e.target.value))}
+                value={BPM ?? ""}
+                onChange={handleBPMChange}
               />
             </div>
 
@@ -160,8 +227,8 @@ function TabMetadata() {
               <Input
                 type="text"
                 placeholder="4/4"
-                value={timeSignature}
-                onChange={(e) => setTimeSignature(e.target.value)}
+                value={timeSignature ?? ""}
+                onChange={handleTimeSignatureChange}
               />
             </div>
           </div>
