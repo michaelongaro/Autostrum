@@ -17,36 +17,23 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import { useTabStore } from "~/stores/TabStore";
+import { shallow } from "zustand/shallow";
+import tunings from "~/utils/tunings";
 
-// these need to come from the genre table in db, maybe better to
-// have prop on this component and have then come from the parent
-
-const frameworks = [
-  {
-    value: "next.js",
-    label: "Next.js",
-  },
-  {
-    value: "sveltekit",
-    label: "SvelteKit",
-  },
-  {
-    value: "nuxt.js",
-    label: "Nuxt.js",
-  },
-  {
-    value: "remix",
-    label: "Remix",
-  },
-  {
-    value: "astro",
-    label: "Astro",
-  },
-];
+// currently hardcoding this component to work with tunings
+// but may need to be more generic in the future
 
 export function CommandCombobox() {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState("");
+
+  const { tuning, setTuning } = useTabStore(
+    (state) => ({
+      tuning: state.tuning,
+      setTuning: state.setTuning,
+    }),
+    shallow
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -57,32 +44,44 @@ export function CommandCombobox() {
           aria-expanded={open}
           className="w-[200px] justify-between"
         >
-          {value
-            ? frameworks.find((framework) => framework.value === value)?.label
-            : "Select framework..."}
+          {tuning
+            ? tunings.find(
+                (tuningObj) =>
+                  tuningObj.notes.toLowerCase() === tuning.toLowerCase()
+              )?.simpleNotes
+            : "Select tuning..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-[300px] p-0">
         <Command>
-          <CommandInput placeholder="Search framework..." />
-          <CommandEmpty>No framework found.</CommandEmpty>
-          <CommandGroup>
-            {frameworks.map((framework) => (
+          <CommandInput placeholder="Search tunings..." />
+          <CommandEmpty>No tuning found.</CommandEmpty>
+          <CommandGroup className="max-h-60 overflow-y-auto">
+            {/* named tuningObj instead of tuning to avoid name conflict w/ tuning from store */}
+            {tunings.map((tuningObj) => (
               <CommandItem
-                key={framework.value}
+                key={tuningObj.simpleNotes}
+                value={tuningObj.notes}
                 onSelect={(currentValue) => {
-                  setValue(currentValue === value ? "" : currentValue);
+                  // prob need to error handle for custom tunings?
+
+                  setTuning(currentValue === tuning ? "" : currentValue);
                   setOpen(false);
                 }}
               >
                 <Check
                   className={cn(
                     "mr-2 h-4 w-4",
-                    value === framework.value ? "opacity-100" : "opacity-0"
+                    tuning.toLowerCase() === tuningObj.notes.toLowerCase()
+                      ? "opacity-100"
+                      : "opacity-0"
                   )}
                 />
-                {framework.label}
+                <div className="baseFlex w-full !justify-between">
+                  <div className="font-medium">{tuningObj.name}</div>
+                  <pre>{tuningObj.simpleNotes}</pre>
+                </div>
               </CommandItem>
             ))}
           </CommandGroup>
