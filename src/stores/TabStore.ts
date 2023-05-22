@@ -24,16 +24,18 @@ interface TabState {
   setCreatedById: (createdById: number) => void;
   title: string;
   setTitle: (title: string) => void;
-  description: string;
-  setDescription: (description: string) => void;
+  description: string | null;
+  setDescription: (description: string | null) => void;
   genreId: number;
   setGenreId: (genre: number) => void;
   tuning: string;
   setTuning: (tuning: string) => void;
-  BPM: number;
-  setBPM: (BPM: number) => void;
-  timeSignature: string;
-  setTimeSignature: (timeSignature: string) => void;
+  BPM: number | null;
+  setBPM: (BPM: number | null) => void;
+  timeSignature: string | null;
+  setTimeSignature: (timeSignature: string | null) => void;
+  capo: number | null;
+  setCapo: (capo: number | null) => void;
   tabData: ITabSection[];
   setTabData: (tabData: ITabSection[]) => void;
   editing: boolean;
@@ -80,12 +82,14 @@ export const useTabStore = create<TabState>()(
     setDescription: (description) => set({ description }),
     genreId: -1,
     setGenreId: (genreId) => set({ genreId }),
-    tuning: "EADGBE",
+    tuning: "",
     setTuning: (tuning) => set({ tuning }),
-    BPM: 75,
+    BPM: null,
     setBPM: (BPM) => set({ BPM }),
     timeSignature: "4/4",
     setTimeSignature: (timeSignature) => set({ timeSignature }),
+    capo: null,
+    setCapo: (capo) => set({ capo }),
     tabData: [
       {
         title: "Intro",
