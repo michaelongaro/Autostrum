@@ -27,11 +27,12 @@ model User {
 model Tab {
     id                 Int           @id @default(autoincrement())
     title              String
-    description        String?
-    bpm                Int
     tuning             String
-    timeSignature      String
+    bpm                Int?
     tabData            Json
+    description        String?
+    timeSignature      String?
+    capo               Int?
     sectionProgression SongSection[]
     createdAt          DateTime      @default(now())
     createdBy          User          @relation("CreatedBy", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
