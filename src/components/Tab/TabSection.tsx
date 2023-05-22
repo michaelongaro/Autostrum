@@ -23,6 +23,7 @@ import {
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
 import { restrictToParentElement } from "@dnd-kit/modifiers";
+import { parse, toString } from "~/utils/tunings";
 
 interface TabSection {
   sectionData: {
@@ -263,10 +264,11 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
             </Button>
           </div>
 
-          {/* not sure format that is coming in but need to split better to show sharps and flats */}
-          {tuning.split("").map((note, index) => (
-            <div key={index}>{note}</div>
-          ))}
+          {toString(parse(tuning), { pad: 1 })
+            .split(" ")
+            .map((note, index) => (
+              <div key={index}>{note}</div>
+            ))}
         </div>
 
         {/* TODO: when dragging measure line, the first <TabNoteAndEffectCombo /> will
