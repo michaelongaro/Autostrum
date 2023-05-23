@@ -13,8 +13,6 @@ export const toString = (
     pad: number;
   }
 ) => {
-  console.log(tuning);
-
   // parse("") returns [36] which is a C, and we instead just want to return "     "
   // so that the tab has empty notes instead of C's.
   if (tuning.length === 1 && tuning[0] === 36) return "     ";
