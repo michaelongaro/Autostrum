@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo, type CSSProperties } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  type CSSProperties,
+} from "react";
 import { type SectionProgression, useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { AnimatePresence, motion } from "framer-motion";
@@ -80,6 +86,8 @@ function SectionProgressionModal() {
   const [aboveMediumViewportWidth, setAboveMediumViewportWidth] =
     useState(false);
 
+  const scrollableSectionsRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     function handleResize() {
       if (window.innerWidth >= 768) {
@@ -149,7 +157,7 @@ function SectionProgressionModal() {
 
       // need to adjust all affected index values as well
 
-      console.log(startIndex, endIndex);
+      // console.log(startIndex, endIndex);
 
       newSectionProgression = arrayMove(
         newSectionProgression,
@@ -157,9 +165,9 @@ function SectionProgressionModal() {
         endIndex
       );
 
-      console.log(newSectionProgression);
+      // console.log(newSectionProgression);
       newSectionProgression = reassignIndicies(newSectionProgression);
-      console.log(newSectionProgression);
+      // console.log(newSectionProgression);
 
       setSectionProgression(newSectionProgression);
     }
@@ -174,6 +182,17 @@ function SectionProgressionModal() {
       index: newSectionProgression.length,
     });
     setSectionProgression(newSectionProgression);
+
+    // making sure the new section is rendered before scrolling to
+    // the bottom of the sections list
+    setTimeout(() => {
+      if (scrollableSectionsRef.current) {
+        scrollableSectionsRef.current.scrollTo({
+          top: scrollableSectionsRef.current.scrollHeight,
+          behavior: "smooth",
+        });
+      }
+    }, 0);
   }
 
   function closeModal() {
@@ -228,7 +247,10 @@ function SectionProgressionModal() {
             Section progression
           </div>
 
-          <div className="baseVertFlex max-h-[90vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[500px] md:w-3/4">
+          <div
+            ref={scrollableSectionsRef}
+            className="baseVertFlex max-h-[90vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[450px] md:w-3/4"
+          >
             <DndContext
               sensors={sensors}
               modifiers={[restrictToFirstScrollableAncestor]}
@@ -261,15 +283,16 @@ function SectionProgressionModal() {
                 )}
               </SortableContext>
             </DndContext>
-            {sectionProgression.length > 0 && (
-              <Button
-                className="rounded-full p-4"
-                onClick={addNewSectionToProgression}
-              >
-                +
-              </Button>
-            )}
           </div>
+
+          {sectionProgression.length > 0 && (
+            <Button
+              className="rounded-full p-4"
+              onClick={addNewSectionToProgression}
+            >
+              +
+            </Button>
+          )}
         </div>
       </motion.div>
     </motion.div>
