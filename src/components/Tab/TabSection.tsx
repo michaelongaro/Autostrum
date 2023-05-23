@@ -156,16 +156,20 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
       active.id !== over.id
     ) {
       const start = parseInt(active.id);
-      const end = parseInt(over.id);
+
+      const rawEndValue = parseInt(over.id);
+
+      // needed to account for shifting indices when moving measure line from left to right
+      const end = rawEndValue > start ? rawEndValue + 1 : rawEndValue;
+
+      const endPalmMuteValue = prevSectionData?.data[end]?.[0];
 
       prevSectionData = {
         ...prevSectionData,
-        data: arrayMove(
-          prevSectionData.data,
-          start,
-          end > start ? end + 1 : end // needed to account for shifting indices when moving measure line from left to right
-        ),
+        data: arrayMove(prevSectionData.data, start, end),
       };
+
+      prevSectionData.data[end]![0] = endPalmMuteValue ?? "";
 
       prevTabData[sectionIndex] = prevSectionData;
 
@@ -259,8 +263,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
                 setEditingPalmMuteNodes(false);
               }}
             >
-              {/* maybe switch to "Add new..." and then "Edit ..." */}
-              {editingPalmMuteNodes ? "x" : "Add new palm mute section"}
+              {editingPalmMuteNodes ? "x" : "Edit palm mute sections"}
             </Button>
           </div>
 
