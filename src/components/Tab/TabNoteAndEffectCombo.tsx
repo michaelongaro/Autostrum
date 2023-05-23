@@ -110,19 +110,17 @@ function TabNoteAndEffectCombo({
       className="baseFlex cursor-default"
     >
       {/* TODO: don't want to be repeating twice below, find way to combine */}
-      <div className="baseVertFlex my-14 gap-2">
+      <div className="baseVertFlex mb-[3.2rem] mt-4 gap-2">
         {noteColumnData.map((note, index) => (
           <Fragment key={index}>
             {index === 0 && (
-              // this positioning is still a bit off
-              <div className="relative h-0 w-full">
-                <div className="absolute bottom-0 left-1/2 right-1/2 w-[2rem] -translate-x-1/2">
-                  <PalmMuteNode
-                    note={note}
-                    columnIndex={noteColumnIndex}
-                    sectionIndex={sectionIndex}
-                  />
-                </div>
+              <div className="baseFlex h-9 w-full">
+                <PalmMuteNode
+                  note={note}
+                  effectColumn={false}
+                  columnIndex={noteColumnIndex}
+                  sectionIndex={sectionIndex}
+                />
               </div>
             )}
 
@@ -189,19 +187,17 @@ function TabNoteAndEffectCombo({
         ))}
       </div>
 
-      <div className="baseVertFlex my-14 gap-2">
+      <div className="baseVertFlex mb-[3.2rem] mt-4 gap-2">
         {effectColumnData?.map((note, index) => (
           <Fragment key={index}>
             {index === 0 && (
-              // this positioning is still a bit off
-              <div className="relative h-0 w-full">
-                <div className="absolute bottom-0 left-1/2 right-1/2 w-[2rem] -translate-x-1/2">
-                  <PalmMuteNode
-                    note={note}
-                    columnIndex={noteColumnIndex + 1}
-                    sectionIndex={sectionIndex}
-                  />
-                </div>
+              <div className="baseFlex h-9 w-full">
+                <PalmMuteNode
+                  note={note}
+                  effectColumn={true}
+                  columnIndex={noteColumnIndex + 1}
+                  sectionIndex={sectionIndex}
+                />
               </div>
             )}
 
@@ -243,7 +239,7 @@ function TabNoteAndEffectCombo({
 
             {index === 7 && (
               <div className="relative h-0 w-full">
-                {/* even worth to keep this section? */}
+                {/* not sure if necessary, currently used just for positional purposes */}
               </div>
             )}
           </Fragment>

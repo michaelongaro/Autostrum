@@ -96,22 +96,15 @@ function TabMeasureLine({ columnData, sectionIndex, columnIndex }: TabColumn) {
         },
       }}
       variants={sectionVariants}
-      className="baseVertFlex relative my-14"
+      className="baseVertFlex relative mb-[3.2rem] mt-4"
     >
       {columnData.map((note, index) => (
         <Fragment key={index}>
           {index === 0 && (
-            // this positioning is still a bit off
-            <div className="relative h-0 w-full">
-              <div className="absolute bottom-0 left-1/2 right-1/2 w-[2rem] -translate-x-1/2">
-                <>
-                  {/* note sure if this is the best way to do this, but handling specifically
-                      for when PM crosses over a measure line. */}
-                  {note === "-" && (
-                    <div className="h-[1px] w-full bg-pink-50"></div>
-                  )}
-                </>
-              </div>
+            <div className="baseFlex mb-2 h-9 w-full">
+              {note === "-" && (
+                <div className="h-[1px] w-full bg-pink-50"></div>
+              )}
             </div>
           )}
 
@@ -131,12 +124,18 @@ function TabMeasureLine({ columnData, sectionIndex, columnIndex }: TabColumn) {
             ></div>
           )}
 
+          {index === 7 && (
+            <div className="relative mt-2 h-0 w-full">
+              {/* not sure if necessary, currently used just for positional purposes */}
+            </div>
+          )}
+
           {index === 8 && (
             <div
               ref={setActivatorNodeRef}
               {...attributes}
               {...listeners}
-              className="hover:box-shadow-md absolute bottom-[-3.25rem] cursor-grab rounded-md text-pink-50 active:cursor-grabbing"
+              className="hover:box-shadow-md absolute bottom-[-2.75rem] cursor-grab rounded-md text-pink-50 active:cursor-grabbing"
               onMouseEnter={() => setHoveringOnHandle(true)}
               onMouseDown={() => setGrabbingHandle(true)}
               onMouseLeave={() => setHoveringOnHandle(false)}
