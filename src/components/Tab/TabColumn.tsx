@@ -20,7 +20,6 @@ function TabColumn({ columnData, sectionIndex, columnIndex }: TabColumn) {
   );
 
   // Note + effect columns are combined below to allow easier sorting behavior while reordering
-  // measure lines.
   if (tabData[sectionIndex]?.data[columnIndex]?.[8] === "inlineEffect")
     return null;
 
