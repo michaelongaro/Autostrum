@@ -86,7 +86,7 @@ export const useTabStore = create<TabState>()(
     setTuning: (tuning) => set({ tuning }),
     BPM: null,
     setBPM: (BPM) => set({ BPM }),
-    timeSignature: "4/4",
+    timeSignature: null,
     setTimeSignature: (timeSignature) => set({ timeSignature }),
     capo: null,
     setCapo: (capo) => set({ capo }),
@@ -160,7 +160,7 @@ export const useTabStore = create<TabState>()(
         // in between until we hit the other node
         else {
           if (
-            newTabData[sectionIndex]!.data[currentColumnIndex]![0] ===
+            newTabData[sectionIndex]!.data[currentColumnIndex]?.[0] ===
             (prevValue === "start" ? "end" : "start")
           ) {
             finishedModification = true;
