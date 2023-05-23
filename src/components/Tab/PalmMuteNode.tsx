@@ -5,11 +5,17 @@ import { shallow } from "zustand/shallow";
 
 interface PalmMuteNode {
   note: string;
+  effectColumn: boolean;
   columnIndex: number;
   sectionIndex: number;
 }
 
-function PalmMuteNode({ note, columnIndex, sectionIndex }: PalmMuteNode) {
+function PalmMuteNode({
+  note,
+  effectColumn,
+  columnIndex,
+  sectionIndex,
+}: PalmMuteNode) {
   const [hoveringOnPalmMuteNode, setHoveringOnPalmMuteNode] = useState(false);
   const [buttonOpacity, setButtonOpacity] = useState("0");
 
@@ -36,28 +42,45 @@ function PalmMuteNode({ note, columnIndex, sectionIndex }: PalmMuteNode) {
     shallow
   );
 
-  const findColumnIndexOfPairNode = useCallback(() => {
-    let currentIndex = lastModifiedPalmMuteNode?.columnIndex;
-    const foundPairNodeColumnIndex = false;
+  const findColumnIndexOfNearestNode = useCallback(
+    (type: "pairNode" | "nearestStart") => {
+      let currentIndex =
+        type === "pairNode"
+          ? lastModifiedPalmMuteNode?.columnIndex
+          : (lastModifiedPalmMuteNode?.columnIndex ?? 0) + 1;
+      const foundPairNodeColumnIndex = false;
 
-    if (currentIndex === undefined) return 0;
+      if (currentIndex === undefined) return 0;
 
-    while (!foundPairNodeColumnIndex) {
-      const currentNode = tabData[sectionIndex]!.data[currentIndex]![0];
+      while (!foundPairNodeColumnIndex) {
+        const currentNode = tabData[sectionIndex]!.data[currentIndex]?.[0];
 
-      if (lastModifiedPalmMuteNode?.prevValue === "start") {
-        if (currentNode === "end") return currentIndex;
+        if (lastModifiedPalmMuteNode?.prevValue === "") {
+          if (currentNode === "start") return currentIndex;
 
-        currentIndex++;
-      } else {
-        if (currentNode === "start") return currentIndex;
+          currentIndex++;
+        } else if (lastModifiedPalmMuteNode?.prevValue === "start") {
+          if (currentNode === "end") return currentIndex;
 
-        currentIndex--;
+          currentIndex++;
+        } else {
+          if (currentNode === "start") return currentIndex;
+
+          currentIndex--;
+        }
+
+        if (
+          currentIndex < 0 ||
+          currentIndex > tabData[sectionIndex]!.data.length - 1
+        ) {
+          return tabData[sectionIndex]!.data.length - 1;
+        }
       }
-    }
 
-    return 0;
-  }, [sectionIndex, tabData, lastModifiedPalmMuteNode]);
+      return 0;
+    },
+    [sectionIndex, tabData, lastModifiedPalmMuteNode]
+  );
 
   useEffect(() => {
     setButtonOpacity("1");
@@ -69,18 +92,19 @@ function PalmMuteNode({ note, columnIndex, sectionIndex }: PalmMuteNode) {
 
     if (
       lastModifiedPalmMuteNode?.prevValue === "" &&
-      columnIndex < lastModifiedPalmMuteNode?.columnIndex
+      (columnIndex < lastModifiedPalmMuteNode?.columnIndex ||
+        columnIndex >= findColumnIndexOfNearestNode("nearestStart"))
     ) {
       setButtonOpacity("0.25");
     } else {
       if (
         lastModifiedPalmMuteNode?.prevValue === "start" &&
-        columnIndex > findColumnIndexOfPairNode()
+        columnIndex > findColumnIndexOfNearestNode("pairNode")
       ) {
         setButtonOpacity("0.25");
       } else if (
         lastModifiedPalmMuteNode?.prevValue === "end" &&
-        columnIndex < findColumnIndexOfPairNode()
+        columnIndex < findColumnIndexOfNearestNode("pairNode")
       ) {
         setButtonOpacity("0.25");
       }
@@ -90,7 +114,7 @@ function PalmMuteNode({ note, columnIndex, sectionIndex }: PalmMuteNode) {
     note,
     editingPalmMuteNodes,
     lastModifiedPalmMuteNode,
-    findColumnIndexOfPairNode,
+    findColumnIndexOfNearestNode,
   ]);
 
   function handlePalmMuteNodeClick() {
@@ -118,7 +142,23 @@ function PalmMuteNode({ note, columnIndex, sectionIndex }: PalmMuteNode) {
           note
         );
       }
-    } else {
+    }
+
+    // removing start node that was just added
+    else if (
+      (lastModifiedPalmMuteNode.prevValue === "" &&
+        lastModifiedPalmMuteNode.columnIndex === columnIndex) ||
+      (lastModifiedPalmMuteNode.prevValue !== "" &&
+        (note === "start" || note === "end"))
+    ) {
+      const newTabData = [...tabData];
+      newTabData[sectionIndex]!.data[columnIndex]![0] = "";
+      setTabData(newTabData);
+      setLastModifiedPalmMuteNode(null);
+    }
+
+    // adding end node
+    else {
       // adding node + dashes in between
       modifyPalmMuteDashes(
         tabData,
@@ -128,14 +168,10 @@ function PalmMuteNode({ note, columnIndex, sectionIndex }: PalmMuteNode) {
         note,
         lastModifiedPalmMuteNode.prevValue
       );
-      setEditingPalmMuteNodes(false);
+
       setLastModifiedPalmMuteNode(null);
     }
-
-    // setHoveringOnPalmMuteNode(false);
   }
-
-  // opacity still messed up + maybe manually get rid of box shadow after click..
 
   return (
     <>
@@ -160,36 +196,36 @@ function PalmMuteNode({ note, columnIndex, sectionIndex }: PalmMuteNode) {
         <>
           {(note === "start" ||
             note === "end" ||
-            (editingPalmMuteNodes && note === "")) &&
-            columnIndex % 2 === 0 && (
-              <Button
-                style={{
-                  pointerEvents: buttonOpacity === "1" ? "all" : "none",
-                  boxShadow: hoveringOnPalmMuteNode ? "0 0 5px 2px #FFF" : "",
-                  opacity: buttonOpacity,
-                }}
-                className="rounded-full transition-all"
-                onMouseEnter={() => setHoveringOnPalmMuteNode(true)}
-                onTouchStart={() => setHoveringOnPalmMuteNode(true)}
-                onMouseLeave={() => setHoveringOnPalmMuteNode(false)}
-                onTouchEnd={() => setHoveringOnPalmMuteNode(false)}
-                onClick={handlePalmMuteNodeClick}
-              >
-                {note === "start" && (
-                  <div className="baseVertFlex text-xs">
-                    <span>Remove</span>
-                    <span>PM start</span>
-                  </div>
-                )}
-                {note === "end" && (
-                  <div className="baseVertFlex text-xs">
-                    <span>Remove</span>
-                    <span>PM end</span>
-                  </div>
-                )}
-                {editingPalmMuteNodes && note === "" && "+"}
-              </Button>
-            )}
+            (editingPalmMuteNodes && note === "" && !effectColumn)) && (
+            <Button
+              style={{
+                pointerEvents: buttonOpacity === "1" ? "all" : "none",
+                boxShadow: hoveringOnPalmMuteNode ? "0 0 5px 2px #FFF" : "",
+                opacity: buttonOpacity,
+              }}
+              size={"sm"}
+              className="min-w-[2.25rem] rounded-full transition-all"
+              onMouseEnter={() => setHoveringOnPalmMuteNode(true)}
+              onTouchStart={() => setHoveringOnPalmMuteNode(true)}
+              onMouseLeave={() => setHoveringOnPalmMuteNode(false)}
+              onTouchEnd={() => setHoveringOnPalmMuteNode(false)}
+              onClick={handlePalmMuteNodeClick}
+            >
+              {note === "start" && (
+                <div className="baseVertFlex text-xs">
+                  <span>PM</span>
+                  <span>start</span>
+                </div>
+              )}
+              {note === "end" && (
+                <div className="baseVertFlex text-xs">
+                  <span>PM</span>
+                  <span>end</span>
+                </div>
+              )}
+              {editingPalmMuteNodes && note === "" && "+"}
+            </Button>
+          )}
         </>
       )}
 
