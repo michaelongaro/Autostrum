@@ -76,19 +76,15 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
 
   const { tuning, modifyPalmMuteDashes, tabData, setTabData, editing } =
     useTabStore(
-    (state) => ({
-      tuning: state.tuning,
-      editingPalmMuteNodes: state.editingPalmMuteNodes,
-      setEditingPalmMuteNodes: state.setEditingPalmMuteNodes,
-      lastModifiedPalmMuteNode: state.lastModifiedPalmMuteNode,
-      setLastModifiedPalmMuteNode: state.setLastModifiedPalmMuteNode,
-      modifyPalmMuteDashes: state.modifyPalmMuteDashes,
-      tabData: state.tabData,
-      setTabData: state.setTabData,
-      editing: state.editing,
-    }),
-    shallow
-  );
+      (state) => ({
+        tuning: state.tuning,
+        modifyPalmMuteDashes: state.modifyPalmMuteDashes,
+        tabData: state.tabData,
+        setTabData: state.setTabData,
+        editing: state.editing,
+      }),
+      shallow
+    );
 
   // should these functions below be in zustand?
   function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
@@ -145,6 +141,34 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
     setTabData(newTabData);
   }
 
+  function toggleEditingPalmMuteNodes() {
+    if (!editingPalmMuteNodes) {
+      setEditingPalmMuteNodes(true);
+      return;
+    } else if (lastModifiedPalmMuteNode) {
+      // if prevValue was "" then can just do hardcoded solution as before
+      if (lastModifiedPalmMuteNode.prevValue === "") {
+        const newTabData = [...tabData];
+        newTabData[sectionIndex]!.data[
+          lastModifiedPalmMuteNode.columnIndex
+        ]![0] = "";
+        setTabData(newTabData);
+      } else {
+        modifyPalmMuteDashes(
+          tabData,
+          setTabData,
+          sectionIndex,
+          lastModifiedPalmMuteNode.columnIndex,
+          "tempRemoveLater",
+          lastModifiedPalmMuteNode.prevValue
+        );
+      }
+
+      setLastModifiedPalmMuteNode(null);
+    }
+    setEditingPalmMuteNodes(false);
+  }
+
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
 
@@ -163,8 +187,22 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
 
       const rawEndValue = parseInt(over.id);
 
-      // needed to account for shifting indices when moving measure line from left to right
-      const end = rawEndValue > start ? rawEndValue + 1 : rawEndValue;
+      // the end value is the noteIndex of the combo, so when moving to the right you need
+      // to add two to get the correct index
+
+      // below: trying to only add 1 if dropping on a combo, not a measure line
+      const end =
+        rawEndValue > start &&
+        prevSectionData?.data[rawEndValue]?.[8] === "note"
+          ? rawEndValue + 1
+          : rawEndValue;
+
+      // doesn't make sense to have a measureLine at the start or end of a section
+      if (
+        prevSectionData?.data[start]?.[8] === "measureLine" &&
+        (end === 0 || end === prevSectionData.data.length - 1)
+      )
+        return;
 
       const endPalmMuteValue = prevSectionData?.data[end]?.[0];
 
@@ -173,7 +211,35 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
         data: arrayMove(prevSectionData.data, start, end),
       };
 
+      // have to move the effect column as well if it's a note and the direction is left -> right
+      if (prevSectionData.data[end]![8] === "note") {
+        console.log(prevSectionData.data);
+        console.log(start, end);
+
+        prevSectionData = {
+          ...prevSectionData,
+          data: arrayMove(
+            prevSectionData.data,
+            // still a bit sus about the numbers below
+            rawEndValue < start ? start + 1 : start,
+            rawEndValue < start ? rawEndValue + 1 : end
+          ),
+        };
+      }
+
+      // looks like moving at least l -> r past a measure line gets
+
       prevSectionData.data[end]![0] = endPalmMuteValue ?? "";
+
+      // making sure there are no occurances of two measure lines right next to each other
+      for (let i = 0; i < prevSectionData.data.length - 2; i++) {
+        if (
+          prevSectionData.data[i]?.[8] === "measureLine" &&
+          prevSectionData.data[i + 1]?.[8] === "measureLine"
+        ) {
+          return;
+        }
+      }
 
       prevTabData[sectionIndex] = prevSectionData;
 
@@ -184,93 +250,165 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
   return (
     // grid for dark backdrop?
     <div className="baseVertFlex relative h-full w-full !justify-start gap-4 md:p-8">
-      <div className="absolute left-4 top-4">
-        <Input value={sectionTitle} onChange={updateSectionTitle} />
-      </div>
+      <div className="baseFlex w-full !items-start !justify-between">
+        <div className="baseVertFlex w-1/2 !items-start gap-2 2xl:w-3/4 2xl:!flex-row 2xl:!justify-start">
+          <Input
+            value={sectionTitle}
+            placeholder="Section title"
+            onChange={updateSectionTitle}
+            className="max-w-[12rem] text-lg font-semibold"
+          />
 
-      <div className="baseFlex absolute left-4 top-16 gap-2 md:left-auto md:right-4 md:top-4">
-        {/* try to use framer motion to animate sections sliding up/down to their new positions
-        (this would mean both sections would need to slide for each click of "up"/"down" ) */}
-        <Button
-          variant={"secondary"}
-          className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
-          disabled={sectionIndex === 0}
-          onClick={() => {
-            let newTabData = [...tabData];
+          <div className="baseVertFlex !items-start gap-2 2xl:!flex-row">
+            {/* okay so for these buttons (may want to make another variant?)
+                we want to always show the main button, but when toggled on it will disable the main one,
+                and render right beside of it (making it look like the same button w/ border radii correct)
+                with the "x" button which obv isn't disabled */}
 
-            newTabData = arrayMove(newTabData, sectionIndex, sectionIndex - 1);
+            <div className="baseFlex">
+              <Button
+                disabled={editingPalmMuteNodes}
+                style={{
+                  borderRadius: editingPalmMuteNodes
+                    ? "0.375rem 0 0 0.375rem"
+                    : "0.375rem",
+                }}
+                onClick={toggleEditingPalmMuteNodes}
+              >
+                Edit palm mute sections
+              </Button>
 
-            setTabData(newTabData);
-          }}
-        >
-          <BiUpArrowAlt className="h-5 w-5" />
-        </Button>
-        <Button
-          variant={"secondary"}
-          className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
-          disabled={sectionIndex === tabData.length - 1}
-          onClick={() => {
-            let newTabData = [...tabData];
+              {editingPalmMuteNodes && (
+                <Button
+                  className="rounded-l-none rounded-r-md"
+                  onClick={toggleEditingPalmMuteNodes}
+                >
+                  x
+                </Button>
+              )}
+            </div>
 
-            newTabData = arrayMove(newTabData, sectionIndex, sectionIndex + 1);
+            <div className="baseFlex">
+              <Button
+                disabled={reorderingColumns}
+                style={{
+                  borderRadius: reorderingColumns
+                    ? "0.375rem 0 0 0.375rem"
+                    : "0.375rem",
+                }}
+                onClick={() => {
+                  setReorderingColumns(!reorderingColumns);
+                  setShowingDeleteColumnsButtons(false);
+                }}
+              >
+                Reorder
+              </Button>
 
-            setTabData(newTabData);
-          }}
-        >
-          <BiDownArrowAlt className="h-5 w-5" />
-        </Button>
-        <Button
-          variant={"destructive"}
-          className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
-          disabled={tabData.length === 1} // maybe allow this later, but currently messes up ui
-          onClick={() => {
-            const newTabData = [...tabData];
+              {reorderingColumns && (
+                <Button
+                  className="rounded-l-none rounded-r-md"
+                  onClick={() => {
+                    setReorderingColumns(!reorderingColumns);
+                    setShowingDeleteColumnsButtons(false);
+                  }}
+                >
+                  x
+                </Button>
+              )}
+            </div>
 
-            newTabData.splice(sectionIndex, 1);
+            <div className="baseFlex">
+              <Button
+                disabled={showingDeleteColumnsButtons}
+                style={{
+                  borderRadius: showingDeleteColumnsButtons
+                    ? "0.375rem 0 0 0.375rem"
+                    : "0.375rem",
+                }}
+                onClick={() => {
+                  setShowingDeleteColumnsButtons(!showingDeleteColumnsButtons);
+                  setReorderingColumns(false);
+                }}
+              >
+                Delete columns
+              </Button>
 
-            setTabData(newTabData);
-          }}
-        >
-          <IoClose className="h-5 w-5" />
-        </Button>
-      </div>
-
-      <div className="baseFlex mt-48 w-full !justify-start md:mt-24">
-        <div className="baseVertFlex relative h-[284px] gap-[1.35rem] rounded-l-2xl border-2 border-pink-50 p-2">
-          <div className="absolute left-0 top-[-7rem] w-[400px]">
-            <Button
-              onClick={() => {
-                if (!editingPalmMuteNodes) {
-                  setEditingPalmMuteNodes(true);
-                  return;
-                } else if (lastModifiedPalmMuteNode) {
-                  // if prevValue was "" then can just do hardcoded solution as before
-                  if (lastModifiedPalmMuteNode.prevValue === "") {
-                    const newTabData = [...tabData];
-                    newTabData[sectionIndex]!.data[
-                      lastModifiedPalmMuteNode.columnIndex
-                    ]![0] = "";
-                    setTabData(newTabData);
-                  } else {
-                    modifyPalmMuteDashes(
-                      tabData,
-                      setTabData,
-                      sectionIndex,
-                      lastModifiedPalmMuteNode.columnIndex,
-                      "tempRemoveLater",
-                      lastModifiedPalmMuteNode.prevValue
+              {showingDeleteColumnsButtons && (
+                <Button
+                  className="rounded-l-none rounded-r-md"
+                  onClick={() => {
+                    setShowingDeleteColumnsButtons(
+                      !showingDeleteColumnsButtons
                     );
-                  }
-
-                  setLastModifiedPalmMuteNode(null);
-                }
-                setEditingPalmMuteNodes(false);
-              }}
-            >
-              {editingPalmMuteNodes ? "x" : "Edit palm mute sections"}
-            </Button>
+                    setReorderingColumns(false);
+                  }}
+                >
+                  x
+                </Button>
+              )}
+            </div>
           </div>
+        </div>
 
+        <div className="baseFlex w-1/2 !justify-end gap-2 2xl:w-1/4">
+          <Button
+            variant={"secondary"}
+            className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
+            disabled={sectionIndex === 0}
+            onClick={() => {
+              let newTabData = [...tabData];
+
+              newTabData = arrayMove(
+                newTabData,
+                sectionIndex,
+                sectionIndex - 1
+              );
+
+              setTabData(newTabData);
+            }}
+          >
+            <BiUpArrowAlt className="h-5 w-5" />
+          </Button>
+          <Button
+            variant={"secondary"}
+            className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
+            disabled={sectionIndex === tabData.length - 1}
+            onClick={() => {
+              let newTabData = [...tabData];
+
+              newTabData = arrayMove(
+                newTabData,
+                sectionIndex,
+                sectionIndex + 1
+              );
+
+              setTabData(newTabData);
+            }}
+          >
+            <BiDownArrowAlt className="h-5 w-5" />
+          </Button>
+          <Button
+            variant={"destructive"}
+            className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
+            disabled={tabData.length === 1} // maybe allow this later, but currently messes up ui
+            onClick={() => {
+              const newTabData = [...tabData];
+
+              newTabData.splice(sectionIndex, 1);
+
+              setTabData(newTabData);
+            }}
+          >
+            <IoClose className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+
+      {/* try to use framer motion to animate sections sliding up/down to their new positions
+        (this would mean both sections would need to slide for each click of "up"/"down" ) */}
+
+      <div className="baseFlex w-full !justify-start">
+        <div className="baseVertFlex relative h-[284px] gap-[1.35rem] rounded-l-2xl border-2 border-pink-50 p-2">
           {toString(parse(tuning), { pad: 1 })
             .split(" ")
             .map((note, index) => (

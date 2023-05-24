@@ -1,11 +1,11 @@
-import { useState, Fragment, type CSSProperties } from "react";
+import { useState, Fragment } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { motion } from "framer-motion";
 import { type TabColumn } from "./TabColumn";
 import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { RxDragHandleDots2 } from "react-icons/rx";
+import { Button } from "../ui/button";
 
 const sectionVariants = {
   expanded: {
@@ -63,6 +63,14 @@ function TabMeasureLine({
     shallow
   );
 
+  function handleDeleteMeasureLine() {
+    const newTabData = [...tabData];
+
+    newTabData[sectionIndex]?.data.splice(columnIndex, 2);
+
+    setTabData(newTabData);
+  }
+
   return (
     <motion.div
       key={`tabColumn${columnIndex}`}
@@ -109,7 +117,7 @@ function TabMeasureLine({
       {columnData.map((note, index) => (
         <Fragment key={index}>
           {index === 0 && (
-            <div className="baseFlex mb-2 h-9 w-full">
+            <div className="baseFlex mb-0 h-9 w-full">
               {note === "-" && (
                 <div className="h-[1px] w-full bg-pink-50"></div>
               )}
@@ -132,18 +140,12 @@ function TabMeasureLine({
             ></div>
           )}
 
-          {index === 7 && (
-            <div className="relative mt-2 h-0 w-full">
-              {/* not sure if necessary, currently used just for positional purposes */}
-            </div>
-          )}
-
-          {index === 8 && (
+          {index === 8 && reorderingColumns && (
             <div
               ref={setActivatorNodeRef}
               {...attributes}
               {...listeners}
-              className="hover:box-shadow-md absolute bottom-[-2.75rem] cursor-grab rounded-md text-pink-50 active:cursor-grabbing"
+              className="hover:box-shadow-md absolute bottom-[-2.7rem] cursor-grab rounded-md text-pink-50 active:cursor-grabbing"
               onMouseEnter={() => setHoveringOnHandle(true)}
               onMouseDown={() => setGrabbingHandle(true)}
               onMouseLeave={() => setHoveringOnHandle(false)}
@@ -157,6 +159,17 @@ function TabMeasureLine({
                 className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-pink-200/30 p-4 transition-all"
               ></div>
             </div>
+          )}
+
+          {index === 8 && showingDeleteColumnsButtons && (
+            <Button
+              variant={"destructive"}
+              size="sm"
+              className="absolute bottom-[-2.7rem] left-1/2 right-1/2 h-[1.75rem] w-[1.75rem] -translate-x-1/2"
+              onClick={handleDeleteMeasureLine}
+            >
+              x
+            </Button>
           )}
         </Fragment>
       ))}
