@@ -27,7 +27,10 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { restrictToFirstScrollableAncestor } from "@dnd-kit/modifiers";
+import {
+  restrictToFirstScrollableAncestor,
+  restrictToVerticalAxis,
+} from "@dnd-kit/modifiers";
 import { v4 as uuid } from "uuid";
 
 import { useSortable } from "@dnd-kit/sortable";
@@ -249,11 +252,14 @@ function SectionProgressionModal() {
 
           <div
             ref={scrollableSectionsRef}
-            className="baseVertFlex max-h-[90vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[450px] md:w-3/4"
+            className="baseVertFlex max-h-[90vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[450px] md:w-3/4 md:pl-10"
           >
             <DndContext
               sensors={sensors}
-              modifiers={[restrictToFirstScrollableAncestor]}
+              modifiers={[
+                restrictToFirstScrollableAncestor,
+                restrictToVerticalAxis,
+              ]}
               collisionDetection={closestCenter}
               onDragEnd={handleDragEnd}
             >
