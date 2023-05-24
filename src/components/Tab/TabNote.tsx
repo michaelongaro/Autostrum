@@ -55,6 +55,17 @@ function TabNote({
       if (value !== "" && !isValid) return;
 
       if (value === "|") {
+        if (
+          columnIndex === 0 ||
+          columnIndex === tabData[sectionIndex]!.data.length - 2 ||
+          tabData[sectionIndex]!.data[columnIndex - 1]?.[8] === "measureLine" ||
+          tabData[sectionIndex]!.data[columnIndex + 1]?.[8] === "measureLine"
+        ) {
+          return;
+        }
+
+        console.log(columnIndex);
+
         const newTabData = [...tabData];
         const palmMuteNode = newTabData[sectionIndex]!.data[columnIndex]![0];
 
@@ -82,7 +93,25 @@ function TabNote({
     else if (!inlineEffect && noteIndex === 7) {
       // Check if the value is contains at most one of each of the following characters: . ^ v > s
       // and that it doesn't contain both a ^ and a v
-      const isValid = /^(?!.*v.*\^)(?!.*\^.*v)[.\>sv\^]{1,5}$/g.test(value);
+      let isValid = true;
+      const validCharacters = [".", "^", "v", ">", "s"];
+
+      value.split("").reduce((acc, curr) => {
+        if (acc[curr]) {
+          acc[curr]++;
+          isValid = false;
+        } else if (curr === "^" && value.includes("v")) {
+          isValid = false;
+        } else if (curr === "v" && value.includes("^")) {
+          isValid = false;
+        } else if (!acc[curr] && validCharacters.includes(curr)) {
+          acc[curr] = 1;
+        } else {
+          isValid = false;
+        }
+        return acc;
+      }, {} as { [key: string]: number });
+
       if (value !== "" && !isValid) return;
     }
 
