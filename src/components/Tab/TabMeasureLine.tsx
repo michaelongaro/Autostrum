@@ -26,7 +26,20 @@ const initialStyles = {
   filter: "drop-shadow(0px 5px 5px transparent)",
 };
 
-function TabMeasureLine({ columnData, sectionIndex, columnIndex }: TabColumn) {
+function TabMeasureLine({
+  columnData,
+  sectionIndex,
+  columnIndex,
+
+  reorderingColumns,
+  showingDeleteColumnsButtons,
+}: Omit<
+  TabColumn,
+  | "editingPalmMuteNodes"
+  | "setEditingPalmMuteNodes"
+  | "lastModifiedPalmMuteNode"
+  | "setLastModifiedPalmMuteNode"
+>) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
   const {
@@ -41,16 +54,11 @@ function TabMeasureLine({ columnData, sectionIndex, columnIndex }: TabColumn) {
     // hoping that columnIndex is fine here. if you can drag across sections we will need to modify.
     useSortable({ id: `${columnIndex}` });
 
-  const style: CSSProperties = {
-    opacity: isDragging ? 0.4 : 1,
-    transform: CSS.Translate.toString(transform),
-    transition,
-  };
-
-  const { editing, tabData } = useTabStore(
+  const { editing, tabData, setTabData } = useTabStore(
     (state) => ({
       editing: state.editing,
       tabData: state.tabData,
+      setTabData: state.setTabData,
     }),
     shallow
   );

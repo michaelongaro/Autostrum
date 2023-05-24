@@ -1,13 +1,26 @@
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { Button } from "../ui/button";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
+import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 
 interface PalmMuteNode {
   note: string;
   effectColumn: boolean;
   columnIndex: number;
   sectionIndex: number;
+  editingPalmMuteNodes: boolean;
+  setEditingPalmMuteNodes: Dispatch<SetStateAction<boolean>>;
+  lastModifiedPalmMuteNode: LastModifiedPalmMuteNodeLocation | null;
+  setLastModifiedPalmMuteNode: Dispatch<
+    SetStateAction<LastModifiedPalmMuteNodeLocation | null>
+  >;
 }
 
 function PalmMuteNode({
@@ -15,28 +28,19 @@ function PalmMuteNode({
   effectColumn,
   columnIndex,
   sectionIndex,
+  editingPalmMuteNodes,
+  setEditingPalmMuteNodes,
+  lastModifiedPalmMuteNode,
+  setLastModifiedPalmMuteNode,
 }: PalmMuteNode) {
   const [hoveringOnPalmMuteNode, setHoveringOnPalmMuteNode] = useState(false);
   const [buttonOpacity, setButtonOpacity] = useState("0");
 
-  const {
-    editing,
-    tabData,
-    setTabData,
-    lastModifiedPalmMuteNode,
-    setLastModifiedPalmMuteNode,
-    editingPalmMuteNodes,
-    setEditingPalmMuteNodes,
-    modifyPalmMuteDashes,
-  } = useTabStore(
+  const { editing, tabData, setTabData, modifyPalmMuteDashes } = useTabStore(
     (state) => ({
       editing: state.editing,
       tabData: state.tabData,
       setTabData: state.setTabData,
-      lastModifiedPalmMuteNode: state.lastModifiedPalmMuteNode,
-      setLastModifiedPalmMuteNode: state.setLastModifiedPalmMuteNode,
-      editingPalmMuteNodes: state.editingPalmMuteNodes,
-      setEditingPalmMuteNodes: state.setEditingPalmMuteNodes,
       modifyPalmMuteDashes: state.modifyPalmMuteDashes,
     }),
     shallow

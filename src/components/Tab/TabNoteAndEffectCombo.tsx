@@ -1,4 +1,11 @@
-import { Fragment } from "react";
+import {
+  useState,
+  Fragment,
+  useMemo,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
+import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 import TabNote from "./TabNote";
 import PalmMuteNode from "./PalmMuteNode";
 import { useTabStore } from "~/stores/TabStore";
@@ -30,6 +37,15 @@ interface TabNoteAndEffectCombo {
   effectColumnData: string[] | undefined;
   sectionIndex: number;
   noteColumnIndex: number;
+
+  editingPalmMuteNodes: boolean;
+  setEditingPalmMuteNodes: Dispatch<SetStateAction<boolean>>;
+  lastModifiedPalmMuteNode: LastModifiedPalmMuteNodeLocation | null;
+  setLastModifiedPalmMuteNode: Dispatch<
+    SetStateAction<LastModifiedPalmMuteNodeLocation | null>
+  >;
+  reorderingColumns: boolean;
+  showingDeleteColumnsButtons: boolean;
 }
 
 function TabNoteAndEffectCombo({
@@ -37,6 +53,13 @@ function TabNoteAndEffectCombo({
   effectColumnData,
   sectionIndex,
   noteColumnIndex,
+
+  editingPalmMuteNodes,
+  setEditingPalmMuteNodes,
+  lastModifiedPalmMuteNode,
+  setLastModifiedPalmMuteNode,
+  reorderingColumns,
+  showingDeleteColumnsButtons,
 }: TabNoteAndEffectCombo) {
   const {
     attributes,
@@ -49,17 +72,11 @@ function TabNoteAndEffectCombo({
     // hoping that noteColumnIndex is fine here. if you can drag across sections we will need to modify.
     useSortable({ id: `${noteColumnIndex}`, disabled: true });
 
-  // TODO: replace unnecessary dragging state since this is disabled
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  const { editing, tabData } = useTabStore(
+  const { editing, tabData, setTabData } = useTabStore(
     (state) => ({
       editing: state.editing,
       tabData: state.tabData,
+      setTabData: state.setTabData,
     }),
     shallow
   );

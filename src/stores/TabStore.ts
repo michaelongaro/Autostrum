@@ -2,12 +2,6 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import type { ITabSection } from "~/components/Tab/Tab";
 
-interface LastModifiedPalmMuteNodeLocation {
-  columnIndex: number;
-  prevValue: string;
-  currentValue: string;
-}
-
 export interface SectionProgression {
   id: string;
   title: string;
@@ -44,12 +38,6 @@ interface TabState {
   setSectionProgression: (sectionProgresstion: SectionProgression[]) => void;
 
   // used in <TabSection />
-  editingPalmMuteNodes: boolean;
-  setEditingPalmMuteNodes: (editingPalmMuteNodes: boolean) => void;
-  lastModifiedPalmMuteNode: LastModifiedPalmMuteNodeLocation | null;
-  setLastModifiedPalmMuteNode: (
-    lastModifiedPalmMuteNode: LastModifiedPalmMuteNodeLocation | null
-  ) => void;
   modifyPalmMuteDashes: (
     tab: ITabSection[],
     setTabData: (tabData: ITabSection[]) => void,
@@ -112,12 +100,7 @@ export const useTabStore = create<TabState>()(
     setSectionProgression: (sectionProgression) => set({ sectionProgression }),
 
     // used in <TabSection />
-    editingPalmMuteNodes: false,
-    setEditingPalmMuteNodes: (editingPalmMuteNodes) =>
-      set({ editingPalmMuteNodes }),
-    lastModifiedPalmMuteNode: null,
-    setLastModifiedPalmMuteNode: (lastModifiedPalmMuteNode) =>
-      set({ lastModifiedPalmMuteNode }),
+
     modifyPalmMuteDashes: (
       tab,
       setTabData,

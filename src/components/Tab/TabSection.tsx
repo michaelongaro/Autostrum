@@ -25,6 +25,12 @@ import {
 import { restrictToParentElement } from "@dnd-kit/modifiers";
 import { parse, toString } from "~/utils/tunings";
 
+export interface LastModifiedPalmMuteNodeLocation {
+  columnIndex: number;
+  prevValue: string;
+  currentValue: string;
+}
+
 interface TabSection {
   sectionData: {
     title: string;
@@ -35,6 +41,13 @@ interface TabSection {
 
 function TabSection({ sectionData, sectionIndex }: TabSection) {
   const [sectionTitle, setSectionTitle] = useState(sectionData.title);
+
+  const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
+  const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
+    useState<LastModifiedPalmMuteNodeLocation | null>(null);
+  const [reorderingColumns, setReorderingColumns] = useState(false);
+  const [showingDeleteColumnsButtons, setShowingDeleteColumnsButtons] =
+    useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -61,17 +74,8 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
     }
   }, [sectionData, sectionTitle]);
 
-  const {
-    tuning,
-    editingPalmMuteNodes,
-    setEditingPalmMuteNodes,
-    lastModifiedPalmMuteNode,
-    setLastModifiedPalmMuteNode,
-    modifyPalmMuteDashes,
-    tabData,
-    setTabData,
-    editing,
-  } = useTabStore(
+  const { tuning, modifyPalmMuteDashes, tabData, setTabData, editing } =
+    useTabStore(
     (state) => ({
       tuning: state.tuning,
       editingPalmMuteNodes: state.editingPalmMuteNodes,
@@ -296,6 +300,12 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
                 columnData={column}
                 sectionIndex={sectionIndex}
                 columnIndex={index}
+                editingPalmMuteNodes={editingPalmMuteNodes}
+                setEditingPalmMuteNodes={setEditingPalmMuteNodes}
+                lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+                setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
+                reorderingColumns={reorderingColumns}
+                showingDeleteColumnsButtons={showingDeleteColumnsButtons}
               />
             ))}
           </SortableContext>
