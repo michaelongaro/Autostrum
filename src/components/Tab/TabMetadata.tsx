@@ -160,7 +160,7 @@ function TabMetadata() {
             </div>
 
             <div className="baseVertFlex !items-start gap-1.5">
-              <Label htmlFor="tuning">Genre</Label>
+              <Label>Genre</Label>
               <Select
                 value={genreObject[genreId]?.id.toString()}
                 onValueChange={(value) => handleGenreChange(value)}
