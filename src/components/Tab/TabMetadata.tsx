@@ -1,4 +1,4 @@
-import { useMemo, type ChangeEvent } from "react";
+import { useState, useMemo, type ChangeEvent } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { api } from "~/utils/api";
 import { useTabStore } from "~/stores/TabStore";
@@ -16,6 +16,12 @@ import { Separator } from "../ui/separator";
 import { CommandCombobox } from "../ui/CommandCombobox";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
+import {
+  Popover,
+  PopoverClose,
+  PopoverContent,
+  PopoverTrigger,
+} from "../ui/popover";
 import { type Genre } from "@prisma/client";
 import EffectGlossary from "../ui/EffectGlossary";
 
@@ -24,6 +30,8 @@ function TabMetadata() {
   // edit button on hover should show tooltip showing which sections need to be filled out
   // before able to save/upload tab
   const { userId, isLoaded } = useAuth();
+
+  const [showPopover, setShowPopover] = useState(false);
 
   const genreArray = api.genre.getAll.useQuery();
 
@@ -138,7 +146,36 @@ function TabMetadata() {
     <>
       {editing ? (
         <>
-          <div className="baseFlex w-full gap-2">
+          <div className="baseFlex relative w-full gap-2">
+            <div className="absolute right-2 top-2">
+              {/* really not sure why positioning on <Tooltip /> was so consistantly off while
+                  popover works fine... */}
+              {/* disable on hover if it is able to be saved */}
+              {/* https://www.radix-ui.com/docs/primitives/components/tooltip#displaying-a-tooltip-from-a-disabled-button */}
+
+              <Popover
+                open={showPopover}
+                onOpenChange={(open) => {
+                  if (open) setShowPopover(false);
+                  // only set to true if there are required fields that aren't filled out properly
+                  setShowPopover(true);
+                }}
+              >
+                <PopoverTrigger>
+                  <Button
+                  // disabled={}
+                  >
+                    Save
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent>
+                  {/* look to see how to properly format this component to get the close */}
+                  {/* <PopoverClose /> */}
+                  Place content for the popover here.
+                </PopoverContent>
+              </Popover>
+            </div>
+
             <div className="baseVertFlex w-full max-w-sm !items-start gap-1.5 md:w-1/2">
               <Label htmlFor="title">
                 Title <span className="text-pink-700">*</span>
