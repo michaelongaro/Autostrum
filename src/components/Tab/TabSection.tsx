@@ -251,7 +251,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
     // grid for dark backdrop?
     <div className="baseVertFlex relative h-full w-full !justify-start gap-4 md:p-8">
       <div className="baseFlex w-full !items-start !justify-between">
-        <div className="baseVertFlex w-1/2 !items-start gap-2 2xl:w-3/4 2xl:!flex-row 2xl:!justify-start">
+        <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
           <Input
             value={sectionTitle}
             placeholder="Section title"
@@ -259,12 +259,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
             className="max-w-[12rem] text-lg font-semibold"
           />
 
-          <div className="baseVertFlex !items-start gap-2 2xl:!flex-row">
-            {/* okay so for these buttons (may want to make another variant?)
-                we want to always show the main button, but when toggled on it will disable the main one,
-                and render right beside of it (making it look like the same button w/ border radii correct)
-                with the "x" button which obv isn't disabled */}
-
+          <div className="baseVertFlex !items-start gap-2 lg:!flex-row">
             <div className="baseFlex">
               <Button
                 disabled={editingPalmMuteNodes}
@@ -350,7 +345,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
           </div>
         </div>
 
-        <div className="baseFlex w-1/2 !justify-end gap-2 2xl:w-1/4">
+        <div className="baseVertFlex w-1/6 !justify-end gap-2 2xl:flex-row">
           <Button
             variant={"secondary"}
             className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
