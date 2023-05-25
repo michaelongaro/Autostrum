@@ -131,9 +131,9 @@ function TabNoteAndEffectCombo({
 
   return (
     <motion.div
-      key={`tabColumn${noteColumnIndex}`}
+      key={`tabSection${sectionIndex}tabColumn${noteColumnIndex}`}
       ref={setNodeRef}
-      layoutId={`tabColumn${noteColumnIndex}`}
+      layoutId={`tabSection${sectionIndex}tabColumn${noteColumnIndex}`}
       style={initialStyles}
       initial="closed"
       animate={

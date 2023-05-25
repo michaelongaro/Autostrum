@@ -4,6 +4,7 @@ import { shallow } from "zustand/shallow";
 import TabColumn from "./TabColumn";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { motion } from "framer-motion";
 import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
 
@@ -249,7 +250,13 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
 
   return (
     // grid for dark backdrop?
-    <div className="baseVertFlex relative h-full w-full !justify-start gap-4 md:p-8">
+    <motion.div
+      key={`tabSection${sectionIndex}`}
+      // layoutId={`tabSection${sectionIndex}`}
+      layout
+      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+      className="baseVertFlex relative h-full w-full !justify-start gap-4 md:p-8"
+    >
       <div className="baseFlex w-full !items-start !justify-between">
         <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
           <Input

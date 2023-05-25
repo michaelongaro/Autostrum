@@ -5,7 +5,7 @@ import TabMetadata from "./TabMetadata";
 import TabSection from "./TabSection";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, LayoutGroup } from "framer-motion";
 
 import SectionProgression from "./SectionProgression";
 import SectionProgressionModal from "../modals/SectionProgressionModal";
@@ -120,22 +120,24 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
   // edit/save buttons prob right at the top of this markup below
   return (
     <>
-      <div className="baseVertFlex lightGlassmorphic relative mt-24 w-11/12 gap-4 rounded-md p-4 md:w-8/12">
+      <div className="baseVertFlex lightGlassmorphic relative mb-24 mt-24 w-11/12 gap-4 rounded-md p-4 md:w-8/12">
         <TabMetadata />
 
         <SectionProgression />
 
         {/* Actual tab below */}
-        {tabData.map((section, index) => (
-          <TabSection
-            key={index}
-            sectionData={{
-              title: section.title,
-              data: section.data,
-            }}
-            sectionIndex={index}
-          />
-        ))}
+        <LayoutGroup>
+          {tabData.map((section, index) => (
+            <TabSection
+              key={index}
+              sectionData={{
+                title: section.title,
+                data: section.data,
+              }}
+              sectionIndex={index}
+            />
+          ))}
+        </LayoutGroup>
       </div>
 
       <Button

@@ -73,9 +73,9 @@ function TabMeasureLine({
 
   return (
     <motion.div
-      key={`tabColumn${columnIndex}`}
+      key={`tabSection${sectionIndex}tabColumn${columnIndex}`}
       ref={setNodeRef}
-      layoutId={`tabColumn${columnIndex}`}
+      layoutId={`tabSection${sectionIndex}tabColumn${columnIndex}`}
       style={initialStyles}
       initial="closed"
       animate={
