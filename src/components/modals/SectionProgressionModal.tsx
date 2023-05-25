@@ -54,19 +54,6 @@ const backdropVariants = {
   },
 };
 
-const modalVariants = {
-  expanded: {
-    width: "90vw",
-    maxWidth: 600,
-    height: "90vh",
-    maxHeight: 600,
-    opacity: 1,
-  },
-  closed: {
-    opacity: 0,
-  },
-};
-
 const sectionVariants = {
   expanded: {
     opacity: 1,
@@ -106,6 +93,18 @@ function SectionProgressionModal() {
 
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  const modalVariants = {
+    expanded: {
+      width: "90vw",
+      maxWidth: 600,
+      height: aboveMediumViewportWidth ? "600px" : "75vh",
+      opacity: 1,
+    },
+    closed: {
+      opacity: 0,
+    },
+  };
 
   const {
     editing,
@@ -158,19 +157,13 @@ function SectionProgressionModal() {
         (section) => section.id === over.id
       );
 
-      // need to adjust all affected index values as well
-
-      // console.log(startIndex, endIndex);
-
       newSectionProgression = arrayMove(
         newSectionProgression,
         startIndex,
         endIndex
       );
 
-      // console.log(newSectionProgression);
       newSectionProgression = reassignIndicies(newSectionProgression);
-      // console.log(newSectionProgression);
 
       setSectionProgression(newSectionProgression);
     }
@@ -230,7 +223,7 @@ function SectionProgressionModal() {
     >
       <motion.div
         key={"innerSectionProgressionModal"}
-        className="absolute rounded-md bg-pink-300 p-4 opacity-100 shadow-lg"
+        className="absolute rounded-md bg-pink-300 p-4 opacity-100 shadow-lg "
         variants={modalVariants}
         initial="closed"
         animate="expanded"
@@ -245,14 +238,14 @@ function SectionProgressionModal() {
         >
           <IoClose className="h-5 w-5" />
         </Button>
-        <div className="baseVertFlex gap-4">
+        <div className="baseVertFlex !justify-start  gap-4 ">
           <div className="mb-4 text-xl font-semibold text-pink-800 ">
             Section progression
           </div>
 
           <div
             ref={scrollableSectionsRef}
-            className="baseVertFlex max-h-[90vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[450px] md:w-3/4 md:pl-10"
+            className="baseVertFlex max-h-[55vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[450px] md:w-3/4 md:pl-10"
           >
             <DndContext
               sensors={sensors}
@@ -444,7 +437,7 @@ function Section({ id, title, repetitions, index, titles }: Section) {
         ref={setActivatorNodeRef}
         {...attributes}
         {...listeners}
-        className="absolute left-2 cursor-grab rounded-md text-pink-50 active:cursor-grabbing md:-left-8"
+        className="absolute left-2 cursor-grab rounded-md text-pink-50  active:cursor-grabbing sm:-left-8"
         onMouseEnter={() => setHoveringOnHandle(true)}
         onMouseDown={() => setGrabbingHandle(true)}
         onMouseLeave={() => setHoveringOnHandle(false)}
@@ -458,7 +451,7 @@ function Section({ id, title, repetitions, index, titles }: Section) {
           className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-pink-200/30 p-4 transition-all"
         ></div>
       </div>
-      <div className="baseFlex w-full gap-4 rounded-md bg-pink-500 p-4 md:w-fit ">
+      <div className="baseFlex w-full gap-4 rounded-md bg-pink-500 p-4 px-8 sm:px-4 md:w-fit ">
         <Select
           value={title === "" ? undefined : title}
           onValueChange={(value) => handleChange(value, "title")}
