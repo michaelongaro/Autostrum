@@ -36,6 +36,8 @@ interface TabState {
   setEditing: (editing: boolean) => void;
   sectionProgression: SectionProgression[];
   setSectionProgression: (sectionProgresstion: SectionProgression[]) => void;
+  showingEffectGlossary: boolean;
+  setShowingEffectGlossary: (showingEffectGlossary: boolean) => void;
 
   // used in <TabSection />
   modifyPalmMuteDashes: (
@@ -52,6 +54,8 @@ interface TabState {
   setShowSectionProgressionModal: (
     showSectionProgressionModal: boolean
   ) => void;
+  showEffectGlossaryModal: boolean;
+  setShowEffectGlossaryModal: (showEffectGlossaryModal: boolean) => void;
 }
 
 // if you ever come across a situation where you need the current value of tabData
@@ -98,6 +102,9 @@ export const useTabStore = create<TabState>()(
     setEditing: (editing) => set({ editing }),
     sectionProgression: [],
     setSectionProgression: (sectionProgression) => set({ sectionProgression }),
+    showingEffectGlossary: false,
+    setShowingEffectGlossary: (showingEffectGlossary) =>
+      set({ showingEffectGlossary }),
 
     // used in <TabSection />
 
@@ -161,5 +168,8 @@ export const useTabStore = create<TabState>()(
     showSectionProgressionModal: false,
     setShowSectionProgressionModal: (showSectionProgressionModal) =>
       set({ showSectionProgressionModal }),
+    showEffectGlossaryModal: false,
+    setShowEffectGlossaryModal: (showEffectGlossaryModal) =>
+      set({ showEffectGlossaryModal }),
   }))
 );
