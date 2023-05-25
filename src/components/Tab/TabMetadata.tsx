@@ -139,7 +139,9 @@ function TabMetadata() {
         <>
           <div className="baseFlex w-full gap-2">
             <div className="baseVertFlex w-full max-w-sm !items-start gap-1.5 md:w-1/2">
-              <Label htmlFor="title">Title</Label>
+              <Label htmlFor="title">
+                Title <span className="text-pink-700">*</span>
+              </Label>
               <Input
                 id="title"
                 type="text"
@@ -160,7 +162,9 @@ function TabMetadata() {
             </div>
 
             <div className="baseVertFlex !items-start gap-1.5">
-              <Label>Genre</Label>
+              <Label>
+                Genre <span className="text-pink-700">*</span>
+              </Label>
               <Select
                 value={genreObject[genreId]?.id.toString()}
                 onValueChange={(value) => handleGenreChange(value)}
@@ -197,7 +201,9 @@ function TabMetadata() {
 
           <div className="baseFlex w-full gap-2">
             <div className="baseVertFlex max-w-sm !items-start gap-1.5">
-              <Label htmlFor="tuning">Tuning</Label>
+              <Label htmlFor="tuning">
+                Tuning <span className="text-pink-700">*</span>
+              </Label>
               {/* TODO: ability to add custom tunings */}
               <CommandCombobox />
             </div>
@@ -213,7 +219,9 @@ function TabMetadata() {
             </div>
 
             <div className="baseVertFlex w-16 max-w-sm !items-start gap-1.5">
-              <Label htmlFor="bpm">BPM</Label>
+              <Label htmlFor="bpm">
+                BPM <span className="text-pink-700">*</span>
+              </Label>
               <Input
                 type="text"
                 placeholder="75"
