@@ -27,7 +27,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
     setCreatedById,
     setTitle,
     setDescription,
-    setGenre,
+    setGenreId,
     setTuning,
     setBPM,
     setTimeSignature,
@@ -43,7 +43,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
       setCreatedById: state.setCreatedById,
       setTitle: state.setTitle,
       setDescription: state.setDescription,
-      setGenre: state.setGenre,
+      setGenreId: state.setGenreId,
       setTuning: state.setTuning,
       setBPM: state.setBPM,
       setTimeSignature: state.setTimeSignature,
@@ -64,7 +64,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
     setCreatedById(tab.createdById);
     setTitle(tab.title);
     setDescription(tab.description ?? "");
-    setGenre(""); // TODO: set genre implementation
+    setGenreId(tab.genreId); // TODO: set genre implementation
     setTuning(tab.tuning);
     setBPM(tab.bpm);
     setTimeSignature(tab.timeSignature);
@@ -76,7 +76,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
     setCreatedById,
     setBPM,
     setDescription,
-    setGenre,
+    setGenreId,
     setTabData,
     setTimeSignature,
     setTitle,
@@ -89,7 +89,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
   // const [description, setDescription] = useState(tab?.description ?? "");
 
   // // these two will need some more coddling to get working
-  // const [genre, setGenre] = useState(tab?.genreId ?? 0);
+  // const [genre, setGenreId] = useState(tab?.genreId ?? 0);
   // const [tuning, setTuning] = useState(tab?.tuning ?? "EADGBE"); // not sure how we want to handle this yet
 
   // const [BPM, setBPM] = useState(tab?.bpm ?? 75);
