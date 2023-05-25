@@ -25,6 +25,7 @@ import {
 } from "@dnd-kit/sortable";
 import { restrictToParentElement } from "@dnd-kit/modifiers";
 import { parse, toString } from "~/utils/tunings";
+import { Separator } from "@radix-ui/react-select";
 
 export interface LastModifiedPalmMuteNodeLocation {
   columnIndex: number;
@@ -275,6 +276,9 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
                     ? "0.375rem 0 0 0.375rem"
                     : "0.375rem",
                 }}
+                // should you just manually add these styles to the button component?
+                // not sure of good usecases for having anything but small sized buttons at these viewports..
+                className="h-9 px-3 md:h-10 md:px-4 md:py-2"
                 onClick={toggleEditingPalmMuteNodes}
               >
                 Edit palm mute sections
@@ -282,7 +286,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
 
               {editingPalmMuteNodes && (
                 <Button
-                  className="rounded-l-none rounded-r-md"
+                  className="h-9 rounded-l-none rounded-r-md px-3 md:h-10 md:px-4 md:py-2 "
                   onClick={toggleEditingPalmMuteNodes}
                 >
                   x
@@ -298,6 +302,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
                     ? "0.375rem 0 0 0.375rem"
                     : "0.375rem",
                 }}
+                className="h-9 px-3 md:h-10 md:px-4 md:py-2"
                 onClick={() => {
                   setReorderingColumns(!reorderingColumns);
                   setShowingDeleteColumnsButtons(false);
@@ -308,7 +313,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
 
               {reorderingColumns && (
                 <Button
-                  className="rounded-l-none rounded-r-md"
+                  className="h-9 rounded-l-none rounded-r-md px-3 md:h-10 md:px-4 md:py-2"
                   onClick={() => {
                     setReorderingColumns(!reorderingColumns);
                     setShowingDeleteColumnsButtons(false);
@@ -327,6 +332,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
                     ? "0.375rem 0 0 0.375rem"
                     : "0.375rem",
                 }}
+                className="h-9 px-3 md:h-10 md:px-4 md:py-2"
                 onClick={() => {
                   setShowingDeleteColumnsButtons(!showingDeleteColumnsButtons);
                   setReorderingColumns(false);
@@ -337,7 +343,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
 
               {showingDeleteColumnsButtons && (
                 <Button
-                  className="rounded-l-none rounded-r-md"
+                  className="h-9 rounded-l-none rounded-r-md px-3 md:h-10 md:px-4 md:py-2"
                   onClick={() => {
                     setShowingDeleteColumnsButtons(
                       !showingDeleteColumnsButtons
@@ -453,18 +459,18 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
 
         {/* any way to not have to hardcode this? */}
         <div className="baseVertFlex h-[284px] rounded-r-2xl border-2 border-pink-50 p-1"></div>
-
-        <Button className="ml-4 rounded-full" onClick={addNewColumns}>
-          +
-        </Button>
       </div>
+
+      <Button onClick={addNewColumns}>Extend section</Button>
+
+      <Separator className="h-[1px] w-full bg-pink-50" />
 
       {sectionIndex === tabData.length - 1 && (
         <Button className="mt-12" onClick={addNewSection}>
           Add new section
         </Button>
       )}
-    </div>
+    </motion.div>
   );
 }
 
