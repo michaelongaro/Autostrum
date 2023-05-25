@@ -17,6 +17,7 @@ import { CommandCombobox } from "../ui/CommandCombobox";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import { type Genre } from "@prisma/client";
+import EffectGlossary from "../ui/EffectGlossary";
 
 function TabMetadata() {
   // TODO: flesh out genre, tuning, and prob "edit" button/ save buttons
@@ -199,7 +200,7 @@ function TabMetadata() {
 
           <Separator />
 
-          <div className="baseFlex w-full gap-2">
+          <div className="baseFlex w-full !items-end gap-2">
             <div className="baseVertFlex max-w-sm !items-start gap-1.5">
               <Label htmlFor="tuning">
                 Tuning <span className="text-pink-700">*</span>
@@ -238,6 +239,10 @@ function TabMetadata() {
                 value={timeSignature ?? ""}
                 onChange={handleTimeSignatureChange}
               />
+            </div>
+
+            <div className="hidden md:block">
+              <EffectGlossary />
             </div>
           </div>
         </>
