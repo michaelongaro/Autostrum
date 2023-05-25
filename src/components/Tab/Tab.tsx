@@ -9,6 +9,9 @@ import { AnimatePresence } from "framer-motion";
 
 import SectionProgression from "./SectionProgression";
 import SectionProgressionModal from "../modals/SectionProgressionModal";
+import EffectGlossaryModal from "../modals/EffectGlossaryModal";
+import { Button } from "../ui/button";
+import { FaItunesNote } from "react-icons/fa";
 
 // not sure of best way to avoid having the same name for interface and component
 export interface ITabSection {
@@ -33,6 +36,8 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
     editing,
     setEditing,
     showSectionProgressionModal,
+    showEffectGlossaryModal,
+    setShowEffectGlossaryModal,
   } = useTabStore(
     (state) => ({
       setCreatedById: state.setCreatedById,
@@ -47,6 +52,8 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
       editing: state.editing,
       setEditing: state.setEditing,
       showSectionProgressionModal: state.showSectionProgressionModal,
+      showEffectGlossaryModal: state.showEffectGlossaryModal,
+      setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
     }),
     shallow
   );
@@ -131,8 +138,19 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
         ))}
       </div>
 
+      <Button
+        className="fixed bottom-4 right-4 z-20 block h-12 w-12 rounded-full p-4 md:hidden"
+        onClick={() => setShowEffectGlossaryModal(true)}
+      >
+        <FaItunesNote className="h-4 w-4" />
+      </Button>
+
       <AnimatePresence mode="wait">
         {showSectionProgressionModal && <SectionProgressionModal />}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        {showEffectGlossaryModal && <EffectGlossaryModal />}
       </AnimatePresence>
     </>
   );
