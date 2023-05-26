@@ -12,6 +12,8 @@ import SectionProgressionModal from "../modals/SectionProgressionModal";
 import EffectGlossaryModal from "../modals/EffectGlossaryModal";
 import { Button } from "../ui/button";
 import { FaItunesNote } from "react-icons/fa";
+import { Separator } from "@radix-ui/react-select";
+import EffectGlossary from "../ui/EffectGlossary";
 
 // not sure of best way to avoid having the same name for interface and component
 export interface ITabSection {
@@ -24,12 +26,13 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
   const { userId, isLoaded } = useAuth();
 
   const {
+    setId,
     setCreatedById,
     setTitle,
     setDescription,
     setGenreId,
     setTuning,
-    setBPM,
+    setBpm,
     setTimeSignature,
     tabData,
     setTabData,
@@ -40,12 +43,13 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
     setShowEffectGlossaryModal,
   } = useTabStore(
     (state) => ({
+      setId: state.setId,
       setCreatedById: state.setCreatedById,
       setTitle: state.setTitle,
       setDescription: state.setDescription,
       setGenreId: state.setGenreId,
       setTuning: state.setTuning,
-      setBPM: state.setBPM,
+      setBpm: state.setBpm,
       setTimeSignature: state.setTimeSignature,
       tabData: state.tabData,
       setTabData: state.setTabData,
@@ -61,20 +65,22 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
   useEffect(() => {
     if (!tab) return;
 
+    setId(tab.id);
     setCreatedById(tab.createdById);
     setTitle(tab.title);
     setDescription(tab.description ?? "");
-    setGenreId(tab.genreId); // TODO: set genre implementation
+    setGenreId(tab.genreId);
     setTuning(tab.tuning);
-    setBPM(tab.bpm);
+    setBpm(tab.bpm);
     setTimeSignature(tab.timeSignature);
 
     // @ts-expect-error asdf
     setTabData(tab.tabData);
   }, [
     tab,
+    setId,
     setCreatedById,
-    setBPM,
+    setBpm,
     setDescription,
     setGenreId,
     setTabData,
@@ -92,7 +98,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
   // const [genre, setGenreId] = useState(tab?.genreId ?? 0);
   // const [tuning, setTuning] = useState(tab?.tuning ?? "EADGBE"); // not sure how we want to handle this yet
 
-  // const [BPM, setBPM] = useState(tab?.bpm ?? 75);
+  // const [bpm, setBpm] = useState(tab?.bpm ?? 75);
   // const [timeSignature, setTimeSignature] = useState(
   //   tab?.timeSignature ?? "4/4"
   // );
@@ -120,10 +126,18 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
   // edit/save buttons prob right at the top of this markup below
   return (
     <>
-      <div className="baseVertFlex lightGlassmorphic relative mb-24 mt-24 w-11/12 gap-4 rounded-md p-4 md:w-8/12">
+      <div className="baseVertFlex lightGlassmorphic relative mb-24 mt-24 w-11/12 gap-4 rounded-md p-4 xl:w-8/12">
         <TabMetadata />
 
-        <SectionProgression />
+        <Separator className="h-[1px] w-full bg-pink-50" />
+
+        <div className="baseVertFlex gap-2 md:flex-row-reverse">
+          <div className="hidden md:block">
+            <EffectGlossary />
+          </div>
+
+          <SectionProgression />
+        </div>
 
         {/* Actual tab below */}
         <LayoutGroup>
