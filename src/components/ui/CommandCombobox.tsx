@@ -24,7 +24,11 @@ import tunings from "~/utils/tunings";
 // currently hardcoding this component to work with tunings
 // but may need to be more generic in the future
 
-export function CommandCombobox() {
+interface CommandCombobox {
+  showPulsingError: boolean;
+}
+
+export function CommandCombobox({ showPulsingError }: CommandCombobox) {
   const [open, setOpen] = React.useState(false);
 
   const { tuning, setTuning } = useTabStore(
@@ -42,7 +46,19 @@ export function CommandCombobox() {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          style={{
+            boxShadow:
+              showPulsingError && tuning === ""
+                ? "0 0 0 0.25rem hsl(0deg 100% 50%)"
+                : "0 0 0 0 transparent",
+            animationPlayState:
+              showPulsingError && tuning === "" ? "running" : "paused",
+            // could add below box shadow styles into tailwind too!
+            transitionProperty: "box-shadow",
+            transitionTimingFunction: "ease-in-out",
+            transitionDuration: "500ms",
+          }}
+          className="w-[200px] animate-errorShake justify-between"
         >
           {tuning
             ? tunings.find(
