@@ -16,22 +16,16 @@ import { Separator } from "../ui/separator";
 import { CommandCombobox } from "../ui/CommandCombobox";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
-import {
-  Popover,
-  PopoverClose,
-  PopoverContent,
-  PopoverTrigger,
-} from "../ui/popover";
+import isEqual from "lodash.isequal";
 import { type Genre } from "@prisma/client";
 import EffectGlossary from "../ui/EffectGlossary";
 
+import classes from "./TabMetadata.module.css";
+
 function TabMetadata() {
-  // TODO: flesh out genre, tuning, and prob "edit" button/ save buttons
-  // edit button on hover should show tooltip showing which sections need to be filled out
-  // before able to save/upload tab
   const { userId, isLoaded } = useAuth();
 
-  const [showPopover, setShowPopover] = useState(false);
+  const [showPulsingError, setShowPulsingError] = useState(false);
 
   const genreArray = api.genre.getAll.useQuery();
 
@@ -45,6 +39,8 @@ function TabMetadata() {
   }, [genreArray.data]);
 
   const {
+    originalTabData,
+    id,
     createdById,
     title,
     setTitle,
@@ -53,9 +49,9 @@ function TabMetadata() {
     genreId,
     setGenreId,
     tuning,
-    setTuning,
-    BPM,
-    setBPM,
+    tabData,
+    bpm,
+    setBpm,
     timeSignature,
     setTimeSignature,
     capo,
@@ -64,6 +60,8 @@ function TabMetadata() {
     setEditing,
   } = useTabStore(
     (state) => ({
+      originalTabData: state.originalTabData,
+      id: state.id,
       createdById: state.createdById,
       title: state.title,
       setTitle: state.setTitle,
@@ -72,9 +70,9 @@ function TabMetadata() {
       genreId: state.genreId,
       setGenreId: state.setGenreId,
       tuning: state.tuning,
-      setTuning: state.setTuning,
-      BPM: state.BPM,
-      setBPM: state.setBPM,
+      bpm: state.bpm,
+      setBpm: state.setBpm,
+      tabData: state.tabData,
       timeSignature: state.timeSignature,
       setTimeSignature: state.setTimeSignature,
       capo: state.capo,
@@ -92,7 +90,7 @@ function TabMetadata() {
     setGenreId(id);
   }
 
-  function handleBPMChange(event: ChangeEvent<HTMLInputElement>) {
+  function handleBpmChange(event: ChangeEvent<HTMLInputElement>) {
     const inputValue = event.target.value;
 
     // Check if the input value is empty (backspace case) or a number between 1 and 200
@@ -100,7 +98,7 @@ function TabMetadata() {
       inputValue === "" ||
       (Number(inputValue) >= 1 && Number(inputValue) <= 200)
     ) {
-      setBPM(Number(inputValue) === 0 ? null : Number(inputValue));
+      setBpm(Number(inputValue) === 0 ? null : Number(inputValue));
     }
   }
 
@@ -142,54 +140,99 @@ function TabMetadata() {
     }
   }
 
+  function handleSave() {
+    if (!title || !genreId || !tuning || !bpm) {
+      setShowPulsingError(true);
+      setTimeout(() => setShowPulsingError(false), 500);
+
+      return;
+    }
+
+    // update in prisma
+  }
+
+  function isEqualToOriginalTabState() {
+    if (!originalTabData) return false;
+
+    // could have opted to use Omit<> as well..
+    const { createdAt, ...sanitizedOriginalTabData } = originalTabData;
+
+    const sanitizedCurrentTabData = {
+      id,
+      title,
+      description,
+      genreId,
+      tabData,
+      tuning,
+      bpm,
+      timeSignature,
+      capo,
+      createdById,
+    };
+
+    return isEqual(sanitizedOriginalTabData, sanitizedCurrentTabData);
+  }
+
   return (
     <>
       {editing ? (
         <>
-          <div className="baseFlex relative w-full gap-2">
-            <div className="absolute right-2 top-2">
-              {/* really not sure why positioning on <Tooltip /> was so consistantly off while
-                  popover works fine... */}
-              {/* disable on hover if it is able to be saved */}
-              {/* https://www.radix-ui.com/docs/primitives/components/tooltip#displaying-a-tooltip-from-a-disabled-button */}
-
-              <Popover
-                open={showPopover}
-                onOpenChange={(open) => {
-                  if (open) setShowPopover(false);
-                  // only set to true if there are required fields that aren't filled out properly
-                  setShowPopover(true);
-                }}
+          <div className={classes.metadataContainer}>
+            <div className="baseFlex absolute right-2 top-2 gap-2 lg:right-4 lg:top-4">
+              <Button
+                // disabled={}
+                // need to see if tab has bee
+                onClick={() => setEditing(false)}
+                // if changes have been made but not saved, show a warning modal probably
               >
-                <PopoverTrigger>
-                  <Button
-                  // disabled={}
-                  >
-                    Save
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent>
-                  {/* look to see how to properly format this component to get the close */}
-                  {/* <PopoverClose /> */}
-                  Place content for the popover here.
-                </PopoverContent>
-              </Popover>
+                View tab
+              </Button>
+
+              <Button
+                // eventually add loading spinner here while saving
+                disabled={isEqualToOriginalTabState() || showPulsingError}
+                // need to compare the current state of the tab to the initial state
+                onClick={handleSave}
+              >
+                Save
+              </Button>
             </div>
 
-            <div className="baseVertFlex w-full max-w-sm !items-start gap-1.5 md:w-1/2">
+            <div
+              className={`${
+                classes.title ?? ""
+              } baseVertFlex w-full !items-start gap-1.5`}
+            >
               <Label htmlFor="title">
-                Title <span className="text-pink-700">*</span>
+                Title <span className="text-brightRed">*</span>
               </Label>
               <Input
                 id="title"
                 type="text"
                 placeholder="My new tab"
                 value={title}
+                style={{
+                  boxShadow:
+                    showPulsingError && !title
+                      ? "0 0 0 0.25rem hsl(0deg 100% 50%)"
+                      : "0 0 0 0 transparent",
+                  animationPlayState:
+                    showPulsingError && !title ? "running" : "paused",
+                  // could add below box shadow styles into tailwind too!
+                  transitionProperty: "box-shadow",
+                  transitionTimingFunction: "ease-in-out",
+                  transitionDuration: "500ms",
+                }}
+                className="animate-errorShake"
                 onChange={(e) => setTitle(e.target.value)}
               />
             </div>
 
-            <div className="baseVertFlex w-full max-w-sm !items-start gap-1.5 md:w-1/2">
+            <div
+              className={`${
+                classes.description ?? ""
+              } baseVertFlex w-full !items-start gap-1.5`}
+            >
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
@@ -199,15 +242,33 @@ function TabMetadata() {
               />
             </div>
 
-            <div className="baseVertFlex !items-start gap-1.5">
+            <div
+              className={`${
+                classes.genre ?? ""
+              } baseVertFlex !items-start gap-1.5`}
+            >
               <Label>
-                Genre <span className="text-pink-700">*</span>
+                Genre <span className="text-brightRed">*</span>
               </Label>
               <Select
                 value={genreObject[genreId]?.id.toString()}
                 onValueChange={(value) => handleGenreChange(value)}
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger
+                  style={{
+                    boxShadow:
+                      showPulsingError && genreId === -1
+                        ? "0 0 0 0.25rem hsl(0deg 100% 50%)"
+                        : "0 0 0 0 transparent",
+                    animationPlayState:
+                      showPulsingError && genreId === -1 ? "running" : "paused",
+                    // could add below box shadow styles into tailwind too!
+                    transitionProperty: "box-shadow",
+                    transitionTimingFunction: "ease-in-out",
+                    transitionDuration: "500ms",
+                  }}
+                  className="w-[180px] animate-errorShake"
+                >
                   <SelectValue placeholder="Select a genre" />
                 </SelectTrigger>
                 <SelectContent>
@@ -233,20 +294,24 @@ function TabMetadata() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          <Separator />
-
-          <div className="baseFlex w-full !items-end gap-2">
-            <div className="baseVertFlex max-w-sm !items-start gap-1.5">
+            <div
+              className={`${
+                classes.tuning ?? ""
+              } baseVertFlex max-w-sm !items-start gap-1.5`}
+            >
               <Label htmlFor="tuning">
-                Tuning <span className="text-pink-700">*</span>
+                Tuning <span className="text-brightRed">*</span>
               </Label>
               {/* TODO: ability to add custom tunings */}
-              <CommandCombobox />
+              <CommandCombobox showPulsingError={showPulsingError} />
             </div>
 
-            <div className="baseVertFlex w-16 max-w-sm !items-start gap-1.5">
+            <div
+              className={`${
+                classes.capo ?? ""
+              } baseVertFlex w-16 max-w-sm !items-start gap-1.5`}
+            >
               <Label htmlFor="capo">Capo</Label>
               <Input
                 type="text"
@@ -256,19 +321,40 @@ function TabMetadata() {
               />
             </div>
 
-            <div className="baseVertFlex w-16 max-w-sm !items-start gap-1.5">
+            <div
+              className={`${
+                classes.bpm ?? ""
+              } baseVertFlex relative w-16 max-w-sm !items-start gap-1.5`}
+            >
               <Label htmlFor="bpm">
-                BPM <span className="text-pink-700">*</span>
+                BPM <span className="text-brightRed">*</span>
               </Label>
               <Input
                 type="text"
                 placeholder="75"
-                value={BPM ?? ""}
-                onChange={handleBPMChange}
+                value={bpm ?? ""}
+                style={{
+                  boxShadow:
+                    showPulsingError && bpm === null
+                      ? "0 0 0 0.25rem hsl(0deg 100% 50%)"
+                      : "0 0 0 0 transparent",
+                  animationPlayState:
+                    showPulsingError && bpm === null ? "running" : "paused",
+                  // could add below box shadow styles into tailwind too!
+                  transitionProperty: "box-shadow",
+                  transitionTimingFunction: "ease-in-out",
+                  transitionDuration: "500ms",
+                }}
+                className="animate-errorShake"
+                onChange={handleBpmChange}
               />
             </div>
 
-            <div className="baseVertFlex w-16 max-w-sm !items-start gap-1.5">
+            <div
+              className={`${
+                classes.timingSignature ?? ""
+              } baseVertFlex w-16 max-w-sm !items-start gap-1.5`}
+            >
               <Label htmlFor="timing">Timing</Label>
               <Input
                 type="text"
@@ -276,10 +362,6 @@ function TabMetadata() {
                 value={timeSignature ?? ""}
                 onChange={handleTimeSignatureChange}
               />
-            </div>
-
-            <div className="hidden md:block">
-              <EffectGlossary />
             </div>
           </div>
         </>
@@ -319,8 +401,8 @@ function TabMetadata() {
             </div>
 
             <div className="baseVertFlex gap-2">
-              BPM
-              <div>{BPM}</div>
+              bpm
+              <div>{bpm}</div>
             </div>
 
             <div className="baseVertFlex gap-2">
