@@ -13,6 +13,7 @@ module.exports = {
     },
     extend: {
       colors: {
+        brightRed: "hsl(0, 100%, 50%)",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -61,10 +62,18 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        errorShake: {
+          "0%, 100%": { translate: "0px" },
+          "20%": { translate: "-15px" },
+          "40%": { translate: "15px" },
+          "60%": { translate: "-7px" },
+          "80%": { translate: "8px" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        errorShake: "errorShake 0.5s ease-in-out infinite",
       },
     },
   },
