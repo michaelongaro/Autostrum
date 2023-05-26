@@ -14,14 +14,16 @@ model User {
     username       String          @unique
     profilePicture String?
     status         String?
-    featuredTab    Tab?            @relation("FeaturedTab")
+    featuredTab    Tab?            @relation(fields: [featuredTabId], references: [id])
     featuredTabId  Int?
     createdTabs    Tab[]           @relation("CreatedBy")
     likes          Likes[]
     comments       Comment[]
     featuredArtist PromotedArtist?
     createdAt      DateTime        @default(now())
-    updatedAt      DateTime        @updatedAt
+    updatedAt      DateTime        @updatedAt // not sure if this field will have any real value...
+
+    @@index([featuredTabId])
 }
 
 model Tab {
@@ -40,11 +42,9 @@ model Tab {
     genre              Genre         @relation(fields: [genreId], references: [id])
     genreId            Int
     comments           Comment[]
-    featuredTab        User?         @relation("FeaturedTab", fields: [featuredTabId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-    featuredTabId      Int?          @unique
     likes              Likes[]
+    User               User[]
 
-    @@index([featuredTabId])
     @@index([createdById])
     @@index([genreId])
 }
