@@ -51,8 +51,8 @@ function SectionProgression() {
               : "500px"
             : "auto",
         }}
-        className={`lightGlassmorphic baseVertFlex gap-4 rounded-md
-        p-4 md:!items-start`}
+        className="lightGlassmorphic baseVertFlex mb-4 mt-4
+        gap-4 rounded-md p-4 md:m-0 md:!items-start"
       >
         <p className="text-lg font-semibold text-pink-50">
           {sectionProgression.length === 0
