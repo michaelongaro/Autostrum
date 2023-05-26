@@ -1,0 +1,87 @@
+.metadataContainer {
+  width: 100%;
+  min-height: 500px;
+  display: grid;
+  grid-template-rows: 1fr minmax(2fr, 500px) 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "title title"
+    "description description"
+    "genre bpm"
+    "tuning capo"
+    "timingSignature .";
+  gap: 1rem;
+}
+
+.title {
+  grid-area: title;
+  margin-top: 3rem;
+}
+
+.description {
+  grid-area: description;
+}
+
+.genre {
+  grid-area: genre;
+}
+
+.tuning {
+  grid-area: tuning;
+}
+
+.bpm {
+  grid-area: bpm;
+}
+
+.capo {
+  grid-area: capo;
+}
+
+.timingSignature {
+  grid-area: timingSignature;
+}
+
+@media (min-width: 525px) {
+  .metadataContainer {
+    width: 85%;
+    grid-template-rows: 1fr minmax(2fr, 500px) 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-areas:
+      "title title title title"
+      "description description description description"
+      "genre genre tuning tuning"
+      "bpm capo timingSignature .";
+  }
+}
+
+@media (min-width: 900px) {
+  .metadataContainer {
+    min-height: 400px;
+    grid-template-rows: 1fr minmax(2fr, 500px);
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-areas:
+      "title title title title genre genre tuning tuning"
+      "description description description description bpm capo timingSignature .";
+    place-items: start;
+  }
+
+  .title {
+    margin-top: 3.5rem;
+  }
+
+  .genre {
+    margin-top: 3.5rem;
+  }
+
+  .tuning {
+    margin-top: 3.5rem;
+  }
+}
+
+@media (min-width: 1450px) {
+  .metadataContainer {
+    min-height: 300px;
+    width: 75%
+  }
+}
