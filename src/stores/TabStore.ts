@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
+import type { Tab } from "@prisma/client";
 import type { ITabSection } from "~/components/Tab/Tab";
 
 export interface SectionProgression {
@@ -13,7 +14,14 @@ interface TabState {
   // not sure if this will hurt us later on, but I would like to avoid making all of these optional
   // and instead just set them to default-ish values
 
+  // this is used to compare the current tabData to the original tabData to see if there are any
+  // changes, and if so, enable the "save" button
+  originalTabData: Tab | null;
+  setOriginalTabData: (originalTabData: Tab | null) => void;
+
   // used in <Tab />
+  id: number;
+  setId: (id: number) => void;
   createdById: number; // or maybe number need to figure out how clerk stores their stuff
   setCreatedById: (createdById: number) => void;
   title: string;
@@ -24,8 +32,8 @@ interface TabState {
   setGenreId: (genre: number) => void;
   tuning: string;
   setTuning: (tuning: string) => void;
-  BPM: number | null;
-  setBPM: (BPM: number | null) => void;
+  bpm: number | null;
+  setBpm: (bpm: number | null) => void;
   timeSignature: string | null;
   setTimeSignature: (timeSignature: string | null) => void;
   capo: number | null;
@@ -66,6 +74,10 @@ interface TabState {
 export const useTabStore = create<TabState>()(
   devtools((set) => ({
     // used in <Tab />
+    originalTabData: null,
+    setOriginalTabData: (originalTabData) => set({ originalTabData }),
+    id: -1,
+    setId: (id) => set({ id }),
     createdById: 0,
     setCreatedById: (createdById) => set({ createdById }),
     title: "",
@@ -76,8 +88,8 @@ export const useTabStore = create<TabState>()(
     setGenreId: (genreId) => set({ genreId }),
     tuning: "",
     setTuning: (tuning) => set({ tuning }),
-    BPM: null,
-    setBPM: (BPM) => set({ BPM }),
+    bpm: null,
+    setBpm: (bpm) => set({ bpm }),
     timeSignature: null,
     setTimeSignature: (timeSignature) => set({ timeSignature }),
     capo: null,
