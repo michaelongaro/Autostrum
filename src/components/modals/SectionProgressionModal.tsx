@@ -102,6 +102,7 @@ function SectionProgressionModal() {
       opacity: 1,
     },
     closed: {
+      width: 0,
       opacity: 0,
     },
   };
@@ -223,7 +224,7 @@ function SectionProgressionModal() {
     >
       <motion.div
         key={"innerSectionProgressionModal"}
-        className="absolute rounded-md bg-pink-300 p-4 opacity-100 shadow-lg "
+        className="absolute rounded-md bg-pink-300 p-4 opacity-100 shadow-lg"
         variants={modalVariants}
         initial="closed"
         animate="expanded"
