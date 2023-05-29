@@ -18,7 +18,8 @@ import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import isEqual from "lodash.isequal";
 import { type Genre } from "@prisma/client";
-import EffectGlossary from "../ui/EffectGlossary";
+import { AiOutlineHeart } from "react-icons/ai";
+import { parse, toString } from "~/utils/tunings";
 
 import classes from "./TabMetadata.module.css";
 
@@ -42,6 +43,7 @@ function TabMetadata() {
     originalTabData,
     id,
     createdById,
+    createdAt,
     title,
     setTitle,
     description,
@@ -63,6 +65,7 @@ function TabMetadata() {
       originalTabData: state.originalTabData,
       id: state.id,
       createdById: state.createdById,
+      createdAt: state.createdAt,
       title: state.title,
       setTitle: state.setTitle,
       description: state.description,
@@ -204,7 +207,7 @@ function TabMetadata() {
     <>
       {editing ? (
         <>
-          <div className={classes.metadataContainer}>
+          <div className={classes.editingMetadataContainer}>
             <div className="baseFlex absolute right-2 top-2 gap-2 lg:right-4 lg:top-4">
               <Button
                 // disabled={}
@@ -393,10 +396,10 @@ function TabMetadata() {
           </div>
         </>
       ) : (
-        <>
+        <div className={classes.viewingMetadataContainer}>
           {userId && createdById === parseInt(userId) && (
             <Button
-              className="absolute right-4 top-4"
+              className="absolute right-2 top-2 md:right-4 md:top-4"
               onClick={() => {
                 setEditing(true);
               }}
@@ -405,39 +408,123 @@ function TabMetadata() {
             </Button>
           )}
 
-          <div className="baseFlex w-full max-w-sm gap-1.5 md:w-1/2">
-            <div className="text-lg font-bold">{title}</div>
-            <div
-              style={{
-                backgroundColor: genreObject[genreId]?.color,
-              }}
-              className="baseFlex gap-2 p-4"
-            >
-              {genreObject[genreId]?.name}
+          <div
+            className={`${
+              classes.headerInfo ?? ""
+            } lightGlassmorphic w-full rounded-t-md shadow-sm`}
+          >
+            <div className="baseFlex gap-2">
+              <div className={`${classes.title ?? ""} text-2xl font-bold`}>
+                {title}
+              </div>
+
+              <div className={classes.heart}>
+                {/* could definitely just use the icon instead of button wrapper as well */}
+                <Button
+                  variant={"ghost"}
+                  className="p-2"
+                  onClick={() => handleLike()}
+                >
+                  <AiOutlineHeart className="h-6 w-6" />
+                </Button>
+              </div>
+            </div>
+
+            {/* prob are going to need an updatedAt field on model, and then display the updated one
+            if it exists, otherwise createdAt */}
+            <Separator
+              orientation="vertical"
+              className="hidden h-8 w-[1px] bg-pink-50 sm:block"
+            />
+
+            <div className={`${classes.usernameAndDate ?? ""} baseFlex gap-2`}>
+              <div className="baseFlex gap-2">
+                <div className="h-8 w-8 rounded-full bg-pink-800"></div>
+                {/* {username ?? "test"} */}
+                <span className="text-lg underline underline-offset-2">
+                  Leyendo
+                </span>
+              </div>
+              <Separator className="h-[1px] w-4" />
+              {`Updated on ${createdAt ? formatDate(createdAt) : ""}`}
             </div>
           </div>
 
-          <p>{description}</p>
+          <div className={classes.metadataContainer}>
+            {description && (
+              <div
+                className={`${
+                  classes.description ?? ""
+                } baseVertFlex w-full !items-start gap-2`}
+              >
+                <div className="font-semibold">Description</div>
+                <p className="w-full">{description}</p>
+              </div>
+            )}
 
-          <Separator />
+            <div className="baseVertFlex w-full gap-4">
+              <div className="baseFlex w-full !items-start !justify-evenly">
+                <div
+                  className={`${
+                    classes.genre ?? ""
+                  } baseVertFlex !items-start gap-2`}
+                >
+                  <div className="font-semibold">Genre</div>
+                  <div
+                    style={{
+                      backgroundColor: genreObject[genreId]?.color,
+                    }}
+                    className={`${classes.genre ?? ""} rounded-md px-16 py-4`}
+                  >
+                    {/* need bubbles, prob fine to hardcode them tbh */}
+                    {genreObject[genreId]?.name}
+                  </div>
+                </div>
+                <div
+                  className={`${
+                    classes.tuning ?? ""
+                  } baseVertFlex !items-start gap-2`}
+                >
+                  <div className="font-semibold">Tuning</div>
+                  <div className="rounded-md border-2 border-pink-50 px-8 py-2 font-semibold ">
+                    {toString(parse(tuning), { pad: 2 })}
+                  </div>
+                </div>
+              </div>
 
-          <div className="baseFlex gap-4">
-            <div className="baseVertFlex gap-2">
-              Tuning
-              <div>{tuning}</div>
-            </div>
+              <div className="baseFlex w-full !items-start !justify-evenly">
+                <div
+                  className={`${
+                    classes.bpm ?? ""
+                  } baseVertFlex !items-start gap-2`}
+                >
+                  <div className="font-semibold">BPM</div>
+                  <div>{bpm}</div>
+                </div>
 
-            <div className="baseVertFlex gap-2">
-              bpm
-              <div>{bpm}</div>
-            </div>
+                <div
+                  className={`${
+                    classes.timingSignature ?? ""
+                  } baseVertFlex !items-start gap-2`}
+                >
+                  <div className="font-semibold">Timing</div>
+                  <div>{timeSignature}</div>
+                </div>
 
-            <div className="baseVertFlex gap-2">
-              Timing
-              <div>{timeSignature}</div>
+                {capo && (
+                  <div
+                    className={`${
+                      classes.capo ?? ""
+                    } baseVertFlex !items-start gap-2`}
+                  >
+                    <div className="font-semibold">Capo</div>
+                    <div>{`${getOrdinalSuffix(capo)} fret`}</div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </>
+        </div>
       )}
     </>
   );
