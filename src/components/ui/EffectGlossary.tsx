@@ -122,6 +122,11 @@ function EffectGlossary({ forModal = false }: EffectGlossary) {
           <span className="col-span-3">Slap</span>
         </DropdownMenuItem>
         <DropdownMenuItem className="grid w-48 grid-cols-5">
+          <span className="col-span-1">{">"}</span>
+          <span className="col-span-1">-</span>
+          <span className="col-span-3">Accented</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem className="grid w-48 grid-cols-5">
           <span className="col-span-1">.</span>
           <span className="col-span-1">-</span>
           <span className="col-span-3">Stacatto</span>
