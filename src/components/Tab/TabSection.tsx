@@ -260,90 +260,84 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
     >
       <div className="baseFlex w-full !items-start !justify-between">
         <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
-          <Input
-            value={sectionTitle}
-            placeholder="Section title"
-            onChange={updateSectionTitle}
-            className="max-w-[12rem] text-lg font-semibold"
-          />
+          {editing ? (
+            <Input
+              value={sectionTitle}
+              placeholder="Section title"
+              onChange={updateSectionTitle}
+              className="max-w-[12rem] text-lg font-semibold"
+            />
+          ) : (
+            <p className="text-lg font-semibold">{sectionTitle}</p>
+          )}
 
-          <div className="baseVertFlex !items-start gap-2 lg:!flex-row">
-            <div className="baseFlex">
-              <Button
-                disabled={editingPalmMuteNodes}
-                style={{
-                  borderRadius: editingPalmMuteNodes
-                    ? "0.375rem 0 0 0.375rem"
-                    : "0.375rem",
-                }}
-                // should you just manually add these styles to the button component?
-                // not sure of good usecases for having anything but small sized buttons at these viewports..
-                className="h-9 px-3 md:h-10 md:px-4 md:py-2"
-                onClick={toggleEditingPalmMuteNodes}
-              >
-                Edit palm mute sections
-              </Button>
-
-              {editingPalmMuteNodes && (
+          {editing && (
+            <div className="baseVertFlex !items-start gap-2 lg:!flex-row">
+              <div className="baseFlex">
                 <Button
-                  className="h-9 rounded-l-none rounded-r-md px-3 md:h-10 md:px-4 md:py-2 "
+                  disabled={editingPalmMuteNodes}
+                  style={{
+                    borderRadius: editingPalmMuteNodes
+                      ? "0.375rem 0 0 0.375rem"
+                      : "0.375rem",
+                  }}
+                  // should you just manually add these styles to the button component?
+                  // not sure of good usecases for having anything but small sized buttons at these viewports..
+                  className="h-9 px-3 md:h-10 md:px-4 md:py-2"
                   onClick={toggleEditingPalmMuteNodes}
                 >
-                  x
+                  Edit palm mute sections
                 </Button>
-              )}
-            </div>
 
-            <div className="baseFlex">
-              <Button
-                disabled={reorderingColumns}
-                style={{
-                  borderRadius: reorderingColumns
-                    ? "0.375rem 0 0 0.375rem"
-                    : "0.375rem",
-                }}
-                className="h-9 px-3 md:h-10 md:px-4 md:py-2"
-                onClick={() => {
-                  setReorderingColumns(!reorderingColumns);
-                  setShowingDeleteColumnsButtons(false);
-                }}
-              >
-                Reorder
-              </Button>
+                {editingPalmMuteNodes && (
+                  <Button
+                    className="h-9 rounded-l-none rounded-r-md px-3 md:h-10 md:px-4 md:py-2 "
+                    onClick={toggleEditingPalmMuteNodes}
+                  >
+                    x
+                  </Button>
+                )}
+              </div>
 
-              {reorderingColumns && (
+              <div className="baseFlex">
                 <Button
-                  className="h-9 rounded-l-none rounded-r-md px-3 md:h-10 md:px-4 md:py-2"
+                  disabled={reorderingColumns}
+                  style={{
+                    borderRadius: reorderingColumns
+                      ? "0.375rem 0 0 0.375rem"
+                      : "0.375rem",
+                  }}
+                  className="h-9 px-3 md:h-10 md:px-4 md:py-2"
                   onClick={() => {
                     setReorderingColumns(!reorderingColumns);
                     setShowingDeleteColumnsButtons(false);
                   }}
                 >
-                  x
+                  Reorder
                 </Button>
-              )}
-            </div>
 
-            <div className="baseFlex">
-              <Button
-                disabled={showingDeleteColumnsButtons}
-                style={{
-                  borderRadius: showingDeleteColumnsButtons
-                    ? "0.375rem 0 0 0.375rem"
-                    : "0.375rem",
-                }}
-                className="h-9 px-3 md:h-10 md:px-4 md:py-2"
-                onClick={() => {
-                  setShowingDeleteColumnsButtons(!showingDeleteColumnsButtons);
-                  setReorderingColumns(false);
-                }}
-              >
-                Delete columns
-              </Button>
+                {reorderingColumns && (
+                  <Button
+                    className="h-9 rounded-l-none rounded-r-md px-3 md:h-10 md:px-4 md:py-2"
+                    onClick={() => {
+                      setReorderingColumns(!reorderingColumns);
+                      setShowingDeleteColumnsButtons(false);
+                    }}
+                  >
+                    x
+                  </Button>
+                )}
+              </div>
 
-              {showingDeleteColumnsButtons && (
+              <div className="baseFlex">
                 <Button
-                  className="h-9 rounded-l-none rounded-r-md px-3 md:h-10 md:px-4 md:py-2"
+                  disabled={showingDeleteColumnsButtons}
+                  style={{
+                    borderRadius: showingDeleteColumnsButtons
+                      ? "0.375rem 0 0 0.375rem"
+                      : "0.375rem",
+                  }}
+                  className="h-9 px-3 md:h-10 md:px-4 md:py-2"
                   onClick={() => {
                     setShowingDeleteColumnsButtons(
                       !showingDeleteColumnsButtons
@@ -351,65 +345,81 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
                     setReorderingColumns(false);
                   }}
                 >
-                  x
+                  Delete columns
                 </Button>
-              )}
+
+                {showingDeleteColumnsButtons && (
+                  <Button
+                    className="h-9 rounded-l-none rounded-r-md px-3 md:h-10 md:px-4 md:py-2"
+                    onClick={() => {
+                      setShowingDeleteColumnsButtons(
+                        !showingDeleteColumnsButtons
+                      );
+                      setReorderingColumns(false);
+                    }}
+                  >
+                    x
+                  </Button>
+                )}
+              </div>
             </div>
+          )}
+        </div>
+
+        {editing && (
+          <div className="baseVertFlex w-1/6 !justify-end gap-2 2xl:flex-row">
+            <Button
+              variant={"secondary"}
+              className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
+              disabled={sectionIndex === 0}
+              onClick={() => {
+                let newTabData = [...tabData];
+
+                newTabData = arrayMove(
+                  newTabData,
+                  sectionIndex,
+                  sectionIndex - 1
+                );
+
+                setTabData(newTabData);
+              }}
+            >
+              <BiUpArrowAlt className="h-5 w-5" />
+            </Button>
+            <Button
+              variant={"secondary"}
+              className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
+              disabled={sectionIndex === tabData.length - 1}
+              onClick={() => {
+                let newTabData = [...tabData];
+
+                newTabData = arrayMove(
+                  newTabData,
+                  sectionIndex,
+                  sectionIndex + 1
+                );
+
+                setTabData(newTabData);
+              }}
+            >
+              <BiDownArrowAlt className="h-5 w-5" />
+            </Button>
+            <Button
+              variant={"destructive"}
+              className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
+              disabled={tabData.length === 1} // maybe allow this later, but currently messes up ui
+              onClick={() => {
+                const newTabData = [...tabData];
+
+                newTabData.splice(sectionIndex, 1);
+
+                setTabData(newTabData);
+              }}
+            >
+              <IoClose className="h-5 w-5" />
+            </Button>
           </div>
-        </div>
-
-        <div className="baseVertFlex w-1/6 !justify-end gap-2 2xl:flex-row">
-          <Button
-            variant={"secondary"}
-            className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
-            disabled={sectionIndex === 0}
-            onClick={() => {
-              let newTabData = [...tabData];
-
-              newTabData = arrayMove(
-                newTabData,
-                sectionIndex,
-                sectionIndex - 1
-              );
-
-              setTabData(newTabData);
-            }}
-          >
-            <BiUpArrowAlt className="h-5 w-5" />
-          </Button>
-          <Button
-            variant={"secondary"}
-            className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
-            disabled={sectionIndex === tabData.length - 1}
-            onClick={() => {
-              let newTabData = [...tabData];
-
-              newTabData = arrayMove(
-                newTabData,
-                sectionIndex,
-                sectionIndex + 1
-              );
-
-              setTabData(newTabData);
-            }}
-          >
-            <BiDownArrowAlt className="h-5 w-5" />
-          </Button>
-          <Button
-            variant={"destructive"}
-            className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
-            disabled={tabData.length === 1} // maybe allow this later, but currently messes up ui
-            onClick={() => {
-              const newTabData = [...tabData];
-
-              newTabData.splice(sectionIndex, 1);
-
-              setTabData(newTabData);
-            }}
-          >
-            <IoClose className="h-5 w-5" />
-          </Button>
-        </div>
+        )}
       </div>
 
       {/* try to use framer motion to animate sections sliding up/down to their new positions
@@ -461,11 +471,12 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
         <div className="baseVertFlex h-[284px] rounded-r-2xl border-2 border-pink-50 p-1"></div>
       </div>
 
-      <Button onClick={addNewColumns}>Extend section</Button>
+      {editing && <Button onClick={addNewColumns}>Extend section</Button>}
 
-      <Separator className="h-[1px] w-full bg-pink-50" />
+      {(!editing && sectionIndex !== tabData.length - 1) ||
+        (editing && <Separator className="h-[1px] w-full bg-pink-50" />)}
 
-      {sectionIndex === tabData.length - 1 && (
+      {editing && sectionIndex === tabData.length - 1 && (
         <Button className="mt-12" onClick={addNewSection}>
           Add new section
         </Button>
