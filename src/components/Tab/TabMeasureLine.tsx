@@ -119,7 +119,14 @@ function TabMeasureLine({
           {index === 0 && (
             <div className="baseFlex mb-0 h-9 w-full">
               {note === "-" && (
-                <div className="h-[1px] w-full bg-pink-50"></div>
+                <div
+                  style={{
+                    // relative positioning here is a hack, not sure completely why tweaking margins
+                    // wasn't working
+                    top: editing ? "-0.45rem" : "0",
+                  }}
+                  className="relative top-[-0.45rem] h-[1px] w-full bg-pink-50"
+                ></div>
               )}
             </div>
           )}
@@ -130,7 +137,15 @@ function TabMeasureLine({
                 borderTop: `${
                   index === 1 ? "2px solid rgb(253 242 248)" : "none"
                 }`,
-                height: `${index === 1 || index === 6 ? "46px" : "48px"}`,
+                height: `${
+                  editing
+                    ? index === 1 || index === 6
+                      ? "46px"
+                      : "48px"
+                    : index === 1 || index === 6
+                    ? "26px"
+                    : "29px"
+                }`,
                 borderBottom: `${
                   index === 6 ? "2px solid rgb(253 242 248)" : "none"
                 }`,

@@ -87,6 +87,22 @@ function TabNoteAndEffectCombo({
     shallow
   );
 
+  // const prevColumn = useMemo(() => {
+  //   return tabData[sectionIndex]?.data[noteColumnIndex - 1] ?? [];
+  // }, [tabData, sectionIndex, noteColumnIndex]);
+
+  // const relativelyGetColumn(2) = useMemo(() => {
+  //   return tabData[sectionIndex]?.data[noteColumnIndex + 1] ?? [];
+  // }, [tabData, sectionIndex, noteColumnIndex]);
+
+  function relativelyGetColumn(indexRelativeToCurrentCombo: number) {
+    return (
+      tabData[sectionIndex]?.data[
+        noteColumnIndex + indexRelativeToCurrentCombo
+      ] ?? []
+    );
+  }
+
   const deleteColumnButtonDisabled = useMemo(() => {
     let disabled = false;
 
@@ -174,7 +190,12 @@ function TabNoteAndEffectCombo({
     >
       {/* TODO: don't want to be repeating twice below, find way to combine */}
       <div className="baseFlex">
-        <div className="baseVertFlex mb-[3.2rem] mt-4 gap-2">
+        <div
+          style={{
+            gap: editing ? "0.5rem" : "0",
+          }}
+          className="baseVertFlex mb-[3.2rem] mt-4"
+        >
           {noteColumnData.map((note, index) => (
             <Fragment key={index}>
               {index === 0 && (
@@ -203,21 +224,43 @@ function TabNoteAndEffectCombo({
                       index === 6 ? "2px solid rgb(253 242 248)" : "none"
                     }`,
                     paddingBottom: `${index === 6 ? "0.45rem" : "0rem"}`,
+                    // width: editing ? "auto" : "20px",
                   }}
                   className="baseFlex"
                 >
                   <div
                     style={{
                       width: `${
-                        tabData[sectionIndex]?.data[
-                          noteColumnIndex - 1
-                        ]?.[8] === "measureLine"
-                          ? "1.25rem"
-                          : "8px"
+                        editing
+                          ? relativelyGetColumn(-1)?.[8] === "measureLine"
+                            ? "6px"
+                            : "8px"
+                          : relativelyGetColumn(-1)?.[8] === "measureLine"
+                          ? "0px" // unless I messed up the pixel counting, it seemed like
+                          : // this could stay at 2px no matter what, but I'm not sure how that's possible
+                            // it does look better with 2px tbh..
+                            `${
+                              (tabData[sectionIndex]!.data[noteColumnIndex]?.[
+                                index
+                              ]?.length ?? 0) > 1
+                                ? "0px"
+                                : "2px"
+                            }`
                       }`,
+
+                      opacity:
+                        editing ||
+                        relativelyGetColumn(-1)[index] === "" ||
+                        (relativelyGetColumn(-1)[index] === "|" &&
+                          relativelyGetColumn(-2)[index] === "") ||
+                        relativelyGetColumn(-1)[index] === "~" ||
+                        relativelyGetColumn(-1)[index] === undefined
+                          ? 1
+                          : 0,
                     }}
-                    className="h-[1px] bg-pink-50 "
+                    className="h-[1px] bg-pink-200 "
                   ></div>
+
                   <TabNote
                     note={note}
                     inlineEffect={false}
@@ -225,11 +268,34 @@ function TabNoteAndEffectCombo({
                     columnIndex={noteColumnIndex}
                     noteIndex={index}
                   />
-                  <div className="h-[1px] w-2 bg-pink-50"></div>
+
+                  <div
+                    style={{
+                      width: editing
+                        ? "8px"
+                        : `${
+                            // suspect we kinda just added second condition randomly
+                            (relativelyGetColumn(0).length ?? 0) > 1 &&
+                            relativelyGetColumn(1)[noteColumnIndex] !== "|"
+                              ? "0px"
+                              : "2px"
+                          }`,
+                      opacity:
+                        editing ||
+                        relativelyGetColumn(1)[index] === "" ||
+                        (relativelyGetColumn(2)[index] === "|" &&
+                          relativelyGetColumn(2)[index] === "") ||
+                        relativelyGetColumn(1)[index] === undefined
+                          ? 1
+                          : 0,
+                    }}
+                    className="h-[1px] bg-pink-200"
+                  ></div>
                 </div>
               )}
 
-              {index === 7 &&
+              {editing &&
+                index === 7 &&
                 !reorderingColumns &&
                 !showingDeleteColumnsButtons && (
                   <div className="relative h-0 w-full">
@@ -255,11 +321,56 @@ function TabNoteAndEffectCombo({
                     </div>
                   </div>
                 )}
+
+              {!editing && index === 7 && (
+                <div className="relative h-0 w-full">
+                  <div
+                    // going to need to adjust this later
+                    style={{
+                      left: `${
+                        tabData[sectionIndex]?.data[
+                          noteColumnIndex - 1
+                        ]?.[8] === "measureLine"
+                          ? "60%"
+                          : "50%" // prob want to change this to match above
+                      }`,
+                      top: editing ? "0.5rem" : "0.25rem",
+                      lineHeight: editing ? "24px" : "16px",
+                    }}
+                    className="baseVertFlex absolute left-1/2 right-1/2 top-2 w-[1.5rem] -translate-x-1/2"
+                  >
+                    {tabData[sectionIndex]?.data[
+                      noteColumnIndex
+                    ]?.[7]?.includes("^") && (
+                      <div className="relative top-1 rotate-180">v</div>
+                    )}
+                    {tabData[sectionIndex]?.data[
+                      noteColumnIndex
+                    ]?.[7]?.includes("v") && <div>v</div>}
+                    {tabData[sectionIndex]?.data[
+                      noteColumnIndex
+                    ]?.[7]?.includes("s") && <div>s</div>}
+                    {tabData[sectionIndex]?.data[
+                      noteColumnIndex
+                    ]?.[7]?.includes(">") && <div>{">"}</div>}
+                    {tabData[sectionIndex]?.data[
+                      noteColumnIndex
+                    ]?.[7]?.includes(".") && (
+                      <div className="relative bottom-2">.</div>
+                    )}
+                  </div>
+                </div>
+              )}
             </Fragment>
           ))}
         </div>
 
-        <div className="baseVertFlex mb-[3.2rem] mt-4 gap-2">
+        <div
+          style={{
+            gap: editing ? "0.5rem" : "0",
+          }}
+          className="baseVertFlex mb-[3.2rem] mt-4"
+        >
           {effectColumnData?.map((note, index) => (
             <Fragment key={index}>
               {index === 0 && (
@@ -288,10 +399,11 @@ function TabNoteAndEffectCombo({
                       index === 6 ? "2px solid rgb(253 242 248)" : "none"
                     }`,
                     paddingBottom: `${index === 6 ? "0.45rem" : "0rem"}`,
+                    // width: editing ? "auto" : "12px",
                   }}
                   className="baseFlex"
                 >
-                  <div className="h-[1px] w-2 bg-pink-50 "></div>
+                  {editing && <div className="h-[1px] w-2 bg-pink-50 "></div>}
                   <TabNote
                     note={note}
                     inlineEffect={true}
@@ -299,18 +411,22 @@ function TabNoteAndEffectCombo({
                     columnIndex={noteColumnIndex + 1}
                     noteIndex={index}
                   />
-                  <div
-                    style={{
-                      width: `${
-                        tabData[sectionIndex]?.data[
-                          noteColumnIndex + 2
-                        ]?.[8] === "measureLine"
-                          ? "1.25rem"
-                          : "8px"
-                      }`,
-                    }}
-                    className="h-[1px] w-2 bg-pink-50"
-                  ></div>
+                  {editing && (
+                    <div
+                      style={{
+                        width: `${
+                          editing
+                            ? relativelyGetColumn(2)?.[8] === "measureLine"
+                              ? "6px"
+                              : "8px"
+                            : relativelyGetColumn(2)?.[8] === "measureLine"
+                            ? "1px"
+                            : "2px"
+                        }`,
+                      }}
+                      className="h-[1px] bg-pink-200"
+                    ></div>
+                  )}
                 </div>
               )}
 

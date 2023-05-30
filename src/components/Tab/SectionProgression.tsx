@@ -75,21 +75,25 @@ function SectionProgression() {
           </div>
         )}
 
-        <Button
-          size={"sm"}
-          className="block md:hidden"
-          onClick={() => setShowSectionProgressionModal(true)}
-        >
-          {sectionProgression.length === 0 ? "Add one" : "Edit"}
-        </Button>
+        {editing && (
+          <Button
+            size={"sm"}
+            className="block md:hidden"
+            onClick={() => setShowSectionProgressionModal(true)}
+          >
+            {sectionProgression.length === 0 ? "Add one" : "Edit"}
+          </Button>
+        )}
 
-        <Button
-          size={"sm"}
-          className="absolute right-3 top-3 hidden md:block"
-          onClick={() => setShowSectionProgressionModal(true)}
-        >
-          {sectionProgression.length === 0 ? "Add one" : "Edit"}
-        </Button>
+        {editing && (
+          <Button
+            size={"sm"}
+            className="absolute right-3 top-3 hidden md:block"
+            onClick={() => setShowSectionProgressionModal(true)}
+          >
+            {sectionProgression.length === 0 ? "Add one" : "Edit"}
+          </Button>
+        )}
       </div>
     </>
   );

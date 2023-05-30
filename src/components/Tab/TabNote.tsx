@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Input } from "../ui/input";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
@@ -17,8 +18,6 @@ function TabNote({
   columnIndex,
   noteIndex,
 }: TabNote) {
-  // need handling for all cases obv
-
   const { editing, tabData, setTabData } = useTabStore(
     (state) => ({
       editing: state.editing,
@@ -27,6 +26,33 @@ function TabNote({
     }),
     shallow
   );
+
+  // this logic is really ugly but I'm not sure there is a better alternative given the
+  // greater structure and the fact that "/" and "\" don't start their render at the same
+  // pixel as regular characters
+  const horizontalPadding = useMemo(() => {
+    if (note.length > 1) return "px-0";
+
+    const prevNoteLength =
+      tabData[sectionIndex]!.data[columnIndex - 1]?.[noteIndex]?.length ?? 0;
+    const nextNoteLength =
+      tabData[sectionIndex]!.data[columnIndex + 1]?.[noteIndex]?.length ?? 0;
+
+    const nextNote = tabData[sectionIndex]!.data[columnIndex + 1]?.[noteIndex];
+
+    if (note === "/" || note === "\\") {
+      if (prevNoteLength === 2 && nextNoteLength === 1) return "px-1";
+      if (prevNoteLength === 2 && nextNoteLength === 2) return "px-[0.125rem]";
+      if (prevNoteLength === 1 && nextNoteLength === 2) return "px-0";
+    }
+
+    if (note === "h" || note === "p") {
+      if (nextNoteLength === 1 && nextNote !== "|") return "px-[0.125rem]";
+      else return "px-0";
+    }
+
+    return "px-1";
+  }, [tabData, sectionIndex, columnIndex, noteIndex, note]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key !== "Backspace") return;
@@ -130,25 +156,66 @@ function TabNote({
   }
 
   return (
-    <Input
-      id="note"
-      style={{
-        height: `${!inlineEffect ? "2.35rem" : "1.35rem"}`,
-        width: `${
-          !inlineEffect ? (noteIndex === 7 ? "3rem" : "2.35rem") : "1.4rem"
-        }`,
-        fontSize: `${!inlineEffect ? "1rem" : "0.875rem"}`,
-        lineHeight: `${!inlineEffect ? "1.5rem" : "1.25rem"}`,
-        padding: `${!inlineEffect ? "0.5rem" : "0"}`,
-        margin: !inlineEffect ? "0" : "0.5rem 0",
-      }}
-      className=" rounded-full p-2 text-center"
-      type="text"
-      autoComplete="off"
-      value={note}
-      onKeyDown={handleKeyDown}
-      onChange={handleChange}
-    />
+    <>
+      {editing ? (
+        <Input
+          id="note"
+          style={{
+            height: `${!inlineEffect ? "2.35rem" : "1.35rem"}`,
+            width: `${
+              !inlineEffect ? (noteIndex === 7 ? "3rem" : "2.35rem") : "1.4rem"
+            }`,
+            fontSize: `${!inlineEffect ? "1rem" : "0.875rem"}`,
+            lineHeight: `${!inlineEffect ? "1.5rem" : "1.25rem"}`,
+            padding: `${!inlineEffect ? "0.5rem" : "0"}`,
+            margin: !inlineEffect ? "0" : "0.5rem 0",
+          }}
+          className="rounded-full p-2 text-center"
+          type="text"
+          autoComplete="off"
+          value={note}
+          onKeyDown={handleKeyDown}
+          onChange={handleChange}
+        />
+      ) : (
+        <>
+          {note !== "" && note !== "~" ? (
+            <div
+              style={{
+                width: inlineEffect
+                  ? "12px"
+                  : note.length > 1
+                  ? "20px"
+                  : "16px",
+              }}
+              className={`${horizontalPadding} py-[0.5px]`}
+            >{`${note}${
+              tabData[sectionIndex]!.data[columnIndex + 1]![noteIndex] === "~"
+                ? "~"
+                : ""
+            }`}</div>
+          ) : (
+            <div className="baseFlex">
+              <div
+                className={`${
+                  note === "~" ? "opacity-0" : "opacity-100"
+                } my-3 h-[1px] w-2 bg-pink-200`}
+              ></div>
+              <div
+                style={{
+                  // tabData[sectionIndex]!.data[columnIndex + 1]?.[8] ===
+                  //         "measureLine"
+                  //         ? "3px"
+                  //         : "4px"
+                  width: inlineEffect ? "4px" : "8px",
+                }}
+                className="my-3 h-[1px] bg-pink-200"
+              ></div>
+            </div>
+          )}
+        </>
+      )}
+    </>
   );
 }
 

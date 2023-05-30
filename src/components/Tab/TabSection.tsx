@@ -426,7 +426,13 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
         (this would mean both sections would need to slide for each click of "up"/"down" ) */}
 
       <div className="baseFlex w-full !justify-start">
-        <div className="baseVertFlex relative h-[284px] gap-[1.35rem] rounded-l-2xl border-2 border-pink-50 p-2">
+        <div
+          style={{
+            height: editing ? "284px" : "168px",
+            gap: editing ? "1.35rem" : "0.05rem",
+          }}
+          className="baseVertFlex relative rounded-l-2xl border-2 border-pink-50 p-2"
+        >
           {toString(parse(tuning), { pad: 1 })
             .split(" ")
             .map((note, index) => (
@@ -467,8 +473,12 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
           </SortableContext>
         </DndContext>
 
-        {/* any way to not have to hardcode this? */}
-        <div className="baseVertFlex h-[284px] rounded-r-2xl border-2 border-pink-50 p-1"></div>
+        <div
+          style={{
+            height: editing ? "284px" : "168px",
+          }}
+          className="rounded-r-2xl border-2 border-pink-50 p-1"
+        ></div>
       </div>
 
       {editing && <Button onClick={addNewColumns}>Extend section</Button>}
