@@ -42,60 +42,58 @@ function SectionProgression() {
   }, []);
 
   return (
-    <>
-      <div
-        style={{
-          minWidth: aboveMediumViewportWidth
-            ? sectionProgression.length === 0
-              ? "450px"
-              : "500px"
-            : "auto",
-        }}
-        className="lightGlassmorphic baseVertFlex mb-4 mt-4
-        gap-4 rounded-md p-4 md:m-0 md:!items-start"
-      >
-        <p className="text-lg font-semibold text-pink-50">
-          {sectionProgression.length === 0
-            ? "No section progression specified"
-            : "Section progression"}
-        </p>
+    <div
+      style={{
+        minWidth: aboveMediumViewportWidth
+          ? sectionProgression.length === 0
+            ? "450px"
+            : "500px"
+          : "300px",
+      }}
+      className="lightGlassmorphic baseVertFlex mb-4 mt-4
+        max-w-[75%] gap-4 rounded-md p-4 md:m-0 md:!items-start"
+    >
+      <p className="text-lg font-semibold text-pink-50">
+        {sectionProgression.length === 0
+          ? "No section progression specified"
+          : "Section progression"}
+      </p>
 
-        {sectionProgression.length > 0 && (
-          <div className="baseVertFlex gap-2 md:flex-row">
-            {sectionProgression.map((section) => (
-              <div key={section.id} className="baseFlex gap-2">
-                <p className="font-semibold">{section.title}</p>
-                <p>x{section.repetitions}</p>
+      {sectionProgression.length > 0 && (
+        <div className="baseVertFlex !items-start gap-2 md:flex-row">
+          {sectionProgression.map((section) => (
+            <div key={section.id} className="baseFlex gap-2">
+              <p className="font-semibold">{section.title}</p>
+              <p>x{section.repetitions}</p>
 
-                {section.index !== sectionProgression.length - 1 && (
-                  <BsArrowRightShort className="text-pink-50" />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+              {section.index !== sectionProgression.length - 1 && (
+                <BsArrowRightShort className="h-6 w-8 text-pink-50" />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
-        {editing && (
-          <Button
-            size={"sm"}
-            className="block md:hidden"
-            onClick={() => setShowSectionProgressionModal(true)}
-          >
-            {sectionProgression.length === 0 ? "Add one" : "Edit"}
-          </Button>
-        )}
+      {editing && (
+        <Button
+          size={"sm"}
+          className="block md:hidden"
+          onClick={() => setShowSectionProgressionModal(true)}
+        >
+          {sectionProgression.length === 0 ? "Add one" : "Edit"}
+        </Button>
+      )}
 
-        {editing && (
-          <Button
-            size={"sm"}
-            className="absolute right-3 top-3 hidden md:block"
-            onClick={() => setShowSectionProgressionModal(true)}
-          >
-            {sectionProgression.length === 0 ? "Add one" : "Edit"}
-          </Button>
-        )}
-      </div>
-    </>
+      {editing && (
+        <Button
+          size={"sm"}
+          className="absolute right-3 top-3 hidden md:block"
+          onClick={() => setShowSectionProgressionModal(true)}
+        >
+          {sectionProgression.length === 0 ? "Add one" : "Edit"}
+        </Button>
+      )}
+    </div>
   );
 }
 
