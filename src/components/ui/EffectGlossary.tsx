@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import {
@@ -21,6 +22,9 @@ interface Styles {
 }
 
 function EffectGlossary({ forModal = false }: EffectGlossary) {
+  const [aboveMediumViewportWidth, setAboveMediumViewportWidth] =
+    useState(false);
+
   const { showingEffectGlossary, setShowingEffectGlossary } = useTabStore(
     (state) => ({
       showingEffectGlossary: state.showingEffectGlossary,
@@ -28,6 +32,22 @@ function EffectGlossary({ forModal = false }: EffectGlossary) {
     }),
     shallow
   );
+
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth >= 768) {
+        setAboveMediumViewportWidth(true);
+      } else {
+        setAboveMediumViewportWidth(false);
+      }
+    }
+
+    handleResize();
+
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const style: Styles = {
     padding: forModal ? "0" : "0.5rem 1rem",
@@ -63,7 +83,7 @@ function EffectGlossary({ forModal = false }: EffectGlossary) {
       {/* doesn't look cohesive when below styles are present, any other solution besides changing
           all other dropdown-esque ui components to match this? */}
       {/* className="heavyGlassmorphic text-pink-900" */}
-      <DropdownMenuContent>
+      <DropdownMenuContent side={aboveMediumViewportWidth ? "right" : "bottom"}>
         <DropdownMenuLabel>Section effects</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="grid w-48 grid-cols-5">
