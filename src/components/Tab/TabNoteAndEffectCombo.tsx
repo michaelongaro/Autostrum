@@ -145,6 +145,17 @@ function TabNoteAndEffectCombo({
     setTabData(newTabData);
   }
 
+  // "2px" // unless I messed up the pixel counting, it seemed like
+  // : // this could stay at 2px no matter what, but I'm not sure how that's possible
+  // it does look better with 2px tbh..
+  // `${
+  //   (tabData[sectionIndex]!.data[noteColumnIndex]?.[
+  //     index
+  //   ]?.length ?? 0) > 1
+  //     ? "0px"
+  //     : "2px"
+  // }`
+
   return (
     <motion.div
       key={`tabSection${sectionIndex}tabColumn${noteColumnIndex}`}
@@ -224,35 +235,32 @@ function TabNoteAndEffectCombo({
                       index === 6 ? "2px solid rgb(253 242 248)" : "none"
                     }`,
                     paddingBottom: `${index === 6 ? "0.45rem" : "0rem"}`,
-                    // width: editing ? "auto" : "20px",
+
+                    // might need to refine these widths/values a bit if the sound playing overlay isn't
+                    // as smooth/seamless as we want it to be.
+                    width: editing ? "auto" : "20px",
                   }}
-                  className="baseFlex"
+                  className="baseFlex relative"
                 >
                   <div
                     style={{
-                      width: `${
-                        editing
-                          ? relativelyGetColumn(-1)?.[8] === "measureLine"
-                            ? "6px"
-                            : "8px"
-                          : relativelyGetColumn(-1)?.[8] === "measureLine"
-                          ? "0px" // unless I messed up the pixel counting, it seemed like
-                          : // this could stay at 2px no matter what, but I'm not sure how that's possible
-                            // it does look better with 2px tbh..
-                            `${
-                              (tabData[sectionIndex]!.data[noteColumnIndex]?.[
-                                index
-                              ]?.length ?? 0) > 1
-                                ? "0px"
-                                : "2px"
-                            }`
-                      }`,
+                      width: editing
+                        ? relativelyGetColumn(-1)?.[8] === "measureLine"
+                          ? "6px"
+                          : "8px"
+                        : // need to fix logic below
+                        // relativelyGetColumn(-1)?.[8] === "measureLine" &&
+                        //   (relativelyGetColumn(0)?.[index]?.length ?? 0) < 2
+                        (relativelyGetColumn(0)?.[index]?.length ?? 0) > 1
+                        ? "0px"
+                        : "2px",
 
                       opacity:
                         editing ||
                         relativelyGetColumn(-1)[index] === "" ||
                         (relativelyGetColumn(-1)[index] === "|" &&
-                          relativelyGetColumn(-2)[index] === "") ||
+                          (relativelyGetColumn(-2)[index] === "" ||
+                            relativelyGetColumn(0)[index] === "")) ||
                         relativelyGetColumn(-1)[index] === "~" ||
                         relativelyGetColumn(-1)[index] === undefined
                           ? 1
@@ -274,9 +282,7 @@ function TabNoteAndEffectCombo({
                       width: editing
                         ? "8px"
                         : `${
-                            // suspect we kinda just added second condition randomly
-                            (relativelyGetColumn(0).length ?? 0) > 1 &&
-                            relativelyGetColumn(1)[noteColumnIndex] !== "|"
+                            (relativelyGetColumn(0)?.[index]?.length ?? 0) > 1
                               ? "0px"
                               : "2px"
                           }`,
@@ -399,7 +405,9 @@ function TabNoteAndEffectCombo({
                       index === 6 ? "2px solid rgb(253 242 248)" : "none"
                     }`,
                     paddingBottom: `${index === 6 ? "0.45rem" : "0rem"}`,
-                    // width: editing ? "auto" : "12px",
+
+                    // this should prob be dynamic to go down to 11px if right next to measure line!
+                    width: editing ? "auto" : "12px",
                   }}
                   className="baseFlex"
                 >
@@ -411,6 +419,7 @@ function TabNoteAndEffectCombo({
                     columnIndex={noteColumnIndex + 1}
                     noteIndex={index}
                   />
+
                   {editing && (
                     <div
                       style={{
