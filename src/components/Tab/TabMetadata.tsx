@@ -1,5 +1,6 @@
 import { useState, useMemo, type ChangeEvent } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
@@ -25,6 +26,7 @@ import classes from "./TabMetadata.module.css";
 
 function TabMetadata() {
   const { userId, isLoaded } = useAuth();
+  const { asPath } = useRouter();
 
   const [showPulsingError, setShowPulsingError] = useState(false);
 
@@ -143,6 +145,17 @@ function TabMetadata() {
     }
   }
 
+  function handlePreview() {
+    if (!title || !genreId || !tuning || !bpm) {
+      setShowPulsingError(true);
+      setTimeout(() => setShowPulsingError(false), 500);
+
+      return;
+    }
+
+    setEditing(false);
+  }
+
   function handleSave() {
     if (!title || !genreId || !tuning || !bpm) {
       setShowPulsingError(true);
@@ -209,13 +222,19 @@ function TabMetadata() {
         <>
           <div className={classes.editingMetadataContainer}>
             <div className="baseFlex absolute right-2 top-2 gap-2 lg:right-4 lg:top-4">
-              <Button
-                // disabled={}
-                // need to see if tab has bee
-                onClick={() => setEditing(false)}
-                // if changes have been made but not saved, show a warning modal probably
-              >
-                View tab
+              {!asPath.includes("create") && (
+                <Button
+                  variant={"destructive"}
+                  onClick={() => {
+                    // bring up modal to confirm deletion
+                    // delete tab and redirect to wherever user came from before editing
+                  }}
+                >
+                  Delete
+                </Button>
+              )}
+              <Button disabled={showPulsingError} onClick={handlePreview}>
+                Preview
               </Button>
 
               <Button
@@ -224,7 +243,7 @@ function TabMetadata() {
                 // need to compare the current state of the tab to the initial state
                 onClick={handleSave}
               >
-                Save
+                {asPath.includes("create") ? "Publish" : "Save"}
               </Button>
             </div>
 
@@ -396,7 +415,12 @@ function TabMetadata() {
           </div>
         </>
       ) : (
-        <div className={classes.viewingMetadataContainer}>
+        <div
+          style={{
+            minHeight: description ? "300px" : "150px",
+          }}
+          className="w-full"
+        >
           {userId && createdById === parseInt(userId) && (
             <Button
               className="absolute right-2 top-2 md:right-4 md:top-4"
@@ -404,9 +428,13 @@ function TabMetadata() {
                 setEditing(true);
               }}
             >
-              Edit
+              {asPath.includes("edit") || asPath.includes("create")
+                ? "Continue editing"
+                : "Edit"}
             </Button>
           )}
+
+          {/* if you still wanted to add "forking" functionality, then that would go here */}
 
           <div
             className={`${
@@ -462,8 +490,8 @@ function TabMetadata() {
               </div>
             )}
 
-            <div className="baseVertFlex w-full gap-4">
-              <div className="baseFlex w-full !items-start !justify-evenly">
+            <div className="baseVertFlex w-full gap-4 md:flex-row md:items-start md:gap-8">
+              <div className="baseFlex w-full !items-start !justify-evenly md:w-auto md:flex-row md:gap-8">
                 <div
                   className={`${
                     classes.genre ?? ""
@@ -474,7 +502,9 @@ function TabMetadata() {
                     style={{
                       backgroundColor: genreObject[genreId]?.color,
                     }}
-                    className={`${classes.genre ?? ""} rounded-md px-16 py-4`}
+                    className={`${
+                      classes.genre ?? ""
+                    } rounded-md px-16 py-[0.65rem]`}
                   >
                     {/* need bubbles, prob fine to hardcode them tbh */}
                     {genreObject[genreId]?.name}
@@ -492,7 +522,7 @@ function TabMetadata() {
                 </div>
               </div>
 
-              <div className="baseFlex w-full !items-start !justify-evenly">
+              <div className="baseFlex w-full !items-start !justify-evenly md:w-auto md:flex-row md:gap-8">
                 <div
                   className={`${
                     classes.bpm ?? ""
@@ -502,14 +532,16 @@ function TabMetadata() {
                   <div>{bpm}</div>
                 </div>
 
-                <div
-                  className={`${
-                    classes.timingSignature ?? ""
-                  } baseVertFlex !items-start gap-2`}
-                >
-                  <div className="font-semibold">Timing</div>
-                  <div>{timeSignature}</div>
-                </div>
+                {timeSignature && (
+                  <div
+                    className={`${
+                      classes.timingSignature ?? ""
+                    } baseVertFlex !items-start gap-2`}
+                  >
+                    <div className="font-semibold">Timing</div>
+                    <div>{timeSignature}</div>
+                  </div>
+                )}
 
                 {capo && (
                   <div
