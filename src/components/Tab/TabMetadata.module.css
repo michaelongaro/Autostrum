@@ -48,23 +48,6 @@
   }
 }
 
-/* do we still want grid here? because if certain sections are missing it will look pretty wack right? */
-.viewingMetadataContainer {
-  width: 100%;
-  min-height: 300px;
-  /* display: grid;
-  grid-template-rows: 1fr minmax(2fr, 500px) 1fr 1fr 1fr;
-  grid-template-columns: 1fr 1fr;
-  grid-template-areas:
-    "titleContainer titleContainer"
-    "usernameAndDate usernameAndDate"
-    "description description"
-    "genre bpm"
-    "tuning capo"
-    "timingSignature .";
-  gap: 1rem; */
-}
-
 .headerInfo,
 .metadataContainer {
   display: flex;
@@ -86,23 +69,6 @@
   justify-content: center;
   gap: 1.5rem;
   padding: 1rem;
-
-
-
-
-
-  /* width: 100%;
-  max-height: 350px;
-  padding: 1rem;
-  display: grid;
-  grid-template-rows: 1fr 1fr 1fr;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-areas:
-    "description description description description"
-    "genre genre tuning tuning"
-    "bpm timingSignature capo .";
-  place-items: center; */
-  /* gap: 1rem; */
 }
 
 
@@ -112,8 +78,6 @@
     align-items: center;
     gap: 1rem;
   }
-
-
 }
 
 @media (min-width: 1024px) {
