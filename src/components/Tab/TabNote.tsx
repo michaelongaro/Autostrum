@@ -40,9 +40,17 @@ function TabNote({
 
     const nextNote = tabData[sectionIndex]!.data[columnIndex + 1]?.[noteIndex];
 
+    console.log(
+      note,
+      prevNoteLength === 2 && (nextNote === "|" || nextNoteLength === 2)
+    );
+
     if (note === "/" || note === "\\") {
+      // making sure to handle measure line case first since next one would also allow it (with wrong result)
+      if (prevNoteLength === 1 && nextNote === "|") return "px-[0.125rem]";
+      if (prevNoteLength === 2 && (nextNote === "|" || nextNoteLength === 2))
+        return "px-[0.125rem]";
       if (prevNoteLength === 2 && nextNoteLength === 1) return "px-1";
-      if (prevNoteLength === 2 && nextNoteLength === 2) return "px-[0.125rem]";
       if (prevNoteLength === 1 && nextNoteLength === 2) return "px-0";
     }
 
@@ -203,10 +211,6 @@ function TabNote({
               ></div>
               <div
                 style={{
-                  // tabData[sectionIndex]!.data[columnIndex + 1]?.[8] ===
-                  //         "measureLine"
-                  //         ? "3px"
-                  //         : "4px"
                   width: inlineEffect ? "4px" : "8px",
                 }}
                 className="my-3 h-[1px] bg-pink-200"
