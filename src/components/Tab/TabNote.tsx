@@ -75,12 +75,56 @@ function TabNote({
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const value = e.target.value;
+    const value = e.target.value.toLowerCase();
 
     // regular notes
     if (!inlineEffect && noteIndex !== 7) {
+      // wanted to always allow a-g in regular note even if there was a number
+      // present for easy placement of major chords
+      let valueHasAMajorChordLetter = false;
+      let majorChordLetter = "";
+      for (let i = 0; i < value.length; i++) {
+        if ("abcdefg".includes(value.charAt(i))) {
+          valueHasAMajorChordLetter = true;
+          majorChordLetter = value.charAt(i);
+          break;
+        }
+      }
+      if (valueHasAMajorChordLetter) {
+        let chordArray: string[] = [];
+        if (majorChordLetter === "a") {
+          chordArray = ["", "0", "2", "2", "2", "0"];
+        } else if (majorChordLetter === "b") {
+          chordArray = ["", "2", "4", "4", "4", "2"];
+        } else if (majorChordLetter === "c") {
+          chordArray = ["", "3", "2", "0", "1", "0"];
+        } else if (majorChordLetter === "d") {
+          chordArray = ["", "", "0", "2", "3", "2"];
+        } else if (majorChordLetter === "e") {
+          chordArray = ["0", "2", "2", "1", "0", "0"];
+        } else if (majorChordLetter === "f") {
+          chordArray = ["1", "3", "3", "2", "1", "1"];
+        } else if (majorChordLetter === "g") {
+          chordArray = ["3", "2", "0", "0", "0", "3"];
+        }
+
+        const newTabData = [...tabData];
+        const palmMuteNode = newTabData[sectionIndex]!.data[columnIndex]![0];
+        const chordEffects = newTabData[sectionIndex]!.data[columnIndex]![7];
+
+        newTabData[sectionIndex]!.data[columnIndex] = [
+          palmMuteNode ?? "",
+          ...chordArray.reverse(),
+          chordEffects ?? "",
+          "note",
+        ];
+
+        setTabData(newTabData);
+        return;
+      }
+
       // Check if the value is between 0 and 22, a "|", or an "x"
-      const isValid = /^(?:(?:[0-1]?[0-9]|2[0-2])|[|x])$/g.test(value);
+      const isValid = /^(2[0-2]|1?[0-9]|0|[x]|[|])$/g.test(value);
       if (value !== "" && !isValid) return;
 
       if (value === "|") {
@@ -116,7 +160,7 @@ function TabNote({
       }
     }
 
-    // below the line effects
+    // chord effects
     else if (!inlineEffect && noteIndex === 7) {
       // Check if the value is contains at most one of each of the following characters: . ^ v > s
       // and that it doesn't contain both a ^ and a v
