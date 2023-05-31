@@ -10,18 +10,18 @@ datasource db {
 }
 
 model User {
-    id             Int             @id @default(autoincrement())
-    username       String          @unique
-    profilePicture String?
-    status         String?
-    featuredTab    Tab?            @relation(fields: [featuredTabId], references: [id])
-    featuredTabId  Int?
-    createdTabs    Tab[]           @relation("CreatedBy")
-    likes          Likes[]
-    comments       Comment[]
-    featuredArtist PromotedArtist?
-    createdAt      DateTime        @default(now())
-    updatedAt      DateTime        @updatedAt // not sure if this field will have any real value...
+    id                Int             @id @default(autoincrement())
+    username          String          @unique // will have to enforce this on trpc side
+    profilePictureUrl String?
+    status            String?
+    featuredTab       Tab?            @relation(fields: [featuredTabId], references: [id])
+    featuredTabId     Int?
+    createdTabs       Tab[]           @relation("CreatedBy")
+    likes             Likes[]
+    comments          Comment[]
+    featuredArtist    PromotedArtist?
+    createdAt         DateTime        @default(now())
+    updatedAt         DateTime        @updatedAt // not sure if this field will have any real value...
 
     @@index([featuredTabId])
 }
