@@ -126,7 +126,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
   // edit/save buttons prob right at the top of this markup below
   return (
     <>
-      <div className="baseVertFlex lightGlassmorphic relative mb-24 mt-24 w-11/12 gap-4 rounded-md pb-4 xl:w-8/12">
+      <div className="baseVertFlex lightGlassmorphic relative mb-24 mt-24 w-11/12 gap-4 rounded-md xl:w-8/12">
         <TabMetadata />
 
         <Separator className="h-[1px] w-full bg-pink-50" />
