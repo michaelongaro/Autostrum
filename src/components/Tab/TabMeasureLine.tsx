@@ -151,7 +151,6 @@ function TabMeasureLine({
                 }`,
               }}
               className="w-[2px] bg-pink-50"
-              onMouseEnter={() => console.log("hovering on measure line")}
             ></div>
           )}
 

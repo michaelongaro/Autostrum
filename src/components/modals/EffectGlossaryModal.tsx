@@ -56,10 +56,7 @@ function EffectGlossaryModal() {
       initial="closed"
       animate="expanded"
       exit="closed"
-      onClick={() => {
-        console.log("hi");
-        setShowEffectGlossaryModal(false);
-      }}
+      onClick={() => setShowEffectGlossaryModal(false)}
     >
       <div
         ref={innerModalRef}

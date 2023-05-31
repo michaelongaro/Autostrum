@@ -215,14 +215,10 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
 
       // have to move the effect column as well if it's a note and the direction is left -> right
       if (prevSectionData.data[end]![8] === "note") {
-        console.log(prevSectionData.data);
-        console.log(start, end);
-
         prevSectionData = {
           ...prevSectionData,
           data: arrayMove(
             prevSectionData.data,
-            // still a bit sus about the numbers below
             rawEndValue < start ? start + 1 : start,
             rawEndValue < start ? rawEndValue + 1 : end
           ),

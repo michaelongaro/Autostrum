@@ -34,8 +34,6 @@ export default function useSound(props: {
     };
   }, [instrument, tuning]);
 
-  console.log("rendering changes");
-
   const play = useCallback(
     (string: number, fret: number, when = 0) => {
       //tabData[string] ?? 0
@@ -56,7 +54,6 @@ export default function useSound(props: {
       for (let string = 0; string < tabData[section].length; string++) {
         const fret = tabData[section]?.[string];
         if (fret !== undefined && fret > -1) {
-          console.log("playing", string, fret, section * 1500);
           play(string, fret, section * 0.25); // 1.5 should by dynamic based on tempo
         }
       }

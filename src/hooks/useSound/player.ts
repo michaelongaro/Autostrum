@@ -37,7 +37,6 @@ const mainPlayer = async (
 
         if (fret < 0) return resolve(); // return immediately if fret is negative
 
-        console.log("tons of times?");
         const startTimeout = setTimeout(
           () => setPlaying(string, true),
           when * 1000

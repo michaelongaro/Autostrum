@@ -40,11 +40,6 @@ function TabNote({
 
     const nextNote = tabData[sectionIndex]!.data[columnIndex + 1]?.[noteIndex];
 
-    console.log(
-      note,
-      prevNoteLength === 2 && (nextNote === "|" || nextNoteLength === 2)
-    );
-
     if (note === "/" || note === "\\") {
       // making sure to handle measure line case first since next one would also allow it (with wrong result)
       if (prevNoteLength === 1 && nextNote === "|") return "px-[0.125rem]";
@@ -97,8 +92,6 @@ function TabNote({
         ) {
           return;
         }
-
-        console.log(columnIndex);
 
         const newTabData = [...tabData];
         const palmMuteNode = newTabData[sectionIndex]!.data[columnIndex]![0];
