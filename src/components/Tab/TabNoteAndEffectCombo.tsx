@@ -87,14 +87,6 @@ function TabNoteAndEffectCombo({
     shallow
   );
 
-  // const prevColumn = useMemo(() => {
-  //   return tabData[sectionIndex]?.data[noteColumnIndex - 1] ?? [];
-  // }, [tabData, sectionIndex, noteColumnIndex]);
-
-  // const relativelyGetColumn(2) = useMemo(() => {
-  //   return tabData[sectionIndex]?.data[noteColumnIndex + 1] ?? [];
-  // }, [tabData, sectionIndex, noteColumnIndex]);
-
   function relativelyGetColumn(indexRelativeToCurrentCombo: number) {
     return (
       tabData[sectionIndex]?.data[
@@ -144,17 +136,6 @@ function TabNoteAndEffectCombo({
 
     setTabData(newTabData);
   }
-
-  // "2px" // unless I messed up the pixel counting, it seemed like
-  // : // this could stay at 2px no matter what, but I'm not sure how that's possible
-  // it does look better with 2px tbh..
-  // `${
-  //   (tabData[sectionIndex]!.data[noteColumnIndex]?.[
-  //     index
-  //   ]?.length ?? 0) > 1
-  //     ? "0px"
-  //     : "2px"
-  // }`
 
   return (
     <motion.div
@@ -305,18 +286,7 @@ function TabNoteAndEffectCombo({
                 !reorderingColumns &&
                 !showingDeleteColumnsButtons && (
                   <div className="relative h-0 w-full">
-                    <div
-                      style={{
-                        left: `${
-                          tabData[sectionIndex]?.data[
-                            noteColumnIndex - 1
-                          ]?.[8] === "measureLine"
-                            ? "60%"
-                            : "50%"
-                        }`,
-                      }}
-                      className="absolute left-1/2 right-1/2 top-2 w-[3rem] -translate-x-1/2"
-                    >
+                    <div className="absolute left-1/2 right-1/2 top-2 w-[3rem] -translate-x-1/2">
                       <TabNote
                         note={note}
                         inlineEffect={false}
@@ -331,15 +301,7 @@ function TabNoteAndEffectCombo({
               {!editing && index === 7 && (
                 <div className="relative h-0 w-full">
                   <div
-                    // going to need to adjust this later
                     style={{
-                      left: `${
-                        tabData[sectionIndex]?.data[
-                          noteColumnIndex - 1
-                        ]?.[8] === "measureLine"
-                          ? "60%"
-                          : "50%" // prob want to change this to match above
-                      }`,
                       top: editing ? "0.5rem" : "0.25rem",
                       lineHeight: editing ? "24px" : "16px",
                     }}
