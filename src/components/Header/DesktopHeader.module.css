@@ -1,0 +1,47 @@
+.desktopHeader {
+  width: 100%;
+  display: none;
+}
+
+
+@media (min-width: 768px) {
+  .desktopHeader {
+    padding: 0.5rem;
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-areas:
+      "logo . explore explore explore create create create authentication authentication authentication authentication";
+    place-items: center;
+  }
+}
+
+@media (min-width: 1024px) {
+  .desktopHeader {
+    grid-template-areas:
+      "logo logo . . explore explore create create . authentication authentication authentication";
+  }
+}
+
+@media (min-width: 1536px) {
+  .desktopHeader {
+    grid-template-areas:
+      "logo logo logo . . explore explore create create authentication authentication authentication";
+  }
+}
+
+.logo {
+  grid-area: logo;
+}
+
+.explore {
+  grid-area: explore;
+}
+
+.create {
+  grid-area: create;
+}
+
+.authentication {
+  grid-area: authentication;
+}
