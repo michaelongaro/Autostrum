@@ -26,6 +26,7 @@ import {
 import { restrictToParentElement } from "@dnd-kit/modifiers";
 import { parse, toString } from "~/utils/tunings";
 import { Separator } from "@radix-ui/react-select";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 export interface LastModifiedPalmMuteNodeLocation {
   columnIndex: number;
@@ -50,6 +51,8 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
   const [reorderingColumns, setReorderingColumns] = useState(false);
   const [showingDeleteColumnsButtons, setShowingDeleteColumnsButtons] =
     useState(false);
+
+  const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -252,7 +255,14 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
       // layoutId={`tabSection${sectionIndex}`}
       layout
       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-      className="baseVertFlex relative h-full w-full !justify-start gap-4 md:p-8"
+      style={{
+        padding: aboveMediumViewportWidth
+          ? "2rem"
+          : editing
+          ? "1rem 0.5rem 1rem 0.5rem"
+          : "1rem",
+      }}
+      className="baseVertFlex relative h-full w-full !justify-start gap-4"
     >
       <div className="baseFlex w-full !items-start !justify-between">
         <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
