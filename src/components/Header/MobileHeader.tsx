@@ -40,12 +40,12 @@ function MobileHeader() {
             </Link>
           </Button>
 
-          <div className="flex items-center justify-center gap-4">
+          <div className="baseFlex gap-4">
             <SignUpButton mode="modal">
               <Button size={"lg"}>Sign up</Button>
             </SignUpButton>
             <SignInButton mode="modal">
-              <Button variant={"secondary"}>Sign up</Button>
+              <Button variant={"secondary"}>Sign in</Button>
             </SignInButton>
           </div>
         </div>
