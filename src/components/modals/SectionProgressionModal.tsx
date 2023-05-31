@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useRef,
-  type CSSProperties,
-} from "react";
+import { useState, useMemo, useRef, type CSSProperties } from "react";
 import { type SectionProgression, useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { AnimatePresence, motion } from "framer-motion";
@@ -44,6 +38,7 @@ import { SelectGroup } from "../ui/select";
 import { SelectLabel } from "../ui/select";
 import { SelectItem } from "../ui/select";
 import { Input } from "../ui/input";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 const backdropVariants = {
   expanded: {
@@ -72,27 +67,9 @@ function reassignIndicies(array: SectionProgression[]) {
 }
 
 function SectionProgressionModal() {
-  // TODO: maybe create custom hook that will return boolean for aboveMediumViewportWidth
-  const [aboveMediumViewportWidth, setAboveMediumViewportWidth] =
-    useState(false);
+  const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const scrollableSectionsRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleResize() {
-      if (window.innerWidth >= 768) {
-        setAboveMediumViewportWidth(true);
-      } else {
-        setAboveMediumViewportWidth(false);
-      }
-    }
-
-    handleResize();
-
-    window.addEventListener("resize", handleResize);
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   const modalVariants = {
     expanded: {

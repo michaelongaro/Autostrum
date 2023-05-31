@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { Button } from "../ui/button";
 import { BsArrowRightShort } from "react-icons/bs";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 function SectionProgression() {
-  const [aboveMediumViewportWidth, setAboveMediumViewportWidth] =
-    useState(false);
+  const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const {
     editing,
@@ -24,22 +23,6 @@ function SectionProgression() {
     }),
     shallow
   );
-
-  useEffect(() => {
-    function handleResize() {
-      if (window.innerWidth >= 768) {
-        setAboveMediumViewportWidth(true);
-      } else {
-        setAboveMediumViewportWidth(false);
-      }
-    }
-
-    handleResize();
-
-    window.addEventListener("resize", handleResize);
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   return (
     <div

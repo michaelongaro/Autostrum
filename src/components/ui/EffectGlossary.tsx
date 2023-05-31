@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import {
@@ -9,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./dropdownMenu";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 interface EffectGlossary {
   forModal?: boolean;
@@ -22,8 +22,7 @@ interface Styles {
 }
 
 function EffectGlossary({ forModal = false }: EffectGlossary) {
-  const [aboveMediumViewportWidth, setAboveMediumViewportWidth] =
-    useState(false);
+  const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const { showingEffectGlossary, setShowingEffectGlossary } = useTabStore(
     (state) => ({
@@ -32,22 +31,6 @@ function EffectGlossary({ forModal = false }: EffectGlossary) {
     }),
     shallow
   );
-
-  useEffect(() => {
-    function handleResize() {
-      if (window.innerWidth >= 768) {
-        setAboveMediumViewportWidth(true);
-      } else {
-        setAboveMediumViewportWidth(false);
-      }
-    }
-
-    handleResize();
-
-    window.addEventListener("resize", handleResize);
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   const style: Styles = {
     padding: forModal ? "0" : "0.5rem 1rem",
