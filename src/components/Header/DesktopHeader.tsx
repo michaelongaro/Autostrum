@@ -1,4 +1,10 @@
-import { SignInButton, SignUpButton, useAuth } from "@clerk/nextjs";
+import {
+  SignInButton,
+  SignUpButton,
+  UserButton,
+  useAuth,
+  useUser,
+} from "@clerk/nextjs";
 import Link from "next/link";
 import { FaGuitar } from "react-icons/fa";
 import { IoTelescopeOutline } from "react-icons/io5";
@@ -8,6 +14,7 @@ import classes from "./DesktopHeader.module.css";
 
 function DesktopHeader() {
   const { userId, isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
 
   return (
     <div className={classes.desktopHeader}>
@@ -59,9 +66,13 @@ function DesktopHeader() {
         <div
           className={`${classes.authentication ?? ""} baseFlex gap-2 lg:gap-4`}
         >
-          <Link href={`/profile`}>
-            {/* get username + profile picture from trpc route above */}
-          </Link>
+          <Button variant={"ghost"}>
+            <Link href={`/profile`} className="baseFlex gap-4 text-lg">
+              {user?.username}
+              {/* will need to be based on env url */}
+              <UserButton afterSignOutUrl="http://localhost:3000" />
+            </Link>
+          </Button>
         </div>
       )}
     </div>
