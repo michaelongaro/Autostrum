@@ -421,7 +421,7 @@ function TabMetadata() {
           }}
           className="w-full"
         >
-          {userId && createdById === parseInt(userId) && (
+          {userId && createdById === userId && (
             <Button
               className="absolute right-2 top-2 md:right-4 md:top-4"
               onClick={() => {

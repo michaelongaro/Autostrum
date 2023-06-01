@@ -22,8 +22,8 @@ interface TabState {
   // used in <Tab />
   id: number;
   setId: (id: number) => void;
-  createdById: number; // or maybe number need to figure out how clerk stores their stuff
-  setCreatedById: (createdById: number) => void;
+  createdById: string;
+  setCreatedById: (createdById: string) => void;
   createdAt: Date | null;
   setCreatedAt: (createdAt: Date | null) => void;
   title: string;
@@ -80,7 +80,7 @@ export const useTabStore = create<TabState>()(
     setOriginalTabData: (originalTabData) => set({ originalTabData }),
     id: -1,
     setId: (id) => set({ id }),
-    createdById: 0,
+    createdById: "",
     setCreatedById: (createdById) => set({ createdById }),
     createdAt: null,
     setCreatedAt: (createdAt) => set({ createdAt }),
