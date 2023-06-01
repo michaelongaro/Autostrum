@@ -89,41 +89,6 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
     setTuning,
   ]);
 
-  // const [editing, setEditing] = useState(true);
-
-  // const [title, setTitle] = useState(tab?.title ?? "");
-  // const [description, setDescription] = useState(tab?.description ?? "");
-
-  // // these two will need some more coddling to get working
-  // const [genre, setGenreId] = useState(tab?.genreId ?? 0);
-  // const [tuning, setTuning] = useState(tab?.tuning ?? "EADGBE"); // not sure how we want to handle this yet
-
-  // const [bpm, setBpm] = useState(tab?.bpm ?? 75);
-  // const [timeSignature, setTimeSignature] = useState(
-  //   tab?.timeSignature ?? "4/4"
-  // );
-  // const [tabData, setTabData] = useState<ITabSection[]>(
-  //   // @ts-expect-error asdf
-  //   tab?.tabData ?? [
-  //     {
-  //       title: "Intro",
-  //       data: [
-  //         ["", "", "", "", "", "", "2", ""],
-  //         ["", "", "", "", "", "", "", ""],
-  //         ["", "", "", "", "", "", "2", ""],
-  //         ["", "", "", "", "", "", "", ""],
-  //         ["", "", "", "", "", "", "2", ""],
-  //         ["", "", "", "", "", "", "", ""],
-  //         ["", "", "", "1", "", "", "", ""],
-  //         ["", "", "", "", "", "", "", ""],
-  //       ],
-  //     },
-  //   ]
-  // );
-
-  // TODO: validation + sanitization for inputs and also note effects for both mobile and desktop
-
-  // edit/save buttons prob right at the top of this markup below
   return (
     <>
       <div className="baseVertFlex lightGlassmorphic relative mb-24 mt-24 w-11/12 gap-4 rounded-md xl:w-8/12">
