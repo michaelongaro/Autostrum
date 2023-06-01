@@ -9,23 +9,6 @@ datasource db {
     relationMode = "prisma"
 }
 
-model User {
-    id                Int             @id @default(autoincrement())
-    username          String          @unique // will have to enforce this on trpc side
-    profilePictureUrl String?
-    status            String?
-    featuredTab       Tab?            @relation(fields: [featuredTabId], references: [id])
-    featuredTabId     Int?
-    createdTabs       Tab[]           @relation("CreatedBy")
-    likes             Likes[]
-    comments          Comment[]
-    featuredArtist    PromotedArtist?
-    createdAt         DateTime        @default(now())
-    updatedAt         DateTime        @updatedAt // not sure if this field will have any real value...
-
-    @@index([featuredTabId])
-}
-
 model Tab {
     id                 Int           @id @default(autoincrement())
     title              String
@@ -37,27 +20,24 @@ model Tab {
     capo               Int?
     sectionProgression SongSection[]
     createdAt          DateTime      @default(now())
-    createdBy          User          @relation("CreatedBy", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
-    createdById        Int
+    createdById        String
     genre              Genre         @relation(fields: [genreId], references: [id])
     genreId            Int
     comments           Comment[]
     likes              Likes[]
-    User               User[]
 
-    @@index([createdById])
+    @@index([createdById]) // not sure if we need these indicies anymore, or if they are beneficial to us since we removed the User model
     @@index([genreId])
 }
 
 // Junction table for likes
 model Likes {
-    id     Int  @id @default(autoincrement())
-    user   User @relation(fields: [userId], references: [id])
+    id     Int @id @default(autoincrement())
     userId Int
-    tab    Tab  @relation(fields: [tabId], references: [id])
+    tab    Tab @relation(fields: [tabId], references: [id])
     tabId  Int
 
-    @@index([userId])
+    @@index([userId]) // not sure if we need these indicies anymore, or if they are beneficial to us since we removed the User model
     @@index([tabId])
 }
 
@@ -84,7 +64,6 @@ model Comment {
     id        Int       @id @default(autoincrement())
     text      String
     createdAt DateTime  @default(now())
-    author    User      @relation(fields: [authorId], references: [id])
     authorId  Int
     tab       Tab       @relation(fields: [tabId], references: [id])
     tabId     Int
@@ -93,13 +72,12 @@ model Comment {
     replies   Comment[] @relation("Replies")
 
     @@index([tabId])
-    @@index([authorId])
+    @@index([authorId]) // not sure if we need these indicies anymore, or if they are beneficial to us since we removed the User model
     @@index([replyToId])
 }
 
 model PromotedArtist {
     id        Int      @id @default(autoincrement())
-    artist    User     @relation(fields: [artistId], references: [id])
     artistId  Int      @unique
     startDate DateTime
     endDate   DateTime
