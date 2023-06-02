@@ -36,8 +36,10 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
     setTimeSignature,
     tabData,
     setTabData,
+    setSectionProgression,
     editing,
     setEditing,
+    setOriginalTabData,
     showSectionProgressionModal,
     showEffectGlossaryModal,
     setShowEffectGlossaryModal,
@@ -53,8 +55,10 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
       setTimeSignature: state.setTimeSignature,
       tabData: state.tabData,
       setTabData: state.setTabData,
+      setSectionProgression: state.setSectionProgression,
       editing: state.editing,
       setEditing: state.setEditing,
+      setOriginalTabData: state.setOriginalTabData,
       showSectionProgressionModal: state.showSectionProgressionModal,
       showEffectGlossaryModal: state.showEffectGlossaryModal,
       setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
@@ -64,6 +68,8 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
 
   useEffect(() => {
     if (!tab) return;
+
+    setOriginalTabData(tab);
 
     setId(tab.id);
     setCreatedById(tab.createdById);
@@ -76,6 +82,8 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
 
     // @ts-expect-error asdf
     setTabData(tab.tabData);
+    // @ts-expect-error asdf
+    setSectionProgression(tab.sectionProgression ?? []);
   }, [
     tab,
     setId,
@@ -86,7 +94,9 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
     setTabData,
     setTimeSignature,
     setTitle,
+    setOriginalTabData,
     setTuning,
+    setSectionProgression,
   ]);
 
   return (
@@ -94,7 +104,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
       <div className="baseVertFlex lightGlassmorphic relative mb-24 mt-24 w-11/12 gap-4 rounded-md xl:w-8/12">
         <TabMetadata />
 
-        <Separator className="h-[1px] w-full bg-pink-50" />
+        <Separator className="h-[1px] w-full bg-pink-100" />
 
         <div className="baseVertFlex gap-2 md:flex-row-reverse">
           <div className="hidden md:block">
