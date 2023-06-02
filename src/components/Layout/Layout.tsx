@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Bubbles from "../Bubbles";
 import Header from "../Header/Header";
+import { AnimatePresence } from "framer-motion";
 
 interface Layout {
   children: ReactNode;
@@ -19,8 +20,7 @@ function Layout({ children }: Layout) {
           interactable */}
       <Bubbles />
       <Header />
-      {/* add the marginTop here or on children separately? */}
-      {children}
+      <AnimatePresence mode="wait">{children}</AnimatePresence>
     </div>
   );
 }
