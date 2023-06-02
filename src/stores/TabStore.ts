@@ -4,10 +4,9 @@ import type { Tab } from "@prisma/client";
 import type { ITabSection } from "~/components/Tab/Tab";
 
 export interface SectionProgression {
-  id: string;
+  id: string; // used to identify the section for the sorting context
   title: string;
   repetitions: number;
-  index: number;
 }
 
 interface TabState {

@@ -60,12 +60,6 @@ const sectionVariants = {
   },
 };
 
-function reassignIndicies(array: SectionProgression[]) {
-  return array.map((item, index) => {
-    return { ...item, index };
-  });
-}
-
 function SectionProgressionModal() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
@@ -141,8 +135,6 @@ function SectionProgressionModal() {
         endIndex
       );
 
-      newSectionProgression = reassignIndicies(newSectionProgression);
-
       setSectionProgression(newSectionProgression);
     }
   }
@@ -153,7 +145,6 @@ function SectionProgressionModal() {
       id: uuid(),
       title: "",
       repetitions: 1,
-      index: newSectionProgression.length,
     });
     setSectionProgression(newSectionProgression);
 
@@ -241,11 +232,11 @@ function SectionProgressionModal() {
                 {sectionProgression.length > 0 ? (
                   <AnimatePresence mode="wait">
                     <>
-                      {sectionProgression.map((section) => (
+                      {sectionProgression.map((section, index) => (
                         <Section
                           key={section.id}
                           id={section.id}
-                          index={section.index}
+                          index={index}
                           title={section.title}
                           repetitions={section.repetitions}
                           titles={sectionTitles}
@@ -289,9 +280,9 @@ const initialStyles = {
 interface Section {
   id: string;
   titles: string[];
-  index: number;
   title: string;
   repetitions: number;
+  index: number;
 }
 
 function Section({ id, title, repetitions, index, titles }: Section) {
@@ -362,9 +353,8 @@ function Section({ id, title, repetitions, index, titles }: Section) {
   }
 
   function deleteSection() {
-    let newSectionProgression = [...sectionProgression];
+    const newSectionProgression = [...sectionProgression];
     newSectionProgression.splice(index, 1);
-    newSectionProgression = reassignIndicies(newSectionProgression);
     setSectionProgression(newSectionProgression);
   }
 

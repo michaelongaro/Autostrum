@@ -33,7 +33,7 @@ function SectionProgression() {
             : "500px"
           : "300px",
       }}
-      className="lightGlassmorphic baseVertFlex mb-4 mt-4
+      className="lightestGlassmorphic baseVertFlex mb-4 mt-4
         max-w-[75%] gap-4 rounded-md p-4 md:m-0 md:!items-start"
     >
       <p className="text-lg font-semibold text-pink-50">
@@ -44,12 +44,12 @@ function SectionProgression() {
 
       {sectionProgression.length > 0 && (
         <div className="baseVertFlex !items-start gap-2 md:flex-row">
-          {sectionProgression.map((section) => (
+          {sectionProgression.map((section, index) => (
             <div key={section.id} className="baseFlex gap-2">
               <p className="font-semibold">{section.title}</p>
               <p>x{section.repetitions}</p>
 
-              {section.index !== sectionProgression.length - 1 && (
+              {index !== sectionProgression.length - 1 && (
                 <BsArrowRightShort className="h-6 w-8 text-pink-50" />
               )}
             </div>
