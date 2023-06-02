@@ -1,18 +1,20 @@
 import { useState, useMemo, type ChangeEvent } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import { Select } from "../ui/select";
-import { SelectTrigger } from "../ui/select";
-import { SelectValue } from "../ui/select";
-import { SelectContent } from "../ui/select";
-import { SelectGroup } from "../ui/select";
-import { SelectLabel } from "../ui/select";
-import { SelectItem } from "../ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectGroup,
+  SelectLabel,
+  SelectItem,
+} from "../ui/select";
 import { Separator } from "../ui/separator";
 import { CommandCombobox } from "../ui/CommandCombobox";
 import { Textarea } from "../ui/textarea";
@@ -23,10 +25,13 @@ import { AiOutlineHeart } from "react-icons/ai";
 import { parse, toString } from "~/utils/tunings";
 
 import classes from "./TabMetadata.module.css";
+import Image from "next/image";
+import Link from "next/link";
 
 function TabMetadata() {
   const { userId, isLoaded } = useAuth();
-  const { asPath } = useRouter();
+  const { push, asPath } = useRouter();
+  const ctx = api.useContext();
 
   const [showPulsingError, setShowPulsingError] = useState(false);
 
@@ -41,6 +46,30 @@ function TabMetadata() {
     }, {});
   }, [genreArray.data]);
 
+  const { mutate, isLoading: isPosting } = api.tab.createOrUpdate.useMutation({
+    onSuccess: async (tab) => {
+      if (tab) {
+        if (asPath.includes("create")) {
+          await push(`/tab/${tab.id}`);
+        }
+
+        setOriginalTabData(tab);
+        void ctx.tab.getTabById.invalidate();
+      }
+
+      //  setInput("");
+      //  void ctx.posts.getAll.invalidate();
+    },
+    onError: (e) => {
+      //  const errorMessage = e.data?.zodError?.fieldErrors.content;
+      //  if (errorMessage && errorMessage[0]) {
+      //    toast.error(errorMessage[0]);
+      //  } else {
+      //    toast.error("Failed to post! Please try again later.");
+      //  }
+    },
+  });
+
   const {
     originalTabData,
     id,
@@ -54,6 +83,7 @@ function TabMetadata() {
     setGenreId,
     tuning,
     tabData,
+    sectionProgression,
     bpm,
     setBpm,
     timeSignature,
@@ -62,6 +92,7 @@ function TabMetadata() {
     setCapo,
     editing,
     setEditing,
+    setOriginalTabData,
   } = useTabStore(
     (state) => ({
       originalTabData: state.originalTabData,
@@ -78,15 +109,19 @@ function TabMetadata() {
       bpm: state.bpm,
       setBpm: state.setBpm,
       tabData: state.tabData,
+      sectionProgression: state.sectionProgression,
       timeSignature: state.timeSignature,
       setTimeSignature: state.setTimeSignature,
       capo: state.capo,
       setCapo: state.setCapo,
       editing: state.editing,
       setEditing: state.setEditing,
+      setOriginalTabData: state.setOriginalTabData,
     }),
     shallow
   );
+
+  const user = api.user.getUserById.useQuery(createdById ?? "");
 
   function handleGenreChange(stringifiedId: string) {
     const id = parseInt(stringifiedId);
@@ -165,10 +200,26 @@ function TabMetadata() {
     }
 
     // update in prisma
+    if (userId) {
+      mutate({
+        id,
+        createdById: userId,
+        title,
+        description,
+        genreId,
+        tabData,
+        sectionProgression,
+        tuning,
+        bpm,
+        timeSignature,
+        capo,
+        type: asPath.includes("create") ? "create" : "update",
+      });
+    }
   }
 
   function isEqualToOriginalTabState() {
-    if (!originalTabData) return false;
+    if (!originalTabData) return false; // need to make sure this is always populated when editing..
 
     // could have opted to use Omit<> as well..
     const { createdAt, ...sanitizedOriginalTabData } = originalTabData;
@@ -181,6 +232,7 @@ function TabMetadata() {
       tabData,
       tuning,
       bpm,
+      sectionProgression,
       timeSignature,
       capo,
       createdById,
@@ -415,17 +467,14 @@ function TabMetadata() {
           </div>
         </>
       ) : (
-        <div
-          style={{
-            minHeight: description ? "300px" : "150px",
-          }}
-          className="w-full"
-        >
+        <div className="min-h-[100px] w-full">
           {userId && createdById === userId && (
             <Button
-              className="absolute right-2 top-2 md:right-4 md:top-4"
+              className="absolute right-2 top-2 z-10 md:right-4 md:top-4"
               onClick={() => {
-                setEditing(true);
+                if (asPath.includes("edit")) setEditing(true);
+                else void push(`/tab/${id}/edit`);
+                // maybe need loading spinner? idk why it feels so slow tbh..
               }}
             >
               {asPath.includes("edit") || asPath.includes("create")
@@ -466,13 +515,24 @@ function TabMetadata() {
             />
 
             <div className={`${classes.usernameAndDate ?? ""} baseFlex gap-2`}>
-              <div className="baseFlex gap-2">
-                <div className="h-8 w-8 rounded-full bg-pink-800"></div>
-                {/* {username ?? "test"} */}
-                <span className="text-lg underline underline-offset-2">
-                  Leyendo
-                </span>
-              </div>
+              <Button variant={"ghost"} className="px-3 py-0">
+                <Link href={`/user/${createdById}`} className="baseFlex gap-2">
+                  <Image
+                    src={user.data?.profileImageUrl ?? ""}
+                    alt={`${
+                      user.data?.username ?? "Anonymous"
+                    }'s profile image`}
+                    width={36}
+                    height={36}
+                    className="h-9 w-9 rounded-full bg-pink-800"
+                  ></Image>
+                  {/* {username ?? "test"} need to fetch username + profile pic from clerk */}
+                  <span className="text-lg">
+                    {user.data?.username ?? "Anonymous"}
+                    {/* wrong above ^ need to fetch (prob thru api route) the data from clerk's backend */}
+                  </span>
+                </Link>
+              </Button>
               <Separator className="h-[1px] w-4" />
               {`Updated on ${createdAt ? formatDate(createdAt) : ""}`}
             </div>
