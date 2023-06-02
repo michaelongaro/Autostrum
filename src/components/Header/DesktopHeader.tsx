@@ -18,13 +18,14 @@ function DesktopHeader() {
 
   return (
     <div className={classes.desktopHeader}>
-      <div
+      <Link
+        href={"/"}
         className={`${
           classes.logo ?? ""
         } rounded-md bg-pink-800 px-12 py-2 text-2xl`}
       >
         Tabsly
-      </div>
+      </Link>
 
       <Button variant={"secondary"} size={"lg"} className={classes.explore}>
         <Link
