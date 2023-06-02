@@ -204,7 +204,6 @@ function TabNote({
     <>
       {editing ? (
         <Input
-          id="note"
           style={{
             height: `${!inlineEffect ? "2.35rem" : "1.35rem"}`,
             width: `${
