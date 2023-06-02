@@ -10,6 +10,10 @@
   @apply flex flex-col items-center justify-center flex-wrap;
 }
 
+.lightestGlassmorphic {
+  @apply bg-pink-200 bg-opacity-10 backdrop-blur-sm backdrop-filter;
+}
+
 .lightGlassmorphic {
   @apply bg-pink-200 bg-opacity-20 backdrop-blur-sm backdrop-filter;
 }
