@@ -2,6 +2,7 @@ import { createTRPCRouter } from "~/server/api/trpc";
 import { genreRouter } from "~/server/api/routers/genre";
 import { tabRouter } from "./routers/tab";
 import { userRouter } from "./routers/user";
+import { likeRouter } from "./routers/like";
 
 /**
  * This is the primary router for your server.
@@ -11,6 +12,7 @@ import { userRouter } from "./routers/user";
 export const appRouter = createTRPCRouter({
   genre: genreRouter,
   tab: tabRouter,
+  like: likeRouter,
   user: userRouter,
 });
 
