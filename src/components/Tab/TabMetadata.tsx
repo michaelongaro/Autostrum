@@ -21,7 +21,7 @@ import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import isEqual from "lodash.isequal";
 import { type Genre } from "@prisma/client";
-import { AiOutlineHeart } from "react-icons/ai";
+import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { parse, toString } from "~/utils/tunings";
 
 import classes from "./TabMetadata.module.css";
@@ -120,6 +120,23 @@ function TabMetadata() {
     }),
     shallow
   );
+
+  const { data: likeId } = api.like.getLikeId.useQuery({
+    tabId: id,
+    userId: userId ?? "",
+  });
+
+  const { mutate: toggleLike, isLoading: isLiking } =
+    api.like.toggleLike.useMutation({
+      onSuccess: () => {
+        // this is either not optimistic, or something is wrong because I really don't feel
+        // like it should take the .5s to update.
+        void ctx.like.getLikeId.invalidate();
+      },
+      onError: (e) => {
+        console.error(e);
+      },
+    });
 
   const user = api.user.getUserById.useQuery(createdById ?? "");
 
@@ -500,9 +517,19 @@ function TabMetadata() {
                 <Button
                   variant={"ghost"}
                   className="p-2"
-                  onClick={() => handleLike()}
+                  onClick={() =>
+                    toggleLike({
+                      likeId: likeId ?? null,
+                      tabId: id,
+                      userId: userId ?? "",
+                    })
+                  }
                 >
-                  <AiOutlineHeart className="h-6 w-6" />
+                  {likeId ? (
+                    <AiFillHeart className="h-6 w-6 text-pink-800" />
+                  ) : (
+                    <AiOutlineHeart className="h-6 w-6" />
+                  )}
                 </Button>
               </div>
             </div>
@@ -526,10 +553,8 @@ function TabMetadata() {
                     height={36}
                     className="h-9 w-9 rounded-full bg-pink-800"
                   ></Image>
-                  {/* {username ?? "test"} need to fetch username + profile pic from clerk */}
                   <span className="text-lg">
                     {user.data?.username ?? "Anonymous"}
-                    {/* wrong above ^ need to fetch (prob thru api route) the data from clerk's backend */}
                   </span>
                 </Link>
               </Button>
