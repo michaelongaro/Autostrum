@@ -32,9 +32,9 @@ model Tab {
 
 // Junction table for likes
 model Likes {
-    id     Int @id @default(autoincrement())
-    userId Int
-    tab    Tab @relation(fields: [tabId], references: [id])
+    id     Int    @id @default(autoincrement())
+    userId String
+    tab    Tab    @relation(fields: [tabId], references: [id])
     tabId  Int
 
     @@index([userId]) // not sure if we need these indicies anymore, or if they are beneficial to us since we removed the User model
