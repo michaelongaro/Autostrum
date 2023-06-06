@@ -68,7 +68,10 @@ function DesktopHeader() {
           className={`${classes.authentication ?? ""} baseFlex gap-2 lg:gap-4`}
         >
           <Button variant={"ghost"}>
-            <Link href={`/profile`} className="baseFlex gap-4 text-lg">
+            <Link
+              href={`/user/${user?.username ?? ""}/preferences`}
+              className="baseFlex gap-4 text-lg"
+            >
               {user?.username}
               {/* will need to be based on env url */}
               <UserButton afterSignOutUrl="http://localhost:3000" />
