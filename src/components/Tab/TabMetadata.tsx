@@ -22,11 +22,14 @@ import { Button } from "../ui/button";
 import isEqual from "lodash.isequal";
 import { type Genre } from "@prisma/client";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
+import { BsArrowRightShort } from "react-icons/bs";
 import { parse, toString } from "~/utils/tunings";
+import formatDate from "~/utils/formatDate";
 import Image from "next/image";
 import Link from "next/link";
 
 import classes from "./TabMetadata.module.css";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 function TabMetadata() {
   const { userId, isLoaded } = useAuth();
@@ -34,6 +37,8 @@ function TabMetadata() {
   const ctx = api.useContext();
 
   const [showPulsingError, setShowPulsingError] = useState(false);
+
+  const overMediumViewportThreshold = useViewportWidthBreakpoint(768);
 
   const genreArray = api.genre.getAll.useQuery();
 
@@ -292,18 +297,6 @@ function TabMetadata() {
     return `${num}th`;
   }
 
-  function formatDate(date: Date) {
-    const d = new Date(date);
-    let month = ` ${d.getMonth() + 1}`;
-    let day = `  ${d.getDate()}`;
-    const year = d.getFullYear();
-
-    if (month.length < 2) month = "0" + month;
-    if (day.length < 2) day = "0" + day;
-
-    return [month, day, year].join(" - ");
-  }
-
   return (
     <>
       {editing ? (
@@ -312,7 +305,11 @@ function TabMetadata() {
             <div className="baseFlex absolute left-2 top-2 lg:left-4 lg:top-4">
               {!asPath.includes("create") && (
                 <Button onClick={() => void push(`/tab/${id}`)}>
-                  Return to tab
+                  {overMediumViewportThreshold ? (
+                    "Return to tab"
+                  ) : (
+                    <BsArrowRightShort className="h-6 w-8 rotate-180 text-pink-50" />
+                  )}
                 </Button>
               )}
             </div>
