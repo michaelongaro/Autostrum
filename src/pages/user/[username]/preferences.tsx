@@ -6,15 +6,9 @@ import { api } from "~/utils/api";
 
 import { UserProfile } from "@clerk/nextjs";
 import { Separator } from "~/components/ui/separator";
+import Link from "next/link";
+import formatDate from "~/utils/formatDate";
 
-// sticking with clerk prebuilt as fundamental ui
-
-// should be split up baseVertFlex with:
-// collapsible "Primary info" - clerk <UserProfile /> component
-// collapsible "Miscellaneous" - status input + account created date on left and pinned tab on right
-//      (could be really simple with just a button to add one (brings up modal) if nothing is pinned, otherwise shows standard card)
-//      (maybe do similar approach to stash for status input where it is just div w/text and on right it's edit button, when clicked it shows input + checkmark/cancel button) on side?)
-// 1px separator horizontal
 // centered danger button for deleting account (onClick calls trpc/api route to delete account and bring you back to homepage)
 //      (we are opting to make the user anonymous instead of deleting their tabs/comments)
 //                (to do this, I think the best way would be just to automatically default back to default profile pic + name "Anonymous" and not allow clicking on their name/profile since
@@ -24,14 +18,21 @@ import { Separator } from "~/components/ui/separator";
 // not the sticky navigation
 // ^^^^^^^^
 
-//
-
 function Preferences() {
   const router = useRouter();
   const { push, asPath } = useRouter();
 
-  const [status, setStatus] = useState("");
-  const [editingStatus, setEditingStatus] = useState(false);
+  // fair to have these here rather than store because (so far) we don't have to navigate around
+  // "relative" classes on any parent elems in this component
+  const [showPinnedTabModal, setShowPinnedTabModal] = useState(false);
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+
+  // const { pinne } = useTabStore(
+  //   (state) => ({
+  //     originalTabData: state.originalTabData,
+  //   }),
+  //   shallow
+  // );
 
   const usernameFromUrl = useMemo(() => {
     if (typeof router.query.username === "string") {
@@ -44,6 +45,49 @@ function Preferences() {
     username: usernameFromUrl ?? "",
   });
 
+  const { mutate: deleteAccount, isLoading: isDeleting } =
+    api.user.deleteUser.useMutation({
+      onSuccess: async () => {
+        await push(`/`);
+      },
+      onError: (e) => {
+        //  const errorMessage = e.data?.zodError?.fieldErrors.content;
+        //  if (errorMessage && errorMessage[0]) {
+        //    toast.error(errorMessage[0]);
+        //  } else {
+        //    toast.error("Failed to post! Please try again later.");
+        //  }
+      },
+    });
+
+  // const { mutate: update, isLoading: isLiking } =
+  //   api.like.toggleLike.useMutation({
+  //     onMutate: async () => {
+  //       // optimistic update
+  //       await ctx.like.getLikeId.cancel();
+
+  //       ctx.like.getLikeId.setData(
+  //         {
+  //           tabId: id,
+  //           userId: userId ?? "",
+  //         },
+  //         (prev) => {
+  //           if (typeof prev === "number") return null;
+  //           // most likely can't get away with random number like this
+  //           // but I'm not sure how to set it with "proper" new id when it hasn't
+  //           // even been created in db yet...
+  //           return 100;
+  //         }
+  //       );
+  //     },
+  //     onError: (e) => {
+  //       console.error(e);
+  //     },
+  //     onSettled: () => {
+  //       void ctx.like.getLikeId.invalidate();
+  //     },
+  //   });
+
   return (
     <motion.div
       key={"preferences"}
@@ -52,7 +96,7 @@ function Preferences() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
       // remove z-50 if possible, I think <Bubbles /> is messing it up
-      className="baseVertFlex z-50 w-full"
+      className="baseVertFlex z-50 w-full !justify-start"
     >
       <div className="baseVertFlex gap-2 md:gap-4">
         <div className="baseFlex gap-2 md:gap-4">
@@ -78,77 +122,57 @@ function Preferences() {
         </div>
 
         {/* start of actual preferences component */}
-        <div className="baseVertFlex lightGlassmorphic my-4 w-full gap-4 p-4 transition-all md:my-8 md:p-8">
+        <div className="baseVertFlex lightGlassmorphic my-4 w-full gap-12 rounded-2xl px-1 py-4 transition-all md:my-8 md:p-8 md:px-4">
           <UserProfile />
 
-          <Separator />
-
-          <div className="baseVertFlex gap-2 md:flex-row md:gap-4">
-            <div className="baseVertFlex !items-start">
-              {editingStatus ? (
-                <div className="baseVertFlex gap-2 md:gap-4">
-                  <input
-                    className="w-full"
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                  />
-
-                  {/* icon/word for save */}
+          <div className="baseVertFlex w-full gap-4 md:flex-row">
+            <div className="baseVertFlex w-full !items-start gap-2 md:w-1/3 md:gap-4">
+              <div className="font-semibold">Pinned tab</div>
+              <div className="baseVertFlex lightestGlassmorphic min-h-[128px] w-full gap-2 rounded-md md:w-4/5 md:gap-4">
+                {/* if pinned tab, show card with tab info */}
+                {user.data?.publicMetadata.pinnedTab ? (
+                  // pinned tab card here
+                  <div></div>
+                ) : (
                   <Button
                     onClick={() => {
-                      setEditingStatus(false);
-                      // clerk api call to update status
+                      // open pinned tab modal
+                      setShowPinnedTabModal(true);
+                      // refer to SectionProgressionModal for structure of modal jsx
                     }}
                   >
-                    Save
+                    Add tab
                   </Button>
-
-                  {/* icon/word for cancel */}
-                  <Button
-                    onClick={() => {
-                      setEditingStatus(false);
-                      setStatus(""); // should actually be previous value (from clerk public metadata)
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              ) : (
-                <div className="baseVertFlex gap-2 md:gap-4">
-                  <div className="baseVertFlex !items-start gap-2">
-                    <div className="font-semibold">Status</div>
-                    <div>
-                      {/* status wrapped in quotation marks and maybe italicized(?) here */}
-                    </div>
-                  </div>
-
-                  <Button onClick={() => setEditingStatus(true)}>Edit</Button>
-                </div>
-              )}
-
-              {/* fill in later */}
-              <div>{`Joined on `}</div>
+                )}
+              </div>
             </div>
 
-            <Separator className="h-[1px] w-full md:h-20 md:w-[1px]" />
+            <Separator className="h-[1px] w-full md:h-48 md:w-[1px]" />
 
-            <div className="baseVertFlex gap-2 md:gap-4">
-              <div className="font-semibold">Pinned tab</div>
-              <div className="baseVertFlex gap-2 md:gap-4">
-                {/* if pinned tab, show card with tab info */}
-                {/* if no pinned tab, show button to add one */}
-              </div>
+            <div className="baseVertFlex w-full gap-4 md:w-1/3">
+              <Button>
+                <Link href={`/user/${user.data?.username ?? ""}`}>
+                  View profile
+                </Link>
+              </Button>
+              <Button
+                variant={"destructive"}
+                onClick={() => {
+                  // confirmation modal into trpc mutation to delete account
+                  setShowDeleteAccountModal(true);
+                  // refer to SectionProgressionModal for structure of modal jsx
+                }}
+              >
+                Delete account
+              </Button>
+              {user.data && (
+                <div className="text-pink-200">{`Joined on ${formatDate(
+                  user.data.createdAt
+                )}`}</div>
+              )}
             </div>
           </div>
         </div>
-
-        {/* play around with this idea: only having separator at bottom below clerk + misc.
-                and then below separator have two buttons: "View profile" and "Delete account"
-                
-
-                myabe just drop the separator and make sure everything else above two buttons inside
-                of glassmorphic card
-                seems like it would work nicely in my head but not sure*/}
       </div>
     </motion.div>
   );
