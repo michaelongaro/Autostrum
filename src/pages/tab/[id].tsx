@@ -4,15 +4,13 @@ import { api } from "~/utils/api";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import Tab from "~/components/Tab/Tab";
+import { motion } from "framer-motion";
 
 // not sure if this is correct file routing for slug
 
 // not sure if this is the best name for this component
 function IndividualTabView() {
   const router = useRouter();
-
-  console.log(router.pathname, router.query);
-  console.log("here");
 
   const { editing, setEditing } = useTabStore(
     (state) => ({
@@ -26,7 +24,7 @@ function IndividualTabView() {
     setEditing(false); // zustand setters should be referential so it won't ever be stale
   }, []);
 
-  const urlId = useMemo(() => {
+  const tabIdFromUrl = useMemo(() => {
     if (typeof router.query.id === "string") {
       return parseInt(router.query.id);
     }
@@ -35,10 +33,21 @@ function IndividualTabView() {
 
   // prob don't need refetch on refocus
   const fetchedTab = api.tab.getTabById.useQuery({
-    id: urlId,
+    id: tabIdFromUrl,
   });
 
-  return <Tab tab={fetchedTab.data} />;
+  return (
+    <motion.div
+      key={"viewingTab"}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="baseVertFlex w-full"
+    >
+      <Tab tab={fetchedTab.data} />
+    </motion.div>
+  );
 }
 
 export default IndividualTabView;
