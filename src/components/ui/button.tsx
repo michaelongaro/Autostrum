@@ -2,6 +2,7 @@ import * as React from "react";
 import { type VariantProps, cva } from "class-variance-authority";
 
 import { cn } from "~/lib/utils";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background active:brightness-75 active:ring-0 active:ring-offset-0 active:ring-offset-background~",
@@ -37,9 +38,17 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, ...props }, ref) => {
+    const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
+
     return (
       <button
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(
+          buttonVariants({
+            variant,
+            size: size ?? (aboveMediumViewportWidth ? "default" : "sm"),
+            className,
+          })
+        )}
         ref={ref}
         {...props}
       />
