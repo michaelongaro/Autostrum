@@ -47,6 +47,7 @@ function EffectGlossary({ forModal = false }: EffectGlossary) {
       onOpenChange={(open) => {
         setShowingEffectGlossary(open ? true : false);
       }}
+      modal={false}
       open={forModal ? true : showingEffectGlossary}
     >
       <DropdownMenuTrigger

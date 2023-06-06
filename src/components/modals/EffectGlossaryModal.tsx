@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { motion } from "framer-motion";
@@ -17,36 +17,12 @@ const backdropVariants = {
 function EffectGlossaryModal() {
   const innerModalRef = useRef<HTMLDivElement>(null);
 
-  const { showEffectGlossaryModal, setShowEffectGlossaryModal } = useTabStore(
+  const { setShowEffectGlossaryModal } = useTabStore(
     (state) => ({
-      showEffectGlossaryModal: state.showEffectGlossaryModal,
       setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
     }),
     shallow
   );
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
-      if (
-        showEffectGlossaryModal &&
-        innerModalRef.current &&
-        !innerModalRef.current.contains(event.target as Node)
-      ) {
-        setShowEffectGlossaryModal(false);
-      }
-    };
-
-    // not sure exactly why timeout is needed. This was being run seemingly before this component was
-    // mounted.
-    setTimeout(
-      () => document.addEventListener("click", handleClickOutside),
-      250
-    );
-
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, [showEffectGlossaryModal, setShowEffectGlossaryModal]);
 
   return (
     <motion.div
