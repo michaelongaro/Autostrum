@@ -12,7 +12,7 @@ import SectionProgressionModal from "../modals/SectionProgressionModal";
 import EffectGlossaryModal from "../modals/EffectGlossaryModal";
 import { Button } from "../ui/button";
 import { FaItunesNote } from "react-icons/fa";
-import { Separator } from "@radix-ui/react-select";
+import { Separator } from "../ui/separator";
 import EffectGlossary from "../ui/EffectGlossary";
 
 // not sure of best way to avoid having the same name for interface and component
@@ -101,10 +101,10 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
 
   return (
     <>
-      <div className="baseVertFlex lightGlassmorphic relative mb-24 mt-24 w-11/12 gap-4 rounded-md xl:w-8/12">
+      <div className="baseVertFlex lightGlassmorphic relative my-24 w-11/12 gap-4 rounded-md xl:w-8/12">
         <TabMetadata />
 
-        <Separator className="h-[1px] w-full bg-pink-100" />
+        <Separator className="w-[96%]" />
 
         <div className="baseVertFlex gap-2 md:flex-row-reverse">
           <div className="hidden md:block">
@@ -128,6 +128,8 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
           ))}
         </LayoutGroup>
       </div>
+
+      {/* scroll to top button above this? */}
 
       <Button
         className="fixed bottom-4 right-4 z-20 block h-12 w-12 rounded-full p-4 md:hidden"

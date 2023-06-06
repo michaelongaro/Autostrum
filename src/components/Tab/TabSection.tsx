@@ -25,7 +25,7 @@ import {
 } from "@dnd-kit/sortable";
 import { restrictToParentElement } from "@dnd-kit/modifiers";
 import { parse, toString } from "~/utils/tunings";
-import { Separator } from "@radix-ui/react-select";
+import { Separator } from "../ui/separator";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 export interface LastModifiedPalmMuteNodeLocation {
@@ -249,20 +249,20 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
   }
 
   return (
-    // grid for dark backdrop?
     <motion.div
       key={`tabSection${sectionIndex}`}
       // layoutId={`tabSection${sectionIndex}`}
       layout
       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
       style={{
+        gap: editing ? "1rem" : "0",
         padding: aboveMediumViewportWidth
           ? "2rem"
           : editing
           ? "1rem 0.5rem 1rem 0.5rem"
           : "1rem",
       }}
-      className="baseVertFlex relative h-full w-full !justify-start gap-4"
+      className="baseVertFlex relative h-full w-full !justify-start"
     >
       <div className="baseFlex w-full !items-start !justify-between">
         <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
@@ -490,7 +490,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
       {editing && <Button onClick={addNewColumns}>Extend section</Button>}
 
       {(!editing && sectionIndex !== tabData.length - 1) ||
-        (editing && <Separator className="h-[1px] w-full bg-pink-50" />)}
+        (editing && <Separator />)}
 
       {editing && sectionIndex === tabData.length - 1 && (
         <Button className="mt-12" onClick={addNewSection}>
