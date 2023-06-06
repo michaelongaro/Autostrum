@@ -24,4 +24,27 @@ export const userRouter = createTRPCRouter({
         return user;
       }
     }),
+  // should be private
+  modifyUserMetadata: publicProcedure
+    // maybe want to expand a bit to include like "showTutorial" boolean for /create
+    // or other things like that
+    .input(
+      z.object({
+        userId: z.string(),
+        pinnedTabId: z.string().nullable(),
+      })
+    )
+    .mutation(({ input }) => {
+      void clerkClient.users.updateUserMetadata(input.userId, {
+        publicMetadata: {
+          pinnedTabId: input.pinnedTabId,
+        },
+      });
+    }),
+  // should be private
+  deleteUser: publicProcedure
+    .input(z.string())
+    .mutation(({ input: userId }) => {
+      void clerkClient.users.deleteUser(userId);
+    }),
 });
