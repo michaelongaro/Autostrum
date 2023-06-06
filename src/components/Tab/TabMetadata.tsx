@@ -23,10 +23,10 @@ import isEqual from "lodash.isequal";
 import { type Genre } from "@prisma/client";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { parse, toString } from "~/utils/tunings";
-
-import classes from "./TabMetadata.module.css";
 import Image from "next/image";
 import Link from "next/link";
+
+import classes from "./TabMetadata.module.css";
 
 function TabMetadata() {
   const { userId, isLoaded } = useAuth();
@@ -46,6 +46,8 @@ function TabMetadata() {
     }, {});
   }, [genreArray.data]);
 
+  // shouldn't need to be optimistic I don't think, try to keep that just for
+  // operations that *need* to be perceived as instant
   const { mutate, isLoading: isPosting } = api.tab.createOrUpdate.useMutation({
     onSuccess: async (tab) => {
       if (tab) {
@@ -54,11 +56,7 @@ function TabMetadata() {
         }
 
         setOriginalTabData(tab);
-        void ctx.tab.getTabById.invalidate();
       }
-
-      //  setInput("");
-      //  void ctx.posts.getAll.invalidate();
     },
     onError: (e) => {
       //  const errorMessage = e.data?.zodError?.fieldErrors.content;
@@ -67,6 +65,9 @@ function TabMetadata() {
       //  } else {
       //    toast.error("Failed to post! Please try again later.");
       //  }
+    },
+    onSettled: () => {
+      void ctx.tab.getTabById.invalidate();
     },
   });
 
@@ -128,17 +129,35 @@ function TabMetadata() {
 
   const { mutate: toggleLike, isLoading: isLiking } =
     api.like.toggleLike.useMutation({
-      onSuccess: () => {
-        // this is either not optimistic, or something is wrong because I really don't feel
-        // like it should take the .5s to update.
-        void ctx.like.getLikeId.invalidate();
+      onMutate: async () => {
+        // optimistic update
+        await ctx.like.getLikeId.cancel();
+
+        ctx.like.getLikeId.setData(
+          {
+            tabId: id,
+            userId: userId ?? "",
+          },
+          (prev) => {
+            if (typeof prev === "number") return null;
+            // most likely can't get away with random number like this
+            // but I'm not sure how to set it with "proper" new id when it hasn't
+            // even been created in db yet...
+            return 100;
+          }
+        );
       },
       onError: (e) => {
         console.error(e);
       },
+      onSettled: () => {
+        void ctx.like.getLikeId.invalidate();
+      },
     });
 
-  const user = api.user.getUserById.useQuery(createdById ?? "");
+  const user = api.user.getUserByIdOrUsername.useQuery({
+    id: createdById ?? "",
+  });
 
   function handleGenreChange(stringifiedId: string) {
     const id = parseInt(stringifiedId);
@@ -290,6 +309,14 @@ function TabMetadata() {
       {editing ? (
         <>
           <div className={classes.editingMetadataContainer}>
+            <div className="baseFlex absolute left-2 top-2 lg:left-4 lg:top-4">
+              {!asPath.includes("create") && (
+                <Button onClick={() => void push(`/tab/${id}`)}>
+                  Return to tab
+                </Button>
+              )}
+            </div>
+
             <div className="baseFlex absolute right-2 top-2 gap-2 lg:right-4 lg:top-4">
               {!asPath.includes("create") && (
                 <Button
@@ -536,29 +563,31 @@ function TabMetadata() {
 
             {/* prob are going to need an updatedAt field on model, and then display the updated one
             if it exists, otherwise createdAt */}
-            <Separator
-              orientation="vertical"
-              className="hidden h-8 w-[1px] bg-pink-50 sm:block"
-            />
+            <Separator orientation="vertical" className="hidden h-8 sm:block" />
 
+            {/* look into usefulness of splitting code into chunks based off isLoading + user.data state
+                because this constant ?. + ?? "" doesn't feel too great. */}
             <div className={`${classes.usernameAndDate ?? ""} baseFlex gap-2`}>
-              <Button variant={"ghost"} className="px-3 py-0">
-                <Link href={`/user/${createdById}`} className="baseFlex gap-2">
+              <Button variant={"ghost"} className="px-3 py-1">
+                <Link
+                  href={`/user/${user.data?.username ?? ""}`}
+                  className="baseFlex gap-2"
+                >
                   <Image
                     src={user.data?.profileImageUrl ?? ""}
                     alt={`${
                       user.data?.username ?? "Anonymous"
                     }'s profile image`}
-                    width={36}
-                    height={36}
-                    className="h-9 w-9 rounded-full bg-pink-800"
+                    width={32}
+                    height={32}
+                    className="h-8 w-8 rounded-full bg-pink-800"
                   ></Image>
                   <span className="text-lg">
                     {user.data?.username ?? "Anonymous"}
                   </span>
                 </Link>
               </Button>
-              <Separator className="h-[1px] w-4" />
+              <Separator className="w-4" />
               {`Updated on ${createdAt ? formatDate(createdAt) : ""}`}
             </div>
           </div>
@@ -576,7 +605,7 @@ function TabMetadata() {
             )}
 
             <div className="baseVertFlex w-full gap-4 md:flex-row md:items-start md:gap-8">
-              <div className="baseFlex w-full !items-start !justify-evenly md:w-auto md:flex-row md:gap-8">
+              <div className="baseFlex w-full !items-start !justify-evenly gap-4 md:w-auto md:flex-row md:gap-8">
                 <div
                   className={`${
                     classes.genre ?? ""
