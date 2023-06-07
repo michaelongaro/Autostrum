@@ -3,11 +3,11 @@ import Bubbles from "../Bubbles";
 import Header from "../Header/Header";
 import { AnimatePresence } from "framer-motion";
 
-interface Layout {
+interface GeneralLayout {
   children: ReactNode;
 }
 
-function Layout({ children }: Layout) {
+function GeneralLayout({ children }: GeneralLayout) {
   return (
     <div
       style={{
@@ -25,4 +25,4 @@ function Layout({ children }: Layout) {
   );
 }
 
-export default Layout;
+export default GeneralLayout;
