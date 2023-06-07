@@ -25,35 +25,32 @@
 @layer base {
   :root {
     --background: 327 73% 97%;
-    --foreground: 222.2 47.4% 11.2%;
+    --foreground: 336 84% 17%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 326 85% 90%;
-    /* 215.4 16.3% 46.9%; */
+    --muted: 333 71% 51%;
+    --muted-foreground: 327 73% 97%;
 
     --popover: 327 73% 97%;
     --popover-foreground: 336 84% 17%;
 
     --card: 327 73% 97%;
-    --card-foreground: 222.2 47.4% 11.2%;
+    --card-foreground: 336 84% 17%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
 
     --primary: 330 81% 60%;
-    /* 222.2 47.4% 11.2% */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 327 87% 82%;
-    /* 210 40% 96.1% */
     --secondary-foreground: 336 69% 30%;
-    /* 222.2 47.4% 11.2% */
 
-    --accent: 210 40% 96.1%;
+    --accent: 326 78% 95%;
+    /* kind of want this to be darker/higher contrast */
     --accent-foreground: 336 84% 17%;
 
     --destructive: 0 100% 50%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 327 73% 97%;
 
     --ring: 215 20.2% 65.1%;
 
