@@ -22,6 +22,10 @@
   @apply bg-pink-100 bg-opacity-30 backdrop-blur-lg backdrop-filter;
 }
 
+.mobileNavbarGlassmorphic {
+  @apply bg-pink-400 bg-opacity-95 backdrop-blur-xl backdrop-filter;
+}
+
 @layer base {
   :root {
     --background: 327 73% 97%;
