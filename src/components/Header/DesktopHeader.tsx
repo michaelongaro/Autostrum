@@ -58,7 +58,9 @@ function DesktopHeader() {
             </Button>
           </SignUpButton>
           <SignInButton mode="modal">
-            <Button variant={"secondary"}>Sign in</Button>
+            <Button variant={"secondary"} className="h-11">
+              Sign in
+            </Button>
           </SignInButton>
         </div>
       )}
