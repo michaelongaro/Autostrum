@@ -1,5 +1,3 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import Layout from "~/components/Layout/Layout";
 import tunings, { standard, parse } from "react-guitar-tunings";
 import { motion } from "framer-motion";
 // import useSound, { withSoundFont, withSamples } from "react-guitar-sound";

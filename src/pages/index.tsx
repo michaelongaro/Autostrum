@@ -1,7 +1,5 @@
 import { type NextPage } from "next";
-import { api } from "~/utils/api";
 import Hero from "~/components/HomePage/Hero";
-import Layout from "~/components/Layout/Layout";
 import { motion } from "framer-motion";
 
 const Home: NextPage = () => {
