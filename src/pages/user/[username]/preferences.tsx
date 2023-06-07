@@ -8,6 +8,8 @@ import { UserProfile } from "@clerk/nextjs";
 import { Separator } from "~/components/ui/separator";
 import Link from "next/link";
 import formatDate from "~/utils/formatDate";
+import TopProfileNavigationLayout from "~/components/Layouts/TopProfileNavigationLayout";
+import { TabsContent } from "~/components/ui/tabs";
 
 // centered danger button for deleting account (onClick calls trpc/api route to delete account and bring you back to homepage)
 //      (we are opting to make the user anonymous instead of deleting their tabs/comments)
@@ -96,86 +98,68 @@ function Preferences() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
       // remove z-50 if possible, I think <Bubbles /> is messing it up
-      className="baseVertFlex z-50 w-full !justify-start"
+      className="baseVertFlex z-50 w-full"
     >
-      <div className="baseVertFlex gap-2 md:gap-4">
-        <div className="baseFlex gap-2 md:gap-4">
-          <Button
-            onClick={() =>
-              void push(`/user/${user.data?.username ?? ""}/preferences`)
-            }
-          >
-            Preferences
-          </Button>
-          <Button
-            onClick={() => void push(`/user/${user.data?.username ?? ""}/tabs`)}
-          >
-            Tabs
-          </Button>
-          <Button
-            onClick={() =>
-              void push(`/user/${user.data?.username ?? ""}/likes`)
-            }
-          >
-            Likes
-          </Button>
-        </div>
+      <TabsContent value="preferences">
+        <div className="baseVertFlex gap-2 md:gap-4">
+          {/* start of actual preferences component */}
+          <div className="baseVertFlex lightGlassmorphic my-4 w-full gap-12 rounded-2xl px-1 py-4 transition-all md:my-8 md:p-8 md:px-4">
+            <UserProfile />
 
-        {/* start of actual preferences component */}
-        <div className="baseVertFlex lightGlassmorphic my-4 w-full gap-12 rounded-2xl px-1 py-4 transition-all md:my-8 md:p-8 md:px-4">
-          <UserProfile />
+            <div className="baseVertFlex w-full gap-4 md:flex-row">
+              <div className="baseVertFlex w-full !items-start gap-2 md:w-1/3 md:gap-4">
+                <div className="font-semibold">Pinned tab</div>
+                <div className="baseVertFlex lightestGlassmorphic min-h-[128px] w-full gap-2 rounded-md md:w-4/5 md:gap-4">
+                  {/* if pinned tab, show card with tab info */}
+                  {user.data?.publicMetadata.pinnedTab ? (
+                    // pinned tab card here
+                    <div></div>
+                  ) : (
+                    <Button
+                      onClick={() => {
+                        // open pinned tab modal
+                        setShowPinnedTabModal(true);
+                        // refer to SectionProgressionModal for structure of modal jsx
+                      }}
+                    >
+                      Add tab
+                    </Button>
+                  )}
+                </div>
+              </div>
 
-          <div className="baseVertFlex w-full gap-4 md:flex-row">
-            <div className="baseVertFlex w-full !items-start gap-2 md:w-1/3 md:gap-4">
-              <div className="font-semibold">Pinned tab</div>
-              <div className="baseVertFlex lightestGlassmorphic min-h-[128px] w-full gap-2 rounded-md md:w-4/5 md:gap-4">
-                {/* if pinned tab, show card with tab info */}
-                {user.data?.publicMetadata.pinnedTab ? (
-                  // pinned tab card here
-                  <div></div>
-                ) : (
-                  <Button
-                    onClick={() => {
-                      // open pinned tab modal
-                      setShowPinnedTabModal(true);
-                      // refer to SectionProgressionModal for structure of modal jsx
-                    }}
-                  >
-                    Add tab
-                  </Button>
+              <Separator className="h-[1px] w-full md:h-48 md:w-[1px]" />
+
+              <div className="baseVertFlex w-full gap-4 md:w-1/3">
+                <Button>
+                  <Link href={`/user/${user.data?.username ?? ""}`}>
+                    View profile
+                  </Link>
+                </Button>
+                <Button
+                  variant={"destructive"}
+                  onClick={() => {
+                    // confirmation modal into trpc mutation to delete account
+                    setShowDeleteAccountModal(true);
+                    // refer to SectionProgressionModal for structure of modal jsx
+                  }}
+                >
+                  Delete account
+                </Button>
+                {user.data && (
+                  <div className="text-pink-200">{`Joined on ${formatDate(
+                    user.data.createdAt
+                  )}`}</div>
                 )}
               </div>
             </div>
-
-            <Separator className="h-[1px] w-full md:h-48 md:w-[1px]" />
-
-            <div className="baseVertFlex w-full gap-4 md:w-1/3">
-              <Button>
-                <Link href={`/user/${user.data?.username ?? ""}`}>
-                  View profile
-                </Link>
-              </Button>
-              <Button
-                variant={"destructive"}
-                onClick={() => {
-                  // confirmation modal into trpc mutation to delete account
-                  setShowDeleteAccountModal(true);
-                  // refer to SectionProgressionModal for structure of modal jsx
-                }}
-              >
-                Delete account
-              </Button>
-              {user.data && (
-                <div className="text-pink-200">{`Joined on ${formatDate(
-                  user.data.createdAt
-                )}`}</div>
-              )}
-            </div>
           </div>
         </div>
-      </div>
+      </TabsContent>
     </motion.div>
   );
 }
+
+Preferences.PageLayout = TopProfileNavigationLayout;
 
 export default Preferences;
