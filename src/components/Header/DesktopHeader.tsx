@@ -11,10 +11,13 @@ import { IoTelescopeOutline } from "react-icons/io5";
 import { Button } from "../ui/button";
 
 import classes from "./DesktopHeader.module.css";
+import { useRouter } from "next/router";
 
 function DesktopHeader() {
   const { userId, isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
+
+  const { asPath } = useRouter();
 
   return (
     <div className={classes.desktopHeader}>
@@ -27,7 +30,15 @@ function DesktopHeader() {
         Tabsly
       </Link>
 
-      <Button variant={"secondary"} size={"lg"} className={classes.explore}>
+      <Button
+        variant={"navigation"}
+        size={"lg"}
+        style={{
+          backgroundColor: asPath.includes("/explore") ? "#831843" : undefined,
+          color: asPath.includes("/explore") ? "#fbcfe8" : undefined,
+        }}
+        className={classes.explore}
+      >
         <Link
           href={"/explore"}
           className="baseFlex gap-2 text-base lg:text-xl xl:gap-4"
@@ -37,7 +48,15 @@ function DesktopHeader() {
         </Link>
       </Button>
 
-      <Button variant={"secondary"} size={"lg"} className={classes.create}>
+      <Button
+        variant={"navigation"}
+        size={"lg"}
+        style={{
+          backgroundColor: asPath.includes("/create") ? "#831843" : undefined,
+          color: asPath.includes("/create") ? "#fbcfe8" : undefined,
+        }}
+        className={classes.create}
+      >
         <Link
           href={"/create"}
           className="baseFlex gap-2 text-base lg:text-xl xl:gap-4"
@@ -47,6 +66,7 @@ function DesktopHeader() {
         </Link>
       </Button>
 
+      {/* opting for double "&&" instead of ternary for better readability */}
       {!isSignedIn && (
         <div
           className={`${classes.authentication ?? ""} baseFlex gap-2 lg:gap-4`}
@@ -54,7 +74,7 @@ function DesktopHeader() {
           {/* how to maybe get colors to match theme + also have an option to specify username? */}
           <SignUpButton mode="modal">
             <Button size={"lg"} className="hidden lg:block">
-              Register
+              Sign up
             </Button>
           </SignUpButton>
           <SignInButton mode="modal">
