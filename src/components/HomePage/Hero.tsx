@@ -40,6 +40,4 @@ function Hero() {
   );
 }
 
-// className="rounded-md border-2 border-pink-200 px-4 py-2 text-white hover:bg-pink-500 active:bg-pink-800"
-
 export default Hero;
