@@ -4,6 +4,7 @@ import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { api } from "~/utils/api";
+import { motion } from "framer-motion";
 
 interface Layout {
   children: ReactNode;
@@ -33,9 +34,16 @@ function TopProfileNavigationLayout({ children }: Layout) {
   });
 
   return (
-    <div className="baseVertFlex w-full">
+    <motion.div
+      key={"topProfileNavigationLayout"}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="baseVertFlex w-full"
+    >
       <Tabs
-        defaultValue={finalQueryOfUrl} // optimize later to show correct even if reloading page
+        defaultValue={finalQueryOfUrl}
         onValueChange={(value) =>
           void push(`/user/${user.data?.username ?? ""}/${value}`)
         }
@@ -50,7 +58,7 @@ function TopProfileNavigationLayout({ children }: Layout) {
           <AnimatePresence mode="wait">{children}</AnimatePresence>
         </div>
       </Tabs>
-    </div>
+    </motion.div>
   );
 }
 
