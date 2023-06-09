@@ -1,6 +1,8 @@
+import { clerkClient } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import combineTabTitlesAndUsernames from "~/utils/combineTabTitlesAndUsernames";
 
 export const tabRouter = createTRPCRouter({
   getTabById: publicProcedure
@@ -11,6 +13,75 @@ export const tabRouter = createTRPCRouter({
           id: input.id,
         },
       });
+    }),
+
+  // almost definitely will have to be changed for infinite scroll implementation
+  getTabTitlesAndUsernamesBySearchQuery: publicProcedure
+    .input(z.string())
+    .query(async ({ input, ctx }) => {
+      if (input === "") return null;
+
+      const tabs = await ctx.prisma.tab.findMany({
+        where: {
+          title: {
+            contains: input,
+          },
+        },
+      });
+
+      // need to get all users since filtering by username only supports exact full
+      // matches, not partial matches.
+      const users = await clerkClient.users.getUserList();
+
+      if (tabs.length === 0 && users.length === 0) return null;
+
+      // then once you have titles + usernames, we get direct matches first (start of string)
+      // and put those in front of the other values (the ones that just match *somewhere* in the string)
+
+      // getting rid of duplicate tab titles
+      const uniqueTabTitles = [...new Set(tabs.map((tab) => tab.title))];
+
+      const directTabTitleMatches = uniqueTabTitles
+        .filter((tab) => tab.startsWith(input))
+        .sort((a, b) => a.length - b.length);
+
+      // create a new array with the direct matches first, then the rest of the matches
+      const sortedTabTitles = [
+        ...directTabTitleMatches,
+        ...uniqueTabTitles.filter((tab) => !tab.startsWith(input)),
+      ];
+
+      const usernames = users.map((user) => user.username!); // usernames are mandatory in our clerk config
+
+      const directUsernameMatches = usernames
+        .filter((username) => username.startsWith(input))
+        .sort((a, b) => a.length - b.length);
+
+      // create a new array with the direct matches first, then the rest of the matches
+      const sortedUsernames = [
+        ...directUsernameMatches,
+        ...usernames.filter(
+          (username) => !username.startsWith(input) && username.includes(input)
+        ),
+      ];
+
+      return combineTabTitlesAndUsernames(sortedTabTitles, sortedUsernames);
+    }),
+
+  getTabsBySearch: publicProcedure
+    .input(z.string())
+    .query(async ({ input, ctx }) => {
+      if (input === "") return null;
+
+      const tabs = await ctx.prisma.tab.findMany({
+        where: {
+          title: {
+            contains: input,
+          },
+        },
+      });
+
+      return tabs;
     }),
 
   // technically should be private, but don't have to worry about auth yet
