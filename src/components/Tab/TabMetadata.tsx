@@ -33,6 +33,14 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 function TabMetadata() {
   const { userId, isLoaded } = useAuth();
+  const { user: currentUser } = useUser();
+
+  // ^^^ with current plan just laying it out: we get:
+  // the fields we want (total likes/tabs) maybe also likedTabIds ?
+  // straightforward sorting + cache control
+
+  // for custom addToDatabaseAfterSigningUp route, just do onSettled -> push back onto "/"
+
   const { push, asPath } = useRouter();
   const ctx = api.useContext();
 
@@ -127,30 +135,29 @@ function TabMetadata() {
     shallow
   );
 
-  const { data: likeId } = api.like.getLikeId.useQuery({
-    tabId: id,
-    userId: userId ?? "",
-  });
+  // const { data: likeId } = api.like.getLikeId.useQuery({
+  //   tabId: id,
+  //   userId: userId ?? "",
+  // });
 
   const { mutate: toggleLike, isLoading: isLiking } =
-    api.like.toggleLike.useMutation({
+    api.tab.toggleTabLikeStatus.useMutation({
       onMutate: async () => {
         // optimistic update
-        await ctx.like.getLikeId.cancel();
-
-        ctx.like.getLikeId.setData(
-          {
-            tabId: id,
-            userId: userId ?? "",
-          },
-          (prev) => {
-            if (typeof prev === "number") return null;
-            // most likely can't get away with random number like this
-            // but I'm not sure how to set it with "proper" new id when it hasn't
-            // even been created in db yet...
-            return 100;
-          }
-        );
+        // await ctx.like.getLikeId.cancel();
+        // ctx.like.getLikeId.setData(
+        //   {
+        //     tabId: id,
+        //     userId: userId ?? "",
+        //   },
+        //   (prev) => {
+        //     if (typeof prev === "number") return null;
+        //     // most likely can't get away with random number like this
+        //     // but I'm not sure how to set it with "proper" new id when it hasn't
+        //     // even been created in db yet...
+        //     return 100;
+        //   }
+        // );
       },
       onError: (e) => {
         console.error(e);
@@ -541,15 +548,22 @@ function TabMetadata() {
                 <Button
                   variant={"ghost"}
                   className="p-2"
-                  onClick={() =>
+                  onClick={() => {
+                    console.log(userId);
+
                     toggleLike({
-                      likeId: likeId ?? null,
+                      likeTab:
+                        // not sure if this is correct logic below
+                        !currentUser?.publicMetadata?.likedTabIds?.includes(
+                          id
+                        ) ?? false,
+                      tabOwnerId: createdById,
                       tabId: id,
                       userId: userId ?? "",
-                    })
-                  }
+                    });
+                  }}
                 >
-                  {likeId ? (
+                  {currentUser?.publicMetadata?.likedTabIds?.includes(id) ? (
                     <AiFillHeart className="h-6 w-6 text-pink-800" />
                   ) : (
                     <AiOutlineHeart className="h-6 w-6" />

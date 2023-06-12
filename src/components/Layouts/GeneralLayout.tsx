@@ -14,7 +14,7 @@ function GeneralLayout({ children }: GeneralLayout) {
         background:
           "linear-gradient(315deg, #ff3721, #ff6196, #fba6ff) fixed center / cover",
       }}
-      className="baseVertFlex min-h-[100dvh]"
+      className="baseVertFlex relative min-h-[100dvh]"
     >
       {/* not sure why setting z-index 0 on Bubbles doesn't make everything else automatically
           interactable */}

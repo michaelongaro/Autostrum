@@ -27,6 +27,14 @@ export const tabRouter = createTRPCRouter({
             contains: input,
           },
         },
+        select: {
+          title: true,
+        },
+
+        orderBy: {
+          // this part below should be calculated above based on props and put into state to plug in below
+          title: "asc",
+        },
       });
 
       // need to get all users since filtering by username only supports exact full
@@ -66,6 +74,70 @@ export const tabRouter = createTRPCRouter({
       ];
 
       return combineTabTitlesAndUsernames(sortedTabTitles, sortedUsernames);
+    }),
+
+  toggleTabLikeStatus: publicProcedure
+    .input(
+      z.object({
+        tabId: z.number(),
+        tabOwnerId: z.string(),
+        userId: z.string(),
+        likeTab: z.boolean(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      await ctx.prisma.tab.update({
+        where: {
+          id: input.tabId,
+        },
+        data: {
+          numOfLikes: {
+            [input.likeTab ? "increment" : "decrement"]: 1,
+          },
+        },
+      });
+
+      // update tab owner total likes
+      const tabOwner = await clerkClient.users.getUser(input.tabOwnerId);
+
+      const tempTabOwnerPublicMetadata = {
+        ...tabOwner.publicMetadata,
+      };
+
+      tempTabOwnerPublicMetadata.totalLikes
+        ? (tempTabOwnerPublicMetadata.totalLikes += input.likeTab ? 1 : -1)
+        : (tempTabOwnerPublicMetadata.totalLikes = input.likeTab ? 1 : 0);
+
+      await clerkClient.users.updateUser(input.tabOwnerId, {
+        publicMetadata: {
+          ...tempTabOwnerPublicMetadata,
+        },
+      });
+
+      // update user's list of liked tabIds
+      const user = await clerkClient.users.getUser(input.tabOwnerId);
+
+      const tempUserPublicMetadata = {
+        ...user.publicMetadata,
+      };
+
+      if (input.likeTab) {
+        tempUserPublicMetadata.likedTabIds
+          ? tempUserPublicMetadata.likedTabIds.push(input.tabId)
+          : (tempUserPublicMetadata.likedTabIds = [input.tabId]);
+      } else {
+        tempUserPublicMetadata.likedTabIds = tempUserPublicMetadata.likedTabIds
+          ? tempUserPublicMetadata.likedTabIds.filter(
+              (id: number) => id !== input.tabId
+            )
+          : [];
+      }
+
+      await clerkClient.users.updateUser(input.userId, {
+        publicMetadata: {
+          ...tempUserPublicMetadata,
+        },
+      });
     }),
 
   getTabsBySearch: publicProcedure
@@ -110,9 +182,9 @@ export const tabRouter = createTRPCRouter({
         type: z.enum(["create", "update"]),
       })
     )
-    .mutation(({ input, ctx }) => {
+    .mutation(async ({ input, ctx }) => {
       if (input.type === "create") {
-        return ctx.prisma.tab.create({
+        const tab = await ctx.prisma.tab.create({
           data: {
             createdById: input.createdById,
             title: input.title,
@@ -126,6 +198,25 @@ export const tabRouter = createTRPCRouter({
             tabData: input.tabData,
           },
         });
+
+        // update user's total tabs created (verbose but wanted to match style of other clerk updates)
+        const user = await clerkClient.users.getUser(input.createdById);
+
+        const tempUserPublicMetadata = {
+          ...user.publicMetadata,
+        };
+
+        tempUserPublicMetadata.totalTabs
+          ? (tempUserPublicMetadata.totalTabs += 1)
+          : (tempUserPublicMetadata.totalTabs = 1);
+
+        await clerkClient.users.updateUser(input.createdById, {
+          publicMetadata: {
+            ...tempUserPublicMetadata,
+          },
+        });
+
+        return tab;
       } else if (input.type === "update" && input.id !== null) {
         return ctx.prisma.tab.update({
           where: {

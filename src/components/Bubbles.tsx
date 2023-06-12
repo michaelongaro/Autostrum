@@ -55,9 +55,11 @@ const Bubbles = () => {
         width: "100vw",
         height: "100vh",
         position: "fixed",
+        top: 0,
+        left: 0,
+        pointerEvents: "none",
         zIndex: 0,
       }}
-      // className="min-h-[100vh] w-[100vw]"
       camera={{ position: [0, 0, 50] }}
     >
       {/* <OrbitControls />

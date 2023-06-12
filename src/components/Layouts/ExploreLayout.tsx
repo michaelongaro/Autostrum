@@ -55,6 +55,9 @@ function ExploreLayout({ children }: Layout) {
       debouncedSearchQuery
     );
 
+  // next step should be creating <SearchResults /> component
+  // ^^^^^^
+
   return (
     // definitely improve responsiveness of this layout
     <motion.div

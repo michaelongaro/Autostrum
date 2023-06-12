@@ -21,25 +21,26 @@ model Tab {
     capo               Int?
     createdAt          DateTime  @default(now())
     createdById        String
+    numOfLikes         Int       @default(0)
     genre              Genre     @relation(fields: [genreId], references: [id])
     genreId            Int
     comments           Comment[]
-    likes              Likes[]
+    // likes              Likes[]
 
     @@index([createdById]) // not sure if we need these indicies anymore, or if they are beneficial to us since we removed the User model
     @@index([genreId])
 }
 
 // Junction table for likes
-model Likes {
-    id     Int    @id @default(autoincrement())
-    userId String
-    tab    Tab    @relation(fields: [tabId], references: [id])
-    tabId  Int
+// model Likes {
+//     id     Int    @id @default(autoincrement())
+//     userId String
+//     tab    Tab    @relation(fields: [tabId], references: [id])
+//     tabId  Int
 
-    @@index([userId]) // not sure if we need these indicies anymore, or if they are beneficial to us since we removed the User model
-    @@index([tabId])
-}
+//     @@index([userId]) // not sure if we need these indicies anymore, or if they are beneficial to us since we removed the User model
+//     @@index([tabId])
+// }
 
 model Genre {
     id    Int    @id @default(autoincrement())
@@ -52,7 +53,7 @@ model Comment {
     id        Int       @id @default(autoincrement())
     text      String
     createdAt DateTime  @default(now())
-    authorId  Int
+    authorId  String
     tab       Tab       @relation(fields: [tabId], references: [id])
     tabId     Int
     replyTo   Comment?  @relation("Replies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
