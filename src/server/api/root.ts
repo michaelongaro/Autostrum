@@ -2,7 +2,7 @@ import { createTRPCRouter } from "~/server/api/trpc";
 import { genreRouter } from "~/server/api/routers/genre";
 import { tabRouter } from "./routers/tab";
 import { userRouter } from "./routers/user";
-import { likeRouter } from "./routers/like";
+import { postSignUpRegistrationRouter } from "./routers/postSignUpRegistration";
 
 /**
  * This is the primary router for your server.
@@ -12,8 +12,8 @@ import { likeRouter } from "./routers/like";
 export const appRouter = createTRPCRouter({
   genre: genreRouter,
   tab: tabRouter,
-  like: likeRouter,
   user: userRouter,
+  postSignUpRegistration: postSignUpRegistrationRouter,
 });
 
 // export type definition of API
