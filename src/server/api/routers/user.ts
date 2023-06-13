@@ -11,18 +11,42 @@ export const userRouter = createTRPCRouter({
         username: z.string().optional(),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      // will need to get UserMetadata from prisma first and then add onto the user obj before returning
+      let clerkUser;
       if (input.id) {
         const [user] = await clerkClient.users.getUserList({
           userId: [input.id],
         });
-        return user;
+
+        clerkUser = user;
       } else if (input.username) {
         const [user] = await clerkClient.users.getUserList({
           username: [input.username],
         });
-        return user;
+
+        clerkUser = user;
       }
+
+      if (!clerkUser) return null;
+
+      const userMetadata = await ctx.prisma.userMetadata.findUnique({
+        where: {
+          userId: clerkUser.id,
+        },
+      });
+
+      if (!userMetadata) return clerkUser;
+
+      return {
+        ...clerkUser,
+        publicMetadata: {
+          likedTabIds: userMetadata.likedTabIds,
+          totalLikesReceived: userMetadata.totalLikesReceived,
+          totalTabsCreated: userMetadata.totalTabsCreated,
+          pinnedTabId: userMetadata.pinnedTabId,
+        },
+      };
     }),
   // should be private
   modifyUserMetadata: publicProcedure
@@ -31,12 +55,15 @@ export const userRouter = createTRPCRouter({
     .input(
       z.object({
         userId: z.string(),
-        pinnedTabId: z.string().nullable(),
+        pinnedTabId: z.number().nullable(),
       })
     )
-    .mutation(({ input }) => {
-      void clerkClient.users.updateUserMetadata(input.userId, {
-        publicMetadata: {
+    .mutation(async ({ input, ctx }) => {
+      return await ctx.prisma.userMetadata.update({
+        where: {
+          userId: input.userId,
+        },
+        data: {
           pinnedTabId: input.pinnedTabId,
         },
       });
@@ -44,7 +71,13 @@ export const userRouter = createTRPCRouter({
   // should be private
   deleteUser: publicProcedure
     .input(z.string())
-    .mutation(({ input: userId }) => {
+    .mutation(async ({ input: userId, ctx }) => {
       void clerkClient.users.deleteUser(userId);
+
+      await ctx.prisma.userMetadata.delete({
+        where: {
+          userId,
+        },
+      });
     }),
 });

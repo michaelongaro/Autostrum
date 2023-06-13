@@ -91,53 +91,62 @@ export const tabRouter = createTRPCRouter({
           id: input.tabId,
         },
         data: {
-          numOfLikes: {
+          numberOfLikes: {
             [input.likeTab ? "increment" : "decrement"]: 1,
           },
         },
       });
 
       // update tab owner total likes
-      const tabOwner = await clerkClient.users.getUser(input.tabOwnerId);
 
-      const tempTabOwnerPublicMetadata = {
-        ...tabOwner.publicMetadata,
-      };
-
-      tempTabOwnerPublicMetadata.totalLikes
-        ? (tempTabOwnerPublicMetadata.totalLikes += input.likeTab ? 1 : -1)
-        : (tempTabOwnerPublicMetadata.totalLikes = input.likeTab ? 1 : 0);
-
-      await clerkClient.users.updateUser(input.tabOwnerId, {
-        publicMetadata: {
-          ...tempTabOwnerPublicMetadata,
+      await ctx.prisma.userMetadata.update({
+        where: {
+          userId: input.tabOwnerId,
+        },
+        data: {
+          totalLikesReceived: {
+            [input.likeTab ? "increment" : "decrement"]: 1,
+          },
         },
       });
 
       // update user's list of liked tabIds
-      const user = await clerkClient.users.getUser(input.tabOwnerId);
 
-      const tempUserPublicMetadata = {
-        ...user.publicMetadata,
-      };
+      // need to fetch user's current likedTabIds first if we are unliking a tab
+      // since prisma doesn't support removing an item from an array (yet)
 
-      if (input.likeTab) {
-        tempUserPublicMetadata.likedTabIds
-          ? tempUserPublicMetadata.likedTabIds.push(input.tabId)
-          : (tempUserPublicMetadata.likedTabIds = [input.tabId]);
-      } else {
-        tempUserPublicMetadata.likedTabIds = tempUserPublicMetadata.likedTabIds
-          ? tempUserPublicMetadata.likedTabIds.filter(
-              (id: number) => id !== input.tabId
-            )
-          : [];
-      }
-
-      await clerkClient.users.updateUser(input.userId, {
-        publicMetadata: {
-          ...tempUserPublicMetadata,
+      const userMetadata = await ctx.prisma.userMetadata.findUnique({
+        where: {
+          userId: input.userId,
+        },
+        select: {
+          likedTabIds: true,
         },
       });
+
+      const likedTabIds = userMetadata?.likedTabIds;
+      let updatedLikedTabIds;
+
+      if (likedTabIds) {
+        if (input.likeTab) {
+          updatedLikedTabIds = [...likedTabIds, input.tabId];
+        } else {
+          updatedLikedTabIds = likedTabIds.filter(
+            (id: number) => id !== input.tabId
+          );
+        }
+      }
+
+      await ctx.prisma.userMetadata.update({
+        where: {
+          userId: input.userId,
+        },
+        data: {
+          likedTabIds: updatedLikedTabIds,
+        },
+      });
+
+      return input.likeTab;
     }),
 
   getTabsBySearch: publicProcedure
@@ -196,23 +205,19 @@ export const tabRouter = createTRPCRouter({
             timeSignature: input.timeSignature,
             capo: input.capo,
             tabData: input.tabData,
+            numberOfLikes: 0,
           },
         });
 
-        // update user's total tabs created (verbose but wanted to match style of other clerk updates)
-        const user = await clerkClient.users.getUser(input.createdById);
-
-        const tempUserPublicMetadata = {
-          ...user.publicMetadata,
-        };
-
-        tempUserPublicMetadata.totalTabs
-          ? (tempUserPublicMetadata.totalTabs += 1)
-          : (tempUserPublicMetadata.totalTabs = 1);
-
-        await clerkClient.users.updateUser(input.createdById, {
-          publicMetadata: {
-            ...tempUserPublicMetadata,
+        // update user's total tabs created
+        await ctx.prisma.userMetadata.update({
+          where: {
+            userId: input.createdById,
+          },
+          data: {
+            totalTabsCreated: {
+              increment: 1,
+            },
           },
         });
 
