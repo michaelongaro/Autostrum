@@ -59,7 +59,7 @@ function EffectGlossary({ forModal = false }: EffectGlossary) {
         {!forModal && (
           <>
             Effect glossary
-            <span>{showingEffectGlossary ? "-" : "+"}</span>
+            <span className="w-2">{showingEffectGlossary ? "-" : "+"}</span>
           </>
         )}
       </DropdownMenuTrigger>
