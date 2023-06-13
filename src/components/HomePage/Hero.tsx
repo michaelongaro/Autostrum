@@ -22,10 +22,16 @@ function Hero() {
         </p>
 
         <div className=" flex items-center justify-center gap-4 text-left">
-          <SignUpButton mode="modal">
+          <SignUpButton
+            mode="modal"
+            afterSignUpUrl="http://localhost:3000/postSignUpRegistration"
+          >
             <Button size={"lg"}>Sign up</Button>
           </SignUpButton>
-          <SignInButton mode="modal">
+          <SignInButton
+            mode="modal"
+            afterSignUpUrl="http://localhost:3000/postSignUpRegistration"
+          >
             <Button variant={"secondary"} className="h-11">
               Sign in
             </Button>

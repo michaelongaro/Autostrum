@@ -86,12 +86,18 @@ function MobileHeader() {
           {!isSignedIn && (
             <div className="baseFlex gap-2 lg:gap-4">
               {/* how to maybe get colors to match theme + also have an option to specify username? */}
-              <SignUpButton mode="modal">
+              <SignUpButton
+                mode="modal"
+                afterSignUpUrl="http://localhost:3000/postSignUpRegistration"
+              >
                 <Button size={"lg"} className="hidden lg:block">
                   Sign up
                 </Button>
               </SignUpButton>
-              <SignInButton mode="modal">
+              <SignInButton
+                mode="modal"
+                afterSignUpUrl="http://localhost:3000/postSignUpRegistration"
+              >
                 <Button variant={"secondary"} className="h-11">
                   Sign in
                 </Button>
