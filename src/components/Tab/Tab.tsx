@@ -37,6 +37,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
     tabData,
     setTabData,
     setSectionProgression,
+    setNumberOfLikes,
     editing,
     setEditing,
     setOriginalTabData,
@@ -56,6 +57,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
       tabData: state.tabData,
       setTabData: state.setTabData,
       setSectionProgression: state.setSectionProgression,
+      setNumberOfLikes: state.setNumberOfLikes,
       editing: state.editing,
       setEditing: state.setEditing,
       setOriginalTabData: state.setOriginalTabData,
@@ -79,6 +81,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
     setTuning(tab.tuning);
     setBpm(tab.bpm);
     setTimeSignature(tab.timeSignature);
+    setNumberOfLikes(tab.numberOfLikes);
 
     // @ts-expect-error asdf
     setTabData(tab.tabData);
@@ -97,6 +100,7 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
     setOriginalTabData,
     setTuning,
     setSectionProgression,
+    setNumberOfLikes,
   ]);
 
   return (

@@ -41,6 +41,8 @@ interface TabState {
   setCapo: (capo: number | null) => void;
   tabData: ITabSection[];
   setTabData: (tabData: ITabSection[]) => void;
+  numberOfLikes: number;
+  setNumberOfLikes: (numberOfLikes: number) => void;
   editing: boolean;
   setEditing: (editing: boolean) => void;
   sectionProgression: SectionProgression[];
@@ -113,6 +115,8 @@ export const useTabStore = create<TabState>()(
       },
     ], // temporary, should just be an empty array
     setTabData: (tabData) => set({ tabData }),
+    numberOfLikes: 0,
+    setNumberOfLikes: (numberOfLikes) => set({ numberOfLikes }),
     editing: true, // temporary, should be false
     setEditing: (editing) => set({ editing }),
     sectionProgression: [],
