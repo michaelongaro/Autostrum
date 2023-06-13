@@ -30,16 +30,10 @@ import Link from "next/link";
 
 import classes from "./TabMetadata.module.css";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { formatNumber } from "~/utils/formatNumber";
 
 function TabMetadata() {
   const { userId, isLoaded } = useAuth();
-  const { user: currentUser } = useUser();
-
-  // ^^^ with current plan just laying it out: we get:
-  // the fields we want (total likes/tabs) maybe also likedTabIds ?
-  // straightforward sorting + cache control
-
-  // for custom addToDatabaseAfterSigningUp route, just do onSettled -> push back onto "/"
 
   const { push, asPath } = useRouter();
   const ctx = api.useContext();
@@ -61,28 +55,29 @@ function TabMetadata() {
 
   // shouldn't need to be optimistic I don't think, try to keep that just for
   // operations that *need* to be perceived as instant
-  const { mutate, isLoading: isPosting } = api.tab.createOrUpdate.useMutation({
-    onSuccess: async (tab) => {
-      if (tab) {
-        if (asPath.includes("create")) {
-          await push(`/tab/${tab.id}`);
-        }
+  const { mutate: createOrUpdate, isLoading: isPosting } =
+    api.tab.createOrUpdate.useMutation({
+      onSuccess: async (tab) => {
+        if (tab) {
+          if (asPath.includes("create")) {
+            await push(`/tab/${tab.id}`);
+          }
 
-        setOriginalTabData(tab);
-      }
-    },
-    onError: (e) => {
-      //  const errorMessage = e.data?.zodError?.fieldErrors.content;
-      //  if (errorMessage && errorMessage[0]) {
-      //    toast.error(errorMessage[0]);
-      //  } else {
-      //    toast.error("Failed to post! Please try again later.");
-      //  }
-    },
-    onSettled: () => {
-      void ctx.tab.getTabById.invalidate();
-    },
-  });
+          setOriginalTabData(tab);
+        }
+      },
+      onError: (e) => {
+        //  const errorMessage = e.data?.zodError?.fieldErrors.content;
+        //  if (errorMessage && errorMessage[0]) {
+        //    toast.error(errorMessage[0]);
+        //  } else {
+        //    toast.error("Failed to post! Please try again later.");
+        //  }
+      },
+      onSettled: () => {
+        void ctx.tab.getTabById.invalidate();
+      },
+    });
 
   const {
     originalTabData,
@@ -104,6 +99,8 @@ function TabMetadata() {
     setTimeSignature,
     capo,
     setCapo,
+    numberOfLikes,
+    setNumberOfLikes,
     editing,
     setEditing,
     setOriginalTabData,
@@ -128,6 +125,8 @@ function TabMetadata() {
       setTimeSignature: state.setTimeSignature,
       capo: state.capo,
       setCapo: state.setCapo,
+      numberOfLikes: state.numberOfLikes,
+      setNumberOfLikes: state.setNumberOfLikes,
       editing: state.editing,
       setEditing: state.setEditing,
       setOriginalTabData: state.setOriginalTabData,
@@ -135,39 +134,70 @@ function TabMetadata() {
     shallow
   );
 
-  // const { data: likeId } = api.like.getLikeId.useQuery({
-  //   tabId: id,
-  //   userId: userId ?? "",
-  // });
-
   const { mutate: toggleLike, isLoading: isLiking } =
     api.tab.toggleTabLikeStatus.useMutation({
-      onMutate: async () => {
+      onMutate: async (data) => {
         // optimistic update
-        // await ctx.like.getLikeId.cancel();
-        // ctx.like.getLikeId.setData(
-        //   {
-        //     tabId: id,
-        //     userId: userId ?? "",
-        //   },
-        //   (prev) => {
-        //     if (typeof prev === "number") return null;
-        //     // most likely can't get away with random number like this
-        //     // but I'm not sure how to set it with "proper" new id when it hasn't
-        //     // even been created in db yet...
-        //     return 100;
-        //   }
-        // );
+
+        // have check to also optimistically update tabCreator query if on their page (if "user" is in url)
+
+        // updating number of likes on tab (hmm do you want to do this normally or just update
+        // store value...)
+        setNumberOfLikes(numberOfLikes + (data.likeTab ? 1 : -1));
+
+        await ctx.tab.getTabById.cancel();
+        ctx.tab.getTabById.setData(
+          {
+            id,
+          },
+          (prevTabData) => {
+            if (!prevTabData) return prevTabData;
+            return {
+              ...prevTabData,
+              numberOfLikes: data.likeTab
+                ? prevTabData.numberOfLikes + 1
+                : prevTabData.numberOfLikes - 1,
+            };
+          }
+        );
+
+        await ctx.user.getUserByIdOrUsername.cancel();
+        ctx.user.getUserByIdOrUsername.setData(
+          {
+            id: userId!,
+          },
+          (prevUserData) => {
+            if (!prevUserData || !prevUserData.publicMetadata.likedTabIds)
+              return prevUserData;
+            return {
+              ...prevUserData,
+              publicMetadata: {
+                ...prevUserData.publicMetadata,
+                likedTabIds: data.likeTab
+                  ? [...prevUserData.publicMetadata.likedTabIds, id]
+                  : prevUserData.publicMetadata.likedTabIds.filter(
+                      (tabId) => tabId !== id
+                    ),
+              },
+            };
+          }
+        );
       },
       onError: (e) => {
         console.error(e);
       },
       onSettled: () => {
-        void ctx.like.getLikeId.invalidate();
+        void ctx.tab.getTabById.invalidate();
       },
     });
 
-  const user = api.user.getUserByIdOrUsername.useQuery({
+  // current user
+  const { data: currentUser } = api.user.getUserByIdOrUsername.useQuery({
+    id: userId ?? "",
+  });
+
+  // owner of tab
+  const { data: tabCreator } = api.user.getUserByIdOrUsername.useQuery({
     id: createdById ?? "",
   });
 
@@ -249,7 +279,7 @@ function TabMetadata() {
 
     // update in prisma
     if (userId) {
-      mutate({
+      createOrUpdate({
         id,
         createdById: userId,
         title,
@@ -516,20 +546,22 @@ function TabMetadata() {
         </>
       ) : (
         <div className="min-h-[100px] w-full">
-          {userId && createdById === userId && (
-            <Button
-              className="absolute right-2 top-2 z-10 md:right-4 md:top-4"
-              onClick={() => {
-                if (asPath.includes("edit")) setEditing(true);
-                else void push(`/tab/${id}/edit`);
-                // maybe need loading spinner? idk why it feels so slow tbh..
-              }}
-            >
-              {asPath.includes("edit") || asPath.includes("create")
-                ? "Continue editing"
-                : "Edit"}
-            </Button>
-          )}
+          {(userId && createdById === userId) ||
+            (asPath.includes("create") && (
+              <Button
+                className="absolute right-2 top-2 z-10 md:right-4 md:top-4"
+                onClick={() => {
+                  if (asPath.includes("create") || asPath.includes("edit"))
+                    setEditing(true);
+                  else void push(`/tab/${id}/edit`);
+                  // maybe need loading spinner? idk why it feels so slow tbh..
+                }}
+              >
+                {asPath.includes("edit") || asPath.includes("create")
+                  ? "Continue editing"
+                  : "Edit"}
+              </Button>
+            ))}
 
           {/* if you still wanted to add "forking" functionality, then that would go here */}
 
@@ -538,69 +570,88 @@ function TabMetadata() {
               classes.headerInfo ?? ""
             } lightGlassmorphic w-full rounded-t-md shadow-sm`}
           >
-            <div className="baseFlex gap-2">
-              <div className={`${classes.title ?? ""} text-2xl font-bold`}>
-                {title}
-              </div>
+            {/* seemed like easiest way to still allow preview on users who have not created
+                an account yet, since there would just be a lot of wrong/placeholder values */}
+            {asPath.includes("create") ? (
+              <div className="text-2xl font-bold">{title}</div>
+            ) : (
+              <>
+                <div className="baseFlex gap-2">
+                  <div className={`${classes.title ?? ""} text-2xl font-bold`}>
+                    {title}
+                  </div>
 
-              <div className={classes.heart}>
-                {/* could definitely just use the icon instead of button wrapper as well */}
-                <Button
-                  variant={"ghost"}
-                  className="p-2"
-                  onClick={() => {
-                    console.log(userId);
+                  <div className={classes.heart}>
+                    {/* could definitely just use the icon instead of button wrapper as well */}
+                    <Button
+                      variant={"ghost"}
+                      className="baseFlex gap-2 p-2"
+                      onClick={() => {
+                        if (!currentUser) return;
 
-                    toggleLike({
-                      likeTab:
-                        // not sure if this is correct logic below
-                        !currentUser?.publicMetadata?.likedTabIds?.includes(
-                          id
-                        ) ?? false,
-                      tabOwnerId: createdById,
-                      tabId: id,
-                      userId: userId ?? "",
-                    });
-                  }}
-                >
-                  {currentUser?.publicMetadata?.likedTabIds?.includes(id) ? (
-                    <AiFillHeart className="h-6 w-6 text-pink-800" />
-                  ) : (
-                    <AiOutlineHeart className="h-6 w-6" />
-                  )}
-                </Button>
-              </div>
-            </div>
+                        toggleLike({
+                          likeTab:
+                            !currentUser.publicMetadata.likedTabIds.includes(
+                              id
+                            ),
+                          tabOwnerId: createdById,
+                          tabId: id,
+                          userId: userId ?? "",
+                        });
+                      }}
+                    >
+                      {currentUser?.publicMetadata?.likedTabIds?.includes(
+                        id
+                      ) ? (
+                        <AiFillHeart className="h-6 w-6 text-pink-800" />
+                      ) : (
+                        <AiOutlineHeart className="h-6 w-6" />
+                      )}
+                      {numberOfLikes > 0 && (
+                        <div className="text-lg">
+                          {formatNumber(numberOfLikes)}
+                        </div>
+                      )}
+                    </Button>
+                  </div>
+                </div>
 
-            {/* prob are going to need an updatedAt field on model, and then display the updated one
+                {/* prob are going to need an updatedAt field on model, and then display the updated one
             if it exists, otherwise createdAt */}
-            <Separator orientation="vertical" className="hidden h-8 sm:block" />
+                <Separator
+                  orientation="vertical"
+                  className="hidden h-8 sm:block"
+                />
 
-            {/* look into usefulness of splitting code into chunks based off isLoading + user.data state
+                {/* look into usefulness of splitting code into chunks based off isLoading + user.data state
                 because this constant ?. + ?? "" doesn't feel too great. */}
-            <div className={`${classes.usernameAndDate ?? ""} baseFlex gap-2`}>
-              <Button variant={"ghost"} className="px-3 py-1">
-                <Link
-                  href={`/user/${user.data?.username ?? ""}`}
-                  className="baseFlex gap-2"
+                <div
+                  className={`${classes.usernameAndDate ?? ""} baseFlex gap-2`}
                 >
-                  <Image
-                    src={user.data?.profileImageUrl ?? ""}
-                    alt={`${
-                      user.data?.username ?? "Anonymous"
-                    }'s profile image`}
-                    width={32}
-                    height={32}
-                    className="h-8 w-8 rounded-full bg-pink-800"
-                  ></Image>
-                  <span className="text-lg">
-                    {user.data?.username ?? "Anonymous"}
-                  </span>
-                </Link>
-              </Button>
-              <Separator className="w-4" />
-              {`Updated on ${createdAt ? formatDate(createdAt) : ""}`}
-            </div>
+                  <Button variant={"ghost"} className="px-3 py-1">
+                    <Link
+                      href={`/user/${tabCreator?.username ?? ""}`}
+                      className="baseFlex gap-2"
+                    >
+                      <Image
+                        src={tabCreator?.profileImageUrl ?? ""}
+                        alt={`${
+                          tabCreator?.username ?? "Anonymous"
+                        }'s profile image`}
+                        width={32}
+                        height={32}
+                        className="h-8 w-8 rounded-full bg-pink-800"
+                      ></Image>
+                      <span className="text-lg">
+                        {tabCreator?.username ?? "Anonymous"}
+                      </span>
+                    </Link>
+                  </Button>
+                  <Separator className="w-4" />
+                  {`Updated on ${createdAt ? formatDate(createdAt) : ""}`}
+                </div>
+              </>
+            )}
           </div>
 
           <div className={classes.metadataContainer}>
