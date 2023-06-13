@@ -1,12 +1,19 @@
 generator client {
-    provider        = "prisma-client-js"
-    previewFeatures = ["jsonProtocol"]
+    provider = "prisma-client-js"
 }
 
 datasource db {
-    provider     = "mysql"
-    url          = env("DATABASE_URL")
-    relationMode = "prisma"
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model UserMetadata {
+    id                 Int    @id @default(autoincrement())
+    userId             String @unique
+    likedTabIds        Int[]  @default([])
+    totalLikesReceived Int    @default(0)
+    totalTabsCreated   Int    @default(0)
+    pinnedTabId        Int?
 }
 
 model Tab {
@@ -21,26 +28,11 @@ model Tab {
     capo               Int?
     createdAt          DateTime  @default(now())
     createdById        String
-    numOfLikes         Int       @default(0)
+    numberOfLikes      Int
     genre              Genre     @relation(fields: [genreId], references: [id])
     genreId            Int
     comments           Comment[]
-    // likes              Likes[]
-
-    @@index([createdById]) // not sure if we need these indicies anymore, or if they are beneficial to us since we removed the User model
-    @@index([genreId])
 }
-
-// Junction table for likes
-// model Likes {
-//     id     Int    @id @default(autoincrement())
-//     userId String
-//     tab    Tab    @relation(fields: [tabId], references: [id])
-//     tabId  Int
-
-//     @@index([userId]) // not sure if we need these indicies anymore, or if they are beneficial to us since we removed the User model
-//     @@index([tabId])
-// }
 
 model Genre {
     id    Int    @id @default(autoincrement())
@@ -59,10 +51,6 @@ model Comment {
     replyTo   Comment?  @relation("Replies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     replyToId Int?
     replies   Comment[] @relation("Replies")
-
-    @@index([tabId])
-    @@index([authorId]) // not sure if we need these indicies anymore, or if they are beneficial to us since we removed the User model
-    @@index([replyToId])
 }
 
 model PromotedArtist {
