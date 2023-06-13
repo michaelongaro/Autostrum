@@ -45,6 +45,9 @@ function IndividualTabEdit() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex w-full"
     >
+      {/* TODO: should ONLY render tab if the person viewing it is the owner of the tab, otherwise 
+          display text saying `Sorry, only ${tabOwnerUsername} can edit this tab` */}
+
       <Tab tab={fetchedTab.data} />
     </motion.div>
   );
