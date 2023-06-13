@@ -546,22 +546,22 @@ function TabMetadata() {
         </>
       ) : (
         <div className="min-h-[100px] w-full">
-          {(userId && createdById === userId) ||
-            (asPath.includes("create") && (
-              <Button
-                className="absolute right-2 top-2 z-10 md:right-4 md:top-4"
-                onClick={() => {
-                  if (asPath.includes("create") || asPath.includes("edit"))
-                    setEditing(true);
-                  else void push(`/tab/${id}/edit`);
-                  // maybe need loading spinner? idk why it feels so slow tbh..
-                }}
-              >
-                {asPath.includes("edit") || asPath.includes("create")
-                  ? "Continue editing"
-                  : "Edit"}
-              </Button>
-            ))}
+          {((userId && createdById === userId) ||
+            asPath.includes("create")) && (
+            <Button
+              className="absolute right-2 top-2 z-10 md:right-4 md:top-4"
+              onClick={() => {
+                if (asPath.includes("create") || asPath.includes("edit"))
+                  setEditing(true);
+                else void push(`/tab/${id}/edit`);
+                // maybe need loading spinner? idk why it feels so slow tbh..
+              }}
+            >
+              {asPath.includes("edit") || asPath.includes("create")
+                ? "Continue editing"
+                : "Edit"}
+            </Button>
+          )}
 
           {/* if you still wanted to add "forking" functionality, then that would go here */}
 
