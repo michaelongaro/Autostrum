@@ -143,7 +143,7 @@ function TabMetadata() {
 
         // updating number of likes on tab (hmm do you want to do this normally or just update
         // store value...)
-        setNumberOfLikes(numberOfLikes + (data.likeTab ? 1 : -1));
+        setNumberOfLikes(numberOfLikes + (data.likingTab ? 1 : -1));
 
         await ctx.tab.getTabById.cancel();
         ctx.tab.getTabById.setData(
@@ -154,7 +154,7 @@ function TabMetadata() {
             if (!prevTabData) return prevTabData;
             return {
               ...prevTabData,
-              numberOfLikes: data.likeTab
+              numberOfLikes: data.likingTab
                 ? prevTabData.numberOfLikes + 1
                 : prevTabData.numberOfLikes - 1,
             };
@@ -173,7 +173,7 @@ function TabMetadata() {
               ...prevUserData,
               publicMetadata: {
                 ...prevUserData.publicMetadata,
-                likedTabIds: data.likeTab
+                likedTabIds: data.likingTab
                   ? [...prevUserData.publicMetadata.likedTabIds, id]
                   : prevUserData.publicMetadata.likedTabIds.filter(
                       (tabId) => tabId !== id
@@ -590,7 +590,7 @@ function TabMetadata() {
                         if (!currentUser) return;
 
                         toggleLike({
-                          likeTab:
+                          likingTab:
                             !currentUser.publicMetadata.likedTabIds.includes(
                               id
                             ),

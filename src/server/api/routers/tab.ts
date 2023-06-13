@@ -82,7 +82,7 @@ export const tabRouter = createTRPCRouter({
         tabId: z.number(),
         tabOwnerId: z.string(),
         userId: z.string(),
-        likeTab: z.boolean(),
+        likingTab: z.boolean(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -92,7 +92,7 @@ export const tabRouter = createTRPCRouter({
         },
         data: {
           numberOfLikes: {
-            [input.likeTab ? "increment" : "decrement"]: 1,
+            [input.likingTab ? "increment" : "decrement"]: 1,
           },
         },
       });
@@ -105,7 +105,7 @@ export const tabRouter = createTRPCRouter({
         },
         data: {
           totalLikesReceived: {
-            [input.likeTab ? "increment" : "decrement"]: 1,
+            [input.likingTab ? "increment" : "decrement"]: 1,
           },
         },
       });
@@ -128,7 +128,7 @@ export const tabRouter = createTRPCRouter({
       let updatedLikedTabIds;
 
       if (likedTabIds) {
-        if (input.likeTab) {
+        if (input.likingTab) {
           updatedLikedTabIds = [...likedTabIds, input.tabId];
         } else {
           updatedLikedTabIds = likedTabIds.filter(
@@ -146,7 +146,7 @@ export const tabRouter = createTRPCRouter({
         },
       });
 
-      return input.likeTab;
+      return input.likingTab;
     }),
 
   getTabsBySearch: publicProcedure
