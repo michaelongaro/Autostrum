@@ -140,9 +140,6 @@ export const useTabStore = create<TabState>()(
       const newTabData = [...tab];
       let currentColumnIndex = startColumnIndex;
 
-      // TODO: handle subsequent clicking on "remove" of both nodes as first rudimentary way to remove the
-      // whole palm mute section
-
       while (!finishedModification) {
         // start/end node already defined, meaning we just clicked on an empty node to be the other pair node
         if (pairNodeValue !== undefined) {
