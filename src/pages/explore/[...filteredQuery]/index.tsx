@@ -17,6 +17,9 @@ function FilteredQueryExplore() {
   >();
   const [viewType, setViewType] = useState<"grid" | "table">("grid");
 
+  // view type needs to be on user metadata and will be updated whenever user changes it to the other setting
+  // obv means that you will need to query user but that's totally fine
+
   useEffect(() => {
     if (Object.keys(query).length === 0) return;
 
