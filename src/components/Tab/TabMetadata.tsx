@@ -313,6 +313,7 @@ function TabMetadata() {
       sectionProgression,
       timeSignature,
       capo,
+      numberOfLikes,
       createdById,
     };
 
