@@ -55,9 +55,6 @@ function ExploreLayout({ children }: Layout) {
       debouncedSearchQuery
     );
 
-  // next step should be creating <SearchResults /> component
-  // ^^^^^^
-
   return (
     // definitely improve responsiveness of this layout
     <motion.div
@@ -71,6 +68,8 @@ function ExploreLayout({ children }: Layout) {
       <div className="baseFlex gap-4">
         <div className="relative">
           <Input
+            type="text"
+            maxLength={30}
             placeholder="Search for your favorite tabs and artists"
             onChange={(e) => {
               const query = e.target.value;
