@@ -1,8 +1,10 @@
 import { clerkClient } from "@clerk/nextjs/server";
+import type { Tab } from "@prisma/client";
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import combineTabTitlesAndUsernames from "~/utils/combineTabTitlesAndUsernames";
+import { sortResultsByRelevance } from "~/utils/sortResultsByRelevance";
 
 export const tabRouter = createTRPCRouter({
   getTabById: publicProcedure
@@ -21,7 +23,7 @@ export const tabRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       if (input === "") return null;
 
-      const tabs = await ctx.prisma.tab.findMany({
+      const tabTitles = await ctx.prisma.tab.findMany({
         where: {
           title: {
             contains: input,
@@ -41,39 +43,106 @@ export const tabRouter = createTRPCRouter({
       // matches, not partial matches.
       const users = await clerkClient.users.getUserList();
 
-      if (tabs.length === 0 && users.length === 0) return null;
+      if (tabTitles.length === 0 && users.length === 0) return null;
 
-      // then once you have titles + usernames, we get direct matches first (start of string)
-      // and put those in front of the other values (the ones that just match *somewhere* in the string)
+      const sortedTabTitles = sortResultsByRelevance({
+        query: input,
+        tabTitles: tabTitles.map((tab) => tab.title),
+      });
 
-      // getting rid of duplicate tab titles
-      const uniqueTabTitles = [...new Set(tabs.map((tab) => tab.title))];
+      const sortedUsernames = sortResultsByRelevance({
+        query: input,
+        tabTitles: users.map((user) => user.username!),
+      });
 
-      const directTabTitleMatches = uniqueTabTitles
-        .filter((tab) => tab.startsWith(input))
-        .sort((a, b) => a.length - b.length);
+      return combineTabTitlesAndUsernames(
+        sortedTabTitles as string[],
+        sortedUsernames as string[]
+      );
+    }),
 
-      // create a new array with the direct matches first, then the rest of the matches
-      const sortedTabTitles = [
-        ...directTabTitleMatches,
-        ...uniqueTabTitles.filter((tab) => !tab.startsWith(input)),
-      ];
+  getInfiniteTabsBySearchQuery: publicProcedure
+    .input(
+      z.object({
+        searchQuery: z.string(),
+        genreId: z.number().optional(),
+        sortByRelevance: z.boolean(),
+        sortBy: z
+          .enum(["newest", "oldest", "most-liked", "least-liked"])
+          .optional(),
+        userIdToSelectFrom: z.string().optional(),
+        // limit: z.number(), fine to hardcode I think, maybe end up scaling down from 25 on smaller screens?
+        cursor: z.number().nullish(), // <-- "cursor" needs to exist, but can be any type
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const { searchQuery, genreId, sortByRelevance, sortBy, cursor } = input;
+      const limit = 25;
 
-      const usernames = users.map((user) => user.username!); // usernames are mandatory in our clerk config
+      let orderBy:
+        | {
+            createdAt?: "asc" | "desc";
+            numberOfLikes?: "asc" | "desc";
+          }
+        | undefined = undefined;
 
-      const directUsernameMatches = usernames
-        .filter((username) => username.startsWith(input))
-        .sort((a, b) => a.length - b.length);
+      if (sortBy) {
+        if (sortBy === "newest") {
+          orderBy = {
+            createdAt: "desc",
+          };
+        } else if (sortBy === "oldest") {
+          orderBy = {
+            createdAt: "asc",
+          };
+        } else if (sortBy === "most-liked") {
+          orderBy = {
+            numberOfLikes: "desc",
+          };
+        } else if (sortBy === "least-liked") {
+          orderBy = {
+            numberOfLikes: "asc",
+          };
+        }
+      }
 
-      // create a new array with the direct matches first, then the rest of the matches
-      const sortedUsernames = [
-        ...directUsernameMatches,
-        ...usernames.filter(
-          (username) => !username.startsWith(input) && username.includes(input)
-        ),
-      ];
+      let tabs = await ctx.prisma.tab.findMany({
+        take: limit + 1, // get an extra item at the end which we'll use as next cursor
+        where: {
+          title: {
+            contains: searchQuery,
+          },
+        },
 
-      return combineTabTitlesAndUsernames(sortedTabTitles, sortedUsernames);
+        // https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination
+
+        //                 hoping that replacing "myCursor" with id is the logical replacement to make
+        cursor: cursor ? { id: cursor } : undefined,
+        orderBy: orderBy,
+      });
+      let nextCursor: typeof cursor | undefined = undefined;
+      if (tabs.length > limit) {
+        const nextItem = tabs.pop();
+        if (nextItem) {
+          nextCursor = nextItem.id;
+        }
+      }
+
+      // sort by relevance if sortByRelevance is true
+      if (sortByRelevance) {
+        tabs = sortResultsByRelevance({
+          query: searchQuery,
+          tabs: tabs,
+        }) as Tab[];
+      }
+
+      // ideally find way to not have to add "as type" without just splitting
+      // into different functions...
+
+      return {
+        tabs,
+        nextCursor,
+      };
     }),
 
   toggleTabLikeStatus: publicProcedure
@@ -147,22 +216,6 @@ export const tabRouter = createTRPCRouter({
       });
 
       return input.likingTab;
-    }),
-
-  getTabsBySearch: publicProcedure
-    .input(z.string())
-    .query(async ({ input, ctx }) => {
-      if (input === "") return null;
-
-      const tabs = await ctx.prisma.tab.findMany({
-        where: {
-          title: {
-            contains: input,
-          },
-        },
-      });
-
-      return tabs;
     }),
 
   // technically should be private, but don't have to worry about auth yet
