@@ -1,21 +1,14 @@
+import { useRouter } from "next/router";
 import React from "react";
 import { api } from "~/utils/api";
 
 interface SearchResults {
-  searchQuery: string;
-  filters: {
-    genreId?: number;
-    type: "tab" | "artist" | null;
-    view: "grid" | "table";
-    // maybe split into two enums, one for type and one for the direction
-    sort:
-      | "descDate"
-      | "ascDate"
-      | "descAlphabetical"
-      | "ascAlphabetical"
-      | "descLikes"
-      | "ascLikes";
-  };
+  genreId?: number;
+  type?: "tabs" | "artists";
+  searchQuery?: string;
+  sortByRelevance: boolean;
+  additionalSortFilter?: "newest" | "oldest" | "leastLiked" | "mostLiked";
+  viewType: "grid" | "table";
 }
 
 // don't forget that [...query] means that you are going to be adding
@@ -31,15 +24,41 @@ interface SearchResults {
 // to trpc functions
 
 function SearchResults({
+  genreId,
+  type,
   searchQuery,
-  filters: { genreId, type, view, sort },
+  sortByRelevance,
+  additionalSortFilter,
+  viewType,
 }: SearchResults) {
+  const { asPath } = useRouter();
+
+  // memo to set store filter values to query params if they aren't the same
+  // may need to combine with setting store values to null initially so you don't get
+  // weird behavior
+
   // do query below based on searchQuery + filters (should return either tabs[] or users[])
   const { data: tabResults, isLoading: isLoadingTabResults } =
-    api.tab.getTabsBySearch.useQuery(type === "tab" ? searchQuery : "");
+    api.tab.getInfiniteTabsBySearchQuery.useInfiniteQuery(
+      // TODO: fix input types on trpc function
+      {
+        searchQuery,
+        genreId,
+        sortByRelevance,
+        sortBy,
+      },
+      {
+        enabled: type === "tab",
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      }
+    );
 
-  const { data: artistResults, isLoading: isLoadingArtistResults } =
-    api.tab.getTabsBySearch.useQuery(type === "tab" ? searchQuery : "");
+  // const { data: artistResults, isLoading: isLoadingArtistResults } =
+  //   api.user.getUsersBySearch.useInfiniteQuery(filterType === "artist" ? {
+  //     searchQuery,
+  //     genreId,
+  //     sortBy,
+  //   } : null);
 
   // worry about skeletons later!
 
