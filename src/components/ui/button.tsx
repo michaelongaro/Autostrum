@@ -18,6 +18,9 @@ const buttonVariants = cva(
           "lightGlassmorphic text-secondary-foreground hover:bg-secondary/80 border-2",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "underline-offset-4 hover:underline text-primary",
+        toggledOn:
+          "bg-primary text-primary-foreground hover:bg-primary/80 border-2",
+        toggledOff: "text-primary-foreground hover:bg-secondary/20 border-2",
         navigation:
           "bg-pink-200 hover:bg-pink-900 text-pink-900 hover:text-pink-200",
       },
