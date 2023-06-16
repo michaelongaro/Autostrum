@@ -14,38 +14,18 @@ interface Layout {
   children: ReactNode;
 }
 
-// we really want to include user search as well, so in autocomplete results we prob need to have a badge
-// next to each result that either says "artist" or "tab" to clarify. <- shadcnui badge?
-
-// ^ then for results page we should toggles for "artist", "tab" <- defaulting to "tab"
-// I am pretty sure we can get both tab and artist to fit in same footprint of card,
-
-// Overarching goals:
-
-// shared layout for all search related components/pages: with parent being just glassmorphic body
-// and search bar on top
-
-// genre selector moving from next to search bar to inline with filters (under "genre"), add "all" option
-// as first option. obv default to "all" if url looks like /explore/query
-
-// will be a bit interesting on how to for example sort by most likes, like how to structure query exactly
-
 // pretty sure that you can use this layout for every component with a searchbar
 // ^ actually on profile tabs/likes I believe you can only have one layout per component so you may need to create a new layout that is
 //   the profile nav wrapped around this and then apply that to tabs/likes pages
 
-// pretty sure that switching any filter will result in a new query being made, which is kind of just the way it is
-
 function ExploreLayout({ children }: Layout) {
-  const { push, query } = useRouter();
-
-  // ideally we would want the input "xylophonic" to return a tab with the title of "xylo", but I think prisma will only
-  // return exact substring matches. might have make some manual solution for this behavior.
+  const { push, query, asPath, pathname } = useRouter();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [serve404Page, setServe404Page] = useState(false);
 
+  const [hidingAutofillResults, setHidingAutofillResults] = useState(false);
   const [artificallyShowLoadingSpinner, setArtificallyShowLoadingSpinner] =
     useState(false);
 
@@ -146,6 +126,33 @@ function ExploreLayout({ children }: Layout) {
     }
   }, [query]);
 
+  function adjustQueryParams(type: "tabs" | "artists", searchQuery: string) {
+    // provide sensible default fallbacks if params aren't defined
+    const queryParamsWithDefaults = {
+      genreId: type === "tabs" && query.genreId ? query.genreId : "9",
+      type: type,
+      search: searchQuery,
+      relevance: query.relevance ?? "true",
+      sort: query.sort ?? "mostLiked",
+      view: query.view ?? "grid", // should eventually pull + prefer userMetadata preference!
+    };
+
+    void push(
+      {
+        pathname: asPath.includes("filters") ? pathname : `${pathname}/filters`,
+        query: {
+          ...query,
+          ...queryParamsWithDefaults,
+        },
+      },
+      undefined,
+      {
+        scroll: false, // defaults to true but try both
+        shallow: true,
+      }
+    );
+  }
+
   return (
     // definitely improve responsiveness of this layout
     <motion.div
@@ -181,6 +188,7 @@ function ExploreLayout({ children }: Layout) {
                   const trimmedQuery = query.trim();
                   if (trimmedQuery !== searchQuery) {
                     debounce(() => {
+                      setHidingAutofillResults(false);
                       setDebouncedSearchQuery(trimmedQuery);
                       setArtificallyShowLoadingSpinner(true);
                       setTimeout(
@@ -192,6 +200,21 @@ function ExploreLayout({ children }: Layout) {
 
                   setSearchQuery(query);
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setHidingAutofillResults(true);
+
+                    adjustQueryParams(
+                      // response order is tabs and then artists, so if the first result is an artist,
+                      // we know that's the only type of result we have
+                      tabTitlesAndUsernamesFromSearchQuery?.[0]?.type ===
+                        "username"
+                        ? "artists"
+                        : "tabs",
+                      searchQuery
+                    );
+                  }
+                }}
                 value={searchQuery}
                 className="h-9 w-80 text-base md:h-12 md:w-96 md:text-lg"
               />
@@ -199,80 +222,103 @@ function ExploreLayout({ children }: Layout) {
               {/* autofill */}
               <AnimatePresence mode="wait">
                 {/* not sure if this is cleanest approach */}
-                {searchQuery.length > 0 && debouncedSearchQuery.length > 0 && (
-                  <motion.div
-                    key={"searchAutofill"}
-                    initial={{ opacity: 0, top: "3rem" }}
-                    animate={{ opacity: 1, top: "3.5rem" }}
-                    exit={{ opacity: 0, top: "3rem" }}
-                    transition={{ duration: 0.25 }}
-                    className="lightestGlassmorphic absolute w-full rounded-md"
-                  >
-                    {artificallyShowLoadingSpinner || isLoadingTabTitles ? (
-                      <div className="baseFlex w-full gap-4 py-4">
-                        <p>Loading</p>
-                        <svg
-                          className="h-6 w-6 animate-spin rounded-full bg-inherit fill-none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                      </div>
-                    ) : (
-                      <>
-                        {tabTitlesAndUsernamesFromSearchQuery === null ? (
-                          <p className="w-full rounded-md p-2">
-                            No results found
-                          </p>
-                        ) : (
-                          <>
-                            {tabTitlesAndUsernamesFromSearchQuery?.map(
-                              (data, idx) => (
-                                <p
-                                  key={idx}
-                                  className="baseFlex w-full cursor-pointer !justify-start gap-2 rounded-md p-2 transition-all hover:bg-accent-foreground"
-                                  onClick={() =>
-                                    void push(`/explore/${searchQuery}`)
-                                  }
-                                >
-                                  <Badge
-                                    className={`${
-                                      data.type === "title"
-                                        ? "bg-blue-500"
-                                        : "bg-green-500"
-                                    }`}
+                {!hidingAutofillResults &&
+                  searchQuery.length > 0 &&
+                  debouncedSearchQuery.length > 0 && (
+                    <motion.div
+                      key={"searchAutofill"}
+                      initial={{ opacity: 0, top: "3rem" }}
+                      animate={{ opacity: 1, top: "3.5rem" }}
+                      exit={{ opacity: 0, top: "3rem" }}
+                      transition={{ duration: 0.25 }}
+                      className="lightestGlassmorphic absolute w-full rounded-md"
+                    >
+                      {artificallyShowLoadingSpinner || isLoadingTabTitles ? (
+                        <div className="baseFlex w-full gap-4 py-4">
+                          <p>Loading</p>
+                          <svg
+                            className="h-6 w-6 animate-spin rounded-full bg-inherit fill-none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                        </div>
+                      ) : (
+                        <>
+                          {tabTitlesAndUsernamesFromSearchQuery === null ? (
+                            <p className="w-full rounded-md p-2">
+                              No results found
+                            </p>
+                          ) : (
+                            <>
+                              {tabTitlesAndUsernamesFromSearchQuery?.map(
+                                (data, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="baseFlex w-full cursor-pointer !justify-start gap-2 rounded-md p-2 transition-all hover:bg-pink-900"
+                                    onClick={() => {
+                                      setHidingAutofillResults(true);
+                                      adjustQueryParams(
+                                        // response order is tabs and then artists, so if the first result is an artist,
+                                        // we know that's the only type of result we have
+                                        data.type === "title"
+                                          ? "tabs"
+                                          : "artists",
+                                        searchQuery
+                                      );
+                                    }}
                                   >
-                                    {data.type === "title" ? "Tab" : "Artist"}
-                                  </Badge>
-                                  {data.value}
-                                </p>
-                              )
-                            )}
-                          </>
-                        )}
-                      </>
-                    )}
-                  </motion.div>
-                )}
+                                    <Badge
+                                      className={`${
+                                        data.type === "title"
+                                          ? "bg-blue-500"
+                                          : "bg-green-500"
+                                      }`}
+                                    >
+                                      {data.type === "title" ? "Tab" : "Artist"}
+                                    </Badge>
+                                    {data.value}
+                                  </div>
+                                )
+                              )}
+                            </>
+                          )}
+                        </>
+                      )}
+                    </motion.div>
+                  )}
               </AnimatePresence>
             </div>
 
             {/* TODO: I really don't like how if you have a <Button><Link> setup, they are treated as two separate things, I feel like you should make a 
               custom class to apply to <Link>s that make them look exactly like buttons, but can click the whole thing and tabbing will just highlight the link! */}
 
-            <Button onClick={() => void push(`/explore/${searchQuery}`)}>
+            <Button
+              onClick={() => {
+                setHidingAutofillResults(true);
+
+                adjustQueryParams(
+                  // response order is tabs and then artists, so if the first result is an artist,
+                  // we know that's the only type of result we have
+                  tabTitlesAndUsernamesFromSearchQuery?.[0]?.type === "username"
+                    ? "artists"
+                    : "tabs",
+                  searchQuery
+                );
+              }}
+            >
               Search
             </Button>
           </div>
