@@ -26,7 +26,8 @@ export const tabRouter = createTRPCRouter({
       const tabTitles = await ctx.prisma.tab.findMany({
         where: {
           title: {
-            contains: input,
+            contains: input, // ideally use fulltext search from postgres, but not sure how to set it up where you get both ddirections of "contains"
+            mode: "insensitive",
           },
         },
         select: {
@@ -52,7 +53,7 @@ export const tabRouter = createTRPCRouter({
 
       const sortedUsernames = sortResultsByRelevance({
         query: input,
-        tabTitles: users.map((user) => user.username!),
+        usernames: users.map((user) => user.username!),
       });
 
       return combineTabTitlesAndUsernames(
@@ -64,11 +65,11 @@ export const tabRouter = createTRPCRouter({
   getInfiniteTabsBySearchQuery: publicProcedure
     .input(
       z.object({
-        searchQuery: z.string(),
-        genreId: z.number().optional(),
+        searchQuery: z.string().optional(),
+        genreId: z.number(),
         sortByRelevance: z.boolean(),
         sortBy: z
-          .enum(["newest", "oldest", "most-liked", "least-liked"])
+          .enum(["newest", "oldest", "mostLiked", "leastLiked"])
           .optional(),
         userIdToSelectFrom: z.string().optional(),
         // limit: z.number(), fine to hardcode I think, maybe end up scaling down from 25 on smaller screens?
@@ -95,11 +96,11 @@ export const tabRouter = createTRPCRouter({
           orderBy = {
             createdAt: "asc",
           };
-        } else if (sortBy === "most-liked") {
+        } else if (sortBy === "mostLiked") {
           orderBy = {
             numberOfLikes: "desc",
           };
-        } else if (sortBy === "least-liked") {
+        } else if (sortBy === "leastLiked") {
           orderBy = {
             numberOfLikes: "asc",
           };
@@ -110,8 +111,18 @@ export const tabRouter = createTRPCRouter({
         take: limit + 1, // get an extra item at the end which we'll use as next cursor
         where: {
           title: {
-            contains: searchQuery,
+            contains: searchQuery, // ideally use fulltext search from postgres, but not sure how to set it up where you get both ddirections of "contains"
+            mode: "insensitive",
           },
+          // not sure if this is best way, basically I would like to get all tabs if genreId is 9 (all genres)
+          genreId:
+            genreId === 9
+              ? {
+                  lt: genreId,
+                }
+              : {
+                  equals: genreId,
+                },
         },
 
         // https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination
@@ -128,8 +139,8 @@ export const tabRouter = createTRPCRouter({
         }
       }
 
-      // sort by relevance if sortByRelevance is true
-      if (sortByRelevance) {
+      // sort by relevance if sortByRelevance is true and there is a search query
+      if (sortByRelevance && searchQuery) {
         tabs = sortResultsByRelevance({
           query: searchQuery,
           tabs: tabs,
