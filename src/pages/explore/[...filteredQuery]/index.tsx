@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import ExploreLayout from "~/components/Layouts/ExploreLayout";
-import SearchResults from "~/components/Explore/SearchResults";
+import SearchResults from "~/components/Search/SearchResults";
 
 function FilteredQueryExplore() {
   const { pathname, asPath, query } = useRouter();
