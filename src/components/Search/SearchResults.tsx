@@ -16,6 +16,8 @@ import {
 import type { Genre } from "@prisma/client";
 import { BsArrowDownShort, BsGridFill } from "react-icons/bs";
 import { MdTableRows } from "react-icons/md";
+import GridView from "./GridView";
+import TableView from "./TableView";
 
 interface SearchResults {
   genreId?: number;
@@ -48,33 +50,6 @@ function SearchResults({
 }: SearchResults) {
   const { asPath, push, query, pathname } = useRouter();
 
-  // memo to set store filter values to query params if they aren't the same
-  // may need to combine with setting store values to null initially so you don't get
-  // weird behavior
-
-  // do query below based on searchQuery + filters (should return either tabs[] or users[])
-  // const { data: tabResults, isLoading: isLoadingTabResults } =
-  //   api.tab.getInfiniteTabsBySearchQuery.useInfiniteQuery(
-  //     // TODO: fix input types on trpc function
-  //     {
-  //       searchQuery,
-  //       genreId,
-  //       sortByRelevance,
-  //       sortBy,
-  //     },
-  //     {
-  //       enabled: type === "tab",
-  //       getNextPageParam: (lastPage) => lastPage.nextCursor,
-  //     }
-  //   );
-
-  // const { data: artistResults, isLoading: isLoadingArtistResults } =
-  //   api.user.getUsersBySearch.useInfiniteQuery(filterType === "artist" ? {
-  //     searchQuery,
-  //     genreId,
-  //     sortBy,
-  //   } : null);
-
   // worry about skeletons later!
 
   const genreArray = api.genre.getAll.useQuery();
@@ -86,7 +61,7 @@ function SearchResults({
       genreArray.data.push({
         id: 9,
         name: "All genres",
-        color: "#000000", // temp color
+        color: "#ec4899",
       });
     }
 
@@ -224,8 +199,6 @@ function SearchResults({
     );
   }
 
-  console.log(additionalSortFilter);
-
   return (
     // prob better practice to let parent component decide vertical margin/padding
     // rather than do it here.
@@ -350,13 +323,15 @@ function SearchResults({
           <div className="baseVertFlex !items-start gap-1.5">
             <Label>Sort by</Label>
             <div className="baseFlex gap-2">
-              <Button
-                variant={sortByRelevance ? "toggledOn" : "toggledOff"}
-                size="sm"
-                onClick={() => handleRelevanceChange()}
-              >
-                Relevance
-              </Button>
+              {searchQuery && (
+                <Button
+                  variant={sortByRelevance ? "toggledOn" : "toggledOff"}
+                  size="sm"
+                  onClick={() => handleRelevanceChange()}
+                >
+                  Relevance
+                </Button>
+              )}
               <Button
                 variant={
                   additionalSortFilter === "newest" ||
@@ -431,6 +406,25 @@ function SearchResults({
       </div>
 
       {/* card view */}
+      <AnimatePresence>
+        {viewType === "grid" ? (
+          <GridView
+            genreId={genreId}
+            type={type}
+            searchQuery={searchQuery}
+            sortByRelevance={sortByRelevance}
+            additionalSortFilter={additionalSortFilter}
+          />
+        ) : (
+          <TableView
+            genreId={genreId}
+            type={type}
+            searchQuery={searchQuery}
+            sortByRelevance={sortByRelevance}
+            additionalSortFilter={additionalSortFilter}
+          />
+        )}
+      </AnimatePresence>
 
       {/* table view */}
     </div>
