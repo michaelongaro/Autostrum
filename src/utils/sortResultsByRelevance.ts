@@ -20,56 +20,62 @@ export function sortResultsByRelevance({
 
   // we get direct matches first (start of string)
   // and put those in front of the other values (the ones that just match *somewhere* in the string)
-
-  // getting rid of duplicate tab titles
-  // const uniqueTabTitles = [...new Set(values.map((tab) => tab.title))];
+  query = query.toLowerCase();
 
   if (tabTitles) {
     const uniqueTabTitles = [...new Set(tabTitles)];
 
     const directMatches = uniqueTabTitles
-      .filter((tab) => tab.startsWith(query))
+      .filter((tab) => tab.toLowerCase().startsWith(query))
       .sort((a, b) => a.length - b.length);
 
     const sortedValues = [
       ...directMatches,
-      ...uniqueTabTitles.filter((tab) => !tab.startsWith(query)),
+      ...uniqueTabTitles.filter((tab) => !tab.toLowerCase().startsWith(query)),
     ];
 
     return sortedValues;
   } else if (usernames) {
     const directMatches = usernames
-      .filter((user) => user.startsWith(query))
+      .filter((username) => username.toLowerCase().startsWith(query))
       .sort((a, b) => a.length - b.length);
 
     const sortedValues = [
       ...directMatches,
       ...usernames.filter(
-        (username) => !username.startsWith(query) && username.includes(query) // needed since we are passing in ALL user's usernames from clerk..
+        (username) =>
+          !username.toLowerCase().startsWith(query) &&
+          // below is needed since we are passing in ALL user's usernames from clerk..
+          username.toLowerCase().includes(query)
       ),
     ];
 
     return sortedValues;
   } else if (tabs) {
     const directMatches = tabs
-      .filter((tab) => tab.title.startsWith(query))
+      .filter((tab) => tab.title.toLowerCase().startsWith(query))
       .sort((a, b) => a.title.length - b.title.length);
 
     const sortedValues = [
       ...directMatches,
-      ...tabs.filter((tab) => !tab.title.startsWith(query)),
+      ...tabs.filter((tab) => !tab.title.toLowerCase().startsWith(query)),
     ];
 
     return sortedValues;
   } else if (artists) {
     const directMatches = artists
-      .filter((artist) => artist.username!.startsWith(query))
+      .filter((artist) => artist.username!.toLowerCase().startsWith(query))
       .sort((a, b) => a.username!.length - b.username!.length);
     // usernames are mandatory in our clerk config
 
     const sortedValues = [
       ...directMatches,
-      ...artists.filter((artist) => !artist.username!.startsWith(query)),
+      ...artists.filter(
+        (artist) =>
+          !artist.username!.toLowerCase().startsWith(query) &&
+          // below is needed since we are passing in ALL user's usernames from clerk..
+          artist.username!.toLowerCase().includes(query)
+      ),
     ];
 
     return sortedValues;
