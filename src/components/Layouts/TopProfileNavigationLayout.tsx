@@ -29,9 +29,14 @@ function TopProfileNavigationLayout({ children }: Layout) {
     return "preferences";
   }, [asPath]);
 
-  const user = api.user.getUserByIdOrUsername.useQuery({
-    username: usernameFromUrl ?? "",
-  });
+  const { data: artist } = api.artist.getByIdOrUsername.useQuery(
+    {
+      username: usernameFromUrl,
+    },
+    {
+      enabled: usernameFromUrl !== "",
+    }
+  );
 
   return (
     <motion.div
@@ -44,8 +49,8 @@ function TopProfileNavigationLayout({ children }: Layout) {
     >
       <Tabs
         defaultValue={finalQueryOfUrl}
-        onValueChange={(value) =>
-          void push(`/user/${user.data?.username ?? ""}/${value}`)
+        onValueChange={
+          (value) => void push(`/user/${artist?.username ?? ""}/${value}`) // should probably include default params for search too right?
         }
         className="baseVertFlex my-24"
       >

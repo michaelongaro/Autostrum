@@ -2,12 +2,16 @@ import type { ReactNode } from "react";
 import Bubbles from "../Bubbles";
 import Header from "../Header/Header";
 import { AnimatePresence } from "framer-motion";
+import useKeepArtistMetadataUpdatedWithClerk from "~/hooks/useKeepArtistMetadataUpdatedWithClerk";
 
 interface GeneralLayout {
   children: ReactNode;
 }
 
 function GeneralLayout({ children }: GeneralLayout) {
+  // reflects any updates made to username/profileImageUrl in Clerk to the ArtistMetadata
+  useKeepArtistMetadataUpdatedWithClerk();
+
   return (
     <div
       style={{
@@ -20,6 +24,7 @@ function GeneralLayout({ children }: GeneralLayout) {
           interactable */}
       <Bubbles />
       <Header />
+      {/* TODO: audio controls should prob go here */}
       <AnimatePresence mode="wait">{children}</AnimatePresence>
     </div>
   );

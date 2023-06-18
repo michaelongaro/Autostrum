@@ -15,7 +15,7 @@ import {
 } from "../ui/select";
 import type { Genre } from "@prisma/client";
 import { BsArrowDownShort, BsGridFill } from "react-icons/bs";
-import { MdTableRows } from "react-icons/md";
+import { CiViewTable } from "react-icons/ci";
 import GridView from "./GridView";
 import TableView from "./TableView";
 
@@ -314,7 +314,7 @@ function SearchResults({
                 size="sm"
                 onClick={() => handleViewChange("table")}
               >
-                <MdTableRows className="h-4 w-4" />
+                <CiViewTable className="h-4 w-4" />
               </Button>
             </div>
           </div>

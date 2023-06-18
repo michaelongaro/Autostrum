@@ -1,10 +1,10 @@
 import { useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useClerk } from "@clerk/nextjs";
 import { api } from "~/utils/api";
 import { useRouter } from "next/router";
 
 function PostSignUpRegistration() {
-  const { userId } = useAuth();
+  const { user } = useClerk();
   const { push } = useRouter();
 
   const { mutate: addNewUser } =
@@ -15,9 +15,13 @@ function PostSignUpRegistration() {
     });
 
   useEffect(() => {
-    if (!userId) return;
-    addNewUser(userId);
-  }, [userId, addNewUser]);
+    if (!user) return;
+    addNewUser({
+      userId: user.id,
+      username: user.username!,
+      profileImageUrl: user.profileImageUrl,
+    });
+  }, [user, addNewUser]);
 
   return null;
 }

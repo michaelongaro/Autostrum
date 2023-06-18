@@ -1,7 +1,7 @@
 import React from "react";
 import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
-import GridCard from "./GridCard";
+import GridTabCard from "./GridTabCard";
 
 interface GridView {
   genreId?: number;
@@ -33,6 +33,17 @@ function GridView({
       }
     );
 
+  const { data: artistResults, isLoading: isLoadingArtistResults } =
+    api.user.getUsersBySearch.useInfiniteQuery(
+      filterType === "artist"
+        ? {
+            searchQuery,
+            genreId,
+            sortBy,
+          }
+        : null
+    );
+
   console.log(tabResults);
 
   // may need resize observer to refetch data when more tabs are able to be shown
@@ -51,6 +62,7 @@ function GridView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
+      // prob have cols by dynamic based on tabs/artists
       className="grid w-full grid-cols-1 place-items-center p-2 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4"
     >
       <AnimatePresence mode="wait">
@@ -91,14 +103,23 @@ function GridView({
 
       {tabResults && (
         <>
-          {tabResults.pages.map((page) =>
-            // is page.tabs is null I think it's saying, investigate why!
-            page.tabs?.map((tab) => (
-              <AnimatePresence key={tab.id} mode={"wait"}>
-                <GridCard {...tab} />
-              </AnimatePresence>
-            ))
-          )}
+          {type === "tabs"
+            ? tabResults.pages.map((page) =>
+                // is page.tabs is null I think it's saying, investigate why!
+                page.tabs?.map((tab) => (
+                  <AnimatePresence key={tab.id} mode={"wait"}>
+                    <GridTabCard {...tab} />
+                  </AnimatePresence>
+                ))
+              )
+            : tabResults.pages.map((page) =>
+                // is page.tabs is null I think it's saying, investigate why!
+                page.tabs?.map((tab) => (
+                  <AnimatePresence key={tab.id} mode={"wait"}>
+                    <GridArtistCard {...tab} />
+                  </AnimatePresence>
+                ))
+              )}
         </>
       )}
 

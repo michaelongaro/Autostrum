@@ -1,7 +1,8 @@
 import { createTRPCRouter } from "~/server/api/trpc";
 import { genreRouter } from "~/server/api/routers/genre";
 import { tabRouter } from "./routers/tab";
-import { userRouter } from "./routers/user";
+import { artistRouter } from "./routers/artist";
+import { likeRouter } from "./routers/like";
 import { postSignUpRegistrationRouter } from "./routers/postSignUpRegistration";
 
 /**
@@ -12,7 +13,8 @@ import { postSignUpRegistrationRouter } from "./routers/postSignUpRegistration";
 export const appRouter = createTRPCRouter({
   genre: genreRouter,
   tab: tabRouter,
-  user: userRouter,
+  artist: artistRouter,
+  like: likeRouter,
   postSignUpRegistration: postSignUpRegistrationRouter,
 });
 

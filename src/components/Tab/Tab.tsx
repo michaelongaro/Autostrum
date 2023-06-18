@@ -14,6 +14,7 @@ import { Button } from "../ui/button";
 import { FaItunesNote } from "react-icons/fa";
 import { Separator } from "../ui/separator";
 import EffectGlossary from "../ui/EffectGlossary";
+import type { TabWithLikes } from "~/server/api/routers/tab";
 
 // not sure of best way to avoid having the same name for interface and component
 export interface ITabSection {
@@ -21,7 +22,7 @@ export interface ITabSection {
   data: string[][];
 }
 
-function Tab({ tab }: { tab: Tab | undefined | null }) {
+function Tab({ tab }: { tab: TabWithLikes | undefined | null }) {
   const { user, loaded } = useClerk();
   const { userId, isLoaded } = useAuth();
 
@@ -99,8 +100,8 @@ function Tab({ tab }: { tab: Tab | undefined | null }) {
     setTitle,
     setOriginalTabData,
     setTuning,
-    setSectionProgression,
     setNumberOfLikes,
+    setSectionProgression,
   ]);
 
   return (

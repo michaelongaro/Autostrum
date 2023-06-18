@@ -97,10 +97,9 @@ function TabMetadata() {
     setBpm,
     timeSignature,
     setTimeSignature,
+    numberOfLikes,
     capo,
     setCapo,
-    numberOfLikes,
-    setNumberOfLikes,
     editing,
     setEditing,
     setOriginalTabData,
@@ -125,81 +124,113 @@ function TabMetadata() {
       setTimeSignature: state.setTimeSignature,
       capo: state.capo,
       setCapo: state.setCapo,
-      numberOfLikes: state.numberOfLikes,
-      setNumberOfLikes: state.setNumberOfLikes,
       editing: state.editing,
+      numberOfLikes: state.numberOfLikes,
       setEditing: state.setEditing,
       setOriginalTabData: state.setOriginalTabData,
     }),
     shallow
   );
 
-  const { mutate: toggleLike, isLoading: isLiking } =
-    api.tab.toggleTabLikeStatus.useMutation({
+  const { mutate: likeTab, isLoading: isLiking } =
+    api.like.createLike.useMutation({
       onMutate: async (data) => {
         // optimistic update
-
         // have check to also optimistically update tabCreator query if on their page (if "user" is in url)
-
         // updating number of likes on tab (hmm do you want to do this normally or just update
         // store value...)
-        setNumberOfLikes(numberOfLikes + (data.likingTab ? 1 : -1));
-
-        await ctx.tab.getTabById.cancel();
-        ctx.tab.getTabById.setData(
-          {
-            id,
-          },
-          (prevTabData) => {
-            if (!prevTabData) return prevTabData;
-            return {
-              ...prevTabData,
-              numberOfLikes: data.likingTab
-                ? prevTabData.numberOfLikes + 1
-                : prevTabData.numberOfLikes - 1,
-            };
-          }
-        );
-
-        await ctx.user.getUserByIdOrUsername.cancel();
-        ctx.user.getUserByIdOrUsername.setData(
-          {
-            id: userId!,
-          },
-          (prevUserData) => {
-            if (!prevUserData || !prevUserData.publicMetadata.likedTabIds)
-              return prevUserData;
-            return {
-              ...prevUserData,
-              publicMetadata: {
-                ...prevUserData.publicMetadata,
-                likedTabIds: data.likingTab
-                  ? [...prevUserData.publicMetadata.likedTabIds, id]
-                  : prevUserData.publicMetadata.likedTabIds.filter(
-                      (tabId) => tabId !== id
-                    ),
-              },
-            };
-          }
-        );
+        // fyi: want to be invalidating artist query since we want to rerun query for which tabs are liked
+        // but again see what it looks like without optimistic upate
+        // await ctx.user.getUserByIdOrUsername.cancel();
+        // ctx.user.getUserByIdOrUsername.setData(
+        //   {
+        //     id: userId!,
+        //   },
+        //   (prevUserData) => {
+        //     if (!prevUserData || !prevUserData.publicMetadata.likedTabIds)
+        //       return prevUserData;
+        //     return {
+        //       ...prevUserData,
+        //       publicMetadata: {
+        //         ...prevUserData.publicMetadata,
+        //         likedTabIds: data.likingTab
+        //           ? [...prevUserData.publicMetadata.likedTabIds, id]
+        //           : prevUserData.publicMetadata.likedTabIds.filter(
+        //               (tabId) => tabId !== id
+        //             ),
+        //       },
+        //     };
+        //   }
+        // );
       },
       onError: (e) => {
         console.error(e);
       },
       onSettled: () => {
         void ctx.tab.getTabById.invalidate();
+
+        // void ctx.artist.getByIdOrUsername.invalidate();
+        void refetchTabCreator(); // hoping this works as expected
+      },
+    });
+
+  const { mutate: unlikeTab, isLoading: isUnliking } =
+    api.like.deleteLike.useMutation({
+      onMutate: async (data) => {
+        // optimistic update
+        // have check to also optimistically update tabCreator query if on their page (if "user" is in url)
+        // updating number of likes on tab (hmm do you want to do this normally or just update
+        // store value...)
+        // fyi: want to be invalidating artist query since we want to rerun query for which tabs are liked
+        // but again see what it looks like without optimistic upate
+        // await ctx.user.getUserByIdOrUsername.cancel();
+        // ctx.user.getUserByIdOrUsername.setData(
+        //   {
+        //     id: userId!,
+        //   },
+        //   (prevUserData) => {
+        //     if (!prevUserData || !prevUserData.publicMetadata.likedTabIds)
+        //       return prevUserData;
+        //     return {
+        //       ...prevUserData,
+        //       publicMetadata: {
+        //         ...prevUserData.publicMetadata,
+        //         likedTabIds: data.likingTab
+        //           ? [...prevUserData.publicMetadata.likedTabIds, id]
+        //           : prevUserData.publicMetadata.likedTabIds.filter(
+        //               (tabId) => tabId !== id
+        //             ),
+        //       },
+        //     };
+        //   }
+        // );
+      },
+      onError: (e) => {
+        console.error(e);
+      },
+      onSettled: () => {
+        void ctx.tab.getTabById.invalidate();
+
+        // void ctx.artist.getByIdOrUsername.invalidate();
+        void refetchTabCreator(); // hoping this works as expected
       },
     });
 
   // current user
-  const { data: currentUser } = api.user.getUserByIdOrUsername.useQuery({
-    id: userId ?? "",
-  });
+  const { data: currentArtist } = api.artist.getByIdOrUsername.useQuery(
+    {
+      userId: userId ?? "",
+    },
+    {
+      enabled: !!userId,
+    }
+  );
 
   // owner of tab
-  const { data: tabCreator } = api.user.getUserByIdOrUsername.useQuery({
-    id: createdById ?? "",
-  });
+  const { data: tabCreator, refetch: refetchTabCreator } =
+    api.artist.getByIdOrUsername.useQuery({
+      userId: createdById,
+    });
 
   function handleGenreChange(stringifiedId: string) {
     const id = parseInt(stringifiedId);
@@ -313,7 +344,6 @@ function TabMetadata() {
       sectionProgression,
       timeSignature,
       capo,
-      numberOfLikes,
       createdById,
     };
 
@@ -588,22 +618,24 @@ function TabMetadata() {
                       variant={"ghost"}
                       className="baseFlex gap-2 p-2"
                       onClick={() => {
-                        if (!currentUser) return;
+                        if (!tabCreator || !currentArtist) return;
 
-                        toggleLike({
-                          likingTab:
-                            !currentUser.publicMetadata.likedTabIds.includes(
-                              id
-                            ),
-                          tabOwnerId: createdById,
-                          tabId: id,
-                          userId: userId ?? "",
-                        });
+                        if (currentArtist.likedTabIds.includes(id)) {
+                          unlikeTab({
+                            tabId: id,
+                            artistWhoLikedId: currentArtist.userId,
+                          });
+                        } else {
+                          likeTab({
+                            tabId: id,
+                            tabArtistId: createdById,
+                            tabArtistUsername: tabCreator.username,
+                            artistWhoLikedId: currentArtist.userId,
+                          });
+                        }
                       }}
                     >
-                      {currentUser?.publicMetadata?.likedTabIds?.includes(
-                        id
-                      ) ? (
+                      {currentArtist?.likedTabIds?.includes(id) ? (
                         <AiFillHeart className="h-6 w-6 text-pink-800" />
                       ) : (
                         <AiOutlineHeart className="h-6 w-6" />

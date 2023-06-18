@@ -1,5 +1,6 @@
 generator client {
-    provider = "prisma-client-js"
+    provider        = "prisma-client-js"
+    previewFeatures = ["filteredRelationCount"]
 }
 
 datasource db {
@@ -7,13 +8,22 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model UserMetadata {
-    id                 Int    @id @default(autoincrement())
-    userId             String @unique
-    likedTabIds        Int[]  @default([])
-    totalLikesReceived Int    @default(0)
-    totalTabsCreated   Int    @default(0)
-    pinnedTabId        Int?
+model Artist {
+    id              Int      @id @default(autoincrement())
+    createdAt       DateTime @default(now())
+    userId          String   @unique
+    username        String   @unique
+    profileImageUrl String
+    pinnedTabId     Int?
+    likesGiven      Like[]   @relation("likeGiver")
+    likesReceived   Like[]   @relation("likeRecipient") // prob want better field name..
+    tabs            Tab[]
+
+    // might also need receivedLikes too, but I think we can nested query for it
+
+    // likedTabIds        Int[]    @default([])
+    // totalLikesReceived Int      @default(0)
+    // totalTabsCreated   Int      @default(0)
 }
 
 model Tab {
@@ -27,11 +37,25 @@ model Tab {
     timeSignature      String?
     capo               Int?
     createdAt          DateTime  @default(now())
+    artist             Artist    @relation(fields: [createdById], references: [userId])
     createdById        String
-    numberOfLikes      Int
+    likes              Like[]
     genre              Genre     @relation(fields: [genreId], references: [id])
     genreId            Int
     comments           Comment[]
+
+    // numberOfLikes      Int
+}
+
+model Like {
+    id                Int    @id @default(autoincrement())
+    tab               Tab    @relation(fields: [tabId], references: [id])
+    tabId             Int
+    tabArtist         Artist @relation("likeRecipient", fields: [tabArtistId], references: [userId])
+    tabArtistId       String
+    tabArtistUsername String // necessary to avoid extra query when only searching with username
+    artistWhoLikes    Artist @relation("likeGiver", fields: [artistWhoLikedId], references: [userId])
+    artistWhoLikedId  String
 }
 
 model Genre {

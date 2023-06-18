@@ -7,12 +7,20 @@ export const postSignUpRegistrationRouter = createTRPCRouter({
   // organized option though...
 
   initializeNewUser: publicProcedure
-    .input(z.string())
+    .input(
+      z.object({
+        userId: z.string(),
+        username: z.string(),
+        profileImageUrl: z.string(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
-      await ctx.prisma.userMetadata
+      await ctx.prisma.artist
         .create({
           data: {
-            userId: input,
+            userId: input.userId,
+            username: input.username,
+            profileImageUrl: input.profileImageUrl,
           },
         })
         .catch((err) => {
