@@ -12,8 +12,9 @@ import formatDate from "~/utils/formatDate";
 import { formatNumber } from "~/utils/formatNumber";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
+import type { ArtistMetadata } from "~/server/api/routers/artist";
 
-function GridArtistCard(artist: User) {
+function GridArtistCard(artist: ArtistMetadata) {
   const { userId, isLoaded } = useAuth();
   const { push } = useRouter();
 

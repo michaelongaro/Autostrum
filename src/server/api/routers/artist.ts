@@ -115,7 +115,7 @@ export const artistRouter = createTRPCRouter({
   // })
   // it looks like the above block will first sorts by role, then by email, so you could do relevance first,
   // then by date/likes? Straight up I don't know what the exact difference would be by swapping sort order but
-  // test it out or obv look it up/chatgpt! I still think it's fine to keep "manual" counting of likes/total tabs tbh and I
+  // test it out or obv look it up/chatgpt! I still think it's fine to keep "manual" counting of likes/total artists tbh and I
   // don't really see that changing but keep an open mind throughout all of this while experimenting!
 
   // I feel like below is your best option to try first:
@@ -133,26 +133,38 @@ export const artistRouter = createTRPCRouter({
     .input(
       z.object({
         searchQuery: z.string().optional(),
-        genreId: z.number(),
         sortByRelevance: z.boolean(),
         sortBy: z
           .enum(["newest", "oldest", "mostLiked", "leastLiked"])
           .optional(),
-        userIdToSelectFrom: z.string().optional(),
         // limit: z.number(), fine to hardcode I think, maybe end up scaling down from 25 on smaller screens?
         cursor: z.number().nullish(), // <-- "cursor" needs to exist, but can be any type
       })
     )
     .query(async ({ input, ctx }) => {
-      const { searchQuery, genreId, sortByRelevance, sortBy, cursor } = input;
+      const { searchQuery, sortByRelevance, sortBy, cursor } = input;
       const limit = 25;
 
       let orderBy:
         | {
+            _relevance?: {
+              fields: ["username"];
+              search: string;
+              sort: "asc" | "desc";
+            };
             createdAt?: "asc" | "desc";
             numberOfLikes?: "asc" | "desc";
           }
-        | undefined = undefined;
+        | undefined =
+        input.searchQuery && sortByRelevance
+          ? {
+              _relevance: {
+                fields: ["username"],
+                search: input.searchQuery,
+                sort: "asc",
+              },
+            }
+          : undefined;
 
       if (sortBy) {
         if (sortBy === "newest") {
@@ -174,22 +186,13 @@ export const artistRouter = createTRPCRouter({
         }
       }
 
-      let tabs = await ctx.prisma.tab.findMany({
+      const artists = await ctx.prisma.artist.findMany({
         take: limit + 1, // get an extra item at the end which we'll use as next cursor
         where: {
-          title: {
-            contains: searchQuery, // ideally use fulltext search from postgres, but not sure how to set it up where you get both ddirections of "contains"
+          username: {
+            contains: searchQuery,
             mode: "insensitive",
           },
-          // not sure if this is best way, basically I would like to get all tabs if genreId is 9 (all genres)
-          genreId:
-            genreId === 9
-              ? {
-                  lt: genreId,
-                }
-              : {
-                  equals: genreId,
-                },
         },
 
         // https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination
@@ -199,32 +202,32 @@ export const artistRouter = createTRPCRouter({
         orderBy: orderBy,
       });
       let nextCursor: typeof cursor | undefined = undefined;
-      if (tabs.length > limit) {
-        const nextItem = tabs.pop();
+      if (artists.length > limit) {
+        const nextItem = artists.pop();
         if (nextItem) {
           nextCursor = nextItem.id;
         }
       }
 
       // sort by relevance if sortByRelevance is true and there is a search query
-      if (sortByRelevance && searchQuery) {
-        tabs = sortResultsByRelevance({
-          query: searchQuery,
-          tabs: tabs,
-        }) as Tab[];
-      }
+      // if (sortByRelevance && searchQuery) {
+      //   artists = sortResultsByRelevance({
+      //     query: searchQuery,
+      //     artists: artists,
+      //   }) as Tab[];
+      // }
 
       // ideally find way to not have to add "as type" without just splitting
       // into different functions...
 
       return {
-        tabs,
+        artists,
         nextCursor,
       };
     }),
 
   // should be private
-  deleteUser: publicProcedure
+  deleteArtist: publicProcedure
     .input(z.string())
     .mutation(async ({ input: userId, ctx }) => {
       void clerkClient.users.deleteUser(userId);

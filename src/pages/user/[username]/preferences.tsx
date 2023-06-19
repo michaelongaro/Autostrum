@@ -43,12 +43,12 @@ function Preferences() {
     return "";
   }, [router.query.username]);
 
-  const user = api.user.getUserByIdOrUsername.useQuery({
+  const user = api.artist.getByIdOrUsername.useQuery({
     username: usernameFromUrl ?? "",
   });
 
   const { mutate: deleteAccount, isLoading: isDeleting } =
-    api.user.deleteUser.useMutation({
+    api.artist.deleteArtist.useMutation({
       onSuccess: async () => {
         await push(`/`);
       },

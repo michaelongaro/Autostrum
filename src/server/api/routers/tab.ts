@@ -35,8 +35,6 @@ export const tabRouter = createTRPCRouter({
         numberOfLikes: tab._count.likes,
       };
 
-      console.log("tab has", tabWithLikes.numberOfLikes, "likes");
-
       return tabWithLikes;
     }),
 
@@ -50,7 +48,8 @@ export const tabRouter = createTRPCRouter({
         where: {
           title: {
             contains: input, // ideally use fulltext search from postgres, but not sure how to set it up where you get both ddirections of "contains"
-            mode: "insensitive",
+            // search: input,
+            mode: "insensitive", // not sure if necessary using fulltext search
           },
         },
         select: {
@@ -59,29 +58,55 @@ export const tabRouter = createTRPCRouter({
 
         orderBy: {
           // this part below should be calculated above based on props and put into state to plug in below
-          title: "asc",
+          // title: "asc",
+          _relevance: {
+            fields: ["title"],
+            search: input,
+            sort: "asc",
+          },
+        },
+      });
+
+      const artists = await ctx.prisma.artist.findMany({
+        where: {
+          username: {
+            contains: input,
+            // search: input,
+            mode: "insensitive",
+          },
+        },
+        select: {
+          username: true,
+        },
+        orderBy: {
+          // username: "asc",
+          _relevance: {
+            fields: ["username"],
+            search: input,
+            sort: "asc",
+          },
         },
       });
 
       // need to get all users since filtering by username only supports exact full
       // matches, not partial matches.
-      const users = await clerkClient.users.getUserList();
+      // const users = await clerkClient.users.getUserList();
 
-      if (tabTitles.length === 0 && users.length === 0) return null;
+      // if (tabTitles.length === 0 && users.length === 0) return null;
 
-      const sortedTabTitles = sortResultsByRelevance({
-        query: input,
-        tabTitles: tabTitles.map((tab) => tab.title),
-      });
+      // const sortedTabTitles = sortResultsByRelevance({
+      //   query: input,
+      //   tabTitles: tabTitles.map((tab) => tab.title),
+      // });
 
-      const sortedUsernames = sortResultsByRelevance({
-        query: input,
-        usernames: users.map((user) => user.username!),
-      });
+      // const sortedUsernames = sortResultsByRelevance({
+      //   query: input,
+      //   usernames: users.map((user) => user.username!),
+      // });
 
       return combineTabTitlesAndUsernames(
-        sortedTabTitles as string[],
-        sortedUsernames as string[]
+        tabTitles.map((tab) => tab.title),
+        artists.map((artist) => artist.username)
       );
     }),
 
@@ -100,15 +125,38 @@ export const tabRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      const { searchQuery, genreId, sortByRelevance, sortBy, cursor } = input;
+      const {
+        searchQuery,
+        genreId,
+        sortByRelevance,
+        sortBy,
+        userIdToSelectFrom,
+        cursor,
+      } = input;
       const limit = 25;
 
       let orderBy:
         | {
+            _relevance?: {
+              fields: ["title"];
+              search: string;
+              sort: "asc" | "desc";
+            };
             createdAt?: "asc" | "desc";
-            numberOfLikes?: "asc" | "desc";
+            likes?: {
+              _count: "asc" | "desc";
+            };
           }
-        | undefined = undefined;
+        | undefined =
+        input.searchQuery && sortByRelevance
+          ? {
+              _relevance: {
+                fields: ["title"],
+                search: input.searchQuery,
+                sort: "asc",
+              },
+            }
+          : undefined;
 
       if (sortBy) {
         if (sortBy === "newest") {
@@ -121,20 +169,24 @@ export const tabRouter = createTRPCRouter({
           };
         } else if (sortBy === "mostLiked") {
           orderBy = {
-            numberOfLikes: "desc",
+            likes: {
+              _count: "desc",
+            },
           };
         } else if (sortBy === "leastLiked") {
           orderBy = {
-            numberOfLikes: "asc",
+            likes: {
+              _count: "asc",
+            },
           };
         }
       }
 
-      let tabs = await ctx.prisma.tab.findMany({
+      const tabs = await ctx.prisma.tab.findMany({
         take: limit + 1, // get an extra item at the end which we'll use as next cursor
         where: {
           title: {
-            contains: searchQuery, // ideally use fulltext search from postgres, but not sure how to set it up where you get both ddirections of "contains"
+            contains: searchQuery,
             mode: "insensitive",
           },
           // not sure if this is best way, basically I would like to get all tabs if genreId is 9 (all genres)
@@ -146,6 +198,7 @@ export const tabRouter = createTRPCRouter({
               : {
                   equals: genreId,
                 },
+          createdById: userIdToSelectFrom,
         },
 
         // https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination
@@ -163,12 +216,12 @@ export const tabRouter = createTRPCRouter({
       }
 
       // sort by relevance if sortByRelevance is true and there is a search query
-      if (sortByRelevance && searchQuery) {
-        tabs = sortResultsByRelevance({
-          query: searchQuery,
-          tabs: tabs,
-        }) as Tab[];
-      }
+      // if (sortByRelevance && searchQuery) {
+      //   tabs = sortResultsByRelevance({
+      //     query: searchQuery,
+      //     tabs: tabs,
+      //   }) as Tab[];
+      // }
 
       // ideally find way to not have to add "as type" without just splitting
       // into different functions...

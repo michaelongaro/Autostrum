@@ -18,17 +18,17 @@ function GridTabCard(tab: Tab) {
   const { userId, isLoaded } = useAuth();
   const { push } = useRouter();
 
-  const { data: currentUser } = api.user.getUserByIdOrUsername.useQuery(
+  const { data: currentUser } = api.artist.getByIdOrUsername.useQuery(
     {
-      id: userId!,
+      userId: userId!,
     },
     {
       enabled: isLoaded,
     }
   );
 
-  const { data: tabCreator } = api.user.getUserByIdOrUsername.useQuery({
-    id: tab.createdById,
+  const { data: tabCreator } = api.artist.getByIdOrUsername.useQuery({
+    userId: tab.createdById,
   });
 
   const [numberOfLikes, setNumberOfLikes] = useState(tab.numberOfLikes);

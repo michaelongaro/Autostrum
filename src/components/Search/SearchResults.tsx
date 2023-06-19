@@ -16,8 +16,10 @@ import {
 import type { Genre } from "@prisma/client";
 import { BsArrowDownShort, BsGridFill } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
-import GridView from "./GridView";
+import GridView from "./GridTabView";
 import TableView from "./TableView";
+import GridTabView from "./GridTabView";
+import GridArtistView from "./GridArtistView";
 
 interface SearchResults {
   genreId?: number;
@@ -408,14 +410,24 @@ function SearchResults({
       {/* card view */}
       <AnimatePresence>
         {viewType === "grid" ? (
-          <GridView
-            genreId={genreId}
-            type={type}
-            searchQuery={searchQuery}
-            sortByRelevance={sortByRelevance}
-            additionalSortFilter={additionalSortFilter}
-          />
+          <>
+            {type === "tabs" ? (
+              <GridTabView
+                genreId={genreId}
+                searchQuery={searchQuery}
+                sortByRelevance={sortByRelevance}
+                additionalSortFilter={additionalSortFilter}
+              />
+            ) : (
+              <GridArtistView
+                searchQuery={searchQuery}
+                sortByRelevance={sortByRelevance}
+                additionalSortFilter={additionalSortFilter}
+              />
+            )}
+          </>
         ) : (
+          // do same pattern for below here (need to make components still)
           <TableView
             genreId={genreId}
             type={type}

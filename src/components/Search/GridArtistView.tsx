@@ -1,50 +1,28 @@
 import React from "react";
 import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
-import GridTabCard from "./GridTabCard";
+import GridArtistCard from "./GridArtistCard";
 
-interface GridView {
-  genreId?: number;
-  type?: "tabs" | "artists";
+interface GridArtistView {
   searchQuery?: string;
   sortByRelevance: boolean;
   additionalSortFilter?: "newest" | "oldest" | "leastLiked" | "mostLiked";
 }
 
-function GridView({
-  genreId,
-  type,
+function GridArtistView({
   searchQuery,
   sortByRelevance,
   additionalSortFilter,
-}: GridView) {
-  // do query below based on searchQuery + filters (should return either tabs[] or users[])
-  const { data: tabResults, isLoading: isLoadingTabResults } =
-    api.tab.getInfiniteTabsBySearchQuery.useInfiniteQuery(
-      // TODO: fix input types on trpc function
-      {
-        searchQuery,
-        genreId: genreId ?? 9,
-        sortByRelevance,
-        sortBy: additionalSortFilter,
-      },
+}: GridArtistView) {
+  const { data: artistResults, isLoading: isLoadingArtistResults } =
+    api.artist.getInfiniteArtistsBySearchQuery.useInfiniteQuery(
+      { searchQuery, sortByRelevance, sortBy: additionalSortFilter },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
       }
     );
 
-  const { data: artistResults, isLoading: isLoadingArtistResults } =
-    api.user.getUsersBySearch.useInfiniteQuery(
-      filterType === "artist"
-        ? {
-            searchQuery,
-            genreId,
-            sortBy,
-          }
-        : null
-    );
-
-  console.log(tabResults);
+  console.log(artistResults);
 
   // may need resize observer to refetch data when more tabs are able to be shown
   // but maybe also is automatically handled by IntersectionObserver hook for main infinite scroll
@@ -57,7 +35,7 @@ function GridView({
 
   return (
     <motion.div
-      key={"gridViewSearchResults"}
+      key={"GridArtistViewSearchResults"}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -66,7 +44,7 @@ function GridView({
       className="grid w-full grid-cols-1 place-items-center p-2 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4"
     >
       <AnimatePresence mode="wait">
-        {isLoadingTabResults && (
+        {isLoadingArtistResults && (
           // alternatively look into like animated loading dots?
           <motion.div
             key={"searchAutofill"}
@@ -101,26 +79,13 @@ function GridView({
         )}
       </AnimatePresence>
 
-      {tabResults && (
-        <>
-          {type === "tabs"
-            ? tabResults.pages.map((page) =>
-                // is page.tabs is null I think it's saying, investigate why!
-                page.tabs?.map((tab) => (
-                  <AnimatePresence key={tab.id} mode={"wait"}>
-                    <GridTabCard {...tab} />
-                  </AnimatePresence>
-                ))
-              )
-            : tabResults.pages.map((page) =>
-                // is page.tabs is null I think it's saying, investigate why!
-                page.tabs?.map((tab) => (
-                  <AnimatePresence key={tab.id} mode={"wait"}>
-                    <GridArtistCard {...tab} />
-                  </AnimatePresence>
-                ))
-              )}
-        </>
+      {artistResults?.pages.map((page) =>
+        // is page.tabs is null I think it's saying, investigate why!
+        page.artists?.map((artist) => (
+          <AnimatePresence key={artist.id} mode={"wait"}>
+            <GridArtistCard {...artist} />
+          </AnimatePresence>
+        ))
       )}
 
       {/* hmm should also have "no results" jsx block too right? */}
@@ -128,4 +93,4 @@ function GridView({
   );
 }
 
-export default GridView;
+export default GridArtistView;

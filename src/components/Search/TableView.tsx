@@ -16,7 +16,7 @@ function TableView({
   additionalSortFilter,
 }: TableView) {
   // const { data: artistResults, isLoading: isLoadingArtistResults } =
-  //   api.user.getUsersBySearch.useInfiniteQuery(filterType === "artist" ? {
+  //   api.artist.getUsersBySearch.useInfiniteQuery(filterType === "artist" ? {
   //     searchQuery,
   //     genreId,
   //     sortBy,
