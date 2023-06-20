@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, type ReactNode } from "react";
+import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/router";
@@ -28,6 +28,8 @@ function ExploreLayout({ children }: Layout) {
   const [hidingAutofillResults, setHidingAutofillResults] = useState(false);
   const [artificallyShowLoadingSpinner, setArtificallyShowLoadingSpinner] =
     useState(false);
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const {
     data: tabTitlesAndUsernamesFromSearchQuery,
@@ -179,6 +181,7 @@ function ExploreLayout({ children }: Layout) {
           <div className="baseFlex gap-4">
             <div className="relative">
               <Input
+                ref={searchInputRef}
                 type="text"
                 maxLength={30}
                 placeholder="Search for your favorite tabs and artists"
@@ -201,7 +204,13 @@ function ExploreLayout({ children }: Layout) {
                   setSearchQuery(query);
                 }}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  if (
+                    document.activeElement === searchInputRef.current &&
+                    e.key === "Enter"
+                  ) {
+                    // TODO: probably also want to darken search button on enter down
+                    // and then lighten on enter up
+
                     setHidingAutofillResults(true);
 
                     adjustQueryParams(
@@ -276,7 +285,7 @@ function ExploreLayout({ children }: Layout) {
                                         data.type === "title"
                                           ? "tabs"
                                           : "artists",
-                                        searchQuery
+                                        data.value
                                       );
                                     }}
                                   >
