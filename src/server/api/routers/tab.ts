@@ -135,50 +135,58 @@ export const tabRouter = createTRPCRouter({
       } = input;
       const limit = 25;
 
-      let orderBy:
-        | {
-            _relevance?: {
-              fields: ["title"];
-              search: string;
-              sort: "asc" | "desc";
-            };
-            createdAt?: "asc" | "desc";
-            likes?: {
-              _count: "asc" | "desc";
-            };
-          }
+      const orderBy:
+        | [
+            | {
+                _relevance: {
+                  fields: ["title"];
+                  search: string;
+                  sort: "asc" | "desc";
+                };
+              }
+            | {
+                createdAt?: "asc" | "desc";
+                likes?: {
+                  _count: "asc" | "desc";
+                };
+              }
+          ]
         | undefined =
         input.searchQuery && sortByRelevance
-          ? {
-              _relevance: {
-                fields: ["title"],
-                search: input.searchQuery,
-                sort: "asc",
+          ? [
+              {
+                _relevance: {
+                  fields: ["title"],
+                  // bit of a problem with allowing spaces... seems like you need prisma to fix this
+                  // or find some hack around it..
+                  search: input.searchQuery.replace(/[\s\n\t]/g, "_"),
+                  sort: "asc",
+                },
               },
-            }
+            ]
           : undefined;
 
       if (sortBy) {
         if (sortBy === "newest") {
-          orderBy = {
+          orderBy?.push({
             createdAt: "desc",
-          };
+          });
         } else if (sortBy === "oldest") {
-          orderBy = {
+          orderBy?.push({
             createdAt: "asc",
-          };
+          });
         } else if (sortBy === "mostLiked") {
-          orderBy = {
+          orderBy?.push({
             likes: {
               _count: "desc",
             },
-          };
+          });
         } else if (sortBy === "leastLiked") {
-          orderBy = {
+          orderBy?.push({
             likes: {
               _count: "asc",
             },
-          };
+          });
         }
       }
 
@@ -200,12 +208,18 @@ export const tabRouter = createTRPCRouter({
                 },
           createdById: userIdToSelectFrom,
         },
-
+        include: {
+          _count: {
+            select: {
+              likes: true,
+            },
+          },
+        },
+        ...(orderBy !== undefined ? { orderBy: orderBy } : {}),
         // https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination
 
         //                 hoping that replacing "myCursor" with id is the logical replacement to make
         cursor: cursor ? { id: cursor } : undefined,
-        orderBy: orderBy,
       });
       let nextCursor: typeof cursor | undefined = undefined;
       if (tabs.length > limit) {
@@ -213,6 +227,15 @@ export const tabRouter = createTRPCRouter({
         if (nextItem) {
           nextCursor = nextItem.id;
         }
+      }
+
+      const tabsWithLikes: TabWithLikes[] = [];
+
+      for (const tab of tabs) {
+        tabsWithLikes.push({
+          ...tab,
+          numberOfLikes: tab._count.likes,
+        });
       }
 
       // sort by relevance if sortByRelevance is true and there is a search query
@@ -227,7 +250,7 @@ export const tabRouter = createTRPCRouter({
       // into different functions...
 
       return {
-        tabs,
+        tabs: tabsWithLikes,
         nextCursor,
       };
     }),
