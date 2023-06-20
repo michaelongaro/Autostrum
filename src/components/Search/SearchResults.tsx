@@ -20,6 +20,8 @@ import GridView from "./GridTabView";
 import TableView from "./TableView";
 import GridTabView from "./GridTabView";
 import GridArtistView from "./GridArtistView";
+import TableTabView from "./TableTabView";
+import TableArtistView from "./TableArtistView";
 
 interface SearchResults {
   genreId?: number;
@@ -206,7 +208,7 @@ function SearchResults({
     // rather than do it here.
     <div className="baseVertFlex mt-8 w-full rounded-md border-2 border-pink-900">
       {/* # of results + sorting options */}
-      <div className="baseVertFlex w-full bg-pink-900 px-4 py-2 md:flex-row md:!justify-between">
+      <div className="baseVertFlex w-full !items-start gap-2 bg-pink-900 px-4 py-2 md:flex-row md:!items-center md:!justify-between">
         {/* # of results */}
         {/* will have to store tabResults.length in store */}
         {searchQuery && (
@@ -216,7 +218,7 @@ function SearchResults({
             "All {genre} tabs" or "All artists". Think about it */}
 
         {/* sorting options */}
-        <div className="baseFlex gap-2 md:gap-4">
+        <div className="baseFlex !justify-start gap-2 md:!justify-center md:gap-4">
           {/* type (artist page only shows tabs so hide selector) */}
           {!asPath.includes("/artist") && (
             <div className="baseVertFlex !items-start gap-1.5">
@@ -427,14 +429,22 @@ function SearchResults({
             )}
           </>
         ) : (
-          // do same pattern for below here (need to make components still)
-          <TableView
-            genreId={genreId}
-            type={type}
-            searchQuery={searchQuery}
-            sortByRelevance={sortByRelevance}
-            additionalSortFilter={additionalSortFilter}
-          />
+          <>
+            {type === "tabs" ? (
+              <TableTabView
+                genreId={genreId}
+                searchQuery={searchQuery}
+                sortByRelevance={sortByRelevance}
+                additionalSortFilter={additionalSortFilter}
+              />
+            ) : (
+              <TableArtistView
+                searchQuery={searchQuery}
+                sortByRelevance={sortByRelevance}
+                additionalSortFilter={additionalSortFilter}
+              />
+            )}
+          </>
         )}
       </AnimatePresence>
 
