@@ -208,7 +208,7 @@ function SearchResults({
       {/* # of results + sorting options */}
       <div className="baseVertFlex w-full bg-pink-900 px-4 py-2 md:flex-row md:!justify-between">
         {/* # of results */}
-        {/* tabResults.length */}
+        {/* will have to store tabResults.length in store */}
         {searchQuery && (
           <p className="text-lg">{`${15} results for "${searchQuery}"`}</p>
         )}
