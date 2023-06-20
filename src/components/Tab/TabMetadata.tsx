@@ -170,7 +170,8 @@ function TabMetadata() {
         void ctx.tab.getTabById.invalidate();
 
         // void ctx.artist.getByIdOrUsername.invalidate();
-        void refetchTabCreator(); // hoping this works as expected
+        void refetchCurrentArtist();
+        if (asPath.includes("user")) void refetchTabCreator();
       },
     });
 
@@ -212,19 +213,21 @@ function TabMetadata() {
         void ctx.tab.getTabById.invalidate();
 
         // void ctx.artist.getByIdOrUsername.invalidate();
-        void refetchTabCreator(); // hoping this works as expected
+        void refetchCurrentArtist();
+        if (asPath.includes("user")) void refetchTabCreator();
       },
     });
 
   // current user
-  const { data: currentArtist } = api.artist.getByIdOrUsername.useQuery(
-    {
-      userId: userId ?? "",
-    },
-    {
-      enabled: !!userId,
-    }
-  );
+  const { data: currentArtist, refetch: refetchCurrentArtist } =
+    api.artist.getByIdOrUsername.useQuery(
+      {
+        userId: userId ?? "",
+      },
+      {
+        enabled: !!userId,
+      }
+    );
 
   // owner of tab
   const { data: tabCreator, refetch: refetchTabCreator } =
