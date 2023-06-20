@@ -231,9 +231,14 @@ function TabMetadata() {
 
   // owner of tab
   const { data: tabCreator, refetch: refetchTabCreator } =
-    api.artist.getByIdOrUsername.useQuery({
-      userId: createdById,
-    });
+    api.artist.getByIdOrUsername.useQuery(
+      {
+        userId: createdById,
+      },
+      {
+        enabled: !!createdById,
+      }
+    );
 
   function handleGenreChange(stringifiedId: string) {
     const id = parseInt(stringifiedId);
