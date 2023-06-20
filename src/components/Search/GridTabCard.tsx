@@ -13,81 +13,59 @@ import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { formatNumber } from "~/utils/formatNumber";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import { useRouter } from "next/router";
+import type { TabWithLikes } from "~/server/api/routers/tab";
 
-function GridTabCard(tab: Tab) {
+function GridTabCard(tab: TabWithLikes) {
   const { userId, isLoaded } = useAuth();
-  const { push } = useRouter();
+  const { push, asPath } = useRouter();
 
-  const { data: currentUser } = api.artist.getByIdOrUsername.useQuery(
-    {
-      userId: userId!,
-    },
-    {
-      enabled: isLoaded,
-    }
-  );
+  const { data: currentArtist, refetch: refetchCurrentArtist } =
+    api.artist.getByIdOrUsername.useQuery(
+      {
+        userId: userId!,
+      },
+      {
+        enabled: isLoaded,
+      }
+    );
 
-  const { data: tabCreator } = api.artist.getByIdOrUsername.useQuery({
-    userId: tab.createdById,
-  });
-
-  const [numberOfLikes, setNumberOfLikes] = useState(tab.numberOfLikes);
-
+  const { data: tabCreator, refetch: refetchTabCreator } =
+    api.artist.getByIdOrUsername.useQuery({
+      userId: tab.createdById,
+    });
   const ctx = api.useContext();
-  const { mutate: toggleLike, isLoading: isLiking } =
-    api.tab.toggleTabLikeStatus.useMutation({
+
+  const { mutate: likeTab, isLoading: isLiking } =
+    api.like.createLike.useMutation({
       onMutate: async (data) => {
-        // optimistic update
-
-        // have check to also optimistically update tabCreator query if on their page (if "user" is in url)
-
-        // updating number of likes on tab (hmm do you want to do this normally or just update
-        // store value...)
-        setNumberOfLikes(numberOfLikes + (data.likingTab ? 1 : -1));
-
-        await ctx.tab.getTabById.cancel();
-        ctx.tab.getTabById.setData(
-          {
-            id: tab.id,
-          },
-          (prevTabData) => {
-            if (!prevTabData) return prevTabData;
-            return {
-              ...prevTabData,
-              numberOfLikes: data.likingTab
-                ? prevTabData.numberOfLikes + 1
-                : prevTabData.numberOfLikes - 1,
-            };
-          }
-        );
-
-        await ctx.user.getUserByIdOrUsername.cancel();
-        ctx.user.getUserByIdOrUsername.setData(
-          {
-            id: userId!,
-          },
-          (prevUserData) => {
-            if (!prevUserData || !prevUserData.publicMetadata.likedTabIds)
-              return prevUserData;
-            return {
-              ...prevUserData,
-              publicMetadata: {
-                ...prevUserData.publicMetadata,
-                likedTabIds: data.likingTab
-                  ? [...prevUserData.publicMetadata.likedTabIds, tab.id]
-                  : prevUserData.publicMetadata.likedTabIds.filter(
-                      (tabId) => tabId !== tab.id
-                    ),
-              },
-            };
-          }
-        );
+        //
       },
       onError: (e) => {
         console.error(e);
       },
       onSettled: () => {
         void ctx.tab.getTabById.invalidate();
+
+        // void ctx.artist.getByIdOrUsername.invalidate();
+        void refetchCurrentArtist();
+        if (asPath.includes("user")) void refetchTabCreator();
+      },
+    });
+
+  const { mutate: unlikeTab, isLoading: isUnliking } =
+    api.like.deleteLike.useMutation({
+      onMutate: async (data) => {
+        //
+      },
+      onError: (e) => {
+        console.error(e);
+      },
+      onSettled: () => {
+        void ctx.tab.getTabById.invalidate();
+
+        // void ctx.artist.getByIdOrUsername.invalidate();
+        void refetchCurrentArtist();
+        if (asPath.includes("user")) void refetchTabCreator();
       },
     });
 
@@ -116,61 +94,58 @@ function GridTabCard(tab: Tab) {
         {/* user link & likes & play button */}
         <div className="baseFlex gap-2">
           <div className="baseVertFlex gap-1">
-            <div className="baseFlex gap-1 p-2">
-              {tabCreator ? (
-                <Image
-                  src={tabCreator.profileImageUrl}
-                  alt={`${tabCreator.username!}'s profile picture`}
-                  width={36}
-                  height={36}
-                  className="cursor-pointer rounded-full"
-                  onClick={() => {
-                    void push(`/artist/${tabCreator.username!}`);
-                  }}
-                />
-              ) : (
-                <Skeleton className="h-12 w-12 rounded-full" />
-              )}
-
-              <div className="baseVertFlex">
-                {tabCreator ? (
-                  <Button variant={"ghost"} className="h-6 px-2">
-                    <Link href={`/artist/${tabCreator.username!}`}>
-                      {tabCreator.username}
-                    </Link>
-                  </Button>
-                ) : (
-                  <Skeleton className="h-4 w-12" />
-                )}
-              </div>
+            <div className="baseFlex gap-2 px-2 py-1">
+              <Button variant={"ghost"} className="px-3 py-1">
+                <Link
+                  href={`/user/${tabCreator?.username ?? ""}`}
+                  className="baseFlex gap-2"
+                >
+                  <Image
+                    src={tabCreator?.profileImageUrl ?? ""}
+                    alt={`${
+                      tabCreator?.username ?? "Anonymous"
+                    }'s profile image`}
+                    width={32}
+                    height={32}
+                    className="h-8 w-8 rounded-full bg-pink-800"
+                  ></Image>
+                  <span>{tabCreator?.username ?? "Anonymous"}</span>
+                </Link>
+              </Button>
             </div>
-            {/* <Separator /> */}
-            <div className="baseFlex w-full !justify-evenly rounded-tl-md border-l-[1px] border-t-[1px]">
+            <div className="baseFlex w-full !justify-evenly rounded-tl-md border-l-2 border-t-2">
               {/* likes button */}
               <Button
                 variant={"ghost"}
                 size={"sm"}
                 className="baseFlex h-8 w-1/2 gap-2 rounded-r-none rounded-bl-none rounded-tl-sm border-r-[1px]"
                 onClick={() => {
-                  if (!currentUser) return;
+                  if (!tabCreator || !currentArtist) return;
 
-                  toggleLike({
-                    likingTab: !currentUser.publicMetadata.likedTabIds.includes(
-                      tab.id
-                    ),
-                    tabOwnerId: tab.createdById,
-                    tabId: tab.id,
-                    userId: userId ?? "",
-                  });
+                  if (currentArtist.likedTabIds.includes(tab.id)) {
+                    unlikeTab({
+                      tabId: tab.id,
+                      artistWhoLikedId: currentArtist.userId,
+                    });
+                  } else {
+                    likeTab({
+                      tabId: tab.id,
+                      tabArtistId: tab.createdById,
+                      tabArtistUsername: tabCreator.username,
+                      artistWhoLikedId: currentArtist.userId,
+                    });
+                  }
                 }}
               >
-                {currentUser?.publicMetadata?.likedTabIds?.includes(tab.id) ? (
+                {currentArtist?.likedTabIds.includes(tab.id) ? (
                   <AiFillHeart className="h-6 w-6 text-pink-800" />
                 ) : (
                   <AiOutlineHeart className="h-6 w-6" />
                 )}
-                {numberOfLikes > 0 && (
-                  <div className="text-lg">{formatNumber(numberOfLikes)}</div>
+                {tab.numberOfLikes > 0 && (
+                  <div className="text-lg">
+                    {formatNumber(tab.numberOfLikes)}
+                  </div>
                 )}
               </Button>
               {/* play/pause button */}
