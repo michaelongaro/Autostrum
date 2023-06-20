@@ -1,6 +1,6 @@
-import React from "react";
+import { useEffect, useRef } from "react";
 import { api } from "~/utils/api";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useInView } from "framer-motion";
 import GridArtistCard from "./GridArtistCard";
 
 interface GridArtistView {
@@ -14,15 +14,26 @@ function GridArtistView({
   sortByRelevance,
   additionalSortFilter,
 }: GridArtistView) {
-  const { data: artistResults, isLoading: isLoadingArtistResults } =
-    api.artist.getInfiniteArtistsBySearchQuery.useInfiniteQuery(
-      { searchQuery, sortByRelevance, sortBy: additionalSortFilter },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-      }
-    );
+  const {
+    data: artistResults,
+    isLoading: isLoadingArtistResults,
+    fetchNextPage,
+  } = api.artist.getInfiniteArtistsBySearchQuery.useInfiniteQuery(
+    { searchQuery, sortByRelevance, sortBy: additionalSortFilter },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
 
   console.log(artistResults);
+
+  // const { ref, inView, entry } = useInView(options);
+  const lastElementRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(lastElementRef);
+
+  useEffect(() => {
+    console.log(isInView);
+  }, [isInView]);
 
   // may need resize observer to refetch data when more tabs are able to be shown
   // but maybe also is automatically handled by IntersectionObserver hook for main infinite scroll
@@ -41,7 +52,7 @@ function GridArtistView({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
       // prob have cols by dynamic based on tabs/artists
-      className="grid w-full grid-cols-1 place-items-center p-2 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4"
+      className="grid w-full grid-cols-1 place-items-center gap-4 p-2 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4"
     >
       <AnimatePresence mode="wait">
         {isLoadingArtistResults && (
@@ -81,10 +92,15 @@ function GridArtistView({
 
       {artistResults?.pages.map((page) =>
         // is page.tabs is null I think it's saying, investigate why!
-        page.artists?.map((artist) => (
-          <AnimatePresence key={artist.id} mode={"wait"}>
-            <GridArtistCard {...artist} />
-          </AnimatePresence>
+        page.artists?.map((artist, index) => (
+          <div
+            ref={index === page.artists.length - 1 ? lastElementRef : null}
+            key={artist.id}
+          >
+            <AnimatePresence mode={"wait"}>
+              <GridArtistCard {...artist} />
+            </AnimatePresence>
+          </div>
         ))
       )}
 

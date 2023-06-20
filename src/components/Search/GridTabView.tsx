@@ -1,6 +1,7 @@
-import React from "react";
+import { useEffect, useRef } from "react";
+
 import { api } from "~/utils/api";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useInView } from "framer-motion";
 import GridTabCard from "./GridTabCard";
 
 interface GridTabView {
@@ -17,20 +18,37 @@ function GridTabView({
   additionalSortFilter,
 }: GridTabView) {
   // do query below based on searchQuery + filters (should return either tabs[] or users[])
-  const { data: tabResults, isLoading: isLoadingTabResults } =
-    api.tab.getInfiniteTabsBySearchQuery.useInfiniteQuery(
-      {
-        searchQuery,
-        genreId: genreId ?? 9,
-        sortByRelevance,
-        sortBy: additionalSortFilter,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-      }
-    );
+  const {
+    data: tabResults,
+    isLoading: isLoadingTabResults,
+    hasNextPage,
+    fetchNextPage,
+  } = api.tab.getInfiniteTabsBySearchQuery.useInfiniteQuery(
+    {
+      searchQuery,
+      genreId: genreId ?? 9,
+      sortByRelevance,
+      sortBy: additionalSortFilter,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
 
   console.log(tabResults);
+
+  const lastElementRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(lastElementRef);
+
+  // redo this with react intersection observer library and see if it is more reliable,
+  // although this does technically work
+  useEffect(() => {
+    console.log(isInView, hasNextPage);
+    if (isInView && hasNextPage) {
+      console.log("fetching next page");
+      void fetchNextPage();
+    }
+  }, [isInView, hasNextPage, fetchNextPage]);
 
   // may need resize observer to refetch data when more tabs are able to be shown
   // but maybe also is automatically handled by IntersectionObserver hook for main infinite scroll
@@ -49,7 +67,7 @@ function GridTabView({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
       // prob have cols by dynamic based on tabs/artists
-      className="grid w-full grid-cols-1 place-items-center p-2 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4"
+      className="grid w-full grid-cols-1 place-items-center gap-4 p-2 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4"
     >
       <AnimatePresence mode="wait">
         {isLoadingTabResults && (
@@ -89,10 +107,15 @@ function GridTabView({
 
       {tabResults?.pages.map((page) =>
         // is page.tabs is null I think it's saying, investigate why!
-        page.tabs?.map((tab) => (
-          <AnimatePresence key={tab.id} mode={"wait"}>
-            <GridTabCard {...tab} />
-          </AnimatePresence>
+        page.tabs?.map((tab, index) => (
+          <div
+            ref={index === page.tabs.length - 1 ? lastElementRef : null}
+            key={tab.id}
+          >
+            <AnimatePresence key={tab.id} mode={"wait"}>
+              <GridTabCard {...tab} />
+            </AnimatePresence>
+          </div>
         ))
       )}
 
