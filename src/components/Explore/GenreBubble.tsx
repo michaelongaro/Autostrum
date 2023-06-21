@@ -11,26 +11,6 @@ import { formatNumber } from "~/utils/formatNumber";
 
 // 100 slices is probably WAY too much, experiment with decreasing later and zooming in to
 // make sure it still looks good
-function shuffle(array: number[][]) {
-  let currentIndex = array.length,
-    randomIndex;
-
-  // While there remain elements to shuffle.
-  while (currentIndex !== 0) {
-    // Pick a remaining element.
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-
-    // And swap it with the current element.
-    // @ts-expect-error asdf
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex],
-      array[currentIndex],
-    ];
-  }
-
-  return array;
-}
 
 function GenreBubble(genre: GenreWithTotalTabNumbers) {
   const { push } = useRouter();
@@ -40,25 +20,37 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
 
   const positions: [number, number, number][] = useMemo(() => {
     const positionBases = [
-      [-20, 5, 0],
-      [0, 10, 0],
-      [25, 0, 0],
+      [-18, 10, 0],
+      [0, 15, 0],
+      [25, 5, 0],
       [-10, -25, 0],
-      [10, -20, 0],
+      [15, -20, 0],
+      [-27, -15, 0],
     ];
 
-    return shuffle(positionBases) as [number, number, number][];
+    const modifiedPositions = positionBases.map((positionBase) => {
+      const [x, y, z] = positionBase;
+
+      const slightlyRandomX = x! + Math.random() * 10 - 5;
+      const slightlyRandomY = y! + Math.random() * 10;
+      const slightlyRandomZ = z! + Math.random() * 5 - 2.5;
+      return [slightlyRandomX, slightlyRandomY, slightlyRandomZ];
+    });
+
+    return modifiedPositions as [number, number, number][];
   }, []);
 
-  const radii: [number, number, number, number, number] = useMemo(() => {
-    return [
-      Math.random() * 7 + 3,
-      Math.random() * 7 + 3,
-      Math.random() * 7 + 3,
-      Math.random() * 7 + 3,
-      Math.random() * 7 + 3,
-    ];
-  }, []);
+  const radii: [number, number, number, number, number, number] =
+    useMemo(() => {
+      return [
+        Math.random() * 7.5 + 3,
+        Math.random() * 7.5 + 3,
+        Math.random() * 7.5 + 3,
+        Math.random() * 7.5 + 3,
+        Math.random() * 7.5 + 3,
+        Math.random() * 7.5 + 3,
+      ];
+    }, []);
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -109,15 +101,15 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
 
       <p>{`${formatNumber(genre.totalTabs)} tabs`}</p>
 
-      <div className="absolute right-4 top-4 h-28 w-28">
+      <div className="absolute right-4 top-4 h-28 w-32">
         <Canvas
           style={{
-            width: "7rem",
+            width: "8rem",
             height: "7rem",
             pointerEvents: "none",
             zIndex: 0,
           }}
-          camera={{ position: [0, 0, 50] }}
+          camera={{ position: [0, 0, 55] }}
         >
           <ambientLight intensity={1.5} />
           <directionalLight color={"white"} intensity={0.5} />
@@ -155,6 +147,13 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
             floating={hoveringOnGenre}
             position={positions[4] as [number, number, number]}
             radius={radii[4]}
+            color={genre.color}
+          />
+          <ConditionallyFloatingBubble
+            delay={Math.random()}
+            floating={hoveringOnGenre}
+            position={positions[5] as [number, number, number]}
+            radius={radii[5]}
             color={genre.color}
           />
         </Canvas>

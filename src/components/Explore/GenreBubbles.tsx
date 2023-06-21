@@ -2,7 +2,7 @@ import { api } from "~/utils/api";
 import { Skeleton } from "../ui/skeleton";
 import GenreBubble from "./GenreBubble";
 
-const indicies = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const indicies = [1, 2, 3, 4, 5, 6, 7, 8];
 
 function GenreBubbles() {
   const { data: genres, isLoading: genresAreLoading } =
@@ -15,13 +15,13 @@ function GenreBubbles() {
       {/* maybe do some animatepresence / motion stuff here */}
 
       {genresAreLoading || !genres ? (
-        <div className="grid w-full grid-cols-1 place-items-center gap-4 p-2 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid w-full grid-cols-1 place-items-center gap-4 p-0 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4">
           {indicies.map((index) => (
-            <Skeleton key={index} className="h-24 w-24 rounded-lg" />
+            <Skeleton key={index} className="h-36 w-full rounded-lg" />
           ))}
         </div>
       ) : (
-        <div className="grid w-full grid-cols-1 place-items-center gap-4 p-2 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid w-full grid-cols-1 place-items-center gap-4 p-0 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4">
           {genres.map((genre) => (
             <GenreBubble key={genre.id} {...genre} />
           ))}
