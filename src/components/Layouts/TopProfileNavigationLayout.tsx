@@ -22,10 +22,9 @@ function TopProfileNavigationLayout({ children }: Layout) {
   }, [router.query.username]);
 
   const finalQueryOfUrl = useMemo(() => {
-    const query = asPath.split("/").pop();
-    if (query === "tabs" || query === "likes" || query === "preferences") {
-      return query;
-    }
+    if (asPath.includes("/tabs")) return "tabs";
+    if (asPath.includes("/likes")) return "likes";
+    if (asPath.includes("/preferences")) return "preferences";
     return "preferences";
   }, [asPath]);
 
@@ -50,7 +49,7 @@ function TopProfileNavigationLayout({ children }: Layout) {
       <Tabs
         defaultValue={finalQueryOfUrl}
         onValueChange={
-          (value) => void push(`/user/${artist?.username ?? ""}/${value}`) // should probably include default params for search too right?
+          (value) => void push(`/profile/${value}`) // should probably include default params for search too right?
         }
         className="baseVertFlex my-24"
       >

@@ -43,9 +43,14 @@ function Preferences() {
     return "";
   }, [router.query.username]);
 
-  const user = api.artist.getByIdOrUsername.useQuery({
-    username: usernameFromUrl ?? "",
-  });
+  const { data: artist } = api.artist.getByIdOrUsername.useQuery(
+    {
+      username: usernameFromUrl,
+    },
+    {
+      enabled: !!usernameFromUrl,
+    }
+  );
 
   const { mutate: deleteAccount, isLoading: isDeleting } =
     api.artist.deleteArtist.useMutation({
@@ -61,34 +66,6 @@ function Preferences() {
         //  }
       },
     });
-
-  // const { mutate: update, isLoading: isLiking } =
-  //   api.like.toggleLike.useMutation({
-  //     onMutate: async () => {
-  //       // optimistic update
-  //       await ctx.like.getLikeId.cancel();
-
-  //       ctx.like.getLikeId.setData(
-  //         {
-  //           tabId: id,
-  //           userId: userId ?? "",
-  //         },
-  //         (prev) => {
-  //           if (typeof prev === "number") return null;
-  //           // most likely can't get away with random number like this
-  //           // but I'm not sure how to set it with "proper" new id when it hasn't
-  //           // even been created in db yet...
-  //           return 100;
-  //         }
-  //       );
-  //     },
-  //     onError: (e) => {
-  //       console.error(e);
-  //     },
-  //     onSettled: () => {
-  //       void ctx.like.getLikeId.invalidate();
-  //     },
-  //   });
 
   return (
     <motion.div
@@ -111,7 +88,7 @@ function Preferences() {
                 <div className="font-semibold">Pinned tab</div>
                 <div className="baseVertFlex lightestGlassmorphic min-h-[128px] w-full gap-2 rounded-md md:w-4/5 md:gap-4">
                   {/* if pinned tab, show card with tab info */}
-                  {user.data?.publicMetadata.pinnedTab ? (
+                  {artist?.pinnedTabId ? (
                     // pinned tab card here
                     <div></div>
                   ) : (
@@ -132,7 +109,7 @@ function Preferences() {
 
               <div className="baseVertFlex w-full gap-4 md:w-1/3">
                 <Button>
-                  <Link href={`/user/${user.data?.username ?? ""}`}>
+                  <Link href={`/artist/${artist?.username ?? ""}`}>
                     View profile
                   </Link>
                 </Button>
@@ -146,9 +123,9 @@ function Preferences() {
                 >
                   Delete account
                 </Button>
-                {user.data && (
+                {artist && (
                   <div className="text-pink-200">{`Joined on ${formatDate(
-                    user.data.createdAt
+                    artist.createdAt
                   )}`}</div>
                 )}
               </div>
