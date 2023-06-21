@@ -6,6 +6,7 @@ import { api } from "~/utils/api";
 import { useRouter } from "next/router";
 import { debounce } from "lodash";
 import ExploreLayout from "~/components/Layouts/ExploreLayout";
+import GenreBubbles from "~/components/Explore/GenreBubbles";
 
 function Explore() {
   return (
@@ -19,7 +20,7 @@ function Explore() {
     >
       <div>{/* <WeeklyFeaturedArtist /> */}</div>
 
-      <div>{/* Genre cards w/ bubbles */}</div>
+      <GenreBubbles />
     </motion.div>
   );
 }
