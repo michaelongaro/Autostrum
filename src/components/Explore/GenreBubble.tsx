@@ -11,11 +11,44 @@ import { formatNumber } from "~/utils/formatNumber";
 
 // 100 slices is probably WAY too much, experiment with decreasing later and zooming in to
 // make sure it still looks good
+function shuffle(array: number[][]) {
+  let currentIndex = array.length,
+    randomIndex;
+
+  // While there remain elements to shuffle.
+  while (currentIndex !== 0) {
+    // Pick a remaining element.
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    // And swap it with the current element.
+    // @ts-expect-error asdf
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex],
+      array[currentIndex],
+    ];
+  }
+
+  return array;
+}
+
 function GenreBubble(genre: GenreWithTotalTabNumbers) {
   const { push } = useRouter();
 
   const [hoveringOnGenre, setHoveringOnGenre] = useState(false);
   const [mouseDownOnGenre, setMouseDownOnGenre] = useState(false);
+
+  const positions: [number, number, number][] = useMemo(() => {
+    const positionBases = [
+      [-20, 5, 0],
+      [0, 10, 0],
+      [25, 0, 0],
+      [-10, -25, 0],
+      [10, -20, 0],
+    ];
+
+    return shuffle(positionBases) as [number, number, number][];
+  }, []);
 
   const radii: [number, number, number, number, number] = useMemo(() => {
     return [
@@ -27,7 +60,6 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
     ];
   }, []);
 
-  //also seems pretty logical to add the spotlight effect
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   function handleMouseMove({
@@ -93,35 +125,35 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
           <ConditionallyFloatingBubble
             delay={Math.random()}
             floating={hoveringOnGenre}
-            position={[-20, 5, 0]}
+            position={positions[0] as [number, number, number]}
             radius={radii[0]}
             color={genre.color}
           />
           <ConditionallyFloatingBubble
             delay={Math.random()}
             floating={hoveringOnGenre}
-            position={[0, 10, 0]}
+            position={positions[1] as [number, number, number]}
             radius={radii[1]}
             color={genre.color}
           />
           <ConditionallyFloatingBubble
             delay={Math.random()}
             floating={hoveringOnGenre}
-            position={[25, 0, 0]}
+            position={positions[2] as [number, number, number]}
             radius={radii[2]}
             color={genre.color}
           />
           <ConditionallyFloatingBubble
             delay={Math.random()}
             floating={hoveringOnGenre}
-            position={[-10, -25, 0]}
+            position={positions[3] as [number, number, number]}
             radius={radii[3]}
             color={genre.color}
           />
           <ConditionallyFloatingBubble
             delay={Math.random()}
             floating={hoveringOnGenre}
-            position={[10, -20, 0]}
+            position={positions[4] as [number, number, number]}
             radius={radii[4]}
             color={genre.color}
           />
@@ -150,7 +182,7 @@ function ConditionallyFloatingBubble({
 }: ConditionallyFloatingBubble) {
   const meshRef = useRef<Mesh>(null!);
 
-  const amplitudeY = 4.5; // Max vertical displacement
+  const amplitudeY = 4; // Max vertical displacement
   const amplitudeX = 2.5; // Max horizontal displacement
   const frequency = 12 / radius; // Speed of oscillation 1.5
 
