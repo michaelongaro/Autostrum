@@ -26,7 +26,7 @@ extend({
   GridHelper,
 });
 
-const Bubbles = () => {
+function Bubbles() {
   const bubbles = useMemo((): {
     position: [number, number, number];
     size: number;
@@ -77,7 +77,7 @@ const Bubbles = () => {
       ))}
     </Canvas>
   );
-};
+}
 
 export default Bubbles;
 
@@ -93,9 +93,9 @@ function Bubble({ position, size, velocity }: Bubble) {
 
   useFrame((state, delta) => {
     if (meshRef.current) {
+      // TODO: I think both should be inversely proportional to the bubbles size tbh
       meshRef.current.position.y += velocity * 0.05;
 
-      // TODO: should be inversely proportional to the bubbles size
       meshRef.current.position.x +=
         Math.sin(meshRef.current.position.y) * 0.005;
 
