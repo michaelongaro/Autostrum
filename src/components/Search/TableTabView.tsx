@@ -1,4 +1,4 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -13,6 +13,7 @@ import {
 import { HiPlayPause } from "react-icons/hi2";
 import { Button } from "~/components/ui/button";
 import Link from "next/link";
+import { useInView } from "react-intersection-observer";
 import TableTabRow from "./TableTabRow";
 
 interface TableTabView {
@@ -28,29 +29,44 @@ function TableTabView({
   sortByRelevance,
   additionalSortFilter,
 }: TableTabView) {
-  const { data: tabResults, isLoading: isLoadingTabResults } =
-    api.tab.getInfiniteTabsBySearchQuery.useInfiniteQuery(
-      {
-        searchQuery,
-        genreId: genreId ?? 9,
-        sortByRelevance,
-        sortBy: additionalSortFilter,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-      }
-    );
+  const {
+    data: tabResults,
+    isFetching,
+    hasNextPage,
+    fetchNextPage,
+  } = api.tab.getInfiniteTabsBySearchQuery.useInfiniteQuery(
+    {
+      searchQuery,
+      genreId: genreId ?? 9,
+      sortByRelevance,
+      sortBy: additionalSortFilter,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
 
-  console.log(tabResults);
+  const { ref, inView } = useInView({
+    threshold: 0.75,
+  });
 
-  // may need resize observer to refetch data when more tabs are able to be shown
-  // but maybe also is automatically handled by IntersectionObserver hook for main infinite scroll
+  const [showArtificialLoadingSpinner, setShowArtificialLoadingSpinner] =
+    useState(false);
 
-  // not sure if this is best workaround because I would ideally not have loading spinner at all but:
-  // maybe show loading spinner when isLoadingTabResults is true and then as soon as it is false
-  // have a manual timeout to show correct amount of cards being rendered with their skeleton loading
-  // state and then after that timeout is done, show the actual cards with their data?
-  // ^^^ really all depends on how long it takes to fetch data in first place
+  useEffect(() => {
+    if (isFetching) {
+      setShowArtificialLoadingSpinner(true);
+      setTimeout(() => {
+        setShowArtificialLoadingSpinner(false);
+      }, 1500);
+    }
+  }, [isFetching]);
+
+  useEffect(() => {
+    if (inView && hasNextPage) {
+      void fetchNextPage();
+    }
+  }, [inView, hasNextPage, fetchNextPage]);
 
   return (
     <motion.div
@@ -59,23 +75,77 @@ function TableTabView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="w-full p-2 md:p-4"
+      className="baseVertFlex w-full gap-4 p-2 transition-all md:p-4"
     >
+      <Table>
+        {/* ideally want table to be rounded, but wasn't having much luck. look up online
+        because I know on lyricize it was a bit of a hassle*/}
+        <TableHeader>
+          <TableRow>
+            <TableHead>Title</TableHead>
+            <TableHead className="lg:w-[100px]">Genre</TableHead>
+            <TableHead>Artist</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Likes</TableHead>
+            <TableHead>
+              <HiPlayPause className="h-6 w-6" />
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody className="w-full">
+          {tabResults?.pages.map((page) =>
+            page.tabs?.map((tab, index) => (
+              <>
+                {index === page.tabs.length - 1 ? (
+                  <TableTabRow ref={ref} key={tab.id} {...tab} />
+                ) : (
+                  <TableTabRow key={tab.id} {...tab} />
+                )}
+              </>
+            ))
+          )}
+        </TableBody>
+      </Table>
+
+      {/* no results */}
       <AnimatePresence mode="wait">
-        {isLoadingTabResults && (
-          // alternatively look into like animated loading dots?
+        {tabResults?.pages?.[0]?.tabs.length === 0 &&
+          !showArtificialLoadingSpinner &&
+          !isFetching && (
+            <motion.p
+              key={"tableTabViewNoResults"}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="py-8 text-lg"
+            >
+              No results found.
+            </motion.p>
+          )}
+      </AnimatePresence>
+
+      {/* loading spinner */}
+      <AnimatePresence mode="wait">
+        {(showArtificialLoadingSpinner || isFetching) && (
+          // there is extra space on top during initial load when no cards are rendered, try to eliminate
           <motion.div
-            key={"searchAutofill"}
-            initial={{ opacity: 0, top: "3rem" }}
-            animate={{ opacity: 1, top: "3.5rem" }}
-            exit={{ opacity: 0, top: "3rem" }}
-            transition={{ duration: 0.25 }}
-            className="lightestGlassmorphic absolute w-full rounded-md"
+            key={"gridTabViewLoadingSpinner"}
+            initial={{ opacity: 0, scale: 0, height: "0" }}
+            animate={{ opacity: 1, scale: 1, height: "auto" }}
+            exit={{ opacity: 0, scale: 0, height: "0" }}
+            transition={{
+              opacity: { duration: 0.25 },
+              scale: { duration: 0.15 },
+              height: { duration: 0.35 },
+              // height: { duration: 0.25}
+            }}
+            className="baseFlex w-full"
           >
-            <div className="baseFlex w-full gap-4 py-4">
-              <p>Loading</p>
+            <div className="baseFlex h-24 w-full gap-4">
+              <p className="text-lg">Loading</p>
               <svg
-                className="h-6 w-6 animate-spin rounded-full bg-inherit fill-none"
+                className="h-7 w-7 animate-spin rounded-full bg-inherit fill-none"
                 viewBox="0 0 24 24"
               >
                 <circle
@@ -96,30 +166,6 @@ function TableTabView({
           </motion.div>
         )}
       </AnimatePresence>
-
-      <Table>
-        {/* ideally want table to be rounded, but wasn't having much luck. look up online
-        because I know on lyricize it was a bit of a hassle*/}
-        <TableHeader>
-          <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead className="lg:w-[100px]">Genre</TableHead>
-            <TableHead>Artist</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Likes</TableHead>
-            <TableHead>
-              <HiPlayPause className="h-6 w-6" />
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody className="w-full">
-          {tabResults?.pages.map((page) =>
-            page.tabs?.map((tab) => <TableTabRow key={tab.id} {...tab} />)
-          )}
-        </TableBody>
-      </Table>
-
-      {/* hmm should also have "no results" jsx block too right? */}
     </motion.div>
   );
 }

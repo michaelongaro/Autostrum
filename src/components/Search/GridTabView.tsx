@@ -1,8 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 import { api } from "~/utils/api";
-import { AnimatePresence, motion, useInView } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import GridTabCard from "./GridTabCard";
+import { useInView } from "react-intersection-observer";
 
 interface GridTabView {
   genreId?: number;
@@ -17,10 +18,9 @@ function GridTabView({
   sortByRelevance,
   additionalSortFilter,
 }: GridTabView) {
-  // do query below based on searchQuery + filters (should return either tabs[] or users[])
   const {
     data: tabResults,
-    isLoading: isLoadingTabResults,
+    isFetching,
     hasNextPage,
     fetchNextPage,
   } = api.tab.getInfiniteTabsBySearchQuery.useInfiniteQuery(
@@ -35,29 +35,27 @@ function GridTabView({
     }
   );
 
-  console.log(tabResults);
+  const { ref, inView } = useInView({
+    threshold: 0.75,
+  });
 
-  const lastElementRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(lastElementRef);
+  const [showArtificialLoadingSpinner, setShowArtificialLoadingSpinner] =
+    useState(false);
 
-  // redo this with react intersection observer library and see if it is more reliable,
-  // although this does technically work
   useEffect(() => {
-    console.log(isInView, hasNextPage);
-    if (isInView && hasNextPage) {
-      console.log("fetching next page");
+    if (isFetching) {
+      setShowArtificialLoadingSpinner(true);
+      setTimeout(() => {
+        setShowArtificialLoadingSpinner(false);
+      }, 1500);
+    }
+  }, [isFetching]);
+
+  useEffect(() => {
+    if (inView && hasNextPage) {
       void fetchNextPage();
     }
-  }, [isInView, hasNextPage, fetchNextPage]);
-
-  // may need resize observer to refetch data when more tabs are able to be shown
-  // but maybe also is automatically handled by IntersectionObserver hook for main infinite scroll
-
-  // not sure if this is best workaround because I would ideally not have loading spinner at all but:
-  // maybe show loading spinner when isLoadingTabResults is true and then as soon as it is false
-  // have a manual timeout to show correct amount of cards being rendered with their skeleton loading
-  // state and then after that timeout is done, show the actual cards with their data?
-  // ^^^ really all depends on how long it takes to fetch data in first place
+  }, [inView, hasNextPage, fetchNextPage]);
 
   return (
     <motion.div
@@ -66,24 +64,68 @@ function GridTabView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      // prob have cols by dynamic based on tabs/artists
-      className="grid w-full grid-cols-1 place-items-center gap-4 p-2 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4"
+      className="baseVertFlex w-full gap-4 transition-all"
     >
+      <div
+        style={
+          !tabResults || tabResults?.pages?.[0]?.tabs.length === 0
+            ? { padding: "0" }
+            : {}
+        }
+        className="grid w-full grid-cols-1 place-items-center gap-4 p-2 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4"
+      >
+        {tabResults?.pages.map((page) =>
+          page.tabs?.map((tab, index) => (
+            <AnimatePresence key={tab.id} mode={"wait"}>
+              {index === page.tabs.length - 1 ? (
+                <GridTabCard ref={ref} {...tab} />
+              ) : (
+                <GridTabCard {...tab} />
+              )}
+            </AnimatePresence>
+          ))
+        )}
+      </div>
+
+      {/* no results */}
       <AnimatePresence mode="wait">
-        {isLoadingTabResults && (
-          // alternatively look into like animated loading dots?
+        {tabResults?.pages?.[0]?.tabs.length === 0 &&
+          !showArtificialLoadingSpinner &&
+          !isFetching && (
+            <motion.p
+              key={"gridTabViewNoResults"}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="py-8 text-lg"
+            >
+              No results found.
+            </motion.p>
+          )}
+      </AnimatePresence>
+
+      {/* loading spinner */}
+      <AnimatePresence mode="wait">
+        {(showArtificialLoadingSpinner || isFetching) && (
+          // there is extra space on top during initial load when no cards are rendered, try to eliminate
           <motion.div
-            key={"searchAutofill"}
-            initial={{ opacity: 0, top: "3rem" }}
-            animate={{ opacity: 1, top: "3.5rem" }}
-            exit={{ opacity: 0, top: "3rem" }}
-            transition={{ duration: 0.25 }}
-            className="lightestGlassmorphic absolute w-full rounded-md"
+            key={"gridTabViewLoadingSpinner"}
+            initial={{ opacity: 0, scale: 0, height: "0" }}
+            animate={{ opacity: 1, scale: 1, height: "auto" }}
+            exit={{ opacity: 0, scale: 0, height: "0" }}
+            transition={{
+              opacity: { duration: 0.25 },
+              scale: { duration: 0.15 },
+              height: { duration: 0.35 },
+              // height: { duration: 0.25}
+            }}
+            className="baseFlex w-full"
           >
-            <div className="baseFlex w-full gap-4 py-4">
-              <p>Loading</p>
+            <div className="baseFlex h-24 w-full gap-4">
+              <p className="text-lg">Loading</p>
               <svg
-                className="h-6 w-6 animate-spin rounded-full bg-inherit fill-none"
+                className="h-7 w-7 animate-spin rounded-full bg-inherit fill-none"
                 viewBox="0 0 24 24"
               >
                 <circle
@@ -104,22 +146,6 @@ function GridTabView({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {tabResults?.pages.map((page) =>
-        // is page.tabs is null I think it's saying, investigate why!
-        page.tabs?.map((tab, index) => (
-          <div
-            ref={index === page.tabs.length - 1 ? lastElementRef : null}
-            key={tab.id}
-          >
-            <AnimatePresence key={tab.id} mode={"wait"}>
-              <GridTabCard {...tab} />
-            </AnimatePresence>
-          </div>
-        ))
-      )}
-
-      {/* hmm should also have "no results" jsx block too right? */}
     </motion.div>
   );
 }

@@ -206,7 +206,7 @@ function SearchResults({
   return (
     // prob better practice to let parent component decide vertical margin/padding
     // rather than do it here.
-    <div className="baseVertFlex mt-8 w-full rounded-md border-2 border-pink-900">
+    <div className="baseVertFlex mt-8 w-full rounded-md border-8 border-t-2 border-pink-900 shadow-md">
       {/* # of results + sorting options */}
       <div className="baseVertFlex w-full !items-start gap-2 bg-pink-900 px-4 py-2 md:flex-row md:!items-center md:!justify-between">
         {/* # of results */}

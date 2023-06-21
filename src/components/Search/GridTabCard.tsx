@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { forwardRef, useState } from "react";
 import type { Tab } from "@prisma/client";
 import { motion } from "framer-motion";
 import { Separator } from "../ui/separator";
@@ -15,7 +15,7 @@ import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import { useRouter } from "next/router";
 import type { TabWithLikes } from "~/server/api/routers/tab";
 
-function GridTabCard(tab: TabWithLikes) {
+const GridTabCard = forwardRef<HTMLDivElement, TabWithLikes>((tab, ref) => {
   const { userId, isLoaded } = useAuth();
   const { push, asPath } = useRouter();
 
@@ -71,6 +71,7 @@ function GridTabCard(tab: TabWithLikes) {
 
   return (
     <motion.div
+      ref={ref} // hoping that if ref is undefined it will just ignore it
       key={tab.id}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -172,6 +173,8 @@ function GridTabCard(tab: TabWithLikes) {
       </div>
     </motion.div>
   );
-}
+});
+
+GridTabCard.displayName = "GridTabCard";
 
 export default GridTabCard;

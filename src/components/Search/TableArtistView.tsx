@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Table,
@@ -7,6 +8,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { api } from "~/utils/api";
+import { useInView } from "react-intersection-observer";
 import TableArtistRow from "./TableArtistRow";
 
 interface TableArtistView {
@@ -20,24 +22,41 @@ function TableArtistView({
   sortByRelevance,
   additionalSortFilter,
 }: TableArtistView) {
-  const { data: artistResults, isLoading: isLoadingArtistResults } =
-    api.artist.getInfiniteArtistsBySearchQuery.useInfiniteQuery(
-      { searchQuery, sortByRelevance, sortBy: additionalSortFilter },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-      }
-    );
+  const {
+    data: artistResults,
+    isFetching,
+    hasNextPage,
+    fetchNextPage,
+  } = api.artist.getInfiniteArtistsBySearchQuery.useInfiniteQuery(
+    { searchQuery, sortByRelevance, sortBy: additionalSortFilter },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
+
+  const { ref, inView } = useInView({
+    threshold: 0.75,
+  });
+
+  const [showArtificialLoadingSpinner, setShowArtificialLoadingSpinner] =
+    useState(false);
+
+  useEffect(() => {
+    if (isFetching) {
+      setShowArtificialLoadingSpinner(true);
+      setTimeout(() => {
+        setShowArtificialLoadingSpinner(false);
+      }, 1500);
+    }
+  }, [isFetching]);
+
+  useEffect(() => {
+    if (inView && hasNextPage) {
+      void fetchNextPage();
+    }
+  }, [inView, hasNextPage, fetchNextPage]);
 
   console.log(artistResults);
-
-  // may need resize observer to refetch data when more tabs are able to be shown
-  // but maybe also is automatically handled by IntersectionObserver hook for main infinite scroll
-
-  // not sure if this is best workaround because I would ideally not have loading spinner at all but:
-  // maybe show loading spinner when isLoadingTabResults is true and then as soon as it is false
-  // have a manual timeout to show correct amount of cards being rendered with their skeleton loading
-  // state and then after that timeout is done, show the actual cards with their data?
-  // ^^^ really all depends on how long it takes to fetch data in first place
 
   return (
     <motion.div
@@ -46,23 +65,73 @@ function TableArtistView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="w-full p-2 md:p-4"
+      className="baseVertFlex w-full gap-4 p-2 transition-all md:p-4"
     >
+      <Table>
+        {/* ideally want table to be rounded, but wasn't having much luck. look up online
+        because I know on lyricize it was a bit of a hassle*/}
+        <TableHeader>
+          <TableRow>
+            <TableHead>Artist</TableHead>
+            <TableHead>Tabs</TableHead>
+            <TableHead>Likes</TableHead>
+            <TableHead>Date joined</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody className="w-full">
+          {artistResults?.pages.map((page) =>
+            page.artists?.map((artist, index) => (
+              <>
+                {index === page.artists.length - 1 ? (
+                  <TableArtistRow ref={ref} key={artist.id} {...artist} />
+                ) : (
+                  <TableArtistRow key={artist.id} {...artist} />
+                )}
+              </>
+            ))
+          )}
+        </TableBody>
+      </Table>
+
+      {/* no results */}
       <AnimatePresence mode="wait">
-        {isLoadingArtistResults && (
-          // alternatively look into like animated loading dots?
+        {artistResults?.pages?.[0]?.artists.length === 0 &&
+          !showArtificialLoadingSpinner &&
+          !isFetching && (
+            <motion.p
+              key={"tableArtistViewNoResults"}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="py-8 text-lg"
+            >
+              No results found.
+            </motion.p>
+          )}
+      </AnimatePresence>
+
+      {/* loading spinner */}
+      <AnimatePresence mode="wait">
+        {(showArtificialLoadingSpinner || isFetching) && (
+          // there is extra space on top during initial load when no cards are rendered, try to eliminate
           <motion.div
-            key={"searchAutofill"}
-            initial={{ opacity: 0, top: "3rem" }}
-            animate={{ opacity: 1, top: "3.5rem" }}
-            exit={{ opacity: 0, top: "3rem" }}
-            transition={{ duration: 0.25 }}
-            className="lightestGlassmorphic absolute w-full rounded-md"
+            key={"gridTabViewLoadingSpinner"}
+            initial={{ opacity: 0, scale: 0, height: "0" }}
+            animate={{ opacity: 1, scale: 1, height: "auto" }}
+            exit={{ opacity: 0, scale: 0, height: "0" }}
+            transition={{
+              opacity: { duration: 0.25 },
+              scale: { duration: 0.15 },
+              height: { duration: 0.35 },
+              // height: { duration: 0.25}
+            }}
+            className="baseFlex w-full"
           >
-            <div className="baseFlex w-full gap-4 py-4">
-              <p>Loading</p>
+            <div className="baseFlex h-24 w-full gap-4">
+              <p className="text-lg">Loading</p>
               <svg
-                className="h-6 w-6 animate-spin rounded-full bg-inherit fill-none"
+                className="h-7 w-7 animate-spin rounded-full bg-inherit fill-none"
                 viewBox="0 0 24 24"
               >
                 <circle
@@ -83,28 +152,6 @@ function TableArtistView({
           </motion.div>
         )}
       </AnimatePresence>
-
-      <Table>
-        {/* ideally want table to be rounded, but wasn't having much luck. look up online
-        because I know on lyricize it was a bit of a hassle*/}
-        <TableHeader>
-          <TableRow>
-            <TableHead>Artist</TableHead>
-            <TableHead>Tabs</TableHead>
-            <TableHead>Likes</TableHead>
-            <TableHead>Date joined</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody className="w-full">
-          {artistResults?.pages.map((page) =>
-            page.artists?.map((artist) => (
-              <TableArtistRow key={artist.id} {...artist} />
-            ))
-          )}
-        </TableBody>
-      </Table>
-
-      {/* hmm should also have "no results" jsx block too right? */}
     </motion.div>
   );
 }

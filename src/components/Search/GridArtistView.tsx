@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { api } from "~/utils/api";
-import { AnimatePresence, motion, useInView } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useInView } from "react-intersection-observer";
 import GridArtistCard from "./GridArtistCard";
 
 interface GridArtistView {
@@ -16,7 +17,8 @@ function GridArtistView({
 }: GridArtistView) {
   const {
     data: artistResults,
-    isLoading: isLoadingArtistResults,
+    isFetching,
+    hasNextPage,
     fetchNextPage,
   } = api.artist.getInfiniteArtistsBySearchQuery.useInfiniteQuery(
     { searchQuery, sortByRelevance, sortBy: additionalSortFilter },
@@ -25,24 +27,27 @@ function GridArtistView({
     }
   );
 
-  console.log(artistResults);
+  const { ref, inView } = useInView({
+    threshold: 0.75,
+  });
 
-  // const { ref, inView, entry } = useInView(options);
-  const lastElementRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(lastElementRef);
+  const [showArtificialLoadingSpinner, setShowArtificialLoadingSpinner] =
+    useState(false);
 
   useEffect(() => {
-    console.log(isInView);
-  }, [isInView]);
+    if (isFetching) {
+      setShowArtificialLoadingSpinner(true);
+      setTimeout(() => {
+        setShowArtificialLoadingSpinner(false);
+      }, 1500);
+    }
+  }, [isFetching]);
 
-  // may need resize observer to refetch data when more tabs are able to be shown
-  // but maybe also is automatically handled by IntersectionObserver hook for main infinite scroll
-
-  // not sure if this is best workaround because I would ideally not have loading spinner at all but:
-  // maybe show loading spinner when isLoadingTabResults is true and then as soon as it is false
-  // have a manual timeout to show correct amount of cards being rendered with their skeleton loading
-  // state and then after that timeout is done, show the actual cards with their data?
-  // ^^^ really all depends on how long it takes to fetch data in first place
+  useEffect(() => {
+    if (inView && hasNextPage) {
+      void fetchNextPage();
+    }
+  }, [inView, hasNextPage, fetchNextPage]);
 
   return (
     <motion.div
@@ -51,24 +56,66 @@ function GridArtistView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      // prob have cols by dynamic based on tabs/artists
-      className="grid w-full grid-cols-1 place-items-center gap-4 p-2 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4"
+      className="baseVertFlex w-full gap-4 transition-all"
     >
+      <div
+        style={
+          !artistResults || artistResults?.pages?.[0]?.artists.length === 0
+            ? { padding: "0" }
+            : {}
+        }
+        className="grid w-full grid-cols-1 place-items-center gap-4 p-2 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4"
+      >
+        {artistResults?.pages.map((page) =>
+          page.artists?.map((artist, index) => (
+            <AnimatePresence key={artist.id} mode={"wait"}>
+              {index === page.artists.length - 1 ? (
+                <GridArtistCard ref={ref} {...artist} />
+              ) : (
+                <GridArtistCard {...artist} />
+              )}
+            </AnimatePresence>
+          ))
+        )}
+      </div>
+
+      {/* no results */}
       <AnimatePresence mode="wait">
-        {isLoadingArtistResults && (
-          // alternatively look into like animated loading dots?
+        {artistResults?.pages?.[0]?.artists.length === 0 &&
+          !showArtificialLoadingSpinner &&
+          !isFetching && (
+            <motion.p
+              key={"gridArtistViewNoResults"}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="py-8 text-lg"
+            >
+              No results found.
+            </motion.p>
+          )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        {(showArtificialLoadingSpinner || isFetching) && (
+          // there is extra space on top during initial load when no cards are rendered, try to eliminate
           <motion.div
-            key={"searchAutofill"}
-            initial={{ opacity: 0, top: "3rem" }}
-            animate={{ opacity: 1, top: "3.5rem" }}
-            exit={{ opacity: 0, top: "3rem" }}
-            transition={{ duration: 0.25 }}
-            className="lightestGlassmorphic absolute w-full rounded-md"
+            key={"gridArtistViewLoadingSpinner"}
+            initial={{ opacity: 0, scale: 0, height: "0" }}
+            animate={{ opacity: 1, scale: 1, height: "auto" }}
+            exit={{ opacity: 0, scale: 0, height: "0" }}
+            transition={{
+              opacity: { duration: 0.25 },
+              scale: { duration: 0.15 },
+              height: { duration: 0.35 },
+            }}
+            className="baseFlex w-full"
           >
-            <div className="baseFlex w-full gap-4 py-4">
-              <p>Loading</p>
+            <div className="baseFlex h-24 w-full gap-4">
+              <p className="text-lg">Loading</p>
               <svg
-                className="h-6 w-6 animate-spin rounded-full bg-inherit fill-none"
+                className="h-7 w-7 animate-spin rounded-full bg-inherit fill-none"
                 viewBox="0 0 24 24"
               >
                 <circle
@@ -89,22 +136,6 @@ function GridArtistView({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {artistResults?.pages.map((page) =>
-        // is page.tabs is null I think it's saying, investigate why!
-        page.artists?.map((artist, index) => (
-          <div
-            ref={index === page.artists.length - 1 ? lastElementRef : null}
-            key={artist.id}
-          >
-            <AnimatePresence mode={"wait"}>
-              <GridArtistCard {...artist} />
-            </AnimatePresence>
-          </div>
-        ))
-      )}
-
-      {/* hmm should also have "no results" jsx block too right? */}
     </motion.div>
   );
 }
