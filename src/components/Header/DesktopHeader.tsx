@@ -12,10 +12,19 @@ import { Button } from "../ui/button";
 
 import classes from "./DesktopHeader.module.css";
 import { useRouter } from "next/router";
+import { api } from "~/utils/api";
 
 function DesktopHeader() {
   const { userId, isLoaded, isSignedIn } = useAuth();
-  const { user } = useUser();
+
+  const { data: artist } = api.artist.getByIdOrUsername.useQuery(
+    {
+      userId: userId!,
+    },
+    {
+      enabled: !!userId,
+    }
+  );
 
   const { asPath } = useRouter();
 
@@ -97,10 +106,10 @@ function DesktopHeader() {
         >
           <Button variant={"ghost"}>
             <Link
-              href={`/user/${user?.username ?? ""}/preferences`}
+              href={`/profile/preferences`}
               className="baseFlex gap-4 text-lg"
             >
-              {user?.username}
+              {artist?.username}
               {/* will need to be based on env url */}
               <UserButton afterSignOutUrl="http://localhost:3000" />
             </Link>

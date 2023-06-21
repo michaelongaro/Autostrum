@@ -171,7 +171,7 @@ function TabMetadata() {
 
         // void ctx.artist.getByIdOrUsername.invalidate();
         void refetchCurrentArtist();
-        if (asPath.includes("user")) void refetchTabCreator();
+        if (asPath.includes("artist")) void refetchTabCreator();
       },
     });
 
@@ -214,7 +214,7 @@ function TabMetadata() {
 
         // void ctx.artist.getByIdOrUsername.invalidate();
         void refetchCurrentArtist();
-        if (asPath.includes("user")) void refetchTabCreator();
+        if (asPath.includes("artist")) void refetchTabCreator();
       },
     });
 
@@ -671,7 +671,7 @@ function TabMetadata() {
                 >
                   <Button variant={"ghost"} className="px-3 py-1">
                     <Link
-                      href={`/user/${tabCreator?.username ?? ""}`}
+                      href={`/artist/${tabCreator?.username ?? ""}`}
                       className="baseFlex gap-2"
                     >
                       <Image

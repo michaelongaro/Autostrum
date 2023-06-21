@@ -48,7 +48,7 @@ const TableArtistRow = forwardRef<HTMLTableRowElement, ArtistMetadata>(
             <Link
               // not sure if you fully have defaults down yet but definitely want to be able
               // to have just baseline artist url w/o needing all search filter params
-              href={`/user/${artist.username ?? ""}`}
+              href={`/artist/${artist.username ?? ""}`}
               className="baseFlex gap-2"
             >
               <Image

@@ -109,7 +109,7 @@ function MobileHeader() {
             <div className="baseFlex gap-2 lg:gap-4">
               <Button variant={"ghost"}>
                 <Link
-                  href={`/user/${user?.username ?? ""}/preferences`}
+                  href={`/artist/${user?.username ?? ""}/preferences`}
                   className="baseFlex gap-4 text-lg"
                   // hmm  closes even when clicking on the UserButton...
                   onClick={() => setOpen(false)}
