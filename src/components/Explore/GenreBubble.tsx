@@ -20,10 +20,10 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
 
   const positions: [number, number, number][] = useMemo(() => {
     const positionBases = [
-      [-18, 10, 0],
+      [-25, 10, 0],
       [0, 15, 0],
       [25, 5, 0],
-      [-10, -25, 0],
+      [-10, -30, 0],
       [15, -20, 0],
       [-27, -15, 0],
     ];
