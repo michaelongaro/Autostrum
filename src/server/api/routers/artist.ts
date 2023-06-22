@@ -132,11 +132,9 @@ export const artistRouter = createTRPCRouter({
   getInfiniteArtistsBySearchQuery: publicProcedure
     .input(
       z.object({
-        searchQuery: z.string().optional(),
+        searchQuery: z.string(),
         sortByRelevance: z.boolean(),
-        sortBy: z
-          .enum(["newest", "oldest", "mostLiked", "leastLiked"])
-          .optional(),
+        sortBy: z.enum(["newest", "oldest", "mostLiked", "leastLiked", "none"]),
         // limit: z.number(), fine to hardcode I think, maybe end up scaling down from 25 on smaller screens?
         cursor: z.number().nullish(), // <-- "cursor" needs to exist, but can be any type
       })
@@ -176,7 +174,7 @@ export const artistRouter = createTRPCRouter({
             ]
           : undefined;
 
-      if (sortBy) {
+      if (sortBy !== "none") {
         if (sortBy === "newest") {
           orderBy?.push({
             createdAt: "desc",

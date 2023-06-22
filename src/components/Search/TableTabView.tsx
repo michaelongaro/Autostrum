@@ -17,10 +17,15 @@ import { useInView } from "react-intersection-observer";
 import TableTabRow from "./TableTabRow";
 
 interface TableTabView {
-  genreId?: number;
-  searchQuery?: string;
+  genreId: number;
+  searchQuery: string;
   sortByRelevance: boolean;
-  additionalSortFilter?: "newest" | "oldest" | "leastLiked" | "mostLiked";
+  additionalSortFilter:
+    | "newest"
+    | "oldest"
+    | "leastLiked"
+    | "mostLiked"
+    | "none";
 }
 
 function TableTabView({

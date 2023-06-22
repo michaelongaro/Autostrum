@@ -13,36 +13,26 @@ import {
   SelectLabel,
   SelectItem,
 } from "../ui/select";
-import type { Genre } from "@prisma/client";
 import { BsArrowDownShort, BsGridFill } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
-import GridView from "./GridTabView";
-import TableView from "./TableView";
 import GridTabView from "./GridTabView";
 import GridArtistView from "./GridArtistView";
 import TableTabView from "./TableTabView";
 import TableArtistView from "./TableArtistView";
 
 interface SearchResults {
-  genreId?: number;
-  type?: "tabs" | "artists";
-  searchQuery?: string;
+  genreId: number;
+  type: "tabs" | "artists";
+  searchQuery: string;
   sortByRelevance: boolean;
-  additionalSortFilter?: "newest" | "oldest" | "leastLiked" | "mostLiked";
+  additionalSortFilter:
+    | "newest"
+    | "oldest"
+    | "leastLiked"
+    | "mostLiked"
+    | "none";
   viewType: "grid" | "table";
 }
-
-// don't forget that [...query] means that you are going to be adding
-// onto query the criteria to sort by! for example somehting like
-// "/sunshine?sort=ascLikes" or "/sunshine?sort=descAlphabetical"
-// again defaulting to descDate to show newest ones
-
-// also don't forget that if full redirect to new page takes too long, we can almost
-// definitely just push the new url into the browser history and it should be exactly
-// the same effect
-
-// we are moving to "manual" counting of likes + # of tabs, so we will need to add this sorting logic
-// to trpc functions
 
 function SearchResults({
   genreId,
@@ -61,6 +51,8 @@ function SearchResults({
   const genreArrayData = useMemo(() => {
     if (!genreArray.data) return [];
 
+    // not 100% sure why we can't just return below:
+    // [...genreArray.data, { id: 9, name: "All genres", color: "#ec4899" }]
     if (genreArray.data.length === 8) {
       genreArray.data.push({
         id: 9,
@@ -72,13 +64,21 @@ function SearchResults({
     return genreArray.data;
   }, [genreArray.data]);
 
+  // all param change handlers below will remove the param if it is getting set
+  // to the "default" values that we have defined in the useGetUrlParamFilters hook
   function handleTypeChange(type: "tabs" | "artists") {
+    const newQuery = { ...query };
+    if (type === "artists") {
+      newQuery.type = "artists";
+    } else {
+      delete newQuery.type;
+    }
+
     void push(
       {
         pathname,
         query: {
-          ...query,
-          type,
+          ...newQuery,
         },
       },
       undefined,
@@ -89,15 +89,19 @@ function SearchResults({
     );
   }
 
-  // &filteredQuery=filters gets added onto end of url...
-
   function handleGenreChange(stringifiedId: string) {
+    const newQuery = { ...query };
+    if (parseInt(stringifiedId) >= 1 && parseInt(stringifiedId) <= 8) {
+      newQuery.genreId = stringifiedId;
+    } else {
+      delete newQuery.genreId;
+    }
+
     void push(
       {
         pathname,
         query: {
-          ...query,
-          genreId: stringifiedId,
+          ...newQuery,
         },
       },
       undefined,
@@ -109,12 +113,18 @@ function SearchResults({
   }
 
   function handleViewChange(viewType: "grid" | "table") {
+    const newQuery = { ...query };
+    if (viewType === "table") {
+      newQuery.view = viewType;
+    } else {
+      delete newQuery.view;
+    }
+
     void push(
       {
         pathname,
         query: {
-          ...query,
-          view: viewType,
+          ...newQuery,
         },
       },
       undefined,
@@ -126,12 +136,18 @@ function SearchResults({
   }
 
   function handleRelevanceChange() {
+    const newQuery = { ...query };
+    if (query.relevance === undefined) {
+      newQuery.relevance = "false";
+    } else {
+      delete newQuery.relevance;
+    }
+
     void push(
       {
         pathname,
         query: {
-          ...query,
-          relevance: query.relevance === "true" ? false : true,
+          ...newQuery,
         },
       },
       undefined,
@@ -146,7 +162,7 @@ function SearchResults({
   function handleSortChange(type: "date" | "likes") {
     let newSortParam = "";
 
-    switch (query.sort) {
+    switch (additionalSortFilter) {
       case "newest":
         if (type === "date") {
           newSortParam = "oldest";
@@ -156,7 +172,7 @@ function SearchResults({
         break;
       case "oldest":
         if (type === "date") {
-          newSortParam = "";
+          newSortParam = "none";
         } else {
           newSortParam = "mostLiked";
         }
@@ -170,12 +186,12 @@ function SearchResults({
         break;
       case "leastLiked":
         if (type === "likes") {
-          newSortParam = "";
+          newSortParam = "none";
         } else {
           newSortParam = "newest";
         }
         break;
-      case undefined:
+      case "none":
         if (type === "date") {
           newSortParam = "newest";
         } else {
@@ -186,7 +202,7 @@ function SearchResults({
 
     const newQueries = { ...query };
 
-    if (newSortParam === "") delete newQueries.sort;
+    if (newSortParam === "mostLiked") delete newQueries.sort;
     else newQueries.sort = newSortParam;
 
     // push new url to router
@@ -210,17 +226,18 @@ function SearchResults({
       {/* # of results + sorting options */}
       <div className="baseVertFlex w-full !items-start gap-2 bg-pink-900 px-4 py-2 md:flex-row md:!items-center md:!justify-between">
         {/* # of results */}
-        {/* will have to store tabResults.length in store */}
+        {/* will have to create separate trpc functions for tabs/artists that do the same query but return
+            just the total counts for those queries */}
         {searchQuery && (
           <p className="text-lg">{`${15} results for "${searchQuery}"`}</p>
         )}
         {/* most likely need another block for if searchQuery is undefined where it will show like
-            "All {genre} tabs" or "All artists". Think about it */}
+            "All {genre} tabs - {numberOfTabs}" or "All artists - {numberOfArtists}". Think about it */}
 
         {/* sorting options */}
         <div className="baseFlex !justify-start gap-2 md:!justify-center md:gap-4">
           {/* type (artist page only shows tabs so hide selector) */}
-          {!asPath.includes("/artist") && (
+          {asPath.includes("/explore") && (
             <div className="baseVertFlex !items-start gap-1.5">
               <Label>Type</Label>
               <div className="baseFlex gap-2">
@@ -244,7 +261,7 @@ function SearchResults({
 
           {/* genre selector */}
           <AnimatePresence>
-            {(asPath.includes("/artist") || type === "tabs") && (
+            {type === "tabs" && (
               <motion.div
                 key={"searchResultsGenreSelector"}
                 initial={{ opacity: 0, width: 0, scale: 0 }}
@@ -265,9 +282,7 @@ function SearchResults({
               >
                 <Label>Genre</Label>
                 <Select
-                  // not sure on logic here, maybe change this so that unless type="tabs" genreId
-                  // HAS to be defined (9 being "all genres") ?
-                  value={(genreId ?? 9).toString()}
+                  value={genreId.toString()}
                   onValueChange={(value) => handleGenreChange(value)}
                 >
                   <SelectTrigger className="w-[180px] border-2">
@@ -409,11 +424,13 @@ function SearchResults({
         </div>
       </div>
 
-      {/* card view */}
       <AnimatePresence>
         {viewType === "grid" ? (
           <>
+            {/* card view */}
             {type === "tabs" ? (
+              // below component should check if it is for pinned modal &&
+              // have supporting logic/styling
               <GridTabView
                 genreId={genreId}
                 searchQuery={searchQuery}
@@ -430,7 +447,10 @@ function SearchResults({
           </>
         ) : (
           <>
+            {/* table view */}
             {type === "tabs" ? (
+              // below component should check if it is for pinned modal &&
+              // have supporting logic/styling
               <TableTabView
                 genreId={genreId}
                 searchQuery={searchQuery}
@@ -447,8 +467,6 @@ function SearchResults({
           </>
         )}
       </AnimatePresence>
-
-      {/* table view */}
     </div>
   );
 }

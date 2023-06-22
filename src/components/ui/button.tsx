@@ -5,24 +5,27 @@ import { cn } from "~/lib/utils";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background active:brightness-75 active:ring-0 active:ring-offset-0 active:ring-offset-background~",
+  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background active:ring-0 active:ring-offset-0 active:ring-offset-background~",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default:
+          "bg-primary text-primary-foreground hover:bg-primary/90 active:brightness-75",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/80 active:bg-destructive active:brightness-75",
         outline:
-          "border border-input hover:bg-accent hover:text-accent-foreground",
+          "border border-input hover:bg-accent hover:text-accent-foreground active:bg-accent/60",
         secondary:
-          "lightGlassmorphic text-secondary-foreground hover:bg-secondary/80 border-2",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+          "lightGlassmorphic text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/60 border-2",
+        ghost:
+          "hover:bg-accent hover:text-accent-foreground active:bg-accent/60",
         link: "underline-offset-4 hover:underline text-primary",
         toggledOn:
-          "bg-primary text-primary-foreground hover:bg-primary/80 border-2",
-        toggledOff: "text-primary-foreground hover:bg-secondary/20 border-2",
+          "bg-primary text-primary-foreground hover:bg-primary/80 active:bg-primary/60 border-2",
+        toggledOff:
+          "text-primary-foreground hover:bg-secondary/20 active:bg-secondary/30 border-2",
         navigation:
-          "bg-pink-200 hover:bg-pink-900 text-pink-900 hover:text-pink-200",
+          "bg-pink-200 hover:bg-pink-900 text-pink-900 hover:text-pink-200 active:bg-pink-950/90",
       },
       size: {
         default: "h-10 py-2 px-4",

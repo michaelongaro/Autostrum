@@ -6,10 +6,15 @@ import GridTabCard from "./GridTabCard";
 import { useInView } from "react-intersection-observer";
 
 interface GridTabView {
-  genreId?: number;
-  searchQuery?: string;
+  genreId: number;
+  searchQuery: string;
   sortByRelevance: boolean;
-  additionalSortFilter?: "newest" | "oldest" | "leastLiked" | "mostLiked";
+  additionalSortFilter:
+    | "newest"
+    | "oldest"
+    | "leastLiked"
+    | "mostLiked"
+    | "none";
 }
 
 function GridTabView({
@@ -26,7 +31,7 @@ function GridTabView({
   } = api.tab.getInfiniteTabsBySearchQuery.useInfiniteQuery(
     {
       searchQuery,
-      genreId: genreId ?? 9,
+      genreId: genreId,
       sortByRelevance,
       sortBy: additionalSortFilter,
     },

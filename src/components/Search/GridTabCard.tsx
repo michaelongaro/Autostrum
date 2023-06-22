@@ -1,5 +1,5 @@
-import React, { forwardRef, useState } from "react";
-import type { Tab } from "@prisma/client";
+import React, { forwardRef, useState, useMemo } from "react";
+import type { Genre, Tab } from "@prisma/client";
 import { motion } from "framer-motion";
 import { Separator } from "../ui/separator";
 import Image from "next/image";
@@ -14,10 +14,22 @@ import { formatNumber } from "~/utils/formatNumber";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import { useRouter } from "next/router";
 import type { TabWithLikes } from "~/server/api/routers/tab";
+import { Badge } from "../ui/badge";
 
 const GridTabCard = forwardRef<HTMLDivElement, TabWithLikes>((tab, ref) => {
   const { userId, isLoaded } = useAuth();
   const { push, asPath } = useRouter();
+
+  const genreArray = api.genre.getAll.useQuery();
+
+  const genreObject: Record<number, Genre> = useMemo(() => {
+    if (!genreArray.data) return {};
+
+    return genreArray.data.reduce((acc: Record<number, Genre>, genre) => {
+      acc[genre.id] = genre;
+      return acc;
+    }, {});
+  }, [genreArray.data]);
 
   const { data: currentArtist, refetch: refetchCurrentArtist } =
     api.artist.getByIdOrUsername.useQuery(
@@ -77,7 +89,6 @@ const GridTabCard = forwardRef<HTMLDivElement, TabWithLikes>((tab, ref) => {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.25 }}
-      // lightestGlassmorphic
       className="lightestGlassmorphic baseVertFlex w-full rounded-md border-2"
     >
       {/* preview */}
@@ -90,6 +101,16 @@ const GridTabCard = forwardRef<HTMLDivElement, TabWithLikes>((tab, ref) => {
         <div className="baseVertFlex !items-start p-2">
           <p className="text-lg font-semibold">{tab.title}</p>
           <p className="text-sm text-pink-50/90">{formatDate(tab.createdAt)}</p>
+          {!asPath.includes("genreId") && (
+            <Badge
+              style={{
+                backgroundColor: genreObject[tab.genreId]?.color,
+              }}
+              className="mt-2"
+            >
+              {genreObject[tab.genreId]?.name}
+            </Badge>
+          )}
         </div>
 
         {/* user link & likes & play button */}

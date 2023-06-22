@@ -1,5 +1,5 @@
 import { clerkClient } from "@clerk/nextjs/server";
-import type { Tab } from "@prisma/client";
+import type { Artist, Tab } from "@prisma/client";
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
@@ -38,16 +38,18 @@ export const tabRouter = createTRPCRouter({
       return tabWithLikes;
     }),
 
-  // almost definitely will have to be changed for infinite scroll implementation
   getTabTitlesAndUsernamesBySearchQuery: publicProcedure
-    .input(z.string())
+    .input(
+      z.object({
+        query: z.string(),
+        includeUsernames: z.boolean().optional(),
+      })
+    )
     .query(async ({ input, ctx }) => {
-      if (input === "") return null;
-
       const tabTitles = await ctx.prisma.tab.findMany({
         where: {
           title: {
-            contains: input, // ideally use fulltext search from postgres, but not sure how to set it up where you get both ddirections of "contains"
+            contains: input.query, // ideally use fulltext search from postgres, but not sure how to set it up where you get both ddirections of "contains"
             // search: input,
             mode: "insensitive", // not sure if necessary using fulltext search
           },
@@ -55,38 +57,41 @@ export const tabRouter = createTRPCRouter({
         select: {
           title: true,
         },
-
+        distinct: ["title"],
         orderBy: {
           // this part below should be calculated above based on props and put into state to plug in below
           // title: "asc",
           _relevance: {
             fields: ["title"],
-            search: input,
+            search: input.query,
             sort: "asc",
           },
         },
       });
 
-      const artists = await ctx.prisma.artist.findMany({
-        where: {
-          username: {
-            contains: input,
-            // search: input,
-            mode: "insensitive",
+      let artists: { username: string }[] = [];
+      if (input.includeUsernames) {
+        artists = await ctx.prisma.artist.findMany({
+          where: {
+            username: {
+              contains: input.query,
+              // search: input,
+              mode: "insensitive",
+            },
           },
-        },
-        select: {
-          username: true,
-        },
-        orderBy: {
-          // username: "asc",
-          _relevance: {
-            fields: ["username"],
-            search: input,
-            sort: "asc",
+          select: {
+            username: true,
           },
-        },
-      });
+          orderBy: {
+            // username: "asc",
+            _relevance: {
+              fields: ["username"],
+              search: input.query,
+              sort: "asc",
+            },
+          },
+        });
+      }
 
       // need to get all users since filtering by username only supports exact full
       // matches, not partial matches.
@@ -113,12 +118,10 @@ export const tabRouter = createTRPCRouter({
   getInfiniteTabsBySearchQuery: publicProcedure
     .input(
       z.object({
-        searchQuery: z.string().optional(),
+        searchQuery: z.string(),
         genreId: z.number(),
         sortByRelevance: z.boolean(),
-        sortBy: z
-          .enum(["newest", "oldest", "mostLiked", "leastLiked"])
-          .optional(),
+        sortBy: z.enum(["newest", "oldest", "mostLiked", "leastLiked", "none"]),
         userIdToSelectFrom: z.string().optional(),
         // limit: z.number(), fine to hardcode I think, maybe end up scaling down from 25 on smaller screens?
         cursor: z.number().nullish(), // <-- "cursor" needs to exist, but can be any type
@@ -166,7 +169,7 @@ export const tabRouter = createTRPCRouter({
             ]
           : undefined;
 
-      if (sortBy) {
+      if (sortBy !== "none") {
         if (sortBy === "newest") {
           orderBy?.push({
             createdAt: "desc",

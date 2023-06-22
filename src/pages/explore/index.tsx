@@ -1,12 +1,6 @@
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Input } from "~/components/ui/input";
-import { Button } from "~/components/ui/button";
-import { api } from "~/utils/api";
-import { useRouter } from "next/router";
-import { debounce } from "lodash";
-import ExploreLayout from "~/components/Layouts/ExploreLayout";
+import { motion } from "framer-motion";
 import GenreBubbles from "~/components/Explore/GenreBubbles";
+import SearchInput from "~/components/Search/SearchInput";
 
 function Explore() {
   return (
@@ -16,15 +10,15 @@ function Explore() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="baseVertFlex w-full p-2 md:p-8"
+      className="lightGlassmorphic baseVertFlex my-24 min-h-[100dvh] w-10/12 !justify-start rounded-md p-2 md:w-3/4 md:p-8"
     >
+      <SearchInput />
+
       <div>{/* <WeeklyFeaturedArtist /> */}</div>
 
       <GenreBubbles />
     </motion.div>
   );
 }
-
-Explore.PageLayout = ExploreLayout;
 
 export default Explore;

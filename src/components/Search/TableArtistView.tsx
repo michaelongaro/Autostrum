@@ -12,9 +12,14 @@ import { useInView } from "react-intersection-observer";
 import TableArtistRow from "./TableArtistRow";
 
 interface TableArtistView {
-  searchQuery?: string;
+  searchQuery: string;
   sortByRelevance: boolean;
-  additionalSortFilter?: "newest" | "oldest" | "leastLiked" | "mostLiked";
+  additionalSortFilter:
+    | "newest"
+    | "oldest"
+    | "leastLiked"
+    | "mostLiked"
+    | "none";
 }
 
 function TableArtistView({
