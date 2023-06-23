@@ -47,12 +47,27 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
 
   function adjustQueryParams(type: "tabs" | "artists", searchQuery: string) {
     const prevQuery = { ...query };
-    if (type === "artists" && query.genreId) delete prevQuery.genreId;
-    prevQuery.search = searchQuery;
+    if (type === "artists" && query.genreId) {
+      delete prevQuery.genreId;
+    }
+    if (type === "artists") {
+      prevQuery.type = "artists";
+    } else {
+      delete prevQuery.type;
+    }
+
+    if (searchQuery.length === 0) {
+      delete prevQuery.search;
+    } else {
+      prevQuery.search = searchQuery;
+    }
 
     void push(
       {
-        pathname: asPath.includes("filters") ? pathname : `${pathname}/filters`,
+        pathname:
+          asPath.includes("/explore") && !asPath.includes("filters")
+            ? `${pathname}/filters`
+            : pathname,
         query: {
           ...prevQuery,
         },
