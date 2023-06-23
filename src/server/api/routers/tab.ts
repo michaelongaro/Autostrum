@@ -48,9 +48,8 @@ export const tabRouter = createTRPCRouter({
       const tabTitles = await ctx.prisma.tab.findMany({
         where: {
           title: {
-            contains: input.query, // ideally use fulltext search from postgres, but not sure how to set it up where you get both ddirections of "contains"
-            // search: input,
-            mode: "insensitive", // not sure if necessary using fulltext search
+            contains: input.query,
+            mode: "insensitive",
           },
         },
         select: {
@@ -58,8 +57,6 @@ export const tabRouter = createTRPCRouter({
         },
         distinct: ["title"],
         orderBy: {
-          // this part below should be calculated above based on props and put into state to plug in below
-          // title: "asc",
           _relevance: {
             fields: ["title"],
             search: input.query,
@@ -74,7 +71,6 @@ export const tabRouter = createTRPCRouter({
           where: {
             username: {
               contains: input.query,
-              // search: input,
               mode: "insensitive",
             },
           },
@@ -82,7 +78,6 @@ export const tabRouter = createTRPCRouter({
             username: true,
           },
           orderBy: {
-            // username: "asc",
             _relevance: {
               fields: ["username"],
               search: input.query,
@@ -91,22 +86,6 @@ export const tabRouter = createTRPCRouter({
           },
         });
       }
-
-      // need to get all users since filtering by username only supports exact full
-      // matches, not partial matches.
-      // const users = await clerkClient.users.getUserList();
-
-      // if (tabTitles.length === 0 && users.length === 0) return null;
-
-      // const sortedTabTitles = sortResultsByRelevance({
-      //   query: input,
-      //   tabTitles: tabTitles.map((tab) => tab.title),
-      // });
-
-      // const sortedUsernames = sortResultsByRelevance({
-      //   query: input,
-      //   usernames: users.map((user) => user.username!),
-      // });
 
       return combineTabTitlesAndUsernames(
         tabTitles.map((tab) => tab.title),
@@ -148,7 +127,6 @@ export const tabRouter = createTRPCRouter({
               contains: searchQuery,
               mode: "insensitive",
             },
-            // not sure if this is best way, basically I would like to get all tabs if genreId is 9 (all genres)
             genreId:
               genreId === 9
                 ? {
@@ -172,7 +150,6 @@ export const tabRouter = createTRPCRouter({
               contains: searchQuery,
               mode: "insensitive",
             },
-            // not sure if this is best way, basically I would like to get all tabs if genreId is 9 (all genres)
             genreId:
               genreId === 9
                 ? {
@@ -217,17 +194,6 @@ export const tabRouter = createTRPCRouter({
         });
       }
 
-      // sort by relevance if sortByRelevance is true and there is a search query
-      // if (sortByRelevance && searchQuery) {
-      //   tabs = sortResultsByRelevance({
-      //     query: searchQuery,
-      //     tabs: tabs,
-      //   }) as Tab[];
-      // }
-
-      // ideally find way to not have to add "as type" without just splitting
-      // into different functions...
-
       return {
         data: {
           tabs: tabsWithLikes,
@@ -236,79 +202,6 @@ export const tabRouter = createTRPCRouter({
         count,
       };
     }),
-
-  // toggleTabLikeStatus: publicProcedure
-  //   .input(
-  //     z.object({
-  //       tabId: z.number(),
-  //       tabOwnerId: z.string(),
-  //       userId: z.string(),
-  //       likingTab: z.boolean(),
-  //     })
-  //   )
-  //   .mutation(async ({ input, ctx }) => {
-  //     await ctx.prisma.tab.update({
-  //       where: {
-  //         id: input.tabId,
-  //       },
-  //       data: {
-  //         numberOfLikes: {
-  //           [input.likingTab ? "increment" : "decrement"]: 1,
-  //         },
-  //       },
-  //     });
-
-  //     // update tab owner total likes
-
-  //     await ctx.prisma.userMetadata.update({
-  //       where: {
-  //         userId: input.tabOwnerId,
-  //       },
-  //       data: {
-  //         totalLikesReceived: {
-  //           [input.likingTab ? "increment" : "decrement"]: 1,
-  //         },
-  //       },
-  //     });
-
-  //     // update user's list of liked tabIds
-
-  //     // need to fetch user's current likedTabIds first if we are unliking a tab
-  //     // since prisma doesn't support removing an item from an array (yet)
-
-  //     const userMetadata = await ctx.prisma.userMetadata.findUnique({
-  //       where: {
-  //         userId: input.userId,
-  //       },
-  //       select: {
-  //         likedTabIds: true,
-  //       },
-  //     });
-
-  //     const likedTabIds = userMetadata?.likedTabIds;
-  //     let updatedLikedTabIds;
-
-  //     if (likedTabIds) {
-  //       if (input.likingTab) {
-  //         updatedLikedTabIds = [...likedTabIds, input.tabId];
-  //       } else {
-  //         updatedLikedTabIds = likedTabIds.filter(
-  //           (id: number) => id !== input.tabId
-  //         );
-  //       }
-  //     }
-
-  //     await ctx.prisma.userMetadata.update({
-  //       where: {
-  //         userId: input.userId,
-  //       },
-  //       data: {
-  //         likedTabIds: updatedLikedTabIds,
-  //       },
-  //     });
-
-  //     return input.likingTab;
-  //   }),
 
   // technically should be private, but don't have to worry about auth yet
   createOrUpdate: publicProcedure
@@ -352,18 +245,6 @@ export const tabRouter = createTRPCRouter({
             tabData: input.tabData,
           },
         });
-
-        // update user's total tabs created
-        // await ctx.prisma.userMetadata.update({
-        //   where: {
-        //     userId: input.createdById,
-        //   },
-        //   data: {
-        //     totalTabsCreated: {
-        //       increment: 1,
-        //     },
-        //   },
-        // });
 
         return tab;
       } else if (input.type === "update" && input.id !== null) {

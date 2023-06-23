@@ -43,9 +43,6 @@ export const artistRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       const artist = await ctx.prisma.artist.findUnique({
-        // look up better ways to do dynamic keys/conditions in prisma with es6 syntax
-        // for more complex cases than just two: prob just do logic above and store where obj in variable
-        // then below say "where: whereObj" and you should be good.
         where: {
           [input.userId ? "userId" : "username"]: input.userId
             ? input.userId
@@ -62,7 +59,6 @@ export const artistRouter = createTRPCRouter({
               tabs: true,
               likesReceived: {
                 where: {
-                  // would be a miracle if this works
                   [input.userId ? "tabArtistId" : "tabArtistUsername"]: {
                     equals: input.userId ? input.userId : input.username,
                   },
@@ -84,51 +80,6 @@ export const artistRouter = createTRPCRouter({
 
       return artistMetadata;
     }),
-
-  // start here when picking up again:
-
-  // primarily wanted to do this just to get same logic for infinite scroll as I "have" for tabs
-  // but I want to copy over username + profilePicture url from clerk to prisma schema whenever
-  // the username/picUrl changes, easiest way of doing this is to just have one hook: \
-  // useKeepUserMetadataUpdated somewhere near root of app, and only have it update whenever
-  // username/picUrl from {user} obj are different from what's in prisma!
-
-  // this means you basically have exact same logic for tabs and users and can pretty much just take out
-  // any references to the clerk backend api as far as I can tell.
-
-  // ALSO ALSO ALSO be mightily prepared to straight up SCRAP your manual relevance sorting because
-  // it looks like prisma + postgres might just be able to do it for you!  https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#sort-post-by-relevance-of-the-title
-
-  // okay legit play around with this because you could just be saving yourself so much time, but:
-  //   const users = await prisma.user.findMany({
-  //   select: {
-  //     email: true,
-  //     role: true,
-  //   },
-  //   orderBy: [
-  //     {
-  //       role: 'desc',
-  //     },
-  //     {
-  //       email: 'desc',
-  //     },
-  //   ],
-  // })
-  // it looks like the above block will first sorts by role, then by email, so you could do relevance first,
-  // then by date/likes? Straight up I don't know what the exact difference would be by swapping sort order but
-  // test it out or obv look it up/chatgpt! I still think it's fine to keep "manual" counting of likes/total artists tbh and I
-  // don't really see that changing but keep an open mind throughout all of this while experimenting!
-
-  // I feel like below is your best option to try first:
-  // const posts = await prisma.post.findMany({
-  //   orderBy: {
-  //     _relevance: {
-  //       fields: ['title'],
-  //       search: 'database',
-  //       sort: 'asc' // maybe useful to keep not sure yet
-  //     },
-  //     createdAt: 'desc', // to then sort relevant results by date afterwards
-  // })
 
   getInfiniteArtistsBySearchQuery: publicProcedure
     .input(
@@ -217,17 +168,6 @@ export const artistRouter = createTRPCRouter({
           });
         }
       }
-
-      // sort by relevance if sortByRelevance is true and there is a search query
-      // if (sortByRelevance && searchQuery) {
-      //   artists = sortResultsByRelevance({
-      //     query: searchQuery,
-      //     artists: artists,
-      //   }) as Tab[];
-      // }
-
-      // ideally find way to not have to add "as type" without just splitting
-      // into different functions...
 
       return {
         data: {
