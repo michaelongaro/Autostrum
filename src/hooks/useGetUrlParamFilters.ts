@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useState, useLayoutEffect } from "react";
+import { useState, useEffect } from "react";
 
 interface IUrlParamFilters {
   genreId: number;
@@ -12,11 +12,10 @@ interface IUrlParamFilters {
     | "leastLiked"
     | "mostLiked"
     | "none";
-  viewType: "grid" | "table"; // most likely dropping this and just doing localstorage tech
 }
 
 function useGetUrlParamFilters() {
-  const { push, query, asPath, pathname } = useRouter();
+  const { query, asPath } = useRouter();
 
   const [serve404Page, setServe404Page] = useState(false);
   const [urlParamFilters, setUrlParamFilters] = useState<IUrlParamFilters>({
@@ -25,29 +24,21 @@ function useGetUrlParamFilters() {
     searchQuery: "",
     sortByRelevance: true,
     additionalSortFilter: "mostLiked",
-    viewType: "grid",
   });
 
-  // maybe useLayoutEffect if this is causing a flicker
-  useLayoutEffect(() => {
+  useEffect(() => {
     // may need to extract this to a separate function and call it both here and in
     // [...filteredQuery] index.tsx
     if (Object.keys(query).length === 0) return;
 
     const { filteredQuery, ...queryObj } = query;
 
-    const validQueryKeys = [
-      "genreId",
-      "type",
-      "search",
-      "relevance",
-      "sort",
-      "view",
-    ];
+    const validQueryKeys = ["genreId", "type", "search", "relevance", "sort"];
 
     // check if any invalid query keys are present
     for (const key of Object.keys(queryObj)) {
       if (!validQueryKeys.includes(key)) {
+        if (asPath.includes("/artist/") && key === "username") continue;
         setServe404Page(true);
         return;
       }
@@ -91,17 +82,11 @@ function useGetUrlParamFilters() {
         case "sort":
           if (
             typeof value === "string" &&
-            value !== "newest" &&
             value !== "oldest" &&
             value !== "leastLiked" &&
+            value !== "mostLiked" &&
             value !== "none"
           ) {
-            setServe404Page(true);
-            return;
-          }
-          break;
-        case "view":
-          if (typeof value === "string" && value !== "table") {
             setServe404Page(true);
             return;
           }
@@ -124,11 +109,9 @@ function useGetUrlParamFilters() {
             | "leastLiked"
             | "mostLiked"
             | "none")
-        : "mostLiked",
-      // most likely dropping this and just doing localstorage tech
-      viewType: query.view ? (query.view as "grid" | "table") : "grid",
+        : "newest",
     });
-  }, [query]);
+  }, [query, asPath]);
 
   return { serve404Page, ...urlParamFilters };
 }

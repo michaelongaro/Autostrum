@@ -10,6 +10,8 @@ import {
 import { api } from "~/utils/api";
 import { useInView } from "react-intersection-observer";
 import TableArtistRow from "./TableArtistRow";
+import { useTabStore } from "~/stores/TabStore";
+import { shallow } from "zustand/shallow";
 
 interface TableArtistView {
   searchQuery: string;
@@ -27,6 +29,13 @@ function TableArtistView({
   sortByRelevance,
   additionalSortFilter,
 }: TableArtistView) {
+  const { setSearchResultsCount } = useTabStore(
+    (state) => ({
+      setSearchResultsCount: state.setSearchResultsCount,
+    }),
+    shallow
+  );
+
   const {
     data: artistResults,
     isFetching,
@@ -35,7 +44,10 @@ function TableArtistView({
   } = api.artist.getInfiniteArtistsBySearchQuery.useInfiniteQuery(
     { searchQuery, sortByRelevance, sortBy: additionalSortFilter },
     {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      getNextPageParam: (lastPage) => lastPage.data.nextCursor,
+      onSuccess: (data) => {
+        setSearchResultsCount(data?.pages?.[0]?.count ?? 0);
+      },
     }
   );
 
@@ -85,9 +97,9 @@ function TableArtistView({
         </TableHeader>
         <TableBody className="w-full">
           {artistResults?.pages.map((page) =>
-            page.artists?.map((artist, index) => (
+            page.data.artists?.map((artist, index) => (
               <>
-                {index === page.artists.length - 1 ? (
+                {index === page.data.artists.length - 1 ? (
                   <TableArtistRow ref={ref} key={artist.id} {...artist} />
                 ) : (
                   <TableArtistRow key={artist.id} {...artist} />
@@ -100,7 +112,7 @@ function TableArtistView({
 
       {/* no results */}
       <AnimatePresence mode="wait">
-        {artistResults?.pages?.[0]?.artists.length === 0 &&
+        {artistResults?.pages?.[0]?.data.artists.length === 0 &&
           !showArtificialLoadingSpinner &&
           !isFetching && (
             <motion.p

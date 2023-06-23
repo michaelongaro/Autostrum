@@ -32,7 +32,7 @@ function IndividualTabView() {
   }, [router.query.id]);
 
   // prob don't need refetch on refocus
-  const { data: fetchedTab } = api.tab.getTabById.useQuery(
+  const { data: fetchedTab, refetch: refetchTab } = api.tab.getTabById.useQuery(
     {
       id: tabIdFromUrl,
     },
@@ -50,7 +50,7 @@ function IndividualTabView() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex w-full"
     >
-      <Tab tab={fetchedTab} />
+      <Tab tab={fetchedTab} refetchTab={refetchTab} />
     </motion.div>
   );
 }

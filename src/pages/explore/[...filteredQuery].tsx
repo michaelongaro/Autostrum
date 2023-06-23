@@ -3,6 +3,7 @@ import { BiErrorCircle } from "react-icons/bi";
 import SearchInput from "~/components/Search/SearchInput";
 import SearchResults from "~/components/Search/SearchResults";
 import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
+import useViewTypeFromLocalStorage from "~/hooks/useViewTypeFromLocalStorage";
 
 function FilteredQueryExplore() {
   const {
@@ -12,8 +13,9 @@ function FilteredQueryExplore() {
     searchQuery,
     sortByRelevance,
     additionalSortFilter,
-    viewType,
   } = useGetUrlParamFilters();
+
+  const viewType = useViewTypeFromLocalStorage();
 
   return (
     <motion.div
@@ -29,7 +31,7 @@ function FilteredQueryExplore() {
       {serve404Page ? (
         <div className="baseVertFlex gap-2 px-8 py-4 md:gap-4">
           <div className="baseFlex gap-4 text-2xl font-bold">
-            404 Error <BiErrorCircle className="h-8 w-8" />
+            Search error <BiErrorCircle className="h-8 w-8" />
           </div>
           <div className="text-lg">Unable to load search results.</div>
           <div className="mt-8">

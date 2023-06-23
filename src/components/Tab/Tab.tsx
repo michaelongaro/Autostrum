@@ -15,6 +15,11 @@ import { FaItunesNote } from "react-icons/fa";
 import { Separator } from "../ui/separator";
 import EffectGlossary from "../ui/EffectGlossary";
 import type { TabWithLikes } from "~/server/api/routers/tab";
+import type {
+  QueryObserverResult,
+  RefetchOptions,
+  RefetchQueryFilters,
+} from "@tanstack/react-query";
 
 // not sure of best way to avoid having the same name for interface and component
 export interface ITabSection {
@@ -22,7 +27,17 @@ export interface ITabSection {
   data: string[][];
 }
 
-function Tab({ tab }: { tab: TabWithLikes | undefined | null }) {
+export interface RefetchTab {
+  refetchTab: <TPageData>(
+    options?: RefetchOptions & RefetchQueryFilters<TPageData>
+    // @ts-expect-error asdf
+  ) => Promise<QueryObserverResult<TData, TError>>;
+}
+interface ITab extends RefetchTab {
+  tab: TabWithLikes | undefined | null;
+}
+
+function Tab({ tab, refetchTab }: ITab) {
   const { user, loaded } = useClerk();
   const { userId, isLoaded } = useAuth();
 
@@ -107,7 +122,7 @@ function Tab({ tab }: { tab: TabWithLikes | undefined | null }) {
   return (
     <>
       <div className="baseVertFlex lightGlassmorphic relative my-24 w-11/12 gap-4 rounded-md xl:w-8/12">
-        <TabMetadata />
+        <TabMetadata refetchTab={refetchTab} />
 
         <Separator className="w-[96%]" />
 

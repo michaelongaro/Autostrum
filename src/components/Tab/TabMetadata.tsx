@@ -31,8 +31,9 @@ import Link from "next/link";
 import classes from "./TabMetadata.module.css";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { formatNumber } from "~/utils/formatNumber";
+import type { RefetchTab } from "./Tab";
 
-function TabMetadata() {
+function TabMetadata({ refetchTab }: RefetchTab) {
   const { userId, isLoaded } = useAuth();
 
   const { push, asPath } = useRouter();
@@ -134,42 +135,43 @@ function TabMetadata() {
 
   const { mutate: likeTab, isLoading: isLiking } =
     api.like.createLike.useMutation({
-      onMutate: async (data) => {
-        // optimistic update
-        // have check to also optimistically update tabCreator query if on their page (if "user" is in url)
-        // updating number of likes on tab (hmm do you want to do this normally or just update
-        // store value...)
-        // fyi: want to be invalidating artist query since we want to rerun query for which tabs are liked
-        // but again see what it looks like without optimistic upate
-        // await ctx.user.getUserByIdOrUsername.cancel();
-        // ctx.user.getUserByIdOrUsername.setData(
-        //   {
-        //     id: userId!,
-        //   },
-        //   (prevUserData) => {
-        //     if (!prevUserData || !prevUserData.publicMetadata.likedTabIds)
-        //       return prevUserData;
-        //     return {
-        //       ...prevUserData,
-        //       publicMetadata: {
-        //         ...prevUserData.publicMetadata,
-        //         likedTabIds: data.likingTab
-        //           ? [...prevUserData.publicMetadata.likedTabIds, id]
-        //           : prevUserData.publicMetadata.likedTabIds.filter(
-        //               (tabId) => tabId !== id
-        //             ),
-        //       },
-        //     };
-        //   }
-        // );
+      onMutate: async () => {
+        // optimistic updates
+
+        await ctx.artist.getByIdOrUsername.cancel();
+        ctx.artist.getByIdOrUsername.setData(
+          {
+            userId: createdById,
+          },
+          (prevArtistData) => {
+            if (!prevArtistData) return prevArtistData;
+            return {
+              ...prevArtistData,
+              likedTabIds: [...prevArtistData.likedTabIds, id],
+              // if needing to update number of likes received on artist, do it here
+            };
+          }
+        );
+
+        await ctx.tab.getTabById.cancel();
+        ctx.tab.getTabById.setData(
+          {
+            id,
+          },
+          (prevTabData) => {
+            if (!prevTabData) return prevTabData;
+            return {
+              ...prevTabData,
+              numberOfLikes: prevTabData.numberOfLikes + 1,
+            };
+          }
+        );
       },
       onError: (e) => {
         console.error(e);
       },
       onSettled: () => {
-        void ctx.tab.getTabById.invalidate();
-
-        // void ctx.artist.getByIdOrUsername.invalidate();
+        void refetchTab();
         void refetchCurrentArtist();
         if (asPath.includes("artist")) void refetchTabCreator();
       },
@@ -177,42 +179,44 @@ function TabMetadata() {
 
   const { mutate: unlikeTab, isLoading: isUnliking } =
     api.like.deleteLike.useMutation({
-      onMutate: async (data) => {
-        // optimistic update
-        // have check to also optimistically update tabCreator query if on their page (if "user" is in url)
-        // updating number of likes on tab (hmm do you want to do this normally or just update
-        // store value...)
-        // fyi: want to be invalidating artist query since we want to rerun query for which tabs are liked
-        // but again see what it looks like without optimistic upate
-        // await ctx.user.getUserByIdOrUsername.cancel();
-        // ctx.user.getUserByIdOrUsername.setData(
-        //   {
-        //     id: userId!,
-        //   },
-        //   (prevUserData) => {
-        //     if (!prevUserData || !prevUserData.publicMetadata.likedTabIds)
-        //       return prevUserData;
-        //     return {
-        //       ...prevUserData,
-        //       publicMetadata: {
-        //         ...prevUserData.publicMetadata,
-        //         likedTabIds: data.likingTab
-        //           ? [...prevUserData.publicMetadata.likedTabIds, id]
-        //           : prevUserData.publicMetadata.likedTabIds.filter(
-        //               (tabId) => tabId !== id
-        //             ),
-        //       },
-        //     };
-        //   }
-        // );
+      onMutate: async () => {
+        // optimistic updates
+
+        await ctx.artist.getByIdOrUsername.cancel();
+        ctx.artist.getByIdOrUsername.setData(
+          {
+            userId: createdById,
+          },
+          (prevArtistData) => {
+            if (!prevArtistData) return prevArtistData;
+            return {
+              ...prevArtistData,
+              likedTabIds: prevArtistData.likedTabIds.filter(
+                (tabId) => tabId !== id
+              ),
+            };
+          }
+        );
+
+        await ctx.tab.getTabById.cancel();
+        ctx.tab.getTabById.setData(
+          {
+            id,
+          },
+          (prevTabData) => {
+            if (!prevTabData) return prevTabData;
+            return {
+              ...prevTabData,
+              numberOfLikes: prevTabData.numberOfLikes - 1,
+            };
+          }
+        );
       },
       onError: (e) => {
         console.error(e);
       },
       onSettled: () => {
-        void ctx.tab.getTabById.invalidate();
-
-        // void ctx.artist.getByIdOrUsername.invalidate();
+        void refetchTab();
         void refetchCurrentArtist();
         if (asPath.includes("artist")) void refetchTabCreator();
       },

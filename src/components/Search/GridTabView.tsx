@@ -4,6 +4,10 @@ import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
 import GridTabCard from "./GridTabCard";
 import { useInView } from "react-intersection-observer";
+import { useRouter } from "next/router";
+import { useAuth } from "@clerk/nextjs";
+import { useTabStore } from "~/stores/TabStore";
+import { shallow } from "zustand/shallow";
 
 interface GridTabView {
   genreId: number;
@@ -23,20 +27,50 @@ function GridTabView({
   sortByRelevance,
   additionalSortFilter,
 }: GridTabView) {
+  const { userId } = useAuth();
+  const { query, asPath } = useRouter();
+
+  const { data: artist } = api.artist.getByIdOrUsername.useQuery(
+    {
+      username: query.username as string,
+    },
+    {
+      enabled: !!query.username,
+    }
+  );
+
+  const { setSearchResultsCount } = useTabStore(
+    (state) => ({
+      setSearchResultsCount: state.setSearchResultsCount,
+    }),
+    shallow
+  );
+
   const {
     data: tabResults,
     isFetching,
     hasNextPage,
     fetchNextPage,
+    refetch: refetchTabs,
   } = api.tab.getInfiniteTabsBySearchQuery.useInfiniteQuery(
     {
       searchQuery,
       genreId: genreId,
       sortByRelevance,
       sortBy: additionalSortFilter,
+      likedByUserId: asPath.includes("/likes") && userId ? userId : undefined,
+      userIdToSelectFrom:
+        asPath.includes("/tabs") && userId
+          ? userId
+          : typeof query.username === "string"
+          ? artist?.userId
+          : undefined,
     },
     {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      getNextPageParam: (lastPage) => lastPage.data.nextCursor,
+      onSuccess: (data) => {
+        setSearchResultsCount(data?.pages?.[0]?.count ?? 0);
+      },
     }
   );
 
@@ -73,19 +107,19 @@ function GridTabView({
     >
       <div
         style={
-          !tabResults || tabResults?.pages?.[0]?.tabs.length === 0
+          !tabResults || tabResults?.pages?.[0]?.data.tabs.length === 0
             ? { padding: "0" }
             : {}
         }
         className="grid w-full grid-cols-1 place-items-center gap-4 p-2 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4"
       >
         {tabResults?.pages.map((page) =>
-          page.tabs?.map((tab, index) => (
+          page.data.tabs?.map((tab, index) => (
             <AnimatePresence key={tab.id} mode={"wait"}>
-              {index === page.tabs.length - 1 ? (
-                <GridTabCard ref={ref} {...tab} />
+              {index === page.data.tabs.length - 1 ? (
+                <GridTabCard ref={ref} tab={tab} refetchTab={refetchTabs} />
               ) : (
-                <GridTabCard {...tab} />
+                <GridTabCard tab={tab} refetchTab={refetchTabs} />
               )}
             </AnimatePresence>
           ))
@@ -94,7 +128,7 @@ function GridTabView({
 
       {/* no results */}
       <AnimatePresence mode="wait">
-        {tabResults?.pages?.[0]?.tabs.length === 0 &&
+        {tabResults?.pages?.[0]?.data.tabs.length === 0 &&
           !showArtificialLoadingSpinner &&
           !isFetching && (
             <motion.p

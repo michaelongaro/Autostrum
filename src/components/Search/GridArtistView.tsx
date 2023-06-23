@@ -3,6 +3,8 @@ import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import GridArtistCard from "./GridArtistCard";
+import { useTabStore } from "~/stores/TabStore";
+import { shallow } from "zustand/shallow";
 
 interface GridArtistView {
   searchQuery: string;
@@ -20,6 +22,13 @@ function GridArtistView({
   sortByRelevance,
   additionalSortFilter,
 }: GridArtistView) {
+  const { setSearchResultsCount } = useTabStore(
+    (state) => ({
+      setSearchResultsCount: state.setSearchResultsCount,
+    }),
+    shallow
+  );
+
   const {
     data: artistResults,
     isFetching,
@@ -28,7 +37,10 @@ function GridArtistView({
   } = api.artist.getInfiniteArtistsBySearchQuery.useInfiniteQuery(
     { searchQuery, sortByRelevance, sortBy: additionalSortFilter },
     {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      getNextPageParam: (lastPage) => lastPage.data.nextCursor,
+      onSuccess: (data) => {
+        setSearchResultsCount(data?.pages?.[0]?.count ?? 0);
+      },
     }
   );
 
@@ -65,16 +77,16 @@ function GridArtistView({
     >
       <div
         style={
-          !artistResults || artistResults?.pages?.[0]?.artists.length === 0
+          !artistResults || artistResults?.pages?.[0]?.data.artists.length === 0
             ? { padding: "0" }
             : {}
         }
         className="grid w-full grid-cols-1 place-items-center gap-4 p-2 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4"
       >
         {artistResults?.pages.map((page) =>
-          page.artists?.map((artist, index) => (
+          page.data.artists?.map((artist, index) => (
             <AnimatePresence key={artist.id} mode={"wait"}>
-              {index === page.artists.length - 1 ? (
+              {index === page.data.artists.length - 1 ? (
                 <GridArtistCard ref={ref} {...artist} />
               ) : (
                 <GridArtistCard {...artist} />
@@ -86,7 +98,7 @@ function GridArtistView({
 
       {/* no results */}
       <AnimatePresence mode="wait">
-        {artistResults?.pages?.[0]?.artists.length === 0 &&
+        {artistResults?.pages?.[0]?.data.artists.length === 0 &&
           !showArtificialLoadingSpinner &&
           !isFetching && (
             <motion.p

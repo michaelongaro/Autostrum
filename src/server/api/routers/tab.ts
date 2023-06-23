@@ -1,10 +1,9 @@
-import { clerkClient } from "@clerk/nextjs/server";
-import type { Artist, Tab } from "@prisma/client";
+import type { Tab } from "@prisma/client";
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import buildTabOrderBy from "~/utils/buildTabOrderBy";
 import combineTabTitlesAndUsernames from "~/utils/combineTabTitlesAndUsernames";
-import { sortResultsByRelevance } from "~/utils/sortResultsByRelevance";
 
 export interface TabWithLikes extends Tab {
   numberOfLikes: number;
@@ -123,6 +122,7 @@ export const tabRouter = createTRPCRouter({
         sortByRelevance: z.boolean(),
         sortBy: z.enum(["newest", "oldest", "mostLiked", "leastLiked", "none"]),
         userIdToSelectFrom: z.string().optional(),
+        likedByUserId: z.string().optional(),
         // limit: z.number(), fine to hardcode I think, maybe end up scaling down from 25 on smaller screens?
         cursor: z.number().nullish(), // <-- "cursor" needs to exist, but can be any type
       })
@@ -134,96 +134,72 @@ export const tabRouter = createTRPCRouter({
         sortByRelevance,
         sortBy,
         userIdToSelectFrom,
+        likedByUserId,
         cursor,
       } = input;
       const limit = 25;
 
-      const orderBy:
-        | [
-            | {
-                _relevance: {
-                  fields: ["title"];
-                  search: string;
-                  sort: "asc" | "desc";
-                };
-              }
-            | {
-                createdAt?: "asc" | "desc";
-                likes?: {
-                  _count: "asc" | "desc";
-                };
-              }
-          ]
-        | undefined =
-        input.searchQuery && sortByRelevance
-          ? [
-              {
-                _relevance: {
-                  fields: ["title"],
-                  // bit of a problem with allowing spaces... seems like you need prisma to fix this
-                  // or find some hack around it..
-                  search: input.searchQuery.replace(/[\s\n\t]/g, "_"),
-                  sort: "asc",
-                },
+      const orderBy = buildTabOrderBy(sortBy, sortByRelevance, searchQuery);
+
+      const [count, tabs] = await Promise.all([
+        ctx.prisma.tab.count({
+          where: {
+            title: {
+              contains: searchQuery,
+              mode: "insensitive",
+            },
+            // not sure if this is best way, basically I would like to get all tabs if genreId is 9 (all genres)
+            genreId:
+              genreId === 9
+                ? {
+                    lt: genreId,
+                  }
+                : {
+                    equals: genreId,
+                  },
+            createdById: userIdToSelectFrom,
+            likes: {
+              every: {
+                artistWhoLikedId: likedByUserId,
               },
-            ]
-          : undefined;
-
-      if (sortBy !== "none") {
-        if (sortBy === "newest") {
-          orderBy?.push({
-            createdAt: "desc",
-          });
-        } else if (sortBy === "oldest") {
-          orderBy?.push({
-            createdAt: "asc",
-          });
-        } else if (sortBy === "mostLiked") {
-          orderBy?.push({
-            likes: {
-              _count: "desc",
-            },
-          });
-        } else if (sortBy === "leastLiked") {
-          orderBy?.push({
-            likes: {
-              _count: "asc",
-            },
-          });
-        }
-      }
-
-      const tabs = await ctx.prisma.tab.findMany({
-        take: limit + 1, // get an extra item at the end which we'll use as next cursor
-        where: {
-          title: {
-            contains: searchQuery,
-            mode: "insensitive",
-          },
-          // not sure if this is best way, basically I would like to get all tabs if genreId is 9 (all genres)
-          genreId:
-            genreId === 9
-              ? {
-                  lt: genreId,
-                }
-              : {
-                  equals: genreId,
-                },
-          createdById: userIdToSelectFrom,
-        },
-        include: {
-          _count: {
-            select: {
-              likes: true,
             },
           },
-        },
-        ...(orderBy !== undefined ? { orderBy: orderBy } : {}),
-        // https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination
+        }),
+        ctx.prisma.tab.findMany({
+          take: limit + 1, // get an extra item at the end which we'll use as next cursor
+          where: {
+            title: {
+              contains: searchQuery,
+              mode: "insensitive",
+            },
+            // not sure if this is best way, basically I would like to get all tabs if genreId is 9 (all genres)
+            genreId:
+              genreId === 9
+                ? {
+                    lt: genreId,
+                  }
+                : {
+                    equals: genreId,
+                  },
+            createdById: userIdToSelectFrom,
+            likes: {
+              every: {
+                artistWhoLikedId: likedByUserId,
+              },
+            },
+          },
+          include: {
+            _count: {
+              select: {
+                likes: true,
+              },
+            },
+          },
+          ...(orderBy !== undefined ? { orderBy: orderBy } : {}),
+          cursor: cursor ? { id: cursor } : undefined,
+        }),
+      ]);
 
-        //                 hoping that replacing "myCursor" with id is the logical replacement to make
-        cursor: cursor ? { id: cursor } : undefined,
-      });
       let nextCursor: typeof cursor | undefined = undefined;
       if (tabs.length > limit) {
         const nextItem = tabs.pop();
@@ -253,8 +229,11 @@ export const tabRouter = createTRPCRouter({
       // into different functions...
 
       return {
-        tabs: tabsWithLikes,
-        nextCursor,
+        data: {
+          tabs: tabsWithLikes,
+          nextCursor,
+        },
+        count,
       };
     }),
 

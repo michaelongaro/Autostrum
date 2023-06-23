@@ -67,6 +67,10 @@ interface TabState {
   ) => void;
   showEffectGlossaryModal: boolean;
   setShowEffectGlossaryModal: (showEffectGlossaryModal: boolean) => void;
+
+  // related to search
+  searchResultsCount: number;
+  setSearchResultsCount: (searchResultsCount: number) => void;
 }
 
 // if you ever come across a situation where you need the current value of tabData
@@ -187,5 +191,9 @@ export const useTabStore = create<TabState>()(
     showEffectGlossaryModal: false,
     setShowEffectGlossaryModal: (showEffectGlossaryModal) =>
       set({ showEffectGlossaryModal }),
+
+    // search
+    searchResultsCount: 0,
+    setSearchResultsCount: (searchResultsCount) => set({ searchResultsCount }),
   }))
 );

@@ -13,16 +13,14 @@ import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
 import { formatNumber } from "~/utils/formatNumber";
 import type { Genre } from "@prisma/client";
+import type { RefetchTab } from "../Tab/Tab";
 
-interface TableTabRow {
-  genreId?: number;
-  searchQuery?: string;
-  sortByRelevance: boolean;
-  additionalSortFilter?: "newest" | "oldest" | "leastLiked" | "mostLiked";
+interface TableTabRow extends RefetchTab {
+  tab: TabWithLikes;
 }
 
-const TableTabRow = forwardRef<HTMLTableRowElement, TabWithLikes>(
-  (tab, ref) => {
+const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
+  ({ tab, refetchTab }, ref) => {
     const { userId, isLoaded } = useAuth();
     const { push, asPath } = useRouter();
 
@@ -55,16 +53,71 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TabWithLikes>(
 
     const { mutate: likeTab, isLoading: isLiking } =
       api.like.createLike.useMutation({
-        onMutate: async (data) => {
-          //
+        onMutate: async () => {
+          // optimistic updates
+
+          if (asPath.includes("artist")) {
+            await ctx.artist.getByIdOrUsername.cancel({
+              userId: tabCreator?.userId,
+            });
+            ctx.artist.getByIdOrUsername.setData(
+              {
+                userId: tabCreator?.userId,
+              },
+              (prevArtistData) => {
+                if (!prevArtistData) return prevArtistData;
+
+                return {
+                  ...prevArtistData,
+                  numberOfLikes: prevArtistData.numberOfLikes++,
+                };
+              }
+            );
+          }
+
+          // using username because artist profile page uses username for it's query
+          await ctx.artist.getByIdOrUsername.cancel({
+            username: currentArtist?.username,
+          });
+          ctx.artist.getByIdOrUsername.setData(
+            {
+              username: currentArtist?.username,
+            },
+            (prevArtistData) => {
+              if (!prevArtistData) return prevArtistData;
+
+              const currentArtistIsOwner =
+                currentArtist?.username === tabCreator?.username;
+
+              return {
+                ...prevArtistData,
+                likedTabIds: [...prevArtistData.likedTabIds, tab.id],
+                numberOfLikes: currentArtistIsOwner
+                  ? prevArtistData.numberOfLikes + 1
+                  : prevArtistData.numberOfLikes,
+              };
+            }
+          );
+
+          await ctx.tab.getTabById.cancel();
+          ctx.tab.getTabById.setData(
+            {
+              id: tab.id,
+            },
+            (prevTabData) => {
+              if (!prevTabData) return prevTabData;
+              return {
+                ...prevTabData,
+                numberOfLikes: prevTabData.numberOfLikes + 1,
+              };
+            }
+          );
         },
         onError: (e) => {
           console.error(e);
         },
         onSettled: () => {
-          void ctx.tab.getTabById.invalidate();
-
-          // void ctx.artist.getByIdOrUsername.invalidate();
+          void refetchTab();
           void refetchCurrentArtist();
           if (asPath.includes("artist")) void refetchTabCreator();
         },
@@ -72,16 +125,73 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TabWithLikes>(
 
     const { mutate: unlikeTab, isLoading: isUnliking } =
       api.like.deleteLike.useMutation({
-        onMutate: async (data) => {
-          //
+        onMutate: async () => {
+          // optimistic updates
+
+          if (asPath.includes("artist")) {
+            await ctx.artist.getByIdOrUsername.cancel({
+              userId: tabCreator?.userId,
+            });
+            ctx.artist.getByIdOrUsername.setData(
+              {
+                userId: tabCreator?.userId,
+              },
+              (prevArtistData) => {
+                if (!prevArtistData) return prevArtistData;
+
+                return {
+                  ...prevArtistData,
+                  numberOfLikes: prevArtistData.numberOfLikes--,
+                };
+              }
+            );
+          }
+
+          // using username because artist profile page uses username for it's query
+          await ctx.artist.getByIdOrUsername.cancel({
+            username: currentArtist?.username,
+          });
+          ctx.artist.getByIdOrUsername.setData(
+            {
+              username: currentArtist?.username,
+            },
+            (prevArtistData) => {
+              if (!prevArtistData) return prevArtistData;
+
+              const currentArtistIsOwner =
+                currentArtist?.username === tabCreator?.username;
+
+              return {
+                ...prevArtistData,
+                likedTabIds: prevArtistData.likedTabIds.filter(
+                  (id) => id !== tab.id
+                ),
+                numberOfLikes: currentArtistIsOwner
+                  ? prevArtistData.numberOfLikes - 1
+                  : prevArtistData.numberOfLikes,
+              };
+            }
+          );
+
+          await ctx.tab.getTabById.cancel();
+          ctx.tab.getTabById.setData(
+            {
+              id: tab.id,
+            },
+            (prevTabData) => {
+              if (!prevTabData) return prevTabData;
+              return {
+                ...prevTabData,
+                numberOfLikes: prevTabData.numberOfLikes - 1,
+              };
+            }
+          );
         },
         onError: (e) => {
           console.error(e);
         },
         onSettled: () => {
-          void ctx.tab.getTabById.invalidate();
-
-          // void ctx.artist.getByIdOrUsername.invalidate();
+          void refetchTab();
           void refetchCurrentArtist();
           if (asPath.includes("artist")) void refetchTabCreator();
         },

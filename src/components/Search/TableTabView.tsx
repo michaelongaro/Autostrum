@@ -15,6 +15,10 @@ import { Button } from "~/components/ui/button";
 import Link from "next/link";
 import { useInView } from "react-intersection-observer";
 import TableTabRow from "./TableTabRow";
+import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/router";
+import { useTabStore } from "~/stores/TabStore";
+import { shallow } from "zustand/shallow";
 
 interface TableTabView {
   genreId: number;
@@ -34,20 +38,50 @@ function TableTabView({
   sortByRelevance,
   additionalSortFilter,
 }: TableTabView) {
+  const { userId } = useAuth();
+  const { query, asPath } = useRouter();
+
+  const { data: artist } = api.artist.getByIdOrUsername.useQuery(
+    {
+      username: query.username as string,
+    },
+    {
+      enabled: !!query.username,
+    }
+  );
+
+  const { setSearchResultsCount } = useTabStore(
+    (state) => ({
+      setSearchResultsCount: state.setSearchResultsCount,
+    }),
+    shallow
+  );
+
   const {
     data: tabResults,
     isFetching,
     hasNextPage,
     fetchNextPage,
+    refetch: refetchTabs,
   } = api.tab.getInfiniteTabsBySearchQuery.useInfiniteQuery(
     {
       searchQuery,
-      genreId: genreId ?? 9,
+      genreId: genreId,
       sortByRelevance,
       sortBy: additionalSortFilter,
+      likedByUserId: asPath.includes("/likes") && userId ? userId : undefined,
+      userIdToSelectFrom:
+        asPath.includes("/tabs") && userId
+          ? userId
+          : typeof query.username === "string"
+          ? artist?.userId
+          : undefined,
     },
     {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      getNextPageParam: (lastPage) => lastPage.data.nextCursor,
+      onSuccess: (data) => {
+        setSearchResultsCount(data?.pages?.[0]?.count ?? 0);
+      },
     }
   );
 
@@ -99,12 +133,21 @@ function TableTabView({
         </TableHeader>
         <TableBody className="w-full">
           {tabResults?.pages.map((page) =>
-            page.tabs?.map((tab, index) => (
+            page.data.tabs?.map((tab, index) => (
               <>
-                {index === page.tabs.length - 1 ? (
-                  <TableTabRow ref={ref} key={tab.id} {...tab} />
+                {index === page.data.tabs.length - 1 ? (
+                  <TableTabRow
+                    ref={ref}
+                    key={tab.id}
+                    tab={tab}
+                    refetchTab={refetchTabs}
+                  />
                 ) : (
-                  <TableTabRow key={tab.id} {...tab} />
+                  <TableTabRow
+                    key={tab.id}
+                    tab={tab}
+                    refetchTab={refetchTabs}
+                  />
                 )}
               </>
             ))
@@ -114,7 +157,7 @@ function TableTabView({
 
       {/* no results */}
       <AnimatePresence mode="wait">
-        {tabResults?.pages?.[0]?.tabs.length === 0 &&
+        {tabResults?.pages?.[0]?.data.tabs.length === 0 &&
           !showArtificialLoadingSpinner &&
           !isFetching && (
             <motion.p

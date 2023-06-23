@@ -3,6 +3,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import type { Artist } from "@prisma/client";
+import buildArtistOrderBy from "~/utils/buildArtistOrderBy";
 
 export interface ArtistMetadata extends Artist {
   numberOfLikes: number;
@@ -143,81 +144,36 @@ export const artistRouter = createTRPCRouter({
       const { searchQuery, sortByRelevance, sortBy, cursor } = input;
       const limit = 25;
 
-      const orderBy:
-        | [
-            | {
-                _relevance: {
-                  fields: ["username"];
-                  search: string;
-                  sort: "asc" | "desc";
-                };
-              }
-            | {
-                createdAt?: "asc" | "desc";
-                likesReceived?: {
-                  _count: "asc" | "desc";
-                };
-              }
-          ]
-        | undefined =
-        input.searchQuery && sortByRelevance
-          ? [
-              {
-                _relevance: {
-                  fields: ["username"],
-                  // bit of a problem with allowing spaces... seems like you need prisma to fix this
-                  // or find some hack around it..
-                  search: input.searchQuery.replace(/[\s\n\t]/g, "_"),
-                  sort: "asc",
-                },
-              },
-            ]
-          : undefined;
-
-      if (sortBy !== "none") {
-        if (sortBy === "newest") {
-          orderBy?.push({
-            createdAt: "desc",
-          });
-        } else if (sortBy === "oldest") {
-          orderBy?.push({
-            createdAt: "asc",
-          });
-        } else if (sortBy === "mostLiked") {
-          orderBy?.push({
-            likesReceived: {
-              _count: "desc",
-            },
-          });
-        } else if (sortBy === "leastLiked") {
-          orderBy?.push({
-            likesReceived: {
-              _count: "asc",
-            },
-          });
-        }
-      }
+      const orderBy = buildArtistOrderBy(sortBy, sortByRelevance, searchQuery);
 
       const fullArtistListWithMetadata: ArtistMetadata[] = [];
 
-      const artistIds = await ctx.prisma.artist.findMany({
-        take: limit + 1, // get an extra item at the end which we'll use as next cursor
-        where: {
-          username: {
-            contains: searchQuery,
-            mode: "insensitive",
+      const [count, artistIds] = await Promise.all([
+        ctx.prisma.artist.count({
+          where: {
+            username: {
+              contains: searchQuery,
+              mode: "insensitive",
+            },
           },
-        },
-        select: {
-          id: true,
-          userId: true,
-        },
-        // https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination
+        }),
+        ctx.prisma.artist.findMany({
+          take: limit + 1, // get an extra item at the end which we'll use as next cursor
+          where: {
+            username: {
+              contains: searchQuery,
+              mode: "insensitive",
+            },
+          },
+          select: {
+            id: true,
+            userId: true,
+          },
+          cursor: cursor ? { id: cursor } : undefined,
+          ...(orderBy !== undefined ? { orderBy: orderBy } : {}),
+        }),
+      ]);
 
-        //                 hoping that replacing "myCursor" with id is the logical replacement to make
-        cursor: cursor ? { id: cursor } : undefined,
-        ...(orderBy !== undefined ? { orderBy: orderBy } : {}),
-      });
       let nextCursor: typeof cursor | undefined = undefined;
       if (artistIds.length > limit) {
         const nextItem = artistIds.pop();
@@ -274,8 +230,11 @@ export const artistRouter = createTRPCRouter({
       // into different functions...
 
       return {
-        artists: fullArtistListWithMetadata,
-        nextCursor,
+        data: {
+          artists: fullArtistListWithMetadata,
+          nextCursor,
+        },
+        count,
       };
     }),
 

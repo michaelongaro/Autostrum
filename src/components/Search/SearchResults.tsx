@@ -4,6 +4,7 @@ import { api } from "~/utils/api";
 import { Label } from "../ui/label";
 import { Button } from "../ui/button";
 import { AnimatePresence, motion } from "framer-motion";
+import { useLocalStorageValue } from "@react-hookz/web";
 import {
   Select,
   SelectTrigger,
@@ -19,6 +20,9 @@ import GridTabView from "./GridTabView";
 import GridArtistView from "./GridArtistView";
 import TableTabView from "./TableTabView";
 import TableArtistView from "./TableArtistView";
+import { useTabStore } from "~/stores/TabStore";
+import { shallow } from "zustand/shallow";
+import { Badge } from "../ui/badge";
 
 interface SearchResults {
   genreId: number;
@@ -45,6 +49,16 @@ function SearchResults({
   const { asPath, push, query, pathname } = useRouter();
 
   // worry about skeletons later!
+  const localStorageViewType = useLocalStorageValue("viewType", {
+    defaultValue: "grid",
+  });
+
+  const { searchResultsCount } = useTabStore(
+    (state) => ({
+      searchResultsCount: state.searchResultsCount,
+    }),
+    shallow
+  );
 
   const genreArray = api.genre.getAll.useQuery();
 
@@ -63,6 +77,52 @@ function SearchResults({
 
     return genreArray.data;
   }, [genreArray.data]);
+
+  const queryResults = useMemo(() => {
+    const formattedResultString =
+      searchResultsCount === 1 ? "result" : "results";
+    const formattedTabString = searchResultsCount === 1 ? "tab" : "tabs";
+    const formattedArtistString =
+      searchResultsCount === 1 ? "artist" : "artists";
+
+    console.log(searchQuery === "", genreId >= 1, genreId <= 8);
+
+    if (searchQuery === "" && genreId >= 1 && genreId <= 8) {
+      return (
+        <div className="baseFlex gap-2 text-lg">
+          {`Found ${searchResultsCount}`}
+          <Badge
+            style={{ backgroundColor: genreArrayData[genreId - 1]?.color }}
+          >
+            {genreArrayData[genreId - 1]?.name}
+          </Badge>
+          {formattedTabString}
+        </div>
+      );
+    }
+    if (searchQuery === "" && genreId === 9) {
+      return (
+        <div className="baseFlex gap-2 text-lg">
+          {`Found ${searchResultsCount} ${formattedTabString} across`}
+          <Badge className="bg-pink-500">All genres</Badge>
+        </div>
+      );
+    } else if (searchQuery === "" && type === "artists") {
+      return (
+        <p className="text-lg">
+          Found {searchResultsCount} {formattedArtistString}
+        </p>
+      );
+    }
+
+    return (
+      <p className="text-lg">
+        Found {searchResultsCount} {formattedResultString} for &quot;
+        {searchQuery}
+        &quot;
+      </p>
+    );
+  }, [searchResultsCount, type, genreId, searchQuery, genreArrayData]);
 
   // all param change handlers below will remove the param if it is getting set
   // to the "default" values that we have defined in the useGetUrlParamFilters hook
@@ -113,26 +173,7 @@ function SearchResults({
   }
 
   function handleViewChange(viewType: "grid" | "table") {
-    const newQuery = { ...query };
-    if (viewType === "table") {
-      newQuery.view = viewType;
-    } else {
-      delete newQuery.view;
-    }
-
-    void push(
-      {
-        pathname,
-        query: {
-          ...newQuery,
-        },
-      },
-      undefined,
-      {
-        scroll: false, // defaults to true but try both
-        shallow: true,
-      }
-    );
+    localStorageViewType.set(viewType);
   }
 
   function handleRelevanceChange() {
@@ -202,7 +243,7 @@ function SearchResults({
 
     const newQueries = { ...query };
 
-    if (newSortParam === "mostLiked") delete newQueries.sort;
+    if (newSortParam === "newest") delete newQueries.sort;
     else newQueries.sort = newSortParam;
 
     // push new url to router
@@ -226,13 +267,7 @@ function SearchResults({
       {/* # of results + sorting options */}
       <div className="baseVertFlex w-full !items-start gap-2 bg-pink-900 px-4 py-2 md:flex-row md:!items-center md:!justify-between">
         {/* # of results */}
-        {/* will have to create separate trpc functions for tabs/artists that do the same query but return
-            just the total counts for those queries */}
-        {searchQuery && (
-          <p className="text-lg">{`${15} results for "${searchQuery}"`}</p>
-        )}
-        {/* most likely need another block for if searchQuery is undefined where it will show like
-            "All {genre} tabs - {numberOfTabs}" or "All artists - {numberOfArtists}". Think about it */}
+        {queryResults}
 
         {/* sorting options */}
         <div className="baseFlex !justify-start gap-2 md:!justify-center md:gap-4">
