@@ -254,10 +254,10 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
   function handleBpmChange(event: ChangeEvent<HTMLInputElement>) {
     const inputValue = event.target.value;
 
-    // Check if the input value is empty (backspace case) or a number between 1 and 200
+    // Check if the input value is empty (backspace case) or a number between 1 and 400
     if (
       inputValue === "" ||
-      (Number(inputValue) >= 1 && Number(inputValue) <= 200)
+      (Number(inputValue) >= 1 && Number(inputValue) <= 400)
     ) {
       setBpm(Number(inputValue) === 0 ? null : Number(inputValue));
     }
