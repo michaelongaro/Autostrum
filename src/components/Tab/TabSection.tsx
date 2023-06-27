@@ -441,6 +441,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
         >
           {toString(parse(tuning), { pad: 1 })
             .split(" ")
+            .reverse()
             .map((note, index) => (
               <div key={index}>{note}</div>
             ))}
