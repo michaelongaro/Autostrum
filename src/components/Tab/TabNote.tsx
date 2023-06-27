@@ -213,8 +213,13 @@ function TabNote({
             lineHeight: `${!inlineEffect ? "1.5rem" : "1.25rem"}`,
             padding: `${!inlineEffect ? "0.5rem" : "0"}`,
             margin: !inlineEffect ? "0" : "0.5rem 0",
+            borderColor: !inlineEffect
+              ? "rgb(253 242 248)"
+              : "rgb(253 242 248 / 0.5)", // could maybe do this
           }}
-          className="rounded-full p-2 text-center"
+          className={`rounded-full p-2 text-center ${
+            inlineEffect ? "shadow-none" : "shadow-sm"
+          }`}
           type="text"
           autoComplete="off"
           value={note}
@@ -229,7 +234,7 @@ function TabNote({
                 width: inlineEffect
                   ? "12px"
                   : note.length > 1
-                  ? "20px"
+                  ? "18px"
                   : "16px",
               }}
               className={`${horizontalPadding} py-[0.5px]`}
@@ -243,13 +248,13 @@ function TabNote({
               <div
                 className={`${
                   note === "~" ? "opacity-0" : "opacity-100"
-                } my-3 h-[1px] w-2 bg-pink-200`}
+                } my-3 h-[1px] w-2 bg-pink-50/50`}
               ></div>
               <div
                 style={{
                   width: inlineEffect ? "4px" : "8px",
                 }}
-                className="my-3 h-[1px] bg-pink-200"
+                className="my-3 h-[1px] bg-pink-50/50"
               ></div>
             </div>
           )}

@@ -219,7 +219,7 @@ function TabNoteAndEffectCombo({
 
                     // might need to refine these widths/values a bit if the sound playing overlay isn't
                     // as smooth/seamless as we want it to be.
-                    width: editing ? "auto" : "20px",
+                    width: editing ? "auto" : "18px",
                   }}
                   className="baseFlex relative"
                 >
@@ -227,14 +227,14 @@ function TabNoteAndEffectCombo({
                     style={{
                       width: editing
                         ? relativelyGetColumn(-1)?.[8] === "measureLine"
-                          ? "6px"
+                          ? "4px"
                           : "8px"
                         : // need to fix logic below
                         // relativelyGetColumn(-1)?.[8] === "measureLine" &&
                         //   (relativelyGetColumn(0)?.[index]?.length ?? 0) < 2
                         (relativelyGetColumn(0)?.[index]?.length ?? 0) > 1
                         ? "0px"
-                        : "2px",
+                        : "1px",
 
                       opacity:
                         editing ||
@@ -247,7 +247,7 @@ function TabNoteAndEffectCombo({
                           ? 1
                           : 0,
                     }}
-                    className="h-[1px] bg-pink-200 "
+                    className="h-[1px] bg-pink-50/50 "
                   ></div>
 
                   <TabNote
@@ -265,7 +265,7 @@ function TabNoteAndEffectCombo({
                         : `${
                             (relativelyGetColumn(0)?.[index]?.length ?? 0) > 1
                               ? "0px"
-                              : "2px"
+                              : "1px"
                           }`,
                       opacity:
                         editing ||
@@ -276,7 +276,7 @@ function TabNoteAndEffectCombo({
                           ? 1
                           : 0,
                     }}
-                    className="h-[1px] bg-pink-200"
+                    className="h-[1px] bg-pink-50/50"
                   ></div>
                 </div>
               )}
@@ -373,7 +373,9 @@ function TabNoteAndEffectCombo({
                   }}
                   className="baseFlex"
                 >
-                  {editing && <div className="h-[1px] w-2 bg-pink-50 "></div>}
+                  {editing && (
+                    <div className="h-[1px] w-1 bg-pink-50/50 "></div>
+                  )}
                   <TabNote
                     note={note}
                     inlineEffect={true}
@@ -388,14 +390,14 @@ function TabNoteAndEffectCombo({
                         width: `${
                           editing
                             ? relativelyGetColumn(2)?.[8] === "measureLine"
-                              ? "6px"
-                              : "8px"
+                              ? "2px"
+                              : "4px"
                             : relativelyGetColumn(2)?.[8] === "measureLine"
                             ? "1px"
                             : "2px"
                         }`,
                       }}
-                      className="h-[1px] bg-pink-200"
+                      className="h-[1px] bg-pink-50/50"
                     ></div>
                   )}
                 </div>
