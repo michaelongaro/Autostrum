@@ -33,7 +33,7 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { formatNumber } from "~/utils/formatNumber";
 import type { RefetchTab } from "./Tab";
 
-function TabMetadata({ refetchTab }: RefetchTab) {
+function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
   const { userId, isLoaded } = useAuth();
 
   const { push, asPath } = useRouter();
@@ -171,7 +171,7 @@ function TabMetadata({ refetchTab }: RefetchTab) {
         console.error(e);
       },
       onSettled: () => {
-        void refetchTab();
+        void refetchTab?.();
         void refetchCurrentArtist();
         if (asPath.includes("artist")) void refetchTabCreator();
       },
@@ -216,7 +216,7 @@ function TabMetadata({ refetchTab }: RefetchTab) {
         console.error(e);
       },
       onSettled: () => {
-        void refetchTab();
+        void refetchTab?.();
         void refetchCurrentArtist();
         if (asPath.includes("artist")) void refetchTabCreator();
       },

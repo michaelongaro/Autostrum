@@ -33,7 +33,7 @@ export interface RefetchTab {
     // @ts-expect-error asdf
   ) => Promise<QueryObserverResult<TData, TError>>;
 }
-interface ITab extends RefetchTab {
+interface ITab extends Partial<RefetchTab> {
   tab: TabWithLikes | undefined | null;
 }
 
