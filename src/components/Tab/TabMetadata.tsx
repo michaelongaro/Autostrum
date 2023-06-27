@@ -32,9 +32,12 @@ import classes from "./TabMetadata.module.css";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { formatNumber } from "~/utils/formatNumber";
 import type { RefetchTab } from "./Tab";
+import useSound from "~/hooks/useSound";
 
 function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
   const { userId, isLoaded } = useAuth();
+
+  const { playTab, pauseTab, playing, loadingInstrument } = useSound();
 
   const { push, asPath } = useRouter();
   const ctx = api.useContext();
@@ -379,6 +382,24 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
 
   return (
     <>
+      <Button
+        onClick={() => {
+          if (playing) {
+            void pauseTab();
+          } else {
+            void playTab(
+              tabData,
+              sectionProgression,
+              tuning,
+              bpm ?? 60,
+              capo ?? 0
+            );
+          }
+        }}
+        className="my-8"
+      >
+        {playing ? "Pause" : loadingInstrument ? "Loading..." : "Play"}
+      </Button>
       {editing ? (
         <>
           <div className={classes.editingMetadataContainer}>
