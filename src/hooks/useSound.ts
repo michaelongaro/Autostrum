@@ -12,7 +12,7 @@ type InstrumentNames =
 export default function useSound() {
   // chatgpt vibrato effect snippet
 
-  // const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+  const [showingAudioControls, setShowingAudioControls] = useState(false);
 
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const breakOnNextNote = useRef(false);
@@ -251,6 +251,8 @@ export default function useSound() {
   }
 
   return {
+    showingAudioControls,
+    setShowingAudioControls,
     instrumentName,
     setInstrumentName,
     currentSectionProgressionIndex,
