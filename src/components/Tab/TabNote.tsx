@@ -1,23 +1,16 @@
-import { useMemo } from "react";
+import { useState } from "react";
 import { Input } from "../ui/input";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 
 interface TabNote {
   note: string;
-  inlineEffect: boolean;
   sectionIndex: number;
   columnIndex: number;
   noteIndex: number;
 }
 
-function TabNote({
-  note,
-  inlineEffect,
-  sectionIndex,
-  columnIndex,
-  noteIndex,
-}: TabNote) {
+function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
   const { editing, tabData, setTabData } = useTabStore(
     (state) => ({
       editing: state.editing,
@@ -27,35 +20,70 @@ function TabNote({
     shallow
   );
 
-  // this logic is really ugly but I'm not sure there is a better alternative given the
-  // greater structure and the fact that "/" and "\" don't start their render at the same
-  // pixel as regular characters
-  const horizontalPadding = useMemo(() => {
-    if (note.length > 1) return "px-0";
+  const [isFocused, setIsFocused] = useState(false);
 
-    const prevNoteLength =
-      tabData[sectionIndex]!.data[columnIndex - 1]?.[noteIndex]?.length ?? 0;
-    const nextNoteLength =
-      tabData[sectionIndex]!.data[columnIndex + 1]?.[noteIndex]?.length ?? 0;
-
-    const nextNote = tabData[sectionIndex]!.data[columnIndex + 1]?.[noteIndex];
-
-    if (note === "/" || note === "\\") {
-      // making sure to handle measure line case first since next one would also allow it (with wrong result)
-      if (prevNoteLength === 1 && nextNote === "|") return "px-[0.125rem]";
-      if (prevNoteLength === 2 && (nextNote === "|" || nextNoteLength === 2))
-        return "px-[0.125rem]";
-      if (prevNoteLength === 2 && nextNoteLength === 1) return "px-1";
-      if (prevNoteLength === 1 && nextNoteLength === 2) return "px-0";
+  function validNoteInput(input: string) {
+    // If input is '|' or 'x', it's valid
+    if (input === "|" || input === "x") {
+      return true;
     }
 
-    if (note === "h" || note === "p") {
-      if (nextNoteLength === 1 && nextNote !== "|") return "px-[0.125rem]";
-      else return "px-0";
+    // Regex pattern to match a fret number between 0 and 22
+    const numberPattern = /^(?:[0-9]|1[0-9]|2[0-2])$/;
+
+    // Regex pattern to match any *one* effect of "h", "p", "/", "\", or "~"
+    const characterPattern = /^[hp\/\\\\~]$/;
+
+    // If input is a single digit or two digits between 10 to 22
+    if (input.length === 1 && numberPattern.test(input)) {
+      return true;
     }
 
-    return "px-1";
-  }, [tabData, sectionIndex, columnIndex, noteIndex, note]);
+    // If input starts with a number between 0 and 22 followed by
+    // exactly one of the characters "h", "p", "/", "\", or "~"
+    if (input.length === 2 || input.length === 3) {
+      const numberPart =
+        input[0]! +
+        (parseInt(input[1]!) >= 0 && parseInt(input[1]!) <= 9 ? input[1]! : "");
+      const characterPart =
+        parseInt(input[1]!) >= 0 && parseInt(input[1]!) <= 9
+          ? input[2]
+          : input[1];
+
+      if (characterPart === undefined) {
+        return numberPattern.test(numberPart);
+      } else if (input.length === 2) {
+        return (
+          numberPattern.test(numberPart) && characterPattern.test(characterPart)
+        );
+      } else if (input.length === 3 && numberPart.length === 2) {
+        return (
+          numberPattern.test(numberPart) && characterPattern.test(characterPart)
+        );
+      }
+    }
+
+    // In all other cases, the input is invalid
+    return false;
+  }
+
+  // there's a chance you can make this spacing work, but as you know it comes with a lot of headaches..
+  // function formatNoteAndEffect(value: string) {
+  //   const characterPattern = /^[hp\/\\\\~]$/;
+
+  //   if (value.includes("~")) {
+  //     return <div>{note}</div>;
+  //   } else if (value.length > 0 && characterPattern.test(value.at(-1)!)) {
+  //     return (
+  //       <div className="baseFlex gap-2">
+  //         {note.substring(0, note.length - 1)}
+  //         <div>{value.at(-1)}</div>
+  //       </div>
+  //     );
+  //   }
+
+  //   return <div>{note}</div>;
+  // }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key !== "Backspace") return;
@@ -78,7 +106,7 @@ function TabNote({
     const value = e.target.value.toLowerCase();
 
     // regular notes
-    if (!inlineEffect && noteIndex !== 7) {
+    if (noteIndex !== 7) {
       // wanted to always allow a-g in regular note even if there was a number
       // present for easy placement of major chords
       let valueHasAMajorChordLetter = false;
@@ -123,9 +151,7 @@ function TabNote({
         return;
       }
 
-      // Check if the value is between 0 and 22, a "|", or an "x"
-      const isValid = /^(2[0-2]|1?[0-9]|0|[x]|[|])$/g.test(value);
-      if (value !== "" && !isValid) return;
+      if (value !== "" && !validNoteInput(value)) return;
 
       if (value === "|") {
         if (
@@ -149,11 +175,8 @@ function TabNote({
           "|",
           "|",
           "",
-          "measureLine", // add more annotations [8]
+          "measureLine",
         ];
-
-        // deleting the inlineEffect column
-        newTabData[sectionIndex]!.data.splice(columnIndex + 1, 1);
 
         setTabData(newTabData);
         return;
@@ -161,7 +184,7 @@ function TabNote({
     }
 
     // chord effects
-    else if (!inlineEffect && noteIndex === 7) {
+    else {
       // Check if the value is contains at most one of each of the following characters: . ^ v > s
       // and that it doesn't contain both a ^ and a v
       let isValid = true;
@@ -186,13 +209,6 @@ function TabNote({
       if (value !== "" && !isValid) return;
     }
 
-    // inline effects
-    else if (inlineEffect && noteIndex !== 7) {
-      // Check if the value is one of the following characters: h p / \ ~
-      const isValid = /^[hp\/\\\\~]$/.test(value);
-      if (value !== "" && !isValid) return;
-    }
-
     const newTabData = [...tabData];
 
     newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = value;
@@ -205,21 +221,18 @@ function TabNote({
       {editing ? (
         <Input
           style={{
-            height: `${!inlineEffect ? "2.35rem" : "1.35rem"}`,
-            width: `${
-              !inlineEffect ? (noteIndex === 7 ? "3rem" : "2.35rem") : "1.4rem"
-            }`,
-            fontSize: `${!inlineEffect ? "1rem" : "0.875rem"}`,
-            lineHeight: `${!inlineEffect ? "1.5rem" : "1.25rem"}`,
-            padding: `${!inlineEffect ? "0.5rem" : "0"}`,
-            margin: !inlineEffect ? "0" : "0.5rem 0",
-            borderColor: !inlineEffect
-              ? "rgb(253 242 248)"
-              : "rgb(253 242 248 / 0.5)", // could maybe do this
+            width: `${noteIndex !== 7 ? "2.35rem" : "2.75rem"}`,
+            borderWidth: `${note.length > 0 && !isFocused ? "2px" : "1px"}`,
           }}
-          className={`rounded-full p-2 text-center ${
-            inlineEffect ? "shadow-none" : "shadow-sm"
-          }`}
+          className={`h-[2.35rem] rounded-full p-0 text-center 
+          ${note.length > 0 ? "shadow-md" : "shadow-sm"}
+          `}
+          onFocus={() => {
+            setIsFocused(true);
+          }}
+          onBlur={() => {
+            setIsFocused(false);
+          }}
           type="text"
           autoComplete="off"
           value={note}
@@ -227,38 +240,12 @@ function TabNote({
           onChange={handleChange}
         />
       ) : (
-        <>
-          {note !== "" && note !== "~" ? (
-            <div
-              style={{
-                width: inlineEffect
-                  ? "12px"
-                  : note.length > 1
-                  ? "18px"
-                  : "16px",
-              }}
-              className={`${horizontalPadding} py-[0.5px]`}
-            >{`${note}${
-              tabData[sectionIndex]!.data[columnIndex + 1]![noteIndex] === "~"
-                ? "~"
-                : ""
-            }`}</div>
-          ) : (
-            <div className="baseFlex">
-              <div
-                className={`${
-                  note === "~" ? "opacity-0" : "opacity-100"
-                } my-3 h-[1px] w-2 bg-pink-50/50`}
-              ></div>
-              <div
-                style={{
-                  width: inlineEffect ? "4px" : "8px",
-                }}
-                className="my-3 h-[1px] bg-pink-50/50"
-              ></div>
-            </div>
-          )}
-        </>
+        <div className="baseFlex w-[35px]">
+          <div className="my-3 h-[1px] flex-[1] bg-pink-50/50"></div>
+          {/* {formatNoteAndEffect(note)} */}
+          <div>{note}</div>
+          <div className="my-3 h-[1px] flex-[1] bg-pink-50/50"></div>
+        </div>
       )}
     </>
   );

@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import TabMeasureLine from "./TabMeasureLine";
-import TabNoteAndEffectCombo from "./TabNoteAndEffectCombo";
+import TabNotesColumn from "./TabNotesColumn";
 import { type LastModifiedPalmMuteNodeLocation } from "./TabSection";
 
 export interface TabColumn {
@@ -40,10 +40,6 @@ function TabColumn({
     shallow
   );
 
-  // Note + effect columns are combined below to allow easier sorting behavior while reordering
-  if (tabData[sectionIndex]?.data[columnIndex]?.[8] === "inlineEffect")
-    return null;
-
   return (
     <>
       {columnData.includes("|") ? (
@@ -55,11 +51,10 @@ function TabColumn({
           showingDeleteColumnsButtons={showingDeleteColumnsButtons}
         />
       ) : (
-        <TabNoteAndEffectCombo
-          noteColumnData={columnData}
-          effectColumnData={tabData[sectionIndex]?.data[columnIndex + 1]}
+        <TabNotesColumn
           sectionIndex={sectionIndex}
-          noteColumnIndex={columnIndex}
+          columnData={columnData}
+          columnIndex={columnIndex}
           editingPalmMuteNodes={editingPalmMuteNodes}
           setEditingPalmMuteNodes={setEditingPalmMuteNodes}
           lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}

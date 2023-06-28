@@ -218,12 +218,7 @@ export default function useSound() {
           }
 
           const column = tabData[sectionIdx]?.data[columnIndex];
-          if (
-            column === undefined ||
-            column[8] === "inlineEffect" ||
-            columnHasNoNotes(column)
-          )
-            continue;
+          if (column === undefined || columnHasNoNotes(column)) continue;
 
           await playNoteColumn(column, tuning, capo ?? 0, bpm);
         }
@@ -249,6 +244,10 @@ export default function useSound() {
     //   playNote(!up ? tuning.length - i - 1 : i, 0.05 * i + when, capo ?? 0)
     // );
   }
+
+  // function playChord()
+  // could actually probably use this for regular strumming a chord and for the "chord preview" sound!
+  // meaning you would have to directly export this function to use in the chord preview component
 
   return {
     showingAudioControls,

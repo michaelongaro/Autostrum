@@ -64,10 +64,10 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
   const ids = useMemo(() => {
     const newIds = [];
 
+    // this was originally formatted to handle note + effect cols, can prob
+    // be simplified now
     for (const [index, columnData] of sectionData.data.entries()) {
-      if (columnData[8] !== "inlineEffect") {
-        newIds.push(`${index}`);
-      }
+      newIds.push(`${index}`);
     }
 
     return newIds;
@@ -108,7 +108,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
       newTabData[sectionIndex]!.data.push(
         Array.from({ length: 9 }, (_, index) => {
           if (index === 8) {
-            return i % 2 === 0 ? "note" : "inlineEffect";
+            return "note";
           } else {
             return "";
           }
@@ -125,7 +125,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
       baseArray.push(
         Array.from({ length: 9 }, (_, index) => {
           if (index === 8) {
-            return i % 2 === 0 ? "note" : "inlineEffect";
+            return "note";
           } else {
             return "";
           }

@@ -34,11 +34,10 @@ const initialStyles = {
   filter: "drop-shadow(0px 5px 5px transparent)",
 };
 
-interface TabNoteAndEffectCombo {
-  noteColumnData: string[];
-  effectColumnData: string[] | undefined;
+interface TabNotesColumn {
   sectionIndex: number;
-  noteColumnIndex: number;
+  columnData: string[];
+  columnIndex: number;
 
   editingPalmMuteNodes: boolean;
   setEditingPalmMuteNodes: Dispatch<SetStateAction<boolean>>;
@@ -50,11 +49,11 @@ interface TabNoteAndEffectCombo {
   showingDeleteColumnsButtons: boolean;
 }
 
-function TabNoteAndEffectCombo({
-  noteColumnData,
-  effectColumnData,
+function TabNotesColumn({
   sectionIndex,
-  noteColumnIndex,
+  columnData,
+  // effectColumnData,
+  columnIndex,
 
   editingPalmMuteNodes,
   setEditingPalmMuteNodes,
@@ -62,7 +61,7 @@ function TabNoteAndEffectCombo({
   setLastModifiedPalmMuteNode,
   reorderingColumns,
   showingDeleteColumnsButtons,
-}: TabNoteAndEffectCombo) {
+}: TabNotesColumn) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
 
@@ -75,8 +74,8 @@ function TabNoteAndEffectCombo({
     transition,
     isDragging,
   } =
-    // hoping that noteColumnIndex is fine here. if you can drag across sections we will need to modify.
-    useSortable({ id: `${noteColumnIndex}` });
+    // hoping that columnIndex is fine here. if you can drag across sections we will need to modify.
+    useSortable({ id: `${columnIndex}` });
 
   const { editing, tabData, setTabData } = useTabStore(
     (state) => ({
@@ -89,9 +88,8 @@ function TabNoteAndEffectCombo({
 
   function relativelyGetColumn(indexRelativeToCurrentCombo: number) {
     return (
-      tabData[sectionIndex]?.data[
-        noteColumnIndex + indexRelativeToCurrentCombo
-      ] ?? []
+      tabData[sectionIndex]?.data[columnIndex + indexRelativeToCurrentCombo] ??
+      []
     );
   }
 
@@ -109,39 +107,39 @@ function TabNoteAndEffectCombo({
     // if the current combo is the first/last "elem" in the section and there is a measure line right after/before
     // the combo -> disable
     if (
-      (noteColumnIndex === 0 &&
+      (columnIndex === 0 &&
         // +2 to account for the effect column
-        currentSection.data[noteColumnIndex + 2]?.[8] === "measureLine") ||
-      (noteColumnIndex === currentSection.data.length - 2 &&
-        currentSection.data[noteColumnIndex - 1]?.[8] === "measureLine")
+        currentSection.data[columnIndex + 2]?.[8] === "measureLine") ||
+      (columnIndex === currentSection.data.length - 2 &&
+        currentSection.data[columnIndex - 1]?.[8] === "measureLine")
     ) {
       disabled = true;
     }
 
     // if the current combo is being flanked by two measure lines -> disable
     if (
-      currentSection.data[noteColumnIndex - 1]?.[8] === "measureLine" &&
-      currentSection.data[noteColumnIndex + 2]?.[8] === "measureLine"
+      currentSection.data[columnIndex - 1]?.[8] === "measureLine" &&
+      currentSection.data[columnIndex + 2]?.[8] === "measureLine"
     ) {
       disabled = true;
     }
 
     return disabled;
-  }, [tabData, sectionIndex, noteColumnIndex]);
+  }, [tabData, sectionIndex, columnIndex]);
 
   function handleDeleteCombo() {
     const newTabData = [...tabData];
 
-    newTabData[sectionIndex]?.data.splice(noteColumnIndex, 2);
+    newTabData[sectionIndex]?.data.splice(columnIndex, 2);
 
     setTabData(newTabData);
   }
 
   return (
     <motion.div
-      key={`tabSection${sectionIndex}tabColumn${noteColumnIndex}`}
+      key={`tabSection${sectionIndex}tabColumn${columnIndex}`}
       ref={setNodeRef}
-      layoutId={`tabSection${sectionIndex}tabColumn${noteColumnIndex}`}
+      layoutId={`tabSection${sectionIndex}tabColumn${columnIndex}`}
       style={initialStyles}
       initial="closed"
       animate={
@@ -154,7 +152,7 @@ function TabNoteAndEffectCombo({
               zIndex: isDragging ? 1 : 0,
               filter: isDragging
                 ? "drop-shadow(0px 5px 5px rgba(0, 0, 0, 0.25)"
-                : "drop-shadow(0px 5px 5px transparent)",
+                : "drop-shadow(0px 5px 5px transparent)", // maybe try "none" if it allows for better performance
             }
           : initialStyles
       }
@@ -180,7 +178,6 @@ function TabNoteAndEffectCombo({
       variants={sectionVariants}
       className="baseVertFlex cursor-default"
     >
-      {/* TODO: don't want to be repeating twice below, find way to combine */}
       <div className="baseFlex">
         <div
           style={{
@@ -188,14 +185,14 @@ function TabNoteAndEffectCombo({
           }}
           className="baseVertFlex mb-[3.2rem] mt-4"
         >
-          {noteColumnData.map((note, index) => (
+          {columnData.map((note, index) => (
             <Fragment key={index}>
               {index === 0 && (
                 <div className="baseFlex h-9 w-full">
                   <PalmMuteNode
                     note={note}
                     effectColumn={false}
-                    columnIndex={noteColumnIndex}
+                    columnIndex={columnIndex}
                     sectionIndex={sectionIndex}
                     editingPalmMuteNodes={editingPalmMuteNodes}
                     setEditingPalmMuteNodes={setEditingPalmMuteNodes}
@@ -219,22 +216,24 @@ function TabNoteAndEffectCombo({
 
                     // might need to refine these widths/values a bit if the sound playing overlay isn't
                     // as smooth/seamless as we want it to be.
-                    width: editing ? "auto" : "18px",
+                    width: editing ? "60px" : "35px",
+
+                    // maybe also need "flex-basis: content" here if editing?
                   }}
-                  className="baseFlex relative"
+                  className="baseFlex relative basis-[content]"
                 >
                   <div
                     style={{
-                      width: editing
-                        ? relativelyGetColumn(-1)?.[8] === "measureLine"
-                          ? "4px"
-                          : "8px"
-                        : // need to fix logic below
-                        // relativelyGetColumn(-1)?.[8] === "measureLine" &&
-                        //   (relativelyGetColumn(0)?.[index]?.length ?? 0) < 2
-                        (relativelyGetColumn(0)?.[index]?.length ?? 0) > 1
-                        ? "0px"
-                        : "1px",
+                      // width: editing
+                      //   ? relativelyGetColumn(-1)?.[8] === "measureLine"
+                      //     ? "4px"
+                      //     : "8px"
+                      //   : // need to fix logic below
+                      //   // relativelyGetColumn(-1)?.[8] === "measureLine" &&
+                      //   //   (relativelyGetColumn(0)?.[index]?.length ?? 0) < 2
+                      //   (relativelyGetColumn(0)?.[index]?.length ?? 0) > 1
+                      //   ? "0px"
+                      //   : "1px",
 
                       opacity:
                         editing ||
@@ -247,26 +246,25 @@ function TabNoteAndEffectCombo({
                           ? 1
                           : 0,
                     }}
-                    className="h-[1px] bg-pink-50/50 "
+                    className="h-[1px] flex-[1] bg-pink-50/50"
                   ></div>
 
                   <TabNote
                     note={note}
-                    inlineEffect={false}
                     sectionIndex={sectionIndex}
-                    columnIndex={noteColumnIndex}
+                    columnIndex={columnIndex}
                     noteIndex={index}
                   />
 
                   <div
                     style={{
-                      width: editing
-                        ? "8px"
-                        : `${
-                            (relativelyGetColumn(0)?.[index]?.length ?? 0) > 1
-                              ? "0px"
-                              : "1px"
-                          }`,
+                      // width: editing
+                      //   ? "8px"
+                      //   : `${
+                      //       (relativelyGetColumn(0)?.[index]?.length ?? 0) > 1
+                      //         ? "0px"
+                      //         : "1px"
+                      //     }`,
                       opacity:
                         editing ||
                         relativelyGetColumn(1)[index] === "" ||
@@ -276,7 +274,7 @@ function TabNoteAndEffectCombo({
                           ? 1
                           : 0,
                     }}
-                    className="h-[1px] bg-pink-50/50"
+                    className="h-[1px] flex-[1] bg-pink-50/50"
                   ></div>
                 </div>
               )}
@@ -286,12 +284,11 @@ function TabNoteAndEffectCombo({
                 !reorderingColumns &&
                 !showingDeleteColumnsButtons && (
                   <div className="relative h-0 w-full">
-                    <div className="absolute left-1/2 right-1/2 top-2 w-[3rem] -translate-x-1/2">
+                    <div className="absolute left-1/2 right-1/2 top-2 w-[2.75rem] -translate-x-1/2">
                       <TabNote
                         note={note}
-                        inlineEffect={false}
                         sectionIndex={sectionIndex}
-                        columnIndex={noteColumnIndex}
+                        columnIndex={columnIndex}
                         noteIndex={index}
                       />
                     </div>
@@ -307,107 +304,24 @@ function TabNoteAndEffectCombo({
                     }}
                     className="baseVertFlex absolute left-1/2 right-1/2 top-2 w-[1.5rem] -translate-x-1/2"
                   >
-                    {tabData[sectionIndex]?.data[
-                      noteColumnIndex
-                    ]?.[7]?.includes("^") && (
-                      <div className="relative top-1 rotate-180">v</div>
-                    )}
-                    {tabData[sectionIndex]?.data[
-                      noteColumnIndex
-                    ]?.[7]?.includes("v") && <div>v</div>}
-                    {tabData[sectionIndex]?.data[
-                      noteColumnIndex
-                    ]?.[7]?.includes("s") && <div>s</div>}
-                    {tabData[sectionIndex]?.data[
-                      noteColumnIndex
-                    ]?.[7]?.includes(">") && <div>{">"}</div>}
-                    {tabData[sectionIndex]?.data[
-                      noteColumnIndex
-                    ]?.[7]?.includes(".") && (
-                      <div className="relative bottom-2">.</div>
-                    )}
+                    {tabData[sectionIndex]?.data[columnIndex]?.[7]?.includes(
+                      "^"
+                    ) && <div className="relative top-1 rotate-180">v</div>}
+                    {tabData[sectionIndex]?.data[columnIndex]?.[7]?.includes(
+                      "v"
+                    ) && <div>v</div>}
+                    {tabData[sectionIndex]?.data[columnIndex]?.[7]?.includes(
+                      "s"
+                    ) && <div>s</div>}
+                    {tabData[sectionIndex]?.data[columnIndex]?.[7]?.includes(
+                      ">"
+                    ) && <div>{">"}</div>}
+                    {tabData[sectionIndex]?.data[columnIndex]?.[7]?.includes(
+                      "."
+                    ) && <div className="relative bottom-2">.</div>}
                   </div>
                 </div>
               )}
-            </Fragment>
-          ))}
-        </div>
-
-        <div
-          style={{
-            gap: editing ? "0.5rem" : "0",
-          }}
-          className="baseVertFlex mb-[3.2rem] mt-4"
-        >
-          {effectColumnData?.map((note, index) => (
-            <Fragment key={index}>
-              {index === 0 && (
-                <div className="baseFlex h-9 w-full">
-                  <PalmMuteNode
-                    note={note}
-                    effectColumn={true}
-                    columnIndex={noteColumnIndex + 1}
-                    sectionIndex={sectionIndex}
-                    editingPalmMuteNodes={editingPalmMuteNodes}
-                    setEditingPalmMuteNodes={setEditingPalmMuteNodes}
-                    lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
-                    setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
-                  />
-                </div>
-              )}
-
-              {index > 0 && index < 7 && (
-                <div
-                  style={{
-                    borderTop: `${
-                      index === 1 ? "2px solid rgb(253 242 248)" : "none"
-                    }`,
-                    paddingTop: `${index === 1 ? "0.45rem" : "0rem"}`,
-                    borderBottom: `${
-                      index === 6 ? "2px solid rgb(253 242 248)" : "none"
-                    }`,
-                    paddingBottom: `${index === 6 ? "0.45rem" : "0rem"}`,
-
-                    // this should prob be dynamic to go down to 11px if right next to measure line!
-                    width: editing ? "auto" : "12px",
-                  }}
-                  className="baseFlex"
-                >
-                  {editing && (
-                    <div className="h-[1px] w-1 bg-pink-50/50 "></div>
-                  )}
-                  <TabNote
-                    note={note}
-                    inlineEffect={true}
-                    sectionIndex={sectionIndex}
-                    columnIndex={noteColumnIndex + 1}
-                    noteIndex={index}
-                  />
-
-                  {editing && (
-                    <div
-                      style={{
-                        width: `${
-                          editing
-                            ? relativelyGetColumn(2)?.[8] === "measureLine"
-                              ? "2px"
-                              : "4px"
-                            : relativelyGetColumn(2)?.[8] === "measureLine"
-                            ? "1px"
-                            : "2px"
-                        }`,
-                      }}
-                      className="h-[1px] bg-pink-50/50"
-                    ></div>
-                  )}
-                </div>
-              )}
-
-              {index === 7 &&
-                !reorderingColumns &&
-                !showingDeleteColumnsButtons && (
-                  <div className="relative h-0 w-full"></div>
-                )}
             </Fragment>
           ))}
         </div>
@@ -454,4 +368,4 @@ function TabNoteAndEffectCombo({
   );
 }
 
-export default TabNoteAndEffectCombo;
+export default TabNotesColumn;
