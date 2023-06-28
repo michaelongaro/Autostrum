@@ -479,7 +479,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
-                placeholder="Add any specific info about how to play this tab."
+                placeholder="Add any extra information about how to play this tab."
                 value={description ?? ""}
                 onChange={(e) => setDescription(e.target.value)}
               />
