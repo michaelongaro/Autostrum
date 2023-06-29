@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Soundfont from "soundfont-player";
 import { parse } from "react-guitar-tunings";
 import type { SectionProgression } from "../stores/TabStore";
@@ -29,6 +29,17 @@ export default function useSound() {
   const [instrumentName, setInstrumentName] = useState<
     "acoustic_guitar_nylon" | "acoustic_guitar_steel" | "electric_guitar_clean"
   >("acoustic_guitar_steel");
+
+  const currentNoteArrayRef = useRef<
+    [
+      Soundfont.Player | undefined,
+      Soundfont.Player | undefined,
+      Soundfont.Player | undefined,
+      Soundfont.Player | undefined,
+      Soundfont.Player | undefined,
+      Soundfont.Player | undefined
+    ]
+  >([undefined, undefined, undefined, undefined, undefined, undefined]);
 
   const [currentSectionProgressionIndex, setCurrentSectionProgressionIndex] =
     useState(0);
@@ -78,22 +89,58 @@ export default function useSound() {
     void fetchInstrument();
   }, [audioContext, instrumentName, instruments]);
 
-  function playNote(
-    tuning: number[],
-    stringIdx: number,
-    fret: number,
-    when = 0
-  ) {
+  interface PlayNote {
+    tuning: number[];
+    stringIdx: number;
+    fret: number;
+    when: number;
+    effects?: string[];
+  }
+
+  function playNote({ tuning, stringIdx, fret, when, effects }: PlayNote) {
     if (!audioContext) return;
 
-    void currentInstrument?.play(
+    // attack: increases from zero to a peak value.
+    // decay: decreases from the peak to the sustain level.
+    // sustain: remains at the sustain level.
+    // release: falls from the sustain level to zero.
+
+    // Defaults:
+    //   gain: 1,
+    //   attack: 0.01,
+    //   decay: 0.1,
+    //   sustain: 0.9,
+    //   release: 0.3,
+
+    // looks like the actual instrument() can take in a gain value, but not sure if it
+    // would update while playing (defaults to 1 btw);
+
+    // duration does in fact just cut off the note after the delay, instead of playing full note
+    // in specified time frame which is good.
+
+    // > means gain to 1.5 and maybe duration up a tiny bit?
+    // . means duration to 0.5 or 0.25 maybe gain 1.15
+    //
+
+    const player = currentInstrument?.play(
       `${tuning[stringIdx]! + fret}`,
       audioContext.currentTime + when,
       {
         duration: 2,
-        gain: 4,
+        gain: 1,
+
+        // attack: 0.15, // seems a little off to change attack to be slower since we actually
+        // want no delay, just like starting from the decay (if hp or sustain for /\)
       }
     );
+
+    setTimeout(() => {
+      if (currentNoteArrayRef.current[stringIdx]) {
+        currentNoteArrayRef.current[stringIdx]?.stop();
+      }
+
+      currentNoteArrayRef.current[stringIdx] = player;
+    }, audioContext.currentTime + when);
   }
 
   function columnHasNoNotes(column: string[]) {
@@ -114,7 +161,7 @@ export default function useSound() {
       };
       for (const column of section.data) {
         if (column[8] !== "measureLine") {
-          newSection.data.push(column);
+          newSection.data.push(column.slice(0, 8)); // don't need the "note" value of [8] since it's implied
         }
       }
       newTabData.push(newSection);
@@ -138,26 +185,73 @@ export default function useSound() {
   }
 
   function playNoteColumn(
-    column: string[],
-    tuning: number[],
+    rawColumn: string[],
+    rawTuning: number[],
     capo: number,
-    bpm: number
+    bpm: number,
+    prevColumn?: string[]
   ) {
     return new Promise<void>((resolve) => {
       setTimeout(() => {
         resolve();
       }, (60 / bpm) * 1000);
 
+      if (columnHasNoNotes(rawColumn)) return;
+
+      const column = [...rawColumn];
+      const tuning = [...rawTuning];
+      let chordDelayMultiplier = 0;
+      const effects: string[] = [];
+
+      // get all chord effects
+      if (column[7]?.includes("v") || column[7]?.includes("^")) {
+        const relativeDelayMultiplier = (bpm / 400) * 0.05;
+        chordDelayMultiplier =
+          relativeDelayMultiplier < 0.01 ? 0.01 : relativeDelayMultiplier;
+      }
+
+      const chordEffects = column[7];
+      if (chordEffects) {
+        chordEffects
+          .split("")
+          .filter((effect) => effect !== "v" && effect !== "^")
+          .map((effect) => {
+            effects.push(effect);
+          });
+      }
+
+      // not intuitive but 1-6 is actually starting with "high e" normally, so reverse it if you want
+      // to start with "low e" aka downwards strum
+      if (column[7]?.includes("v")) {
+        column.reverse();
+        tuning.reverse();
+      }
+
       for (let stringIdx = 1; stringIdx < 7; stringIdx++) {
         // idk actually prob handle playing dead notes w/ an effect later
-        if (column[stringIdx] === "" || column[stringIdx] === "x") continue;
+        if (column[stringIdx] === "") continue;
+
+        const inlineEffects: string[] = [];
+
+        // get previous column effect if available
+        if (prevColumn) {
+          const prevColumnEffect = prevColumn[stringIdx]?.at(-1);
+          if (prevColumnEffect && /^[hp\/\\\\~]$/.test(prevColumnEffect))
+            inlineEffects.push(prevColumnEffect);
+        }
+        if (column[stringIdx]?.at(-1) === "~") inlineEffects.push("~");
 
         const adjustedStringIdx = stringIdx - 1; // adjusting for 0-indexing
 
         const fret = parseInt(column[stringIdx]!) + capo;
 
-        // no effects or anything here yet, just playing the note
-        playNote(tuning, adjustedStringIdx, fret, 0);
+        playNote({
+          tuning,
+          stringIdx: adjustedStringIdx,
+          fret,
+          when: chordDelayMultiplier * adjustedStringIdx,
+          effects: [...inlineEffects, ...effects],
+        });
       }
     });
   }
@@ -217,10 +311,11 @@ export default function useSound() {
             break;
           }
 
+          const prevColumn = tabData[sectionIdx]?.data[columnIndex - 1];
           const column = tabData[sectionIdx]?.data[columnIndex];
-          if (column === undefined || columnHasNoNotes(column)) continue;
+          if (column === undefined) continue;
 
-          await playNoteColumn(column, tuning, capo ?? 0, bpm);
+          await playNoteColumn(column, tuning, capo ?? 0, bpm, prevColumn);
         }
       }
     }
@@ -239,12 +334,6 @@ export default function useSound() {
     await audioContext?.suspend();
   }
 
-  function strum(tuning: number[], up: boolean, when: number, capo?: number) {
-    // tuning.forEach((_, i) =>
-    //   playNote(!up ? tuning.length - i - 1 : i, 0.05 * i + when, capo ?? 0)
-    // );
-  }
-
   // function playChord()
   // could actually probably use this for regular strumming a chord and for the "chord preview" sound!
   // meaning you would have to directly export this function to use in the chord preview component
@@ -258,7 +347,6 @@ export default function useSound() {
     setCurrentSectionProgressionIndex,
     currentColumnIndex,
     setCurrentColumnIndex,
-    strum,
     playTab,
     pauseTab,
     playing,
