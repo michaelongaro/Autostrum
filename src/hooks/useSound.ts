@@ -10,8 +10,6 @@ type InstrumentNames =
   | "electric_guitar_clean";
 
 export default function useSound() {
-  // chatgpt vibrato effect snippet
-
   const [showingAudioControls, setShowingAudioControls] = useState(false);
 
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
@@ -30,16 +28,47 @@ export default function useSound() {
     "acoustic_guitar_nylon" | "acoustic_guitar_steel" | "electric_guitar_clean"
   >("acoustic_guitar_steel");
 
-  const currentNoteArrayRef = useRef<
-    [
-      Soundfont.Player | undefined,
-      Soundfont.Player | undefined,
-      Soundfont.Player | undefined,
-      Soundfont.Player | undefined,
-      Soundfont.Player | undefined,
-      Soundfont.Player | undefined
-    ]
-  >([undefined, undefined, undefined, undefined, undefined, undefined]);
+  interface CurrentNoteArrayRef {
+    note: Soundfont.Player | undefined;
+    vibratoEffect: {
+      disconnect: () => void;
+    } | null;
+    vibratoTimeout: NodeJS.Timeout | null;
+  }
+
+  // how to specify length of array in typescript
+  const currentNoteArrayRef = useRef<CurrentNoteArrayRef[]>([
+    {
+      note: undefined,
+      vibratoEffect: null,
+      vibratoTimeout: null,
+    },
+    {
+      note: undefined,
+      vibratoEffect: null,
+      vibratoTimeout: null,
+    },
+    {
+      note: undefined,
+      vibratoEffect: null,
+      vibratoTimeout: null,
+    },
+    {
+      note: undefined,
+      vibratoEffect: null,
+      vibratoTimeout: null,
+    },
+    {
+      note: undefined,
+      vibratoEffect: null,
+      vibratoTimeout: null,
+    },
+    {
+      note: undefined,
+      vibratoEffect: null,
+      vibratoTimeout: null,
+    },
+  ]);
 
   const [currentSectionProgressionIndex, setCurrentSectionProgressionIndex] =
     useState(0);
@@ -89,58 +118,171 @@ export default function useSound() {
     void fetchInstrument();
   }, [audioContext, instrumentName, instruments]);
 
+  const createVibratoEffect = (
+    context: AudioContext,
+    input: GainNode,
+    bpm: number
+  ) => {
+    // not 100% convinced that bpm really plays a super big factor in how we want to configure
+    // the vibrato, not extremely convincing
+
+    // if anything, maybe have the modulatorGain.gain.value = 0.0006; be slightly higher for lower notes
+    // and slightly lower for higher notes, not sure exactly why that is but it is noticible
+    // ask chatgpt why this pheonmenon might be
+
+    // Create a modulation oscillator
+    const modulator = context.createOscillator();
+    modulator.type = "sine";
+    modulator.frequency.value = 3; // Speed of vibrato
+
+    // Create a gain node to control the depth of the vibrato
+    const modulatorGain = context.createGain();
+    modulatorGain.gain.value = 0.0006; // Depth of vibrato
+
+    // Create a delay node
+    const delay = context.createDelay();
+    delay.delayTime.value = 0;
+
+    const delayGain = context.createGain();
+    delayGain.gain.value = 90; // brings up to almost regular gain
+
+    // Connect the modulation oscillator to the gain
+    modulator.connect(modulatorGain);
+
+    // Connect the gain node to the delay time parameter of the delay node
+    modulatorGain.connect(delay.delayTime);
+
+    // Connect the input to the delay and connect the delay to the context destination
+    input.connect(delay);
+    delay.connect(delayGain);
+    delayGain.connect(modulatorGain);
+    delayGain.connect(context.destination);
+
+    // Start the modulation oscillator
+    modulator.start();
+
+    const disconnect = () => {
+      // Disconnect the vibrato effect
+      modulatorGain.disconnect();
+      delay.disconnect();
+      modulator.stop();
+    };
+
+    return { disconnect };
+  };
+
   interface PlayNote {
     tuning: number[];
     stringIdx: number;
     fret: number;
+    bpm: number;
     when: number;
+    inlineModifier?: boolean;
     effects?: string[];
   }
 
-  function playNote({ tuning, stringIdx, fret, when, effects }: PlayNote) {
+  function playNote({
+    tuning,
+    stringIdx,
+    fret,
+    bpm,
+    when,
+    inlineModifier,
+    effects,
+  }: PlayNote) {
     if (!audioContext) return;
 
-    // attack: increases from zero to a peak value.
-    // decay: decreases from the peak to the sustain level.
-    // sustain: remains at the sustain level.
-    // release: falls from the sustain level to zero.
+    let duration = 2;
+    let gain = 1;
 
-    // Defaults:
-    //   gain: 1,
-    //   attack: 0.01,
-    //   decay: 0.1,
-    //   sustain: 0.9,
-    //   release: 0.3,
+    // maybe play around with the cents value (changing the note number by some amount of cents to get more accurate sound?)
+    // it's already pretty good tbf
+
+    if (
+      effects?.includes("~") ||
+      effects?.includes("h") ||
+      effects?.includes("p") ||
+      effects?.includes("/") ||
+      effects?.includes("\\")
+    ) {
+      gain = 0.01;
+    }
+
+    if (effects?.includes(">")) {
+      gain = 1.5;
+      duration = 2.25;
+    }
+
+    if (effects?.includes(".")) {
+      gain = 1.15;
+      duration = 0.5;
+    }
 
     // looks like the actual instrument() can take in a gain value, but not sure if it
     // would update while playing (defaults to 1 btw);
-
-    // duration does in fact just cut off the note after the delay, instead of playing full note
-    // in specified time frame which is good.
-
-    // > means gain to 1.5 and maybe duration up a tiny bit?
-    // . means duration to 0.5 or 0.25 maybe gain 1.15
-    //
 
     const player = currentInstrument?.play(
       `${tuning[stringIdx]! + fret}`,
       audioContext.currentTime + when,
       {
-        duration: 2,
-        gain: 1,
-
-        // attack: 0.15, // seems a little off to change attack to be slower since we actually
-        // want no delay, just like starting from the decay (if hp or sustain for /\)
+        duration,
+        gain,
       }
     );
 
-    setTimeout(() => {
-      if (currentNoteArrayRef.current[stringIdx]) {
-        currentNoteArrayRef.current[stringIdx]?.stop();
+    // immediately set volume to zero, after tiny delay bring gain back to normal.
+    if (player && inlineModifier) {
+      const delay = audioContext.createDelay();
+      delay.delayTime.value = 0;
+
+      const delayGain = audioContext.createGain();
+      delayGain.gain.setValueAtTime(0.0001, 0);
+
+      delayGain.gain.exponentialRampToValueAtTime(
+        100,
+        audioContext.currentTime +
+          when * (effects?.includes("h") || effects?.includes("p") ? 1.25 : 1.5)
+      );
+
+      player.connect(delay);
+      delay.connect(delayGain);
+      delayGain.connect(audioContext.destination);
+    }
+    // "accurate" slides btw will most likely require notes[] ref to fade them out as you are fading the next note in
+
+    // vibrato handling
+    if (effects?.includes("~")) {
+      if (currentNoteArrayRef.current[stringIdx]?.vibratoTimeout) {
+        currentNoteArrayRef.current[stringIdx]?.vibratoEffect?.disconnect(); // will be overwriting below, no need to set to null
+        clearTimeout(currentNoteArrayRef.current[stringIdx]!.vibratoTimeout!);
       }
 
-      currentNoteArrayRef.current[stringIdx] = player;
-    }, audioContext.currentTime + when);
+      player?.connect(audioContext.destination);
+
+      // not 100% on this type conversion, be wary as it might cause weird side effects
+      const vibratoEffect = createVibratoEffect(
+        audioContext,
+        player as unknown as GainNode,
+        bpm
+      );
+
+      currentNoteArrayRef.current[stringIdx]!.vibratoEffect = vibratoEffect;
+
+      currentNoteArrayRef.current[stringIdx]!.vibratoTimeout = setTimeout(
+        () => {
+          currentNoteArrayRef.current[stringIdx]?.vibratoEffect?.disconnect();
+        },
+        audioContext.currentTime + when + duration * 1000
+      );
+    }
+
+    setTimeout(() => {
+      if (currentNoteArrayRef.current[stringIdx]) {
+        currentNoteArrayRef.current[stringIdx]?.note?.stop();
+      }
+
+      currentNoteArrayRef.current[stringIdx]!.note = player;
+    }, audioContext.currentTime + when * (inlineModifier ? 1000 : 1));
   }
 
   function columnHasNoNotes(column: string[]) {
@@ -189,7 +331,8 @@ export default function useSound() {
     rawTuning: number[],
     capo: number,
     bpm: number,
-    prevColumn?: string[]
+    prevColumn?: string[],
+    nextColumn?: string[]
   ) {
     return new Promise<void>((resolve) => {
       setTimeout(() => {
@@ -231,27 +374,61 @@ export default function useSound() {
         // idk actually prob handle playing dead notes w/ an effect later
         if (column[stringIdx] === "") continue;
 
-        const inlineEffects: string[] = [];
+        let prevColumnEffect = "";
+        let currInlineEffect = "";
+        let nextColumnEffect = ""; // neeeeeed better names for these
 
-        // get previous column effect if available
-        if (prevColumn) {
-          const prevColumnEffect = prevColumn[stringIdx]?.at(-1);
-          if (prevColumnEffect && /^[hp\/\\\\~]$/.test(prevColumnEffect))
-            inlineEffects.push(prevColumnEffect);
-        }
-        if (column[stringIdx]?.at(-1) === "~") inlineEffects.push("~");
+        // TODO: chatGPT to simplify and reduce redundancy
+
+        const prevColEffect = prevColumn?.[stringIdx]?.at(-1);
+        const currColEffect = column[stringIdx]?.at(-1);
+        const nextColEffect = nextColumn?.[stringIdx]?.at(-1);
+
+        if (prevColEffect && /^[hp\/\\\\~]$/.test(prevColEffect))
+          prevColumnEffect = prevColEffect;
+        if (currColEffect && /^[hp\/\\\\~]$/.test(currColEffect))
+          // yeah I know naming still sucks
+          nextColumnEffect = currColEffect;
+        if (currColEffect === "~") currInlineEffect = "~";
 
         const adjustedStringIdx = stringIdx - 1; // adjusting for 0-indexing
 
         const fret = parseInt(column[stringIdx]!) + capo;
 
-        playNote({
-          tuning,
-          stringIdx: adjustedStringIdx,
-          fret,
-          when: chordDelayMultiplier * adjustedStringIdx,
-          effects: [...inlineEffects, ...effects],
-        });
+        if (!prevColumnEffect || prevColumnEffect === "~") {
+          // want to not include hp/\, only ~
+
+          playNote({
+            tuning,
+            stringIdx: adjustedStringIdx,
+            fret,
+            bpm,
+            when: chordDelayMultiplier * adjustedStringIdx,
+            effects: [currInlineEffect, ...effects],
+          });
+        }
+
+        // kinda hacky: need to play the paired note for hp/\ since the earliest these
+        // can be played is "instantly" on regular time it would be played, and we have to cut off the
+        // first part to make it sound as close as possible to the actual effect.
+        if (
+          nextColumnEffect &&
+          currInlineEffect !== "~" &&
+          nextColumn?.[stringIdx] !== undefined
+        ) {
+          const pairedNote = parseInt(nextColumn[stringIdx]!);
+          const pairedFret = pairedNote + capo;
+
+          playNote({
+            tuning,
+            stringIdx: adjustedStringIdx,
+            fret: pairedFret,
+            bpm,
+            when: chordDelayMultiplier * adjustedStringIdx + (60 / bpm) * 0.75, // why why why is it being played so early
+            inlineModifier: true,
+            effects: [nextColumnEffect, ...effects],
+          });
+        }
       }
     });
   }
@@ -312,10 +489,18 @@ export default function useSound() {
           }
 
           const prevColumn = tabData[sectionIdx]?.data[columnIndex - 1];
+          const nextColumn = tabData[sectionIdx]?.data[columnIndex + 1];
           const column = tabData[sectionIdx]?.data[columnIndex];
           if (column === undefined) continue;
 
-          await playNoteColumn(column, tuning, capo ?? 0, bpm, prevColumn);
+          await playNoteColumn(
+            column,
+            tuning,
+            capo ?? 0,
+            bpm,
+            prevColumn,
+            nextColumn
+          );
         }
       }
     }
