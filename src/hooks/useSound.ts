@@ -450,6 +450,7 @@ export default function useSound() {
             stringIdx: adjustedStringIdx,
             fret,
             bpm,
+            // want raw index instead of adjusted index since we only care about how far into the chord it is
             when: chordDelayMultiplier * (index - 1),
             effects: [
               ...(currNoteEffect && !currNoteHasTetherEffect
@@ -477,7 +478,8 @@ export default function useSound() {
             stringIdx: adjustedStringIdx,
             fret: pairedFret,
             bpm,
-            when: chordDelayMultiplier * adjustedStringIdx + (60 / bpm) * 0.85,
+            // want raw index instead of adjusted index since we only care about how far into the chord it is
+            when: chordDelayMultiplier * (index - 1) + (60 / bpm) * 0.85,
             inlineModifier: true,
             effects:
               nextColumn[0] !== ""
