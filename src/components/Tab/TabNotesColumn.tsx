@@ -284,7 +284,7 @@ function TabNotesColumn({
                 !reorderingColumns &&
                 !showingDeleteColumnsButtons && (
                   <div className="relative h-0 w-full">
-                    <div className="absolute left-1/2 right-1/2 top-2 w-[2.75rem] -translate-x-1/2">
+                    <div className="absolute left-1/2 right-1/2 top-2 w-[1.75rem] -translate-x-1/2">
                       <TabNote
                         note={note}
                         sectionIndex={sectionIndex}

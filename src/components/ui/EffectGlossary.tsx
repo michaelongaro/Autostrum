@@ -75,14 +75,8 @@ function EffectGlossary({ forModal = false }: EffectGlossary) {
           <span className="col-span-1">-</span>
           <span className="col-span-3">Palm mute</span>
         </DropdownMenuItem>
-        <DropdownMenuLabel>Note effects</DropdownMenuLabel>
+        <DropdownMenuLabel>Note effects (one per note)</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {/* maybe add O and o for clarity on each */}
-        <DropdownMenuItem className="grid w-48 grid-cols-5">
-          <span className="col-span-1">|</span>
-          <span className="col-span-1">-</span>
-          <span className="col-span-3">Measure line</span>
-        </DropdownMenuItem>
         <DropdownMenuItem className="grid w-48 grid-cols-5">
           <span className="col-span-1">x</span>
           <span className="col-span-1">-</span>
@@ -108,6 +102,26 @@ function EffectGlossary({ forModal = false }: EffectGlossary) {
           <span className="col-span-1">-</span>
           <span className="col-span-3">Slide down</span>
         </DropdownMenuItem>
+        <DropdownMenuItem className="grid w-48 grid-cols-5">
+          <span className="col-span-1">{">"}</span>
+          <span className="col-span-1">-</span>
+          <span className="col-span-3">Accented</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem className="grid w-48 grid-cols-5">
+          <span className="col-span-1">.</span>
+          <span className="col-span-1">-</span>
+          <span className="col-span-3">Stacatto</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem className="grid w-48 grid-cols-5">
+          <span className="col-span-1">s</span>
+          <span className="col-span-1">-</span>
+          <span className="col-span-3">Slap</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem className="grid w-48 grid-cols-5">
+          <span className="col-span-1">b</span>
+          <span className="col-span-1">-</span>
+          <span className="col-span-3">Bend</span>
+        </DropdownMenuItem>
         <DropdownMenuLabel>Chord effects</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="grid w-48 grid-cols-5">
@@ -120,20 +134,12 @@ function EffectGlossary({ forModal = false }: EffectGlossary) {
           <span className="col-span-1">-</span>
           <span className="col-span-3">Strum down</span>
         </DropdownMenuItem>
+        <DropdownMenuLabel>Miscellaneous</DropdownMenuLabel>
+        <DropdownMenuSeparator />
         <DropdownMenuItem className="grid w-48 grid-cols-5">
-          <span className="col-span-1">s</span>
+          <span className="col-span-1">|</span>
           <span className="col-span-1">-</span>
-          <span className="col-span-3">Slap</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem className="grid w-48 grid-cols-5">
-          <span className="col-span-1">{">"}</span>
-          <span className="col-span-1">-</span>
-          <span className="col-span-3">Accented</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem className="grid w-48 grid-cols-5">
-          <span className="col-span-1">.</span>
-          <span className="col-span-1">-</span>
-          <span className="col-span-3">Stacatto</span>
+          <span className="col-span-3">Measure line</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

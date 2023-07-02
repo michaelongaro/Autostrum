@@ -221,10 +221,11 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
       {editing ? (
         <Input
           style={{
-            width: `${noteIndex !== 7 ? "2.35rem" : "2.75rem"}`,
+            width: `${noteIndex !== 7 ? "2.35rem" : "1.75rem"}`,
+            height: `${noteIndex !== 7 ? "2.35rem" : "1.75rem"}`,
             borderWidth: `${note.length > 0 && !isFocused ? "2px" : "1px"}`,
           }}
-          className={`h-[2.35rem] rounded-full p-0 text-center 
+          className={`rounded-full p-0 text-center 
           ${note.length > 0 ? "shadow-md" : "shadow-sm"}
           `}
           onFocus={() => {
