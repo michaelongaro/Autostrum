@@ -195,6 +195,15 @@ export default function useSound() {
     let duration = 2;
     let gain = 1;
 
+    // yeah so if "." then duration = 0.75 (or lower maybe)
+    // if ">" then duration = 2.25
+    // if PM then duration = 0.5/0.75 but needs to be set here because it's much more of a headache
+    // to do it in the effects below
+
+    // also yeah just return the last node from the specific effect function
+    // and then pass that node into the palm mute function if there is one (maybe actual first node? hmm think about it)
+    // and then create a gain node for that low pass filter to control final volume of palm mute
+
     // maybe play around with the cents value (changing the note number by some amount of cents to get more accurate sound?)
     // it's already pretty good tbf
 
@@ -230,6 +239,12 @@ export default function useSound() {
       }
     );
 
+    // if we really can avoid all garbage collection business, I truly think that we can just split these
+    // effects into separate functions and make this way more organized
+
+    // palm mute as far as I can tell really has to be passed in a boolean to each effect function
+    // and then apply it somewhere in between before it is connected to the destination
+
     // immediately set volume to zero, after tiny delay bring gain back to normal.
     if (player && inlineModifier) {
       const delay = audioContext.createDelay();
@@ -238,10 +253,20 @@ export default function useSound() {
       const delayGain = audioContext.createGain();
       delayGain.gain.setValueAtTime(0.0001, 0);
 
+      // play around with these numbers, still not accurate slides so don't worry too much about those
+      let delayMultiplierBasedOnEffect = 1.3;
+
+      if (effects?.includes("h")) {
+        delayMultiplierBasedOnEffect = 1.15;
+      } else if (effects?.includes("p")) {
+        delayMultiplierBasedOnEffect = 1.1;
+      } else if (effects?.includes("/") || effects?.includes("\\")) {
+        delayMultiplierBasedOnEffect = 1.35;
+      }
+
       delayGain.gain.exponentialRampToValueAtTime(
         100,
-        audioContext.currentTime +
-          when * (effects?.includes("h") || effects?.includes("p") ? 1.25 : 1.5)
+        audioContext.currentTime + when * delayMultiplierBasedOnEffect
       );
 
       player.connect(delay);
@@ -249,6 +274,9 @@ export default function useSound() {
       delayGain.connect(audioContext.destination);
     }
     // "accurate" slides btw will most likely require notes[] ref to fade them out as you are fading the next note in
+
+    // when you get to bends: EADG get pitch lowered (bent towards the floor)
+    // and BE get pitch raised (bent towards the ceiling) just due to standard convention.
 
     // vibrato handling
     if (effects?.includes("~")) {
@@ -276,13 +304,23 @@ export default function useSound() {
       );
     }
 
+    // stops previous note on same string if it exists when this note is played
+    // since we have to do trickery with hp/\ and start them a bit earlier, we don't
+    // directly want to use the "when" that we get from params, instead just do
+    // default (bpm / 60) * 1000 to get the time in seconds that the note should start
+
+    // tethered meaning effect is relevant to 2 notes
+    const hasATetheredEffect = effects?.some((str) =>
+      ["h", "p", "/", "\\"].some((char) => str.includes(char))
+    );
+
     setTimeout(() => {
       if (currentNoteArrayRef.current[stringIdx]) {
         currentNoteArrayRef.current[stringIdx]?.note?.stop();
       }
 
       currentNoteArrayRef.current[stringIdx]!.note = player;
-    }, audioContext.currentTime + when * (inlineModifier ? 1000 : 1));
+    }, (hasATetheredEffect ? bpm / 60 : when) * 1000);
   }
 
   function columnHasNoNotes(column: string[]) {
@@ -326,9 +364,23 @@ export default function useSound() {
     return sectionProgression;
   }
 
+  function calculateRelativeChordDelayMultiplier(bpm: number) {
+    // Ensure that the input number is positive
+    const distance = Math.abs(bpm - 400);
+
+    // Calculate the scale factor between 0 and 1.
+    // When bpm: number is 400, scaleFactor will be 0.
+    // When bpm: number is 0, scaleFactor will be 1.
+    const scaleFactor = Math.min(distance / 400, 1);
+
+    // Scale the number between 0.01 (when scaleFactor is 0)
+    // and 0.08 (when scaleFactor is 1).
+    return 0.01 + scaleFactor * (0.08 - 0.01);
+  }
+
   function playNoteColumn(
-    rawColumn: string[],
-    rawTuning: number[],
+    currColumn: string[],
+    tuning: number[],
     capo: number,
     bpm: number,
     prevColumn?: string[],
@@ -339,82 +391,83 @@ export default function useSound() {
         resolve();
       }, (60 / bpm) * 1000);
 
-      if (columnHasNoNotes(rawColumn)) return;
+      if (columnHasNoNotes(currColumn)) return;
 
-      const column = [...rawColumn];
-      const tuning = [...rawTuning];
       let chordDelayMultiplier = 0;
       const effects: string[] = [];
 
-      // get all chord effects
-      if (column[7]?.includes("v") || column[7]?.includes("^")) {
-        const relativeDelayMultiplier = (bpm / 400) * 0.05;
-        chordDelayMultiplier =
-          relativeDelayMultiplier < 0.01 ? 0.01 : relativeDelayMultiplier;
+      if (currColumn[7] === "v" || currColumn[7] === "^") {
+        chordDelayMultiplier = calculateRelativeChordDelayMultiplier(bpm);
       }
 
-      const chordEffects = column[7];
-      if (chordEffects) {
-        chordEffects
-          .split("")
-          .filter((effect) => effect !== "v" && effect !== "^")
-          .map((effect) => {
-            effects.push(effect);
-          });
+      if (currColumn[0] !== "") {
+        effects.push("PM");
       }
 
-      // not intuitive but 1-6 is actually starting with "high e" normally, so reverse it if you want
-      // to start with "low e" aka downwards strum
-      if (column[7]?.includes("v")) {
-        column.reverse();
-        tuning.reverse();
-      }
+      const allInlineEffects = /^[hp\/\\\\~>.sbx]$/;
+      const tetherEffects = /^[hp\/\\\\]$/;
 
-      for (let stringIdx = 1; stringIdx < 7; stringIdx++) {
-        // idk actually prob handle playing dead notes w/ an effect later
-        if (column[stringIdx] === "") continue;
+      for (let index = 1; index < 7; index++) {
+        // 1-6 is actually starting with "high e" normally, so reverse it if you want
+        // to start with "low e" aka downwards strum
+        const stringIdx = currColumn[7] === "v" ? 7 - index : index;
 
-        let prevColumnEffect = "";
-        let currInlineEffect = "";
-        let nextColumnEffect = ""; // neeeeeed better names for these
+        const prevNote = prevColumn?.[stringIdx];
+        const currNote = currColumn[stringIdx];
 
-        // TODO: chatGPT to simplify and reduce redundancy
+        const prevNoteHadTetherEffect =
+          prevNote && tetherEffects.test(prevNote.at(-1)!);
+        const currNoteHasTetherEffect =
+          currNote && tetherEffects.test(currNote.at(-1)!);
 
-        const prevColEffect = prevColumn?.[stringIdx]?.at(-1);
-        const currColEffect = column[stringIdx]?.at(-1);
-        const nextColEffect = nextColumn?.[stringIdx]?.at(-1);
+        const currNoteEffect =
+          currNote && allInlineEffects.test(currNote.at(-1)!)
+            ? currNote.at(-1)!
+            : undefined;
 
-        if (prevColEffect && /^[hp\/\\\\~]$/.test(prevColEffect))
-          prevColumnEffect = prevColEffect;
-        if (currColEffect && /^[hp\/\\\\~]$/.test(currColEffect))
-          // yeah I know naming still sucks
-          nextColumnEffect = currColEffect;
-        if (currColEffect === "~") currInlineEffect = "~";
+        if (
+          currColumn[stringIdx] === "" ||
+          (prevNoteHadTetherEffect && !currNoteHasTetherEffect) // skipping tethered note that was played last iteration
+        )
+          continue;
 
         const adjustedStringIdx = stringIdx - 1; // adjusting for 0-indexing
 
-        const fret = parseInt(column[stringIdx]!) + capo;
+        const fret = parseInt(currColumn[stringIdx]!) + capo;
 
-        if (!prevColumnEffect || prevColumnEffect === "~") {
-          // want to not include hp/\, only ~
+        // if (currColumn[7] === "v") {
+        //   adjustedChordDelayMultiplier =
+        // }
+
+        if (!prevNoteHadTetherEffect) {
+          console.log(
+            adjustedStringIdx,
+            chordDelayMultiplier * adjustedStringIdx
+          );
 
           playNote({
             tuning,
             stringIdx: adjustedStringIdx,
             fret,
             bpm,
-            when: chordDelayMultiplier * adjustedStringIdx,
-            effects: [currInlineEffect, ...effects],
+            when: chordDelayMultiplier * (index - 1),
+            effects: [
+              ...(currNoteEffect && !currNoteHasTetherEffect
+                ? [currNoteEffect]
+                : []),
+              ...effects,
+            ],
           });
         }
 
-        // kinda hacky: need to play the paired note for hp/\ since the earliest these
-        // can be played is "instantly" on regular time it would be played, and we have to cut off the
-        // first part to make it sound as close as possible to the actual effect.
+        // kinda hacky: need to play the paired note for hp/\ effects since you can't schedule a sound
+        // to be played in the past, and we have to cut off the first part to make it sound as close as
+        // possible to the actual effect.
         if (
-          nextColumnEffect &&
-          currInlineEffect !== "~" &&
-          nextColumn?.[stringIdx] !== undefined
+          nextColumn &&
+          currNoteEffect &&
+          currNoteHasTetherEffect &&
+          (nextColumn[stringIdx] !== undefined || nextColumn[stringIdx] !== "") // there is a tethered note to play for this effect
         ) {
           const pairedNote = parseInt(nextColumn[stringIdx]!);
           const pairedFret = pairedNote + capo;
@@ -424,9 +477,12 @@ export default function useSound() {
             stringIdx: adjustedStringIdx,
             fret: pairedFret,
             bpm,
-            when: chordDelayMultiplier * adjustedStringIdx + (60 / bpm) * 0.75, // why why why is it being played so early
+            when: chordDelayMultiplier * adjustedStringIdx + (60 / bpm) * 0.85,
             inlineModifier: true,
-            effects: [nextColumnEffect, ...effects],
+            effects:
+              nextColumn[0] !== ""
+                ? ["PM", currNoteEffect, ...effects]
+                : [currNoteEffect, ...effects],
           });
         }
       }
