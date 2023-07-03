@@ -28,46 +28,13 @@ export default function useSound() {
     "acoustic_guitar_nylon" | "acoustic_guitar_steel" | "electric_guitar_clean"
   >("acoustic_guitar_steel");
 
-  interface CurrentNoteArrayRef {
-    note: Soundfont.Player | undefined;
-    vibratoEffect: {
-      disconnect: () => void;
-    } | null;
-    vibratoTimeout: NodeJS.Timeout | null;
-  }
-
-  // how to specify length of array in typescript
-  const currentNoteArrayRef = useRef<CurrentNoteArrayRef[]>([
-    {
-      note: undefined,
-      vibratoEffect: null,
-      vibratoTimeout: null,
-    },
-    {
-      note: undefined,
-      vibratoEffect: null,
-      vibratoTimeout: null,
-    },
-    {
-      note: undefined,
-      vibratoEffect: null,
-      vibratoTimeout: null,
-    },
-    {
-      note: undefined,
-      vibratoEffect: null,
-      vibratoTimeout: null,
-    },
-    {
-      note: undefined,
-      vibratoEffect: null,
-      vibratoTimeout: null,
-    },
-    {
-      note: undefined,
-      vibratoEffect: null,
-      vibratoTimeout: null,
-    },
+  const currentNoteArrayRef = useRef<(Soundfont.Player | undefined)[]>([
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
   ]);
 
   const [currentSectionProgressionIndex, setCurrentSectionProgressionIndex] =
@@ -118,32 +85,101 @@ export default function useSound() {
     void fetchInstrument();
   }, [audioContext, instrumentName, instruments]);
 
-  const createVibratoEffect = (
-    context: AudioContext,
+  function applyPalmMute(note: GainNode, inlineEffect?: string) {
+    if (!audioContext) return;
+
+    // Create a BiquadFilterNode to act as a low-pass filter
+    const lowPassFilter = audioContext.createBiquadFilter();
+    lowPassFilter.type = "lowpass";
+    lowPassFilter.frequency.value = 3000; //  Lower this value to cut more high frequencies maybe 2500 or something?
+
+    // Create a BiquadFilterNode to boost the bass frequencies
+    const bassBoost = audioContext.createBiquadFilter();
+    bassBoost.type = "peaking";
+    bassBoost.frequency.value = 120; // Frequency to boost - around 120Hz is a typical bass frequency
+    bassBoost.gain.value = 15; // Amount of boost in dB
+    bassBoost.Q.value = 50; // Quality factor - lower values make the boost range broader
+
+    // Create a GainNode to reduce volume
+    const gainNode = audioContext.createGain();
+    let gainValue = 75;
+    if (inlineEffect === ">") {
+      gainValue = 85;
+    } else if (inlineEffect === ".") {
+      gainValue = 80;
+    }
+
+    gainNode.gain.value = gainValue; // Reduce gain to simulate the quieter sound of palm muting
+
+    // Connect the note to the filter, and the filter to the gain node
+    note.connect(lowPassFilter);
+    lowPassFilter.connect(bassBoost);
+    bassBoost.connect(gainNode);
+
+    return gainNode;
+  }
+
+  function applyTetheredEffect(
+    note: GainNode,
+    effect: "h" | "p" | "/" | "\\",
+    when: number
+  ) {
+    if (!audioContext) return;
+    // "accurate" slides btw will most likely require notes[] ref to fade them out as you are fading the next note in
+
+    const delay = audioContext.createDelay();
+    delay.delayTime.value = 0;
+
+    const delayGain = audioContext.createGain();
+    delayGain.gain.setValueAtTime(0.0001, 0);
+
+    // play around with these numbers, still not accurate slides so don't worry too much about those
+    let delayMultiplierBasedOnEffect = 1.35;
+
+    if (effect === "h") {
+      delayMultiplierBasedOnEffect = 1.15;
+    } else if (effect === "p") {
+      delayMultiplierBasedOnEffect = 1.1;
+    }
+
+    // hmm double check that pull offs are happening on the right note, felt like the tiny
+    // "pluck" was more on the base note rather than the tethered note
+
+    delayGain.gain.exponentialRampToValueAtTime(
+      100,
+      audioContext.currentTime + when * delayMultiplierBasedOnEffect
+    );
+
+    note.connect(delay);
+    delay.connect(delayGain);
+
+    return delayGain;
+  }
+
+  function applyVibratoEffect(
     input: GainNode,
-    bpm: number
-  ) => {
-    // not 100% convinced that bpm really plays a super big factor in how we want to configure
-    // the vibrato, not extremely convincing
+    bpm: number // maybe should be noteIdx (like stringIdx + fret to get total "value")
+  ) {
+    if (!audioContext) return;
 
     // if anything, maybe have the modulatorGain.gain.value = 0.0006; be slightly higher for lower notes
     // and slightly lower for higher notes, not sure exactly why that is but it is noticible
     // ask chatgpt why this pheonmenon might be
 
     // Create a modulation oscillator
-    const modulator = context.createOscillator();
+    const modulator = audioContext.createOscillator();
     modulator.type = "sine";
     modulator.frequency.value = 3; // Speed of vibrato
 
     // Create a gain node to control the depth of the vibrato
-    const modulatorGain = context.createGain();
+    const modulatorGain = audioContext.createGain();
     modulatorGain.gain.value = 0.0006; // Depth of vibrato
 
     // Create a delay node
-    const delay = context.createDelay();
+    const delay = audioContext.createDelay();
     delay.delayTime.value = 0;
 
-    const delayGain = context.createGain();
+    const delayGain = audioContext.createGain();
     delayGain.gain.value = 90; // brings up to almost regular gain
 
     // Connect the modulation oscillator to the gain
@@ -156,20 +192,12 @@ export default function useSound() {
     input.connect(delay);
     delay.connect(delayGain);
     delayGain.connect(modulatorGain);
-    delayGain.connect(context.destination);
 
     // Start the modulation oscillator
     modulator.start();
 
-    const disconnect = () => {
-      // Disconnect the vibrato effect
-      modulatorGain.disconnect();
-      delay.disconnect();
-      modulator.stop();
-    };
-
-    return { disconnect };
-  };
+    return delayGain;
+  }
 
   interface PlayNote {
     tuning: number[];
@@ -177,28 +205,17 @@ export default function useSound() {
     fret: number;
     bpm: number;
     when: number;
-    inlineModifier?: boolean;
     effects?: string[];
   }
 
-  function playNote({
-    tuning,
-    stringIdx,
-    fret,
-    bpm,
-    when,
-    inlineModifier,
-    effects,
-  }: PlayNote) {
+  function playNote({ tuning, stringIdx, fret, bpm, when, effects }: PlayNote) {
     if (!audioContext) return;
 
     let duration = 2;
     let gain = 1;
 
-    // yeah so if "." then duration = 0.75 (or lower maybe)
-    // if ">" then duration = 2.25
-    // if PM then duration = 0.5/0.75 but needs to be set here because it's much more of a headache
-    // to do it in the effects below
+    const isPalmMuted = effects?.includes("PM");
+    const inlineEffect = effects?.at(-1);
 
     // also yeah just return the last node from the specific effect function
     // and then pass that node into the palm mute function if there is one (maybe actual first node? hmm think about it)
@@ -207,30 +224,35 @@ export default function useSound() {
     // maybe play around with the cents value (changing the note number by some amount of cents to get more accurate sound?)
     // it's already pretty good tbf
 
+    if (inlineEffect === ">") {
+      gain = 1.35;
+      duration = 2.25;
+    }
+
+    if (inlineEffect === ".") {
+      gain = 1.15;
+      duration = 0.5;
+    }
+
     if (
-      effects?.includes("~") ||
-      effects?.includes("h") ||
-      effects?.includes("p") ||
-      effects?.includes("/") ||
-      effects?.includes("\\")
+      inlineEffect === "~" ||
+      inlineEffect === "h" ||
+      inlineEffect === "p" ||
+      inlineEffect === "/" ||
+      inlineEffect === "\\" ||
+      isPalmMuted
     ) {
       gain = 0.01;
     }
 
-    if (effects?.includes(">")) {
-      gain = 1.5;
-      duration = 2.25;
-    }
-
-    if (effects?.includes(".")) {
-      gain = 1.15;
+    if (isPalmMuted) {
       duration = 0.5;
     }
 
     // looks like the actual instrument() can take in a gain value, but not sure if it
     // would update while playing (defaults to 1 btw);
 
-    const player = currentInstrument?.play(
+    const note = currentInstrument?.play(
       `${tuning[stringIdx]! + fret}`,
       audioContext.currentTime + when,
       {
@@ -239,75 +261,43 @@ export default function useSound() {
       }
     );
 
-    // if we really can avoid all garbage collection business, I truly think that we can just split these
-    // effects into separate functions and make this way more organized
+    let noteWithEffectApplied = undefined;
 
-    // palm mute as far as I can tell really has to be passed in a boolean to each effect function
-    // and then apply it somewhere in between before it is connected to the destination
-
-    // immediately set volume to zero, after tiny delay bring gain back to normal.
-    if (player && inlineModifier) {
-      const delay = audioContext.createDelay();
-      delay.delayTime.value = 0;
-
-      const delayGain = audioContext.createGain();
-      delayGain.gain.setValueAtTime(0.0001, 0);
-
-      // play around with these numbers, still not accurate slides so don't worry too much about those
-      let delayMultiplierBasedOnEffect = 1.3;
-
-      if (effects?.includes("h")) {
-        delayMultiplierBasedOnEffect = 1.15;
-      } else if (effects?.includes("p")) {
-        delayMultiplierBasedOnEffect = 1.1;
-      } else if (effects?.includes("/") || effects?.includes("\\")) {
-        delayMultiplierBasedOnEffect = 1.35;
-      }
-
-      delayGain.gain.exponentialRampToValueAtTime(
-        100,
-        audioContext.currentTime + when * delayMultiplierBasedOnEffect
+    // idk if I like the "inlineModifier" vs just a regex tbh
+    if (
+      inlineEffect === "~" ||
+      inlineEffect === "h" ||
+      inlineEffect === "p" ||
+      inlineEffect === "/" ||
+      inlineEffect === "\\"
+    ) {
+      noteWithEffectApplied = applyTetheredEffect(
+        note as unknown as GainNode,
+        inlineEffect as "h" | "p" | "/" | "\\",
+        when
       );
-
-      player.connect(delay);
-      delay.connect(delayGain);
-      delayGain.connect(audioContext.destination);
     }
-    // "accurate" slides btw will most likely require notes[] ref to fade them out as you are fading the next note in
 
     // when you get to bends: EADG get pitch lowered (bent towards the floor)
     // and BE get pitch raised (bent towards the ceiling) just due to standard convention.
 
-    // vibrato handling
-    if (effects?.includes("~")) {
-      if (currentNoteArrayRef.current[stringIdx]?.vibratoTimeout) {
-        currentNoteArrayRef.current[stringIdx]?.vibratoEffect?.disconnect(); // will be overwriting below, no need to set to null
-        clearTimeout(currentNoteArrayRef.current[stringIdx]!.vibratoTimeout!);
-      }
-
-      player?.connect(audioContext.destination);
-
+    if (inlineEffect === "~") {
       // not 100% on this type conversion, be wary as it might cause weird side effects
-      const vibratoEffect = createVibratoEffect(
-        audioContext,
-        player as unknown as GainNode,
+      noteWithEffectApplied = applyVibratoEffect(
+        note as unknown as GainNode,
         bpm
-      );
-
-      currentNoteArrayRef.current[stringIdx]!.vibratoEffect = vibratoEffect;
-
-      currentNoteArrayRef.current[stringIdx]!.vibratoTimeout = setTimeout(
-        () => {
-          currentNoteArrayRef.current[stringIdx]?.vibratoEffect?.disconnect();
-        },
-        audioContext.currentTime + when + duration * 1000
       );
     }
 
-    // stops previous note on same string if it exists when this note is played
-    // since we have to do trickery with hp/\ and start them a bit earlier, we don't
-    // directly want to use the "when" that we get from params, instead just do
-    // default (bpm / 60) * 1000 to get the time in seconds that the note should start
+    if (isPalmMuted) {
+      noteWithEffectApplied = applyPalmMute(
+        noteWithEffectApplied ?? (note as unknown as GainNode)
+      );
+    }
+
+    if (noteWithEffectApplied) {
+      noteWithEffectApplied.connect(audioContext.destination);
+    }
 
     // tethered meaning effect is relevant to 2 notes
     const hasATetheredEffect = effects?.some((str) =>
@@ -316,11 +306,16 @@ export default function useSound() {
 
     setTimeout(() => {
       if (currentNoteArrayRef.current[stringIdx]) {
-        currentNoteArrayRef.current[stringIdx]?.note?.stop();
+        currentNoteArrayRef.current[stringIdx]?.stop();
       }
 
-      currentNoteArrayRef.current[stringIdx]!.note = player;
-    }, (hasATetheredEffect ? bpm / 60 : when) * 1000);
+      currentNoteArrayRef.current[stringIdx] = note;
+
+      // stops previous note on same string if it exists when this note is played
+      // since we have to do trickery with hp/\ and start them a bit earlier, we don't
+      // directly want to use the "when" that we get from params, instead just do
+      // default (bpm / 60) * 1000 to get the time in seconds that the note should start
+    }, (hasATetheredEffect ? 60 / bpm : when) * 1000);
   }
 
   function columnHasNoNotes(column: string[]) {
@@ -341,7 +336,9 @@ export default function useSound() {
       };
       for (const column of section.data) {
         if (column[8] !== "measureLine") {
-          newSection.data.push(column.slice(0, 8)); // don't need the "note" value of [8] since it's implied
+          // don't need the "note" value of [8] since it's implied
+          // although is useful for the chord strumming sections! Think about it
+          newSection.data.push(column.slice(0, 8));
         }
       }
       newTabData.push(newSection);
@@ -394,14 +391,9 @@ export default function useSound() {
       if (columnHasNoNotes(currColumn)) return;
 
       let chordDelayMultiplier = 0;
-      const effects: string[] = [];
 
       if (currColumn[7] === "v" || currColumn[7] === "^") {
         chordDelayMultiplier = calculateRelativeChordDelayMultiplier(bpm);
-      }
-
-      if (currColumn[0] !== "") {
-        effects.push("PM");
       }
 
       const allInlineEffects = /^[hp\/\\\\~>.sbx]$/;
@@ -435,16 +427,7 @@ export default function useSound() {
 
         const fret = parseInt(currColumn[stringIdx]!) + capo;
 
-        // if (currColumn[7] === "v") {
-        //   adjustedChordDelayMultiplier =
-        // }
-
         if (!prevNoteHadTetherEffect) {
-          console.log(
-            adjustedStringIdx,
-            chordDelayMultiplier * adjustedStringIdx
-          );
-
           playNote({
             tuning,
             stringIdx: adjustedStringIdx,
@@ -453,10 +436,10 @@ export default function useSound() {
             // want raw index instead of adjusted index since we only care about how far into the chord it is
             when: chordDelayMultiplier * (index - 1),
             effects: [
+              ...(currColumn[0] !== "" ? ["PM"] : []),
               ...(currNoteEffect && !currNoteHasTetherEffect
                 ? [currNoteEffect]
                 : []),
-              ...effects,
             ],
           });
         }
@@ -480,11 +463,8 @@ export default function useSound() {
             bpm,
             // want raw index instead of adjusted index since we only care about how far into the chord it is
             when: chordDelayMultiplier * (index - 1) + (60 / bpm) * 0.85,
-            inlineModifier: true,
             effects:
-              nextColumn[0] !== ""
-                ? ["PM", currNoteEffect, ...effects]
-                : [currNoteEffect, ...effects],
+              nextColumn[0] !== "" ? ["PM", currNoteEffect] : [currNoteEffect],
           });
         }
       }
