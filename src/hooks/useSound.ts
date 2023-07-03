@@ -163,26 +163,16 @@ export default function useSound() {
   ) {
     if (!audioContext) return;
 
-    // okay so basically same as regular palm mute but maybe try with close to zero lowPassFilter freq value
-    // and a relative bassBoost freq value based on the string + fret
-    // (I guess higher stringIdx means thicker string so lower freq value) and then
-    // higher fret means higher freq value
-
-    // just a general idea but I think volume should maybe be like 50 max
-    // totally fine to air on the side of too quiet rather than it being obnoxious
-
-    // ooo also giga low duration too
-
     // Create a BiquadFilterNode to act as a low-pass filter
     const lowPassFilter = audioContext.createBiquadFilter();
     lowPassFilter.type = "lowpass";
-    lowPassFilter.frequency.value = 3000; //  Lower this value to cut more high frequencies maybe 2500 or something?
+    lowPassFilter.frequency.value = 400; // Lower this value to cut more high frequencies
 
     // Create a BiquadFilterNode to boost the bass frequencies
     const bassBoost = audioContext.createBiquadFilter();
     bassBoost.type = "peaking";
-    bassBoost.frequency.value = 120; // Frequency to boost - around 120Hz is a typical bass frequency
-    bassBoost.gain.value = 15; // Amount of boost in dB
+    bassBoost.frequency.value = 200; // Frequency to boost - around 120Hz is a typical bass frequency
+    bassBoost.gain.value = 25; // Amount of boost in dB
     bassBoost.Q.value = 50; // Quality factor - lower values make the boost range broader
 
     // Create a GainNode to reduce volume
@@ -204,13 +194,13 @@ export default function useSound() {
     // Create a BiquadFilterNode to act as a low-pass filter
     const lowPassFilter = audioContext.createBiquadFilter();
     lowPassFilter.type = "lowpass";
-    lowPassFilter.frequency.value = 3000; //  Lower this value to cut more high frequencies maybe 2500 or something?
+    lowPassFilter.frequency.value = 2000; // Lower this value to cut more high frequencies
 
     // Create a BiquadFilterNode to boost the bass frequencies
     const bassBoost = audioContext.createBiquadFilter();
     bassBoost.type = "peaking";
     bassBoost.frequency.value = 120; // Frequency to boost - around 120Hz is a typical bass frequency
-    bassBoost.gain.value = 15; // Amount of boost in dB
+    bassBoost.gain.value = 20; // Amount of boost in dB
     bassBoost.Q.value = 50; // Quality factor - lower values make the boost range broader
 
     // Create a GainNode to reduce volume
@@ -358,6 +348,10 @@ export default function useSound() {
       duration = 0.5;
     }
 
+    if (inlineEffect === "x") {
+      duration = 0.35; // play around with this value
+    }
+
     // looks like the actual instrument() can take in a gain value, but not sure if it
     // would update while playing (defaults to 1 btw);
 
@@ -454,8 +448,8 @@ export default function useSound() {
     const scaleFactor = Math.min(distance / 400, 1);
 
     // Scale the number between 0.01 (when scaleFactor is 0)
-    // and 0.08 (when scaleFactor is 1).
-    return 0.01 + scaleFactor * (0.08 - 0.01);
+    // and 0.05 (when scaleFactor is 1).
+    return 0.01 + scaleFactor * (0.05 - 0.01);
   }
 
   function playNoteColumn(
