@@ -119,8 +119,6 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value.toLowerCase();
 
-    console.log(value);
-
     // regular notes
     if (noteIndex !== 7) {
       // wanted to always allow a-g in regular note even if there was a number
