@@ -85,6 +85,119 @@ export default function useSound() {
     void fetchInstrument();
   }, [audioContext, instrumentName, instruments]);
 
+  interface PlayNoteWithEffects {
+    note: GainNode;
+    stringIdx: number;
+    fret: number;
+    bpm: number;
+    when: number;
+    isPalmMuted: boolean;
+    inlineEffect?: string;
+  }
+
+  function playNoteWithEffects({
+    note,
+    stringIdx,
+    fret,
+    bpm,
+    when,
+    inlineEffect,
+    isPalmMuted,
+  }: PlayNoteWithEffects) {
+    if (!audioContext) return;
+
+    // once you ahve all the effects then also pass through the audioContext to this function
+    // and onto them so that these functions can be exported into a /utils/ file
+
+    let noteWithEffectApplied = undefined;
+
+    if (
+      inlineEffect === "~" ||
+      inlineEffect === "h" ||
+      inlineEffect === "p" ||
+      inlineEffect === "/" ||
+      inlineEffect === "\\"
+    ) {
+      noteWithEffectApplied = applyTetheredEffect(
+        note as unknown as GainNode,
+        inlineEffect as "h" | "p" | "/" | "\\",
+        when
+      );
+    }
+
+    // when you get to bends: EADG get pitch lowered (bent towards the floor)
+    // and BE get pitch raised (bent towards the ceiling) just due to standard convention.
+
+    if (inlineEffect === "~") {
+      // not 100% on this type conversion, be wary as it might cause weird side effects
+      noteWithEffectApplied = applyVibratoEffect(
+        note as unknown as GainNode,
+        bpm
+      );
+    }
+
+    if (inlineEffect === "x") {
+      noteWithEffectApplied = applyDeadNoteEffect(
+        note as unknown as GainNode,
+        stringIdx,
+        fret
+      );
+    }
+
+    if (isPalmMuted) {
+      noteWithEffectApplied = applyPalmMute(
+        noteWithEffectApplied ?? (note as unknown as GainNode),
+        inlineEffect
+      );
+    }
+
+    if (noteWithEffectApplied) {
+      noteWithEffectApplied.connect(audioContext.destination);
+    }
+  }
+
+  function applyDeadNoteEffect(
+    note: GainNode,
+    stringIdx: number,
+    fret: number
+  ) {
+    if (!audioContext) return;
+
+    // okay so basically same as regular palm mute but maybe try with close to zero lowPassFilter freq value
+    // and a relative bassBoost freq value based on the string + fret
+    // (I guess higher stringIdx means thicker string so lower freq value) and then
+    // higher fret means higher freq value
+
+    // just a general idea but I think volume should maybe be like 50 max
+    // totally fine to air on the side of too quiet rather than it being obnoxious
+
+    // ooo also giga low duration too
+
+    // Create a BiquadFilterNode to act as a low-pass filter
+    const lowPassFilter = audioContext.createBiquadFilter();
+    lowPassFilter.type = "lowpass";
+    lowPassFilter.frequency.value = 3000; //  Lower this value to cut more high frequencies maybe 2500 or something?
+
+    // Create a BiquadFilterNode to boost the bass frequencies
+    const bassBoost = audioContext.createBiquadFilter();
+    bassBoost.type = "peaking";
+    bassBoost.frequency.value = 120; // Frequency to boost - around 120Hz is a typical bass frequency
+    bassBoost.gain.value = 15; // Amount of boost in dB
+    bassBoost.Q.value = 50; // Quality factor - lower values make the boost range broader
+
+    // Create a GainNode to reduce volume
+    const gainNode = audioContext.createGain();
+
+    gainNode.gain.value = 50; // Reduce gain to simulate the quieter sound of palm muting
+
+    // Connect the note to the filter, and the filter to the gain node
+    note.connect(lowPassFilter);
+    lowPassFilter.connect(bassBoost);
+    bassBoost.connect(gainNode);
+
+    return gainNode;
+  }
+
   function applyPalmMute(note: GainNode, inlineEffect?: string) {
     if (!audioContext) return;
 
@@ -102,7 +215,15 @@ export default function useSound() {
 
     // Create a GainNode to reduce volume
     const gainNode = audioContext.createGain();
-    let gainValue = 75;
+
+    // if inlineEffect has already had it's gain boosted to it's normal level,
+    // then only reduce it by a tiny amount. Otherwise we need to increase the gain since
+    // we are setting the original note to a gain of 0.01
+    let gainValue = 0.85;
+
+    if (inlineEffect === undefined) {
+      gainValue = 75;
+    }
     if (inlineEffect === ">") {
       gainValue = 85;
     } else if (inlineEffect === ".") {
@@ -205,7 +326,7 @@ export default function useSound() {
     fret: number;
     bpm: number;
     when: number;
-    effects?: string[];
+    effects: string[];
   }
 
   function playNote({ tuning, stringIdx, fret, bpm, when, effects }: PlayNote) {
@@ -214,12 +335,8 @@ export default function useSound() {
     let duration = 2;
     let gain = 1;
 
-    const isPalmMuted = effects?.includes("PM");
-    const inlineEffect = effects?.at(-1);
-
-    // also yeah just return the last node from the specific effect function
-    // and then pass that node into the palm mute function if there is one (maybe actual first node? hmm think about it)
-    // and then create a gain node for that low pass filter to control final volume of palm mute
+    const isPalmMuted = effects.includes("PM");
+    const inlineEffect = effects.at(-1) !== "PM" ? effects.at(-1) : undefined;
 
     // maybe play around with the cents value (changing the note number by some amount of cents to get more accurate sound?)
     // it's already pretty good tbf
@@ -227,21 +344,13 @@ export default function useSound() {
     if (inlineEffect === ">") {
       gain = 1.35;
       duration = 2.25;
-    }
-
-    if (inlineEffect === ".") {
+    } else if (inlineEffect === ".") {
       gain = 1.15;
       duration = 0.5;
     }
-
-    if (
-      inlineEffect === "~" ||
-      inlineEffect === "h" ||
-      inlineEffect === "p" ||
-      inlineEffect === "/" ||
-      inlineEffect === "\\" ||
-      isPalmMuted
-    ) {
+    // all other effects require us to basically hijack the note by almost muting it
+    // and then creating a copy of it with a delay node, and adjusting the volume/effect from there
+    else if (inlineEffect !== undefined || isPalmMuted) {
       gain = 0.01;
     }
 
@@ -261,42 +370,16 @@ export default function useSound() {
       }
     );
 
-    let noteWithEffectApplied = undefined;
-
-    // idk if I like the "inlineModifier" vs just a regex tbh
-    if (
-      inlineEffect === "~" ||
-      inlineEffect === "h" ||
-      inlineEffect === "p" ||
-      inlineEffect === "/" ||
-      inlineEffect === "\\"
-    ) {
-      noteWithEffectApplied = applyTetheredEffect(
-        note as unknown as GainNode,
-        inlineEffect as "h" | "p" | "/" | "\\",
-        when
-      );
-    }
-
-    // when you get to bends: EADG get pitch lowered (bent towards the floor)
-    // and BE get pitch raised (bent towards the ceiling) just due to standard convention.
-
-    if (inlineEffect === "~") {
-      // not 100% on this type conversion, be wary as it might cause weird side effects
-      noteWithEffectApplied = applyVibratoEffect(
-        note as unknown as GainNode,
-        bpm
-      );
-    }
-
-    if (isPalmMuted) {
-      noteWithEffectApplied = applyPalmMute(
-        noteWithEffectApplied ?? (note as unknown as GainNode)
-      );
-    }
-
-    if (noteWithEffectApplied) {
-      noteWithEffectApplied.connect(audioContext.destination);
+    if (note && (inlineEffect || isPalmMuted)) {
+      playNoteWithEffects({
+        note: note as unknown as GainNode,
+        stringIdx,
+        fret,
+        bpm,
+        when,
+        inlineEffect,
+        isPalmMuted,
+      });
     }
 
     // tethered meaning effect is relevant to 2 notes
@@ -425,7 +508,10 @@ export default function useSound() {
 
         const adjustedStringIdx = stringIdx - 1; // adjusting for 0-indexing
 
-        const fret = parseInt(currColumn[stringIdx]!) + capo;
+        const fret =
+          currColumn[stringIdx] === "x"
+            ? 0
+            : parseInt(currColumn[stringIdx]!) + capo;
 
         if (!prevNoteHadTetherEffect) {
           playNote({
