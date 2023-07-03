@@ -31,8 +31,9 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
     // Regex pattern to match a fret number between 0 and 22
     const numberPattern = /^(?:[0-9]|1[0-9]|2[0-2])$/;
 
-    // Regex pattern to match any *one* effect of "h", "p", "/", "\", or "~"
-    const characterPattern = /^[hp\/\\\\~]$/;
+    // Regex pattern to match any *one* effect of:
+    // "h", "p", "/", "\", "~", ">", ".", "s", "b", "x"
+    const characterPattern = /^[hp\/\\\\~>.sb]$/;
 
     // If input is a single digit or two digits between 10 to 22
     if (input.length === 1 && numberPattern.test(input)) {
@@ -86,24 +87,39 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
   // }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key !== "Backspace") return;
+    if (e.key !== "Backspace" && e.key !== "ArrowDown" && e.key !== "ArrowUp")
+      return;
 
     e.preventDefault();
 
-    const newTabData = [...tabData];
-    const prevValue = newTabData[sectionIndex]!.data[columnIndex]![noteIndex];
-    if (prevValue === "" || prevValue === undefined) return;
+    if (e.key === "Backspace") {
+      const newTabData = [...tabData];
+      const prevValue = newTabData[sectionIndex]!.data[columnIndex]![noteIndex];
+      if (prevValue === "" || prevValue === undefined) return;
 
-    newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = prevValue.slice(
-      0,
-      -1
-    );
+      newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = prevValue.slice(
+        0,
+        -1
+      );
 
-    setTabData(newTabData);
+      setTabData(newTabData);
+    } else if (e.key === "ArrowDown" && noteIndex === 7) {
+      const newTabData = [...tabData];
+      newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = "v";
+
+      setTabData(newTabData);
+    } else if (e.key === "ArrowUp" && noteIndex === 7) {
+      const newTabData = [...tabData];
+      newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = "^";
+
+      setTabData(newTabData);
+    }
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value.toLowerCase();
+
+    console.log(value);
 
     // regular notes
     if (noteIndex !== 7) {
@@ -119,10 +135,15 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
         }
       }
       if (valueHasAMajorChordLetter) {
+        let ableToOverwrite = true;
+
         let chordArray: string[] = [];
         if (majorChordLetter === "a") {
           chordArray = ["", "0", "2", "2", "2", "0"];
-        } else if (majorChordLetter === "b") {
+        }
+        // conflict between major chord "b" and bend effect "b", compromise being
+        // that the this shortcut only works when input is otherwise empty
+        else if (majorChordLetter === "b" && value === "b") {
           chordArray = ["", "2", "4", "4", "4", "2"];
         } else if (majorChordLetter === "c") {
           chordArray = ["", "3", "2", "0", "1", "0"];
@@ -134,21 +155,25 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
           chordArray = ["1", "3", "3", "2", "1", "1"];
         } else if (majorChordLetter === "g") {
           chordArray = ["3", "2", "0", "0", "0", "3"];
+        } else {
+          ableToOverwrite = false;
         }
 
-        const newTabData = [...tabData];
-        const palmMuteNode = newTabData[sectionIndex]!.data[columnIndex]![0];
-        const chordEffects = newTabData[sectionIndex]!.data[columnIndex]![7];
+        if (ableToOverwrite) {
+          const newTabData = [...tabData];
+          const palmMuteNode = newTabData[sectionIndex]!.data[columnIndex]![0];
+          const chordEffects = newTabData[sectionIndex]!.data[columnIndex]![7];
 
-        newTabData[sectionIndex]!.data[columnIndex] = [
-          palmMuteNode ?? "",
-          ...chordArray.reverse(),
-          chordEffects ?? "",
-          "note",
-        ];
+          newTabData[sectionIndex]!.data[columnIndex] = [
+            palmMuteNode ?? "",
+            ...chordArray.reverse(),
+            chordEffects ?? "",
+            "note",
+          ];
 
-        setTabData(newTabData);
-        return;
+          setTabData(newTabData);
+          return;
+        }
       }
 
       if (value !== "" && !validNoteInput(value)) return;
@@ -185,28 +210,7 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
 
     // chord effects
     else {
-      // Check if the value is contains at most one of each of the following characters: . ^ v > s
-      // and that it doesn't contain both a ^ and a v
-      let isValid = true;
-      const validCharacters = [".", "^", "v", ">", "s"];
-
-      value.split("").reduce((acc, curr) => {
-        if (acc[curr]) {
-          acc[curr]++;
-          isValid = false;
-        } else if (curr === "^" && value.includes("v")) {
-          isValid = false;
-        } else if (curr === "v" && value.includes("^")) {
-          isValid = false;
-        } else if (!acc[curr] && validCharacters.includes(curr)) {
-          acc[curr] = 1;
-        } else {
-          isValid = false;
-        }
-        return acc;
-      }, {} as { [key: string]: number });
-
-      if (value !== "" && !isValid) return;
+      if (value !== "" && value !== "v" && value !== "^") return;
     }
 
     const newTabData = [...tabData];
