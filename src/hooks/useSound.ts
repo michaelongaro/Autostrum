@@ -144,6 +144,15 @@ export default function useSound() {
       );
     }
 
+    if (inlineEffect === "b") {
+      noteWithEffectApplied = applyBendEffect(
+        note as unknown as GainNode,
+        stringIdx,
+        when,
+        bpm
+      );
+    }
+
     if (isPalmMuted) {
       noteWithEffectApplied = applyPalmMute(
         noteWithEffectApplied ?? (note as unknown as GainNode),
@@ -154,6 +163,129 @@ export default function useSound() {
     if (noteWithEffectApplied) {
       noteWithEffectApplied.connect(audioContext.destination);
     }
+  }
+
+  // bend effect
+  function applyBendEffect(
+    note: GainNode,
+    stringIdx: number,
+    when: number,
+    bpm: number
+  ) {
+    if (!audioContext) return;
+
+    // Create a gain node to control the depth of the bend
+    const modulatorGain = audioContext.createGain();
+    modulatorGain.gain.value = 0.0006; // Depth of bend
+
+    // Create a delay node
+    const delay = audioContext.createDelay();
+    delay.delayTime.value = 0;
+
+    const delayGain = audioContext.createGain();
+    delayGain.gain.value = 90; // brings up to almost regular gain
+
+    // Determine the direction of the bend based on string index
+    const bendDirection = stringIdx === 0 || stringIdx === 1 ? 1 : -1;
+
+    // Initial delay time
+    delay.delayTime.setValueAtTime(0, audioContext.currentTime);
+
+    // Schedule the change in delay time to create a pitch bend effect
+    delay.delayTime.linearRampToValueAtTime(
+      bendDirection * 0.01 * modulatorGain.gain.value,
+      audioContext.currentTime + when + 60 / bpm
+    );
+
+    // Connect the gain node to the delay time parameter of the delay node
+    modulatorGain.connect(delay.delayTime);
+
+    // Connect the input to the delay and connect the delay to the context destination
+    note.connect(delay);
+    delay.connect(delayGain);
+    delayGain.connect(modulatorGain);
+
+    return delayGain;
+  }
+
+  function playSlapSound() {
+    if (!audioContext) return;
+
+    // TODO: will most likely need a way to
+    // okay maybe go back to adding slap as a chord effect tbh... but play it inline with regular
+    // note(s), don't even bother adjusting gain or whatever at start
+
+    // Create an OscillatorNode to simulate the slap sound
+    const oscillator = audioContext.createOscillator();
+    oscillator.type = "sine";
+
+    // Adjust frequency based on the string index
+    oscillator.frequency.value = 90;
+
+    // Create a buffer for noise
+    const noiseBuffer = audioContext.createBuffer(
+      1,
+      audioContext.sampleRate * 0.2,
+      audioContext.sampleRate
+    );
+    const output = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < output.length; i++) {
+      output[i] = Math.random() * 2 - 1;
+    }
+
+    // Create buffer source for noise
+    const noise = audioContext.createBufferSource();
+    noise.buffer = noiseBuffer;
+
+    // Create a GainNode to control the volume
+    const gainNode = audioContext.createGain();
+
+    // Adjust gain based on string index for more volume on lower strings
+    gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(
+      0.01,
+      audioContext.currentTime + 0.25
+    );
+
+    // Create a BiquadFilterNode for a low-pass filter
+    const lowPassFilter = audioContext.createBiquadFilter();
+    lowPassFilter.type = "lowpass";
+    lowPassFilter.frequency.value = 1200;
+
+    // Create a BiquadFilterNode for boosting the mid frequencies
+    const midBoost = audioContext.createBiquadFilter();
+    midBoost.type = "peaking";
+    midBoost.frequency.value = 800; // Frequency to boost
+    midBoost.gain.value = 8; // Amount of boost in dB
+    midBoost.Q.value = 1; // Quality factor
+
+    // Create a GainNode for the noise volume
+    const noiseGain = audioContext.createGain();
+    noiseGain.gain.setValueAtTime(0.2, audioContext.currentTime);
+    noiseGain.gain.exponentialRampToValueAtTime(
+      0.01,
+      audioContext.currentTime + 0.25
+    );
+
+    // Connect the oscillator and noise to the gainNode
+    oscillator.connect(lowPassFilter);
+    noise.connect(noiseGain);
+    noiseGain.connect(lowPassFilter);
+    lowPassFilter.connect(midBoost);
+    midBoost.connect(gainNode);
+
+    // // Connect the gainNode to the audioContext's destination
+    gainNode.connect(audioContext.destination);
+
+    // Start the oscillator and noise now
+    oscillator.start(audioContext.currentTime);
+    noise.start(audioContext.currentTime);
+
+    // Stop the oscillator and noise shortly afterward to simulate a short, percussive sound
+    oscillator.stop(audioContext.currentTime + 0.25);
+    noise.stop(audioContext.currentTime + 0.25);
+
+    // return gainNode;
   }
 
   function applyDeadNoteEffect(
@@ -282,6 +414,9 @@ export default function useSound() {
     modulator.type = "sine";
     modulator.frequency.value = 3; // Speed of vibrato
 
+    // find out clear answer as to why you are doing the below method with a modulatorGain
+    // rather than modifying the builtin modulator.detune
+
     // Create a gain node to control the depth of the vibrato
     const modulatorGain = audioContext.createGain();
     modulatorGain.gain.value = 0.0006; // Depth of vibrato
@@ -332,11 +467,11 @@ export default function useSound() {
     // it's already pretty good tbf
 
     if (inlineEffect === ">") {
-      gain = 1.35;
+      gain = 1.75;
       duration = 2.25;
     } else if (inlineEffect === ".") {
       gain = 1.15;
-      duration = 0.5;
+      duration = 0.25;
     }
     // all other effects require us to basically hijack the note by almost muting it
     // and then creating a copy of it with a delay node, and adjusting the volume/effect from there
@@ -465,7 +600,13 @@ export default function useSound() {
         resolve();
       }, (60 / bpm) * 1000);
 
-      if (columnHasNoNotes(currColumn)) return;
+      if (columnHasNoNotes(currColumn)) {
+        if (currColumn[7] === "s") {
+          playSlapSound();
+          // TODO: technically I think the sound will bleed into the next note at high bpms
+        }
+        return;
+      }
 
       let chordDelayMultiplier = 0;
 
@@ -473,7 +614,7 @@ export default function useSound() {
         chordDelayMultiplier = calculateRelativeChordDelayMultiplier(bpm);
       }
 
-      const allInlineEffects = /^[hp\/\\\\~>.sbx]$/;
+      const allInlineEffects = /^[hp\/\\\\~>.bx]$/;
       const tetherEffects = /^[hp\/\\\\]$/;
 
       for (let index = 1; index < 7; index++) {
