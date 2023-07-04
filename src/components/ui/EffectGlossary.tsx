@@ -113,11 +113,6 @@ function EffectGlossary({ forModal = false }: EffectGlossary) {
           <span className="col-span-3">Stacatto</span>
         </DropdownMenuItem>
         <DropdownMenuItem className="grid w-48 grid-cols-5">
-          <span className="col-span-1">s</span>
-          <span className="col-span-1">-</span>
-          <span className="col-span-3">Slap</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem className="grid w-48 grid-cols-5">
           <span className="col-span-1">b</span>
           <span className="col-span-1">-</span>
           <span className="col-span-3">Bend</span>
@@ -133,6 +128,11 @@ function EffectGlossary({ forModal = false }: EffectGlossary) {
           <span className="col-span-1">v</span>
           <span className="col-span-1">-</span>
           <span className="col-span-3">Strum down</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem className="grid w-48 grid-cols-5">
+          <span className="col-span-1">s</span>
+          <span className="col-span-1">-</span>
+          <span className="col-span-3">Slap</span>
         </DropdownMenuItem>
         <DropdownMenuLabel>Miscellaneous</DropdownMenuLabel>
         <DropdownMenuSeparator />

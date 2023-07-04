@@ -33,7 +33,7 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
 
     // Regex pattern to match any *one* effect of:
     // "h", "p", "/", "\", "~", ">", ".", "s", "b", "x"
-    const characterPattern = /^[hp\/\\\\~>.sb]$/;
+    const characterPattern = /^[hp\/\\\\~>.b]$/;
 
     // If input is a single digit or two digits between 10 to 22
     if (input.length === 1 && numberPattern.test(input)) {
@@ -208,7 +208,8 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
 
     // chord effects
     else {
-      if (value !== "" && value !== "v" && value !== "^") return;
+      const chordEffects = /^[v^s]$/;
+      if (value !== "" && !chordEffects.test(value)) return;
     }
 
     const newTabData = [...tabData];
