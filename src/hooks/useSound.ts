@@ -28,14 +28,9 @@ export default function useSound() {
     "acoustic_guitar_nylon" | "acoustic_guitar_steel" | "electric_guitar_clean"
   >("acoustic_guitar_steel");
 
-  const currentNoteArrayRef = useRef<(Soundfont.Player | undefined)[]>([
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-  ]);
+  const currentNoteArrayRef = useRef<
+    (Soundfont.Player | AudioBufferSourceNode | undefined)[]
+  >([undefined, undefined, undefined, undefined, undefined, undefined]);
 
   const [currentSectionProgressionIndex, setCurrentSectionProgressionIndex] =
     useState(0);
@@ -93,6 +88,10 @@ export default function useSound() {
     when: number;
     isPalmMuted: boolean;
     inlineEffect?: string;
+    prevTetheredNote?: {
+      note: number;
+      effect: string;
+    };
   }
 
   function playNoteWithEffects({
@@ -101,8 +100,9 @@ export default function useSound() {
     fret,
     bpm,
     when,
-    inlineEffect,
     isPalmMuted,
+    inlineEffect,
+    prevTetheredNote,
   }: PlayNoteWithEffects) {
     if (!audioContext) return;
 
@@ -111,18 +111,17 @@ export default function useSound() {
 
     let noteWithEffectApplied = undefined;
 
-    if (
-      inlineEffect === "~" ||
-      inlineEffect === "h" ||
-      inlineEffect === "p" ||
-      inlineEffect === "/" ||
-      inlineEffect === "\\"
-    ) {
-      noteWithEffectApplied = applyTetheredEffect(
-        note as unknown as GainNode,
-        inlineEffect as "h" | "p" | "/" | "\\",
-        when
-      );
+    if (prevTetheredNote) {
+      noteWithEffectApplied = applyTetheredEffect({
+        note: note as unknown as GainNode,
+        currentEffect: inlineEffect as "~" | "x" | "b",
+        currentFret: fret,
+        tetheredEffect: prevTetheredNote.effect as "h" | "p" | "/" | "\\",
+        tetheredFret: prevTetheredNote.note,
+        stringIdx,
+        bpm,
+        when,
+      });
     }
 
     // when you get to bends: EADG get pitch lowered (bent towards the floor)
@@ -165,7 +164,6 @@ export default function useSound() {
     }
   }
 
-  // bend effect
   function applyBendEffect(
     note: GainNode,
     stringIdx: number,
@@ -173,39 +171,10 @@ export default function useSound() {
     bpm: number
   ) {
     if (!audioContext) return;
+    // note.source.detune.setValueAtTime(0, when);
 
-    // Create a gain node to control the depth of the bend
-    const modulatorGain = audioContext.createGain();
-    modulatorGain.gain.value = 0.0006; // Depth of bend
-
-    // Create a delay node
-    const delay = audioContext.createDelay();
-    delay.delayTime.value = 0;
-
-    const delayGain = audioContext.createGain();
-    delayGain.gain.value = 90; // brings up to almost regular gain
-
-    // Determine the direction of the bend based on string index
-    const bendDirection = stringIdx === 0 || stringIdx === 1 ? 1 : -1;
-
-    // Initial delay time
-    delay.delayTime.setValueAtTime(0, audioContext.currentTime);
-
-    // Schedule the change in delay time to create a pitch bend effect
-    delay.delayTime.linearRampToValueAtTime(
-      bendDirection * 0.01 * modulatorGain.gain.value,
-      audioContext.currentTime + when + 60 / bpm
-    );
-
-    // Connect the gain node to the delay time parameter of the delay node
-    modulatorGain.connect(delay.delayTime);
-
-    // Connect the input to the delay and connect the delay to the context destination
-    note.connect(delay);
-    delay.connect(delayGain);
-    delayGain.connect(modulatorGain);
-
-    return delayGain;
+    note.source.detune.linearRampToValueAtTime(-100, when + 60 / bpm); // was 0.5
+    return note;
   }
 
   function playSlapSound() {
@@ -362,41 +331,89 @@ export default function useSound() {
     return gainNode;
   }
 
-  function applyTetheredEffect(
-    note: GainNode,
-    effect: "h" | "p" | "/" | "\\",
-    when: number
-  ) {
+  interface ApplyTetheredEffect {
+    note: GainNode;
+    currentFret: number;
+    currentEffect?: "~" | "x" | "b"; // not the most sure about "x"
+    tetheredEffect: "h" | "p" | "/" | "\\";
+    tetheredFret: number;
+    stringIdx: number;
+    bpm: number;
+    when: number;
+  }
+
+  function applyTetheredEffect({
+    note,
+    currentFret,
+    currentEffect,
+    tetheredEffect,
+    tetheredFret,
+    stringIdx,
+    bpm,
+    when,
+  }: ApplyTetheredEffect) {
     if (!audioContext) return;
-    // "accurate" slides btw will most likely require notes[] ref to fade them out as you are fading the next note in
 
-    const delay = audioContext.createDelay();
-    delay.delayTime.value = 0;
+    // immediately stop current note because we don't ever want to hear the pluck on
+    // a tethered note
 
-    const delayGain = audioContext.createGain();
-    delayGain.gain.setValueAtTime(0.0001, 0);
+    note.source.stop(0);
 
-    // play around with these numbers, still not accurate slides so don't worry too much about those
-    let delayMultiplierBasedOnEffect = 1.35;
+    const source = audioContext.createBufferSource();
 
-    if (effect === "h") {
-      delayMultiplierBasedOnEffect = 1.15;
-    } else if (effect === "p") {
-      delayMultiplierBasedOnEffect = 1.1;
+    setTimeout(() => {
+      if (currentNoteArrayRef.current[stringIdx]) {
+        currentNoteArrayRef.current[stringIdx]?.stop();
+      }
+
+      currentNoteArrayRef.current[stringIdx] = source;
+    }, when * 1000);
+
+    source.buffer = note.source.buffer;
+    source.start(0, 0.75, 2); // hoping 0.15 is enough to get rid of the pluck
+
+    const sourceGain = audioContext.createGain();
+
+    // immediately ramping from tetheredFret to currentFret with a duration defined by tetheredEffect
+    source.detune.setValueAtTime((tetheredFret - currentFret) * 100, 0);
+
+    let durationOfTransition = (60 / bpm) * 0.35;
+
+    if (tetheredEffect === "h") {
+      durationOfTransition = (60 / bpm) * 0.1 * 0.5; // just trying the 1/2 speed for now
+    } else if (tetheredEffect === "p") {
+      durationOfTransition = (60 / bpm) * 0.15 * 0.5; // just trying the 1/2 speed for now
     }
 
-    // hmm double check that pull offs are happening on the right note, felt like the tiny
-    // "pluck" was more on the base note rather than the tethered note
+    // shoot shoot shoot okay so need to store the idk prob the sourceGain or source inside of the
+    // currNoteArray ref so that they prev notes can be stopped when the next note is played
+    // but I'm not sure like you can still stop it with hmm okay legit try just ;
 
-    delayGain.gain.exponentialRampToValueAtTime(
-      100,
-      audioContext.currentTime + when * delayMultiplierBasedOnEffect
+    // play around with this for sure
+    sourceGain.gain.linearRampToValueAtTime(
+      1.5,
+      audioContext.currentTime + when + durationOfTransition // don't think we need the (60 / bpm) here
     );
 
-    note.connect(delay);
-    delay.connect(delayGain);
+    source.detune.linearRampToValueAtTime(
+      0.001, // doesn't like it if it is exactly 0
+      audioContext.currentTime + when + durationOfTransition // don't think we need the (60 / bpm) here
+    );
 
-    return delayGain;
+    console.log(
+      audioContext.currentTime,
+      audioContext.currentTime + when + durationOfTransition
+    );
+
+    // if there is a currentEffect, we need to apply it to the note after the last ramp is finished
+    if (currentEffect) {
+      // I *THINK* that you can basically just pass the source in to the respective effect function
+      // at this point (with the proper delay obv), but not sure yet
+    }
+
+    source.connect(sourceGain);
+
+    return sourceGain;
   }
 
   function applyVibratoEffect(
@@ -452,19 +469,30 @@ export default function useSound() {
     bpm: number;
     when: number;
     effects: string[];
+    prevTetheredNote?: {
+      note: number;
+      effect: string;
+    };
   }
 
-  function playNote({ tuning, stringIdx, fret, bpm, when, effects }: PlayNote) {
+  function playNote({
+    tuning,
+    stringIdx,
+    fret,
+    bpm,
+    when,
+    effects,
+    prevTetheredNote,
+  }: PlayNote) {
     if (!audioContext) return;
 
-    let duration = 2;
+    let duration = 3;
     let gain = 1;
 
     const isPalmMuted = effects.includes("PM");
     const inlineEffect = effects.at(-1) !== "PM" ? effects.at(-1) : undefined;
 
-    // maybe play around with the cents value (changing the note number by some amount of cents to get more accurate sound?)
-    // it's already pretty good tbf
+    // might need to increase duration/sustain for notes w/tethered effects
 
     if (inlineEffect === ">") {
       gain = 1.75;
@@ -473,9 +501,9 @@ export default function useSound() {
       gain = 1.15;
       duration = 0.25;
     }
-    // all other effects require us to basically hijack the note by almost muting it
+    // dead note and palm mute effects require us to basically hijack the note by almost muting it
     // and then creating a copy of it with a delay node, and adjusting the volume/effect from there
-    else if (inlineEffect !== undefined || isPalmMuted) {
+    else if (inlineEffect === "x" || isPalmMuted) {
       gain = 0.01;
     }
 
@@ -490,6 +518,8 @@ export default function useSound() {
     // looks like the actual instrument() can take in a gain value, but not sure if it
     // would update while playing (defaults to 1 btw);
 
+    console.log(fret, prevTetheredNote);
+
     const note = currentInstrument?.play(
       `${tuning[stringIdx]! + fret}`,
       audioContext.currentTime + when,
@@ -499,7 +529,9 @@ export default function useSound() {
       }
     );
 
-    if (note && (inlineEffect || isPalmMuted)) {
+    // console.log(note);
+
+    if (note && (prevTetheredNote || inlineEffect || isPalmMuted)) {
       playNoteWithEffects({
         note: note as unknown as GainNode,
         stringIdx,
@@ -508,26 +540,21 @@ export default function useSound() {
         when,
         inlineEffect,
         isPalmMuted,
+        prevTetheredNote,
       });
     }
 
-    // tethered meaning effect is relevant to 2 notes
-    const hasATetheredEffect = effects?.some((str) =>
-      ["h", "p", "/", "\\"].some((char) => str.includes(char))
-    );
+    // will do this same process inside of applyTetheredEffect() with the copy AudioBufferSourceNode
+    // that is made
+    if (!prevTetheredNote) {
+      setTimeout(() => {
+        if (currentNoteArrayRef.current[stringIdx]) {
+          currentNoteArrayRef.current[stringIdx]?.stop();
+        }
 
-    setTimeout(() => {
-      if (currentNoteArrayRef.current[stringIdx]) {
-        currentNoteArrayRef.current[stringIdx]?.stop();
-      }
-
-      currentNoteArrayRef.current[stringIdx] = note;
-
-      // stops previous note on same string if it exists when this note is played
-      // since we have to do trickery with hp/\ and start them a bit earlier, we don't
-      // directly want to use the "when" that we get from params, instead just do
-      // default (bpm / 60) * 1000 to get the time in seconds that the note should start
-    }, (hasATetheredEffect ? 60 / bpm : when) * 1000);
+        currentNoteArrayRef.current[stringIdx] = note;
+      }, when * 1000);
+    }
   }
 
   function columnHasNoNotes(column: string[]) {
@@ -600,7 +627,11 @@ export default function useSound() {
         resolve();
       }, (60 / bpm) * 1000);
 
-      if (columnHasNoNotes(currColumn)) {
+      // thinking it's better to group "s" in main if statement here
+      // because I don't think you want to be super aggresive on deleting the prev
+      // notes if they exist in column ux wise if someone were to add an "s" to [7]
+      // while editing
+      if (columnHasNoNotes(currColumn) || currColumn[7] === "s") {
         if (currColumn[7] === "s") {
           playSlapSound();
           // TODO: technically I think the sound will bleed into the next note at high bpms
@@ -636,8 +667,8 @@ export default function useSound() {
             : undefined;
 
         if (
-          currColumn[stringIdx] === "" ||
-          (prevNoteHadTetherEffect && !currNoteHasTetherEffect) // skipping tethered note that was played last iteration
+          currColumn[stringIdx] === ""
+          //  || (prevNoteHadTetherEffect && !currNoteHasTetherEffect) // skipping tethered note that was played last iteration
         )
           continue;
 
@@ -648,46 +679,30 @@ export default function useSound() {
             ? 0
             : parseInt(currColumn[stringIdx]!) + capo;
 
-        if (!prevNoteHadTetherEffect) {
-          playNote({
-            tuning,
-            stringIdx: adjustedStringIdx,
-            fret,
-            bpm,
-            // want raw index instead of adjusted index since we only care about how far into the chord it is
-            when: chordDelayMultiplier * (index - 1),
-            effects: [
-              ...(currColumn[0] !== "" ? ["PM"] : []),
-              ...(currNoteEffect && !currNoteHasTetherEffect
-                ? [currNoteEffect]
-                : []),
-            ],
-          });
-        }
+        const prevNoteAndEffect =
+          currColumn[7] === "" && prevColumn && prevNoteHadTetherEffect
+            ? {
+                note: parseInt(prevColumn[stringIdx]!) + capo,
+                effect: prevNote?.at(-1)!,
+              }
+            : undefined;
 
-        // kinda hacky: need to play the paired note for hp/\ effects since you can't schedule a sound
-        // to be played in the past, and we have to cut off the first part to make it sound as close as
-        // possible to the actual effect.
-        if (
-          nextColumn &&
-          currNoteEffect &&
-          currNoteHasTetherEffect &&
-          (nextColumn[stringIdx] !== undefined || nextColumn[stringIdx] !== "") // there is a tethered note to play for this effect
-        ) {
-          const pairedNote = parseInt(nextColumn[stringIdx]!);
-          const pairedFret = pairedNote + capo;
-
-          playNote({
-            tuning,
-            stringIdx: adjustedStringIdx,
-            fret: pairedFret,
-            bpm,
-            // want raw index instead of adjusted index since we only care about how far into the chord it is
-            when: chordDelayMultiplier * (index - 1) + (60 / bpm) * 0.85,
-            effects:
-              nextColumn[0] !== "" ? ["PM", currNoteEffect] : [currNoteEffect],
-          });
-        }
+        playNote({
+          tuning,
+          stringIdx: adjustedStringIdx,
+          fret,
+          bpm,
+          // want raw index instead of adjusted index since we only care about
+          // how "far" into the chord the note is
+          when: chordDelayMultiplier * (index - 1),
+          effects: [
+            ...(currColumn[0] !== "" ? ["PM"] : []),
+            ...(currNoteEffect && !currNoteHasTetherEffect
+              ? [currNoteEffect]
+              : []),
+          ],
+          prevTetheredNote: prevNoteAndEffect,
+        });
       }
     });
   }
