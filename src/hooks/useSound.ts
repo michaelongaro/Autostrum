@@ -113,8 +113,8 @@ export default function useSound() {
 
     if (prevTetheredNote) {
       noteWithEffectApplied = applyTetheredEffect({
-        note: note as unknown as GainNode,
-        currentEffect: inlineEffect as "~" | "x" | "b",
+        note,
+        currentEffect: inlineEffect,
         currentFret: fret,
         tetheredEffect: prevTetheredNote.effect as "h" | "p" | "/" | "\\",
         tetheredFret: prevTetheredNote.note,
@@ -122,39 +122,31 @@ export default function useSound() {
         bpm,
         when,
       });
-    }
+    } else {
+      // we have to reroute connect()'ing the note to these effects when there is a tetheredEffect
+      // since we have to do the hacky "copy" of the note within the applyTetheredEffect function
 
-    // when you get to bends: EADG get pitch lowered (bent towards the floor)
-    // and BE get pitch raised (bent towards the ceiling) just due to standard convention.
-
-    if (inlineEffect === "~") {
-      // not 100% on this type conversion, be wary as it might cause weird side effects
-      noteWithEffectApplied = applyVibratoEffect(
-        note as unknown as GainNode,
-        bpm
-      );
-    }
-
-    if (inlineEffect === "x") {
-      noteWithEffectApplied = applyDeadNoteEffect(
-        note as unknown as GainNode,
-        stringIdx,
-        fret
-      );
-    }
-
-    if (inlineEffect === "b") {
-      noteWithEffectApplied = applyBendEffect(
-        note as unknown as GainNode,
-        stringIdx,
-        when,
-        bpm
-      );
+      if (inlineEffect === "~") {
+        noteWithEffectApplied = applyVibratoEffect({
+          when: 0,
+          note,
+          bpm,
+        });
+      } else if (inlineEffect === "b") {
+        noteWithEffectApplied = applyBendEffect({
+          note,
+          stringIdx,
+          when,
+          bpm,
+        });
+      } else if (inlineEffect === "x") {
+        noteWithEffectApplied = applyDeadNoteEffect(note, stringIdx, fret);
+      }
     }
 
     if (isPalmMuted) {
       noteWithEffectApplied = applyPalmMute(
-        noteWithEffectApplied ?? (note as unknown as GainNode),
+        noteWithEffectApplied ?? note,
         inlineEffect
       );
     }
@@ -164,17 +156,40 @@ export default function useSound() {
     }
   }
 
-  function applyBendEffect(
-    note: GainNode,
-    stringIdx: number,
-    when: number,
-    bpm: number
-  ) {
-    if (!audioContext) return;
-    // note.source.detune.setValueAtTime(0, when);
+  interface ApplyBendEffect {
+    note?: GainNode;
+    copiedNote?: AudioBufferSourceNode;
+    stringIdx: number;
+    when: number;
+    bpm: number;
+  }
 
-    note.source.detune.linearRampToValueAtTime(-100, when + 60 / bpm); // was 0.5
-    return note;
+  function applyBendEffect({
+    note,
+    copiedNote,
+    stringIdx,
+    when,
+    bpm,
+  }: ApplyBendEffect) {
+    if (!audioContext) return;
+
+    if (note) {
+      note.source.detune.linearRampToValueAtTime(
+        stringIdx > 1 ? 100 : -100,
+        audioContext.currentTime + when + (60 / bpm) * 0.5 // maybe * 0.5 or something
+      );
+      return note;
+    } else if (copiedNote) {
+      copiedNote.detune.linearRampToValueAtTime(
+        stringIdx > 1 ? 100 : -100,
+        audioContext.currentTime + when + (60 / bpm) * 0.5 // maybe * 0.5 or something
+      );
+      // increasing gain to match level set in applyTetheredEffect=
+      const copiedNoteGain = audioContext.createGain();
+      copiedNoteGain.gain.value = 1.5;
+      copiedNote.connect(copiedNoteGain);
+      return copiedNoteGain;
+    }
   }
 
   function playSlapSound() {
@@ -253,8 +268,6 @@ export default function useSound() {
     // Stop the oscillator and noise shortly afterward to simulate a short, percussive sound
     oscillator.stop(audioContext.currentTime + 0.25);
     noise.stop(audioContext.currentTime + 0.25);
-
-    // return gainNode;
   }
 
   function applyDeadNoteEffect(
@@ -289,41 +302,40 @@ export default function useSound() {
     return gainNode;
   }
 
-  function applyPalmMute(note: GainNode, inlineEffect?: string) {
+  function applyPalmMute(
+    note: GainNode | AudioBufferSourceNode,
+    inlineEffect?: string
+  ) {
     if (!audioContext) return;
 
     // Create a BiquadFilterNode to act as a low-pass filter
     const lowPassFilter = audioContext.createBiquadFilter();
     lowPassFilter.type = "lowpass";
-    lowPassFilter.frequency.value = 2000; // Lower this value to cut more high frequencies
+    lowPassFilter.frequency.value = 800; // Lower this value to cut more high frequencies was 2000
+    lowPassFilter.Q.value = 0.5; // Quality factor - lower values make the boost range broader
 
     // Create a BiquadFilterNode to boost the bass frequencies
     const bassBoost = audioContext.createBiquadFilter();
     bassBoost.type = "peaking";
     bassBoost.frequency.value = 120; // Frequency to boost - around 120Hz is a typical bass frequency
     bassBoost.gain.value = 20; // Amount of boost in dB
-    bassBoost.Q.value = 50; // Quality factor - lower values make the boost range broader
+    bassBoost.Q.value = 10; // Quality factor - lower values make the boost range broader
 
     // Create a GainNode to reduce volume
     const gainNode = audioContext.createGain();
 
-    // if inlineEffect has already had it's gain boosted to it's normal level,
-    // then only reduce it by a tiny amount. Otherwise we need to increase the gain since
-    // we are setting the original note to a gain of 0.01
-    let gainValue = 0.85;
+    // palm muting is a little quieter than normal notes
+    let gainValue = 0.75;
 
-    if (inlineEffect === undefined) {
-      gainValue = 75;
-    }
     if (inlineEffect === ">") {
-      gainValue = 85;
+      gainValue = 0.85;
     } else if (inlineEffect === ".") {
-      gainValue = 80;
+      gainValue = 0.8;
     }
 
-    gainNode.gain.value = gainValue; // Reduce gain to simulate the quieter sound of palm muting
+    gainNode.gain.value = gainValue;
 
-    // Connect the note to the filter, and the filter to the gain node
+    // Connect the note to the filter, filter to the bass boost, and the bass boost to the gain node
     note.connect(lowPassFilter);
     lowPassFilter.connect(bassBoost);
     bassBoost.connect(gainNode);
@@ -334,7 +346,7 @@ export default function useSound() {
   interface ApplyTetheredEffect {
     note: GainNode;
     currentFret: number;
-    currentEffect?: "~" | "x" | "b"; // not the most sure about "x"
+    currentEffect?: string;
     tetheredEffect: "h" | "p" | "/" | "\\";
     tetheredFret: number;
     stringIdx: number;
@@ -356,7 +368,6 @@ export default function useSound() {
 
     // immediately stop current note because we don't ever want to hear the pluck on
     // a tethered note
-
     note.source.stop(0);
 
     const source = audioContext.createBufferSource();
@@ -370,96 +381,93 @@ export default function useSound() {
     }, when * 1000);
 
     source.buffer = note.source.buffer;
-    source.start(0, 0.75, 2); // hoping 0.15 is enough to get rid of the pluck
+    source.start(0, 0.75, 2); // maybe can go closer to 0.5s to get rid of the pluck sound
 
     const sourceGain = audioContext.createGain();
+    sourceGain.gain.exponentialRampToValueAtTime(
+      1.5, // tangent: but it really feels like to me that the actual sample files are *not* all the same
+      // volume. But it is honestly a bit random so I'm not sure how we would approach "fixing" it.
+      audioContext.currentTime + when + 0.05 // for whatever reason was very noticible if gain was set immediately
+    );
+    source.connect(sourceGain);
 
     // immediately ramping from tetheredFret to currentFret with a duration defined by tetheredEffect
     source.detune.setValueAtTime((tetheredFret - currentFret) * 100, 0);
 
-    let durationOfTransition = (60 / bpm) * 0.35;
-
-    if (tetheredEffect === "h") {
-      durationOfTransition = (60 / bpm) * 0.1 * 0.5; // just trying the 1/2 speed for now
-    } else if (tetheredEffect === "p") {
-      durationOfTransition = (60 / bpm) * 0.15 * 0.5; // just trying the 1/2 speed for now
+    let durationOfTransition = (60 / bpm) * 0.1; // was 0.2
+    if (tetheredEffect === "h" || tetheredEffect === "p") {
+      durationOfTransition = (60 / bpm) * 0.025; // 0.05
     }
-
-    // shoot shoot shoot okay so need to store the idk prob the sourceGain or source inside of the
-    // currNoteArray ref so that they prev notes can be stopped when the next note is played
-    // but I'm not sure like you can still stop it with hmm okay legit try just ;
-
-    // play around with this for sure
-    sourceGain.gain.linearRampToValueAtTime(
-      1.5,
-      audioContext.currentTime + when + durationOfTransition // don't think we need the (60 / bpm) here
-    );
 
     source.detune.linearRampToValueAtTime(
       0.001, // doesn't like it if it is exactly 0
       audioContext.currentTime + when + durationOfTransition // don't think we need the (60 / bpm) here
     );
 
-    console.log(
-      audioContext.currentTime,
-      audioContext.currentTime + when + durationOfTransition
-    );
-
     // if there is a currentEffect, we need to apply it to the note after the last ramp is finished
     if (currentEffect) {
-      // I *THINK* that you can basically just pass the source in to the respective effect function
-      // at this point (with the proper delay obv), but not sure yet
+      if (currentEffect === "~") {
+        applyVibratoEffect({
+          copiedNote: source, // will be increasing gain w/in this function to match level set above
+          when: when + durationOfTransition,
+          bpm,
+        });
+      } else if (currentEffect === "b") {
+        applyBendEffect({
+          copiedNote: source, // will be increasing gain w/in this function to match level set above
+          when: when + durationOfTransition,
+          stringIdx,
+          bpm,
+        });
+      }
     }
-
-    source.connect(sourceGain);
 
     return sourceGain;
   }
 
-  function applyVibratoEffect(
-    input: GainNode,
-    bpm: number // maybe should be noteIdx (like stringIdx + fret to get total "value")
-  ) {
+  interface ApplyVibratoEffect {
+    note?: GainNode;
+    copiedNote?: AudioBufferSourceNode;
+    when: number; // offset to start the effect
+    bpm: number;
+  }
+
+  function applyVibratoEffect({
+    note,
+    copiedNote,
+    when,
+    bpm,
+  }: ApplyVibratoEffect) {
     if (!audioContext) return;
 
-    // if anything, maybe have the modulatorGain.gain.value = 0.0006; be slightly higher for lower notes
-    // and slightly lower for higher notes, not sure exactly why that is but it is noticible
-    // ask chatgpt why this pheonmenon might be
+    // maybe still have dynamic gain based on fret/ (stringIdx + fret)/ or even actually just the midi number
+    // if it still sounds uneven
 
     // Create a modulation oscillator
-    const modulator = audioContext.createOscillator();
-    modulator.type = "sine";
-    modulator.frequency.value = 3; // Speed of vibrato
-
-    // find out clear answer as to why you are doing the below method with a modulatorGain
-    // rather than modifying the builtin modulator.detune
+    const vibratoOscillator = audioContext.createOscillator();
+    vibratoOscillator.type = "sine";
+    vibratoOscillator.frequency.value = calculateRelativeVibratoFrequency(bpm); // Speed of vibrato
 
     // Create a gain node to control the depth of the vibrato
-    const modulatorGain = audioContext.createGain();
-    modulatorGain.gain.value = 0.0006; // Depth of vibrato
-
-    // Create a delay node
-    const delay = audioContext.createDelay();
-    delay.delayTime.value = 0;
-
-    const delayGain = audioContext.createGain();
-    delayGain.gain.value = 90; // brings up to almost regular gain
+    const vibratoDepth = audioContext.createGain();
+    vibratoDepth.gain.value = 40; // Depth of vibrato in cents
 
     // Connect the modulation oscillator to the gain
-    modulator.connect(modulatorGain);
+    vibratoOscillator.connect(vibratoDepth);
 
-    // Connect the gain node to the delay time parameter of the delay node
-    modulatorGain.connect(delay.delayTime);
+    vibratoOscillator.start(audioContext.currentTime + when);
 
-    // Connect the input to the delay and connect the delay to the context destination
-    input.connect(delay);
-    delay.connect(delayGain);
-    delayGain.connect(modulatorGain);
-
-    // Start the modulation oscillator
-    modulator.start();
-
-    return delayGain;
+    if (note) {
+      vibratoDepth.connect(note.source.detune);
+      return note;
+    } else if (copiedNote) {
+      vibratoDepth.connect(copiedNote.detune);
+      // increasing gain to match level set in applyTetheredEffect
+      const copiedNoteGain = audioContext.createGain();
+      copiedNoteGain.gain.value = 1.5;
+      copiedNote.connect(copiedNoteGain);
+      return copiedNoteGain;
+    }
   }
 
   interface PlayNote {
@@ -486,13 +494,11 @@ export default function useSound() {
   }: PlayNote) {
     if (!audioContext) return;
 
-    let duration = 3;
+    let duration = 2;
     let gain = 1;
 
     const isPalmMuted = effects.includes("PM");
     const inlineEffect = effects.at(-1) !== "PM" ? effects.at(-1) : undefined;
-
-    // might need to increase duration/sustain for notes w/tethered effects
 
     if (inlineEffect === ">") {
       gain = 1.75;
@@ -503,12 +509,15 @@ export default function useSound() {
     }
     // dead note and palm mute effects require us to basically hijack the note by almost muting it
     // and then creating a copy of it with a delay node, and adjusting the volume/effect from there
-    else if (inlineEffect === "x" || isPalmMuted) {
+    else if (inlineEffect === "x") {
+      // pretty sure leaving PM out of this is fine because it is at the end
+      // of the filter connect chain so every note before should have it's gain to w/e value it is supposed
+      // to be at already coming into applyPalmMute()
       gain = 0.01;
     }
 
     if (isPalmMuted) {
-      duration = 0.5;
+      duration = 0.45;
     }
 
     if (inlineEffect === "x") {
@@ -518,8 +527,6 @@ export default function useSound() {
     // looks like the actual instrument() can take in a gain value, but not sure if it
     // would update while playing (defaults to 1 btw);
 
-    console.log(fret, prevTetheredNote);
-
     const note = currentInstrument?.play(
       `${tuning[stringIdx]! + fret}`,
       audioContext.currentTime + when,
@@ -528,8 +535,6 @@ export default function useSound() {
         gain,
       }
     );
-
-    // console.log(note);
 
     if (note && (prevTetheredNote || inlineEffect || isPalmMuted)) {
       playNoteWithEffects({
@@ -598,6 +603,20 @@ export default function useSound() {
     }
 
     return sectionProgression;
+  }
+
+  function calculateRelativeVibratoFrequency(bpm: number) {
+    // Ensure that the input number is positive
+    const distance = Math.abs(bpm - 400);
+
+    // Calculate the scale factor between 0 and 1.
+    // When bpm: number is 400, scaleFactor will be 0.
+    // When bpm: number is 0, scaleFactor will be 1.
+    const scaleFactor = Math.min(distance / 400, 1);
+
+    // Scale the number between 4 (when scaleFactor is 0)
+    // and 6 (when scaleFactor is 1).
+    return 4 + scaleFactor * (6 - 4);
   }
 
   function calculateRelativeChordDelayMultiplier(bpm: number) {
