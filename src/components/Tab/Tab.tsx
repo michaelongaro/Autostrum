@@ -20,10 +20,14 @@ import type {
   RefetchOptions,
   RefetchQueryFilters,
 } from "@tanstack/react-query";
+import Chords from "./Chords";
+import StrummingPatterns from "./StrummingPatterns";
+import ChordModal from "../modals/ChordModal";
 
 // not sure of best way to avoid having the same name for interface and component
 export interface ITabSection {
   title: string;
+  type: "tab";
   data: string[][];
 }
 
@@ -50,6 +54,8 @@ function Tab({ tab, refetchTab }: ITab) {
     setTuning,
     setBpm,
     setTimeSignature,
+    setChords,
+    setStrummingPatterns,
     tabData,
     setTabData,
     setSectionProgression,
@@ -60,6 +66,7 @@ function Tab({ tab, refetchTab }: ITab) {
     showSectionProgressionModal,
     showEffectGlossaryModal,
     setShowEffectGlossaryModal,
+    showChordModal,
   } = useTabStore(
     (state) => ({
       setId: state.setId,
@@ -70,6 +77,8 @@ function Tab({ tab, refetchTab }: ITab) {
       setTuning: state.setTuning,
       setBpm: state.setBpm,
       setTimeSignature: state.setTimeSignature,
+      setChords: state.setChords,
+      setStrummingPatterns: state.setStrummingPatterns,
       tabData: state.tabData,
       setTabData: state.setTabData,
       setSectionProgression: state.setSectionProgression,
@@ -80,6 +89,7 @@ function Tab({ tab, refetchTab }: ITab) {
       showSectionProgressionModal: state.showSectionProgressionModal,
       showEffectGlossaryModal: state.showEffectGlossaryModal,
       setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
+      showChordModal: state.showChordModal,
     }),
     shallow
   );
@@ -99,9 +109,13 @@ function Tab({ tab, refetchTab }: ITab) {
     setTimeSignature(tab.timeSignature);
     setNumberOfLikes(tab.numberOfLikes);
 
-    // @ts-expect-error asdf
+    // @ts-expect-error can't specify type from prisma Json value, but we know it's correct
+    setChords(tab.chords);
+    // @ts-expect-error can't specify type from prisma Json value, but we know it's correct
+    setStrummingPatterns(tab.strummingPatterns);
+    // @ts-expect-error can't specify type from prisma Json value, but we know it's correct
     setTabData(tab.tabData);
-    // @ts-expect-error asdf
+    // @ts-expect-error can't specify type from prisma Json value, but we know it's correct
     setSectionProgression(tab.sectionProgression ?? []);
   }, [
     tab,
@@ -110,6 +124,8 @@ function Tab({ tab, refetchTab }: ITab) {
     setBpm,
     setDescription,
     setGenreId,
+    setChords,
+    setStrummingPatterns,
     setTabData,
     setTimeSignature,
     setTitle,
@@ -134,17 +150,31 @@ function Tab({ tab, refetchTab }: ITab) {
           <SectionProgression />
         </div>
 
+        {/* start with modifying schemas in store and db, then make below two components
+            then move onto actual <ChordSection /> related components afterwords! */}
+
+        <Chords />
+
+        <StrummingPatterns />
+
         {/* Actual tab below */}
         <LayoutGroup>
           {tabData.map((section, index) => (
-            <TabSection
-              key={index}
-              sectionData={{
-                title: section.title,
-                data: section.data,
-              }}
-              sectionIndex={index}
-            />
+            <>
+              {section.type === "chord" ? (
+                // <ChordSection />
+                <div key={index}>placeholder</div>
+              ) : (
+                <TabSection
+                  key={index}
+                  sectionData={{
+                    title: section.title,
+                    data: section.data,
+                  }}
+                  sectionIndex={index}
+                />
+              )}
+            </>
           ))}
         </LayoutGroup>
       </div>
@@ -164,6 +194,17 @@ function Tab({ tab, refetchTab }: ITab) {
 
       <AnimatePresence mode="wait">
         {showEffectGlossaryModal && <EffectGlossaryModal />}
+      </AnimatePresence>
+
+      {/* add/edit chord modal here */}
+
+      <AnimatePresence mode="wait">
+        {showChordModal && <ChordModal />}
+      </AnimatePresence>
+
+      {/* add/edit strumming pattern modal here */}
+      <AnimatePresence mode="wait">
+        {/* {showChordModal && <ChordModal />} */}
       </AnimatePresence>
     </>
   );

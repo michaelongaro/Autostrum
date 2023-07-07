@@ -1,6 +1,6 @@
 generator client {
     provider        = "prisma-client-js"
-    previewFeatures = ["filteredRelationCount", "fullTextSearch"]
+    previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -18,12 +18,6 @@ model Artist {
     likesGiven      Like[]   @relation("likeGiver")
     likesReceived   Like[]   @relation("likeRecipient") // prob want better field name..
     tabs            Tab[]
-
-    // might also need receivedLikes too, but I think we can nested query for it
-
-    // likedTabIds        Int[]    @default([])
-    // totalLikesReceived Int      @default(0)
-    // totalTabsCreated   Int      @default(0)
 }
 
 model Tab {
@@ -31,6 +25,8 @@ model Tab {
     title              String
     tuning             String
     bpm                Int?
+    chords             Json      @default("[]") // prisma doesn't seem to support direct default value of json
+    strummingPatterns  Json      @default("[]") // prisma doesn't seem to support direct default value of json
     tabData            Json
     sectionProgression Json
     description        String?
@@ -43,8 +39,6 @@ model Tab {
     genre              Genre     @relation(fields: [genreId], references: [id])
     genreId            Int
     comments           Comment[]
-
-    // numberOfLikes      Int
 }
 
 model Like {

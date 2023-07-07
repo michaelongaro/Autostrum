@@ -9,6 +9,29 @@ export interface SectionProgression {
   repetitions: number;
 }
 
+type StrummingPattern = [
+  "start" | "end" | "-" | "",
+  "v" | "^" | "s" | "",
+  ">" | ""
+][]; // maybe should be an obj instead of arr
+
+interface Chord {
+  name: string;
+  frets: string[]; // prob should be number[] but just trying to match what ITabSection looks like
+}
+
+interface StrummingPatternSection {
+  pattern: StrummingPattern;
+  repeat: number;
+  chordSequence: string[]; // maybe should be (Chord | undefined)[] (undefined meaning "no chord")
+}
+
+interface ChordSection {
+  title: string;
+  type: "chord";
+  data: StrummingPatternSection[][]; // hoping this maps out to what I want the structure to be..
+}
+
 interface TabState {
   // not sure if this will hurt us later on, but I would like to avoid making all of these optional
   // and instead just set them to default-ish values
@@ -39,7 +62,11 @@ interface TabState {
   setTimeSignature: (timeSignature: string | null) => void;
   capo: number | null;
   setCapo: (capo: number | null) => void;
-  tabData: ITabSection[];
+  chords: Chord[];
+  setChords: (chords: Chord[]) => void;
+  strummingPatterns: StrummingPattern[];
+  setStrummingPatterns: (strummingPatterns: StrummingPattern[]) => void;
+  tabData: (ITabSection | ChordSection)[];
   setTabData: (tabData: ITabSection[]) => void;
   numberOfLikes: number;
   setNumberOfLikes: (numberOfLikes: number) => void;
@@ -67,6 +94,16 @@ interface TabState {
   ) => void;
   showEffectGlossaryModal: boolean;
   setShowEffectGlossaryModal: (showEffectGlossaryModal: boolean) => void;
+  showChordModal: boolean;
+  setShowChordModal: (showChordModal: boolean) => void;
+  currentlyEditingChord: Chord;
+  setCurrentlyEditingChord: (currentlyEditingChord: Chord) => void;
+  showStrummingPatternModal: boolean;
+  setShowStrummingPatternModal: (showStrummingPatternModal: boolean) => void;
+  currentlyEditingStrummingPattern: StrummingPattern;
+  setCurrentlyEditingStrummingPattern: (
+    currentlyEditingStrummingPattern: StrummingPattern
+  ) => void;
 
   // related to search
   searchResultsCount: number;
@@ -103,9 +140,14 @@ export const useTabStore = create<TabState>()(
     setTimeSignature: (timeSignature) => set({ timeSignature }),
     capo: null,
     setCapo: (capo) => set({ capo }),
+    chords: [],
+    setChords: (chords) => set({ chords }),
+    strummingPatterns: [],
+    setStrummingPatterns: (strummingPatterns) => set({ strummingPatterns }),
     tabData: [
       {
         title: "Intro",
+        type: "tab",
         data: [
           ["", "", "", "", "", "", "", "", "note"],
           ["", "", "", "", "", "", "", "", "note"],
@@ -191,6 +233,28 @@ export const useTabStore = create<TabState>()(
     showEffectGlossaryModal: false,
     setShowEffectGlossaryModal: (showEffectGlossaryModal) =>
       set({ showEffectGlossaryModal }),
+    showChordModal: false,
+    setShowChordModal: (showChordModal) => set({ showChordModal }),
+    currentlyEditingChord: {
+      name: "",
+      frets: ["", "", "", "", "", ""],
+    },
+    setCurrentlyEditingChord: (currentlyEditingChord) =>
+      set({ currentlyEditingChord }),
+    showStrummingPatternModal: false,
+    setShowStrummingPatternModal: (showStrummingPatternModal) =>
+      set({ showStrummingPatternModal }),
+    currentlyEditingStrummingPattern: [
+      ["", "v", ""],
+      ["", "v", ""],
+      ["", "^", ""],
+      ["", "", ""],
+      ["", "v", ""],
+      ["", "^", ""],
+      ["", "v", ""],
+    ],
+    setCurrentlyEditingStrummingPattern: (currentlyEditingStrummingPattern) =>
+      set({ currentlyEditingStrummingPattern }),
 
     // search
     searchResultsCount: 0,
