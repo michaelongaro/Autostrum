@@ -86,6 +86,8 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
   //   return <div>{note}</div>;
   // }
 
+  // TODO: honestly I think this function is a relic of some bug in the past, there's no good reason
+  // to need this workaround. Move logic of ArrowDown/ArrowUp into handleChange
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key !== "Backspace" && e.key !== "ArrowDown" && e.key !== "ArrowUp")
       return;
@@ -117,42 +119,54 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const value = e.target.value.toLowerCase();
+    let value = e.target.value;
 
     // regular notes
     if (noteIndex !== 7) {
       // wanted to always allow a-g in regular note even if there was a number
       // present for easy placement of major chords
-      let valueHasAMajorChordLetter = false;
-      let majorChordLetter = "";
+      let valueHasAChordLetter = false;
+      let chordLetter = "";
       for (let i = 0; i < value.length; i++) {
-        if ("abcdefg".includes(value.charAt(i))) {
-          valueHasAMajorChordLetter = true;
-          majorChordLetter = value.charAt(i);
+        if ("abcdefgABCDEFG".includes(value.charAt(i))) {
+          valueHasAChordLetter = true;
+          chordLetter = value.charAt(i);
           break;
         }
       }
-      if (valueHasAMajorChordLetter) {
+      if (valueHasAChordLetter) {
         let ableToOverwrite = true;
 
         let chordArray: string[] = [];
-        if (majorChordLetter === "a") {
+
+        if (chordLetter === "A") {
           chordArray = ["", "0", "2", "2", "2", "0"];
-        }
-        // conflict between major chord "b" and bend effect "b", compromise being
-        // that the this shortcut only works when input is otherwise empty
-        else if (majorChordLetter === "b" && value === "b") {
+        } else if (chordLetter === "a") {
+          chordArray = ["", "0", "2", "2", "1", "0"];
+        } else if (chordLetter === "B" && value === "B") {
           chordArray = ["", "2", "4", "4", "4", "2"];
-        } else if (majorChordLetter === "c") {
+        } else if (chordLetter === "b" && value === "b") {
+          chordArray = ["", "2", "4", "4", "3", "2"];
+        } else if (chordLetter === "C") {
           chordArray = ["", "3", "2", "0", "1", "0"];
-        } else if (majorChordLetter === "d") {
+        } else if (chordLetter === "c") {
+          chordArray = ["", "3", "5", "5", "4", "3"];
+        } else if (chordLetter === "D") {
           chordArray = ["", "", "0", "2", "3", "2"];
-        } else if (majorChordLetter === "e") {
+        } else if (chordLetter === "d") {
+          chordArray = ["", "", "0", "2", "3", "1"];
+        } else if (chordLetter === "E") {
           chordArray = ["0", "2", "2", "1", "0", "0"];
-        } else if (majorChordLetter === "f") {
+        } else if (chordLetter === "e") {
+          chordArray = ["0", "2", "2", "0", "0", "0"];
+        } else if (chordLetter === "F") {
           chordArray = ["1", "3", "3", "2", "1", "1"];
-        } else if (majorChordLetter === "g") {
+        } else if (chordLetter === "f") {
+          chordArray = ["1", "3", "3", "1", "1", "1"];
+        } else if (chordLetter === "G") {
           chordArray = ["3", "2", "0", "0", "0", "3"];
+        } else if (chordLetter === "g") {
+          chordArray = ["3", "5", "5", "3", "3", "3"];
         } else {
           ableToOverwrite = false;
         }
@@ -173,6 +187,10 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
           return;
         }
       }
+
+      // need to do this after checking for chord letters so that
+      // the chord letters can be capitalized for the chord shortcut
+      value = value.toLowerCase();
 
       if (value !== "" && !validNoteInput(value)) return;
 
