@@ -13,9 +13,11 @@ type StrummingPattern = [
   "start" | "end" | "-" | "",
   "v" | "^" | "s" | "",
   ">" | ""
-][]; // maybe should be an obj instead of arr
+][]; // maybe should be an obj instead of arr, also if the chord is accented, then when creating the chord
+// to be played, will need to append ">" to all of the notes (or the ones that have notes :) ). Otherwise
+// its [[0], chord, [1], maybe note duration here?] for the "compiled" chords to be played
 
-interface Chord {
+export interface Chord {
   name: string;
   frets: string[]; // prob should be number[] but just trying to match what ITabSection looks like
 }
@@ -94,15 +96,27 @@ interface TabState {
   ) => void;
   showEffectGlossaryModal: boolean;
   setShowEffectGlossaryModal: (showEffectGlossaryModal: boolean) => void;
-  showChordModal: boolean;
-  setShowChordModal: (showChordModal: boolean) => void;
-  currentlyEditingChord: Chord;
-  setCurrentlyEditingChord: (currentlyEditingChord: Chord) => void;
-  showStrummingPatternModal: boolean;
-  setShowStrummingPatternModal: (showStrummingPatternModal: boolean) => void;
-  currentlyEditingStrummingPattern: StrummingPattern;
-  setCurrentlyEditingStrummingPattern: (
-    currentlyEditingStrummingPattern: StrummingPattern
+
+  // below are also used to determine if respective modal should be showing
+  chordThatIsBeingEdited: {
+    index: number;
+    value: Chord;
+  } | null;
+  setChordThatIsBeingEdited: (
+    chordThatIsBeingEdited: {
+      index: number;
+      value: Chord;
+    } | null
+  ) => void;
+  strummingPatternThatIsBeingEdited: {
+    index: number;
+    value: StrummingPattern;
+  } | null;
+  setStrummingPatternThatIsBeingEdited: (
+    strummingPatternThatIsBeingEdited: {
+      index: number;
+      value: StrummingPattern;
+    } | null
   ) => void;
 
   // related to search
@@ -132,7 +146,7 @@ export const useTabStore = create<TabState>()(
     setDescription: (description) => set({ description }),
     genreId: -1,
     setGenreId: (genreId) => set({ genreId }),
-    tuning: "",
+    tuning: "e2 a2 d3 g3 b3 e4",
     setTuning: (tuning) => set({ tuning }),
     bpm: null,
     setBpm: (bpm) => set({ bpm }),
@@ -233,28 +247,14 @@ export const useTabStore = create<TabState>()(
     showEffectGlossaryModal: false,
     setShowEffectGlossaryModal: (showEffectGlossaryModal) =>
       set({ showEffectGlossaryModal }),
-    showChordModal: false,
-    setShowChordModal: (showChordModal) => set({ showChordModal }),
-    currentlyEditingChord: {
-      name: "",
-      frets: ["", "", "", "", "", ""],
-    },
-    setCurrentlyEditingChord: (currentlyEditingChord) =>
-      set({ currentlyEditingChord }),
-    showStrummingPatternModal: false,
-    setShowStrummingPatternModal: (showStrummingPatternModal) =>
-      set({ showStrummingPatternModal }),
-    currentlyEditingStrummingPattern: [
-      ["", "v", ""],
-      ["", "v", ""],
-      ["", "^", ""],
-      ["", "", ""],
-      ["", "v", ""],
-      ["", "^", ""],
-      ["", "v", ""],
-    ],
-    setCurrentlyEditingStrummingPattern: (currentlyEditingStrummingPattern) =>
-      set({ currentlyEditingStrummingPattern }),
+
+    // below are also used to determine if respective modal should be showing
+    chordThatIsBeingEdited: null,
+    setChordThatIsBeingEdited: (chordThatIsBeingEdited) =>
+      set({ chordThatIsBeingEdited }),
+    strummingPatternThatIsBeingEdited: null,
+    setStrummingPatternThatIsBeingEdited: (strummingPatternThatIsBeingEdited) =>
+      set({ strummingPatternThatIsBeingEdited }),
 
     // search
     searchResultsCount: 0,

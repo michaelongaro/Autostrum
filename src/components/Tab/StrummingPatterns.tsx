@@ -7,16 +7,14 @@ function StrummingPatterns() {
   const {
     strummingPatterns,
     setStrummingPatterns,
-    setCurrentlyEditingStrummingPattern,
-    setShowStrummingPatternModal,
+    setStrummingPatternThatIsBeingEdited,
     editing,
   } = useTabStore(
     (state) => ({
       strummingPatterns: state.strummingPatterns,
       setStrummingPatterns: state.setStrummingPatterns,
-      setCurrentlyEditingStrummingPattern:
-        state.setCurrentlyEditingStrummingPattern,
-      setShowStrummingPatternModal: state.setShowStrummingPatternModal,
+      setStrummingPatternThatIsBeingEdited:
+        state.setStrummingPatternThatIsBeingEdited,
       editing: state.editing,
     }),
     shallow
@@ -48,7 +46,7 @@ function StrummingPatterns() {
         {editing && (
           <Button
             onClick={() => {
-              setCurrentlyEditingStrummingPattern([
+              setStrummingPatternThatIsBeingEdited([
                 ["", "v", ""],
                 ["", "v", ""],
                 ["", "^", ""],
@@ -57,7 +55,6 @@ function StrummingPatterns() {
                 ["", "^", ""],
                 ["", "v", ""],
               ]);
-              setShowStrummingPatternModal(true);
             }}
           >
             Add strumming pattern

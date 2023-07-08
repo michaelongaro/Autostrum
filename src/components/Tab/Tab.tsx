@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, Fragment } from "react";
 import type { Tab } from "@prisma/client";
 import { useClerk, useAuth } from "@clerk/nextjs";
 import TabMetadata from "./TabMetadata";
@@ -66,7 +66,8 @@ function Tab({ tab, refetchTab }: ITab) {
     showSectionProgressionModal,
     showEffectGlossaryModal,
     setShowEffectGlossaryModal,
-    showChordModal,
+    chordThatIsBeingEdited,
+    strummingPatternThatIsBeingEdited,
   } = useTabStore(
     (state) => ({
       setId: state.setId,
@@ -89,7 +90,9 @@ function Tab({ tab, refetchTab }: ITab) {
       showSectionProgressionModal: state.showSectionProgressionModal,
       showEffectGlossaryModal: state.showEffectGlossaryModal,
       setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
-      showChordModal: state.showChordModal,
+      chordThatIsBeingEdited: state.chordThatIsBeingEdited,
+      strummingPatternThatIsBeingEdited:
+        state.strummingPatternThatIsBeingEdited,
     }),
     shallow
   );
@@ -160,7 +163,7 @@ function Tab({ tab, refetchTab }: ITab) {
         {/* Actual tab below */}
         <LayoutGroup>
           {tabData.map((section, index) => (
-            <>
+            <Fragment key={index}>
               {section.type === "chord" ? (
                 // <ChordSection />
                 <div key={index}>placeholder</div>
@@ -174,7 +177,7 @@ function Tab({ tab, refetchTab }: ITab) {
                   sectionIndex={index}
                 />
               )}
-            </>
+            </Fragment>
           ))}
         </LayoutGroup>
       </div>
@@ -199,7 +202,9 @@ function Tab({ tab, refetchTab }: ITab) {
       {/* add/edit chord modal here */}
 
       <AnimatePresence mode="wait">
-        {showChordModal && <ChordModal />}
+        {chordThatIsBeingEdited && (
+          <ChordModal chordThatIsBeingEdited={chordThatIsBeingEdited} />
+        )}
       </AnimatePresence>
 
       {/* add/edit strumming pattern modal here */}
