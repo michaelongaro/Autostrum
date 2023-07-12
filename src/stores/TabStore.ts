@@ -9,17 +9,29 @@ export interface SectionProgression {
   repetitions: number;
 }
 
-type StrummingPattern = [
-  "start" | "end" | "-" | "",
-  "v" | "^" | "s" | "",
-  ">" | ""
-][]; // maybe should be an obj instead of arr, also if the chord is accented, then when creating the chord
-// to be played, will need to append ">" to all of the notes (or the ones that have notes :) ). Otherwise
-// its [[0], chord, [1], maybe note duration here?] for the "compiled" chords to be played
-
 export interface Chord {
   name: string;
   frets: string[]; // prob should be number[] but just trying to match what ITabSection looks like
+}
+
+// if the chord is accented, then when creating the chord
+// to be played, will need to append ">" to all of the notes (or the ones that have notes :) ). Otherwise
+// its [[0], chord, [1], maybe note duration here?] for the "compiled" chords to be played
+export type StrummingPattern = {
+  noteLength:
+    | "1/4th"
+    | "1/4th triplet"
+    | "1/8th"
+    | "1/8th triplet"
+    | "1/16th"
+    | "1/16th triplet";
+  strums: Strum[];
+};
+
+interface Strum {
+  palmMute: "" | "-" | "start" | "end";
+  strum: "" | "v" | "^" | "s" | "v>" | "^>" | "s>";
+  accented: boolean;
 }
 
 interface StrummingPatternSection {
@@ -69,7 +81,7 @@ interface TabState {
   strummingPatterns: StrummingPattern[];
   setStrummingPatterns: (strummingPatterns: StrummingPattern[]) => void;
   tabData: (ITabSection | ChordSection)[];
-  setTabData: (tabData: ITabSection[]) => void;
+  setTabData: (tabData: (ITabSection | ChordSection)[]) => void;
   numberOfLikes: number;
   setNumberOfLikes: (numberOfLikes: number) => void;
   editing: boolean;
@@ -81,9 +93,26 @@ interface TabState {
 
   // used in <TabSection />
   modifyPalmMuteDashes: (
-    tab: ITabSection[],
-    setTabData: (tabData: ITabSection[]) => void,
+    tab: (ITabSection | ChordSection)[],
+    setTabData: (tabData: (ITabSection | ChordSection)[]) => void,
     sectionIndex: number,
+    startColumnIndex: number,
+    prevValue: string,
+    pairNodeValue?: string
+  ) => void;
+
+  // used in <StrummingPatternModal />
+  modifyStrummingPatternPalmMuteDashes: (
+    strummingPatternThatIsBeingEdited: {
+      index: number;
+      value: StrummingPattern;
+    },
+    setStrummingPatternThatIsBeingEdited: (
+      strummingPatternThatIsBeingEdited: {
+        index: number;
+        value: StrummingPattern;
+      } | null
+    ) => void,
     startColumnIndex: number,
     prevValue: string,
     pairNodeValue?: string
@@ -238,6 +267,61 @@ export const useTabStore = create<TabState>()(
       }
 
       setTabData(newTabData);
+    },
+
+    modifyStrummingPatternPalmMuteDashes: (
+      strummingPatternThatIsBeingEdited,
+      setStrummingPatternThatIsBeingEdited,
+      startColumnIndex,
+      prevValue,
+      pairNodeValue
+    ) => {
+      // technically could just use tabData/setter from the store right?
+      let finishedModification = false;
+      const newStrummingPattern = { ...strummingPatternThatIsBeingEdited };
+      let currentColumnIndex = startColumnIndex;
+
+      while (!finishedModification) {
+        // start/end node already defined, meaning we just clicked on an empty node to be the other pair node
+        if (pairNodeValue !== undefined) {
+          if (currentColumnIndex === startColumnIndex) {
+            newStrummingPattern.value.strums[startColumnIndex]!.palmMute =
+              pairNodeValue === ""
+                ? "end"
+                : (pairNodeValue as "start" | "end" | "-" | "");
+
+            pairNodeValue === "start"
+              ? currentColumnIndex++
+              : currentColumnIndex--;
+          } else if (
+            newStrummingPattern.value.strums[currentColumnIndex]!.palmMute ===
+            (pairNodeValue === "" || pairNodeValue === "end" ? "start" : "end")
+          ) {
+            finishedModification = true;
+          } else {
+            newStrummingPattern.value.strums[currentColumnIndex]!.palmMute =
+              "-";
+            pairNodeValue === "start"
+              ? currentColumnIndex++
+              : currentColumnIndex--;
+          }
+        }
+        // pair already defined, meaning we just removed either the start/end node and need to remove dashes
+        // in between until we hit the other node
+        else {
+          if (
+            newStrummingPattern.value.strums[currentColumnIndex]!.palmMute ===
+            (prevValue === "start" ? "end" : "start")
+          ) {
+            finishedModification = true;
+          } else {
+            newStrummingPattern.value.strums[currentColumnIndex]!.palmMute = "";
+            prevValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
+          }
+        }
+      }
+
+      setStrummingPatternThatIsBeingEdited(newStrummingPattern);
     },
 
     // modals
