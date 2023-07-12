@@ -31,7 +31,6 @@ export type StrummingPattern = {
 interface Strum {
   palmMute: "" | "-" | "start" | "end";
   strum: "" | "v" | "^" | "s" | "v>" | "^>" | "s>";
-  accented: boolean;
 }
 
 interface StrummingPatternSection {
