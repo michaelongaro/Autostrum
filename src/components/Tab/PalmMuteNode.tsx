@@ -11,8 +11,7 @@ import { shallow } from "zustand/shallow";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 
 interface PalmMuteNode {
-  note: string;
-  effectColumn: boolean;
+  value: string;
   columnIndex: number;
   sectionIndex: number;
   editingPalmMuteNodes: boolean;
@@ -24,8 +23,7 @@ interface PalmMuteNode {
 }
 
 function PalmMuteNode({
-  note,
-  effectColumn,
+  value,
   columnIndex,
   sectionIndex,
   editingPalmMuteNodes,
@@ -47,37 +45,42 @@ function PalmMuteNode({
   );
 
   const findColumnIndexOfNearestNode = useCallback(
-    (type: "pairNode" | "nearestStart") => {
-      let currentIndex =
-        type === "pairNode"
-          ? lastModifiedPalmMuteNode?.columnIndex
-          : (lastModifiedPalmMuteNode?.columnIndex ?? 0) + 1;
+    (searchingFor?: "prevStart" | "prevEnd" | "nextStart" | "nextEnd") => {
+      let currentIndex = lastModifiedPalmMuteNode?.columnIndex;
       const foundPairNodeColumnIndex = false;
+
+      // searchingFor being undefined means we are looking for the nearest "start" node
 
       if (currentIndex === undefined) return 0;
 
       while (!foundPairNodeColumnIndex) {
         const currentNode = tabData[sectionIndex]!.data[currentIndex]?.[0];
 
+        // it's implied that there shouldn't be an "end" node since we just added the "start" node
         if (lastModifiedPalmMuteNode?.prevValue === "") {
-          if (currentNode === "start") return currentIndex;
+          if (
+            currentNode === "start" &&
+            currentIndex !== lastModifiedPalmMuteNode?.columnIndex
+          )
+            return currentIndex;
 
           currentIndex++;
         } else if (lastModifiedPalmMuteNode?.prevValue === "start") {
           if (currentNode === "end") return currentIndex;
 
-          currentIndex++;
+          if (searchingFor === "nextEnd") currentIndex++;
+          else if (searchingFor === "prevEnd") currentIndex--;
         } else {
           if (currentNode === "start") return currentIndex;
 
-          currentIndex--;
+          if (searchingFor === "nextStart") currentIndex++;
+          else if (searchingFor === "prevStart") currentIndex--;
         }
 
-        if (
-          currentIndex < 0 ||
-          currentIndex > tabData[sectionIndex]!.data.length - 1
-        ) {
-          return tabData[sectionIndex]!.data.length - 1;
+        if (currentIndex < 0) return -1; // or maybe 0
+
+        if (currentIndex > tabData[sectionIndex]!.data.length - 1) {
+          return tabData[sectionIndex]!.data.length;
         }
       }
 
@@ -89,7 +92,7 @@ function PalmMuteNode({
   useEffect(() => {
     setButtonOpacity("1");
 
-    if (!editingPalmMuteNodes && note !== "start" && note !== "end") {
+    if (!editingPalmMuteNodes && value !== "start" && value !== "end") {
       setButtonOpacity("0");
       return;
     }
@@ -97,25 +100,28 @@ function PalmMuteNode({
     if (
       lastModifiedPalmMuteNode?.prevValue === "" &&
       (columnIndex < lastModifiedPalmMuteNode?.columnIndex ||
-        columnIndex >= findColumnIndexOfNearestNode("nearestStart"))
+        columnIndex >= findColumnIndexOfNearestNode())
     ) {
       setButtonOpacity("0.25");
     } else {
       if (
         lastModifiedPalmMuteNode?.prevValue === "start" &&
-        columnIndex > findColumnIndexOfNearestNode("pairNode")
+        (columnIndex <= findColumnIndexOfNearestNode("prevEnd") ||
+          columnIndex > findColumnIndexOfNearestNode("nextEnd"))
       ) {
         setButtonOpacity("0.25");
       } else if (
         lastModifiedPalmMuteNode?.prevValue === "end" &&
-        columnIndex < findColumnIndexOfNearestNode("pairNode")
+        (columnIndex < findColumnIndexOfNearestNode("prevStart") ||
+          columnIndex >= findColumnIndexOfNearestNode("nextStart"))
       ) {
         setButtonOpacity("0.25");
       }
     }
   }, [
     columnIndex,
-    note,
+    sectionIndex,
+    value,
     editingPalmMuteNodes,
     lastModifiedPalmMuteNode,
     findColumnIndexOfNearestNode,
@@ -128,11 +134,11 @@ function PalmMuteNode({
     if (lastModifiedPalmMuteNode === null) {
       setLastModifiedPalmMuteNode({
         columnIndex,
-        prevValue: note, // value before clicking
-        currentValue: note === "start" || note === "end" ? "" : "start", // value after clicking
+        prevValue: value, // value before clicking
+        currentValue: value === "start" || value === "end" ? "" : "start", // value after clicking
       });
 
-      if (note === "") {
+      if (value === "") {
         const newTabData = [...tabData];
         newTabData[sectionIndex]!.data[columnIndex]![0] = "start";
         setTabData(newTabData);
@@ -143,17 +149,20 @@ function PalmMuteNode({
           setTabData,
           sectionIndex,
           columnIndex,
-          note
+          value
         );
       }
     }
 
     // removing start node that was just added
+    //    we know it's a start node because the lastModifiedPalmMuteNode isn't null
+    //    and the only available nodes to click on is the corresponding node
+    //    to the lastModifiedPalmMuteNode
     else if (
       (lastModifiedPalmMuteNode.prevValue === "" &&
         lastModifiedPalmMuteNode.columnIndex === columnIndex) ||
       (lastModifiedPalmMuteNode.prevValue !== "" &&
-        (note === "start" || note === "end"))
+        (value === "start" || value === "end"))
     ) {
       const newTabData = [...tabData];
       newTabData[sectionIndex]!.data[columnIndex]![0] = "";
@@ -169,7 +178,7 @@ function PalmMuteNode({
         setTabData,
         sectionIndex,
         columnIndex,
-        note,
+        value,
         lastModifiedPalmMuteNode.prevValue
       );
 
@@ -179,16 +188,16 @@ function PalmMuteNode({
 
   return (
     <>
-      {!editing && (note === "start" || note === "end") && (
+      {!editing && (value === "start" || value === "end") && (
         <>
-          {note === "start" && (
+          {value === "start" && (
             <div className="baseFlex relative w-full !flex-nowrap">
               |<i className="absolute -top-3 left-4">PM</i>
               <div className="h-[1px] w-full bg-pink-50"></div>
             </div>
           )}
 
-          {note === "end" && (
+          {value === "end" && (
             <div className="baseFlex relative w-full !flex-nowrap">
               <div className="h-[1px] w-full bg-pink-50"></div>|
             </div>
@@ -198,9 +207,9 @@ function PalmMuteNode({
 
       {editing && (
         <>
-          {(note === "start" ||
-            note === "end" ||
-            (editingPalmMuteNodes && note === "" && !effectColumn)) && (
+          {(value === "start" ||
+            value === "end" ||
+            (editingPalmMuteNodes && value === "")) && (
             <Button
               style={{
                 pointerEvents: buttonOpacity === "1" ? "all" : "none",
@@ -215,25 +224,25 @@ function PalmMuteNode({
               onTouchEnd={() => setHoveringOnPalmMuteNode(false)}
               onClick={handlePalmMuteNodeClick}
             >
-              {note === "start" && (
+              {value === "start" && (
                 <div className="baseVertFlex text-xs">
                   <span>PM</span>
                   <span>start</span>
                 </div>
               )}
-              {note === "end" && (
+              {value === "end" && (
                 <div className="baseVertFlex text-xs">
                   <span>PM</span>
                   <span>end</span>
                 </div>
               )}
-              {editingPalmMuteNodes && note === "" && "+"}
+              {editingPalmMuteNodes && value === "" && "+"}
             </Button>
           )}
         </>
       )}
 
-      {note === "-" && <div className="h-[1px] w-full bg-pink-50"></div>}
+      {value === "-" && <div className="h-[1px] w-full bg-pink-50"></div>}
     </>
   );
 }
