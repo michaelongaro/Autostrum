@@ -16,9 +16,6 @@ const backdropVariants = {
   },
 };
 
-// fyi: only ever showing chordmodal and strumming pattern modal if editing
-// otherwise just on hover show chord modal as a tooltip, nothing for strumming pattern
-
 interface ChordModal {
   chordThatIsBeingEdited: { index: number; value: Chord };
 }
@@ -228,7 +225,6 @@ function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
                   type="text"
                   autoComplete="off"
                   value={fret}
-                  // onKeyDown={(e) => handleKeyDown(e, index)}
                   onChange={(e) => handleChange(e, index)}
                   style={{
                     borderWidth: `${
