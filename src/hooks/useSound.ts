@@ -192,7 +192,7 @@ export default function useSound() {
     }
   }
 
-  function playSlapSound() {
+  function playSlapSound(accented: boolean) {
     if (!audioContext) return;
 
     // TODO: will most likely need a way to
@@ -224,8 +224,11 @@ export default function useSound() {
     // Create a GainNode to control the volume
     const gainNode = audioContext.createGain();
 
-    // Adjust gain based on string index for more volume on lower strings
-    gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+    // TODO: Adjust gain based on string index for more volume on lower strings
+    gainNode.gain.setValueAtTime(
+      accented ? 0.6 : 0.4,
+      audioContext.currentTime
+    );
     gainNode.gain.exponentialRampToValueAtTime(
       0.01,
       audioContext.currentTime + 0.25
@@ -638,13 +641,16 @@ export default function useSound() {
     tuning: number[],
     capo: number,
     bpm: number,
-    prevColumn?: string[],
-    nextColumn?: string[]
+    prevColumn?: string[]
   ) {
     return new Promise<void>((resolve) => {
       setTimeout(() => {
         resolve();
       }, (60 / bpm) * 1000);
+
+      // as of right now I am barring ">" to be added to the column effects. It does make
+      // some sense to allow it in there with "v/^/s" to match the ux of the strumming
+      // pattern editor but I don't think it is a priority right now.
 
       // thinking it's better to group "s" in main if statement here
       // because I don't think you want to be super aggresive on deleting the prev
@@ -652,7 +658,7 @@ export default function useSound() {
       // while editing
       if (columnHasNoNotes(currColumn) || currColumn[7] === "s") {
         if (currColumn[7] === "s") {
-          playSlapSound();
+          playSlapSound(currColumn[7].includes(">"));
           // TODO: technically I think the sound will bleed into the next note at high bpms
         }
         return;
@@ -685,11 +691,7 @@ export default function useSound() {
             ? currNote.at(-1)!
             : undefined;
 
-        if (
-          currColumn[stringIdx] === ""
-          //  || (prevNoteHadTetherEffect && !currNoteHasTetherEffect) // skipping tethered note that was played last iteration
-        )
-          continue;
+        if (currColumn[stringIdx] === "") continue;
 
         const adjustedStringIdx = stringIdx - 1; // adjusting for 0-indexing
 
@@ -702,7 +704,7 @@ export default function useSound() {
           currColumn[7] === "" && prevColumn && prevNoteHadTetherEffect
             ? {
                 note: parseInt(prevColumn[stringIdx]!) + capo,
-                effect: prevNote?.at(-1)!,
+                effect: prevNote.at(-1)!,
               }
             : undefined;
 
@@ -782,18 +784,10 @@ export default function useSound() {
           }
 
           const prevColumn = tabData[sectionIdx]?.data[columnIndex - 1];
-          const nextColumn = tabData[sectionIdx]?.data[columnIndex + 1];
           const column = tabData[sectionIdx]?.data[columnIndex];
           if (column === undefined) continue;
 
-          await playNoteColumn(
-            column,
-            tuning,
-            capo ?? 0,
-            bpm,
-            prevColumn,
-            nextColumn
-          );
+          await playNoteColumn(column, tuning, capo ?? 0, bpm, prevColumn);
         }
       }
     }
