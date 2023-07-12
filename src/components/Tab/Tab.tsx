@@ -154,12 +154,11 @@ function Tab({ tab, refetchTab }: ITab) {
           <SectionProgression />
         </div>
 
-        {/* start with modifying schemas in store and db, then make below two components
-            then move onto actual <ChordSection /> related components afterwords! */}
-
         <Chords />
 
         <StrummingPatterns />
+
+        <Separator className="w-[96%]" />
 
         {/* Actual tab below */}
         <LayoutGroup>
