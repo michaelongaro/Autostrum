@@ -3,9 +3,14 @@ import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
+import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import { AiFillEdit, AiFillDelete } from "react-icons/ai";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import StrummingPattern from "./StrummingPattern";
 
 function StrummingPatterns() {
+  const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
+
   const {
     strummingPatterns,
     setStrummingPatterns,
@@ -23,7 +28,21 @@ function StrummingPatterns() {
   );
 
   return (
-    <div className="baseVertFlex lightestGlassmorphic w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 shadow-sm md:px-8 md:py-4">
+    <div
+      style={{
+        display: editing
+          ? "flex"
+          : strummingPatterns.length === 0
+          ? "none"
+          : "flex",
+        minWidth: aboveMediumViewportWidth
+          ? strummingPatterns.length === 0
+            ? "450px"
+            : "500px"
+          : "300px",
+      }}
+      className="baseVertFlex lightestGlassmorphic w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 shadow-sm md:px-8 md:py-4"
+    >
       <p className="text-xl font-bold">Strumming patterns</p>
       <div
         className={`baseFlex ${
@@ -32,43 +51,68 @@ function StrummingPatterns() {
           strummingPatterns.length > 0 ? "gap-4" : "gap-0"
         }`}
       >
-        {/* technically can do a vertFlex w/ flex-wrap and a fixed height */}
-        <div className="grid auto-cols-max grid-flow-row grid-rows-2 gap-4">
+        {/* technically can do a vertFlex w/ flex-wrap and a fixed height
+        grid auto-cols-max grid-flow-row grid-rows-2 */}
+        <div className="baseFlex gap-4">
           {strummingPatterns.map((pattern, index) => (
-            <div key={index} className="baseFlex rounded-md border-2">
-              {/* here goes the "viewing" version of the pattern */}
-              <p className="p-3 font-medium">major test code</p>
+            <div
+              key={index}
+              className="baseVertFlex border-b-none rounded-md border-2"
+            >
+              <StrummingPattern
+                strummingPatternThatIsBeingEdited={{
+                  index,
+                  value: pattern,
+                }}
+                editingPalmMuteNodes={false}
+                editing={false}
+              />
 
-              <div className="baseFlex w-full !justify-evenly border-l-2">
+              {/* change these below maybe just do flex column for mobile screens? */}
+
+              <div className="baseFlex w-full !justify-evenly rounded-bl-md border-t-2">
                 {/* edit button */}
-                <Button
-                  variant={"ghost"}
-                  size={"sm"}
-                  className="baseFlex h-8 w-1/2 gap-2 border-r-[1px]"
-                  onClick={() => {
-                    setStrummingPatternThatIsBeingEdited({
-                      index,
-                      value: pattern,
-                    });
-                  }}
-                >
-                  {/* add the tooltip below for "Edit" */}
-                  <AiFillEdit className="h-6 w-6" />
-                </Button>
-                {/* delete button */}
-                <Button
-                  variant={"destructive"}
-                  size="sm"
-                  className="baseFlex h-8 w-1/2 border-l-[1px]"
-                  onClick={() => {
-                    const prevPatterns = [...strummingPatterns];
-                    prevPatterns.splice(index, 1);
-                    setStrummingPatterns(prevPatterns);
-                  }}
-                >
-                  {/* add the tooltip below for "Delete" */}
-                  <AiFillDelete className="h-5 w-5" />
-                </Button>
+                {editing ? (
+                  <>
+                    <Button
+                      variant={"ghost"}
+                      size={"sm"}
+                      className="baseFlex h-8 w-1/2 gap-2 rounded-r-none rounded-bl-sm rounded-tl-none border-r-[1px]"
+                      onClick={() => {
+                        setStrummingPatternThatIsBeingEdited({
+                          index,
+                          value: pattern,
+                        });
+                      }}
+                    >
+                      {/* add the tooltip below for "Edit" */}
+                      <AiFillEdit className="h-6 w-6" />
+                    </Button>
+                    {/* delete button */}
+                    <Button
+                      variant={"destructive"}
+                      size="sm"
+                      className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px]"
+                      onClick={() => {
+                        const prevPatterns = [...strummingPatterns];
+                        prevPatterns.splice(index, 1);
+                        setStrummingPatterns(prevPatterns);
+                      }}
+                    >
+                      {/* add the tooltip below for "Delete" */}
+                      <AiFillDelete className="h-5 w-5" />
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant={"ghost"}
+                    size={"sm"}
+                    className="baseFlex w-full gap-4 rounded-b-sm rounded-t-none"
+                  >
+                    {/* conditional play/pause icon here */}
+                    Preview
+                  </Button>
+                )}
               </div>
             </div>
           ))}
@@ -85,47 +129,38 @@ function StrummingPatterns() {
                     {
                       palmMute: "",
                       strum: "",
-                      accented: false,
                     },
                     {
                       palmMute: "",
                       strum: "",
-                      accented: false,
                     },
                     {
                       palmMute: "",
                       strum: "",
-                      accented: false,
                     },
                     {
                       palmMute: "",
                       strum: "",
-                      accented: false,
                     },
                     {
                       palmMute: "",
                       strum: "",
-                      accented: false,
                     },
                     {
                       palmMute: "",
                       strum: "",
-                      accented: false,
                     },
                     {
                       palmMute: "",
                       strum: "",
-                      accented: false,
                     },
                     {
                       palmMute: "",
                       strum: "",
-                      accented: false,
                     },
                     {
                       palmMute: "",
                       strum: "",
-                      accented: false,
                     },
                   ],
                 },

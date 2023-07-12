@@ -1,5 +1,8 @@
 import { useState, useRef } from "react";
-import { useTabStore, type StrummingPattern } from "~/stores/TabStore";
+import {
+  useTabStore,
+  type StrummingPattern as StrummingPatternType,
+} from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { motion } from "framer-motion";
 import { parse, toString } from "~/utils/tunings";
@@ -20,6 +23,7 @@ import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
 import { HiOutlineInformationCircle } from "react-icons/hi";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import StrummingPatternPalmMuteNode from "../Tab/StrummingPatternPalmMuteNode";
+import StrummingPattern from "../Tab/StrummingPattern";
 
 const backdropVariants = {
   expanded: {
@@ -33,7 +37,7 @@ const backdropVariants = {
 interface StrummingPatternModal {
   strummingPatternThatIsBeingEdited: {
     index: number;
-    value: StrummingPattern;
+    value: StrummingPatternType;
   };
 }
 
@@ -203,7 +207,6 @@ function StrummingPatternModal({
       newStrummingPattern.value.strums.push({
         palmMute: "",
         strum: "",
-        accented: false,
       });
     }
 
@@ -244,7 +247,7 @@ function StrummingPatternModal({
     >
       <div
         ref={innerModalRef}
-        className="baseVertFlex max-h-[90vh] min-w-[300px] max-w-[80vw] !flex-nowrap !justify-start gap-12 overflow-y-auto rounded-md bg-pink-400 p-4 shadow-sm transition-all md:max-w-[80vw] md:p-8 xl:max-w-[50vw]"
+        className="baseVertFlex max-h-[90vh] min-w-[300px] max-w-[80vw] !flex-nowrap !justify-start gap-12 overflow-y-auto rounded-md bg-pink-400 p-4 shadow-sm transition-all md:p-8 xl:max-w-[50vw]"
       >
         {/* controls */}
         <div className="baseFlex w-full !justify-start gap-2">
@@ -322,7 +325,7 @@ function StrummingPatternModal({
         </div>
 
         <div className="baseFlex lightGlassmorphic gap-4 rounded-md p-2 ">
-          <HiOutlineInformationCircle className="left-1 top-1 mr-2 h-6 w-6" />
+          <HiOutlineInformationCircle className="mr-2 h-6 w-6" />
           <div className="baseFlex gap-2">
             <div className="baseFlex">
               <span>v /</span>
@@ -352,118 +355,19 @@ function StrummingPatternModal({
         </div>
 
         {/* editing inputs of strumming pattern */}
-        <div className="baseFlex w-full">
-          <div className="baseFlex !justify-start">
-            {strummingPatternThatIsBeingEdited.value.strums.map(
-              (strum, index) => (
-                <div key={index} className="baseFlex gap-2 ">
-                  <div className="baseVertFlex relative mt-4 gap-2">
-                    <StrummingPatternPalmMuteNode
-                      value={
-                        strummingPatternThatIsBeingEdited.value.strums[index]!
-                          .palmMute
-                      }
-                      beatIndex={index}
-                      strummingPatternThatIsBeingEdited={
-                        strummingPatternThatIsBeingEdited
-                      }
-                      editingPalmMuteNodes={editingPalmMuteNodes}
-                      setEditingPalmMuteNodes={setEditingPalmMuteNodes}
-                      lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
-                      setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
-                      editing={true}
-                    />
-
-                    <div className="baseFlex">
-                      <div className="w-1"></div>{" "}
-                      {/* spacer so that PM node can be connected seamlessly above */}
-                      <Input
-                        type="text"
-                        autoComplete="off"
-                        value={strum.strum}
-                        onKeyDown={(e) => handleKeyDown(e, index)}
-                        onChange={(e) => handleChange(e, index)}
-                        style={{
-                          borderWidth: `${
-                            strum.strum.length > 0 && !isFocused[index]
-                              ? "2px"
-                              : "1px"
-                          }`,
-                        }}
-                        className={`h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center 
-                            ${
-                              strum.strum.length > 0 ? "shadow-md" : "shadow-sm"
-                            }
-                          `}
-                        onFocus={() => {
-                          setIsFocused((prev) => {
-                            prev[index] = true;
-                            return [...prev];
-                          });
-                        }}
-                        onBlur={() => {
-                          setIsFocused((prev) => {
-                            prev[index] = false;
-                            return [...prev];
-                          });
-                        }}
-                      />
-                      <div className="w-1"></div>{" "}
-                      {/* spacer so that PM node can be connected seamlessly above */}
-                    </div>
-                    <p
-                      style={{
-                        height:
-                          getBeatIndicator(
-                            strummingPatternThatIsBeingEdited.value.noteLength,
-                            index
-                          ) === ""
-                            ? "1.5rem"
-                            : "auto",
-                      }}
-                    >
-                      {getBeatIndicator(
-                        strummingPatternThatIsBeingEdited.value.noteLength,
-                        index
-                      )}
-                    </p>
-                    {/* delete strum button */}
-                    {showingDeleteStrumsButtons && (
-                      // can do framer motion here if you want
-                      <Button
-                        variant={"destructive"}
-                        className=" h-4 w-2 p-3" //absolute -bottom-7
-                        onClick={() => deleteStrum(index)}
-                      >
-                        x
-                      </Button>
-                    )}
-                  </div>
-
-                  {/* conditional "+" button to extend pattern if not at max length */}
-                  {index ===
-                    strummingPatternThatIsBeingEdited.value.strums.length - 1 &&
-                    strummingPatternThatIsBeingEdited.value.strums.length <
-                      32 && (
-                      <Button
-                        className="ml-4 rounded-full"
-                        onClick={addStrumsToPattern}
-                      >
-                        +
-                      </Button>
-                    )}
-                </div>
-              )
-            )}
-          </div>
-        </div>
+        <StrummingPattern
+          strummingPatternThatIsBeingEdited={strummingPatternThatIsBeingEdited}
+          editingPalmMuteNodes={editingPalmMuteNodes}
+          setEditingPalmMuteNodes={setEditingPalmMuteNodes}
+          showingDeleteStrumsButtons={showingDeleteStrumsButtons}
+          editing={true}
+        />
 
         <div className="baseVertFlex gap-8">
           <Button className="baseFlex gap-4">
             {/* conditional play/pause icon here */}
             Preview strumming pattern
           </Button>
-
           <div className="baseFlex gap-4">
             <Button
               variant={"secondary"}

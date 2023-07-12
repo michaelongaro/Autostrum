@@ -1,11 +1,13 @@
 import { useState, useRef } from "react";
-import { type Chord, useTabStore } from "~/stores/TabStore";
+import { type Chord as ChordType, useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { motion } from "framer-motion";
 import { parse, toString } from "~/utils/tunings";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Label } from "@radix-ui/react-label";
+import { HiOutlineInformationCircle } from "react-icons/hi";
+import Chord from "../Tab/Chord";
 
 const backdropVariants = {
   expanded: {
@@ -17,7 +19,7 @@ const backdropVariants = {
 };
 
 interface ChordModal {
-  chordThatIsBeingEdited: { index: number; value: Chord };
+  chordThatIsBeingEdited: { index: number; value: ChordType };
 }
 
 function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
@@ -172,101 +174,47 @@ function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
     >
       <div
         ref={innerModalRef}
-        className="baseVertFlex min-w-[300px] gap-8 rounded-md bg-pink-400 p-2 shadow-sm md:p-4"
+        className="baseVertFlex min-w-[300px] max-w-[80vw] gap-8 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 xl:max-w-[50vw]"
       >
         {/* chord title */}
         <div className="baseVertFlex !items-start gap-2">
           <Label>Chord Name</Label>
           <Input
-            placeholder="Abbreviated chord name (e.g. Cmaj7)"
+            placeholder="Chord name (e.g. Cmaj7)"
             value={chordThatIsBeingEdited?.value?.name}
             onChange={handleChordNameChange}
-            className="w-[300px]"
+            className="w-[200px]"
           />
         </div>
 
-        {/* information "i" to let users know they can prefill with a-g or A-G */}
-
-        {/* actual preview of tuning + chord */}
-        <div className="baseFlex w-full">
-          <div
-            style={{
-              height: "284px",
-              gap: "1.35rem",
-            }}
-            className="baseVertFlex relative rounded-l-2xl border-2 border-pink-50 p-2"
-          >
-            {toString(parse(tuning), { pad: 1 })
-              .split(" ")
-              .reverse()
-              .map((note, index) => (
-                <div key={index}>{note}</div>
-              ))}
+        <div className="baseFlex lightGlassmorphic gap-4 rounded-md p-2">
+          <HiOutlineInformationCircle className="h-6 w-6" />
+          <div>
+            <span>You can quickly enter major or minor chords with</span>
+            <span className="font-semibold"> A-G </span>
+            <span>or</span>
+            <span className="font-semibold"> a-g </span>
+            <span>respectively.</span>
           </div>
-
-          <div className="baseVertFlex gap-2">
-            {chordThatIsBeingEdited.value.frets.map((fret, index) => (
-              <div
-                key={index}
-                style={{
-                  borderTop: `${
-                    index === 0 ? "2px solid rgb(253 242 248)" : "none"
-                  }`,
-                  paddingTop: `${index === 0 ? "0.45rem" : "0rem"}`,
-                  borderBottom: `${
-                    index === 5 ? "2px solid rgb(253 242 248)" : "none"
-                  }`,
-                  paddingBottom: `${index === 5 ? "0.45rem" : "0rem"}`,
-                }}
-                className="baseFlex"
-              >
-                <div className="h-[1px] w-2 bg-pink-50/50"></div>
-                <Input
-                  type="text"
-                  autoComplete="off"
-                  value={fret}
-                  onChange={(e) => handleChange(e, index)}
-                  style={{
-                    borderWidth: `${
-                      fret.length > 0 && !isFocused[index] ? "2px" : "1px"
-                    }`,
-                  }}
-                  className={`h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center 
-                            ${fret.length > 0 ? "shadow-md" : "shadow-sm"}
-                          `}
-                  onFocus={() => {
-                    setIsFocused((prev) => {
-                      prev[index] = true;
-                      return [...prev];
-                    });
-                  }}
-                  onBlur={() => {
-                    setIsFocused((prev) => {
-                      prev[index] = false;
-                      return [...prev];
-                    });
-                  }}
-                />
-                <div className="h-[1px] w-2 bg-pink-50/50"></div>
-              </div>
-            ))}
-          </div>
-          <div
-            style={{
-              height: "284px",
-            }}
-            className="rounded-r-2xl border-2 border-pink-50 p-1"
-          ></div>
         </div>
 
-        <div className="baseFlex gap-4">
-          <Button
-            variant={"secondary"}
-            onClick={() => setChordThatIsBeingEdited(null)}
-          >
-            Close
+        <Chord chordThatIsBeingEdited={chordThatIsBeingEdited} editing={true} />
+
+        <div className="baseVertFlex gap-8">
+          <Button className="baseFlex gap-4">
+            {/* conditional play/pause icon here */}
+            Preview chord
           </Button>
-          <Button onClick={handleSaveChord}>Save</Button>
+
+          <div className="baseFlex gap-4">
+            <Button
+              variant={"secondary"}
+              onClick={() => setChordThatIsBeingEdited(null)}
+            >
+              Close
+            </Button>
+            <Button onClick={handleSaveChord}>Save</Button>
+          </div>
         </div>
       </div>
     </motion.div>
