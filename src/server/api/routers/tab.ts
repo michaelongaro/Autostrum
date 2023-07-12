@@ -216,6 +216,23 @@ export const tabRouter = createTRPCRouter({
         bpm: z.number(),
         timeSignature: z.string().nullable(),
         capo: z.number().nullable(),
+        chords: z.array(
+          z.object({
+            name: z.string(),
+            frets: z.array(z.string()),
+          })
+        ),
+        strummingPatterns: z.array(
+          z.object({
+            noteLength: z.string(),
+            strums: z.array(
+              z.object({
+                palmMute: z.string(),
+                strum: z.string(),
+              })
+            ),
+          })
+        ),
         tabData: z.array(
           z.object({ title: z.string(), data: z.array(z.array(z.string())) })
         ),
@@ -242,6 +259,8 @@ export const tabRouter = createTRPCRouter({
             bpm: input.bpm,
             timeSignature: input.timeSignature,
             capo: input.capo,
+            chords: input.chords,
+            strummingPatterns: input.strummingPatterns,
             tabData: input.tabData,
           },
         });
@@ -261,6 +280,8 @@ export const tabRouter = createTRPCRouter({
             bpm: input.bpm,
             timeSignature: input.timeSignature,
             capo: input.capo,
+            chords: input.chords,
+            strummingPatterns: input.strummingPatterns,
             tabData: input.tabData,
           },
         });
