@@ -190,8 +190,7 @@ function TabNotesColumn({
               {index === 0 && (
                 <div className="baseFlex h-9 w-full">
                   <PalmMuteNode
-                    note={note}
-                    effectColumn={false}
+                    value={note}
                     columnIndex={columnIndex}
                     sectionIndex={sectionIndex}
                     editingPalmMuteNodes={editingPalmMuteNodes}
