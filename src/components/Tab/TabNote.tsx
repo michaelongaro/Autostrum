@@ -86,31 +86,17 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
   //   return <div>{note}</div>;
   // }
 
-  // TODO: honestly I think this function is a relic of some bug in the past, there's no good reason
-  // to need this workaround. Move logic of ArrowDown/ArrowUp into handleChange
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key !== "Backspace" && e.key !== "ArrowDown" && e.key !== "ArrowUp")
-      return;
+    if (e.key === "ArrowDown" && noteIndex === 7) {
+      e.preventDefault(); // prevent cursor from moving
 
-    e.preventDefault();
-
-    if (e.key === "Backspace") {
-      const newTabData = [...tabData];
-      const prevValue = newTabData[sectionIndex]!.data[columnIndex]![noteIndex];
-      if (prevValue === "" || prevValue === undefined) return;
-
-      newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = prevValue.slice(
-        0,
-        -1
-      );
-
-      setTabData(newTabData);
-    } else if (e.key === "ArrowDown" && noteIndex === 7) {
       const newTabData = [...tabData];
       newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = "v";
 
       setTabData(newTabData);
     } else if (e.key === "ArrowUp" && noteIndex === 7) {
+      e.preventDefault(); // prevent cursor from moving
+
       const newTabData = [...tabData];
       newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = "^";
 
@@ -197,7 +183,7 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
       if (value === "|") {
         if (
           columnIndex === 0 ||
-          columnIndex === tabData[sectionIndex]!.data.length - 2 ||
+          columnIndex === tabData[sectionIndex]!.data.length - 1 ||
           tabData[sectionIndex]!.data[columnIndex - 1]?.[8] === "measureLine" ||
           tabData[sectionIndex]!.data[columnIndex + 1]?.[8] === "measureLine"
         ) {
@@ -226,6 +212,8 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
 
     // chord effects
     else {
+      // /^[v^s]{1}>?$/ - regex to allow functionality of strumming pattern modal, but didn't want
+      // to have to deal with extra complexity w/in useSound() quite yet..
       const chordEffects = /^[v^s]$/;
       if (value !== "" && !chordEffects.test(value)) return;
     }
