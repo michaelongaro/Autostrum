@@ -23,6 +23,7 @@ import type {
 import Chords from "./Chords";
 import StrummingPatterns from "./StrummingPatterns";
 import ChordModal from "../modals/ChordModal";
+import StrummingPatternModal from "../modals/StrummingPatternModal";
 
 // not sure of best way to avoid having the same name for interface and component
 export interface ITabSection {
@@ -209,7 +210,13 @@ function Tab({ tab, refetchTab }: ITab) {
 
       {/* add/edit strumming pattern modal here */}
       <AnimatePresence mode="wait">
-        {/* {showChordModal && <ChordModal />} */}
+        {strummingPatternThatIsBeingEdited && (
+          <StrummingPatternModal
+            strummingPatternThatIsBeingEdited={
+              strummingPatternThatIsBeingEdited
+            }
+          />
+        )}
       </AnimatePresence>
     </>
   );
