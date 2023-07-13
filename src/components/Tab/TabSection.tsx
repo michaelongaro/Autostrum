@@ -7,7 +7,12 @@ import { Input } from "../ui/input";
 import { motion } from "framer-motion";
 import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
-
+import { HiOutlineInformationCircle } from "react-icons/hi";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 import {
   DndContext,
   closestCenter,
@@ -431,7 +436,23 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
       {/* try to use framer motion to animate sections sliding up/down to their new positions
         (this would mean both sections would need to slide for each click of "up"/"down" ) */}
 
-      <div className="baseFlex w-full !justify-start">
+      <div className="baseFlex relative w-full !justify-start">
+        {editing && (
+          <div className="absolute left-[0.4rem] top-7">
+            <Popover>
+              <PopoverTrigger>
+                <HiOutlineInformationCircle className="h-5 w-5" />
+              </PopoverTrigger>
+              <PopoverContent
+                side={"right"}
+                className="max-w-[300px] md:max-w-none"
+              >
+                <div>You can navigate through inputs with your arrow keys.</div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
+
         <div
           style={{
             height: editing ? "284px" : "168px",
