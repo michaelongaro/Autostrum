@@ -27,6 +27,29 @@ function Chord({ chordThatIsBeingEdited, editing }: Chord) {
     shallow
   );
 
+  function handleKeyDown(
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number
+  ) {
+    if (e.key === "ArrowDown") {
+      e.preventDefault(); // prevent cursor from moving
+
+      const newNoteToFocus = document.getElementById(
+        `input-chordModal-chordModal-${index + 1}`
+      );
+
+      newNoteToFocus?.focus();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault(); // prevent cursor from moving
+
+      const newNoteToFocus = document.getElementById(
+        `input-chordModal-chordModal-${index - 1}`
+      );
+
+      newNoteToFocus?.focus();
+    }
+  }
+
   function handleChange(e: React.ChangeEvent<HTMLInputElement>, index: number) {
     const value = e.target.value;
 
@@ -154,9 +177,11 @@ function Chord({ chordThatIsBeingEdited, editing }: Chord) {
             ></div>
             {editing ? (
               <Input
+                id={`input-chordModal-chordModal-${index}`}
                 type="text"
                 autoComplete="off"
                 value={fret}
+                onKeyDown={(e) => handleKeyDown(e, index)}
                 onChange={(e) => handleChange(e, index)}
                 style={{
                   borderWidth: `${

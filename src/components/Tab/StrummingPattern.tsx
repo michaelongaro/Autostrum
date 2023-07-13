@@ -85,26 +85,77 @@ function StrummingPattern({
     e: React.KeyboardEvent<HTMLInputElement>,
     index: number
   ) {
-    let newValue: "v" | "^";
-
-    if (e.key === "ArrowDown") {
-      e.preventDefault(); // prevent cursor from moving
-      newValue = "v";
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault(); // prevent cursor from moving
-      newValue = "^";
-    } else {
-      return;
-    }
-
     const newStrummingPattern = { ...strummingPatternThatIsBeingEdited };
 
-    newStrummingPattern.value.strums[index] = {
-      ...strummingPatternThatIsBeingEdited.value.strums[index]!, // ! because we know it's not undefined
-      strum: newValue,
-    };
+    // v/d for downstrum and ^/u for upstrum
+    if (e.key === "d") {
+      // techincally would overwrite w/e was in input..
+      newStrummingPattern.value.strums[index] = {
+        ...strummingPatternThatIsBeingEdited.value.strums[index]!, // ! because we know it's not undefined
+        strum: "v",
+      };
+    } else if (e.key === "u") {
+      // techincally would overwrite w/e was in input..
+      newStrummingPattern.value.strums[index] = {
+        ...strummingPatternThatIsBeingEdited.value.strums[index]!, // ! because we know it's not undefined
+        strum: "^",
+      };
+    }
+
+    // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
+    else if (e.key === "ArrowUp") {
+      e.preventDefault(); // prevent cursor from moving
+
+      const newNoteToFocus = document.getElementById(
+        `input-strummingPatternModal-${index}-0`
+      );
+
+      newNoteToFocus?.focus();
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault(); // prevent cursor from moving
+
+      const newNoteToFocus = document.getElementById(
+        `input-strummingPatternModal-${index - 1}-1`
+      );
+
+      newNoteToFocus?.focus();
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault(); // prevent cursor from moving
+
+      if (index === strummingPatternThatIsBeingEdited.value.strums.length - 1) {
+        const newNoteToFocus = document.getElementById(
+          "strummingPatternExtendPatternButton"
+        );
+
+        newNoteToFocus?.focus();
+        return;
+      }
+
+      const newNoteToFocus = document.getElementById(
+        `input-strummingPatternModal-${index + 1}-1`
+      );
+
+      newNoteToFocus?.focus();
+    }
 
     setStrummingPatternThatIsBeingEdited(newStrummingPattern);
+  }
+
+  function handleExtendPatternButtonKeyDown(
+    e: React.KeyboardEvent<HTMLButtonElement>
+  ) {
+    if (e.key === "ArrowLeft") {
+      e.preventDefault(); // prevent cursor from moving
+
+      const lastStrumIndex =
+        strummingPatternThatIsBeingEdited.value.strums.length - 1;
+
+      const newNoteToFocus = document.getElementById(
+        `input-strummingPatternModal-${lastStrumIndex}-1`
+      );
+
+      newNoteToFocus?.focus();
+    }
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>, index: number) {
@@ -307,6 +358,7 @@ function StrummingPattern({
 
                 {editing ? (
                   <Input
+                    id={`input-strummingPatternModal-${index}-1`}
                     type="text"
                     autoComplete="off"
                     value={strum.strum}
@@ -400,7 +452,9 @@ function StrummingPattern({
                 strummingPatternThatIsBeingEdited.value.strums.length - 1 &&
               strummingPatternThatIsBeingEdited.value.strums.length < 32 && (
                 <Button
+                  id={"strummingPatternExtendPatternButton"}
                   className="ml-4 rounded-full"
+                  onKeyDown={handleExtendPatternButtonKeyDown}
                   onClick={addStrumsToPattern}
                 >
                   +

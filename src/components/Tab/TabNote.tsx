@@ -87,21 +87,61 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
   // }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "ArrowDown" && noteIndex === 7) {
-      e.preventDefault(); // prevent cursor from moving
+    const newTabData = [...tabData];
 
-      const newTabData = [...tabData];
+    // v/d for downstrum and ^/u for upstrum
+    if (e.key === "d" && noteIndex === 7) {
       newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = "v";
+    } else if (e.key === "u" && noteIndex === 7) {
+      newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = "^";
+    }
 
-      setTabData(newTabData);
-    } else if (e.key === "ArrowUp" && noteIndex === 7) {
+    // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
+    else if (e.key === "ArrowDown") {
       e.preventDefault(); // prevent cursor from moving
 
-      const newTabData = [...tabData];
-      newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = "^";
+      const newNoteToFocus = document.getElementById(
+        `input-${sectionIndex}-${columnIndex}-${noteIndex + 1}`
+      );
 
-      setTabData(newTabData);
+      newNoteToFocus?.focus();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault(); // prevent cursor from moving
+
+      const newNoteToFocus = document.getElementById(
+        `input-${sectionIndex}-${columnIndex}-${noteIndex - 1}`
+      );
+
+      newNoteToFocus?.focus();
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault(); // prevent cursor from moving
+
+      const adjColumnIndex =
+        tabData[sectionIndex]!.data[columnIndex - 1]?.[noteIndex] === "|"
+          ? columnIndex - 2
+          : columnIndex - 1;
+
+      const newNoteToFocus = document.getElementById(
+        `input-${sectionIndex}-${adjColumnIndex}-${noteIndex}`
+      );
+
+      newNoteToFocus?.focus();
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault(); // prevent cursor from moving
+
+      const adjColumnIndex =
+        tabData[sectionIndex]!.data[columnIndex + 1]?.[noteIndex] === "|"
+          ? columnIndex + 2
+          : columnIndex + 1;
+
+      const newNoteToFocus = document.getElementById(
+        `input-${sectionIndex}-${adjColumnIndex}-${noteIndex}`
+      );
+
+      newNoteToFocus?.focus();
     }
+
+    setTabData(newTabData);
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -229,6 +269,7 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
     <>
       {editing ? (
         <Input
+          id={`input-${sectionIndex}-${columnIndex}-${noteIndex}`}
           style={{
             width: `${noteIndex !== 7 ? "2.35rem" : "1.75rem"}`,
             height: `${noteIndex !== 7 ? "2.35rem" : "1.75rem"}`,

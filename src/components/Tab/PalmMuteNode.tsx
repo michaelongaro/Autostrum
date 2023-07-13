@@ -32,7 +32,6 @@ function PalmMuteNode({
   setLastModifiedPalmMuteNode,
 }: PalmMuteNode) {
   const [hoveringOnPalmMuteNode, setHoveringOnPalmMuteNode] = useState(false);
-  const [buttonOpacity, setButtonOpacity] = useState("0");
 
   const { editing, tabData, setTabData, modifyPalmMuteDashes } = useTabStore(
     (state) => ({
@@ -43,6 +42,75 @@ function PalmMuteNode({
     }),
     shallow
   );
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
+    // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
+    if (e.key === "ArrowDown") {
+      e.preventDefault(); // prevent cursor from moving
+
+      const newNoteToFocus = document.getElementById(
+        `input-${sectionIndex}-${columnIndex}-1`
+      );
+
+      newNoteToFocus?.focus();
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault(); // prevent cursor from moving
+
+      const completedSearchOfPalmMuteNodes = false;
+      let currentIndex = columnIndex - 1;
+
+      while (!completedSearchOfPalmMuteNodes) {
+        // if PM node is reachable and not a connecting node between start & end
+        // nodes, then focus the PM node
+        if (
+          tabData[sectionIndex]!.data[currentIndex]?.[0] !== "-" &&
+          getButtonOpacity(
+            tabData[sectionIndex]!.data[currentIndex]?.[0] ?? "-",
+            currentIndex
+          ) === "1"
+        ) {
+          const newNoteToFocus = document.getElementById(
+            `input-${sectionIndex}-${currentIndex}-${0}`
+          );
+
+          newNoteToFocus?.focus();
+          return;
+        }
+
+        currentIndex--;
+
+        if (currentIndex < 0) return;
+      }
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault(); // prevent cursor from moving
+
+      const completedSearchOfPalmMuteNodes = false;
+      let currentIndex = columnIndex + 1;
+
+      while (!completedSearchOfPalmMuteNodes) {
+        // if PM node is reachable and not a connecting node between start & end
+        // nodes, then focus the PM node
+        if (
+          tabData[sectionIndex]!.data[currentIndex]?.[0] !== "-" &&
+          getButtonOpacity(
+            tabData[sectionIndex]!.data[currentIndex]?.[0] ?? "-",
+            currentIndex
+          ) === "1"
+        ) {
+          const newNoteToFocus = document.getElementById(
+            `input-${sectionIndex}-${currentIndex}-${0}`
+          );
+
+          newNoteToFocus?.focus();
+          return;
+        }
+
+        currentIndex++;
+
+        if (currentIndex > tabData[sectionIndex]!.data.length) return;
+      }
+    }
+  }
 
   const findColumnIndexOfNearestNode = useCallback(
     (searchingFor?: "prevStart" | "prevEnd" | "nextStart" | "nextEnd") => {
@@ -89,43 +157,47 @@ function PalmMuteNode({
     [sectionIndex, tabData, lastModifiedPalmMuteNode]
   );
 
-  useEffect(() => {
-    setButtonOpacity("1");
+  const getButtonOpacity = useCallback(
+    (value: string, columnIndex: number) => {
+      const isNotEditing =
+        !editingPalmMuteNodes && value !== "start" && value !== "end";
+      const isPrevValueStart = lastModifiedPalmMuteNode?.prevValue === "start";
+      const isPrevValueEnd = lastModifiedPalmMuteNode?.prevValue === "end";
 
-    if (!editingPalmMuteNodes && value !== "start" && value !== "end") {
-      setButtonOpacity("0");
-      return;
-    }
+      if (isNotEditing) return "0";
 
-    if (
-      lastModifiedPalmMuteNode?.prevValue === "" &&
-      (columnIndex < lastModifiedPalmMuteNode?.columnIndex ||
-        columnIndex >= findColumnIndexOfNearestNode())
-    ) {
-      setButtonOpacity("0.25");
-    } else {
       if (
-        lastModifiedPalmMuteNode?.prevValue === "start" &&
+        lastModifiedPalmMuteNode?.prevValue === "" &&
+        (columnIndex < lastModifiedPalmMuteNode?.columnIndex ||
+          columnIndex >= findColumnIndexOfNearestNode())
+      ) {
+        return "0.25";
+      }
+
+      if (
+        isPrevValueStart &&
         (columnIndex <= findColumnIndexOfNearestNode("prevEnd") ||
           columnIndex > findColumnIndexOfNearestNode("nextEnd"))
       ) {
-        setButtonOpacity("0.25");
-      } else if (
-        lastModifiedPalmMuteNode?.prevValue === "end" &&
+        return "0.25";
+      }
+
+      if (
+        isPrevValueEnd &&
         (columnIndex < findColumnIndexOfNearestNode("prevStart") ||
           columnIndex >= findColumnIndexOfNearestNode("nextStart"))
       ) {
-        setButtonOpacity("0.25");
+        return "0.25";
       }
-    }
-  }, [
-    columnIndex,
-    sectionIndex,
-    value,
-    editingPalmMuteNodes,
-    lastModifiedPalmMuteNode,
-    findColumnIndexOfNearestNode,
-  ]);
+
+      return "1";
+    },
+    [
+      editingPalmMuteNodes,
+      lastModifiedPalmMuteNode,
+      findColumnIndexOfNearestNode,
+    ]
+  );
 
   function handlePalmMuteNodeClick() {
     // forces edit mode when editing placement of a palm mute node
@@ -211,10 +283,14 @@ function PalmMuteNode({
             value === "end" ||
             (editingPalmMuteNodes && value === "")) && (
             <Button
+              id={`input-${sectionIndex}-${columnIndex}-0`}
               style={{
-                pointerEvents: buttonOpacity === "1" ? "all" : "none",
-                boxShadow: hoveringOnPalmMuteNode ? "0 0 5px 2px #FFF" : "",
-                opacity: buttonOpacity,
+                pointerEvents:
+                  getButtonOpacity(value, columnIndex) === "1" ? "all" : "none",
+                boxShadow: hoveringOnPalmMuteNode
+                  ? "0 0 5px 2px hsl(327, 73%, 97%)"
+                  : "",
+                opacity: getButtonOpacity(value, columnIndex),
               }}
               size={"sm"}
               className="min-w-[2.25rem] rounded-full transition-all"
@@ -222,6 +298,7 @@ function PalmMuteNode({
               onTouchStart={() => setHoveringOnPalmMuteNode(true)}
               onMouseLeave={() => setHoveringOnPalmMuteNode(false)}
               onTouchEnd={() => setHoveringOnPalmMuteNode(false)}
+              onKeyDown={handleKeyDown}
               onClick={handlePalmMuteNodeClick}
             >
               {value === "start" && (
