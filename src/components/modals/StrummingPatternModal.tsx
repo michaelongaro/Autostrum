@@ -377,7 +377,14 @@ function StrummingPatternModal({
             </Button>
 
             {/* should be disabled if lodash isEqual to the strummingPatterns original version */}
-            <Button onClick={handleSaveStrummingPattern}>Save</Button>
+            <Button
+              disabled={strummingPatternThatIsBeingEdited.value.strums.every(
+                (strum) => strum.strum === ""
+              )}
+              onClick={handleSaveStrummingPattern}
+            >
+              Save
+            </Button>
           </div>
         </div>
       </div>
