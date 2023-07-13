@@ -327,18 +327,12 @@ function StrummingPatternModal({
         <div className="baseFlex lightGlassmorphic gap-4 rounded-md p-2 ">
           <HiOutlineInformationCircle className="mr-2 h-6 w-6" />
           <div className="baseFlex gap-2">
-            <div className="baseFlex">
-              <span>v /</span>
-              <BiDownArrowAlt className="h-4 w-4" />
-            </div>
+            <span>v / d</span>
             <p>-</p>
             <p>Downstrum</p>
           </div>
           <div className="baseFlex gap-2">
-            <div className="baseFlex">
-              <span>^ /</span>
-              <BiUpArrowAlt className="h-4 w-4" />
-            </div>
+            <span>^ / u</span>
             <p>-</p>
             <p>Upstrum</p>
           </div>
