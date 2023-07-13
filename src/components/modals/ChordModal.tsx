@@ -154,10 +154,6 @@ function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
     }
   }
 
-  // TODO: probably extract the chord input into its own component
-  // so that it can also be used to render the chord "diagram" when clicking on chord
-  // in viewing mode!
-
   return (
     <motion.div
       key={"ChordModalBackdrop"}
