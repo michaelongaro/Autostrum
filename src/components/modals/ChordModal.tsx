@@ -209,7 +209,14 @@ function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
             >
               Close
             </Button>
-            <Button onClick={handleSaveChord}>Save</Button>
+            <Button
+              disabled={chordThatIsBeingEdited.value.frets.every(
+                (fret) => fret === ""
+              )}
+              onClick={handleSaveChord}
+            >
+              Save
+            </Button>
           </div>
         </div>
       </div>
