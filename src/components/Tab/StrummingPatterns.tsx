@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { useTabStore } from "~/stores/TabStore";
+import { type Strum, useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
@@ -51,22 +51,13 @@ function StrummingPatterns() {
           strummingPatterns.length > 0 ? "gap-4" : "gap-0"
         }`}
       >
-        {/* technically can do a vertFlex w/ flex-wrap and a fixed height
-        grid auto-cols-max grid-flow-row grid-rows-2 */}
         <div className="baseFlex gap-4">
           {strummingPatterns.map((pattern, index) => (
             <div
               key={index}
               className="baseVertFlex border-b-none rounded-md border-2"
             >
-              <StrummingPattern
-                strummingPatternThatIsBeingEdited={{
-                  index,
-                  value: pattern,
-                }}
-                editingPalmMuteNodes={false}
-                editing={false}
-              />
+              <StrummingPattern data={pattern} mode="viewing" index={index} />
 
               {/* change these below maybe just do flex column for mobile screens? */}
 
@@ -124,45 +115,10 @@ function StrummingPatterns() {
                 index: strummingPatterns.length,
                 value: {
                   noteLength: "1/8th",
-                  // clean this up later
-                  strums: [
-                    {
-                      palmMute: "",
-                      strum: "",
-                    },
-                    {
-                      palmMute: "",
-                      strum: "",
-                    },
-                    {
-                      palmMute: "",
-                      strum: "",
-                    },
-                    {
-                      palmMute: "",
-                      strum: "",
-                    },
-                    {
-                      palmMute: "",
-                      strum: "",
-                    },
-                    {
-                      palmMute: "",
-                      strum: "",
-                    },
-                    {
-                      palmMute: "",
-                      strum: "",
-                    },
-                    {
-                      palmMute: "",
-                      strum: "",
-                    },
-                    {
-                      palmMute: "",
-                      strum: "",
-                    },
-                  ],
+                  strums: new Array<Strum>(8).fill({
+                    palmMute: "",
+                    strum: "",
+                  }),
                 },
               });
             }}
