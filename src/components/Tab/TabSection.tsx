@@ -124,33 +124,6 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
     setTabData(newTabData);
   }
 
-  function generateNewColumns() {
-    const baseArray = [];
-    for (let i = 0; i < 8; i++) {
-      baseArray.push(
-        Array.from({ length: 9 }, (_, index) => {
-          if (index === 8) {
-            return "note";
-          } else {
-            return "";
-          }
-        })
-      );
-    }
-
-    return baseArray;
-  }
-
-  function addNewSection() {
-    const newTabData = [...tabData];
-    newTabData.splice(sectionIndex + 1, 0, {
-      title: `Section ${sectionIndex + 2}`,
-      data: generateNewColumns(),
-    });
-
-    setTabData(newTabData);
-  }
-
   function toggleEditingPalmMuteNodes() {
     if (!editingPalmMuteNodes) {
       setEditingPalmMuteNodes(true);
@@ -513,12 +486,6 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
 
       {(!editing && sectionIndex !== tabData.length - 1) ||
         (editing && <Separator />)}
-
-      {editing && sectionIndex === tabData.length - 1 && (
-        <Button className="mt-12" onClick={addNewSection}>
-          Add new section
-        </Button>
-      )}
     </motion.div>
   );
 }
