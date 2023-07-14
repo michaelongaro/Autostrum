@@ -20,37 +20,37 @@ import {
 } from "~/components/ui/select";
 
 interface StrummingPattern {
-  strummingPatternThatIsBeingEdited: {
-    index: number;
-    value: StrummingPatternType;
-  };
-  editingPalmMuteNodes: boolean;
+  data: StrummingPatternType;
+  mode:
+    | "editingStrummingPattern"
+    | "editingChordSequence"
+    | "viewingWithBeatNumbers"
+    | "viewing";
+  index?: number; // index of strumming pattern in strummingPatterns array (used for editing pattern)
+  location?: {
+    sectionIndex: number;
+    groupIndex: number;
+    chordSequenceIndex: number;
+  }; // location of strumming pattern in tabData array (used for editing chord sequence)
+  editingPalmMuteNodes?: boolean;
   setEditingPalmMuteNodes?: Dispatch<SetStateAction<boolean>>;
   showingDeleteStrumsButtons?: boolean;
-  editing?: boolean;
-  sectionIndex?: number;
-  sectionBeingEdited?: {
-    outerIndex: number;
-    innerIndex: number;
-  };
-  viewingStrummingSection?: boolean;
 }
 
 function StrummingPattern({
-  strummingPatternThatIsBeingEdited,
+  data,
+  mode,
+  index,
+  location,
   editingPalmMuteNodes,
   setEditingPalmMuteNodes,
-  showingDeleteStrumsButtons = false,
-  editing = false,
-  sectionIndex = 0,
-  sectionBeingEdited,
-  viewingStrummingSection = false,
+  showingDeleteStrumsButtons,
 }: StrummingPattern) {
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
 
   const [isFocused, setIsFocused] = useState<boolean[]>(
-    strummingPatternThatIsBeingEdited.value.strums.map(() => false)
+    data?.strums?.map(() => false)
   );
 
   // whenever adding more strums or deleting strums, immediately edit the isFocused array
@@ -85,19 +85,19 @@ function StrummingPattern({
     e: React.KeyboardEvent<HTMLInputElement>,
     index: number
   ) {
-    const newStrummingPattern = { ...strummingPatternThatIsBeingEdited };
+    const newStrummingPattern = { ...data };
 
     // v/d for downstrum and ^/u for upstrum
     if (e.key === "d") {
       // techincally would overwrite w/e was in input..
-      newStrummingPattern.value.strums[index] = {
-        ...strummingPatternThatIsBeingEdited.value.strums[index]!, // ! because we know it's not undefined
+      newStrummingPattern.strums[index] = {
+        ...data.strums[index]!, // ! because we know it's not undefined
         strum: "v",
       };
     } else if (e.key === "u") {
       // techincally would overwrite w/e was in input..
-      newStrummingPattern.value.strums[index] = {
-        ...strummingPatternThatIsBeingEdited.value.strums[index]!, // ! because we know it's not undefined
+      newStrummingPattern.strums[index] = {
+        ...data.strums[index]!, // ! because we know it's not undefined
         strum: "^",
       };
     }
@@ -122,7 +122,7 @@ function StrummingPattern({
     } else if (e.key === "ArrowRight") {
       e.preventDefault(); // prevent cursor from moving
 
-      if (index === strummingPatternThatIsBeingEdited.value.strums.length - 1) {
+      if (index === data.strums.length - 1) {
         const newNoteToFocus = document.getElementById(
           "strummingPatternExtendPatternButton"
         );
@@ -138,7 +138,10 @@ function StrummingPattern({
       newNoteToFocus?.focus();
     }
 
-    setStrummingPatternThatIsBeingEdited(newStrummingPattern);
+    setStrummingPatternThatIsBeingEdited({
+      index,
+      value: newStrummingPattern,
+    });
   }
 
   function handleExtendPatternButtonKeyDown(
@@ -147,8 +150,7 @@ function StrummingPattern({
     if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
 
-      const lastStrumIndex =
-        strummingPatternThatIsBeingEdited.value.strums.length - 1;
+      const lastStrumIndex = data.strums.length - 1;
 
       const newNoteToFocus = document.getElementById(
         `input-strummingPatternModal-${lastStrumIndex}-1`
@@ -164,14 +166,17 @@ function StrummingPattern({
     const chordEffects = /^[v^s]{1}>?$/;
     if (value !== "" && !chordEffects.test(value)) return;
 
-    const newStrummingPattern = { ...strummingPatternThatIsBeingEdited };
+    const newStrummingPattern = { ...data };
 
-    newStrummingPattern.value.strums[index] = {
-      ...strummingPatternThatIsBeingEdited.value.strums[index]!, // ! because we know it's not undefined
+    newStrummingPattern.strums[index] = {
+      ...data.strums[index]!, // ! because we know it's not undefined
       strum: value as "" | "v" | "^" | "s" | "v>" | "^>" | "s>",
     };
 
-    setStrummingPatternThatIsBeingEdited(newStrummingPattern);
+    setStrummingPatternThatIsBeingEdited({
+      index,
+      value: newStrummingPattern,
+    });
   }
 
   function getBeatIndicator(noteLength: string, index: number) {
@@ -205,50 +210,51 @@ function StrummingPattern({
   }
 
   function addStrumsToPattern() {
-    const newStrummingPattern = { ...strummingPatternThatIsBeingEdited };
+    const newStrummingPattern = { ...data };
 
-    const remainingSpace = 32 - newStrummingPattern.value.strums.length;
+    const remainingSpace = 32 - newStrummingPattern.strums.length;
     const strumsToAdd = Math.min(remainingSpace, 4);
 
     for (let i = 0; i < strumsToAdd; i++) {
-      newStrummingPattern.value.strums.push({
+      newStrummingPattern.strums.push({
         palmMute: "",
         strum: "",
       });
     }
 
-    setStrummingPatternThatIsBeingEdited(newStrummingPattern);
+    setStrummingPatternThatIsBeingEdited({
+      index: index ?? 0,
+      value: newStrummingPattern,
+    });
   }
 
   function deleteStrum(index: number) {
-    const newStrummingPattern = { ...strummingPatternThatIsBeingEdited };
+    const newStrummingPattern = { ...data };
 
-    newStrummingPattern.value.strums.splice(index, 1);
+    newStrummingPattern.strums.splice(index, 1);
 
-    setStrummingPatternThatIsBeingEdited(newStrummingPattern);
+    setStrummingPatternThatIsBeingEdited({
+      index,
+      value: newStrummingPattern,
+    });
   }
 
   function patternHasPalmMuting() {
-    return strummingPatternThatIsBeingEdited.value.strums.some(
-      (strum) => strum.palmMute !== ""
-    );
+    return data.strums.some((strum) => strum.palmMute !== "");
   }
 
   function patternHasAccents() {
-    return strummingPatternThatIsBeingEdited.value.strums.some((strum) =>
-      strum.strum.includes(">")
-    );
+    return data.strums.some((strum) => strum.strum.includes(">"));
   }
 
   function getChordName(index: number) {
-    const chordSection = tabData[sectionIndex];
+    const chordSection = tabData[location?.sectionIndex ?? 0];
 
     if (chordSection && chordSection.type === "chord") {
-      const outerIndex = sectionBeingEdited?.outerIndex ?? 0;
-      const innerIndex = sectionBeingEdited?.innerIndex ?? 0;
-
       const chord =
-        chordSection.data[outerIndex]?.[innerIndex]?.chordSequence[index];
+        chordSection.data[location?.groupIndex ?? 0]?.data[
+          location?.chordSequenceIndex ?? 0
+        ]?.data[index];
       return chord ?? "";
     }
 
@@ -256,20 +262,18 @@ function StrummingPattern({
   }
 
   function handleChordChange(value: string, index: number) {
-    const chordSection = tabData[sectionIndex];
+    const chordSection = tabData[location?.sectionIndex ?? 0];
 
     if (chordSection && chordSection.type === "chord") {
-      const outerIndex = sectionBeingEdited?.outerIndex ?? 0;
-      const innerIndex = sectionBeingEdited?.innerIndex ?? 0;
-
       const newChordSection = { ...chordSection };
 
-      // @ts-expect-error asdf
-      newChordSection.data[outerIndex][innerIndex].chordSequence[index] = value;
+      newChordSection.data[location?.groupIndex ?? 0]!.data[
+        location?.chordSequenceIndex ?? 0
+      ]!.data[index] = value;
 
       const newTabData = [...tabData];
 
-      newTabData[sectionIndex] = newChordSection;
+      newTabData[location?.sectionIndex ?? 0] = newChordSection;
 
       setTabData(newTabData);
     }
@@ -278,36 +282,35 @@ function StrummingPattern({
   return (
     <div
       style={{
-        padding: editing ? "0" : "0.25rem",
+        padding: mode === "editingStrummingPattern" ? "0" : "0.25rem",
       }}
       className="baseFlex w-full"
     >
       <div className="baseFlex !justify-start">
-        {strummingPatternThatIsBeingEdited.value.strums.map((strum, index) => (
-          <div key={index} className="baseFlex gap-2">
+        {data?.strums?.map((strum, strumIndex) => (
+          <div key={strumIndex} className="baseFlex gap-2">
             <div
               style={{
-                marginTop: editing ? "1rem" : "0.25rem",
-                gap: editing ? "0.5rem" : "0",
+                marginTop:
+                  mode === "editingStrummingPattern" ? "1rem" : "0.25rem",
+                gap: mode === "editingStrummingPattern" ? "0.5rem" : "0",
               }}
               className="baseVertFlex relative"
             >
-              {strummingPatternThatIsBeingEdited.value.strums[index]!
-                .palmMute !== "" || editingPalmMuteNodes ? (
+              {data.strums[strumIndex]!.palmMute !== "" ||
+              editingPalmMuteNodes ? (
                 <StrummingPatternPalmMuteNode
-                  value={
-                    strummingPatternThatIsBeingEdited.value.strums[index]!
-                      .palmMute
-                  }
-                  beatIndex={index}
-                  strummingPatternThatIsBeingEdited={
-                    strummingPatternThatIsBeingEdited
-                  }
-                  editingPalmMuteNodes={editingPalmMuteNodes}
+                  value={data.strums[strumIndex]!.palmMute}
+                  beatIndex={strumIndex}
+                  strummingPatternThatIsBeingEdited={{
+                    index: index ?? 0,
+                    value: data,
+                  }}
+                  editingPalmMuteNodes={editingPalmMuteNodes!}
                   setEditingPalmMuteNodes={setEditingPalmMuteNodes!}
                   lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
                   setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
-                  editing={editing || false}
+                  editing={mode === "editingStrummingPattern"}
                 />
               ) : (
                 <div
@@ -318,55 +321,57 @@ function StrummingPattern({
                 ></div>
               )}
 
-              {/* chord viewer / selector */}
-              {(sectionBeingEdited || viewingStrummingSection) && (
-                <>
-                  {sectionBeingEdited && (
-                    <Select
-                      onValueChange={(value) => handleChordChange(value, index)}
-                      value={getChordName(index)}
-                    >
-                      <SelectTrigger className="w-[75px]">
-                        {/* prob leave this out placeholder="Select a length" */}
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Chord</SelectLabel>
-                          {chords.map((chord) => (
-                            <SelectItem key={chord.name} value={chord.name}>
-                              {chord.name}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  )}
+              {/* chord selector */}
+              {mode === "editingChordSequence" && (
+                <Select
+                  onValueChange={(value) =>
+                    handleChordChange(value, strumIndex)
+                  }
+                  value={getChordName(strumIndex)}
+                >
+                  <SelectTrigger className="w-[75px]">
+                    {/* prob leave this out placeholder="Select a length" */}
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Chord</SelectLabel>
+                      {chords.map((chord) => (
+                        <SelectItem key={chord.name} value={chord.name}>
+                          {chord.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              )}
 
-                  {viewingStrummingSection && <p>{getChordName(index)}</p>}
-                </>
+              {/* chord viewer */}
+              {mode === "viewingWithBeatNumbers" && (
+                <p>{getChordName(strumIndex)}</p>
               )}
 
               <div
                 style={{
-                  width: editing ? "auto" : "1.25rem",
+                  width:
+                    mode === "editingStrummingPattern" ? "auto" : "1.25rem",
                 }}
                 className="baseFlex"
               >
                 <div className="w-1"></div>
                 {/* spacer so that PM node can be connected seamlessly above */}
 
-                {editing ? (
+                {mode === "editingStrummingPattern" ? (
                   <Input
-                    id={`input-strummingPatternModal-${index}-1`}
+                    id={`input-strummingPatternModal-${strumIndex}-1`}
                     type="text"
                     autoComplete="off"
                     value={strum.strum}
-                    onKeyDown={(e) => handleKeyDown(e, index)}
-                    onChange={(e) => handleChange(e, index)}
+                    onKeyDown={(e) => handleKeyDown(e, strumIndex)}
+                    onChange={(e) => handleChange(e, strumIndex)}
                     style={{
                       borderWidth: `${
-                        strum.strum.length > 0 && !isFocused[index]
+                        strum.strum.length > 0 && !isFocused[strumIndex]
                           ? "2px"
                           : "1px"
                       }`,
@@ -378,13 +383,13 @@ function StrummingPattern({
                           `}
                     onFocus={() => {
                       setIsFocused((prev) => {
-                        prev[index] = true;
+                        prev[strumIndex] = true;
                         return [...prev];
                       });
                     }}
                     onBlur={() => {
                       setIsFocused((prev) => {
-                        prev[index] = false;
+                        prev[strumIndex] = false;
                         return [...prev];
                       });
                     }}
@@ -415,22 +420,16 @@ function StrummingPattern({
                 {/* spacer so that PM node can be connected seamlessly above */}
               </div>
 
-              {(editing || sectionBeingEdited || viewingStrummingSection) && (
+              {mode !== "viewing" && (
                 <p
                   style={{
                     height:
-                      getBeatIndicator(
-                        strummingPatternThatIsBeingEdited.value.noteLength,
-                        index
-                      ) === ""
+                      getBeatIndicator(data.noteLength, strumIndex) === ""
                         ? "1.5rem"
                         : "auto",
                   }}
                 >
-                  {getBeatIndicator(
-                    strummingPatternThatIsBeingEdited.value.noteLength,
-                    index
-                  )}
+                  {getBeatIndicator(data.noteLength, strumIndex)}
                 </p>
               )}
               {/* delete strum button */}
@@ -439,7 +438,7 @@ function StrummingPattern({
                 <Button
                   variant={"destructive"}
                   className=" h-4 w-2 p-3" //absolute -bottom-7
-                  onClick={() => deleteStrum(index)}
+                  onClick={() => deleteStrum(strumIndex)}
                 >
                   x
                 </Button>
@@ -447,10 +446,9 @@ function StrummingPattern({
             </div>
 
             {/* conditional "+" button to extend pattern if not at max length */}
-            {editing &&
-              index ===
-                strummingPatternThatIsBeingEdited.value.strums.length - 1 &&
-              strummingPatternThatIsBeingEdited.value.strums.length < 32 && (
+            {mode === "editingStrummingPattern" &&
+              strumIndex === data.strums.length - 1 &&
+              data.strums.length < 32 && (
                 <Button
                   id={"strummingPatternExtendPatternButton"}
                   className="ml-4 rounded-full"
