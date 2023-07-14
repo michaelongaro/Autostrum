@@ -78,48 +78,6 @@ function StrummingPatternModal({
     shallow
   );
 
-  function handleKeyDown(
-    e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
-  ) {
-    let newValue: "v" | "^";
-
-    if (e.key === "ArrowDown") {
-      e.preventDefault(); // prevent cursor from moving
-      newValue = "v";
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault(); // prevent cursor from moving
-      newValue = "^";
-    } else {
-      return;
-    }
-
-    const newStrummingPattern = { ...strummingPatternThatIsBeingEdited };
-
-    newStrummingPattern.value.strums[index] = {
-      ...strummingPatternThatIsBeingEdited.value.strums[index]!, // ! because we know it's not undefined
-      strum: newValue,
-    };
-
-    setStrummingPatternThatIsBeingEdited(newStrummingPattern);
-  }
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>, index: number) {
-    const value = e.target.value;
-
-    const chordEffects = /^[v^s]{1}>?$/;
-    if (value !== "" && !chordEffects.test(value)) return;
-
-    const newStrummingPattern = { ...strummingPatternThatIsBeingEdited };
-
-    newStrummingPattern.value.strums[index] = {
-      ...strummingPatternThatIsBeingEdited.value.strums[index]!, // ! because we know it's not undefined
-      strum: value as "" | "v" | "^" | "s" | "v>" | "^>" | "s>",
-    };
-
-    setStrummingPatternThatIsBeingEdited(newStrummingPattern);
-  }
-
   function handleNoteLengthChange(
     value:
       | "1/4th"
@@ -134,36 +92,6 @@ function StrummingPatternModal({
     newStrummingPattern.value.noteLength = value;
 
     setStrummingPatternThatIsBeingEdited(newStrummingPattern);
-  }
-
-  function getBeatIndicator(noteLength: string, index: number) {
-    let beat: number | string = "";
-    switch (noteLength) {
-      case "1/4th":
-        beat = index + 1;
-        break;
-      case "1/8th":
-        beat = index % 2 === 0 ? index / 2 + 1 : "&";
-        break;
-      case "1/16th":
-        beat = index % 4 === 0 ? index / 4 + 1 : index % 2 === 0 ? "&" : "";
-        break;
-      case "1/4th triplet":
-        beat = index % 3 === 0 ? (index / 3) * 2 + 1 : "";
-        break;
-      case "1/8th triplet":
-        beat = index % 3 === 0 ? index / 3 + 1 : "";
-        break;
-      case "1/16th triplet":
-        beat =
-          index % 3 === 0
-            ? (index / 3) % 2 === 0
-              ? index / 3 / 2 + 1
-              : "&"
-            : "";
-        break;
-    }
-    return beat.toString();
   }
 
   function toggleEditingPalmMuteNodes() {
@@ -195,30 +123,6 @@ function StrummingPatternModal({
       setLastModifiedPalmMuteNode(null);
     }
     setEditingPalmMuteNodes(false);
-  }
-
-  function addStrumsToPattern() {
-    const newStrummingPattern = { ...strummingPatternThatIsBeingEdited };
-
-    const remainingSpace = 32 - newStrummingPattern.value.strums.length;
-    const strumsToAdd = Math.min(remainingSpace, 4);
-
-    for (let i = 0; i < strumsToAdd; i++) {
-      newStrummingPattern.value.strums.push({
-        palmMute: "",
-        strum: "",
-      });
-    }
-
-    setStrummingPatternThatIsBeingEdited(newStrummingPattern);
-  }
-
-  function deleteStrum(index: number) {
-    const newStrummingPattern = { ...strummingPatternThatIsBeingEdited };
-
-    newStrummingPattern.value.strums.splice(index, 1);
-
-    setStrummingPatternThatIsBeingEdited(newStrummingPattern);
   }
 
   function handleSaveStrummingPattern() {
@@ -350,11 +254,12 @@ function StrummingPatternModal({
 
         {/* editing inputs of strumming pattern */}
         <StrummingPattern
-          strummingPatternThatIsBeingEdited={strummingPatternThatIsBeingEdited}
+          data={strummingPatternThatIsBeingEdited.value}
+          mode={"editingStrummingPattern"}
+          index={strummingPatternThatIsBeingEdited.index}
           editingPalmMuteNodes={editingPalmMuteNodes}
           setEditingPalmMuteNodes={setEditingPalmMuteNodes}
           showingDeleteStrumsButtons={showingDeleteStrumsButtons}
-          editing={true}
         />
 
         <div className="baseVertFlex gap-8">
