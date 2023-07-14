@@ -17,7 +17,7 @@ export interface Chord {
 // if the chord is accented, then when creating the chord
 // to be played, will need to append ">" to all of the notes (or the ones that have notes :) ). Otherwise
 // its [[0], chord, [1], maybe note duration here?] for the "compiled" chords to be played
-export type StrummingPattern = {
+export interface StrummingPattern {
   noteLength:
     | "1/4th"
     | "1/4th triplet"
@@ -26,23 +26,28 @@ export type StrummingPattern = {
     | "1/16th"
     | "1/16th triplet";
   strums: Strum[];
-};
+}
 
-interface Strum {
+export interface Strum {
   palmMute: "" | "-" | "start" | "end";
   strum: "" | "v" | "^" | "s" | "v>" | "^>" | "s>";
 }
 
-interface StrummingPatternSection {
+export interface ChordSequence {
+  repeat: number;
+  data: string[];
+}
+
+export interface ChordGroup {
   pattern: StrummingPattern;
   repeat: number;
-  chordSequence: string[]; // maybe should be (Chord | undefined)[] (undefined meaning "no chord")
+  data: ChordSequence[];
 }
 
 interface ChordSection {
   title: string;
   type: "chord";
-  data: StrummingPatternSection[][]; // hoping this maps out to what I want the structure to be..
+  data: ChordGroup[];
 }
 
 interface TabState {
