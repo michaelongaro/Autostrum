@@ -1,23 +1,23 @@
 import { useState, type Dispatch, type SetStateAction } from "react";
+import { BiDownArrowAlt, BiUpArrowAlt } from "react-icons/bi";
 import { shallow } from "zustand/shallow";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import {
   useTabStore,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
 import StrummingPatternPalmMuteNode from "../Tab/StrummingPatternPalmMuteNode";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
-import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectGroup,
-  SelectLabel,
-  SelectItem,
-} from "~/components/ui/select";
 
 interface StrummingPattern {
   data: StrummingPatternType;
@@ -40,7 +40,7 @@ interface StrummingPattern {
 function StrummingPattern({
   data,
   mode,
-  index,
+  index = 0,
   location,
   editingPalmMuteNodes,
   setEditingPalmMuteNodes,
@@ -56,48 +56,35 @@ function StrummingPattern({
   // whenever adding more strums or deleting strums, immediately edit the isFocused array
   // to either add new false values or delete the strum that was deleted!
 
-  const {
-    tuning,
-    strummingPatterns,
-    setStrummingPatterns,
-    chords,
-    tabData,
-    setTabData: setTabData,
-    setStrummingPatternThatIsBeingEdited,
-    modifyStrummingPatternPalmMuteDashes,
-  } = useTabStore(
-    (state) => ({
-      tuning: state.tuning,
-      strummingPatterns: state.strummingPatterns,
-      setStrummingPatterns: state.setStrummingPatterns,
-      chords: state.chords,
-      tabData: state.tabData,
-      setTabData: state.setTabData,
-      setStrummingPatternThatIsBeingEdited:
-        state.setStrummingPatternThatIsBeingEdited,
-      modifyStrummingPatternPalmMuteDashes:
-        state.modifyStrummingPatternPalmMuteDashes,
-    }),
-    shallow
-  );
+  const { chords, tabData, setTabData, setStrummingPatternThatIsBeingEdited } =
+    useTabStore(
+      (state) => ({
+        chords: state.chords,
+        tabData: state.tabData,
+        setTabData: state.setTabData,
+        setStrummingPatternThatIsBeingEdited:
+          state.setStrummingPatternThatIsBeingEdited,
+      }),
+      shallow
+    );
 
   function handleKeyDown(
     e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
+    beatIndex: number
   ) {
     const newStrummingPattern = { ...data };
 
     // v/d for downstrum and ^/u for upstrum
     if (e.key === "d") {
       // techincally would overwrite w/e was in input..
-      newStrummingPattern.strums[index] = {
-        ...data.strums[index]!, // ! because we know it's not undefined
+      newStrummingPattern.strums[beatIndex] = {
+        ...data.strums[beatIndex]!, // ! because we know it's not undefined
         strum: "v",
       };
     } else if (e.key === "u") {
       // techincally would overwrite w/e was in input..
-      newStrummingPattern.strums[index] = {
-        ...data.strums[index]!, // ! because we know it's not undefined
+      newStrummingPattern.strums[beatIndex] = {
+        ...data.strums[beatIndex]!, // ! because we know it's not undefined
         strum: "^",
       };
     }
@@ -107,7 +94,7 @@ function StrummingPattern({
       e.preventDefault(); // prevent cursor from moving
 
       const newNoteToFocus = document.getElementById(
-        `input-strummingPatternModal-${index}-0`
+        `input-strummingPatternModal-${beatIndex}-0`
       );
 
       newNoteToFocus?.focus();
@@ -115,14 +102,14 @@ function StrummingPattern({
       e.preventDefault(); // prevent cursor from moving
 
       const newNoteToFocus = document.getElementById(
-        `input-strummingPatternModal-${index - 1}-1`
+        `input-strummingPatternModal-${beatIndex - 1}-1`
       );
 
       newNoteToFocus?.focus();
     } else if (e.key === "ArrowRight") {
       e.preventDefault(); // prevent cursor from moving
 
-      if (index === data.strums.length - 1) {
+      if (beatIndex === data.strums.length - 1) {
         const newNoteToFocus = document.getElementById(
           "strummingPatternExtendPatternButton"
         );
@@ -132,7 +119,7 @@ function StrummingPattern({
       }
 
       const newNoteToFocus = document.getElementById(
-        `input-strummingPatternModal-${index + 1}-1`
+        `input-strummingPatternModal-${beatIndex + 1}-1`
       );
 
       newNoteToFocus?.focus();
@@ -160,7 +147,10 @@ function StrummingPattern({
     }
   }
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>, index: number) {
+  function handleChange(
+    e: React.ChangeEvent<HTMLInputElement>,
+    beatIndex: number
+  ) {
     const value = e.target.value;
 
     const chordEffects = /^[v^s]{1}>?$/;
@@ -168,8 +158,8 @@ function StrummingPattern({
 
     const newStrummingPattern = { ...data };
 
-    newStrummingPattern.strums[index] = {
-      ...data.strums[index]!, // ! because we know it's not undefined
+    newStrummingPattern.strums[beatIndex] = {
+      ...data.strums[beatIndex]!, // ! because we know it's not undefined
       strum: value as "" | "v" | "^" | "s" | "v>" | "^>" | "s>",
     };
 
@@ -179,29 +169,34 @@ function StrummingPattern({
     });
   }
 
-  function getBeatIndicator(noteLength: string, index: number) {
+  function getBeatIndicator(noteLength: string, beatIndex: number) {
     let beat: number | string = "";
     switch (noteLength) {
       case "1/4th":
-        beat = index + 1;
+        beat = beatIndex + 1;
         break;
       case "1/8th":
-        beat = index % 2 === 0 ? index / 2 + 1 : "&";
+        beat = beatIndex % 2 === 0 ? beatIndex / 2 + 1 : "&";
         break;
       case "1/16th":
-        beat = index % 4 === 0 ? index / 4 + 1 : index % 2 === 0 ? "&" : "";
+        beat =
+          beatIndex % 4 === 0
+            ? beatIndex / 4 + 1
+            : beatIndex % 2 === 0
+            ? "&"
+            : "";
         break;
       case "1/4th triplet":
-        beat = index % 3 === 0 ? (index / 3) * 2 + 1 : "";
+        beat = beatIndex % 3 === 0 ? (beatIndex / 3) * 2 + 1 : "";
         break;
       case "1/8th triplet":
-        beat = index % 3 === 0 ? index / 3 + 1 : "";
+        beat = beatIndex % 3 === 0 ? beatIndex / 3 + 1 : "";
         break;
       case "1/16th triplet":
         beat =
-          index % 3 === 0
-            ? (index / 3) % 2 === 0
-              ? index / 3 / 2 + 1
+          beatIndex % 3 === 0
+            ? (beatIndex / 3) % 2 === 0
+              ? beatIndex / 3 / 2 + 1
               : "&"
             : "";
         break;
@@ -223,15 +218,15 @@ function StrummingPattern({
     }
 
     setStrummingPatternThatIsBeingEdited({
-      index: index ?? 0,
+      index,
       value: newStrummingPattern,
     });
   }
 
-  function deleteStrum(index: number) {
+  function deleteStrum(beatIndex: number) {
     const newStrummingPattern = { ...data };
 
-    newStrummingPattern.strums.splice(index, 1);
+    newStrummingPattern.strums.splice(beatIndex, 1);
 
     setStrummingPatternThatIsBeingEdited({
       index,
@@ -247,21 +242,21 @@ function StrummingPattern({
     return data.strums.some((strum) => strum.strum.includes(">"));
   }
 
-  function getChordName(index: number) {
+  function getChordName(beatIndex: number) {
     const chordSection = tabData[location?.sectionIndex ?? 0];
 
     if (chordSection && chordSection.type === "chord") {
       const chord =
         chordSection.data[location?.groupIndex ?? 0]?.data[
           location?.chordSequenceIndex ?? 0
-        ]?.data[index];
+        ]?.data[beatIndex];
       return chord ?? "";
     }
 
     return "";
   }
 
-  function handleChordChange(value: string, index: number) {
+  function handleChordChange(value: string, beatIndex: number) {
     const chordSection = tabData[location?.sectionIndex ?? 0];
 
     if (chordSection && chordSection.type === "chord") {
@@ -269,7 +264,7 @@ function StrummingPattern({
 
       newChordSection.data[location?.groupIndex ?? 0]!.data[
         location?.chordSequenceIndex ?? 0
-      ]!.data[index] = value;
+      ]!.data[beatIndex] = value;
 
       const newTabData = [...tabData];
 
@@ -297,13 +292,12 @@ function StrummingPattern({
               }}
               className="baseVertFlex relative"
             >
-              {data.strums[strumIndex]!.palmMute !== "" ||
-              editingPalmMuteNodes ? (
+              {strum.palmMute !== "" || editingPalmMuteNodes ? (
                 <StrummingPatternPalmMuteNode
-                  value={data.strums[strumIndex]!.palmMute}
+                  value={strum.palmMute}
                   beatIndex={strumIndex}
                   strummingPatternThatIsBeingEdited={{
-                    index: index ?? 0,
+                    index,
                     value: data,
                   }}
                   editingPalmMuteNodes={editingPalmMuteNodes!}
