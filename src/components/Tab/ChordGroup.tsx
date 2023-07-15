@@ -106,10 +106,10 @@ function ChordGroup({ sectionIndex, groupIndex, groupData }: ChordGroup) {
                 index: strummingPatterns.length,
                 value: {
                   noteLength: "1/8th",
-                  strums: new Array<Strum>(8).fill({
+                  strums: Array.from({ length: 8 }, () => ({
                     palmMute: "",
                     strum: "",
-                  }),
+                  })),
                 },
               });
             }}
