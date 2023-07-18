@@ -1,4 +1,4 @@
-import { useEffect, Fragment } from "react";
+import { useState, useEffect, Fragment } from "react";
 import type { Tab } from "@prisma/client";
 import { useClerk, useAuth } from "@clerk/nextjs";
 import TabMetadata from "./TabMetadata";
@@ -55,6 +55,8 @@ interface ITab extends Partial<RefetchTab> {
 function Tab({ tab, refetchTab }: ITab) {
   const { user, loaded } = useClerk();
   const { userId, isLoaded } = useAuth();
+
+  const [showAddSectionPopover, setShowAddSectionPopover] = useState(false);
 
   const {
     setId,
@@ -246,6 +248,7 @@ function Tab({ tab, refetchTab }: ITab) {
     newTabData.splice(tabData.length + 1, 0, newSectionData);
 
     setTabData(newTabData);
+    setShowAddSectionPopover(false);
   }
 
   return (
@@ -296,7 +299,10 @@ function Tab({ tab, refetchTab }: ITab) {
         </LayoutGroup>
 
         {editing && (
-          <Popover>
+          <Popover
+            open={showAddSectionPopover}
+            onOpenChange={(openValue) => setShowAddSectionPopover(openValue)}
+          >
             <PopoverTrigger asChild>
               <Button className="my-4">Add new section</Button>
             </PopoverTrigger>
