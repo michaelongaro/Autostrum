@@ -201,13 +201,14 @@ function StrummingPatternModal({
           {/* toggle delete strums */}
           <div className="baseFlex">
             <Button
+              variant={"destructive"}
               disabled={showingDeleteStrumsButtons}
               style={{
                 borderRadius: showingDeleteStrumsButtons
                   ? "0.375rem 0 0 0.375rem"
                   : "0.375rem",
               }}
-              className="h-9 px-3 md:h-10 md:px-4 md:py-2"
+              className="h-9 px-3 duration-0 md:h-10 md:px-4 md:py-2"
               onClick={() =>
                 setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
               }
@@ -217,6 +218,7 @@ function StrummingPatternModal({
 
             {showingDeleteStrumsButtons && (
               <Button
+                variant={"destructive"}
                 className="h-9 rounded-l-none rounded-r-md px-3 md:h-10 md:px-4 md:py-2"
                 onClick={() =>
                   setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)

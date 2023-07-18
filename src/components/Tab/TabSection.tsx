@@ -291,13 +291,13 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
                       ? "0.375rem 0 0 0.375rem"
                       : "0.375rem",
                   }}
-                  className="h-9 px-3 md:h-10 md:px-4 md:py-2"
+                  className="h-9 px-3 duration-0 md:h-10 md:px-4 md:py-2"
                   onClick={() => {
                     setReorderingColumns(!reorderingColumns);
                     setShowingDeleteColumnsButtons(false);
                   }}
                 >
-                  Reorder
+                  Reorder chords
                 </Button>
 
                 {reorderingColumns && (
@@ -315,13 +315,14 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
 
               <div className="baseFlex">
                 <Button
+                  variant={"destructive"}
                   disabled={showingDeleteColumnsButtons}
                   style={{
                     borderRadius: showingDeleteColumnsButtons
                       ? "0.375rem 0 0 0.375rem"
                       : "0.375rem",
                   }}
-                  className="h-9 px-3 md:h-10 md:px-4 md:py-2"
+                  className="h-9 px-3 duration-0 md:h-10 md:px-4 md:py-2"
                   onClick={() => {
                     setShowingDeleteColumnsButtons(
                       !showingDeleteColumnsButtons
@@ -329,11 +330,12 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
                     setReorderingColumns(false);
                   }}
                 >
-                  Delete columns
+                  Delete chords
                 </Button>
 
                 {showingDeleteColumnsButtons && (
                   <Button
+                    variant={"destructive"}
                     className="h-9 rounded-l-none rounded-r-md px-3 md:h-10 md:px-4 md:py-2"
                     onClick={() => {
                       setShowingDeleteColumnsButtons(
