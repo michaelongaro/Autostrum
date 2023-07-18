@@ -127,7 +127,8 @@ function StrummingPattern({
 
     setStrummingPatternThatIsBeingEdited({
       index,
-      value: newStrummingPattern,
+      value: { ...newStrummingPattern }, // I am pretty sure this or the one below is the problem
+      // but I don't know why it isn't a separate memory reference... prob chatgpt tbh
     });
   }
 
@@ -281,14 +282,23 @@ function StrummingPattern({
       }}
       className="baseFlex w-full"
     >
-      <div className="baseFlex !justify-start">
+      <div
+        style={{
+          gap: mode === "editingChordSequence" ? "0.5rem" : "0",
+        }}
+        className="baseFlex !justify-start"
+      >
         {data?.strums?.map((strum, strumIndex) => (
           <div key={strumIndex} className="baseFlex gap-2">
             <div
               style={{
                 marginTop:
                   mode === "editingStrummingPattern" ? "1rem" : "0.25rem",
-                gap: mode === "editingStrummingPattern" ? "0.5rem" : "0",
+                gap:
+                  mode === "editingStrummingPattern" ||
+                  mode === "editingChordSequence"
+                    ? "0.5rem"
+                    : "0",
               }}
               className="baseVertFlex relative"
             >
@@ -321,15 +331,22 @@ function StrummingPattern({
                   onValueChange={(value) =>
                     handleChordChange(value, strumIndex)
                   }
-                  value={getChordName(strumIndex)}
+                  value={
+                    getChordName(strumIndex) === ""
+                      ? "blues" // currently have no clue why this (any) random value is needed. I would imagine that
+                      : // I could pass "" and the value would be "" but that doesn't work
+                        getChordName(strumIndex)
+                  }
                 >
-                  <SelectTrigger className="w-[75px]">
-                    {/* prob leave this out placeholder="Select a length" */}
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Chord</SelectLabel>
+                      <SelectItem value="" className="italic !text-gray-500">
+                        No chord
+                      </SelectItem>
                       {chords.map((chord) => (
                         <SelectItem key={chord.name} value={chord.name}>
                           {chord.name}
