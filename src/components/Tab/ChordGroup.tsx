@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   type ChordGroup as ChordGroupType,
   useTabStore,
@@ -88,10 +88,37 @@ function ChordGroup({ sectionIndex, groupIndex, groupData }: ChordGroup) {
     setTabData(newTabData);
   }
 
-  // when changing the strumming pattern, we need to update the "children" chord progressions if
-  // the length of the new strumming pattern is different than the old one. If it is longer, we need to
-  // add appropriate amount of ""'s to the end of the chord group. If it is shorter, we need to
-  // just .slice(0, len) the chord group to the length of the new strumming pattern.
+  // sets current group's pattern to first existing pattern if the current pattern is empty
+  useEffect(() => {
+    if (Object.keys(groupData.pattern).length === 0 && strummingPatterns[0]) {
+      const newTabData = [...tabData];
+
+      // @ts-expect-error we know it's a ChordGroup
+      newTabData[sectionIndex]!.data[groupIndex]!.pattern =
+        strummingPatterns[0];
+
+      // fill in the chord sequence with empty strings the size of the strumming pattern
+      // @ts-expect-error we know it's a ChordGroup
+      newTabData[sectionIndex]!.data[groupIndex]!.data = [
+        {
+          repeat: 1,
+          data: Array.from(
+            { length: strummingPatterns[0].strums.length },
+            () => ""
+          ),
+        },
+      ];
+
+      setTabData(newTabData);
+    }
+  }, [
+    groupData,
+    strummingPatterns,
+    groupIndex,
+    sectionIndex,
+    setTabData,
+    tabData,
+  ]);
 
   return (
     <div className="baseVertFlex lightestGlassmorphic relative w-full gap-2 rounded-md p-1 md:p-4">
