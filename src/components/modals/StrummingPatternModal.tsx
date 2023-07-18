@@ -233,22 +233,22 @@ function StrummingPatternModal({
         <div className="baseFlex lightGlassmorphic gap-4 rounded-md p-2 ">
           <HiOutlineInformationCircle className="mr-2 h-6 w-6" />
           <div className="baseFlex gap-2">
-            <span>v / d</span>
+            <span className="font-semibold">v / d</span>
             <p>-</p>
             <p>Downstrum</p>
           </div>
           <div className="baseFlex gap-2">
-            <span>^ / u</span>
+            <span className="font-semibold">^ / u</span>
             <p>-</p>
             <p>Upstrum</p>
           </div>
           <div className="baseFlex gap-2">
-            <p>s</p>
+            <p className="font-semibold">s</p>
             <p>-</p>
             <p>Slap</p>
           </div>
           <div className="baseFlex gap-2">
-            <p>&gt;</p>
+            <p className="font-semibold">&gt;</p>
             <p>-</p>
             <p>Accented</p>
           </div>
