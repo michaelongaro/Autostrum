@@ -24,6 +24,7 @@ import { HiOutlineInformationCircle } from "react-icons/hi";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import StrummingPatternPalmMuteNode from "../Tab/StrummingPatternPalmMuteNode";
 import StrummingPattern from "../Tab/StrummingPattern";
+import isEqual from "lodash.isequal";
 
 const backdropVariants = {
   expanded: {
@@ -65,6 +66,8 @@ function StrummingPatternModal({
     setStrummingPatterns,
     setStrummingPatternThatIsBeingEdited,
     modifyStrummingPatternPalmMuteDashes,
+    tabData,
+    setTabData,
   } = useTabStore(
     (state) => ({
       tuning: state.tuning,
@@ -74,6 +77,8 @@ function StrummingPatternModal({
         state.setStrummingPatternThatIsBeingEdited,
       modifyStrummingPatternPalmMuteDashes:
         state.modifyStrummingPatternPalmMuteDashes,
+      tabData: state.tabData,
+      setTabData: state.setTabData,
     }),
     shallow
   );
@@ -126,10 +131,82 @@ function StrummingPatternModal({
   }
 
   function handleSaveStrummingPattern() {
+    // if strumming pattern length has changed, then need to update the children
+    // chord sequences in tabData (that use this pattern) to match the new length.
+
+    const newLength = strummingPatternThatIsBeingEdited.value.strums.length;
+    const oldLength =
+      strummingPatterns[strummingPatternThatIsBeingEdited.index]?.strums
+        ?.length;
+
+    if (oldLength !== undefined && newLength !== oldLength) {
+      const newTabData = [...tabData];
+
+      for (
+        let sectionIndex = 0;
+        sectionIndex < newTabData.length;
+        sectionIndex++
+      ) {
+        const section = newTabData[sectionIndex];
+        if (section?.type === "chord") {
+          for (
+            let chordGroupIndex = 0;
+            chordGroupIndex < section.data.length;
+            chordGroupIndex++
+          ) {
+            const chordGroup = section.data[chordGroupIndex];
+
+            if (
+              !chordGroup ||
+              !isEqual(
+                chordGroup.pattern,
+                strummingPatternThatIsBeingEdited.value
+              )
+            )
+              continue;
+            for (
+              let patternIndex = 0;
+              patternIndex < chordGroup.data.length;
+              patternIndex++
+            ) {
+              const pattern = chordGroup.data[patternIndex];
+              if (!pattern) continue;
+
+              // pattern.data is what we need to update
+              if (newLength < oldLength) {
+                // delete the last elements
+
+                // @ts-expect-error undefined checks are done above
+                newTabData[sectionIndex].data[chordGroupIndex].data[
+                  patternIndex
+                ] = [...pattern.data.slice(0, newLength)]; // hoping "..." is enough to give new memory reference
+              } else {
+                // new pattern w/ extra empty string elements
+
+                const newPatternData = [...pattern.data];
+
+                for (let i = 0; i < newLength - oldLength; i++) {
+                  newPatternData.push("");
+                }
+
+                // @ts-expect-error undefined checks are done above
+                newTabData[sectionIndex].data[chordGroupIndex].data[
+                  patternIndex
+                ] = newPatternData;
+              }
+            }
+          }
+        }
+
+        setTabData(newTabData);
+      }
+    }
+
     const newStrummingPatterns = [...strummingPatterns];
 
-    newStrummingPatterns[strummingPatternThatIsBeingEdited.index] =
-      strummingPatternThatIsBeingEdited.value;
+    newStrummingPatterns[strummingPatternThatIsBeingEdited.index] = {
+      ...strummingPatternThatIsBeingEdited.value,
+    };
 
     setStrummingPatterns(newStrummingPatterns);
     setStrummingPatternThatIsBeingEdited(null);
@@ -279,9 +356,15 @@ function StrummingPatternModal({
 
             {/* should be disabled if lodash isEqual to the strummingPatterns original version */}
             <Button
-              disabled={strummingPatternThatIsBeingEdited.value.strums.every(
-                (strum) => strum.strum === ""
-              )}
+              disabled={
+                strummingPatternThatIsBeingEdited.value.strums.every(
+                  (strum) => strum.strum === ""
+                ) ||
+                isEqual(
+                  strummingPatternThatIsBeingEdited.value,
+                  strummingPatterns[strummingPatternThatIsBeingEdited.index]
+                )
+              }
               onClick={handleSaveStrummingPattern}
             >
               Save

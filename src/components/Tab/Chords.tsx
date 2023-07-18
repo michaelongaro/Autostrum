@@ -16,15 +16,73 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 function Chords() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
-  const { chords, setChords, setChordThatIsBeingEdited, editing } = useTabStore(
+  const {
+    chords,
+    setChords,
+    setChordThatIsBeingEdited,
+    tabData,
+    setTabData,
+    editing,
+  } = useTabStore(
     (state) => ({
       chords: state.chords,
       setChords: state.setChords,
       setChordThatIsBeingEdited: state.setChordThatIsBeingEdited,
+      tabData: state.tabData,
+      setTabData: state.setTabData,
       editing: state.editing,
     }),
     shallow
   );
+
+  function handleDeleteChord(index: number, chordNameToBeDeleted: string) {
+    const newTabData = [...tabData];
+
+    for (
+      let sectionIndex = 0;
+      sectionIndex < newTabData.length;
+      sectionIndex++
+    ) {
+      const section = newTabData[sectionIndex];
+      if (section?.type === "chord") {
+        for (
+          let chordGroupIndex = 0;
+          chordGroupIndex < section.data.length;
+          chordGroupIndex++
+        ) {
+          const chordGroup = section.data[chordGroupIndex];
+          if (!chordGroup) continue;
+          for (
+            let patternIndex = 0;
+            patternIndex < chordGroup.data.length;
+            patternIndex++
+          ) {
+            const pattern = chordGroup.data[patternIndex];
+            if (!pattern) continue;
+            for (
+              let chordIndex = 0;
+              chordIndex < pattern.data.length;
+              chordIndex++
+            ) {
+              const chordName = pattern.data[chordIndex];
+              if (chordName === chordNameToBeDeleted) {
+                // @ts-expect-error undefined checks are done above
+                newTabData[sectionIndex].data[chordGroupIndex].data[
+                  patternIndex
+                ].data[chordIndex] = "";
+              }
+            }
+          }
+        }
+      }
+    }
+
+    setTabData(newTabData);
+
+    const prevChords = [...chords];
+    prevChords.splice(index, 1);
+    setChords(prevChords);
+  }
 
   return (
     <div
@@ -65,7 +123,10 @@ function Chords() {
                     onClick={() => {
                       setChordThatIsBeingEdited({
                         index,
-                        value: chord,
+                        value: {
+                          name: chord.name,
+                          frets: [...chord.frets],
+                        },
                       });
                     }}
                   >
@@ -77,11 +138,7 @@ function Chords() {
                     variant={"destructive"}
                     size="sm"
                     className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px]"
-                    onClick={() => {
-                      const prevChords = [...chords];
-                      prevChords.splice(index, 1);
-                      setChords(prevChords);
-                    }}
+                    onClick={() => handleDeleteChord(index, chord.name)}
                   >
                     {/* add the tooltip below for "Delete" */}
                     <AiFillDelete className="h-5 w-5" />

@@ -1,21 +1,36 @@
-import { Fragment } from "react";
-import { type Strum, useTabStore } from "~/stores/TabStore";
+import { useState } from "react";
+import {
+  type StrummingPattern as StrummingPatternType,
+  useTabStore,
+} from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import { AiFillEdit, AiFillDelete } from "react-icons/ai";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import StrummingPattern from "./StrummingPattern";
+import isEqual from "lodash.isequal";
 
 function StrummingPatterns() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
+
+  const [showingDeletePopover, setShowingDeletePopover] = useState(false);
 
   const {
     strummingPatterns,
     setStrummingPatterns,
     setStrummingPatternThatIsBeingEdited,
     editing,
+    tabData,
+    setTabData,
+    sectionProgression,
+    setSectionProgression,
   } = useTabStore(
     (state) => ({
       strummingPatterns: state.strummingPatterns,
@@ -23,9 +38,84 @@ function StrummingPatterns() {
       setStrummingPatternThatIsBeingEdited:
         state.setStrummingPatternThatIsBeingEdited,
       editing: state.editing,
+      tabData: state.tabData,
+      setTabData: state.setTabData,
+      sectionProgression: state.sectionProgression,
+      setSectionProgression: state.setSectionProgression,
     }),
     shallow
   );
+
+  function handleDeleteStrummingPattern(
+    index: number,
+    strummingPattern: StrummingPatternType
+  ) {
+    let newTabData = [...tabData];
+    const sectionTitlesToDelete: string[] = [];
+
+    for (
+      let sectionIndex = newTabData.length - 1;
+      sectionIndex >= 0;
+      sectionIndex--
+    ) {
+      const section = newTabData[sectionIndex];
+      if (section?.type === "chord") {
+        for (
+          let chordGroupIndex = section.data.length - 1;
+          chordGroupIndex >= 0;
+          chordGroupIndex--
+        ) {
+          const chordGroup = section.data[chordGroupIndex];
+
+          if (!chordGroup || !isEqual(chordGroup.pattern, strummingPattern))
+            continue;
+
+          // if removing this chordGroup would leave section empty, remove the whole section
+          if (section.data.length === 1) {
+            sectionTitlesToDelete.push(section.title);
+
+            newTabData = [
+              ...newTabData.slice(0, sectionIndex),
+              ...newTabData.slice(sectionIndex + 1),
+            ];
+          }
+          // otherwise remove the chordGroup from the section
+          else {
+            newTabData[sectionIndex].data = [
+              ...newTabData[sectionIndex].data.slice(0, chordGroupIndex),
+              ...newTabData[sectionIndex].data.slice(chordGroupIndex + 1),
+            ];
+          }
+        }
+      }
+    }
+
+    setTabData(newTabData);
+
+    // deleting section from sectionProgression
+    let newSectionProgression = [...sectionProgression];
+    for (
+      let sectionIndex = 0;
+      sectionIndex < newSectionProgression.length;
+      sectionIndex++
+    ) {
+      const section = newSectionProgression[sectionIndex];
+      if (section && sectionTitlesToDelete.includes(section.title)) {
+        newSectionProgression = [
+          ...newSectionProgression.slice(0, sectionIndex),
+          ...newSectionProgression.slice(sectionIndex + 1),
+        ];
+      }
+    }
+
+    // TODO: do same for regular section progression when deleting a section manually
+
+    setSectionProgression(newSectionProgression);
+
+    const prevStrummingPatterns = [...strummingPatterns];
+    prevStrummingPatterns.splice(index, 1);
+    setStrummingPatterns(prevStrummingPatterns);
+  }
 
   return (
     <div
@@ -62,9 +152,9 @@ function StrummingPatterns() {
               {/* change these below maybe just do flex column for mobile screens? */}
 
               <div className="baseFlex w-full !justify-evenly rounded-bl-md border-t-2">
-                {/* edit button */}
                 {editing ? (
                   <>
+                    {/* edit button */}
                     <Button
                       variant={"ghost"}
                       size={"sm"}
@@ -79,20 +169,56 @@ function StrummingPatterns() {
                       {/* add the tooltip below for "Edit" */}
                       <AiFillEdit className="h-6 w-6" />
                     </Button>
+
                     {/* delete button */}
-                    <Button
-                      variant={"destructive"}
-                      size="sm"
-                      className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px]"
-                      onClick={() => {
-                        const prevPatterns = [...strummingPatterns];
-                        prevPatterns.splice(index, 1);
-                        setStrummingPatterns(prevPatterns);
-                      }}
+                    <Popover
+                      open={showingDeletePopover}
+                      onOpenChange={(openValue) =>
+                        setShowingDeletePopover(openValue)
+                      }
                     >
-                      {/* add the tooltip below for "Delete" */}
-                      <AiFillDelete className="h-5 w-5" />
-                    </Button>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"destructive"}
+                          size="sm"
+                          className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px]"
+                        >
+                          {/* add the tooltip below for "Delete" */}
+                          <AiFillDelete className="h-5 w-5" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <div className="baseVertFlex gap-2">
+                          <p className="w-auto text-sm">
+                            All chord sections that use this pattern will be
+                            deleted.
+                          </p>
+
+                          <div className="baseFlex gap-4">
+                            <Button
+                              variant={"secondary"}
+                              size="sm"
+                              // className="baseFlex h-8 w-1/2"
+                              onClick={() => setShowingDeletePopover(false)}
+                            >
+                              Cancel
+                            </Button>
+
+                            <Button
+                              variant={"destructive"}
+                              size="sm"
+                              // className="baseFlex h-8 w-1/2"
+                              onClick={() => {
+                                handleDeleteStrummingPattern(index, pattern);
+                                setShowingDeletePopover(false);
+                              }}
+                            >
+                              Confirm
+                            </Button>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </>
                 ) : (
                   <Button

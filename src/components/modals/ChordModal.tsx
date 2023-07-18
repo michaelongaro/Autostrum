@@ -1,13 +1,13 @@
-import { useState, useRef } from "react";
-import { type Chord as ChordType, useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
-import { motion } from "framer-motion";
-import { parse, toString } from "~/utils/tunings";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
 import { Label } from "@radix-ui/react-label";
+import { motion } from "framer-motion";
+import { useRef } from "react";
 import { HiOutlineInformationCircle } from "react-icons/hi";
+import { shallow } from "zustand/shallow";
+import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import Chord from "../Tab/Chord";
+import { Button } from "../ui/button";
+import { isEqual } from "lodash";
+import { Input } from "../ui/input";
 
 const backdropVariants = {
   expanded: {
@@ -25,115 +25,33 @@ interface ChordModal {
 function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
   const innerModalRef = useRef<HTMLDivElement>(null);
 
-  const [isFocused, setIsFocused] = useState([
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-  ]);
+  const { chords, setChords, setChordThatIsBeingEdited, tabData, setTabData } =
+    useTabStore(
+      (state) => ({
+        chords: state.chords,
+        setChords: state.setChords,
+        setChordThatIsBeingEdited: state.setChordThatIsBeingEdited,
+        tabData: state.tabData,
+        setTabData: state.setTabData,
+      }),
+      shallow
+    );
 
-  const { tuning, chords, setChords, setChordThatIsBeingEdited } = useTabStore(
-    (state) => ({
-      tuning: state.tuning,
-      chords: state.chords,
-      setChords: state.setChords,
-      setChordThatIsBeingEdited: state.setChordThatIsBeingEdited,
-    }),
-    shallow
-  );
-
-  // maybe have separate function for input change to check if name already exists
   function handleChordNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
 
-    if (value.length > 10) return;
+    const allowAnyValidLetterOrNumber = /^[\p{L}\p{N} ]+$/gu;
+
+    if (
+      value.length > 10 ||
+      (value.length > 0 && !allowAnyValidLetterOrNumber.test(value))
+    )
+      return;
 
     const modifiedChord = { ...chordThatIsBeingEdited };
     modifiedChord.value.name = value;
 
     setChordThatIsBeingEdited(modifiedChord);
-  }
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>, index: number) {
-    const value = e.target.value;
-
-    // regular notes
-    // wanted to always allow a-g in regular note even if there was a number
-    // present for easy placement of chords
-    let valueHasAChordLetter = false;
-    let chordLetter = "";
-    for (let i = 0; i < value.length; i++) {
-      if ("abcdefgABCDEFG".includes(value.charAt(i))) {
-        valueHasAChordLetter = true;
-        chordLetter = value.charAt(i);
-        break;
-      }
-    }
-    if (valueHasAChordLetter) {
-      // capital letter means major chord
-      // lowercase letter means minor chord
-
-      let chordArray: string[] = [];
-      if (chordLetter === "A") {
-        chordArray = ["", "0", "2", "2", "2", "0"];
-      } else if (chordLetter === "a") {
-        chordArray = ["", "0", "2", "2", "1", "0"];
-      } else if (chordLetter === "B") {
-        chordArray = ["", "2", "4", "4", "4", "2"];
-      } else if (chordLetter === "b") {
-        chordArray = ["", "2", "4", "4", "3", "2"];
-      } else if (chordLetter === "C") {
-        chordArray = ["", "3", "2", "0", "1", "0"];
-      } else if (chordLetter === "c") {
-        chordArray = ["", "3", "5", "5", "4", "3"];
-      } else if (chordLetter === "D") {
-        chordArray = ["", "", "0", "2", "3", "2"];
-      } else if (chordLetter === "d") {
-        chordArray = ["", "", "0", "2", "3", "1"];
-      } else if (chordLetter === "E") {
-        chordArray = ["0", "2", "2", "1", "0", "0"];
-      } else if (chordLetter === "e") {
-        chordArray = ["0", "2", "2", "0", "0", "0"];
-      } else if (chordLetter === "F") {
-        chordArray = ["1", "3", "3", "2", "1", "1"];
-      } else if (chordLetter === "f") {
-        chordArray = ["1", "3", "3", "1", "1", "1"];
-      } else if (chordLetter === "G") {
-        chordArray = ["3", "2", "0", "0", "0", "3"];
-      } else if (chordLetter === "g") {
-        chordArray = ["3", "5", "5", "3", "3", "3"];
-      }
-
-      setChordThatIsBeingEdited({
-        ...chordThatIsBeingEdited,
-        value: {
-          ...chordThatIsBeingEdited.value,
-          frets: chordArray.reverse(),
-        },
-      });
-
-      return;
-    }
-
-    const numberPattern = /^(?:[1-9]|1[0-9]|2[0-2]|0)$/;
-
-    if (value !== "" && !numberPattern.test(value)) return;
-
-    const newChordData = [...chordThatIsBeingEdited.value.frets];
-
-    newChordData[index] = value;
-
-    setChordThatIsBeingEdited({
-      ...chordThatIsBeingEdited,
-      value: {
-        ...chordThatIsBeingEdited.value,
-        frets: newChordData,
-      },
-    });
-
-    return;
   }
 
   function handleSaveChord() {
@@ -146,11 +64,71 @@ function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
     if (chordNameAlreadyExists) {
       // show error message
     } else {
+      // update chord name of all strumming patterns that use this chord
+      // if the chord name has changed.
+
+      if (
+        chords[chordThatIsBeingEdited.index]?.name !==
+        chordThatIsBeingEdited.value.name
+      ) {
+        const newTabData = [...tabData];
+
+        for (
+          let sectionIndex = 0;
+          sectionIndex < newTabData.length;
+          sectionIndex++
+        ) {
+          const section = newTabData[sectionIndex];
+          if (section?.type === "chord") {
+            for (
+              let chordGroupIndex = 0;
+              chordGroupIndex < section.data.length;
+              chordGroupIndex++
+            ) {
+              const chordGroup = section.data[chordGroupIndex];
+              if (!chordGroup) continue;
+              for (
+                let patternIndex = 0;
+                patternIndex < chordGroup.data.length;
+                patternIndex++
+              ) {
+                const pattern = chordGroup.data[patternIndex];
+                if (!pattern) continue;
+                for (
+                  let chordIndex = 0;
+                  chordIndex < pattern.data.length;
+                  chordIndex++
+                ) {
+                  const chordName = pattern.data[chordIndex];
+                  if (
+                    chordName === chords[chordThatIsBeingEdited.index]?.name
+                  ) {
+                    // @ts-expect-error undefined checks are done above
+                    newTabData[sectionIndex].data[chordGroupIndex].data[
+                      patternIndex
+                    ].data[chordIndex] = chordThatIsBeingEdited.value.name;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        setTabData(newTabData);
+      }
+
       // save chord
       const newChords = [...chords];
-      newChords[chordThatIsBeingEdited.index] = chordThatIsBeingEdited.value;
-      setChords(newChords);
+
+      // decomposed shallow copy of frets so that the chord elem won't get updated
+      // when the chord is edited in the chord modal
+      const newChord = { ...chordThatIsBeingEdited.value };
+      newChords[chordThatIsBeingEdited.index] = {
+        name: newChord.name,
+        frets: [...newChord.frets],
+      };
       setChordThatIsBeingEdited(null);
+      setChords(newChords);
     }
   }
 
@@ -174,7 +152,7 @@ function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
       >
         {/* chord title */}
         <div className="baseVertFlex !items-start gap-2">
-          <Label>Chord Name</Label>
+          <Label>Chord name</Label>
           <Input
             placeholder="Chord name (e.g. Cmaj7)"
             value={chordThatIsBeingEdited?.value?.name}
@@ -210,9 +188,16 @@ function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
               Close
             </Button>
             <Button
-              disabled={chordThatIsBeingEdited.value.frets.every(
-                (fret) => fret === ""
-              )}
+              disabled={
+                chordThatIsBeingEdited.value.frets.every(
+                  (fret) => fret === ""
+                ) ||
+                chordThatIsBeingEdited.value.name === "" ||
+                isEqual(
+                  chordThatIsBeingEdited.value,
+                  chords[chordThatIsBeingEdited.index]
+                )
+              }
               onClick={handleSaveChord}
             >
               Save
