@@ -433,7 +433,11 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                   Delete
                 </Button>
               )}
-              <Button disabled={showPulsingError} onClick={handlePreview}>
+              <Button
+                variant={"secondary"}
+                disabled={showPulsingError}
+                onClick={handlePreview}
+              >
                 Preview
               </Button>
 
