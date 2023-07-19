@@ -8,7 +8,11 @@ import {
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 import TabNote from "./TabNote";
 import PalmMuteNode from "./PalmMuteNode";
-import { useTabStore } from "~/stores/TabStore";
+import {
+  useTabStore,
+  type TabSection as TabSectionType,
+  type ChordSection as ChordSectionType,
+} from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { useSortable } from "@dnd-kit/sortable";
 import { motion } from "framer-motion";
@@ -35,8 +39,9 @@ const initialStyles = {
 };
 
 interface TabNotesColumn {
-  sectionIndex: number;
   columnData: string[];
+  sectionIndex: number;
+  subSectionIndex: number;
   columnIndex: number;
 
   editingPalmMuteNodes: boolean;
@@ -50,9 +55,9 @@ interface TabNotesColumn {
 }
 
 function TabNotesColumn({
-  sectionIndex,
   columnData,
-  // effectColumnData,
+  sectionIndex,
+  subSectionIndex,
   columnIndex,
 
   editingPalmMuteNodes,
@@ -86,17 +91,16 @@ function TabNotesColumn({
     shallow
   );
 
-  function relativelyGetColumn(indexRelativeToCurrentCombo: number) {
-    return (
-      tabData[sectionIndex]?.data[columnIndex + indexRelativeToCurrentCombo] ??
-      []
-    );
+  function relativelyGetColumn(indexRelativeToCurrentCombo: number): string[] {
+    return (tabData[sectionIndex]?.data[subSectionIndex]?.data[
+      columnIndex + indexRelativeToCurrentCombo
+    ] ?? []) as string[];
   }
 
   const deleteColumnButtonDisabled = useMemo(() => {
     let disabled = false;
 
-    const currentSection = tabData[sectionIndex];
+    const currentSection = tabData[sectionIndex]?.data[subSectionIndex];
 
     if (currentSection === undefined) return true;
 
@@ -104,42 +108,44 @@ function TabNotesColumn({
       disabled = true;
     }
 
-    // if the current combo is the first/last "elem" in the section and there is a measure line right after/before
-    // the combo -> disable
+    // if the current chord is the first/last "elem" in the section and there is a measure line
+    // right after/before -> disable
     if (
       (columnIndex === 0 &&
-        // +2 to account for the effect column
-        currentSection.data[columnIndex + 2]?.[8] === "measureLine") ||
+        currentSection.data[columnIndex + 1]?.[8] === "measureLine") ||
       (columnIndex === currentSection.data.length - 2 &&
         currentSection.data[columnIndex - 1]?.[8] === "measureLine")
     ) {
       disabled = true;
     }
 
-    // if the current combo is being flanked by two measure lines -> disable
+    // if the current chord is being flanked by two measure lines -> disable
     if (
       currentSection.data[columnIndex - 1]?.[8] === "measureLine" &&
-      currentSection.data[columnIndex + 2]?.[8] === "measureLine"
+      currentSection.data[columnIndex + 1]?.[8] === "measureLine"
     ) {
       disabled = true;
     }
 
     return disabled;
-  }, [tabData, sectionIndex, columnIndex]);
+  }, [tabData, sectionIndex, subSectionIndex, columnIndex]);
 
   function handleDeleteCombo() {
     const newTabData = [...tabData];
 
-    newTabData[sectionIndex]?.data.splice(columnIndex, 2);
+    newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
+      columnIndex,
+      2
+    );
 
     setTabData(newTabData);
   }
 
   return (
     <motion.div
-      key={`tabSection${sectionIndex}tabColumn${columnIndex}`}
+      key={`tabSection${sectionIndex}subSection${subSectionIndex}tabColumn${columnIndex}`}
       ref={setNodeRef}
-      layoutId={`tabSection${sectionIndex}tabColumn${columnIndex}`}
+      layoutId={`tabSection${sectionIndex}subSection${subSectionIndex}tabColumn${columnIndex}`}
       style={initialStyles}
       initial="closed"
       animate={
@@ -193,6 +199,7 @@ function TabNotesColumn({
                     value={note}
                     columnIndex={columnIndex}
                     sectionIndex={sectionIndex}
+                    subSectionIndex={subSectionIndex}
                     editingPalmMuteNodes={editingPalmMuteNodes}
                     setEditingPalmMuteNodes={setEditingPalmMuteNodes}
                     lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
@@ -251,6 +258,7 @@ function TabNotesColumn({
                   <TabNote
                     note={note}
                     sectionIndex={sectionIndex}
+                    subSectionIndex={subSectionIndex}
                     columnIndex={columnIndex}
                     noteIndex={index}
                   />
@@ -287,6 +295,7 @@ function TabNotesColumn({
                       <TabNote
                         note={note}
                         sectionIndex={sectionIndex}
+                        subSectionIndex={subSectionIndex}
                         columnIndex={columnIndex}
                         noteIndex={index}
                       />
@@ -303,21 +312,25 @@ function TabNotesColumn({
                     }}
                     className="baseVertFlex absolute left-1/2 right-1/2 top-2 w-[1.5rem] -translate-x-1/2"
                   >
-                    {tabData[sectionIndex]?.data[columnIndex]?.[7]?.includes(
-                      "^"
-                    ) && <div className="relative top-1 rotate-180">v</div>}
-                    {tabData[sectionIndex]?.data[columnIndex]?.[7]?.includes(
-                      "v"
-                    ) && <div>v</div>}
-                    {tabData[sectionIndex]?.data[columnIndex]?.[7]?.includes(
-                      "s"
-                    ) && <div>s</div>}
-                    {tabData[sectionIndex]?.data[columnIndex]?.[7]?.includes(
-                      ">"
-                    ) && <div>{">"}</div>}
-                    {tabData[sectionIndex]?.data[columnIndex]?.[7]?.includes(
-                      "."
-                    ) && <div className="relative bottom-2">.</div>}
+                    {tabData[sectionIndex]?.data[subSectionIndex]?.data[
+                      columnIndex
+                    ]?.[7]?.includes("^") && (
+                      <div className="relative top-1 rotate-180">v</div>
+                    )}
+                    {tabData[sectionIndex]?.data[subSectionIndex]?.data[
+                      columnIndex
+                    ]?.[7]?.includes("v") && <div>v</div>}
+                    {tabData[sectionIndex]?.data[subSectionIndex]?.data[
+                      columnIndex
+                    ]?.[7]?.includes("s") && <div>s</div>}
+                    {tabData[sectionIndex]?.data[subSectionIndex]?.data[
+                      columnIndex
+                    ]?.[7]?.includes(">") && <div>{">"}</div>}
+                    {tabData[sectionIndex]?.data[subSectionIndex]?.data[
+                      columnIndex
+                    ]?.[7]?.includes(".") && (
+                      <div className="relative bottom-2">.</div>
+                    )}
                   </div>
                 </div>
               )}

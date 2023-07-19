@@ -148,58 +148,62 @@ function StrummingPatternModal({
         sectionIndex++
       ) {
         const section = newTabData[sectionIndex];
-        if (section?.type === "chord") {
-          for (
-            let chordGroupIndex = 0;
-            chordGroupIndex < section.data.length;
-            chordGroupIndex++
-          ) {
-            const chordGroup = section.data[chordGroupIndex];
 
-            if (
-              !chordGroup ||
-              !isEqual(
-                chordGroup.pattern,
-                strummingPatternThatIsBeingEdited.value
-              )
+        if (!section) continue;
+
+        for (
+          let subSectionIndex = 0;
+          subSectionIndex < section.data.length;
+          subSectionIndex++
+        ) {
+          const subSection = section.data[subSectionIndex];
+
+          if (
+            subSection?.type === "chord" &&
+            isEqual(
+              subSection.strummingPattern,
+              strummingPatterns[strummingPatternThatIsBeingEdited.index]
             )
-              continue;
+          ) {
             for (
-              let patternIndex = 0;
-              patternIndex < chordGroup.data.length;
-              patternIndex++
+              let chordSequenceIndex = 0;
+              chordSequenceIndex < subSection.data.length;
+              chordSequenceIndex++
             ) {
-              const pattern = chordGroup.data[patternIndex];
-              if (!pattern) continue;
+              const chordProgression =
+                subSection.data[chordSequenceIndex]?.data;
+              if (!chordProgression) continue;
 
               // pattern.data is what we need to update
               if (newLength < oldLength) {
                 // delete the last elements
 
                 // @ts-expect-error undefined checks are done above
-                newTabData[sectionIndex].data[chordGroupIndex].data[
-                  patternIndex
-                ] = [...pattern.data.slice(0, newLength)]; // hoping "..." is enough to give new memory reference
+                newTabData[sectionIndex].data[subSectionIndex].data[
+                  chordSequenceIndex
+                  // @ts-expect-error undefined checks are done above
+                ]!.data = [...chordProgression.slice(0, newLength)]; // hoping "..." is enough to give new memory reference
               } else {
                 // new pattern w/ extra empty string elements
 
-                const newPatternData = [...pattern.data];
+                const newChordProgression = [...chordProgression];
 
                 for (let i = 0; i < newLength - oldLength; i++) {
-                  newPatternData.push("");
+                  newChordProgression.push("");
                 }
 
                 // @ts-expect-error undefined checks are done above
-                newTabData[sectionIndex].data[chordGroupIndex].data[
-                  patternIndex
-                ] = newPatternData;
+                newTabData[sectionIndex]?.data[subSectionIndex].data[
+                  chordSequenceIndex
+                  // @ts-expect-error undefined checks are done above
+                ]!.data = newChordProgression;
               }
             }
           }
         }
-
-        setTabData(newTabData);
       }
+
+      setTabData(newTabData);
     }
 
     const newStrummingPatterns = [...strummingPatterns];

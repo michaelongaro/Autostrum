@@ -24,14 +24,14 @@ import { Input } from "../ui/input";
 
 export interface ChordSequence {
   sectionIndex: number;
-  groupIndex: number;
+  subSectionIndex: number;
   chordSequenceIndex: number;
   chordSequenceData: ChordSequenceData;
 }
 
 function ChordSequence({
   sectionIndex,
-  groupIndex,
+  subSectionIndex,
   chordSequenceIndex,
   chordSequenceData,
 }: ChordSequence) {
@@ -56,10 +56,10 @@ function ChordSequence({
   //
 
   // pattern selector + up down delete buttons on top
-  // map of patterns w/in groupData
+  // map of patterns w/in subSectionData
   // prob a button to add another pattern
 
-  function handleRepeatChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newRepeat = parseInt(e.target.value);
     if (isNaN(newRepeat)) {
       return;
@@ -67,25 +67,33 @@ function ChordSequence({
 
     const newTabData = [...tabData];
 
-    // @ts-expect-error should totally have "repeat" field
-    newTabData[sectionIndex]!.data[groupIndex]!.repeat = newRepeat;
+    newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+      chordSequenceIndex
+      // @ts-expect-error we know it's the chord type not tab type
+    ]!.repetitions = newRepeat;
 
     setTabData(newTabData);
   }
 
   return (
-    <div className="baseVertFlex lightestGlassmorphic w-full gap-2 p-1">
+    <div className="baseVertFlex lightestGlassmorphic relative w-full gap-2 p-1">
       <div className="baseFlex w-full !justify-between">
-        <div className="baseFlex gap-2">
-          <Label>Repeat</Label>
-          <Input
-            type="text"
-            className="w-12"
-            placeholder="1"
-            value={chordSequenceData.repeat.toString()}
-            onChange={handleRepeatChange}
-          />
-        </div>
+        {editing ? (
+          <div className="baseFlex gap-2">
+            <Label>Repetitions</Label>
+            <Input
+              type="text"
+              className="w-12"
+              placeholder="1"
+              value={chordSequenceData.repetitions.toString()}
+              onChange={handleRepetitionsChange}
+            />
+          </div>
+        ) : (
+          <p className="lightestGlassmorphic absolute -top-12 left-0 rounded-md p-2">
+            {chordSequenceData.repetitions}
+          </p>
+        )}
 
         {/* these need to be updated to only change the strummingSection indicies */}
         {editing && (
@@ -146,9 +154,9 @@ function ChordSequence({
 
       <StrummingPattern
         // @ts-expect-error should totally have "pattern" field
-        data={tabData[sectionIndex]!.data[groupIndex]!.pattern}
+        data={tabData[sectionIndex]!.data[subSectionIndex]!.strummingPattern}
         mode={editing ? "editingChordSequence" : "viewingWithBeatNumbers"}
-        location={{ sectionIndex, groupIndex, chordSequenceIndex }}
+        location={{ sectionIndex, subSectionIndex, chordSequenceIndex }}
       />
     </div>
   );

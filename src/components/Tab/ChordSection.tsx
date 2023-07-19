@@ -1,91 +1,131 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import {
+  type ChordSection as ChordSectionType,
   useTabStore,
-  type ChordGroup as ChordGroupType,
-  type StrummingPattern,
-  ChordSequence,
+  Strum,
 } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
-import TabColumn from "./TabColumn";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { motion } from "framer-motion";
+import TabMeasureLine from "./TabMeasureLine";
+import TabNotesColumn from "./TabNotesColumn";
 import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
-import { HiOutlineInformationCircle } from "react-icons/hi";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
 import { arrayMove } from "@dnd-kit/sortable";
-import { restrictToParentElement } from "@dnd-kit/modifiers";
-import { parse, toString } from "~/utils/tunings";
-import { Separator } from "../ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import { type LastModifiedPalmMuteNodeLocation } from "./TabSection";
+import { Button } from "~/components/ui/button";
+import StrummingPattern from "./StrummingPattern";
+import { Label } from "~/components/ui/label";
+import { Input } from "~/components/ui/input";
+import { Separator } from "~/components/ui/separator";
+import { motion } from "framer-motion";
+import StrummingSection from "./ChordSequence";
+import ChordSequence from "./ChordSequence";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import ChordGroup from "./ChordGroup";
 
-interface ChordSection {
+export interface ChordSection {
   sectionIndex: number;
-  sectionData: {
-    title: string;
-    data: ChordGroupType[];
-  };
+  subSectionIndex: number;
+  subSectionData: ChordSectionType;
 }
 
-function ChordSection({ sectionIndex, sectionData }: ChordSection) {
-  const [sectionTitle, setSectionTitle] = useState(sectionData.title);
+function ChordSection({
+  sectionIndex,
+  subSectionIndex,
+  subSectionData,
+}: ChordSection) {
+  const [
+    indexOfCurrentlySelectedStrummingPattern,
+    setIndexOfCurrentlySelectedStrummingPattern,
+  ] = useState(0);
+
+  const {
+    editing,
+    strummingPatterns,
+    setStrummingPatterns,
+    setStrummingPatternThatIsBeingEdited,
+    tabData,
+    setTabData,
+  } = useTabStore(
+    (state) => ({
+      editing: state.editing,
+      strummingPatterns: state.strummingPatterns,
+      setStrummingPatterns: state.setStrummingPatterns,
+      setStrummingPatternThatIsBeingEdited:
+        state.setStrummingPatternThatIsBeingEdited,
+      tabData: state.tabData,
+      setTabData: state.setTabData,
+    }),
+    shallow
+  );
 
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
-  useEffect(() => {
-    if (sectionTitle !== sectionData.title) {
-      setSectionTitle(sectionData.title);
+  // effect to show/hide overlay that has button to create first strumming pattern
+
+  function handleRepeatChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const newRepeat = parseInt(e.target.value);
+    if (isNaN(newRepeat)) {
+      return;
     }
-  }, [sectionData, sectionTitle]);
-
-  const { tuning, modifyPalmMuteDashes, tabData, setTabData, editing } =
-    useTabStore(
-      (state) => ({
-        tuning: state.tuning,
-        modifyPalmMuteDashes: state.modifyPalmMuteDashes,
-        tabData: state.tabData,
-        setTabData: state.setTabData,
-        editing: state.editing,
-      }),
-      shallow
-    );
-
-  // should these functions below be in zustand?
-  function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
-    setSectionTitle(e.target.value);
 
     const newTabData = [...tabData];
-    newTabData[sectionIndex]!.title = e.target.value;
+
+    newTabData[sectionIndex]!.data[subSectionIndex]!.repetitions = newRepeat;
 
     setTabData(newTabData);
   }
 
-  function addAnotherSection() {
+  function handleStrummingPatternChange(value: string) {
     const newTabData = [...tabData];
 
-    // TODO: will need to do same trick of using first available strumming pattern
-    // and if not then do the empty trick.
-    // ^^ again I am pretty sure we are doing the "no patterns" overlay on <ChordGroup /> not here,
-    // so this will in fact still be clickable.
-    newTabData[sectionIndex]!.data.push({
-      pattern: {} as StrummingPattern,
-      repeat: 1,
-      data: [
+    const newPattern = strummingPatterns[parseInt(value)];
+
+    // @ts-expect-error should totally have "strummingPattern" field
+    newTabData[sectionIndex]!.data[subSectionIndex]!.strummingPattern =
+      newPattern;
+
+    setIndexOfCurrentlySelectedStrummingPattern(parseInt(value));
+
+    setTabData(newTabData);
+  }
+
+  // sets current group's pattern to first existing pattern if the current pattern is empty
+  useEffect(() => {
+    if (Object.keys(subSectionData.data).length === 0 && strummingPatterns[0]) {
+      const newTabData = [...tabData];
+
+      // fill in the chord sequence with empty strings the size of the strumming pattern
+      newTabData[sectionIndex]!.data[subSectionIndex]!.data = [
         {
-          repeat: 1,
-          data: [],
+          repetitions: 1,
+          data: Array.from(
+            { length: strummingPatterns[0].strums.length },
+            () => ""
+          ),
         },
-      ],
-    });
+      ];
 
-    setTabData(newTabData);
-  }
+      setTabData(newTabData);
+    }
+  }, [
+    subSectionData,
+    strummingPatterns,
+    subSectionIndex,
+    sectionIndex,
+    setTabData,
+    tabData,
+  ]);
+
+  // only take the motion.div wrapper from ChordSection
+  // also this experiment means tabsection should have glassmorphic
 
   return (
     <motion.div
@@ -101,98 +141,153 @@ function ChordSection({ sectionIndex, sectionData }: ChordSection) {
           ? "1rem 0.5rem 1rem 0.5rem"
           : "1rem",
       }}
-      className="baseVertFlex relative h-full w-full !justify-start"
+      className="baseVertFlex lightestGlassmorphic relative h-full w-full !justify-start rounded-md"
     >
-      <div className="baseFlex w-full !items-start !justify-between">
-        <div className="baseFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
-          {editing ? (
-            <Input
-              value={sectionTitle}
-              placeholder="Section title"
-              onChange={updateSectionTitle}
-              className="max-w-[12rem] text-lg font-semibold"
-            />
-          ) : (
-            <p className="text-lg font-semibold">{sectionTitle}</p>
-          )}
-
-          {editing && (
-            <div className="baseVertFlex w-1/6 !justify-end gap-2 2xl:flex-row">
-              <Button
-                variant={"secondary"}
-                className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
-                disabled={sectionIndex === 0}
-                onClick={() => {
-                  let newTabData = [...tabData];
-
-                  newTabData = arrayMove(
-                    newTabData,
-                    sectionIndex,
-                    sectionIndex - 1
-                  );
-
-                  setTabData(newTabData);
-                }}
-              >
-                <BiUpArrowAlt className="h-5 w-5" />
-              </Button>
-              <Button
-                variant={"secondary"}
-                className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
-                disabled={sectionIndex === tabData.length - 1}
-                onClick={() => {
-                  let newTabData = [...tabData];
-
-                  newTabData = arrayMove(
-                    newTabData,
-                    sectionIndex,
-                    sectionIndex + 1
-                  );
-
-                  setTabData(newTabData);
-                }}
-              >
-                <BiDownArrowAlt className="h-5 w-5" />
-              </Button>
-              <Button
-                variant={"destructive"}
-                className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
-                disabled={tabData.length === 1} // maybe allow this later, but currently messes up ui
-                onClick={() => {
-                  const newTabData = [...tabData];
-
-                  newTabData.splice(sectionIndex, 1);
-
-                  setTabData(newTabData);
-                }}
-              >
-                <IoClose className="h-5 w-5" />
-              </Button>
-            </div>
-          )}
+      {/* rudimentary way to just not render/run into any runtime errors with trying to render
+      <StrummingPattern /> w/o an actual strumming pattern */}
+      {Object.keys(subSectionData.data).length === 0 && (
+        <div className="baseVertFlex absolute z-50 h-full w-full gap-2 rounded-md bg-black/50">
+          <p className="text-lg font-semibold">No strumming patterns exist</p>
+          <Button
+            onClick={() => {
+              setStrummingPatternThatIsBeingEdited({
+                index: strummingPatterns.length,
+                value: {
+                  noteLength: "1/8th",
+                  strums: Array.from({ length: 8 }, () => ({
+                    palmMute: "",
+                    strum: "",
+                  })),
+                },
+              });
+            }}
+          >
+            Create one
+          </Button>
         </div>
-      </div>
-
-      {/* try to use framer motion to animate sections sliding up/down to their new positions
-        (this would mean both sections would need to slide for each click of "up"/"down" ) */}
-
-      <div className="baseVertFlex relative w-full !justify-start">
-        {sectionData.data.map((chordGroup, index) => (
-          <ChordGroup
-            key={`chordGroup${index}`}
-            groupData={chordGroup}
-            sectionIndex={sectionIndex}
-            groupIndex={index}
-          />
-        ))}
-      </div>
-
-      {editing && (
-        <Button onClick={addAnotherSection}>Add another section</Button>
       )}
 
-      {(!editing && sectionIndex !== tabData.length - 1) ||
-        (editing && <Separator />)}
+      <div className="baseFlex w-full !justify-between">
+        <div className="baseFlex gap-2">
+          <div className="baseFlex gap-2">
+            <Label>Strumming pattern</Label>
+            <Select
+              onValueChange={handleStrummingPatternChange}
+              // wtf is below supposed to be like hmmm do we have to store the index in a local state here?
+              value={`${indexOfCurrentlySelectedStrummingPattern}`}
+            >
+              {/* maybe make width auto? test it out */}
+              <SelectTrigger className="w-auto">
+                {/* okay so I think we will have to render out currently selected <StrummingPattern/>
+                inside of <SelectValue /> */}
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Strumming patterns</SelectLabel>
+                  {strummingPatterns.map((pattern, index) => {
+                    return (
+                      <SelectItem key={index} value={`${index}`}>
+                        <StrummingPattern
+                          data={
+                            // tabData[sectionIndex]!.data[subSectionIndex]!.data
+                            //   .strummingPattern
+                            // I have *no* idea why we were using above instead of just pattern like below..
+                            pattern
+                          }
+                          mode={"viewing"}
+                        />
+                      </SelectItem>
+                    );
+                  })}
+
+                  {/* at bottom: button to create a new pattern */}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="baseFlex gap-2">
+            <Label>Repeat</Label>
+            <Input
+              type="text"
+              placeholder="1"
+              className="w-12"
+              value={subSectionData.repetitions.toString()}
+              onChange={handleRepeatChange}
+            />
+          </div>
+        </div>
+
+        {/* these need to be updated to only change the chordGroup indicies */}
+        {editing && (
+          <div className="baseVertFlex w-1/6 !justify-end gap-2 2xl:flex-row">
+            <Button
+              variant={"secondary"}
+              className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
+              disabled={sectionIndex === 0}
+              onClick={() => {
+                let newTabData = [...tabData];
+
+                newTabData = arrayMove(
+                  newTabData,
+                  sectionIndex,
+                  sectionIndex - 1
+                );
+
+                setTabData(newTabData);
+              }}
+            >
+              <BiUpArrowAlt className="h-5 w-5" />
+            </Button>
+            <Button
+              variant={"secondary"}
+              className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
+              disabled={sectionIndex === tabData.length - 1}
+              onClick={() => {
+                let newTabData = [...tabData];
+
+                newTabData = arrayMove(
+                  newTabData,
+                  sectionIndex,
+                  sectionIndex + 1
+                );
+
+                setTabData(newTabData);
+              }}
+            >
+              <BiDownArrowAlt className="h-5 w-5" />
+            </Button>
+            <Button
+              variant={"destructive"}
+              className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
+              disabled={tabData.length === 1} // maybe allow this later, but currently messes up ui
+              onClick={() => {
+                const newTabData = [...tabData];
+
+                newTabData.splice(sectionIndex, 1);
+
+                setTabData(newTabData);
+              }}
+            >
+              <IoClose className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {Object.keys(subSectionData.data).length && (
+        <div className="baseVertFlex gap-2">
+          {subSectionData.data.map((chordSequence, index) => (
+            <ChordSequence
+              key={index}
+              sectionIndex={sectionIndex}
+              subSectionIndex={subSectionIndex}
+              chordSequenceIndex={index}
+              chordSequenceData={chordSequence}
+            />
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 }

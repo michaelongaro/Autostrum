@@ -1,9 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
-import { useTabStore } from "~/stores/TabStore";
+import {
+  useTabStore,
+  type TabSection as TabSectionType,
+} from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import TabColumn from "./TabColumn";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 import { motion } from "framer-motion";
 import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
@@ -30,7 +33,9 @@ import {
 } from "@dnd-kit/sortable";
 import { restrictToParentElement } from "@dnd-kit/modifiers";
 import { parse, toString } from "~/utils/tunings";
-import { Separator } from "../ui/separator";
+import { Separator } from "~/components/ui/separator";
+import { Label } from "~/components/ui/label";
+
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 export interface LastModifiedPalmMuteNodeLocation {
@@ -40,16 +45,16 @@ export interface LastModifiedPalmMuteNodeLocation {
 }
 
 interface TabSection {
-  sectionData: {
-    title: string;
-    data: string[][];
-  };
   sectionIndex: number;
+  subSectionIndex: number;
+  subSectionData: TabSectionType;
 }
 
-function TabSection({ sectionData, sectionIndex }: TabSection) {
-  const [sectionTitle, setSectionTitle] = useState(sectionData.title);
-
+function TabSection({
+  sectionIndex,
+  subSectionIndex,
+  subSectionData,
+}: TabSection) {
   const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
@@ -71,18 +76,12 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
 
     // this was originally formatted to handle note + effect cols, can prob
     // be simplified now
-    for (const [index, columnData] of sectionData.data.entries()) {
+    for (const [index, columnData] of subSectionData.data.entries()) {
       newIds.push(`${index}`);
     }
 
     return newIds;
-  }, [sectionData]);
-
-  useEffect(() => {
-    if (sectionTitle !== sectionData.title) {
-      setSectionTitle(sectionData.title);
-    }
-  }, [sectionData, sectionTitle]);
+  }, [subSectionData]);
 
   const { tuning, modifyPalmMuteDashes, tabData, setTabData, editing } =
     useTabStore(
@@ -97,20 +96,12 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
     );
 
   // should these functions below be in zustand?
-  function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
-    setSectionTitle(e.target.value);
-    // pretty sure this is still necessary because zustand state is immutable I think
-    const newTabData = [...tabData];
-    newTabData[sectionIndex]!.title = e.target.value;
-
-    setTabData(newTabData);
-  }
 
   function addNewColumns() {
     const newTabData = [...tabData];
 
     for (let i = 0; i < 8; i++) {
-      newTabData[sectionIndex]!.data.push(
+      newTabData[sectionIndex]!.data[subSectionIndex]?.data.push(
         Array.from({ length: 9 }, (_, index) => {
           if (index === 8) {
             return "note";
@@ -132,7 +123,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
       // if prevValue was "" then can just do hardcoded solution as before
       if (lastModifiedPalmMuteNode.prevValue === "") {
         const newTabData = [...tabData];
-        newTabData[sectionIndex]!.data[
+        newTabData[sectionIndex]!.data[subSectionIndex]!.data[
           lastModifiedPalmMuteNode.columnIndex
         ]![0] = "";
         setTabData(newTabData);
@@ -158,10 +149,11 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
     if (over === null) return;
 
     const prevTabData = [...tabData];
-    let prevSectionData = prevTabData[sectionIndex];
+    let prevSectionData = prevTabData[sectionIndex]?.data[subSectionIndex];
 
     if (
       prevSectionData !== undefined &&
+      prevSectionData.type === "tab" &&
       typeof active.id === "string" &&
       typeof over.id === "string" &&
       active.id !== over.id
@@ -220,10 +212,23 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
         }
       }
 
-      prevTabData[sectionIndex] = prevSectionData;
+      prevTabData[sectionIndex]!.data[subSectionIndex] = prevSectionData;
 
       setTabData(prevTabData);
     }
+  }
+
+  function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const newRepeat = parseInt(e.target.value);
+    if (isNaN(newRepeat)) {
+      return;
+    }
+
+    const newTabData = [...tabData];
+
+    newTabData[sectionIndex]!.data[subSectionIndex]!.repetitions = newRepeat;
+
+    setTabData(newTabData);
   }
 
   return (
@@ -240,19 +245,25 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
           ? "1rem 0.5rem 1rem 0.5rem"
           : "1rem",
       }}
-      className="baseVertFlex relative h-full w-full !justify-start"
+      className="baseVertFlex lightestGlassmorphic relative h-full w-full !justify-start rounded-md"
     >
       <div className="baseFlex w-full !items-start !justify-between">
         <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
           {editing ? (
-            <Input
-              value={sectionTitle}
-              placeholder="Section title"
-              onChange={updateSectionTitle}
-              className="max-w-[12rem] text-lg font-semibold"
-            />
+            <div className="baseFlex gap-2">
+              <Label>Repetitions</Label>
+              <Input
+                type="text"
+                className="w-12"
+                placeholder="1"
+                value={subSectionData.repetitions.toString()}
+                onChange={handleRepetitionsChange}
+              />
+            </div>
           ) : (
-            <p className="text-lg font-semibold">{sectionTitle}</p>
+            <p className="lightestGlassmorphic absolute -top-12 left-0 rounded-md p-2">
+              {subSectionData.repetitions}
+            </p>
           )}
 
           {editing && (
@@ -352,6 +363,7 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
           )}
         </div>
 
+        {/* TODO: replace with "..." component */}
         {editing && (
           <div className="baseVertFlex w-1/6 !justify-end gap-2 2xl:flex-row">
             <Button
@@ -459,11 +471,12 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
           onDragEnd={handleDragEnd}
         >
           <SortableContext items={ids} strategy={rectSortingStrategy}>
-            {sectionData.data.map((column, index) => (
+            {subSectionData.data.map((column, index) => (
               <TabColumn
                 key={index}
                 columnData={column}
                 sectionIndex={sectionIndex}
+                subSectionIndex={subSectionIndex}
                 columnIndex={index}
                 editingPalmMuteNodes={editingPalmMuteNodes}
                 setEditingPalmMuteNodes={setEditingPalmMuteNodes}
@@ -485,9 +498,6 @@ function TabSection({ sectionData, sectionIndex }: TabSection) {
       </div>
 
       {editing && <Button onClick={addNewColumns}>Extend section</Button>}
-
-      {(!editing && sectionIndex !== tabData.length - 1) ||
-        (editing && <Separator />)}
     </motion.div>
   );
 }

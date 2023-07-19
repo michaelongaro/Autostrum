@@ -79,34 +79,39 @@ function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
           sectionIndex++
         ) {
           const section = newTabData[sectionIndex];
-          if (section?.type === "chord") {
-            for (
-              let chordGroupIndex = 0;
-              chordGroupIndex < section.data.length;
-              chordGroupIndex++
-            ) {
-              const chordGroup = section.data[chordGroupIndex];
-              if (!chordGroup) continue;
+
+          if (!section) continue;
+
+          for (
+            let subSectionIndex = 0;
+            subSectionIndex < section.data.length;
+            subSectionIndex++
+          ) {
+            const subSection = section.data[subSectionIndex];
+
+            if (subSection?.type === "chord") {
               for (
-                let patternIndex = 0;
-                patternIndex < chordGroup.data.length;
-                patternIndex++
+                let chordSequenceIndex = 0;
+                chordSequenceIndex < subSection.data.length;
+                chordSequenceIndex++
               ) {
-                const pattern = chordGroup.data[patternIndex];
-                if (!pattern) continue;
+                const chordGroup = subSection.data[chordSequenceIndex];
+                if (!chordGroup) continue;
                 for (
                   let chordIndex = 0;
-                  chordIndex < pattern.data.length;
+                  chordIndex < chordGroup.data.length;
                   chordIndex++
                 ) {
-                  const chordName = pattern.data[chordIndex];
+                  const chordName = chordGroup.data[chordIndex];
+                  if (!chordName) continue;
+
                   if (
                     chordName === chords[chordThatIsBeingEdited.index]?.name
                   ) {
                     // @ts-expect-error undefined checks are done above
-                    newTabData[sectionIndex].data[chordGroupIndex].data[
-                      patternIndex
-                    ].data[chordIndex] = chordThatIsBeingEdited.value.name;
+                    newTabData[sectionIndex].data[subSectionIndex].data[
+                      chordSequenceIndex
+                    ]!.data[chordIndex] = chordThatIsBeingEdited.value.name;
                   }
                 }
               }

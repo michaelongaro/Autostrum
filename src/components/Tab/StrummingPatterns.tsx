@@ -1,5 +1,7 @@
 import { useState } from "react";
 import {
+  type TabSection as TabSectionType,
+  type ChordSection as ChordSectionType,
   type StrummingPattern as StrummingPatternType,
   useTabStore,
 } from "~/stores/TabStore";
@@ -46,6 +48,22 @@ function StrummingPatterns() {
     shallow
   );
 
+  function allSubSectionsHaveStrummingPattern(
+    sections: (TabSectionType | ChordSectionType)[],
+    strummingPattern: StrummingPatternType
+  ) {
+    for (const subSection of sections) {
+      if (
+        subSection?.type !== "chord" ||
+        !isEqual(subSection.strummingPattern, strummingPattern)
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   function handleDeleteStrummingPattern(
     index: number,
     strummingPattern: StrummingPatternType
@@ -59,32 +77,47 @@ function StrummingPatterns() {
       sectionIndex--
     ) {
       const section = newTabData[sectionIndex];
-      if (section?.type === "chord") {
-        for (
-          let chordGroupIndex = section.data.length - 1;
-          chordGroupIndex >= 0;
-          chordGroupIndex--
+
+      if (!section) continue;
+
+      for (
+        let subSectionIndex = section.data.length - 1;
+        subSectionIndex >= 0;
+        subSectionIndex++
+      ) {
+        const subSection = section.data[subSectionIndex];
+        if (
+          subSection?.type === "chord" &&
+          isEqual(subSection.strummingPattern, strummingPattern)
         ) {
-          const chordGroup = section.data[chordGroupIndex];
+          for (
+            let chordSequenceIndex = section.data.length - 1;
+            chordSequenceIndex >= 0;
+            chordSequenceIndex--
+          ) {
+            const chordGroup = subSection.data[chordSequenceIndex];
 
-          if (!chordGroup || !isEqual(chordGroup.pattern, strummingPattern))
-            continue;
+            if (!chordGroup) continue;
 
-          // if removing this chordGroup would leave section empty, remove the whole section
-          if (section.data.length === 1) {
-            sectionTitlesToDelete.push(section.title);
+            // if the entire section is filled with chord subsections that all have
+            // the strumming pattern that is being deleted, remove the whole section
+            if (
+              allSubSectionsHaveStrummingPattern(section.data, strummingPattern)
+            ) {
+              sectionTitlesToDelete.push(section.title);
 
-            newTabData = [
-              ...newTabData.slice(0, sectionIndex),
-              ...newTabData.slice(sectionIndex + 1),
-            ];
-          }
-          // otherwise remove the chordGroup from the section
-          else {
-            newTabData[sectionIndex].data = [
-              ...newTabData[sectionIndex].data.slice(0, chordGroupIndex),
-              ...newTabData[sectionIndex].data.slice(chordGroupIndex + 1),
-            ];
+              newTabData = [
+                ...newTabData.slice(0, sectionIndex),
+                ...newTabData.slice(sectionIndex + 1),
+              ];
+            }
+            // otherwise remove the chord subsection from the section
+            else {
+              newTabData[sectionIndex]!.data = [
+                ...newTabData[sectionIndex]!.data.slice(0, subSectionIndex),
+                ...newTabData[sectionIndex]!.data.slice(subSectionIndex + 1),
+              ];
+            }
           }
         }
       }

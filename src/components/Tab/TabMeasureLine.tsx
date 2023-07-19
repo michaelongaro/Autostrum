@@ -29,8 +29,8 @@ const initialStyles = {
 function TabMeasureLine({
   columnData,
   sectionIndex,
+  subSectionIndex,
   columnIndex,
-
   reorderingColumns,
   showingDeleteColumnsButtons,
 }: Omit<
@@ -66,16 +66,19 @@ function TabMeasureLine({
   function handleDeleteMeasureLine() {
     const newTabData = [...tabData];
 
-    newTabData[sectionIndex]?.data.splice(columnIndex, 2);
+    newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
+      columnIndex,
+      1
+    );
 
     setTabData(newTabData);
   }
 
   return (
     <motion.div
-      key={`tabSection${sectionIndex}tabColumn${columnIndex}`}
+      key={`tabSection${sectionIndex}subSection${subSectionIndex}tabColumn${columnIndex}`}
       ref={setNodeRef}
-      layoutId={`tabSection${sectionIndex}tabColumn${columnIndex}`}
+      layoutId={`tabSection${sectionIndex}subSection${subSectionIndex}tabColumn${columnIndex}`}
       style={initialStyles}
       initial="closed"
       animate={

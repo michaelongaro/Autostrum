@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import type { Tab } from "@prisma/client";
-import type { ITabSection } from "~/components/Tab/Tab";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
@@ -34,20 +33,31 @@ export interface Strum {
 }
 
 export interface ChordSequence {
-  repeat: number;
+  repetitions: number;
   data: string[];
 }
 
-export interface ChordGroup {
-  pattern: StrummingPattern;
-  repeat: number;
+export interface ChordSection {
+  type: "chord";
+  strummingPattern: StrummingPattern;
+  repetitions: number;
   data: ChordSequence[];
 }
 
-interface ChordSection {
+export interface TabSection {
+  type: "tab";
+  repetitions: number;
+  data: string[][];
+}
+
+export interface Section {
   title: string;
-  type: "chord";
-  data: ChordGroup[];
+  data: (TabSection | ChordSection)[];
+}
+
+interface CopiedData {
+  type: "section" | "tab" | "chord";
+  data: Section | TabSection | ChordSection | ChordSequence;
 }
 
 interface TabState {
@@ -84,8 +94,8 @@ interface TabState {
   setChords: (chords: Chord[]) => void;
   strummingPatterns: StrummingPattern[];
   setStrummingPatterns: (strummingPatterns: StrummingPattern[]) => void;
-  tabData: (ITabSection | ChordSection)[];
-  setTabData: (tabData: (ITabSection | ChordSection)[]) => void;
+  tabData: Section[];
+  setTabData: (tabData: Section[]) => void;
   numberOfLikes: number;
   setNumberOfLikes: (numberOfLikes: number) => void;
   editing: boolean;
@@ -97,9 +107,10 @@ interface TabState {
 
   // used in <TabSection />
   modifyPalmMuteDashes: (
-    tab: (ITabSection | ChordSection)[],
-    setTabData: (tabData: (ITabSection | ChordSection)[]) => void,
+    tab: Section[],
+    setTabData: (tabData: Section[]) => void,
     sectionIndex: number,
+    subSectionIndex: number,
     startColumnIndex: number,
     prevValue: string,
     pairNodeValue?: string
@@ -193,18 +204,8 @@ export const useTabStore = create<TabState>()(
     setStrummingPatterns: (strummingPatterns) => set({ strummingPatterns }),
     tabData: [
       {
-        title: "Intro",
-        type: "tab",
-        data: [
-          ["", "", "", "", "", "", "", "", "note"],
-          ["", "", "", "", "", "", "", "", "note"],
-          ["", "", "", "", "", "", "", "", "note"],
-          ["", "", "", "", "", "", "", "", "note"],
-          ["", "", "", "", "", "", "", "", "note"],
-          ["", "", "", "", "", "", "", "", "note"],
-          ["", "", "", "", "", "", "", "", "note"],
-          ["", "", "", "", "", "", "", "", "note"],
-        ],
+        title: "",
+        data: [],
       },
     ], // temporary, should just be an empty array
     setTabData: (tabData) => set({ tabData }),
@@ -224,6 +225,7 @@ export const useTabStore = create<TabState>()(
       tab,
       setTabData,
       sectionIndex,
+      subSectionIndex,
       startColumnIndex,
       prevValue,
       pairNodeValue
@@ -234,22 +236,30 @@ export const useTabStore = create<TabState>()(
       let currentColumnIndex = startColumnIndex;
 
       while (!finishedModification) {
+        // should prob extract to a variable so we can type check it and avoid the
+        // long chain being repeated over and over below
+
         // start/end node already defined, meaning we just clicked on an empty node to be the other pair node
         if (pairNodeValue !== undefined) {
           if (currentColumnIndex === startColumnIndex) {
-            newTabData[sectionIndex]!.data[startColumnIndex]![0] =
-              pairNodeValue === "" ? "end" : pairNodeValue;
+            newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+              startColumnIndex
+            ]![0] = pairNodeValue === "" ? "end" : pairNodeValue;
 
             pairNodeValue === "start"
               ? currentColumnIndex++
               : currentColumnIndex--;
           } else if (
-            newTabData[sectionIndex]!.data[currentColumnIndex]![0] ===
+            newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+              currentColumnIndex
+            ]![0] ===
             (pairNodeValue === "" || pairNodeValue === "end" ? "start" : "end")
           ) {
             finishedModification = true;
           } else {
-            newTabData[sectionIndex]!.data[currentColumnIndex]![0] = "-";
+            newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+              currentColumnIndex
+            ]![0] = "-";
             pairNodeValue === "start"
               ? currentColumnIndex++
               : currentColumnIndex--;
@@ -259,12 +269,15 @@ export const useTabStore = create<TabState>()(
         // in between until we hit the other node
         else {
           if (
-            newTabData[sectionIndex]!.data[currentColumnIndex]?.[0] ===
-            (prevValue === "start" ? "end" : "start")
+            newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+              currentColumnIndex
+            ]?.[0] === (prevValue === "start" ? "end" : "start")
           ) {
             finishedModification = true;
           } else {
-            newTabData[sectionIndex]!.data[currentColumnIndex]![0] = "";
+            newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+              currentColumnIndex
+            ]![0] = "";
             prevValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
           }
         }

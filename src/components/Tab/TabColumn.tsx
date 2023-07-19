@@ -8,6 +8,7 @@ import { type LastModifiedPalmMuteNodeLocation } from "./TabSection";
 export interface TabColumn {
   columnData: string[];
   sectionIndex: number;
+  subSectionIndex: number;
   columnIndex: number;
   editingPalmMuteNodes: boolean;
   setEditingPalmMuteNodes: Dispatch<SetStateAction<boolean>>;
@@ -22,8 +23,8 @@ export interface TabColumn {
 function TabColumn({
   columnData,
   sectionIndex,
+  subSectionIndex,
   columnIndex,
-
   editingPalmMuteNodes,
   setEditingPalmMuteNodes,
   lastModifiedPalmMuteNode,
@@ -46,6 +47,7 @@ function TabColumn({
         <TabMeasureLine
           columnData={columnData}
           sectionIndex={sectionIndex}
+          subSectionIndex={subSectionIndex}
           columnIndex={columnIndex}
           reorderingColumns={reorderingColumns}
           showingDeleteColumnsButtons={showingDeleteColumnsButtons}
@@ -53,8 +55,9 @@ function TabColumn({
       ) : (
         <TabNotesColumn
           sectionIndex={sectionIndex}
-          columnData={columnData}
+          subSectionIndex={subSectionIndex}
           columnIndex={columnIndex}
+          columnData={columnData}
           editingPalmMuteNodes={editingPalmMuteNodes}
           setEditingPalmMuteNodes={setEditingPalmMuteNodes}
           lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}

@@ -6,11 +6,18 @@ import { shallow } from "zustand/shallow";
 interface TabNote {
   note: string;
   sectionIndex: number;
+  subSectionIndex: number;
   columnIndex: number;
   noteIndex: number;
 }
 
-function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
+function TabNote({
+  note,
+  sectionIndex,
+  subSectionIndex,
+  columnIndex,
+  noteIndex,
+}: TabNote) {
   const { editing, tabData, setTabData } = useTabStore(
     (state) => ({
       editing: state.editing,
@@ -91,9 +98,13 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
 
     // v/d for downstrum and ^/u for upstrum
     if (e.key === "d" && noteIndex === 7) {
-      newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = "v";
+      newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex]![
+        noteIndex
+      ] = "v";
     } else if (e.key === "u" && noteIndex === 7) {
-      newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = "^";
+      newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex]![
+        noteIndex
+      ] = "^";
     }
 
     // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
@@ -101,7 +112,9 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
       e.preventDefault(); // prevent cursor from moving
 
       const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${columnIndex}-${noteIndex + 1}`
+        `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${
+          noteIndex + 1
+        }`
       );
 
       newNoteToFocus?.focus();
@@ -109,7 +122,9 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
       e.preventDefault(); // prevent cursor from moving
 
       const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${columnIndex}-${noteIndex - 1}`
+        `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${
+          noteIndex - 1
+        }`
       );
 
       newNoteToFocus?.focus();
@@ -117,12 +132,14 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
       e.preventDefault(); // prevent cursor from moving
 
       const adjColumnIndex =
-        tabData[sectionIndex]!.data[columnIndex - 1]?.[noteIndex] === "|"
+        tabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex - 1]?.[
+          noteIndex
+        ] === "|"
           ? columnIndex - 2
           : columnIndex - 1;
 
       const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${adjColumnIndex}-${noteIndex}`
+        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`
       );
 
       newNoteToFocus?.focus();
@@ -135,7 +152,7 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
           : columnIndex + 1;
 
       const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${adjColumnIndex}-${noteIndex}`
+        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`
       );
 
       newNoteToFocus?.focus();
@@ -199,10 +216,16 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
 
         if (ableToOverwrite) {
           const newTabData = [...tabData];
-          const palmMuteNode = newTabData[sectionIndex]!.data[columnIndex]![0];
-          const chordEffects = newTabData[sectionIndex]!.data[columnIndex]![7];
+          const palmMuteNode =
+            newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+              columnIndex
+            ]![0];
+          const chordEffects =
+            newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+              columnIndex
+            ]![7];
 
-          newTabData[sectionIndex]!.data[columnIndex] = [
+          newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex] = [
             palmMuteNode ?? "",
             ...chordArray.reverse(),
             chordEffects ?? "",
@@ -223,17 +246,23 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
       if (value === "|") {
         if (
           columnIndex === 0 ||
-          columnIndex === tabData[sectionIndex]!.data.length - 1 ||
-          tabData[sectionIndex]!.data[columnIndex - 1]?.[8] === "measureLine" ||
-          tabData[sectionIndex]!.data[columnIndex + 1]?.[8] === "measureLine"
+          columnIndex ===
+            tabData[sectionIndex]!.data[subSectionIndex]!.data.length - 1 ||
+          tabData[sectionIndex]!.data[subSectionIndex].data[
+            columnIndex - 1
+          ]?.[8] === "measureLine" ||
+          tabData[sectionIndex]!.data[subSectionIndex].data[
+            columnIndex + 1
+          ]?.[8] === "measureLine"
         ) {
           return;
         }
 
         const newTabData = [...tabData];
-        const palmMuteNode = newTabData[sectionIndex]!.data[columnIndex]![0];
+        const palmMuteNode =
+          newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex]![0];
 
-        newTabData[sectionIndex]!.data[columnIndex] = [
+        newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex] = [
           palmMuteNode ?? "",
           "|",
           "|",
@@ -260,7 +289,9 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
 
     const newTabData = [...tabData];
 
-    newTabData[sectionIndex]!.data[columnIndex]![noteIndex] = value;
+    newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex]![
+      noteIndex
+    ] = value;
 
     setTabData(newTabData);
   }
@@ -269,7 +300,7 @@ function TabNote({ note, sectionIndex, columnIndex, noteIndex }: TabNote) {
     <>
       {editing ? (
         <Input
-          id={`input-${sectionIndex}-${columnIndex}-${noteIndex}`}
+          id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`}
           style={{
             width: `${noteIndex !== 7 ? "2.35rem" : "1.75rem"}`,
             height: `${noteIndex !== 7 ? "2.35rem" : "1.75rem"}`,

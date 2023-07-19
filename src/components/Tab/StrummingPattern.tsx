@@ -29,7 +29,7 @@ interface StrummingPattern {
   index?: number; // index of strumming pattern in strummingPatterns array (used for editing pattern)
   location?: {
     sectionIndex: number;
-    groupIndex: number;
+    subSectionIndex: number;
     chordSequenceIndex: number;
   }; // location of strumming pattern in tabData array (used for editing chord sequence)
   editingPalmMuteNodes?: boolean;
@@ -244,13 +244,14 @@ function StrummingPattern({
   }
 
   function getChordName(beatIndex: number) {
-    const chordSection = tabData[location?.sectionIndex ?? 0];
+    const chordSection =
+      tabData[location?.sectionIndex ?? 0]?.data[
+        location?.subSectionIndex ?? 0
+      ];
 
     if (chordSection && chordSection.type === "chord") {
       const chord =
-        chordSection.data[location?.groupIndex ?? 0]?.data[
-          location?.chordSequenceIndex ?? 0
-        ]?.data[beatIndex];
+        chordSection.data[location?.chordSequenceIndex ?? 0]?.data[beatIndex];
       return chord ?? "";
     }
 
@@ -258,18 +259,22 @@ function StrummingPattern({
   }
 
   function handleChordChange(value: string, beatIndex: number) {
-    const chordSection = tabData[location?.sectionIndex ?? 0];
+    const chordSection =
+      tabData[location?.sectionIndex ?? 0]?.data[
+        location?.subSectionIndex ?? 0
+      ];
 
     if (chordSection && chordSection.type === "chord") {
       const newChordSection = { ...chordSection };
 
-      newChordSection.data[location?.groupIndex ?? 0]!.data[
-        location?.chordSequenceIndex ?? 0
-      ]!.data[beatIndex] = value;
+      newChordSection.data[location?.chordSequenceIndex ?? 0]!.data[beatIndex] =
+        value;
 
       const newTabData = [...tabData];
 
-      newTabData[location?.sectionIndex ?? 0] = newChordSection;
+      newTabData[location?.sectionIndex ?? 0]!.data[
+        location?.subSectionIndex ?? 0
+      ] = newChordSection;
 
       setTabData(newTabData);
     }
