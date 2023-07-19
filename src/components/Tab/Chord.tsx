@@ -188,9 +188,7 @@ function Chord({ chordThatIsBeingEdited, editing }: Chord) {
                     fret.length > 0 && !isFocused[index] ? "2px" : "1px"
                   }`,
                 }}
-                className={`h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center 
-                            ${fret.length > 0 ? "shadow-md" : "shadow-sm"}
-                          `}
+                className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm"
                 onFocus={() => {
                   setIsFocused((prev) => {
                     prev[index] = true;

@@ -154,12 +154,12 @@ function Tab({ tab, refetchTab }: ITab) {
 
         <Separator className="w-[96%]" />
 
-        <div className="baseVertFlex gap-2 md:flex-row-reverse">
+        <div className="baseFlex gap-8">
+          <SectionProgression />
+
           <div className="hidden md:block">
             <EffectGlossary />
           </div>
-
-          <SectionProgression />
         </div>
 
         <Chords />

@@ -147,7 +147,9 @@ function TabNote({
       e.preventDefault(); // prevent cursor from moving
 
       const adjColumnIndex =
-        tabData[sectionIndex]!.data[columnIndex + 1]?.[noteIndex] === "|"
+        tabData[sectionIndex]!.data[subSectionIndex].data[columnIndex + 1]?.[
+          noteIndex
+        ] === "|"
           ? columnIndex + 2
           : columnIndex + 1;
 
@@ -306,9 +308,7 @@ function TabNote({
             height: `${noteIndex !== 7 ? "2.35rem" : "1.75rem"}`,
             borderWidth: `${note.length > 0 && !isFocused ? "2px" : "1px"}`,
           }}
-          className={`rounded-full p-0 text-center 
-          ${note.length > 0 ? "shadow-md" : "shadow-sm"}
-          `}
+          className="rounded-full p-0 text-center shadow-sm"
           onFocus={() => {
             setIsFocused(true);
           }}

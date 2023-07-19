@@ -264,7 +264,7 @@ function StrummingPatternModal({
                   ? "0.375rem 0 0 0.375rem"
                   : "0.375rem",
               }}
-              className="h-9 px-3 md:h-10 md:px-4 md:py-2"
+              // className="transition-colors transition-opacity"
               onClick={toggleEditingPalmMuteNodes}
             >
               Edit palm mute sections
@@ -272,7 +272,7 @@ function StrummingPatternModal({
 
             {editingPalmMuteNodes && (
               <Button
-                className="h-9 rounded-l-none rounded-r-md px-3 md:h-10 md:px-4 md:py-2 "
+                className="rounded-l-none rounded-r-md"
                 onClick={toggleEditingPalmMuteNodes}
               >
                 x
@@ -289,7 +289,7 @@ function StrummingPatternModal({
                   ? "0.375rem 0 0 0.375rem"
                   : "0.375rem",
               }}
-              className="h-9 px-3 duration-0 md:h-10 md:px-4 md:py-2"
+              // className="transition-colors transition-opacity"
               onClick={() =>
                 setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
               }
@@ -300,7 +300,7 @@ function StrummingPatternModal({
             {showingDeleteStrumsButtons && (
               <Button
                 variant={"destructive"}
-                className="h-9 rounded-l-none rounded-r-md px-3 md:h-10 md:px-4 md:py-2"
+                className="rounded-l-none rounded-r-md"
                 onClick={() =>
                   setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
                 }

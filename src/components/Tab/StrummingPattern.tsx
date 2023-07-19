@@ -392,11 +392,7 @@ function StrummingPattern({
                           : "1px"
                       }`,
                     }}
-                    className={`h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center 
-                            ${
-                              strum.strum.length > 0 ? "shadow-md" : "shadow-sm"
-                            }
-                          `}
+                    className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm"
                     onFocus={() => {
                       setIsFocused((prev) => {
                         prev[strumIndex] = true;

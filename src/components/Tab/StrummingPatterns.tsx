@@ -164,7 +164,7 @@ function StrummingPatterns() {
             : "500px"
           : "300px",
       }}
-      className="baseVertFlex lightestGlassmorphic w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 shadow-sm md:px-8 md:py-4"
+      className="baseVertFlex lightestGlassmorphic w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 md:px-8 md:py-4"
     >
       <p className="text-xl font-bold">Strumming patterns</p>
       <div
