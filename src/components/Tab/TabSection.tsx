@@ -37,6 +37,7 @@ import { Separator } from "~/components/ui/separator";
 import { Label } from "~/components/ui/label";
 
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import MiscellaneousControls from "./MiscellaneousControls";
 
 export interface LastModifiedPalmMuteNodeLocation {
   columnIndex: number;
@@ -247,9 +248,9 @@ function TabSection({
       }}
       className="baseVertFlex lightestGlassmorphic relative h-full w-full !justify-start rounded-md"
     >
-      <div className="baseFlex w-full !items-start !justify-between">
-        <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
-          {editing ? (
+      {editing && (
+        <div className="baseFlex w-full !items-start">
+          <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
             <div className="baseFlex gap-2">
               <Label>Repetitions</Label>
               <Input
@@ -260,13 +261,7 @@ function TabSection({
                 onChange={handleRepetitionsChange}
               />
             </div>
-          ) : (
-            <p className="lightestGlassmorphic absolute -top-12 left-0 rounded-md p-2">
-              {subSectionData.repetitions}
-            </p>
-          )}
 
-          {editing && (
             <div className="baseVertFlex !items-start gap-2 lg:!flex-row">
               <div className="baseFlex">
                 <Button
@@ -278,7 +273,8 @@ function TabSection({
                   }}
                   // should you just manually add these styles to the button component?
                   // not sure of good usecases for having anything but small sized buttons at these viewports..
-                  className="h-9 px-3 md:h-10 md:px-4 md:py-2"
+
+                  // className="transition-colors transition-opacity"
                   onClick={toggleEditingPalmMuteNodes}
                 >
                   Edit palm mute sections
@@ -286,7 +282,7 @@ function TabSection({
 
                 {editingPalmMuteNodes && (
                   <Button
-                    className="h-9 rounded-l-none rounded-r-md px-3 md:h-10 md:px-4 md:py-2 "
+                    className="rounded-l-none rounded-r-md"
                     onClick={toggleEditingPalmMuteNodes}
                   >
                     x
@@ -302,7 +298,7 @@ function TabSection({
                       ? "0.375rem 0 0 0.375rem"
                       : "0.375rem",
                   }}
-                  className="h-9 px-3 duration-0 md:h-10 md:px-4 md:py-2"
+                  // className="transition-colors transition-opacity"
                   onClick={() => {
                     setReorderingColumns(!reorderingColumns);
                     setShowingDeleteColumnsButtons(false);
@@ -313,7 +309,7 @@ function TabSection({
 
                 {reorderingColumns && (
                   <Button
-                    className="h-9 rounded-l-none rounded-r-md px-3 md:h-10 md:px-4 md:py-2"
+                    className="rounded-l-none rounded-r-md"
                     onClick={() => {
                       setReorderingColumns(!reorderingColumns);
                       setShowingDeleteColumnsButtons(false);
@@ -333,7 +329,7 @@ function TabSection({
                       ? "0.375rem 0 0 0.375rem"
                       : "0.375rem",
                   }}
-                  className="h-9 px-3 duration-0 md:h-10 md:px-4 md:py-2"
+                  // className="transition-colors transition-opacity"
                   onClick={() => {
                     setShowingDeleteColumnsButtons(
                       !showingDeleteColumnsButtons
@@ -347,7 +343,7 @@ function TabSection({
                 {showingDeleteColumnsButtons && (
                   <Button
                     variant={"destructive"}
-                    className="h-9 rounded-l-none rounded-r-md px-3 md:h-10 md:px-4 md:py-2"
+                    className="rounded-l-none rounded-r-md"
                     onClick={() => {
                       setShowingDeleteColumnsButtons(
                         !showingDeleteColumnsButtons
@@ -360,65 +356,16 @@ function TabSection({
                 )}
               </div>
             </div>
-          )}
-        </div>
-
-        {/* TODO: replace with "..." component */}
-        {editing && (
-          <div className="baseVertFlex w-1/6 !justify-end gap-2 2xl:flex-row">
-            <Button
-              variant={"secondary"}
-              className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
-              disabled={sectionIndex === 0}
-              onClick={() => {
-                let newTabData = [...tabData];
-
-                newTabData = arrayMove(
-                  newTabData,
-                  sectionIndex,
-                  sectionIndex - 1
-                );
-
-                setTabData(newTabData);
-              }}
-            >
-              <BiUpArrowAlt className="h-5 w-5" />
-            </Button>
-            <Button
-              variant={"secondary"}
-              className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
-              disabled={sectionIndex === tabData.length - 1}
-              onClick={() => {
-                let newTabData = [...tabData];
-
-                newTabData = arrayMove(
-                  newTabData,
-                  sectionIndex,
-                  sectionIndex + 1
-                );
-
-                setTabData(newTabData);
-              }}
-            >
-              <BiDownArrowAlt className="h-5 w-5" />
-            </Button>
-            <Button
-              variant={"destructive"}
-              className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
-              disabled={tabData.length === 1} // maybe allow this later, but currently messes up ui
-              onClick={() => {
-                const newTabData = [...tabData];
-
-                newTabData.splice(sectionIndex, 1);
-
-                setTabData(newTabData);
-              }}
-            >
-              <IoClose className="h-5 w-5" />
-            </Button>
           </div>
-        )}
-      </div>
+          <MiscellaneousControls type={"section"} sectionIndex={sectionIndex} />
+        </div>
+      )}
+
+      {!editing && (
+        <p className="lightestGlassmorphic absolute -top-12 left-0 rounded-md p-2">
+          {subSectionData.repetitions}
+        </p>
+      )}
 
       {/* try to use framer motion to animate sections sliding up/down to their new positions
         (this would mean both sections would need to slide for each click of "up"/"down" ) */}
@@ -497,7 +444,7 @@ function TabSection({
         ></div>
       </div>
 
-      {editing && <Button onClick={addNewColumns}>Extend section</Button>}
+      {editing && <Button onClick={addNewColumns}>Extend tab</Button>}
     </motion.div>
   );
 }

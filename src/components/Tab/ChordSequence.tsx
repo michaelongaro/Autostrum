@@ -21,6 +21,7 @@ import StrummingPattern from "./StrummingPattern";
 import { Label } from "../ui/label";
 import { type ChordSequence as ChordSequenceData } from "~/stores/TabStore";
 import { Input } from "../ui/input";
+import MiscellaneousControls from "./MiscellaneousControls";
 
 export interface ChordSequence {
   sectionIndex: number;
@@ -76,81 +77,36 @@ function ChordSequence({
   }
 
   return (
-    <div className="baseVertFlex lightestGlassmorphic relative w-full gap-2 p-1">
-      <div className="baseFlex w-full !justify-between">
-        {editing ? (
-          <div className="baseFlex gap-2">
-            <Label>Repetitions</Label>
-            <Input
-              type="text"
-              className="w-12"
-              placeholder="1"
-              value={chordSequenceData.repetitions.toString()}
-              onChange={handleRepetitionsChange}
-            />
+    <div className="baseVertFlex chordSectionGlassmorphic relative gap-2 rounded-md p-4">
+      {editing && (
+        <div className="baseFlex w-full !items-start">
+          <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
+            <div className="baseFlex gap-2">
+              <Label>Repetitions</Label>
+              <Input
+                type="text"
+                className="w-12"
+                placeholder="1"
+                value={chordSequenceData.repetitions.toString()}
+                onChange={handleRepetitionsChange}
+              />
+            </div>
           </div>
-        ) : (
-          <p className="lightestGlassmorphic absolute -top-12 left-0 rounded-md p-2">
-            {chordSequenceData.repetitions}
-          </p>
-        )}
 
-        {/* these need to be updated to only change the strummingSection indicies */}
-        {editing && (
-          <div className="baseVertFlex w-1/6 !justify-end gap-2 2xl:flex-row">
-            <Button
-              variant={"secondary"}
-              className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
-              disabled={sectionIndex === 0}
-              onClick={() => {
-                let newTabData = [...tabData];
+          <MiscellaneousControls
+            type={"chordSequence"}
+            sectionIndex={sectionIndex}
+            subSectionIndex={subSectionIndex}
+            chordSequenceIndex={chordSequenceIndex}
+          />
+        </div>
+      )}
 
-                newTabData = arrayMove(
-                  newTabData,
-                  sectionIndex,
-                  sectionIndex - 1
-                );
-
-                setTabData(newTabData);
-              }}
-            >
-              <BiUpArrowAlt className="h-5 w-5" />
-            </Button>
-            <Button
-              variant={"secondary"}
-              className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
-              disabled={sectionIndex === tabData.length - 1}
-              onClick={() => {
-                let newTabData = [...tabData];
-
-                newTabData = arrayMove(
-                  newTabData,
-                  sectionIndex,
-                  sectionIndex + 1
-                );
-
-                setTabData(newTabData);
-              }}
-            >
-              <BiDownArrowAlt className="h-5 w-5" />
-            </Button>
-            <Button
-              variant={"destructive"}
-              className="h-9 rounded-md px-3 md:h-10 md:px-4 md:py-2"
-              disabled={tabData.length === 1} // maybe allow this later, but currently messes up ui
-              onClick={() => {
-                const newTabData = [...tabData];
-
-                newTabData.splice(sectionIndex, 1);
-
-                setTabData(newTabData);
-              }}
-            >
-              <IoClose className="h-5 w-5" />
-            </Button>
-          </div>
-        )}
-      </div>
+      {!editing && (
+        <p className="lightestGlassmorphic absolute -top-12 left-0 rounded-md p-2">
+          {chordSequenceData.repetitions}
+        </p>
+      )}
 
       <StrummingPattern
         // @ts-expect-error should totally have "pattern" field

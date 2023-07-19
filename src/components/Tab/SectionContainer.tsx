@@ -13,6 +13,7 @@ import { Button } from "~/components/ui/button";
 import ChordSection from "./ChordSection";
 import { Separator } from "../ui/separator";
 import MiscellaneousControls from "./MiscellaneousControls";
+import { Label } from "@radix-ui/react-label";
 
 interface SectionContainer {
   sectionIndex: number;
@@ -113,19 +114,26 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
   }
 
   return (
-    // lightestGlassmorphic rounded-md should conditionally (viewing only) go on <TabSection /> and <ChordSection /> topmost parent divs
-    <div className="baseVertFlex w-full gap-2 px-7 ">
-      {editing ? (
-        <div className="baseFlex w-full !justify-between">
-          <Input
-            value={tabData[sectionIndex]?.title}
-            placeholder="Section title"
-            onChange={updateSectionTitle}
-            className="max-w-[12rem] text-lg font-semibold"
-          />
+    <div className="baseVertFlex w-full gap-2 px-7">
+      {editing && (
+        <div className="baseFlex w-full !items-start">
+          <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
+            <div className="baseFlex gap-2">
+              <Label className="text-lg font-semibold">Title</Label>
+              <Input
+                value={tabData[sectionIndex]?.title}
+                placeholder="Section title"
+                onChange={updateSectionTitle}
+                className="max-w-[10rem] font-semibold sm:max-w-[12rem]"
+              />
+            </div>
+          </div>
+
           <MiscellaneousControls type={"section"} sectionIndex={sectionIndex} />
         </div>
-      ) : (
+      )}
+
+      {!editing && (
         <div className="baseFlex !justify-start gap-2">
           <p className="text-lg font-semibold">
             {tabData[sectionIndex]?.title}
@@ -135,7 +143,7 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
       )}
 
       {/* map over tab/chord subSections */}
-      <div className="baseVertFlex w-full gap-2">
+      <div className="baseVertFlex w-full gap-4">
         {subSectionData.data.map((subSection, index) => (
           <Fragment key={index}>
             {subSection.type === "chord" ? (
