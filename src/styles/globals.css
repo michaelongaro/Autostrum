@@ -10,20 +10,28 @@
   @apply flex flex-col items-center justify-center flex-wrap;
 }
 
+/* TODO: not sure how to do the shadows.. md feels too overbearing and sm seems too small
+    maybe create a custom tailwind value in between the two? or actually just make
+    sm a tiny bit larger/more pronounced? */
+
+.chordSectionGlassmorphic {
+  @apply bg-pink-100 bg-opacity-20 backdrop-blur-sm backdrop-filter shadow-sm;
+}
+
 .lightestGlassmorphic {
-  @apply bg-pink-200 bg-opacity-[0.01] backdrop-blur-sm backdrop-filter;
+  @apply bg-pink-500 bg-opacity-40 backdrop-blur-sm backdrop-filter shadow-sm;
 }
 
 .lightGlassmorphic {
-  @apply bg-pink-200 bg-opacity-20 backdrop-blur-sm backdrop-filter;
+  @apply bg-pink-200 bg-opacity-20 backdrop-blur-sm backdrop-filter shadow-sm;
 }
 
 .heavyGlassmorphic {
-  @apply bg-pink-100 bg-opacity-30 backdrop-blur-lg backdrop-filter;
+  @apply bg-pink-100 bg-opacity-30 backdrop-blur-lg backdrop-filter shadow-sm;
 }
 
 .mobileNavbarGlassmorphic {
-  @apply bg-pink-400 bg-opacity-95 backdrop-blur-xl backdrop-filter;
+  @apply bg-pink-400 bg-opacity-95 backdrop-blur-xl backdrop-filter shadow-sm;
 }
 
 @layer base {
