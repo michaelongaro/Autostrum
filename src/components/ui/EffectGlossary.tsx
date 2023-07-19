@@ -7,18 +7,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./dropdownMenu";
+} from "~/components/ui/dropdown-menu";
+import { Button } from "~/components/ui/button";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 interface EffectGlossary {
   forModal?: boolean;
-}
-
-interface Styles {
-  padding: string;
-  width: string;
-  height: string;
-  border?: string;
 }
 
 function EffectGlossary({ forModal = false }: EffectGlossary) {
@@ -32,16 +26,6 @@ function EffectGlossary({ forModal = false }: EffectGlossary) {
     shallow
   );
 
-  const style: Styles = {
-    padding: forModal ? "0" : "0.5rem 1rem",
-    width: forModal ? "0" : "auto",
-    height: forModal ? "0" : "2.5rem",
-  };
-
-  if (forModal) {
-    style.border = "none";
-  }
-
   return (
     <DropdownMenu
       onOpenChange={(open) => {
@@ -50,23 +34,18 @@ function EffectGlossary({ forModal = false }: EffectGlossary) {
       modal={false}
       open={forModal ? true : showingEffectGlossary}
     >
-      <DropdownMenuTrigger
-        // not ideal, I feel like you can change source code to make DropdownMenuTrigger return a div
-        // instead of a button. This was getting angry that there was a button within a button hydration-wise
-        style={style}
-        className="baseFlex lightGlassmorphic active:ring-offset-background~ ml-8 inline-flex h-10 items-center justify-center gap-4 rounded-md border-2 px-4 py-2 text-sm font-medium text-secondary-foreground ring-offset-background transition-all hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:ring-0 active:ring-offset-0 active:brightness-75 disabled:pointer-events-none disabled:opacity-50"
-      >
-        {!forModal && (
-          <>
+      <DropdownMenuTrigger asChild>
+        {!forModal ? (
+          <Button variant={"secondary"} className="baseFlex gap-2">
             Effect glossary
             <span className="w-2">{showingEffectGlossary ? "-" : "+"}</span>
-          </>
+          </Button>
+        ) : (
+          // just a placeholder anchor for the content to attach to
+          <div></div>
         )}
       </DropdownMenuTrigger>
 
-      {/* doesn't look cohesive when below styles are present, any other solution besides changing
-          all other dropdown-esque ui components to match this? */}
-      {/* className="heavyGlassmorphic text-pink-900" */}
       <DropdownMenuContent side={aboveMediumViewportWidth ? "right" : "bottom"}>
         <DropdownMenuLabel>Section effects</DropdownMenuLabel>
         <DropdownMenuSeparator />

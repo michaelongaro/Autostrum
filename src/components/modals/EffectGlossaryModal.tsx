@@ -37,9 +37,7 @@ function EffectGlossaryModal() {
       <div
         ref={innerModalRef}
         style={{
-          height: "485px", // height of EffectGlossary
-          // not sure why we need this... but it wasn't centered horizontally automatically
-          width: "60px",
+          height: "590px",
         }}
       >
         <EffectGlossary forModal />
