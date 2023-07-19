@@ -56,7 +56,7 @@ export interface Section {
 }
 
 interface CopiedData {
-  type: "section" | "tab" | "chord";
+  type: "section" | "tab" | "chord" | "chordSequence";
   data: Section | TabSection | ChordSection | ChordSequence;
 }
 
@@ -104,6 +104,9 @@ interface TabState {
   setSectionProgression: (sectionProgresstion: SectionProgression[]) => void;
   showingEffectGlossary: boolean;
   setShowingEffectGlossary: (showingEffectGlossary: boolean) => void;
+
+  currentlyCopiedData: CopiedData | null;
+  setCurrentlyCopiedData: (currentlyCopiedData: CopiedData | null) => void;
 
   // used in <TabSection />
   modifyPalmMuteDashes: (
@@ -218,6 +221,10 @@ export const useTabStore = create<TabState>()(
     showingEffectGlossary: false,
     setShowingEffectGlossary: (showingEffectGlossary) =>
       set({ showingEffectGlossary }),
+
+    currentlyCopiedData: null,
+    setCurrentlyCopiedData: (currentlyCopiedData) =>
+      set({ currentlyCopiedData }),
 
     // used in <TabSection />
 
