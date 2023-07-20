@@ -36,7 +36,7 @@ function SectionProgression() {
       className="lightestGlassmorphic baseVertFlex mb-4 mt-4 max-w-[75%]
         gap-4 rounded-md p-4 md:m-0 md:!items-start"
     >
-      <p className="text-lg font-semibold text-pink-50">
+      <p className="text-lg font-bold text-pink-50">
         {sectionProgression.length === 0
           ? "No section progression specified"
           : "Section progression"}

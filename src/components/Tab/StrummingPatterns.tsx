@@ -166,7 +166,7 @@ function StrummingPatterns() {
       }}
       className="baseVertFlex lightestGlassmorphic w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 md:px-8 md:py-4"
     >
-      <p className="text-xl font-bold">Strumming patterns</p>
+      <p className="text-lg font-bold">Strumming patterns</p>
       <div
         className={`baseFlex ${
           // just to get around inherent flexbox space that is taken up by children

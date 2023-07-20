@@ -101,7 +101,7 @@ function Chords() {
       }}
       className="baseVertFlex lightestGlassmorphic w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 md:px-8 md:py-4"
     >
-      <p className="text-xl font-bold">Chords</p>
+      <p className="text-lg font-bold">Chords</p>
       <div className="baseFlex gap-4">
         {chords.map((chord, index) => (
           <div
