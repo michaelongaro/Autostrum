@@ -1,44 +1,45 @@
-import { useState, useMemo, useRef, type CSSProperties } from "react";
-import { type SectionProgression, useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
-import { AnimatePresence, motion } from "framer-motion";
-import { IoClose } from "react-icons/io5";
-import { FaTrashAlt } from "react-icons/fa";
-import { Button } from "../ui/button";
-
 import {
   DndContext,
-  closestCenter,
   KeyboardSensor,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import {
   restrictToFirstScrollableAncestor,
   restrictToVerticalAxis,
 } from "@dnd-kit/modifiers";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { AnimatePresence, motion } from "framer-motion";
+import { cloneDeep } from "lodash";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuid } from "uuid";
+import { shallow } from "zustand/shallow";
+import { useTabStore, type SectionProgression } from "~/stores/TabStore";
+import { Button } from "../ui/button";
 
 import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import isEqual from "lodash.isequal";
 import { RxDragHandleDots2 } from "react-icons/rx";
-import { Select } from "../ui/select";
-import { SelectTrigger } from "../ui/select";
-import { SelectValue } from "../ui/select";
-import { SelectContent } from "../ui/select";
-import { SelectGroup } from "../ui/select";
-import { SelectLabel } from "../ui/select";
-import { SelectItem } from "../ui/select";
-import { Input } from "../ui/input";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { Input } from "../ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 const backdropVariants = {
   expanded: {
@@ -63,20 +64,24 @@ const sectionVariants = {
 function SectionProgressionModal() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
+  const [localSectionProgression, setLocalSectionProgression] = useState<
+    SectionProgression[]
+  >([]);
+
   const scrollableSectionsRef = useRef<HTMLDivElement>(null);
 
-  const modalVariants = {
-    expanded: {
-      width: "90vw",
-      maxWidth: 600,
-      height: aboveMediumViewportWidth ? "600px" : "75vh",
-      opacity: 1,
-    },
-    closed: {
-      width: 0,
-      opacity: 0,
-    },
-  };
+  // const modalVariants = {
+  //   expanded: {
+  //     width: "90vw",
+  //     maxWidth: 600,
+  //     height: aboveMediumViewportWidth ? "600px" : "75vh",
+  //     opacity: 1,
+  //   },
+  //   closed: {
+  //     width: 0,
+  //     opacity: 0,
+  //   },
+  // };
 
   const {
     editing,
@@ -95,6 +100,10 @@ function SectionProgressionModal() {
     shallow
   );
 
+  useEffect(() => {
+    setLocalSectionProgression(cloneDeep(sectionProgression));
+  }, [sectionProgression]);
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -107,15 +116,15 @@ function SectionProgressionModal() {
   }, [tabData]);
 
   const sectionIds = useMemo(() => {
-    return sectionProgression.map((section) => section.id);
-  }, [sectionProgression]);
+    return localSectionProgression.map((section) => section.id);
+  }, [localSectionProgression]);
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
 
     if (over === null) return;
 
-    let newSectionProgression = [...sectionProgression];
+    let newSectionProgression = [...localSectionProgression];
 
     if (
       typeof active.id === "string" &&
@@ -135,18 +144,18 @@ function SectionProgressionModal() {
         endIndex
       );
 
-      setSectionProgression(newSectionProgression);
+      setLocalSectionProgression(newSectionProgression);
     }
   }
 
   function addNewSectionToProgression() {
-    const newSectionProgression = [...sectionProgression];
+    const newSectionProgression = [...localSectionProgression];
     newSectionProgression.push({
       id: uuid(),
       title: "",
       repetitions: 1,
     });
-    setSectionProgression(newSectionProgression);
+    setLocalSectionProgression(newSectionProgression);
 
     // making sure the new section is rendered before scrolling to
     // the bottom of the sections list
@@ -166,7 +175,7 @@ function SectionProgressionModal() {
   }
 
   function pruneAndSanitizeSectionProgression() {
-    const newSectionProgression = [...sectionProgression];
+    const newSectionProgression = [...localSectionProgression];
     const prunedSectionProgression = [];
 
     for (const section of newSectionProgression) {
@@ -188,33 +197,19 @@ function SectionProgressionModal() {
       initial="closed"
       animate="expanded"
       exit="closed"
-      onClick={closeModal}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          setShowSectionProgressionModal(false);
+        }
+      }}
     >
-      <motion.div
-        key={"innerSectionProgressionModal"}
-        className="absolute rounded-md bg-pink-300 p-4 opacity-100 shadow-lg"
-        variants={modalVariants}
-        initial="closed"
-        animate="expanded"
-        exit="closed"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Button
-          variant={"secondary"}
-          size={aboveMediumViewportWidth ? "default" : "sm"}
-          className="absolute right-2 top-2"
-          onClick={closeModal}
-        >
-          <IoClose className="h-5 w-5" />
-        </Button>
-        <div className="baseVertFlex !justify-start  gap-4 ">
-          <div className="mb-4 text-xl font-semibold text-pink-800 ">
-            Section progression
-          </div>
+      <div className="min-h-[25rem] min-w-[25rem] rounded-md bg-pink-400 p-2 shadow-sm md:p-4">
+        <div className="baseVertFlex h-full w-full gap-8">
+          <div className="text-xl font-semibold ">Section progression</div>
 
           <div
             ref={scrollableSectionsRef}
-            className="baseVertFlex max-h-[55vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[450px] md:w-3/4 md:pl-10"
+            className="baseVertFlex max-h-[70vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[70vh] md:w-3/4 md:pl-10"
           >
             <DndContext
               sensors={sensors}
@@ -229,10 +224,10 @@ function SectionProgressionModal() {
                 items={sectionIds}
                 strategy={verticalListSortingStrategy}
               >
-                {sectionProgression.length > 0 ? (
+                {localSectionProgression.length > 0 ? (
                   <AnimatePresence mode="wait">
                     <>
-                      {sectionProgression.map((section, index) => (
+                      {localSectionProgression.map((section, index) => (
                         <Section
                           key={section.id}
                           id={section.id}
@@ -240,6 +235,10 @@ function SectionProgressionModal() {
                           title={section.title}
                           repetitions={section.repetitions}
                           titles={sectionTitles}
+                          localSectionProgression={localSectionProgression}
+                          setLocalSectionProgression={
+                            setLocalSectionProgression
+                          }
                         />
                       ))}
                     </>
@@ -253,7 +252,7 @@ function SectionProgressionModal() {
             </DndContext>
           </div>
 
-          {sectionProgression.length > 0 && (
+          {localSectionProgression.length > 0 && (
             <Button
               className="rounded-full p-4"
               onClick={addNewSectionToProgression}
@@ -261,8 +260,27 @@ function SectionProgressionModal() {
               +
             </Button>
           )}
+
+          <div className="baseFlex gap-2">
+            <Button
+              variant={"secondary"}
+              onClick={() => setShowSectionProgressionModal(false)}
+            >
+              Close
+            </Button>
+
+            <Button
+              disabled={
+                localSectionProgression.length === 0 ||
+                isEqual(localSectionProgression, sectionProgression)
+              }
+              onClick={closeModal}
+            >
+              Save
+            </Button>
+          </div>
         </div>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }
@@ -283,28 +301,23 @@ interface Section {
   title: string;
   repetitions: number;
   index: number;
+  localSectionProgression: SectionProgression[];
+  setLocalSectionProgression: React.Dispatch<
+    React.SetStateAction<SectionProgression[]>
+  >;
 }
 
-function Section({ id, title, repetitions, index, titles }: Section) {
+function Section({
+  id,
+  title,
+  repetitions,
+  index,
+  titles,
+  localSectionProgression,
+  setLocalSectionProgression,
+}: Section) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
-
-  const {
-    editing,
-    tabData,
-    sectionProgression,
-    setSectionProgression,
-    setShowSectionProgressionModal,
-  } = useTabStore(
-    (state) => ({
-      editing: state.editing,
-      tabData: state.tabData,
-      sectionProgression: state.sectionProgression,
-      setSectionProgression: state.setSectionProgression,
-      setShowSectionProgressionModal: state.setShowSectionProgressionModal,
-    }),
-    shallow
-  );
 
   const {
     attributes,
@@ -316,46 +329,30 @@ function Section({ id, title, repetitions, index, titles }: Section) {
     isDragging,
   } = useSortable({ id, transition: null });
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key !== "Backspace") return;
-
-    e.preventDefault();
-
-    const newSectionProgression = [...sectionProgression];
-    const prevValue = newSectionProgression[index]!.repetitions;
-
-    // changes number to string for easier manipulation; removes the last digit
-    let stringifiedPrevValue = prevValue.toString();
-    if (stringifiedPrevValue === "-1") return;
-    stringifiedPrevValue = stringifiedPrevValue.slice(0, -1);
-
-    newSectionProgression[index]!.repetitions =
-      stringifiedPrevValue.length === 0 ? -1 : parseInt(stringifiedPrevValue);
-
-    setSectionProgression(newSectionProgression);
+  function handleSectionChange(value: string) {
+    const newSectionProgression = [...localSectionProgression];
+    newSectionProgression[index]!.title = value;
+    setLocalSectionProgression(newSectionProgression);
   }
 
-  function handleChange(value: string, type: "title" | "repetitions") {
-    const sanitizedValue = parseInt(value);
-    if (type === "repetitions") {
-      if (
-        sanitizedValue < 0 ||
-        sanitizedValue > 99 ||
-        Number.isNaN(sanitizedValue)
-      )
-        return;
+  function handleRepetitionChange(e: React.ChangeEvent<HTMLInputElement>) {
+    let sanitizedValue = -1;
+
+    if (e.target.value.length !== 0) {
+      const regex = /^[1-9][0-9]?$/;
+      if (!regex.test(e.target.value)) return;
+      sanitizedValue = parseInt(e.target.value);
     }
 
-    const newSectionProgression = [...sectionProgression];
-    if (type === "title") newSectionProgression[index]!.title = value;
-    else newSectionProgression[index]!.repetitions = sanitizedValue;
-    setSectionProgression(newSectionProgression);
+    const newSectionProgression = [...localSectionProgression];
+    newSectionProgression[index]!.repetitions = sanitizedValue;
+    setLocalSectionProgression(newSectionProgression);
   }
 
   function deleteSection() {
-    const newSectionProgression = [...sectionProgression];
+    const newSectionProgression = [...localSectionProgression];
     newSectionProgression.splice(index, 1);
-    setSectionProgression(newSectionProgression);
+    setLocalSectionProgression(newSectionProgression);
   }
 
   return (
@@ -422,7 +419,7 @@ function Section({ id, title, repetitions, index, titles }: Section) {
       <div className="baseFlex w-full gap-4 rounded-md bg-pink-500 p-4 px-8 sm:px-4 md:w-fit ">
         <Select
           value={title === "" ? undefined : title}
-          onValueChange={(value) => handleChange(value, "title")}
+          onValueChange={(value) => handleSectionChange(value)}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select a section" />
@@ -445,13 +442,12 @@ function Section({ id, title, repetitions, index, titles }: Section) {
         <div className="baseFlex gap-2">
           x
           <Input
-            className="max-w-[3rem]"
+            className="max-w-[2.6rem]"
             type="text"
             autoComplete="off"
             placeholder="1"
             value={repetitions === -1 ? "" : repetitions}
-            onKeyDown={handleKeyDown}
-            onChange={(e) => handleChange(e.target.value, "repetitions")}
+            onChange={handleRepetitionChange}
           />
         </div>
 
