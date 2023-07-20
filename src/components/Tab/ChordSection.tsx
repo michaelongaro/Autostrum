@@ -51,7 +51,7 @@ function ChordSection({
     editing,
     strummingPatterns,
     setStrummingPatterns,
-    setStrummingPatternThatIsBeingEdited,
+    setStrummingPatternBeingEdited,
     tabData,
     setTabData,
   } = useTabStore(
@@ -59,8 +59,7 @@ function ChordSection({
       editing: state.editing,
       strummingPatterns: state.strummingPatterns,
       setStrummingPatterns: state.setStrummingPatterns,
-      setStrummingPatternThatIsBeingEdited:
-        state.setStrummingPatternThatIsBeingEdited,
+      setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
       tabData: state.tabData,
       setTabData: state.setTabData,
     }),
@@ -188,7 +187,7 @@ function ChordSection({
           <p className="text-lg font-semibold">No strumming patterns exist</p>
           <Button
             onClick={() => {
-              setStrummingPatternThatIsBeingEdited({
+              setStrummingPatternBeingEdited({
                 index: strummingPatterns.length,
                 value: {
                   noteLength: "1/8th",

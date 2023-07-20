@@ -56,14 +56,13 @@ function StrummingPattern({
   // whenever adding more strums or deleting strums, immediately edit the isFocused array
   // to either add new false values or delete the strum that was deleted!
 
-  const { chords, tabData, setTabData, setStrummingPatternThatIsBeingEdited } =
+  const { chords, tabData, setTabData, setStrummingPatternBeingEdited } =
     useTabStore(
       (state) => ({
         chords: state.chords,
         tabData: state.tabData,
         setTabData: state.setTabData,
-        setStrummingPatternThatIsBeingEdited:
-          state.setStrummingPatternThatIsBeingEdited,
+        setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
       }),
       shallow
     );
@@ -125,7 +124,7 @@ function StrummingPattern({
       newNoteToFocus?.focus();
     }
 
-    setStrummingPatternThatIsBeingEdited({
+    setStrummingPatternBeingEdited({
       index,
       value: { ...newStrummingPattern }, // I am pretty sure this or the one below is the problem
       // but I don't know why it isn't a separate memory reference... prob chatgpt tbh
@@ -164,7 +163,7 @@ function StrummingPattern({
       strum: value as "" | "v" | "^" | "s" | "v>" | "^>" | "s>",
     };
 
-    setStrummingPatternThatIsBeingEdited({
+    setStrummingPatternBeingEdited({
       index,
       value: newStrummingPattern,
     });
@@ -218,7 +217,7 @@ function StrummingPattern({
       });
     }
 
-    setStrummingPatternThatIsBeingEdited({
+    setStrummingPatternBeingEdited({
       index,
       value: newStrummingPattern,
     });
@@ -229,7 +228,7 @@ function StrummingPattern({
 
     newStrummingPattern.strums.splice(beatIndex, 1);
 
-    setStrummingPatternThatIsBeingEdited({
+    setStrummingPatternBeingEdited({
       index,
       value: newStrummingPattern,
     });
@@ -311,7 +310,7 @@ function StrummingPattern({
                 <StrummingPatternPalmMuteNode
                   value={strum.palmMute}
                   beatIndex={strumIndex}
-                  strummingPatternThatIsBeingEdited={{
+                  strummingPatternBeingEdited={{
                     index,
                     value: data,
                   }}

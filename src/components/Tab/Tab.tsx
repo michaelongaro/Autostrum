@@ -62,8 +62,8 @@ function Tab({ tab, refetchTab }: ITab) {
     showSectionProgressionModal,
     showEffectGlossaryModal,
     setShowEffectGlossaryModal,
-    chordThatIsBeingEdited,
-    strummingPatternThatIsBeingEdited,
+    chordBeingEdited,
+    strummingPatternBeingEdited,
   } = useTabStore(
     (state) => ({
       setId: state.setId,
@@ -87,9 +87,8 @@ function Tab({ tab, refetchTab }: ITab) {
       showSectionProgressionModal: state.showSectionProgressionModal,
       showEffectGlossaryModal: state.showEffectGlossaryModal,
       setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
-      chordThatIsBeingEdited: state.chordThatIsBeingEdited,
-      strummingPatternThatIsBeingEdited:
-        state.strummingPatternThatIsBeingEdited,
+      chordBeingEdited: state.chordBeingEdited,
+      strummingPatternBeingEdited: state.strummingPatternBeingEdited,
     }),
     shallow
   );
@@ -205,18 +204,14 @@ function Tab({ tab, refetchTab }: ITab) {
       {/* add/edit chord modal here */}
 
       <AnimatePresence mode="wait">
-        {chordThatIsBeingEdited && (
-          <ChordModal chordThatIsBeingEdited={chordThatIsBeingEdited} />
-        )}
+        {chordBeingEdited && <ChordModal chordBeingEdited={chordBeingEdited} />}
       </AnimatePresence>
 
       {/* add/edit strumming pattern modal here */}
       <AnimatePresence mode="wait">
-        {strummingPatternThatIsBeingEdited && (
+        {strummingPatternBeingEdited && (
           <StrummingPatternModal
-            strummingPatternThatIsBeingEdited={
-              strummingPatternThatIsBeingEdited
-            }
+            strummingPatternBeingEdited={strummingPatternBeingEdited}
           />
         )}
       </AnimatePresence>

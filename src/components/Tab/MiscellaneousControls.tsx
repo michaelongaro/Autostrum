@@ -42,7 +42,7 @@ function MiscellaneousControls({
   const {
     chords,
     setChords,
-    setChordThatIsBeingEdited,
+    setChordBeingEdited,
     tabData,
     setTabData,
     currentlyCopiedData,
@@ -51,7 +51,7 @@ function MiscellaneousControls({
     (state) => ({
       chords: state.chords,
       setChords: state.setChords,
-      setChordThatIsBeingEdited: state.setChordThatIsBeingEdited,
+      setChordBeingEdited: state.setChordBeingEdited,
       tabData: state.tabData,
       setTabData: state.setTabData,
       currentlyCopiedData: state.currentlyCopiedData,

@@ -121,12 +121,12 @@ interface TabState {
 
   // used in <StrummingPatternModal />
   modifyStrummingPatternPalmMuteDashes: (
-    strummingPatternThatIsBeingEdited: {
+    strummingPatternBeingEdited: {
       index: number;
       value: StrummingPattern;
     },
-    setStrummingPatternThatIsBeingEdited: (
-      strummingPatternThatIsBeingEdited: {
+    setStrummingPatternBeingEdited: (
+      strummingPatternBeingEdited: {
         index: number;
         value: StrummingPattern;
       } | null
@@ -145,22 +145,22 @@ interface TabState {
   setShowEffectGlossaryModal: (showEffectGlossaryModal: boolean) => void;
 
   // below are also used to determine if respective modal should be showing
-  chordThatIsBeingEdited: {
+  chordBeingEdited: {
     index: number;
     value: Chord;
   } | null;
-  setChordThatIsBeingEdited: (
-    chordThatIsBeingEdited: {
+  setChordBeingEdited: (
+    chordBeingEdited: {
       index: number;
       value: Chord;
     } | null
   ) => void;
-  strummingPatternThatIsBeingEdited: {
+  strummingPatternBeingEdited: {
     index: number;
     value: StrummingPattern;
   } | null;
-  setStrummingPatternThatIsBeingEdited: (
-    strummingPatternThatIsBeingEdited: {
+  setStrummingPatternBeingEdited: (
+    strummingPatternBeingEdited: {
       index: number;
       value: StrummingPattern;
     } | null
@@ -294,15 +294,15 @@ export const useTabStore = create<TabState>()(
     },
 
     modifyStrummingPatternPalmMuteDashes: (
-      strummingPatternThatIsBeingEdited,
-      setStrummingPatternThatIsBeingEdited,
+      strummingPatternBeingEdited,
+      setStrummingPatternBeingEdited,
       startColumnIndex,
       prevValue,
       pairNodeValue
     ) => {
       // technically could just use tabData/setter from the store right?
       let finishedModification = false;
-      const newStrummingPattern = { ...strummingPatternThatIsBeingEdited };
+      const newStrummingPattern = { ...strummingPatternBeingEdited };
       let currentColumnIndex = startColumnIndex;
 
       while (!finishedModification) {
@@ -345,7 +345,7 @@ export const useTabStore = create<TabState>()(
         }
       }
 
-      setStrummingPatternThatIsBeingEdited(newStrummingPattern);
+      setStrummingPatternBeingEdited(newStrummingPattern);
     },
 
     // modals
@@ -357,12 +357,11 @@ export const useTabStore = create<TabState>()(
       set({ showEffectGlossaryModal }),
 
     // below are also used to determine if respective modal should be showing
-    chordThatIsBeingEdited: null,
-    setChordThatIsBeingEdited: (chordThatIsBeingEdited) =>
-      set({ chordThatIsBeingEdited }),
-    strummingPatternThatIsBeingEdited: null,
-    setStrummingPatternThatIsBeingEdited: (strummingPatternThatIsBeingEdited) =>
-      set({ strummingPatternThatIsBeingEdited }),
+    chordBeingEdited: null,
+    setChordBeingEdited: (chordBeingEdited) => set({ chordBeingEdited }),
+    strummingPatternBeingEdited: null,
+    setStrummingPatternBeingEdited: (strummingPatternBeingEdited) =>
+      set({ strummingPatternBeingEdited }),
 
     // search
     searchResultsCount: 0,

@@ -19,7 +19,7 @@ function Chords() {
   const {
     chords,
     setChords,
-    setChordThatIsBeingEdited,
+    setChordBeingEdited,
     tabData,
     setTabData,
     editing,
@@ -27,7 +27,7 @@ function Chords() {
     (state) => ({
       chords: state.chords,
       setChords: state.setChords,
-      setChordThatIsBeingEdited: state.setChordThatIsBeingEdited,
+      setChordBeingEdited: state.setChordBeingEdited,
       tabData: state.tabData,
       setTabData: state.setTabData,
       editing: state.editing,
@@ -126,7 +126,7 @@ function Chords() {
                     size={"sm"}
                     className="baseFlex h-8 w-1/2 gap-2 rounded-r-none rounded-bl-sm rounded-tl-none border-r-[1px]"
                     onClick={() => {
-                      setChordThatIsBeingEdited({
+                      setChordBeingEdited({
                         index,
                         value: {
                           name: chord.name,
@@ -158,7 +158,7 @@ function Chords() {
                     </PopoverTrigger>
                     <PopoverContent>
                       <Chord
-                        chordThatIsBeingEdited={{
+                        chordBeingEdited={{
                           index,
                           value: chord,
                         }}
@@ -183,7 +183,7 @@ function Chords() {
         {editing && (
           <Button
             onClick={() => {
-              setChordThatIsBeingEdited({
+              setChordBeingEdited({
                 index: chords.length,
                 value: {
                   name: "",

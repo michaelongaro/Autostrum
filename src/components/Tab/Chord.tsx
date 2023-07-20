@@ -5,11 +5,11 @@ import { parse, toString } from "~/utils/tunings";
 import { Input } from "../ui/input";
 
 interface Chord {
-  chordThatIsBeingEdited: { index: number; value: ChordType };
+  chordBeingEdited: { index: number; value: ChordType };
   editing: boolean;
 }
 
-function Chord({ chordThatIsBeingEdited, editing }: Chord) {
+function Chord({ chordBeingEdited, editing }: Chord) {
   const [isFocused, setIsFocused] = useState([
     false,
     false,
@@ -19,10 +19,10 @@ function Chord({ chordThatIsBeingEdited, editing }: Chord) {
     false,
   ]);
 
-  const { tuning, setChordThatIsBeingEdited } = useTabStore(
+  const { tuning, setChordBeingEdited } = useTabStore(
     (state) => ({
       tuning: state.tuning,
-      setChordThatIsBeingEdited: state.setChordThatIsBeingEdited,
+      setChordBeingEdited: state.setChordBeingEdited,
     }),
     shallow
   );
@@ -100,10 +100,10 @@ function Chord({ chordThatIsBeingEdited, editing }: Chord) {
         chordArray = ["3", "5", "5", "3", "3", "3"];
       }
 
-      setChordThatIsBeingEdited({
-        ...chordThatIsBeingEdited,
+      setChordBeingEdited({
+        ...chordBeingEdited,
         value: {
-          ...chordThatIsBeingEdited.value,
+          ...chordBeingEdited.value,
           frets: chordArray.reverse(),
         },
       });
@@ -115,14 +115,14 @@ function Chord({ chordThatIsBeingEdited, editing }: Chord) {
 
     if (value !== "" && !numberPattern.test(value)) return;
 
-    const newChordData = [...chordThatIsBeingEdited.value.frets];
+    const newChordData = [...chordBeingEdited.value.frets];
 
     newChordData[index] = value;
 
-    setChordThatIsBeingEdited({
-      ...chordThatIsBeingEdited,
+    setChordBeingEdited({
+      ...chordBeingEdited,
       value: {
-        ...chordThatIsBeingEdited.value,
+        ...chordBeingEdited.value,
         frets: newChordData,
       },
     });
@@ -154,7 +154,7 @@ function Chord({ chordThatIsBeingEdited, editing }: Chord) {
         }}
         className="baseVertFlex"
       >
-        {chordThatIsBeingEdited.value.frets.map((fret, index) => (
+        {chordBeingEdited.value.frets.map((fret, index) => (
           <div
             key={index}
             style={{

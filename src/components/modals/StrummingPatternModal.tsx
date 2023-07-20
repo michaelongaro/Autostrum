@@ -36,14 +36,14 @@ const backdropVariants = {
 };
 
 interface StrummingPatternModal {
-  strummingPatternThatIsBeingEdited: {
+  strummingPatternBeingEdited: {
     index: number;
     value: StrummingPatternType;
   };
 }
 
 function StrummingPatternModal({
-  strummingPatternThatIsBeingEdited,
+  strummingPatternBeingEdited,
 }: StrummingPatternModal) {
   const innerModalRef = useRef<HTMLDivElement>(null);
 
@@ -54,7 +54,7 @@ function StrummingPatternModal({
     useState(false);
 
   const [isFocused, setIsFocused] = useState<boolean[]>(
-    strummingPatternThatIsBeingEdited.value.strums.map(() => false)
+    strummingPatternBeingEdited.value.strums.map(() => false)
   );
 
   // whenever adding more strums or deleting strums, immediately edit the isFocused array
@@ -64,7 +64,7 @@ function StrummingPatternModal({
     tuning,
     strummingPatterns,
     setStrummingPatterns,
-    setStrummingPatternThatIsBeingEdited,
+    setStrummingPatternBeingEdited,
     modifyStrummingPatternPalmMuteDashes,
     tabData,
     setTabData,
@@ -73,8 +73,7 @@ function StrummingPatternModal({
       tuning: state.tuning,
       strummingPatterns: state.strummingPatterns,
       setStrummingPatterns: state.setStrummingPatterns,
-      setStrummingPatternThatIsBeingEdited:
-        state.setStrummingPatternThatIsBeingEdited,
+      setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
       modifyStrummingPatternPalmMuteDashes:
         state.modifyStrummingPatternPalmMuteDashes,
       tabData: state.tabData,
@@ -92,11 +91,11 @@ function StrummingPatternModal({
       | "1/16th"
       | "1/16th triplet"
   ) {
-    const newStrummingPattern = { ...strummingPatternThatIsBeingEdited };
+    const newStrummingPattern = { ...strummingPatternBeingEdited };
 
     newStrummingPattern.value.noteLength = value;
 
-    setStrummingPatternThatIsBeingEdited(newStrummingPattern);
+    setStrummingPatternBeingEdited(newStrummingPattern);
   }
 
   function toggleEditingPalmMuteNodes() {
@@ -107,18 +106,18 @@ function StrummingPatternModal({
       // if prevValue was "" then can just do hardcoded solution as before
       if (lastModifiedPalmMuteNode.prevValue === "") {
         const newStrummingPattern = {
-          ...strummingPatternThatIsBeingEdited,
+          ...strummingPatternBeingEdited,
         };
 
         newStrummingPattern.value.strums[
           lastModifiedPalmMuteNode.columnIndex
         ]!.palmMute = "";
 
-        setStrummingPatternThatIsBeingEdited(newStrummingPattern);
+        setStrummingPatternBeingEdited(newStrummingPattern);
       } else {
         modifyStrummingPatternPalmMuteDashes(
-          strummingPatternThatIsBeingEdited,
-          setStrummingPatternThatIsBeingEdited,
+          strummingPatternBeingEdited,
+          setStrummingPatternBeingEdited,
           lastModifiedPalmMuteNode.columnIndex,
           "tempRemoveLater",
           lastModifiedPalmMuteNode.prevValue
@@ -134,10 +133,9 @@ function StrummingPatternModal({
     // if strumming pattern length has changed, then need to update the children
     // chord sequences in tabData (that use this pattern) to match the new length.
 
-    const newLength = strummingPatternThatIsBeingEdited.value.strums.length;
+    const newLength = strummingPatternBeingEdited.value.strums.length;
     const oldLength =
-      strummingPatterns[strummingPatternThatIsBeingEdited.index]?.strums
-        ?.length;
+      strummingPatterns[strummingPatternBeingEdited.index]?.strums?.length;
 
     if (oldLength !== undefined && newLength !== oldLength) {
       const newTabData = [...tabData];
@@ -162,7 +160,7 @@ function StrummingPatternModal({
             subSection?.type === "chord" &&
             isEqual(
               subSection.strummingPattern,
-              strummingPatterns[strummingPatternThatIsBeingEdited.index]
+              strummingPatterns[strummingPatternBeingEdited.index]
             )
           ) {
             for (
@@ -208,12 +206,12 @@ function StrummingPatternModal({
 
     const newStrummingPatterns = [...strummingPatterns];
 
-    newStrummingPatterns[strummingPatternThatIsBeingEdited.index] = {
-      ...strummingPatternThatIsBeingEdited.value,
+    newStrummingPatterns[strummingPatternBeingEdited.index] = {
+      ...strummingPatternBeingEdited.value,
     };
 
     setStrummingPatterns(newStrummingPatterns);
-    setStrummingPatternThatIsBeingEdited(null);
+    setStrummingPatternBeingEdited(null);
   }
 
   return (
@@ -226,7 +224,7 @@ function StrummingPatternModal({
       exit="closed"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          setStrummingPatternThatIsBeingEdited(null);
+          setStrummingPatternBeingEdited(null);
         }
       }}
     >
@@ -239,7 +237,7 @@ function StrummingPatternModal({
           Note length
           <Select
             onValueChange={handleNoteLengthChange}
-            value={strummingPatternThatIsBeingEdited.value.noteLength}
+            value={strummingPatternBeingEdited.value.noteLength}
           >
             <SelectTrigger className="w-[135px]">
               <SelectValue placeholder="Select a length" />
@@ -337,9 +335,9 @@ function StrummingPatternModal({
 
         {/* editing inputs of strumming pattern */}
         <StrummingPattern
-          data={strummingPatternThatIsBeingEdited.value}
+          data={strummingPatternBeingEdited.value}
           mode={"editingStrummingPattern"}
-          index={strummingPatternThatIsBeingEdited.index}
+          index={strummingPatternBeingEdited.index}
           editingPalmMuteNodes={editingPalmMuteNodes}
           setEditingPalmMuteNodes={setEditingPalmMuteNodes}
           showingDeleteStrumsButtons={showingDeleteStrumsButtons}
@@ -353,7 +351,7 @@ function StrummingPatternModal({
           <div className="baseFlex gap-4">
             <Button
               variant={"secondary"}
-              onClick={() => setStrummingPatternThatIsBeingEdited(null)}
+              onClick={() => setStrummingPatternBeingEdited(null)}
             >
               Close
             </Button>
@@ -361,12 +359,12 @@ function StrummingPatternModal({
             {/* should be disabled if lodash isEqual to the strummingPatterns original version */}
             <Button
               disabled={
-                strummingPatternThatIsBeingEdited.value.strums.every(
+                strummingPatternBeingEdited.value.strums.every(
                   (strum) => strum.strum === ""
                 ) ||
                 isEqual(
-                  strummingPatternThatIsBeingEdited.value,
-                  strummingPatterns[strummingPatternThatIsBeingEdited.index]
+                  strummingPatternBeingEdited.value,
+                  strummingPatterns[strummingPatternBeingEdited.index]
                 )
               }
               onClick={handleSaveStrummingPattern}

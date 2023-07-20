@@ -19,18 +19,18 @@ const backdropVariants = {
 };
 
 interface ChordModal {
-  chordThatIsBeingEdited: { index: number; value: ChordType };
+  chordBeingEdited: { index: number; value: ChordType };
 }
 
-function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
+function ChordModal({ chordBeingEdited }: ChordModal) {
   const innerModalRef = useRef<HTMLDivElement>(null);
 
-  const { chords, setChords, setChordThatIsBeingEdited, tabData, setTabData } =
+  const { chords, setChords, setChordBeingEdited, tabData, setTabData } =
     useTabStore(
       (state) => ({
         chords: state.chords,
         setChords: state.setChords,
-        setChordThatIsBeingEdited: state.setChordThatIsBeingEdited,
+        setChordBeingEdited: state.setChordBeingEdited,
         tabData: state.tabData,
         setTabData: state.setTabData,
       }),
@@ -48,17 +48,17 @@ function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
     )
       return;
 
-    const modifiedChord = { ...chordThatIsBeingEdited };
+    const modifiedChord = { ...chordBeingEdited };
     modifiedChord.value.name = value;
 
-    setChordThatIsBeingEdited(modifiedChord);
+    setChordBeingEdited(modifiedChord);
   }
 
   function handleSaveChord() {
     const chordNameAlreadyExists = chords.some(
       (chord, index) =>
-        chord.name === chordThatIsBeingEdited.value.name &&
-        index !== chordThatIsBeingEdited.index
+        chord.name === chordBeingEdited.value.name &&
+        index !== chordBeingEdited.index
     );
 
     if (chordNameAlreadyExists) {
@@ -68,8 +68,7 @@ function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
       // if the chord name has changed.
 
       if (
-        chords[chordThatIsBeingEdited.index]?.name !==
-        chordThatIsBeingEdited.value.name
+        chords[chordBeingEdited.index]?.name !== chordBeingEdited.value.name
       ) {
         const newTabData = [...tabData];
 
@@ -105,13 +104,11 @@ function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
                   const chordName = chordGroup.data[chordIndex];
                   if (!chordName) continue;
 
-                  if (
-                    chordName === chords[chordThatIsBeingEdited.index]?.name
-                  ) {
+                  if (chordName === chords[chordBeingEdited.index]?.name) {
                     // @ts-expect-error undefined checks are done above
                     newTabData[sectionIndex].data[subSectionIndex].data[
                       chordSequenceIndex
-                    ]!.data[chordIndex] = chordThatIsBeingEdited.value.name;
+                    ]!.data[chordIndex] = chordBeingEdited.value.name;
                   }
                 }
               }
@@ -127,12 +124,12 @@ function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
 
       // decomposed shallow copy of frets so that the chord elem won't get updated
       // when the chord is edited in the chord modal
-      const newChord = { ...chordThatIsBeingEdited.value };
-      newChords[chordThatIsBeingEdited.index] = {
+      const newChord = { ...chordBeingEdited.value };
+      newChords[chordBeingEdited.index] = {
         name: newChord.name,
         frets: [...newChord.frets],
       };
-      setChordThatIsBeingEdited(null);
+      setChordBeingEdited(null);
       setChords(newChords);
     }
   }
@@ -147,7 +144,7 @@ function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
       exit="closed"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          setChordThatIsBeingEdited(null);
+          setChordBeingEdited(null);
         }
       }}
     >
@@ -160,7 +157,7 @@ function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
           <Label>Chord name</Label>
           <Input
             placeholder="Chord name (e.g. Cmaj7)"
-            value={chordThatIsBeingEdited?.value?.name}
+            value={chordBeingEdited?.value?.name}
             onChange={handleChordNameChange}
             className="w-[200px]"
           />
@@ -177,7 +174,7 @@ function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
           </div>
         </div>
 
-        <Chord chordThatIsBeingEdited={chordThatIsBeingEdited} editing={true} />
+        <Chord chordBeingEdited={chordBeingEdited} editing={true} />
 
         <div className="baseVertFlex gap-8">
           <Button className="baseFlex gap-4">
@@ -188,20 +185,15 @@ function ChordModal({ chordThatIsBeingEdited }: ChordModal) {
           <div className="baseFlex gap-4">
             <Button
               variant={"secondary"}
-              onClick={() => setChordThatIsBeingEdited(null)}
+              onClick={() => setChordBeingEdited(null)}
             >
               Close
             </Button>
             <Button
               disabled={
-                chordThatIsBeingEdited.value.frets.every(
-                  (fret) => fret === ""
-                ) ||
-                chordThatIsBeingEdited.value.name === "" ||
-                isEqual(
-                  chordThatIsBeingEdited.value,
-                  chords[chordThatIsBeingEdited.index]
-                )
+                chordBeingEdited.value.frets.every((fret) => fret === "") ||
+                chordBeingEdited.value.name === "" ||
+                isEqual(chordBeingEdited.value, chords[chordBeingEdited.index])
               }
               onClick={handleSaveChord}
             >

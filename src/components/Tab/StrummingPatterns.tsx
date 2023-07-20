@@ -27,7 +27,7 @@ function StrummingPatterns() {
   const {
     strummingPatterns,
     setStrummingPatterns,
-    setStrummingPatternThatIsBeingEdited,
+    setStrummingPatternBeingEdited,
     editing,
     tabData,
     setTabData,
@@ -37,8 +37,7 @@ function StrummingPatterns() {
     (state) => ({
       strummingPatterns: state.strummingPatterns,
       setStrummingPatterns: state.setStrummingPatterns,
-      setStrummingPatternThatIsBeingEdited:
-        state.setStrummingPatternThatIsBeingEdited,
+      setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
       editing: state.editing,
       tabData: state.tabData,
       setTabData: state.setTabData,
@@ -193,7 +192,7 @@ function StrummingPatterns() {
                       size={"sm"}
                       className="baseFlex h-8 w-1/2 gap-2 rounded-r-none rounded-bl-sm rounded-tl-none border-r-[1px]"
                       onClick={() => {
-                        setStrummingPatternThatIsBeingEdited({
+                        setStrummingPatternBeingEdited({
                           index,
                           value: pattern,
                         });
@@ -270,7 +269,7 @@ function StrummingPatterns() {
         {editing && (
           <Button
             onClick={() => {
-              setStrummingPatternThatIsBeingEdited({
+              setStrummingPatternBeingEdited({
                 index: strummingPatterns.length,
                 value: {
                   noteLength: "1/8th",

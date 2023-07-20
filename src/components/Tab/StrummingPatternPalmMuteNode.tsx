@@ -13,7 +13,7 @@ import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 interface StrummingPatternPalmMuteNode {
   value: string;
   beatIndex: number;
-  strummingPatternThatIsBeingEdited: {
+  strummingPatternBeingEdited: {
     index: number;
     value: StrummingPattern;
   };
@@ -29,7 +29,7 @@ interface StrummingPatternPalmMuteNode {
 function StrummingPatternPalmMuteNode({
   value,
   beatIndex,
-  strummingPatternThatIsBeingEdited,
+  strummingPatternBeingEdited,
   editingPalmMuteNodes,
   setEditingPalmMuteNodes,
   lastModifiedPalmMuteNode,
@@ -39,12 +39,11 @@ function StrummingPatternPalmMuteNode({
   const [hoveringOnPalmMuteNode, setHoveringOnPalmMuteNode] = useState(false);
 
   const {
-    setStrummingPatternThatIsBeingEdited,
+    setStrummingPatternBeingEdited,
     modifyStrummingPatternPalmMuteDashes,
   } = useTabStore(
     (state) => ({
-      setStrummingPatternThatIsBeingEdited:
-        state.setStrummingPatternThatIsBeingEdited,
+      setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
       modifyStrummingPatternPalmMuteDashes:
         state.modifyStrummingPatternPalmMuteDashes,
     }),
@@ -71,11 +70,11 @@ function StrummingPatternPalmMuteNode({
         // if PM node is reachable and not a connecting node between start & end
         // nodes, then focus the PM node
         if (
-          strummingPatternThatIsBeingEdited.value.strums[currentIndex]
-            ?.palmMute !== "-" &&
+          strummingPatternBeingEdited.value.strums[currentIndex]?.palmMute !==
+            "-" &&
           getButtonOpacity(
-            strummingPatternThatIsBeingEdited.value.strums[currentIndex]
-              ?.palmMute ?? "-",
+            strummingPatternBeingEdited.value.strums[currentIndex]?.palmMute ??
+              "-",
             currentIndex
           ) === "1"
         ) {
@@ -98,9 +97,7 @@ function StrummingPatternPalmMuteNode({
       let currentIndex = beatIndex + 1;
 
       while (!completedSearchOfPalmMuteNodes) {
-        if (
-          currentIndex >= strummingPatternThatIsBeingEdited.value.strums.length
-        ) {
+        if (currentIndex >= strummingPatternBeingEdited.value.strums.length) {
           const newNoteToFocus = document.getElementById(
             "strummingPatternExtendPatternButton"
           );
@@ -112,11 +109,11 @@ function StrummingPatternPalmMuteNode({
         // if PM node is reachable and not a connecting node between start & end
         // nodes, then focus the PM node
         if (
-          strummingPatternThatIsBeingEdited.value.strums[currentIndex]
-            ?.palmMute !== "-" &&
+          strummingPatternBeingEdited.value.strums[currentIndex]?.palmMute !==
+            "-" &&
           getButtonOpacity(
-            strummingPatternThatIsBeingEdited.value.strums[currentIndex]
-              ?.palmMute ?? "-",
+            strummingPatternBeingEdited.value.strums[currentIndex]?.palmMute ??
+              "-",
             currentIndex
           ) === "1"
         ) {
@@ -144,8 +141,7 @@ function StrummingPatternPalmMuteNode({
 
       while (!foundPairNodeBeatIndex) {
         const currentNode =
-          strummingPatternThatIsBeingEdited.value.strums[currentIndex]
-            ?.palmMute;
+          strummingPatternBeingEdited.value.strums[currentIndex]?.palmMute;
 
         // it's implied that there shouldn't be an "end" node since we just added the "start" node
         if (lastModifiedPalmMuteNode?.prevValue === "") {
@@ -171,15 +167,15 @@ function StrummingPatternPalmMuteNode({
         if (currentIndex < 0) return -1; // or maybe 0
         if (
           currentIndex >
-          strummingPatternThatIsBeingEdited.value.strums.length - 1
+          strummingPatternBeingEdited.value.strums.length - 1
         ) {
-          return strummingPatternThatIsBeingEdited.value.strums.length;
+          return strummingPatternBeingEdited.value.strums.length;
         }
       }
 
       return 0;
     },
-    [strummingPatternThatIsBeingEdited, lastModifiedPalmMuteNode]
+    [strummingPatternBeingEdited, lastModifiedPalmMuteNode]
   );
 
   const getButtonOpacity = useCallback(
@@ -233,16 +229,16 @@ function StrummingPatternPalmMuteNode({
 
       if (value === "") {
         const newStrummingPattern = {
-          ...strummingPatternThatIsBeingEdited,
+          ...strummingPatternBeingEdited,
         };
 
         newStrummingPattern.value.strums[beatIndex]!.palmMute = "start";
 
-        setStrummingPatternThatIsBeingEdited(newStrummingPattern);
+        setStrummingPatternBeingEdited(newStrummingPattern);
       } else {
         modifyStrummingPatternPalmMuteDashes(
-          strummingPatternThatIsBeingEdited,
-          setStrummingPatternThatIsBeingEdited,
+          strummingPatternBeingEdited,
+          setStrummingPatternBeingEdited,
           beatIndex,
           value
         );
@@ -260,20 +256,20 @@ function StrummingPatternPalmMuteNode({
         (value === "start" || value === "end"))
     ) {
       const newStrummingPattern = {
-        ...strummingPatternThatIsBeingEdited,
+        ...strummingPatternBeingEdited,
       };
 
       newStrummingPattern.value.strums[beatIndex]!.palmMute = "";
 
-      setStrummingPatternThatIsBeingEdited(newStrummingPattern);
+      setStrummingPatternBeingEdited(newStrummingPattern);
       setLastModifiedPalmMuteNode(null);
     }
 
     // adding end node
     else {
       modifyStrummingPatternPalmMuteDashes(
-        strummingPatternThatIsBeingEdited,
-        setStrummingPatternThatIsBeingEdited,
+        strummingPatternBeingEdited,
+        setStrummingPatternBeingEdited,
         beatIndex,
         value,
         lastModifiedPalmMuteNode.prevValue
