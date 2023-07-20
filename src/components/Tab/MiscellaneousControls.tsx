@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { AiOutlineEllipsis } from "react-icons/ai";
+import { FaTrashAlt } from "react-icons/fa";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import { HiOutlineClipboardCopy } from "react-icons/hi";
 import { LuClipboardPaste } from "react-icons/lu";
@@ -362,7 +363,7 @@ function MiscellaneousControls({
             onClick={deleteSection}
           >
             Delete
-            <IoClose className="h-5 w-5" />
+            <FaTrashAlt className="h-4 w-5" />
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
