@@ -220,14 +220,14 @@ function TabSection({
   }
 
   function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const newRepeat = parseInt(e.target.value);
-    if (isNaN(newRepeat)) {
-      return;
-    }
+    const newRepetitions =
+      e.target.value.length === 0 ? -1 : parseInt(e.target.value);
+    if (isNaN(newRepetitions) || newRepetitions > 99) return;
 
     const newTabData = [...tabData];
 
-    newTabData[sectionIndex]!.data[subSectionIndex]!.repetitions = newRepeat;
+    newTabData[sectionIndex]!.data[subSectionIndex]!.repetitions =
+      newRepetitions;
 
     setTabData(newTabData);
   }
@@ -257,7 +257,11 @@ function TabSection({
                 type="text"
                 className="w-12"
                 placeholder="1"
-                value={subSectionData.repetitions.toString()}
+                value={
+                  subSectionData.repetitions === -1
+                    ? ""
+                    : subSectionData.repetitions.toString()
+                }
                 onChange={handleRepetitionsChange}
               />
             </div>

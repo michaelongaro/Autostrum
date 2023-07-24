@@ -71,10 +71,10 @@ function ChordSection({
   // effect to show/hide overlay that has button to create first strumming pattern
 
   function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const newRepetitions = parseInt(e.target.value);
-    if (isNaN(newRepetitions)) {
-      return;
-    }
+    const newRepetitions =
+      e.target.value.length === 0 ? -1 : parseInt(e.target.value);
+
+    if (isNaN(newRepetitions) || newRepetitions > 99) return;
 
     const newTabData = [...tabData];
 
@@ -140,7 +140,11 @@ function ChordSection({
     newTabData[sectionIndex]!.data[subSectionIndex]!.data.push({
       repetitions: 1,
       data: Array.from(
-        { length: strummingPatterns[indexOfCurrentlySelectedStrummingPattern] },
+        {
+          length:
+            strummingPatterns[indexOfCurrentlySelectedStrummingPattern]?.strums
+              .length,
+        },
         () => ""
       ),
     });
@@ -242,7 +246,11 @@ function ChordSection({
                     type="text"
                     placeholder="1"
                     className="w-12"
-                    value={subSectionData.repetitions.toString()}
+                    value={
+                      subSectionData.repetitions === -1
+                        ? ""
+                        : subSectionData.repetitions.toString()
+                    }
                     onChange={handleRepetitionsChange}
                   />
                 </div>

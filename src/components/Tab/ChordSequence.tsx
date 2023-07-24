@@ -61,17 +61,17 @@ function ChordSequence({
   // prob a button to add another pattern
 
   function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const newRepeat = parseInt(e.target.value);
-    if (isNaN(newRepeat)) {
-      return;
-    }
+    const newRepetitions =
+      e.target.value.length === 0 ? -1 : parseInt(e.target.value);
+
+    if (isNaN(newRepetitions) || newRepetitions > 99) return;
 
     const newTabData = [...tabData];
 
     newTabData[sectionIndex]!.data[subSectionIndex]!.data[
       chordSequenceIndex
       // @ts-expect-error we know it's the chord type not tab type
-    ]!.repetitions = newRepeat;
+    ]!.repetitions = newRepetitions;
 
     setTabData(newTabData);
   }
@@ -87,7 +87,11 @@ function ChordSequence({
                 type="text"
                 className="w-12"
                 placeholder="1"
-                value={chordSequenceData.repetitions.toString()}
+                value={
+                  chordSequenceData.repetitions === -1
+                    ? ""
+                    : chordSequenceData.repetitions.toString()
+                }
                 onChange={handleRepetitionsChange}
               />
             </div>
