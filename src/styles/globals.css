@@ -15,7 +15,7 @@
     sm a tiny bit larger/more pronounced? */
 
 .chordSectionGlassmorphic {
-  @apply bg-pink-100 bg-opacity-20 backdrop-blur-sm backdrop-filter shadow-sm;
+  @apply bg-pink-100 bg-opacity-[0.25] backdrop-blur-sm backdrop-filter shadow-sm;
 }
 
 .lightestGlassmorphic {
