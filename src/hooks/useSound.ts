@@ -1,8 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import Soundfont from "soundfont-player";
 import { parse } from "react-guitar-tunings";
-import type { SectionProgression } from "../stores/TabStore";
-import type { ITabSection } from "~/components/Tab/Tab";
+import type {
+  SectionProgression,
+  Section,
+  StrummingPattern,
+  Chord,
+} from "../stores/TabStore";
+import getRepetitions from "~/utils/getRepetitions";
 
 type InstrumentNames =
   | "acoustic_guitar_nylon"
@@ -573,28 +578,72 @@ export default function useSound() {
     return true;
   }
 
-  function removeMeasureLinesFromTabData(tabData: ITabSection[]) {
-    const newTabData: ITabSection[] = [];
+  // function removeMeasureLinesFromTabData(chord: string[]) {
+  //   // TODO: also have to push data onto metadata array
 
-    for (const section of tabData) {
-      const newSection: ITabSection = {
-        ...section,
-        data: [],
-      };
-      for (const column of section.data) {
-        if (column[8] !== "measureLine") {
-          // don't need the "note" value of [8] since it's implied
-          // although is useful for the chord strumming sections! Think about it
-          newSection.data.push(column.slice(0, 8));
-        }
-      }
-      newTabData.push(newSection);
+  //     if (tabSubSection[i]?.[8] === "measureLine") continue;
+
+  //     const modifiedColumn = [...tabSubSection[i]!];
+  //     modifiedColumn[8] = "1";
+  //     modifiedSubSection.push(modifiedColumn);
+  //   }
+
+  //   console.log("Pushing", modifiedSubSection);
+
+  //   return modifiedSubSection;
+  // }
+
+  function compileChord(
+    chordName: string,
+    chordIdx: number,
+    strummingPattern: StrummingPattern,
+    chords: Chord[]
+  ) {
+    const compiledChord: string[] = [];
+
+    let noteLengthMultiplier = "1";
+
+    if (strummingPattern.noteLength === "1/4th triplet")
+      noteLengthMultiplier = "0.6667";
+    else if (strummingPattern.noteLength === "1/8th")
+      noteLengthMultiplier = "0.5";
+    else if (strummingPattern.noteLength === "1/8th triplet")
+      noteLengthMultiplier = "0.3333";
+    else if (strummingPattern.noteLength === "1/16th")
+      noteLengthMultiplier = "0.25";
+    else if (strummingPattern.noteLength === "1/16th triplet")
+      noteLengthMultiplier = "0.1667";
+
+    if (chordName === "") {
+      return ["", "", "", "", "", "", "", noteLengthMultiplier];
     }
 
-    return newTabData;
+    let chordFrets: string[] = [];
+    let chordEffect = "";
+
+    const baseChordFrets =
+      chords[chords.findIndex((chord) => chord.name === chordName)]?.frets;
+
+    if (
+      baseChordFrets &&
+      strummingPattern.strums[chordIdx]?.strum.includes(">")
+    ) {
+      chordFrets = baseChordFrets.map((fret) => fret + ">");
+      chordEffect = strummingPattern.strums[chordIdx]!.strum.at(0)!;
+    } else if (baseChordFrets) {
+      chordFrets = baseChordFrets;
+      chordEffect = strummingPattern.strums[chordIdx]!.strum;
+    }
+
+    return [
+      strummingPattern.strums[chordIdx]!.palmMute,
+      ...chordFrets,
+      chordEffect,
+      noteLengthMultiplier,
+    ];
   }
 
-  function generateDefaultSectionProgression(tabData: ITabSection[]) {
+  function generateDefaultSectionProgression(tabData: Section[]) {
     const sectionProgression: SectionProgression[] = [];
 
     for (let i = 0; i < tabData.length; i++) {
@@ -644,9 +693,14 @@ export default function useSound() {
     prevColumn?: string[]
   ) {
     return new Promise<void>((resolve) => {
+      const noteDurationMultiplier = Number(currColumn[8] ?? "1");
+
+      // honestly though why not multiply bpm by noteDurationMultiplier before it comes into this function
+      // and not have to change anything down the line?
+
       setTimeout(() => {
         resolve();
-      }, (60 / bpm) * 1000);
+      }, (60 / bpm) * 1000 * noteDurationMultiplier);
 
       // as of right now I am barring ">" to be added to the column effects. It does make
       // some sense to allow it in there with "v/^/s" to match the ux of the strumming
@@ -728,68 +782,436 @@ export default function useSound() {
     });
   }
 
-  async function playTab(
-    rawTabData: ITabSection[], // obv change to proper type
-    rawSectionProgression: SectionProgression[],
-    tuningNotes: string,
-    bpm: number,
-    capo?: number
-  ) {
+  function getSectionIndexFromTitle(tabData: Section[], title: string) {
+    for (let i = 0; i < tabData.length; i++) {
+      if (tabData[i]?.title === title) {
+        return i;
+      }
+    }
+
+    return 0;
+  }
+
+  interface CompileFullTab {
+    tabData: Section[];
+    sectionProgression: SectionProgression[];
+    chords?: Chord[];
+  }
+
+  function compileFullTab({
+    tabData,
+    sectionProgression,
+    chords,
+  }: CompileFullTab) {
+    // create result chord array
+    const compiledChords: string[][] = [];
+    // create metadata array
+
+    // ^^ fyi: for the "location" field on each index of the metadata, we will have to search for what the sectionIndex would be based on what
+    // the currentSectionProgressionIndex is. I think for the subSectionIndex and chordSequenceIndex we can just use the indicies of the inner loops below.
+
+    for (
+      let sectionProgressionIndex = 0;
+      sectionProgressionIndex < sectionProgression.length;
+      sectionProgressionIndex++
+    ) {
+      const sectionIndex = getSectionIndexFromTitle(
+        tabData,
+        sectionProgression[sectionProgressionIndex]!.title
+      );
+      const sectionRepetitions = getRepetitions(
+        sectionProgression[sectionProgressionIndex]?.repetitions
+      );
+
+      for (
+        let sectionRepeatIdx = 0;
+        sectionRepeatIdx < sectionRepetitions;
+        sectionRepeatIdx++
+      ) {
+        // looping through subSections
+        for (
+          let subSectionIndex = 0;
+          subSectionIndex < tabData[sectionIndex]!.data.length;
+          subSectionIndex++
+        ) {
+          const subSection = tabData[sectionIndex]?.data[subSectionIndex];
+          const subSectionRepetitions = getRepetitions(subSection?.repetitions);
+
+          for (
+            let subSectionRepeatIdx = 0;
+            subSectionRepeatIdx < subSectionRepetitions;
+            subSectionRepeatIdx++
+          ) {
+            if (subSection?.type === "tab") {
+              const data = subSection?.data;
+
+              // TODO: if this works, need to extend it to the "tab" handler of specificChordGroup in other function
+              for (let chordIdx = 0; chordIdx < data.length; chordIdx++) {
+                const chord = [...data[chordIdx]!];
+
+                if (chord?.[8] === "measureLine") continue;
+
+                chord[8] = "1";
+
+                compiledChords.push(chord);
+              }
+            } else {
+              // looping through chord sequences
+              const chordSection = subSection;
+              const chordSectionRepetitions = getRepetitions(
+                subSection?.repetitions
+              );
+
+              for (
+                let chordSequenceIndex = 0;
+                chordSequenceIndex < chordSection!.data.length;
+                chordSequenceIndex++
+              ) {
+                const chordSequence = chordSection!.data[chordSequenceIndex];
+                const chordSequenceRepetitions = getRepetitions(
+                  chordSequence?.repetitions
+                );
+
+                for (
+                  let chordSequenceRepeatIdx = 0;
+                  chordSequenceRepeatIdx < chordSequenceRepetitions;
+                  chordSequenceRepeatIdx++
+                ) {
+                  console.log(
+                    chordSequence?.data,
+                    chordSection?.strummingPattern
+                  );
+
+                  let lastSpecifiedChordName: string | undefined = undefined;
+                  for (
+                    let chordIdx = 0;
+                    chordIdx < chordSequence!.data.length;
+                    chordIdx++
+                  ) {
+                    let chordName = chordSequence!.data[chordIdx];
+
+                    // only want to update lastSpecifiedChordName if current chord name is not empty
+                    if (
+                      chordName !== "" &&
+                      chordName !== lastSpecifiedChordName
+                    ) {
+                      lastSpecifiedChordName = chordName;
+                    }
+
+                    console.log(lastSpecifiedChordName, chordName);
+
+                    if (
+                      chordName === "" &&
+                      chordSection!.strummingPattern.strums[chordIdx]!.strum !==
+                        ""
+                    ) {
+                      chordName = lastSpecifiedChordName;
+                    }
+
+                    compiledChords.push(
+                      compileChord(
+                        chordName ?? "",
+                        chordIdx,
+                        chordSection!.strummingPattern,
+                        chords!
+                      )
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    console.log(compiledChords);
+
+    return compiledChords;
+  }
+
+  interface CompileSpecificChordGrouping {
+    tabData: Section[];
+    location: {
+      sectionIndex: number;
+      subSectionIndex: number;
+      chordSequenceIndex: number;
+    };
+    chords?: Chord[];
+  }
+
+  function compileSpecificChordGrouping({
+    tabData,
+    location,
+    chords,
+  }: CompileSpecificChordGrouping) {
+    // extract the specific "section" from the tabData using the location object
+    // create result chord array
+    const compiledChords: string[][] = [];
+    // create metadata array
+
+    // remember we said that we basically have to do the reverse order blocks where it's
+
+    // playing ONE chord sequence (for the repetition amount)
+    if (
+      location.chordSequenceIndex !== undefined &&
+      location.subSectionIndex !== undefined &&
+      location.sectionIndex !== undefined
+    ) {
+      const strummingPattern =
+        tabData[location.sectionIndex]!.data[location.subSectionIndex]?.data[
+          location.chordSequenceIndex
+        ]?.strummingPattern;
+      const chordSequence =
+        tabData[location.sectionIndex]!.data[location.subSectionIndex]!.data[
+          location.chordSequenceIndex
+        ];
+      const chordSequenceRepetitions = getRepetitions(
+        chordSequence?.repetitions
+      );
+
+      for (
+        let chordSequenceRepeatIdx = 0;
+        chordSequenceRepeatIdx < chordSequenceRepetitions;
+        chordSequenceRepeatIdx++
+      ) {
+        compiledChords.push(
+          compileChord(chordSequence!.data, strummingPattern!, chords!)
+        );
+      }
+    } else if (
+      location.subSectionIndex !== undefined &&
+      location.sectionIndex !== undefined
+    ) {
+      // playing ONE subSection (for the repetition amount)
+      const subSection =
+        tabData[location.sectionIndex]!.data[location.subSectionIndex];
+
+      const subSectionRepetitions = getRepetitions(subSection?.repetitions);
+
+      for (
+        let subSectionRepeatIdx = 0;
+        subSectionRepeatIdx < subSectionRepetitions;
+        subSectionRepeatIdx++
+      ) {
+        if (subSection?.type === "tab") {
+          const data = subSection?.data;
+          const dataRepetitions = getRepetitions(subSection?.repetitions);
+
+          for (
+            let dataRepeatIdx = 0;
+            dataRepeatIdx < dataRepetitions;
+            dataRepeatIdx++
+          ) {
+            compiledChords.push(removeMeasureLinesFromTabData(data));
+          }
+        } else {
+          // looping through chord sequences
+          const chordSection = subSection;
+          const chordSectionRepetitions = getRepetitions(
+            subSection?.repetitions
+          );
+
+          for (
+            let chordSectionRepetitions = 0;
+            chordSectionRepetitions < chordSectionRepetitions;
+            chordSectionRepetitions++
+          ) {
+            for (
+              let chordSequenceIndex = 0;
+              chordSequenceIndex < chordSection!.data.length;
+              chordSequenceIndex++
+            ) {
+              const chordSequence = chordSection!.data[chordSequenceIndex];
+              const chordSequenceRepetitions = getRepetitions(
+                chordSequence?.repetitions
+              );
+
+              for (
+                let chordSequenceRepeatIdx = 0;
+                chordSequenceRepeatIdx < chordSequenceRepetitions;
+                chordSequenceRepeatIdx++
+              ) {
+                compiledChords.push(
+                  compileChord(chordSequence!.data, strummingPattern!, chords!)
+                );
+              }
+            }
+          }
+        }
+      }
+    } else if (location.sectionIndex !== undefined) {
+      // playing ONE section (for the repetition amount)
+
+      const sectionIndex = location.sectionIndex;
+      const sectionRepetitions = tabData[sectionIndex]!.repetitions || 1;
+
+      for (
+        let sectionRepeatIdx = 0;
+        sectionRepeatIdx < sectionRepetitions;
+        sectionRepeatIdx++
+      ) {
+        // looping through subSections
+        for (
+          let subSectionIndex = 0;
+          subSectionIndex < tabData[sectionIndex]!.data.length;
+          subSectionIndex++
+        ) {
+          const subSection = tabData[sectionIndex]?.data[subSectionIndex];
+          const subSectionRepetitions = getRepetitions(subSection?.repetitions);
+
+          for (
+            let subSectionRepeatIdx = 0;
+            subSectionRepeatIdx < subSectionRepetitions;
+            subSectionRepeatIdx++
+          ) {
+            if (subSection?.type === "tab") {
+              const data = subSection?.data;
+              const dataRepetitions = getRepetitions(subSection?.repetitions);
+
+              for (
+                let dataRepeatIdx = 0;
+                dataRepeatIdx < dataRepetitions;
+                dataRepeatIdx++
+              ) {
+                compiledChords.push(removeMeasureLinesFromTabData(data));
+              }
+            } else {
+              // looping through chord sequences
+              const chordSection = subSection;
+              const chordSectionRepetitions = getRepetitions(
+                subSection?.repetitions
+              );
+
+              for (
+                let chordSectionRepetitions = 0;
+                chordSectionRepetitions < chordSectionRepetitions;
+                chordSectionRepetitions++
+              ) {
+                for (
+                  let chordSequenceIndex = 0;
+                  chordSequenceIndex < chordSection!.data.length;
+                  chordSequenceIndex++
+                ) {
+                  const chordSequence = chordSection!.data[chordSequenceIndex];
+                  const chordSequenceRepetitions = getRepetitions(
+                    chordSequence?.repetitions
+                  );
+
+                  for (
+                    let chordSequenceRepeatIdx = 0;
+                    chordSequenceRepeatIdx < chordSequenceRepetitions;
+                    chordSequenceRepeatIdx++
+                  ) {
+                    compiledChords.push(
+                      compileChord(
+                        chordSequence!.data,
+                        strummingPattern!,
+                        chords!
+                      )
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return compiledChords;
+  }
+
+  interface PlayTab {
+    tabData: Section[];
+    rawSectionProgression: SectionProgression[];
+    tuningNotes: string;
+    bpm: number;
+    capo?: number;
+    chords?: Chord[];
+    location?: {
+      sectionIndex: number;
+      subSectionIndex: number;
+      chordSequenceIndex: number;
+    };
+  }
+
+  // TODO: I am pretty sure we can just reference all of these from the tabStore,
+  // with the exception of location since that will be specific to which "play" button
+  // was pressed to call this function
+  async function playTab({
+    tabData,
+    rawSectionProgression,
+    tuningNotes,
+    bpm,
+    chords,
+    capo = 0,
+    location,
+  }: PlayTab) {
     await audioContext?.resume();
 
-    const tabData = removeMeasureLinesFromTabData(rawTabData);
     const sectionProgression =
       rawSectionProgression.length > 0
         ? rawSectionProgression
-        : generateDefaultSectionProgression(tabData);
+        : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
     const tuning = parse(tuningNotes);
-    // would ininitialize with the currentSection and currentColumn store values in below loops
-    // to start at the right place in the tab
 
-    // need function that will take in a sectionIndex + sectionProgression and will return the
-    // sectionProgression index to start at and also the repeatIndex to start at
-    // const [sectionIdx, repeatIdx] = getStartingSectionAndRepeatIndexes(sectionProgression, targetSectionIdx);
+    // GENERAL GAME PLAN:
 
-    const repeatIndex = 0; // just for now
+    // new state to create + export at top of this file: currentlyPlayingMetadata & currentChordIdx
+    // currentlyPlayingMetadata is of this shape:  { noteLengthMultiplier: number,
+    //                                               location: { sectionIdx: number, subSectionIdx: number, chordSequenceIdx: number, I think one more right? for like specific chordIdx I think }
+    //     ^^ okay so yeah i think for a tab chord it would need section, subSection, and chordIdx
+    //        but for a specific chord from a strumming pattern it would need section, subSection, chordSequence, and chordIdx
+
+    // isSectionStart will just be inferred based on if subSectionIdx + chordSequenceIdx are 0 (fact check this logic)
+
+    // fyi yeah so clicking on a tab input/interacting idk when paused and currentChordIdx !== 0,
+    // will just set currentChordIdx to 0 to get rid of all red overlay + reset audio slider
+
+    // also metadata above will have to be created respective to each indiv. chord, and when the tab is playing you will need to increment currentChordIdx at start
+    // of playNoteColumn()
+
+    // the audio controls bar will loop through the metadata array created above in order to properly space out the hidden chord divs (each having their length * noteLengthMultiplier)
+    // ^ this is really a css issue to get them to all fit together, don't worry too much about it right now.
+
+    // ^^ okay so this will not be efficient however you should try having an effect in here that listens to w/e necessary (tabData, sectionProgression, etc) that will do compileSpecificChordGrouping()/compileFullTab()
+    // and set the currentChordIdx to 0 and if you have a separate state for the "tab location indicies" then update that too to the values that point to the start of the current "section"
+
+    // fyi currently thinking of having "disabled/blocked" cursor on inputs/buttons or idk maybe just a hidden div that is the same size as the section that will effectively prevent
+    // any interaction with the tab as it is playing. If audio is paused halfway through a section however, then we will need to allow interaction again, and on first interaction maybe
+    // reset the currentChordIdx to the start of the section and then let the user do w/e they want from there?
 
     setPlaying(true);
 
-    // might need to ++ section/column idx at end of respective loops to be correct, just gotta test it out
+    const compiledChords = location
+      ? compileSpecificChordGrouping({ tabData, location, chords })
+      : compileFullTab({ tabData, sectionProgression, chords });
 
     for (
-      // let sectionIdx = currentSectionProgressionIndex; use this once you have logic to reset all values to 0
-      // after finishing a tab playthrough
-      let sectionIdx = 0;
-      sectionIdx < sectionProgression.length;
-      sectionIdx++
+      // let chordIndex = currentChordIndex; do this when you have made currentChordIndex state
+      let chordIndex = 0;
+      chordIndex < compiledChords.length;
+      chordIndex++
     ) {
-      setCurrentSectionProgressionIndex(sectionIdx); //  + 1?
-
-      const repetitions = sectionProgression[sectionIdx]?.repetitions || 1;
-      for (let repeatIdx = repeatIndex; repeatIdx < repetitions; repeatIdx++) {
-        const sectionColumnLength = tabData[sectionIdx]?.data.length || 1;
-
-        for (
-          // let columnIndex = currentColumnIndex; use this once you have logic to reset all values to 0
-          // after finishing a tab playthrough
-          let columnIndex = 0;
-          columnIndex < sectionColumnLength;
-          columnIndex++
-        ) {
-          setCurrentColumnIndex(columnIndex); // + 1?
-
-          if (breakOnNextNote.current) {
-            breakOnNextNote.current = false;
-            break;
-          }
-
-          const prevColumn = tabData[sectionIdx]?.data[columnIndex - 1];
-          const column = tabData[sectionIdx]?.data[columnIndex];
-          if (column === undefined) continue;
-
-          await playNoteColumn(column, tuning, capo ?? 0, bpm, prevColumn);
-        }
+      if (breakOnNextNote.current) {
+        breakOnNextNote.current = false;
+        break;
       }
+
+      const prevColumn = compiledChords[chordIndex - 1];
+      const column = compiledChords[chordIndex];
+
+      console.log(column);
+
+      if (column === undefined) continue;
+
+      // currently thinking to keep the multiplier in [8] but add bpm in [9], then the only
+      // things we would have to pass to below would be column, prevColumn, and the (60/bpm) * multiplier
+      // since we would be getting all the other *static* values from the tabStore!
+      // ^^^^^^^
+
+      await playNoteColumn(column, tuning, capo ?? 0, bpm, prevColumn);
     }
 
     setTimeout(() => {
