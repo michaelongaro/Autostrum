@@ -393,13 +393,15 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
           if (playing) {
             void pauseTab();
           } else {
-            void playTab(
+            void playTab({
               tabData,
-              sectionProgression,
-              tuning,
-              bpm ?? 60,
-              capo ?? 0
-            );
+              rawSectionProgression: sectionProgression,
+              tuningNotes: tuning,
+              bpm: bpm ?? 60,
+              chords,
+              capo: capo ?? 0,
+              // not testing specific section/location rn
+            });
           }
         }}
         className="my-8"
