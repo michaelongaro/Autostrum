@@ -25,6 +25,7 @@ import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import { HiOutlineClipboardCopy } from "react-icons/hi";
 import { LuClipboardPaste } from "react-icons/lu";
 import { cloneDeep } from "lodash";
+import useSound from "~/hooks/useSound";
 
 interface MiscellaneousControls {
   type: "section" | "tab" | "chord" | "chordSequence";
@@ -39,8 +40,14 @@ function MiscellaneousControls({
   subSectionIndex,
   chordSequenceIndex,
 }: MiscellaneousControls) {
+  const { playTab, pauseTab, playing, loadingInstrument } = useSound();
+
   const {
     chords,
+    sectionProgression,
+    tuning,
+    bpm,
+    capo,
     setChords,
     setChordBeingEdited,
     tabData,
@@ -50,6 +57,10 @@ function MiscellaneousControls({
   } = useTabStore(
     (state) => ({
       chords: state.chords,
+      sectionProgression: state.sectionProgression,
+      tuning: state.tuning,
+      bpm: state.bpm,
+      capo: state.capo,
       setChords: state.setChords,
       setChordBeingEdited: state.setChordBeingEdited,
       tabData: state.tabData,
@@ -271,11 +282,7 @@ function MiscellaneousControls({
   // need to make paste button disabled if either there isn't any data copied
   // or if the data copied is of a different type
   function disablePaste() {
-    if (!currentlyCopiedData || currentlyCopiedData.type !== type) {
-      return true;
-    }
-
-    return false;
+    return !currentlyCopiedData || currentlyCopiedData.type !== type;
   }
 
   function pasteSection() {
@@ -284,28 +291,31 @@ function MiscellaneousControls({
 
     if (
       currentlyCopiedData.type === "chordSequence" &&
-      sectionIndex &&
-      subSectionIndex &&
-      chordSequenceIndex
+      sectionIndex !== undefined &&
+      subSectionIndex !== undefined &&
+      chordSequenceIndex !== undefined
     ) {
       newTabData[sectionIndex]!.data[subSectionIndex]!.data[
         chordSequenceIndex
       ] = currentlyCopiedData.data as ChordSequence;
     } else if (
       currentlyCopiedData.type === "chord" &&
-      sectionIndex &&
-      subSectionIndex
+      sectionIndex !== undefined &&
+      subSectionIndex !== undefined
     ) {
       newTabData[sectionIndex]!.data[subSectionIndex] =
         currentlyCopiedData.data as ChordSection;
     } else if (
       currentlyCopiedData.type === "tab" &&
-      sectionIndex &&
-      subSectionIndex
+      sectionIndex !== undefined &&
+      subSectionIndex !== undefined
     ) {
       newTabData[sectionIndex]!.data[subSectionIndex] =
         currentlyCopiedData.data as TabSection;
-    } else if (currentlyCopiedData.type === "section" && sectionIndex) {
+    } else if (
+      currentlyCopiedData.type === "section" &&
+      sectionIndex !== undefined
+    ) {
       // titles of sections need to be unique in order for section progression
       // to not have two completely different sections with the same title
 
@@ -313,10 +323,10 @@ function MiscellaneousControls({
       // I think will have problems if you try to do a letters only regex if the person
       // put numbers specifically in the original title of the section...
       const countOfSection = tabData.filter((section) => {
-        return section?.title.includes(currentlyCopiedData!.data.title);
+        return section?.title.includes(currentlyCopiedData.data.title);
       }).length;
 
-      const uniqueTitle = `${currentlyCopiedData!.data.title} ${
+      const uniqueTitle = `${currentlyCopiedData.data.title} ${
         countOfSection + 1
       }`;
 
@@ -329,11 +339,36 @@ function MiscellaneousControls({
     setTabData(newTabData);
   }
 
+  {
+    /* TODO: after changing isPlaying interface, look at isPlaying.location to see if this should be play/pause icon  */
+  }
+
   return (
     <div className="baseFlex w-1/6 !flex-col-reverse !items-end gap-2 lg:!flex-row lg:!justify-end">
-      <Button>
+      <Button
+        onClick={() => {
+          if (playing) {
+            void pauseTab();
+          } else {
+            void playTab({
+              tabData,
+              rawSectionProgression: sectionProgression,
+              tuningNotes: tuning,
+              baselineBpm: bpm,
+              chords,
+              capo,
+              location: {
+                sectionIndex,
+                subSectionIndex: subSectionIndex,
+                chordSequenceIndex: chordSequenceIndex,
+              },
+            });
+          }
+        }}
+      >
         <BsFillPlayFill className="h-5 w-5" />
       </Button>
+
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant={"secondary"} className="px-2">
