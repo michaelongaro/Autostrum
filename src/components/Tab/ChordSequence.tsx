@@ -127,6 +127,20 @@ function ChordSequence({
   }
 
   function handleStrummingPatternChange(value: string) {
+    if (value === "-1") {
+      setStrummingPatternBeingEdited({
+        index: strummingPatterns.length,
+        value: {
+          noteLength: "1/8th",
+          strums: Array.from({ length: 8 }, () => ({
+            palmMute: "",
+            strum: "",
+          })),
+        },
+      });
+      return;
+    }
+
     const newTabData = [...tabData];
 
     const newPattern = strummingPatterns[parseInt(value)];
@@ -139,8 +153,6 @@ function ChordSequence({
 
     setTabData(newTabData);
   }
-
-  console.log("here", chordSequenceData);
 
   return (
     <>
@@ -217,7 +229,6 @@ function ChordSequence({
                     onValueChange={handleStrummingPatternChange}
                     value={`${indexOfCurrentlySelectedStrummingPattern}`}
                   >
-                    {/* maybe make width auto? test it out */}
                     <SelectTrigger className="w-auto">
                       <SelectValue />
                     </SelectTrigger>
@@ -234,8 +245,9 @@ function ChordSequence({
                             </SelectItem>
                           );
                         })}
-
-                        {/* at bottom: button to create a new pattern */}
+                        <SelectItem value={`${-1}`}>
+                          <p>Add new pattern</p>
+                        </SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
