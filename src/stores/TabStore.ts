@@ -33,19 +33,21 @@ export interface Strum {
 }
 
 export interface ChordSequence {
+  strummingPattern: StrummingPattern;
+  bpm: number;
   repetitions: number;
   data: string[];
 }
 
 export interface ChordSection {
   type: "chord";
-  strummingPattern: StrummingPattern;
   repetitions: number;
   data: ChordSequence[];
 }
 
 export interface TabSection {
   type: "tab";
+  bpm: number;
   repetitions: number;
   data: string[][];
 }
@@ -78,18 +80,18 @@ interface TabState {
   setCreatedAt: (createdAt: Date | null) => void;
   title: string;
   setTitle: (title: string) => void;
-  description: string | null;
-  setDescription: (description: string | null) => void;
+  description: string;
+  setDescription: (description: string) => void;
   genreId: number;
   setGenreId: (genre: number) => void;
   tuning: string;
   setTuning: (tuning: string) => void;
-  bpm: number | null;
-  setBpm: (bpm: number | null) => void;
-  timeSignature: string | null;
-  setTimeSignature: (timeSignature: string | null) => void;
-  capo: number | null;
-  setCapo: (capo: number | null) => void;
+  bpm: number;
+  setBpm: (bpm: number) => void;
+  timeSignature: string;
+  setTimeSignature: (timeSignature: string) => void;
+  capo: number;
+  setCapo: (capo: number) => void;
   chords: Chord[];
   setChords: (chords: Chord[]) => void;
   strummingPatterns: StrummingPattern[];
@@ -195,11 +197,11 @@ export const useTabStore = create<TabState>()(
     setGenreId: (genreId) => set({ genreId }),
     tuning: "e2 a2 d3 g3 b3 e4",
     setTuning: (tuning) => set({ tuning }),
-    bpm: null,
+    bpm: 75,
     setBpm: (bpm) => set({ bpm }),
-    timeSignature: null,
+    timeSignature: "",
     setTimeSignature: (timeSignature) => set({ timeSignature }),
-    capo: null,
+    capo: 0,
     setCapo: (capo) => set({ capo }),
     chords: [],
     setChords: (chords) => set({ chords }),
