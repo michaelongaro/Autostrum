@@ -397,10 +397,9 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
               tabData,
               rawSectionProgression: sectionProgression,
               tuningNotes: tuning,
-              bpm: bpm ?? 60,
+              baselineBpm: bpm,
               chords,
-              capo: capo ?? 0,
-              // not testing specific section/location rn
+              capo: capo,
             });
           }
         }}
