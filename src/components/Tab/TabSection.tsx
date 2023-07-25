@@ -386,7 +386,11 @@ function TabSection({
               </div>
             </div>
           </div>
-          <MiscellaneousControls type={"section"} sectionIndex={sectionIndex} />
+          <MiscellaneousControls
+            type={"tab"}
+            sectionIndex={sectionIndex}
+            subSectionIndex={subSectionIndex}
+          />
         </div>
       )}
 
