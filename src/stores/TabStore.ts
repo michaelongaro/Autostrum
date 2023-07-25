@@ -13,9 +13,6 @@ export interface Chord {
   frets: string[]; // prob should be number[] but just trying to match what ITabSection looks like
 }
 
-// if the chord is accented, then when creating the chord
-// to be played, will need to append ">" to all of the notes (or the ones that have notes :) ). Otherwise
-// its [[0], chord, [1], maybe note duration here?] for the "compiled" chords to be played
 export interface StrummingPattern {
   noteLength:
     | "1/4th"
