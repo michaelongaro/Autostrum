@@ -44,7 +44,8 @@
 @media (min-width: 1450px) {
   .editingMetadataContainer {
     min-height: 300px;
-    width: 75%
+    width: 85%;
+    gap: 2rem;
   }
 }
 
