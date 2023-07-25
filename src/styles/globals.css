@@ -19,7 +19,7 @@
 }
 
 .lightestGlassmorphic {
-  @apply bg-pink-500 bg-opacity-40 backdrop-blur-sm backdrop-filter shadow-sm;
+  @apply bg-pink-500 bg-opacity-50 backdrop-blur-sm backdrop-filter shadow-sm;
 }
 
 .lightGlassmorphic {
