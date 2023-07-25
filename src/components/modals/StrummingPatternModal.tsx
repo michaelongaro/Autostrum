@@ -156,13 +156,7 @@ function StrummingPatternModal({
         ) {
           const subSection = section.data[subSectionIndex];
 
-          if (
-            subSection?.type === "chord" &&
-            isEqual(
-              subSection.strummingPattern,
-              strummingPatterns[strummingPatternBeingEdited.index]
-            )
-          ) {
+          if (subSection?.type === "chord") {
             for (
               let chordSequenceIndex = 0;
               chordSequenceIndex < subSection.data.length;
@@ -170,7 +164,14 @@ function StrummingPatternModal({
             ) {
               const chordProgression =
                 subSection.data[chordSequenceIndex]?.data;
-              if (!chordProgression) continue;
+              if (
+                !chordProgression ||
+                !isEqual(
+                  subSection.data[chordSequenceIndex]?.strummingPattern,
+                  strummingPatterns[strummingPatternBeingEdited.index]
+                )
+              )
+                continue;
 
               // pattern.data is what we need to update
               if (newLength < oldLength) {

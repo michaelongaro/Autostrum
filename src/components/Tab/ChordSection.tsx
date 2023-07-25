@@ -42,13 +42,9 @@ function ChordSection({
   subSectionIndex,
   subSectionData,
 }: ChordSection) {
-  const [
-    indexOfCurrentlySelectedStrummingPattern,
-    setIndexOfCurrentlySelectedStrummingPattern,
-  ] = useState(0);
-
   const {
     editing,
+    bpm,
     strummingPatterns,
     setStrummingPatterns,
     setStrummingPatternBeingEdited,
@@ -57,6 +53,7 @@ function ChordSection({
   } = useTabStore(
     (state) => ({
       editing: state.editing,
+      bpm: state.bpm,
       strummingPatterns: state.strummingPatterns,
       setStrummingPatterns: state.setStrummingPatterns,
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
@@ -67,8 +64,6 @@ function ChordSection({
   );
 
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
-
-  // effect to show/hide overlay that has button to create first strumming pattern
 
   function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newRepetitions =
@@ -84,69 +79,15 @@ function ChordSection({
     setTabData(newTabData);
   }
 
-  function handleStrummingPatternChange(value: string) {
-    const newTabData = [...tabData];
-
-    const newPattern = strummingPatterns[parseInt(value)];
-
-    // @ts-expect-error should totally have "strummingPattern" field
-    newTabData[sectionIndex]!.data[subSectionIndex]!.strummingPattern =
-      newPattern;
-
-    setIndexOfCurrentlySelectedStrummingPattern(parseInt(value));
-
-    setTabData(newTabData);
-  }
-
-  // sets current group's pattern to first existing pattern if the current pattern is empty
-  useEffect(() => {
-    if (
-      Object.keys(subSectionData.strummingPattern).length === 0 &&
-      strummingPatterns[0]
-    ) {
-      // why this rerendering perma, unrelated but it actually should be creating empty sections below
-      // for each chord sequence in subSectionData.data
-
-      const newTabData = [...tabData];
-
-      newTabData[sectionIndex]!.data[subSectionIndex]!.strummingPattern =
-        strummingPatterns[0];
-
-      // fill in the chord sequence with empty strings the size of the strumming pattern
-      newTabData[sectionIndex]!.data[subSectionIndex]!.data = [
-        {
-          repetitions: 1,
-          data: Array.from(
-            { length: strummingPatterns[0].strums.length },
-            () => ""
-          ),
-        },
-      ];
-
-      setTabData(newTabData);
-    }
-  }, [
-    subSectionData,
-    strummingPatterns,
-    subSectionIndex,
-    sectionIndex,
-    setTabData,
-    tabData,
-  ]);
-
   function addAnotherChordSequence() {
     const newTabData = [...tabData];
 
     newTabData[sectionIndex]!.data[subSectionIndex]!.data.push({
       repetitions: 1,
-      data: Array.from(
-        {
-          length:
-            strummingPatterns[indexOfCurrentlySelectedStrummingPattern]?.strums
-              .length,
-        },
-        () => ""
-      ),
+      bpm,
+      // @ts-expect-error the correct strummingPattern will get set in <ChordSequence /> if it is available
+      strummingPattern: {} as StrummingPattern,
+      data: [], // this will also get set in <ChordSequence />
     });
 
     setTabData(newTabData);
@@ -155,12 +96,11 @@ function ChordSection({
   const padding = useMemo(() => {
     let padding = "0";
 
+    // figure out whether this applies at all now
+
     if (editing) {
-      if (Object.keys(subSectionData.strummingPattern).length === 0) {
-        padding = "0";
-      }
       // padding =  "1rem 0.5rem 1rem 0.5rem";
-      else if (aboveMediumViewportWidth) {
+      if (aboveMediumViewportWidth) {
         padding = "2rem";
       } else {
         padding = "1rem";
@@ -172,7 +112,7 @@ function ChordSection({
     }
 
     return padding;
-  }, [editing, aboveMediumViewportWidth, subSectionData.strummingPattern]);
+  }, [editing, aboveMediumViewportWidth]);
 
   return (
     <motion.div
@@ -186,107 +126,55 @@ function ChordSection({
       }}
       className="baseVertFlex lightestGlassmorphic relative h-full w-full !justify-start rounded-md"
     >
-      {Object.keys(subSectionData.strummingPattern).length === 0 ? (
-        <div className="baseVertFlex h-full w-full gap-2 rounded-md bg-black/50 p-4">
-          <p className="text-lg font-semibold">No strumming patterns exist</p>
-          <Button
-            onClick={() => {
-              setStrummingPatternBeingEdited({
-                index: strummingPatterns.length,
-                value: {
-                  noteLength: "1/8th",
-                  strums: Array.from({ length: 8 }, () => ({
-                    palmMute: "",
-                    strum: "",
-                  })),
-                },
-              });
-            }}
-          >
-            Create one
-          </Button>
-        </div>
-      ) : (
-        <>
-          {editing && (
-            <div className="baseFlex w-full !items-start">
-              <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
-                <div className="baseFlex gap-2">
-                  <Label>Strumming pattern</Label>
-                  <Select
-                    onValueChange={handleStrummingPatternChange}
-                    value={`${indexOfCurrentlySelectedStrummingPattern}`}
-                  >
-                    {/* maybe make width auto? test it out */}
-                    <SelectTrigger className="w-auto">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Strumming patterns</SelectLabel>
-                        {strummingPatterns.map((pattern, index) => {
-                          return (
-                            <SelectItem key={index} value={`${index}`}>
-                              <StrummingPattern
-                                data={pattern}
-                                mode={"viewing"}
-                              />
-                            </SelectItem>
-                          );
-                        })}
-
-                        {/* at bottom: button to create a new pattern */}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="baseFlex gap-2">
-                  <Label>Repetitions</Label>
-                  <Input
-                    type="text"
-                    placeholder="1"
-                    className="w-12"
-                    value={
-                      subSectionData.repetitions === -1
-                        ? ""
-                        : subSectionData.repetitions.toString()
-                    }
-                    onChange={handleRepetitionsChange}
-                  />
-                </div>
-              </div>
-              <MiscellaneousControls
-                type={"chord"}
-                sectionIndex={sectionIndex}
-                subSectionIndex={subSectionIndex}
+      {editing && (
+        <div className="baseFlex w-full !items-start">
+          <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
+            <div className="baseFlex gap-2">
+              <Label>Repetitions</Label>
+              <Input
+                type="text"
+                placeholder="1"
+                className="w-12"
+                value={
+                  subSectionData.repetitions === -1
+                    ? ""
+                    : subSectionData.repetitions.toString()
+                }
+                onChange={handleRepetitionsChange}
               />
             </div>
-          )}
-
-          {!editing && (
-            <p className="lightestGlassmorphic absolute -top-12 left-0 rounded-md p-2">
-              {subSectionData.repetitions}
-            </p>
-          )}
-
-          <div className="baseVertFlex w-full !items-start gap-2">
-            {subSectionData.data.map((chordSequence, index) => (
-              <ChordSequence
-                key={index}
-                sectionIndex={sectionIndex}
-                subSectionIndex={subSectionIndex}
-                chordSequenceIndex={index}
-                chordSequenceData={chordSequence}
-              />
-            ))}
           </div>
+          <MiscellaneousControls
+            type={"chord"}
+            sectionIndex={sectionIndex}
+            subSectionIndex={subSectionIndex}
+          />
+        </div>
+      )}
 
-          {editing && (
-            <Button onClick={addAnotherChordSequence}>
-              Add another chord progression
-            </Button>
-          )}
-        </>
+      {!editing && (
+        <p className="lightestGlassmorphic absolute -top-12 left-0 rounded-md p-2">
+          {subSectionData.repetitions}
+        </p>
+      )}
+
+      <div className="baseVertFlex w-full !items-start gap-2">
+        {subSectionData.data.map((chordSequence, index) => (
+          <ChordSequence
+            key={index}
+            sectionIndex={sectionIndex}
+            subSectionIndex={subSectionIndex}
+            chordSequenceIndex={index}
+            chordSequenceData={chordSequence}
+          />
+        ))}
+      </div>
+
+      {/* TODO: prob only show this when there is at least one strumming pattern defined */}
+      {editing && (
+        <Button onClick={addAnotherChordSequence}>
+          Add another chord progression
+        </Button>
       )}
     </motion.div>
   );

@@ -22,13 +22,16 @@ import isEqual from "lodash.isequal";
 function StrummingPatterns() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
-  const [showingDeletePopover, setShowingDeletePopover] = useState(false);
+  const [showingDeletePopover, setShowingDeletePopover] = useState<boolean[]>(
+    []
+  );
 
   const {
     strummingPatterns,
     setStrummingPatterns,
     setStrummingPatternBeingEdited,
     editing,
+    bpm,
     tabData,
     setTabData,
     sectionProgression,
@@ -39,6 +42,7 @@ function StrummingPatterns() {
       setStrummingPatterns: state.setStrummingPatterns,
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
       editing: state.editing,
+      bpm: state.bpm,
       tabData: state.tabData,
       setTabData: state.setTabData,
       sectionProgression: state.sectionProgression,
@@ -47,28 +51,13 @@ function StrummingPatterns() {
     shallow
   );
 
-  function allSubSectionsHaveStrummingPattern(
-    sections: (TabSectionType | ChordSectionType)[],
-    strummingPattern: StrummingPatternType
-  ) {
-    for (const subSection of sections) {
-      if (
-        subSection?.type !== "chord" ||
-        !isEqual(subSection.strummingPattern, strummingPattern)
-      ) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   function handleDeleteStrummingPattern(
     index: number,
     strummingPattern: StrummingPatternType
   ) {
-    let newTabData = [...tabData];
-    const sectionTitlesToDelete: string[] = [];
+    const newTabData = [...tabData];
+
+    // debugger;
 
     for (
       let sectionIndex = newTabData.length - 1;
@@ -82,41 +71,31 @@ function StrummingPatterns() {
       for (
         let subSectionIndex = section.data.length - 1;
         subSectionIndex >= 0;
-        subSectionIndex++
+        subSectionIndex--
       ) {
         const subSection = section.data[subSectionIndex];
-        if (
-          subSection?.type === "chord" &&
-          isEqual(subSection.strummingPattern, strummingPattern)
-        ) {
+        if (subSection?.type === "chord") {
           for (
-            let chordSequenceIndex = section.data.length - 1;
+            let chordSequenceIndex = subSection.data.length - 1;
             chordSequenceIndex >= 0;
             chordSequenceIndex--
           ) {
             const chordGroup = subSection.data[chordSequenceIndex];
 
-            if (!chordGroup) continue;
-
-            // if the entire section is filled with chord subsections that all have
-            // the strumming pattern that is being deleted, remove the whole section
             if (
-              allSubSectionsHaveStrummingPattern(section.data, strummingPattern)
-            ) {
-              sectionTitlesToDelete.push(section.title);
+              !chordGroup ||
+              !isEqual(chordGroup.strummingPattern, strummingPattern)
+            )
+              continue;
 
-              newTabData = [
-                ...newTabData.slice(0, sectionIndex),
-                ...newTabData.slice(sectionIndex + 1),
-              ];
-            }
-            // otherwise remove the chord subsection from the section
-            else {
-              newTabData[sectionIndex]!.data = [
-                ...newTabData[sectionIndex]!.data.slice(0, subSectionIndex),
-                ...newTabData[sectionIndex]!.data.slice(subSectionIndex + 1),
-              ];
-            }
+            newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+              chordSequenceIndex
+            ] = {
+              ...chordGroup,
+              // @ts-expect-error <ChordSequence /> effect will set to first existing strumming pattern if it exists
+              strummingPattern: {} as StrummingPattern,
+              data: [],
+            };
           }
         }
       }
@@ -124,28 +103,9 @@ function StrummingPatterns() {
 
     setTabData(newTabData);
 
-    // deleting section from sectionProgression
-    let newSectionProgression = [...sectionProgression];
-    for (
-      let sectionIndex = 0;
-      sectionIndex < newSectionProgression.length;
-      sectionIndex++
-    ) {
-      const section = newSectionProgression[sectionIndex];
-      if (section && sectionTitlesToDelete.includes(section.title)) {
-        newSectionProgression = [
-          ...newSectionProgression.slice(0, sectionIndex),
-          ...newSectionProgression.slice(sectionIndex + 1),
-        ];
-      }
-    }
-
-    // TODO: do same for regular section progression when deleting a section manually
-
-    setSectionProgression(newSectionProgression);
-
     const prevStrummingPatterns = [...strummingPatterns];
     prevStrummingPatterns.splice(index, 1);
+    console.log("prevPatterns", prevStrummingPatterns);
     setStrummingPatterns(prevStrummingPatterns);
   }
 
@@ -167,7 +127,7 @@ function StrummingPatterns() {
     >
       <p className="text-lg font-bold">Strumming patterns</p>
       <div
-        className={`baseFlex ${
+        className={`baseFlex !justify-start ${
           // just to get around inherent flexbox space that is taken up by children
           // even when there is no dimensions to them
           strummingPatterns.length > 0 ? "gap-4" : "gap-0"
@@ -204,10 +164,14 @@ function StrummingPatterns() {
 
                     {/* delete button */}
                     <Popover
-                      open={showingDeletePopover}
-                      onOpenChange={(openValue) =>
-                        setShowingDeletePopover(openValue)
-                      }
+                      open={showingDeletePopover[index]}
+                      onOpenChange={(openValue) => {
+                        setShowingDeletePopover((prev) => {
+                          const prevShowingDeletePopover = [...prev];
+                          prevShowingDeletePopover[index] = openValue;
+                          return prevShowingDeletePopover;
+                        });
+                      }}
                     >
                       <PopoverTrigger asChild>
                         <Button
@@ -222,8 +186,8 @@ function StrummingPatterns() {
                       <PopoverContent>
                         <div className="baseVertFlex gap-2">
                           <p className="w-auto text-sm">
-                            All chord sections that use this pattern will be
-                            deleted.
+                            Chord progressions that use this pattern will be
+                            modified.
                           </p>
 
                           <div className="baseFlex gap-4">
@@ -231,7 +195,13 @@ function StrummingPatterns() {
                               variant={"secondary"}
                               size="sm"
                               // className="baseFlex h-8 w-1/2"
-                              onClick={() => setShowingDeletePopover(false)}
+                              onClick={() =>
+                                setShowingDeletePopover((prev) => {
+                                  const prevShowingDeletePopover = [...prev];
+                                  prevShowingDeletePopover[index] = false;
+                                  return prevShowingDeletePopover;
+                                })
+                              }
                             >
                               Cancel
                             </Button>
@@ -242,7 +212,11 @@ function StrummingPatterns() {
                               // className="baseFlex h-8 w-1/2"
                               onClick={() => {
                                 handleDeleteStrummingPattern(index, pattern);
-                                setShowingDeletePopover(false);
+                                setShowingDeletePopover((prev) => {
+                                  const prevShowingDeletePopover = [...prev];
+                                  prevShowingDeletePopover[index] = false;
+                                  return prevShowingDeletePopover;
+                                });
                               }}
                             >
                               Confirm

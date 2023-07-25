@@ -21,8 +21,9 @@ interface SectionContainer {
 }
 
 function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
-  const { strummingPatterns, tabData, setTabData, editing } = useTabStore(
+  const { bpm, strummingPatterns, tabData, setTabData, editing } = useTabStore(
     (state) => ({
+      bpm: state.bpm,
       strummingPatterns: state.strummingPatterns,
       tabData: state.tabData,
       setTabData: state.setTabData,
@@ -62,6 +63,7 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
 
     return {
       type: "tab",
+      bpm: bpm ?? 75,
       repetitions: 1,
       data: baseArray,
     };
@@ -71,10 +73,11 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
     if (strummingPatterns.length > 0) {
       return {
         type: "chord",
-        strummingPattern: strummingPatterns[0]!,
         repetitions: 1,
         data: [
           {
+            bpm,
+            strummingPattern: strummingPatterns[0]!,
             repetitions: 1,
             data: new Array<string>(strummingPatterns[0]!.strums.length).fill(
               ""
@@ -87,10 +90,11 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
     // "fake" value for when there are no strumming strumming patterns that exist
     return {
       type: "chord",
-      strummingPattern: {} as StrummingPattern,
       repetitions: 1,
       data: [
         {
+          bpm,
+          strummingPattern: {} as StrummingPattern,
           repetitions: 1,
           data: [],
         },

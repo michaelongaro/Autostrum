@@ -84,9 +84,10 @@ function TabSection({
     return newIds;
   }, [subSectionData]);
 
-  const { tuning, modifyPalmMuteDashes, tabData, setTabData, editing } =
+  const { bpm, tuning, modifyPalmMuteDashes, tabData, setTabData, editing } =
     useTabStore(
       (state) => ({
+        bpm: state.bpm,
         tuning: state.tuning,
         modifyPalmMuteDashes: state.modifyPalmMuteDashes,
         tabData: state.tabData,
@@ -232,6 +233,17 @@ function TabSection({
     setTabData(newTabData);
   }
 
+  function handleBpmChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const newBpm = e.target.value.length === 0 ? -1 : parseInt(e.target.value);
+    if (isNaN(newBpm) || newBpm > 400) return;
+
+    const newTabData = [...tabData];
+
+    newTabData[sectionIndex]!.data[subSectionIndex]!.bpm = newBpm;
+
+    setTabData(newTabData);
+  }
+
   return (
     <motion.div
       key={`tabSection${sectionIndex}`}
@@ -255,7 +267,7 @@ function TabSection({
               <Label>Repetitions</Label>
               <Input
                 type="text"
-                className="w-12"
+                className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
                 placeholder="1"
                 value={
                   subSectionData.repetitions === -1
@@ -263,6 +275,19 @@ function TabSection({
                     : subSectionData.repetitions.toString()
                 }
                 onChange={handleRepetitionsChange}
+              />
+            </div>
+
+            <div className="baseFlex gap-2">
+              <Label>BPM</Label>
+              <Input
+                type="text"
+                className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
+                placeholder={(bpm ?? 75).toString()}
+                value={
+                  subSectionData.bpm === -1 ? "" : subSectionData.bpm.toString()
+                }
+                onChange={handleBpmChange}
               />
             </div>
 
