@@ -40,6 +40,7 @@ function MiscellaneousControls({
   subSectionIndex,
   chordSequenceIndex,
 }: MiscellaneousControls) {
+  // loadingInstrument can legit just be !currentInstrument
   const { playTab, pauseTab, playing, loadingInstrument } = useSound();
 
   const {

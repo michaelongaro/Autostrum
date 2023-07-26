@@ -37,6 +37,7 @@ import useSound from "~/hooks/useSound";
 function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
   const { userId, isLoaded } = useAuth();
 
+  // loadingInstrument can legit just be !currentInstrument
   const { playTab, pauseTab, playing, loadingInstrument } = useSound();
 
   const { push, asPath } = useRouter();
