@@ -1,3 +1,4 @@
+import type Soundfont from "soundfont-player";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import type { Tab } from "@prisma/client";
@@ -59,6 +60,24 @@ interface CopiedData {
   data: Section | TabSection | ChordSection | ChordSequence;
 }
 
+export interface Metadata {
+  location: {
+    sectionIndex: number;
+    subSectionIndex: number;
+    chordSequenceIndex?: number;
+    chordIndex: number;
+  };
+  bpm: number;
+  noteLengthMultiplier: string;
+  elapsedSeconds: number;
+}
+
+type InstrumentNames =
+  | "acoustic_guitar_nylon"
+  | "acoustic_guitar_steel"
+  | "electric_guitar_clean"
+  | "electric_guitar_jazz";
+
 interface TabState {
   // not sure if this will hurt us later on, but I would like to avoid making all of these optional
   // and instead just set them to default-ish values
@@ -89,6 +108,8 @@ interface TabState {
   setTimeSignature: (timeSignature: string) => void;
   capo: number;
   setCapo: (capo: number) => void;
+  recordedAudioUrl: string | null;
+  setRecordedAudioUrl: (recordedAudioUrl: string | null) => void;
   chords: Chord[];
   setChords: (chords: Chord[]) => void;
   strummingPatterns: StrummingPattern[];
@@ -165,6 +186,42 @@ interface TabState {
     } | null
   ) => void;
 
+  // useSound related
+  showingAudioControls: boolean;
+  setShowingAudioControls: (showingAudioControls: boolean) => void;
+  currentlyPlayingMetadata: Metadata[] | null;
+  setCurrentlyPlayingMetadata: (
+    currentlyPlayingMetadata: Metadata[] | null
+  ) => void;
+  currentInstrumentName:
+    | "acoustic_guitar_nylon"
+    | "acoustic_guitar_steel"
+    | "electric_guitar_clean"
+    | "electric_guitar_jazz";
+  setCurrentInstrumentName: (
+    currentInstrumentName:
+      | "acoustic_guitar_nylon"
+      | "acoustic_guitar_steel"
+      | "electric_guitar_clean"
+      | "electric_guitar_jazz"
+  ) => void;
+  playbackSpeed: 1 | 0.25 | 0.5 | 0.75 | 1.25 | 1.5;
+  setPlaybackSpeed: (speed: 1 | 0.25 | 0.5 | 0.75 | 1.25 | 1.5) => void;
+  volume: number; // may still need to use in conjunction w/ volumeRef
+  setVolume: (volume: number) => void; // may still need to use in conjunction w/ volumeRef
+  currentChordIndex: number;
+  setCurrentChordIndex: (currentChordIndex: number) => void;
+  playingAudio: boolean;
+  setPlayingAudio: (playingAudio: boolean) => void;
+  instruments: {
+    [currentInstrumentName in InstrumentNames]: Soundfont.Player;
+  };
+  setInstruments: (instruments: {
+    [currentInstrumentName in InstrumentNames]: Soundfont.Player;
+  }) => void;
+  currentInstrument: Soundfont.Player | null;
+  setCurrentInstrument: (currentInstrument: Soundfont.Player | null) => void;
+
   // related to search
   searchResultsCount: number;
   setSearchResultsCount: (searchResultsCount: number) => void;
@@ -200,6 +257,8 @@ export const useTabStore = create<TabState>()(
     setTimeSignature: (timeSignature) => set({ timeSignature }),
     capo: 0,
     setCapo: (capo) => set({ capo }),
+    recordedAudioUrl: null,
+    setRecordedAudioUrl: (recordedAudioUrl) => set({ recordedAudioUrl }),
     chords: [],
     setChords: (chords) => set({ chords }),
     strummingPatterns: [],
@@ -346,6 +405,30 @@ export const useTabStore = create<TabState>()(
 
       setStrummingPatternBeingEdited(newStrummingPattern);
     },
+
+    // useSound related
+    showingAudioControls: false,
+    setShowingAudioControls: (showingAudioControls) =>
+      set({ showingAudioControls }),
+    currentlyPlayingMetadata: null,
+    setCurrentlyPlayingMetadata: (currentlyPlayingMetadata) =>
+      set({ currentlyPlayingMetadata }),
+    currentInstrumentName: "acoustic_guitar_steel",
+    setCurrentInstrumentName: (currentInstrumentName) =>
+      set({ currentInstrumentName }),
+    playbackSpeed: 1,
+    setPlaybackSpeed: (playbackSpeed) => set({ playbackSpeed }),
+    volume: 50,
+    setVolume: (volume) => set({ volume }),
+    currentChordIndex: 0,
+    setCurrentChordIndex: (currentChordIndex) => set({ currentChordIndex }),
+    playingAudio: false,
+    setPlayingAudio: (playingAudio) => set({ playingAudio }),
+    // @ts-expect-error fix this type later
+    instruments: {},
+    setInstruments: (instruments) => set({ instruments }),
+    currentInstrument: null,
+    setCurrentInstrument: (currentInstrument) => set({ currentInstrument }),
 
     // modals
     showSectionProgressionModal: false,

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import Soundfont from "soundfont-player";
 import { parse } from "react-guitar-tunings";
+import { useTabStore } from "~/stores/TabStore";
+import { shallow } from "zustand/shallow";
 import type {
   SectionProgression,
   Section,
@@ -9,71 +11,83 @@ import type {
   ChordSequence,
   StrummingPattern,
   Chord,
+  Metadata,
 } from "../stores/TabStore";
 import getRepetitions from "~/utils/getRepetitions";
 import getBpmForChord from "~/utils/getBpmForChord";
 
-type InstrumentNames =
-  | "acoustic_guitar_nylon"
-  | "acoustic_guitar_steel"
-  | "electric_guitar_clean";
-
-interface Metadata {
-  location: {
-    sectionIndex: number;
-    subSectionIndex: number;
-    chordSequenceIndex?: number;
-    chordIndex: number;
-  };
-  bpm: number;
-  noteLengthMultiplier: string;
-}
-
 export default function useSound() {
-  const [showingAudioControls, setShowingAudioControls] = useState(false);
-  const [currentlyPlayingMetadata, setCurrentlyPlayingMetadata] = useState<
-    Metadata[] | null
-  >(null); // not sure if it needs to optionally be null
+  const {
+    showingAudioControls,
+    setShowingAudioControls,
+    currentlyPlayingMetadata,
+    setCurrentlyPlayingMetadata,
+    currentInstrumentName,
+    setCurrentInstrumentName,
+    playbackSpeed,
+    setPlaybackSpeed,
+    volume,
+    setVolume,
+    currentChordIndex,
+    setCurrentChordIndex,
+    playingAudio,
+    setPlayingAudio,
+    instruments,
+    setInstruments,
+    currentInstrument,
+    setCurrentInstrument,
+  } = useTabStore(
+    (state) => ({
+      showingAudioControls: state.showingAudioControls,
+      setShowingAudioControls: state.setShowingAudioControls,
+      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+      setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
+      currentInstrumentName: state.currentInstrumentName,
+      setCurrentInstrumentName: state.setCurrentInstrumentName,
+      playbackSpeed: state.playbackSpeed,
+      setPlaybackSpeed: state.setPlaybackSpeed,
+      volume: state.volume,
+      setVolume: state.setVolume,
+      currentChordIndex: state.currentChordIndex,
+      setCurrentChordIndex: state.setCurrentChordIndex,
+      playingAudio: state.playingAudio,
+      setPlayingAudio: state.setPlayingAudio,
+      instruments: state.instruments,
+      setInstruments: state.setInstruments,
+      currentInstrument: state.currentInstrument,
+      setCurrentInstrument: state.setCurrentInstrument,
+    }),
+    shallow
+  );
 
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const breakOnNextNote = useRef(false);
 
+  // const masterVolumeGainNode = useRef<GainNode | null>(null);
+  // const volumeRef = useRef(50);
+
   useEffect(() => {
     const newAudioContext = new AudioContext();
     setAudioContext(newAudioContext);
+
+    // masterVolumeGainNode.current = newAudioContext.createGain();
     // return () => { not even entirely sure if this is necessary since it will only be unmounted when
     // leaving the whole site
     //   void audioContext.close();
     // };
   }, []);
 
-  const [instrumentName, setInstrumentName] = useState<
-    "acoustic_guitar_nylon" | "acoustic_guitar_steel" | "electric_guitar_clean"
-  >("acoustic_guitar_steel");
-
   const currentNoteArrayRef = useRef<
     (Soundfont.Player | AudioBufferSourceNode | undefined)[]
   >([undefined, undefined, undefined, undefined, undefined, undefined]);
-
-  const [currentSectionProgressionIndex, setCurrentSectionProgressionIndex] =
-    useState(0);
-  const [currentColumnIndex, setCurrentColumnIndex] = useState(0);
-  const [playing, setPlaying] = useState(false);
-
-  const [instruments, setInstruments] = useState<{
-    [instrumentName in InstrumentNames]: Soundfont.Player;
-  }>({}); // ignore for now or chatgpt for typeerror
-
-  const [currentInstrument, setCurrentInstrument] =
-    useState<Soundfont.Player | null>(null);
 
   useEffect(() => {
     const fetchInstrument = async () => {
       if (!audioContext) return;
 
       // Check if the instrument is already in cache
-      if (instruments[instrumentName]) {
-        setCurrentInstrument(instruments[instrumentName]);
+      if (instruments[currentInstrumentName]) {
+        setCurrentInstrument(instruments[currentInstrumentName]);
         return;
       }
 
@@ -82,7 +96,7 @@ export default function useSound() {
       // If not in cache, fetch it
       const guitarObj = await Soundfont.instrument(
         audioContext,
-        instrumentName,
+        currentInstrumentName,
         {
           soundfont: "MusyngKite",
           format: "ogg",
@@ -92,7 +106,7 @@ export default function useSound() {
       // Update the cache
       const updatedInstruments = {
         ...instruments,
-        [instrumentName]: guitarObj,
+        [currentInstrumentName]: guitarObj,
       };
       setInstruments(updatedInstruments);
 
@@ -101,7 +115,23 @@ export default function useSound() {
     };
 
     void fetchInstrument();
-  }, [audioContext, instrumentName, instruments]);
+  }, [
+    audioContext,
+    currentInstrumentName,
+    instruments,
+    setCurrentInstrument,
+    setInstruments,
+  ]);
+
+  // useEffect(() => {
+  //   console.log("got new volume", volume);
+
+  //   volumeRef.current = volume;
+
+  //   // if (!masterVolumeGainNode.current) return;
+
+  //   // masterVolumeGainNode.current.gain.value = volume / 100;
+  // }, [volume]);
 
   interface PlayNoteWithEffects {
     note: GainNode;
@@ -175,7 +205,17 @@ export default function useSound() {
     }
 
     if (noteWithEffectApplied) {
-      noteWithEffectApplied.connect(audioContext.destination);
+      // noteWithEffectApplied.connect(masterVolumeGainNode.current!);
+
+      // okay I'm thinking there is some memory reference shenanagins going on here,
+      // because completely omitting the connection to audioContext.destination still plays the same note...
+      console.log(noteWithEffectApplied, note, noteWithEffectApplied === note);
+
+      // they are!
+
+      // would go through master volume gain node here then connect to audioContext.destination
+      // testing what happens when this is commented out
+      // noteWithEffectApplied.connect(audioContext.destination);
     }
   }
 
@@ -553,12 +593,14 @@ export default function useSound() {
     // looks like the actual instrument() can take in a gain value, but not sure if it
     // would update while playing (defaults to 1 btw);
 
+    // console.log("SHOULD FINALLY be:", gain * (volumeRef.current / 100));
+
     const note = currentInstrument?.play(
       `${tuning[stringIdx]! + fret}`,
       audioContext.currentTime + when,
       {
         duration,
-        gain,
+        gain: gain * (volume / 100),
       }
     );
 
@@ -574,6 +616,19 @@ export default function useSound() {
         prevTetheredNote,
       });
     }
+
+    // else if (note) {
+    //   // if this works, extend it to effects as well
+    //   console.log(
+    //     "going through here",
+    //     masterVolumeGainNode.current?.gain.value
+    //   );
+
+    //   note.connect(masterVolumeGainNode.current);
+    //   const random = audioContext.createGain();
+    //   // masterVolumeGainNode.current?.connect(audioContext.destination);
+    //   masterVolumeGainNode.current?.connect(random); // still can hear when getting "rerouted" through this..
+    // }
 
     // will do this same process inside of applyTetheredEffect() with the copy AudioBufferSourceNode
     // that is made
@@ -1202,6 +1257,27 @@ export default function useSound() {
   // any interaction with the tab as it is playing. If audio is paused halfway through a section however, then we will need to allow interaction again, and on first interaction maybe
   // reset the currentChordIdx to the start of the section and then let the user do w/e they want from there?
 
+  interface PlayRecordedAudio {
+    recordedAudioUrl: string;
+    secondsElapsed: number;
+  }
+
+  function playRecordedAudio({
+    recordedAudioUrl,
+    secondsElapsed,
+  }: PlayRecordedAudio) {
+    // going to try and use the web audio api here too, just loading in the audio file and playingAudio it
+    // from the secondsElapsed and ofc respecting the volume level too
+  }
+
+  async function pauseRecordedAudio() {
+    // adj below for the actual audio file
+    // setPlayingAudio(false);
+    // currentInstrument?.stop();
+    // breakOnNextNote.current = true;
+    // await audioContext?.suspend();
+  }
+
   interface PlayTab {
     tabData: Section[];
     rawSectionProgression: SectionProgression[];
@@ -1233,7 +1309,7 @@ export default function useSound() {
         : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
     const tuning = parse(tuningNotes);
 
-    setPlaying(true);
+    setPlayingAudio(true);
 
     const compiledChords = location
       ? compileSpecificChordGrouping({
@@ -1250,8 +1326,7 @@ export default function useSound() {
         });
 
     for (
-      // let chordIndex = currentChordIndex; do this when you have made currentChordIndex state
-      let chordIndex = 0;
+      let chordIndex = currentChordIndex;
       chordIndex < compiledChords.length;
       chordIndex++
     ) {
@@ -1269,16 +1344,19 @@ export default function useSound() {
       const alteredBpm = Number(column[8]) * (1 / Number(column[9]));
 
       await playNoteColumn(column, tuning, capo ?? 0, alteredBpm, prevColumn);
+
+      setCurrentChordIndex(chordIndex + 1);
     }
 
     setTimeout(() => {
-      setPlaying(false);
+      setPlayingAudio(false);
       currentInstrument?.stop();
+      setCurrentChordIndex(0);
     }, 1500);
   }
 
   async function pauseTab() {
-    setPlaying(false);
+    setPlayingAudio(false);
     currentInstrument?.stop();
     breakOnNextNote.current = true;
 
@@ -1290,18 +1368,9 @@ export default function useSound() {
   // meaning you would have to directly export this function to use in the chord preview component
 
   return {
-    showingAudioControls,
-    setShowingAudioControls,
-    currentlyPlayingMetadata,
-    instrumentName,
-    setInstrumentName,
-    currentSectionProgressionIndex,
-    setCurrentSectionProgressionIndex,
-    currentColumnIndex,
-    setCurrentColumnIndex,
     playTab,
     pauseTab,
-    playing,
-    loadingInstrument: !currentInstrument,
+    playRecordedAudio,
+    pauseRecordedAudio,
   };
 }
