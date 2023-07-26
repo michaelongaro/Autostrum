@@ -24,14 +24,15 @@ model Tab {
     id                 Int       @id @default(autoincrement())
     title              String
     tuning             String
-    bpm                Int?
+    bpm                Int       @default(75)
     chords             Json      @default("[]") // prisma doesn't seem to support direct default value of json
     strummingPatterns  Json      @default("[]") // prisma doesn't seem to support direct default value of json
     tabData            Json
     sectionProgression Json
-    description        String?
-    timeSignature      String?
-    capo               Int?
+    description        String    @default("")
+    timeSignature      String    @default("")
+    capo               Int       @default(0)
+    recordedAudioUrl   String?
     createdAt          DateTime  @default(now())
     artist             Artist    @relation(fields: [createdById], references: [userId])
     createdById        String

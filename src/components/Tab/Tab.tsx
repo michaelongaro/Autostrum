@@ -49,6 +49,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setTuning,
     setBpm,
     setTimeSignature,
+    setRecordedAudioUrl,
     setChords,
     strummingPatterns,
     setStrummingPatterns,
@@ -74,6 +75,7 @@ function Tab({ tab, refetchTab }: ITab) {
       setTuning: state.setTuning,
       setBpm: state.setBpm,
       setTimeSignature: state.setTimeSignature,
+      setRecordedAudioUrl: state.setRecordedAudioUrl,
       setChords: state.setChords,
       strummingPatterns: state.strummingPatterns,
       setStrummingPatterns: state.setStrummingPatterns,
@@ -101,11 +103,12 @@ function Tab({ tab, refetchTab }: ITab) {
     setId(tab.id);
     setCreatedById(tab.createdById);
     setTitle(tab.title);
-    setDescription(tab.description ?? "");
+    setDescription(tab.description);
     setGenreId(tab.genreId);
     setTuning(tab.tuning);
     setBpm(tab.bpm);
     setTimeSignature(tab.timeSignature);
+    setRecordedAudioUrl(tab.recordedAudioUrl);
     setNumberOfLikes(tab.numberOfLikes);
 
     // @ts-expect-error can't specify type from prisma Json value, but we know it's correct
@@ -124,6 +127,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setDescription,
     setGenreId,
     setChords,
+    setRecordedAudioUrl,
     setStrummingPatterns,
     setTabData,
     setTimeSignature,
