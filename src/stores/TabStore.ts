@@ -187,6 +187,12 @@ interface TabState {
   ) => void;
 
   // useSound related
+  audioContext: AudioContext | null;
+  setAudioContext: (audioContext: AudioContext | null) => void;
+  breakOnNextNote: boolean;
+  setBreakOnNextNote: (breakOnNextNote: boolean) => void;
+  masterVolumeGainNode: GainNode | null;
+  setMasterVolumeGainNode: (masterVolumeGainNode: GainNode | null) => void;
   showingAudioControls: boolean;
   setShowingAudioControls: (showingAudioControls: boolean) => void;
   currentlyPlayingMetadata: Metadata[] | null;
@@ -407,6 +413,13 @@ export const useTabStore = create<TabState>()(
     },
 
     // useSound related
+    audioContext: null,
+    setAudioContext: (audioContext) => set({ audioContext }),
+    breakOnNextNote: false,
+    setBreakOnNextNote: (breakOnNextNote) => set({ breakOnNextNote }),
+    masterVolumeGainNode: null,
+    setMasterVolumeGainNode: (masterVolumeGainNode) =>
+      set({ masterVolumeGainNode }),
     showingAudioControls: false,
     setShowingAudioControls: (showingAudioControls) =>
       set({ showingAudioControls }),

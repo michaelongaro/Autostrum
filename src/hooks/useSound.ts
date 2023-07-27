@@ -18,6 +18,12 @@ import getBpmForChord from "~/utils/getBpmForChord";
 
 export default function useSound() {
   const {
+    audioContext,
+    setAudioContext,
+    breakOnNextNote,
+    setBreakOnNextNote,
+    masterVolumeGainNode,
+    setMasterVolumeGainNode,
     showingAudioControls,
     setShowingAudioControls,
     currentlyPlayingMetadata,
@@ -38,6 +44,12 @@ export default function useSound() {
     setCurrentInstrument,
   } = useTabStore(
     (state) => ({
+      audioContext: state.audioContext,
+      setAudioContext: state.setAudioContext,
+      breakOnNextNote: state.breakOnNextNote,
+      setBreakOnNextNote: state.setBreakOnNextNote,
+      masterVolumeGainNode: state.masterVolumeGainNode,
+      setMasterVolumeGainNode: state.setMasterVolumeGainNode,
       showingAudioControls: state.showingAudioControls,
       setShowingAudioControls: state.setShowingAudioControls,
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
@@ -60,27 +72,31 @@ export default function useSound() {
     shallow
   );
 
-  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
-  const breakOnNextNote = useRef(false);
-
-  // const masterVolumeGainNode = useRef<GainNode | null>(null);
-  // const volumeRef = useRef(50);
-
   useEffect(() => {
-    const newAudioContext = new AudioContext();
-    setAudioContext(newAudioContext);
+    if (audioContext && masterVolumeGainNode) return;
 
-    // masterVolumeGainNode.current = newAudioContext.createGain();
-    // return () => { not even entirely sure if this is necessary since it will only be unmounted when
-    // leaving the whole site
-    //   void audioContext.close();
-    // };
-  }, []);
+    const newAudioContext = new AudioContext();
+
+    const newMasterVolumeGainNode = newAudioContext.createGain();
+
+    newMasterVolumeGainNode.connect(newAudioContext.destination);
+
+    setAudioContext(newAudioContext);
+    setMasterVolumeGainNode(newMasterVolumeGainNode);
+  }, [
+    audioContext,
+    masterVolumeGainNode,
+    setAudioContext,
+    setMasterVolumeGainNode,
+  ]);
 
   const currentNoteArrayRef = useRef<
     (Soundfont.Player | AudioBufferSourceNode | undefined)[]
   >([undefined, undefined, undefined, undefined, undefined, undefined]);
 
+  // not entirely sure if this caching solution is necessary since the actual
+  // soundfont file would be cached by the browser anyway, but it doesn't hurt
+  // to leave it
   useEffect(() => {
     const fetchInstrument = async () => {
       if (!audioContext) return;
@@ -101,7 +117,7 @@ export default function useSound() {
           soundfont: "MusyngKite",
           format: "ogg",
         }
-      );
+      ).then((player) => player.connect(masterVolumeGainNode));
 
       // Update the cache
       const updatedInstruments = {
@@ -116,22 +132,13 @@ export default function useSound() {
 
     void fetchInstrument();
   }, [
+    masterVolumeGainNode, // hopefully this doesn't cause way more rerenders than we want since it's in tabStore now
     audioContext,
     currentInstrumentName,
     instruments,
     setCurrentInstrument,
     setInstruments,
   ]);
-
-  // useEffect(() => {
-  //   console.log("got new volume", volume);
-
-  //   volumeRef.current = volume;
-
-  //   // if (!masterVolumeGainNode.current) return;
-
-  //   // masterVolumeGainNode.current.gain.value = volume / 100;
-  // }, [volume]);
 
   interface PlayNoteWithEffects {
     note: GainNode;
@@ -157,7 +164,7 @@ export default function useSound() {
     inlineEffect,
     prevTetheredNote,
   }: PlayNoteWithEffects) {
-    if (!audioContext) return;
+    if (!audioContext || !masterVolumeGainNode) return;
 
     // once you ahve all the effects then also pass through the audioContext to this function
     // and onto them so that these functions can be exported into a /utils/ file
@@ -205,17 +212,16 @@ export default function useSound() {
     }
 
     if (noteWithEffectApplied) {
-      // noteWithEffectApplied.connect(masterVolumeGainNode.current!);
-
+      // might still need to connect this to the master volume gain node or audio context destination?
+      // noteWithEffectApplied.connect(masterVolumeGainNode!);
       // okay I'm thinking there is some memory reference shenanagins going on here,
       // because completely omitting the connection to audioContext.destination still plays the same note...
-      console.log(noteWithEffectApplied, note, noteWithEffectApplied === note);
-
+      // console.log(noteWithEffectApplied, note, noteWithEffectApplied === note);
       // they are!
-
       // would go through master volume gain node here then connect to audioContext.destination
       // testing what happens when this is commented out
-      // noteWithEffectApplied.connect(audioContext.destination);
+      noteWithEffectApplied.connect(masterVolumeGainNode);
+      masterVolumeGainNode.connect(audioContext.destination);
     }
   }
 
@@ -256,7 +262,7 @@ export default function useSound() {
   }
 
   function playSlapSound(accented: boolean) {
-    if (!audioContext) return;
+    if (!audioContext || !masterVolumeGainNode) return;
 
     // TODO: will most likely need a way to
     // okay maybe go back to adding slap as a chord effect tbh... but play it inline with regular
@@ -325,7 +331,8 @@ export default function useSound() {
     midBoost.connect(gainNode);
 
     // // Connect the gainNode to the audioContext's destination
-    gainNode.connect(audioContext.destination);
+    gainNode.connect(masterVolumeGainNode);
+    masterVolumeGainNode.connect(audioContext.destination);
 
     // Start the oscillator and noise now
     oscillator.start(audioContext.currentTime);
@@ -593,14 +600,15 @@ export default function useSound() {
     // looks like the actual instrument() can take in a gain value, but not sure if it
     // would update while playing (defaults to 1 btw);
 
-    // console.log("SHOULD FINALLY be:", gain * (volumeRef.current / 100));
+    // console.log("SHOULD FINALLY be:", gain * (volumeRef / 100));
 
     const note = currentInstrument?.play(
       `${tuning[stringIdx]! + fret}`,
       audioContext.currentTime + when,
       {
         duration,
-        gain: gain * (volume / 100),
+        // gain: gain * (volumeRef / 100),
+        gain,
       }
     );
 
@@ -617,17 +625,20 @@ export default function useSound() {
       });
     }
 
+    // console.log(note);
+    //why does it stutter... could it really be from the extra logs?
+
     // else if (note) {
     //   // if this works, extend it to effects as well
     //   console.log(
     //     "going through here",
-    //     masterVolumeGainNode.current?.gain.value
+    //     masterVolumeGainNode?.gain.value
     //   );
 
-    //   note.connect(masterVolumeGainNode.current);
+    //   note.connect(masterVolumeGainNode);
     //   const random = audioContext.createGain();
-    //   // masterVolumeGainNode.current?.connect(audioContext.destination);
-    //   masterVolumeGainNode.current?.connect(random); // still can hear when getting "rerouted" through this..
+    //   // masterVolumeGainNode?.connect(audioContext.destination);
+    //   masterVolumeGainNode?.connect(random); // still can hear when getting "rerouted" through this..
     // }
 
     // will do this same process inside of applyTetheredEffect() with the copy AudioBufferSourceNode
@@ -868,6 +879,7 @@ export default function useSound() {
   }: CompileFullTab) {
     const compiledChords: string[][] = [];
     const metadata: Metadata[] = [];
+    const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues, prob want to combine all three into one obj
 
     for (
       let sectionProgressionIndex = 0;
@@ -897,6 +909,7 @@ export default function useSound() {
           compiledChords,
           metadata,
           chords,
+          elapsedSeconds,
         });
       }
     }
@@ -925,6 +938,7 @@ export default function useSound() {
   }: CompileSpecificChordGrouping) {
     const compiledChords: string[][] = [];
     const metadata: Metadata[] = [];
+    const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues, prob want to combine all three into one obj};
 
     // playing ONE chord sequence (for the repetition amount)
     if (
@@ -948,6 +962,7 @@ export default function useSound() {
         compiledChords,
         metadata,
         chords,
+        elapsedSeconds,
       });
     } else if (
       location.subSectionIndex !== undefined &&
@@ -974,6 +989,7 @@ export default function useSound() {
             baselineBpm,
             compiledChords,
             metadata,
+            elapsedSeconds,
           });
         } else {
           compileChordSection({
@@ -984,6 +1000,7 @@ export default function useSound() {
             compiledChords,
             metadata,
             chords,
+            elapsedSeconds,
           });
         }
       }
@@ -999,6 +1016,7 @@ export default function useSound() {
         compiledChords,
         metadata,
         chords,
+        elapsedSeconds,
       });
     }
 
@@ -1014,6 +1032,7 @@ export default function useSound() {
     compiledChords: string[][];
     metadata: Metadata[];
     chords: Chord[];
+    elapsedSeconds: { value: number };
   }
 
   function compileSection({
@@ -1023,6 +1042,7 @@ export default function useSound() {
     compiledChords,
     metadata,
     chords,
+    elapsedSeconds,
   }: CompileSection) {
     for (
       let subSectionIndex = 0;
@@ -1047,6 +1067,7 @@ export default function useSound() {
             baselineBpm,
             compiledChords,
             metadata,
+            elapsedSeconds,
           });
         } else {
           compileChordSection({
@@ -1057,6 +1078,7 @@ export default function useSound() {
             compiledChords,
             metadata,
             chords,
+            elapsedSeconds,
           });
         }
       }
@@ -1070,6 +1092,7 @@ export default function useSound() {
     baselineBpm: number;
     compiledChords: string[][];
     metadata: Metadata[];
+    elapsedSeconds: { value: number };
   }
 
   function compileTabSection({
@@ -1079,6 +1102,7 @@ export default function useSound() {
     baselineBpm,
     compiledChords,
     metadata,
+    elapsedSeconds,
   }: CompileTabSection) {
     const data = subSection.data;
 
@@ -1098,7 +1122,11 @@ export default function useSound() {
         },
         bpm: Number(getBpmForChord(subSection.bpm, baselineBpm)),
         noteLengthMultiplier: "1",
+        elapsedSeconds: Math.floor(elapsedSeconds.value),
       });
+
+      elapsedSeconds.value +=
+        60 / Number(getBpmForChord(subSection.bpm, baselineBpm));
 
       compiledChords.push(chord);
     }
@@ -1112,6 +1140,7 @@ export default function useSound() {
     compiledChords: string[][];
     metadata: Metadata[];
     chords: Chord[];
+    elapsedSeconds: { value: number };
   }
 
   function compileChordSection({
@@ -1122,6 +1151,7 @@ export default function useSound() {
     compiledChords,
     metadata,
     chords,
+    elapsedSeconds,
   }: CompileChordSection) {
     const chordSection = subSection.data;
 
@@ -1143,6 +1173,7 @@ export default function useSound() {
         compiledChords,
         metadata,
         chords,
+        elapsedSeconds,
       });
     }
   }
@@ -1156,6 +1187,7 @@ export default function useSound() {
     compiledChords: string[][];
     metadata: Metadata[];
     chords: Chord[];
+    elapsedSeconds: { value: number };
   }
 
   function compileChordSequence({
@@ -1167,6 +1199,7 @@ export default function useSound() {
     compiledChords,
     metadata,
     chords,
+    elapsedSeconds,
   }: CompileChordSequence) {
     const chordSequenceRepetitions = getRepetitions(chordSequence?.repetitions);
 
@@ -1215,7 +1248,11 @@ export default function useSound() {
           },
           bpm: Number(chordBpm),
           noteLengthMultiplier,
+          elapsedSeconds: Math.floor(elapsedSeconds.value),
         });
+
+        elapsedSeconds.value +=
+          60 / (Number(chordBpm) / Number(noteLengthMultiplier));
 
         compiledChords.push(
           compileChord({
@@ -1274,7 +1311,7 @@ export default function useSound() {
     // adj below for the actual audio file
     // setPlayingAudio(false);
     // currentInstrument?.stop();
-    // breakOnNextNote.current = true;
+    // breakOnNextNote = true;
     // await audioContext?.suspend();
   }
 
@@ -1330,8 +1367,8 @@ export default function useSound() {
       chordIndex < compiledChords.length;
       chordIndex++
     ) {
-      if (breakOnNextNote.current) {
-        breakOnNextNote.current = false;
+      if (breakOnNextNote) {
+        setBreakOnNextNote(false);
         break;
       }
 
@@ -1358,7 +1395,7 @@ export default function useSound() {
   async function pauseTab() {
     setPlayingAudio(false);
     currentInstrument?.stop();
-    breakOnNextNote.current = true;
+    setBreakOnNextNote(true);
 
     await audioContext?.suspend();
   }
