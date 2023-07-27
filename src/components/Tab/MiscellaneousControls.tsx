@@ -40,8 +40,7 @@ function MiscellaneousControls({
   subSectionIndex,
   chordSequenceIndex,
 }: MiscellaneousControls) {
-  // loadingInstrument can legit just be !currentInstrument
-  const { playTab, pauseTab, playing, loadingInstrument } = useSound();
+  const { playTab, pauseTab } = useSound();
 
   const {
     chords,
@@ -51,6 +50,8 @@ function MiscellaneousControls({
     capo,
     setChords,
     setChordBeingEdited,
+    playingAudio,
+    currentInstrument,
     tabData,
     setTabData,
     currentlyCopiedData,
@@ -64,6 +65,8 @@ function MiscellaneousControls({
       capo: state.capo,
       setChords: state.setChords,
       setChordBeingEdited: state.setChordBeingEdited,
+      playingAudio: state.playingAudio,
+      currentInstrument: state.currentInstrument,
       tabData: state.tabData,
       setTabData: state.setTabData,
       currentlyCopiedData: state.currentlyCopiedData,
@@ -347,8 +350,9 @@ function MiscellaneousControls({
   return (
     <div className="baseFlex w-1/6 !flex-col-reverse !items-end gap-2 lg:!flex-row lg:!justify-end">
       <Button
+        disabled={!currentInstrument}
         onClick={() => {
-          if (playing) {
+          if (playingAudio) {
             void pauseTab();
           } else {
             void playTab({

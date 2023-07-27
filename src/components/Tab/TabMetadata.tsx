@@ -37,8 +37,7 @@ import useSound from "~/hooks/useSound";
 function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
   const { userId, isLoaded } = useAuth();
 
-  // loadingInstrument can legit just be !currentInstrument
-  const { playTab, pauseTab, playing, loadingInstrument } = useSound();
+  const { playTab, pauseTab } = useSound();
 
   const { push, asPath } = useRouter();
   const ctx = api.useContext();
@@ -110,6 +109,8 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
     editing,
     setEditing,
     setOriginalTabData,
+    playingAudio,
+    currentInstrument,
   } = useTabStore(
     (state) => ({
       originalTabData: state.originalTabData,
@@ -137,6 +138,8 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
       numberOfLikes: state.numberOfLikes,
       setEditing: state.setEditing,
       setOriginalTabData: state.setOriginalTabData,
+      playingAudio: state.playingAudio,
+      currentInstrument: state.currentInstrument,
     }),
     shallow
   );
@@ -267,7 +270,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
       inputValue === "" ||
       (Number(inputValue) >= 1 && Number(inputValue) <= 400)
     ) {
-      setBpm(Number(inputValue) === 0 ? null : Number(inputValue));
+      setBpm(Number(inputValue) === 0 ? -1 : Number(inputValue));
     }
   }
 
@@ -297,14 +300,14 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
 
     // Check if the input value is empty (backspace case)
     if (inputValue === "") {
-      setCapo(Number(inputValue) === 0 ? null : Number(inputValue));
+      setCapo(Number(inputValue) === 0 ? -1 : Number(inputValue));
       return;
     }
 
     // Check if the input value is a number between 1 and 12
     const num = Number(inputValue);
 
-    if (!isNaN(num) && num >= 1 && num <= 12) {
+    if (!isNaN(num) && num >= 0 && num <= 12) {
       setCapo(num);
     }
   }
@@ -391,7 +394,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
     <>
       <Button
         onClick={() => {
-          if (playing) {
+          if (playingAudio) {
             void pauseTab();
           } else {
             void playTab({
@@ -406,7 +409,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
         }}
         className="my-8"
       >
-        {playing ? "Pause" : loadingInstrument ? "Loading..." : "Play"}
+        {playingAudio ? "Pause" : !currentInstrument ? "Loading..." : "Play"}
       </Button>
       {editing ? (
         <>
@@ -571,7 +574,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
               <Input
                 type="text"
                 placeholder="0"
-                value={capo ?? ""}
+                value={capo === -1 ? "" : capo}
                 onChange={handleCapoChange}
               />
             </div>
@@ -587,7 +590,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
               <Input
                 type="text"
                 placeholder="75"
-                value={bpm ?? ""}
+                value={bpm === -1 ? "" : bpm}
                 style={{
                   boxShadow:
                     showPulsingError && bpm === null
