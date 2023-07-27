@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
@@ -38,14 +38,17 @@ function AudioControls() {
   // id (each chord div will need to have an id that matches this) and if turned on it will scroll to that
   // id.
 
+  const [volume, setVolume] = useState(1);
+
   const {
     recordedAudioUrl,
     currentInstrumentName,
     setCurrentInstrumentName,
     playbackSpeed,
     setPlaybackSpeed,
-    volume,
-    setVolume,
+    masterVolumeGainNode,
+    playingAudio,
+    currentInstrument,
   } = useTabStore(
     (state) => ({
       recordedAudioUrl: state.recordedAudioUrl,
@@ -53,14 +56,35 @@ function AudioControls() {
       setCurrentInstrumentName: state.setCurrentInstrumentName,
       playbackSpeed: state.playbackSpeed,
       setPlaybackSpeed: state.setPlaybackSpeed,
-      volume: state.volume,
-      setVolume: state.setVolume,
+      masterVolumeGainNode: state.masterVolumeGainNode,
+      playingAudio: state.playingAudio,
+      currentInstrument: state.currentInstrument,
     }),
     shallow
   );
 
   const { playTab, pauseTab, playRecordedAudio, pauseRecordedAudio } =
     useSound();
+
+  // new much simpler version:
+  // we are only dealing with the resolution of the slider which is whole seconds (1, 2, 3, etc)
+  // so in both scenarios (audio just progressing normally / scrubbing back and forth):
+  //    whatever second we are on/move to, we just need to findIndex within the metadata array
+  //    that has a secondsElapsed value equal to the current second we are on/move to!
+  //    (fyi findIndex finds the first index that matches the condition, which is *exactly* what we want!)
+  // ^^^ just as a reminder, if you were to scrub to 34 seconds, you would do findIndex process above,
+  //      and when you found the index, you would just set the currentChordIndex to that index. and theoretically
+  //      if you wire everything up properly, everything should work itself out.
+
+  // maybe dumb question, do we need a state for seconds elapsed? or try to work through metadata array + indicies?
+  // ^^ I think you only need that state for the recorded audio, otherwise should be able to just do the
+  //    findIndex process above based on currentChordIndex to get the secondsElapsed value!
+
+  useEffect(() => {
+    if (!masterVolumeGainNode) return;
+
+    masterVolumeGainNode.gain.value = volume;
+  }, [volume, masterVolumeGainNode]);
 
   return (
     <motion.div
@@ -239,14 +263,11 @@ function AudioControls() {
                   >
                     <Slider
                       orientation="vertical"
-                      value={[volume]}
+                      value={[volume * 50]} // 100 felt too quite/narrow of a volume range
                       min={0}
                       max={100}
                       step={1}
-                      onValueChange={(value) => {
-                        console.log("slider val to:", value[0]);
-                        setVolume(value[0] as number);
-                      }}
+                      onValueChange={(value) => setVolume(value[0]! / 50)} // 100 felt too quite/narrow of a volume range
                       className="baseVertFlex h-full w-full"
                     ></Slider>
                   </motion.div>
@@ -262,9 +283,9 @@ function AudioControls() {
 
           <div>play/pause</div>
 
-          <div>loop</div>
-
           <div>slider</div>
+
+          <div>loop</div>
         </div>
       </div>
     </motion.div>
