@@ -50,7 +50,8 @@ function MiscellaneousControls({
     capo,
     setChords,
     setChordBeingEdited,
-    playingAudio,
+    audioMetadata,
+    setAudioMetadata,
     currentInstrument,
     tabData,
     setTabData,
@@ -65,7 +66,8 @@ function MiscellaneousControls({
       capo: state.capo,
       setChords: state.setChords,
       setChordBeingEdited: state.setChordBeingEdited,
-      playingAudio: state.playingAudio,
+      audioMetadata: state.audioMetadata,
+      setAudioMetadata: state.setAudioMetadata,
       currentInstrument: state.currentInstrument,
       tabData: state.tabData,
       setTabData: state.setTabData,
@@ -343,18 +345,25 @@ function MiscellaneousControls({
     setTabData(newTabData);
   }
 
-  {
-    /* TODO: after changing isPlaying interface, look at isPlaying.location to see if this should be play/pause icon  */
-  }
-
   return (
     <div className="baseFlex w-1/6 !flex-col-reverse !items-end gap-2 lg:!flex-row lg:!justify-end">
       <Button
-        disabled={!currentInstrument}
+        disabled={
+          !currentInstrument || audioMetadata.type === "Artist recorded"
+        }
         onClick={() => {
-          if (playingAudio) {
+          if (audioMetadata.playing) {
             void pauseTab();
           } else {
+            setAudioMetadata({
+              ...audioMetadata,
+              location: {
+                sectionIndex,
+                subSectionIndex,
+                chordSequenceIndex,
+              },
+            });
+
             void playTab({
               tabData,
               rawSectionProgression: sectionProgression,
@@ -364,14 +373,22 @@ function MiscellaneousControls({
               capo,
               location: {
                 sectionIndex,
-                subSectionIndex: subSectionIndex,
-                chordSequenceIndex: chordSequenceIndex,
+                subSectionIndex,
+                chordSequenceIndex,
               },
             });
           }
         }}
       >
-        <BsFillPlayFill className="h-5 w-5" />
+        {audioMetadata.type === "Generated" &&
+        audioMetadata.playing &&
+        audioMetadata.location?.sectionIndex === sectionIndex &&
+        audioMetadata.location?.subSectionIndex === subSectionIndex &&
+        audioMetadata.location?.chordSequenceIndex === chordSequenceIndex ? (
+          <BsFillPauseFill className="h-5 w-5" />
+        ) : (
+          <BsFillPlayFill className="h-5 w-5" />
+        )}
       </Button>
 
       <DropdownMenu modal={false}>
