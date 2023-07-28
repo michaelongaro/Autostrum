@@ -1,12 +1,24 @@
-import type { ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import Bubbles from "../Bubbles";
 import Header from "../Header/Header";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import useKeepArtistMetadataUpdatedWithClerk from "~/hooks/useKeepArtistMetadataUpdatedWithClerk";
 import AudioControls from "../AudioControls/AudioControls";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
+import { BsArrowUpShort } from "react-icons/bs";
+import { Button } from "../ui/button";
 
+const opacityAndScaleVariants = {
+  expanded: {
+    opacity: 1,
+    scale: 1,
+  },
+  closed: {
+    opacity: 0,
+    scale: 0.5,
+  },
+};
 interface GeneralLayout {
   children: ReactNode;
 }
@@ -21,6 +33,22 @@ function GeneralLayout({ children }: GeneralLayout) {
     }),
     shallow
   );
+
+  const [scrollThresholdReached, setScrollThresholdReached] =
+    useState<boolean>(false);
+
+  useEffect(() => {
+    function handleScroll() {
+      setScrollThresholdReached(
+        window.scrollY > Math.floor(0.35 * window.innerHeight)
+      );
+    }
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   return (
     <div
@@ -38,6 +66,28 @@ function GeneralLayout({ children }: GeneralLayout) {
       <AnimatePresence mode="wait">
         {/* temp: remove "true" once showingAudioControls is working properly */}
         {(showingAudioControls || true) && <AudioControls />}
+      </AnimatePresence>
+
+      {/* bottom right scroll to top button */}
+      <AnimatePresence mode="wait">
+        {scrollThresholdReached && (
+          <motion.div
+            key={"ScrollToTop"}
+            variants={opacityAndScaleVariants}
+            initial="closed"
+            animate="expanded"
+            exit="closed"
+            transition={{
+              duration: 0.15,
+            }}
+            onClick={() => window.scrollTo(0, 0)}
+            className="baseFlex fixed bottom-4 right-4 z-50 "
+          >
+            <Button variant="secondary" className="rounded-full p-2">
+              <BsArrowUpShort className="h-5 w-5" />
+            </Button>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       <AnimatePresence mode="wait">{children}</AnimatePresence>
