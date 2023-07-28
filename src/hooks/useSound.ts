@@ -32,12 +32,10 @@ export default function useSound() {
     setCurrentInstrumentName,
     playbackSpeed,
     setPlaybackSpeed,
-    volume,
-    setVolume,
     currentChordIndex,
     setCurrentChordIndex,
-    playingAudio,
-    setPlayingAudio,
+    audioMetadata,
+    setAudioMetadata,
     instruments,
     setInstruments,
     currentInstrument,
@@ -58,12 +56,10 @@ export default function useSound() {
       setCurrentInstrumentName: state.setCurrentInstrumentName,
       playbackSpeed: state.playbackSpeed,
       setPlaybackSpeed: state.setPlaybackSpeed,
-      volume: state.volume,
-      setVolume: state.setVolume,
       currentChordIndex: state.currentChordIndex,
       setCurrentChordIndex: state.setCurrentChordIndex,
-      playingAudio: state.playingAudio,
-      setPlayingAudio: state.setPlayingAudio,
+      audioMetadata: state.audioMetadata,
+      setAudioMetadata: state.setAudioMetadata,
       instruments: state.instruments,
       setInstruments: state.setInstruments,
       currentInstrument: state.currentInstrument,
@@ -89,6 +85,19 @@ export default function useSound() {
     setAudioContext,
     setMasterVolumeGainNode,
   ]);
+
+  // Doesn't feel great to be using refs here, but it's the only way I can think of to
+  // get current values of these vars within the async for loop in playTab()
+  const breakOnNextNoteRef = useRef(breakOnNextNote);
+  const audioMetadataRef = useRef(audioMetadata);
+
+  useEffect(() => {
+    breakOnNextNoteRef.current = breakOnNextNote;
+  }, [breakOnNextNote]);
+
+  useEffect(() => {
+    audioMetadataRef.current = audioMetadata;
+  }, [audioMetadata]);
 
   const currentNoteArrayRef = useRef<
     (Soundfont.Player | AudioBufferSourceNode | undefined)[]
@@ -1126,7 +1135,8 @@ export default function useSound() {
       });
 
       elapsedSeconds.value +=
-        60 / Number(getBpmForChord(subSection.bpm, baselineBpm));
+        60 /
+        (Number(getBpmForChord(subSection.bpm, baselineBpm)) * playbackSpeed);
 
       compiledChords.push(chord);
     }
@@ -1252,7 +1262,8 @@ export default function useSound() {
         });
 
         elapsedSeconds.value +=
-          60 / (Number(chordBpm) / Number(noteLengthMultiplier));
+          60 /
+          ((Number(chordBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
 
         compiledChords.push(
           compileChord({
@@ -1303,13 +1314,13 @@ export default function useSound() {
     recordedAudioUrl,
     secondsElapsed,
   }: PlayRecordedAudio) {
-    // going to try and use the web audio api here too, just loading in the audio file and playingAudio it
+    // going to try and use the web audio api here too, just loading in the audio file and audioMetadata it
     // from the secondsElapsed and ofc respecting the volume level too
   }
 
   async function pauseRecordedAudio() {
     // adj below for the actual audio file
-    // setPlayingAudio(false);
+    // setAudioMetadata(false);
     // currentInstrument?.stop();
     // breakOnNextNote = true;
     // await audioContext?.suspend();
@@ -1346,7 +1357,10 @@ export default function useSound() {
         : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
     const tuning = parse(tuningNotes);
 
-    setPlayingAudio(true);
+    setAudioMetadata({
+      ...audioMetadataRef.current,
+      playing: true,
+    });
 
     const compiledChords = location
       ? compileSpecificChordGrouping({
@@ -1367,7 +1381,7 @@ export default function useSound() {
       chordIndex < compiledChords.length;
       chordIndex++
     ) {
-      if (breakOnNextNote) {
+      if (breakOnNextNoteRef.current) {
         setBreakOnNextNote(false);
         break;
       }
@@ -1377,8 +1391,9 @@ export default function useSound() {
 
       if (column === undefined) continue;
 
-      // alteredBpm = bpm for chord * (1 / noteLengthMultiplier)
-      const alteredBpm = Number(column[8]) * (1 / Number(column[9]));
+      // alteredBpm = bpm for chord * (1 / noteLengthMultiplier) * playbackSpeedMultiplier
+      const alteredBpm =
+        Number(column[8]) * (1 / Number(column[9])) * playbackSpeed;
 
       await playNoteColumn(column, tuning, capo ?? 0, alteredBpm, prevColumn);
 
@@ -1386,16 +1401,29 @@ export default function useSound() {
     }
 
     setTimeout(() => {
-      setPlayingAudio(false);
+      setAudioMetadata({
+        ...audioMetadataRef.current,
+        playing: false,
+      });
       currentInstrument?.stop();
       setCurrentChordIndex(0);
     }, 1500);
   }
 
-  async function pauseTab() {
-    setPlayingAudio(false);
+  async function pauseTab(resetToStart = false) {
+    setAudioMetadata({
+      ...audioMetadataRef.current,
+      playing: false,
+    });
     currentInstrument?.stop();
+
+    // should you be clearing out currentNoteArrayRef?
+
     setBreakOnNextNote(true);
+
+    if (resetToStart) {
+      setCurrentChordIndex(0);
+    }
 
     await audioContext?.suspend();
   }
