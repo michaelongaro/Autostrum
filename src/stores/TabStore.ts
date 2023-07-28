@@ -78,6 +78,16 @@ type InstrumentNames =
   | "electric_guitar_clean"
   | "electric_guitar_jazz";
 
+interface AudioMetadata {
+  type: "Generated" | "Artist recorded";
+  playing: boolean;
+  location: {
+    sectionIndex: number;
+    subSectionIndex?: number;
+    chordSequenceIndex?: number;
+  } | null;
+}
+
 interface TabState {
   // not sure if this will hurt us later on, but I would like to avoid making all of these optional
   // and instead just set them to default-ish values
@@ -195,6 +205,7 @@ interface TabState {
   setMasterVolumeGainNode: (masterVolumeGainNode: GainNode | null) => void;
   showingAudioControls: boolean;
   setShowingAudioControls: (showingAudioControls: boolean) => void;
+  // TODO: might be a good idea to add below as a prop under audioMetadata
   currentlyPlayingMetadata: Metadata[] | null;
   setCurrentlyPlayingMetadata: (
     currentlyPlayingMetadata: Metadata[] | null
@@ -213,12 +224,10 @@ interface TabState {
   ) => void;
   playbackSpeed: 1 | 0.25 | 0.5 | 0.75 | 1.25 | 1.5;
   setPlaybackSpeed: (speed: 1 | 0.25 | 0.5 | 0.75 | 1.25 | 1.5) => void;
-  volume: number; // may still need to use in conjunction w/ volumeRef
-  setVolume: (volume: number) => void; // may still need to use in conjunction w/ volumeRef
   currentChordIndex: number;
   setCurrentChordIndex: (currentChordIndex: number) => void;
-  playingAudio: boolean;
-  setPlayingAudio: (playingAudio: boolean) => void;
+  audioMetadata: AudioMetadata;
+  setAudioMetadata: (audioMetadata: AudioMetadata) => void;
   instruments: {
     [currentInstrumentName in InstrumentNames]: Soundfont.Player;
   };
@@ -431,12 +440,14 @@ export const useTabStore = create<TabState>()(
       set({ currentInstrumentName }),
     playbackSpeed: 1,
     setPlaybackSpeed: (playbackSpeed) => set({ playbackSpeed }),
-    volume: 50,
-    setVolume: (volume) => set({ volume }),
     currentChordIndex: 0,
     setCurrentChordIndex: (currentChordIndex) => set({ currentChordIndex }),
-    playingAudio: false,
-    setPlayingAudio: (playingAudio) => set({ playingAudio }),
+    audioMetadata: {
+      type: "Generated",
+      playing: false,
+      location: null,
+    },
+    setAudioMetadata: (audioMetadata) => set({ audioMetadata }),
     // @ts-expect-error fix this type later
     instruments: {},
     setInstruments: (instruments) => set({ instruments }),
