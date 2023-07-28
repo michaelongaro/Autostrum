@@ -82,11 +82,21 @@ function TabNotesColumn({
     // hoping that columnIndex is fine here. if you can drag across sections we will need to modify.
     useSortable({ id: `${columnIndex}` });
 
-  const { editing, tabData, setTabData } = useTabStore(
+  const {
+    editing,
+    tabData,
+    setTabData,
+    currentlyPlayingMetadata,
+    currentChordIndex,
+    playbackSpeed,
+  } = useTabStore(
     (state) => ({
       editing: state.editing,
       tabData: state.tabData,
       setTabData: state.setTabData,
+      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+      currentChordIndex: state.currentChordIndex,
+      playbackSpeed: state.playbackSpeed,
     }),
     shallow
   );
@@ -129,6 +139,69 @@ function TabNotesColumn({
 
     return disabled;
   }, [tabData, sectionIndex, subSectionIndex, columnIndex]);
+
+  const columnIsBeingPlayed = useMemo(() => {
+    if (currentlyPlayingMetadata === null) return false;
+
+    // TOOD: clean up this logic later
+
+    if (
+      currentlyPlayingMetadata[currentChordIndex]?.location.sectionIndex !==
+        sectionIndex ||
+      currentlyPlayingMetadata[currentChordIndex]?.location.subSectionIndex !==
+        subSectionIndex ||
+      currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex !==
+        columnIndex
+    ) {
+      return false;
+    }
+
+    return true;
+  }, [
+    currentlyPlayingMetadata,
+    currentChordIndex,
+    sectionIndex,
+    subSectionIndex,
+    columnIndex,
+  ]);
+
+  const columnHasBeenPlayed = useMemo(() => {
+    if (currentlyPlayingMetadata === null) return false;
+
+    // TOOD: alright this was copilot generated, actually walk through what really needs to be
+    // happening here, still think it's worthwhile to split up into above and this function.
+
+    if (
+      currentlyPlayingMetadata[currentChordIndex]?.location.sectionIndex !==
+        sectionIndex ||
+      currentlyPlayingMetadata[currentChordIndex]?.location.subSectionIndex !==
+        subSectionIndex ||
+      (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ?? 0) <
+        columnIndex
+    ) {
+      return false;
+    }
+
+    return true;
+  }, [
+    currentlyPlayingMetadata,
+    currentChordIndex,
+    sectionIndex,
+    subSectionIndex,
+    columnIndex,
+  ]);
+
+  const durationOfCurrentChord = useMemo(() => {
+    if (currentlyPlayingMetadata === null) return 0;
+
+    const bpm = currentlyPlayingMetadata[currentChordIndex]?.bpm;
+    const noteLengthMultiplier =
+      currentlyPlayingMetadata[currentChordIndex]?.noteLengthMultiplier;
+
+    if (bpm === undefined || noteLengthMultiplier === undefined) return 0;
+
+    return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
+  }, [currentlyPlayingMetadata, currentChordIndex, playbackSpeed]);
 
   function handleDeleteCombo() {
     const newTabData = [...tabData];
@@ -184,7 +257,19 @@ function TabNotesColumn({
       variants={sectionVariants}
       className="baseVertFlex cursor-default"
     >
-      <div className="baseFlex">
+      <div className="baseFlex relative">
+        <div
+          style={{
+            width: columnIsBeingPlayed || columnHasBeenPlayed ? "100%" : "0%",
+            transitionDuration: columnIsBeingPlayed
+              ? `${durationOfCurrentChord}s`
+              : "0s",
+            msTransitionProperty: "width",
+            transitionTimingFunction: "linear",
+          }}
+          className="absolute left-0 top-1/2 h-[280px] w-0 -translate-y-1/2 bg-pink-600"
+        ></div>
+
         <div
           style={{
             gap: editing ? "0.5rem" : "0",
