@@ -16,8 +16,6 @@ interface EffectGlossary {
 }
 
 function EffectGlossary({ forModal = false }: EffectGlossary) {
-  const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
-
   const { showingEffectGlossary, setShowingEffectGlossary } = useTabStore(
     (state) => ({
       showingEffectGlossary: state.showingEffectGlossary,
@@ -46,7 +44,7 @@ function EffectGlossary({ forModal = false }: EffectGlossary) {
         )}
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent side={aboveMediumViewportWidth ? "right" : "bottom"}>
+      <DropdownMenuContent side={"bottom"}>
         <DropdownMenuLabel>Section effects</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="grid w-48 grid-cols-5">
