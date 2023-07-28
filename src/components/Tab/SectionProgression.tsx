@@ -33,7 +33,7 @@ function SectionProgression() {
             : "500px"
           : "300px",
       }}
-      className="lightestGlassmorphic baseVertFlex mb-4 mt-4 max-w-[75%]
+      className="lightestGlassmorphic baseVertFlex mb-4 mt-4 w-1/2 max-w-[91.7%]
         gap-4 rounded-md p-4 md:m-0 md:!items-start"
     >
       <p className="text-lg font-bold text-pink-50">

@@ -157,13 +157,7 @@ function Tab({ tab, refetchTab }: ITab) {
 
         <Separator className="w-[96%]" />
 
-        <div className="baseFlex gap-8">
-          <SectionProgression />
-
-          <div className="hidden md:block">
-            <EffectGlossary />
-          </div>
-        </div>
+        <SectionProgression />
 
         <Chords />
 
@@ -191,10 +185,10 @@ function Tab({ tab, refetchTab }: ITab) {
       {/* scroll to top button above this? */}
 
       <Button
-        className="fixed bottom-4 right-4 z-20 block h-12 w-12 rounded-full p-4 md:hidden"
+        className="baseFlex fixed bottom-4 left-4 z-50 h-12 w-12 rounded-full p-0"
         onClick={() => setShowEffectGlossaryModal(true)}
       >
-        <FaItunesNote className="h-4 w-4" />
+        <FaItunesNote className="m-0 h-4 w-4" />
       </Button>
 
       <AnimatePresence mode="wait">
