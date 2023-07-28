@@ -32,12 +32,9 @@ import classes from "./TabMetadata.module.css";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { formatNumber } from "~/utils/formatNumber";
 import type { RefetchTab } from "./Tab";
-import useSound from "~/hooks/useSound";
 
 function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
   const { userId, isLoaded } = useAuth();
-
-  const { playTab, pauseTab } = useSound();
 
   const { push, asPath } = useRouter();
   const ctx = api.useContext();
@@ -109,8 +106,6 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
     editing,
     setEditing,
     setOriginalTabData,
-    playingAudio,
-    currentInstrument,
   } = useTabStore(
     (state) => ({
       originalTabData: state.originalTabData,
@@ -138,8 +133,6 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
       numberOfLikes: state.numberOfLikes,
       setEditing: state.setEditing,
       setOriginalTabData: state.setOriginalTabData,
-      playingAudio: state.playingAudio,
-      currentInstrument: state.currentInstrument,
     }),
     shallow
   );
@@ -392,25 +385,6 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
 
   return (
     <>
-      <Button
-        onClick={() => {
-          if (playingAudio) {
-            void pauseTab();
-          } else {
-            void playTab({
-              tabData,
-              rawSectionProgression: sectionProgression,
-              tuningNotes: tuning,
-              baselineBpm: bpm,
-              chords,
-              capo: capo,
-            });
-          }
-        }}
-        className="my-8"
-      >
-        {playingAudio ? "Pause" : !currentInstrument ? "Loading..." : "Play"}
-      </Button>
       {editing ? (
         <>
           <div className={classes.editingMetadataContainer}>
