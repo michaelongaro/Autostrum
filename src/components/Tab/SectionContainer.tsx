@@ -12,8 +12,10 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import ChordSection from "./ChordSection";
 import { Separator } from "../ui/separator";
+import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import MiscellaneousControls from "./MiscellaneousControls";
 import { Label } from "@radix-ui/react-label";
+import useSound from "~/hooks/useSound";
 
 interface SectionContainer {
   sectionIndex: number;
@@ -21,13 +23,39 @@ interface SectionContainer {
 }
 
 function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
-  const { bpm, strummingPatterns, tabData, setTabData, editing } = useTabStore(
+  const { playTab, pauseTab } = useSound();
+
+  const {
+    bpm,
+    strummingPatterns,
+    tabData,
+    setTabData,
+    editing,
+    chords,
+    sectionProgression,
+    tuning,
+    capo,
+    setChords,
+    setChordBeingEdited,
+    audioMetadata,
+    setAudioMetadata,
+    currentInstrument,
+  } = useTabStore(
     (state) => ({
       bpm: state.bpm,
       strummingPatterns: state.strummingPatterns,
       tabData: state.tabData,
       setTabData: state.setTabData,
       editing: state.editing,
+      chords: state.chords,
+      sectionProgression: state.sectionProgression,
+      tuning: state.tuning,
+      capo: state.capo,
+      setChords: state.setChords,
+      setChordBeingEdited: state.setChordBeingEdited,
+      audioMetadata: state.audioMetadata,
+      setAudioMetadata: state.setAudioMetadata,
+      currentInstrument: state.currentInstrument,
     }),
     shallow
   );
@@ -138,11 +166,58 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
       )}
 
       {!editing && (
-        <div className="baseFlex !justify-start gap-2">
-          <p className="text-lg font-semibold">
+        <div className="baseFlex w-full !justify-start gap-4">
+          <p className="text-xl font-semibold">
             {tabData[sectionIndex]?.title}
           </p>
-          <div>filler for play/pause btn</div>
+
+          {/* still thinking of limiting only to per section playing, so don't need extra indicies */}
+
+          <Button
+            variant="playPause"
+            disabled={
+              !currentInstrument || audioMetadata.type === "Artist recorded"
+            }
+            onClick={() => {
+              if (audioMetadata.playing) {
+                void pauseTab();
+              } else {
+                setAudioMetadata({
+                  ...audioMetadata,
+                  location: {
+                    sectionIndex,
+                    subSectionIndex,
+                    chordSequenceIndex,
+                  },
+                });
+
+                void playTab({
+                  tabData,
+                  rawSectionProgression: sectionProgression,
+                  tuningNotes: tuning,
+                  baselineBpm: bpm,
+                  chords,
+                  capo,
+                  location: {
+                    sectionIndex,
+                    subSectionIndex,
+                    chordSequenceIndex,
+                  },
+                });
+              }
+            }}
+          >
+            {audioMetadata.type === "Generated" &&
+            audioMetadata.playing &&
+            audioMetadata.location?.sectionIndex === sectionIndex &&
+            audioMetadata.location?.subSectionIndex === subSectionIndex &&
+            audioMetadata.location?.chordSequenceIndex ===
+              chordSequenceIndex ? (
+              <BsFillPauseFill className="h-5 w-5" />
+            ) : (
+              <BsFillPlayFill className="h-5 w-5" />
+            )}
+          </Button>
         </div>
       )}
 
