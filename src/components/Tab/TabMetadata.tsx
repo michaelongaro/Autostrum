@@ -774,16 +774,18 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                   </div>
                 )}
 
-                {capo && (
-                  <div
-                    className={`${
-                      classes.capo ?? ""
-                    } baseVertFlex !items-start gap-2`}
-                  >
-                    <div className="font-semibold">Capo</div>
-                    <div>{`${getOrdinalSuffix(capo)} fret`}</div>
-                  </div>
-                )}
+                {/* feels a bit weird with "none" option, but felt weird leaving so
+                    much extra space */}
+                <div
+                  className={`${
+                    classes.capo ?? ""
+                  } baseVertFlex !items-start gap-2`}
+                >
+                  <p className="font-semibold">Capo</p>
+                  <p>
+                    {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
