@@ -152,9 +152,9 @@ function ChordSection({
         </div>
       )}
 
-      {!editing && (
-        <p className="lightestGlassmorphic absolute -top-12 left-0 rounded-md p-2">
-          {subSectionData.repetitions}
+      {!editing && subSectionData.repetitions > 1 && (
+        <p className="lightestGlassmorphic absolute left-0 top-0 rounded-md p-2">
+          Repeat x{subSectionData.repetitions}
         </p>
       )}
 

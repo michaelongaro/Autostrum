@@ -263,9 +263,9 @@ function ChordSequence({
             </div>
           )}
 
-          {!editing && (
-            <p className="lightestGlassmorphic absolute -top-12 left-0 rounded-md p-2">
-              {chordSequenceData.repetitions}
+          {!editing && chordSequenceData.repetitions > 1 && (
+            <p className="lightestGlassmorphic absolute left-0 top-0 rounded-md p-2">
+              Repeat x{chordSequenceData.repetitions}
             </p>
           )}
 
