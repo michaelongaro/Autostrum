@@ -1340,6 +1340,19 @@ export default function useSound() {
     };
   }
 
+  // this will be after you do refactor to look at tabStore data of above props instead
+  // of the props themselves:
+
+  // will just take in an optional paramter of "strummingPattern" that will be either the
+  // strumming pattern (c chord) / single note downstrum of chord that is being previewed either in modal
+  // or with pause/play button in <Chords/> and <StrummingPatterns/> respectively.
+
+  // only other caviat would be to not increment currentChordIdx if the strummingPattern is passed in
+  // and also before playing preview, calling pauseTab() / pauseRecordedAudio().
+
+  // idk I think we are going to keep doing the suspend + resume calls for now, but not 100% sure if they
+  // are necessary since we are already stopping the acutal instrument from playing
+
   async function playTab({
     tabData,
     rawSectionProgression,
