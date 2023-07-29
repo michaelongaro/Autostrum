@@ -267,6 +267,7 @@ function TabNotesColumn({
             msTransitionProperty: "width",
             transitionTimingFunction: "linear",
           }}
+          // TODO: will almost definitely have to adapt height whether we are editing or not
           className="absolute left-0 top-1/2 h-[280px] w-0 -translate-y-1/2 bg-pink-600"
         ></div>
 
