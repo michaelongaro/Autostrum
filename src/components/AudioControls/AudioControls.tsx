@@ -142,7 +142,7 @@ function AudioControls() {
     >
       {/* start off with always two rows, and see how hard it would be to combine into
           one at larger widths later on */}
-      <div className="baseVertFlex h-full w-11/12 gap-2 rounded-md bg-pink-600 p-0 shadow-md md:w-9/12 md:rounded-full md:px-8 md:py-2 xl:w-1/2">
+      <div className="baseVertFlex h-full w-11/12 gap-2 rounded-md bg-pink-600 p-0 shadow-lg md:w-9/12 md:rounded-full md:px-8 md:py-2 xl:w-1/2">
         {/* top layer: audio source, instrument, speed  + volume slider */}
         <div className="baseFlex w-full !justify-between">
           {/* audio source, instrument, speed selects*/}
