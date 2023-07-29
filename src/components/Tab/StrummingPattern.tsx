@@ -18,6 +18,7 @@ import StrummingPatternPalmMuteNode from "../Tab/StrummingPatternPalmMuteNode";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 
 interface StrummingPattern {
   data: StrummingPatternType;
@@ -56,16 +57,24 @@ function StrummingPattern({
   // whenever adding more strums or deleting strums, immediately edit the isFocused array
   // to either add new false values or delete the strum that was deleted!
 
-  const { chords, tabData, setTabData, setStrummingPatternBeingEdited } =
-    useTabStore(
-      (state) => ({
-        chords: state.chords,
-        tabData: state.tabData,
-        setTabData: state.setTabData,
-        setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
-      }),
-      shallow
-    );
+  const {
+    chords,
+    tabData,
+    setTabData,
+    setStrummingPatternBeingEdited,
+    currentlyPlayingMetadata,
+    currentChordIndex,
+  } = useTabStore(
+    (state) => ({
+      chords: state.chords,
+      tabData: state.tabData,
+      setTabData: state.setTabData,
+      setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
+      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+      currentChordIndex: state.currentChordIndex,
+    }),
+    shallow
+  );
 
   function handleKeyDown(
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -279,6 +288,25 @@ function StrummingPattern({
     }
   }
 
+  function highlightChord(chordIndex: number) {
+    if (currentlyPlayingMetadata === null || !location) return false;
+
+    if (
+      currentlyPlayingMetadata[currentChordIndex]?.location.sectionIndex !==
+        location.sectionIndex ||
+      currentlyPlayingMetadata[currentChordIndex]?.location.subSectionIndex !==
+        location.subSectionIndex ||
+      currentlyPlayingMetadata[currentChordIndex]?.location
+        .chordSequenceIndex !== location.chordSequenceIndex ||
+      (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ?? 0) <
+        chordIndex
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
   return (
     <div
       style={{
@@ -290,8 +318,13 @@ function StrummingPattern({
         style={{
           gap: mode === "editingChordSequence" ? "0.5rem" : "0",
         }}
-        className="baseFlex !justify-start"
+        // TODO: look at alignment when not just v/^
+        className="baseFlex !items-start !justify-start"
       >
+        {mode === "editingChordSequence" && (
+          <Label className="mt-6">Chords</Label>
+        )}
+
         {data?.strums?.map((strum, strumIndex) => (
           <div key={strumIndex} className="baseFlex gap-2">
             <div
@@ -363,7 +396,16 @@ function StrummingPattern({
 
               {/* chord viewer */}
               {mode === "viewingWithBeatNumbers" && (
-                <p>{getChordName(strumIndex)}</p>
+                <p
+                  style={{
+                    color: highlightChord(strumIndex)
+                      ? "rgb(219 39 119"
+                      : "auto",
+                  }}
+                  className="font-semibold"
+                >
+                  {getChordName(strumIndex)}
+                </p>
               )}
 
               <div
@@ -412,6 +454,9 @@ function StrummingPattern({
                         strum.strum.includes(">") || !patternHasAccents()
                           ? "0"
                           : "1.5rem",
+                      color: highlightChord(strumIndex)
+                        ? "rgb(219 39 119"
+                        : "auto",
                     }}
                     className="baseVertFlex h-full"
                   >
@@ -438,6 +483,9 @@ function StrummingPattern({
                       getBeatIndicator(data.noteLength, strumIndex) === ""
                         ? "1.5rem"
                         : "auto",
+                    color: highlightChord(strumIndex)
+                      ? "rgb(219 39 119"
+                      : "auto",
                   }}
                 >
                   {getBeatIndicator(data.noteLength, strumIndex)}
