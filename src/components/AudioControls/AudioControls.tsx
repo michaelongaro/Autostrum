@@ -346,6 +346,7 @@ function AudioControls() {
 
           {/* play/pause button*/}
           <Button
+            variant="playPause"
             disabled={
               currentlyPlayingMetadata === null ||
               currentlyPlayingMetadata.length === 0 ||
@@ -367,7 +368,6 @@ function AudioControls() {
                 });
               }
             }}
-            className="bg-green-600 hover:bg-green-700"
           >
             {audioMetadata.playing ? (
               <BsFillPauseFill className="h-5 w-5" />

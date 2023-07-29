@@ -297,7 +297,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                 </Button>
                 {/* play/pause button */}
                 <Button
-                  variant={"ghost"}
+                  variant={"playPause"}
                   size="sm"
                   className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px]"
                 >

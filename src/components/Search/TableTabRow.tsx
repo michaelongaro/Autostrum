@@ -265,7 +265,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
           </Button>
         </TableCell>
         <TableCell className="baseFlex">
-          <Button variant={"ghost"} size="sm" className="baseFlex">
+          <Button variant={"playPause"} size="sm" className="baseFlex">
             {/* prob use framer to crossfade */}
 
             {/* write rudimentary playing state in store that has shape of {

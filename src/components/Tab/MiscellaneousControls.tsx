@@ -348,6 +348,7 @@ function MiscellaneousControls({
   return (
     <div className="baseFlex w-1/6 !flex-col-reverse !items-end gap-2 lg:!flex-row lg:!justify-end">
       <Button
+        variant="playPause"
         disabled={
           !currentInstrument || audioMetadata.type === "Artist recorded"
         }
