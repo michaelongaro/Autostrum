@@ -621,7 +621,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
           <div
             className={`${
               classes.headerInfo ?? ""
-            } lightGlassmorphic w-full rounded-t-md shadow-sm`}
+            } w-full rounded-t-md bg-pink-700 shadow-sm`}
           >
             {/* seemed like easiest way to still allow preview on users who have not created
                 an account yet, since there would just be a lot of wrong/placeholder values */}
