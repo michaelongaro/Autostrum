@@ -16,7 +16,8 @@ const VerticalSlider = React.forwardRef<
     orientation="vertical"
     {...props}
   >
-    <SliderPrimitive.Track className="relative h-full w-full grow overflow-hidden rounded-full bg-secondary">
+    {/* still not getting color on range... almost seems like it's not being rendered at all? */}
+    <SliderPrimitive.Track className="relative h-full w-full grow cursor-pointer overflow-hidden rounded-full bg-secondary">
       <SliderPrimitive.Range className="absolute h-full bg-primary" />
     </SliderPrimitive.Track>
     <SliderPrimitive.Thumb className="absolute left-[-6px] block h-5 w-5 cursor-grab rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:cursor-grabbing disabled:pointer-events-none disabled:opacity-50" />
