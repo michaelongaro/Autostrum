@@ -32,6 +32,7 @@ interface MiscellaneousControls {
   sectionIndex: number;
   subSectionIndex?: number;
   chordSequenceIndex?: number;
+  hidePlayPauseButton?: boolean;
 }
 
 function MiscellaneousControls({
@@ -39,6 +40,7 @@ function MiscellaneousControls({
   sectionIndex,
   subSectionIndex,
   chordSequenceIndex,
+  hidePlayPauseButton,
 }: MiscellaneousControls) {
   const { playTab, pauseTab } = useSound();
 
@@ -347,50 +349,52 @@ function MiscellaneousControls({
 
   return (
     <div className="baseFlex w-1/6 !flex-col-reverse !items-end gap-2 lg:!flex-row lg:!justify-end">
-      <Button
-        variant="playPause"
-        disabled={
-          !currentInstrument || audioMetadata.type === "Artist recorded"
-        }
-        onClick={() => {
-          if (audioMetadata.playing) {
-            void pauseTab();
-          } else {
-            setAudioMetadata({
-              ...audioMetadata,
-              location: {
-                sectionIndex,
-                subSectionIndex,
-                chordSequenceIndex,
-              },
-            });
-
-            void playTab({
-              tabData,
-              rawSectionProgression: sectionProgression,
-              tuningNotes: tuning,
-              baselineBpm: bpm,
-              chords,
-              capo,
-              location: {
-                sectionIndex,
-                subSectionIndex,
-                chordSequenceIndex,
-              },
-            });
+      {!hidePlayPauseButton && (
+        <Button
+          variant="playPause"
+          disabled={
+            !currentInstrument || audioMetadata.type === "Artist recorded"
           }
-        }}
-      >
-        {audioMetadata.type === "Generated" &&
-        audioMetadata.playing &&
-        audioMetadata.location?.sectionIndex === sectionIndex &&
-        audioMetadata.location?.subSectionIndex === subSectionIndex &&
-        audioMetadata.location?.chordSequenceIndex === chordSequenceIndex ? (
-          <BsFillPauseFill className="h-5 w-5" />
-        ) : (
-          <BsFillPlayFill className="h-5 w-5" />
-        )}
-      </Button>
+          onClick={() => {
+            if (audioMetadata.playing) {
+              void pauseTab();
+            } else {
+              setAudioMetadata({
+                ...audioMetadata,
+                location: {
+                  sectionIndex,
+                  subSectionIndex,
+                  chordSequenceIndex,
+                },
+              });
+
+              void playTab({
+                tabData,
+                rawSectionProgression: sectionProgression,
+                tuningNotes: tuning,
+                baselineBpm: bpm,
+                chords,
+                capo,
+                location: {
+                  sectionIndex,
+                  subSectionIndex,
+                  chordSequenceIndex,
+                },
+              });
+            }
+          }}
+        >
+          {audioMetadata.type === "Generated" &&
+          audioMetadata.playing &&
+          audioMetadata.location?.sectionIndex === sectionIndex &&
+          audioMetadata.location?.subSectionIndex === subSectionIndex &&
+          audioMetadata.location?.chordSequenceIndex === chordSequenceIndex ? (
+            <BsFillPauseFill className="h-5 w-5" />
+          ) : (
+            <BsFillPlayFill className="h-5 w-5" />
+          )}
+        </Button>
+      )}
 
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
