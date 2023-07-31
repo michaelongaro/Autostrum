@@ -257,8 +257,11 @@ function TabSection({
           : editing
           ? "1rem 0.5rem 1rem 0.5rem"
           : "1rem",
+        width: editing ? "100%" : "auto",
+        borderTopLeftRadius:
+          !editing && subSectionData.repetitions > 1 ? 0 : "0.375rem",
       }}
-      className="baseVertFlex lightestGlassmorphic relative h-full w-full !justify-start rounded-md"
+      className="baseVertFlex lightestGlassmorphic relative h-full !justify-start rounded-md"
     >
       {editing && (
         <div className="baseFlex w-full !items-start">
@@ -392,12 +395,6 @@ function TabSection({
             subSectionIndex={subSectionIndex}
           />
         </div>
-      )}
-
-      {!editing && subSectionData.repetitions > 1 && (
-        <p className="lightestGlassmorphic absolute left-0 top-0 rounded-md p-2">
-          Repeat x{subSectionData.repetitions}
-        </p>
       )}
 
       {/* try to use framer motion to animate sections sliding up/down to their new positions

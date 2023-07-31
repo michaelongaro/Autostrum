@@ -146,7 +146,12 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
   }
 
   return (
-    <div className="baseVertFlex w-full gap-2 px-7">
+    <div
+      style={{
+        paddingBottom: sectionIndex === tabData.length - 1 ? "2rem" : 0,
+      }}
+      className="baseVertFlex w-full gap-2 px-7"
+    >
       {editing && (
         <div className="baseFlex w-full !items-start">
           <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
@@ -167,64 +172,62 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
 
       {!editing && (
         <div className="baseFlex w-full !justify-start gap-4">
-          <p className="text-xl font-semibold">
-            {tabData[sectionIndex]?.title}
-          </p>
+          <div className="baseFlex gap-4 rounded-md bg-pink-600 px-4 py-2">
+            <p className="text-xl font-semibold">
+              {tabData[sectionIndex]?.title}
+            </p>
 
-          {/* still thinking of limiting only to per section playing, so don't need extra indicies */}
-
-          <Button
-            variant="playPause"
-            disabled={
-              !currentInstrument || audioMetadata.type === "Artist recorded"
-            }
-            onClick={() => {
-              if (audioMetadata.playing) {
-                void pauseTab();
-              } else {
-                setAudioMetadata({
-                  ...audioMetadata,
-                  location: {
-                    sectionIndex,
-                    subSectionIndex,
-                    chordSequenceIndex,
-                  },
-                });
-
-                void playTab({
-                  tabData,
-                  rawSectionProgression: sectionProgression,
-                  tuningNotes: tuning,
-                  baselineBpm: bpm,
-                  chords,
-                  capo,
-                  location: {
-                    sectionIndex,
-                    subSectionIndex,
-                    chordSequenceIndex,
-                  },
-                });
+            <Button
+              variant="playPause"
+              disabled={
+                !currentInstrument || audioMetadata.type === "Artist recorded"
               }
-            }}
-          >
-            {audioMetadata.type === "Generated" &&
-            audioMetadata.playing &&
-            audioMetadata.location?.sectionIndex === sectionIndex &&
-            audioMetadata.location?.subSectionIndex === subSectionIndex &&
-            audioMetadata.location?.chordSequenceIndex ===
-              chordSequenceIndex ? (
-              <BsFillPauseFill className="h-5 w-5" />
-            ) : (
-              <BsFillPlayFill className="h-5 w-5" />
-            )}
-          </Button>
+              onClick={() => {
+                if (audioMetadata.playing) {
+                  void pauseTab();
+                } else {
+                  setAudioMetadata({
+                    ...audioMetadata,
+                    location: {
+                      sectionIndex,
+                    },
+                  });
+
+                  void playTab({
+                    tabData,
+                    rawSectionProgression: sectionProgression,
+                    tuningNotes: tuning,
+                    baselineBpm: bpm,
+                    chords,
+                    capo,
+                    location: {
+                      sectionIndex,
+                    },
+                  });
+                }
+              }}
+            >
+              {audioMetadata.type === "Generated" &&
+              audioMetadata.playing &&
+              audioMetadata.location?.sectionIndex === sectionIndex ? (
+                <BsFillPauseFill className="h-5 w-5" />
+              ) : (
+                <BsFillPlayFill className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
         </div>
       )}
 
       {/* map over tab/chord subSections */}
       <div className="baseVertFlex w-full gap-4">
         {subSectionData.data.map((subSection, index) => (
-          <Fragment key={index}>
+          <div key={index} className="baseVertFlex w-full !items-start pb-2">
+            {!editing && subSection.repetitions > 1 && (
+              <p className="rounded-t-md bg-pink-500 p-2 !shadow-sm">
+                Repeat x{subSection.repetitions}
+              </p>
+            )}
             {subSection.type === "chord" ? (
               <ChordSection
                 sectionIndex={sectionIndex}
@@ -238,7 +241,7 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
                 subSectionData={subSection}
               />
             )}
-          </Fragment>
+          </div>
         ))}
       </div>
 
@@ -249,8 +252,9 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
         </div>
       )}
 
-      {(!editing && sectionIndex !== tabData.length - 1) ||
-        (editing && <Separator />)}
+      {((!editing && sectionIndex < tabData.length - 1) || editing) && (
+        <Separator />
+      )}
     </div>
   );
 }

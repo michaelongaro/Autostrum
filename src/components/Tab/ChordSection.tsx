@@ -123,8 +123,11 @@ function ChordSection({
       style={{
         gap: editing ? "1rem" : "0",
         padding: padding,
+        width: editing ? "100%" : "auto",
+        borderTopLeftRadius:
+          !editing && subSectionData.repetitions > 1 ? 0 : "0.375rem",
       }}
-      className="baseVertFlex lightestGlassmorphic relative h-full w-full !justify-start rounded-md"
+      className="baseVertFlex lightestGlassmorphic relative h-full !justify-start rounded-md"
     >
       {editing && (
         <div className="baseFlex w-full !items-start">
@@ -152,21 +155,21 @@ function ChordSection({
         </div>
       )}
 
-      {!editing && subSectionData.repetitions > 1 && (
-        <p className="lightestGlassmorphic absolute left-0 top-0 rounded-md p-2">
-          Repeat x{subSectionData.repetitions}
-        </p>
-      )}
-
       <div className="baseVertFlex w-full !items-start gap-2">
         {subSectionData.data.map((chordSequence, index) => (
-          <ChordSequence
-            key={index}
-            sectionIndex={sectionIndex}
-            subSectionIndex={subSectionIndex}
-            chordSequenceIndex={index}
-            chordSequenceData={chordSequence}
-          />
+          <div key={index} className="baseVertFlex w-full !items-start">
+            {!editing && chordSequence.repetitions > 1 && (
+              <p className="rounded-t-md bg-pink-500 p-2 !shadow-sm">
+                Repeat x{chordSequence.repetitions}
+              </p>
+            )}
+            <ChordSequence
+              sectionIndex={sectionIndex}
+              subSectionIndex={subSectionIndex}
+              chordSequenceIndex={index}
+              chordSequenceData={chordSequence}
+            />
+          </div>
         ))}
       </div>
 

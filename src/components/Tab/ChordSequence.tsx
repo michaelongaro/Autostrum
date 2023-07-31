@@ -157,7 +157,12 @@ function ChordSequence({
   return (
     <>
       {Object.keys(chordSequenceData.strummingPattern).length === 0 ? (
-        <div className="baseVertFlex relative h-full w-full gap-2 rounded-md bg-black/50 p-4">
+        <div
+          style={{
+            borderTopLeftRadius: chordSequenceData.repetitions > 1 ? 0 : "auto",
+          }}
+          className="baseVertFlex relative h-full w-full gap-2 rounded-md border-[1px] border-pink-50 bg-black/50 p-4"
+        >
           <p className="text-lg font-semibold">No strumming patterns exist</p>
           <Button
             onClick={() => {
@@ -176,20 +181,25 @@ function ChordSequence({
             Create one
           </Button>
 
-          {/* TODO: this styling needs to be condensed onto one line somehow */}
-          {/* right-2 top-2 md:right-4 md:top-4 */}
-          <div className="absolute w-full">
-            {/* <div className="w-5/6"></div> */}
+          <div className="baseFlex absolute right-2 top-2 w-full">
+            <div className="w-5/6"></div>
             <MiscellaneousControls
               type={"chordSequence"}
               sectionIndex={sectionIndex}
               subSectionIndex={subSectionIndex}
               chordSequenceIndex={chordSequenceIndex}
+              hidePlayPauseButton={true}
             />
           </div>
         </div>
       ) : (
-        <div className="baseVertFlex chordSectionGlassmorphic relative w-full gap-2 rounded-md p-4">
+        <div
+          style={{
+            borderTopLeftRadius:
+              !editing && chordSequenceData.repetitions > 1 ? 0 : "0.375rem",
+          }}
+          className="baseVertFlex relative w-full !justify-start gap-2 rounded-md border-[1px] border-pink-50 p-4"
+        >
           {editing && (
             <div className="baseFlex w-full !items-start">
               <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
@@ -261,12 +271,6 @@ function ChordSequence({
                 chordSequenceIndex={chordSequenceIndex}
               />
             </div>
-          )}
-
-          {!editing && chordSequenceData.repetitions > 1 && (
-            <p className="lightestGlassmorphic absolute left-0 top-0 rounded-md p-2">
-              Repeat x{chordSequenceData.repetitions}
-            </p>
           )}
 
           <StrummingPattern
