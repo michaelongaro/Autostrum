@@ -311,22 +311,22 @@ function StrummingPattern({
     <div
       style={{
         padding: mode === "editingStrummingPattern" ? "0" : "0.25rem",
+        justifyContent: mode === "editingStrummingPattern" ? "center" : "start",
       }}
       className="baseFlex w-full"
     >
       <div
-        style={{
-          gap: mode === "editingChordSequence" ? "0.5rem" : "0",
-        }}
         // TODO: look at alignment when not just v/^
-        className="baseFlex !items-start !justify-start"
+        className="baseFlex !justify-start"
       >
         {mode === "editingChordSequence" && (
+          // TODO: mt-6 needs to be conditional, need to make it larger when palm mute exists
+          // since that makes the regular section taller
           <Label className="mt-6">Chords</Label>
         )}
 
         {data?.strums?.map((strum, strumIndex) => (
-          <div key={strumIndex} className="baseFlex gap-2">
+          <div key={strumIndex} className="baseFlex">
             <div
               style={{
                 marginTop:
@@ -375,13 +375,13 @@ function StrummingPattern({
                         getChordName(strumIndex)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-fit">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Chord</SelectLabel>
-                      <SelectItem value="" className="italic !text-gray-500">
+                      <SelectItem value="" className="italic !text-zinc-500">
                         No chord
                       </SelectItem>
                       {chords.map((chord) => (
@@ -409,14 +409,18 @@ function StrummingPattern({
               )}
 
               <div
-                style={{
-                  width:
-                    mode === "editingStrummingPattern" ? "auto" : "1.25rem",
-                }}
-                className="baseFlex"
+                // style={{
+                //   width: mode === "editingStrummingPattern" ? "auto" : "1.5rem",
+                // }}
+                className="baseFlex !flex-nowrap"
               >
-                <div className="w-1"></div>
-                {/* spacer so that PM node can be connected seamlessly above */}
+                <div
+                  style={{
+                    width:
+                      mode === "editingChordSequence" ? "1.25rem" : "0.25rem",
+                  }}
+                ></div>
+                {/* spacer so that PM nodes can be connected seamlessly above */}
 
                 {mode === "editingStrummingPattern" ? (
                   <Input
@@ -458,22 +462,36 @@ function StrummingPattern({
                         ? "rgb(219 39 119"
                         : "auto",
                     }}
-                    className="baseVertFlex h-full"
+                    className="baseVertFlex h-full text-lg"
                   >
                     {strum.strum.includes("v") && (
-                      <BiDownArrowAlt className="h-4 w-4" />
+                      <BiDownArrowAlt className="h-5 w-5" />
                     )}
                     {strum.strum.includes("^") && (
-                      <BiUpArrowAlt className="h-4 w-4" />
+                      <BiUpArrowAlt className="h-5 w-5" />
                     )}
-                    {strum.strum.includes("s") && <p>{strum.strum}</p>}
-                    {strum.strum === "" && <div className="h-4"></div>}
+
+                    {strum.strum.includes("s") && (
+                      <div className="baseFlex h-5 leading-[0]">
+                        {strum.strum[0]}
+                      </div>
+                    )}
                     {strum.strum.includes(">") && <p>&gt;</p>}
+                    {/* buffer to keep vertical spacing the same no matter the type of strum */}
+                    {strum.strum !== "" && !strum.strum.includes(">") && (
+                      <div className="h-1"></div>
+                    )}
+                    {strum.strum === "" && <div className="h-6 w-4"></div>}
                   </div>
                 )}
 
-                <div className="w-1"></div>
-                {/* spacer so that PM node can be connected seamlessly above */}
+                <div
+                  style={{
+                    width:
+                      mode === "editingChordSequence" ? "1.25rem" : "0.25rem",
+                  }}
+                ></div>
+                {/* spacer so that PM nodes can be connected seamlessly above */}
               </div>
 
               {mode !== "viewing" && (
@@ -491,6 +509,7 @@ function StrummingPattern({
                   {getBeatIndicator(data.noteLength, strumIndex)}
                 </p>
               )}
+
               {/* delete strum button */}
               {showingDeleteStrumsButtons && (
                 // can do framer motion here if you want
