@@ -177,12 +177,10 @@ function Tab({ tab, refetchTab }: ITab) {
           ))}
         </LayoutGroup>
 
-        <Button className="mb-4" onClick={() => addNewSection()}>
-          Add another section
-        </Button>
+        {editing && (
+          <Button onClick={() => addNewSection()}>Add another section</Button>
+        )}
       </div>
-
-      {/* scroll to top button above this? */}
 
       <Button
         className="baseFlex fixed bottom-4 left-4 z-50 h-12 w-12 rounded-full p-0"
@@ -199,13 +197,10 @@ function Tab({ tab, refetchTab }: ITab) {
         {showEffectGlossaryModal && <EffectGlossaryModal />}
       </AnimatePresence>
 
-      {/* add/edit chord modal here */}
-
       <AnimatePresence mode="wait">
         {chordBeingEdited && <ChordModal chordBeingEdited={chordBeingEdited} />}
       </AnimatePresence>
 
-      {/* add/edit strumming pattern modal here */}
       <AnimatePresence mode="wait">
         {strummingPatternBeingEdited && (
           <StrummingPatternModal
