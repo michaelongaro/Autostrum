@@ -286,7 +286,7 @@ function PalmMuteNode({
         <>
           {value === "start" && (
             <div className="baseFlex relative w-full !flex-nowrap">
-              |<i className="absolute -top-3 left-4">PM</i>
+              |<i className="absolute -top-3 left-3">PM</i>
               <div className="h-[1px] w-full bg-pink-50"></div>
             </div>
           )}
