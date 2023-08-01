@@ -203,13 +203,13 @@ function SectionProgressionModal() {
         }
       }}
     >
-      <div className="min-h-[25rem] min-w-[25rem] rounded-md bg-pink-400 p-2 shadow-sm md:p-4">
-        <div className="baseVertFlex h-full w-full gap-8">
-          <div className="text-xl font-semibold ">Section progression</div>
+      <div className="min-h-[25rem] min-w-[70vw] rounded-md bg-pink-400 p-2 shadow-sm md:min-w-[25rem] md:p-4">
+        <div className="baseVertFlex h-full max-h-[90vh] min-h-[25rem] w-full max-w-[90vw] !flex-nowrap !justify-between gap-8">
+          <div className="text-xl font-semibold">Section progression</div>
 
           <div
             ref={scrollableSectionsRef}
-            className="baseVertFlex max-h-[70vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[70vh] md:w-3/4 md:pl-10"
+            className="baseVertFlex max-h-[70vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[70vh] md:w-3/4"
           >
             <DndContext
               sensors={sensors}
@@ -396,13 +396,13 @@ function Section({
         },
       }}
       variants={sectionVariants}
-      className="baseFlex relative w-fit gap-2"
+      className="baseFlex relative w-fit !flex-nowrap gap-2"
     >
       <div
         ref={setActivatorNodeRef}
         {...attributes}
         {...listeners}
-        className="absolute left-2 cursor-grab rounded-md text-pink-50  active:cursor-grabbing sm:-left-8"
+        className="relative cursor-grab rounded-md text-pink-50  active:cursor-grabbing"
         onMouseEnter={() => setHoveringOnHandle(true)}
         onMouseDown={() => setGrabbingHandle(true)}
         onMouseLeave={() => setHoveringOnHandle(false)}
