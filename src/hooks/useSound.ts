@@ -1396,7 +1396,12 @@ export default function useSound() {
     ) {
       if (breakOnNextNoteRef.current) {
         setBreakOnNextNote(false);
-        break;
+        setAudioMetadata({
+          ...audioMetadataRef.current,
+          playing: false,
+        });
+        currentInstrument?.stop();
+        return;
       }
 
       const prevColumn = compiledChords[chordIndex - 1];
