@@ -103,6 +103,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
     numberOfLikes,
     capo,
     setCapo,
+    recordedAudioUrl,
     editing,
     setEditing,
     setOriginalTabData,
@@ -129,6 +130,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
       setTimeSignature: state.setTimeSignature,
       capo: state.capo,
       setCapo: state.setCapo,
+      recordedAudioUrl: state.recordedAudioUrl,
       editing: state.editing,
       numberOfLikes: state.numberOfLikes,
       setEditing: state.setEditing,
@@ -348,8 +350,22 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
   function isEqualToOriginalTabState() {
     if (!originalTabData) return false; // need to make sure this is always populated when editing..
 
-    // could have opted to use Omit<> as well..
-    const { createdAt, ...sanitizedOriginalTabData } = originalTabData;
+    const originalData = {
+      id: originalTabData.id,
+      title: originalTabData.title,
+      description: originalTabData.description,
+      genreId: originalTabData.genreId,
+      tabData: originalTabData.tabData,
+      tuning: originalTabData.tuning,
+      bpm: originalTabData.bpm,
+      sectionProgression: originalTabData.sectionProgression,
+      timeSignature: originalTabData.timeSignature,
+      capo: originalTabData.capo,
+      createdById: originalTabData.createdById,
+      recordedAudioUrl: originalTabData.recordedAudioUrl,
+      chords: originalTabData.chords,
+      strummingPatterns: originalTabData.strummingPatterns,
+    };
 
     const sanitizedCurrentTabData = {
       id,
@@ -363,9 +379,12 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
       timeSignature,
       capo,
       createdById,
+      recordedAudioUrl,
+      chords,
+      strummingPatterns,
     };
 
-    return isEqual(sanitizedOriginalTabData, sanitizedCurrentTabData);
+    return isEqual(originalData, sanitizedCurrentTabData);
   }
 
   function getOrdinalSuffix(num: number) {
