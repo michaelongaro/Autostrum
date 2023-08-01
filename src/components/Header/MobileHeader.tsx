@@ -51,9 +51,10 @@ function MobileHeader() {
           <Button
             variant={"navigation"}
             size={"lg"}
+            asChild
             style={{
               backgroundColor: asPath.includes("/explore")
-                ? "#831843"
+                ? "#be185d"
                 : undefined,
               color: asPath.includes("/explore") ? "#fbcfe8" : undefined,
             }}
@@ -68,9 +69,10 @@ function MobileHeader() {
           <Button
             variant={"navigation"}
             size={"lg"}
+            asChild
             style={{
               backgroundColor: asPath.includes("/create")
-                ? "#831843"
+                ? "#be185d"
                 : undefined,
               color: asPath.includes("/create") ? "#fbcfe8" : undefined,
             }}
@@ -105,12 +107,10 @@ function MobileHeader() {
 
           {isSignedIn && (
             <div className="baseFlex gap-2 lg:gap-4">
-              <Button variant={"ghost"}>
+              <Button variant={"ghost"} asChild className="px-4 py-0">
                 <Link
-                  href={`/artist/${user?.username ?? ""}/preferences`}
-                  className="baseFlex gap-4 text-lg"
-                  // hmm  closes even when clicking on the UserButton...
-                  onClick={() => setOpen(false)}
+                  href={`/profile/preferences`}
+                  className="baseFlex gap-4 p-0 text-xl"
                 >
                   {user?.username}
                   {/* will need to be based on env url */}
