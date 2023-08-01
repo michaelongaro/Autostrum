@@ -89,6 +89,7 @@ function TabNotesColumn({
     currentlyPlayingMetadata,
     currentChordIndex,
     playbackSpeed,
+    audioMetadata,
   } = useTabStore(
     (state) => ({
       editing: state.editing,
@@ -97,6 +98,7 @@ function TabNotesColumn({
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
       currentChordIndex: state.currentChordIndex,
       playbackSpeed: state.playbackSpeed,
+      audioMetadata: state.audioMetadata,
     }),
     shallow
   );
@@ -176,7 +178,9 @@ function TabNotesColumn({
         sectionIndex ||
       currentlyPlayingMetadata[currentChordIndex]?.location.subSectionIndex !==
         subSectionIndex ||
-      (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ?? 0) <
+      // TODO: wait shouldn't below only substitute for -1 if the val is undefined? because this will
+      // trigger if it is 0 btw
+      (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ?? -1) <
         columnIndex
     ) {
       return false;
@@ -260,15 +264,23 @@ function TabNotesColumn({
       <div className="baseFlex relative">
         <div
           style={{
-            width: columnIsBeingPlayed || columnHasBeenPlayed ? "100%" : "0%",
-            transitionDuration: columnIsBeingPlayed
-              ? `${durationOfCurrentChord}s`
-              : "0s",
+            height: editing ? "280px" : "164px",
+            width:
+              audioMetadata.type === "Generated" &&
+              audioMetadata.playing &&
+              (columnIsBeingPlayed || columnHasBeenPlayed)
+                ? "100%"
+                : "0%",
+            transitionDuration:
+              audioMetadata.type === "Generated" &&
+              audioMetadata.playing &&
+              columnIsBeingPlayed
+                ? `${durationOfCurrentChord}s`
+                : "0s",
             msTransitionProperty: "width",
             transitionTimingFunction: "linear",
           }}
-          // TODO: will almost definitely have to adapt height whether we are editing or not
-          className="absolute left-0 top-1/2 h-[280px] w-0 -translate-y-1/2 bg-pink-600"
+          className="absolute left-0 top-1/2 w-0 -translate-y-1/2 bg-pink-600"
         ></div>
 
         <div
