@@ -32,9 +32,14 @@ function IndividualTabEdit() {
   }, [router.query.id]);
 
   // prob don't need refetch on refocus
-  const fetchedTab = api.tab.getTabById.useQuery({
-    id: tabIdFromUrl,
-  });
+  const fetchedTab = api.tab.getTabById.useQuery(
+    {
+      id: tabIdFromUrl,
+    },
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
 
   return (
     <motion.div
