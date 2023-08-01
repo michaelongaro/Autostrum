@@ -10,6 +10,64 @@ export interface TabWithLikes extends Tab {
   // numberOfComments: number;
 }
 
+// experimentally testing this zod schema from a typescript types -> zod converter online
+export const strumSchema = z.object({
+  palmMute: z.union([
+    z.literal(""),
+    z.literal("-"),
+    z.literal("start"),
+    z.literal("end"),
+  ]),
+  strum: z.union([
+    z.literal(""),
+    z.literal("v"),
+    z.literal("^"),
+    z.literal("s"),
+    z.literal("v>"),
+    z.literal("^>"),
+    z.literal("s>"),
+  ]),
+});
+
+export const tabSectionSchema = z.object({
+  type: z.literal("tab"),
+  bpm: z.number(),
+  repetitions: z.number(),
+  data: z.array(z.array(z.string())),
+});
+
+export const strummingPatternSchema = z.object({
+  noteLength: z.union([
+    z.literal("1/4th"),
+    z.literal("1/4th triplet"),
+    z.literal("1/8th"),
+    z.literal("1/8th triplet"),
+    z.literal("1/16th"),
+    z.literal("1/16th triplet"),
+  ]),
+  strums: z.array(strumSchema),
+});
+
+export const chordSequenceSchema = z.object({
+  strummingPattern: strummingPatternSchema,
+  bpm: z.number(),
+  repetitions: z.number(),
+  data: z.array(z.string()),
+});
+
+export const chordSectionSchema = z.object({
+  type: z.literal("chord"),
+  repetitions: z.number(),
+  data: z.array(chordSequenceSchema),
+});
+
+export const sectionSchema = z.array(
+  z.object({
+    title: z.string(),
+    data: z.array(z.union([tabSectionSchema, chordSectionSchema])),
+  })
+);
+
 export const tabRouter = createTRPCRouter({
   getTabById: publicProcedure
     .input(z.object({ id: z.number() }))
@@ -210,12 +268,12 @@ export const tabRouter = createTRPCRouter({
         id: z.number().nullable(),
         createdById: z.string(),
         title: z.string(),
-        description: z.string().nullable(),
+        description: z.string(),
         genreId: z.number(),
         tuning: z.string(),
         bpm: z.number(),
-        timeSignature: z.string().nullable(),
-        capo: z.number().nullable(),
+        timeSignature: z.string(),
+        capo: z.number(),
         chords: z.array(
           z.object({
             name: z.string(),
@@ -233,9 +291,7 @@ export const tabRouter = createTRPCRouter({
             ),
           })
         ),
-        tabData: z.array(
-          z.object({ title: z.string(), data: z.array(z.array(z.string())) })
-        ),
+        tabData: sectionSchema,
         sectionProgression: z.array(
           z.object({
             id: z.string(),
