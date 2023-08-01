@@ -39,6 +39,17 @@ import { Label } from "~/components/ui/label";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import MiscellaneousControls from "./MiscellaneousControls";
 
+const opacityAndScaleVariants = {
+  expanded: {
+    opacity: 1,
+    scale: 1,
+  },
+  closed: {
+    opacity: 0,
+    scale: 0.5,
+  },
+};
+
 export interface LastModifiedPalmMuteNodeLocation {
   columnIndex: number;
   prevValue: string;
@@ -249,7 +260,13 @@ function TabSection({
       key={`tabSection${sectionIndex}`}
       // layoutId={`tabSection${sectionIndex}`}
       layout
-      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+      variants={opacityAndScaleVariants}
+      initial="closed"
+      animate="expanded"
+      exit="closed"
+      transition={{
+        duration: 0.15,
+      }}
       style={{
         gap: editing ? "1rem" : "0",
         padding: aboveMediumViewportWidth

@@ -16,6 +16,7 @@ import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import MiscellaneousControls from "./MiscellaneousControls";
 import { Label } from "@radix-ui/react-label";
 import useSound from "~/hooks/useSound";
+import { AnimatePresence } from "framer-motion";
 
 interface SectionContainer {
   sectionIndex: number;
@@ -194,6 +195,9 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
                     ...audioMetadata,
                     location: {
                       sectionIndex,
+                      subSectionIndex: 0,
+                      chordSequenceIndex: 0,
+                      // ^^ not sure of consequences of defining this field when the section could be a tab section..
                     },
                   });
 
@@ -226,6 +230,8 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
       {/* map over tab/chord subSections */}
       <div className="baseVertFlex w-full gap-4">
         {subSectionData.data.map((subSection, index) => (
+          // TODO: this index is probably not the best since the array can be reordered/mutated,
+          // also applies to further child components
           <div key={index} className="baseVertFlex w-full !items-start pb-2">
             {!editing && subSection.repetitions > 1 && (
               <p
@@ -244,19 +250,22 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
                 Repeat x{subSection.repetitions}
               </p>
             )}
-            {subSection.type === "chord" ? (
-              <ChordSection
-                sectionIndex={sectionIndex}
-                subSectionIndex={index}
-                subSectionData={subSection}
-              />
-            ) : (
-              <TabSection
-                sectionIndex={sectionIndex}
-                subSectionIndex={index}
-                subSectionData={subSection}
-              />
-            )}
+            {/* TODO: Technically I think this should be higher up right below the map right? */}
+            <AnimatePresence mode="wait">
+              {subSection.type === "chord" ? (
+                <ChordSection
+                  sectionIndex={sectionIndex}
+                  subSectionIndex={index}
+                  subSectionData={subSection}
+                />
+              ) : (
+                <TabSection
+                  sectionIndex={sectionIndex}
+                  subSectionIndex={index}
+                  subSectionData={subSection}
+                />
+              )}
+            </AnimatePresence>
           </div>
         ))}
       </div>

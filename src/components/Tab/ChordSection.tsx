@@ -31,6 +31,17 @@ import ChordSequence from "./ChordSequence";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import MiscellaneousControls from "./MiscellaneousControls";
 
+const opacityAndScaleVariants = {
+  expanded: {
+    opacity: 1,
+    scale: 1,
+  },
+  closed: {
+    opacity: 0,
+    scale: 0.5,
+  },
+};
+
 export interface ChordSection {
   sectionIndex: number;
   subSectionIndex: number;
@@ -125,7 +136,13 @@ function ChordSection({
       key={`tabSection${sectionIndex}`}
       // layoutId={`tabSection${sectionIndex}`}
       layout
-      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+      variants={opacityAndScaleVariants}
+      initial="closed"
+      animate="expanded"
+      exit="closed"
+      transition={{
+        duration: 0.15,
+      }}
       style={{
         gap: editing ? "1rem" : "0",
         padding: padding,
