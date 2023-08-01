@@ -1,11 +1,12 @@
 import * as React from "react";
-import { type VariantProps, cva } from "class-variance-authority";
+import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "~/lib/utils";
+import { cn } from "~/utils/utils";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background active:ring-0 active:ring-offset-0 active:ring-offset-background~",
+  "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -14,7 +15,7 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/80 active:bg-destructive active:brightness-75",
         outline:
-          "border border-input hover:bg-accent hover:text-accent-foreground active:bg-accent/60",
+          "border border-input hover:bg-accent hover:text-accent-foreground active:bg-accent/60", // newer version has bg-background hover:bg-accent hover:text-accent-foreground
         secondary:
           "lightGlassmorphic text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/60 border-2",
         ghost:
@@ -25,14 +26,15 @@ const buttonVariants = cva(
         toggledOff:
           "text-primary-foreground hover:bg-secondary/20 active:bg-secondary/30 border-2",
         navigation:
-          "bg-pink-200 hover:bg-pink-900 text-pink-900 hover:text-pink-200 active:bg-pink-950/90",
+          "bg-pink-200 hover:bg-pink-700 text-pink-700 hover:text-pink-200 active:bg-pink-800",
         playPause:
           "bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-90 disabled:bg-zinc-600",
       },
       size: {
-        default: "h-10 py-2 px-4",
-        sm: "h-9 px-3 rounded-md",
-        lg: "h-11 px-8 rounded-md",
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
       },
     },
     defaultVariants: {
@@ -44,14 +46,17 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {}
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
     const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
     return (
-      <button
+      <Comp
         className={cn(
           buttonVariants({
             variant,
