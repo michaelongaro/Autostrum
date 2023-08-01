@@ -405,9 +405,9 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
   return (
     <>
       {editing ? (
-        <>
-          <div className={classes.editingMetadataContainer}>
-            <div className="baseFlex absolute left-2 top-2 lg:left-4 lg:top-4">
+        <div className="baseVertFlex w-full gap-2">
+          <div className="baseFlex w-full !justify-between p-4">
+            <div className="baseFlex">
               {!asPath.includes("create") && (
                 <Button onClick={() => void push(`/tab/${id}`)}>
                   {overMediumViewportThreshold ? (
@@ -419,36 +419,39 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
               )}
             </div>
 
-            <div className="baseFlex absolute right-2 top-2 gap-2 lg:right-4 lg:top-4">
-              {!asPath.includes("create") && (
+            <div className="baseFlex gap-2">
+              <>
+                {!asPath.includes("create") && (
+                  <Button
+                    variant={"destructive"}
+                    onClick={() => {
+                      // bring up modal to confirm deletion
+                      // delete tab and redirect to wherever user came from before editing
+                    }}
+                  >
+                    Delete
+                  </Button>
+                )}
                 <Button
-                  variant={"destructive"}
-                  onClick={() => {
-                    // bring up modal to confirm deletion
-                    // delete tab and redirect to wherever user came from before editing
-                  }}
+                  variant={"secondary"}
+                  disabled={showPulsingError}
+                  onClick={handlePreview}
                 >
-                  Delete
+                  Preview
                 </Button>
-              )}
-              <Button
-                variant={"secondary"}
-                disabled={showPulsingError}
-                onClick={handlePreview}
-              >
-                Preview
-              </Button>
 
-              <Button
-                // eventually add loading spinner here while saving
-                disabled={isEqualToOriginalTabState() || showPulsingError}
-                // need to compare the current state of the tab to the initial state
-                onClick={handleSave}
-              >
-                {asPath.includes("create") ? "Publish" : "Save"}
-              </Button>
+                <Button
+                  // eventually add loading spinner here while saving
+                  disabled={isEqualToOriginalTabState() || showPulsingError}
+                  // need to compare the current state of the tab to the initial state
+                  onClick={handleSave}
+                >
+                  {asPath.includes("create") ? "Publish" : "Save"}
+                </Button>
+              </>
             </div>
-
+          </div>
+          <div className={classes.editingMetadataContainer}>
             <div
               className={`${
                 classes.title ?? ""
@@ -615,28 +618,9 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
               />
             </div>
           </div>
-        </>
+        </div>
       ) : (
         <div className="min-h-[100px] w-full">
-          {((userId && createdById === userId) ||
-            asPath.includes("create")) && (
-            <Button
-              className="absolute right-2 top-2 z-10 md:right-4 md:top-4"
-              onClick={() => {
-                if (asPath.includes("create") || asPath.includes("edit"))
-                  setEditing(true);
-                else void push(`/tab/${id}/edit`);
-                // maybe need loading spinner? idk why it feels so slow tbh..
-              }}
-            >
-              {asPath.includes("edit") || asPath.includes("create")
-                ? "Continue editing"
-                : "Edit"}
-            </Button>
-          )}
-
-          {/* if you still wanted to add "forking" functionality, then that would go here */}
-
           <div
             className={`${
               classes.headerInfo ?? ""
@@ -645,86 +629,128 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
             {/* seemed like easiest way to still allow preview on users who have not created
                 an account yet, since there would just be a lot of wrong/placeholder values */}
             {asPath.includes("create") ? (
-              <div className="text-2xl font-bold">{title}</div>
-            ) : (
-              <>
-                <div className="baseFlex gap-2">
-                  <div className={`${classes.title ?? ""} text-2xl font-bold`}>
-                    {title}
-                  </div>
+              <div className="baseFlex w-full !justify-between">
+                <div className="text-2xl font-bold">{title}</div>
 
-                  <div className={classes.heart}>
-                    {/* could definitely just use the icon instead of button wrapper as well */}
-                    <Button
-                      variant={"ghost"}
-                      className="baseFlex gap-2 p-2"
-                      onClick={() => {
-                        if (!tabCreator || !currentArtist) return;
-
-                        if (currentArtist.likedTabIds.includes(id)) {
-                          unlikeTab({
-                            tabId: id,
-                            artistWhoLikedId: currentArtist.userId,
-                          });
-                        } else {
-                          likeTab({
-                            tabId: id,
-                            tabArtistId: createdById,
-                            tabArtistUsername: tabCreator.username,
-                            artistWhoLikedId: currentArtist.userId,
-                          });
-                        }
-                      }}
-                    >
-                      {currentArtist?.likedTabIds?.includes(id) ? (
-                        <AiFillHeart className="h-6 w-6 text-pink-800" />
-                      ) : (
-                        <AiOutlineHeart className="h-6 w-6" />
-                      )}
-                      {numberOfLikes > 0 && (
-                        <div className="text-lg">
-                          {formatNumber(numberOfLikes)}
-                        </div>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-
-                {/* prob are going to need an updatedAt field on model, and then display the updated one
-            if it exists, otherwise createdAt */}
-                <Separator
-                  orientation="vertical"
-                  className="hidden h-8 sm:block"
-                />
-
-                {/* look into usefulness of splitting code into chunks based off isLoading + user.data state
-                because this constant ?. + ?? "" doesn't feel too great. */}
-                <div
-                  className={`${classes.usernameAndDate ?? ""} baseFlex gap-2`}
-                >
-                  <Button variant={"ghost"} className="px-3 py-1">
-                    <Link
-                      href={`/artist/${tabCreator?.username ?? ""}`}
-                      className="baseFlex gap-2"
-                    >
-                      <Image
-                        src={tabCreator?.profileImageUrl ?? ""}
-                        alt={`${
-                          tabCreator?.username ?? "Anonymous"
-                        }'s profile image`}
-                        width={32}
-                        height={32}
-                        className="h-8 w-8 rounded-full bg-pink-800"
-                      ></Image>
-                      <span className="text-lg">
-                        {tabCreator?.username ?? "Anonymous"}
-                      </span>
-                    </Link>
+                {((userId && createdById === userId) ||
+                  asPath.includes("create")) && (
+                  <Button
+                    onClick={() => {
+                      if (asPath.includes("create") || asPath.includes("edit"))
+                        setEditing(true);
+                      else void push(`/tab/${id}/edit`);
+                      // maybe need loading spinner? idk why it feels so slow tbh..
+                    }}
+                  >
+                    {asPath.includes("edit") || asPath.includes("create")
+                      ? "Continue editing"
+                      : "Edit"}
                   </Button>
-                  <Separator className="w-4" />
-                  {`Updated on ${createdAt ? formatDate(createdAt) : ""}`}
+                )}
+              </div>
+            ) : (
+              <div className="baseFlex w-full !justify-between">
+                <div className="baseFlex gap-2">
+                  <div className="baseFlex gap-2">
+                    <div
+                      className={`${classes.title ?? ""} text-2xl font-bold`}
+                    >
+                      {title}
+                    </div>
+
+                    <div className={classes.heart}>
+                      {/* could definitely just use the icon instead of button wrapper as well */}
+                      <Button
+                        variant={"ghost"}
+                        className="baseFlex gap-2 p-2"
+                        onClick={() => {
+                          if (!tabCreator || !currentArtist) return;
+
+                          if (currentArtist.likedTabIds.includes(id)) {
+                            unlikeTab({
+                              tabId: id,
+                              artistWhoLikedId: currentArtist.userId,
+                            });
+                          } else {
+                            likeTab({
+                              tabId: id,
+                              tabArtistId: createdById,
+                              tabArtistUsername: tabCreator.username,
+                              artistWhoLikedId: currentArtist.userId,
+                            });
+                          }
+                        }}
+                      >
+                        {currentArtist?.likedTabIds?.includes(id) ? (
+                          <AiFillHeart className="h-6 w-6 text-pink-800" />
+                        ) : (
+                          <AiOutlineHeart className="h-6 w-6" />
+                        )}
+                        {numberOfLikes > 0 && (
+                          <div className="text-lg">
+                            {formatNumber(numberOfLikes)}
+                          </div>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* prob are going to need an updatedAt field on model, and then display the updated one
+            if it exists, otherwise createdAt */}
+                  <Separator
+                    orientation="vertical"
+                    className="hidden h-8 sm:block"
+                  />
+
+                  {/* look into usefulness of splitting code into chunks based off isLoading + user.data state
+                because this constant ?. + ?? "" doesn't feel too great. */}
+                  <div
+                    className={`${
+                      classes.usernameAndDate ?? ""
+                    } baseFlex gap-2`}
+                  >
+                    <Button variant={"ghost"} className="px-3 py-1">
+                      <Link
+                        href={`/artist/${tabCreator?.username ?? ""}`}
+                        className="baseFlex gap-2"
+                      >
+                        <Image
+                          src={tabCreator?.profileImageUrl ?? ""}
+                          alt={`${
+                            tabCreator?.username ?? "Anonymous"
+                          }'s profile image`}
+                          width={32}
+                          height={32}
+                          className="h-8 w-8 rounded-full bg-pink-800"
+                        ></Image>
+                        <span className="text-lg">
+                          {tabCreator?.username ?? "Anonymous"}
+                        </span>
+                      </Link>
+                    </Button>
+                    <Separator className="w-4" />
+                    {`Updated on ${createdAt ? formatDate(createdAt) : ""}`}
+                  </div>
                 </div>
-              </>
+
+                {/* if you still wanted to add "forking" functionality, then that would go here */}
+
+                {((userId && createdById === userId) ||
+                  asPath.includes("create")) && (
+                  <Button
+                    onClick={() => {
+                      if (asPath.includes("create") || asPath.includes("edit"))
+                        setEditing(true);
+                      else void push(`/tab/${id}/edit`);
+                      // maybe need loading spinner? idk why it feels so slow tbh..
+                    }}
+                  >
+                    {asPath.includes("edit") || asPath.includes("create")
+                      ? "Continue editing"
+                      : "Edit"}
+                  </Button>
+                )}
+              </div>
             )}
           </div>
 
