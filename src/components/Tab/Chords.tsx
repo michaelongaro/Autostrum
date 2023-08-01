@@ -102,7 +102,7 @@ function Chords() {
       className="baseVertFlex lightestGlassmorphic w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 md:px-8 md:py-4"
     >
       <p className="text-lg font-bold">Chords</p>
-      <div className="baseFlex gap-4">
+      <div className="baseFlex !justify-start gap-4">
         {chords.map((chord, index) => (
           <div
             key={index}
@@ -163,7 +163,7 @@ function Chords() {
                   <Button
                     variant={"playPause"}
                     size={"sm"}
-                    className="baseFlex h-full w-14 rounded-l-none border-l-[1px]"
+                    className="baseFlex h-full w-10 rounded-l-none border-l-[1px]"
                   >
                     {/* conditional play/pause icon here */}
                     <BsFillPlayFill className="h-6 w-6" />
