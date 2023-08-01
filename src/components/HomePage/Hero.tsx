@@ -5,23 +5,23 @@ function Hero() {
   return (
     <div className="baseVertFlex z-10 gap-4 md:flex-row">
       <div className="lightGlassmorphic baseVertFlex w-5/6 items-start gap-4 rounded-xl p-4 shadow-sm sm:w-auto md:p-8">
-        <h1 className="text-left text-4xl font-bold md:text-6xl">
-          Welcome to <span className="text-pink-500">Tabsly</span>
+        <h1 className="text-4xl font-bold md:text-6xl">
+          Welcome to <span className="text-pink-600">Tabsly</span>
         </h1>
 
-        <p className="text-left">
+        <p>
           The{" "}
-          <span className="text-pink-500 underline underline-offset-2">
+          <span className="italic text-pink-600 underline underline-offset-4">
             quickest
           </span>{" "}
           way to transcribe your riffs{" "}
-          <span className="text-pink-500 underline underline-offset-2">
+          <span className="italic text-pink-600 underline underline-offset-4">
             exactly
           </span>{" "}
           as you intend them to sound.
         </p>
 
-        <div className=" flex items-center justify-center gap-4 text-left">
+        <div className="baseFlex mt-4 gap-4">
           <SignUpButton
             mode="modal"
             afterSignUpUrl="http://localhost:3000/postSignUpRegistration"
