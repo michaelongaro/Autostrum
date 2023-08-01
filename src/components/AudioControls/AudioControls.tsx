@@ -377,12 +377,20 @@ function AudioControls() {
           </Button>
 
           <div className="baseFlex w-9/12 !flex-nowrap gap-4">
-            <p>
-              {formatSecondsToMinutes(
-                currentlyPlayingMetadata?.[currentChordIndex]?.elapsedSeconds ??
-                  0
-              )}
-            </p>
+            <div className="baseFlex !flex-nowrap gap-1">
+              <p>
+                {formatSecondsToMinutes(
+                  currentlyPlayingMetadata?.[currentChordIndex]
+                    ?.elapsedSeconds ?? 0
+                )}
+              </p>
+              /
+              <p>
+                {formatSecondsToMinutes(
+                  currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
+                )}
+              </p>
+            </div>
 
             <Slider
               value={[
