@@ -235,6 +235,7 @@ function ChordSequence({
 
                 <div className="baseFlex gap-2">
                   <Label>Strumming pattern</Label>
+
                   <Select
                     onValueChange={handleStrummingPatternChange}
                     value={`${indexOfCurrentlySelectedStrummingPattern}`}
