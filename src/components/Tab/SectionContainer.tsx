@@ -40,6 +40,8 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
     audioMetadata,
     setAudioMetadata,
     currentInstrument,
+    currentlyPlayingMetadata,
+    currentChordIndex,
   } = useTabStore(
     (state) => ({
       bpm: state.bpm,
@@ -56,6 +58,8 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
       audioMetadata: state.audioMetadata,
       setAudioMetadata: state.setAudioMetadata,
       currentInstrument: state.currentInstrument,
+      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+      currentChordIndex: state.currentChordIndex,
     }),
     shallow
   );
@@ -224,7 +228,19 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
         {subSectionData.data.map((subSection, index) => (
           <div key={index} className="baseVertFlex w-full !items-start pb-2">
             {!editing && subSection.repetitions > 1 && (
-              <p className="rounded-t-md bg-pink-500 p-2 !shadow-sm">
+              <p
+                className={`rounded-t-md bg-pink-500 p-2 !shadow-sm ${
+                  audioMetadata.type === "Generated" &&
+                  audioMetadata.playing &&
+                  currentlyPlayingMetadata?.[currentChordIndex]?.location
+                    ?.sectionIndex === sectionIndex &&
+                  currentlyPlayingMetadata?.[currentChordIndex]?.location
+                    ?.subSectionIndex === index
+                    ? "animate-colorOscillate"
+                    : ""
+                }
+                `}
+              >
                 Repeat x{subSection.repetitions}
               </p>
             )}

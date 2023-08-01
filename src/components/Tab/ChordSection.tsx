@@ -50,6 +50,9 @@ function ChordSection({
     setStrummingPatternBeingEdited,
     tabData,
     setTabData,
+    audioMetadata,
+    currentlyPlayingMetadata,
+    currentChordIndex,
   } = useTabStore(
     (state) => ({
       editing: state.editing,
@@ -59,6 +62,9 @@ function ChordSection({
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
       tabData: state.tabData,
       setTabData: state.setTabData,
+      audioMetadata: state.audioMetadata,
+      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+      currentChordIndex: state.currentChordIndex,
     }),
     shallow
   );
@@ -159,7 +165,21 @@ function ChordSection({
         {subSectionData.data.map((chordSequence, index) => (
           <div key={index} className="baseVertFlex w-full !items-start">
             {!editing && chordSequence.repetitions > 1 && (
-              <p className="rounded-t-md bg-pink-500 p-2 !shadow-sm">
+              <p
+                className={`rounded-t-md bg-pink-500 p-2 !shadow-sm ${
+                  audioMetadata.type === "Generated" &&
+                  audioMetadata.playing &&
+                  currentlyPlayingMetadata?.[currentChordIndex]?.location
+                    ?.sectionIndex === sectionIndex &&
+                  currentlyPlayingMetadata?.[currentChordIndex]?.location
+                    ?.subSectionIndex === subSectionIndex &&
+                  currentlyPlayingMetadata?.[currentChordIndex]?.location
+                    ?.chordSequenceIndex === index
+                    ? "animate-colorOscillate"
+                    : ""
+                }
+                `}
+              >
                 Repeat x{chordSequence.repetitions}
               </p>
             )}
