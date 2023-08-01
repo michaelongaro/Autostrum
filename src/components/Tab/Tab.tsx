@@ -18,6 +18,7 @@ import type {
   RefetchOptions,
   RefetchQueryFilters,
 } from "@tanstack/react-query";
+import { cloneDeep } from "lodash";
 import Chords from "./Chords";
 import StrummingPatterns from "./StrummingPatterns";
 import ChordModal from "../modals/ChordModal";
@@ -98,7 +99,7 @@ function Tab({ tab, refetchTab }: ITab) {
   useEffect(() => {
     if (!tab) return;
 
-    setOriginalTabData(tab);
+    setOriginalTabData(cloneDeep(tab));
 
     setId(tab.id);
     setCreatedById(tab.createdById);
