@@ -298,8 +298,8 @@ function StrummingPattern({
         location.subSectionIndex ||
       currentlyPlayingMetadata[currentChordIndex]?.location
         .chordSequenceIndex !== location.chordSequenceIndex ||
-      (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ?? 0) <
-        chordIndex
+      (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ??
+        -1) !== chordIndex
     ) {
       return false;
     }
@@ -399,10 +399,10 @@ function StrummingPattern({
                 <p
                   style={{
                     color: highlightChord(strumIndex)
-                      ? "rgb(219 39 119"
-                      : "auto",
+                      ? "hsl(333, 71%, 51%)"
+                      : "hsl(327, 73%, 97%)",
                   }}
-                  className="font-semibold"
+                  className="h-6 font-semibold"
                 >
                   {getChordName(strumIndex)}
                 </p>
@@ -459,8 +459,8 @@ function StrummingPattern({
                           ? "0"
                           : "1.5rem",
                       color: highlightChord(strumIndex)
-                        ? "rgb(219 39 119"
-                        : "auto",
+                        ? "hsl(333, 71%, 51%)"
+                        : "hsl(327, 73%, 97%)",
                     }}
                     className="baseVertFlex h-full text-lg"
                   >
@@ -501,9 +501,9 @@ function StrummingPattern({
                       getBeatIndicator(data.noteLength, strumIndex) === ""
                         ? "1.5rem"
                         : "auto",
-                    color: highlightChord(strumIndex)
-                      ? "rgb(219 39 119"
-                      : "auto",
+                    // color: highlightChord(strumIndex)
+                    //   ? "rgb(219 39 119"
+                    //   : "auto",
                   }}
                 >
                   {getBeatIndicator(data.noteLength, strumIndex)}
