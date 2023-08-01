@@ -228,12 +228,12 @@ function StrummingPatterns() {
                   </>
                 ) : (
                   <Button
-                    variant={"ghost"}
+                    variant={"playPause"}
                     size={"sm"}
                     className="baseFlex w-full gap-4 rounded-b-sm rounded-t-none"
                   >
                     {/* conditional play/pause icon here */}
-                    Preview
+                    <BsFillPlayFill className="h-6 w-6" />
                   </Button>
                 )}
               </div>

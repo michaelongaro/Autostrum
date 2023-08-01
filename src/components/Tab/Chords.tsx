@@ -106,25 +106,18 @@ function Chords() {
         {chords.map((chord, index) => (
           <div
             key={index}
-            className="baseVertFlex border-b-none rounded-md border-2"
+            className="baseFlex border-r-none h-10 !flex-nowrap rounded-md border-2"
           >
-            <p
-              style={{
-                padding: editing ? "0.75rem" : "0.5rem 3rem",
-              }}
-              className="p-3 font-medium"
-            >
-              {chord.name}
-            </p>
+            <p className="px-3 font-semibold">{chord.name}</p>
 
-            <div className="baseFlex w-full !justify-evenly rounded-bl-md border-t-2">
+            <div className="baseFlex h-full w-full !justify-evenly border-l-2">
               {editing ? (
                 <>
                   {/* edit button */}
                   <Button
                     variant={"ghost"}
                     size={"sm"}
-                    className="baseFlex h-8 w-1/2 gap-2 rounded-r-none rounded-bl-sm rounded-tl-none border-r-[1px]"
+                    className="baseFlex h-full w-1/2 gap-2 rounded-none border-r-[1px]"
                     onClick={() => {
                       setChordBeingEdited({
                         index,
@@ -142,7 +135,7 @@ function Chords() {
                   <Button
                     variant={"destructive"}
                     size="sm"
-                    className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px]"
+                    className="baseFlex h-full w-1/2 rounded-l-none border-l-[1px]"
                     onClick={() => handleDeleteChord(index, chord.name)}
                   >
                     {/* add the tooltip below for "Delete" */}
@@ -153,8 +146,8 @@ function Chords() {
                 <>
                   {/* preview button */}
                   <Popover>
-                    <PopoverTrigger className="baseFlex h-8 w-1/2 gap-2 rounded-r-none rounded-bl-sm rounded-tl-none border-r-[1px]">
-                      <HiOutlineInformationCircle className="h-4 w-4" />
+                    <PopoverTrigger className="baseFlex h-full w-8 gap-2 rounded-none border-r-[1px] ">
+                      <HiOutlineInformationCircle className="h-5 w-5" />
                     </PopoverTrigger>
                     <PopoverContent>
                       <Chord
@@ -170,7 +163,7 @@ function Chords() {
                   <Button
                     variant={"playPause"}
                     size={"sm"}
-                    className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px]"
+                    className="baseFlex h-full w-14 rounded-l-none border-l-[1px]"
                   >
                     {/* conditional play/pause icon here */}
                     <BsFillPlayFill className="h-6 w-6" />
