@@ -48,6 +48,9 @@ module.exports = {
           foreground: "hsl(var(--card-foreground))",
         },
       },
+      boxShadow: {
+        lightGlassmorphic: "0 1px 2px 0 rgb(0 0 0 / 0.15)",
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -69,11 +72,17 @@ module.exports = {
           "60%": { translate: "-7px" },
           "80%": { translate: "8px" },
         },
+        colorOscillate: {
+          "0%": { color: "hsl(327, 73%, 97%)" },
+          "50%": { color: "hsla(327, 73%, 97%, 0.65)" },
+          "100%": { color: "hsl(327, 73%, 97%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         errorShake: "errorShake 0.5s ease-in-out infinite",
+        colorOscillate: "colorOscillate 1.75s ease-in-out infinite",
       },
     },
   },
