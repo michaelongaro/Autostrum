@@ -235,7 +235,7 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
           <div key={index} className="baseVertFlex w-full !items-start pb-2">
             {!editing && subSection.repetitions > 1 && (
               <p
-                className={`rounded-t-md bg-pink-500 p-2 !shadow-sm ${
+                className={`rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm ${
                   audioMetadata.type === "Generated" &&
                   audioMetadata.playing &&
                   currentlyPlayingMetadata?.[currentChordIndex]?.location
