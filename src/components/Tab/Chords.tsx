@@ -110,14 +110,14 @@ function Chords() {
           >
             <p className="px-3 font-semibold">{chord.name}</p>
 
-            <div className="baseFlex h-full w-full !justify-evenly border-l-2">
+            <div className="baseFlex h-full w-full !justify-evenly">
               {editing ? (
                 <>
                   {/* edit button */}
                   <Button
                     variant={"ghost"}
                     size={"sm"}
-                    className="baseFlex h-full w-1/2 gap-2 rounded-none border-r-[1px]"
+                    className="baseFlex h-full w-1/2 gap-2 rounded-none border-l-2 border-r-[1px]"
                     onClick={() => {
                       setChordBeingEdited({
                         index,
@@ -149,7 +149,7 @@ function Chords() {
                     <PopoverTrigger className="baseFlex h-full w-8 gap-2 rounded-none border-r-[1px] ">
                       <HiOutlineInformationCircle className="h-5 w-5" />
                     </PopoverTrigger>
-                    <PopoverContent>
+                    <PopoverContent className="w-40">
                       <Chord
                         chordBeingEdited={{
                           index,
