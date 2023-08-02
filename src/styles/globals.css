@@ -48,7 +48,7 @@
     --card: 327 73% 97%;
     --card-foreground: 336 84% 17%;
 
-    --border: 214.3 31.8% 91.4%;
+    --border: 327 73% 97%;
     --input: 214.3 31.8% 91.4%;
 
     --primary: 330 81% 60%;
@@ -57,8 +57,8 @@
     --secondary: 327 87% 82%;
     --secondary-foreground: 336 69% 30%;
 
+    /* kind of want accent to be darker/higher contrast */
     --accent: 326 78% 95%;
-    /* kind of want this to be darker/higher contrast */
     --accent-foreground: 336 84% 17%;
 
     --destructive: 0 100% 50%;
