@@ -17,6 +17,8 @@ import {
 import StrummingPatternPalmMuteNode from "../Tab/StrummingPatternPalmMuteNode";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "../ui/button";
+import { IoClose } from "react-icons/io5";
+import { BsPlus } from "react-icons/bs";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
@@ -515,10 +517,10 @@ function StrummingPattern({
                 // can do framer motion here if you want
                 <Button
                   variant={"destructive"}
-                  className=" h-4 w-2 p-3" //absolute -bottom-7
+                  className=" h-6 w-6 p-0"
                   onClick={() => deleteStrum(strumIndex)}
                 >
-                  x
+                  <IoClose className="h-4 w-4" />
                 </Button>
               )}
             </div>
@@ -529,11 +531,11 @@ function StrummingPattern({
               data.strums.length < 32 && (
                 <Button
                   id={"strummingPatternExtendPatternButton"}
-                  className="ml-4 rounded-full"
+                  className="ml-4 rounded-full px-2 py-0"
                   onKeyDown={handleExtendPatternButtonKeyDown}
                   onClick={addStrumsToPattern}
                 >
-                  +
+                  <BsPlus className="h-6 w-6" />
                 </Button>
               )}
           </div>

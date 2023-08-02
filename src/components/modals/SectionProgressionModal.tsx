@@ -21,6 +21,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FaTrashAlt } from "react-icons/fa";
+import { BsPlus } from "react-icons/bs";
 import { v4 as uuid } from "uuid";
 import { shallow } from "zustand/shallow";
 import { useTabStore, type SectionProgression } from "~/stores/TabStore";
@@ -254,10 +255,10 @@ function SectionProgressionModal() {
 
           {localSectionProgression.length > 0 && (
             <Button
-              className="rounded-full p-4"
+              className="rounded-full p-2"
               onClick={addNewSectionToProgression}
             >
-              +
+              <BsPlus className="h-6 w-6" />
             </Button>
           )}
 

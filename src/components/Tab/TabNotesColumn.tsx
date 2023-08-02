@@ -17,6 +17,7 @@ import { shallow } from "zustand/shallow";
 import { useSortable } from "@dnd-kit/sortable";
 import { motion } from "framer-motion";
 import { Button } from "../ui/button";
+import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 
 const sectionVariants = {
@@ -467,10 +468,10 @@ function TabNotesColumn({
             variant={"destructive"}
             size="sm"
             disabled={deleteColumnButtonDisabled}
-            className="absolute bottom-4 left-1/2 right-1/2 h-[1.75rem] w-[1.75rem] -translate-x-1/2"
+            className="absolute bottom-4 left-1/2 right-1/2 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
             onClick={handleDeleteCombo}
           >
-            x
+            <IoClose className="h-6 w-6" />
           </Button>
         </div>
       )}

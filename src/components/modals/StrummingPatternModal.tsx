@@ -9,7 +9,7 @@ import { parse, toString } from "~/utils/tunings";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
-import { Label } from "@radix-ui/react-label";
+import { Label } from "~/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
+import { IoClose } from "react-icons/io5";
 import { HiOutlineInformationCircle } from "react-icons/hi";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import StrummingPatternPalmMuteNode from "../Tab/StrummingPatternPalmMuteNode";
@@ -235,7 +236,7 @@ function StrummingPatternModal({
       >
         {/* controls */}
         <div className="baseFlex w-full !justify-start gap-2">
-          Note length
+          <Label>Note length</Label>
           <Select
             onValueChange={handleNoteLengthChange}
             value={strummingPatternBeingEdited.value.noteLength}
@@ -271,10 +272,10 @@ function StrummingPatternModal({
 
             {editingPalmMuteNodes && (
               <Button
-                className="rounded-l-none rounded-r-md"
+                className="rounded-l-none rounded-r-md px-2 py-0"
                 onClick={toggleEditingPalmMuteNodes}
               >
-                x
+                <IoClose className="h-6 w-6" />
               </Button>
             )}
           </div>
@@ -299,18 +300,18 @@ function StrummingPatternModal({
             {showingDeleteStrumsButtons && (
               <Button
                 variant={"destructive"}
-                className="rounded-l-none rounded-r-md"
+                className="rounded-l-none rounded-r-md px-2 py-0"
                 onClick={() =>
                   setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
                 }
               >
-                x
+                <IoClose className="h-6 w-6" />
               </Button>
             )}
           </div>
         </div>
 
-        <div className="baseFlex lightGlassmorphic gap-4 rounded-md p-2 ">
+        <div className="baseFlex lightestGlassmorphic gap-4 rounded-md p-2 ">
           <HiOutlineInformationCircle className="mr-2 h-6 w-6" />
           <div className="baseFlex gap-2">
             <span className="font-semibold">v / d</span>

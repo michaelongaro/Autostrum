@@ -6,6 +6,7 @@ import {
   type SetStateAction,
 } from "react";
 import { Button } from "../ui/button";
+import { BsPlus } from "react-icons/bs";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
@@ -315,7 +316,7 @@ function PalmMuteNode({
                 opacity: getButtonOpacity(value, columnIndex),
               }}
               size={"sm"}
-              className="min-w-[2.25rem] rounded-full transition-all"
+              className="min-w-[2.25rem] rounded-full px-1 py-0 transition-all"
               onMouseEnter={() => setHoveringOnPalmMuteNode(true)}
               onTouchStart={() => setHoveringOnPalmMuteNode(true)}
               onMouseLeave={() => setHoveringOnPalmMuteNode(false)}
@@ -324,18 +325,20 @@ function PalmMuteNode({
               onClick={handlePalmMuteNodeClick}
             >
               {value === "start" && (
-                <div className="baseVertFlex text-xs">
+                <div className="baseVertFlex px-2 text-xs">
                   <span>PM</span>
                   <span>start</span>
                 </div>
               )}
               {value === "end" && (
-                <div className="baseVertFlex text-xs">
+                <div className="baseVertFlex px-2 text-xs">
                   <span>PM</span>
                   <span>end</span>
                 </div>
               )}
-              {editingPalmMuteNodes && value === "" && "+"}
+              {editingPalmMuteNodes && value === "" && (
+                <BsPlus className="h-5 w-5" />
+              )}
             </Button>
           )}
         </>

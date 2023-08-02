@@ -331,10 +331,10 @@ function TabSection({
 
                 {editingPalmMuteNodes && (
                   <Button
-                    className="rounded-l-none rounded-r-md"
+                    className="rounded-l-none rounded-r-md px-2 py-0"
                     onClick={toggleEditingPalmMuteNodes}
                   >
-                    x
+                    <IoClose className="h-6 w-6" />
                   </Button>
                 )}
               </div>
@@ -358,13 +358,13 @@ function TabSection({
 
                 {reorderingColumns && (
                   <Button
-                    className="rounded-l-none rounded-r-md"
+                    className="rounded-l-none rounded-r-md px-2 py-0"
                     onClick={() => {
                       setReorderingColumns(!reorderingColumns);
                       setShowingDeleteColumnsButtons(false);
                     }}
                   >
-                    x
+                    <IoClose className="h-6 w-6" />
                   </Button>
                 )}
               </div>
@@ -392,7 +392,7 @@ function TabSection({
                 {showingDeleteColumnsButtons && (
                   <Button
                     variant={"destructive"}
-                    className="rounded-l-none rounded-r-md"
+                    className="rounded-l-none rounded-r-md px-2 py-0"
                     onClick={() => {
                       setShowingDeleteColumnsButtons(
                         !showingDeleteColumnsButtons
@@ -400,7 +400,7 @@ function TabSection({
                       setReorderingColumns(false);
                     }}
                   >
-                    x
+                    <IoClose className="h-6 w-6" />
                   </Button>
                 )}
               </div>
