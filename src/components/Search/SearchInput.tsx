@@ -139,7 +139,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                 animate={{ opacity: 1, top: "3.5rem" }}
                 exit={{ opacity: 0, top: "3rem" }}
                 transition={{ duration: 0.25 }}
-                className="lightestGlassmorphic absolute z-10 w-full rounded-md"
+                className="mobileNavbarGlassmorphic absolute z-10 w-full rounded-md"
               >
                 {artificallyShowLoadingSpinner || isLoadingTabTitles ? (
                   <div className="baseFlex w-full gap-4 py-4">
@@ -173,7 +173,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                           (data, idx) => (
                             <div
                               key={idx}
-                              className="baseFlex w-full cursor-pointer !justify-start gap-2 rounded-md p-2 transition-all hover:bg-pink-900"
+                              className="baseFlex w-full cursor-pointer !justify-start gap-2 rounded-md p-2 transition-all hover:bg-pink-500"
                               onClick={() => {
                                 setHidingAutofillResults(true);
                                 adjustQueryParams(
