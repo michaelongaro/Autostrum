@@ -1,4 +1,4 @@
-import { Label } from "@radix-ui/react-label";
+import { Label } from "~/components/ui/label";
 import { motion } from "framer-motion";
 import { useRef } from "react";
 import { HiOutlineInformationCircle } from "react-icons/hi";

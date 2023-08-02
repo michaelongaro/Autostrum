@@ -14,7 +14,7 @@ import ChordSection from "./ChordSection";
 import { Separator } from "../ui/separator";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import MiscellaneousControls from "./MiscellaneousControls";
-import { Label } from "@radix-ui/react-label";
+import { Label } from "~/components/ui/label";
 import useSound from "~/hooks/useSound";
 import { AnimatePresence } from "framer-motion";
 
