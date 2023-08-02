@@ -139,7 +139,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                 animate={{ opacity: 1, top: "3.5rem" }}
                 exit={{ opacity: 0, top: "3rem" }}
                 transition={{ duration: 0.25 }}
-                className="mobileNavbarGlassmorphic absolute z-10 w-full rounded-md"
+                className="mobileNavbarGlassmorphic absolute z-10 w-full rounded-md !shadow-xl"
               >
                 {artificallyShowLoadingSpinner || isLoadingTabTitles ? (
                   <div className="baseFlex w-full gap-4 py-4">
