@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import {
   useTabStore,
   type TabSection as TabSectionType,
+  type Section,
 } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import TabColumn from "./TabColumn";
@@ -128,6 +129,184 @@ function TabSection({
     setTabData(newTabData);
   }
 
+  interface MoveAndAssignNewPalmMuteValue {
+    sectionData: TabSectionType;
+    startIndex: number;
+    endIndex: number;
+  }
+
+  function moveAndAssignNewPalmMuteValue({
+    sectionData,
+    startIndex,
+    endIndex,
+  }: MoveAndAssignNewPalmMuteValue) {
+    const initialPalmMuteValue = sectionData.data[startIndex]![0];
+    let pairPalmMuteIndex = -1;
+
+    if (initialPalmMuteValue === "start") {
+      // initial thought was to start +1 from startIndex, but I'm not sure that's necessary
+      let index = startIndex;
+      while (index < sectionData.data.length) {
+        if (sectionData.data[index]?.[0] === "end") {
+          pairPalmMuteIndex = index;
+          break;
+        }
+        index++;
+      }
+    } else if (initialPalmMuteValue === "end") {
+      let index = startIndex;
+      while (index >= 0) {
+        if (sectionData.data[index]?.[0] === "start") {
+          pairPalmMuteIndex = index;
+          break;
+        }
+        index--;
+      }
+    }
+
+    const newSectionData = {
+      ...sectionData,
+      data: arrayMove(sectionData.data, startIndex, endIndex),
+    };
+
+    let index = endIndex;
+    let action: "expand" | "destroy" =
+      newSectionData.data[index]![0] === "" ? "expand" : "destroy";
+
+    if (initialPalmMuteValue === "" || initialPalmMuteValue === "-") {
+      while (index >= 0) {
+        if (newSectionData.data[index]?.[0] === "end") {
+          newSectionData.data[endIndex]![0] = "";
+          break;
+        }
+
+        if (newSectionData.data[index]?.[0] === "start") {
+          newSectionData.data[endIndex]![0] = "-";
+          break;
+        }
+
+        index--;
+      }
+    } else if (
+      initialPalmMuteValue === "start" ||
+      initialPalmMuteValue === "end"
+    ) {
+      action = traverseSectionData({
+        newSectionData,
+        pairPalmMuteIndex,
+        initialPalmMuteValue,
+        endIndex,
+      });
+    }
+
+    return { newSectionData, action };
+  }
+
+  interface TraverseSectionData {
+    endIndex: number;
+    pairPalmMuteIndex: number;
+    initialPalmMuteValue: "start" | "end";
+    newSectionData: TabSectionType;
+  }
+
+  function traverseSectionData({
+    endIndex,
+    pairPalmMuteIndex,
+    initialPalmMuteValue,
+    newSectionData,
+  }: TraverseSectionData) {
+    const step = endIndex <= pairPalmMuteIndex ? 1 : -1;
+    while (
+      (step > 0 && endIndex <= pairPalmMuteIndex) ||
+      (step < 0 && endIndex >= pairPalmMuteIndex)
+    ) {
+      const value = newSectionData.data[endIndex]?.[0];
+
+      if (value === initialPalmMuteValue) {
+        newSectionData.data[endIndex]![0] = "";
+        return "destroy";
+      }
+
+      if (
+        value &&
+        value !== initialPalmMuteValue &&
+        endIndex !== pairPalmMuteIndex
+      ) {
+        newSectionData.data[endIndex]![0] = "-";
+        return "destroy";
+      }
+
+      if (endIndex === pairPalmMuteIndex) {
+        return "expand";
+      }
+
+      endIndex += step;
+    }
+
+    return "expand";
+  }
+
+  interface HandlePreviousPalmMuteSection {
+    sectionData: TabSectionType;
+    startIndex: number;
+    endIndex: number;
+    direction: "left" | "right";
+    action: "expand" | "destroy";
+  }
+
+  function handlePreviousPalmMuteSection({
+    sectionData,
+    startIndex,
+    endIndex,
+    direction,
+    action,
+  }: HandlePreviousPalmMuteSection) {
+    let index = startIndex;
+
+    // all edge cases are handled before this function is called
+    if (action === "expand") {
+      if (direction === "left") {
+        while (index > endIndex) {
+          sectionData.data[index]![0] = "-";
+
+          index--;
+        }
+      } else {
+        while (index < endIndex) {
+          sectionData.data[index]![0] = "-";
+
+          index++;
+        }
+      }
+    } else {
+      if (direction === "left") {
+        while (index >= 0) {
+          if (sectionData.data[index]?.[0] === "start") {
+            sectionData.data[index]![0] = "";
+            break;
+          }
+
+          sectionData.data[index]![0] = "";
+
+          index--;
+        }
+      } else {
+        while (index < sectionData.data.length) {
+          if (sectionData.data[index]?.[0] === "end") {
+            sectionData.data[index]![0] = "";
+            break;
+          }
+
+          sectionData.data[index]![0] = "";
+
+          index++;
+        }
+      }
+    }
+
+    return sectionData;
+  }
+
   function toggleEditingPalmMuteNodes() {
     if (!editingPalmMuteNodes) {
       setEditingPalmMuteNodes(true);
@@ -157,78 +336,76 @@ function TabSection({
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
+    debugger;
 
-    if (over === null) return;
+    const { active, over } = event;
 
     const prevTabData = [...tabData];
     let prevSectionData = prevTabData[sectionIndex]?.data[subSectionIndex];
 
     if (
-      prevSectionData !== undefined &&
-      prevSectionData.type === "tab" &&
-      typeof active.id === "string" &&
-      typeof over.id === "string" &&
-      active.id !== over.id
-    ) {
-      const start = parseInt(active.id);
+      prevSectionData === undefined ||
+      prevSectionData.type !== "tab" ||
+      typeof active.id !== "string" ||
+      typeof over?.id !== "string" ||
+      active.id === over?.id
+    )
+      return;
 
-      const rawEndValue = parseInt(over.id);
+    const startIndex = parseInt(active.id);
+    const endIndex = parseInt(over.id);
 
-      // the end value is the noteIndex of the combo, so when moving to the right you need
-      // to add two to get the correct index
+    const startPalmMuteValue = prevSectionData?.data[startIndex]?.[0];
 
-      // below: trying to only add 1 if dropping on a combo, not a measure line
-      const end =
-        rawEndValue > start &&
-        prevSectionData?.data[rawEndValue]?.[8] === "note"
-          ? rawEndValue + 1
-          : rawEndValue;
+    const { newSectionData, action } = moveAndAssignNewPalmMuteValue({
+      sectionData: prevSectionData,
+      startIndex,
+      endIndex,
+    });
 
-      // doesn't make sense to have a measureLine at the start or end of a section
+    prevSectionData = newSectionData;
+
+    const endPalmMuteValue = prevSectionData?.data[endIndex]?.[0];
+
+    // making sure there are no occurances of two measure lines right next to each other,
+    // or at the start or end of the section
+    for (let i = 0; i < prevSectionData.data.length - 2; i++) {
       if (
-        prevSectionData?.data[start]?.[8] === "measureLine" &&
-        (end === 0 || end === prevSectionData.data.length - 1)
-      )
+        (prevSectionData.data[i]?.[8] === "measureLine" &&
+          prevSectionData.data[i + 1]?.[8] === "measureLine") ||
+        prevSectionData.data[0]?.[8] === "measureLine" ||
+        prevSectionData.data[prevSectionData.data.length - 1]?.[8] ===
+          "measureLine"
+      ) {
         return;
-
-      const endPalmMuteValue = prevSectionData?.data[end]?.[0];
-
-      prevSectionData = {
-        ...prevSectionData,
-        data: arrayMove(prevSectionData.data, start, end),
-      };
-
-      // have to move the effect column as well if it's a note and the direction is left -> right
-      if (prevSectionData.data[end]![8] === "note") {
-        prevSectionData = {
-          ...prevSectionData,
-          data: arrayMove(
-            prevSectionData.data,
-            rawEndValue < start ? start + 1 : start,
-            rawEndValue < start ? rawEndValue + 1 : end
-          ),
-        };
       }
-
-      // looks like moving at least l -> r past a measure line gets
-
-      prevSectionData.data[end]![0] = endPalmMuteValue ?? "";
-
-      // making sure there are no occurances of two measure lines right next to each other
-      for (let i = 0; i < prevSectionData.data.length - 2; i++) {
-        if (
-          prevSectionData.data[i]?.[8] === "measureLine" &&
-          prevSectionData.data[i + 1]?.[8] === "measureLine"
-        ) {
-          return;
-        }
-      }
-
-      prevTabData[sectionIndex]!.data[subSectionIndex] = prevSectionData;
-
-      setTabData(prevTabData);
     }
+
+    if (startPalmMuteValue === "start" && endPalmMuteValue === "end") {
+      let direction: "left" | "right" = "right";
+
+      if (startIndex > endIndex) {
+        direction = "left";
+      }
+
+      // if we are destroying a palm mute section, we need to instead iterate
+      // through in the opposite direction (to remove the dashed/pair node)
+      if (action === "destroy") {
+        direction = direction === "left" ? "right" : "left";
+      }
+
+      prevSectionData = handlePreviousPalmMuteSection({
+        sectionData: prevSectionData,
+        startIndex,
+        endIndex,
+        direction,
+        action,
+      });
+    } else {
+      prevTabData[sectionIndex]!.data[subSectionIndex] = prevSectionData;
+    }
+
+    setTabData(prevTabData);
   }
 
   function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
