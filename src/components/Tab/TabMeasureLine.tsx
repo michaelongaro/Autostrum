@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { type TabColumn } from "./TabColumn";
 import { useSortable } from "@dnd-kit/sortable";
 import { RxDragHandleDots2 } from "react-icons/rx";
+import { IoClose } from "react-icons/io5";
 import { Button } from "../ui/button";
 
 const sectionVariants = {
@@ -182,10 +183,10 @@ function TabMeasureLine({
             <Button
               variant={"destructive"}
               size="sm"
-              className="absolute bottom-[-2.7rem] left-1/2 right-1/2 h-[1.75rem] w-[1.75rem] -translate-x-1/2"
+              className="absolute bottom-[-2.7rem] left-1/2 right-1/2 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
               onClick={handleDeleteMeasureLine}
             >
-              x
+              <IoClose className="h-6 w-6" />
             </Button>
           )}
         </Fragment>
