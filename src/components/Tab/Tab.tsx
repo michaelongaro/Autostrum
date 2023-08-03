@@ -44,6 +44,7 @@ function Tab({ tab, refetchTab }: ITab) {
   const {
     setId,
     setCreatedById,
+    setCreatedAt,
     setTitle,
     setDescription,
     setGenreId,
@@ -70,6 +71,7 @@ function Tab({ tab, refetchTab }: ITab) {
     (state) => ({
       setId: state.setId,
       setCreatedById: state.setCreatedById,
+      setCreatedAt: state.setCreatedAt,
       setTitle: state.setTitle,
       setDescription: state.setDescription,
       setGenreId: state.setGenreId,
@@ -103,6 +105,7 @@ function Tab({ tab, refetchTab }: ITab) {
 
     setId(tab.id);
     setCreatedById(tab.createdById);
+    setCreatedAt(tab.createdAt);
     setTitle(tab.title);
     setDescription(tab.description);
     setGenreId(tab.genreId);
@@ -124,6 +127,7 @@ function Tab({ tab, refetchTab }: ITab) {
     tab,
     setId,
     setCreatedById,
+    setCreatedAt,
     setBpm,
     setDescription,
     setGenreId,
