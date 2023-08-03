@@ -728,8 +728,10 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                         </span>
                       </Link>
                     </Button>
-                    <Separator className="w-4" />
-                    {`Updated on ${createdAt ? formatDate(createdAt) : ""}`}
+                    <Separator className="h-[1px] w-4" />
+                    <p className="ml-2">
+                      {`Updated on ${createdAt ? formatDate(createdAt) : ""}`}
+                    </p>
                   </div>
                 </div>
 
