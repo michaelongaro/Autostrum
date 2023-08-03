@@ -12,6 +12,7 @@ import {
   useTabStore,
   type TabSection as TabSectionType,
   type ChordSection as ChordSectionType,
+  type Section,
 } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { useSortable } from "@dnd-kit/sortable";
@@ -126,7 +127,7 @@ function TabNotesColumn({
     if (
       (columnIndex === 0 &&
         currentSection.data[columnIndex + 1]?.[8] === "measureLine") ||
-      (columnIndex === currentSection.data.length - 2 &&
+      (columnIndex === currentSection.data.length - 1 &&
         currentSection.data[columnIndex - 1]?.[8] === "measureLine")
     ) {
       disabled = true;
@@ -208,12 +209,54 @@ function TabNotesColumn({
     return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
   }, [currentlyPlayingMetadata, currentChordIndex, playbackSpeed]);
 
-  function handleDeleteCombo() {
+  function handleDeletePalmMutedChord(tabData: Section[]) {
     const newTabData = [...tabData];
+    const currentPalmMuteNodeValue =
+      newTabData[sectionIndex]?.data[subSectionIndex]?.data[columnIndex]?.[0];
+    const currentTabSectionLength =
+      newTabData[sectionIndex]?.data[subSectionIndex]?.data.length ?? 0;
+
+    if (currentPalmMuteNodeValue === "start") {
+      let index = 0;
+      while (index < currentTabSectionLength) {
+        if (
+          newTabData[sectionIndex]?.data[subSectionIndex]?.data[index]?.[0] ===
+          "end"
+        ) {
+          newTabData[sectionIndex].data[subSectionIndex].data[index][0] = "";
+          break;
+        }
+
+        newTabData[sectionIndex].data[subSectionIndex].data[index][0] = "";
+
+        index++;
+      }
+    } else if (currentPalmMuteNodeValue === "end") {
+      let index = currentTabSectionLength - 1;
+      while (index >= 0) {
+        if (
+          newTabData[sectionIndex]?.data[subSectionIndex]?.data[index]?.[0] ===
+          "start"
+        ) {
+          newTabData[sectionIndex].data[subSectionIndex].data[index][0] = "";
+          break;
+        }
+
+        newTabData[sectionIndex].data[subSectionIndex].data[index][0] = "";
+
+        index--;
+      }
+    }
+
+    return newTabData;
+  }
+
+  function handleDeleteChord() {
+    const newTabData = handleDeletePalmMutedChord(tabData);
 
     newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
       columnIndex,
-      2
+      1
     );
 
     setTabData(newTabData);
@@ -469,7 +512,7 @@ function TabNotesColumn({
             size="sm"
             disabled={deleteColumnButtonDisabled}
             className="absolute bottom-4 left-1/2 right-1/2 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
-            onClick={handleDeleteCombo}
+            onClick={handleDeleteChord}
           >
             <IoClose className="h-6 w-6" />
           </Button>
