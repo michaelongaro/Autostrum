@@ -13,6 +13,7 @@ import {
 import {
   useTabStore,
   type StrummingPattern as StrummingPatternType,
+  type Section,
 } from "~/stores/TabStore";
 import StrummingPatternPalmMuteNode from "../Tab/StrummingPatternPalmMuteNode";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
@@ -234,8 +235,48 @@ function StrummingPattern({
     });
   }
 
+  function handleDeletePalmMutedStrum(
+    newStrummingPattern: StrummingPatternType,
+    strumIndex: number
+  ) {
+    // const newStrummingPattern = [...strummingPattern];
+
+    const currentPalmMuteNodeValue =
+      newStrummingPattern.strums[strumIndex]?.palmMute;
+    const currentStrummingPatternLength =
+      newStrummingPattern.strums.length ?? 0;
+
+    if (currentPalmMuteNodeValue === "start") {
+      let index = 0;
+      while (index < currentStrummingPatternLength) {
+        if (newStrummingPattern.strums[index]?.palmMute === "end") {
+          newStrummingPattern.strums[index]!.palmMute = "";
+          break;
+        }
+
+        newStrummingPattern.strums[index]!.palmMute = "";
+
+        index++;
+      }
+    } else if (currentPalmMuteNodeValue === "end") {
+      let index = currentStrummingPatternLength - 1;
+      while (index >= 0) {
+        if (newStrummingPattern.strums[index]?.palmMute === "start") {
+          newStrummingPattern.strums[index]!.palmMute = "";
+          break;
+        }
+
+        newStrummingPattern.strums[index]!.palmMute = "";
+
+        index--;
+      }
+    }
+
+    return newStrummingPattern;
+  }
+
   function deleteStrum(beatIndex: number) {
-    const newStrummingPattern = { ...data };
+    const newStrummingPattern = handleDeletePalmMutedStrum(data, beatIndex);
 
     newStrummingPattern.strums.splice(beatIndex, 1);
 
@@ -517,6 +558,7 @@ function StrummingPattern({
                 // can do framer motion here if you want
                 <Button
                   variant={"destructive"}
+                  disabled={data.strums.length === 1}
                   className=" h-6 w-6 p-0"
                   onClick={() => deleteStrum(strumIndex)}
                 >
