@@ -146,9 +146,6 @@ function TabSection({
     let action: "expand" | "destroy" = "expand";
     let currentIndex = endIndex + step;
 
-    console.log(newSectionData.data, endIndex);
-    // debugger;
-
     while (
       (step > 0 && currentIndex <= pairPalmMuteIndex) ||
       (step < 0 && currentIndex >= pairPalmMuteIndex)
@@ -159,7 +156,6 @@ function TabSection({
       if (value === initialPalmMuteValue) {
         newSectionData.data[endIndex]![0] = "";
         action = "destroy";
-        console.log("1");
         break;
       }
 
@@ -171,13 +167,8 @@ function TabSection({
       ) {
         newSectionData.data[endIndex]![0] = "-";
         action = "destroy";
-        console.log("2");
         break;
       }
-
-      // okay not sure if need to make another block here, but if wrapping start/end PAST their
-      // pairedNode, then we need to handle that case too... currently just goes to below block
-      // but really need
 
       // landed outside of a pm section, able to keep prev pm section
       if (currentIndex === pairPalmMuteIndex) {
@@ -187,10 +178,8 @@ function TabSection({
         ) {
           newSectionData.data[endIndex]![0] = "";
           action = "destroy";
-          console.log("4");
         } else {
           action = "expand";
-          console.log("3");
         }
 
         break;
@@ -241,8 +230,6 @@ function TabSection({
       }
     }
 
-    console.log(startIndex, pairPalmMuteIndex);
-
     const newSectionData = {
       ...sectionData,
       data: arrayMove(sectionData.data, startIndex, endIndex),
@@ -283,6 +270,13 @@ function TabSection({
           action: "shrink",
           pairPalmMuteIndex,
         };
+      } else if (endIndex === pairPalmMuteIndex) {
+        newSectionData.data[endIndex]![0] = "";
+        return {
+          newSectionData,
+          action: "destroy",
+          pairPalmMuteIndex,
+        };
       } else {
         results = traverseSectionData({
           newSectionData,
@@ -321,8 +315,6 @@ function TabSection({
 
     // may need to start with one index "forward"
     // I think if endIndex < startIndex you don't have to go one forward though
-
-    console.log(sectionData, startIndex, endIndex, direction, action);
 
     // all edge cases are handled before this function is called
     if (action === "expand") {
