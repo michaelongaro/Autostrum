@@ -129,6 +129,79 @@ function TabSection({
     setTabData(newTabData);
   }
 
+  interface TraverseSectionData {
+    newSectionData: TabSectionType;
+    endIndex: number;
+    pairPalmMuteIndex: number;
+    initialPalmMuteValue: "start" | "end";
+  }
+
+  function traverseSectionData({
+    newSectionData,
+    endIndex,
+    pairPalmMuteIndex,
+    initialPalmMuteValue,
+  }: TraverseSectionData) {
+    const step = endIndex <= pairPalmMuteIndex ? 1 : -1;
+    let action: "expand" | "destroy" = "expand";
+    let currentIndex = endIndex + step;
+
+    console.log(newSectionData.data, endIndex);
+    // debugger;
+
+    while (
+      (step > 0 && currentIndex <= pairPalmMuteIndex) ||
+      (step < 0 && currentIndex >= pairPalmMuteIndex)
+    ) {
+      const value = newSectionData.data[currentIndex]?.[0];
+
+      // landed outside of a pm section, but broke prev pm section
+      if (value === initialPalmMuteValue) {
+        newSectionData.data[endIndex]![0] = "";
+        action = "destroy";
+        console.log("1");
+        break;
+      }
+
+      // landed inside of a pm section, but broke prev pm section
+      if (
+        ((initialPalmMuteValue === "start" && value === "end") ||
+          (initialPalmMuteValue === "end" && value === "start")) &&
+        currentIndex !== pairPalmMuteIndex
+      ) {
+        newSectionData.data[endIndex]![0] = "-";
+        action = "destroy";
+        console.log("2");
+        break;
+      }
+
+      // okay not sure if need to make another block here, but if wrapping start/end PAST their
+      // pairedNode, then we need to handle that case too... currently just goes to below block
+      // but really need
+
+      // landed outside of a pm section, able to keep prev pm section
+      if (currentIndex === pairPalmMuteIndex) {
+        if (
+          (initialPalmMuteValue === "start" && endIndex > pairPalmMuteIndex) ||
+          (initialPalmMuteValue === "end" && endIndex < pairPalmMuteIndex)
+        ) {
+          newSectionData.data[endIndex]![0] = "";
+          action = "destroy";
+          console.log("4");
+        } else {
+          action = "expand";
+          console.log("3");
+        }
+
+        break;
+      }
+
+      currentIndex += step;
+    }
+
+    return { newSectionData, action };
+  }
+
   interface MoveAndAssignNewPalmMuteValue {
     sectionData: TabSectionType;
     startIndex: number;
@@ -139,7 +212,11 @@ function TabSection({
     sectionData,
     startIndex,
     endIndex,
-  }: MoveAndAssignNewPalmMuteValue) {
+  }: MoveAndAssignNewPalmMuteValue): {
+    newSectionData: TabSectionType;
+    action: "expand" | "shrink" | "destroy";
+    pairPalmMuteIndex: number;
+  } {
     const initialPalmMuteValue = sectionData.data[startIndex]![0];
     let pairPalmMuteIndex = -1;
 
@@ -164,14 +241,15 @@ function TabSection({
       }
     }
 
+    console.log(startIndex, pairPalmMuteIndex);
+
     const newSectionData = {
       ...sectionData,
       data: arrayMove(sectionData.data, startIndex, endIndex),
     };
 
     let index = endIndex;
-    let action: "expand" | "destroy" =
-      newSectionData.data[index]![0] === "" ? "expand" : "destroy";
+    const action: "expand" | "shrink" | "destroy" = "expand";
 
     if (initialPalmMuteValue === "" || initialPalmMuteValue === "-") {
       while (index >= 0) {
@@ -191,59 +269,37 @@ function TabSection({
       initialPalmMuteValue === "start" ||
       initialPalmMuteValue === "end"
     ) {
-      action = traverseSectionData({
-        newSectionData,
-        pairPalmMuteIndex,
-        initialPalmMuteValue,
-        endIndex,
-      });
-    }
-
-    return { newSectionData, action };
-  }
-
-  interface TraverseSectionData {
-    endIndex: number;
-    pairPalmMuteIndex: number;
-    initialPalmMuteValue: "start" | "end";
-    newSectionData: TabSectionType;
-  }
-
-  function traverseSectionData({
-    endIndex,
-    pairPalmMuteIndex,
-    initialPalmMuteValue,
-    newSectionData,
-  }: TraverseSectionData) {
-    const step = endIndex <= pairPalmMuteIndex ? 1 : -1;
-    while (
-      (step > 0 && endIndex <= pairPalmMuteIndex) ||
-      (step < 0 && endIndex >= pairPalmMuteIndex)
-    ) {
-      const value = newSectionData.data[endIndex]?.[0];
-
-      if (value === initialPalmMuteValue) {
-        newSectionData.data[endIndex]![0] = "";
-        return "destroy";
-      }
+      let results: {
+        newSectionData: TabSectionType;
+        action: "expand" | "shrink" | "destroy";
+      };
 
       if (
-        value &&
-        value !== initialPalmMuteValue &&
-        endIndex !== pairPalmMuteIndex
+        Math.min(startIndex, pairPalmMuteIndex) < endIndex &&
+        endIndex < Math.max(startIndex, pairPalmMuteIndex)
       ) {
-        newSectionData.data[endIndex]![0] = "-";
-        return "destroy";
+        return {
+          newSectionData,
+          action: "shrink",
+          pairPalmMuteIndex,
+        };
+      } else {
+        results = traverseSectionData({
+          newSectionData,
+          endIndex,
+          pairPalmMuteIndex,
+          initialPalmMuteValue,
+        });
       }
 
-      if (endIndex === pairPalmMuteIndex) {
-        return "expand";
-      }
-
-      endIndex += step;
+      return {
+        newSectionData: results.newSectionData,
+        action: results.action,
+        pairPalmMuteIndex,
+      };
     }
 
-    return "expand";
+    return { newSectionData, action, pairPalmMuteIndex };
   }
 
   interface HandlePreviousPalmMuteSection {
@@ -251,7 +307,7 @@ function TabSection({
     startIndex: number;
     endIndex: number;
     direction: "left" | "right";
-    action: "expand" | "destroy";
+    action: "expand" | "shrink" | "destroy";
   }
 
   function handlePreviousPalmMuteSection({
@@ -262,6 +318,11 @@ function TabSection({
     action,
   }: HandlePreviousPalmMuteSection) {
     let index = startIndex;
+
+    // may need to start with one index "forward"
+    // I think if endIndex < startIndex you don't have to go one forward though
+
+    console.log(sectionData, startIndex, endIndex, direction, action);
 
     // all edge cases are handled before this function is called
     if (action === "expand") {
@@ -274,6 +335,21 @@ function TabSection({
       } else {
         while (index < endIndex) {
           sectionData.data[index]![0] = "-";
+
+          index++;
+        }
+      }
+    } else if (action === "shrink") {
+      // should basically be right, but is copilot generated
+      if (direction === "left") {
+        while (index > endIndex) {
+          sectionData.data[index]![0] = "";
+
+          index--;
+        }
+      } else {
+        while (index < endIndex) {
+          sectionData.data[index]![0] = "";
 
           index++;
         }
@@ -336,7 +412,7 @@ function TabSection({
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    debugger;
+    // debugger;
 
     const { active, over } = event;
 
@@ -357,11 +433,12 @@ function TabSection({
 
     const startPalmMuteValue = prevSectionData?.data[startIndex]?.[0];
 
-    const { newSectionData, action } = moveAndAssignNewPalmMuteValue({
-      sectionData: prevSectionData,
-      startIndex,
-      endIndex,
-    });
+    const { newSectionData, action, pairPalmMuteIndex } =
+      moveAndAssignNewPalmMuteValue({
+        sectionData: prevSectionData,
+        startIndex,
+        endIndex,
+      });
 
     prevSectionData = newSectionData;
 
@@ -381,16 +458,26 @@ function TabSection({
       }
     }
 
-    if (startPalmMuteValue === "start" && endPalmMuteValue === "end") {
+    if (startPalmMuteValue === "start" || startPalmMuteValue === "end") {
       let direction: "left" | "right" = "right";
 
+      // is this right?? should it be conditional based on if startPalmMuteValue is "start" or "end"?
       if (startIndex > endIndex) {
         direction = "left";
       }
 
+      // currently 01234   6789  5      got rid of 6789 instead of 01234
+      // do same setup, but check what the direction is at all stages here, it REALLY should have been
+      // left but it was in fact right...
+
       // if we are destroying a palm mute section, we need to instead iterate
       // through in the opposite direction (to remove the dashed/pair node)
-      if (action === "destroy") {
+      if (
+        action === "destroy" &&
+        // don't reverse if "crossing over" a paired node
+        ((startPalmMuteValue === "start" && endIndex < pairPalmMuteIndex) ||
+          (startPalmMuteValue === "end" && endIndex > pairPalmMuteIndex))
+      ) {
         direction = direction === "left" ? "right" : "left";
       }
 
@@ -401,6 +488,8 @@ function TabSection({
         direction,
         action,
       });
+
+      prevTabData[sectionIndex]!.data[subSectionIndex] = prevSectionData;
     } else {
       prevTabData[sectionIndex]!.data[subSectionIndex] = prevSectionData;
     }
