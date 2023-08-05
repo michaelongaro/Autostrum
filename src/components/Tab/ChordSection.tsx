@@ -43,12 +43,14 @@ const opacityAndScaleVariants = {
 };
 
 export interface ChordSection {
+  sectionId: string;
   sectionIndex: number;
   subSectionIndex: number;
   subSectionData: ChordSectionType;
 }
 
 function ChordSection({
+  sectionId,
   sectionIndex,
   subSectionIndex,
   subSectionData,
@@ -134,7 +136,7 @@ function ChordSection({
   return (
     <motion.div
       key={`tabSection${sectionIndex}`}
-      // layoutId={`tabSection${sectionIndex}`}
+      // layoutId={`${sectionId}`}
       layout
       variants={opacityAndScaleVariants}
       initial="closed"
@@ -172,6 +174,7 @@ function ChordSection({
           </div>
           <MiscellaneousControls
             type={"chord"}
+            sectionId={sectionId}
             sectionIndex={sectionIndex}
             subSectionIndex={subSectionIndex}
           />
@@ -201,6 +204,7 @@ function ChordSection({
               </p>
             )}
             <ChordSequence
+              sectionId={sectionId}
               sectionIndex={sectionIndex}
               subSectionIndex={subSectionIndex}
               chordSequenceIndex={index}

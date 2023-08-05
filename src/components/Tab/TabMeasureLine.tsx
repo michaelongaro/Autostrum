@@ -36,6 +36,7 @@ function TabMeasureLine({
   showingDeleteColumnsButtons,
 }: Omit<
   TabColumn,
+  | "sectionId"
   | "editingPalmMuteNodes"
   | "setEditingPalmMuteNodes"
   | "lastModifiedPalmMuteNode"
@@ -51,9 +52,7 @@ function TabMeasureLine({
     transform,
     transition,
     isDragging,
-  } =
-    // hoping that columnIndex is fine here. if you can drag across sections we will need to modify.
-    useSortable({ id: `${columnIndex}` });
+  } = useSortable({ id: columnData[9]! });
 
   const { editing, tabData, setTabData } = useTabStore(
     (state) => ({
@@ -77,9 +76,9 @@ function TabMeasureLine({
 
   return (
     <motion.div
-      key={`tabSection${sectionIndex}subSection${subSectionIndex}tabColumn${columnIndex}`}
+      key={columnData[9]}
       ref={setNodeRef}
-      layoutId={`tabSection${sectionIndex}subSection${subSectionIndex}tabColumn${columnIndex}`}
+      // layoutId={columnData[9]}
       style={initialStyles}
       initial="closed"
       animate={
@@ -166,8 +165,14 @@ function TabMeasureLine({
               className="hover:box-shadow-md absolute bottom-[-2.7rem] cursor-grab rounded-md text-pink-50 active:cursor-grabbing"
               onMouseEnter={() => setHoveringOnHandle(true)}
               onMouseDown={() => setGrabbingHandle(true)}
-              onMouseLeave={() => setHoveringOnHandle(false)}
-              onMouseUp={() => setGrabbingHandle(false)}
+              onMouseLeave={() => {
+                setGrabbingHandle(false);
+                setHoveringOnHandle(false);
+              }}
+              onMouseUp={() => {
+                setGrabbingHandle(false);
+                setHoveringOnHandle(false);
+              }}
             >
               <RxDragHandleDots2 className="h-8 w-6" />
               <div

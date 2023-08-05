@@ -11,6 +11,7 @@ import EffectGlossaryModal from "../modals/EffectGlossaryModal";
 import { Button } from "../ui/button";
 import { FaItunesNote } from "react-icons/fa";
 import { Separator } from "../ui/separator";
+import { v4 as uuid } from "uuid";
 import EffectGlossary from "../ui/EffectGlossary";
 import type { TabWithLikes } from "~/server/api/routers/tab";
 import type {
@@ -147,6 +148,7 @@ function Tab({ tab, refetchTab }: ITab) {
     const newTabData = [...tabData];
 
     const newSectionData = {
+      id: uuid(),
       title: `Section ${tabData.length + 1}`,
       data: [],
     };
@@ -172,15 +174,15 @@ function Tab({ tab, refetchTab }: ITab) {
 
         {/* pretty sure the Layout approach wasn't working, but if you can get it to work then maybe
             it should be inside <SectionContainer /> */}
-        <LayoutGroup>
-          {tabData.map((section, index) => (
-            <SectionContainer
-              key={index}
-              sectionIndex={index}
-              subSectionData={section}
-            />
-          ))}
-        </LayoutGroup>
+        {/* <LayoutGroup> */}
+        {tabData.map((section, index) => (
+          <SectionContainer
+            key={index}
+            sectionIndex={index}
+            sectionData={section}
+          />
+        ))}
+        {/* </LayoutGroup> */}
 
         {editing && (
           <Button onClick={() => addNewSection()}>Add another section</Button>

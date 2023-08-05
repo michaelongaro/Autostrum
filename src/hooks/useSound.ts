@@ -735,6 +735,7 @@ export default function useSound() {
     for (let i = 0; i < tabData.length; i++) {
       sectionProgression.push({
         id: `${i}`,
+        sectionId: tabData[i]?.id ?? "",
         title: tabData[i]?.title ?? "",
         repetitions: 1,
       });
@@ -863,9 +864,9 @@ export default function useSound() {
     });
   }
 
-  function getSectionIndexFromTitle(tabData: Section[], title: string) {
+  function getSectionIndexFromId(tabData: Section[], sectionId: string) {
     for (let i = 0; i < tabData.length; i++) {
-      if (tabData[i]?.title === title) {
+      if (tabData[i]?.id === sectionId) {
         return i;
       }
     }
@@ -895,9 +896,9 @@ export default function useSound() {
       sectionProgressionIndex < sectionProgression.length;
       sectionProgressionIndex++
     ) {
-      const sectionIndex = getSectionIndexFromTitle(
+      const sectionIndex = getSectionIndexFromId(
         tabData,
-        sectionProgression[sectionProgressionIndex]!.title
+        sectionProgression[sectionProgressionIndex]!.sectionId
       );
       const sectionRepetitions = getRepetitions(
         sectionProgression[sectionProgressionIndex]?.repetitions

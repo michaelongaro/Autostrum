@@ -82,9 +82,7 @@ function TabNotesColumn({
     transform,
     transition,
     isDragging,
-  } =
-    // hoping that columnIndex is fine here. if you can drag across sections we will need to modify.
-    useSortable({ id: `${columnIndex}` });
+  } = useSortable({ id: columnData[9]! });
 
   const {
     editing,
@@ -302,9 +300,9 @@ function TabNotesColumn({
 
   return (
     <motion.div
-      key={`tabSection${sectionIndex}subSection${subSectionIndex}tabColumn${columnIndex}`}
+      key={columnData[9]}
       ref={setNodeRef}
-      layoutId={`tabSection${sectionIndex}subSection${subSectionIndex}tabColumn${columnIndex}`}
+      // layoutId={columnData[9]}
       style={initialStyles}
       initial="closed"
       animate={
@@ -349,8 +347,8 @@ function TabNotesColumn({
             height: editing ? "280px" : "164px",
             width: highlightChord || columnHasBeenPlayed ? "100%" : "0%",
             transitionDuration: highlightChord
-                ? `${durationOfCurrentChord}s`
-                : "0s",
+              ? `${durationOfCurrentChord}s`
+              : "0s",
             msTransitionProperty: "width",
             transitionTimingFunction: "linear",
           }}
@@ -521,8 +519,14 @@ function TabNotesColumn({
             className="hover:box-shadow-md absolute bottom-4 left-1/2 right-1/2 w-[1.5rem] -translate-x-1/2 cursor-grab rounded-md text-pink-50 active:cursor-grabbing"
             onMouseEnter={() => setHoveringOnHandle(true)}
             onMouseDown={() => setGrabbingHandle(true)}
-            onMouseLeave={() => setHoveringOnHandle(false)}
-            onMouseUp={() => setGrabbingHandle(false)}
+            onMouseLeave={() => {
+              setGrabbingHandle(false);
+              setHoveringOnHandle(false);
+            }}
+            onMouseUp={() => {
+              setGrabbingHandle(false);
+              setHoveringOnHandle(false);
+            }}
           >
             <RxDragHandleDots2 className="h-8 w-6" />
             <div

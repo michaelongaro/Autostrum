@@ -30,7 +30,6 @@ import { Button } from "../ui/button";
 import { useSortable } from "@dnd-kit/sortable";
 import isEqual from "lodash.isequal";
 import { RxDragHandleDots2 } from "react-icons/rx";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { Input } from "../ui/input";
 import {
   Select,
@@ -63,26 +62,11 @@ const sectionVariants = {
 };
 
 function SectionProgressionModal() {
-  const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
-
   const [localSectionProgression, setLocalSectionProgression] = useState<
     SectionProgression[]
   >([]);
 
   const scrollableSectionsRef = useRef<HTMLDivElement>(null);
-
-  // const modalVariants = {
-  //   expanded: {
-  //     width: "90vw",
-  //     maxWidth: 600,
-  //     height: aboveMediumViewportWidth ? "600px" : "75vh",
-  //     opacity: 1,
-  //   },
-  //   closed: {
-  //     width: 0,
-  //     opacity: 0,
-  //   },
-  // };
 
   const {
     editing,
@@ -112,11 +96,11 @@ function SectionProgressionModal() {
     })
   );
 
-  const sectionTitles = useMemo(() => {
-    return tabData.map((section) => section.title);
+  const sections = useMemo(() => {
+    return tabData.map((section) => ({ id: section.id, title: section.title }));
   }, [tabData]);
 
-  const sectionIds = useMemo(() => {
+  const sectionProgressionIds = useMemo(() => {
     return localSectionProgression.map((section) => section.id);
   }, [localSectionProgression]);
 
@@ -153,6 +137,7 @@ function SectionProgressionModal() {
     const newSectionProgression = [...localSectionProgression];
     newSectionProgression.push({
       id: uuid(),
+      sectionId: "",
       title: "",
       repetitions: 1,
     });
@@ -222,7 +207,7 @@ function SectionProgressionModal() {
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                items={sectionIds}
+                items={sectionProgressionIds}
                 strategy={verticalListSortingStrategy}
               >
                 {localSectionProgression.length > 0 ? (
@@ -235,7 +220,7 @@ function SectionProgressionModal() {
                           index={index}
                           title={section.title}
                           repetitions={section.repetitions}
-                          titles={sectionTitles}
+                          sections={sections}
                           localSectionProgression={localSectionProgression}
                           setLocalSectionProgression={
                             setLocalSectionProgression
@@ -271,10 +256,7 @@ function SectionProgressionModal() {
             </Button>
 
             <Button
-              disabled={
-                localSectionProgression.length === 0 ||
-                isEqual(localSectionProgression, sectionProgression)
-              }
+              disabled={isEqual(localSectionProgression, sectionProgression)}
               onClick={closeModal}
             >
               Save
@@ -298,7 +280,10 @@ const initialStyles = {
 
 interface Section {
   id: string;
-  titles: string[];
+  sections: {
+    id: string;
+    title: string;
+  }[];
   title: string;
   repetitions: number;
   index: number;
@@ -313,7 +298,7 @@ function Section({
   title,
   repetitions,
   index,
-  titles,
+  sections,
   localSectionProgression,
   setLocalSectionProgression,
 }: Section) {
@@ -330,9 +315,12 @@ function Section({
     isDragging,
   } = useSortable({ id, transition: null });
 
-  function handleSectionChange(value: string) {
+  function handleSectionChange(stringifiedIndex: string) {
+    const newIndex = parseInt(stringifiedIndex);
     const newSectionProgression = [...localSectionProgression];
-    newSectionProgression[index]!.title = value;
+
+    newSectionProgression[index]!.sectionId = sections[newIndex]!.id;
+    newSectionProgression[index]!.title = sections[newIndex]!.title;
     setLocalSectionProgression(newSectionProgression);
   }
 
@@ -403,7 +391,7 @@ function Section({
         ref={setActivatorNodeRef}
         {...attributes}
         {...listeners}
-        className="relative cursor-grab rounded-md text-pink-50  active:cursor-grabbing"
+        className="relative cursor-grab rounded-md active:cursor-grabbing"
         onMouseEnter={() => setHoveringOnHandle(true)}
         onMouseDown={() => setGrabbingHandle(true)}
         onMouseLeave={() => setHoveringOnHandle(false)}
@@ -423,16 +411,18 @@ function Section({
           onValueChange={(value) => handleSectionChange(value)}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select a section" />
+            <SelectValue placeholder="Select a section">
+              {title === "" ? "Select a section" : title}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Sections</SelectLabel>
 
-              {titles.map((title, index) => {
+              {sections.map((section, idx) => {
                 return (
-                  <SelectItem key={`${title}${index}`} value={title}>
-                    {title}
+                  <SelectItem key={`${section.id}`} value={`${idx}`}>
+                    {section.title}
                   </SelectItem>
                 );
               })}

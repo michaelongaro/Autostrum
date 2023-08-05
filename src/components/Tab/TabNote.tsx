@@ -226,12 +226,17 @@ function TabNote({
             newTabData[sectionIndex]!.data[subSectionIndex]!.data[
               columnIndex
             ]![7];
+          const id =
+            newTabData[sectionIndex]!.data[subSectionIndex].data[
+              columnIndex
+            ]![9];
 
           newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex] = [
             palmMuteNode ?? "",
             ...chordArray.reverse(),
             chordEffects ?? "",
             "note",
+            id,
           ];
 
           setTabData(newTabData);
@@ -263,6 +268,9 @@ function TabNote({
         const newTabData = [...tabData];
         const palmMuteNode =
           newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex]![0];
+        newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex]![0];
+        const id =
+          newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex]![9];
 
         newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex] = [
           palmMuteNode ?? "",
@@ -274,6 +282,7 @@ function TabNote({
           "|",
           "",
           "measureLine",
+          id,
         ];
 
         setTabData(newTabData);

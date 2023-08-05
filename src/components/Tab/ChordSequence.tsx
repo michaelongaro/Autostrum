@@ -24,6 +24,7 @@ import { Input } from "../ui/input";
 import MiscellaneousControls from "./MiscellaneousControls";
 
 export interface ChordSequence {
+  sectionId: string;
   sectionIndex: number;
   subSectionIndex: number;
   chordSequenceIndex: number;
@@ -31,6 +32,7 @@ export interface ChordSequence {
 }
 
 function ChordSequence({
+  sectionId,
   sectionIndex,
   subSectionIndex,
   chordSequenceIndex,
@@ -185,6 +187,7 @@ function ChordSequence({
             <div className="w-5/6"></div>
             <MiscellaneousControls
               type={"chordSequence"}
+              sectionId={sectionId}
               sectionIndex={sectionIndex}
               subSectionIndex={subSectionIndex}
               chordSequenceIndex={chordSequenceIndex}
@@ -267,6 +270,7 @@ function ChordSequence({
 
               <MiscellaneousControls
                 type={"chordSequence"}
+                sectionId={sectionId}
                 sectionIndex={sectionIndex}
                 subSectionIndex={subSectionIndex}
                 chordSequenceIndex={chordSequenceIndex}

@@ -30,6 +30,7 @@ import useSound from "~/hooks/useSound";
 interface MiscellaneousControls {
   type: "section" | "tab" | "chord" | "chordSequence";
   sectionIndex: number;
+  sectionId: string;
   subSectionIndex?: number;
   chordSequenceIndex?: number;
   hidePlayPauseButton?: boolean;
@@ -38,6 +39,7 @@ interface MiscellaneousControls {
 function MiscellaneousControls({
   type,
   sectionIndex,
+  sectionId,
   subSectionIndex,
   chordSequenceIndex,
   hidePlayPauseButton,
@@ -47,6 +49,7 @@ function MiscellaneousControls({
   const {
     chords,
     sectionProgression,
+    setSectionProgression,
     tuning,
     bpm,
     capo,
@@ -63,6 +66,7 @@ function MiscellaneousControls({
     (state) => ({
       chords: state.chords,
       sectionProgression: state.sectionProgression,
+      setSectionProgression: state.setSectionProgression,
       tuning: state.tuning,
       bpm: state.bpm,
       capo: state.capo,
@@ -226,7 +230,18 @@ function MiscellaneousControls({
 
       newTabData[sectionIndex]!.data = newSubSection;
     } else if (sectionIndex !== undefined) {
+      const newSectionProgression = [...sectionProgression];
+
+      for (let i = newSectionProgression.length - 1; i >= 0; i--) {
+        if (
+          newSectionProgression[i]?.sectionId === newTabData[sectionIndex]?.id
+        ) {
+          newSectionProgression.splice(i, 1);
+        }
+      }
+
       newTabData.splice(sectionIndex, 1);
+      setSectionProgression(newSectionProgression);
     }
 
     setTabData(newTabData);
@@ -339,6 +354,7 @@ function MiscellaneousControls({
       }`;
 
       newTabData[sectionIndex] = {
+        id: sectionId,
         title: uniqueTitle,
         data: cloneDeep(currentlyCopiedData.data.data),
       } as Section;

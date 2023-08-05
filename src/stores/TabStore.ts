@@ -1,10 +1,12 @@
 import type Soundfont from "soundfont-player";
+import { v4 as uuid } from "uuid";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import type { Tab } from "@prisma/client";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
+  sectionId: string;
   title: string;
   repetitions: number;
 }
@@ -51,6 +53,7 @@ export interface TabSection {
 }
 
 export interface Section {
+  id: string; // used to identify the section incase there are multiple sections with the same title
   title: string;
   data: (TabSection | ChordSection)[];
 }
@@ -280,7 +283,8 @@ export const useTabStore = create<TabState>()(
     setStrummingPatterns: (strummingPatterns) => set({ strummingPatterns }),
     tabData: [
       {
-        title: "",
+        id: uuid(),
+        title: "Section 1",
         data: [],
       },
     ], // temporary, should just be an empty array

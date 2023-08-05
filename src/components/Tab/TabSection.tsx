@@ -34,6 +34,7 @@ import {
 } from "@dnd-kit/sortable";
 import { restrictToParentElement } from "@dnd-kit/modifiers";
 import { parse, toString } from "~/utils/tunings";
+import { v4 as uuid } from "uuid";
 import { Separator } from "~/components/ui/separator";
 import { Label } from "~/components/ui/label";
 
@@ -58,12 +59,14 @@ export interface LastModifiedPalmMuteNodeLocation {
 }
 
 interface TabSection {
+  sectionId: string;
   sectionIndex: number;
   subSectionIndex: number;
   subSectionData: TabSectionType;
 }
 
 function TabSection({
+  sectionId,
   sectionIndex,
   subSectionIndex,
   subSectionData,
@@ -84,13 +87,11 @@ function TabSection({
     })
   );
 
-  const ids = useMemo(() => {
+  const columnIds = useMemo(() => {
     const newIds = [];
 
-    // this was originally formatted to handle note + effect cols, can prob
-    // be simplified now
-    for (const [index, columnData] of subSectionData.data.entries()) {
-      newIds.push(`${index}`);
+    for (const columnData of subSectionData.data) {
+      newIds.push(columnData[9]!);
     }
 
     return newIds;
@@ -116,9 +117,11 @@ function TabSection({
 
     for (let i = 0; i < 8; i++) {
       newTabData[sectionIndex]!.data[subSectionIndex]?.data.push(
-        Array.from({ length: 9 }, (_, index) => {
+        Array.from({ length: 10 }, (_, index) => {
           if (index === 8) {
             return "note";
+          } else if (index === 9) {
+            return uuid();
           } else {
             return "";
           }
@@ -420,8 +423,16 @@ function TabSection({
     )
       return;
 
-    const startIndex = parseInt(active.id);
-    const endIndex = parseInt(over.id);
+    let startIndex = 0;
+    let endIndex = 0;
+
+    for (let i = 0; i < prevSectionData.data.length; i++) {
+      if (prevSectionData.data[i]?.[9] === active.id) {
+        startIndex = i;
+      } else if (prevSectionData.data[i]?.[9] === over?.id) {
+        endIndex = i;
+      }
+    }
 
     const startPalmMuteValue = prevSectionData?.data[startIndex]?.[0];
 
@@ -433,8 +444,6 @@ function TabSection({
       });
 
     prevSectionData = newSectionData;
-
-    const endPalmMuteValue = prevSectionData?.data[endIndex]?.[0];
 
     // making sure there are no occurances of two measure lines right next to each other,
     // or at the start or end of the section
@@ -516,7 +525,7 @@ function TabSection({
   return (
     <motion.div
       key={`tabSection${sectionIndex}`}
-      // layoutId={`tabSection${sectionIndex}`}
+      // layoutId={`${sectionId}`}
       layout
       variants={opacityAndScaleVariants}
       initial="closed"
@@ -666,6 +675,7 @@ function TabSection({
           </div>
           <MiscellaneousControls
             type={"tab"}
+            sectionId={sectionId}
             sectionIndex={sectionIndex}
             subSectionIndex={subSectionIndex}
           />
@@ -676,8 +686,12 @@ function TabSection({
         (this would mean both sections would need to slide for each click of "up"/"down" ) */}
 
       <div className="baseFlex relative w-full !justify-start">
+        {editingPalmMuteNodes && (
+          <p className="absolute left-[0.4rem] top-6 text-sm italic">PM</p>
+        )}
+
         {editing && (
-          <div className="absolute left-[0.4rem] top-7">
+          <div className="absolute bottom-3 left-[0.4rem]">
             <Popover>
               <PopoverTrigger>
                 <HiOutlineInformationCircle className="h-5 w-5" />
@@ -722,7 +736,7 @@ function TabSection({
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext items={ids} strategy={rectSortingStrategy}>
+          <SortableContext items={columnIds} strategy={rectSortingStrategy}>
             {subSectionData.data.map((column, index) => (
               <TabColumn
                 key={index}

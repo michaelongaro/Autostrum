@@ -10,20 +10,21 @@ import {
 import TabSection from "./TabSection";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
+import { v4 as uuid } from "uuid";
 import ChordSection from "./ChordSection";
 import { Separator } from "../ui/separator";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import MiscellaneousControls from "./MiscellaneousControls";
 import { Label } from "~/components/ui/label";
 import useSound from "~/hooks/useSound";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, LayoutGroup } from "framer-motion";
 
 interface SectionContainer {
   sectionIndex: number;
-  subSectionData: Section;
+  sectionData: Section;
 }
 
-function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
+function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
   const { playTab, pauseTab } = useSound();
 
   const {
@@ -34,6 +35,7 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
     editing,
     chords,
     sectionProgression,
+    setSectionProgression,
     tuning,
     capo,
     setChords,
@@ -52,6 +54,7 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
       editing: state.editing,
       chords: state.chords,
       sectionProgression: state.sectionProgression,
+      setSectionProgression: state.setSectionProgression,
       tuning: state.tuning,
       capo: state.capo,
       setChords: state.setChords,
@@ -65,28 +68,31 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
     shallow
   );
 
-  // pretty sure this isn't necessary
-  // useEffect(() => {
-  //   if (sectionTitle !== subSectionData.title) {
-  //     setSectionTitle(subSectionData.title);
-  //   }
-  // }, [subSectionData, sectionTitle]);
-
   function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
     const newTabData = [...tabData];
+    const newSectionProgression = [...sectionProgression];
 
     newTabData[sectionIndex]!.title = e.target.value;
 
+    for (const section of newSectionProgression) {
+      if (section.sectionId === newTabData[sectionIndex]!.id) {
+        section.title = e.target.value;
+      }
+    }
+
     setTabData(newTabData);
+    setSectionProgression(newSectionProgression);
   }
 
   function generateNewColumns(): TabSectionType {
     const baseArray = [];
     for (let i = 0; i < 8; i++) {
       baseArray.push(
-        Array.from({ length: 9 }, (_, index) => {
+        Array.from({ length: 10 }, (_, index) => {
           if (index === 8) {
             return "note";
+          } else if (index === 9) {
+            return uuid();
           } else {
             return "";
           }
@@ -171,7 +177,11 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
             </div>
           </div>
 
-          <MiscellaneousControls type={"section"} sectionIndex={sectionIndex} />
+          <MiscellaneousControls
+            type={"section"}
+            sectionIndex={sectionIndex}
+            sectionId={sectionData.id}
+          />
         </div>
       )}
 
@@ -229,7 +239,7 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
 
       {/* map over tab/chord subSections */}
       <div className="baseVertFlex w-full gap-4">
-        {subSectionData.data.map((subSection, index) => (
+        {sectionData.data.map((subSection, index) => (
           // TODO: this index is probably not the best since the array can be reordered/mutated,
           // also applies to further child components
           <div key={index} className="baseVertFlex w-full !items-start pb-2">
@@ -251,21 +261,25 @@ function SectionContainer({ subSectionData, sectionIndex }: SectionContainer) {
               </p>
             )}
             {/* TODO: Technically I think this should be higher up right below the map right? */}
+            {/* <LayoutGroup> */}
             <AnimatePresence mode="wait">
               {subSection.type === "chord" ? (
                 <ChordSection
+                  sectionId={sectionData.id}
                   sectionIndex={sectionIndex}
                   subSectionIndex={index}
                   subSectionData={subSection}
                 />
               ) : (
                 <TabSection
+                  sectionId={sectionData.id}
                   sectionIndex={sectionIndex}
                   subSectionIndex={index}
                   subSectionData={subSection}
                 />
               )}
             </AnimatePresence>
+            {/* </LayoutGroup> */}
           </div>
         ))}
       </div>
