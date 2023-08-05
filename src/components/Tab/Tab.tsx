@@ -211,7 +211,7 @@ function Tab({ tab, refetchTab }: ITab) {
       <AnimatePresence mode="wait">
         {strummingPatternBeingEdited && (
           <StrummingPatternModal
-            strummingPatternBeingEdited={strummingPatternBeingEdited}
+            strummingPatternBeingEdited={cloneDeep(strummingPatternBeingEdited)}
           />
         )}
       </AnimatePresence>
