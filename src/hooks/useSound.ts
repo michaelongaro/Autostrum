@@ -772,6 +772,20 @@ export default function useSound() {
     return 0.01 + scaleFactor * (0.05 - 0.01);
   }
 
+  function getIndexOfFirstNonEmptyString(
+    column: string[],
+    isAnUpstrum: boolean
+  ) {
+    for (let index = 1; index < 7; index++) {
+      const i = isAnUpstrum ? index : 7 - index;
+      if (column[i] !== "") {
+        return i;
+      }
+    }
+
+    return 1;
+  }
+
   function playNoteColumn(
     currColumn: string[],
     tuning: number[],
@@ -805,6 +819,11 @@ export default function useSound() {
       if (currColumn[7] === "v" || currColumn[7] === "^") {
         chordDelayMultiplier = calculateRelativeChordDelayMultiplier(bpm);
       }
+
+      const indexOfFirstNonEmptyString = getIndexOfFirstNonEmptyString(
+        currColumn,
+        currColumn[7] === "^"
+      );
 
       const allInlineEffects = /^[hp\/\\\\~>.bx]$/;
       const tetherEffects = /^[hp\/\\\\]$/;
@@ -850,8 +869,12 @@ export default function useSound() {
           fret,
           bpm,
           // want raw index instead of adjusted index since we only care about
-          // how "far" into the chord the note is
-          when: chordDelayMultiplier * (index - 1),
+          // how "far" into the chord the note is, also want to start multiplier
+          // based on first non-empty string to be as accurate as possible to how
+          // it would sound if it was played on a real guitar.
+          when:
+            chordDelayMultiplier *
+            Math.abs(indexOfFirstNonEmptyString - stringIdx),
           effects: [
             ...(currColumn[0] !== "" ? ["PM"] : []),
             ...(currNoteEffect && !currNoteHasTetherEffect
