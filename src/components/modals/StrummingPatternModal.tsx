@@ -10,6 +10,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import { Label } from "~/components/ui/label";
+import { cloneDeep } from "lodash";
 import {
   Select,
   SelectContent,
@@ -53,13 +54,6 @@ function StrummingPatternModal({
   const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
   const [showingDeleteStrumsButtons, setShowingDeleteStrumsButtons] =
     useState(false);
-
-  const [isFocused, setIsFocused] = useState<boolean[]>(
-    strummingPatternBeingEdited.value.strums.map(() => false)
-  );
-
-  // whenever adding more strums or deleting strums, immediately edit the isFocused array
-  // to either add new false values or delete the strum that was deleted!
 
   const {
     tuning,
@@ -131,16 +125,14 @@ function StrummingPatternModal({
   }
 
   function handleSaveStrummingPattern() {
-    // if strumming pattern length has changed, then need to update the children
-    // chord sequences in tabData (that use this pattern) to match the new length.
+    // updating chord sequences that use this strumming pattern
 
     const newLength = strummingPatternBeingEdited.value.strums.length;
     const oldLength =
       strummingPatterns[strummingPatternBeingEdited.index]?.strums?.length;
 
-    if (oldLength !== undefined && newLength !== oldLength) {
+    if (oldLength !== undefined) {
       const newTabData = [...tabData];
-
       for (
         let sectionIndex = 0;
         sectionIndex < newTabData.length;
@@ -165,10 +157,13 @@ function StrummingPatternModal({
             ) {
               const chordProgression =
                 subSection.data[chordSequenceIndex]?.data;
+              const strummingPattern =
+                subSection.data[chordSequenceIndex]?.strummingPattern;
               if (
                 !chordProgression ||
+                !strummingPattern ||
                 !isEqual(
-                  subSection.data[chordSequenceIndex]?.strummingPattern,
+                  strummingPattern,
                   strummingPatterns[strummingPatternBeingEdited.index]
                 )
               )
@@ -198,6 +193,14 @@ function StrummingPatternModal({
                   // @ts-expect-error undefined checks are done above
                 ]!.data = newChordProgression;
               }
+
+              // updating to new strumming pattern
+
+              // @ts-expect-error undefined checks are done above
+              newTabData[sectionIndex]?.data[subSectionIndex].data[
+                chordSequenceIndex
+                // @ts-expect-error undefined checks are done above
+              ]!.strummingPattern = strummingPatternBeingEdited.value;
             }
           }
         }
@@ -208,9 +211,9 @@ function StrummingPatternModal({
 
     const newStrummingPatterns = [...strummingPatterns];
 
-    newStrummingPatterns[strummingPatternBeingEdited.index] = {
+    newStrummingPatterns[strummingPatternBeingEdited.index] = cloneDeep({
       ...strummingPatternBeingEdited.value,
-    };
+    });
 
     setStrummingPatterns(newStrummingPatterns);
     setStrummingPatternBeingEdited(null);
