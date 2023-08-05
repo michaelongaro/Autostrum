@@ -1,5 +1,6 @@
 import {
   useState,
+  useEffect,
   Fragment,
   useMemo,
   type Dispatch,
@@ -71,6 +72,7 @@ function TabNotesColumn({
 }: TabNotesColumn) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
+  const [highlightChord, setHighlightChord] = useState(false);
 
   const {
     attributes,
@@ -182,7 +184,10 @@ function TabNotesColumn({
         subSectionIndex ||
       // TODO: wait shouldn't below only substitute for -1 if the val is undefined? because this will
       // trigger if it is 0 btw
-      (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ?? -1) <
+      (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ===
+      undefined
+        ? -1
+        : currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex!) <=
         columnIndex
     ) {
       return false;
@@ -195,6 +200,39 @@ function TabNotesColumn({
     sectionIndex,
     subSectionIndex,
     columnIndex,
+  ]);
+
+  useEffect(() => {
+    if (
+      !columnIsBeingPlayed ||
+      !audioMetadata.playing ||
+      audioMetadata.type !== "Generated"
+    ) {
+      setHighlightChord(false);
+    } else if (
+      columnIndex === 0 &&
+      columnIsBeingPlayed &&
+      audioMetadata.playing &&
+      audioMetadata.type === "Generated"
+    ) {
+      setHighlightChord(false);
+
+      setTimeout(() => {
+        setHighlightChord(true);
+      }, 0);
+    } else if (
+      columnIndex !== 0 &&
+      columnIsBeingPlayed &&
+      audioMetadata.playing &&
+      audioMetadata.type === "Generated"
+    ) {
+      setHighlightChord(true);
+    }
+  }, [
+    columnIsBeingPlayed,
+    columnIndex,
+    audioMetadata.type,
+    audioMetadata.playing,
   ]);
 
   const durationOfCurrentChord = useMemo(() => {
@@ -309,16 +347,8 @@ function TabNotesColumn({
         <div
           style={{
             height: editing ? "280px" : "164px",
-            width:
-              audioMetadata.type === "Generated" &&
-              audioMetadata.playing &&
-              (columnIsBeingPlayed || columnHasBeenPlayed)
-                ? "100%"
-                : "0%",
-            transitionDuration:
-              audioMetadata.type === "Generated" &&
-              audioMetadata.playing &&
-              columnIsBeingPlayed
+            width: highlightChord || columnHasBeenPlayed ? "100%" : "0%",
+            transitionDuration: highlightChord
                 ? `${durationOfCurrentChord}s`
                 : "0s",
             msTransitionProperty: "width",
