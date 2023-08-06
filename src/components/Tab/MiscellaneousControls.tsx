@@ -24,7 +24,7 @@ import { FaTrashAlt } from "react-icons/fa";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import { HiOutlineClipboardCopy } from "react-icons/hi";
 import { LuClipboardPaste } from "react-icons/lu";
-import { cloneDeep } from "lodash";
+
 import useSound from "~/hooks/useSound";
 
 interface MiscellaneousControls {
@@ -255,7 +255,7 @@ function MiscellaneousControls({
       subSectionIndex !== undefined &&
       sectionIndex !== undefined
     ) {
-      const newChordSequence = cloneDeep(
+      const newChordSequence = structuredClone(
         tabData[sectionIndex]?.data[subSectionIndex]?.data[
           chordSequenceIndex
         ] as ChordSequence
@@ -267,7 +267,7 @@ function MiscellaneousControls({
       });
     } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
       if (type === "chord") {
-        const newSubSection = cloneDeep(
+        const newSubSection = structuredClone(
           tabData[sectionIndex]?.data[subSectionIndex] as ChordSection
         );
 
@@ -276,7 +276,7 @@ function MiscellaneousControls({
           data: newSubSection,
         });
       } else if (type === "tab") {
-        const newSubSection = cloneDeep(
+        const newSubSection = structuredClone(
           tabData[sectionIndex]?.data[subSectionIndex] as TabSection
         );
 
@@ -297,7 +297,7 @@ function MiscellaneousControls({
 
       setCurrentlyCopiedData({
         type: "section",
-        data: cloneDeep(tabData[sectionIndex]!),
+        data: structuredClone(tabData[sectionIndex]!),
       });
     }
   }
@@ -356,7 +356,7 @@ function MiscellaneousControls({
       newTabData[sectionIndex] = {
         id: sectionId,
         title: uniqueTitle,
-        data: cloneDeep(currentlyCopiedData.data.data),
+        data: structuredClone(currentlyCopiedData.data.data),
       } as Section;
     }
 

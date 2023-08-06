@@ -10,7 +10,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import { Label } from "~/components/ui/label";
-import { cloneDeep } from "lodash";
+
 import {
   Select,
   SelectContent,
@@ -211,7 +211,7 @@ function StrummingPatternModal({
 
     const newStrummingPatterns = [...strummingPatterns];
 
-    newStrummingPatterns[strummingPatternBeingEdited.index] = cloneDeep({
+    newStrummingPatterns[strummingPatternBeingEdited.index] = structuredClone({
       ...strummingPatternBeingEdited.value,
     });
 

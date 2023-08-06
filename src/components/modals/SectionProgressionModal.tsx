@@ -18,7 +18,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { AnimatePresence, motion } from "framer-motion";
-import { cloneDeep } from "lodash";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 import { BsPlus } from "react-icons/bs";
@@ -86,7 +86,7 @@ function SectionProgressionModal() {
   );
 
   useEffect(() => {
-    setLocalSectionProgression(cloneDeep(sectionProgression));
+    setLocalSectionProgression(structuredClone(sectionProgression));
   }, [sectionProgression]);
 
   const sensors = useSensors(

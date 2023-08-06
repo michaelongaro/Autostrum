@@ -19,7 +19,7 @@ import type {
   RefetchOptions,
   RefetchQueryFilters,
 } from "@tanstack/react-query";
-import { cloneDeep } from "lodash";
+
 import Chords from "./Chords";
 import StrummingPatterns from "./StrummingPatterns";
 import ChordModal from "../modals/ChordModal";
@@ -102,7 +102,7 @@ function Tab({ tab, refetchTab }: ITab) {
   useEffect(() => {
     if (!tab) return;
 
-    setOriginalTabData(cloneDeep(tab));
+    setOriginalTabData(structuredClone(tab));
 
     setId(tab.id);
     setCreatedById(tab.createdById);
@@ -211,7 +211,9 @@ function Tab({ tab, refetchTab }: ITab) {
       <AnimatePresence mode="wait">
         {strummingPatternBeingEdited && (
           <StrummingPatternModal
-            strummingPatternBeingEdited={cloneDeep(strummingPatternBeingEdited)}
+            strummingPatternBeingEdited={structuredClone(
+              strummingPatternBeingEdited
+            )}
           />
         )}
       </AnimatePresence>
