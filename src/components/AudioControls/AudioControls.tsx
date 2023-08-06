@@ -17,6 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import { GoChevronUp, GoChevronDown } from "react-icons/go";
 import { Slider } from "~/components/ui/slider";
 import { VerticalSlider } from "~/components/ui/verticalSlider";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
@@ -31,11 +32,9 @@ import { RiArrowGoBackFill } from "react-icons/ri";
 const positionVariants = {
   expanded: {
     opacity: 1,
-    bottom: "1rem",
   },
   closed: {
     opacity: 0,
-    bottom: "-5rem",
   },
 };
 
@@ -50,6 +49,19 @@ const opacityAndScaleVariants = {
   },
 };
 
+const widthAndHeightVariants = {
+  expanded: {
+    width: "100%",
+    height: "100%",
+    opacity: 1,
+  },
+  closed: {
+    width: "0",
+    height: "0",
+    opacity: 0,
+  },
+};
+
 function AudioControls() {
   // prob create hook + place it here for useAutoscroll(),
   // it will look at the current locaiton based on metadata[currentChordIndex].location to get the
@@ -57,6 +69,10 @@ function AudioControls() {
   // id.
 
   const [volume, setVolume] = useState(1);
+
+  // probably going to need to put this into tabStore so that other components can access it
+  // and modify it
+  const [hidingAudioControls, setHidingAudioControls] = useState(false);
 
   const {
     recordedAudioUrl,
@@ -106,20 +122,6 @@ function AudioControls() {
   const { playTab, pauseTab, playRecordedAudio, pauseRecordedAudio } =
     useSound();
 
-  // new much simpler version:
-  // we are only dealing with the resolution of the slider which is whole seconds (1, 2, 3, etc)
-  // so in both scenarios (audio just progressing normally / scrubbing back and forth):
-  //    whatever second we are on/move to, we just need to findIndex within the metadata array
-  //    that has a secondsElapsed value equal to the current second we are on/move to!
-  //    (fyi findIndex finds the first index that matches the condition, which is *exactly* what we want!)
-  // ^^^ just as a reminder, if you were to scrub to 34 seconds, you would do findIndex process above,
-  //      and when you found the index, you would just set the currentChordIndex to that index. and theoretically
-  //      if you wire everything up properly, everything should work itself out.
-
-  // maybe dumb question, do we need a state for seconds elapsed? or try to work through metadata array + indicies?
-  // ^^ I think you only need that state for the recorded audio, otherwise should be able to just do the
-  //    findIndex process above based on currentChordIndex to get the secondsElapsed value!
-
   useEffect(() => {
     if (!masterVolumeGainNode) return;
 
@@ -129,20 +131,47 @@ function AudioControls() {
   return (
     <motion.div
       key={"audioControls"}
-      className="baseFlex fixed z-40 w-[100vw]"
+      // can't set inline styles for bottom value inside of framer-motion controlled
+      // element (at least one that is wrapped in AnimatePresence)
+      style={{
+        bottom: hidingAudioControls ? "-6.5rem" : "1rem",
+      }}
+      className="baseFlex fixed z-40 w-[100vw] transition-all !ease-linear"
       variants={positionVariants}
       initial="closed"
       animate="expanded"
       exit="closed"
       transition={{
-        type: "spring",
-        bounce: 0.2,
-        duration: 0.6,
+        duration: 0.15,
       }}
     >
       {/* start off with always two rows, and see how hard it would be to combine into
           one at larger widths later on */}
       <div className="baseVertFlex h-full w-11/12 gap-2 rounded-md bg-pink-600 p-0 shadow-lg md:w-9/12 md:rounded-full md:px-8 md:py-2 xl:w-1/2">
+        <AnimatePresence mode="wait">
+          {hidingAudioControls && (
+            <motion.div
+              key={"audioControlsTopLayer"}
+              className="baseFlex"
+              variants={widthAndHeightVariants}
+              initial="closed"
+              animate="expanded"
+              exit="closed"
+              transition={{
+                duration: 0.15,
+              }}
+            >
+              <Button
+                variant="ghost"
+                className="h-5 w-8 px-2 py-1"
+                onClick={() => setHidingAudioControls(false)}
+              >
+                <GoChevronUp className="h-5 w-5" />
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* top layer: audio source, instrument, speed  + volume slider */}
         <div className="baseFlex w-full !justify-between">
           {/* audio source, instrument, speed selects*/}
@@ -429,6 +458,14 @@ function AudioControls() {
           >
             <TiArrowLoop className="h-6 w-6" />
           </Toggle>
+
+          <Button
+            variant={"ghost"}
+            className="h-8 w-8 p-2"
+            onClick={() => setHidingAudioControls(true)}
+          >
+            <GoChevronDown className="h-5 w-5" />
+          </Button>
         </div>
       </div>
     </motion.div>
