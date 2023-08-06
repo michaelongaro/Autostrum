@@ -28,17 +28,14 @@ const sectionVariants = {
     scale: 1,
   },
   closed: {
-    opacity: 0,
-    scale: 0,
+    opacity: 1,
+    scale: 1,
   },
 };
 
 const initialStyles = {
   x: 0,
   y: 0,
-  scale: 1,
-  opacity: 1,
-  filter: "drop-shadow(0px 5px 5px transparent)",
 };
 
 interface TabNotesColumn {
@@ -310,18 +307,13 @@ function TabNotesColumn({
           ? {
               x: transform.x,
               y: transform.y,
-              opacity: 1,
-              scale: isDragging ? 1.05 : 1,
               zIndex: isDragging ? 1 : 0,
-              filter: isDragging
-                ? "drop-shadow(0px 5px 5px rgba(0, 0, 0, 0.25)"
-                : "drop-shadow(0px 5px 5px transparent)", // maybe try "none" if it allows for better performance
             }
           : initialStyles
       }
       exit="closed"
       transition={{
-        duration: !isDragging ? 0.25 : 0,
+        duration: !isDragging ? 0.15 : 0,
         easings: {
           type: "spring",
         },
@@ -330,9 +322,6 @@ function TabNotesColumn({
         },
         y: {
           duration: !isDragging ? 0.3 : 0,
-        },
-        scale: {
-          duration: 0.25,
         },
         zIndex: {
           delay: isDragging ? 0 : 0.25,
