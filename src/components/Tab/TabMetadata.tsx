@@ -432,6 +432,16 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                     Delete
                   </Button>
                 )}
+
+                <Button
+                  variant={"recording"}
+                  onClick={() => {
+                    // bring up modal to record/edit/delete tab recording
+                  }}
+                >
+                  {recordedAudioUrl ? "Edit recording" : "Record tab"}
+                </Button>
+
                 <Button
                   variant={"secondary"}
                   disabled={showPulsingError}
