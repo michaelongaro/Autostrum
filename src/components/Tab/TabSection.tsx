@@ -524,7 +524,7 @@ function TabSection({
 
   return (
     <motion.div
-      key={`tabSection${sectionIndex}`}
+      key={sectionId}
       // layoutId={`${sectionId}`}
       layout
       variants={opacityAndScaleVariants}
