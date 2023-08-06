@@ -8,6 +8,7 @@ import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { BsArrowUpShort } from "react-icons/bs";
 import { Button } from "../ui/button";
+import Footer from "../Footer/Footer";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -56,7 +57,7 @@ function GeneralLayout({ children }: GeneralLayout) {
         background:
           "linear-gradient(315deg, #ff3721, #ff6196, #fba6ff) fixed center / cover",
       }}
-      className="baseVertFlex relative min-h-[100dvh]"
+      className="baseVertFlex relative min-h-[100dvh] !justify-between"
     >
       {/* not sure why setting z-index 0 on Bubbles doesn't make everything else automatically
           interactable */}
@@ -91,6 +92,8 @@ function GeneralLayout({ children }: GeneralLayout) {
       </AnimatePresence>
 
       <AnimatePresence mode="wait">{children}</AnimatePresence>
+
+      <Footer />
     </div>
   );
 }
