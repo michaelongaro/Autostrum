@@ -169,27 +169,32 @@ function TabNotesColumn({
   const columnHasBeenPlayed = useMemo(() => {
     if (currentlyPlayingMetadata === null) return false;
 
-    // TOOD: alright this was copilot generated, actually walk through what really needs to be
-    // happening here, still think it's worthwhile to split up into above and this function.
-
     if (
-      currentlyPlayingMetadata[currentChordIndex]?.location.sectionIndex !==
-        sectionIndex ||
-      currentlyPlayingMetadata[currentChordIndex]?.location.subSectionIndex !==
-        subSectionIndex ||
-      // TODO: wait shouldn't below only substitute for -1 if the val is undefined? because this will
-      // trigger if it is 0 btw
-      (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ===
-      undefined
-        ? -1
-        : currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex!) <=
-        columnIndex
+      currentlyPlayingMetadata[currentChordIndex]?.location.sectionIndex ===
+        sectionIndex &&
+      currentlyPlayingMetadata[currentChordIndex]?.location.subSectionIndex ===
+        subSectionIndex
     ) {
-      return false;
+      if (
+        // edge case to show the last chord as played when the song is paused and
+        // the audio controls progress bar is all the way completed. Won't work normally
+        // since the columnIndex has to be greater than the last chord index
+        !audioMetadata.playing &&
+        (currentChordIndex === currentlyPlayingMetadata.length - 2 ||
+          currentChordIndex === currentlyPlayingMetadata.length - 1)
+      ) {
+        return true;
+      } else if (
+        currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex! >
+        columnIndex
+      ) {
+        return true;
+      }
     }
 
-    return true;
+    return false;
   }, [
+    audioMetadata,
     currentlyPlayingMetadata,
     currentChordIndex,
     sectionIndex,
