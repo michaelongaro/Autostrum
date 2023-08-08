@@ -947,6 +947,21 @@ export default function useSound() {
       }
     }
 
+    const lastActualChord = metadata.at(-1)!;
+
+    // adding fake chord + metadata to align the audio controls slider with the visual progress indicator
+    metadata.push({
+      location: {
+        ...lastActualChord.location,
+        chordIndex: lastActualChord.location.chordIndex + 1,
+      },
+      bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
+      noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
+      elapsedSeconds: Math.floor(elapsedSeconds.value),
+    });
+
+    compiledChords.push([]);
+
     setCurrentlyPlayingMetadata(metadata);
 
     return compiledChords;
@@ -1052,6 +1067,21 @@ export default function useSound() {
         elapsedSeconds,
       });
     }
+
+    const lastActualChord = metadata.at(-1)!;
+
+    // adding fake chord + metadata to align the audio controls slider with the visual progress indicator
+    metadata.push({
+      location: {
+        ...lastActualChord.location,
+        chordIndex: lastActualChord.location.chordIndex + 1,
+      },
+      bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
+      noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
+      elapsedSeconds: Math.floor(elapsedSeconds.value),
+    });
+
+    compiledChords.push([]);
 
     setCurrentlyPlayingMetadata(metadata);
 
@@ -1428,6 +1458,19 @@ export default function useSound() {
         return;
       }
 
+      if (chordIndex === compiledChords.length - 1) {
+        // let the last note play out a bit
+        setTimeout(() => {
+          setAudioMetadata({
+            ...audioMetadataRef.current,
+            playing: false,
+          });
+          setCurrentChordIndex(0);
+          currentInstrument?.stop();
+        }, 1000);
+        return;
+      }
+
       const prevColumn = compiledChords[chordIndex - 1];
       const column = compiledChords[chordIndex];
 
@@ -1439,20 +1482,16 @@ export default function useSound() {
 
       await playNoteColumn(column, tuning, capo ?? 0, alteredBpm, prevColumn);
 
-      setCurrentChordIndex(chordIndex + 1);
+      // TODO: I don't think this logic is 100% sound
+      // if pausing while chord is being played, we need to prevent chordIndex from
+      // being incremented, since we are manually controlling it in <AudioControls />
+      if (!breakOnNextNoteRef.current) setCurrentChordIndex(chordIndex + 1);
     }
-
-    setTimeout(() => {
-      setAudioMetadata({
-        ...audioMetadataRef.current,
-        playing: false,
-      });
-      currentInstrument?.stop();
-      setCurrentChordIndex(0);
-    }, 1500);
   }
 
   async function pauseTab(resetToStart = false) {
+    setBreakOnNextNote(true);
+
     setAudioMetadata({
       ...audioMetadataRef.current,
       playing: false,
@@ -1460,8 +1499,6 @@ export default function useSound() {
     currentInstrument?.stop();
 
     // should you be clearing out currentNoteArrayRef?
-
-    setBreakOnNextNote(true);
 
     if (resetToStart) {
       setCurrentChordIndex(0);
