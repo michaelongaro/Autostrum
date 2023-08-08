@@ -23,6 +23,7 @@ import isEqual from "lodash.isequal";
 import { type Genre } from "@prisma/client";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { BsArrowRightShort } from "react-icons/bs";
+import { FaMicrophoneAlt } from "react-icons/fa";
 import { parse, toString } from "~/utils/tunings";
 import formatDate from "~/utils/formatDate";
 import Image from "next/image";
@@ -439,7 +440,14 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                     // bring up modal to record/edit/delete tab recording
                   }}
                 >
-                  {recordedAudioUrl ? "Edit recording" : "Record tab"}
+                  {recordedAudioUrl ? (
+                    "Edit recording"
+                  ) : (
+                    <div className="baseFlex gap-2">
+                      <FaMicrophoneAlt className="h-5 w-5" />
+                      <p>Record tab</p>
+                    </div>
+                  )}
                 </Button>
 
                 <Button
