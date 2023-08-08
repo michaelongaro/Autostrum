@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
@@ -22,6 +22,7 @@ import { Slider } from "~/components/ui/slider";
 import { VerticalSlider } from "~/components/ui/verticalSlider";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import useSound from "~/hooks/useSound";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { TiArrowLoop } from "react-icons/ti";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import { Button } from "~/components/ui/button";
@@ -69,10 +70,22 @@ function AudioControls() {
   // id.
 
   const [volume, setVolume] = useState(1);
+  const [tabProgressValue, setTabProgressValue] = useState(0);
+  const [wasPlayingBeforeScrubbing, setWasPlayingBeforeScrubbing] =
+    useState(false);
+  const [
+    waitForCurrentChordIndexToUpdate,
+    setWaitForCurrentChordIndexToUpdate,
+  ] = useState(false);
+  const [updatedCurrentChordIndex, setUpdatedCurrentChordIndex] = useState(0);
+
+  const oneSecondIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // probably going to need to put this into tabStore so that other components can access it
   // and modify it
   const [hidingAudioControls, setHidingAudioControls] = useState(false);
+
+  const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const {
     recordedAudioUrl,
@@ -128,6 +141,72 @@ function AudioControls() {
     masterVolumeGainNode.gain.value = volume;
   }, [volume, masterVolumeGainNode]);
 
+  useEffect(() => {
+    if (audioMetadata.playing && !oneSecondIntervalRef.current) {
+      // kind of a hack, but need to have it inching towards one *as soon*
+      // as the play button is pressed, otherwise it will wait a full second
+      // before starting to increment. hopefully doesn't make the state
+      // stale in interval below..
+      if (tabProgressValue === 0) setTabProgressValue(1);
+
+      oneSecondIntervalRef.current = setInterval(() => {
+        setTabProgressValue((prev) => prev + 1);
+      }, 1000);
+    } else if (!audioMetadata.playing && oneSecondIntervalRef.current) {
+      clearInterval(oneSecondIntervalRef.current);
+      oneSecondIntervalRef.current = null;
+      if (currentChordIndex === 0) {
+        setTabProgressValue(0);
+      }
+    }
+  }, [audioMetadata.playing, currentChordIndex, tabProgressValue]);
+
+  // yeah so prob effect where it sets the currentVal to 0 if it is every larger than total # of seconds
+  // in section: currentVal > currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
+
+  // okay so going to try and get audio controls to as close to 100% as possible before moving forward
+  // mobile will follow whiteboard diagram, and settings popover will look like this
+
+  // Source (recorded audio, tab audio) ---- as radio buttons side by side
+  // Instrument (nylon, steel, etc) ---- as dropdown
+  // Playback speed (0.5x, 1x, 1.5x, 2x) ---- ideally as radio buttons side by side
+  // autoscroll (on/off) ---- as toggle switch
+  // loop (on/off) ---- as toggle switch
+
+  // REALLY hate having this here, but not sure how else to guarentee that the correct
+  // currentChordIndex is used when playTab() is called...
+  useEffect(() => {
+    if (
+      !audioMetadata.playing &&
+      waitForCurrentChordIndexToUpdate &&
+      updatedCurrentChordIndex === currentChordIndex
+    ) {
+      void playTab({
+        tabData,
+        rawSectionProgression: sectionProgression,
+        tuningNotes: tuning,
+        baselineBpm: bpm,
+        chords,
+        capo,
+        location: audioMetadata.location ?? undefined,
+      });
+      setWaitForCurrentChordIndexToUpdate(false);
+    }
+  }, [
+    currentChordIndex,
+    waitForCurrentChordIndexToUpdate,
+    updatedCurrentChordIndex,
+    audioMetadata.playing,
+    audioMetadata.location,
+    bpm,
+    capo,
+    chords,
+    playTab,
+    sectionProgression,
+    tabData,
+    tuning,
+  ]);
+
   return (
     <motion.div
       key={"audioControls"}
@@ -135,8 +214,9 @@ function AudioControls() {
       // element (at least one that is wrapped in AnimatePresence)
       style={{
         bottom: hidingAudioControls ? "-6.5rem" : "1rem",
+        transition: "all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)",
       }}
-      className="baseFlex fixed z-40 w-[100vw] transition-all !ease-linear"
+      className="baseFlex fixed z-40 w-[100vw]"
       variants={positionVariants}
       initial="closed"
       animate="expanded"
@@ -149,7 +229,7 @@ function AudioControls() {
           one at larger widths later on */}
       <div className="baseVertFlex h-full w-11/12 gap-2 rounded-md bg-pink-600 p-0 shadow-lg md:w-9/12 md:rounded-full md:px-8 md:py-2 xl:w-1/2">
         <AnimatePresence mode="wait">
-          {hidingAudioControls && (
+          {aboveMediumViewportWidth && hidingAudioControls && (
             <motion.div
               key={"audioControlsTopLayer"}
               className="baseFlex"
@@ -172,202 +252,263 @@ function AudioControls() {
           )}
         </AnimatePresence>
 
-        {/* top layer: audio source, instrument, speed  + volume slider */}
-        <div className="baseFlex w-full !justify-between">
-          {/* audio source, instrument, speed selects*/}
-          <div className="baseFlex gap-2">
-            <div className="baseFlex !flex-nowrap gap-2">
-              <Label>Source</Label>
-              <Select
-                value={audioMetadata.type}
-                onValueChange={(value) =>
-                  setAudioMetadata({
-                    ...audioMetadata,
-                    type: value as "Generated" | "Artist recorded",
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Audio source</SelectLabel>
+        {/* mobile top layer: return to tab, v/^ chevron, audio slider */}
+        {!aboveMediumViewportWidth && (
+          <div className="baseFlex w-full !justify-between">
+            {/* return to tab, v/^ chevron */}
+            {/* conditional "move selected section back to entire tab" */}
+            <AnimatePresence mode="wait">
+              {audioMetadata.type === "Generated" &&
+                audioMetadata.location !== null &&
+                !hidingAudioControls && (
+                  <motion.div
+                    key={"returnToEntireTabButton"}
+                    variants={opacityAndScaleVariants}
+                    initial="closed"
+                    animate="expanded"
+                    exit="closed"
+                    transition={{ duration: 0.15 }}
+                  >
+                    <Button
+                      variant="ghost" // or secondary maybe
+                      onClick={() => {
+                        void pauseTab(true);
 
-                    <SelectItem value={"Generated"}>Generated</SelectItem>
-
-                    <SelectItem
-                      value={"User recorded"}
-                      disabled={recordedAudioUrl === null}
+                        setAudioMetadata({
+                          ...audioMetadata,
+                          location: null,
+                        });
+                      }}
+                      className="baseFlex gap-2"
                     >
-                      User recorded
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+                      <RiArrowGoBackFill className="h-4 w-4" />
+                      <p>Return to entire tab</p>
+                    </Button>
+                  </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* v/^ chevron */}
+
+            {/* audio slider */}
+            <div className="baseFlex gap-2">
+              {volume === 0 ? (
+                <FaVolumeMute className="h-5 w-5" />
+              ) : volume < 1 ? (
+                <FaVolumeDown className="h-5 w-5" />
+              ) : (
+                <FaVolumeUp className="h-5 w-5" />
+              )}
+              <Slider
+                value={[volume * 50]} // 100 felt too quite/narrow of a volume range
+                min={0}
+                max={100}
+                step={1}
+                onValueChange={(value) => setVolume(value[0]! / 50)} // 100 felt too quite/narrow of a volume range
+                // className=""
+              ></Slider>
+            </div>
+          </div>
+        )}
+
+        {/* desktop top layer: audio source, instrument, speed  + volume slider */}
+        {aboveMediumViewportWidth && (
+          <div className="baseFlex w-full !justify-between">
+            {/* audio source, instrument, speed selects*/}
+            <div className="baseFlex gap-2">
+              <div className="baseFlex !flex-nowrap gap-2">
+                <Label>Source</Label>
+                <Select
+                  value={audioMetadata.type}
+                  onValueChange={(value) =>
+                    setAudioMetadata({
+                      ...audioMetadata,
+                      type: value as "Generated" | "Artist recorded",
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Audio source</SelectLabel>
+
+                      <SelectItem value={"Generated"}>Generated</SelectItem>
+
+                      <SelectItem
+                        value={"User recorded"}
+                        disabled={recordedAudioUrl === null}
+                      >
+                        User recorded
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <AnimatePresence mode="wait">
+                {audioMetadata.type === "Generated" && (
+                  <motion.div
+                    key={"generatedSpecificAudioControls"}
+                    className="baseFlex gap-2"
+                    variants={positionVariants} // prob just do opacity + maybe scale up from 0.5 -> 1?
+                    initial="closed"
+                    animate="expanded"
+                    exit="closed"
+                    transition={{
+                      type: "spring",
+                      bounce: 0.2,
+                      duration: 0.6,
+                    }}
+                  >
+                    <div className="baseFlex !flex-nowrap gap-2">
+                      <Label>Instrument</Label>
+                      <Select
+                        value={currentInstrumentName}
+                        onValueChange={(value) =>
+                          setCurrentInstrumentName(
+                            value as
+                              | "acoustic_guitar_nylon"
+                              | "acoustic_guitar_steel"
+                              | "electric_guitar_clean"
+                              | "electric_guitar_jazz"
+                          )
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Sections</SelectLabel>
+
+                            <SelectItem value={"acoustic_guitar_nylon"}>
+                              Acoustic guitar - Nylon
+                            </SelectItem>
+
+                            <SelectItem value={"acoustic_guitar_steel"}>
+                              Acoustic guitar - Steel
+                            </SelectItem>
+
+                            <SelectItem value={"electric_guitar_clean"}>
+                              Electric guitar - Clean
+                            </SelectItem>
+
+                            <SelectItem value={"electric_guitar_jazz"}>
+                              Electric guitar - Jazz
+                            </SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="baseFlex !flex-nowrap gap-2">
+                      <Label>Speed</Label>
+                      <Select
+                        value={`${playbackSpeed}x`}
+                        onValueChange={(value) =>
+                          setPlaybackSpeed(
+                            Number(value.slice(0, value.length - 1)) as
+                              | 0.25
+                              | 0.5
+                              | 0.75
+                              | 1
+                              | 1.25
+                              | 1.5
+                          )
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Speed</SelectLabel>
+                            <SelectItem value={"0.25x"}>0.25x</SelectItem>
+                            <SelectItem value={"0.5x"}>0.5x</SelectItem>
+                            <SelectItem value={"0.75x"}>0.75x</SelectItem>
+                            <SelectItem value={"1x"}>1x</SelectItem>
+                            <SelectItem value={"1.25x"}>1.25x</SelectItem>
+                            <SelectItem value={"1.5x"}>1.5x</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            <AnimatePresence mode="wait">
-              {audioMetadata.type === "Generated" && (
-                <motion.div
-                  key={"generatedSpecificAudioControls"}
-                  className="baseFlex gap-2"
-                  variants={positionVariants} // prob just do opacity + maybe scale up from 0.5 -> 1?
-                  initial="closed"
-                  animate="expanded"
-                  exit="closed"
-                  transition={{
-                    type: "spring",
-                    bounce: 0.2,
-                    duration: 0.6,
-                  }}
-                >
-                  <div className="baseFlex !flex-nowrap gap-2">
-                    <Label>Instrument</Label>
-                    <Select
-                      value={currentInstrumentName}
-                      onValueChange={(value) =>
-                        setCurrentInstrumentName(
-                          value as
-                            | "acoustic_guitar_nylon"
-                            | "acoustic_guitar_steel"
-                            | "electric_guitar_clean"
-                            | "electric_guitar_jazz"
-                        )
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Sections</SelectLabel>
-
-                          <SelectItem value={"acoustic_guitar_nylon"}>
-                            Acoustic guitar - Nylon
-                          </SelectItem>
-
-                          <SelectItem value={"acoustic_guitar_steel"}>
-                            Acoustic guitar - Steel
-                          </SelectItem>
-
-                          <SelectItem value={"electric_guitar_clean"}>
-                            Electric guitar - Clean
-                          </SelectItem>
-
-                          <SelectItem value={"electric_guitar_jazz"}>
-                            Electric guitar - Jazz
-                          </SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="baseFlex !flex-nowrap gap-2">
-                    <Label>Speed</Label>
-                    <Select
-                      value={`${playbackSpeed}x`}
-                      onValueChange={(value) =>
-                        setPlaybackSpeed(
-                          Number(value.slice(0, value.length - 1)) as
-                            | 0.25
-                            | 0.5
-                            | 0.75
-                            | 1
-                            | 1.25
-                            | 1.5
-                        )
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Speed</SelectLabel>
-                          <SelectItem value={"0.25x"}>0.25x</SelectItem>
-                          <SelectItem value={"0.5x"}>0.5x</SelectItem>
-                          <SelectItem value={"0.75x"}>0.75x</SelectItem>
-                          <SelectItem value={"1x"}>1x</SelectItem>
-                          <SelectItem value={"1.25x"}>1.25x</SelectItem>
-                          <SelectItem value={"1.5x"}>1.5x</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* most likely need to keep the break statement in there, but also need to create
+            {/* most likely need to keep the break statement in there, but also need to create
           a separate function that will idk just don't want the currentChordIndex to keep incrementing
           while it waits for the break to be fired */}
 
-          {/* conditional "move selected section back to entire tab" */}
-          <AnimatePresence mode="wait">
-            {audioMetadata.type === "Generated" &&
-              audioMetadata.location !== null && (
-                <motion.div
-                  key={"returnToEntireTabButton"}
-                  variants={opacityAndScaleVariants}
-                  initial="closed"
-                  animate="expanded"
-                  exit="closed"
-                  transition={{ duration: 0.15 }}
-                >
-                  <Button
-                    variant="ghost" // or secondary maybe
-                    onClick={() => {
-                      void pauseTab(true);
-
-                      setAudioMetadata({
-                        ...audioMetadata,
-                        location: null,
-                      });
-                    }}
-                    className="baseFlex gap-2"
+            {/* conditional "move selected section back to entire tab" */}
+            <AnimatePresence mode="wait">
+              {audioMetadata.type === "Generated" &&
+                audioMetadata.location !== null && (
+                  <motion.div
+                    key={"returnToEntireTabButton"}
+                    variants={opacityAndScaleVariants}
+                    initial="closed"
+                    animate="expanded"
+                    exit="closed"
+                    transition={{ duration: 0.15 }}
                   >
-                    <RiArrowGoBackFill className="h-4 w-4" />
-                    <p>Return to entire tab</p>
+                    <Button
+                      variant="ghost" // or secondary maybe
+                      onClick={() => {
+                        void pauseTab(true);
+
+                        setAudioMetadata({
+                          ...audioMetadata,
+                          location: null,
+                        });
+                      }}
+                      className="baseFlex gap-2"
+                    >
+                      <RiArrowGoBackFill className="h-4 w-4" />
+                      <p>Return to entire tab</p>
+                    </Button>
+                  </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* autoscroll toggle + volume slider*/}
+            <div className="baseFlex gap-2">
+              {/* this should prob be either <Checkbox /> or <Toggle /> from shadcnui */}
+              <Toggle variant={"outline"}>Autoscroll</Toggle>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="p-2">
+                    {volume === 0 ? (
+                      <FaVolumeMute className="h-5 w-5" />
+                    ) : volume < 1 ? (
+                      <FaVolumeDown className="h-5 w-5" />
+                    ) : (
+                      <FaVolumeUp className="h-5 w-5" />
+                    )}
                   </Button>
-                </motion.div>
-              )}
-          </AnimatePresence>
-
-          {/* autoscroll toggle + volume slider*/}
-          <div className="baseFlex gap-2">
-            {/* this should prob be either <Checkbox /> or <Toggle /> from shadcnui */}
-            <Toggle variant={"outline"}>Autoscroll</Toggle>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="p-2">
-                  {volume === 0 ? (
-                    <FaVolumeMute className="h-5 w-5" />
-                  ) : volume < 1 ? (
-                    <FaVolumeDown className="h-5 w-5" />
-                  ) : (
-                    <FaVolumeUp className="h-5 w-5" />
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                className="baseVertFlex h-36 w-11 !flex-nowrap gap-2 p-2"
-                side="top"
-              >
-                <VerticalSlider
-                  value={[volume * 50]} // 100 felt too quite/narrow of a volume range
-                  min={0}
-                  max={100}
-                  step={1}
-                  onValueChange={(value) => setVolume(value[0]! / 50)} // 100 felt too quite/narrow of a volume range
-                ></VerticalSlider>
-                <p>{Math.floor(volume * 50)}%</p>
-              </PopoverContent>
-            </Popover>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="baseVertFlex h-36 w-11 !flex-nowrap gap-2 p-2"
+                  side="top"
+                >
+                  <VerticalSlider
+                    value={[volume * 50]} // 100 felt too quite/narrow of a volume range
+                    min={0}
+                    max={100}
+                    step={1}
+                    onValueChange={(value) => setVolume(value[0]! / 50)} // 100 felt too quite/narrow of a volume range
+                  ></VerticalSlider>
+                  <p>{Math.floor(volume * 50)}%</p>
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* bottom layer: play/pause, loop, slider*/}
         <div className="baseFlex w-full !flex-nowrap gap-4">
@@ -408,9 +549,13 @@ function AudioControls() {
           <div className="baseFlex w-9/12 !flex-nowrap gap-4">
             <div className="baseFlex !flex-nowrap gap-1">
               <p>
+                {/* this seems like a bit of a hack, maybe inside of effect immediately
+     clear the interval if the currentVal is equal to max seconds? */}
                 {formatSecondsToMinutes(
-                  currentlyPlayingMetadata?.[currentChordIndex]
-                    ?.elapsedSeconds ?? 0
+                  Math.min(
+                    tabProgressValue,
+                    currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
+                  )
                 )}
               </p>
               /
@@ -422,10 +567,7 @@ function AudioControls() {
             </div>
 
             <Slider
-              value={[
-                currentlyPlayingMetadata?.[currentChordIndex]?.elapsedSeconds ??
-                  0,
-              ]}
+              value={[tabProgressValue]}
               min={0}
               max={currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0}
               step={1}
@@ -435,19 +577,39 @@ function AudioControls() {
                 (currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0) === 0 ||
                 !currentInstrument
               }
-              onValueChange={(value) => {
-                if (currentlyPlayingMetadata) {
-                  // copilot code below, also prob for pointerDown pause audio, etc.
-
-                  const newCurrentChordIndex =
-                    currentlyPlayingMetadata.findIndex(
-                      (metadata) => metadata.elapsedSeconds === value[0]
-                    );
-
-                  setCurrentChordIndex(newCurrentChordIndex);
+              onPointerDown={() => {
+                setWasPlayingBeforeScrubbing(audioMetadata.playing);
+                if (audioMetadata.playing) void pauseTab();
+              }}
+              onPointerUp={() => {
+                if (wasPlayingBeforeScrubbing) {
+                  setWaitForCurrentChordIndexToUpdate(true);
                 }
               }}
-              // className=""
+              onValueChange={(value) => {
+                setTabProgressValue(value[0]!);
+
+                if (currentlyPlayingMetadata) {
+                  let newCurrentChordIndex = -1;
+
+                  for (let i = 0; i < currentlyPlayingMetadata.length; i++) {
+                    const metadata = currentlyPlayingMetadata[i]!;
+
+                    if (metadata.elapsedSeconds === value[0]) {
+                      newCurrentChordIndex = i;
+                      break;
+                    } else if (metadata.elapsedSeconds > value[0]! && i > 0) {
+                      newCurrentChordIndex = i - 1;
+                      break;
+                    }
+                  }
+
+                  if (newCurrentChordIndex !== -1) {
+                    setCurrentChordIndex(newCurrentChordIndex);
+                    setUpdatedCurrentChordIndex(newCurrentChordIndex);
+                  }
+                }
+              }}
             ></Slider>
           </div>
 
