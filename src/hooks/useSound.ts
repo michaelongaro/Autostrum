@@ -40,6 +40,7 @@ export default function useSound() {
     setInstruments,
     currentInstrument,
     setCurrentInstrument,
+    looping,
   } = useTabStore(
     (state) => ({
       audioContext: state.audioContext,
@@ -64,6 +65,7 @@ export default function useSound() {
       setInstruments: state.setInstruments,
       currentInstrument: state.currentInstrument,
       setCurrentInstrument: state.setCurrentInstrument,
+      looping: state.looping,
     }),
     shallow
   );
@@ -90,6 +92,7 @@ export default function useSound() {
   // get current values of these vars within the async for loop in playTab()
   const breakOnNextNoteRef = useRef(breakOnNextNote);
   const audioMetadataRef = useRef(audioMetadata);
+  const loopingRef = useRef(looping);
 
   useEffect(() => {
     breakOnNextNoteRef.current = breakOnNextNote;
@@ -98,6 +101,10 @@ export default function useSound() {
   useEffect(() => {
     audioMetadataRef.current = audioMetadata;
   }, [audioMetadata]);
+
+  useEffect(() => {
+    loopingRef.current = looping;
+  }, [looping]);
 
   const currentNoteArrayRef = useRef<
     (Soundfont.Player | AudioBufferSourceNode | undefined)[]
@@ -1459,16 +1466,23 @@ export default function useSound() {
       }
 
       if (chordIndex === compiledChords.length - 1) {
-        // let the last note play out a bit
-        setTimeout(() => {
-          setAudioMetadata({
-            ...audioMetadataRef.current,
-            playing: false,
-          });
+        // if looping, reset the chordIndex to -1 and continue
+        if (loopingRef.current) {
+          chordIndex = -1;
           setCurrentChordIndex(0);
-          currentInstrument?.stop();
-        }, 1000);
-        return;
+          continue;
+        } else {
+          // let the last note play out a bit
+          setTimeout(() => {
+            setAudioMetadata({
+              ...audioMetadataRef.current,
+              playing: false,
+            });
+            setCurrentChordIndex(0);
+            currentInstrument?.stop();
+          }, 1000);
+          return;
+        }
       }
 
       const prevColumn = compiledChords[chordIndex - 1];

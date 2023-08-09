@@ -239,6 +239,8 @@ interface TabState {
   }) => void;
   currentInstrument: Soundfont.Player | null;
   setCurrentInstrument: (currentInstrument: Soundfont.Player | null) => void;
+  looping: boolean;
+  setLooping: (looping: boolean) => void;
 
   // related to search
   searchResultsCount: number;
@@ -457,6 +459,8 @@ export const useTabStore = create<TabState>()(
     setInstruments: (instruments) => set({ instruments }),
     currentInstrument: null,
     setCurrentInstrument: (currentInstrument) => set({ currentInstrument }),
+    looping: false,
+    setLooping: (looping) => set({ looping }),
 
     // modals
     showSectionProgressionModal: false,
