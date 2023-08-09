@@ -9,7 +9,6 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 interface EffectGlossary {
   forModal?: boolean;
