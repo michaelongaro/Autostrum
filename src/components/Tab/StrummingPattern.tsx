@@ -424,7 +424,7 @@ function StrummingPattern({
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Chord</SelectLabel>
-                      <SelectItem value="" className="italic !text-zinc-500">
+                      <SelectItem value="" className="italic !text-gray-500">
                         No chord
                       </SelectItem>
                       {chords.map((chord) => (
