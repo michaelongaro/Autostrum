@@ -82,9 +82,16 @@ function GeneralLayout({ children }: GeneralLayout) {
               duration: 0.15,
             }}
             onClick={() => window.scrollTo(0, 0)}
-            className="baseFlex fixed bottom-4 right-4 z-50 "
+            style={{
+              // temp: remove "true" once showingAudioControls is working properly
+              bottom: showingAudioControls || true ? "7.5rem" : "1rem",
+            }}
+            className="baseFlex fixed right-4 z-50"
           >
-            <Button variant="secondary" className="rounded-full p-2">
+            <Button
+              variant="secondary"
+              className="rounded-full p-[0.4rem] md:p-2"
+            >
               <BsArrowUpShort className="h-5 w-5" />
             </Button>
           </motion.div>
