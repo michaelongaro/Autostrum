@@ -10,6 +10,7 @@ import SectionProgressionModal from "../modals/SectionProgressionModal";
 import EffectGlossaryModal from "../modals/EffectGlossaryModal";
 import { Button } from "../ui/button";
 import { FaItunesNote } from "react-icons/fa";
+import { FaBook } from "react-icons/fa";
 import { Separator } from "../ui/separator";
 import { v4 as uuid } from "uuid";
 import EffectGlossary from "../ui/EffectGlossary";
@@ -25,6 +26,7 @@ import StrummingPatterns from "./StrummingPatterns";
 import ChordModal from "../modals/ChordModal";
 import StrummingPatternModal from "../modals/StrummingPatternModal";
 import SectionContainer from "./SectionContainer";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 // not sure of best way to avoid having the same name for interface and component
 
@@ -41,6 +43,8 @@ interface ITab extends Partial<RefetchTab> {
 function Tab({ tab, refetchTab }: ITab) {
   const { user, loaded } = useClerk();
   const { userId, isLoaded } = useAuth();
+
+  const isAboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
 
   const {
     setId,
@@ -159,16 +163,27 @@ function Tab({ tab, refetchTab }: ITab) {
 
   return (
     <>
-      <div className="baseVertFlex lightGlassmorphic relative my-24 w-11/12 gap-4 rounded-md xl:w-8/12">
+      <div className="baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-md md:my-24 xl:w-8/12">
         <TabMetadata refetchTab={refetchTab} />
 
         <Separator className="w-[96%]" />
 
-        <SectionProgression />
+        <div className="baseVertFlex relative w-full gap-4">
+          <SectionProgression />
 
-        <Chords />
+          <Chords />
 
-        <StrummingPatterns />
+          <StrummingPatterns />
+
+          <Button
+            variant={"secondary"}
+            className="baseFlex !flex-nowrap gap-2 lg:absolute lg:right-7 lg:top-0"
+            onClick={() => setShowEffectGlossaryModal(true)}
+          >
+            Effect glossary
+            <FaBook className="h-4 w-4" />
+          </Button>
+        </div>
 
         <Separator className="w-[96%]" />
 
@@ -188,13 +203,6 @@ function Tab({ tab, refetchTab }: ITab) {
           <Button onClick={() => addNewSection()}>Add another section</Button>
         )}
       </div>
-
-      <Button
-        className="baseFlex fixed bottom-4 left-4 z-50 h-12 w-12 rounded-full p-0"
-        onClick={() => setShowEffectGlossaryModal(true)}
-      >
-        <FaItunesNote className="m-0 h-4 w-4" />
-      </Button>
 
       <AnimatePresence mode="wait">
         {showSectionProgressionModal && <SectionProgressionModal />}
