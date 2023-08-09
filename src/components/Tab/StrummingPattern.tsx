@@ -369,7 +369,15 @@ function StrummingPattern({
         )}
 
         {data?.strums?.map((strum, strumIndex) => (
-          <div key={strumIndex} className="baseFlex">
+          <div
+            key={strumIndex}
+            id={`section${location?.sectionIndex ?? ""}-subSection${
+              location?.subSectionIndex ?? ""
+            }-chordSequence${
+              location?.chordSequenceIndex ?? ""
+            }-chord${strumIndex}`}
+            className="baseFlex scroll-m-8"
+          >
             <div
               style={{
                 marginTop:

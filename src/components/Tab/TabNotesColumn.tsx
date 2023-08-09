@@ -303,6 +303,7 @@ function TabNotesColumn({
   return (
     <motion.div
       key={columnData[9]}
+      id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
       ref={setNodeRef}
       // layoutId={columnData[9]}
       style={initialStyles}
@@ -333,7 +334,7 @@ function TabNotesColumn({
         },
       }}
       variants={sectionVariants}
-      className="baseVertFlex cursor-default"
+      className="baseVertFlex cursor-default scroll-m-8"
     >
       <div className="baseFlex relative">
         <div
