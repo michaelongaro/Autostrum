@@ -31,16 +31,29 @@ function TabNote({
 
   function validNoteInput(input: string) {
     // If input is '|' or 'x', it's valid
-    if (input === "|" || input === "x") {
+    if (input === "|" || input === "x" || input === "h" || input === "p") {
       return true;
     }
 
     // Regex pattern to match a fret number between 0 and 22
     const numberPattern = /^(?:[0-9]|1[0-9]|2[0-2])$/;
 
-    // Regex pattern to match any *one* effect of:
-    // "h", "p", "/", "\", "~", ">", ".", "s", "b", "x"
+    // Regex pattern to match any *one* inline effect of:
+    // "h", "p", "/", "\", "~", ">", ".", "b", "x"
     const characterPattern = /^[hp\/\\\\~>.b]$/;
+
+    if (input[0] === "/" || input[0] === "\\") {
+      if (input.length === 1) return true;
+      // Check for "/" and "\" at the start (just one digit number after)
+      else if (input.length === 2) {
+        return numberPattern.test(input[1] || "");
+      }
+
+      // Check for "/" and "\" at the start (two digit number after)
+      else if (input.length === 3) {
+        return numberPattern.test(input.substring(1, 3));
+      }
+    }
 
     // If input is a single digit or two digits between 10 to 22
     if (input.length === 1 && numberPattern.test(input)) {
@@ -292,9 +305,7 @@ function TabNote({
 
     // chord effects
     else {
-      // /^[v^s]{1}>?$/ - regex to allow functionality of strumming pattern modal, but didn't want
-      // to have to deal with extra complexity w/in useSound() quite yet..
-      const chordEffects = /^[v^s]$/;
+      const chordEffects = /^[v^s]{1}>?$/;
       if (value !== "" && !chordEffects.test(value)) return;
     }
 
