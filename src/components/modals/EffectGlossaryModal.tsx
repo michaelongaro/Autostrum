@@ -15,8 +15,6 @@ const backdropVariants = {
 };
 
 function EffectGlossaryModal() {
-  const innerModalRef = useRef<HTMLDivElement>(null);
-
   const { setShowEffectGlossaryModal } = useTabStore(
     (state) => ({
       setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
@@ -35,12 +33,11 @@ function EffectGlossaryModal() {
       onClick={() => setShowEffectGlossaryModal(false)}
     >
       <div
-        ref={innerModalRef}
         style={{
           height: "590px",
         }}
       >
-        <EffectGlossary forModal />
+        <EffectGlossary />
       </div>
     </motion.div>
   );
