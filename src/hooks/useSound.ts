@@ -15,6 +15,7 @@ import type {
 } from "../stores/TabStore";
 import getRepetitions from "~/utils/getRepetitions";
 import getBpmForChord from "~/utils/getBpmForChord";
+import extractNumber from "~/utils/extractNumber";
 
 export default function useSound() {
   const {
@@ -162,12 +163,12 @@ export default function useSound() {
     fret: number;
     bpm: number;
     when: number;
-    isPalmMuted: boolean;
-    inlineEffect?: string;
+    effects?: string[];
     prevTetheredNote?: {
       note: number;
       effect: string;
     };
+    slideToFret?: number;
   }
 
   function playNoteWithEffects({
@@ -176,73 +177,97 @@ export default function useSound() {
     fret,
     bpm,
     when,
-    isPalmMuted,
-    inlineEffect,
+    effects,
     prevTetheredNote,
+    slideToFret,
   }: PlayNoteWithEffects) {
     if (!audioContext || !masterVolumeGainNode) return;
 
-    // once you ahve all the effects then also pass through the audioContext to this function
-    // and onto them so that these functions can be exported into a /utils/ file
+    // TODO: split these effects into separate files for better organization
 
     let noteWithEffectApplied = undefined;
 
-    if (prevTetheredNote) {
-      noteWithEffectApplied = applyTetheredEffect({
-        note,
-        currentEffect: inlineEffect,
-        currentFret: fret,
-        tetheredEffect: prevTetheredNote.effect as "h" | "p" | "/" | "\\",
-        tetheredFret: prevTetheredNote.note,
-        stringIdx,
-        bpm,
-        when,
-      });
-    } else {
-      // we have to reroute connect()'ing the note to these effects when there is a tetheredEffect
-      // since we have to do the hacky "copy" of the note within the applyTetheredEffect function
+    if (prevTetheredNote || slideToFret) {
+      if (slideToFret) {
+        // effectively: these "arbitrary" slides (/3, 3/, etc.) are just
+        // played as a bend
+        noteWithEffectApplied = applyBendEffect({
+          note,
+          baseFret: fret,
+          fretToBendTo: slideToFret,
+          stringIdx,
+          when,
+          bpm,
+        });
+      } else if (prevTetheredNote) {
+        noteWithEffectApplied = applyTetheredEffect({
+          note,
+          currentEffects: effects,
+          currentFret: fret,
+          tetheredEffect: prevTetheredNote.effect as "h" | "p" | "/" | "\\",
+          tetheredFret: prevTetheredNote.note,
+          stringIdx,
+          bpm,
+          when,
+        });
+      }
+    } else if (effects) {
+      // if note was tethered and also has an inline effect, it is handled
+      // within applyTetheredEffect() above
 
-      if (inlineEffect === "~") {
+      if (effects.includes("~")) {
+        // seem fine
         noteWithEffectApplied = applyVibratoEffect({
           when: 0,
           note,
           bpm,
         });
-      } else if (inlineEffect === "b") {
+      } else if (effects.includes("b")) {
+        // seem fine
         noteWithEffectApplied = applyBendEffect({
           note,
           stringIdx,
           when,
           bpm,
         });
-      } else if (inlineEffect === "x") {
-        noteWithEffectApplied = applyDeadNoteEffect(note, stringIdx, fret);
+      } else if (effects.includes("x")) {
+        // doesn't get played
+        noteWithEffectApplied = applyDeadNoteEffect(note);
       }
     }
 
-    if (isPalmMuted) {
+    if (effects?.includes("PM")) {
+      console.log("going into PM");
       noteWithEffectApplied = applyPalmMute(
         noteWithEffectApplied ?? note,
-        inlineEffect
+        effects
       );
     }
 
-    if (noteWithEffectApplied) {
-      // might still need to connect this to the master volume gain node or audio context destination?
-      // noteWithEffectApplied.connect(masterVolumeGainNode!);
-      // okay I'm thinking there is some memory reference shenanagins going on here,
-      // because completely omitting the connection to audioContext.destination still plays the same note...
-      // console.log(noteWithEffectApplied, note, noteWithEffectApplied === note);
-      // they are!
-      // would go through master volume gain node here then connect to audioContext.destination
-      // testing what happens when this is commented out
+    console.log("effects", effects, noteWithEffectApplied);
+
+    // why in the HELL is palm mute not working... restart just to make sure
+
+    // ~, b, and x effects are applied to the note itself, so we don't need to
+    // connect() them again to the master volume gain node and audioContext.destination
+    if (
+      noteWithEffectApplied &&
+      (effects?.includes("PM") || prevTetheredNote || effects?.includes("x"))
+    ) {
+      // console.log("playing from here???");
+      // if (prevTetheredNote || effects?.includes("x")) {
       noteWithEffectApplied.connect(masterVolumeGainNode);
       masterVolumeGainNode.connect(audioContext.destination);
+      // } else {
+      // noteWithEffectApplied.connect(audioContext.destination);
+      // }
     }
   }
 
   interface ApplyBendEffect {
     note?: GainNode;
+    baseFret?: number;
+    fretToBendTo?: number;
     copiedNote?: AudioBufferSourceNode;
     stringIdx: number;
     when: number;
@@ -251,6 +276,8 @@ export default function useSound() {
 
   function applyBendEffect({
     note,
+    baseFret,
+    fretToBendTo,
     copiedNote,
     stringIdx,
     when,
@@ -258,20 +285,28 @@ export default function useSound() {
   }: ApplyBendEffect) {
     if (!audioContext) return;
 
+    let detuneValue = 0;
+
+    if (fretToBendTo !== undefined && baseFret !== undefined) {
+      detuneValue = (fretToBendTo - baseFret) * 100;
+    } else {
+      detuneValue = stringIdx > 1 ? 100 : -100;
+    }
+
     if (note) {
       note.source.detune.linearRampToValueAtTime(
-        stringIdx > 1 ? 100 : -100,
+        detuneValue,
         audioContext.currentTime + when + (60 / bpm) * 0.5 // maybe * 0.5 or something
       );
       return note;
     } else if (copiedNote) {
       copiedNote.detune.linearRampToValueAtTime(
-        stringIdx > 1 ? 100 : -100,
+        detuneValue,
         audioContext.currentTime + when + (60 / bpm) * 0.5 // maybe * 0.5 or something
       );
       // increasing gain to match level set in applyTetheredEffect=
       const copiedNoteGain = audioContext.createGain();
-      copiedNoteGain.gain.value = 1.5;
+      copiedNoteGain.gain.value = 1.5; // TODO: prob needs to be dynamic based on prevEffect being "p" or not
       copiedNote.connect(copiedNoteGain);
       return copiedNoteGain;
     }
@@ -280,16 +315,19 @@ export default function useSound() {
   function playSlapSound(accented: boolean) {
     if (!audioContext || !masterVolumeGainNode) return;
 
-    // TODO: will most likely need a way to
-    // okay maybe go back to adding slap as a chord effect tbh... but play it inline with regular
-    // note(s), don't even bother adjusting gain or whatever at start
+    // stopping all notes currently playing
+    for (
+      let stringIdx = 0;
+      stringIdx < currentNoteArrayRef.current.length;
+      stringIdx++
+    ) {
+      currentNoteArrayRef.current[stringIdx]?.stop();
+    }
 
     // Create an OscillatorNode to simulate the slap sound
     const oscillator = audioContext.createOscillator();
     oscillator.type = "sine";
-
-    // Adjust frequency based on the string index
-    oscillator.frequency.value = 90;
+    oscillator.frequency.value = 90; // changing this doesn't reflect as you would expect (not linear in terms of volume/pitch)
 
     // Create a buffer for noise
     const noiseBuffer = audioContext.createBuffer(
@@ -311,7 +349,7 @@ export default function useSound() {
 
     // TODO: Adjust gain based on string index for more volume on lower strings
     gainNode.gain.setValueAtTime(
-      accented ? 0.6 : 0.4,
+      accented ? 0.45 : 0.25,
       audioContext.currentTime
     );
     gainNode.gain.exponentialRampToValueAtTime(
@@ -322,7 +360,7 @@ export default function useSound() {
     // Create a BiquadFilterNode for a low-pass filter
     const lowPassFilter = audioContext.createBiquadFilter();
     lowPassFilter.type = "lowpass";
-    lowPassFilter.frequency.value = 1200;
+    lowPassFilter.frequency.value = 2200; // TODO: still have to play around with this value
 
     // Create a BiquadFilterNode for boosting the mid frequencies
     const midBoost = audioContext.createBiquadFilter();
@@ -359,17 +397,13 @@ export default function useSound() {
     noise.stop(audioContext.currentTime + 0.25);
   }
 
-  function applyDeadNoteEffect(
-    note: GainNode,
-    stringIdx: number,
-    fret: number
-  ) {
+  function applyDeadNoteEffect(note: GainNode) {
     if (!audioContext) return;
 
     // Create a BiquadFilterNode to act as a low-pass filter
     const lowPassFilter = audioContext.createBiquadFilter();
     lowPassFilter.type = "lowpass";
-    lowPassFilter.frequency.value = 400; // Lower this value to cut more high frequencies
+    lowPassFilter.frequency.value = 350; // Lower this value to cut more high frequencies
 
     // Create a BiquadFilterNode to boost the bass frequencies
     const bassBoost = audioContext.createBiquadFilter();
@@ -381,7 +415,7 @@ export default function useSound() {
     // Create a GainNode to reduce volume
     const gainNode = audioContext.createGain();
 
-    gainNode.gain.value = 50; // Reduce gain to simulate the quieter sound of palm muting
+    gainNode.gain.value = 40; // Reduce gain to simulate the quieter sound of a dead note
 
     // Connect the note to the filter, and the filter to the gain node
     note.connect(lowPassFilter);
@@ -393,7 +427,7 @@ export default function useSound() {
 
   function applyPalmMute(
     note: GainNode | AudioBufferSourceNode,
-    inlineEffect?: string
+    inlineEffects?: string[]
   ) {
     if (!audioContext) return;
 
@@ -414,12 +448,12 @@ export default function useSound() {
     const gainNode = audioContext.createGain();
 
     // palm muting is a little quieter than normal notes
-    let gainValue = 0.75;
+    let gainValue = 40;
 
-    if (inlineEffect === ">") {
-      gainValue = 0.85;
-    } else if (inlineEffect === ".") {
-      gainValue = 0.8;
+    if (inlineEffects?.includes(">")) {
+      gainValue = 50;
+    } else if (inlineEffects?.includes(".")) {
+      gainValue = 45;
     }
 
     gainNode.gain.value = gainValue;
@@ -435,9 +469,9 @@ export default function useSound() {
   interface ApplyTetheredEffect {
     note: GainNode;
     currentFret: number;
-    currentEffect?: string;
-    tetheredEffect: "h" | "p" | "/" | "\\";
+    currentEffects?: string[];
     tetheredFret: number;
+    tetheredEffect: "h" | "p" | "/" | "\\";
     stringIdx: number;
     bpm: number;
     when: number;
@@ -446,9 +480,9 @@ export default function useSound() {
   function applyTetheredEffect({
     note,
     currentFret,
-    currentEffect,
-    tetheredEffect,
+    currentEffects,
     tetheredFret,
+    tetheredEffect,
     stringIdx,
     bpm,
     when,
@@ -462,46 +496,48 @@ export default function useSound() {
     const source = audioContext.createBufferSource();
 
     setTimeout(() => {
-      if (currentNoteArrayRef.current[stringIdx]) {
-        currentNoteArrayRef.current[stringIdx]?.stop();
-      }
-
+      currentNoteArrayRef.current[stringIdx]?.stop();
       currentNoteArrayRef.current[stringIdx] = source;
     }, when * 1000);
 
-    source.buffer = note.source.buffer;
-    source.start(0, 0.75, 2); // maybe can go closer to 0.5s to get rid of the pluck sound
+    source.buffer = note.source.buffer as AudioBuffer;
+    source.start(0, tetheredEffect === "p" ? 0.25 : 0.85);
+
+    // TODO: really more than anything want to get rid of the little static "pop" right at the
+    // very beginning of the sound, I don't know if it's maybe the original note being .stop()'d
+    // above, or where it's coming from, but it is the biggest thing that makes this sound
+    // "fake" to me
 
     const sourceGain = audioContext.createGain();
     sourceGain.gain.exponentialRampToValueAtTime(
-      1.5, // tangent: but it really feels like to me that the actual sample files are *not* all the same
-      // volume. But it is honestly a bit random so I'm not sure how we would approach "fixing" it.
-      audioContext.currentTime + when + 0.05 // for whatever reason was very noticible if gain was set immediately
+      tetheredEffect === "p" ? 0.75 : 1.5,
+      audioContext.currentTime + when + 0.15
     );
     source.connect(sourceGain);
 
     // immediately ramping from tetheredFret to currentFret with a duration defined by tetheredEffect
     source.detune.setValueAtTime((tetheredFret - currentFret) * 100, 0);
 
-    let durationOfTransition = (60 / bpm) * 0.1; // was 0.2
+    // 1 feels too long, but fits the "structure" of how the tab is played better
+    let durationOfTransition = (60 / bpm) * 0.15;
     if (tetheredEffect === "h" || tetheredEffect === "p") {
-      durationOfTransition = (60 / bpm) * 0.025; // 0.05
+      durationOfTransition = 0; // hammer-ons and pull-offs should be instantaneous
     }
 
     source.detune.linearRampToValueAtTime(
-      0.001, // doesn't like it if it is exactly 0
-      audioContext.currentTime + when + durationOfTransition // don't think we need the (60 / bpm) here
+      0.001, // smallest viable value
+      audioContext.currentTime + when + durationOfTransition
     );
 
     // if there is a currentEffect, we need to apply it to the note after the last ramp is finished
-    if (currentEffect) {
-      if (currentEffect === "~") {
+    if (currentEffects) {
+      if (currentEffects.includes("~")) {
         applyVibratoEffect({
           copiedNote: source, // will be increasing gain w/in this function to match level set above
           when: when + durationOfTransition,
           bpm,
         });
-      } else if (currentEffect === "b") {
+      } else if (currentEffects.includes("b")) {
         applyBendEffect({
           copiedNote: source, // will be increasing gain w/in this function to match level set above
           when: when + durationOfTransition,
@@ -529,9 +565,6 @@ export default function useSound() {
   }: ApplyVibratoEffect) {
     if (!audioContext) return;
 
-    // maybe still have dynamic gain based on fret/ (stringIdx + fret)/ or even actually just the midi number
-    // if it still sounds uneven
-
     // Create a modulation oscillator
     const vibratoOscillator = audioContext.createOscillator();
     vibratoOscillator.type = "sine";
@@ -539,7 +572,7 @@ export default function useSound() {
 
     // Create a gain node to control the depth of the vibrato
     const vibratoDepth = audioContext.createGain();
-    vibratoDepth.gain.value = 40; // Depth of vibrato in cents
+    vibratoDepth.gain.value = 25; // Depth of vibrato in cents
 
     // Connect the modulation oscillator to the gain
     vibratoOscillator.connect(vibratoDepth);
@@ -553,7 +586,7 @@ export default function useSound() {
       vibratoDepth.connect(copiedNote.detune);
       // increasing gain to match level set in applyTetheredEffect
       const copiedNoteGain = audioContext.createGain();
-      copiedNoteGain.gain.value = 1.5;
+      copiedNoteGain.gain.value = 1.5; // TODO: prob needs to be dynamic based on prevEffect being "p" or not
       copiedNote.connect(copiedNoteGain);
       return copiedNoteGain;
     }
@@ -570,6 +603,7 @@ export default function useSound() {
       note: number;
       effect: string;
     };
+    slideToFret?: number;
   }
 
   function playNote({
@@ -580,91 +614,70 @@ export default function useSound() {
     when,
     effects,
     prevTetheredNote,
+    slideToFret,
   }: PlayNote) {
     if (!audioContext) return;
 
-    let duration = 2;
+    let duration = 3;
     let gain = 1;
 
-    const isPalmMuted = effects.includes("PM");
-    const inlineEffect = effects.at(-1) !== "PM" ? effects.at(-1) : undefined;
-
-    if (inlineEffect === ">") {
+    if (effects.includes(">")) {
       gain = 1.75;
-      duration = 2.25;
-    } else if (inlineEffect === ".") {
-      gain = 1.15;
-      duration = 0.25;
+    }
+
+    if (slideToFret) {
+      duration = 1;
+    }
+
+    if (effects.includes("PM")) {
+      gain = 0.01;
+      duration = 0.45;
     }
     // dead note and palm mute effects require us to basically hijack the note by almost muting it
     // and then creating a copy of it with a delay node, and adjusting the volume/effect from there
-    else if (inlineEffect === "x") {
+    // ^ TODO: wouldn't be too surprised if we can try to refactor by using the "source" prop like in
+    // tethered effects
+    if (effects.includes("x")) {
       // pretty sure leaving PM out of this is fine because it is at the end
       // of the filter connect chain so every note before should have it's gain to w/e value it is supposed
       // to be at already coming into applyPalmMute()
       gain = 0.01;
-    }
-
-    if (isPalmMuted) {
-      duration = 0.45;
-    }
-
-    if (inlineEffect === "x") {
       duration = 0.35; // play around with this value
     }
 
-    // looks like the actual instrument() can take in a gain value, but not sure if it
-    // would update while playing (defaults to 1 btw);
-
-    // console.log("SHOULD FINALLY be:", gain * (volumeRef / 100));
+    if (effects.includes(".")) {
+      gain = 1.1; // in my head stacatto = high action => should be a bit louder than normal, but not 100% sure
+      duration = 0.25;
+    }
 
     const note = currentInstrument?.play(
       `${tuning[stringIdx]! + fret}`,
       audioContext.currentTime + when,
       {
         duration,
-        // gain: gain * (volumeRef / 100),
         gain,
+        // TODO: might be fun/more accurate to change sustain value instead of duration for some effects
       }
     );
 
-    if (note && (prevTetheredNote || inlineEffect || isPalmMuted)) {
+    if (note && (slideToFret || prevTetheredNote || effects.length > 0)) {
       playNoteWithEffects({
         note: note as unknown as GainNode,
         stringIdx,
         fret,
         bpm,
         when,
-        inlineEffect,
-        isPalmMuted,
+        effects,
         prevTetheredNote,
+        slideToFret,
       });
     }
 
-    // console.log(note);
-    //why does it stutter... could it really be from the extra logs?
-
-    // else if (note) {
-    //   // if this works, extend it to effects as well
-    //   console.log(
-    //     "going through here",
-    //     masterVolumeGainNode?.gain.value
-    //   );
-
-    //   note.connect(masterVolumeGainNode);
-    //   const random = audioContext.createGain();
-    //   // masterVolumeGainNode?.connect(audioContext.destination);
-    //   masterVolumeGainNode?.connect(random); // still can hear when getting "rerouted" through this..
-    // }
-
-    // will do this same process inside of applyTetheredEffect() with the copy AudioBufferSourceNode
-    // that is made
+    // this same process is done inside of applyTetheredEffect() with the copy
+    // AudioBufferSourceNode that is made
     if (!prevTetheredNote) {
       setTimeout(() => {
-        if (currentNoteArrayRef.current[stringIdx]) {
-          currentNoteArrayRef.current[stringIdx]?.stop();
-        }
-
+        currentNoteArrayRef.current[stringIdx]?.stop();
         currentNoteArrayRef.current[stringIdx] = note;
       }, when * 1000);
     }
@@ -760,9 +773,9 @@ export default function useSound() {
     // When bpm: number is 0, scaleFactor will be 1.
     const scaleFactor = Math.min(distance / 400, 1);
 
-    // Scale the number between 4 (when scaleFactor is 0)
-    // and 6 (when scaleFactor is 1).
-    return 4 + scaleFactor * (6 - 4);
+    // Scale the number between 2 (when scaleFactor is 0)
+    // and 4 (when scaleFactor is 1).
+    return 3 + scaleFactor * (5 - 3);
   }
 
   function calculateRelativeChordDelayMultiplier(bpm: number) {
@@ -798,23 +811,21 @@ export default function useSound() {
     tuning: number[],
     capo: number,
     bpm: number,
-    prevColumn?: string[]
+    prevColumn?: string[],
+    secondPrevColumn?: string[],
+    nextColumn?: string[]
   ) {
     return new Promise<void>((resolve) => {
       setTimeout(() => {
         resolve();
       }, (60 / bpm) * 1000);
 
-      // as of right now I am barring ">" to be added to the column effects. It does make
-      // some sense to allow it in there with "v/^/s" to match the ux of the strumming
-      // pattern editor but I don't think it is a priority right now.
-
       // thinking it's better to group "s" in main if statement here
       // because I don't think you want to be super aggresive on deleting the prev
       // notes if they exist in column ux wise if someone were to add an "s" to [7]
       // while editing
-      if (columnHasNoNotes(currColumn) || currColumn[7] === "s") {
-        if (currColumn[7] === "s") {
+      if (columnHasNoNotes(currColumn) || currColumn[7]?.includes("s")) {
+        if (currColumn[7]?.includes("s")) {
           playSlapSound(currColumn[7].includes(">"));
           // TODO: technically I think the sound will bleed into the next note at high bpms
         }
@@ -823,52 +834,145 @@ export default function useSound() {
 
       let chordDelayMultiplier = 0;
 
-      if (currColumn[7] === "v" || currColumn[7] === "^") {
+      if (currColumn[7]?.includes("v") || currColumn[7]?.includes("^")) {
         chordDelayMultiplier = calculateRelativeChordDelayMultiplier(bpm);
       }
 
       const indexOfFirstNonEmptyString = getIndexOfFirstNonEmptyString(
         currColumn,
-        currColumn[7] === "^"
+        currColumn[7]?.includes("^") || false
       );
 
-      const allInlineEffects = /^[hp\/\\\\~>.bx]$/;
+      const allInlineEffects = /[hp\/\\\\~>.bx]/g;
       const tetherEffects = /^[hp\/\\\\]$/;
 
       for (let index = 1; index < 7; index++) {
         // 1-6 is actually starting with "high e" normally, so reverse it if you want
         // to start with "low e" aka downwards strum
-        const stringIdx = currColumn[7] === "v" ? 7 - index : index;
+        const stringIdx = currColumn[7]?.includes("v") ? 7 - index : index;
 
+        const secondPrevNote = secondPrevColumn?.[stringIdx];
         const prevNote = prevColumn?.[stringIdx];
         const currNote = currColumn[stringIdx];
+        const nextNote = nextColumn?.[stringIdx];
 
         const prevNoteHadTetherEffect =
-          prevNote && tetherEffects.test(prevNote.at(-1)!);
+          prevNote && tetherEffects.test(prevNote.at(-1) || "");
         const currNoteHasTetherEffect =
-          currNote && tetherEffects.test(currNote.at(-1)!);
+          currNote && tetherEffects.test(currNote.at(-1) || "");
 
-        const currNoteEffect =
-          currNote && allInlineEffects.test(currNote.at(-1)!)
-            ? currNote.at(-1)!
-            : undefined;
+        const currNoteEffects = currNote
+          ? currNote.match(allInlineEffects)
+          : [];
 
-        if (currColumn[stringIdx] === "") continue;
+        if (
+          currNote === "" ||
+          // skipping effects because next note is the one that actually gets played
+          // in a "3 {effect} 5" scenario
+          currNote === "/" ||
+          currNote === "\\" ||
+          currNote === "h" ||
+          currNote === "p"
+        )
+          continue;
 
         const adjustedStringIdx = stringIdx - 1; // adjusting for 0-indexing
 
-        const fret =
-          currColumn[stringIdx] === "x"
-            ? 0
-            : parseInt(currColumn[stringIdx]!) + capo;
+        let fret = 0;
 
-        const prevNoteAndEffect =
-          currColumn[7] === "" && prevColumn && prevNoteHadTetherEffect
-            ? {
-                note: parseInt(prevColumn[stringIdx]!) + capo,
-                effect: prevNote.at(-1)!,
-              }
-            : undefined;
+        // pre-note arbitrary slide up
+        if (currNote?.[0] === "/" && nextNote === "") {
+          let baseFret = extractNumber(currNote);
+
+          if (baseFret <= 2) {
+            baseFret = 0;
+          } else {
+            baseFret -= 2;
+          }
+
+          fret = baseFret + capo;
+        }
+        // pre-note arbitrary slide down
+        else if (currNote?.[0] === "\\" && nextNote === "") {
+          let baseFret = extractNumber(currNote);
+
+          if (baseFret >= 20) {
+            baseFret = 22;
+          } else {
+            baseFret += 2;
+          }
+
+          fret = baseFret + capo;
+        } else {
+          fret = extractNumber(currNote!) + capo;
+        }
+
+        let prevNoteAndEffect = undefined;
+        let slideToFret = undefined;
+
+        // not 100% confident that completely barring unless [7] === "" is best
+        // I think it was mainly for v/^ cases timing wise...
+        // note, tetheredEffect, note extended syntax case
+        if (
+          secondPrevNote &&
+          (prevNote === "/" ||
+            prevNote === "\\" ||
+            prevNote === "h" ||
+            prevNote === "p")
+        ) {
+          prevNoteAndEffect = {
+            note: extractNumber(secondPrevNote) + capo,
+            effect: prevNote,
+          };
+        }
+
+        // pre-note arbitrary slide up/down
+        else if (currNote?.[0] === "/" || currNote?.[0] === "\\") {
+          slideToFret = extractNumber(currNote);
+        }
+
+        // post-note arbitrary slide up
+        else if (currNote?.at(-1) === "/" && nextNote === "") {
+          let baseFret = extractNumber(currNote);
+
+          if (baseFret >= 20) {
+            baseFret = 22;
+          } else {
+            baseFret += 2;
+          }
+
+          slideToFret = baseFret + capo;
+        }
+        // post-note arbitrary slide down
+        else if (currNote?.at(-1) === "\\" && nextNote === "") {
+          let baseFret = extractNumber(currNote);
+
+          if (baseFret <= 2) {
+            baseFret = 0;
+          } else {
+            baseFret -= 2;
+          }
+
+          slideToFret = baseFret + capo;
+        } else if (prevNote && prevNoteHadTetherEffect) {
+          prevNoteAndEffect = {
+            note: extractNumber(prevNote) + capo,
+            effect: prevNote.at(-1)!,
+          };
+        }
+
+        const effects = [...(currColumn[0] !== "" ? ["PM"] : [])];
+
+        if (currNoteEffects && !currNoteHasTetherEffect) {
+          currNoteEffects.forEach((effect) => {
+            effects.push(effect);
+          });
+        }
+        if (currColumn[7]?.includes(">")) {
+          effects.push(">");
+        }
+
+        // as a note, I don't know if it messes anything up, but prob keep hp/\ out of effects array
 
         playNote({
           tuning,
@@ -882,13 +986,9 @@ export default function useSound() {
           when:
             chordDelayMultiplier *
             Math.abs(indexOfFirstNonEmptyString - stringIdx),
-          effects: [
-            ...(currColumn[0] !== "" ? ["PM"] : []),
-            ...(currNoteEffect && !currNoteHasTetherEffect
-              ? [currNoteEffect]
-              : []),
-          ],
+          effects,
           prevTetheredNote: prevNoteAndEffect,
+          slideToFret,
         });
       }
     });
@@ -1340,32 +1440,6 @@ export default function useSound() {
     }
   }
 
-  // GENERAL GAME PLAN:
-
-  // new state to create + export at top of this file: currentlyPlayingMetadata & currentChordIdx
-  // currentlyPlayingMetadata is of this shape:  { noteLengthMultiplier: number,
-  //                                               location: { sectionIdx: number, subSectionIdx: number, chordSequenceIdx: number, I think one more right? for like specific chordIdx I think }
-  //     ^^ okay so yeah i think for a tab chord it would need section, subSection, and chordIdx
-  //        but for a specific chord from a strumming pattern it would need section, subSection, chordSequence, and chordIdx
-
-  // isSectionStart will just be inferred based on if subSectionIdx + chordSequenceIdx are 0 (fact check this logic)
-
-  // fyi yeah so clicking on a tab input/interacting idk when paused and currentChordIdx !== 0,
-  // will just set currentChordIdx to 0 to get rid of all red overlay + reset audio slider
-
-  // also metadata above will have to be created respective to each indiv. chord, and when the tab is playing you will need to increment currentChordIdx at start
-  // of playNoteColumn()
-
-  // the audio controls bar will loop through the metadata array created above in order to properly space out the hidden chord divs (each having their length * noteLengthMultiplier)
-  // ^ this is really a css issue to get them to all fit together, don't worry too much about it right now.
-
-  // ^^ okay so this will not be efficient however you should try having an effect in here that listens to w/e necessary (tabData, sectionProgression, etc) that will do compileSpecificChordGrouping()/compileFullTab()
-  // and set the currentChordIdx to 0 and if you have a separate state for the "tab location indicies" then update that too to the values that point to the start of the current "section"
-
-  // fyi currently thinking of having "disabled/blocked" cursor on inputs/buttons or idk maybe just a hidden div that is the same size as the section that will effectively prevent
-  // any interaction with the tab as it is playing. If audio is paused halfway through a section however, then we will need to allow interaction again, and on first interaction maybe
-  // reset the currentChordIdx to the start of the section and then let the user do w/e they want from there?
-
   interface PlayRecordedAudio {
     recordedAudioUrl: string;
     secondsElapsed: number;
@@ -1467,7 +1541,7 @@ export default function useSound() {
 
       if (chordIndex === compiledChords.length - 1) {
         // if looping, reset the chordIndex to -1 and continue
-        if (loopingRef.current) {
+        if (loopingRef.current && audioMetadataRef.current.playing) {
           chordIndex = -1;
           setCurrentChordIndex(0);
           continue;
@@ -1485,8 +1559,10 @@ export default function useSound() {
         }
       }
 
+      const secondPrevColumn = compiledChords[chordIndex - 2];
       const prevColumn = compiledChords[chordIndex - 1];
       const column = compiledChords[chordIndex];
+      const nextColumn = compiledChords[chordIndex + 1];
 
       if (column === undefined) continue;
 
@@ -1494,7 +1570,15 @@ export default function useSound() {
       const alteredBpm =
         Number(column[8]) * (1 / Number(column[9])) * playbackSpeed;
 
-      await playNoteColumn(column, tuning, capo ?? 0, alteredBpm, prevColumn);
+      await playNoteColumn(
+        column,
+        tuning,
+        capo ?? 0,
+        alteredBpm,
+        prevColumn,
+        secondPrevColumn,
+        nextColumn
+      );
 
       // TODO: I don't think this logic is 100% sound
       // if pausing while chord is being played, we need to prevent chordIndex from
@@ -1512,7 +1596,7 @@ export default function useSound() {
     });
     currentInstrument?.stop();
 
-    // should you be clearing out currentNoteArrayRef?
+    // TOOD: most likely should be clearing out currentNoteArrayRef I think too
 
     if (resetToStart) {
       setCurrentChordIndex(0);
