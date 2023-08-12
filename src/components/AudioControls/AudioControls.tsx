@@ -83,6 +83,7 @@ function AudioControls() {
     setWaitForCurrentChordIndexToUpdate,
   ] = useState(false);
   const [updatedCurrentChordIndex, setUpdatedCurrentChordIndex] = useState(0);
+  const [previousChordIndex, setPreviousChordIndex] = useState(0);
 
   const oneSecondIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -151,6 +152,19 @@ function AudioControls() {
   }, [volume, masterVolumeGainNode]);
 
   useEffect(() => {
+    if (currentChordIndex === 0) {
+      setPreviousChordIndex(0);
+    } else {
+      setPreviousChordIndex(currentChordIndex - 1);
+    }
+  }, [currentChordIndex]);
+
+  useEffect(() => {
+    // TODO: really not sure how to fix this mess, but when looping and wrapping
+    // back around to start of section, we need to have the thumb + track immediately
+    // move back to the beginning, but all solutions that I've tried so far do not work
+    // (extra state, setting transition values inside of useSound, etc...)
+
     if (audioMetadata.playing && !oneSecondIntervalRef.current) {
       // kind of a hack, but need to have it inching towards one *as soon*
       // as the play button is pressed, otherwise it will wait a full second
@@ -161,14 +175,24 @@ function AudioControls() {
       oneSecondIntervalRef.current = setInterval(() => {
         setTabProgressValue((prev) => prev + 1);
       }, 1000);
-    } else if (!audioMetadata.playing && oneSecondIntervalRef.current) {
+    } else if (
+      (!audioMetadata.playing ||
+        (currentChordIndex === 0 && previousChordIndex !== 0)) &&
+      oneSecondIntervalRef.current
+    ) {
       clearInterval(oneSecondIntervalRef.current);
       oneSecondIntervalRef.current = null;
       if (currentChordIndex === 0) {
         setTabProgressValue(0);
       }
     }
-  }, [audioMetadata.playing, currentChordIndex, tabProgressValue]);
+  }, [
+    currentlyPlayingMetadata,
+    audioMetadata.playing,
+    currentChordIndex,
+    previousChordIndex,
+    tabProgressValue,
+  ]);
 
   useEffect(() => {
     if (audioMetadata.type === "Artist recorded") {
