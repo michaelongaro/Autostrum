@@ -686,24 +686,28 @@ function TabSection({
         (this would mean both sections would need to slide for each click of "up"/"down" ) */}
 
       <div className="baseFlex relative w-full !justify-start">
-        {editingPalmMuteNodes && (
-          <p className="absolute left-[0.4rem] top-6 text-sm italic">PM</p>
-        )}
-
         {editing && (
-          <div className="absolute bottom-3 left-[0.4rem]">
-            <Popover>
-              <PopoverTrigger>
-                <HiOutlineInformationCircle className="h-5 w-5" />
-              </PopoverTrigger>
-              <PopoverContent
-                side={"right"}
-                className="max-w-[300px] md:max-w-none"
-              >
-                <div>You can navigate through inputs with your arrow keys.</div>
-              </PopoverContent>
-            </Popover>
-          </div>
+          <>
+            {editingPalmMuteNodes ? (
+              <p className="absolute left-[0.4rem] top-6 text-sm italic">PM</p>
+            ) : (
+              <div className="absolute left-1 top-6">
+                <Popover>
+                  <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-pink-50/20 active:hover:bg-pink-50/10">
+                    <HiOutlineInformationCircle className="h-5 w-5 " />
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side={"right"}
+                    className="max-w-[300px] md:max-w-none"
+                  >
+                    <div>
+                      You can navigate through inputs with your arrow keys.
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
+          </>
         )}
 
         <div
