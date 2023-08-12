@@ -200,7 +200,9 @@ function Tab({ tab, refetchTab }: ITab) {
         {/* </LayoutGroup> */}
 
         {editing && (
-          <Button onClick={() => addNewSection()}>Add another section</Button>
+          <Button onClick={() => addNewSection()} className="mb-12">
+            Add another section
+          </Button>
         )}
       </div>
 
