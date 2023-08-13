@@ -91,6 +91,168 @@ interface AudioMetadata {
   } | null;
 }
 
+function modifyPalmMuteDashes(
+  tab: Section[],
+  setTabData: (tabData: Section[]) => void,
+  sectionIndex: number,
+  subSectionIndex: number,
+  startColumnIndex: number,
+  prevValue: string,
+  pairNodeValue?: string
+) {
+  // technically could just use tabData/setter from the store right?
+  let finishedModification = false;
+  const newTabData = [...tab];
+  let currentColumnIndex = startColumnIndex;
+
+  while (!finishedModification) {
+    // should prob extract to a variable so we can type check it and avoid the
+    // long chain being repeated over and over below
+
+    // start/end node already defined, meaning we just clicked on an empty node to be the other pair node
+    if (pairNodeValue !== undefined) {
+      if (currentColumnIndex === startColumnIndex) {
+        newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+          startColumnIndex
+        ]![0] = pairNodeValue === "" ? "end" : pairNodeValue;
+
+        pairNodeValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
+      } else if (
+        newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+          currentColumnIndex
+        ]![0] ===
+        (pairNodeValue === "" || pairNodeValue === "end" ? "start" : "end")
+      ) {
+        finishedModification = true;
+      } else {
+        newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+          currentColumnIndex
+        ]![0] = "-";
+        pairNodeValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
+      }
+    }
+    // pair already defined, meaning we just removed either the start/end node and need to remove dashes
+    // in between until we hit the other node
+    else {
+      if (
+        newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+          currentColumnIndex
+        ]?.[0] === (prevValue === "start" ? "end" : "start")
+      ) {
+        finishedModification = true;
+      } else {
+        newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+          currentColumnIndex
+        ]![0] = "";
+        prevValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
+      }
+    }
+  }
+
+  setTabData(newTabData);
+}
+
+function modifyStrummingPatternPalmMuteDashes(
+  strummingPatternBeingEdited: {
+    index: number;
+    value: StrummingPattern;
+  },
+  setStrummingPatternBeingEdited: (
+    strummingPatternBeingEdited: {
+      index: number;
+      value: StrummingPattern;
+    } | null
+  ) => void,
+  startColumnIndex: number,
+  prevValue: string,
+  pairNodeValue?: string
+) {
+  // technically could just use tabData/setter from the store right?
+  let finishedModification = false;
+  const newStrummingPattern = { ...strummingPatternBeingEdited };
+  let currentColumnIndex = startColumnIndex;
+
+  while (!finishedModification) {
+    // start/end node already defined, meaning we just clicked on an empty node to be the other pair node
+    if (pairNodeValue !== undefined) {
+      if (currentColumnIndex === startColumnIndex) {
+        newStrummingPattern.value.strums[startColumnIndex]!.palmMute =
+          pairNodeValue === ""
+            ? "end"
+            : (pairNodeValue as "start" | "end" | "-" | "");
+
+        pairNodeValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
+      } else if (
+        newStrummingPattern.value.strums[currentColumnIndex]!.palmMute ===
+        (pairNodeValue === "" || pairNodeValue === "end" ? "start" : "end")
+      ) {
+        finishedModification = true;
+      } else {
+        newStrummingPattern.value.strums[currentColumnIndex]!.palmMute = "-";
+        pairNodeValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
+      }
+    }
+    // pair already defined, meaning we just removed either the start/end node and need to remove dashes
+    // in between until we hit the other node
+    else {
+      if (
+        newStrummingPattern.value.strums[currentColumnIndex]!.palmMute ===
+        (prevValue === "start" ? "end" : "start")
+      ) {
+        finishedModification = true;
+      } else {
+        newStrummingPattern.value.strums[currentColumnIndex]!.palmMute = "";
+        prevValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
+      }
+    }
+  }
+
+  setStrummingPatternBeingEdited(newStrummingPattern);
+}
+
+const initialStoreState = {
+  // tab data
+  originalTabData: null,
+  id: -1,
+  createdById: "",
+  createdAt: null,
+  title: "",
+  description: "",
+  genreId: -1,
+  tuning: "e2 a2 d3 g3 b3 e4",
+  bpm: 75,
+  capo: 0,
+  recordedAudioUrl: "",
+  chords: [],
+  strummingPatterns: [],
+  tabData: [],
+  numberOfLikes: 0,
+  editing: false,
+  sectionProgression: [],
+  currentlyCopiedData: null,
+
+  // modals
+  showSectionProgressionModal: false,
+  showEffectGlossaryModal: false,
+  chordBeingEdited: null,
+  strummingPatternBeingEdited: null,
+  showingEffectGlossary: false,
+
+  // useSound
+  breakOnNextNote: false,
+  showingAudioControls: false,
+  currentlyPlayingMetadata: null,
+  playbackSpeed: 1,
+  currentChordIndex: 0,
+  audioMetadata: {
+    type: "Generated",
+    playing: false,
+    location: null,
+  },
+  looping: false,
+
+  // idk if search needs to be included here
+};
 interface TabState {
   // not sure if this will hurt us later on, but I would like to avoid making all of these optional
   // and instead just set them to default-ish values
@@ -135,9 +297,6 @@ interface TabState {
   setEditing: (editing: boolean) => void;
   sectionProgression: SectionProgression[];
   setSectionProgression: (sectionProgresstion: SectionProgression[]) => void;
-  showingEffectGlossary: boolean;
-  setShowingEffectGlossary: (showingEffectGlossary: boolean) => void;
-
   currentlyCopiedData: CopiedData | null;
   setCurrentlyCopiedData: (currentlyCopiedData: CopiedData | null) => void;
 
@@ -245,6 +404,9 @@ interface TabState {
   // related to search
   searchResultsCount: number;
   setSearchResultsCount: (searchResultsCount: number) => void;
+
+  // reset
+  reset: () => void;
 }
 
 // if you ever come across a situation where you need the current value of tabData
@@ -283,149 +445,21 @@ export const useTabStore = create<TabState>()(
     setChords: (chords) => set({ chords }),
     strummingPatterns: [],
     setStrummingPatterns: (strummingPatterns) => set({ strummingPatterns }),
-    tabData: [
-      {
-        id: uuid(),
-        title: "Section 1",
-        data: [],
-      },
-    ], // temporary, should just be an empty array
+    tabData: [],
     setTabData: (tabData) => set({ tabData }),
     numberOfLikes: 0,
     setNumberOfLikes: (numberOfLikes) => set({ numberOfLikes }),
-    editing: true, // temporary, should be false
+    editing: false,
     setEditing: (editing) => set({ editing }),
     sectionProgression: [],
     setSectionProgression: (sectionProgression) => set({ sectionProgression }),
-    showingEffectGlossary: false,
-    setShowingEffectGlossary: (showingEffectGlossary) =>
-      set({ showingEffectGlossary }),
-
     currentlyCopiedData: null,
     setCurrentlyCopiedData: (currentlyCopiedData) =>
       set({ currentlyCopiedData }),
 
     // used in <TabSection />
-
-    modifyPalmMuteDashes: (
-      tab,
-      setTabData,
-      sectionIndex,
-      subSectionIndex,
-      startColumnIndex,
-      prevValue,
-      pairNodeValue
-    ) => {
-      // technically could just use tabData/setter from the store right?
-      let finishedModification = false;
-      const newTabData = [...tab];
-      let currentColumnIndex = startColumnIndex;
-
-      while (!finishedModification) {
-        // should prob extract to a variable so we can type check it and avoid the
-        // long chain being repeated over and over below
-
-        // start/end node already defined, meaning we just clicked on an empty node to be the other pair node
-        if (pairNodeValue !== undefined) {
-          if (currentColumnIndex === startColumnIndex) {
-            newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-              startColumnIndex
-            ]![0] = pairNodeValue === "" ? "end" : pairNodeValue;
-
-            pairNodeValue === "start"
-              ? currentColumnIndex++
-              : currentColumnIndex--;
-          } else if (
-            newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-              currentColumnIndex
-            ]![0] ===
-            (pairNodeValue === "" || pairNodeValue === "end" ? "start" : "end")
-          ) {
-            finishedModification = true;
-          } else {
-            newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-              currentColumnIndex
-            ]![0] = "-";
-            pairNodeValue === "start"
-              ? currentColumnIndex++
-              : currentColumnIndex--;
-          }
-        }
-        // pair already defined, meaning we just removed either the start/end node and need to remove dashes
-        // in between until we hit the other node
-        else {
-          if (
-            newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-              currentColumnIndex
-            ]?.[0] === (prevValue === "start" ? "end" : "start")
-          ) {
-            finishedModification = true;
-          } else {
-            newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-              currentColumnIndex
-            ]![0] = "";
-            prevValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
-          }
-        }
-      }
-
-      setTabData(newTabData);
-    },
-
-    modifyStrummingPatternPalmMuteDashes: (
-      strummingPatternBeingEdited,
-      setStrummingPatternBeingEdited,
-      startColumnIndex,
-      prevValue,
-      pairNodeValue
-    ) => {
-      // technically could just use tabData/setter from the store right?
-      let finishedModification = false;
-      const newStrummingPattern = { ...strummingPatternBeingEdited };
-      let currentColumnIndex = startColumnIndex;
-
-      while (!finishedModification) {
-        // start/end node already defined, meaning we just clicked on an empty node to be the other pair node
-        if (pairNodeValue !== undefined) {
-          if (currentColumnIndex === startColumnIndex) {
-            newStrummingPattern.value.strums[startColumnIndex]!.palmMute =
-              pairNodeValue === ""
-                ? "end"
-                : (pairNodeValue as "start" | "end" | "-" | "");
-
-            pairNodeValue === "start"
-              ? currentColumnIndex++
-              : currentColumnIndex--;
-          } else if (
-            newStrummingPattern.value.strums[currentColumnIndex]!.palmMute ===
-            (pairNodeValue === "" || pairNodeValue === "end" ? "start" : "end")
-          ) {
-            finishedModification = true;
-          } else {
-            newStrummingPattern.value.strums[currentColumnIndex]!.palmMute =
-              "-";
-            pairNodeValue === "start"
-              ? currentColumnIndex++
-              : currentColumnIndex--;
-          }
-        }
-        // pair already defined, meaning we just removed either the start/end node and need to remove dashes
-        // in between until we hit the other node
-        else {
-          if (
-            newStrummingPattern.value.strums[currentColumnIndex]!.palmMute ===
-            (prevValue === "start" ? "end" : "start")
-          ) {
-            finishedModification = true;
-          } else {
-            newStrummingPattern.value.strums[currentColumnIndex]!.palmMute = "";
-            prevValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
-          }
-        }
-      }
-
-      setStrummingPatternBeingEdited(newStrummingPattern);
-    },
+    modifyPalmMuteDashes,
+    modifyStrummingPatternPalmMuteDashes,
 
     // useSound related
     audioContext: null,
@@ -480,5 +514,8 @@ export const useTabStore = create<TabState>()(
     // search
     searchResultsCount: 0,
     setSearchResultsCount: (searchResultsCount) => set({ searchResultsCount }),
+
+    // reset (investigate what exactly the ts error is saying)
+    reset: () => set(initialStoreState),
   }))
 );

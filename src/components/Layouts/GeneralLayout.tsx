@@ -6,6 +6,7 @@ import useKeepArtistMetadataUpdatedWithClerk from "~/hooks/useKeepArtistMetadata
 import AudioControls from "../AudioControls/AudioControls";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
+import { useRouter } from "next/router";
 import { BsArrowUpShort } from "react-icons/bs";
 import { Button } from "../ui/button";
 import Footer from "../Footer/Footer";
@@ -25,12 +26,15 @@ interface GeneralLayout {
 }
 
 function GeneralLayout({ children }: GeneralLayout) {
+  const { asPath } = useRouter();
+
   // reflects any updates made to username/profileImageUrl in Clerk to the ArtistMetadata
   useKeepArtistMetadataUpdatedWithClerk();
 
-  const { showingAudioControls } = useTabStore(
+  const { showingAudioControls, reset } = useTabStore(
     (state) => ({
       showingAudioControls: state.showingAudioControls,
+      reset: state.reset,
     }),
     shallow
   );
@@ -50,6 +54,15 @@ function GeneralLayout({ children }: GeneralLayout) {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  // not 100% sure these are the right cases, but just trying to reset tab state
+  // to defaults whenever (ideally just leaving, maybe need to keep track of previous route?)
+  // not on a direct tab page
+  useEffect(() => {
+    if (!asPath.includes("/create") && !asPath.includes("/tab")) {
+      reset();
+    }
+  }, [asPath, reset]);
 
   return (
     <div
