@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { motion } from "framer-motion";
