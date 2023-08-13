@@ -12,17 +12,16 @@ import { shallow } from "zustand/shallow";
 function IndividualTabEdit() {
   const router = useRouter();
 
-  const { editing, setEditing } = useTabStore(
+  const { setEditing } = useTabStore(
     (state) => ({
-      editing: state.editing,
       setEditing: state.setEditing,
     }),
     shallow
   );
 
   useEffect(() => {
-    setEditing(true); // zustand setters should be referential so it won't ever be stale
-  }, []);
+    setEditing(true);
+  }, [setEditing]);
 
   const tabIdFromUrl = useMemo(() => {
     if (typeof router.query.id === "string") {
