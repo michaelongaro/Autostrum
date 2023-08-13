@@ -10,9 +10,10 @@ import {
 import { HiOutlineInformationCircle } from "react-icons/hi";
 
 function EffectGlossary() {
-  const { setShowingEffectGlossary } = useTabStore(
+  const { showEffectGlossaryModal, setShowEffectGlossaryModal } = useTabStore(
     (state) => ({
-      setShowingEffectGlossary: state.setShowingEffectGlossary,
+      showEffectGlossaryModal: state.showEffectGlossaryModal,
+      setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
     }),
     shallow
   );
@@ -22,10 +23,10 @@ function EffectGlossary() {
   return (
     <Popover
       onOpenChange={(open) => {
-        setShowingEffectGlossary(open ? true : false);
+        setShowEffectGlossaryModal(open ? true : false);
       }}
       modal={false}
-      open={true}
+      open={showEffectGlossaryModal}
     >
       <PopoverTrigger asChild>
         {/* just used as an anchor for the popover to attach to */}
@@ -41,7 +42,7 @@ function EffectGlossary() {
         <Label>Section effects</Label>
         <Separator className="mb-2 w-full bg-pink-500" />
 
-        <div className="grid w-full grid-cols-5 pl-1 ">
+        <div className="grid w-full grid-cols-5 pl-1 text-sm ">
           <span className="col-span-1">PM</span>
           <span className="col-span-1">-</span>
           <span className="col-span-3">Palm mute</span>
@@ -49,7 +50,7 @@ function EffectGlossary() {
         <Label className="mt-2">Note effects</Label>
         <Separator className="mb-2 w-full bg-pink-500" />
 
-        <div className="grid w-full grid-cols-5 pl-1">
+        <div className="grid w-full grid-cols-5 pl-1 text-sm">
           <span className="col-span-1">h</span>
           <span className="col-span-1">-</span>
           <span className="baseFlex col-span-3 !justify-between">
@@ -60,13 +61,13 @@ function EffectGlossary() {
               </PopoverTrigger>
               <PopoverContent
                 side={"bottom"}
-                className="baseVertFlex max-w-[300px] md:max-w-none"
+                className="baseVertFlex max-w-[300px] gap-1 md:max-w-none"
               >
-                <div className="font-bold">Valid notation examples</div>
+                <div className="font-semibold">Valid notation examples</div>
                 <Separator className="mb-2 w-full" />
                 <div className="baseFlex gap-8">
                   <div className="baseVertFlex gap-2">
-                    <p className="font-semibold">Condensed</p>
+                    <p>Condensed</p>
                     <div className="baseFlex">
                       <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm">
                         3h
@@ -78,7 +79,7 @@ function EffectGlossary() {
                     </div>
                   </div>
                   <div className="baseVertFlex gap-2">
-                    <p className="font-semibold">Expanded</p>
+                    <p>Expanded</p>
                     <div className="baseFlex">
                       <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm">
                         3
@@ -98,7 +99,7 @@ function EffectGlossary() {
             </Popover>
           </span>
         </div>
-        <div className="grid w-full grid-cols-5 pl-1">
+        <div className="grid w-full grid-cols-5 pl-1 text-sm">
           <span className="col-span-1">p</span>
           <span className="col-span-1">-</span>
           <span className="baseFlex col-span-3 !justify-between">
@@ -109,13 +110,13 @@ function EffectGlossary() {
               </PopoverTrigger>
               <PopoverContent
                 side={"bottom"}
-                className="baseVertFlex max-w-[300px] md:max-w-none"
+                className="baseVertFlex max-w-[300px] gap-1 md:max-w-none"
               >
-                <div className="font-bold">Valid notation examples</div>
+                <div className="font-semibold">Valid notation examples</div>
                 <Separator className="mb-2 w-full" />
                 <div className="baseFlex gap-8">
                   <div className="baseVertFlex gap-2">
-                    <p className="font-semibold">Condensed</p>
+                    <p>Condensed</p>
                     <div className="baseFlex">
                       <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm">
                         3p
@@ -127,7 +128,7 @@ function EffectGlossary() {
                     </div>
                   </div>
                   <div className="baseVertFlex gap-2">
-                    <p className="font-semibold">Expanded</p>
+                    <p>Expanded</p>
                     <div className="baseFlex">
                       <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm">
                         3
@@ -147,7 +148,7 @@ function EffectGlossary() {
             </Popover>
           </span>
         </div>
-        <div className="grid w-full grid-cols-5 pl-1">
+        <div className="grid w-full grid-cols-5 pl-1 text-sm">
           <span className="col-span-1">/</span>
           <span className="col-span-1">-</span>
           <span className="baseFlex col-span-3 !justify-between">
@@ -158,13 +159,13 @@ function EffectGlossary() {
               </PopoverTrigger>
               <PopoverContent
                 side={"bottom"}
-                className="baseVertFlex max-w-[300px] md:max-w-none"
+                className="baseVertFlex max-w-[300px] gap-1 md:max-w-none"
               >
-                <div className="font-bold">Valid notation examples</div>
+                <div className="font-semibold">Valid notation examples</div>
                 <Separator className="mb-2 w-full" />
                 <div className="baseFlex gap-8">
                   <div className="baseVertFlex gap-2">
-                    <p className="font-semibold">Condensed</p>
+                    <p>Condensed</p>
                     <div className="baseFlex">
                       <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm">
                         3/
@@ -176,7 +177,7 @@ function EffectGlossary() {
                     </div>
                   </div>
                   <div className="baseVertFlex gap-2">
-                    <p className="font-semibold">Expanded</p>
+                    <p>Expanded</p>
                     <div className="baseFlex">
                       <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm">
                         3
@@ -196,7 +197,7 @@ function EffectGlossary() {
             </Popover>
           </span>
         </div>
-        <div className="grid w-full grid-cols-5 pl-1">
+        <div className="grid w-full grid-cols-5 pl-1 text-sm">
           <span className="col-span-1">\</span>
           <span className="col-span-1">-</span>
           <span className="baseFlex col-span-3 !justify-between">
@@ -207,13 +208,13 @@ function EffectGlossary() {
               </PopoverTrigger>
               <PopoverContent
                 side={"bottom"}
-                className="baseVertFlex max-w-[300px] md:max-w-none"
+                className="baseVertFlex max-w-[300px] gap-1 md:max-w-none"
               >
-                <div className="font-bold">Valid notation examples</div>
+                <div className="font-semibold">Valid notation examples</div>
                 <Separator className="mb-2 w-full" />
                 <div className="baseFlex gap-8">
                   <div className="baseVertFlex gap-2">
-                    <p className="font-semibold">Condensed</p>
+                    <p>Condensed</p>
                     <div className="baseFlex">
                       <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm">
                         3\
@@ -225,7 +226,7 @@ function EffectGlossary() {
                     </div>
                   </div>
                   <div className="baseVertFlex gap-2">
-                    <p className="font-semibold">Expanded</p>
+                    <p>Expanded</p>
                     <div className="baseFlex">
                       <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm">
                         3
@@ -245,22 +246,22 @@ function EffectGlossary() {
             </Popover>
           </span>
         </div>
-        <div className="grid w-full grid-cols-5 pl-1">
+        <div className="grid w-full grid-cols-5 pl-1 text-sm">
           <span className="col-span-1">{">"}</span>
           <span className="col-span-1">-</span>
           <span className="col-span-3">Accented</span>
         </div>
-        <div className="grid w-full grid-cols-5 pl-1">
+        <div className="grid w-full grid-cols-5 pl-1 text-sm">
           <span className="col-span-1">.</span>
           <span className="col-span-1">-</span>
           <span className="col-span-3">Stacatto</span>
         </div>
-        <div className="grid w-full grid-cols-5 pl-1">
+        <div className="grid w-full grid-cols-5 pl-1 text-sm">
           <span className="col-span-1">b</span>
           <span className="col-span-1">-</span>
           <span className="col-span-3">Bend</span>
         </div>
-        <div className="grid w-full grid-cols-5 pl-1">
+        <div className="grid w-full grid-cols-5 pl-1 text-sm">
           <span className="col-span-1">x</span>
           <span className="col-span-1">-</span>
           <span className="col-span-3">Muted note</span>
@@ -268,22 +269,22 @@ function EffectGlossary() {
         <Label className="mt-2">Chord effects</Label>
         <Separator className="mb-2 w-full bg-pink-500" />
 
-        <div className="grid w-full grid-cols-5 pl-1">
+        <div className="grid w-full grid-cols-5 pl-1 text-sm">
           <span className="col-span-1">^</span>
           <span className="col-span-1">-</span>
           <span className="col-span-3">Strum up</span>
         </div>
-        <div className="grid w-full grid-cols-5 pl-1">
+        <div className="grid w-full grid-cols-5 pl-1 text-sm">
           <span className="col-span-1">v</span>
           <span className="col-span-1">-</span>
           <span className="col-span-3">Strum down</span>
         </div>
-        <div className="grid w-full grid-cols-5 pl-1">
+        <div className="grid w-full grid-cols-5 pl-1 text-sm">
           <span className="col-span-1">s</span>
           <span className="col-span-1">-</span>
           <span className="col-span-3">Slap</span>
         </div>
-        <div className="grid w-full grid-cols-5 pl-1">
+        <div className="grid w-full grid-cols-5 pl-1 text-sm">
           <span className="col-span-1">{">"}</span>
           <span className="col-span-1">-</span>
           <span className="col-span-3">Accented</span>
@@ -291,7 +292,7 @@ function EffectGlossary() {
         <Label className="mt-2">Miscellaneous</Label>
         <Separator className="mb-2 w-full bg-pink-500" />
 
-        <div className="grid w-full grid-cols-5 pl-1">
+        <div className="grid w-full grid-cols-5 pl-1 text-sm">
           <span className="col-span-1">|</span>
           <span className="col-span-1">-</span>
           <span className="col-span-3">Measure line</span>
