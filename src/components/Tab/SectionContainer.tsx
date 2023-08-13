@@ -169,7 +169,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
             <div className="baseFlex gap-2">
               <Label className="text-lg font-semibold">Title</Label>
               <Input
-                value={tabData[sectionIndex]?.title}
+                value={sectionData.title}
                 placeholder="Section title"
                 onChange={updateSectionTitle}
                 className="max-w-[10rem] font-semibold sm:max-w-[12rem]"
@@ -188,9 +188,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       {!editing && (
         <div className="baseFlex w-full !justify-start gap-4">
           <div className="baseFlex gap-4 rounded-md bg-pink-600 px-4 py-2">
-            <p className="text-xl font-semibold">
-              {tabData[sectionIndex]?.title}
-            </p>
+            <p className="text-xl font-semibold">{sectionData.title}</p>
 
             <Button
               variant="playPause"
