@@ -693,7 +693,7 @@ function TabSection({
             ) : (
               <div className="absolute left-1 top-6">
                 <Popover>
-                  <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-pink-50/20 active:hover:bg-pink-50/10">
+                  <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-white/20 active:hover:bg-white/10">
                     <HiOutlineInformationCircle className="h-5 w-5 " />
                   </PopoverTrigger>
                   <PopoverContent

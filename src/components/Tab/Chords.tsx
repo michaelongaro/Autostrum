@@ -146,7 +146,7 @@ function Chords() {
                 <>
                   {/* preview button */}
                   <Popover>
-                    <PopoverTrigger className="baseFlex h-full w-8 gap-2 rounded-none border-r-[1px] ">
+                    <PopoverTrigger className="baseFlex mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 active:hover:bg-white/10 ">
                       <HiOutlineInformationCircle className="h-5 w-5" />
                     </PopoverTrigger>
                     <PopoverContent className="w-40">
@@ -163,7 +163,7 @@ function Chords() {
                   <Button
                     variant={"playPause"}
                     size={"sm"}
-                    className="baseFlex h-full w-10 rounded-l-none border-l-[1px]"
+                    className="baseFlex h-full w-10 rounded-l-none border-l-2"
                   >
                     {/* conditional play/pause icon here */}
                     <BsFillPlayFill className="h-6 w-6" />
