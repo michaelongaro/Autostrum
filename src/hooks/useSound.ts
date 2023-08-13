@@ -629,18 +629,16 @@ export default function useSound() {
       duration = 1;
     }
 
-    if (effects.includes("PM")) {
-      gain = 0.01;
-      duration = 0.45;
-    }
     // dead note and palm mute effects require us to basically hijack the note by almost muting it
     // and then creating a copy of it with a delay node, and adjusting the volume/effect from there
     // ^ TODO: wouldn't be too surprised if we can try to refactor by using the "source" prop like in
     // tethered effects
+    if (effects.includes("PM")) {
+      gain = 0.01;
+      // duration = 0.45; I think ideally sustain should be changed, not duration
+      // but it seemed like changing sustain value didn't have intended effect..
+    }
     if (effects.includes("x")) {
-      // pretty sure leaving PM out of this is fine because it is at the end
-      // of the filter connect chain so every note before should have it's gain to w/e value it is supposed
-      // to be at already coming into applyPalmMute()
       gain = 0.01;
       duration = 0.35; // play around with this value
     }
