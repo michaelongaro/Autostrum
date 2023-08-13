@@ -158,7 +158,8 @@ function ChordSequence({
 
   return (
     <>
-      {Object.keys(chordSequenceData.strummingPattern).length === 0 ? (
+      {editing &&
+      Object.keys(chordSequenceData.strummingPattern).length === 0 ? (
         <div
           style={{
             borderTopLeftRadius: chordSequenceData.repetitions > 1 ? 0 : "auto",
