@@ -200,7 +200,14 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
     return (
       <TableRow ref={ref} className="w-full">
         <TableCell className="min-w-[100px] font-medium">
-          <Link href={`/tab/${tab.id}`}>{tab.title}</Link>
+          <Button variant={"link"} asChild>
+            <Link
+              href={`/tab/${tab.id}`}
+              className="!p-0 !text-lg !font-semibold"
+            >
+              {tab.title}
+            </Link>
+          </Button>
         </TableCell>
         <TableCell>
           <div

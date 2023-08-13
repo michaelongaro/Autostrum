@@ -222,7 +222,14 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         >
           {/* title & date */}
           <div className="baseVertFlex !items-start p-2">
-            <p className="text-lg font-semibold">{tab.title}</p>
+            <Button variant={"link"} asChild>
+              <Link
+                href={`/tab/${tab.id}`}
+                className="!p-0 !text-lg !font-semibold"
+              >
+                {tab.title}
+              </Link>
+            </Button>
             <p className="text-sm text-pink-50/90">
               {formatDate(tab.createdAt)}
             </p>
