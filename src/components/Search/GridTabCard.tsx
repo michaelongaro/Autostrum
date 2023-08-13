@@ -1,4 +1,4 @@
-import React, { forwardRef, useState, useMemo } from "react";
+import { forwardRef, useState, useMemo, useRef } from "react";
 import type { Genre, Tab } from "@prisma/client";
 import { motion } from "framer-motion";
 import { Separator } from "../ui/separator";
@@ -16,6 +16,7 @@ import { useRouter } from "next/router";
 import type { TabWithLikes } from "~/server/api/routers/tab";
 import { Badge } from "../ui/badge";
 import type { RefetchTab } from "../Tab/Tab";
+import TabPreview from "../Tab/TabPreview";
 
 interface GridTabCard extends RefetchTab {
   tab: TabWithLikes;
@@ -25,6 +26,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
   ({ tab, refetchTab }, ref) => {
     const { userId, isLoaded } = useAuth();
     const { push, asPath } = useRouter();
+    const previewRef = useRef<HTMLDivElement>(null);
 
     const genreArray = api.genre.getAll.useQuery();
 
@@ -209,8 +211,24 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         transition={{ duration: 0.25 }}
         className="lightestGlassmorphic baseVertFlex w-full rounded-md border-2"
       >
-        {/* preview */}
-        <div className="h-36 w-full rounded-t-md bg-gray-200"></div>
+        {/* tab preview */}
+        <div
+          ref={previewRef}
+          onClick={() => {
+            void push(`/tab/${tab.id}`, undefined, {
+              scroll: false, // defaults to true but try both
+              shallow: true,
+            });
+          }}
+          className="relative h-36 w-full cursor-pointer overflow-hidden rounded-t-md transition-all hover:bg-black/10 active:bg-black/20"
+        >
+          <TabPreview
+            tab={tab}
+            scale={
+              (previewRef.current?.getBoundingClientRect()?.width ?? 0) / 1200
+            }
+          />
+        </div>
 
         <Separator />
 
