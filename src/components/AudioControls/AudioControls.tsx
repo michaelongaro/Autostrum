@@ -154,6 +154,7 @@ function AudioControls() {
   useEffect(() => {
     if (currentChordIndex === 0) {
       setPreviousChordIndex(0);
+      setTabProgressValue(0);
     } else {
       setPreviousChordIndex(currentChordIndex - 1);
     }
