@@ -20,7 +20,7 @@ const buttonVariants = cva(
           "lightGlassmorphic text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/60 border-2",
         ghost:
           "hover:bg-accent hover:text-accent-foreground active:bg-accent/60",
-        link: "underline-offset-4 hover:underline text-primary",
+        link: "underline-offset-4 hover:underline",
         recording: "bg-blue-600 hover:bg-blue-700 active:bg-blue-800",
         toggledOn:
           "bg-primary text-primary-foreground hover:bg-primary/80 active:bg-primary/60 border-2",
