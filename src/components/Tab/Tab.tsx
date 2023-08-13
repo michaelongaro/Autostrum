@@ -4,6 +4,7 @@ import { useClerk, useAuth } from "@clerk/nextjs";
 import TabMetadata from "./TabMetadata";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
+import { v4 as uuid } from "uuid";
 import { AnimatePresence, LayoutGroup } from "framer-motion";
 import SectionProgression from "./SectionProgression";
 import SectionProgressionModal from "../modals/SectionProgressionModal";
@@ -12,7 +13,6 @@ import { Button } from "../ui/button";
 import { FaItunesNote } from "react-icons/fa";
 import { FaBook } from "react-icons/fa";
 import { Separator } from "../ui/separator";
-import { v4 as uuid } from "uuid";
 import EffectGlossary from "../ui/EffectGlossary";
 import type { TabWithLikes } from "~/server/api/routers/tab";
 import type {
@@ -147,6 +147,17 @@ function Tab({ tab, refetchTab }: ITab) {
     setNumberOfLikes,
     setSectionProgression,
   ]);
+
+  useEffect(() => {
+    if (!tab)
+      setTabData([
+        {
+          id: uuid(),
+          title: "Section 1",
+          data: [],
+        },
+      ]);
+  }, [tab, setTabData]);
 
   function addNewSection() {
     const newTabData = [...tabData];
