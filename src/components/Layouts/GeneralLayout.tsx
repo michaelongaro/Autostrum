@@ -31,10 +31,11 @@ function GeneralLayout({ children }: GeneralLayout) {
   // reflects any updates made to username/profileImageUrl in Clerk to the ArtistMetadata
   useKeepArtistMetadataUpdatedWithClerk();
 
-  const { showingAudioControls, reset } = useTabStore(
+  const { showingAudioControls, reset, setEditing } = useTabStore(
     (state) => ({
       showingAudioControls: state.showingAudioControls,
       reset: state.reset,
+      setEditing: state.setEditing,
     }),
     shallow
   );
@@ -59,10 +60,16 @@ function GeneralLayout({ children }: GeneralLayout) {
   // to defaults whenever (ideally just leaving, maybe need to keep track of previous route?)
   // not on a direct tab page
   useEffect(() => {
-    if (!asPath.includes("/create") && !asPath.includes("/tab")) {
+    // only case where we want to keep tab state is when we are navigating onto a tab
+    // page, or going to /edit from a tab page, etc.
+    if (!asPath.includes("/tab")) {
       reset();
     }
-  }, [asPath, reset]);
+
+    if (asPath.includes("/create") || asPath.includes("edit")) {
+      setEditing(true);
+    }
+  }, [asPath, reset, setEditing]);
 
   return (
     <div
@@ -72,8 +79,6 @@ function GeneralLayout({ children }: GeneralLayout) {
       }}
       className="baseVertFlex relative min-h-[100dvh] !justify-between"
     >
-      {/* not sure why setting z-index 0 on Bubbles doesn't make everything else automatically
-          interactable */}
       <Bubbles />
       <Header />
 

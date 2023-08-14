@@ -1,27 +1,14 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import Tab from "~/components/Tab/Tab";
 import { motion } from "framer-motion";
-import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
 
 // not sure if this is correct file routing for slug
 
 // not sure if this is the best name for this component
 function IndividualTabEdit() {
   const router = useRouter();
-
-  const { setEditing } = useTabStore(
-    (state) => ({
-      setEditing: state.setEditing,
-    }),
-    shallow
-  );
-
-  useEffect(() => {
-    setEditing(true);
-  }, [setEditing]);
 
   const tabIdFromUrl = useMemo(() => {
     if (typeof router.query.id === "string") {
