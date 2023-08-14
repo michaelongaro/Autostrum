@@ -63,6 +63,7 @@ export const chordSectionSchema = z.object({
 
 export const sectionSchema = z.array(
   z.object({
+    id: z.string(),
     title: z.string(),
     data: z.array(z.union([tabSectionSchema, chordSectionSchema])),
   })
