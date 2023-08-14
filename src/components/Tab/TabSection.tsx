@@ -698,10 +698,24 @@ function TabSection({
                   </PopoverTrigger>
                   <PopoverContent
                     side={"right"}
-                    className="max-w-[300px] md:max-w-none"
+                    className="w-[300px] md:w-full"
                   >
-                    <div>
-                      You can navigate through inputs with your arrow keys.
+                    <div className="baseVertFlex gap-1">
+                      <p className="font-semibold">Hotkeys</p>
+                      <ul className="list-disc pl-4">
+                        <li>
+                          You can navigate through inputs with your arrow keys.
+                        </li>
+                        <li>
+                          Press <span className="font-semibold">A-G </span>
+                          for respective major chords.
+                        </li>
+                        <li>
+                          Press <span className="font-semibold">a-g </span>
+                          for respective minor chords.
+                        </li>
+                        <li>Copying & pasting chords work as expected.</li>
+                      </ul>
                     </div>
                   </PopoverContent>
                 </Popover>
@@ -743,7 +757,7 @@ function TabSection({
           <SortableContext items={columnIds} strategy={rectSortingStrategy}>
             {subSectionData.data.map((column, index) => (
               <TabColumn
-                key={index}
+                key={column[9]} // this is a unique id for the column
                 columnData={column}
                 sectionIndex={sectionIndex}
                 subSectionIndex={subSectionIndex}
