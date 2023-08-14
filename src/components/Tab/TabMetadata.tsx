@@ -739,7 +739,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                           }'s profile image`}
                           width={32}
                           height={32}
-                          className="h-8 w-8 rounded-full bg-pink-800"
+                          className="h-8 w-8 rounded-full bg-pink-800 object-cover object-center"
                         ></Image>
                         <span className="text-lg">
                           {tabCreator?.username ?? "Anonymous"}

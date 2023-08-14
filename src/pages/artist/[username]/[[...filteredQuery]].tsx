@@ -69,7 +69,7 @@ function ArtistProfile() {
                 alt={`${artist?.username ?? "Anonymous"}'s profile image`}
                 width={64}
                 height={64}
-                className="h-16 w-16 rounded-full bg-pink-800"
+                className="h-16 w-16 rounded-full bg-pink-800 object-cover object-center"
               ></Image>
             ) : (
               <Skeleton className="h-16 w-16 rounded-full bg-pink-800" />

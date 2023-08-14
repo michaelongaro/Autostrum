@@ -56,7 +56,7 @@ const TableArtistRow = forwardRef<HTMLTableRowElement, ArtistMetadata>(
                 alt={`${artist.username ?? "Anonymous"}'s profile image`}
                 width={32}
                 height={32}
-                className="h-8 w-8 rounded-full bg-pink-800"
+                className="h-8 w-8 rounded-full bg-pink-800 object-cover object-center"
               ></Image>
               <span className="text-semibold">
                 {artist.username ?? "Anonymous"}

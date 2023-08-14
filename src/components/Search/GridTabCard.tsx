@@ -238,8 +238,8 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
           }}
           className="baseFlex w-full !justify-between"
         >
-          {/* title & date */}
-          <div className="baseVertFlex !items-start p-2">
+          {/* title, date, and genre */}
+          <div className="baseVertFlex !items-start pb-2 pl-2">
             <Button variant={"link"} asChild>
               <Link
                 href={`/tab/${tab.id}`}
@@ -279,7 +279,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                       }'s profile image`}
                       width={32}
                       height={32}
-                      className="h-8 w-8 rounded-full bg-pink-800"
+                      className="h-8 w-8 rounded-full bg-pink-800 object-cover object-center"
                     ></Image>
                     <span className="w-[58px] truncate">
                       {tabCreator?.username ?? "Anonymous"}
