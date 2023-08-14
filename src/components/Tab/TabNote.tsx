@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Input } from "../ui/input";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
@@ -18,11 +18,19 @@ function TabNote({
   columnIndex,
   noteIndex,
 }: TabNote) {
-  const { editing, tabData, setTabData } = useTabStore(
+  const {
+    editing,
+    tabData,
+    setTabData,
+    currentlyCopiedChord,
+    setCurrentlyCopiedChord,
+  } = useTabStore(
     (state) => ({
       editing: state.editing,
       tabData: state.tabData,
       setTabData: state.setTabData,
+      currentlyCopiedChord: state.currentlyCopiedChord,
+      setCurrentlyCopiedChord: state.setCurrentlyCopiedChord,
     }),
     shallow
   );
@@ -107,21 +115,10 @@ function TabNote({
   // }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    const newTabData = [...tabData];
-
-    // v/d for downstrum and ^/u for upstrum
-    if (e.key === "d" && noteIndex === 7) {
-      newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex]![
-        noteIndex
-      ] = "v";
-    } else if (e.key === "u" && noteIndex === 7) {
-      newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex]![
-        noteIndex
-      ] = "^";
-    }
+    e.stopPropagation();
 
     // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
-    else if (e.key === "ArrowDown") {
+    if (e.key === "ArrowDown") {
       e.preventDefault(); // prevent cursor from moving
 
       const newNoteToFocus = document.getElementById(
@@ -131,6 +128,7 @@ function TabNote({
       );
 
       newNoteToFocus?.focus();
+      return;
     } else if (e.key === "ArrowUp") {
       e.preventDefault(); // prevent cursor from moving
 
@@ -141,6 +139,7 @@ function TabNote({
       );
 
       newNoteToFocus?.focus();
+      return;
     } else if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
 
@@ -156,6 +155,7 @@ function TabNote({
       );
 
       newNoteToFocus?.focus();
+      return;
     } else if (e.key === "ArrowRight") {
       e.preventDefault(); // prevent cursor from moving
 
@@ -171,6 +171,51 @@ function TabNote({
       );
 
       newNoteToFocus?.focus();
+      return;
+    }
+
+    const newTabData = [...tabData];
+
+    // v/d for downstrum and ^/u for upstrum
+    if ((e.key === "d" || e.key === "u") && noteIndex === 7) {
+      if (e.key === "d") {
+        newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex]![
+          noteIndex
+        ] = "v";
+      } else {
+        newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex]![
+          noteIndex
+        ] = "^";
+      }
+    } else if (
+      (e.ctrlKey && e.key === "c") || // Control + C for Windows/Linux
+      (e.metaKey && e.key === "c") // Command + C for macOS
+    ) {
+      e.preventDefault();
+
+      const copiedChord = newTabData[sectionIndex]!.data[subSectionIndex].data[
+        columnIndex
+      ]!.slice(1, 8);
+
+      setCurrentlyCopiedChord(copiedChord as string[]);
+    } else if (
+      currentlyCopiedChord &&
+      ((e.ctrlKey && e.key === "v") || // Control + V for Windows/Linux
+        (e.metaKey && e.key === "v")) // Command + V for macOS
+    ) {
+      e.preventDefault();
+
+      const palmMuteNode =
+        newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex]![0];
+      const id =
+        newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex]![9];
+
+      newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex] = [
+        palmMuteNode ?? "",
+        ...currentlyCopiedChord,
+        "note",
+        id,
+      ];
     }
 
     setTabData(newTabData);
@@ -353,4 +398,4 @@ function TabNote({
   );
 }
 
-export default TabNote;
+export default memo(TabNote);
