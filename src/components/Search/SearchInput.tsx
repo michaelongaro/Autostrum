@@ -206,9 +206,6 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
         </AnimatePresence>
       </div>
 
-      {/* TODO: I really don't like how if you have a <Button><Link> setup, they are treated as two separate things, I feel like you should make a 
-              custom class to apply to <Link>s that make them look exactly like buttons, but can click the whole thing and tabbing will just highlight the link! */}
-
       <Button
         onClick={() => {
           setHidingAutofillResults(true);
