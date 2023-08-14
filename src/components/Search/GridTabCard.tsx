@@ -263,7 +263,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
             )}
           </div>
 
-          {/* user link & likes & play button */}
+          {/* artist link & likes & play button */}
           <div className="baseFlex gap-2">
             <div className="baseVertFlex gap-1">
               <div className="baseFlex gap-2 px-2 py-1">
@@ -281,7 +281,9 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                       height={32}
                       className="h-8 w-8 rounded-full bg-pink-800"
                     ></Image>
-                    <span>{tabCreator?.username ?? "Anonymous"}</span>
+                    <span className="w-[58px] truncate">
+                      {tabCreator?.username ?? "Anonymous"}
+                    </span>
                   </Link>
                 </Button>
               </div>
