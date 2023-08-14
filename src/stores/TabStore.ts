@@ -230,6 +230,7 @@ const initialStoreState = {
   editing: false,
   sectionProgression: [],
   currentlyCopiedData: null,
+  currentlyCopiedChord: null,
 
   // modals
   showSectionProgressionModal: false,
@@ -299,6 +300,8 @@ interface TabState {
   setSectionProgression: (sectionProgresstion: SectionProgression[]) => void;
   currentlyCopiedData: CopiedData | null;
   setCurrentlyCopiedData: (currentlyCopiedData: CopiedData | null) => void;
+  currentlyCopiedChord: string[] | null;
+  setCurrentlyCopiedChord: (currentlyCopiedChord: string[] | null) => void;
 
   // used in <TabSection />
   modifyPalmMuteDashes: (
@@ -456,6 +459,9 @@ export const useTabStore = create<TabState>()(
     currentlyCopiedData: null,
     setCurrentlyCopiedData: (currentlyCopiedData) =>
       set({ currentlyCopiedData }),
+    currentlyCopiedChord: null,
+    setCurrentlyCopiedChord: (currentlyCopiedChord) =>
+      set({ currentlyCopiedChord }),
 
     // used in <TabSection />
     modifyPalmMuteDashes,
