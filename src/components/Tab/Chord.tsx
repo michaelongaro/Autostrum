@@ -173,7 +173,7 @@ function Chord({ chordBeingEdited, editing }: Chord) {
               style={{
                 margin: editing ? "0" : "0.75rem 0",
               }}
-              className="h-[1px] w-2 flex-[1] bg-pink-50/50"
+              className="h-[1px] w-4 flex-[1] bg-pink-50/50"
             ></div>
             {editing ? (
               <Input
@@ -220,7 +220,7 @@ function Chord({ chordBeingEdited, editing }: Chord) {
               style={{
                 margin: editing ? "0" : "0.75rem 0",
               }}
-              className="h-[1px] w-2 flex-[1] bg-pink-50/50"
+              className="h-[1px] w-4 flex-[1] bg-pink-50/50"
             ></div>
           </div>
         ))}
