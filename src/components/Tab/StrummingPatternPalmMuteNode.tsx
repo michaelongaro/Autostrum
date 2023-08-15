@@ -24,6 +24,8 @@ interface StrummingPatternPalmMuteNode {
   setLastModifiedPalmMuteNode: Dispatch<
     SetStateAction<LastModifiedPalmMuteNodeLocation | null>
   >;
+  darkMode: boolean;
+  viewingInSelectDropdown: boolean;
   editing: boolean;
 }
 
@@ -35,6 +37,8 @@ function StrummingPatternPalmMuteNode({
   setEditingPalmMuteNodes,
   lastModifiedPalmMuteNode,
   setLastModifiedPalmMuteNode,
+  darkMode,
+  viewingInSelectDropdown,
   editing,
 }: StrummingPatternPalmMuteNode) {
   const [hoveringOnPalmMuteNode, setHoveringOnPalmMuteNode] = useState(false);
@@ -284,15 +288,34 @@ function StrummingPatternPalmMuteNode({
       {!editing && (value === "start" || value === "end") && (
         <>
           {value === "start" && (
-            <div className="baseFlex relative w-full !flex-nowrap">
+            <div
+              style={{
+                margin: viewingInSelectDropdown ? "0.15rem 0" : "0",
+              }}
+              className="baseFlex relative w-full !flex-nowrap"
+            >
               |<i className="absolute -top-3 left-3">PM</i>
-              <div className="h-[1px] w-full bg-pink-50"></div>
+              <div
+                className={` h-[1px] w-full ${
+                  darkMode ? "bg-foreground" : "bg-background"
+                }`}
+              ></div>
             </div>
           )}
 
           {value === "end" && (
-            <div className="baseFlex relative w-full !flex-nowrap">
-              <div className="h-[1px] w-full bg-pink-50"></div>|
+            <div
+              style={{
+                margin: viewingInSelectDropdown ? "0.15rem 0" : "0",
+              }}
+              className=" baseFlex relative w-full !flex-nowrap"
+            >
+              <div
+                className={` h-[1px] w-full ${
+                  darkMode ? "bg-foreground" : "bg-background"
+                }`}
+              ></div>
+              |
             </div>
           )}
         </>
@@ -348,7 +371,9 @@ function StrummingPatternPalmMuteNode({
           style={{
             margin: editing ? "1.1rem 0" : "0.75rem 0", // guessing on 0.75rem value
           }}
-          className="h-[1px] w-full bg-pink-50"
+          className={`h-[1px] w-full ${
+            darkMode ? "bg-foreground" : "bg-background"
+          }`}
         ></div>
       )}
     </>
