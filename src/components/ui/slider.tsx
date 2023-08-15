@@ -18,12 +18,21 @@ const Slider = React.forwardRef<
     null
   );
 
+  // wasn't working by setting inline styles on <Track />, so doing same treatment
+  // as with thumb here
+  const [trackElemNode, setTrackElemNode] = useState<HTMLSpanElement | null>(
+    null
+  );
+
   useEffect(() => {
     setTimeout(() => {
       const audioSliderNode = document.getElementById("audioSlider");
       if (audioSliderNode) {
         setThumbElemNode(
           Array.from(audioSliderNode.children).at(-1) as HTMLSpanElement
+        );
+        setTrackElemNode(
+          Array.from(audioSliderNode.children[0].children)[0] as HTMLSpanElement
         );
       }
     }, 1000);
@@ -38,19 +47,28 @@ const Slider = React.forwardRef<
   );
 
   useEffect(() => {
-    if (!thumbElemNode) return;
+    if (!thumbElemNode || !trackElemNode) return;
 
     if (currentChordIndex === 0 && !audioMetadata.playing) {
       thumbElemNode.style.transition = "none";
+      trackElemNode.style.transition = "none";
       return;
     }
 
     if (isDragging) {
       thumbElemNode.style.transition = "none";
+      trackElemNode.style.transition = "none";
     } else {
       thumbElemNode.style.transition = "left 1s linear";
+      trackElemNode.style.transition = "right 1s linear";
     }
-  }, [thumbElemNode, isDragging, currentChordIndex, audioMetadata.playing]);
+  }, [
+    thumbElemNode,
+    trackElemNode,
+    isDragging,
+    currentChordIndex,
+    audioMetadata.playing,
+  ]);
 
   return (
     <SliderPrimitive.Root
@@ -67,15 +85,7 @@ const Slider = React.forwardRef<
         onPointerUp={() => setIsDragging(false)}
         className="relative h-2 w-full grow cursor-pointer overflow-hidden rounded-full bg-secondary"
       >
-        <SliderPrimitive.Range
-          style={{
-            transition:
-              isDragging || (currentChordIndex === 0 && !audioMetadata.playing)
-                ? "none"
-                : "right 1s linear",
-          }}
-          className="active absolute h-full bg-primary"
-        />
+        <SliderPrimitive.Range className="active absolute h-full bg-primary" />
       </SliderPrimitive.Track>
 
       <SliderPrimitive.Thumb

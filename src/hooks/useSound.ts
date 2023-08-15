@@ -1540,6 +1540,19 @@ export default function useSound() {
       if (chordIndex === compiledChords.length - 1) {
         // if looping, reset the chordIndex to -1 and continue
         if (loopingRef.current && audioMetadataRef.current.playing) {
+          // semi-hacky way to *instantly* reset thumb + track position to
+          // beginning of slider w/ no transition
+          const audioSliderNode = document.getElementById("audioSlider");
+          if (audioSliderNode) {
+            const childElements = Array.from(audioSliderNode.children);
+
+            childElements[0].children[0].style.transition = "none";
+            childElements[0].children[0].style.right = "100%";
+
+            childElements[1].style.transition = "none";
+            childElements[1].style.left = "0";
+          }
+
           chordIndex = -1;
           setCurrentChordIndex(0);
           continue;
@@ -1594,7 +1607,9 @@ export default function useSound() {
     });
     currentInstrument?.stop();
 
-    // TOOD: most likely should be clearing out currentNoteArrayRef I think too
+    for (let i = 0; i < currentNoteArrayRef.current.length; i++) {
+      currentNoteArrayRef.current[i]?.stop();
+    }
 
     if (resetToStart) {
       setCurrentChordIndex(0);
