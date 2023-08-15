@@ -57,8 +57,6 @@ function StrummingPatterns() {
   ) {
     const newTabData = [...tabData];
 
-    // debugger;
-
     for (
       let sectionIndex = newTabData.length - 1;
       sectionIndex >= 0;
@@ -105,7 +103,6 @@ function StrummingPatterns() {
 
     const prevStrummingPatterns = [...strummingPatterns];
     prevStrummingPatterns.splice(index, 1);
-    console.log("prevPatterns", prevStrummingPatterns);
     setStrummingPatterns(prevStrummingPatterns);
   }
 
@@ -133,7 +130,7 @@ function StrummingPatterns() {
           strummingPatterns.length > 0 ? "gap-4" : "gap-0"
         }`}
       >
-        <div className="baseFlex gap-4">
+        <div className="baseFlex !items-start !justify-start gap-4">
           {strummingPatterns.map((pattern, index) => (
             <div
               key={index}
@@ -184,7 +181,7 @@ function StrummingPatterns() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent>
-                        <div className="baseVertFlex gap-2">
+                        <div className="baseVertFlex gap-4">
                           <p className="w-auto text-sm">
                             Chord progressions that use this pattern will be
                             modified.
@@ -192,9 +189,9 @@ function StrummingPatterns() {
 
                           <div className="baseFlex gap-4">
                             <Button
-                              variant={"secondary"}
+                              variant={"outline"}
                               size="sm"
-                              // className="baseFlex h-8 w-1/2"
+                              className="border-none"
                               onClick={() =>
                                 setShowingDeletePopover((prev) => {
                                   const prevShowingDeletePopover = [...prev];
