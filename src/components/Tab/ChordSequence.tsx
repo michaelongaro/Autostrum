@@ -22,6 +22,7 @@ import { Label } from "../ui/label";
 import { type ChordSequence as ChordSequenceData } from "~/stores/TabStore";
 import { Input } from "../ui/input";
 import MiscellaneousControls from "./MiscellaneousControls";
+import StrummingPatternPreview from "./StrummingPatternPreview";
 
 export interface ChordSequence {
   sectionId: string;
@@ -202,7 +203,7 @@ function ChordSequence({
             borderTopLeftRadius:
               !editing && chordSequenceData.repetitions > 1 ? 0 : "0.375rem",
           }}
-          className="baseVertFlex relative w-full !justify-start gap-2 rounded-md border-[1px] border-pink-50 p-4"
+          className="baseVertFlex relative w-full !justify-start gap-4 rounded-md border-[1px] border-pink-50 p-4"
         >
           {editing && (
             <div className="baseFlex w-full !items-start">
@@ -245,7 +246,15 @@ function ChordSequence({
                     value={`${indexOfCurrentlySelectedStrummingPattern}`}
                   >
                     <SelectTrigger className="w-auto">
-                      <SelectValue />
+                      <SelectValue>
+                        <StrummingPatternPreview
+                          data={
+                            strummingPatterns[
+                              indexOfCurrentlySelectedStrummingPattern
+                            ]!
+                          }
+                        />
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
