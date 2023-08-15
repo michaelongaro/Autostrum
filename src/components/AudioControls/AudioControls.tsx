@@ -216,6 +216,7 @@ function AudioControls() {
         baselineBpm: bpm,
         chords,
         capo,
+        playbackSpeed,
         location: audioMetadata.location ?? undefined,
       });
       setWaitForCurrentChordIndexToUpdate(false);
@@ -230,6 +231,7 @@ function AudioControls() {
     capo,
     chords,
     playTab,
+    playbackSpeed,
     sectionProgression,
     tabData,
     tuning,
@@ -393,15 +395,17 @@ function AudioControls() {
                 <Select
                   disabled={audioMetadata.type === "Artist recorded"}
                   value={currentInstrumentName}
-                  onValueChange={(value) =>
+                  onValueChange={(value) => {
+                    void pauseTab();
+
                     setCurrentInstrumentName(
                       value as
                         | "acoustic_guitar_nylon"
                         | "acoustic_guitar_steel"
                         | "electric_guitar_clean"
                         | "electric_guitar_jazz"
-                    )
-                  }
+                    );
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -435,17 +439,31 @@ function AudioControls() {
                 <Select
                   disabled={audioMetadata.type === "Artist recorded"}
                   value={`${playbackSpeed}x`}
-                  onValueChange={(value) =>
-                    setPlaybackSpeed(
-                      Number(value.slice(0, value.length - 1)) as
-                        | 0.25
-                        | 0.5
-                        | 0.75
-                        | 1
-                        | 1.25
-                        | 1.5
-                    )
-                  }
+                  onValueChange={(value) => {
+                    const wasPlaying = audioMetadata.playing;
+                    void pauseTab();
+
+                    const newPlaybackSpeed = Number(
+                      value.slice(0, value.length - 1)
+                    ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
+
+                    setPlaybackSpeed(newPlaybackSpeed);
+
+                    if (wasPlaying) {
+                      setTimeout(() => {
+                        void playTab({
+                          tabData,
+                          rawSectionProgression: sectionProgression,
+                          tuningNotes: tuning,
+                          baselineBpm: bpm,
+                          chords,
+                          capo,
+                          playbackSpeed: newPlaybackSpeed,
+                          location: audioMetadata.location ?? undefined,
+                        });
+                      }, 1000);
+                    }
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -561,6 +579,7 @@ function AudioControls() {
                   baselineBpm: bpm,
                   chords,
                   capo,
+                  playbackSpeed,
                   location: audioMetadata.location ?? undefined,
                 });
               }
@@ -710,15 +729,17 @@ function AudioControls() {
                   <Label>Instrument</Label>
                   <Select
                     value={currentInstrumentName}
-                    onValueChange={(value) =>
+                    onValueChange={(value) => {
+                      void pauseTab();
+
                       setCurrentInstrumentName(
                         value as
                           | "acoustic_guitar_nylon"
                           | "acoustic_guitar_steel"
                           | "electric_guitar_clean"
                           | "electric_guitar_jazz"
-                      )
-                    }
+                      );
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -750,7 +771,10 @@ function AudioControls() {
                   <Label>Speed</Label>
                   <Select
                     value={`${playbackSpeed}x`}
-                    onValueChange={(value) =>
+                    onValueChange={(value) => {
+                      const wasPlaying = audioMetadata.playing;
+                      void pauseTab();
+
                       setPlaybackSpeed(
                         Number(value.slice(0, value.length - 1)) as
                           | 0.25
@@ -759,8 +783,23 @@ function AudioControls() {
                           | 1
                           | 1.25
                           | 1.5
-                      )
-                    }
+                      );
+
+                      if (wasPlaying) {
+                        setTimeout(() => {
+                          void playTab({
+                            tabData,
+                            rawSectionProgression: sectionProgression,
+                            tuningNotes: tuning,
+                            baselineBpm: bpm,
+                            chords,
+                            capo,
+                            playbackSpeed,
+                            location: audioMetadata.location ?? undefined,
+                          });
+                        }, 1000);
+                      }
+                    }}
                   >
                     <SelectTrigger className="w-24">
                       <SelectValue />

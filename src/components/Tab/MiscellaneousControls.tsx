@@ -62,6 +62,7 @@ function MiscellaneousControls({
     setTabData,
     currentlyCopiedData,
     setCurrentlyCopiedData,
+    playbackSpeed,
   } = useTabStore(
     (state) => ({
       chords: state.chords,
@@ -79,6 +80,7 @@ function MiscellaneousControls({
       setTabData: state.setTabData,
       currentlyCopiedData: state.currentlyCopiedData,
       setCurrentlyCopiedData: state.setCurrentlyCopiedData,
+      playbackSpeed: state.playbackSpeed,
     }),
     shallow
   );
@@ -391,6 +393,7 @@ function MiscellaneousControls({
                 baselineBpm: bpm,
                 chords,
                 capo,
+                playbackSpeed,
                 location: {
                   sectionIndex,
                   subSectionIndex,

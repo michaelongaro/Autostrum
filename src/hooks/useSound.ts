@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import Soundfont from "soundfont-player";
 import { parse } from "react-guitar-tunings";
 import { useTabStore } from "~/stores/TabStore";
@@ -31,7 +31,7 @@ export default function useSound() {
     setCurrentlyPlayingMetadata,
     currentInstrumentName,
     setCurrentInstrumentName,
-    playbackSpeed,
+    playbackSpeed: storePlaybackSpeed,
     setPlaybackSpeed,
     currentChordIndex,
     setCurrentChordIndex,
@@ -42,6 +42,12 @@ export default function useSound() {
     currentInstrument,
     setCurrentInstrument,
     looping,
+
+    bpm,
+    tabData,
+    sectionProgression,
+    chords,
+    strummingPatterns,
   } = useTabStore(
     (state) => ({
       audioContext: state.audioContext,
@@ -67,9 +73,54 @@ export default function useSound() {
       currentInstrument: state.currentInstrument,
       setCurrentInstrument: state.setCurrentInstrument,
       looping: state.looping,
+
+      bpm: state.bpm,
+      tabData: state.tabData,
+      sectionProgression: state.sectionProgression,
+      chords: state.chords,
+      strummingPatterns: state.strummingPatterns,
     }),
     shallow
   );
+
+  useEffect(() => {
+    if (tabData.length === 0 || tabData[0]?.data.length === 0) return;
+
+    // TODO: actually will need to I think set the metadata to be empty/null if above case is true
+    // otherwise if no tab data at all, clicking play will crash app
+
+    if (audioMetadata.location) {
+      compileSpecificChordGrouping({
+        tabData,
+        location: audioMetadata.location,
+        chords,
+        baselineBpm: bpm,
+        playbackSpeed: storePlaybackSpeed,
+      });
+    } else {
+      const sanitizedSectionProgression =
+        sectionProgression.length > 0
+          ? sectionProgression
+          : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
+
+      compileFullTab({
+        tabData,
+        sectionProgression: sanitizedSectionProgression,
+        chords,
+        baselineBpm: bpm,
+        playbackSpeed: storePlaybackSpeed,
+      });
+    }
+  }, [
+    bpm,
+    tabData,
+    storePlaybackSpeed,
+    audioMetadata.location,
+    sectionProgression,
+    chords,
+    strummingPatterns,
+    // maybe wrap compile functions in useCallback, just w/ no deps on the callback to make react happy
+  ]);
 
   useEffect(() => {
     if (audioContext && masterVolumeGainNode) return;
@@ -312,7 +363,12 @@ export default function useSound() {
     }
   }
 
-  function playSlapSound(accented: boolean) {
+  interface PlaySlapSound {
+    accented: boolean;
+    palmMuted: boolean;
+  }
+
+  function playSlapSound({ accented, palmMuted }: PlaySlapSound) {
     if (!audioContext || !masterVolumeGainNode) return;
 
     // stopping all notes currently playing
@@ -347,11 +403,14 @@ export default function useSound() {
     // Create a GainNode to control the volume
     const gainNode = audioContext.createGain();
 
-    // TODO: Adjust gain based on string index for more volume on lower strings
-    gainNode.gain.setValueAtTime(
-      accented ? 0.45 : 0.25,
-      audioContext.currentTime
-    );
+    let gainTarget = 0.25;
+
+    if (accented) gainTarget = 0.45;
+    if (palmMuted) gainTarget = 0.1;
+
+    if (accented && palmMuted) gainTarget = 0.3;
+
+    gainNode.gain.setValueAtTime(gainTarget, audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(
       0.01,
       audioContext.currentTime + 0.25
@@ -451,7 +510,7 @@ export default function useSound() {
     let gainValue = 40;
 
     if (inlineEffects?.includes(">")) {
-      gainValue = 50;
+      gainValue = 75;
     } else if (inlineEffects?.includes(".")) {
       gainValue = 45;
     }
@@ -824,7 +883,10 @@ export default function useSound() {
       // while editing
       if (columnHasNoNotes(currColumn) || currColumn[7]?.includes("s")) {
         if (currColumn[7]?.includes("s")) {
-          playSlapSound(currColumn[7].includes(">"));
+          playSlapSound({
+            accented: currColumn[7].includes(">"),
+            palmMuted: currColumn[0] !== "",
+          });
           // TODO: technically I think the sound will bleed into the next note at high bpms
         }
         return;
@@ -1007,13 +1069,18 @@ export default function useSound() {
     sectionProgression: SectionProgression[];
     chords: Chord[];
     baselineBpm: number;
+    playbackSpeed: number;
   }
+
+  // try passing through playbackSpeed to all children functions and see if it changes
+  // total # of compiled chords
 
   function compileFullTab({
     tabData,
     sectionProgression,
     chords,
     baselineBpm,
+    playbackSpeed,
   }: CompileFullTab) {
     const compiledChords: string[][] = [];
     const metadata: Metadata[] = [];
@@ -1048,6 +1115,7 @@ export default function useSound() {
           metadata,
           chords,
           elapsedSeconds,
+          playbackSpeed,
         });
       }
     }
@@ -1081,6 +1149,7 @@ export default function useSound() {
     };
     chords: Chord[];
     baselineBpm: number;
+    playbackSpeed: number;
   }
 
   function compileSpecificChordGrouping({
@@ -1088,6 +1157,7 @@ export default function useSound() {
     location,
     chords,
     baselineBpm,
+    playbackSpeed,
   }: CompileSpecificChordGrouping) {
     const compiledChords: string[][] = [];
     const metadata: Metadata[] = [];
@@ -1116,6 +1186,7 @@ export default function useSound() {
         metadata,
         chords,
         elapsedSeconds,
+        playbackSpeed,
       });
     } else if (
       location.subSectionIndex !== undefined &&
@@ -1143,6 +1214,7 @@ export default function useSound() {
             compiledChords,
             metadata,
             elapsedSeconds,
+            playbackSpeed,
           });
         } else {
           compileChordSection({
@@ -1154,6 +1226,7 @@ export default function useSound() {
             metadata,
             chords,
             elapsedSeconds,
+            playbackSpeed,
           });
         }
       }
@@ -1170,6 +1243,7 @@ export default function useSound() {
         metadata,
         chords,
         elapsedSeconds,
+        playbackSpeed,
       });
     }
 
@@ -1201,6 +1275,7 @@ export default function useSound() {
     metadata: Metadata[];
     chords: Chord[];
     elapsedSeconds: { value: number };
+    playbackSpeed: number;
   }
 
   function compileSection({
@@ -1211,6 +1286,7 @@ export default function useSound() {
     metadata,
     chords,
     elapsedSeconds,
+    playbackSpeed,
   }: CompileSection) {
     for (
       let subSectionIndex = 0;
@@ -1236,6 +1312,7 @@ export default function useSound() {
             compiledChords,
             metadata,
             elapsedSeconds,
+            playbackSpeed,
           });
         } else {
           compileChordSection({
@@ -1247,6 +1324,7 @@ export default function useSound() {
             metadata,
             chords,
             elapsedSeconds,
+            playbackSpeed,
           });
         }
       }
@@ -1261,6 +1339,7 @@ export default function useSound() {
     compiledChords: string[][];
     metadata: Metadata[];
     elapsedSeconds: { value: number };
+    playbackSpeed: number;
   }
 
   function compileTabSection({
@@ -1271,6 +1350,7 @@ export default function useSound() {
     compiledChords,
     metadata,
     elapsedSeconds,
+    playbackSpeed,
   }: CompileTabSection) {
     const data = subSection.data;
 
@@ -1310,6 +1390,7 @@ export default function useSound() {
     metadata: Metadata[];
     chords: Chord[];
     elapsedSeconds: { value: number };
+    playbackSpeed: number;
   }
 
   function compileChordSection({
@@ -1321,6 +1402,7 @@ export default function useSound() {
     metadata,
     chords,
     elapsedSeconds,
+    playbackSpeed,
   }: CompileChordSection) {
     const chordSection = subSection.data;
 
@@ -1343,6 +1425,7 @@ export default function useSound() {
         metadata,
         chords,
         elapsedSeconds,
+        playbackSpeed,
       });
     }
   }
@@ -1357,6 +1440,7 @@ export default function useSound() {
     metadata: Metadata[];
     chords: Chord[];
     elapsedSeconds: { value: number };
+    playbackSpeed: number;
   }
 
   function compileChordSequence({
@@ -1369,6 +1453,7 @@ export default function useSound() {
     metadata,
     chords,
     elapsedSeconds,
+    playbackSpeed,
   }: CompileChordSequence) {
     const chordSequenceRepetitions = getRepetitions(chordSequence?.repetitions);
 
@@ -1466,6 +1551,7 @@ export default function useSound() {
     baselineBpm: number;
     capo?: number;
     chords: Chord[];
+    playbackSpeed: number;
     location?: {
       sectionIndex: number;
       subSectionIndex?: number;
@@ -1493,6 +1579,7 @@ export default function useSound() {
     baselineBpm,
     chords,
     capo = 0,
+    playbackSpeed,
     location,
   }: PlayTab) {
     await audioContext?.resume();
@@ -1514,12 +1601,14 @@ export default function useSound() {
           location,
           chords,
           baselineBpm,
+          playbackSpeed,
         })
       : compileFullTab({
           tabData,
           sectionProgression,
           chords,
           baselineBpm,
+          playbackSpeed,
         });
 
     for (
@@ -1555,6 +1644,7 @@ export default function useSound() {
 
           chordIndex = -1;
           setCurrentChordIndex(0);
+
           continue;
         } else {
           // let the last note play out a bit

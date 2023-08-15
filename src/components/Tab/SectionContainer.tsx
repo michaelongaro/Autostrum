@@ -45,6 +45,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
     currentInstrument,
     currentlyPlayingMetadata,
     currentChordIndex,
+    playbackSpeed,
   } = useTabStore(
     (state) => ({
       bpm: state.bpm,
@@ -64,6 +65,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       currentInstrument: state.currentInstrument,
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
       currentChordIndex: state.currentChordIndex,
+      playbackSpeed: state.playbackSpeed,
     }),
     shallow
   );
@@ -216,6 +218,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
                     baselineBpm: bpm,
                     chords,
                     capo,
+                    playbackSpeed,
                     location: {
                       sectionIndex,
                     },
