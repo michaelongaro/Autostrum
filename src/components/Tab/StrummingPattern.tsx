@@ -1,5 +1,5 @@
-import { useState, type Dispatch, type SetStateAction } from "react";
-import { BiDownArrowAlt, BiUpArrowAlt } from "react-icons/bi";
+import { useState, useMemo, type Dispatch, type SetStateAction } from "react";
+import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import { shallow } from "zustand/shallow";
 import {
   Select,
@@ -28,8 +28,9 @@ interface StrummingPattern {
   mode:
     | "editingStrummingPattern"
     | "editingChordSequence"
-    | "viewingWithBeatNumbers"
-    | "viewing";
+    | "viewingWithChordNames"
+    | "viewing"
+    | "viewingInSelectDropdown";
   index?: number; // index of strumming pattern in strummingPatterns array (used for editing pattern)
   location?: {
     sectionIndex: number;
@@ -78,6 +79,18 @@ function StrummingPattern({
     }),
     shallow
   );
+
+  const heightOfStrummingPatternFiller = useMemo(() => {
+    if (patternHasPalmMuting()) {
+      if (mode === "editingStrummingPattern") {
+        return "2.2rem";
+      } else {
+        return "1.5rem";
+      }
+    }
+
+    return "0";
+  }, [mode, patternHasPalmMuting]);
 
   function handleKeyDown(
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -216,6 +229,311 @@ function StrummingPattern({
     return beat.toString();
   }
 
+  function renderStrummingGuide(noteLength: string, beatIndex: number) {
+    let innermostDiv = <div></div>;
+    let height = "6px";
+    switch (noteLength) {
+      case "1/4th":
+        height = "6px";
+        innermostDiv = (
+          <div
+            className={`h-full w-[1px] ${
+              mode === "viewingInSelectDropdown"
+                ? "bg-foreground"
+                : "bg-background"
+            }`}
+          ></div>
+        );
+
+        break;
+      case "1/8th":
+        height = "6px";
+        innermostDiv = (
+          <>
+            <div
+              className={`h-full w-[1px] ${
+                mode === "viewingInSelectDropdown"
+                  ? "bg-foreground"
+                  : "bg-background"
+              }`}
+            ></div>
+
+            {beatIndex % 2 === 0 ? (
+              <div
+                className={`absolute bottom-0 right-0 h-[1px] w-1/2 ${
+                  mode === "viewingInSelectDropdown"
+                    ? "bg-foreground"
+                    : "bg-background"
+                }`}
+              ></div>
+            ) : (
+              <div
+                className={`absolute bottom-0 left-0 right-0 h-[1px] w-1/2 ${
+                  mode === "viewingInSelectDropdown"
+                    ? "bg-foreground"
+                    : "bg-background"
+                }`}
+              ></div>
+            )}
+          </>
+        );
+        break;
+      case "1/16th":
+        height = "6px";
+        innermostDiv = (
+          <>
+            <div
+              className={`h-full w-[1px] ${
+                mode === "viewingInSelectDropdown"
+                  ? "bg-foreground"
+                  : "bg-background"
+              }`}
+            ></div>
+
+            {beatIndex % 2 === 0 ? (
+              <>
+                <div
+                  className={`absolute bottom-[2px] right-0 h-[1px] w-1/2 ${
+                    mode === "viewingInSelectDropdown"
+                      ? "bg-foreground"
+                      : "bg-background"
+                  }`}
+                ></div>
+                <div
+                  className={`absolute bottom-0 right-0 h-[1px] w-1/2 ${
+                    mode === "viewingInSelectDropdown"
+                      ? "bg-foreground"
+                      : "bg-background"
+                  }`}
+                ></div>
+              </>
+            ) : (
+              <>
+                <div
+                  className={`absolute bottom-[2px] left-0 right-0 h-[1px] w-1/2 ${
+                    mode === "viewingInSelectDropdown"
+                      ? "bg-foreground"
+                      : "bg-background"
+                  }`}
+                ></div>
+                <div
+                  className={`absolute bottom-0 left-0 right-0 h-[1px] w-1/2 ${
+                    mode === "viewingInSelectDropdown"
+                      ? "bg-foreground"
+                      : "bg-background"
+                  }`}
+                ></div>
+              </>
+            )}
+          </>
+        );
+        break;
+
+      case "1/4th triplet":
+        height = "25px";
+        innermostDiv = (
+          <div className="baseVertFlex h-full w-full !flex-nowrap !justify-start gap-1">
+            <div
+              className={`h-[6px] w-[1px] ${
+                mode === "viewingInSelectDropdown"
+                  ? "bg-foreground"
+                  : "bg-background"
+              }`}
+            ></div>
+            {beatIndex % 3 === 1 && (
+              <p
+                className={`text-xs ${
+                  mode === "viewingInSelectDropdown"
+                    ? "text-foreground"
+                    : "text-background"
+                }`}
+              >
+                3
+              </p>
+            )}
+          </div>
+        );
+
+        break;
+      case "1/8th triplet":
+        height = "25px";
+
+        innermostDiv = (
+          <div className="baseVertFlex relative h-full w-full !flex-nowrap !justify-start gap-1">
+            <div
+              className={`h-[6px] w-[1px] ${
+                mode === "viewingInSelectDropdown"
+                  ? "bg-foreground"
+                  : "bg-background"
+              }`}
+            ></div>
+            {beatIndex % 3 === 0 && (
+              <>
+                <div
+                  className={`absolute right-0 top-[6px] h-[1px] w-1/2 ${
+                    mode === "viewingInSelectDropdown"
+                      ? "bg-foreground"
+                      : "bg-background"
+                  }`}
+                ></div>
+              </>
+            )}
+
+            {beatIndex % 3 === 1 && (
+              <>
+                <div
+                  className={`absolute right-0 top-[6px] h-[1px] w-1/2 ${
+                    mode === "viewingInSelectDropdown"
+                      ? "bg-foreground"
+                      : "bg-background"
+                  }`}
+                ></div>
+                <div
+                  className={`absolute left-0 top-[6px] h-[1px] w-1/2 ${
+                    mode === "viewingInSelectDropdown"
+                      ? "bg-foreground"
+                      : "bg-background"
+                  }`}
+                ></div>
+              </>
+            )}
+
+            {beatIndex % 3 === 2 && (
+              <>
+                <div
+                  className={`absolute left-0 top-[6px] h-[1px] w-1/2 ${
+                    mode === "viewingInSelectDropdown"
+                      ? "bg-foreground"
+                      : "bg-background"
+                  }`}
+                ></div>
+              </>
+            )}
+
+            {beatIndex % 3 === 1 && (
+              <p
+                className={`text-xs ${
+                  mode === "viewingInSelectDropdown"
+                    ? "text-foreground"
+                    : "text-background"
+                }`}
+              >
+                3
+              </p>
+            )}
+          </div>
+        );
+        break;
+      case "1/16th triplet":
+        height = "25px";
+        innermostDiv = (
+          <div className="baseVertFlex relative h-full w-full !flex-nowrap !justify-start gap-1">
+            <div
+              className={`h-[6px] w-[1px] ${
+                mode === "viewingInSelectDropdown"
+                  ? "bg-foreground"
+                  : "bg-background"
+              }`}
+            ></div>
+            {beatIndex % 3 === 0 && (
+              <>
+                <div
+                  className={`absolute right-0 top-[4px] h-[1px] w-1/2 ${
+                    mode === "viewingInSelectDropdown"
+                      ? "bg-foreground"
+                      : "bg-background"
+                  }`}
+                ></div>
+                <div
+                  className={`absolute right-0 top-[6px] h-[1px] w-1/2 ${
+                    mode === "viewingInSelectDropdown"
+                      ? "bg-foreground"
+                      : "bg-background"
+                  }`}
+                ></div>
+              </>
+            )}
+
+            {beatIndex % 3 === 1 && (
+              <>
+                <div
+                  className={`absolute right-0 top-[4px] h-[1px] w-1/2 ${
+                    mode === "viewingInSelectDropdown"
+                      ? "bg-foreground"
+                      : "bg-background"
+                  }`}
+                ></div>
+                <div
+                  className={`absolute right-0 top-[6px] h-[1px] w-1/2 ${
+                    mode === "viewingInSelectDropdown"
+                      ? "bg-foreground"
+                      : "bg-background"
+                  }`}
+                ></div>
+                <div
+                  className={`absolute left-0 top-[4px] h-[1px] w-1/2 ${
+                    mode === "viewingInSelectDropdown"
+                      ? "bg-foreground"
+                      : "bg-background"
+                  }`}
+                ></div>
+                <div
+                  className={`absolute left-0 top-[6px] h-[1px] w-1/2 ${
+                    mode === "viewingInSelectDropdown"
+                      ? "bg-foreground"
+                      : "bg-background"
+                  }`}
+                ></div>
+              </>
+            )}
+
+            {beatIndex % 3 === 2 && (
+              <>
+                <div
+                  className={`absolute left-0 top-[4px] h-[1px] w-1/2 ${
+                    mode === "viewingInSelectDropdown"
+                      ? "bg-foreground"
+                      : "bg-background"
+                  }`}
+                ></div>
+                <div
+                  className={`absolute left-0 top-[6px] h-[1px] w-1/2 ${
+                    mode === "viewingInSelectDropdown"
+                      ? "bg-foreground"
+                      : "bg-background"
+                  }`}
+                ></div>
+              </>
+            )}
+
+            {beatIndex % 3 === 1 && (
+              <p
+                className={`text-xs ${
+                  mode === "viewingInSelectDropdown"
+                    ? "text-foreground"
+                    : "text-background"
+                }`}
+              >
+                3
+              </p>
+            )}
+          </div>
+        );
+        break;
+    }
+
+    return (
+      <div
+        style={{
+          height,
+        }}
+        className="baseFlex relative w-full !flex-nowrap"
+      >
+        {innermostDiv}
+      </div>
+    );
+  }
+
   function addStrumsToPattern() {
     const newStrummingPattern = { ...data };
 
@@ -350,6 +668,10 @@ function StrummingPattern({
     return true;
   }
 
+  // I really feel like there should be some way to declare color/backgroundColor
+  // logic somewhere at a higher parent div, but there is nuance to it so holding
+  // off for later refactor.
+
   return (
     <div
       style={{
@@ -359,13 +681,20 @@ function StrummingPattern({
       className="baseFlex w-full"
     >
       <div
-        // TODO: look at alignment when not just v/^
-        className="baseFlex !justify-start"
+        style={{
+          paddingLeft: mode === "editingChordSequence" ? "3rem" : "0",
+        }}
+        className="baseFlex relative !justify-start"
       >
         {mode === "editingChordSequence" && (
-          // TODO: mt-6 needs to be conditional, need to make it larger when palm mute exists
-          // since that makes the regular section taller
-          <Label className="mt-6">Chords</Label>
+          <Label
+            style={{
+              top: patternHasPalmMuting() ? "3rem" : "1.5rem",
+            }}
+            className="absolute left-0"
+          >
+            Chords
+          </Label>
         )}
 
         {data?.strums?.map((strum, strumIndex) => (
@@ -402,12 +731,21 @@ function StrummingPattern({
                   setEditingPalmMuteNodes={setEditingPalmMuteNodes!}
                   lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
                   setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
+                  darkMode={mode === "viewingInSelectDropdown"}
+                  viewingInSelectDropdown={mode === "viewingInSelectDropdown"}
                   editing={mode === "editingStrummingPattern"}
                 />
               ) : (
                 <div
                   style={{
-                    height: patternHasPalmMuting() ? "1.5rem" : "0",
+                    height: heightOfStrummingPatternFiller,
+                    // patternHasPalmMuting()
+                    //   ? mode === "editingStrummingPattern"
+                    //     ? // ||
+                    //       //   mode === "viewingInSelectDropdown"
+                    //       "2.2rem"
+                    //     : "1.5rem"
+                    //   : "0",
                   }}
                   className="h-6"
                 ></div>
@@ -446,7 +784,7 @@ function StrummingPattern({
               )}
 
               {/* chord viewer */}
-              {mode === "viewingWithBeatNumbers" && (
+              {mode === "viewingWithChordNames" && (
                 <p
                   style={{
                     color: highlightChord(strumIndex)
@@ -459,12 +797,7 @@ function StrummingPattern({
                 </p>
               )}
 
-              <div
-                // style={{
-                //   width: mode === "editingStrummingPattern" ? "auto" : "1.5rem",
-                // }}
-                className="baseFlex !flex-nowrap"
-              >
+              <div className="baseFlex !flex-nowrap">
                 <div
                   style={{
                     width:
@@ -509,17 +842,20 @@ function StrummingPattern({
                         strum.strum.includes(">") || !patternHasAccents()
                           ? "0"
                           : "1.5rem",
-                      color: highlightChord(strumIndex)
-                        ? "hsl(333, 71%, 51%)"
-                        : "hsl(327, 73%, 97%)",
+                      color:
+                        mode === "viewingInSelectDropdown"
+                          ? "hsl(336, 84%, 17%)"
+                          : highlightChord(strumIndex)
+                          ? "hsl(333, 71%, 51%)"
+                          : "hsl(327, 73%, 97%)",
                     }}
                     className="baseVertFlex h-full text-lg"
                   >
                     {strum.strum.includes("v") && (
-                      <BiDownArrowAlt className="h-5 w-5" />
+                      <BsArrowDown className="h-5 w-5" />
                     )}
                     {strum.strum.includes("^") && (
-                      <BiUpArrowAlt className="h-5 w-5" />
+                      <BsArrowUp className="h-5 w-5" />
                     )}
 
                     {strum.strum.includes("s") && (
@@ -527,7 +863,9 @@ function StrummingPattern({
                         {strum.strum[0]}
                       </div>
                     )}
+
                     {strum.strum.includes(">") && <p>&gt;</p>}
+
                     {/* buffer to keep vertical spacing the same no matter the type of strum */}
                     {strum.strum !== "" && !strum.strum.includes(">") && (
                       <div className="h-1"></div>
@@ -545,21 +883,30 @@ function StrummingPattern({
                 {/* spacer so that PM nodes can be connected seamlessly above */}
               </div>
 
-              {mode !== "viewing" && (
-                <p
-                  style={{
-                    height:
-                      getBeatIndicator(data.noteLength, strumIndex) === ""
-                        ? "1.5rem"
-                        : "auto",
-                    // color: highlightChord(strumIndex)
-                    //   ? "rgb(219 39 119"
-                    //   : "auto",
-                  }}
-                >
-                  {getBeatIndicator(data.noteLength, strumIndex)}
-                </p>
-              )}
+              {/* beat indicator */}
+              <p
+                style={{
+                  height:
+                    getBeatIndicator(data.noteLength, strumIndex) === ""
+                      ? "1.25rem"
+                      : "auto",
+
+                  color:
+                    mode === "viewingInSelectDropdown"
+                      ? "hsl(336, 84%, 17%)"
+                      : "hsl(327, 73%, 97%)",
+
+                  // color: highlightChord(strumIndex)
+                  //   ? "rgb(219 39 119"
+                  //   : "auto",
+                }}
+                className="text-sm"
+              >
+                {getBeatIndicator(data.noteLength, strumIndex)}
+              </p>
+
+              {/* strumming guide */}
+              {renderStrummingGuide(data.noteLength, strumIndex)}
 
               {/* delete strum button */}
               {showingDeleteStrumsButtons && (
