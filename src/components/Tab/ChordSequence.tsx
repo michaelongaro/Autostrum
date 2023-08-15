@@ -264,7 +264,7 @@ function ChordSequence({
                             <SelectItem key={index} value={`${index}`}>
                               <StrummingPattern
                                 data={pattern}
-                                mode={"viewing"}
+                                mode={"viewingInSelectDropdown"}
                               />
                             </SelectItem>
                           );
@@ -290,7 +290,7 @@ function ChordSequence({
 
           <StrummingPattern
             data={chordSequenceData.strummingPattern}
-            mode={editing ? "editingChordSequence" : "viewingWithBeatNumbers"}
+            mode={editing ? "editingChordSequence" : "viewingWithChordNames"}
             location={{ sectionIndex, subSectionIndex, chordSequenceIndex }}
           />
         </div>
