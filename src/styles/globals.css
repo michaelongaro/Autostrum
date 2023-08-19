@@ -15,23 +15,23 @@
     sm a tiny bit larger/more pronounced? */
 
 .chordSectionGlassmorphic {
-  @apply bg-pink-100 bg-opacity-[0.25] backdrop-blur-sm backdrop-filter shadow-sm;
+  @apply bg-pink-100 bg-opacity-[0.25] backdrop-blur-sm shadow-sm;
 }
 
 .lightestGlassmorphic {
-  @apply backdrop-blur-sm backdrop-filter shadow-lightGlassmorphic bg-gradient-to-br from-pink-500/40 via-pink-500/50 to-pink-500/70;
+  @apply backdrop-blur-sm shadow-lightGlassmorphic bg-gradient-to-br from-pink-500/40 via-pink-500/50 to-pink-500/70;
 }
 
 .lightGlassmorphic {
-  @apply bg-pink-200 bg-opacity-20 backdrop-blur-sm backdrop-filter shadow-sm;
+  @apply bg-pink-200 bg-opacity-20 backdrop-blur-sm shadow-sm;
 }
 
 .heavyGlassmorphic {
-  @apply bg-pink-100 bg-opacity-30 backdrop-blur-lg backdrop-filter shadow-sm;
+  @apply bg-pink-100 bg-opacity-30 backdrop-blur-lg shadow-sm;
 }
 
 .mobileNavbarGlassmorphic {
-  @apply bg-pink-400 bg-opacity-95 backdrop-blur-xl backdrop-filter shadow-sm;
+  @apply bg-pink-400 bg-opacity-95 backdrop-blur-xl shadow-sm;
 }
 
 @layer base {
