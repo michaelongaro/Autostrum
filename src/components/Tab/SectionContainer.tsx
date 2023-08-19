@@ -18,6 +18,7 @@ import MiscellaneousControls from "./MiscellaneousControls";
 import { Label } from "~/components/ui/label";
 import useSound from "~/hooks/useSound";
 import { AnimatePresence, LayoutGroup } from "framer-motion";
+import isEqual from "lodash.isequal";
 
 interface SectionContainer {
   sectionIndex: number;
@@ -25,7 +26,7 @@ interface SectionContainer {
 }
 
 function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
-  const { playTab, pauseTab } = useSound();
+  const { playTab, pauseAudio } = useSound();
 
   const {
     bpm,
@@ -198,16 +199,18 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
                 !currentInstrument || audioMetadata.type === "Artist recorded"
               }
               onClick={() => {
-                if (audioMetadata.playing) {
-                  void pauseTab();
+                if (
+                  audioMetadata.playing &&
+                  isEqual(audioMetadata.location, {
+                    sectionIndex,
+                  })
+                ) {
+                  void pauseAudio();
                 } else {
                   setAudioMetadata({
                     ...audioMetadata,
                     location: {
                       sectionIndex,
-                      subSectionIndex: 0,
-                      chordSequenceIndex: 0,
-                      // ^^ not sure of consequences of defining this field when the section could be a tab section..
                     },
                   });
 
@@ -222,6 +225,9 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
                     location: {
                       sectionIndex,
                     },
+                    resetToStart: !isEqual(audioMetadata.location, {
+                      sectionIndex,
+                    }),
                   });
                 }
               }}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import {
   type TabSection as TabSectionType,
   type ChordSection as ChordSectionType,
@@ -9,7 +9,8 @@ import { shallow } from "zustand/shallow";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
-import { AiFillEdit, AiFillDelete } from "react-icons/ai";
+import { AiFillEdit } from "react-icons/ai";
+import { FaTrashAlt } from "react-icons/fa";
 import {
   Popover,
   PopoverContent,
@@ -18,6 +19,7 @@ import {
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import StrummingPattern from "./StrummingPattern";
 import isEqual from "lodash.isequal";
+import useSound from "~/hooks/useSound";
 
 function StrummingPatterns() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
@@ -25,6 +27,8 @@ function StrummingPatterns() {
   const [showingDeletePopover, setShowingDeletePopover] = useState<boolean[]>(
     []
   );
+  const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
+    useState(false);
 
   const {
     strummingPatterns,
@@ -36,6 +40,8 @@ function StrummingPatterns() {
     setTabData,
     sectionProgression,
     setSectionProgression,
+    audioMetadata,
+    previewMetadata,
   } = useTabStore(
     (state) => ({
       strummingPatterns: state.strummingPatterns,
@@ -47,9 +53,13 @@ function StrummingPatterns() {
       setTabData: state.setTabData,
       sectionProgression: state.sectionProgression,
       setSectionProgression: state.setSectionProgression,
+      audioMetadata: state.audioMetadata,
+      previewMetadata: state.previewMetadata,
     }),
     shallow
   );
+
+  const { playPreview, pauseAudio } = useSound();
 
   function handleDeleteStrummingPattern(
     index: number,
@@ -132,109 +142,151 @@ function StrummingPatterns() {
       >
         <div className="baseFlex !items-start !justify-start gap-4">
           {strummingPatterns.map((pattern, index) => (
-            <div
-              key={index}
-              className="baseVertFlex border-b-none rounded-md border-2"
-            >
-              <StrummingPattern data={pattern} mode="viewing" index={index} />
+            <Fragment key={index}>
+              {editing && (
+                <div className="baseVertFlex border-b-none !flex-nowrap rounded-md border-2">
+                  <StrummingPattern
+                    data={pattern}
+                    mode="viewing"
+                    index={index}
+                  />
 
-              {/* change these below maybe just do flex column for mobile screens? */}
+                  <div className="baseFlex w-full !justify-evenly rounded-bl-md border-t-2">
+                    <>
+                      {/* edit button */}
+                      <Button
+                        variant={"ghost"}
+                        size={"sm"}
+                        className="baseFlex h-8 w-1/2 gap-2 rounded-r-none rounded-bl-sm rounded-tl-none border-r-[1px]"
+                        onClick={() => {
+                          setStrummingPatternBeingEdited({
+                            index,
+                            value: pattern,
+                          });
+                        }}
+                      >
+                        {/* add the tooltip below for "Edit" */}
+                        <AiFillEdit className="h-6 w-6" />
+                      </Button>
 
-              <div className="baseFlex w-full !justify-evenly rounded-bl-md border-t-2">
-                {editing ? (
-                  <>
-                    {/* edit button */}
-                    <Button
-                      variant={"ghost"}
-                      size={"sm"}
-                      className="baseFlex h-8 w-1/2 gap-2 rounded-r-none rounded-bl-sm rounded-tl-none border-r-[1px]"
-                      onClick={() => {
-                        setStrummingPatternBeingEdited({
-                          index,
-                          value: pattern,
-                        });
-                      }}
-                    >
-                      {/* add the tooltip below for "Edit" */}
-                      <AiFillEdit className="h-6 w-6" />
-                    </Button>
+                      {/* delete button */}
+                      <Popover
+                        open={showingDeletePopover[index]}
+                        onOpenChange={(openValue) => {
+                          setShowingDeletePopover((prev) => {
+                            const prevShowingDeletePopover = [...prev];
+                            prevShowingDeletePopover[index] = openValue;
+                            return prevShowingDeletePopover;
+                          });
+                        }}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"destructive"}
+                            size="sm"
+                            className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px]"
+                          >
+                            {/* add the tooltip below for "Delete" */}
+                            <FaTrashAlt className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent>
+                          <div className="baseVertFlex gap-4">
+                            <p className="w-auto text-sm">
+                              Chord progressions that use this pattern will be
+                              modified.
+                            </p>
 
-                    {/* delete button */}
-                    <Popover
-                      open={showingDeletePopover[index]}
-                      onOpenChange={(openValue) => {
-                        setShowingDeletePopover((prev) => {
-                          const prevShowingDeletePopover = [...prev];
-                          prevShowingDeletePopover[index] = openValue;
-                          return prevShowingDeletePopover;
-                        });
-                      }}
-                    >
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={"destructive"}
-                          size="sm"
-                          className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px]"
-                        >
-                          {/* add the tooltip below for "Delete" */}
-                          <AiFillDelete className="h-5 w-5" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent>
-                        <div className="baseVertFlex gap-4">
-                          <p className="w-auto text-sm">
-                            Chord progressions that use this pattern will be
-                            modified.
-                          </p>
+                            <div className="baseFlex gap-4">
+                              <Button
+                                variant={"outline"}
+                                size="sm"
+                                className="border-none"
+                                onClick={() =>
+                                  setShowingDeletePopover((prev) => {
+                                    const prevShowingDeletePopover = [...prev];
+                                    prevShowingDeletePopover[index] = false;
+                                    return prevShowingDeletePopover;
+                                  })
+                                }
+                              >
+                                Cancel
+                              </Button>
 
-                          <div className="baseFlex gap-4">
-                            <Button
-                              variant={"outline"}
-                              size="sm"
-                              className="border-none"
-                              onClick={() =>
-                                setShowingDeletePopover((prev) => {
-                                  const prevShowingDeletePopover = [...prev];
-                                  prevShowingDeletePopover[index] = false;
-                                  return prevShowingDeletePopover;
-                                })
-                              }
-                            >
-                              Cancel
-                            </Button>
-
-                            <Button
-                              variant={"destructive"}
-                              size="sm"
-                              // className="baseFlex h-8 w-1/2"
-                              onClick={() => {
-                                handleDeleteStrummingPattern(index, pattern);
-                                setShowingDeletePopover((prev) => {
-                                  const prevShowingDeletePopover = [...prev];
-                                  prevShowingDeletePopover[index] = false;
-                                  return prevShowingDeletePopover;
-                                });
-                              }}
-                            >
-                              Confirm
-                            </Button>
+                              <Button
+                                variant={"destructive"}
+                                size="sm"
+                                // className="baseFlex h-8 w-1/2"
+                                onClick={() => {
+                                  handleDeleteStrummingPattern(index, pattern);
+                                  setShowingDeletePopover((prev) => {
+                                    const prevShowingDeletePopover = [...prev];
+                                    prevShowingDeletePopover[index] = false;
+                                    return prevShowingDeletePopover;
+                                  });
+                                }}
+                              >
+                                Confirm
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </>
-                ) : (
+                        </PopoverContent>
+                      </Popover>
+                    </>
+                  </div>
+                </div>
+              )}
+
+              {!editing && (
+                <div className="baseFlex !flex-nowrap !items-start">
+                  <div className="baseFlex border-b-none !flex-nowrap  rounded-md rounded-tr-none border-2 ">
+                    <StrummingPattern
+                      data={pattern}
+                      mode="viewing"
+                      index={index}
+                    />
+                  </div>
+
                   <Button
                     variant={"playPause"}
                     size={"sm"}
-                    className="baseFlex w-full gap-4 rounded-b-sm rounded-t-none"
+                    disabled={artificalPlayButtonTimeout}
+                    onClick={() => {
+                      if (
+                        previewMetadata.playing &&
+                        index === previewMetadata.indexOfPattern &&
+                        previewMetadata.type === "strummingPattern"
+                      ) {
+                        setArtificalPlayButtonTimeout(true);
+
+                        setTimeout(() => {
+                          setArtificalPlayButtonTimeout(false);
+                        }, 300);
+                        void pauseAudio();
+                      } else {
+                        void playPreview({
+                          data: pattern,
+                          index,
+                          type: "strummingPattern",
+                          resetToStart:
+                            !previewMetadata.playing ||
+                            index !== previewMetadata.indexOfPattern ||
+                            previewMetadata.type !== "strummingPattern",
+                        });
+                      }
+                    }}
+                    className="w-10 rounded-l-none rounded-r-sm border-2 border-l-0 p-3"
                   >
-                    {/* conditional play/pause icon here */}
-                    <BsFillPlayFill className="h-6 w-6" />
+                    {previewMetadata.playing &&
+                    previewMetadata.type === "strummingPattern" ? (
+                      <BsFillPauseFill className="h-6 w-6" />
+                    ) : (
+                      <BsFillPlayFill className="h-6 w-6" />
+                    )}
                   </Button>
-                )}
-              </div>
-            </div>
+                </div>
+              )}
+            </Fragment>
           ))}
         </div>
         {editing && (

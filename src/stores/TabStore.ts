@@ -91,6 +91,13 @@ interface AudioMetadata {
   } | null;
 }
 
+interface PreviewMetadata {
+  indexOfPattern: number;
+  currentChordIndex: number;
+  type: "chord" | "strummingPattern";
+  playing: boolean;
+}
+
 function modifyPalmMuteDashes(
   tab: Section[],
   setTabData: (tabData: Section[]) => void,
@@ -240,7 +247,7 @@ const initialStoreState = {
   showingEffectGlossary: false,
 
   // useSound
-  breakOnNextNote: false,
+  breakOnNextChord: false,
   showingAudioControls: false,
   currentlyPlayingMetadata: null,
   playbackSpeed: 1,
@@ -251,6 +258,13 @@ const initialStoreState = {
     location: null,
   },
   looping: false,
+  previewMetadata: {
+    indexOfPattern: -1,
+    currentChordIndex: 0,
+    type: "chord",
+    playing: false,
+  },
+  breakOnNextPreviewChord: false,
 
   // idk if search needs to be included here
 };
@@ -364,8 +378,8 @@ interface TabState {
   // useSound related
   audioContext: AudioContext | null;
   setAudioContext: (audioContext: AudioContext | null) => void;
-  breakOnNextNote: boolean;
-  setBreakOnNextNote: (breakOnNextNote: boolean) => void;
+  breakOnNextChord: boolean;
+  setBreakOnNextChord: (breakOnNextChord: boolean) => void;
   masterVolumeGainNode: GainNode | null;
   setMasterVolumeGainNode: (masterVolumeGainNode: GainNode | null) => void;
   showingAudioControls: boolean;
@@ -403,6 +417,10 @@ interface TabState {
   setCurrentInstrument: (currentInstrument: Soundfont.Player | null) => void;
   looping: boolean;
   setLooping: (looping: boolean) => void;
+  previewMetadata: PreviewMetadata;
+  setPreviewMetadata: (previewMetadata: PreviewMetadata) => void;
+  breakOnNextPreviewChord: boolean;
+  setBreakOnNextPreviewChord: (breakOnNextPreviewChord: boolean) => void;
 
   // related to search
   searchResultsCount: number;
@@ -470,8 +488,8 @@ export const useTabStore = create<TabState>()(
     // useSound related
     audioContext: null,
     setAudioContext: (audioContext) => set({ audioContext }),
-    breakOnNextNote: false,
-    setBreakOnNextNote: (breakOnNextNote) => set({ breakOnNextNote }),
+    breakOnNextChord: false,
+    setBreakOnNextChord: (breakOnNextChord) => set({ breakOnNextChord }),
     masterVolumeGainNode: null,
     setMasterVolumeGainNode: (masterVolumeGainNode) =>
       set({ masterVolumeGainNode }),
@@ -501,6 +519,16 @@ export const useTabStore = create<TabState>()(
     setCurrentInstrument: (currentInstrument) => set({ currentInstrument }),
     looping: false,
     setLooping: (looping) => set({ looping }),
+    previewMetadata: {
+      indexOfPattern: -1,
+      currentChordIndex: 0,
+      type: "chord",
+      playing: false,
+    },
+    setPreviewMetadata: (previewMetadata) => set({ previewMetadata }),
+    breakOnNextPreviewChord: false,
+    setBreakOnNextPreviewChord: (breakOnNextPreviewChord) =>
+      set({ breakOnNextPreviewChord }),
 
     // modals
     showSectionProgressionModal: false,

@@ -1,4 +1,10 @@
-import { useState, useMemo, type Dispatch, type SetStateAction } from "react";
+import {
+  useState,
+  useMemo,
+  useCallback,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import { shallow } from "zustand/shallow";
 import {
@@ -45,7 +51,7 @@ interface StrummingPattern {
 function StrummingPattern({
   data,
   mode,
-  index = 0,
+  index,
   location,
   editingPalmMuteNodes,
   setEditingPalmMuteNodes,
@@ -68,6 +74,7 @@ function StrummingPattern({
     setStrummingPatternBeingEdited,
     currentlyPlayingMetadata,
     currentChordIndex,
+    previewMetadata,
   } = useTabStore(
     (state) => ({
       chords: state.chords,
@@ -76,9 +83,14 @@ function StrummingPattern({
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
       currentChordIndex: state.currentChordIndex,
+      previewMetadata: state.previewMetadata,
     }),
     shallow
   );
+
+  const patternHasPalmMuting = useCallback(() => {
+    return data.strums.some((strum) => strum.palmMute !== "");
+  }, [data]);
 
   const heightOfStrummingPatternFiller = useMemo(() => {
     if (patternHasPalmMuting()) {
@@ -150,7 +162,7 @@ function StrummingPattern({
     }
 
     setStrummingPatternBeingEdited({
-      index,
+      index: index ?? 0,
       value: { ...newStrummingPattern }, // I am pretty sure this or the one below is the problem
       // but I don't know why it isn't a separate memory reference... prob chatgpt tbh
     });
@@ -189,7 +201,7 @@ function StrummingPattern({
     };
 
     setStrummingPatternBeingEdited({
-      index,
+      index: index ?? 0,
       value: newStrummingPattern,
     });
   }
@@ -548,7 +560,7 @@ function StrummingPattern({
     }
 
     setStrummingPatternBeingEdited({
-      index,
+      index: index ?? 0,
       value: newStrummingPattern,
     });
   }
@@ -599,13 +611,9 @@ function StrummingPattern({
     newStrummingPattern.strums.splice(beatIndex, 1);
 
     setStrummingPatternBeingEdited({
-      index,
+      index: index ?? 0,
       value: newStrummingPattern,
     });
-  }
-
-  function patternHasPalmMuting() {
-    return data.strums.some((strum) => strum.palmMute !== "");
   }
 
   function patternHasAccents() {
@@ -649,18 +657,33 @@ function StrummingPattern({
     }
   }
 
-  function highlightChord(chordIndex: number) {
-    if (currentlyPlayingMetadata === null || !location) return false;
+  function highlightChord(chordIndex: number, forPreview = false) {
+    console.log(chordIndex, forPreview, index);
 
+    // preview strumming pattern
     if (
-      currentlyPlayingMetadata[currentChordIndex]?.location.sectionIndex !==
-        location.sectionIndex ||
-      currentlyPlayingMetadata[currentChordIndex]?.location.subSectionIndex !==
-        location.subSectionIndex ||
-      currentlyPlayingMetadata[currentChordIndex]?.location
-        .chordSequenceIndex !== location.chordSequenceIndex ||
-      (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ??
-        -1) !== chordIndex
+      forPreview &&
+      (index === undefined ||
+        previewMetadata.type !== "strummingPattern" ||
+        previewMetadata.indexOfPattern !== index ||
+        previewMetadata.currentChordIndex !== chordIndex)
+    ) {
+      return false;
+    }
+
+    // regular strumming pattern
+    if (
+      !forPreview &&
+      (currentlyPlayingMetadata === null ||
+        !location ||
+        currentlyPlayingMetadata[currentChordIndex]?.location.sectionIndex !==
+          location.sectionIndex ||
+        currentlyPlayingMetadata[currentChordIndex]?.location
+          .subSectionIndex !== location.subSectionIndex ||
+        currentlyPlayingMetadata[currentChordIndex]?.location
+          .chordSequenceIndex !== location.chordSequenceIndex ||
+        (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ??
+          -1) !== chordIndex)
     ) {
       return false;
     }
@@ -724,7 +747,7 @@ function StrummingPattern({
                   value={strum.palmMute}
                   beatIndex={strumIndex}
                   strummingPatternBeingEdited={{
-                    index,
+                    index: index ?? 0,
                     value: data,
                   }}
                   editingPalmMuteNodes={editingPalmMuteNodes!}
@@ -739,13 +762,6 @@ function StrummingPattern({
                 <div
                   style={{
                     height: heightOfStrummingPatternFiller,
-                    // patternHasPalmMuting()
-                    //   ? mode === "editingStrummingPattern"
-                    //     ? // ||
-                    //       //   mode === "viewingInSelectDropdown"
-                    //       "2.2rem"
-                    //     : "1.5rem"
-                    //   : "0",
                   }}
                   className="h-6"
                 ></div>
@@ -759,7 +775,7 @@ function StrummingPattern({
                   }
                   value={
                     getChordName(strumIndex) === ""
-                      ? "blues" // currently have no clue why this (any) random value is needed. I would imagine that
+                      ? "blues" // TODO: currently have no clue why this (any) random value is needed. I would imagine that
                       : // I could pass "" and the value would be "" but that doesn't work
                         getChordName(strumIndex)
                   }
@@ -791,7 +807,7 @@ function StrummingPattern({
                       ? "hsl(333, 71%, 51%)"
                       : "hsl(327, 73%, 97%)",
                   }}
-                  className="h-6 font-semibold"
+                  className="h-6 font-semibold transition-colors"
                 >
                   {getChordName(strumIndex)}
                 </p>
@@ -820,6 +836,9 @@ function StrummingPattern({
                           ? "2px"
                           : "1px"
                       }`,
+                      color: highlightChord(strumIndex, true)
+                        ? "hsl(333, 71%, 51%)"
+                        : "hsl(327, 73%, 97%)",
                     }}
                     className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm"
                     onFocus={() => {
@@ -845,11 +864,11 @@ function StrummingPattern({
                       color:
                         mode === "viewingInSelectDropdown"
                           ? "hsl(336, 84%, 17%)"
-                          : highlightChord(strumIndex)
+                          : highlightChord(strumIndex, index !== undefined)
                           ? "hsl(333, 71%, 51%)"
                           : "hsl(327, 73%, 97%)",
                     }}
-                    className="baseVertFlex h-full text-lg"
+                    className="baseVertFlex h-full text-lg transition-colors"
                   >
                     {strum.strum.includes("v") && (
                       <BsArrowDown className="h-5 w-5" />
@@ -890,17 +909,12 @@ function StrummingPattern({
                     getBeatIndicator(data.noteLength, strumIndex) === ""
                       ? "1.25rem"
                       : "auto",
-
                   color:
                     mode === "viewingInSelectDropdown"
                       ? "hsl(336, 84%, 17%)"
                       : "hsl(327, 73%, 97%)",
-
-                  // color: highlightChord(strumIndex)
-                  //   ? "rgb(219 39 119"
-                  //   : "auto",
                 }}
-                className="text-sm"
+                className="text-sm transition-colors"
               >
                 {getBeatIndicator(data.noteLength, strumIndex)}
               </p>

@@ -1,13 +1,15 @@
+import { useState, useRef } from "react";
 import { Label } from "~/components/ui/label";
 import { motion } from "framer-motion";
-import { useRef } from "react";
 import { HiOutlineInformationCircle } from "react-icons/hi";
 import { shallow } from "zustand/shallow";
 import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
+import { BsFillPlayFill } from "react-icons/bs";
 import Chord from "../Tab/Chord";
 import { Button } from "../ui/button";
 import { isEqual } from "lodash";
 import { Input } from "../ui/input";
+import useSound from "~/hooks/useSound";
 
 const backdropVariants = {
   expanded: {
@@ -23,19 +25,29 @@ interface ChordModal {
 }
 
 function ChordModal({ chordBeingEdited }: ChordModal) {
+  const [highlightChord, setHighlightChord] = useState(false);
   const innerModalRef = useRef<HTMLDivElement>(null);
 
-  const { chords, setChords, setChordBeingEdited, tabData, setTabData } =
-    useTabStore(
-      (state) => ({
-        chords: state.chords,
-        setChords: state.setChords,
-        setChordBeingEdited: state.setChordBeingEdited,
-        tabData: state.tabData,
-        setTabData: state.setTabData,
-      }),
-      shallow
-    );
+  const {
+    chords,
+    setChords,
+    setChordBeingEdited,
+    tabData,
+    setTabData,
+    audioMetadata,
+  } = useTabStore(
+    (state) => ({
+      chords: state.chords,
+      setChords: state.setChords,
+      setChordBeingEdited: state.setChordBeingEdited,
+      tabData: state.tabData,
+      setTabData: state.setTabData,
+      audioMetadata: state.audioMetadata,
+    }),
+    shallow
+  );
+
+  const { playPreview, pauseAudio } = useSound();
 
   function handleChordNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
@@ -166,7 +178,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
         <div className="baseFlex lightestGlassmorphic max-w-[23rem] gap-4 rounded-md p-2">
           <HiOutlineInformationCircle className="h-6 w-6" />
           <div>
-            <span>You can quickly enter major or minor chords with</span>
+            <span>You can quickly enter major or minor chords by typing</span>
             <span className="font-semibold"> A-G </span>
             <span>or</span>
             <span className="font-semibold"> a-g </span>
@@ -174,11 +186,32 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
           </div>
         </div>
 
-        <Chord chordBeingEdited={chordBeingEdited} editing={true} />
+        <Chord
+          chordBeingEdited={chordBeingEdited}
+          editing={true}
+          highlightChord={highlightChord}
+        />
 
         <div className="baseVertFlex gap-8">
-          <Button className="baseFlex gap-4">
-            {/* conditional play/pause icon here */}
+          <Button
+            disabled={highlightChord}
+            className="baseFlex gap-4"
+            onClick={() => {
+              setHighlightChord(true);
+
+              setTimeout(() => {
+                setHighlightChord(false);
+              }, 1500);
+
+              void playPreview({
+                data: chordBeingEdited.value.frets,
+                index: chordBeingEdited.index,
+                type: "chord",
+                resetToStart: true,
+              });
+            }}
+          >
+            <BsFillPlayFill className="h-6 w-6" />
             Preview chord
           </Button>
 

@@ -27,6 +27,7 @@ import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import StrummingPatternPalmMuteNode from "../Tab/StrummingPatternPalmMuteNode";
 import StrummingPattern from "../Tab/StrummingPattern";
 import isEqual from "lodash.isequal";
+import useSound from "~/hooks/useSound";
 
 const backdropVariants = {
   expanded: {
@@ -47,14 +48,15 @@ interface StrummingPatternModal {
 function StrummingPatternModal({
   strummingPatternBeingEdited,
 }: StrummingPatternModal) {
-  const innerModalRef = useRef<HTMLDivElement>(null);
-
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
   const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
   const [showingDeleteStrumsButtons, setShowingDeleteStrumsButtons] =
     useState(false);
+  const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
+    useState(false);
 
+  const innerModalRef = useRef<HTMLDivElement>(null);
   const {
     tuning,
     strummingPatterns,
@@ -63,6 +65,7 @@ function StrummingPatternModal({
     modifyStrummingPatternPalmMuteDashes,
     tabData,
     setTabData,
+    previewMetadata,
   } = useTabStore(
     (state) => ({
       tuning: state.tuning,
@@ -73,9 +76,12 @@ function StrummingPatternModal({
         state.modifyStrummingPatternPalmMuteDashes,
       tabData: state.tabData,
       setTabData: state.setTabData,
+      previewMetadata: state.previewMetadata,
     }),
     shallow
   );
+
+  const { playPreview, pauseAudio } = useSound();
 
   function handleNoteLengthChange(
     value:
@@ -349,9 +355,45 @@ function StrummingPatternModal({
         />
 
         <div className="baseVertFlex gap-8">
-          <Button className="baseFlex gap-4">
-            {/* conditional play/pause icon here */}
-            Preview strumming pattern
+          <Button
+            disabled={artificalPlayButtonTimeout}
+            className="baseFlex gap-4"
+            onClick={() => {
+              if (
+                previewMetadata.playing &&
+                strummingPatternBeingEdited.index ===
+                  previewMetadata.indexOfPattern &&
+                previewMetadata.type === "strummingPattern"
+              ) {
+                setArtificalPlayButtonTimeout(true);
+
+                setTimeout(() => {
+                  setArtificalPlayButtonTimeout(false);
+                }, 300);
+                void pauseAudio();
+              } else {
+                void playPreview({
+                  data: strummingPatternBeingEdited.value,
+                  index: strummingPatternBeingEdited.index,
+                  type: "strummingPattern",
+                  resetToStart:
+                    !previewMetadata.playing ||
+                    strummingPatternBeingEdited.index !==
+                      previewMetadata.indexOfPattern ||
+                    previewMetadata.type !== "strummingPattern",
+                });
+              }
+            }}
+          >
+            <>
+              {previewMetadata.playing &&
+              previewMetadata.type === "strummingPattern" ? (
+                <BsFillPauseFill className="h-6 w-6" />
+              ) : (
+                <BsFillPlayFill className="h-6 w-6" />
+              )}
+              Preview strumming pattern
+            </>
           </Button>
           <div className="baseFlex gap-4">
             <Button

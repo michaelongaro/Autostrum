@@ -68,11 +68,6 @@ const widthAndHeightVariants = {
 };
 
 function AudioControls() {
-  // prob create hook + place it here for useAutoscroll(),
-  // it will look at the current locaiton based on metadata[currentChordIndex].location to get the
-  // id (each chord div will need to have an id that matches this) and if turned on it will scroll to that
-  // id.
-
   const [volume, setVolume] = useState(1);
   const [autoscrollEnabled, setAutoscrollEnabled] = useState(false);
   const [tabProgressValue, setTabProgressValue] = useState(0);
@@ -84,6 +79,8 @@ function AudioControls() {
   ] = useState(false);
   const [updatedCurrentChordIndex, setUpdatedCurrentChordIndex] = useState(0);
   const [previousChordIndex, setPreviousChordIndex] = useState(0);
+  const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
+    useState(false);
 
   const oneSecondIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -142,7 +139,7 @@ function AudioControls() {
     shallow
   );
 
-  const { playTab, pauseTab, playRecordedAudio, pauseRecordedAudio } =
+  const { playTab, pauseAudio, playRecordedAudio, pauseRecordedAudio } =
     useSound();
 
   useEffect(() => {
@@ -255,7 +252,7 @@ function AudioControls() {
         duration: 0.15,
       }}
     >
-      <div className="baseVertFlex h-full w-11/12 gap-2 rounded-lg bg-pink-600 p-2 shadow-lg lg:rounded-full lg:px-8 lg:py-2 xl:w-10/12 2xl:w-1/2">
+      <div className="baseVertFlex h-full w-11/12 gap-2 rounded-lg bg-pink-600 p-2 shadow-2xl lg:rounded-full lg:px-8 lg:py-2 xl:w-10/12 2xl:w-1/2">
         <AnimatePresence mode="wait">
           {aboveLargeViewportWidth && audioControlsAreMinized && (
             <motion.div
@@ -303,7 +300,7 @@ function AudioControls() {
                       <Button
                         variant="ghost" // or secondary maybe
                         onClick={() => {
-                          void pauseTab(true);
+                          void pauseAudio(true);
 
                           setAudioMetadata({
                             ...audioMetadata,
@@ -396,7 +393,7 @@ function AudioControls() {
                   disabled={audioMetadata.type === "Artist recorded"}
                   value={currentInstrumentName}
                   onValueChange={(value) => {
-                    void pauseTab();
+                    void pauseAudio();
 
                     setCurrentInstrumentName(
                       value as
@@ -441,13 +438,16 @@ function AudioControls() {
                   value={`${playbackSpeed}x`}
                   onValueChange={(value) => {
                     const wasPlaying = audioMetadata.playing;
-                    void pauseTab();
+                    void pauseAudio();
 
                     const newPlaybackSpeed = Number(
                       value.slice(0, value.length - 1)
                     ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
 
                     setPlaybackSpeed(newPlaybackSpeed);
+
+                    // TODO: maybe ditch setTimeout & calling pauseAudio() and just
+                    // leverage the fact that playTab() already does it now?
 
                     if (wasPlaying) {
                       setTimeout(() => {
@@ -498,7 +498,7 @@ function AudioControls() {
                     <Button
                       variant="ghost" // or secondary maybe
                       onClick={() => {
-                        void pauseTab(true);
+                        void pauseAudio(true);
 
                         setAudioMetadata({
                           ...audioMetadata,
@@ -563,6 +563,7 @@ function AudioControls() {
           <Button
             variant="playPause"
             disabled={
+              artificalPlayButtonTimeout ||
               currentlyPlayingMetadata === null ||
               currentlyPlayingMetadata.length === 0 ||
               (currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0) === 0 ||
@@ -570,7 +571,12 @@ function AudioControls() {
             }
             onClick={() => {
               if (audioMetadata.playing) {
-                void pauseTab();
+                setArtificalPlayButtonTimeout(true);
+
+                setTimeout(() => {
+                  setArtificalPlayButtonTimeout(false);
+                }, 300);
+                void pauseAudio();
               } else {
                 void playTab({
                   tabData,
@@ -625,7 +631,7 @@ function AudioControls() {
               }
               onPointerDown={() => {
                 setWasPlayingBeforeScrubbing(audioMetadata.playing);
-                if (audioMetadata.playing) void pauseTab();
+                void pauseAudio();
               }}
               onPointerUp={() => {
                 if (wasPlayingBeforeScrubbing) {
@@ -730,7 +736,7 @@ function AudioControls() {
                   <Select
                     value={currentInstrumentName}
                     onValueChange={(value) => {
-                      void pauseTab();
+                      void pauseAudio();
 
                       setCurrentInstrumentName(
                         value as
@@ -773,7 +779,7 @@ function AudioControls() {
                     value={`${playbackSpeed}x`}
                     onValueChange={(value) => {
                       const wasPlaying = audioMetadata.playing;
-                      void pauseTab();
+                      void pauseAudio();
 
                       setPlaybackSpeed(
                         Number(value.slice(0, value.length - 1)) as

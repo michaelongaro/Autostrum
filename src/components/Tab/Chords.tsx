@@ -1,20 +1,25 @@
+import { useState } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
-import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
-import { AiFillEdit, AiFillDelete } from "react-icons/ai";
+import { AiFillEdit } from "react-icons/ai";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
+import { BsFillPlayFill } from "react-icons/bs";
+import { FaTrashAlt } from "react-icons/fa";
+
 import { HiOutlineInformationCircle } from "react-icons/hi";
 import Chord from "./Chord";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import useSound from "~/hooks/useSound";
 
 function Chords() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
+
+  const [chordIndexBeingPreviewed, setChordIndexBeingPreviewed] = useState(-1);
 
   const {
     chords,
@@ -23,6 +28,8 @@ function Chords() {
     tabData,
     setTabData,
     editing,
+    audioMetadata,
+    previewMetadata,
   } = useTabStore(
     (state) => ({
       chords: state.chords,
@@ -31,9 +38,13 @@ function Chords() {
       tabData: state.tabData,
       setTabData: state.setTabData,
       editing: state.editing,
+      audioMetadata: state.audioMetadata,
+      previewMetadata: state.previewMetadata,
     }),
     shallow
   );
+
+  const { playPreview, pauseAudio } = useSound();
 
   function handleDeleteChord(index: number, chordNameToBeDeleted: string) {
     const newTabData = [...tabData];
@@ -108,7 +119,17 @@ function Chords() {
             key={index}
             className="baseFlex border-r-none h-10 !flex-nowrap rounded-md border-2"
           >
-            <p className="px-3 font-semibold">{chord.name}</p>
+            <p
+              style={{
+                color:
+                  chordIndexBeingPreviewed === index
+                    ? "hsl(333, 71%, 51%)"
+                    : "hsl(327, 73%, 97%)",
+              }}
+              className="px-3 font-semibold transition-colors"
+            >
+              {chord.name}
+            </p>
 
             <div className="baseFlex h-full w-full !justify-evenly">
               {editing ? (
@@ -139,7 +160,7 @@ function Chords() {
                     onClick={() => handleDeleteChord(index, chord.name)}
                   >
                     {/* add the tooltip below for "Delete" */}
-                    <AiFillDelete className="h-5 w-5" />
+                    <FaTrashAlt className="h-4 w-4" />
                   </Button>
                 </>
               ) : (
@@ -156,16 +177,31 @@ function Chords() {
                           value: chord,
                         }}
                         editing={false}
+                        highlightChord={chordIndexBeingPreviewed === index}
                       />
                     </PopoverContent>
                   </Popover>
-                  {/* play/pause button */}
+                  {/* preview chord button */}
                   <Button
                     variant={"playPause"}
+                    disabled={chordIndexBeingPreviewed === index}
                     size={"sm"}
+                    onClick={() => {
+                      setChordIndexBeingPreviewed(index);
+
+                      setTimeout(() => {
+                        setChordIndexBeingPreviewed(-1);
+                      }, 1500);
+
+                      void playPreview({
+                        data: chord.frets,
+                        index,
+                        type: "chord",
+                        resetToStart: true,
+                      });
+                    }}
                     className="baseFlex h-full w-10 rounded-l-none border-l-2"
                   >
-                    {/* conditional play/pause icon here */}
                     <BsFillPlayFill className="h-6 w-6" />
                   </Button>
                 </>

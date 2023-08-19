@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   useTabStore,
   type Chord as ChordType,
@@ -26,6 +27,7 @@ import { HiOutlineClipboardCopy } from "react-icons/hi";
 import { LuClipboardPaste } from "react-icons/lu";
 
 import useSound from "~/hooks/useSound";
+import isEqual from "lodash.isequal";
 
 interface MiscellaneousControls {
   type: "section" | "tab" | "chord" | "chordSequence";
@@ -44,7 +46,10 @@ function MiscellaneousControls({
   chordSequenceIndex,
   hidePlayPauseButton,
 }: MiscellaneousControls) {
-  const { playTab, pauseTab } = useSound();
+  const [artificalPlayButtonTimeout, setArtificialPlayButtonTimeout] =
+    useState(false);
+
+  const { playTab, pauseAudio } = useSound();
 
   const {
     chords,
@@ -371,11 +376,25 @@ function MiscellaneousControls({
         <Button
           variant="playPause"
           disabled={
-            !currentInstrument || audioMetadata.type === "Artist recorded"
+            !currentInstrument ||
+            audioMetadata.type === "Artist recorded" ||
+            artificalPlayButtonTimeout
           }
           onClick={() => {
-            if (audioMetadata.playing) {
-              void pauseTab();
+            if (
+              audioMetadata.playing &&
+              isEqual(audioMetadata.location, {
+                sectionIndex,
+                subSectionIndex,
+                chordSequenceIndex,
+              })
+            ) {
+              setArtificialPlayButtonTimeout(true);
+
+              setTimeout(() => {
+                setArtificialPlayButtonTimeout(false);
+              }, 300);
+              void pauseAudio();
             } else {
               setAudioMetadata({
                 ...audioMetadata,
@@ -399,6 +418,11 @@ function MiscellaneousControls({
                   subSectionIndex,
                   chordSequenceIndex,
                 },
+                resetToStart: !isEqual(audioMetadata.location, {
+                  sectionIndex,
+                  subSectionIndex,
+                  chordSequenceIndex,
+                }),
               });
             }
           }}

@@ -21,8 +21,8 @@ export default function useSound() {
   const {
     audioContext,
     setAudioContext,
-    breakOnNextNote,
-    setBreakOnNextNote,
+    breakOnNextChord,
+    setBreakOnNextChord,
     masterVolumeGainNode,
     setMasterVolumeGainNode,
     showingAudioControls,
@@ -42,6 +42,10 @@ export default function useSound() {
     currentInstrument,
     setCurrentInstrument,
     looping,
+    breakOnNextPreviewChord,
+    setBreakOnNextPreviewChord,
+    previewMetadata,
+    setPreviewMetadata,
 
     bpm,
     tabData,
@@ -52,8 +56,8 @@ export default function useSound() {
     (state) => ({
       audioContext: state.audioContext,
       setAudioContext: state.setAudioContext,
-      breakOnNextNote: state.breakOnNextNote,
-      setBreakOnNextNote: state.setBreakOnNextNote,
+      breakOnNextChord: state.breakOnNextChord,
+      setBreakOnNextChord: state.setBreakOnNextChord,
       masterVolumeGainNode: state.masterVolumeGainNode,
       setMasterVolumeGainNode: state.setMasterVolumeGainNode,
       showingAudioControls: state.showingAudioControls,
@@ -73,6 +77,10 @@ export default function useSound() {
       currentInstrument: state.currentInstrument,
       setCurrentInstrument: state.setCurrentInstrument,
       looping: state.looping,
+      breakOnNextPreviewChord: state.breakOnNextPreviewChord,
+      setBreakOnNextPreviewChord: state.setBreakOnNextPreviewChord,
+      previewMetadata: state.previewMetadata,
+      setPreviewMetadata: state.setPreviewMetadata,
 
       bpm: state.bpm,
       tabData: state.tabData,
@@ -142,13 +150,17 @@ export default function useSound() {
 
   // Doesn't feel great to be using refs here, but it's the only way I can think of to
   // get current values of these vars within the async for loop in playTab()
-  const breakOnNextNoteRef = useRef(breakOnNextNote);
+  const breakOnNextChordRef = useRef(breakOnNextChord);
   const audioMetadataRef = useRef(audioMetadata);
   const loopingRef = useRef(looping);
+  const currentChordIndexRef = useRef(currentChordIndex);
+
+  const breakOnNextPreviewChordRef = useRef(breakOnNextPreviewChord);
+  const previewMetadataRef = useRef(previewMetadata);
 
   useEffect(() => {
-    breakOnNextNoteRef.current = breakOnNextNote;
-  }, [breakOnNextNote]);
+    breakOnNextChordRef.current = breakOnNextChord;
+  }, [breakOnNextChord]);
 
   useEffect(() => {
     audioMetadataRef.current = audioMetadata;
@@ -157,6 +169,18 @@ export default function useSound() {
   useEffect(() => {
     loopingRef.current = looping;
   }, [looping]);
+
+  useEffect(() => {
+    currentChordIndexRef.current = currentChordIndex;
+  }, [currentChordIndex]);
+
+  useEffect(() => {
+    breakOnNextPreviewChordRef.current = breakOnNextPreviewChord;
+  }, [breakOnNextPreviewChord]);
+
+  useEffect(() => {
+    previewMetadataRef.current = previewMetadata;
+  }, [previewMetadata]);
 
   const currentNoteArrayRef = useRef<
     (Soundfont.Player | AudioBufferSourceNode | undefined)[]
@@ -267,14 +291,12 @@ export default function useSound() {
       // within applyTetheredEffect() above
 
       if (effects.includes("~")) {
-        // seem fine
         noteWithEffectApplied = applyVibratoEffect({
           when: 0,
           note,
           bpm,
         });
       } else if (effects.includes("b")) {
-        // seem fine
         noteWithEffectApplied = applyBendEffect({
           note,
           stringIdx,
@@ -282,36 +304,25 @@ export default function useSound() {
           bpm,
         });
       } else if (effects.includes("x")) {
-        // doesn't get played
         noteWithEffectApplied = applyDeadNoteEffect(note);
       }
     }
 
     if (effects?.includes("PM")) {
-      console.log("going into PM");
       noteWithEffectApplied = applyPalmMute(
         noteWithEffectApplied ?? note,
         effects
       );
     }
 
-    console.log("effects", effects, noteWithEffectApplied);
-
-    // why in the HELL is palm mute not working... restart just to make sure
-
-    // ~, b, and x effects are applied to the note itself, so we don't need to
+    // ~ and b effects are applied to the note itself, so we don't need to
     // connect() them again to the master volume gain node and audioContext.destination
     if (
       noteWithEffectApplied &&
       (effects?.includes("PM") || prevTetheredNote || effects?.includes("x"))
     ) {
-      // console.log("playing from here???");
-      // if (prevTetheredNote || effects?.includes("x")) {
       noteWithEffectApplied.connect(masterVolumeGainNode);
       masterVolumeGainNode.connect(audioContext.destination);
-      // } else {
-      // noteWithEffectApplied.connect(audioContext.destination);
-      // }
     }
   }
 
@@ -1523,6 +1534,137 @@ export default function useSound() {
     }
   }
 
+  interface CompileStrummingPatternPreview {
+    strummingPattern: StrummingPattern;
+  }
+
+  function compileStrummingPatternPreview({
+    strummingPattern,
+  }: CompileStrummingPatternPreview) {
+    const compiledChords: string[][] = [];
+
+    let noteLengthMultiplier = "1";
+
+    if (strummingPattern.noteLength === "1/4th triplet")
+      noteLengthMultiplier = "0.6667";
+    else if (strummingPattern.noteLength === "1/8th")
+      noteLengthMultiplier = "0.5";
+    else if (strummingPattern.noteLength === "1/8th triplet")
+      noteLengthMultiplier = "0.3333";
+    else if (strummingPattern.noteLength === "1/16th")
+      noteLengthMultiplier = "0.25";
+    else if (strummingPattern.noteLength === "1/16th triplet")
+      noteLengthMultiplier = "0.1667";
+
+    for (let i = 0; i < strummingPattern.strums.length; i++) {
+      const strumIsEmpty = strummingPattern.strums[i]?.strum === "";
+
+      compiledChords.push(
+        compileChord({
+          chordName: strumIsEmpty ? "" : "C",
+          chordIdx: i,
+          strummingPattern,
+          chords: [
+            {
+              name: "C",
+              frets: ["0", "1", "0", "2", "3", ""],
+            },
+          ],
+          stringifiedBpm: "75",
+          noteLengthMultiplier,
+        })
+      );
+    }
+
+    return compiledChords;
+  }
+
+  interface PlayPreview {
+    data: string[] | StrummingPattern;
+    index: number; // technically only necessary for strumming pattern, not chord preview
+    type: "chord" | "strummingPattern";
+    resetToStart?: boolean;
+  }
+
+  async function playPreview({ data, index, type, resetToStart }: PlayPreview) {
+    await pauseAudio(resetToStart);
+
+    await audioContext?.resume();
+
+    const tuning = parse("e2 a2 d3 g3 b3 e4");
+
+    const compiledChords =
+      type === "chord"
+        ? [["", ...(data as string[]), "v", "100", "1"]]
+        : compileStrummingPatternPreview({
+            strummingPattern: data as StrummingPattern,
+          });
+
+    setPreviewMetadata({
+      ...previewMetadataRef.current,
+      indexOfPattern: index,
+      type,
+      playing: true,
+    });
+
+    for (
+      let chordIndex = previewMetadataRef.current.currentChordIndex;
+      chordIndex < compiledChords.length;
+      chordIndex++
+    ) {
+      if (breakOnNextPreviewChordRef.current) {
+        setBreakOnNextPreviewChord(false);
+
+        // I am pretty sure this is redundant
+        setPreviewMetadata({
+          ...previewMetadataRef.current,
+          playing: false,
+        });
+        return;
+      }
+
+      if (chordIndex === compiledChords.length - 1) {
+        // let the last note play out a bit
+        setTimeout(() => {
+          setPreviewMetadata({
+            indexOfPattern: -1,
+            currentChordIndex: 0,
+            type: "chord",
+            playing: false,
+          });
+          currentInstrument?.stop();
+        }, 1500);
+      }
+
+      const secondPrevColumn = compiledChords[chordIndex - 2];
+      const prevColumn = compiledChords[chordIndex - 1];
+      const column = compiledChords[chordIndex];
+      const nextColumn = compiledChords[chordIndex + 1];
+
+      if (column === undefined) continue;
+
+      // alteredBpm = bpm for chord * (1 / noteLengthMultiplier)
+      const alteredBpm = Number(column[8]) * (1 / Number(column[9]));
+
+      await playNoteColumn(
+        column,
+        tuning,
+        0,
+        alteredBpm,
+        prevColumn,
+        secondPrevColumn,
+        nextColumn
+      );
+
+      if (!breakOnNextPreviewChordRef.current) {
+        setPreviewMetadata({
+          ...previewMetadataRef.current,
+          currentChordIndex: chordIndex + 1,
+        });
+      }
+    }
+  }
+
   interface PlayRecordedAudio {
     recordedAudioUrl: string;
     secondsElapsed: number;
@@ -1540,7 +1682,7 @@ export default function useSound() {
     // adj below for the actual audio file
     // setAudioMetadata(false);
     // currentInstrument?.stop();
-    // breakOnNextNote = true;
+    // breakOnNextChord = true;
     // await audioContext?.suspend();
   }
 
@@ -1557,20 +1699,8 @@ export default function useSound() {
       subSectionIndex?: number;
       chordSequenceIndex?: number;
     };
+    resetToStart?: boolean;
   }
-
-  // this will be after you do refactor to look at tabStore data of above props instead
-  // of the props themselves:
-
-  // will just take in an optional paramter of "strummingPattern" that will be either the
-  // strumming pattern (c chord) / single note downstrum of chord that is being previewed either in modal
-  // or with pause/play button in <Chords/> and <StrummingPatterns/> respectively.
-
-  // only other caviat would be to not increment currentChordIdx if the strummingPattern is passed in
-  // and also before playing preview, calling pauseTab() / pauseRecordedAudio().
-
-  // idk I think we are going to keep doing the suspend + resume calls for now, but not 100% sure if they
-  // are necessary since we are already stopping the acutal instrument from playing
 
   async function playTab({
     tabData,
@@ -1581,7 +1711,10 @@ export default function useSound() {
     capo = 0,
     playbackSpeed,
     location,
+    resetToStart,
   }: PlayTab) {
+    await pauseAudio(resetToStart);
+
     await audioContext?.resume();
 
     const sectionProgression =
@@ -1612,17 +1745,18 @@ export default function useSound() {
         });
 
     for (
-      let chordIndex = currentChordIndex;
+      let chordIndex = currentChordIndexRef.current;
       chordIndex < compiledChords.length;
       chordIndex++
     ) {
-      if (breakOnNextNoteRef.current) {
-        setBreakOnNextNote(false);
+      if (breakOnNextChordRef.current) {
+        setBreakOnNextChord(false);
+
+        // I am pretty sure this is redundant
         setAudioMetadata({
           ...audioMetadataRef.current,
           playing: false,
         });
-        currentInstrument?.stop();
         return;
       }
 
@@ -1633,13 +1767,15 @@ export default function useSound() {
           // beginning of slider w/ no transition
           const audioSliderNode = document.getElementById("audioSlider");
           if (audioSliderNode) {
-            const childElements = Array.from(audioSliderNode.children);
+            const childElements = Array.from(
+              audioSliderNode.children
+            ) as HTMLSpanElement[];
 
-            childElements[0].children[0].style.transition = "none";
-            childElements[0].children[0].style.right = "100%";
+            childElements[0]!.children[0]!.style.transition = "none";
+            childElements[0]!.children[0]!.style.right = "100%";
 
-            childElements[1].style.transition = "none";
-            childElements[1].style.left = "0";
+            childElements[1]!.style.transition = "none";
+            childElements[1]!.style.left = "0";
           }
 
           chordIndex = -1;
@@ -1684,38 +1820,72 @@ export default function useSound() {
       // TODO: I don't think this logic is 100% sound
       // if pausing while chord is being played, we need to prevent chordIndex from
       // being incremented, since we are manually controlling it in <AudioControls />
-      if (!breakOnNextNoteRef.current) setCurrentChordIndex(chordIndex + 1);
+      if (!breakOnNextChordRef.current) setCurrentChordIndex(chordIndex + 1);
     }
   }
 
-  async function pauseTab(resetToStart = false) {
-    setBreakOnNextNote(true);
+  // I think we made a mistake trying to make this function too generic to handle
+  // pausing of whatever audio was playing, the intention was to reduce the amount
+  // of conditional logic on the frontend components but I think it added unnecessary,
+  // hard to follow complexity
+  async function pauseAudio(resetToStart?: boolean) {
+    if (!audioMetadata.playing && !previewMetadata.playing) return;
 
-    setAudioMetadata({
-      ...audioMetadataRef.current,
-      playing: false,
-    });
+    if (audioMetadata.playing && audioMetadata.type === "Artist recorded") {
+      // TODO: fill out when doing recording handling
+    } else if (audioMetadata.playing && audioMetadata.type === "Generated") {
+      setBreakOnNextChord(true);
+      breakOnNextChordRef.current = true; // need these to happen instantly, can't wait for update effect to run
+      setAudioMetadata({
+        ...audioMetadataRef.current,
+        playing: false,
+      });
+
+      if (resetToStart) {
+        setCurrentChordIndex(0);
+        currentChordIndexRef.current = 0; // need these to happen instantly, can't wait for update effect to run
+      }
+    } else if (previewMetadata.playing) {
+      setBreakOnNextPreviewChord(true);
+      breakOnNextPreviewChordRef.current = true; // need these to happen instantly, can't wait for update effect to run
+      let newCurrentChordIndex = previewMetadata.currentChordIndex;
+
+      if (resetToStart) {
+        newCurrentChordIndex = 0;
+      }
+
+      setPreviewMetadata({
+        ...previewMetadataRef.current,
+        currentChordIndex: newCurrentChordIndex,
+        playing: false,
+      });
+      previewMetadataRef.current.currentChordIndex = newCurrentChordIndex; // need these to happen instantly, can't wait for update effect to run
+    }
+
     currentInstrument?.stop();
 
     for (let i = 0; i < currentNoteArrayRef.current.length; i++) {
       currentNoteArrayRef.current[i]?.stop();
     }
 
-    if (resetToStart) {
-      setCurrentChordIndex(0);
-    }
-
     await audioContext?.suspend();
-  }
 
-  // function playChord()
-  // could actually probably use this for regular strumming a chord and for the "chord preview" sound!
-  // meaning you would have to directly export this function to use in the chord preview component
+    // // resolve promise
+    return new Promise<void>((resolve) => {
+      setTimeout(
+        () => {
+          resolve();
+        },
+        resetToStart ? 300 : 0
+      );
+    });
+  }
 
   return {
     playTab,
-    pauseTab,
+    pauseAudio,
     playRecordedAudio,
     pauseRecordedAudio,
+    playPreview,
   };
 }

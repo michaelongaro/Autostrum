@@ -11,6 +11,7 @@ import { Input } from "~/components/ui/input";
 import { motion } from "framer-motion";
 import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
+import { FaTrashAlt } from "react-icons/fa";
 import { HiOutlineInformationCircle } from "react-icons/hi";
 import {
   Popover,
@@ -645,7 +646,7 @@ function TabSection({
                       ? "0.375rem 0 0 0.375rem"
                       : "0.375rem",
                   }}
-                  // className="transition-colors transition-opacity"
+                  className="baseFlex gap-2"
                   onClick={() => {
                     setShowingDeleteColumnsButtons(
                       !showingDeleteColumnsButtons
@@ -654,6 +655,7 @@ function TabSection({
                   }}
                 >
                   Delete chords
+                  <FaTrashAlt className="h-4 w-4" />
                 </Button>
 
                 {showingDeleteColumnsButtons && (

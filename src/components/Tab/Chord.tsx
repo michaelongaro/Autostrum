@@ -7,9 +7,10 @@ import { Input } from "../ui/input";
 interface Chord {
   chordBeingEdited: { index: number; value: ChordType };
   editing: boolean;
+  highlightChord: boolean;
 }
 
-function Chord({ chordBeingEdited, editing }: Chord) {
+function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
   const [isFocused, setIsFocused] = useState([
     false,
     false,
@@ -187,6 +188,9 @@ function Chord({ chordBeingEdited, editing }: Chord) {
                   borderWidth: `${
                     fret.length > 0 && !isFocused[index] ? "2px" : "1px"
                   }`,
+                  color: highlightChord
+                    ? "hsl(333, 71%, 51%)"
+                    : "hsl(327, 73%, 97%)",
                 }}
                 className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm"
                 onFocus={() => {
@@ -205,7 +209,16 @@ function Chord({ chordBeingEdited, editing }: Chord) {
             ) : (
               <>
                 {fret !== "" ? (
-                  <div className="h-6">{fret}</div>
+                  <div
+                    style={{
+                      color: highlightChord
+                        ? "hsl(333, 71%, 51%)"
+                        : "hsl(327, 73%, 97%)",
+                    }}
+                    className="h-6 transition-colors"
+                  >
+                    {fret}
+                  </div>
                 ) : (
                   <div
                     style={{
