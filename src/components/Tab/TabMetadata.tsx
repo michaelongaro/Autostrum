@@ -23,6 +23,8 @@ import isEqual from "lodash.isequal";
 import { type Genre } from "@prisma/client";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { BsArrowRightShort } from "react-icons/bs";
+import { FaTrashAlt } from "react-icons/fa";
+import { AiFillEye } from "react-icons/ai";
 import { FaMicrophoneAlt } from "react-icons/fa";
 import { parse, toString } from "~/utils/tunings";
 import formatDate from "~/utils/formatDate";
@@ -41,6 +43,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
   const ctx = api.useContext();
 
   const [showPulsingError, setShowPulsingError] = useState(false);
+  const [profileImageLoaded, setProfileImageLoaded] = useState(false);
 
   const overMediumViewportThreshold = useViewportWidthBreakpoint(768);
 
@@ -429,8 +432,10 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                       // bring up modal to confirm deletion
                       // delete tab and redirect to wherever user came from before editing
                     }}
+                    className="baseFlex gap-2"
                   >
                     Delete
+                    <FaTrashAlt className="h-4 w-4" />
                   </Button>
                 )}
 
@@ -444,8 +449,8 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                     "Edit recording"
                   ) : (
                     <div className="baseFlex gap-2">
+                      Record tab
                       <FaMicrophoneAlt className="h-5 w-5" />
-                      <p>Record tab</p>
                     </div>
                   )}
                 </Button>
@@ -454,8 +459,10 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                   variant={"secondary"}
                   disabled={showPulsingError}
                   onClick={handlePreview}
+                  className="baseFlex gap-2"
                 >
                   Preview
+                  <AiFillEye className="h-5 w-5" />
                 </Button>
 
                 <Button
@@ -739,7 +746,17 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                           }'s profile image`}
                           width={32}
                           height={32}
-                          className="h-8 w-8 rounded-full bg-pink-800 object-cover object-center"
+                          onLoadingComplete={() => setProfileImageLoaded(true)}
+                          style={{
+                            opacity: profileImageLoaded ? 1 : 0,
+                          }}
+                          className={`h-8 w-8 rounded-full bg-pink-800 object-cover object-center transition-opacity 
+                          ${
+                            profileImageLoaded
+                              ? ""
+                              : "animate-pulse bg-pink-300"
+                          }
+                          `}
                         ></Image>
                         <span className="text-lg">
                           {tabCreator?.username ?? "Anonymous"}
