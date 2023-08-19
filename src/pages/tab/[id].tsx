@@ -5,6 +5,7 @@ import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import Tab from "~/components/Tab/Tab";
 import { motion } from "framer-motion";
+import TabSkeleton from "~/components/Tab/TabSkeleton";
 
 // not sure if this is correct file routing for slug
 
@@ -50,7 +51,13 @@ function IndividualTabView() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex w-full"
     >
-      <Tab tab={fetchedTab} refetchTab={refetchTab} />
+      <>
+        {fetchedTab ? (
+          <Tab tab={fetchedTab} refetchTab={refetchTab} />
+        ) : (
+          <TabSkeleton editing={false} />
+        )}
+      </>
     </motion.div>
   );
 }
