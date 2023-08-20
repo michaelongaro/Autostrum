@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { parse, toString } from "~/utils/tunings";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
+import { BsFillPlayFill, BsStopFill } from "react-icons/bs";
 import { Label } from "~/components/ui/label";
 
 import {
@@ -388,7 +388,7 @@ function StrummingPatternModal({
             <>
               {previewMetadata.playing &&
               previewMetadata.type === "strummingPattern" ? (
-                <BsFillPauseFill className="h-6 w-6" />
+                <BsStopFill className="h-6 w-6" />
               ) : (
                 <BsFillPlayFill className="h-6 w-6" />
               )}

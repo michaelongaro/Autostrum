@@ -8,7 +8,7 @@ import {
 import { shallow } from "zustand/shallow";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
-import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
+import { BsFillPlayFill, BsStopFill } from "react-icons/bs";
 import { AiFillEdit } from "react-icons/ai";
 import { FaTrashAlt } from "react-icons/fa";
 import {
@@ -268,10 +268,6 @@ function StrummingPatterns() {
                           data: pattern,
                           index,
                           type: "strummingPattern",
-                          resetToStart:
-                            !previewMetadata.playing ||
-                            index !== previewMetadata.indexOfPattern ||
-                            previewMetadata.type !== "strummingPattern",
                         });
                       }
                     }}
@@ -279,7 +275,7 @@ function StrummingPatterns() {
                   >
                     {previewMetadata.playing &&
                     previewMetadata.type === "strummingPattern" ? (
-                      <BsFillPauseFill className="h-6 w-6" />
+                      <BsStopFill className="h-6 w-6" />
                     ) : (
                       <BsFillPlayFill className="h-6 w-6" />
                     )}
