@@ -1593,11 +1593,10 @@ export default function useSound() {
     data: string[] | StrummingPattern;
     index: number; // technically only necessary for strumming pattern, not chord preview
     type: "chord" | "strummingPattern";
-    resetToStart?: boolean;
   }
 
-  async function playPreview({ data, index, type, resetToStart }: PlayPreview) {
-    await pauseAudio(resetToStart);
+  async function playPreview({ data, index, type }: PlayPreview) {
+    await pauseAudio();
 
     await audioContext?.resume();
 
@@ -1735,6 +1734,7 @@ export default function useSound() {
 
     setAudioMetadata({
       ...audioMetadataRef.current,
+      location: location ?? audioMetadataRef.current.location,
       playing: true,
     });
 
@@ -1839,7 +1839,31 @@ export default function useSound() {
   // of conditional logic on the frontend components but I think it added unnecessary,
   // hard to follow complexity
   async function pauseAudio(resetToStart?: boolean) {
-    if (!audioMetadata.playing && !previewMetadata.playing) return;
+    if (!audioMetadata.playing && !previewMetadata.playing) {
+      // not sure why this wasn't working when testing, maybe just needed to restart browser
+      // or something, idk why it jumps to the end of the slider when it should be jumping to the
+      // beginning... same code idk why it isn't just plug and play
+
+      // semi-hacky way to *instantly* reset thumb + track position to
+      // beginning of slider w/ no transition
+      const audioSliderNode = document.getElementById("audioSlider");
+      if (audioSliderNode) {
+        const childElements = Array.from(
+          audioSliderNode.children
+        ) as HTMLSpanElement[];
+
+        childElements[0]!.children[0]!.style.transition = "none";
+        childElements[0]!.children[0]!.style.right = "100%";
+
+        childElements[1]!.style.transition = "none";
+        childElements[1]!.style.left = "0";
+      }
+
+      setCurrentChordIndex(0);
+      currentChordIndexRef.current = 0; // need these to happen instantly, can't wait for update effect to run
+
+      return;
+    }
 
     if (audioMetadata.playing && audioMetadata.type === "Artist recorded") {
       // TODO: fill out when doing recording handling
@@ -1858,18 +1882,16 @@ export default function useSound() {
     } else if (previewMetadata.playing) {
       setBreakOnNextPreviewChord(true);
       breakOnNextPreviewChordRef.current = true; // need these to happen instantly, can't wait for update effect to run
-      let newCurrentChordIndex = previewMetadata.currentChordIndex;
-
-      if (resetToStart) {
-        newCurrentChordIndex = 0;
-      }
 
       setPreviewMetadata({
         ...previewMetadataRef.current,
-        currentChordIndex: newCurrentChordIndex,
+        currentChordIndex: 0,
         playing: false,
       });
-      previewMetadataRef.current.currentChordIndex = newCurrentChordIndex; // need these to happen instantly, can't wait for update effect to run
+      previewMetadataRef.current.currentChordIndex = 0; // need these to happen instantly, can't wait for update effect to run
+
+      setCurrentChordIndex(0);
+      currentChordIndexRef.current = 0; // need these to happen instantly, can't wait for update effect to run
     }
 
     currentInstrument?.stop();
