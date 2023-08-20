@@ -692,7 +692,7 @@ export default function useSound() {
     let gain = 1;
 
     if (effects.includes(">")) {
-      gain = 1.75;
+      gain = 1.5;
     }
 
     if (slideToFret) {
