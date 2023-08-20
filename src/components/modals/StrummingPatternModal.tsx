@@ -376,11 +376,6 @@ function StrummingPatternModal({
                   data: strummingPatternBeingEdited.value,
                   index: strummingPatternBeingEdited.index,
                   type: "strummingPattern",
-                  resetToStart:
-                    !previewMetadata.playing ||
-                    strummingPatternBeingEdited.index !==
-                      previewMetadata.indexOfPattern ||
-                    previewMetadata.type !== "strummingPattern",
                 });
               }
             }}
