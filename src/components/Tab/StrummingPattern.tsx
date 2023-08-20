@@ -658,8 +658,6 @@ function StrummingPattern({
   }
 
   function highlightChord(chordIndex: number, forPreview = false) {
-    console.log(chordIndex, forPreview, index);
-
     // preview strumming pattern
     if (
       forPreview &&
