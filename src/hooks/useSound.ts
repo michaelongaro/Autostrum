@@ -801,8 +801,10 @@ export default function useSound() {
       baseChordFrets &&
       strummingPattern.strums[chordIdx]?.strum.includes(">")
     ) {
-      chordFrets = baseChordFrets.map((fret) => fret + ">");
-      chordEffect = strummingPattern.strums[chordIdx]!.strum.at(0)!;
+      chordFrets = baseChordFrets.map((fret) =>
+        fret !== "" ? fret + ">" : fret
+      );
+      chordEffect = strummingPattern.strums[chordIdx]!.strum;
     } else if (baseChordFrets) {
       chordFrets = baseChordFrets;
       chordEffect = strummingPattern.strums[chordIdx]!.strum;
