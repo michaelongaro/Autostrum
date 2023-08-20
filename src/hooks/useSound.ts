@@ -848,7 +848,10 @@ export default function useSound() {
     return 3 + scaleFactor * (5 - 3);
   }
 
-  function calculateRelativeChordDelayMultiplier(bpm: number) {
+  function calculateRelativeChordDelayMultiplier(
+    bpm: number,
+    accented: boolean
+  ) {
     // Ensure that the input number is positive
     const distance = Math.abs(bpm - 400);
 
@@ -859,7 +862,9 @@ export default function useSound() {
 
     // Scale the number between 0.01 (when scaleFactor is 0)
     // and 0.05 (when scaleFactor is 1).
-    return 0.01 + scaleFactor * (0.05 - 0.01);
+
+    const accentedMultiplier = accented ? 0.5 : 1;
+    return (0.01 + scaleFactor * (0.05 - 0.01)) * accentedMultiplier;
   }
 
   function getIndexOfFirstNonEmptyString(
@@ -908,7 +913,10 @@ export default function useSound() {
       let chordDelayMultiplier = 0;
 
       if (currColumn[7]?.includes("v") || currColumn[7]?.includes("^")) {
-        chordDelayMultiplier = calculateRelativeChordDelayMultiplier(bpm);
+        chordDelayMultiplier = calculateRelativeChordDelayMultiplier(
+          bpm,
+          currColumn[7]?.includes(">")
+        );
       }
 
       const indexOfFirstNonEmptyString = getIndexOfFirstNonEmptyString(
