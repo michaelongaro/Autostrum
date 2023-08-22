@@ -523,6 +523,26 @@ function TabSection({
     setTabData(newTabData);
   }
 
+  const sectionPadding = useMemo(() => {
+    let padding = "0 1rem";
+
+    if (aboveMediumViewportWidth) {
+      if (editing) {
+        padding = "2rem";
+      } else {
+        padding = "0 2rem";
+      }
+    } else {
+      if (editing) {
+        padding = "1rem 0.5rem 1rem 0.5rem";
+      } else {
+        padding = "0 1rem";
+      }
+    }
+
+    return padding;
+  }, [editing, aboveMediumViewportWidth]);
+
   return (
     <motion.div
       key={sectionId}
@@ -537,11 +557,7 @@ function TabSection({
       }}
       style={{
         gap: editing ? "1rem" : "0",
-        padding: aboveMediumViewportWidth
-          ? "2rem"
-          : editing
-          ? "1rem 0.5rem 1rem 0.5rem"
-          : "1rem",
+        padding: sectionPadding,
         width: editing ? "100%" : "auto",
         borderTopLeftRadius:
           !editing && subSectionData.repetitions > 1 ? 0 : "0.375rem",
