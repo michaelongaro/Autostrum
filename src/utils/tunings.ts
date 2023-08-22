@@ -117,6 +117,10 @@ const tunings: Tuning[] = [
     notes: "G#1 D#2 G#2 C#3 F3 A#3",
   },
   {
+    name: "Math Rock",
+    notes: "F2 A2 C3 G3 C4 E4",
+  },
+  {
     name: "Rondeña",
     notes: "D2 A2 D3 F#3 B3 E4",
   },
