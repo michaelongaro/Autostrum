@@ -158,18 +158,12 @@ function AudioControls() {
   }, [currentChordIndex]);
 
   useEffect(() => {
-    // TODO: really not sure how to fix this mess, but when looping and wrapping
-    // back around to start of section, we need to have the thumb + track immediately
-    // move back to the beginning, but all solutions that I've tried so far do not work
-    // (extra state, setting transition values inside of useSound, etc...)
-
     if (audioMetadata.playing && !oneSecondIntervalRef.current) {
-      // kind of a hack, but need to have it inching towards one *as soon*
+      // kind of a hack, but need to have it moving towards one *as soon*
       // as the play button is pressed, otherwise it will wait a full second
-      // before starting to increment. hopefully doesn't make the state
-      // stale in interval below..
+      // before starting to increment.
       if (tabProgressValue === 0) setTabProgressValue(1);
-
+      else setTabProgressValue(tabProgressValue + 1);
       oneSecondIntervalRef.current = setInterval(() => {
         setTabProgressValue((prev) => prev + 1);
       }, 1000);
@@ -182,6 +176,10 @@ function AudioControls() {
       oneSecondIntervalRef.current = null;
       if (currentChordIndex === 0) {
         setTabProgressValue(0);
+      } else {
+        setTabProgressValue(
+          currentlyPlayingMetadata?.[currentChordIndex]?.elapsedSeconds ?? 0
+        );
       }
     }
   }, [
@@ -300,7 +298,7 @@ function AudioControls() {
                       <Button
                         variant="ghost" // or secondary maybe
                         onClick={() => {
-                          void pauseAudio(true);
+                          pauseAudio(true);
 
                           setAudioMetadata({
                             ...audioMetadata,
@@ -393,7 +391,7 @@ function AudioControls() {
                   disabled={audioMetadata.type === "Artist recorded"}
                   value={currentInstrumentName}
                   onValueChange={(value) => {
-                    void pauseAudio();
+                    pauseAudio();
 
                     setCurrentInstrumentName(
                       value as
@@ -437,32 +435,13 @@ function AudioControls() {
                   disabled={audioMetadata.type === "Artist recorded"}
                   value={`${playbackSpeed}x`}
                   onValueChange={(value) => {
-                    const wasPlaying = audioMetadata.playing;
-                    void pauseAudio();
+                    pauseAudio();
 
                     const newPlaybackSpeed = Number(
                       value.slice(0, value.length - 1)
                     ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
 
                     setPlaybackSpeed(newPlaybackSpeed);
-
-                    // TODO: maybe ditch setTimeout & calling pauseAudio() and just
-                    // leverage the fact that playTab() already does it now?
-
-                    if (wasPlaying) {
-                      setTimeout(() => {
-                        void playTab({
-                          tabData,
-                          rawSectionProgression: sectionProgression,
-                          tuningNotes: tuning,
-                          baselineBpm: bpm,
-                          chords,
-                          capo,
-                          playbackSpeed: newPlaybackSpeed,
-                          location: audioMetadata.location ?? undefined,
-                        });
-                      }, 1000);
-                    }
                   }}
                 >
                   <SelectTrigger>
@@ -498,7 +477,7 @@ function AudioControls() {
                     <Button
                       variant="ghost" // or secondary maybe
                       onClick={() => {
-                        void pauseAudio(true);
+                        pauseAudio(true);
 
                         setAudioMetadata({
                           ...audioMetadata,
@@ -576,7 +555,7 @@ function AudioControls() {
                 setTimeout(() => {
                   setArtificalPlayButtonTimeout(false);
                 }, 300);
-                void pauseAudio();
+                pauseAudio();
               } else {
                 void playTab({
                   tabData,
@@ -600,17 +579,7 @@ function AudioControls() {
 
           <div className="baseFlex w-9/12 !flex-nowrap gap-4">
             <div className="baseFlex !flex-nowrap gap-1">
-              <p>
-                {/* this seems like a bit of a hack, maybe inside of effect immediately
-     clear the interval if the currentVal is equal to max seconds? */}
-                {formatSecondsToMinutes(
-                  Math.min(
-                    tabProgressValue,
-                    currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
-                  )
-                )}
-              </p>
-              /
+              <p>{formatSecondsToMinutes(tabProgressValue)}</p>/
               <p>
                 {formatSecondsToMinutes(
                   currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
@@ -631,7 +600,7 @@ function AudioControls() {
               }
               onPointerDown={() => {
                 setWasPlayingBeforeScrubbing(audioMetadata.playing);
-                void pauseAudio();
+                pauseAudio();
               }}
               onPointerUp={() => {
                 if (wasPlayingBeforeScrubbing) {
@@ -736,7 +705,7 @@ function AudioControls() {
                   <Select
                     value={currentInstrumentName}
                     onValueChange={(value) => {
-                      void pauseAudio();
+                      pauseAudio();
 
                       setCurrentInstrumentName(
                         value as
@@ -778,8 +747,7 @@ function AudioControls() {
                   <Select
                     value={`${playbackSpeed}x`}
                     onValueChange={(value) => {
-                      const wasPlaying = audioMetadata.playing;
-                      void pauseAudio();
+                      pauseAudio();
 
                       setPlaybackSpeed(
                         Number(value.slice(0, value.length - 1)) as
@@ -790,21 +758,6 @@ function AudioControls() {
                           | 1.25
                           | 1.5
                       );
-
-                      if (wasPlaying) {
-                        setTimeout(() => {
-                          void playTab({
-                            tabData,
-                            rawSectionProgression: sectionProgression,
-                            tuningNotes: tuning,
-                            baselineBpm: bpm,
-                            chords,
-                            capo,
-                            playbackSpeed,
-                            location: audioMetadata.location ?? undefined,
-                          });
-                        }, 1000);
-                      }
                     }}
                   >
                     <SelectTrigger className="w-24">

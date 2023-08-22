@@ -66,6 +66,7 @@ function StrummingPatternModal({
     tabData,
     setTabData,
     previewMetadata,
+    audioMetadata,
   } = useTabStore(
     (state) => ({
       tuning: state.tuning,
@@ -77,6 +78,7 @@ function StrummingPatternModal({
       tabData: state.tabData,
       setTabData: state.setTabData,
       previewMetadata: state.previewMetadata,
+      audioMetadata: state.audioMetadata,
     }),
     shallow
   );
@@ -221,6 +223,8 @@ function StrummingPatternModal({
       ...strummingPatternBeingEdited.value,
     });
 
+    if (audioMetadata.playing) pauseAudio();
+
     setStrummingPatterns(newStrummingPatterns);
     setStrummingPatternBeingEdited(null);
   }
@@ -235,6 +239,7 @@ function StrummingPatternModal({
       exit="closed"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
+          if (audioMetadata.playing) pauseAudio();
           setStrummingPatternBeingEdited(null);
         }
       }}
@@ -370,7 +375,7 @@ function StrummingPatternModal({
                 setTimeout(() => {
                   setArtificalPlayButtonTimeout(false);
                 }, 300);
-                void pauseAudio();
+                pauseAudio();
               } else {
                 void playPreview({
                   data: strummingPatternBeingEdited.value,

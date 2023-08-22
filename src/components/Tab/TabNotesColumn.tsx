@@ -180,8 +180,7 @@ function TabNotesColumn({
         // the audio controls progress bar is all the way completed. Won't work normally
         // since the columnIndex has to be greater than the last chord index
         !audioMetadata.playing &&
-        (currentChordIndex === currentlyPlayingMetadata.length - 2 ||
-          currentChordIndex === currentlyPlayingMetadata.length - 1)
+        currentChordIndex === currentlyPlayingMetadata.length
       ) {
         return true;
       } else if (

@@ -25,7 +25,6 @@ interface ChordModal {
 }
 
 function ChordModal({ chordBeingEdited }: ChordModal) {
-  const [highlightChord, setHighlightChord] = useState(false);
   const innerModalRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -35,6 +34,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
     tabData,
     setTabData,
     audioMetadata,
+    previewMetadata,
   } = useTabStore(
     (state) => ({
       chords: state.chords,
@@ -43,6 +43,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       tabData: state.tabData,
       setTabData: state.setTabData,
       audioMetadata: state.audioMetadata,
+      previewMetadata: state.previewMetadata,
     }),
     shallow
   );
@@ -141,6 +142,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
         name: newChord.name,
         frets: [...newChord.frets],
       };
+      if (audioMetadata.playing) pauseAudio();
       setChordBeingEdited(null);
       setChords(newChords);
     }
@@ -156,6 +158,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       exit="closed"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
+          if (audioMetadata.playing) pauseAudio();
           setChordBeingEdited(null);
         }
       }}
@@ -189,25 +192,26 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
         <Chord
           chordBeingEdited={chordBeingEdited}
           editing={true}
-          highlightChord={highlightChord}
+          highlightChord={
+            previewMetadata.indexOfPattern === chordBeingEdited.index &&
+            previewMetadata.playing &&
+            previewMetadata.type === "chord"
+          }
         />
 
         <div className="baseVertFlex gap-8">
           <Button
-            disabled={highlightChord}
+            disabled={
+              previewMetadata.indexOfPattern === chordBeingEdited.index &&
+              previewMetadata.playing &&
+              previewMetadata.type === "chord"
+            }
             className="baseFlex gap-4"
             onClick={() => {
-              setHighlightChord(true);
-
-              setTimeout(() => {
-                setHighlightChord(false);
-              }, 1500);
-
               void playPreview({
                 data: chordBeingEdited.value.frets,
                 index: chordBeingEdited.index,
                 type: "chord",
-                resetToStart: true,
               });
             }}
           >

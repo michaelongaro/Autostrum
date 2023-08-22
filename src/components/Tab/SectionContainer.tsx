@@ -26,6 +26,9 @@ interface SectionContainer {
 }
 
 function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
+  const [artificalPlayButtonTimeout, setArtificialPlayButtonTimeout] =
+    useState(false);
+
   const { playTab, pauseAudio } = useSound();
 
   const {
@@ -196,7 +199,10 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
             <Button
               variant="playPause"
               disabled={
-                !currentInstrument || audioMetadata.type === "Artist recorded"
+                !currentInstrument ||
+                audioMetadata.type === "Artist recorded" ||
+                currentlyPlayingMetadata?.length === 0 ||
+                artificalPlayButtonTimeout
               }
               onClick={() => {
                 if (
@@ -205,6 +211,11 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
                     sectionIndex,
                   })
                 ) {
+                  setArtificialPlayButtonTimeout(true);
+
+                  setTimeout(() => {
+                    setArtificialPlayButtonTimeout(false);
+                  }, 300);
                   void pauseAudio();
                 } else {
                   setAudioMetadata({

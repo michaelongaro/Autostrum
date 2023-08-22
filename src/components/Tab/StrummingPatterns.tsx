@@ -262,7 +262,7 @@ function StrummingPatterns() {
                         setTimeout(() => {
                           setArtificalPlayButtonTimeout(false);
                         }, 300);
-                        void pauseAudio();
+                        pauseAudio();
                       } else {
                         void playPreview({
                           data: pattern,

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { Button } from "../ui/button";
@@ -18,8 +17,6 @@ import useSound from "~/hooks/useSound";
 
 function Chords() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
-
-  const [chordIndexBeingPreviewed, setChordIndexBeingPreviewed] = useState(-1);
 
   const {
     chords,
@@ -122,7 +119,9 @@ function Chords() {
             <p
               style={{
                 color:
-                  chordIndexBeingPreviewed === index
+                  previewMetadata.indexOfPattern === index &&
+                  previewMetadata.playing &&
+                  previewMetadata.type === "chord"
                     ? "hsl(333, 71%, 51%)"
                     : "hsl(327, 73%, 97%)",
               }}
@@ -177,27 +176,28 @@ function Chords() {
                           value: chord,
                         }}
                         editing={false}
-                        highlightChord={chordIndexBeingPreviewed === index}
+                        highlightChord={
+                          previewMetadata.indexOfPattern === index &&
+                          previewMetadata.playing &&
+                          previewMetadata.type === "chord"
+                        }
                       />
                     </PopoverContent>
                   </Popover>
                   {/* preview chord button */}
                   <Button
                     variant={"playPause"}
-                    disabled={chordIndexBeingPreviewed === index}
+                    disabled={
+                      previewMetadata.indexOfPattern === index &&
+                      previewMetadata.playing &&
+                      previewMetadata.type === "chord"
+                    }
                     size={"sm"}
                     onClick={() => {
-                      setChordIndexBeingPreviewed(index);
-
-                      setTimeout(() => {
-                        setChordIndexBeingPreviewed(-1);
-                      }, 1500);
-
                       void playPreview({
                         data: chord.frets,
                         index,
                         type: "chord",
-                        resetToStart: true,
                       });
                     }}
                     className="baseFlex h-full w-10 rounded-l-none border-l-2"

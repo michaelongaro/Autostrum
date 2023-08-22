@@ -394,7 +394,7 @@ function MiscellaneousControls({
               setTimeout(() => {
                 setArtificialPlayButtonTimeout(false);
               }, 300);
-              void pauseAudio();
+              pauseAudio();
             } else {
               setAudioMetadata({
                 ...audioMetadata,

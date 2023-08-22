@@ -16,6 +16,7 @@ import type {
 import getRepetitions from "~/utils/getRepetitions";
 import getBpmForChord from "~/utils/getBpmForChord";
 import extractNumber from "~/utils/extractNumber";
+import resetAudioSliderPosition from "~/utils/resetAudioSliderPosition";
 
 export default function useSound() {
   const {
@@ -92,7 +93,15 @@ export default function useSound() {
   );
 
   useEffect(() => {
-    if (tabData.length === 0 || tabData[0]?.data.length === 0) return;
+    if (tabData.length === 0 || tabData[0]?.data.length === 0) {
+      setAudioMetadata({
+        location: null,
+        playing: false,
+        type: "Generated",
+      });
+      setCurrentlyPlayingMetadata(null);
+      return;
+    }
 
     // TODO: actually will need to I think set the metadata to be empty/null if above case is true
     // otherwise if no tab data at all, clicking play will crash app
@@ -1596,54 +1605,31 @@ export default function useSound() {
   }
 
   async function playPreview({ data, index, type }: PlayPreview) {
-    await pauseAudio();
-
-    await audioContext?.resume();
+    if (audioMetadata.playing || previewMetadata.playing) {
+      pauseAudio();
+    }
 
     const tuning = parse("e2 a2 d3 g3 b3 e4");
 
     const compiledChords =
       type === "chord"
-        ? [["", ...(data as string[]), "v", "100", "1"]]
+        ? [["", ...(data as string[]), "v", "60", "1"]]
         : compileStrummingPatternPreview({
             strummingPattern: data as StrummingPattern,
           });
-
-    setPreviewMetadata({
-      ...previewMetadataRef.current,
-      indexOfPattern: index,
-      type,
-      playing: true,
-    });
 
     for (
       let chordIndex = previewMetadataRef.current.currentChordIndex;
       chordIndex < compiledChords.length;
       chordIndex++
     ) {
-      if (breakOnNextPreviewChordRef.current) {
-        setBreakOnNextPreviewChord(false);
-
-        // I am pretty sure this is redundant
-        setPreviewMetadata({
-          ...previewMetadataRef.current,
-          playing: false,
-        });
-        return;
-      }
-
-      if (chordIndex === compiledChords.length - 1) {
-        // let the last note play out a bit
-        setTimeout(() => {
-          setPreviewMetadata({
-            indexOfPattern: -1,
-            currentChordIndex: 0,
-            type: "chord",
-            playing: false,
-          });
-          currentInstrument?.stop();
-        }, 1500);
-      }
+      setPreviewMetadata({
+        playing: true,
+        indexOfPattern: index,
+        currentChordIndex: chordIndex,
+        type,
+      });
+      // ^^ doing this here because didn't update in time with one that was above
 
       const secondPrevColumn = compiledChords[chordIndex - 2];
       const prevColumn = compiledChords[chordIndex - 1];
@@ -1665,10 +1651,17 @@ export default function useSound() {
         nextColumn
       );
 
-      if (!breakOnNextPreviewChordRef.current) {
+      if (breakOnNextPreviewChordRef.current) {
+        setBreakOnNextPreviewChord(false);
+        return;
+      }
+
+      if (chordIndex === compiledChords.length - 1) {
         setPreviewMetadata({
           ...previewMetadataRef.current,
-          currentChordIndex: chordIndex + 1,
+          indexOfPattern: -1,
+          currentChordIndex: 0,
+          playing: false,
         });
       }
     }
@@ -1722,21 +1715,22 @@ export default function useSound() {
     location,
     resetToStart,
   }: PlayTab) {
-    await pauseAudio(resetToStart);
+    if (audioMetadata.playing || previewMetadata.playing || resetToStart) {
+      pauseAudio(resetToStart);
+    }
 
-    await audioContext?.resume();
+    setAudioMetadata({
+      ...audioMetadataRef.current,
+      location: location ?? audioMetadataRef.current.location,
+      playing: true,
+      type: "Generated",
+    });
 
     const sectionProgression =
       rawSectionProgression.length > 0
         ? rawSectionProgression
         : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
     const tuning = parse(tuningNotes);
-
-    setAudioMetadata({
-      ...audioMetadataRef.current,
-      location: location ?? audioMetadataRef.current.location,
-      playing: true,
-    });
 
     const compiledChords = location
       ? compileSpecificChordGrouping({
@@ -1759,52 +1753,7 @@ export default function useSound() {
       chordIndex < compiledChords.length;
       chordIndex++
     ) {
-      if (breakOnNextChordRef.current) {
-        setBreakOnNextChord(false);
-
-        // I am pretty sure this is redundant
-        setAudioMetadata({
-          ...audioMetadataRef.current,
-          playing: false,
-        });
-        return;
-      }
-
-      if (chordIndex === compiledChords.length - 1) {
-        // if looping, reset the chordIndex to -1 and continue
-        if (loopingRef.current && audioMetadataRef.current.playing) {
-          // semi-hacky way to *instantly* reset thumb + track position to
-          // beginning of slider w/ no transition
-          const audioSliderNode = document.getElementById("audioSlider");
-          if (audioSliderNode) {
-            const childElements = Array.from(
-              audioSliderNode.children
-            ) as HTMLSpanElement[];
-
-            childElements[0]!.children[0]!.style.transition = "none";
-            childElements[0]!.children[0]!.style.right = "100%";
-
-            childElements[1]!.style.transition = "none";
-            childElements[1]!.style.left = "0";
-          }
-
-          chordIndex = -1;
-          setCurrentChordIndex(0);
-
-          continue;
-        } else {
-          // let the last note play out a bit
-          setTimeout(() => {
-            setAudioMetadata({
-              ...audioMetadataRef.current,
-              playing: false,
-            });
-            setCurrentChordIndex(0);
-            currentInstrument?.stop();
-          }, 1000);
-          return;
-        }
-      }
+      setCurrentChordIndex(chordIndex);
 
       const secondPrevColumn = compiledChords[chordIndex - 2];
       const prevColumn = compiledChords[chordIndex - 1];
@@ -1817,20 +1766,39 @@ export default function useSound() {
       const alteredBpm =
         Number(column[8]) * (1 / Number(column[9])) * playbackSpeed;
 
-      await playNoteColumn(
-        column,
-        tuning,
-        capo ?? 0,
-        alteredBpm,
-        prevColumn,
-        secondPrevColumn,
-        nextColumn
-      );
+      if (chordIndex !== compiledChords.length - 1) {
+        await playNoteColumn(
+          column,
+          tuning,
+          capo ?? 0,
+          alteredBpm,
+          prevColumn,
+          secondPrevColumn,
+          nextColumn
+        );
+      }
 
-      // TODO: I don't think this logic is 100% sound
-      // if pausing while chord is being played, we need to prevent chordIndex from
-      // being incremented, since we are manually controlling it in <AudioControls />
-      if (!breakOnNextChordRef.current) setCurrentChordIndex(chordIndex + 1);
+      if (breakOnNextChordRef.current) {
+        setBreakOnNextChord(false);
+        return;
+      }
+
+      // not 100% on moving this back to the top, but trying it out right now
+      if (chordIndex === compiledChords.length - 1) {
+        // if looping, reset the chordIndex to -1 so loop will start over
+        if (loopingRef.current && audioMetadataRef.current.playing) {
+          resetAudioSliderPosition();
+
+          chordIndex = -1;
+          setCurrentChordIndex(0);
+        } else {
+          setAudioMetadata({
+            ...audioMetadataRef.current,
+            playing: false,
+          });
+          setCurrentChordIndex(0);
+        }
+      }
     }
   }
 
@@ -1838,26 +1806,9 @@ export default function useSound() {
   // pausing of whatever audio was playing, the intention was to reduce the amount
   // of conditional logic on the frontend components but I think it added unnecessary,
   // hard to follow complexity
-  async function pauseAudio(resetToStart?: boolean) {
+  function pauseAudio(resetToStart?: boolean) {
     if (!audioMetadata.playing && !previewMetadata.playing) {
-      // not sure why this wasn't working when testing, maybe just needed to restart browser
-      // or something, idk why it jumps to the end of the slider when it should be jumping to the
-      // beginning... same code idk why it isn't just plug and play
-
-      // semi-hacky way to *instantly* reset thumb + track position to
-      // beginning of slider w/ no transition
-      const audioSliderNode = document.getElementById("audioSlider");
-      if (audioSliderNode) {
-        const childElements = Array.from(
-          audioSliderNode.children
-        ) as HTMLSpanElement[];
-
-        childElements[0]!.children[0]!.style.transition = "none";
-        childElements[0]!.children[0]!.style.right = "100%";
-
-        childElements[1]!.style.transition = "none";
-        childElements[1]!.style.left = "0";
-      }
+      resetAudioSliderPosition();
 
       setCurrentChordIndex(0);
       currentChordIndexRef.current = 0; // need these to happen instantly, can't wait for update effect to run
@@ -1876,6 +1827,7 @@ export default function useSound() {
       });
 
       if (resetToStart) {
+        resetAudioSliderPosition();
         setCurrentChordIndex(0);
         currentChordIndexRef.current = 0; // need these to happen instantly, can't wait for update effect to run
       }
@@ -1890,27 +1842,18 @@ export default function useSound() {
       });
       previewMetadataRef.current.currentChordIndex = 0; // need these to happen instantly, can't wait for update effect to run
 
-      setCurrentChordIndex(0);
-      currentChordIndexRef.current = 0; // need these to happen instantly, can't wait for update effect to run
+      if (resetToStart) {
+        resetAudioSliderPosition();
+        setCurrentChordIndex(0);
+        currentChordIndexRef.current = 0; // need these to happen instantly, can't wait for update effect to run
+      }
     }
-
-    currentInstrument?.stop();
 
     for (let i = 0; i < currentNoteArrayRef.current.length; i++) {
       currentNoteArrayRef.current[i]?.stop();
     }
 
-    await audioContext?.suspend();
-
-    // // resolve promise
-    return new Promise<void>((resolve) => {
-      setTimeout(
-        () => {
-          resolve();
-        },
-        resetToStart ? 300 : 0
-      );
-    });
+    currentInstrument?.stop();
   }
 
   return {
