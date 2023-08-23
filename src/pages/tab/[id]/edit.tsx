@@ -19,14 +19,9 @@ function IndividualTabEdit() {
   }, [router.query.id]);
 
   // prob don't need refetch on refocus
-  const fetchedTab = api.tab.getTabById.useQuery(
-    {
-      id: tabIdFromUrl,
-    },
-    {
-      refetchOnWindowFocus: false,
-    }
-  );
+  const fetchedTab = api.tab.getTabById.useQuery({
+    id: tabIdFromUrl,
+  });
 
   // may need to manually show skeleton for 0.5s or whatever, we see
 
