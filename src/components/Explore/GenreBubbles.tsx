@@ -1,6 +1,7 @@
 import { api } from "~/utils/api";
 import { Skeleton } from "../ui/skeleton";
 import GenreBubble from "./GenreBubble";
+import { Separator } from "../ui/separator";
 
 const indicies = [1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -9,24 +10,27 @@ function GenreBubbles() {
     api.genre.getAllWithTotalTabNumbers.useQuery();
 
   return (
-    <div className="baseVertFlex w-full !items-start">
-      <p className="pl-4 text-lg font-semibold">Genres</p>
+    <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
+      <div className="baseVertFlex gap-0 md:gap-1">
+        <p className="text-xl font-bold">Genres</p>
+        <Separator className="w-[65px] bg-pink-500" />
+      </div>
 
-      {/* maybe do some animatepresence / motion stuff here */}
-
-      {genresAreLoading || !genres ? (
-        <div className="grid w-full grid-cols-1 place-items-center gap-4 p-0 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4">
-          {indicies.map((index) => (
-            <Skeleton key={index} className="h-36 w-full rounded-lg" />
-          ))}
-        </div>
-      ) : (
-        <div className="grid w-full grid-cols-1 place-items-center gap-4 p-0 md:grid-cols-2 md:p-4 lg:grid-cols-3 xl:grid-cols-4">
-          {genres.map((genre) => (
-            <GenreBubble key={genre.id} {...genre} />
-          ))}
-        </div>
-      )}
+      <div className="grid w-full grid-cols-1 place-items-center gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {genresAreLoading || !genres ? (
+          <>
+            {indicies.map((index) => (
+              <Skeleton key={index} className="h-36 w-full rounded-lg" />
+            ))}
+          </>
+        ) : (
+          <>
+            {genres.map((genre) => (
+              <GenreBubble key={genre.id} {...genre} />
+            ))}
+          </>
+        )}
+      </div>
     </div>
   );
 }
