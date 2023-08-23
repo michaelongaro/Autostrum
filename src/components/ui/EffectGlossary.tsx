@@ -64,32 +64,32 @@ function EffectGlossary() {
                 className="baseVertFlex max-w-[300px] gap-1 md:max-w-none"
               >
                 <div className="font-semibold">Valid notation examples</div>
-                <Separator className="mb-2 w-full bg-pink-950" />
-                <div className="baseFlex gap-8">
+                <Separator className="mb-2 w-full bg-pink-500" />
+                <div className="baseFlex gap-4">
                   <div className="baseVertFlex gap-2">
                     <p>Condensed</p>
-                    <div className="baseFlex">
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                    <div className="baseFlex lightestGlassmorphic rounded-md p-2">
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         3h
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-950"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                      <div className="h-[1px] w-2 bg-pink-50"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         5
                       </div>
                     </div>
                   </div>
                   <div className="baseVertFlex gap-2">
                     <p>Expanded</p>
-                    <div className="baseFlex">
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                    <div className="baseFlex lightestGlassmorphic rounded-md p-2">
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         3
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-950"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                      <div className="h-[1px] w-2 bg-pink-50"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         h
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-950"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                      <div className="h-[1px] w-2 bg-pink-50"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         5
                       </div>
                     </div>
@@ -113,32 +113,32 @@ function EffectGlossary() {
                 className="baseVertFlex max-w-[300px] gap-1 md:max-w-none"
               >
                 <div className="font-semibold">Valid notation examples</div>
-                <Separator className="mb-2 w-full bg-pink-950" />
-                <div className="baseFlex gap-8">
+                <Separator className="mb-2 w-full bg-pink-500" />
+                <div className="baseFlex gap-4">
                   <div className="baseVertFlex gap-2">
                     <p>Condensed</p>
-                    <div className="baseFlex">
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                    <div className="baseFlex lightestGlassmorphic rounded-md p-2">
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         3p
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-950"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                      <div className="h-[1px] w-2 bg-pink-50"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         5
                       </div>
                     </div>
                   </div>
                   <div className="baseVertFlex gap-2">
                     <p>Expanded</p>
-                    <div className="baseFlex">
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                    <div className="baseFlex lightestGlassmorphic rounded-md p-2">
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         3
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-950"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                      <div className="h-[1px] w-2 bg-pink-50"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         p
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-950"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                      <div className="h-[1px] w-2 bg-pink-50"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         5
                       </div>
                     </div>
@@ -162,32 +162,32 @@ function EffectGlossary() {
                 className="baseVertFlex max-w-[300px] gap-1 md:max-w-none"
               >
                 <div className="font-semibold">Valid notation examples</div>
-                <Separator className="mb-2 w-full bg-pink-950" />
-                <div className="baseFlex gap-8">
+                <Separator className="mb-2 w-full bg-pink-500" />
+                <div className="baseFlex gap-4">
                   <div className="baseVertFlex gap-2">
                     <p>Condensed</p>
-                    <div className="baseFlex">
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                    <div className="baseFlex lightestGlassmorphic rounded-md p-2">
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         3/
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-950"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                      <div className="h-[1px] w-2 bg-pink-50"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         5
                       </div>
                     </div>
                   </div>
                   <div className="baseVertFlex gap-2">
                     <p>Expanded</p>
-                    <div className="baseFlex">
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                    <div className="baseFlex lightestGlassmorphic rounded-md p-2">
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         3
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-950"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                      <div className="h-[1px] w-2 bg-pink-50"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         /
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-950"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                      <div className="h-[1px] w-2 bg-pink-50"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         5
                       </div>
                     </div>
@@ -211,32 +211,32 @@ function EffectGlossary() {
                 className="baseVertFlex max-w-[300px] gap-1 md:max-w-none"
               >
                 <div className="font-semibold">Valid notation examples</div>
-                <Separator className="mb-2 w-full bg-pink-950" />
-                <div className="baseFlex gap-8">
+                <Separator className="mb-2 w-full bg-pink-500" />
+                <div className="baseFlex gap-4">
                   <div className="baseVertFlex gap-2">
                     <p>Condensed</p>
-                    <div className="baseFlex">
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                    <div className="baseFlex lightestGlassmorphic rounded-md p-2">
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         3\
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-950"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                      <div className="h-[1px] w-2 bg-pink-50"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         5
                       </div>
                     </div>
                   </div>
                   <div className="baseVertFlex gap-2">
                     <p>Expanded</p>
-                    <div className="baseFlex">
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                    <div className="baseFlex lightestGlassmorphic rounded-md p-2">
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         3
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-950"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                      <div className="h-[1px] w-2 bg-pink-50"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         \
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-950"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-950 text-sm">
+                      <div className="h-[1px] w-2 bg-pink-50"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
                         5
                       </div>
                     </div>
