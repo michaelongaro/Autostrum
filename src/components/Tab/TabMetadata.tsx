@@ -739,25 +739,36 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                         href={`/artist/${tabCreator?.username ?? ""}`}
                         className="baseFlex gap-2"
                       >
-                        <Image
-                          src={tabCreator?.profileImageUrl ?? ""}
-                          alt={`${
-                            tabCreator?.username ?? "Anonymous"
-                          }'s profile image`}
-                          width={32}
-                          height={32}
-                          onLoadingComplete={() => setProfileImageLoaded(true)}
-                          style={{
-                            opacity: profileImageLoaded ? 1 : 0,
-                          }}
-                          className={`h-8 w-8 rounded-full bg-pink-800 object-cover object-center transition-opacity 
-                          ${
-                            profileImageLoaded
-                              ? ""
-                              : "animate-pulse bg-pink-300"
-                          }
-                          `}
-                        ></Image>
+                        <div className="grid grid-cols-1 grid-rows-1">
+                          <Image
+                            src={tabCreator?.profileImageUrl ?? ""}
+                            alt={`${
+                              tabCreator?.username ?? "Anonymous"
+                            }'s profile image`}
+                            width={32}
+                            height={32}
+                            // TODO: maybe just a developemnt thing, but it still very
+                            // briefly shows the default placeholder for a loading
+                            // or not found image before the actual image loads...
+                            onLoadingComplete={() =>
+                              setProfileImageLoaded(true)
+                            }
+                            style={{
+                              opacity: profileImageLoaded ? 1 : 0,
+                            }}
+                            className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-800 object-cover object-center 
+                          transition-opacity"
+                          />
+                          <div
+                            style={{
+                              opacity: !profileImageLoaded ? 1 : 0,
+                            }}
+                            className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 transition-opacity
+                              ${!profileImageLoaded ? "animate-pulse" : ""}
+                            `}
+                          ></div>
+                        </div>
+
                         <span className="text-lg">
                           {tabCreator?.username ?? "Anonymous"}
                         </span>

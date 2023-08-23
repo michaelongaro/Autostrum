@@ -34,6 +34,8 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
   ({ tab, refetchTab }, ref) => {
     const { userId, isLoaded } = useAuth();
     const { push, asPath } = useRouter();
+
+    const [profileImageLoaded, setProfileImageLoaded] = useState(false);
     const previewRef = useRef<HTMLDivElement>(null);
 
     const genreArray = api.genre.getAll.useQuery();
@@ -310,15 +312,33 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                     href={`/artist/${tabCreator?.username ?? ""}`}
                     className="baseFlex gap-2"
                   >
-                    <Image
-                      src={tabCreator?.profileImageUrl ?? ""}
-                      alt={`${
-                        tabCreator?.username ?? "Anonymous"
-                      }'s profile image`}
-                      width={32}
-                      height={32}
-                      className="h-8 w-8 rounded-full bg-pink-800 object-cover object-center"
-                    ></Image>
+                    <div className="grid grid-cols-1 grid-rows-1">
+                      <Image
+                        src={tabCreator?.profileImageUrl ?? ""}
+                        alt={`${
+                          tabCreator?.username ?? "Anonymous"
+                        }'s profile image`}
+                        width={32}
+                        height={32}
+                        // maybe just a developemnt thing, but it still very
+                        // briefly shows the default placeholder for a loading
+                        // or not found image before the actual image loads...
+                        onLoadingComplete={() => setProfileImageLoaded(true)}
+                        style={{
+                          opacity: profileImageLoaded ? 1 : 0,
+                        }}
+                        className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-800 object-cover object-center 
+                          transition-opacity"
+                      />
+                      <div
+                        style={{
+                          opacity: !profileImageLoaded ? 1 : 0,
+                        }}
+                        className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 transition-opacity
+                              ${!profileImageLoaded ? "animate-pulse" : ""}
+                            `}
+                      ></div>
+                    </div>
                     <span className="w-[58px] truncate">
                       {tabCreator?.username ?? "Anonymous"}
                     </span>
@@ -400,11 +420,9 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                       });
                     }
                   }}
-                  className="baseFlex h-8 w-1/2 gap-2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px] p-0"
+                  className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px] p-0"
                 >
                   {audioMetadata.playing && audioMetadata.tabId === tab.id ? (
-                    // log values to figure out why this doesn't turn to pause icon when
-                    // hitting play from AudioControls...
                     <BsFillPauseFill className="h-5 w-5" />
                   ) : (
                     <BsFillPlayFill className="h-5 w-5" />
