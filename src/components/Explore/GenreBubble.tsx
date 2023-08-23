@@ -13,7 +13,7 @@ import { formatNumber } from "~/utils/formatNumber";
 // make sure it still looks good
 
 function GenreBubble(genre: GenreWithTotalTabNumbers) {
-  const { push } = useRouter();
+  const { push, query, pathname } = useRouter();
 
   const [hoveringOnGenre, setHoveringOnGenre] = useState(false);
   const [mouseDownOnGenre, setMouseDownOnGenre] = useState(false);
@@ -65,6 +65,23 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
     mouseY.set(clientY - top);
   }
 
+  function searchForSpecificGenre(genreId: number) {
+    void push(
+      {
+        pathname: `${pathname}/filters`,
+        query: {
+          ...query,
+          genreId,
+        },
+      },
+      undefined,
+      {
+        scroll: false, // defaults to true but try both
+        shallow: true,
+      }
+    );
+  }
+
   return (
     <div
       style={{
@@ -81,8 +98,11 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
       onMouseDown={() => setMouseDownOnGenre(true)}
       onMouseUp={() => setMouseDownOnGenre(false)}
       onMouseMove={handleMouseMove}
-      // use formatting functions from other component
-      // onClick={() => push(`/explore/genre/${genre.id}`)}
+      onClick={() => {
+        // setHidingAutofillResults(true);
+
+        searchForSpecificGenre(genre.id);
+      }}
     >
       <motion.div
         className="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition duration-300 group-hover:opacity-100"
@@ -99,7 +119,9 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
 
       <p className="text-lg font-semibold">{genre.name}</p>
 
-      <p>{`${formatNumber(genre.totalTabs)} tabs`}</p>
+      <p>{`${formatNumber(genre.totalTabs)} ${
+        genre.totalTabs === 1 ? "tab" : "tabs"
+      }`}</p>
 
       <div className="absolute right-4 top-4 h-28 w-32">
         <Canvas
@@ -191,10 +213,10 @@ function ConditionallyFloatingBubble({
 
       setTimeout(() => {
         if (meshRef.current) {
-        meshRef.current.position.x +=
-          amplitudeX * Math.cos(frequency * time) * 0.001;
-        meshRef.current.position.y +=
-          amplitudeY * Math.sin(frequency * time) * 0.01;
+          meshRef.current.position.x +=
+            amplitudeX * Math.cos(frequency * time) * 0.001;
+          meshRef.current.position.y +=
+            amplitudeY * Math.sin(frequency * time) * 0.01;
         }
       }, delay * 100);
     }
