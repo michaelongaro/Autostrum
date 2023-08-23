@@ -79,6 +79,8 @@ function AudioControls() {
   ] = useState(false);
   const [updatedCurrentChordIndex, setUpdatedCurrentChordIndex] = useState(0);
   const [previousChordIndex, setPreviousChordIndex] = useState(0);
+  const [previousTabId, setPreviousTabId] = useState(0);
+
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
 
@@ -156,6 +158,21 @@ function AudioControls() {
       setPreviousChordIndex(currentChordIndex - 1);
     }
   }, [currentChordIndex]);
+
+  // didn't want to clutter up below effect with more conditions, this just covers
+  // resetting the tab progress value when the tab that is playing changes
+  useEffect(() => {
+    if (audioMetadata.tabId !== previousTabId) {
+      setPreviousTabId(audioMetadata.tabId);
+
+      if (oneSecondIntervalRef.current) {
+        clearInterval(oneSecondIntervalRef.current);
+        oneSecondIntervalRef.current = null;
+      }
+
+      setTabProgressValue(0);
+    }
+  }, [audioMetadata.tabId, previousTabId]);
 
   useEffect(() => {
     if (audioMetadata.playing && !oneSecondIntervalRef.current) {
@@ -565,6 +582,7 @@ function AudioControls() {
                   chords,
                   capo,
                   playbackSpeed,
+                  tabId: audioMetadata.tabId,
                   location: audioMetadata.location ?? undefined,
                 });
               }
