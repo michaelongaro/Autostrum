@@ -579,7 +579,15 @@ function AudioControls() {
 
           <div className="baseFlex w-9/12 !flex-nowrap gap-4">
             <div className="baseFlex !flex-nowrap gap-1">
-              <p>{formatSecondsToMinutes(tabProgressValue)}</p>/
+              <p>
+                {formatSecondsToMinutes(
+                  Math.min(
+                    tabProgressValue,
+                    currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
+                  )
+                )}
+              </p>
+              /
               <p>
                 {formatSecondsToMinutes(
                   currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
