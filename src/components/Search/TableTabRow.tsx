@@ -1,11 +1,17 @@
+import { useState, useMemo, forwardRef } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { useMemo, forwardRef } from "react";
-import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import {
+  useTabStore,
+  type Chord,
+  type Section,
+  type SectionProgression,
+} from "~/stores/TabStore";
+import { shallow } from "zustand/shallow";
 import { useRouter } from "next/router";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
-import { BsFillPlayFill } from "react-icons/bs";
+import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import { Button } from "~/components/ui/button";
 import { TableCell, TableRow } from "~/components/ui/table";
 import type { TabWithLikes } from "~/server/api/routers/tab";
@@ -14,6 +20,7 @@ import formatDate from "~/utils/formatDate";
 import { formatNumber } from "~/utils/formatNumber";
 import type { Genre } from "@prisma/client";
 import type { RefetchTab } from "../Tab/Tab";
+import useSound from "~/hooks/useSound";
 
 interface TableTabRow extends RefetchTab {
   tab: TabWithLikes;
@@ -23,6 +30,37 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
   ({ tab, refetchTab }, ref) => {
     const { userId, isLoaded } = useAuth();
     const { push, asPath } = useRouter();
+
+    const [profileImageLoaded, setProfileImageLoaded] = useState(false);
+    const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
+      useState(false);
+
+    const {
+      playbackSpeed,
+      audioMetadata,
+      currentInstrument,
+      setTabData,
+      setSectionProgression,
+      setTuning,
+      setBpm,
+      setChords,
+      setCapo,
+    } = useTabStore(
+      (state) => ({
+        playbackSpeed: state.playbackSpeed,
+        audioMetadata: state.audioMetadata,
+        currentInstrument: state.currentInstrument,
+        setTabData: state.setTabData,
+        setSectionProgression: state.setSectionProgression,
+        setTuning: state.setTuning,
+        setBpm: state.setBpm,
+        setChords: state.setChords,
+        setCapo: state.setCapo,
+      }),
+      shallow
+    );
+
+    const { playTab, pauseAudio } = useSound();
 
     const genreArray = api.genre.getAll.useQuery();
 
@@ -226,13 +264,31 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
               href={`/artist/${tabCreator?.username ?? ""}`}
               className="baseFlex gap-2"
             >
-              <Image
-                src={tabCreator?.profileImageUrl ?? ""}
-                alt={`${tabCreator?.username ?? "Anonymous"}'s profile image`}
-                width={32}
-                height={32}
-                className="h-8 w-8 rounded-full bg-pink-800 object-cover object-center"
-              ></Image>
+              <div className="grid grid-cols-1 grid-rows-1">
+                <Image
+                  src={tabCreator?.profileImageUrl ?? ""}
+                  alt={`${tabCreator?.username ?? "Anonymous"}'s profile image`}
+                  width={32}
+                  height={32}
+                  // maybe just a developemnt thing, but it still very
+                  // briefly shows the default placeholder for a loading
+                  // or not found image before the actual image loads...
+                  onLoadingComplete={() => setProfileImageLoaded(true)}
+                  style={{
+                    opacity: profileImageLoaded ? 1 : 0,
+                  }}
+                  className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-800 object-cover object-center 
+                          transition-opacity"
+                />
+                <div
+                  style={{
+                    opacity: !profileImageLoaded ? 1 : 0,
+                  }}
+                  className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 transition-opacity
+                              ${!profileImageLoaded ? "animate-pulse" : ""}
+                            `}
+                ></div>
+              </div>
               <span>{tabCreator?.username ?? "Anonymous"}</span>
             </Link>
           </Button>
@@ -271,19 +327,49 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
             )}
           </Button>
         </TableCell>
-        <TableCell className="baseFlex">
-          <Button variant={"playPause"} size="sm" className="baseFlex">
-            {/* prob use framer to crossfade */}
+        <TableCell>
+          <Button
+            variant="playPause"
+            disabled={artificalPlayButtonTimeout || !currentInstrument}
+            onClick={() => {
+              if (audioMetadata.playing && audioMetadata.tabId === tab.id) {
+                setArtificalPlayButtonTimeout(true);
 
-            {/* write rudimentary playing state in store that has shape of {
-                      isPlaying: boolean,
-                      tabId: string
-                      secondsElapsed?: number
-                      currentChord?: number
-                    } */}
+                setTimeout(() => {
+                  setArtificalPlayButtonTimeout(false);
+                }, 300);
+                pauseAudio();
+              } else {
+                // setting store w/ this tab's data
+                setTabData(tab.tabData as unknown as Section[]);
+                setSectionProgression(
+                  tab.sectionProgression as unknown as SectionProgression[]
+                );
+                setTuning(tab.tuning);
+                setBpm(tab.bpm);
+                setChords(tab.chords as unknown as Chord[]);
+                setCapo(tab.capo);
 
-            {/* just for now to fill design */}
-            <BsFillPlayFill className="h-6 w-6" />
+                void playTab({
+                  tabData: tab.tabData as unknown as Section[],
+                  rawSectionProgression:
+                    tab.sectionProgression as unknown as SectionProgression[],
+                  tuningNotes: tab.tuning,
+                  baselineBpm: tab.bpm,
+                  chords: tab.chords as unknown as Chord[],
+                  capo: tab.capo,
+                  tabId: tab.id,
+                  playbackSpeed,
+                  resetToStart: audioMetadata.tabId !== tab.id,
+                });
+              }
+            }}
+          >
+            {audioMetadata.playing && audioMetadata.tabId === tab.id ? (
+              <BsFillPauseFill className="h-5 w-5" />
+            ) : (
+              <BsFillPlayFill className="h-5 w-5" />
+            )}
           </Button>
         </TableCell>
       </TableRow>
