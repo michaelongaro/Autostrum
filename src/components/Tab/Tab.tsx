@@ -203,7 +203,7 @@ function Tab({ tab, refetchTab }: ITab) {
         {/* <LayoutGroup> */}
         {tabData.map((section, index) => (
           <SectionContainer
-            key={index}
+            key={section.id}
             sectionIndex={index}
             sectionData={section}
           />
