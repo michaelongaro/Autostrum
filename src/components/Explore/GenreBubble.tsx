@@ -43,12 +43,12 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
   const radii: [number, number, number, number, number, number] =
     useMemo(() => {
       return [
-        Math.random() * 7.5 + 3,
-        Math.random() * 7.5 + 3,
-        Math.random() * 7.5 + 3,
-        Math.random() * 7.5 + 3,
-        Math.random() * 7.5 + 3,
-        Math.random() * 7.5 + 3,
+        Math.random() * 8 + 3.5,
+        Math.random() * 8 + 3.5,
+        Math.random() * 8 + 3.5,
+        Math.random() * 8 + 3.5,
+        Math.random() * 8 + 3.5,
+        Math.random() * 8 + 3.5,
       ];
     }, []);
 
@@ -190,17 +190,19 @@ function ConditionallyFloatingBubble({
       const time = state.clock.getElapsedTime();
 
       setTimeout(() => {
+        if (meshRef.current) {
         meshRef.current.position.x +=
           amplitudeX * Math.cos(frequency * time) * 0.001;
         meshRef.current.position.y +=
           amplitudeY * Math.sin(frequency * time) * 0.01;
+        }
       }, delay * 100);
     }
   });
 
   return (
     <mesh ref={meshRef} position={position}>
-      <sphereGeometry args={[radius, 100, 100]} />
+      <sphereGeometry args={[radius, 50, 50]} />
       <meshPhysicalMaterial
         roughness={0}
         metalness={0.5}

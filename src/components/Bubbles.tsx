@@ -109,7 +109,7 @@ function Bubble({ position, size, velocity }: Bubble) {
   return (
     <>
       <mesh ref={meshRef} position={position}>
-        <sphereGeometry args={[size, 100, 100]} />
+        <sphereGeometry args={[size, 50, 50]} />
         <meshPhysicalMaterial
           roughness={0}
           metalness={0.5}
