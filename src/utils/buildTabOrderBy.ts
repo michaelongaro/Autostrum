@@ -7,7 +7,7 @@ type RelevanceOrder = {
 };
 
 type CreatedAtOrder = {
-  createdAt: "asc" | "desc";
+  updatedAt: "asc" | "desc";
 };
 
 type LikesOrder = {
@@ -29,8 +29,12 @@ export default function buildTabOrderBy(
     tempOrderBy.push({
       _relevance: {
         fields: ["title"],
+        // TODO: this probably is why the search isn't working w/ spaces...
         // Replace spaces, newlines, tabs with underscore
         search: searchQuery.replace(/[\s\n\t]/g, "_"),
+
+        // https://news.freshports.org/2021/03/09/to_tsquery-gives-error-syntax-error-in-tsquery-when-it-contains-a-space/
+        // idk this would probably require a raw sql query though...
         sort: "asc",
       },
     });
@@ -38,10 +42,10 @@ export default function buildTabOrderBy(
 
   switch (sortBy) {
     case "newest":
-      tempOrderBy.push({ createdAt: "desc" });
+      tempOrderBy.push({ updatedAt: "desc" });
       break;
     case "oldest":
-      tempOrderBy.push({ createdAt: "asc" });
+      tempOrderBy.push({ updatedAt: "asc" });
       break;
     case "mostLiked":
       tempOrderBy.push({ likes: { _count: "desc" } });

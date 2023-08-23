@@ -50,6 +50,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setId,
     setCreatedById,
     setCreatedAt,
+    setUpdatedAt,
     setTitle,
     setDescription,
     setGenreId,
@@ -77,6 +78,7 @@ function Tab({ tab, refetchTab }: ITab) {
       setId: state.setId,
       setCreatedById: state.setCreatedById,
       setCreatedAt: state.setCreatedAt,
+      setUpdatedAt: state.setUpdatedAt,
       setTitle: state.setTitle,
       setDescription: state.setDescription,
       setGenreId: state.setGenreId,
@@ -111,6 +113,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setId(tab.id);
     setCreatedById(tab.createdById);
     setCreatedAt(tab.createdAt);
+    setUpdatedAt(tab.updatedAt);
     setTitle(tab.title);
     setDescription(tab.description);
     setGenreId(tab.genreId);
@@ -133,6 +136,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setId,
     setCreatedById,
     setCreatedAt,
+    setUpdatedAt,
     setBpm,
     setDescription,
     setGenreId,

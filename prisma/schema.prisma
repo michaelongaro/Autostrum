@@ -34,6 +34,7 @@ model Tab {
     capo               Int       @default(0)
     recordedAudioUrl   String?
     createdAt          DateTime  @default(now())
+    updatedAt          DateTime  @default(now()) @updatedAt
     artist             Artist    @relation(fields: [createdById], references: [userId])
     createdById        String
     likes              Like[]

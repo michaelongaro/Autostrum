@@ -293,7 +293,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
             </Link>
           </Button>
         </TableCell>
-        <TableCell>{formatDate(tab.createdAt)}</TableCell>
+        <TableCell>{formatDate(tab.updatedAt ?? tab.createdAt)}</TableCell>
         <TableCell>
           <Button
             variant={"ghost"}

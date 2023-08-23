@@ -89,6 +89,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
     id,
     createdById,
     createdAt,
+    updatedAt,
     title,
     setTitle,
     description,
@@ -117,6 +118,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
       id: state.id,
       createdById: state.createdById,
       createdAt: state.createdAt,
+      updatedAt: state.updatedAt,
       title: state.title,
       setTitle: state.setTitle,
       description: state.description,
@@ -720,8 +722,6 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                     </div>
                   </div>
 
-                  {/* prob are going to need an updatedAt field on model, and then display the updated one
-            if it exists, otherwise createdAt */}
                   <Separator
                     orientation="vertical"
                     className="hidden h-8 sm:block"
@@ -776,7 +776,9 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                     </Button>
                     <Separator className="h-[1px] w-4" />
                     <p className="ml-2">
-                      {`Updated on ${createdAt ? formatDate(createdAt) : ""}`}
+                      {updatedAt && updatedAt.getTime() !== createdAt?.getTime()
+                        ? `Updated on ${formatDate(updatedAt)}`
+                        : `Created on ${formatDate(createdAt!)}`}
                     </p>
                   </div>
                 </div>

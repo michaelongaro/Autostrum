@@ -289,7 +289,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
               </Link>
             </Button>
             <p className="text-sm text-pink-50/90">
-              {formatDate(tab.createdAt)}
+              {formatDate(tab.updatedAt ?? tab.createdAt)}
             </p>
             {!asPath.includes("genreId") && (
               <Badge
