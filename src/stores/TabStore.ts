@@ -84,6 +84,7 @@ type InstrumentNames =
 interface AudioMetadata {
   type: "Generated" | "Artist recorded";
   playing: boolean;
+  tabId: number;
   location: {
     sectionIndex: number;
     subSectionIndex?: number;
@@ -254,6 +255,7 @@ const initialStoreState = {
   currentChordIndex: 0,
   audioMetadata: {
     type: "Generated",
+    tabId: -1,
     playing: false,
     location: null,
   },
@@ -508,6 +510,7 @@ export const useTabStore = create<TabState>()(
     setCurrentChordIndex: (currentChordIndex) => set({ currentChordIndex }),
     audioMetadata: {
       type: "Generated",
+      tabId: -1,
       playing: false,
       location: null,
     },

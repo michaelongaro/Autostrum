@@ -96,6 +96,7 @@ export default function useSound() {
     if (tabData.length === 0 || tabData[0]?.data.length === 0) {
       setAudioMetadata({
         location: null,
+        tabId: -1,
         playing: false,
         type: "Generated",
       });
@@ -1152,6 +1153,8 @@ export default function useSound() {
 
     const lastActualChord = metadata.at(-1)!;
 
+    console.log("lastActualChord", lastActualChord);
+
     // adding fake chord + metadata to align the audio controls slider with the visual progress indicator
     metadata.push({
       location: {
@@ -1696,6 +1699,7 @@ export default function useSound() {
     capo?: number;
     chords: Chord[];
     playbackSpeed: number;
+    tabId?: number;
     location?: {
       sectionIndex: number;
       subSectionIndex?: number;
@@ -1712,6 +1716,7 @@ export default function useSound() {
     chords,
     capo = 0,
     playbackSpeed,
+    tabId,
     location,
     resetToStart,
   }: PlayTab) {
@@ -1721,6 +1726,7 @@ export default function useSound() {
 
     setAudioMetadata({
       ...audioMetadataRef.current,
+      tabId: tabId !== undefined ? tabId : -1,
       location: location ?? audioMetadataRef.current.location,
       playing: true,
       type: "Generated",
