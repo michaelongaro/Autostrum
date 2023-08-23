@@ -13,7 +13,6 @@ import {
 } from "~/components/ui/tooltip";
 import type { ArtistMetadata } from "~/server/api/routers/artist";
 import { formatNumber } from "~/utils/formatNumber";
-import { Skeleton } from "../ui/skeleton";
 
 const GridArtistCard = forwardRef<HTMLDivElement, ArtistMetadata>(
   (artist, ref) => {
@@ -21,12 +20,7 @@ const GridArtistCard = forwardRef<HTMLDivElement, ArtistMetadata>(
     const { push } = useRouter();
 
     const [profileImageLoaded, setProfileImageLoaded] = useState(false);
-    // maybe try to make a custom Button variant for this eventually
-    const [isHovered, setIsHovered] = useState(false);
-    const [isActive, setIsActive] = useState(false);
 
-    // try https://buildui.com/recipes/spotlight
-    // then move on to checking responsiveness + list view
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
 
@@ -49,17 +43,7 @@ const GridArtistCard = forwardRef<HTMLDivElement, ArtistMetadata>(
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.25 }}
-        className={`lightestGlassmorphic baseVertFlex group relative w-full cursor-pointer gap-2 rounded-md border-2 p-2
-                  ${isHovered ? "shadow-lg" : "shadow-sm"} 
-                  ${isActive ? "brightness-90" : "brightness-100"}
-                  transition-all`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => {
-          setIsHovered(false);
-          setIsActive(false);
-        }}
-        onMouseDown={() => setIsActive(true)}
-        onMouseUp={() => setIsActive(false)}
+        className="lightestGlassmorphic baseVertFlex group relative w-full cursor-pointer gap-4 rounded-md border-2 p-2 shadow-sm brightness-100 transition-all hover:shadow-lg active:brightness-90"
         onMouseMove={handleMouseMove}
         onClick={() => {
           void push(`/artist/${artist.username}`);
@@ -70,37 +54,45 @@ const GridArtistCard = forwardRef<HTMLDivElement, ArtistMetadata>(
           style={{
             background: useMotionTemplate`
             radial-gradient(
-              350px circle at ${mouseX}px ${mouseY}px,
+              250px circle at ${mouseX}px ${mouseY}px,
               hsla(335, 78%, 42%, 0.15),
               transparent 80%
             )
           `,
           }}
         />
-        <div className="baseVertFlex gap-2">
-          <Image
-            onLoadingComplete={() => {
-              setProfileImageLoaded(true);
-            }}
-            src={artist.profileImageUrl}
-            alt={`${artist.username}'s profile picture`}
-            width={64}
-            height={64}
-            style={{
-              opacity: profileImageLoaded ? 1 : 0,
-            }}
-            className="rounded-full"
-          />
-
-          {!profileImageLoaded && (
-            <Skeleton className="h-16 w-16 rounded-full" />
-          )}
+        <div className="baseVertFlex gap-1">
+          <div className="grid grid-cols-1 grid-rows-1">
+            <Image
+              src={artist.profileImageUrl ?? ""}
+              alt={`${artist.username ?? "Anonymous"}'s profile image`}
+              width={64}
+              height={64}
+              // maybe just a developemnt thing, but it still very
+              // briefly shows the default placeholder for a loading
+              // or not found image before the actual image loads...
+              onLoadingComplete={() => setProfileImageLoaded(true)}
+              style={{
+                opacity: profileImageLoaded ? 1 : 0,
+              }}
+              className="col-start-1 col-end-2 row-start-1 row-end-2 h-16 w-16 rounded-full bg-pink-800 object-cover object-center 
+                          transition-opacity"
+            />
+            <div
+              style={{
+                opacity: !profileImageLoaded ? 1 : 0,
+              }}
+              className={`col-start-1 col-end-2 row-start-1 row-end-2 h-16 w-16 rounded-full bg-pink-300 transition-opacity
+                              ${!profileImageLoaded ? "animate-pulse" : ""}
+                            `}
+            ></div>
+          </div>
 
           <p className="text-xl font-semibold">{artist.username}</p>
         </div>
 
         <div className="baseFlex gap-4">
-          <TooltipProvider delayDuration={300}>
+          <TooltipProvider delayDuration={150}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="baseFlex gap-2">
@@ -114,7 +106,7 @@ const GridArtistCard = forwardRef<HTMLDivElement, ArtistMetadata>(
             </Tooltip>
           </TooltipProvider>
 
-          <TooltipProvider delayDuration={300}>
+          <TooltipProvider delayDuration={150}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="baseFlex gap-2">
