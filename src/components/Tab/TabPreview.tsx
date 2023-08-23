@@ -1,10 +1,16 @@
-import { useState, useEffect, useMemo, useCallback, Fragment } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  Fragment,
+  memo,
+} from "react";
 import { type TabWithLikes } from "~/server/api/routers/tab";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { parse, toString } from "~/utils/tunings";
 import { BsFillPlayFill, BsArrowUp, BsArrowDown } from "react-icons/bs";
-import { AnimatePresence, motion } from "framer-motion";
 import type {
   StrummingPattern,
   Section,
@@ -13,33 +19,6 @@ import type {
   TabSection,
 } from "~/stores/TabStore";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-
-const opacityAndScaleVariants = {
-  expanded: {
-    opacity: 1,
-    scale: 1,
-  },
-  closed: {
-    opacity: 0,
-    scale: 0.5,
-  },
-};
-
-const sectionVariants = {
-  expanded: {
-    opacity: 1,
-    scale: 1,
-  },
-  closed: {
-    opacity: 1,
-    scale: 1,
-  },
-};
-
-const initialStyles = {
-  x: 0,
-  y: 0,
-};
 
 // ---WARNING---: I really didn't want to have to do this approach, but this is the only way
 // I could avoid the horrendous performance/rerender issues that would happen when many
@@ -63,8 +42,6 @@ function TabPreview({ tab, scale }: TabPreview) {
     }
   }, [tab]);
 
-  // thinking of just passing through chords/strummingPatterns values down through props since I am pretty sure they are needed for chord sections
-
   return (
     <>
       {!tab && <div className="h-full w-full animate-pulse rounded-t-md"></div>}
@@ -78,7 +55,7 @@ function TabPreview({ tab, scale }: TabPreview) {
         >
           {tabData.map((section, index) => (
             <PreviewSectionContainer
-              key={index}
+              key={section.id}
               tabData={tabData}
               tuning={tab.tuning}
               sectionIndex={index}
@@ -132,29 +109,25 @@ function PreviewSectionContainer({
                 Repeat x{subSection.repetitions}
               </p>
             )}
-            {/* TODO: Technically I think this should be higher up right below the map right? */}
-            {/* <LayoutGroup> */}
-            <AnimatePresence mode="wait">
-              {subSection.type === "chord" ? (
-                <PreviewChordSection
-                  tabData={tabData}
-                  sectionId={sectionData.id}
-                  sectionIndex={sectionIndex}
-                  subSectionIndex={index}
-                  subSectionData={subSection}
-                />
-              ) : (
-                <PreviewTabSection
-                  tabData={tabData}
-                  tuning={tuning}
-                  sectionId={sectionData.id}
-                  sectionIndex={sectionIndex}
-                  subSectionIndex={index}
-                  subSectionData={subSection}
-                />
-              )}
-            </AnimatePresence>
-            {/* </LayoutGroup> */}
+
+            {subSection.type === "chord" ? (
+              <PreviewChordSection
+                tabData={tabData}
+                sectionId={sectionData.id}
+                sectionIndex={sectionIndex}
+                subSectionIndex={index}
+                subSectionData={subSection}
+              />
+            ) : (
+              <PreviewTabSection
+                tabData={tabData}
+                tuning={tuning}
+                sectionId={sectionData.id}
+                sectionIndex={sectionIndex}
+                subSectionIndex={index}
+                subSectionData={subSection}
+              />
+            )}
           </div>
         ))}
       </div>
@@ -194,17 +167,7 @@ function PreviewChordSection({
   }, [aboveMediumViewportWidth]);
 
   return (
-    <motion.div
-      key={sectionId}
-      // layoutId={`${sectionId}`}
-      layout
-      variants={opacityAndScaleVariants}
-      initial="closed"
-      animate="expanded"
-      exit="closed"
-      transition={{
-        duration: 0.15,
-      }}
+    <div
       style={{
         gap: "0",
         padding: padding,
@@ -232,7 +195,7 @@ function PreviewChordSection({
           </div>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -882,17 +845,7 @@ function PreviewTabSection({
   }, [aboveMediumViewportWidth]);
 
   return (
-    <motion.div
-      key={sectionId}
-      // layoutId={`${sectionId}`}
-      layout
-      variants={opacityAndScaleVariants}
-      initial="closed"
-      animate="expanded"
-      exit="closed"
-      transition={{
-        duration: 0.15,
-      }}
+    <div
       style={{
         gap: "0",
         padding: sectionPadding,
@@ -935,7 +888,7 @@ function PreviewTabSection({
           className="rounded-r-2xl border-2 border-pink-50 p-1"
         ></div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -977,31 +930,7 @@ interface ColumnDataMockup {
 
 function PreviewTabMeasureLine({ columnData }: ColumnDataMockup) {
   return (
-    <motion.div
-      key={columnData[9]}
-      // layoutId={columnData[9]}
-      style={initialStyles}
-      initial="closed"
-      animate={initialStyles}
-      exit="closed"
-      transition={{
-        duration: 0,
-        easings: {
-          type: "spring",
-        },
-        x: {
-          duration: 0,
-        },
-        y: {
-          duration: 0,
-        },
-        zIndex: {
-          delay: 0.25,
-        },
-      }}
-      variants={sectionVariants}
-      className="baseVertFlex relative mb-[3.2rem] mt-4"
-    >
+    <div className="baseVertFlex relative mb-[3.2rem] mt-4">
       {columnData.map((note, index) => (
         <Fragment key={index}>
           {index === 0 && (
@@ -1035,7 +964,7 @@ function PreviewTabMeasureLine({ columnData }: ColumnDataMockup) {
           )}
         </Fragment>
       ))}
-    </motion.div>
+    </div>
   );
 }
 
@@ -1061,32 +990,7 @@ function TabNotesColumn({
   }
 
   return (
-    <motion.div
-      key={columnData[9]}
-      id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
-      // layoutId={columnData[9]}
-      style={initialStyles}
-      initial="closed"
-      animate={initialStyles}
-      exit="closed"
-      transition={{
-        duration: 0,
-        easings: {
-          type: "spring",
-        },
-        x: {
-          duration: 0,
-        },
-        y: {
-          duration: 0,
-        },
-        zIndex: {
-          delay: 0.25,
-        },
-      }}
-      variants={sectionVariants}
-      className="baseVertFlex cursor-default scroll-m-8"
-    >
+    <div className="baseVertFlex cursor-default scroll-m-8">
       <div className="baseFlex relative">
         <div
           style={{
@@ -1207,7 +1111,7 @@ function TabNotesColumn({
           ))}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -1255,4 +1159,4 @@ function PreviewTabNote({ note }: PreviewTabNote) {
   );
 }
 
-export default TabPreview;
+export default memo(TabPreview);
