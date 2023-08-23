@@ -6,6 +6,8 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { api } from "~/utils/api";
 import { Badge } from "../ui/badge";
+import { BiSearchAlt2 } from "react-icons/bi";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 interface SearchInput {
   initialSearchQueryFromUrl?: string;
@@ -17,6 +19,8 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
   const [searchQuery, setSearchQuery] = useState(
     initialSearchQueryFromUrl ?? ""
   );
+
+  const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   useEffect(() => {
     if (initialSearchQueryFromUrl) {
@@ -83,6 +87,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
   return (
     <div className="baseFlex gap-4">
       <div className="relative">
+        <BiSearchAlt2 className="absolute left-2 top-[0.6rem] h-5 w-5 md:left-[0.7rem] md:top-[0.8rem] md:h-6 md:w-6" />
         <Input
           ref={searchInputRef}
           type="text"
@@ -124,7 +129,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
             }
           }}
           value={searchQuery}
-          className="h-9 w-80 text-base md:h-12 md:w-96 md:text-lg"
+          className="h-9 w-80 pl-8 text-base md:h-12 md:w-96 md:pl-10 md:text-lg"
         />
 
         {/* autofill */}
@@ -135,9 +140,18 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
             debouncedSearchQuery.length > 0 && (
               <motion.div
                 key={"searchAutofill"}
-                initial={{ opacity: 0, top: "3rem" }}
-                animate={{ opacity: 1, top: "3.5rem" }}
-                exit={{ opacity: 0, top: "3rem" }}
+                initial={{
+                  opacity: 0,
+                  top: isAboveMediumViewportWidth ? "3rem" : "2.15rem",
+                }}
+                animate={{
+                  opacity: 1,
+                  top: isAboveMediumViewportWidth ? "3.5rem" : "2.75rem",
+                }}
+                exit={{
+                  opacity: 0,
+                  top: isAboveMediumViewportWidth ? "3rem" : "2.15rem",
+                }}
                 transition={{ duration: 0.25 }}
                 className="mobileNavbarGlassmorphic absolute z-10 w-full rounded-md !shadow-xl"
               >
@@ -219,6 +233,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
             searchQuery
           );
         }}
+        className="hidden md:block"
       >
         Search
       </Button>
