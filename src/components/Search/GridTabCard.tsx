@@ -365,7 +365,10 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                   variant="playPause"
                   disabled={artificalPlayButtonTimeout || !currentInstrument}
                   onClick={() => {
-                    if (audioMetadata.playing) {
+                    if (
+                      audioMetadata.playing &&
+                      audioMetadata.tabId === tab.id
+                    ) {
                       setArtificalPlayButtonTimeout(true);
 
                       setTimeout(() => {
@@ -393,6 +396,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                         capo: tab.capo,
                         tabId: tab.id,
                         playbackSpeed,
+                        resetToStart: audioMetadata.tabId !== tab.id,
                       });
                     }
                   }}
