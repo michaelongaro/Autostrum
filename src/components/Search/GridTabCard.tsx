@@ -4,6 +4,13 @@ import { motion } from "framer-motion";
 import { Separator } from "../ui/separator";
 import Image from "next/image";
 import { api } from "~/utils/api";
+import {
+  useTabStore,
+  type Chord,
+  type Section,
+  type SectionProgression,
+} from "~/stores/TabStore";
+import { shallow } from "zustand/shallow";
 import { Skeleton } from "../ui/skeleton";
 import formatDate from "~/utils/formatDate";
 import { Button } from "../ui/button";
@@ -17,6 +24,7 @@ import type { TabWithLikes } from "~/server/api/routers/tab";
 import { Badge } from "../ui/badge";
 import type { RefetchTab } from "../Tab/Tab";
 import TabPreview from "../Tab/TabPreview";
+import useSound from "~/hooks/useSound";
 
 interface GridTabCard extends RefetchTab {
   tab: TabWithLikes;
@@ -29,6 +37,36 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
     const previewRef = useRef<HTMLDivElement>(null);
 
     const genreArray = api.genre.getAll.useQuery();
+
+    const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
+      useState(false);
+
+    const {
+      playbackSpeed,
+      audioMetadata,
+      currentInstrument,
+      setTabData,
+      setSectionProgression,
+      setTuning,
+      setBpm,
+      setChords,
+      setCapo,
+    } = useTabStore(
+      (state) => ({
+        playbackSpeed: state.playbackSpeed,
+        audioMetadata: state.audioMetadata,
+        currentInstrument: state.currentInstrument,
+        setTabData: state.setTabData,
+        setSectionProgression: state.setSectionProgression,
+        setTuning: state.setTuning,
+        setBpm: state.setBpm,
+        setChords: state.setChords,
+        setCapo: state.setCapo,
+      }),
+      shallow
+    );
+
+    const { playTab, pauseAudio } = useSound();
 
     const genreObject: Record<number, Genre> = useMemo(() => {
       if (!genreArray.data) return {};
@@ -45,7 +83,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
           userId: userId!,
         },
         {
-          enabled: isLoaded,
+          enabled: isLoaded && userId !== null,
         }
       );
 
@@ -322,23 +360,51 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                     </div>
                   )}
                 </Button>
-                {/* play/pause button */}
+                {/* play/pause button*/}
                 <Button
-                  variant={"playPause"}
-                  size="sm"
-                  className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px]"
+                  variant="playPause"
+                  disabled={artificalPlayButtonTimeout || !currentInstrument}
+                  onClick={() => {
+                    if (audioMetadata.playing) {
+                      setArtificalPlayButtonTimeout(true);
+
+                      setTimeout(() => {
+                        setArtificalPlayButtonTimeout(false);
+                      }, 300);
+                      pauseAudio();
+                    } else {
+                      // setting store w/ this tab's data
+                      setTabData(tab.tabData as unknown as Section[]);
+                      setSectionProgression(
+                        tab.sectionProgression as unknown as SectionProgression[]
+                      );
+                      setTuning(tab.tuning);
+                      setBpm(tab.bpm);
+                      setChords(tab.chords as unknown as Chord[]);
+                      setCapo(tab.capo);
+
+                      void playTab({
+                        tabData: tab.tabData as unknown as Section[],
+                        rawSectionProgression:
+                          tab.sectionProgression as unknown as SectionProgression[],
+                        tuningNotes: tab.tuning,
+                        baselineBpm: tab.bpm,
+                        chords: tab.chords as unknown as Chord[],
+                        capo: tab.capo,
+                        tabId: tab.id,
+                        playbackSpeed,
+                      });
+                    }
+                  }}
+                  className="baseFlex h-8 w-1/2 gap-2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px] p-0"
                 >
-                  {/* prob use framer to crossfade */}
-
-                  {/* write rudimentary playing state in store that has shape of {
-                      isPlaying: boolean,
-                      tabId: string
-                      secondsElapsed?: number
-                      currentChord?: number
-                    } */}
-
-                  {/* just for now to fill design */}
-                  <BsFillPlayFill className="h-6 w-6" />
+                  {audioMetadata.playing && audioMetadata.tabId === tab.id ? (
+                    // log values to figure out why this doesn't turn to pause icon when
+                    // hitting play from AudioControls...
+                    <BsFillPauseFill className="h-5 w-5" />
+                  ) : (
+                    <BsFillPlayFill className="h-5 w-5" />
+                  )}
                 </Button>
               </div>
             </div>
