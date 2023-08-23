@@ -1,6 +1,4 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
 import TabMeasureLine from "./TabMeasureLine";
 import TabNotesColumn from "./TabNotesColumn";
 import { type LastModifiedPalmMuteNodeLocation } from "./TabSection";
@@ -32,15 +30,6 @@ function TabColumn({
   reorderingColumns,
   showingDeleteColumnsButtons,
 }: TabColumn) {
-  const { editing, tabData, setTabData } = useTabStore(
-    (state) => ({
-      editing: state.editing,
-      tabData: state.tabData,
-      setTabData: state.setTabData,
-    }),
-    shallow
-  );
-
   return (
     <>
       {columnData.includes("|") ? (
