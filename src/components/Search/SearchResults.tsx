@@ -100,7 +100,7 @@ function SearchResults({
         </div>
       );
     }
-    if (searchQuery === "" && genreId === 9) {
+    if (searchQuery === "" && genreId === 9 && type === "tabs") {
       return (
         <div className="baseFlex gap-2 text-lg">
           {`Found ${searchResultsCount} ${formattedTabString} across`}
