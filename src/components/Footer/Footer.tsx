@@ -4,7 +4,7 @@ import { MdOutlineMailOutline } from "react-icons/md";
 function Footer() {
   return (
     <footer className="heavyGlassmorphic baseFlex z-30 h-16 w-full shadow-sm">
-      <Button variant={"ghost"} asChild>
+      <Button id={"contact"} variant={"ghost"} asChild>
         <a
           href="mailto:michael.ongaro.dev@gmail.com"
           target="_blank"
