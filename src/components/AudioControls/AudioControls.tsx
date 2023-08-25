@@ -1,4 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
@@ -20,8 +27,9 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { GoChevronUp, GoChevronDown } from "react-icons/go";
-import { Slider } from "~/components/ui/slider";
+import { AudioProgressSlider } from "~/components/ui/AudioProgressSlider";
 import { VerticalSlider } from "~/components/ui/verticalSlider";
+import { Slider } from "~/components/ui/slider";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import useSound from "~/hooks/useSound";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
@@ -33,15 +41,8 @@ import { Toggle } from "~/components/ui/toggle";
 import { FaVolumeMute, FaVolumeDown, FaVolumeUp } from "react-icons/fa";
 import { RiArrowGoBackFill } from "react-icons/ri";
 import useAutoscrollToCurrentChord from "~/hooks/useAutoscrollToCurrentChord";
-
-const positionVariants = {
-  expanded: {
-    opacity: 1,
-  },
-  closed: {
-    opacity: 0,
-  },
-};
+import { useLocalStorageValue } from "@react-hookz/web";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -67,9 +68,14 @@ const widthAndHeightVariants = {
   },
 };
 
-function AudioControls() {
-  const [volume, setVolume] = useState(1);
-  const [autoscrollEnabled, setAutoscrollEnabled] = useState(false);
+interface AudioControls {
+  visibility: "expanded" | "minimized" | "keepMinimized" | "offscreen";
+  setVisibility: Dispatch<
+    SetStateAction<"expanded" | "minimized" | "keepMinimized">
+  >;
+}
+
+function AudioControls({ visibility, setVisibility }: AudioControls) {
   const [tabProgressValue, setTabProgressValue] = useState(0);
   const [wasPlayingBeforeScrubbing, setWasPlayingBeforeScrubbing] =
     useState(false);
@@ -86,8 +92,15 @@ function AudioControls() {
 
   const oneSecondIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [audioControlsAreMinized, setAudioControlsAreMinimized] =
-    useState(false);
+  const localStorageVolume = useLocalStorageValue("autostrumVolume");
+
+  const localStorageAutoscroll = useLocalStorageValue("autostrumAutoscroll");
+
+  const localStorageLooping = useLocalStorageValue("autostrumLooping");
+
+  const volume = useGetLocalStorageValues().volume;
+  const autoscrollEnabled = useGetLocalStorageValues().autoscroll;
+  const looping = useGetLocalStorageValues().looping;
 
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
   useAutoscrollToCurrentChord({ autoscrollEnabled });
@@ -102,7 +115,6 @@ function AudioControls() {
     currentChordIndex,
     setCurrentChordIndex,
     currentlyPlayingMetadata,
-    setCurrentlyPlayingMetadata,
     audioMetadata,
     setAudioMetadata,
     currentInstrument,
@@ -112,8 +124,6 @@ function AudioControls() {
     bpm,
     chords,
     capo,
-    looping,
-    setLooping,
   } = useTabStore(
     (state) => ({
       recordedAudioUrl: state.recordedAudioUrl,
@@ -125,7 +135,6 @@ function AudioControls() {
       currentChordIndex: state.currentChordIndex,
       setCurrentChordIndex: state.setCurrentChordIndex,
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-      setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
       audioMetadata: state.audioMetadata,
       setAudioMetadata: state.setAudioMetadata,
       currentInstrument: state.currentInstrument,
@@ -135,14 +144,11 @@ function AudioControls() {
       bpm: state.bpm,
       chords: state.chords,
       capo: state.capo,
-      looping: state.looping,
-      setLooping: state.setLooping,
     }),
     shallow
   );
 
-  const { playTab, pauseAudio, playRecordedAudio, pauseRecordedAudio } =
-    useSound();
+  const { playTab, pauseAudio, playRecordedAudio } = useSound();
 
   useEffect(() => {
     if (!masterVolumeGainNode) return;
@@ -209,12 +215,12 @@ function AudioControls() {
 
   useEffect(() => {
     if (audioMetadata.type === "Artist recorded") {
-      setAutoscrollEnabled(false);
+      localStorageAutoscroll.set("false");
     }
   }, [audioMetadata.type]);
 
   // REALLY hate having this here, but not sure how else to guarentee that the correct
-  // currentChordIndex is used when playTab() is called...
+  // currentChordIndex is used when playTab() is called... maybe a ref could work?
   useEffect(() => {
     if (
       !audioMetadata.playing &&
@@ -249,27 +255,66 @@ function AudioControls() {
     tuning,
   ]);
 
+  const dynamicBottomValue = useMemo(() => {
+    let bottomValue = "1rem";
+
+    if (visibility === "offscreen") {
+      if (aboveLargeViewportWidth) {
+        bottomValue = "-8rem";
+      } else {
+        bottomValue = "-4rem";
+      }
+    } else if (visibility === "minimized" || visibility === "keepMinimized") {
+      if (aboveLargeViewportWidth) {
+        bottomValue = "-6.15rem";
+      } else {
+        bottomValue = "-2.85rem";
+      }
+    } else if (visibility === "expanded") {
+      if (aboveLargeViewportWidth) {
+        bottomValue = "1rem";
+      } else {
+        bottomValue = "0.5rem";
+      }
+    }
+
+    return bottomValue;
+  }, [aboveLargeViewportWidth, visibility]);
+
+  const mainAudioControlsVariants = {
+    expanded: {
+      opacity: 1,
+      bottom: dynamicBottomValue,
+    },
+    closed: {
+      opacity: 0,
+      bottom: aboveLargeViewportWidth ? "-8rem" : "-4rem",
+    },
+  };
+
+  console.log(
+    "disabled?",
+    currentlyPlayingMetadata === null,
+    currentlyPlayingMetadata?.length === 0,
+    (currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 1) === 1,
+    !currentInstrument
+  );
+
   return (
     <motion.div
       key={"audioControls"}
-      // can't set inline styles for bottom value inside of framer-motion controlled
-      // element (at least one that is wrapped in AnimatePresence)
       style={{
-        bottom: audioControlsAreMinized ? "-6.5rem" : "1rem",
-        transition: "all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
       }}
       className="baseFlex fixed z-40 w-[100vw]"
-      variants={positionVariants}
+      variants={mainAudioControlsVariants}
       initial="closed"
       animate="expanded"
       exit="closed"
-      transition={{
-        duration: 0.15,
-      }}
     >
       <div className="baseVertFlex h-full w-11/12 gap-2 rounded-lg bg-pink-600 p-2 shadow-2xl lg:rounded-full lg:px-8 lg:py-2 xl:w-10/12 2xl:w-1/2">
-        <AnimatePresence mode="wait">
-          {aboveLargeViewportWidth && audioControlsAreMinized && (
+        <AnimatePresence mode="popLayout">
+          {aboveLargeViewportWidth && visibility === "minimized" && (
             <motion.div
               key={"audioControlsTopLayer"}
               className="baseFlex"
@@ -284,7 +329,7 @@ function AudioControls() {
               <Button
                 variant="ghost"
                 className="h-5 w-8 px-2 py-1"
-                onClick={() => setAudioControlsAreMinimized(false)}
+                onClick={() => setVisibility("expanded")}
               >
                 <GoChevronUp className="h-5 w-5" />
               </Button>
@@ -303,7 +348,7 @@ function AudioControls() {
               <AnimatePresence mode="wait">
                 {audioMetadata.type === "Generated" &&
                   audioMetadata.location !== null &&
-                  !audioControlsAreMinized && (
+                  visibility === "expanded" && (
                     <motion.div
                       key={"returnToEntireTabButton"}
                       variants={opacityAndScaleVariants}
@@ -315,17 +360,24 @@ function AudioControls() {
                       <Button
                         variant="ghost" // or secondary maybe
                         onClick={() => {
+                          setArtificalPlayButtonTimeout(true);
+
+                          setTimeout(() => {
+                            setArtificalPlayButtonTimeout(false);
+                          }, 300);
+
                           pauseAudio(true);
 
                           setAudioMetadata({
                             ...audioMetadata,
+                            playing: false,
                             location: null,
                           });
                         }}
-                        className="baseFlex !flex-nowrap gap-2"
+                        className="baseFlex !flex-nowrap gap-2 p-1"
                       >
                         <RiArrowGoBackFill className="h-4 w-4" />
-                        <p>Return to entire tab</p>
+                        <p className="text-sm">Play whole tab</p>
                       </Button>
                     </motion.div>
                   )}
@@ -335,10 +387,16 @@ function AudioControls() {
             {/* v/^ chevron */}
             <Button
               variant={"ghost"}
-              className="col-span-2 h-8 w-8 p-2"
-              onClick={() => setAudioControlsAreMinimized(true)}
+              className="col-span-2 h-7 w-7 p-0"
+              onClick={() =>
+                setVisibility(
+                  visibility === "minimized" || visibility === "keepMinimized"
+                    ? "expanded"
+                    : "keepMinimized"
+                )
+              }
             >
-              {audioControlsAreMinized ? (
+              {visibility === "minimized" || visibility === "keepMinimized" ? (
                 <GoChevronUp className="h-5 w-5" />
               ) : (
                 <GoChevronDown className="h-5 w-5" />
@@ -346,7 +404,13 @@ function AudioControls() {
             </Button>
 
             {/* audio slider */}
-            <div className="baseFlex col-span-5 w-full !flex-nowrap gap-2">
+            <div
+              className={`baseFlex col-span-5 w-full !flex-nowrap gap-2 ${
+                visibility === "minimized" || visibility === "keepMinimized"
+                  ? "opacity-0"
+                  : "opacity-100"
+              } transition-opacity`}
+            >
               {volume === 0 ? (
                 <FaVolumeMute className="h-5 w-5" />
               ) : volume < 1 ? (
@@ -355,12 +419,13 @@ function AudioControls() {
                 <FaVolumeUp className="h-5 w-5" />
               )}
               <Slider
-                value={[volume * 50]} // 100 felt too quite/narrow of a volume range
+                value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
                 min={0}
                 max={100}
                 step={1}
-                onValueChange={(value) => setVolume(value[0]! / 50)} // 100 felt too quite/narrow of a volume range
-                // className=""
+                onValueChange={(value) =>
+                  localStorageVolume.set(`${value[0]! / 50}`)
+                } // 100 felt too quiet/narrow of a volume range
               ></Slider>
             </div>
           </div>
@@ -494,17 +559,24 @@ function AudioControls() {
                     <Button
                       variant="ghost" // or secondary maybe
                       onClick={() => {
+                        setArtificalPlayButtonTimeout(true);
+
+                        setTimeout(() => {
+                          setArtificalPlayButtonTimeout(false);
+                        }, 300);
+
                         pauseAudio(true);
 
                         setAudioMetadata({
                           ...audioMetadata,
+                          playing: false,
                           location: null,
                         });
                       }}
                       className="baseFlex gap-2"
                     >
                       <RiArrowGoBackFill className="h-4 w-4" />
-                      <p>Return to entire tab</p>
+                      <p>Play whole tab</p>
                     </Button>
                   </motion.div>
                 )}
@@ -516,7 +588,9 @@ function AudioControls() {
               <Toggle
                 variant={"outline"}
                 pressed={autoscrollEnabled}
-                onPressedChange={(value) => setAutoscrollEnabled(value)}
+                onPressedChange={(value) =>
+                  localStorageAutoscroll.set(String(value))
+                }
               >
                 Autoscroll
               </Toggle>
@@ -538,11 +612,13 @@ function AudioControls() {
                   side="top"
                 >
                   <VerticalSlider
-                    value={[volume * 50]} // 100 felt too quite/narrow of a volume range
+                    value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
                     min={0}
                     max={100}
                     step={1}
-                    onValueChange={(value) => setVolume(value[0]! / 50)} // 100 felt too quite/narrow of a volume range
+                    onValueChange={(value) =>
+                      localStorageVolume.set(`${value[0]! / 50}`)
+                    } // 100 felt too quiet/narrow of a volume range
                   ></VerticalSlider>
                   <p>{Math.floor(volume * 50)}%</p>
                 </PopoverContent>
@@ -595,38 +671,42 @@ function AudioControls() {
             )}
           </Button>
 
-          <div className="baseFlex w-9/12 !flex-nowrap gap-4">
-            <div className="baseFlex !flex-nowrap gap-1">
-              <p>
-                {formatSecondsToMinutes(
-                  Math.min(
-                    tabProgressValue,
-                    currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
-                  )
-                )}
-              </p>
-              /
-              <p>
-                {formatSecondsToMinutes(
+          <div className="baseFlex w-9/12 !flex-nowrap gap-2">
+            <p>
+              {formatSecondsToMinutes(
+                Math.min(
+                  tabProgressValue,
                   currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
-                )}
-              </p>
-            </div>
+                )
+              )}
+            </p>
 
-            <Slider
+            <AudioProgressSlider
               value={[tabProgressValue]}
               min={0}
-              max={currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0}
+              // technically should be ?? 0, but radix-slider thumb protrudes from box-model of
+              // main slider if max is 0 it seems
+              max={currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 1}
               step={1}
               disabled={
                 currentlyPlayingMetadata === null ||
                 currentlyPlayingMetadata.length === 0 ||
-                (currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0) === 0 ||
+                (currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 1) === 1 ||
                 !currentInstrument
               }
+              style={{
+                pointerEvents:
+                  currentlyPlayingMetadata === null ||
+                  currentlyPlayingMetadata.length === 0 ||
+                  (currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 1) ===
+                    1 ||
+                  !currentInstrument
+                    ? "none"
+                    : "auto",
+              }}
               onPointerDown={() => {
                 setWasPlayingBeforeScrubbing(audioMetadata.playing);
-                pauseAudio();
+                if (audioMetadata.playing) pauseAudio();
               }}
               onPointerUp={() => {
                 if (wasPlayingBeforeScrubbing) {
@@ -634,6 +714,8 @@ function AudioControls() {
                 }
               }}
               onValueChange={(value) => {
+                console.log("value is:", value[0]);
+
                 setTabProgressValue(value[0]!);
 
                 if (currentlyPlayingMetadata) {
@@ -652,12 +734,27 @@ function AudioControls() {
                   }
 
                   if (newCurrentChordIndex !== -1) {
+                    console.log(
+                      "updating currentChordINdex + updatedCurrentChordIndex to",
+                      newCurrentChordIndex,
+                      "from",
+                      currentChordIndex,
+                      "and",
+                      updatedCurrentChordIndex
+                    );
+
                     setCurrentChordIndex(newCurrentChordIndex);
                     setUpdatedCurrentChordIndex(newCurrentChordIndex);
                   }
                 }
               }}
-            ></Slider>
+            ></AudioProgressSlider>
+
+            <p>
+              {formatSecondsToMinutes(
+                currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
+              )}
+            </p>
           </div>
 
           {aboveLargeViewportWidth ? (
@@ -667,14 +764,16 @@ function AudioControls() {
                 aria-label="Loop toggle"
                 className="h-8 w-8 p-1"
                 pressed={looping}
-                onPressedChange={(value) => setLooping(value)}
+                onPressedChange={(value) =>
+                  localStorageLooping.set(String(value))
+                }
               >
                 <TiArrowLoop className="h-6 w-6" />
               </Toggle>
               <Button
                 variant={"ghost"}
                 className="h-8 w-8 p-2"
-                onClick={() => setAudioControlsAreMinimized(true)}
+                onClick={() => setVisibility("minimized")}
               >
                 <GoChevronDown className="h-5 w-5" />
               </Button>
@@ -808,7 +907,9 @@ function AudioControls() {
                     id="autoscroll"
                     disabled={audioMetadata.type === "Artist recorded"}
                     checked={autoscrollEnabled}
-                    onCheckedChange={(value) => setAutoscrollEnabled(value)}
+                    onCheckedChange={(value) =>
+                      localStorageAutoscroll.set(String(value))
+                    }
                   />
                 </div>
                 <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
@@ -816,7 +917,9 @@ function AudioControls() {
                   <Switch
                     id="loop"
                     checked={looping}
-                    onCheckedChange={(value) => setLooping(value)}
+                    onCheckedChange={(value) =>
+                      localStorageLooping.set(String(value))
+                    }
                   />
                 </div>
               </PopoverContent>
