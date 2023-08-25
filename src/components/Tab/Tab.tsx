@@ -153,7 +153,7 @@ function Tab({ tab, refetchTab }: ITab) {
   ]);
 
   useEffect(() => {
-    if (!tab && tabData.length === 0)
+    if (!tab && tabData.length === 0) {
       setTabData([
         {
           id: uuid(),
@@ -161,6 +161,7 @@ function Tab({ tab, refetchTab }: ITab) {
           data: [],
         },
       ]);
+    }
   }, [tab, tabData, setTabData]);
 
   function addNewSection() {
