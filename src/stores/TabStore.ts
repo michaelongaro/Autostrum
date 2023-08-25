@@ -250,7 +250,6 @@ const initialStoreState = {
 
   // useSound
   breakOnNextChord: false,
-  showingAudioControls: false,
   currentlyPlayingMetadata: null,
   playbackSpeed: 1,
   currentChordIndex: 0,
@@ -260,7 +259,6 @@ const initialStoreState = {
     playing: false,
     location: null,
   },
-  looping: false,
   previewMetadata: {
     indexOfPattern: -1,
     currentChordIndex: 0,
@@ -420,8 +418,6 @@ interface TabState {
   }) => void;
   currentInstrument: Soundfont.Player | null;
   setCurrentInstrument: (currentInstrument: Soundfont.Player | null) => void;
-  looping: boolean;
-  setLooping: (looping: boolean) => void;
   previewMetadata: PreviewMetadata;
   setPreviewMetadata: (previewMetadata: PreviewMetadata) => void;
   breakOnNextPreviewChord: boolean;
@@ -432,7 +428,7 @@ interface TabState {
   setSearchResultsCount: (searchResultsCount: number) => void;
 
   // reset
-  reset: () => void;
+  resetStoreToInitValues: () => void;
 }
 
 // if you ever come across a situation where you need the current value of tabData
@@ -525,8 +521,6 @@ export const useTabStore = create<TabState>()(
     setInstruments: (instruments) => set({ instruments }),
     currentInstrument: null,
     setCurrentInstrument: (currentInstrument) => set({ currentInstrument }),
-    looping: false,
-    setLooping: (looping) => set({ looping }),
     previewMetadata: {
       indexOfPattern: -1,
       currentChordIndex: 0,
@@ -558,6 +552,6 @@ export const useTabStore = create<TabState>()(
     setSearchResultsCount: (searchResultsCount) => set({ searchResultsCount }),
 
     // reset (investigate what exactly the ts error is saying)
-    reset: () => set(initialStoreState),
+    resetStoreToInitValues: () => set(initialStoreState),
   }))
 );
