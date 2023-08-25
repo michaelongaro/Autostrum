@@ -18,7 +18,7 @@ import { GiMusicalScore } from "react-icons/gi";
 import { AiFillHeart } from "react-icons/ai";
 import { Skeleton } from "~/components/ui/skeleton";
 import formatDate from "~/utils/formatDate";
-import useViewTypeFromLocalStorage from "~/hooks/useViewTypeFromLocalStorage";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 
 function ArtistProfile() {
   const router = useRouter();
@@ -31,7 +31,7 @@ function ArtistProfile() {
     additionalSortFilter,
   } = useGetUrlParamFilters();
 
-  const viewType = useViewTypeFromLocalStorage();
+  const viewType = useGetLocalStorageValues().viewType;
 
   const usernameFromUrl = useMemo(() => {
     if (typeof router.query.username === "string") {

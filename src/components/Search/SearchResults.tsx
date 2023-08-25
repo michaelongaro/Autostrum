@@ -49,9 +49,7 @@ function SearchResults({
   const { asPath, push, query, pathname } = useRouter();
 
   // worry about skeletons later!
-  const localStorageViewType = useLocalStorageValue("viewType", {
-    defaultValue: "grid",
-  });
+  const localStorageViewType = useLocalStorageValue("autostrumViewType");
 
   const { searchResultsCount } = useTabStore(
     (state) => ({

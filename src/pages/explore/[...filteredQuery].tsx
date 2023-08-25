@@ -3,7 +3,7 @@ import { BiErrorCircle } from "react-icons/bi";
 import SearchInput from "~/components/Search/SearchInput";
 import SearchResults from "~/components/Search/SearchResults";
 import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
-import useViewTypeFromLocalStorage from "~/hooks/useViewTypeFromLocalStorage";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 
 function FilteredQueryExplore() {
   const {
@@ -15,7 +15,7 @@ function FilteredQueryExplore() {
     additionalSortFilter,
   } = useGetUrlParamFilters();
 
-  const viewType = useViewTypeFromLocalStorage();
+  const viewType = useGetLocalStorageValues().viewType;
 
   return (
     <motion.div
