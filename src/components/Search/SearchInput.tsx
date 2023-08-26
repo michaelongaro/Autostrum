@@ -30,15 +30,51 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
 
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
-  const [hidingAutofillResults, setHidingAutofillResults] = useState(false);
+  const [showAutofillResults, setShowAutofillResults] = useState(false);
   const [artificallyShowLoadingSpinner, setArtificallyShowLoadingSpinner] =
     useState(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    const handleAutofillResultsVisibility = () => {
+      console.log(document.activeElement);
+
+      if (
+        debouncedSearchQuery.length > 0 &&
+        (document.activeElement === searchInputRef.current ||
+          document.activeElement?.id?.startsWith("autofillResult"))
+      ) {
+        setShowAutofillResults(true);
+      } else {
+        setShowAutofillResults(false);
+      }
+    };
+
+    handleAutofillResultsVisibility();
+
+    window.addEventListener("focus", handleAutofillResultsVisibility, true);
+    window.addEventListener("blur", handleAutofillResultsVisibility, true);
+    window.addEventListener("click", handleAutofillResultsVisibility, true);
+
+    return () => {
+      window.removeEventListener(
+        "focus",
+        handleAutofillResultsVisibility,
+        true
+      );
+      window.removeEventListener("blur", handleAutofillResultsVisibility, true);
+      window.removeEventListener(
+        "click",
+        handleAutofillResultsVisibility,
+        true
+      );
+    };
+  }, [debouncedSearchQuery]);
+
   const {
     data: tabTitlesAndUsernamesFromSearchQuery,
-    isLoading: isLoadingTabTitles,
+    isLoading: isLoadingResults,
   } = api.tab.getTabTitlesAndUsernamesBySearchQuery.useQuery(
     {
       query: debouncedSearchQuery,
@@ -99,7 +135,6 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
             const trimmedQuery = query.trim();
             if (trimmedQuery !== searchQuery) {
               debounce(() => {
-                setHidingAutofillResults(false);
                 setDebouncedSearchQuery(trimmedQuery);
                 setArtificallyShowLoadingSpinner(true);
                 setTimeout(() => setArtificallyShowLoadingSpinner(false), 250);
@@ -109,14 +144,9 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
             setSearchQuery(query);
           }}
           onKeyDown={(e) => {
-            if (
-              document.activeElement === searchInputRef.current &&
-              e.key === "Enter"
-            ) {
+            if (e.key === "Enter") {
               // TODO: probably also want to darken search button on enter down
               // and then lighten on enter up
-
-              setHidingAutofillResults(true);
 
               adjustQueryParams(
                 // response order is tabs and then artists, so if the first result is an artist,
@@ -126,6 +156,15 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                   : "tabs",
                 searchQuery
               );
+            } else if (e.key === "Escape") {
+              setShowAutofillResults(false);
+            } else if (e.key === "ArrowDown") {
+              e.preventDefault();
+
+              const firstResult = document.getElementById("autofillResult0");
+              if (firstResult) {
+                firstResult.focus();
+              }
             }
           }}
           value={searchQuery}
@@ -134,8 +173,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
 
         {/* autofill */}
         <AnimatePresence mode="wait">
-          {/* not sure if this is cleanest approach */}
-          {!hidingAutofillResults &&
+          {showAutofillResults &&
             searchQuery.length > 0 &&
             debouncedSearchQuery.length > 0 && (
               <motion.div
@@ -155,7 +193,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                 transition={{ duration: 0.25 }}
                 className="mobileNavbarGlassmorphic absolute z-10 w-full rounded-md !shadow-xl"
               >
-                {artificallyShowLoadingSpinner || isLoadingTabTitles ? (
+                {artificallyShowLoadingSpinner || isLoadingResults ? (
                   <div className="baseFlex w-full gap-4 py-4">
                     <p>Loading</p>
                     <svg
@@ -179,23 +217,60 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                   </div>
                 ) : (
                   <>
-                    {tabTitlesAndUsernamesFromSearchQuery === null ? (
-                      <p className="w-full rounded-md p-2">No results found</p>
+                    {tabTitlesAndUsernamesFromSearchQuery === null ||
+                    tabTitlesAndUsernamesFromSearchQuery?.length === 0 ? (
+                      <p className="w-full p-2 text-center">No results found</p>
                     ) : (
                       <>
                         {tabTitlesAndUsernamesFromSearchQuery?.map(
                           (data, idx) => (
                             <div
                               key={idx}
-                              className="baseFlex w-full cursor-pointer !justify-start gap-2 rounded-md p-2 transition-all hover:bg-pink-500"
+                              id={`autofillResult${idx}`}
+                              tabIndex={-1}
+                              className="baseFlex w-full cursor-pointer !justify-start gap-2 rounded-md p-2 transition-all focus-within:bg-pink-500 hover:bg-pink-500"
                               onClick={() => {
-                                setHidingAutofillResults(true);
                                 adjustQueryParams(
                                   // response order is tabs and then artists, so if the first result is an artist,
                                   // we know that's the only type of result we have
                                   data.type === "title" ? "tabs" : "artists",
                                   data.value
                                 );
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  adjustQueryParams(
+                                    // response order is tabs and then artists, so if the first result is an artist,
+                                    // we know that's the only type of result we have
+                                    data.type === "title" ? "tabs" : "artists",
+                                    data.value
+                                  );
+                                } else if (e.key === "Escape") {
+                                  setShowAutofillResults(false);
+                                } else if (e.key === "ArrowDown") {
+                                  e.preventDefault();
+
+                                  const nextResult = document.getElementById(
+                                    `autofillResult${idx + 1}`
+                                  );
+                                  if (nextResult) {
+                                    nextResult.focus();
+                                  }
+                                } else if (e.key === "ArrowUp") {
+                                  e.preventDefault();
+
+                                  if (idx === 0) {
+                                    searchInputRef.current?.focus();
+                                    return;
+                                  }
+
+                                  const prevResult = document.getElementById(
+                                    `autofillResult${idx - 1}`
+                                  );
+                                  if (prevResult) {
+                                    prevResult.focus();
+                                  }
+                                }
                               }}
                             >
                               <Badge
@@ -222,7 +297,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
 
       <Button
         onClick={() => {
-          setHidingAutofillResults(true);
+          setShowAutofillResults(true);
 
           adjustQueryParams(
             // response order is tabs and then artists, so if the first result is an artist,
