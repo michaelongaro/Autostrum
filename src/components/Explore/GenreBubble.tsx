@@ -6,11 +6,14 @@ import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 import type { GenreWithTotalTabNumbers } from "~/server/api/routers/genre";
 import { formatNumber } from "~/utils/formatNumber";
 
-// maybe a bit of a spring animation on enter framer motion?
-// scale: 0.75 -> 1
-
-// 100 slices is probably WAY too much, experiment with decreasing later and zooming in to
-// make sure it still looks good
+const opacityVariants = {
+  expanded: {
+    opacity: 1,
+  },
+  closed: {
+    opacity: 0,
+  },
+};
 
 function GenreBubble(genre: GenreWithTotalTabNumbers) {
   const { push, query, pathname } = useRouter();
@@ -83,7 +86,16 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
   }
 
   return (
-    <div
+    <motion.div
+      key={`genreBubbleButton${genre.id}`}
+      tabIndex={0}
+      variants={opacityVariants}
+      initial="closed"
+      animate="expanded"
+      exit="closed"
+      transition={{
+        duration: 0.15,
+      }}
       style={{
         backgroundColor: genre.color,
       }}
@@ -99,10 +111,11 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
       onMouseUp={() => setMouseDownOnGenre(false)}
       onMouseMove={handleMouseMove}
       onClick={() => {
-        // setHidingAutofillResults(true);
-
         searchForSpecificGenre(genre.id);
       }}
+      onKeyDown={(event) =>
+        event.key === "Enter" && searchForSpecificGenre(genre.id)
+      }
     >
       <motion.div
         className="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition duration-300 group-hover:opacity-100"
@@ -180,7 +193,7 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
           />
         </Canvas>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
