@@ -3,6 +3,7 @@ import { genreRouter } from "~/server/api/routers/genre";
 import { tabRouter } from "./routers/tab";
 import { artistRouter } from "./routers/artist";
 import { likeRouter } from "./routers/like";
+import { weeklyFeaturedArtistRouter } from "./routers/weeklyFeaturedArtist";
 import { postSignUpRegistrationRouter } from "./routers/postSignUpRegistration";
 
 /**
@@ -15,6 +16,7 @@ export const appRouter = createTRPCRouter({
   tab: tabRouter,
   artist: artistRouter,
   like: likeRouter,
+  weeklyFeaturedArtist: weeklyFeaturedArtistRouter,
   postSignUpRegistration: postSignUpRegistrationRouter,
 });
 
