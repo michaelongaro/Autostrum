@@ -1,4 +1,10 @@
-import { useState, useMemo, forwardRef } from "react";
+import {
+  useState,
+  useMemo,
+  forwardRef,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { useAuth } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,6 +18,7 @@ import { shallow } from "zustand/shallow";
 import { useRouter } from "next/router";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
+import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import { Button } from "~/components/ui/button";
 import { TableCell, TableRow } from "~/components/ui/table";
 import type { TabWithLikes } from "~/server/api/routers/tab";
@@ -24,10 +31,12 @@ import useSound from "~/hooks/useSound";
 
 interface TableTabRow extends RefetchTab {
   tab: TabWithLikes;
+  selectedPinnedTabId?: number;
+  setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
 }
 
 const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
-  ({ tab, refetchTab }, ref) => {
+  ({ tab, refetchTab, selectedPinnedTabId, setSelectedPinnedTabId }, ref) => {
     const { userId, isLoaded } = useAuth();
     const { push, asPath } = useRouter();
 
@@ -248,6 +257,28 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
           </Button>
         </TableCell>
         <TableCell>
+          {selectedPinnedTabId !== undefined && (
+            <Button
+              variant={"ghost"}
+              className="baseFlex w-28 gap-2 px-3 py-1"
+              onClick={() => {
+                if (!setSelectedPinnedTabId) return;
+                setSelectedPinnedTabId(
+                  selectedPinnedTabId === tab.id ? -1 : tab.id
+                );
+              }}
+            >
+              {selectedPinnedTabId === tab.id ? (
+                <TbPinnedFilled className="h-4 w-4" />
+              ) : (
+                <TbPinned className="h-4 w-4" />
+              )}
+
+              {selectedPinnedTabId === tab.id ? "Unpin tab" : "Pin tab"}
+            </Button>
+          )}
+        </TableCell>
+        <TableCell>
           <div
             style={{
               backgroundColor: genreObject[tab.genreId]?.color,
@@ -259,7 +290,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
           </div>
         </TableCell>
         <TableCell className="baseFlex !justify-start gap-2">
-          <Button variant={"ghost"} className="px-3 py-1">
+          <Button asChild variant={"ghost"} className="px-3 py-1">
             <Link
               href={`/artist/${tabCreator?.username ?? ""}`}
               className="baseFlex gap-2"

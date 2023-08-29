@@ -1,33 +1,31 @@
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
 import { Button } from "~/components/ui/button";
 import { api } from "~/utils/api";
-
-import { UserProfile } from "@clerk/nextjs";
+import { useClerk, UserProfile } from "@clerk/nextjs";
 import { Separator } from "~/components/ui/separator";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 import Link from "next/link";
 import formatDate from "~/utils/formatDate";
 import TopProfileNavigationLayout from "~/components/Layouts/TopProfileNavigationLayout";
 import { TabsContent } from "~/components/ui/tabs";
-
-// centered danger button for deleting account (onClick calls trpc/api route to delete account and bring you back to homepage)
-//      (we are opting to make the user anonymous instead of deleting their tabs/comments)
-//                (to do this, I think the best way would be just to automatically default back to default profile pic + name "Anonymous" and not allow clicking on their name/profile since
-//                 they wouldn't have a profile to display. Should be fine to go to their old profile since it would just default back to "This user doesn't exist" page)
-
-// figure out how to do proper nested layout where only the inner contents crossfade,
-// not the sticky navigation
-// ^^^^^^^^
+import PinnedTabModal from "~/components/modals/PinnedTabModal";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import GridTabCard from "~/components/Search/GridTabCard";
 
 function Preferences() {
-  const router = useRouter();
-  const { push, asPath } = useRouter();
+  const { user } = useClerk();
+  const { push } = useRouter();
 
   // fair to have these here rather than store because (so far) we don't have to navigate around
   // "relative" classes on any parent elems in this component
   const [showPinnedTabModal, setShowPinnedTabModal] = useState(false);
-  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const [showEmptyTabsWarning, setShowEmptyTabsWarning] = useState(false);
 
   // const { pinne } = useTabStore(
   //   (state) => ({
@@ -36,19 +34,23 @@ function Preferences() {
   //   shallow
   // );
 
-  const usernameFromUrl = useMemo(() => {
-    if (typeof router.query.username === "string") {
-      return router.query.username;
-    }
-    return "";
-  }, [router.query.username]);
+  const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const { data: artist } = api.artist.getByIdOrUsername.useQuery(
     {
-      username: usernameFromUrl,
+      userId: user?.id, // <--- this is jank
     },
     {
-      enabled: !!usernameFromUrl,
+      enabled: !!user,
+    }
+  );
+
+  const { data: fetchedTab, refetch: refetchTab } = api.tab.getTabById.useQuery(
+    {
+      id: artist?.pinnedTabId ?? -1,
+    },
+    {
+      enabled: artist?.pinnedTabId !== -1,
     }
   );
 
@@ -69,7 +71,7 @@ function Preferences() {
 
   return (
     <motion.div
-      key={"preferences"}
+      key={"ArtistPreferences"}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -83,31 +85,73 @@ function Preferences() {
           <div className="baseVertFlex lightGlassmorphic my-4 w-full gap-12 rounded-2xl px-1 py-4 transition-all md:my-8 md:p-8 md:px-4">
             <UserProfile />
 
-            <div className="baseVertFlex w-full gap-4 md:flex-row">
-              <div className="baseVertFlex w-full !items-start gap-2 md:w-1/3 md:gap-4">
-                <div className="font-semibold">Pinned tab</div>
-                <div className="baseVertFlex lightestGlassmorphic min-h-[128px] w-full gap-2 rounded-md md:w-4/5 md:gap-4">
-                  {/* if pinned tab, show card with tab info */}
-                  {artist?.pinnedTabId ? (
-                    // pinned tab card here
-                    <div></div>
-                  ) : (
+            <div
+              style={{
+                height: isAboveMediumViewportWidth
+                  ? artist?.pinnedTabId === -1
+                    ? "200px"
+                    : "300px"
+                  : "auto",
+              }}
+              className="baseVertFlex relative w-full !flex-nowrap gap-4 md:flex-row md:gap-0"
+            >
+              <div className="baseVertFlex w-full gap-2 md:gap-4">
+                <div className="baseFlex w-full !justify-start gap-4 md:w-4/5">
+                  <p className="text-xl font-semibold">Pinned tab</p>
+                  {artist?.pinnedTabId !== -1 && (
                     <Button
-                      onClick={() => {
-                        // open pinned tab modal
-                        setShowPinnedTabModal(true);
-                        // refer to SectionProgressionModal for structure of modal jsx
-                      }}
+                      onClick={() => setShowPinnedTabModal(true)}
+                      className="h-8 !py-0"
                     >
-                      Add tab
+                      Edit
                     </Button>
+                  )}
+                </div>
+                <div className="baseVertFlex min-h-[128px] w-full rounded-md md:w-4/5">
+                  {/* if pinned tab, show card with tab info */}
+                  {artist?.pinnedTabId !== -1 && fetchedTab ? (
+                    <GridTabCard tab={fetchedTab} refetchTab={refetchTab} />
+                  ) : (
+                    // add conditional popover to say "You haven't created any tabs yet"
+                    <div className="lightestGlassmorphic baseFlex h-[128px] w-full">
+                      <Popover
+                        onOpenChange={(open) => {
+                          if (open === false) {
+                            setShowEmptyTabsWarning(open);
+                          }
+                        }}
+                        open={showEmptyTabsWarning}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            onClick={() => {
+                              if (artist?.numberOfTabs === 0) {
+                                setShowEmptyTabsWarning(true);
+                                setTimeout(() => {
+                                  setShowEmptyTabsWarning(false);
+                                }, 3000);
+                              } else setShowPinnedTabModal(true);
+                            }}
+                          >
+                            Add tab
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="baseVertFlex p-2"
+                          side="bottom"
+                        >
+                          <p>You haven&apos;t created any tabs yet.</p>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                   )}
                 </div>
               </div>
 
-              <Separator className="h-[1px] w-full md:h-48 md:w-[1px]" />
+              {/* absolute left-1/2 -translate-x-1/2 transform */}
+              <Separator className="h-[1px] w-full md:h-full md:w-[1px]" />
 
-              <div className="baseVertFlex w-full gap-4 md:w-1/3">
+              <div className="baseVertFlex w-full gap-4">
                 <Button>
                   <Link href={`/artist/${artist?.username ?? ""}`}>
                     View profile
@@ -116,9 +160,7 @@ function Preferences() {
                 <Button
                   variant={"destructive"}
                   onClick={() => {
-                    // confirmation modal into trpc mutation to delete account
-                    setShowDeleteAccountModal(true);
-                    // refer to SectionProgressionModal for structure of modal jsx
+                    // confirmation popover into trpc mutation to delete account
                   }}
                 >
                   Delete account
@@ -132,6 +174,15 @@ function Preferences() {
             </div>
           </div>
         </div>
+
+        <AnimatePresence mode="wait">
+          {artist && showPinnedTabModal && (
+            <PinnedTabModal
+              pinnedTabIdFromDatabase={artist.pinnedTabId}
+              setShowPinnedTabModal={setShowPinnedTabModal}
+            />
+          )}
+        </AnimatePresence>
       </TabsContent>
     </motion.div>
   );

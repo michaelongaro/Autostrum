@@ -1,29 +1,24 @@
-import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/router";
-import { Button } from "~/components/ui/button";
-import { api } from "~/utils/api";
+import { BiErrorCircle } from "react-icons/bi";
+import SearchInput from "~/components/Search/SearchInput";
+import SearchResults from "~/components/Search/SearchResults";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
 
-import { UserProfile, useAuth } from "@clerk/nextjs";
-import { Separator } from "~/components/ui/separator";
-import Link from "next/link";
-import formatDate from "~/utils/formatDate";
 import TopProfileNavigationLayout from "~/components/Layouts/TopProfileNavigationLayout";
 import { TabsContent } from "~/components/ui/tabs";
 
 function ArtistTabs() {
-  const { userId } = useAuth();
-  const router = useRouter();
-  const { push, asPath } = useRouter();
+  const {
+    serve404Page,
+    genreId,
+    type,
+    searchQuery,
+    sortByRelevance,
+    additionalSortFilter,
+  } = useGetUrlParamFilters();
 
-  const { data: artist } = api.artist.getByIdOrUsername.useQuery(
-    {
-      userId: userId!,
-    },
-    {
-      enabled: !!userId,
-    }
-  );
+  const viewType = useGetLocalStorageValues().viewType;
 
   return (
     <motion.div
@@ -33,10 +28,34 @@ function ArtistTabs() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
       // remove z-50 if possible, I think <Bubbles /> is messing it up
-      className="baseVertFlex z-50 w-full"
+      className="lightGlassmorphic baseVertFlex z-50 my-24 min-h-[100dvh] w-full !justify-start rounded-md p-2 md:p-8"
     >
       <TabsContent value="tabs">
-        <div>{artist?.username}</div>
+        {/* search Results component */}
+        {serve404Page ? (
+          <div className="baseVertFlex gap-2 px-8 py-4 md:gap-4">
+            <div className="baseFlex gap-4 text-2xl font-bold">
+              Search error <BiErrorCircle className="h-8 w-8" />
+            </div>
+            <div className="text-lg">Unable to load search results.</div>
+            <div className="mt-8">
+              Please check your URL for any typos and try again.
+            </div>
+          </div>
+        ) : (
+          <>
+            <SearchInput initialSearchQueryFromUrl={searchQuery} />
+
+            <SearchResults
+              genreId={genreId}
+              type={type}
+              searchQuery={searchQuery}
+              sortByRelevance={sortByRelevance}
+              additionalSortFilter={additionalSortFilter}
+              viewType={viewType}
+            />
+          </>
+        )}
       </TabsContent>
     </motion.div>
   );

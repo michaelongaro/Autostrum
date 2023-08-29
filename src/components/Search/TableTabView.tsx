@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
 import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -13,6 +13,7 @@ import {
 import { HiPlayPause } from "react-icons/hi2";
 import { Button } from "~/components/ui/button";
 import Link from "next/link";
+import { TbPinned } from "react-icons/tb";
 import { useInView } from "react-intersection-observer";
 import TableTabRow from "./TableTabRow";
 import { useAuth } from "@clerk/nextjs";
@@ -30,6 +31,8 @@ interface TableTabView {
     | "leastLiked"
     | "mostLiked"
     | "none";
+  selectedPinnedTabId?: number;
+  setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
 }
 
 function TableTabView({
@@ -37,18 +40,21 @@ function TableTabView({
   searchQuery,
   sortByRelevance,
   additionalSortFilter,
+  selectedPinnedTabId,
+  setSelectedPinnedTabId,
 }: TableTabView) {
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
 
-  const { data: artist } = api.artist.getByIdOrUsername.useQuery(
-    {
-      username: query.username as string,
-    },
-    {
-      enabled: !!query.username,
-    }
-  );
+  const { data: artistProfileBeingViewed } =
+    api.artist.getByIdOrUsername.useQuery(
+      {
+        username: query.username as string,
+      },
+      {
+        enabled: !!query.username,
+      }
+    );
 
   const { setSearchResultsCount } = useTabStore(
     (state) => ({
@@ -74,7 +80,7 @@ function TableTabView({
         asPath.includes("/tabs") && userId
           ? userId
           : typeof query.username === "string"
-          ? artist?.userId
+          ? artistProfileBeingViewed?.userId
           : undefined,
     },
     {
@@ -122,13 +128,14 @@ function TableTabView({
         <TableHeader>
           <TableRow>
             <TableHead>Title</TableHead>
+            {selectedPinnedTabId !== undefined && (
+              <TableHead>
+                <TbPinned className="h-4 w-4" />
+              </TableHead>
+            )}
             <TableHead className="lg:w-[100px]">Genre</TableHead>
             <TableHead>Artist</TableHead>
             <TableHead>Date</TableHead>
-            <TableHead>Likes</TableHead>
-            <TableHead>
-              <HiPlayPause className="h-6 w-6" />
-            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="w-full">
@@ -141,12 +148,16 @@ function TableTabView({
                     key={tab.id}
                     tab={tab}
                     refetchTab={refetchTabs}
+                    selectedPinnedTabId={selectedPinnedTabId}
+                    setSelectedPinnedTabId={setSelectedPinnedTabId}
                   />
                 ) : (
                   <TableTabRow
                     key={tab.id}
                     tab={tab}
                     refetchTab={refetchTabs}
+                    selectedPinnedTabId={selectedPinnedTabId}
+                    setSelectedPinnedTabId={setSelectedPinnedTabId}
                   />
                 )}
               </>

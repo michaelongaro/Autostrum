@@ -1,4 +1,11 @@
-import { forwardRef, useState, useMemo, useRef } from "react";
+import {
+  forwardRef,
+  useState,
+  useMemo,
+  useRef,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import type { Genre, Tab } from "@prisma/client";
 import { motion } from "framer-motion";
 import { Separator } from "../ui/separator";
@@ -19,6 +26,7 @@ import { useAuth } from "@clerk/nextjs";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { formatNumber } from "~/utils/formatNumber";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
+import { TbPinnedFilled, TbPinned } from "react-icons/tb";
 import { useRouter } from "next/router";
 import type { TabWithLikes } from "~/server/api/routers/tab";
 import { Badge } from "../ui/badge";
@@ -28,10 +36,12 @@ import useSound from "~/hooks/useSound";
 
 interface GridTabCard extends RefetchTab {
   tab: TabWithLikes;
+  selectedPinnedTabId?: number;
+  setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
 }
 
 const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
-  ({ tab, refetchTab }, ref) => {
+  ({ tab, refetchTab, selectedPinnedTabId, setSelectedPinnedTabId }, ref) => {
     const { userId, isLoaded } = useAuth();
     const { push, asPath } = useRouter();
 
@@ -285,150 +295,181 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                 href={`/tab/${tab.id}`}
                 className="!p-0 !text-lg !font-semibold"
               >
-                {tab.title}
+                <p className="max-w-[165px] truncate">{tab.title}</p>
               </Link>
             </Button>
             <p className="text-sm text-pink-50/90">
               {formatDate(tab.updatedAt ?? tab.createdAt)}
             </p>
+
+            {asPath.includes("genreId") && selectedPinnedTabId === tab.id && (
+              <Badge className="mt-2 bg-green-600">Pinned</Badge>
+            )}
+
             {!asPath.includes("genreId") && (
-              <Badge
-                style={{
-                  backgroundColor: genreObject[tab.genreId]?.color,
-                }}
-                className="mt-2"
-              >
-                {genreObject[tab.genreId]?.name}
-              </Badge>
+              <div className="baseFlex gap-2">
+                <Badge
+                  style={{
+                    backgroundColor: genreObject[tab.genreId]?.color,
+                  }}
+                  className="mt-2"
+                >
+                  {genreObject[tab.genreId]?.name}
+                </Badge>
+                {selectedPinnedTabId === tab.id && (
+                  <Badge className="mt-2 bg-green-600">Pinned</Badge>
+                )}
+              </div>
             )}
           </div>
 
           {/* artist link & likes & play button */}
-          <div className="baseFlex gap-2">
-            <div className="baseVertFlex gap-1">
-              <div className="baseFlex gap-2 px-2 py-1">
-                <Button variant={"ghost"} className="px-3 py-1">
-                  <Link
-                    href={`/artist/${tabCreator?.username ?? ""}`}
-                    className="baseFlex gap-2"
-                  >
-                    <div className="grid grid-cols-1 grid-rows-1">
-                      <Image
-                        src={tabCreator?.profileImageUrl ?? ""}
-                        alt={`${
-                          tabCreator?.username ?? "Anonymous"
-                        }'s profile image`}
-                        width={32}
-                        height={32}
-                        // maybe just a developemnt thing, but it still very
-                        // briefly shows the default placeholder for a loading
-                        // or not found image before the actual image loads...
-                        onLoadingComplete={() => setProfileImageLoaded(true)}
-                        style={{
-                          opacity: profileImageLoaded ? 1 : 0,
-                        }}
-                        className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-800 object-cover object-center 
+          <div className="baseVertFlex gap-2">
+            <div className="baseFlex min-w-[112px] gap-2 px-2 py-1">
+              {!asPath.includes("/artist") &&
+                !asPath.includes("/preferences") &&
+                !asPath.includes("/tabs") &&
+                asPath !== "/explore" && (
+                  <Button asChild variant={"ghost"} className="px-3 py-1">
+                    <Link
+                      href={`/artist/${tabCreator?.username ?? ""}`}
+                      className="baseFlex gap-2"
+                    >
+                      <div className="grid grid-cols-1 grid-rows-1">
+                        <Image
+                          src={tabCreator?.profileImageUrl ?? ""}
+                          alt={`${
+                            tabCreator?.username ?? "Anonymous"
+                          }'s profile image`}
+                          width={32}
+                          height={32}
+                          // maybe just a developemnt thing, but it still very
+                          // briefly shows the default placeholder for a loading
+                          // or not found image before the actual image loads...
+                          onLoadingComplete={() => setProfileImageLoaded(true)}
+                          style={{
+                            opacity: profileImageLoaded ? 1 : 0,
+                          }}
+                          className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-800 object-cover object-center 
                           transition-opacity"
-                      />
-                      <div
-                        style={{
-                          opacity: !profileImageLoaded ? 1 : 0,
-                        }}
-                        className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 transition-opacity
+                        />
+                        <div
+                          style={{
+                            opacity: !profileImageLoaded ? 1 : 0,
+                          }}
+                          className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 transition-opacity
                               ${!profileImageLoaded ? "animate-pulse" : ""}
                             `}
-                      ></div>
-                    </div>
-                    <span className="w-[58px] truncate">
-                      {tabCreator?.username ?? "Anonymous"}
-                    </span>
-                  </Link>
-                </Button>
-              </div>
-              <div className="baseFlex w-full !justify-evenly rounded-tl-md border-l-2 border-t-2">
-                {/* likes button */}
+                        ></div>
+                      </div>
+                      <span className="w-[58px] truncate">
+                        {tabCreator?.username ?? "Anonymous"}
+                      </span>
+                    </Link>
+                  </Button>
+                )}
+
+              {selectedPinnedTabId !== undefined && (
                 <Button
                   variant={"ghost"}
-                  size={"sm"}
-                  className="baseFlex h-8 w-1/2 gap-2 rounded-r-none rounded-bl-none rounded-tl-sm border-r-[1px]"
+                  className="baseFlex gap-2 px-3 py-1"
                   onClick={() => {
-                    if (!tabCreator || !currentArtist) return;
-
-                    if (currentArtist.likedTabIds.includes(tab.id)) {
-                      unlikeTab({
-                        tabId: tab.id,
-                        artistWhoLikedId: currentArtist.userId,
-                      });
-                    } else {
-                      likeTab({
-                        tabId: tab.id,
-                        tabArtistId: tab.createdById,
-                        tabArtistUsername: tabCreator.username,
-                        artistWhoLikedId: currentArtist.userId,
-                      });
-                    }
+                    if (!setSelectedPinnedTabId) return;
+                    setSelectedPinnedTabId(
+                      selectedPinnedTabId === tab.id ? -1 : tab.id
+                    );
                   }}
                 >
-                  {currentArtist?.likedTabIds.includes(tab.id) ? (
-                    <AiFillHeart className="h-6 w-6 text-pink-800" />
+                  {selectedPinnedTabId === tab.id ? (
+                    <TbPinnedFilled className="h-4 w-4" />
                   ) : (
-                    <AiOutlineHeart className="h-6 w-6" />
+                    <TbPinned className="h-4 w-4" />
                   )}
-                  {tab.numberOfLikes > 0 && (
-                    <div className="text-lg">
-                      {formatNumber(tab.numberOfLikes)}
-                    </div>
-                  )}
-                </Button>
-                {/* play/pause button*/}
-                <Button
-                  variant="playPause"
-                  disabled={artificalPlayButtonTimeout || !currentInstrument}
-                  onClick={() => {
-                    if (
-                      audioMetadata.playing &&
-                      audioMetadata.tabId === tab.id
-                    ) {
-                      setArtificalPlayButtonTimeout(true);
 
-                      setTimeout(() => {
-                        setArtificalPlayButtonTimeout(false);
-                      }, 300);
-                      pauseAudio();
-                    } else {
-                      // setting store w/ this tab's data
-                      setTabData(tab.tabData as unknown as Section[]);
-                      setSectionProgression(
-                        tab.sectionProgression as unknown as SectionProgression[]
-                      );
-                      setTuning(tab.tuning);
-                      setBpm(tab.bpm);
-                      setChords(tab.chords as unknown as Chord[]);
-                      setCapo(tab.capo);
-
-                      void playTab({
-                        tabData: tab.tabData as unknown as Section[],
-                        rawSectionProgression:
-                          tab.sectionProgression as unknown as SectionProgression[],
-                        tuningNotes: tab.tuning,
-                        baselineBpm: tab.bpm,
-                        chords: tab.chords as unknown as Chord[],
-                        capo: tab.capo,
-                        tabId: tab.id,
-                        playbackSpeed,
-                        resetToStart: audioMetadata.tabId !== tab.id,
-                      });
-                    }
-                  }}
-                  className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px] p-0"
-                >
-                  {audioMetadata.playing && audioMetadata.tabId === tab.id ? (
-                    <BsFillPauseFill className="h-5 w-5" />
-                  ) : (
-                    <BsFillPlayFill className="h-5 w-5" />
-                  )}
+                  {selectedPinnedTabId === tab.id ? "Unpin tab" : "Pin tab"}
                 </Button>
-              </div>
+              )}
+            </div>
+            <div className="baseFlex w-full !justify-evenly rounded-tl-md border-l-2 border-t-2">
+              {/* likes button */}
+              <Button
+                variant={"ghost"}
+                size={"sm"}
+                className="baseFlex h-8 w-1/2 gap-2 rounded-r-none rounded-bl-none rounded-tl-sm border-r-[1px]"
+                onClick={() => {
+                  if (!tabCreator || !currentArtist) return;
+
+                  if (currentArtist.likedTabIds.includes(tab.id)) {
+                    unlikeTab({
+                      tabId: tab.id,
+                      artistWhoLikedId: currentArtist.userId,
+                    });
+                  } else {
+                    likeTab({
+                      tabId: tab.id,
+                      tabArtistId: tab.createdById,
+                      tabArtistUsername: tabCreator.username,
+                      artistWhoLikedId: currentArtist.userId,
+                    });
+                  }
+                }}
+              >
+                {currentArtist?.likedTabIds.includes(tab.id) ? (
+                  <AiFillHeart className="h-6 w-6 text-pink-800" />
+                ) : (
+                  <AiOutlineHeart className="h-6 w-6" />
+                )}
+                {tab.numberOfLikes > 0 && (
+                  <div className="text-lg">
+                    {formatNumber(tab.numberOfLikes)}
+                  </div>
+                )}
+              </Button>
+              {/* play/pause button*/}
+              <Button
+                variant="playPause"
+                disabled={artificalPlayButtonTimeout || !currentInstrument}
+                onClick={() => {
+                  if (audioMetadata.playing && audioMetadata.tabId === tab.id) {
+                    setArtificalPlayButtonTimeout(true);
+
+                    setTimeout(() => {
+                      setArtificalPlayButtonTimeout(false);
+                    }, 300);
+                    pauseAudio();
+                  } else {
+                    // setting store w/ this tab's data
+                    setTabData(tab.tabData as unknown as Section[]);
+                    setSectionProgression(
+                      tab.sectionProgression as unknown as SectionProgression[]
+                    );
+                    setTuning(tab.tuning);
+                    setBpm(tab.bpm);
+                    setChords(tab.chords as unknown as Chord[]);
+                    setCapo(tab.capo);
+
+                    void playTab({
+                      tabData: tab.tabData as unknown as Section[],
+                      rawSectionProgression:
+                        tab.sectionProgression as unknown as SectionProgression[],
+                      tuningNotes: tab.tuning,
+                      baselineBpm: tab.bpm,
+                      chords: tab.chords as unknown as Chord[],
+                      capo: tab.capo,
+                      tabId: tab.id,
+                      playbackSpeed,
+                      resetToStart: audioMetadata.tabId !== tab.id,
+                    });
+                  }
+                }}
+                className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px] p-0"
+              >
+                {audioMetadata.playing && audioMetadata.tabId === tab.id ? (
+                  <BsFillPauseFill className="h-5 w-5" />
+                ) : (
+                  <BsFillPlayFill className="h-5 w-5" />
+                )}
+              </Button>
             </div>
           </div>
         </div>

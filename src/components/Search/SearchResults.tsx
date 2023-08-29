@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type Dispatch, type SetStateAction } from "react";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import { Label } from "../ui/label";
@@ -36,6 +36,8 @@ interface SearchResults {
     | "mostLiked"
     | "none";
   viewType: "grid" | "table";
+  selectedPinnedTabId?: number;
+  setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
 }
 
 function SearchResults({
@@ -45,6 +47,8 @@ function SearchResults({
   sortByRelevance,
   additionalSortFilter,
   viewType,
+  selectedPinnedTabId,
+  setSelectedPinnedTabId,
 }: SearchResults) {
   const { asPath, push, query, pathname } = useRouter();
 
@@ -82,8 +86,6 @@ function SearchResults({
     const formattedTabString = searchResultsCount === 1 ? "tab" : "tabs";
     const formattedArtistString =
       searchResultsCount === 1 ? "artist" : "artists";
-
-    console.log(searchQuery === "", genreId >= 1, genreId <= 8);
 
     if (searchQuery === "" && genreId >= 1 && genreId <= 8) {
       return (
@@ -263,7 +265,7 @@ function SearchResults({
     // rather than do it here.
     <div className="baseVertFlex mt-8 w-full rounded-md border-8 border-t-2 border-pink-800 shadow-md">
       {/* # of results + sorting options */}
-      <div className="baseVertFlex w-full !items-start gap-2 bg-pink-800 px-4 py-2 md:flex-row md:!items-center md:!justify-between">
+      <div className="baseVertFlex w-full !items-start gap-2 bg-pink-800 p-2 md:flex-row md:!items-center md:!justify-between">
         {/* # of results */}
         {queryResults}
 
@@ -462,13 +464,13 @@ function SearchResults({
           <>
             {/* card view */}
             {type === "tabs" ? (
-              // below component should check if it is for pinned modal &&
-              // have supporting logic/styling
               <GridTabView
                 genreId={genreId}
                 searchQuery={searchQuery}
                 sortByRelevance={sortByRelevance}
                 additionalSortFilter={additionalSortFilter}
+                selectedPinnedTabId={selectedPinnedTabId}
+                setSelectedPinnedTabId={setSelectedPinnedTabId}
               />
             ) : (
               <GridArtistView
@@ -482,13 +484,13 @@ function SearchResults({
           <>
             {/* table view */}
             {type === "tabs" ? (
-              // below component should check if it is for pinned modal &&
-              // have supporting logic/styling
               <TableTabView
                 genreId={genreId}
                 searchQuery={searchQuery}
                 sortByRelevance={sortByRelevance}
                 additionalSortFilter={additionalSortFilter}
+                selectedPinnedTabId={selectedPinnedTabId}
+                setSelectedPinnedTabId={setSelectedPinnedTabId}
               />
             ) : (
               <TableArtistView

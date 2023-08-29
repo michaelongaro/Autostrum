@@ -8,12 +8,14 @@ import { api } from "~/utils/api";
 import { Badge } from "../ui/badge";
 import { BiSearchAlt2 } from "react-icons/bi";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { useAuth } from "@clerk/nextjs";
 
 interface SearchInput {
   initialSearchQueryFromUrl?: string;
 }
 
 function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
+  const { userId } = useAuth();
   const { push, query, asPath, pathname } = useRouter();
 
   const [searchQuery, setSearchQuery] = useState(
@@ -38,8 +40,6 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
 
   useEffect(() => {
     const handleAutofillResultsVisibility = () => {
-      console.log(document.activeElement);
-
       if (
         debouncedSearchQuery.length > 0 &&
         (document.activeElement === searchInputRef.current ||
@@ -72,6 +72,16 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
     };
   }, [debouncedSearchQuery]);
 
+  const { data: artistProfileBeingViewed } =
+    api.artist.getByIdOrUsername.useQuery(
+      {
+        username: query.username as string,
+      },
+      {
+        enabled: !!query.username,
+      }
+    );
+
   const {
     data: tabTitlesAndUsernamesFromSearchQuery,
     isLoading: isLoadingResults,
@@ -79,6 +89,13 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
     {
       query: debouncedSearchQuery,
       includeUsernames: asPath.includes("/explore"),
+      likedByUserId: asPath.includes("/likes") && userId ? userId : undefined,
+      userIdToSelectFrom:
+        asPath.includes("/tabs") && userId
+          ? userId
+          : typeof query.username === "string"
+          ? artistProfileBeingViewed?.userId
+          : undefined,
     },
     {
       enabled: debouncedSearchQuery.length > 0,
@@ -120,6 +137,20 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
     );
   }
 
+  function getPlaceholderTextBasedOnParams() {
+    if (asPath.includes("/preferences") || asPath.includes("/tabs")) {
+      return "Search through your tabs";
+    } else if (asPath.includes("/likes")) {
+      return "Search for tabs you've liked";
+    } else if (asPath.includes("/artist")) {
+      return `Search through ${
+        artistProfileBeingViewed?.username ?? ""
+      }'s tabs`;
+    } else {
+      return "Search for your favorite tabs and artists";
+    }
+  }
+
   return (
     <div className="baseFlex gap-4">
       <div className="relative">
@@ -128,7 +159,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
           ref={searchInputRef}
           type="text"
           maxLength={30}
-          placeholder="Search for your favorite tabs and artists"
+          placeholder={getPlaceholderTextBasedOnParams()}
           onChange={(e) => {
             const query = e.target.value;
 

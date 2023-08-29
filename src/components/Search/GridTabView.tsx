@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
 
 import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
@@ -19,6 +19,8 @@ interface GridTabView {
     | "leastLiked"
     | "mostLiked"
     | "none";
+  selectedPinnedTabId?: number;
+  setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
 }
 
 function GridTabView({
@@ -26,18 +28,21 @@ function GridTabView({
   searchQuery,
   sortByRelevance,
   additionalSortFilter,
+  selectedPinnedTabId,
+  setSelectedPinnedTabId,
 }: GridTabView) {
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
 
-  const { data: artist } = api.artist.getByIdOrUsername.useQuery(
-    {
-      username: query.username as string,
-    },
-    {
-      enabled: !!query.username,
-    }
-  );
+  const { data: artistProfileBeingViewed } =
+    api.artist.getByIdOrUsername.useQuery(
+      {
+        username: query.username as string,
+      },
+      {
+        enabled: !!query.username,
+      }
+    );
 
   const { setSearchResultsCount } = useTabStore(
     (state) => ({
@@ -63,7 +68,7 @@ function GridTabView({
         asPath.includes("/tabs") && userId
           ? userId
           : typeof query.username === "string"
-          ? artist?.userId
+          ? artistProfileBeingViewed?.userId
           : undefined,
     },
     {
@@ -117,9 +122,20 @@ function GridTabView({
           page.data.tabs?.map((tab, index) => (
             <AnimatePresence key={tab.id} mode={"wait"}>
               {index === page.data.tabs.length - 1 ? (
-                <GridTabCard ref={ref} tab={tab} refetchTab={refetchTabs} />
+                <GridTabCard
+                  ref={ref}
+                  tab={tab}
+                  refetchTab={refetchTabs}
+                  selectedPinnedTabId={selectedPinnedTabId}
+                  setSelectedPinnedTabId={setSelectedPinnedTabId}
+                />
               ) : (
-                <GridTabCard tab={tab} refetchTab={refetchTabs} />
+                <GridTabCard
+                  tab={tab}
+                  refetchTab={refetchTabs}
+                  selectedPinnedTabId={selectedPinnedTabId}
+                  setSelectedPinnedTabId={setSelectedPinnedTabId}
+                />
               )}
             </AnimatePresence>
           ))
