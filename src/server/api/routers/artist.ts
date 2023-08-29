@@ -43,10 +43,11 @@ export const artistRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       const artist = await ctx.prisma.artist.findUnique({
+        // not sure how to tell prisma that we will always be querying for a valid
+        // where field, tried to use "as const" but it didn't seem to help
         where: {
-          [input.userId ? "userId" : "username"]: input.userId
-            ? input.userId
-            : input.username,
+          [input.userId ? ("userId" as const) : ("username" as const)]:
+            input.userId ? input.userId : input.username,
         },
         include: {
           likesGiven: {
