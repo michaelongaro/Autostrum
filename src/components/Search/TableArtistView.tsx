@@ -73,8 +73,6 @@ function TableArtistView({
     }
   }, [inView, hasNextPage, fetchNextPage]);
 
-  console.log(artistResults);
-
   return (
     <motion.div
       key={"TableArtistViewSearchResults"}
