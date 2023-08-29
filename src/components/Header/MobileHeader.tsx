@@ -15,7 +15,7 @@ import { IoTelescopeOutline } from "react-icons/io5";
 
 function MobileHeader() {
   const [isOpen, setOpen] = useState(false);
-  const { userId, isLoaded, isSignedIn } = useAuth();
+  const { isSignedIn } = useAuth();
   const { user } = useUser();
 
   const { asPath } = useRouter();

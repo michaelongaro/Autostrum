@@ -15,16 +15,8 @@ import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 
 function DesktopHeader() {
-  const { userId, isLoaded, isSignedIn } = useAuth();
-
-  const { data: artist } = api.artist.getByIdOrUsername.useQuery(
-    {
-      userId: userId!,
-    },
-    {
-      enabled: !!userId,
-    }
-  );
+  const { isSignedIn } = useAuth();
+  const { user } = useUser();
 
   const { asPath } = useRouter();
 
@@ -111,7 +103,7 @@ function DesktopHeader() {
               href={`/profile/preferences`}
               className="baseFlex gap-4 p-0 text-xl"
             >
-              {artist?.username}
+              {user?.username}
               {/* will need to be based on env url */}
               <UserButton afterSignOutUrl="http://localhost:3000" />
             </Link>
