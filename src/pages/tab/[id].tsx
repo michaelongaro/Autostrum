@@ -32,7 +32,6 @@ function IndividualTabView() {
     return -1;
   }, [router.query.id]);
 
-  // prob don't need refetch on refocus
   const { data: fetchedTab, refetch: refetchTab } = api.tab.getTabById.useQuery(
     {
       id: tabIdFromUrl,
