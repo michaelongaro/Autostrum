@@ -101,14 +101,35 @@ export const tabRouter = createTRPCRouter({
       z.object({
         query: z.string(),
         includeUsernames: z.boolean().optional(),
+        userIdToSelectFrom: z.string().optional(),
+        likedByUserId: z.string().optional(),
       })
     )
     .query(async ({ input, ctx }) => {
+      const { query, includeUsernames, userIdToSelectFrom, likedByUserId } =
+        input;
+
       const tabTitles = await ctx.prisma.tab.findMany({
         where: {
           title: {
-            contains: input.query,
+            contains: query,
             mode: "insensitive",
+          },
+          // TODO: really not sure it is good ux to limit search results to a specific genre
+          // genreId:
+          //   genreId === 9
+          //     ? {
+          //         lt: genreId,
+          //       }
+          //     : {
+          //         equals: genreId,
+          //       },
+          createdById: userIdToSelectFrom,
+
+          likes: {
+            every: {
+              artistWhoLikedId: likedByUserId,
+            },
           },
         },
         select: {
@@ -118,18 +139,18 @@ export const tabRouter = createTRPCRouter({
         orderBy: {
           _relevance: {
             fields: ["title"],
-            search: input.query,
+            search: query.replace(/[\s\n\t]/g, "_"),
             sort: "asc",
           },
         },
       });
 
       let artists: { username: string }[] = [];
-      if (input.includeUsernames) {
+      if (includeUsernames) {
         artists = await ctx.prisma.artist.findMany({
           where: {
             username: {
-              contains: input.query,
+              contains: query,
               mode: "insensitive",
             },
           },
@@ -139,7 +160,7 @@ export const tabRouter = createTRPCRouter({
           orderBy: {
             _relevance: {
               fields: ["username"],
-              search: input.query,
+              search: query.replace(/ /g, ""), // usernames aren't allowed to have spaces
               sort: "asc",
             },
           },
