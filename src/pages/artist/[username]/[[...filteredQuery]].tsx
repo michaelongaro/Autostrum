@@ -13,12 +13,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { formatNumber } from "~/utils/formatNumber";
 import { GiMusicalScore } from "react-icons/gi";
 import { AiFillHeart } from "react-icons/ai";
+import { TbPinned } from "react-icons/tb";
 import { Skeleton } from "~/components/ui/skeleton";
 import formatDate from "~/utils/formatDate";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import GridTabCard from "~/components/Search/GridTabCard";
+import PinnedTabPlaceholder from "~/components/Profile/PinnedTabPlaceholder";
 
 function ArtistProfile() {
   const router = useRouter();
@@ -32,6 +36,8 @@ function ArtistProfile() {
   } = useGetUrlParamFilters();
 
   const viewType = useGetLocalStorageValues().viewType;
+
+  const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const usernameFromUrl = useMemo(() => {
     if (typeof router.query.username === "string") {
@@ -49,6 +55,15 @@ function ArtistProfile() {
     }
   );
 
+  const { data: fetchedTab, refetch: refetchTab } = api.tab.getTabById.useQuery(
+    {
+      id: artist?.pinnedTabId ?? -1,
+    },
+    {
+      enabled: artist?.pinnedTabId !== -1,
+    }
+  );
+
   return (
     <motion.div
       key={"artistProfile"}
@@ -60,16 +75,16 @@ function ArtistProfile() {
       className="lightGlassmorphic baseVertFlex my-24 min-h-[100dvh] w-10/12 !justify-start gap-8 rounded-md p-2 md:w-3/4 md:p-8"
     >
       {/* artist metadata + pinned tab */}
-      <div className="baseFlex !justify-between">
-        <div className="lightGlassmorphic baseVertFlex gap-8 rounded-md p-4 md:p-8">
+      <div className="baseVertFlex !flex-nowrap md:!flex-row md:gap-8">
+        <div className="lightestGlassmorphic baseVertFlex h-72 min-w-[200px] !flex-nowrap gap-4 rounded-md p-4 md:h-80 md:gap-8 md:py-8">
           <div className="baseVertFlex gap-4">
             {artist ? (
               <Image
                 src={artist?.profileImageUrl ?? ""}
                 alt={`${artist?.username ?? "Anonymous"}'s profile image`}
-                width={64}
-                height={64}
-                className="h-16 w-16 rounded-full bg-pink-800 object-cover object-center"
+                width={96}
+                height={96}
+                className="h-24 w-24 rounded-full bg-pink-800 object-cover object-center"
               ></Image>
             ) : (
               <Skeleton className="h-16 w-16 rounded-full bg-pink-800" />
@@ -131,6 +146,28 @@ function ArtistProfile() {
           )}
         </div>
         {/* pinned tab */}
+        <div className="baseVertFlex h-80 !flex-nowrap !items-start gap-2">
+          <p className="baseFlex gap-2 text-lg font-semibold">
+            <TbPinned className="h-5 w-5" />
+            Pinned tab
+          </p>
+          {artist?.pinnedTabId === -1 ? (
+            <PinnedTabPlaceholder artistUsername={artist?.username ?? ""} />
+          ) : (
+            <>
+              {fetchedTab ? (
+                <GridTabCard
+                  tab={fetchedTab}
+                  refetchTab={refetchTab}
+                  width={isAboveMediumViewportWidth ? 396.25 : undefined}
+                  height={isAboveMediumViewportWidth ? 180 : undefined}
+                />
+              ) : (
+                <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 animate-pulse rounded-full bg-pink-300 transition-opacity"></div>
+              )}
+            </>
+          )}
+        </div>
       </div>
       {/* search Results component */}
       {serve404Page ? (
@@ -144,7 +181,7 @@ function ArtistProfile() {
           </div>
         </div>
       ) : (
-        <>
+        <div className="baseVertFlex mt-8 w-full gap-8">
           <SearchInput initialSearchQueryFromUrl={searchQuery} />
 
           <SearchResults
@@ -155,7 +192,7 @@ function ArtistProfile() {
             additionalSortFilter={additionalSortFilter}
             viewType={viewType}
           />
-        </>
+        </div>
       )}
     </motion.div>
   );
