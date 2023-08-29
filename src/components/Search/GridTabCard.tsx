@@ -38,10 +38,22 @@ interface GridTabCard extends RefetchTab {
   tab: TabWithLikes;
   selectedPinnedTabId?: number;
   setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
+  width?: number;
+  height?: number;
 }
 
 const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
-  ({ tab, refetchTab, selectedPinnedTabId, setSelectedPinnedTabId }, ref) => {
+  (
+    {
+      tab,
+      refetchTab,
+      selectedPinnedTabId,
+      setSelectedPinnedTabId,
+      width,
+      height,
+    },
+    ref
+  ) => {
     const { userId, isLoaded } = useAuth();
     const { push, asPath } = useRouter();
 
@@ -259,18 +271,24 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.25 }}
-        className="lightestGlassmorphic baseVertFlex w-full rounded-md border-2"
+        style={{
+          width: width ?? "100%",
+        }}
+        className="lightestGlassmorphic baseVertFlex rounded-md border-2"
       >
         {/* tab preview */}
         <div
           ref={previewRef}
+          style={{
+            height: height ?? "9rem",
+          }}
+          className="relative w-full cursor-pointer overflow-hidden rounded-t-md transition-all hover:bg-black/10 active:bg-black/20"
           onClick={() => {
             void push(`/tab/${tab.id}`, undefined, {
               scroll: false, // defaults to true but try both
               shallow: true,
             });
           }}
-          className="relative h-36 w-full cursor-pointer overflow-hidden rounded-t-md transition-all hover:bg-black/10 active:bg-black/20"
         >
           <TabPreview
             tab={tab}
@@ -295,7 +313,16 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                 href={`/tab/${tab.id}`}
                 className="!p-0 !text-lg !font-semibold"
               >
-                <p className="max-w-[165px] truncate">{tab.title}</p>
+                <p
+                  style={{
+                    maxWidth:
+                      (previewRef.current?.getBoundingClientRect()?.width ??
+                        330) * 0.5,
+                  }}
+                  className="truncate"
+                >
+                  {tab.title}
+                </p>
               </Link>
             </Button>
             <p className="text-sm text-pink-50/90">
