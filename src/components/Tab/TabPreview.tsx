@@ -92,7 +92,7 @@ function PreviewSectionContainer({
         <div className="baseFlex gap-4 rounded-md bg-pink-600 px-4 py-2">
           <p className="text-xl font-semibold">{sectionData.title}</p>
 
-          <Button variant="playPause">
+          <Button variant="playPause" tabIndex={-1}>
             <BsFillPlayFill className="h-5 w-5" />
           </Button>
         </div>
@@ -221,7 +221,7 @@ function PreviewChordSequence({
       style={{
         borderTopLeftRadius: chordSequenceData.repetitions > 1 ? 0 : "0.375rem",
       }}
-      className="baseVertFlex relative w-full !justify-start gap-4 rounded-md border-[1px] border-pink-50 p-4"
+      className=" baseVertFlex relative w-full !justify-start gap-4 rounded-md border-[1px] border-pink-50 p-4"
     >
       <PreviewStrummingPattern
         tabData={tabData}
