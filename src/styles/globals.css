@@ -10,14 +10,6 @@
   @apply flex flex-col items-center justify-center flex-wrap;
 }
 
-/* TODO: not sure how to do the shadows.. md feels too overbearing and sm seems too small
-    maybe create a custom tailwind value in between the two? or actually just make
-    sm a tiny bit larger/more pronounced? */
-
-.chordSectionGlassmorphic {
-  @apply bg-pink-100 bg-opacity-[0.25] backdrop-blur-sm shadow-sm;
-}
-
 .lightestGlassmorphic {
   @apply backdrop-blur-sm shadow-lightGlassmorphic bg-gradient-to-br from-pink-500/40 via-pink-500/50 to-pink-500/70;
 }
