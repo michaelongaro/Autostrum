@@ -292,14 +292,6 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     },
   };
 
-  console.log(
-    "disabled?",
-    currentlyPlayingMetadata === null,
-    currentlyPlayingMetadata?.length === 0,
-    (currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 1) === 1,
-    !currentInstrument
-  );
-
   return (
     <motion.div
       key={"audioControls"}
@@ -714,8 +706,6 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                 }
               }}
               onValueChange={(value) => {
-                console.log("value is:", value[0]);
-
                 setTabProgressValue(value[0]!);
 
                 if (currentlyPlayingMetadata) {
@@ -734,15 +724,6 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   }
 
                   if (newCurrentChordIndex !== -1) {
-                    console.log(
-                      "updating currentChordINdex + updatedCurrentChordIndex to",
-                      newCurrentChordIndex,
-                      "from",
-                      currentChordIndex,
-                      "and",
-                      updatedCurrentChordIndex
-                    );
-
                     setCurrentChordIndex(newCurrentChordIndex);
                     setUpdatedCurrentChordIndex(newCurrentChordIndex);
                   }
