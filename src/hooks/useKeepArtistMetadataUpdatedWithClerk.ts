@@ -4,6 +4,7 @@ import { api } from "~/utils/api";
 
 function useKeepArtistMetadataUpdatedWithClerk() {
   const { user } = useClerk();
+  const ctx = api.useContext();
 
   const { data: artist } = api.artist.getByIdOrUsername.useQuery(
     {
@@ -14,7 +15,11 @@ function useKeepArtistMetadataUpdatedWithClerk() {
     }
   );
 
-  const { mutate: updateArtist } = api.artist.updateArtist.useMutation();
+  const { mutate: updateArtist } = api.artist.updateArtist.useMutation({
+    onSettled: () => {
+      void ctx.artist.getByIdOrUsername.invalidate();
+    },
+  });
 
   useEffect(() => {
     if (!user || !artist) return;
