@@ -73,10 +73,8 @@ model Comment {
     replies   Comment[] @relation("Replies")
 }
 
-model PromotedArtist {
-    id        Int      @id @default(autoincrement())
-    artistId  Int      @unique
-    startDate DateTime
-    endDate   DateTime
-    // not really sure why we thought we needed the start/end date fields
+// Singleton, will be updated directly by cron job
+model WeeklyFeaturedArtist {
+    id       Int    @id @default(autoincrement())
+    artistId String
 }
