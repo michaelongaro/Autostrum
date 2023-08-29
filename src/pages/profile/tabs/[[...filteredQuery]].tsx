@@ -28,7 +28,7 @@ function ArtistTabs() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
       // remove z-50 if possible, I think <Bubbles /> is messing it up
-      className="lightGlassmorphic baseVertFlex z-50 my-24 min-h-[100dvh] w-full !justify-start rounded-md p-2 md:p-8"
+      className="lightGlassmorphic baseVertFlex z-50 mt-12 min-h-[100dvh] w-full !justify-start rounded-md p-2 md:p-8"
     >
       <TabsContent value="tabs">
         {/* search Results component */}
@@ -43,7 +43,7 @@ function ArtistTabs() {
             </div>
           </div>
         ) : (
-          <>
+          <div className="baseVertFlex w-full gap-8">
             <SearchInput initialSearchQueryFromUrl={searchQuery} />
 
             <SearchResults
@@ -54,7 +54,7 @@ function ArtistTabs() {
               additionalSortFilter={additionalSortFilter}
               viewType={viewType}
             />
-          </>
+          </div>
         )}
       </TabsContent>
     </motion.div>
