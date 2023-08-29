@@ -14,7 +14,7 @@ model Artist {
     userId          String   @unique
     username        String   @unique
     profileImageUrl String
-    pinnedTabId     Int?
+    pinnedTabId     Int      @default(-1)
     likesGiven      Like[]   @relation("likeGiver")
     likesReceived   Like[]   @relation("likeRecipient") // prob want better field name..
     tabs            Tab[]
@@ -78,4 +78,5 @@ model PromotedArtist {
     artistId  Int      @unique
     startDate DateTime
     endDate   DateTime
+    // not really sure why we thought we needed the start/end date fields
 }
