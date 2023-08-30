@@ -20,10 +20,29 @@ import { Button } from "~/components/ui/button";
 import StrummingPattern from "./StrummingPattern";
 import { Label } from "../ui/label";
 import { type ChordSequence as ChordSequenceData } from "~/stores/TabStore";
+import { motion } from "framer-motion";
 import { Input } from "../ui/input";
 import MiscellaneousControls from "./MiscellaneousControls";
 import StrummingPatternPreview from "./StrummingPatternPreview";
 
+const opacityAndScaleVariants = {
+  expanded: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      ease: "easeInOut",
+      duration: 0.25,
+    },
+  },
+  closed: {
+    opacity: 0,
+    scale: 0.5,
+    transition: {
+      ease: "easeInOut",
+      duration: 0.25,
+    },
+  },
+};
 export interface ChordSequence {
   sectionId: string;
   sectionIndex: number;
@@ -77,6 +96,7 @@ function ChordSequence({
       newTabData[sectionIndex]!.data[subSectionIndex]!.data[
         chordSequenceIndex
       ] = {
+        id: chordSequenceData.id,
         repetitions: chordSequenceData.repetitions,
         bpm: chordSequenceData.bpm,
         strummingPattern: strummingPatterns[0]!,
@@ -158,14 +178,29 @@ function ChordSequence({
   }
 
   return (
-    <>
+    <motion.div
+      key={chordSequenceData.id}
+      layout={"position"}
+      variants={opacityAndScaleVariants}
+      initial="closed"
+      animate="expanded"
+      exit="closed"
+      transition={{
+        layout: {
+          type: "spring",
+          bounce: 0.2,
+          duration: 1,
+        },
+      }}
+      className="baseFlex w-full"
+    >
       {editing &&
       Object.keys(chordSequenceData.strummingPattern).length === 0 ? (
         <div
           style={{
             borderTopLeftRadius: chordSequenceData.repetitions > 1 ? 0 : "auto",
           }}
-          className="baseVertFlex relative h-full w-full gap-2 rounded-md border-[1px] border-pink-50 bg-black/50 p-4"
+          className="baseVertFlex relative h-full w-full gap-2 rounded-md border-[1px] border-pink-50 bg-black/25 p-4"
         >
           <p className="text-lg font-semibold">No strumming patterns exist</p>
           <Button
@@ -295,7 +330,7 @@ function ChordSequence({
           />
         </div>
       )}
-    </>
+    </motion.div>
   );
 }
 

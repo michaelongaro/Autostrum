@@ -46,10 +46,18 @@ const opacityAndScaleVariants = {
   expanded: {
     opacity: 1,
     scale: 1,
+    transition: {
+      ease: "easeInOut",
+      duration: 0.25,
+    },
   },
   closed: {
     opacity: 0,
     scale: 0.5,
+    transition: {
+      ease: "easeInOut",
+      duration: 0.25,
+    },
   },
 };
 
@@ -88,7 +96,7 @@ function TabSection({
     })
   );
 
-  const columnIds = useMemo(() => {
+  function getColumnIds() {
     const newIds = [];
 
     for (const columnData of subSectionData.data) {
@@ -96,7 +104,7 @@ function TabSection({
     }
 
     return newIds;
-  }, [subSectionData]);
+  }
 
   const { bpm, tuning, modifyPalmMuteDashes, tabData, setTabData, editing } =
     useTabStore(
@@ -408,8 +416,6 @@ function TabSection({
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    // debugger;
-
     const { active, over } = event;
 
     const prevTabData = [...tabData];
@@ -545,15 +551,18 @@ function TabSection({
 
   return (
     <motion.div
-      key={sectionId}
-      // layoutId={`${sectionId}`}
-      layout
+      key={subSectionData.id}
+      layout={"position"}
       variants={opacityAndScaleVariants}
       initial="closed"
       animate="expanded"
       exit="closed"
       transition={{
-        duration: 0.15,
+        layout: {
+          type: "spring",
+          bounce: 0.2,
+          duration: 1,
+        },
       }}
       style={{
         gap: editing ? "1rem" : "0",
@@ -772,10 +781,17 @@ function TabSection({
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext items={columnIds} strategy={rectSortingStrategy}>
+          <SortableContext
+            items={getColumnIds()}
+            strategy={rectSortingStrategy}
+          >
             {subSectionData.data.map((column, index) => (
               <TabColumn
                 key={column[9]} // this is a unique id for the column
+                // ^^^ idk if it was adding the "layout" props or what, but
+                // onDragEnd the column extends farther than it should and then
+                // snaps back to correct position, this goes away by fully rerendering
+                // by having key={index}, but feels like a copout to handle this way...
                 columnData={column}
                 sectionIndex={sectionIndex}
                 subSectionIndex={subSectionIndex}

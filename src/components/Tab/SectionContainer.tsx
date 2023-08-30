@@ -17,9 +17,27 @@ import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import MiscellaneousControls from "./MiscellaneousControls";
 import { Label } from "~/components/ui/label";
 import useSound from "~/hooks/useSound";
-import { AnimatePresence, LayoutGroup } from "framer-motion";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import isEqual from "lodash.isequal";
 
+const opacityAndScaleVariants = {
+  expanded: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      ease: "easeInOut",
+      duration: 0.25,
+    },
+  },
+  closed: {
+    opacity: 0,
+    scale: 0.5,
+    transition: {
+      ease: "easeInOut",
+      duration: 0.25,
+    },
+  },
+};
 interface SectionContainer {
   sectionIndex: number;
   sectionData: Section;
@@ -107,6 +125,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
     }
 
     return {
+      id: uuid(),
       type: "tab",
       bpm: bpm ?? 75,
       repetitions: 1,
@@ -117,10 +136,12 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
   function getDefaultStrummingPattern(): ChordSectionType {
     if (strummingPatterns.length > 0) {
       return {
+        id: uuid(),
         type: "chord",
         repetitions: 1,
         data: [
           {
+            id: uuid(),
             bpm,
             strummingPattern: strummingPatterns[0]!,
             repetitions: 1,
@@ -132,12 +153,14 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       };
     }
 
-    // "fake" value for when there are no strumming strumming patterns that exist
+    // "fake" value for when there are no strumming patterns that exist
     return {
+      id: uuid(),
       type: "chord",
       repetitions: 1,
       data: [
         {
+          id: uuid(),
           bpm,
           strummingPattern: {} as StrummingPattern,
           repetitions: 1,
@@ -154,10 +177,6 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       type === "tab" ? generateNewColumns() : getDefaultStrummingPattern();
 
     newTabData[sectionIndex]?.data.push(newBlockData);
-
-    // TODO: also side note inside last value of strumming pattern select,
-    // have a "create new strumming pattern" that will open a modal to create a new one
-    // this is a copy and paste from w/e you did normally to create a new strumming pattern
 
     setTabData(newTabData);
   }
@@ -256,51 +275,66 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       )}
 
       {/* map over tab/chord subSections */}
-      <div className="baseVertFlex w-full gap-4">
-        {sectionData.data.map((subSection, index) => (
-          // TODO: this index is probably not the best since the array can be reordered/mutated,
-          // also applies to further child components
-          <div key={index} className="baseVertFlex w-full !items-start pb-2">
-            {!editing && subSection.repetitions > 1 && (
-              <p
-                className={`rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm ${
-                  audioMetadata.type === "Generated" &&
-                  audioMetadata.playing &&
-                  currentlyPlayingMetadata?.[currentChordIndex]?.location
-                    ?.sectionIndex === sectionIndex &&
-                  currentlyPlayingMetadata?.[currentChordIndex]?.location
-                    ?.subSectionIndex === index
-                    ? "animate-colorOscillate"
-                    : ""
-                }
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={sectionData.id}
+          layout={"position"}
+          variants={opacityAndScaleVariants}
+          initial="closed"
+          animate="expanded"
+          exit="closed"
+          transition={{
+            layout: {
+              type: "spring",
+              bounce: 0.2,
+              duration: 1,
+            },
+          }}
+          className="baseVertFlex w-full"
+        >
+          {sectionData.data.map((subSection, index) => (
+            <div
+              key={subSection.id}
+              className="baseVertFlex w-full !items-start pb-2"
+            >
+              {!editing && subSection.repetitions > 1 && (
+                <p
+                  className={`rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm ${
+                    audioMetadata.type === "Generated" &&
+                    audioMetadata.playing &&
+                    currentlyPlayingMetadata?.[currentChordIndex]?.location
+                      ?.sectionIndex === sectionIndex &&
+                    currentlyPlayingMetadata?.[currentChordIndex]?.location
+                      ?.subSectionIndex === index
+                      ? "animate-colorOscillate"
+                      : ""
+                  }
                 `}
-              >
-                Repeat x{subSection.repetitions}
-              </p>
-            )}
-            {/* TODO: Technically I think this should be higher up right below the map right? */}
-            {/* <LayoutGroup> */}
-            <AnimatePresence mode="wait">
-              {subSection.type === "chord" ? (
-                <ChordSection
-                  sectionId={sectionData.id}
-                  sectionIndex={sectionIndex}
-                  subSectionIndex={index}
-                  subSectionData={subSection}
-                />
-              ) : (
-                <TabSection
-                  sectionId={sectionData.id}
-                  sectionIndex={sectionIndex}
-                  subSectionIndex={index}
-                  subSectionData={subSection}
-                />
+                >
+                  Repeat x{subSection.repetitions}
+                </p>
               )}
-            </AnimatePresence>
-            {/* </LayoutGroup> */}
-          </div>
-        ))}
-      </div>
+              <AnimatePresence mode="wait">
+                {subSection.type === "chord" ? (
+                  <ChordSection
+                    sectionId={sectionData.id}
+                    sectionIndex={sectionIndex}
+                    subSectionIndex={index}
+                    subSectionData={subSection}
+                  />
+                ) : (
+                  <TabSection
+                    sectionId={sectionData.id}
+                    sectionIndex={sectionIndex}
+                    subSectionIndex={index}
+                    subSectionData={subSection}
+                  />
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+        </motion.div>
+      </AnimatePresence>
 
       {editing && (
         <div className="baseFlex my-4 gap-2">

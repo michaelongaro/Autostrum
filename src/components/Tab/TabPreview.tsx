@@ -103,7 +103,10 @@ function PreviewSectionContainer({
         {sectionData.data.map((subSection, index) => (
           // TODO: this index is probably not the best since the array can be reordered/mutated,
           // also applies to further child components
-          <div key={index} className="baseVertFlex w-full !items-start pb-2">
+          <div
+            key={subSection.id}
+            className="baseVertFlex w-full !items-start pb-2"
+          >
             {subSection.repetitions > 1 && (
               <p className="rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
                 Repeat x{subSection.repetitions}
@@ -178,7 +181,10 @@ function PreviewChordSection({
     >
       <div className="baseVertFlex w-full !items-start gap-2">
         {subSectionData.data.map((chordSequence, index) => (
-          <div key={index} className="baseVertFlex w-full !items-start">
+          <div
+            key={chordSequence.id}
+            className="baseVertFlex w-full !items-start"
+          >
             {chordSequence.repetitions > 1 && (
               <p className="rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
                 Repeat x{chordSequence.repetitions}

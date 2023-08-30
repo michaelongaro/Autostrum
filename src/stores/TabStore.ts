@@ -33,6 +33,7 @@ export interface Strum {
 }
 
 export interface ChordSequence {
+  id: string; // used to identify for keys in .map()
   strummingPattern: StrummingPattern;
   bpm: number;
   repetitions: number;
@@ -40,12 +41,14 @@ export interface ChordSequence {
 }
 
 export interface ChordSection {
+  id: string; // used to identify for keys in .map()
   type: "chord";
   repetitions: number;
   data: ChordSequence[];
 }
 
 export interface TabSection {
+  id: string; // used to identify for keys in .map()
   type: "tab";
   bpm: number;
   repetitions: number;

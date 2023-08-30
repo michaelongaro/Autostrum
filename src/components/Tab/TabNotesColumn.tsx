@@ -22,17 +22,6 @@ import { Button } from "../ui/button";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 
-const sectionVariants = {
-  expanded: {
-    opacity: 1,
-    scale: 1,
-  },
-  closed: {
-    opacity: 1,
-    scale: 1,
-  },
-};
-
 const initialStyles = {
   x: 0,
   y: 0,
@@ -79,7 +68,9 @@ function TabNotesColumn({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: columnData[9]! });
+  } = useSortable({
+    id: columnData[9]!,
+  });
 
   const {
     editing,
@@ -304,9 +295,8 @@ function TabNotesColumn({
       key={columnData[9]}
       id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
       ref={setNodeRef}
-      // layoutId={columnData[9]}
+      // layout={"position"}
       style={initialStyles}
-      initial="closed"
       animate={
         transform
           ? {
@@ -316,7 +306,6 @@ function TabNotesColumn({
             }
           : initialStyles
       }
-      exit="closed"
       transition={{
         duration: !isDragging ? 0.15 : 0,
         easings: {
@@ -332,7 +321,6 @@ function TabNotesColumn({
           delay: isDragging ? 0 : 0.25,
         },
       }}
-      variants={sectionVariants}
       className="baseVertFlex cursor-default scroll-m-8"
     >
       <div className="baseFlex relative">
@@ -510,7 +498,9 @@ function TabNotesColumn({
             ref={setActivatorNodeRef}
             {...attributes}
             {...listeners}
-            className="hover:box-shadow-md absolute bottom-4 left-1/2 right-1/2 w-[1.5rem] -translate-x-1/2 cursor-grab rounded-md text-pink-50 active:cursor-grabbing"
+            className={`hover:box-shadow-md absolute bottom-4 left-1/2 right-1/2 w-[1.5rem] -translate-x-1/2 cursor-grab rounded-md text-pink-50 ${
+              isDragging ? "cursor-grabbing" : "cursor-grab"
+            }`}
             onMouseEnter={() => setHoveringOnHandle(true)}
             onMouseDown={() => setGrabbingHandle(true)}
             onMouseLeave={() => {

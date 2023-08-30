@@ -21,11 +21,12 @@ import {
 } from "~/components/ui/select";
 import { type LastModifiedPalmMuteNodeLocation } from "./TabSection";
 import { Button } from "~/components/ui/button";
+import { v4 as uuid } from "uuid";
 import StrummingPattern from "./StrummingPattern";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Separator } from "~/components/ui/separator";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import StrummingSection from "./ChordSequence";
 import ChordSequence from "./ChordSequence";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
@@ -35,13 +36,20 @@ const opacityAndScaleVariants = {
   expanded: {
     opacity: 1,
     scale: 1,
+    transition: {
+      ease: "easeInOut",
+      duration: 0.25,
+    },
   },
   closed: {
     opacity: 0,
     scale: 0.5,
+    transition: {
+      ease: "easeInOut",
+      duration: 0.25,
+    },
   },
 };
-
 export interface ChordSection {
   sectionId: string;
   sectionIndex: number;
@@ -102,6 +110,7 @@ function ChordSection({
     const newTabData = [...tabData];
 
     newTabData[sectionIndex]!.data[subSectionIndex]!.data.push({
+      id: uuid(),
       repetitions: 1,
       bpm,
       // @ts-expect-error the correct strummingPattern will get set in <ChordSequence /> if it is available
@@ -135,15 +144,18 @@ function ChordSection({
 
   return (
     <motion.div
-      key={sectionId}
-      // layoutId={`${sectionId}`}
-      layout
+      key={subSectionData.id}
+      layout={"position"}
       variants={opacityAndScaleVariants}
       initial="closed"
       animate="expanded"
       exit="closed"
       transition={{
-        duration: 0.15,
+        layout: {
+          type: "spring",
+          bounce: 0.2,
+          duration: 1,
+        },
       }}
       style={{
         gap: editing ? "1rem" : "0",
@@ -181,43 +193,69 @@ function ChordSection({
         </div>
       )}
 
-      <div className="baseVertFlex w-full !items-start gap-2">
-        {subSectionData.data.map((chordSequence, index) => (
-          <div key={index} className="baseVertFlex w-full !items-start">
-            {!editing && chordSequence.repetitions > 1 && (
-              <p
-                className={`rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm ${
-                  audioMetadata.type === "Generated" &&
-                  audioMetadata.playing &&
-                  currentlyPlayingMetadata?.[currentChordIndex]?.location
-                    ?.sectionIndex === sectionIndex &&
-                  currentlyPlayingMetadata?.[currentChordIndex]?.location
-                    ?.subSectionIndex === subSectionIndex &&
-                  currentlyPlayingMetadata?.[currentChordIndex]?.location
-                    ?.chordSequenceIndex === index
-                    ? "animate-colorOscillate"
-                    : ""
-                }
+      {/* <div className="baseVertFlex w-full !items-start gap-2"> */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={subSectionData.id}
+          layout={"position"}
+          variants={opacityAndScaleVariants}
+          initial="closed"
+          animate="expanded"
+          exit="closed"
+          transition={{
+            layout: {
+              type: "spring",
+              bounce: 0.2,
+              duration: 1,
+            },
+          }}
+          className="baseVertFlex w-full !items-start gap-2"
+        >
+          {subSectionData.data.map((chordSequence, index) => (
+            <div
+              key={chordSequence.id}
+              className="baseVertFlex w-full !items-start"
+            >
+              {!editing && chordSequence.repetitions > 1 && (
+                <p
+                  className={`rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm ${
+                    audioMetadata.type === "Generated" &&
+                    audioMetadata.playing &&
+                    currentlyPlayingMetadata?.[currentChordIndex]?.location
+                      ?.sectionIndex === sectionIndex &&
+                    currentlyPlayingMetadata?.[currentChordIndex]?.location
+                      ?.subSectionIndex === subSectionIndex &&
+                    currentlyPlayingMetadata?.[currentChordIndex]?.location
+                      ?.chordSequenceIndex === index
+                      ? "animate-colorOscillate"
+                      : ""
+                  }
                 `}
-              >
-                Repeat x{chordSequence.repetitions}
-              </p>
-            )}
-            <ChordSequence
-              sectionId={sectionId}
-              sectionIndex={sectionIndex}
-              subSectionIndex={subSectionIndex}
-              chordSequenceIndex={index}
-              chordSequenceData={chordSequence}
-            />
-          </div>
-        ))}
-      </div>
+                >
+                  Repeat x{chordSequence.repetitions}
+                </p>
+              )}
+              <AnimatePresence mode="wait">
+                <ChordSequence
+                  sectionId={sectionId}
+                  sectionIndex={sectionIndex}
+                  subSectionIndex={subSectionIndex}
+                  chordSequenceIndex={index}
+                  chordSequenceData={chordSequence}
+                />
+              </AnimatePresence>
+            </div>
+          ))}
+        </motion.div>
+      </AnimatePresence>
+      {/* </div> */}
 
       {/* TODO: prob only show this when there is at least one strumming pattern defined */}
       {editing && (
         <Button onClick={addAnotherChordSequence}>
-          Add another chord progression
+          {`Add ${
+            subSectionData.data.length === 0 ? "a" : "another"
+          } chord progression`}
         </Button>
       )}
     </motion.div>
