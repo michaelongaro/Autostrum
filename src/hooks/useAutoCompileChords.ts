@@ -34,7 +34,15 @@ function useAutoCompileChords() {
   );
 
   useEffect(() => {
-    if (tabData.length === 0 || tabData[0]?.data.length === 0) {
+    function wholeTabIsEmpty() {
+      // I *think* this covers all of the edge cases
+      if (tabData.length === 0 || tabData[0]?.data.length === 0) {
+        return true;
+      }
+      return false;
+    }
+
+    if (wholeTabIsEmpty()) {
       setAudioMetadata({
         location: null,
         tabId: -1,

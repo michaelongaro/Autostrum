@@ -141,20 +141,22 @@ function compileFullTab({
     }
   }
 
-  const lastActualChord = metadata.at(-1)!;
+  const lastActualChord = metadata.at(-1);
 
-  // adding fake chord + metadata to align the audio controls slider with the visual progress indicator
-  metadata.push({
-    location: {
-      ...lastActualChord.location,
-      chordIndex: lastActualChord.location.chordIndex + 1,
-    },
-    bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
-    noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
-    elapsedSeconds: Math.floor(elapsedSeconds.value),
-  });
+  if (lastActualChord) {
+    // adding fake chord + metadata to align the audio controls slider with the visual progress indicator
+    metadata.push({
+      location: {
+        ...lastActualChord.location,
+        chordIndex: lastActualChord.location.chordIndex + 1,
+      },
+      bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
+      noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
+      elapsedSeconds: Math.floor(elapsedSeconds.value),
+    });
 
-  compiledChords.push([]);
+    compiledChords.push([]);
+  }
 
   setCurrentlyPlayingMetadata(metadata);
 
@@ -275,17 +277,19 @@ function compileSpecificChordGrouping({
   const lastActualChord = metadata.at(-1)!;
 
   // adding fake chord + metadata to align the audio controls slider with the visual progress indicator
-  metadata.push({
-    location: {
-      ...lastActualChord.location,
-      chordIndex: lastActualChord.location.chordIndex + 1,
-    },
-    bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
-    noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
-    elapsedSeconds: Math.floor(elapsedSeconds.value),
-  });
+  if (lastActualChord) {
+    metadata.push({
+      location: {
+        ...lastActualChord.location,
+        chordIndex: lastActualChord.location.chordIndex + 1,
+      },
+      bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
+      noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
+      elapsedSeconds: Math.floor(elapsedSeconds.value),
+    });
 
-  compiledChords.push([]);
+    compiledChords.push([]);
+  }
 
   setCurrentlyPlayingMetadata(metadata);
 
