@@ -8,13 +8,15 @@ interface UseAutoscrollToCurrentChord {
 function useAutoscrollToCurrentChord({
   autoscrollEnabled,
 }: UseAutoscrollToCurrentChord) {
-  const { currentlyPlayingMetadata, currentChordIndex } = useTabStore(
-    (state) => ({
-      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-      currentChordIndex: state.currentChordIndex,
-    }),
-    shallow
-  );
+  const { currentlyPlayingMetadata, currentChordIndex, audioMetadata } =
+    useTabStore(
+      (state) => ({
+        currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+        currentChordIndex: state.currentChordIndex,
+        audioMetadata: state.audioMetadata,
+      }),
+      shallow
+    );
 
   // I am pretty sure that smooth scrolling just isn't an option due to the
   // nature of putting instant clarity on the current chord being played over "eye candy"
@@ -53,7 +55,12 @@ function useAutoscrollToCurrentChord({
   // );
 
   useEffect(() => {
-    if (!currentlyPlayingMetadata || !autoscrollEnabled) return;
+    if (
+      !audioMetadata.playing ||
+      !currentlyPlayingMetadata ||
+      !autoscrollEnabled
+    )
+      return;
 
     const { sectionIndex, subSectionIndex, chordSequenceIndex, chordIndex } =
       currentlyPlayingMetadata[currentChordIndex]!.location;
@@ -82,7 +89,12 @@ function useAutoscrollToCurrentChord({
         });
       }
     }
-  }, [currentlyPlayingMetadata, currentChordIndex, autoscrollEnabled]);
+  }, [
+    currentlyPlayingMetadata,
+    currentChordIndex,
+    autoscrollEnabled,
+    audioMetadata,
+  ]);
 }
 
 export default useAutoscrollToCurrentChord;
