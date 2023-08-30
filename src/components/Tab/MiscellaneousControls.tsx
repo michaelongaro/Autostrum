@@ -479,7 +479,16 @@ function MiscellaneousControls({
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent side={"bottom"}>
+        <DropdownMenuContent
+          side={"bottom"}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            // not sure if this does a perfect job of preventing scrolling while
+            // sections are moving to their new location post moveUp/Down, but it is
+            // better than the default behavior
+          }}
+        >
           <DropdownMenuItem
             className="baseFlex !justify-between gap-2"
             disabled={disableMoveUp()}
