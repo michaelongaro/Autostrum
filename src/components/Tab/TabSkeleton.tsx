@@ -190,46 +190,35 @@ function TabSkeleton({ editing }: TabSkeleton) {
             <div
               className={`${
                 classes.headerInfo ?? ""
-              } w-full rounded-t-md bg-pink-700 shadow-sm`}
+              } w-full rounded-t-md bg-pink-700 shadow-md`}
             >
-              <div className="baseFlex w-full !justify-between">
-                <div className="baseFlex gap-2">
-                  <div className="baseFlex gap-2">
-                    <div
-                      className={`${classes.title ?? ""} text-2xl font-bold`}
-                    >
+              <div className="baseVertFlex w-full !justify-end gap-2 md:!flex-row md:!justify-between md:gap-0">
+                <div className="baseVertFlex gap-4 md:!flex-row md:gap-2">
+                  <div className="baseFlex !justify-between gap-2 md:!justify-center">
+                    <div className="text-2xl font-bold">
                       <div className="h-8 w-48 animate-pulse rounded-md bg-pink-300"></div>
                     </div>
 
-                    <div className={classes.heart}>
-                      {/* could definitely just use the icon instead of button wrapper as well */}
-                      <Button
-                        variant={"ghost"}
-                        disabled
-                        className="baseFlex gap-2 p-2"
-                      >
-                        <AiOutlineHeart className="h-6 w-6" />
-                      </Button>
-                    </div>
+                    <Button
+                      variant={"ghost"}
+                      disabled
+                      className="baseFlex !hidden gap-2 p-2 md:!flex"
+                    >
+                      <AiOutlineHeart className="h-6 w-6" />
+                    </Button>
                   </div>
 
                   <Separator
                     orientation="vertical"
-                    className="hidden h-8 sm:block"
+                    className="hidden h-8 md:block"
                   />
 
-                  {/* look into usefulness of splitting code into chunks based off isLoading + user.data state
-                because this constant ?. + ?? "" doesn't feel too great. */}
-                  <div
-                    className={`${
-                      classes.usernameAndDate ?? ""
-                    } baseFlex gap-2`}
-                  >
+                  <div className="baseVertFlex gap-2 md:!flex-row">
                     <div className="baseFlex gap-2">
                       <div className="h-8 w-8 animate-pulse rounded-full bg-pink-300"></div>
                       <div className="h-8 w-32 animate-pulse rounded-md bg-pink-300"></div>
                     </div>
-                    <Separator className="h-[1px] w-4" />
+                    <Separator className="hidden h-[1px] w-4 md:block" />
                     <div className="ml-2 h-8 w-20 animate-pulse rounded-md bg-pink-300"></div>
                   </div>
                 </div>
