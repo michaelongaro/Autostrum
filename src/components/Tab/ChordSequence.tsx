@@ -202,7 +202,9 @@ function ChordSequence({
           }}
           className="baseVertFlex relative h-full w-full gap-2 rounded-md border-[1px] border-pink-50 bg-black/25 p-4"
         >
-          <p className="text-lg font-semibold">No strumming patterns exist</p>
+          <p className="mt-8 text-lg font-semibold sm:mt-0">
+            No strumming patterns exist
+          </p>
           <Button
             onClick={() => {
               setStrummingPatternBeingEdited({
