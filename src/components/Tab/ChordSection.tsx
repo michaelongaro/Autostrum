@@ -212,39 +212,47 @@ function ChordSection({
           className="baseVertFlex w-full !items-start gap-2"
         >
           {subSectionData.data.map((chordSequence, index) => (
-            <div
-              key={chordSequence.id}
-              className="baseVertFlex w-full !items-start"
-            >
-              {!editing && chordSequence.repetitions > 1 && (
-                <p
-                  className={`rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm ${
-                    audioMetadata.type === "Generated" &&
-                    audioMetadata.playing &&
-                    currentlyPlayingMetadata?.[currentChordIndex]?.location
-                      ?.sectionIndex === sectionIndex &&
-                    currentlyPlayingMetadata?.[currentChordIndex]?.location
-                      ?.subSectionIndex === subSectionIndex &&
-                    currentlyPlayingMetadata?.[currentChordIndex]?.location
-                      ?.chordSequenceIndex === index
-                      ? "animate-colorOscillate"
-                      : ""
-                  }
-                `}
+            <>
+              {editing || (!editing && chordSequence.data.length > 0) ? (
+                <div
+                  key={chordSequence.id}
+                  className="baseVertFlex w-full !items-start"
                 >
-                  Repeat x{chordSequence.repetitions}
+                  {!editing && chordSequence.repetitions > 1 && (
+                    <p
+                      className={`rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm ${
+                        audioMetadata.type === "Generated" &&
+                        audioMetadata.playing &&
+                        currentlyPlayingMetadata?.[currentChordIndex]?.location
+                          ?.sectionIndex === sectionIndex &&
+                        currentlyPlayingMetadata?.[currentChordIndex]?.location
+                          ?.subSectionIndex === subSectionIndex &&
+                        currentlyPlayingMetadata?.[currentChordIndex]?.location
+                          ?.chordSequenceIndex === index
+                          ? "animate-colorOscillate"
+                          : ""
+                      }
+                `}
+                    >
+                      Repeat x{chordSequence.repetitions}
+                    </p>
+                  )}
+                  <AnimatePresence mode="wait">
+                    <ChordSequence
+                      sectionId={sectionId}
+                      sectionIndex={sectionIndex}
+                      subSectionIndex={subSectionIndex}
+                      chordSequenceIndex={index}
+                      chordSequenceData={chordSequence}
+                    />
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <p className="font-lg italic text-gray-200">
+                  Empty strumming pattern
                 </p>
               )}
-              <AnimatePresence mode="wait">
-                <ChordSequence
-                  sectionId={sectionId}
-                  sectionIndex={sectionIndex}
-                  subSectionIndex={subSectionIndex}
-                  chordSequenceIndex={index}
-                  chordSequenceData={chordSequence}
-                />
-              </AnimatePresence>
-            </div>
+            </>
           ))}
         </motion.div>
       </AnimatePresence>
