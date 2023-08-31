@@ -19,6 +19,7 @@ import { useRouter } from "next/router";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import { TbPinned, TbPinnedFilled } from "react-icons/tb";
+import { AiOutlineUser } from "react-icons/ai";
 import { Button } from "~/components/ui/button";
 import { TableCell, TableRow } from "~/components/ui/table";
 import type { TabWithLikes } from "~/server/api/routers/tab";
@@ -28,6 +29,8 @@ import { formatNumber } from "~/utils/formatNumber";
 import type { Genre } from "@prisma/client";
 import type { RefetchTab } from "../Tab/Tab";
 import useSound from "~/hooks/useSound";
+import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
+import GenrePreviewBubbles from "../Tab/GenrePreviewBubbles";
 
 interface TableTabRow extends RefetchTab {
   tab: TabWithLikes;
@@ -92,161 +95,17 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
         }
       );
 
-    const { data: tabCreator, refetch: refetchTabCreator } =
-      api.artist.getByIdOrUsername.useQuery({
-        userId: tab.createdById,
-      });
-    const ctx = api.useContext();
-
-    const { mutate: likeTab, isLoading: isLiking } =
-      api.like.createLike.useMutation({
-        onMutate: async () => {
-          // optimistic updates
-
-          if (asPath.includes("artist")) {
-            await ctx.artist.getByIdOrUsername.cancel({
-              userId: tabCreator?.userId,
-            });
-            ctx.artist.getByIdOrUsername.setData(
-              {
-                userId: tabCreator?.userId,
-              },
-              (prevArtistData) => {
-                if (!prevArtistData) return prevArtistData;
-
-                return {
-                  ...prevArtistData,
-                  numberOfLikes: prevArtistData.numberOfLikes++,
-                };
-              }
-            );
-          }
-
-          // using username because artist profile page uses username for it's query
-          await ctx.artist.getByIdOrUsername.cancel({
-            username: currentArtist?.username,
-          });
-          ctx.artist.getByIdOrUsername.setData(
-            {
-              username: currentArtist?.username,
-            },
-            (prevArtistData) => {
-              if (!prevArtistData) return prevArtistData;
-
-              const currentArtistIsOwner =
-                currentArtist?.username === tabCreator?.username;
-
-              return {
-                ...prevArtistData,
-                likedTabIds: [...prevArtistData.likedTabIds, tab.id],
-                numberOfLikes: currentArtistIsOwner
-                  ? prevArtistData.numberOfLikes + 1
-                  : prevArtistData.numberOfLikes,
-              };
-            }
-          );
-
-          await ctx.tab.getTabById.cancel();
-          ctx.tab.getTabById.setData(
-            {
-              id: tab.id,
-            },
-            (prevTabData) => {
-              if (!prevTabData) return prevTabData;
-              return {
-                ...prevTabData,
-                numberOfLikes: prevTabData.numberOfLikes + 1,
-              };
-            }
-          );
-        },
-        onError: (e) => {
-          console.error(e);
-        },
-        onSettled: () => {
-          void refetchTab();
-          void refetchCurrentArtist();
-          if (asPath.includes("artist")) void refetchTabCreator();
-        },
-      });
-
-    const { mutate: unlikeTab, isLoading: isUnliking } =
-      api.like.deleteLike.useMutation({
-        onMutate: async () => {
-          // optimistic updates
-
-          if (asPath.includes("artist")) {
-            await ctx.artist.getByIdOrUsername.cancel({
-              userId: tabCreator?.userId,
-            });
-            ctx.artist.getByIdOrUsername.setData(
-              {
-                userId: tabCreator?.userId,
-              },
-              (prevArtistData) => {
-                if (!prevArtistData) return prevArtistData;
-
-                return {
-                  ...prevArtistData,
-                  numberOfLikes: prevArtistData.numberOfLikes--,
-                };
-              }
-            );
-          }
-
-          // using username because artist profile page uses username for it's query
-          await ctx.artist.getByIdOrUsername.cancel({
-            username: currentArtist?.username,
-          });
-          ctx.artist.getByIdOrUsername.setData(
-            {
-              username: currentArtist?.username,
-            },
-            (prevArtistData) => {
-              if (!prevArtistData) return prevArtistData;
-
-              const currentArtistIsOwner =
-                currentArtist?.username === tabCreator?.username;
-
-              return {
-                ...prevArtistData,
-                likedTabIds: prevArtistData.likedTabIds.filter(
-                  (id) => id !== tab.id
-                ),
-                numberOfLikes: currentArtistIsOwner
-                  ? prevArtistData.numberOfLikes - 1
-                  : prevArtistData.numberOfLikes,
-              };
-            }
-          );
-
-          await ctx.tab.getTabById.cancel();
-          ctx.tab.getTabById.setData(
-            {
-              id: tab.id,
-            },
-            (prevTabData) => {
-              if (!prevTabData) return prevTabData;
-              return {
-                ...prevTabData,
-                numberOfLikes: prevTabData.numberOfLikes - 1,
-              };
-            }
-          );
-        },
-        onError: (e) => {
-          console.error(e);
-        },
-        onSettled: () => {
-          void refetchTab();
-          void refetchCurrentArtist();
-          if (asPath.includes("artist")) void refetchTabCreator();
-        },
-      });
+    const {
+      data: tabCreator,
+      isLoading: loadingTabCreator,
+      refetch: refetchTabCreator,
+    } = api.artist.getByIdOrUsername.useQuery({
+      userId: tab.createdById,
+    });
 
     return (
       <TableRow ref={ref} className="w-full">
-        <TableCell className="min-w-[100px] font-medium">
+        <TableCell className="whitespace-nowrap">
           <Button variant={"link"} asChild>
             <Link
               href={`/tab/${tab.id}`}
@@ -256,8 +115,8 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
             </Link>
           </Button>
         </TableCell>
-        <TableCell>
-          {selectedPinnedTabId !== undefined && (
+        {selectedPinnedTabId !== undefined && (
+          <TableCell>
             <Button
               variant={"ghost"}
               className="baseFlex w-28 gap-2 px-3 py-1"
@@ -276,49 +135,61 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
 
               {selectedPinnedTabId === tab.id ? "Unpin tab" : "Pin tab"}
             </Button>
-          )}
-        </TableCell>
+          </TableCell>
+        )}
         <TableCell>
           <div
             style={{
               backgroundColor: genreObject[tab.genreId]?.color,
             }}
-            className="rounded-md px-4 py-[0.65rem] lg:px-16"
+            className="baseFlex w-[150px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
           >
-            {/* need bubbles, prob fine to hardcode them tbh */}
             {genreObject[tab.genreId]?.name}
+            <GenrePreviewBubbles
+              color={genreObject[tab.genreId]?.color ?? "#FFFFFF"}
+            />
           </div>
         </TableCell>
-        <TableCell className="baseFlex !justify-start gap-2">
-          <Button asChild variant={"ghost"} className="px-3 py-1">
+        <TableCell>
+          {/* not sure why the profile image starts shrinking + eventually "pushed" out of view when
+          viewport is shrunk. maybe something to do with "object-cover or object-center"? */}
+          <Button asChild variant={"ghost"} className="w-full px-3 py-1">
             <Link
               href={`/artist/${tabCreator?.username ?? ""}`}
-              className="baseFlex gap-2"
+              className="baseFlex w-full !flex-nowrap gap-2"
             >
-              <div className="grid grid-cols-1 grid-rows-1">
-                <Image
-                  src={tabCreator?.profileImageUrl ?? ""}
-                  alt={`${tabCreator?.username ?? "Anonymous"}'s profile image`}
-                  width={32}
-                  height={32}
-                  // maybe just a developemnt thing, but it still very
-                  // briefly shows the default placeholder for a loading
-                  // or not found image before the actual image loads...
-                  onLoadingComplete={() => setProfileImageLoaded(true)}
-                  style={{
-                    opacity: profileImageLoaded ? 1 : 0,
-                  }}
-                  className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-800 object-cover object-center 
+              <div className="grid w-full grid-cols-1 grid-rows-1">
+                {tabCreator || loadingTabCreator ? (
+                  <>
+                    <Image
+                      src={tabCreator?.profileImageUrl ?? ""}
+                      alt={`${
+                        tabCreator?.username ?? "Anonymous"
+                      }'s profile image`}
+                      width={32}
+                      height={32}
+                      // maybe just a developemnt thing, but it still very
+                      // briefly shows the default placeholder for a loading
+                      // or not found image before the actual image loads...
+                      onLoadingComplete={() => setProfileImageLoaded(true)}
+                      style={{
+                        opacity: profileImageLoaded ? 1 : 0,
+                      }}
+                      className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-800 object-cover object-center 
                           transition-opacity"
-                />
-                <div
-                  style={{
-                    opacity: !profileImageLoaded ? 1 : 0,
-                  }}
-                  className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 transition-opacity
+                    />
+                    <div
+                      style={{
+                        opacity: !profileImageLoaded ? 1 : 0,
+                      }}
+                      className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 transition-opacity
                               ${!profileImageLoaded ? "animate-pulse" : ""}
                             `}
-                ></div>
+                    ></div>
+                  </>
+                ) : (
+                  <AiOutlineUser className="h-8 w-8" />
+                )}
               </div>
               <span>{tabCreator?.username ?? "Anonymous"}</span>
             </Link>
@@ -326,37 +197,19 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
         </TableCell>
         <TableCell>{formatDate(tab.updatedAt ?? tab.createdAt)}</TableCell>
         <TableCell>
-          <Button
-            variant={"ghost"}
-            size={"sm"}
-            className="baseFlex gap-2"
-            onClick={() => {
-              if (!tabCreator || !currentArtist) return;
-
-              if (currentArtist.likedTabIds.includes(tab.id)) {
-                unlikeTab({
-                  tabId: tab.id,
-                  artistWhoLikedId: currentArtist.userId,
-                });
-              } else {
-                likeTab({
-                  tabId: tab.id,
-                  tabArtistId: tab.createdById,
-                  tabArtistUsername: tabCreator.username,
-                  artistWhoLikedId: currentArtist.userId,
-                });
-              }
-            }}
-          >
-            {currentArtist?.likedTabIds.includes(tab.id) ? (
-              <AiFillHeart className="h-6 w-6 text-pink-800" />
-            ) : (
-              <AiOutlineHeart className="h-6 w-6" />
-            )}
-            {tab.numberOfLikes > 0 && (
-              <div className="text-lg">{formatNumber(tab.numberOfLikes)}</div>
-            )}
-          </Button>
+          <LikeAndUnlikeButton
+            customClassName="baseFlex gap-2 px-3"
+            createdById={tab.createdById}
+            id={tab.id}
+            numberOfLikes={tab.numberOfLikes}
+            tabCreator={tabCreator}
+            currentArtist={currentArtist}
+            // fix typing/linting errors later
+            refetchCurrentArtist={refetchCurrentArtist}
+            // fix typing/linting errors later
+            refetchTabCreator={refetchTabCreator}
+            refetchTab={refetchTab}
+          />
         </TableCell>
         <TableCell>
           <Button

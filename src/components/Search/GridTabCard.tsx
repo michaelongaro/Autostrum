@@ -23,7 +23,7 @@ import formatDate from "~/utils/formatDate";
 import { Button } from "../ui/button";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
-import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
+import { AiOutlineUser } from "react-icons/ai";
 import { formatNumber } from "~/utils/formatNumber";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import { TbPinnedFilled, TbPinned } from "react-icons/tb";
@@ -33,6 +33,7 @@ import { Badge } from "../ui/badge";
 import type { RefetchTab } from "../Tab/Tab";
 import TabPreview from "../Tab/TabPreview";
 import useSound from "~/hooks/useSound";
+import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
 
 interface GridTabCard extends RefetchTab {
   tab: TabWithLikes;
@@ -111,157 +112,13 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         }
       );
 
-    const { data: tabCreator, refetch: refetchTabCreator } =
-      api.artist.getByIdOrUsername.useQuery({
-        userId: tab.createdById,
-      });
-    const ctx = api.useContext();
-
-    const { mutate: likeTab, isLoading: isLiking } =
-      api.like.createLike.useMutation({
-        onMutate: async () => {
-          // optimistic updates
-
-          if (asPath.includes("artist")) {
-            await ctx.artist.getByIdOrUsername.cancel({
-              userId: tabCreator?.userId,
-            });
-            ctx.artist.getByIdOrUsername.setData(
-              {
-                userId: tabCreator?.userId,
-              },
-              (prevArtistData) => {
-                if (!prevArtistData) return prevArtistData;
-
-                return {
-                  ...prevArtistData,
-                  numberOfLikes: prevArtistData.numberOfLikes++,
-                };
-              }
-            );
-          }
-
-          // using username because artist profile page uses username for it's query
-          await ctx.artist.getByIdOrUsername.cancel({
-            username: currentArtist?.username,
-          });
-          ctx.artist.getByIdOrUsername.setData(
-            {
-              username: currentArtist?.username,
-            },
-            (prevArtistData) => {
-              if (!prevArtistData) return prevArtistData;
-
-              const currentArtistIsOwner =
-                currentArtist?.username === tabCreator?.username;
-
-              return {
-                ...prevArtistData,
-                likedTabIds: [...prevArtistData.likedTabIds, tab.id],
-                numberOfLikes: currentArtistIsOwner
-                  ? prevArtistData.numberOfLikes + 1
-                  : prevArtistData.numberOfLikes,
-              };
-            }
-          );
-
-          await ctx.tab.getTabById.cancel();
-          ctx.tab.getTabById.setData(
-            {
-              id: tab.id,
-            },
-            (prevTabData) => {
-              if (!prevTabData) return prevTabData;
-              return {
-                ...prevTabData,
-                numberOfLikes: prevTabData.numberOfLikes + 1,
-              };
-            }
-          );
-        },
-        onError: (e) => {
-          console.error(e);
-        },
-        onSettled: () => {
-          void refetchTab();
-          void refetchCurrentArtist();
-          if (asPath.includes("artist")) void refetchTabCreator();
-        },
-      });
-
-    const { mutate: unlikeTab, isLoading: isUnliking } =
-      api.like.deleteLike.useMutation({
-        onMutate: async () => {
-          // optimistic updates
-
-          if (asPath.includes("artist")) {
-            await ctx.artist.getByIdOrUsername.cancel({
-              userId: tabCreator?.userId,
-            });
-            ctx.artist.getByIdOrUsername.setData(
-              {
-                userId: tabCreator?.userId,
-              },
-              (prevArtistData) => {
-                if (!prevArtistData) return prevArtistData;
-
-                return {
-                  ...prevArtistData,
-                  numberOfLikes: prevArtistData.numberOfLikes--,
-                };
-              }
-            );
-          }
-
-          // using username because artist profile page uses username for it's query
-          await ctx.artist.getByIdOrUsername.cancel({
-            username: currentArtist?.username,
-          });
-          ctx.artist.getByIdOrUsername.setData(
-            {
-              username: currentArtist?.username,
-            },
-            (prevArtistData) => {
-              if (!prevArtistData) return prevArtistData;
-
-              const currentArtistIsOwner =
-                currentArtist?.username === tabCreator?.username;
-
-              return {
-                ...prevArtistData,
-                likedTabIds: prevArtistData.likedTabIds.filter(
-                  (id) => id !== tab.id
-                ),
-                numberOfLikes: currentArtistIsOwner
-                  ? prevArtistData.numberOfLikes - 1
-                  : prevArtistData.numberOfLikes,
-              };
-            }
-          );
-
-          await ctx.tab.getTabById.cancel();
-          ctx.tab.getTabById.setData(
-            {
-              id: tab.id,
-            },
-            (prevTabData) => {
-              if (!prevTabData) return prevTabData;
-              return {
-                ...prevTabData,
-                numberOfLikes: prevTabData.numberOfLikes - 1,
-              };
-            }
-          );
-        },
-        onError: (e) => {
-          console.error(e);
-        },
-        onSettled: () => {
-          void refetchTab();
-          void refetchCurrentArtist();
-          if (asPath.includes("artist")) void refetchTabCreator();
-        },
-      });
+    const {
+      data: tabCreator,
+      isLoading: loadingTabCreator,
+      refetch: refetchTabCreator,
+    } = api.artist.getByIdOrUsername.useQuery({
+      userId: tab.createdById,
+    });
 
     return (
       <motion.div
@@ -363,31 +220,39 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                       className="baseFlex gap-2"
                     >
                       <div className="grid grid-cols-1 grid-rows-1">
-                        <Image
-                          src={tabCreator?.profileImageUrl ?? ""}
-                          alt={`${
-                            tabCreator?.username ?? "Anonymous"
-                          }'s profile image`}
-                          width={32}
-                          height={32}
-                          // maybe just a developemnt thing, but it still very
-                          // briefly shows the default placeholder for a loading
-                          // or not found image before the actual image loads...
-                          onLoadingComplete={() => setProfileImageLoaded(true)}
-                          style={{
-                            opacity: profileImageLoaded ? 1 : 0,
-                          }}
-                          className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-800 object-cover object-center 
+                        {tabCreator || loadingTabCreator ? (
+                          <>
+                            <Image
+                              src={tabCreator?.profileImageUrl ?? ""}
+                              alt={`${
+                                tabCreator?.username ?? "Anonymous"
+                              }'s profile image`}
+                              width={32}
+                              height={32}
+                              // maybe just a developemnt thing, but it still very
+                              // briefly shows the default placeholder for a loading
+                              // or not found image before the actual image loads...
+                              onLoadingComplete={() =>
+                                setProfileImageLoaded(true)
+                              }
+                              style={{
+                                opacity: profileImageLoaded ? 1 : 0,
+                              }}
+                              className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-800 object-cover object-center 
                           transition-opacity"
-                        />
-                        <div
-                          style={{
-                            opacity: !profileImageLoaded ? 1 : 0,
-                          }}
-                          className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 transition-opacity
+                            />
+                            <div
+                              style={{
+                                opacity: !profileImageLoaded ? 1 : 0,
+                              }}
+                              className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 transition-opacity
                               ${!profileImageLoaded ? "animate-pulse" : ""}
                             `}
-                        ></div>
+                            ></div>
+                          </>
+                        ) : (
+                          <AiOutlineUser className="h-8 w-8" />
+                        )}
                       </div>
                       <span className="w-[58px] truncate">
                         {tabCreator?.username ?? "Anonymous"}
@@ -417,41 +282,22 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                 </Button>
               )}
             </div>
-            <div className="baseFlex w-full !justify-evenly rounded-tl-md border-l-2 border-t-2">
+            <div className="baseFlex w-full !flex-nowrap !justify-evenly rounded-tl-md border-l-2 border-t-2">
               {/* likes button */}
-              <Button
-                variant={"ghost"}
-                size={"sm"}
-                className="baseFlex h-8 w-1/2 gap-2 rounded-r-none rounded-bl-none rounded-tl-sm border-r-[1px]"
-                onClick={() => {
-                  if (!tabCreator || !currentArtist) return;
+              <LikeAndUnlikeButton
+                customClassName="baseFlex h-8 w-1/2 gap-2 px-3 rounded-r-none rounded-bl-none rounded-tl-sm border-r-[1px]"
+                createdById={tab.createdById}
+                id={tab.id}
+                numberOfLikes={tab.numberOfLikes}
+                tabCreator={tabCreator}
+                currentArtist={currentArtist}
+                // fix typing/linting errors later
+                refetchCurrentArtist={refetchCurrentArtist}
+                // fix typing/linting errors later
+                refetchTabCreator={refetchTabCreator}
+                refetchTab={refetchTab}
+              />
 
-                  if (currentArtist.likedTabIds.includes(tab.id)) {
-                    unlikeTab({
-                      tabId: tab.id,
-                      artistWhoLikedId: currentArtist.userId,
-                    });
-                  } else {
-                    likeTab({
-                      tabId: tab.id,
-                      tabArtistId: tab.createdById,
-                      tabArtistUsername: tabCreator.username,
-                      artistWhoLikedId: currentArtist.userId,
-                    });
-                  }
-                }}
-              >
-                {currentArtist?.likedTabIds.includes(tab.id) ? (
-                  <AiFillHeart className="h-6 w-6 text-pink-800" />
-                ) : (
-                  <AiOutlineHeart className="h-6 w-6" />
-                )}
-                {tab.numberOfLikes > 0 && (
-                  <div className="text-lg">
-                    {formatNumber(tab.numberOfLikes)}
-                  </div>
-                )}
-              </Button>
               {/* play/pause button*/}
               <Button
                 variant="playPause"
