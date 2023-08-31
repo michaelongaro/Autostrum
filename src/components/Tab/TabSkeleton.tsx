@@ -222,6 +222,16 @@ function TabSkeleton({ editing }: TabSkeleton) {
                     <div className="ml-2 h-8 w-20 animate-pulse rounded-md bg-pink-300"></div>
                   </div>
                 </div>
+
+                <div className="baseFlex w-full !justify-end gap-2 md:w-auto md:!justify-center">
+                  <Button
+                    variant={"ghost"}
+                    disabled
+                    className="baseFlex gap-2 p-2 md:!hidden"
+                  >
+                    <AiOutlineHeart className="h-6 w-6" />
+                  </Button>
+                </div>
               </div>
             </div>
 
