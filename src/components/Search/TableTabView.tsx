@@ -133,7 +133,7 @@ function TableTabView({
                 <TbPinned className="h-4 w-4" />
               </TableHead>
             )}
-            <TableHead className="lg:w-[100px]">Genre</TableHead>
+            <TableHead>Genre</TableHead>
             <TableHead>Artist</TableHead>
             <TableHead>Date</TableHead>
           </TableRow>
