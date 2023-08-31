@@ -72,7 +72,7 @@ function ArtistProfile() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
       // className="baseVertFlex w-full p-2 md:p-8"
-      className="lightGlassmorphic baseVertFlex my-24 min-h-[100dvh] w-10/12 !justify-start gap-8 rounded-md p-2 md:w-3/4 md:p-8"
+      className="lightGlassmorphic baseVertFlex my-12 min-h-[100dvh] w-10/12 !justify-start gap-8 rounded-md p-2 md:my-24 md:w-3/4 md:p-8"
     >
       {/* artist metadata + pinned tab */}
       <div className="baseVertFlex !flex-nowrap md:!flex-row md:gap-8">

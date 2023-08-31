@@ -60,7 +60,7 @@ function TopProfileNavigationLayout({ children }: Layout) {
         onValueChange={
           (value) => void push(`/profile/${value}`) // should probably include default params for search too right?
         }
-        className="baseVertFlex my-24"
+        className="baseVertFlex my-12 md:my-24"
       >
         <TabsList className="grid h-full w-11/12 grid-cols-3 gap-2 md:w-[450px]">
           {/* TODO: make this tabs container's width constant no matter which tab is selected */}
