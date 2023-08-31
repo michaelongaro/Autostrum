@@ -796,12 +796,14 @@ function TabSection({
                 sectionIndex={sectionIndex}
                 subSectionIndex={subSectionIndex}
                 columnIndex={index}
-                editingPalmMuteNodes={editingPalmMuteNodes}
+                editingPalmMuteNodes={editing ? editingPalmMuteNodes : false}
                 setEditingPalmMuteNodes={setEditingPalmMuteNodes}
                 lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
                 setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
-                reorderingColumns={reorderingColumns}
-                showingDeleteColumnsButtons={showingDeleteColumnsButtons}
+                reorderingColumns={editing ? reorderingColumns : false}
+                showingDeleteColumnsButtons={
+                  editing ? showingDeleteColumnsButtons : false
+                }
               />
             ))}
           </SortableContext>
