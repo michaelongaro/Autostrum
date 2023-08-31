@@ -12,6 +12,7 @@ import { Button } from "../ui/button";
 import { useRouter } from "next/router";
 import { FaGuitar } from "react-icons/fa";
 import { IoTelescopeOutline } from "react-icons/io5";
+import Image from "next/image";
 
 function MobileHeader() {
   const [isOpen, setOpen] = useState(false);
@@ -33,10 +34,16 @@ function MobileHeader() {
     >
       <Link
         href={"/"}
-        className="rounded-md bg-pink-800 px-10 py-2 text-2xl"
         onClick={() => setOpen(false)}
+        className="baseFlex h-12 pl-2"
       >
-        Tabsly
+        <Image
+          src="/logoWithTitle.svg"
+          alt="Autostrum header logo"
+          width={150}
+          height={50}
+          priority
+        />
       </Link>
       <Hamburger
         toggled={isOpen}

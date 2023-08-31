@@ -13,6 +13,7 @@ import { Button } from "../ui/button";
 import classes from "./DesktopHeader.module.css";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
+import Image from "next/image";
 
 function DesktopHeader() {
   const { isSignedIn } = useAuth();
@@ -22,13 +23,14 @@ function DesktopHeader() {
 
   return (
     <div className={classes.desktopHeader}>
-      <Link
-        href={"/"}
-        className={`${
-          classes.logo ?? ""
-        } rounded-md bg-pink-800 px-12 py-2 text-2xl`}
-      >
-        Tabsly
+      <Link href={"/"} className={`${classes.logo ?? ""}`}>
+        <Image
+          src="/logoWithTitle.svg"
+          alt="Autostrum header logo"
+          width={200}
+          height={100}
+          priority
+        />
       </Link>
 
       <Button
