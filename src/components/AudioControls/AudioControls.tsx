@@ -7,7 +7,7 @@ import {
   type SetStateAction,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useTabStore } from "~/stores/TabStore";
+import { ChordSection, useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
@@ -43,6 +43,7 @@ import { RiArrowGoBackFill } from "react-icons/ri";
 import useAutoscrollToCurrentChord from "~/hooks/useAutoscrollToCurrentChord";
 import { useLocalStorageValue } from "@react-hookz/web";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -631,6 +632,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               currentlyPlayingMetadata === null ||
               currentlyPlayingMetadata.length === 0 ||
               (currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0) === 0 ||
+              (audioMetadata.type === "Generated" &&
+                tabIsEffectivelyEmpty(tabData)) ||
               !currentInstrument
             }
             onClick={() => {

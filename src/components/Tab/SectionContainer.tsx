@@ -19,6 +19,7 @@ import { Label } from "~/components/ui/label";
 import useSound from "~/hooks/useSound";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import isEqual from "lodash.isequal";
+import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -221,6 +222,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
                 !currentInstrument ||
                 audioMetadata.type === "Artist recorded" ||
                 currentlyPlayingMetadata?.length === 0 ||
+                sectionIsEffectivelyEmpty(tabData, sectionIndex) ||
                 artificalPlayButtonTimeout
               }
               onClick={() => {

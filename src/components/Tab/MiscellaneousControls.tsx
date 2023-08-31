@@ -28,6 +28,7 @@ import { LuClipboardPaste } from "react-icons/lu";
 
 import useSound from "~/hooks/useSound";
 import isEqual from "lodash.isequal";
+import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
 
 interface MiscellaneousControls {
   type: "section" | "tab" | "chord" | "chordSequence";
@@ -90,51 +91,32 @@ function MiscellaneousControls({
     shallow
   );
 
-  // for tabStore create getter + setter for currentlyCopiedData
-  //  which will be an object like this {
-  // type: "section" | "tab" | "chord",
-  // data: TabSection | TabSection | ChordSection | ChordSequence
-  //      }
-  //     ^ bearing in mind that if you are copying the seciton you will have to add "2", "3", etc since we need to keep titles unique
-
   function disableMoveDown() {
-    if (
-      chordSequenceIndex !== undefined &&
-      subSectionIndex !== undefined &&
-      sectionIndex !== undefined
-    ) {
-      const newChordSequence = tabData[sectionIndex]?.data[subSectionIndex]
+    if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
+      const chordSequence = tabData[sectionIndex]?.data[subSectionIndex]
         ?.data as ChordSequence[];
 
-      return chordSequenceIndex === newChordSequence.length - 1;
-    } else if (subSectionIndex !== undefined && sectionIndex) {
-      const newSubSection = tabData[sectionIndex]?.data as (
+      return chordSequenceIndex === chordSequence.length - 1;
+    } else if (subSectionIndex !== undefined) {
+      const subSection = tabData[sectionIndex]?.data as (
         | TabSection
         | ChordSection
       )[];
 
-      return subSectionIndex === newSubSection.length - 1;
-    } else if (sectionIndex !== undefined) {
+      return subSectionIndex === subSection.length - 1;
+    } else {
       return sectionIndex === tabData.length - 1;
     }
-
-    return false;
   }
 
   function disableMoveUp() {
-    if (
-      chordSequenceIndex !== undefined &&
-      subSectionIndex !== undefined &&
-      sectionIndex !== undefined
-    ) {
+    if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
       return chordSequenceIndex === 0;
-    } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
+    } else if (subSectionIndex !== undefined) {
       return subSectionIndex === 0;
-    } else if (sectionIndex !== undefined) {
+    } else {
       return sectionIndex === 0;
     }
-
-    return false;
   }
 
   function moveUp() {
@@ -370,38 +352,6 @@ function MiscellaneousControls({
     setTabData(newTabData);
   }
 
-  // if the whole section is empty (no tab/chord subsections), or the
-  // section is filled with *only* chord subsections that are empty (no strumming
-  // pattern is defined currently)
-  function tetheredSectionIsEffectivelyEmpty() {
-    const sectionData = tabData[sectionIndex]?.data;
-    if (!sectionData || sectionData.length === 0) return true;
-
-    const consistsSolelyOfChordSections = sectionData.every(
-      (subSection) => subSection.type === "chord"
-    );
-
-    // Check if the current subsection is a chord section and if it's empty
-    if (subSectionIndex !== undefined) {
-      const currentSubSection = sectionData[subSectionIndex];
-      if (currentSubSection && currentSubSection.type === "chord") {
-        const chordSection = currentSubSection;
-        if (chordSection.data.every((chordSeq) => !chordSeq.data.length))
-          return true;
-      }
-    }
-
-    // Check if the section consists solely of empty chord subsections
-    if (consistsSolelyOfChordSections) {
-      return sectionData.every((subSection) => {
-        const chordSection = subSection as ChordSection;
-        return chordSection.data.every((chordSeq) => !chordSeq.data.length);
-      });
-    }
-
-    return false;
-  }
-
   return (
     <div className="baseFlex w-1/6 !flex-col-reverse !items-end gap-2 lg:!flex-row lg:!justify-end">
       {!hidePlayPauseButton && (
@@ -411,7 +361,7 @@ function MiscellaneousControls({
             !currentInstrument ||
             audioMetadata.type === "Artist recorded" ||
             artificalPlayButtonTimeout ||
-            tetheredSectionIsEffectivelyEmpty()
+            sectionIsEffectivelyEmpty(tabData, sectionIndex, subSectionIndex)
           }
           onClick={() => {
             if (
