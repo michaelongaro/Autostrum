@@ -111,6 +111,7 @@ function MobileHeader() {
                 <Link
                   href={`/profile/preferences`}
                   className="baseFlex gap-4 p-0 text-xl"
+                  onClick={() => setOpen(false)}
                 >
                   {user?.username}
                   {/* will need to be based on env url */}
