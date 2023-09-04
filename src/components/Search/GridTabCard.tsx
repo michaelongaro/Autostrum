@@ -70,23 +70,29 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
       playbackSpeed,
       audioMetadata,
       currentInstrument,
+      setId,
       setTabData,
       setSectionProgression,
+      setHasRecordedAudio,
       setTuning,
       setBpm,
       setChords,
       setCapo,
+      recordedAudioBuffer,
     } = useTabStore(
       (state) => ({
         playbackSpeed: state.playbackSpeed,
         audioMetadata: state.audioMetadata,
         currentInstrument: state.currentInstrument,
+        setId: state.setId,
         setTabData: state.setTabData,
         setSectionProgression: state.setSectionProgression,
+        setHasRecordedAudio: state.setHasRecordedAudio,
         setTuning: state.setTuning,
         setBpm: state.setBpm,
         setChords: state.setChords,
         setCapo: state.setCapo,
+        recordedAudioBuffer: state.recordedAudioBuffer,
       }),
       shallow
     );
@@ -301,17 +307,26 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
               {/* play/pause button*/}
               <Button
                 variant="playPause"
-                disabled={artificalPlayButtonTimeout || !currentInstrument}
+                disabled={
+                  (audioMetadata.type === "Generated" &&
+                    (artificalPlayButtonTimeout || !currentInstrument)) ||
+                  (audioMetadata.type === "Artist recorded" &&
+                    audioMetadata.tabId === tab.id &&
+                    !recordedAudioBuffer)
+                }
                 onClick={() => {
                   if (audioMetadata.playing && audioMetadata.tabId === tab.id) {
-                    setArtificalPlayButtonTimeout(true);
+                    if (audioMetadata.type === "Generated") {
+                      setArtificalPlayButtonTimeout(true);
 
-                    setTimeout(() => {
-                      setArtificalPlayButtonTimeout(false);
-                    }, 300);
+                      setTimeout(() => {
+                        setArtificalPlayButtonTimeout(false);
+                      }, 300);
+                    }
                     pauseAudio();
                   } else {
                     // setting store w/ this tab's data
+                    setHasRecordedAudio(tab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
                     setTabData(tab.tabData as unknown as Section[]);
                     setSectionProgression(
                       tab.sectionProgression as unknown as SectionProgression[]

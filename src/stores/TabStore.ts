@@ -234,7 +234,7 @@ const initialStoreState = {
   tuning: "e2 a2 d3 g3 b3 e4",
   bpm: 75,
   capo: 0,
-  recordedAudioUrl: "",
+  hasRecordedAudio: false,
   chords: [],
   strummingPatterns: [],
   tabData: [],
@@ -245,6 +245,7 @@ const initialStoreState = {
   currentlyCopiedChord: null,
 
   // modals
+  showAudioRecorderModal: false,
   showSectionProgressionModal: false,
   showEffectGlossaryModal: false,
   chordBeingEdited: null,
@@ -269,6 +270,10 @@ const initialStoreState = {
     playing: false,
   },
   breakOnNextPreviewChord: false,
+  recordedAudioFile: null,
+  shouldUpdateInS3: false,
+  recordedAudioBuffer: null,
+  recordedAudioBufferSourceNode: null,
 
   // idk if search needs to be included here
 };
@@ -304,8 +309,8 @@ interface TabState {
   setTimeSignature: (timeSignature: string) => void;
   capo: number;
   setCapo: (capo: number) => void;
-  recordedAudioUrl: string | null;
-  setRecordedAudioUrl: (recordedAudioUrl: string | null) => void;
+  hasRecordedAudio: boolean;
+  setHasRecordedAudio: (hasRecordedAudio: boolean) => void;
   chords: Chord[];
   setChords: (chords: Chord[]) => void;
   strummingPatterns: StrummingPattern[];
@@ -352,6 +357,8 @@ interface TabState {
   ) => void;
 
   // modals
+  showAudioRecorderModal: boolean;
+  setShowAudioRecorderModal: (showAudioRecorderModal: boolean) => void;
   showSectionProgressionModal: boolean;
   setShowSectionProgressionModal: (
     showSectionProgressionModal: boolean
@@ -425,6 +432,16 @@ interface TabState {
   setPreviewMetadata: (previewMetadata: PreviewMetadata) => void;
   breakOnNextPreviewChord: boolean;
   setBreakOnNextPreviewChord: (breakOnNextPreviewChord: boolean) => void;
+  recordedAudioFile: Blob | null;
+  setRecordedAudioFile: (recordedAudioFile: Blob | null) => void;
+  shouldUpdateInS3: boolean;
+  setShouldUpdateInS3: (shouldUpdateInS3: boolean) => void;
+  recordedAudioBuffer: AudioBuffer | null;
+  setRecordedAudioBuffer: (recordedAudioBuffer: AudioBuffer | null) => void;
+  recordedAudioBufferSourceNode: AudioBufferSourceNode | null;
+  setRecordedAudioBufferSourceNode: (
+    recordedAudioBufferSourceNode: AudioBufferSourceNode | null
+  ) => void;
 
   // related to search
   searchResultsCount: number;
@@ -466,8 +483,8 @@ export const useTabStore = create<TabState>()(
     setTimeSignature: (timeSignature) => set({ timeSignature }),
     capo: 0,
     setCapo: (capo) => set({ capo }),
-    recordedAudioUrl: null,
-    setRecordedAudioUrl: (recordedAudioUrl) => set({ recordedAudioUrl }),
+    hasRecordedAudio: false,
+    setHasRecordedAudio: (hasRecordedAudio) => set({ hasRecordedAudio }),
     chords: [],
     setChords: (chords) => set({ chords }),
     strummingPatterns: [],
@@ -534,8 +551,21 @@ export const useTabStore = create<TabState>()(
     breakOnNextPreviewChord: false,
     setBreakOnNextPreviewChord: (breakOnNextPreviewChord) =>
       set({ breakOnNextPreviewChord }),
+    recordedAudioFile: null,
+    setRecordedAudioFile: (recordedAudioFile) => set({ recordedAudioFile }),
+    shouldUpdateInS3: false,
+    setShouldUpdateInS3: (shouldUpdateInS3) => set({ shouldUpdateInS3 }),
+    recordedAudioBuffer: null,
+    setRecordedAudioBuffer: (recordedAudioBuffer) =>
+      set({ recordedAudioBuffer }),
+    recordedAudioBufferSourceNode: null,
+    setRecordedAudioBufferSourceNode: (recordedAudioBufferSourceNode) =>
+      set({ recordedAudioBufferSourceNode }),
 
     // modals
+    showAudioRecorderModal: false,
+    setShowAudioRecorderModal: (showAudioRecorderModal) =>
+      set({ showAudioRecorderModal }),
     showSectionProgressionModal: false,
     setShowSectionProgressionModal: (showSectionProgressionModal) =>
       set({ showSectionProgressionModal }),

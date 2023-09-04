@@ -41,7 +41,8 @@ export default function useSound() {
     setBreakOnNextPreviewChord,
     previewMetadata,
     setPreviewMetadata,
-
+    recordedAudioBufferSourceNode,
+    setRecordedAudioBufferSourceNode,
     setShowingAudioControls,
   } = useTabStore(
     (state) => ({
@@ -65,7 +66,8 @@ export default function useSound() {
       setBreakOnNextPreviewChord: state.setBreakOnNextPreviewChord,
       previewMetadata: state.previewMetadata,
       setPreviewMetadata: state.setPreviewMetadata,
-
+      recordedAudioBufferSourceNode: state.recordedAudioBufferSourceNode,
+      setRecordedAudioBufferSourceNode: state.setRecordedAudioBufferSourceNode,
       setShowingAudioControls: state.setShowingAudioControls,
     }),
     shallow
@@ -118,7 +120,10 @@ export default function useSound() {
 
   useEffect(() => {
     loopingRef.current = looping;
-  }, [looping]);
+    if (recordedAudioBufferSourceNode) {
+      recordedAudioBufferSourceNode.loop = looping;
+    }
+  }, [looping, recordedAudioBufferSourceNode]);
 
   useEffect(() => {
     currentChordIndexRef.current = currentChordIndex;
@@ -1020,24 +1025,48 @@ export default function useSound() {
   }
 
   interface PlayRecordedAudio {
-    recordedAudioUrl: string;
+    audioBuffer: AudioBuffer;
     secondsElapsed: number;
   }
 
   function playRecordedAudio({
-    recordedAudioUrl,
+    audioBuffer,
     secondsElapsed,
   }: PlayRecordedAudio) {
-    // going to try and use the web audio api here too, just loading in the audio file and audioMetadata it
-    // from the secondsElapsed and ofc respecting the volume level too
-  }
+    console.log("called playRecordedAudio");
+    if (!audioContext || !masterVolumeGainNode) return;
 
-  async function pauseRecordedAudio() {
-    // adj below for the actual audio file
-    // setAudioMetadata(false);
-    // currentInstrument?.stop();
-    // breakOnNextChord = true;
-    // await audioContext?.suspend();
+    if (audioMetadata.playing || previewMetadata.playing) {
+      pauseAudio();
+    }
+
+    setAudioMetadata({
+      ...audioMetadataRef.current,
+      playing: true,
+      type: "Artist recorded",
+    });
+
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+    setRecordedAudioBufferSourceNode(source);
+
+    // const gainNode = audioContext.createGain();
+    // gainNode.gain.value = masterVolumeGainNode?.gain.value ?? 1;
+
+    // source.connect(gainNode);
+    // gainNode.connect(audioContext.destination);
+    source.connect(masterVolumeGainNode);
+    source.loop = loopingRef.current;
+
+    // idk maybe the defaults are sane already...
+    // if (loopingRef.current) {
+    //   source.loopStart = 0;
+    //   source.loopEnd = audioBuffer.duration;
+    // }
+
+    source.start(0, secondsElapsed);
+
+    // source.disconnect prob use just to be safe w/ memory stuff
   }
 
   interface PlayTab {
@@ -1176,7 +1205,16 @@ export default function useSound() {
     }
 
     if (audioMetadata.playing && audioMetadata.type === "Artist recorded") {
-      // TODO: fill out when doing recording handling
+      recordedAudioBufferSourceNode?.stop();
+
+      setAudioMetadata({
+        ...audioMetadataRef.current,
+        playing: false,
+      });
+
+      if (resetToStart) {
+        resetAudioSliderPosition();
+      }
     } else if (audioMetadata.playing && audioMetadata.type === "Generated") {
       setBreakOnNextChord(true);
       breakOnNextChordRef.current = true; // need these to happen instantly, can't wait for update effect to run
@@ -1219,7 +1257,6 @@ export default function useSound() {
     playTab,
     pauseAudio,
     playRecordedAudio,
-    pauseRecordedAudio,
     playPreview,
   };
 }

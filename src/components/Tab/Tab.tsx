@@ -27,6 +27,7 @@ import ChordModal from "../modals/ChordModal";
 import StrummingPatternModal from "../modals/StrummingPatternModal";
 import SectionContainer from "./SectionContainer";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import AudioRecorderModal from "../modals/AudioRecorderModal";
 
 // not sure of best way to avoid having the same name for interface and component
 
@@ -57,7 +58,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setTuning,
     setBpm,
     setTimeSignature,
-    setRecordedAudioUrl,
+    setHasRecordedAudio,
     setChords,
     strummingPatterns,
     setStrummingPatterns,
@@ -68,6 +69,7 @@ function Tab({ tab, refetchTab }: ITab) {
     editing,
     setEditing,
     setOriginalTabData,
+    showAudioRecorderModal,
     showSectionProgressionModal,
     showEffectGlossaryModal,
     setShowEffectGlossaryModal,
@@ -85,7 +87,7 @@ function Tab({ tab, refetchTab }: ITab) {
       setTuning: state.setTuning,
       setBpm: state.setBpm,
       setTimeSignature: state.setTimeSignature,
-      setRecordedAudioUrl: state.setRecordedAudioUrl,
+      setHasRecordedAudio: state.setHasRecordedAudio,
       setChords: state.setChords,
       strummingPatterns: state.strummingPatterns,
       setStrummingPatterns: state.setStrummingPatterns,
@@ -96,6 +98,7 @@ function Tab({ tab, refetchTab }: ITab) {
       editing: state.editing,
       setEditing: state.setEditing,
       setOriginalTabData: state.setOriginalTabData,
+      showAudioRecorderModal: state.showAudioRecorderModal,
       showSectionProgressionModal: state.showSectionProgressionModal,
       showEffectGlossaryModal: state.showEffectGlossaryModal,
       setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
@@ -120,7 +123,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setTuning(tab.tuning);
     setBpm(tab.bpm);
     setTimeSignature(tab.timeSignature);
-    setRecordedAudioUrl(tab.recordedAudioUrl);
+    setHasRecordedAudio(tab.hasRecordedAudio);
     setNumberOfLikes(tab.numberOfLikes);
 
     // @ts-expect-error can't specify type from prisma Json value, but we know it's correct
@@ -141,7 +144,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setDescription,
     setGenreId,
     setChords,
-    setRecordedAudioUrl,
+    setHasRecordedAudio,
     setStrummingPatterns,
     setTabData,
     setTimeSignature,
@@ -203,9 +206,6 @@ function Tab({ tab, refetchTab }: ITab) {
 
         <Separator className="w-[96%]" />
 
-        {/* pretty sure the Layout approach wasn't working, but if you can get it to work then maybe
-            it should be inside <SectionContainer /> */}
-        {/* <LayoutGroup> */}
         {tabData.map((section, index) => (
           <SectionContainer
             key={section.id}
@@ -213,7 +213,6 @@ function Tab({ tab, refetchTab }: ITab) {
             sectionData={section}
           />
         ))}
-        {/* </LayoutGroup> */}
 
         {editing && (
           <Button onClick={() => addNewSection()} className="mb-12">
@@ -221,6 +220,10 @@ function Tab({ tab, refetchTab }: ITab) {
           </Button>
         )}
       </div>
+
+      <AnimatePresence mode="wait">
+        {showAudioRecorderModal && <AudioRecorderModal />}
+      </AnimatePresence>
 
       <AnimatePresence mode="wait">
         {showSectionProgressionModal && <SectionProgressionModal />}

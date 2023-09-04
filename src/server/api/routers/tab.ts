@@ -1,5 +1,19 @@
 import type { Tab } from "@prisma/client";
 import { z } from "zod";
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
+const s3 = new S3Client({
+  region: "us-east-2",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+});
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import buildTabOrderBy from "~/utils/buildTabOrderBy";
@@ -283,6 +297,38 @@ export const tabRouter = createTRPCRouter({
       };
     }),
 
+  deleteTabById: publicProcedure
+    .input(z.number())
+    .mutation(async ({ input: idToDelete, ctx }) => {
+      const tab = await ctx.prisma.tab.findUnique({
+        where: {
+          id: idToDelete,
+        },
+      });
+
+      if (tab?.hasRecordedAudio) {
+        const command = new DeleteObjectCommand({
+          Bucket: "autostrum-recordings",
+          Key: `${idToDelete}.webm`,
+        });
+        await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
+
+        try {
+          const res = await s3.send(command);
+          console.log(res);
+        } catch (e) {
+          console.log(e);
+          // return null;
+        }
+      }
+
+      await ctx.prisma.tab.delete({
+        where: {
+          id: idToDelete,
+        },
+      });
+    }),
+
   // technically should be private, but don't have to worry about auth yet
   createOrUpdate: publicProcedure
     .input(
@@ -302,6 +348,7 @@ export const tabRouter = createTRPCRouter({
             frets: z.array(z.string()),
           })
         ),
+        hasRecordedAudio: z.boolean(),
         strummingPatterns: z.array(
           z.object({
             noteLength: z.string(),
@@ -321,10 +368,14 @@ export const tabRouter = createTRPCRouter({
             repetitions: z.number(),
           })
         ),
+        base64RecordedAudioFile: z.string().nullable(),
+        shouldUpdateInS3: z.boolean(),
         type: z.enum(["create", "update"]),
       })
     )
     .mutation(async ({ input, ctx }) => {
+      // can we destructure input into it's fields here or does prisma not like that?
+
       if (input.type === "create") {
         const tab = await ctx.prisma.tab.create({
           data: {
@@ -334,6 +385,7 @@ export const tabRouter = createTRPCRouter({
             genreId: input.genreId,
             tuning: input.tuning,
             sectionProgression: input.sectionProgression,
+            hasRecordedAudio: input.hasRecordedAudio,
             bpm: input.bpm,
             timeSignature: input.timeSignature,
             capo: input.capo,
@@ -343,8 +395,68 @@ export const tabRouter = createTRPCRouter({
           },
         });
 
+        if (input.shouldUpdateInS3 && input.base64RecordedAudioFile) {
+          const buffer = Buffer.from(input.base64RecordedAudioFile, "base64");
+
+          const command = new PutObjectCommand({
+            Bucket: "autostrum-recordings",
+            Key: `${tab.id}.webm`,
+            Body: buffer,
+            ContentType: "audio/webm;codecs=opus",
+          });
+          await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
+
+          try {
+            const res = await s3.send(command);
+            console.log(res);
+          } catch (e) {
+            console.log(e);
+            // return null;
+          }
+        }
+
         return tab;
       } else if (input.type === "update" && input.id !== null) {
+        if (input.shouldUpdateInS3) {
+          if (input.base64RecordedAudioFile) {
+            // replace current recording w/ new one in s3
+
+            const buffer = Buffer.from(input.base64RecordedAudioFile, "base64");
+
+            const command = new PutObjectCommand({
+              Bucket: "autostrum-recordings",
+              Key: `${input.id}.webm`,
+              ContentType: "audio/webm",
+              Body: buffer,
+            });
+            await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
+
+            try {
+              const res = await s3.send(command);
+              console.log(res);
+            } catch (e) {
+              console.log(e);
+              // return null;
+            }
+          } else {
+            // delete current recording from s3
+
+            const command = new DeleteObjectCommand({
+              Bucket: "autostrum-recordings",
+              Key: `${input.id}.webm`,
+            });
+            await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
+
+            try {
+              const res = await s3.send(command);
+              console.log(res);
+            } catch (e) {
+              console.log(e);
+              // return null;
+            }
+          }
+        }
+
         return ctx.prisma.tab.update({
           where: {
             id: input.id,
@@ -355,6 +467,7 @@ export const tabRouter = createTRPCRouter({
             genreId: input.genreId,
             tuning: input.tuning,
             sectionProgression: input.sectionProgression,
+            hasRecordedAudio: input.hasRecordedAudio,
             bpm: input.bpm,
             timeSignature: input.timeSignature,
             capo: input.capo,

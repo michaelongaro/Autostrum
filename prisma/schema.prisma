@@ -32,7 +32,7 @@ model Tab {
     description        String    @default("")
     timeSignature      String    @default("")
     capo               Int       @default(0)
-    recordedAudioUrl   String?
+    hasRecordedAudio   Boolean   @default(false)
     createdAt          DateTime  @default(now())
     updatedAt          DateTime  @default(now()) @updatedAt
     artist             Artist    @relation(fields: [createdById], references: [userId])

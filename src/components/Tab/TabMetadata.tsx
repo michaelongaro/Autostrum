@@ -42,6 +42,7 @@ import type { RefetchTab } from "./Tab";
 import classes from "./TabMetadata.module.css";
 import GenrePreviewBubbles from "./GenrePreviewBubbles";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
+import useSound from "~/hooks/useSound";
 
 function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
   const { userId, isLoaded } = useAuth();
@@ -49,6 +50,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
   const { push, asPath } = useRouter();
   const ctx = api.useContext();
 
+  const [showDeletePopover, setShowDeletePopover] = useState(false);
   const [showPublishCriteriaPopover, setShowPublishCriteriaPopover] =
     useState(false);
   const [showPulsingError, setShowPulsingError] = useState(false);
@@ -67,8 +69,6 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
     }, {});
   }, [genreArray.data]);
 
-  // shouldn't need to be optimistic I don't think, try to keep that just for
-  // operations that *need* to be perceived as instant
   const { mutate: createOrUpdate, isLoading: isPosting } =
     api.tab.createOrUpdate.useMutation({
       onSuccess: async (tab) => {
@@ -79,6 +79,24 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
 
           setOriginalTabData(tab);
         }
+      },
+      onError: (e) => {
+        //  const errorMessage = e.data?.zodError?.fieldErrors.content;
+        //  if (errorMessage && errorMessage[0]) {
+        //    toast.error(errorMessage[0]);
+        //  } else {
+        //    toast.error("Failed to post! Please try again later.");
+        //  }
+      },
+      onSettled: () => {
+        void ctx.tab.getTabById.invalidate();
+      },
+    });
+
+  const { mutate: deleteTab, isLoading: isDeleting } =
+    api.tab.deleteTabById.useMutation({
+      onSuccess: async () => {
+        await push(`/create`);
       },
       onError: (e) => {
         //  const errorMessage = e.data?.zodError?.fieldErrors.content;
@@ -117,10 +135,15 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
     numberOfLikes,
     capo,
     setCapo,
-    recordedAudioUrl,
+    hasRecordedAudio,
     editing,
     setEditing,
     setOriginalTabData,
+    setShowAudioRecorderModal,
+    recordedAudioFile,
+    shouldUpdateInS3,
+    audioMetadata,
+    previewMetadata,
   } = useTabStore(
     (state) => ({
       originalTabData: state.originalTabData,
@@ -145,14 +168,21 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
       setTimeSignature: state.setTimeSignature,
       capo: state.capo,
       setCapo: state.setCapo,
-      recordedAudioUrl: state.recordedAudioUrl,
+      hasRecordedAudio: state.hasRecordedAudio,
       editing: state.editing,
       numberOfLikes: state.numberOfLikes,
       setEditing: state.setEditing,
       setOriginalTabData: state.setOriginalTabData,
+      setShowAudioRecorderModal: state.setShowAudioRecorderModal,
+      recordedAudioFile: state.recordedAudioFile,
+      shouldUpdateInS3: state.shouldUpdateInS3,
+      audioMetadata: state.audioMetadata,
+      previewMetadata: state.previewMetadata,
     }),
     shallow
   );
+
+  const { pauseAudio } = useSound();
 
   // current user
   const {
@@ -247,7 +277,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
     setEditing(false);
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (
       !title ||
       !genreId ||
@@ -262,6 +292,28 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
       return;
     }
 
+    let base64RecordedAudioFile: string | null = null;
+
+    if (recordedAudioFile) {
+      base64RecordedAudioFile = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(recordedAudioFile);
+        reader.onloadend = () => {
+          // not sure if this is the best type-narrowing check for below resolve()
+          if (!reader.result || typeof reader.result !== "string") return null;
+          resolve(reader.result.split(",")[1]!);
+        };
+        reader.onerror = reject;
+      })
+        .then((base64) => {
+          return base64 as string;
+        })
+        .catch((err) => {
+          console.error(err);
+          return null;
+        });
+    }
+
     // update in prisma
     if (userId) {
       createOrUpdate({
@@ -274,10 +326,13 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
         strummingPatterns,
         tabData,
         sectionProgression,
+        hasRecordedAudio,
         tuning,
         bpm,
         timeSignature,
         capo,
+        base64RecordedAudioFile,
+        shouldUpdateInS3,
         type: asPath.includes("create") ? "create" : "update",
       });
     }
@@ -298,7 +353,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
       timeSignature: originalTabData.timeSignature,
       capo: originalTabData.capo,
       createdById: originalTabData.createdById,
-      recordedAudioUrl: originalTabData.recordedAudioUrl,
+      hasRecordedAudio: originalTabData.hasRecordedAudio,
       chords: originalTabData.chords,
       strummingPatterns: originalTabData.strummingPatterns,
     };
@@ -315,7 +370,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
       timeSignature,
       capo,
       createdById,
-      recordedAudioUrl,
+      hasRecordedAudio,
       chords,
       strummingPatterns,
     };
@@ -361,27 +416,90 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
             <div className="baseFlex !flex-col-reverse !items-end gap-2 md:!flex-row md:!items-center">
               <>
                 {!asPath.includes("create") && (
-                  <Button
-                    variant={"destructive"}
-                    onClick={() => {
-                      // bring up modal to confirm deletion
-                      // delete tab and redirect to wherever user came from before editing
-                    }}
-                    className="baseFlex gap-2"
+                  <Popover
+                    open={showDeletePopover}
+                    onOpenChange={(open) => setShowDeletePopover(open)}
                   >
-                    Delete
-                    <FaTrashAlt className="h-4 w-4" />
-                  </Button>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"destructive"}
+                        disabled={isDeleting}
+                        // onClick={() => deleteTab()}
+                        className="baseFlex gap-2"
+                      >
+                        Delete
+                        {!isDeleting && <FaTrashAlt className="h-4 w-4" />}
+                        <AnimatePresence mode="wait">
+                          {isDeleting && (
+                            <motion.svg
+                              key="tabDeletionLoadingSpinner"
+                              initial={{ opacity: 0, width: 0 }}
+                              animate={{ opacity: 1, width: "24px" }}
+                              exit={{ opacity: 0, width: 0 }}
+                              transition={{
+                                duration: 0.15,
+                              }}
+                              className="h-6 w-6 animate-spin rounded-full bg-inherit fill-none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </motion.svg>
+                          )}
+                        </AnimatePresence>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="baseVertFlex gap-4 bg-pink-50 p-2 text-sm text-pink-950 md:text-base">
+                      <p className="w-auto text-center text-sm">
+                        Are you sure you want to delete this tab?
+                      </p>
+
+                      <div className="baseFlex gap-2">
+                        <Button
+                          variant={"outline"}
+                          size="sm"
+                          className="border-none"
+                          onClick={() => setShowDeletePopover(false)}
+                        >
+                          Cancel
+                        </Button>
+
+                        <Button
+                          variant={"destructive"}
+                          disabled={isDeleting}
+                          onClick={() => deleteTab(id)}
+                          className="baseFlex gap-2"
+                        >
+                          Confirm
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 )}
 
                 <Button
                   variant={"recording"}
                   onClick={() => {
-                    // bring up modal to record/edit/delete tab recording
+                    setShowAudioRecorderModal(true);
+
+                    if (audioMetadata.playing || previewMetadata.playing) {
+                      pauseAudio();
+                    }
                   }}
                 >
                   <div className="baseFlex gap-2">
-                    {recordedAudioUrl ? "Edit recording" : "Record tab"}
+                    {hasRecordedAudio ? "Edit recording" : "Record tab"}
                     <FaMicrophoneAlt className="h-5 w-5" />
                   </div>
                 </Button>
@@ -407,8 +525,12 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                   <PopoverTrigger asChild>
                     <Button
                       // eventually add loading spinner here while saving
-                      disabled={isEqualToOriginalTabState() || showPulsingError}
-                      onClick={handleSave}
+                      disabled={
+                        isEqualToOriginalTabState() ||
+                        showPulsingError ||
+                        isPosting
+                      }
+                      onClick={() => void handleSave()}
                       className="baseFlex gap-2"
                     >
                       {asPath.includes("create")
@@ -422,9 +544,9 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                         {isPosting && (
                           <motion.svg
                             key="postingLoadingSpinner"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
+                            initial={{ opacity: 0, width: 0 }}
+                            animate={{ opacity: 1, width: "24px" }}
+                            exit={{ opacity: 0, width: 0 }}
                             transition={{
                               duration: 0.15,
                             }}
@@ -449,7 +571,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                       </AnimatePresence>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="baseVertFlex !items-start gap-2 bg-pink-50 p-2 text-pink-950">
+                  <PopoverContent className="baseVertFlex !items-start gap-2 bg-pink-50 p-2 text-sm text-pink-950 md:text-base">
                     <div className="baseFlex gap-2">
                       {title ? (
                         <Check className="h-5 w-8 text-green-600" />
@@ -468,7 +590,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                       <p className="font-semibold">Genre selected</p>
                     </div>
 
-                    <div className="baseFlex gap-2">
+                    <div className="baseFlex !flex-nowrap gap-2">
                       {!tabIsEffectivelyEmpty(tabData) ? (
                         <Check className="h-5 w-8 text-green-600" />
                       ) : (
@@ -798,11 +920,17 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
               <div className="font-semibold">Description</div>
 
               <div className="baseVertFlex !items-start gap-2">
-                {description.split("\n").map((paragraph, index) => (
-                  <p key={index} className="break-all">
-                    {paragraph}
+                {description.length > 0 ? (
+                  description.split("\n").map((paragraph, index) => (
+                    <p key={index} className="break-all">
+                      {paragraph}
+                    </p>
+                  ))
+                ) : (
+                  <p className="italic text-pink-200">
+                    No description provided.
                   </p>
-                ))}
+                )}
               </div>
             </div>
 

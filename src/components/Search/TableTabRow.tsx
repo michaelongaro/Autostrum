@@ -51,6 +51,8 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
       playbackSpeed,
       audioMetadata,
       currentInstrument,
+      // setId,
+      setHasRecordedAudio,
       setTabData,
       setSectionProgression,
       setTuning,
@@ -62,6 +64,8 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
         playbackSpeed: state.playbackSpeed,
         audioMetadata: state.audioMetadata,
         currentInstrument: state.currentInstrument,
+        // setId: state.setId,
+        setHasRecordedAudio: state.setHasRecordedAudio,
         setTabData: state.setTabData,
         setSectionProgression: state.setSectionProgression,
         setTuning: state.setTuning,
@@ -214,17 +218,29 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
         <TableCell>
           <Button
             variant="playPause"
-            disabled={artificalPlayButtonTimeout || !currentInstrument}
+            disabled={
+              (audioMetadata.type === "Generated" &&
+                (artificalPlayButtonTimeout || !currentInstrument)) ||
+              (audioMetadata.type === "Artist recorded" &&
+                audioMetadata.tabId === tab.id &&
+                !recordedAudioBuffer)
+            }
             onClick={() => {
               if (audioMetadata.playing && audioMetadata.tabId === tab.id) {
-                setArtificalPlayButtonTimeout(true);
+                if (audioMetadata.type === "Generated") {
+                  setArtificalPlayButtonTimeout(true);
 
-                setTimeout(() => {
-                  setArtificalPlayButtonTimeout(false);
-                }, 300);
+                  setTimeout(() => {
+                    setArtificalPlayButtonTimeout(false);
+                  }, 300);
+                }
                 pauseAudio();
               } else {
                 // setting store w/ this tab's data
+                // setId(tab.id); // used specifically for artist recorded audio fetching purposes
+                // ^^ actually I forgot it looks like this is being set in playTab() already
+
+                setHasRecordedAudio(tab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
                 setTabData(tab.tabData as unknown as Section[]);
                 setSectionProgression(
                   tab.sectionProgression as unknown as SectionProgression[]
