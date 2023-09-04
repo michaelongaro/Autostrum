@@ -192,7 +192,7 @@ function StrummingPatterns() {
                         </PopoverTrigger>
                         <PopoverContent>
                           <div className="baseVertFlex gap-4">
-                            <p className="w-auto text-sm">
+                            <p className="w-auto text-center text-sm">
                               Chord progressions that use this pattern will be
                               modified.
                             </p>
