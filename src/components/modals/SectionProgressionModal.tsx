@@ -191,7 +191,9 @@ function SectionProgressionModal() {
     >
       <div className="min-h-[25rem] min-w-[70vw] rounded-md bg-pink-400 p-2 shadow-sm md:min-w-[25rem] md:p-4">
         <div className="baseVertFlex h-full max-h-[90vh] min-h-[25rem] w-full max-w-[90vw] !flex-nowrap !justify-between gap-8">
-          <div className="text-xl font-semibold">Section progression</div>
+          <div className="baseFlex lightGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
+            <p className="text-lg font-semibold">Section progression</p>
+          </div>
 
           <div
             ref={scrollableSectionsRef}

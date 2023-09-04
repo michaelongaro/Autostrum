@@ -178,7 +178,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
           />
         </div>
 
-        <div className="baseFlex lightestGlassmorphic max-w-[23rem] gap-4 rounded-md p-2">
+        <div className="baseVertFlex lightestGlassmorphic max-w-[23rem] gap-2 rounded-md p-2 text-sm">
           <HiOutlineInformationCircle className="h-6 w-6" />
           <div>
             <span>You can quickly enter major or minor chords by typing</span>

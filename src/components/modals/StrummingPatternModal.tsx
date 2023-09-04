@@ -325,7 +325,7 @@ function StrummingPatternModal({
           </div>
         </div>
 
-        <div className="baseFlex lightestGlassmorphic gap-4 rounded-md p-2 ">
+        <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 text-sm ">
           <HiOutlineInformationCircle className="mr-2 h-6 w-6" />
           <div className="baseFlex gap-2">
             <span className="font-semibold">v / d</span>
