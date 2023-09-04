@@ -60,7 +60,7 @@ function Explore() {
       <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
         <div className="baseVertFlex gap-0 md:gap-1">
           <p className="text-xl font-bold">Weekly featured artist</p>
-          <Separator className="w-[208px] bg-pink-500" />
+          <Separator className="w-full bg-pink-500" />
         </div>
         <div className="baseVertFlex w-full !flex-nowrap md:!flex-row md:gap-8">
           <div className="lightestGlassmorphic baseVertFlex h-72 min-w-[200px] !flex-nowrap gap-4 rounded-md p-4 md:h-80 md:gap-8 md:py-8">

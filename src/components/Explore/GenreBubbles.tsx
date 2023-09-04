@@ -13,7 +13,7 @@ function GenreBubbles() {
     <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
       <div className="baseVertFlex gap-0 md:gap-1">
         <p className="text-xl font-bold">Genres</p>
-        <Separator className="w-[65px] bg-pink-500" />
+        <Separator className="w-full bg-pink-500" />
       </div>
 
       <div className="grid w-full grid-cols-1 place-items-center gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
