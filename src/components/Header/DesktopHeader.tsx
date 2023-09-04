@@ -27,7 +27,7 @@ function DesktopHeader() {
         <Image
           src="/logoWithTitle.svg"
           alt="Autostrum header logo"
-          width={200}
+          width={175}
           height={100}
           priority
         />
