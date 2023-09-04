@@ -1,6 +1,6 @@
 export default function formatSecondsToMinutes(rawSeconds: number): string {
-  const minutes = Math.floor(rawSeconds / 60);
-  const seconds = rawSeconds % 60;
+  const minutes = Math.floor(Math.floor(rawSeconds) / 60);
+  const seconds = Math.floor(rawSeconds) % 60;
 
   // This ensures the numbers are always at least two digits.
   const formattedMinutes =
