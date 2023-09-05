@@ -177,43 +177,43 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                 className="!p-0 !font-semibold md:!text-lg"
               >
                 <p
-                  style={{
-                    maxWidth:
-                      (previewRef.current?.getBoundingClientRect()?.width ??
-                        330) * 0.5,
-                  }}
-                  className="truncate"
+                  className={`${
+                    // TODO: this is currently a bandaid fix, really want essentially a
+                    // container query solution, definitely check that out before production
+                    tab.title.length > 15
+                      ? "max-w-[100px] truncate sm:max-w-[150px] md:max-w-[220px]"
+                      : "whitespace-pre-wrap"
+                  }`}
                 >
                   {tab.title}
                 </p>
               </Link>
             </Button>
 
-            <div className="baseFlex !flex-nowrap gap-2">
-              <p className="text-sm text-pink-50/90">
-                {formatDate(tab.updatedAt ?? tab.createdAt)}
-              </p>
+            <p className="text-sm text-pink-50/90">
+              {formatDate(tab.updatedAt ?? tab.createdAt)}
+            </p>
 
-              {/* can bring back mt-2 on Badge if all in a row doesn't work */}
-              {asPath.includes("genreId") && selectedPinnedTabId === tab.id && (
-                <Badge className="bg-green-600">Pinned</Badge>
-              )}
+            {/* can bring back mt-2 on Badge if all in a row doesn't work */}
+            {asPath.includes("genreId") && selectedPinnedTabId === tab.id && (
+              <Badge className="mt-2 bg-green-600">Pinned</Badge>
+            )}
 
-              {!asPath.includes("genreId") && (
-                <div className="baseFlex gap-2">
-                  <Badge
-                    style={{
-                      backgroundColor: genreObject[tab.genreId]?.color,
-                    }}
-                  >
-                    {genreObject[tab.genreId]?.name}
-                  </Badge>
-                  {selectedPinnedTabId === tab.id && (
-                    <Badge className="bg-green-600">Pinned</Badge>
-                  )}
-                </div>
-              )}
-            </div>
+            {!asPath.includes("genreId") && (
+              <div className="baseFlex gap-2">
+                <Badge
+                  style={{
+                    backgroundColor: genreObject[tab.genreId]?.color,
+                  }}
+                  className="mt-2"
+                >
+                  {genreObject[tab.genreId]?.name}
+                </Badge>
+                {selectedPinnedTabId === tab.id && (
+                  <Badge className="mt-2 bg-green-600">Pinned</Badge>
+                )}
+              </div>
+            )}
           </div>
 
           {/* artist link & likes & play button */}
