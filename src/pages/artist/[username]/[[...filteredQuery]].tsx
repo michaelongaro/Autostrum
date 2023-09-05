@@ -1,5 +1,5 @@
+import { useState, useMemo } from "react";
 import { useRouter } from "next/router";
-import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { BiErrorCircle } from "react-icons/bi";
 import SearchInput from "~/components/Search/SearchInput";
@@ -16,9 +16,8 @@ import {
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { formatNumber } from "~/utils/formatNumber";
 import { GiMusicalScore } from "react-icons/gi";
-import { AiFillHeart } from "react-icons/ai";
+import { AiFillHeart, AiOutlineUser } from "react-icons/ai";
 import { TbPinned } from "react-icons/tb";
-import { Skeleton } from "~/components/ui/skeleton";
 import formatDate from "~/utils/formatDate";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import GridTabCard from "~/components/Search/GridTabCard";
@@ -36,6 +35,7 @@ function ArtistProfile() {
   } = useGetUrlParamFilters();
 
   const viewType = useGetLocalStorageValues().viewType;
+  const [profileImageLoaded, setProfileImageLoaded] = useState(false);
 
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
@@ -46,14 +46,15 @@ function ArtistProfile() {
     return "";
   }, [router.query.username]);
 
-  const { data: artist } = api.artist.getByIdOrUsername.useQuery(
-    {
-      username: usernameFromUrl,
-    },
-    {
-      enabled: !!usernameFromUrl,
-    }
-  );
+  const { data: artist, isLoading: loadingCurrentArtist } =
+    api.artist.getByIdOrUsername.useQuery(
+      {
+        username: usernameFromUrl,
+      },
+      {
+        enabled: !!usernameFromUrl,
+      }
+    );
 
   const { data: fetchedTab, refetch: refetchTab } = api.tab.getTabById.useQuery(
     {
@@ -72,30 +73,50 @@ function ArtistProfile() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
       // className="baseVertFlex w-full p-2 md:p-8"
-      className="lightGlassmorphic baseVertFlex my-12 min-h-[100dvh] w-10/12 !justify-start gap-8 rounded-md p-2 md:my-24 md:w-3/4 md:p-8"
+      className="lightGlassmorphic baseVertFlex my-12 min-h-[100dvh] w-11/12 !justify-start gap-8 rounded-md p-2 md:my-24 md:w-3/4 md:p-8"
     >
       {/* artist metadata + pinned tab */}
       <div className="baseVertFlex !flex-nowrap md:!flex-row md:gap-8">
         <div className="lightestGlassmorphic baseVertFlex h-72 min-w-[200px] !flex-nowrap gap-4 rounded-md p-4 md:h-80 md:gap-8 md:py-8">
           <div className="baseVertFlex gap-4">
-            {artist ? (
-              <Image
-                src={artist?.profileImageUrl ?? ""}
-                alt={`${artist?.username ?? "Anonymous"}'s profile image`}
-                width={96}
-                height={96}
-                className="h-24 w-24 rounded-full bg-pink-800 object-cover object-center"
-              ></Image>
-            ) : (
-              <Skeleton className="h-16 w-16 rounded-full bg-pink-800" />
-            )}
+            <div className="grid grid-cols-1 grid-rows-1">
+              {artist || loadingCurrentArtist ? (
+                <>
+                  <Image
+                    src={artist?.profileImageUrl ?? ""}
+                    alt={`${artist?.username ?? "Anonymous"}'s profile image`}
+                    width={96}
+                    height={96}
+                    // TODO: maybe just a developemnt thing, but it still very
+                    // briefly shows the default placeholder for a loading
+                    // or not found image before the actual image loads...
+                    onLoadingComplete={() => setProfileImageLoaded(true)}
+                    style={{
+                      opacity: profileImageLoaded ? 1 : 0,
+                    }}
+                    className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-800 object-cover object-center 
+                          transition-opacity"
+                  />
+                  <div
+                    style={{
+                      opacity: !profileImageLoaded ? 1 : 0,
+                    }}
+                    className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 transition-opacity
+                              ${!profileImageLoaded ? "animate-pulse" : ""}
+                            `}
+                  ></div>
+                </>
+              ) : (
+                <AiOutlineUser className="h-8 w-8" />
+              )}
+            </div>
 
             {artist ? (
               <p className="text-xl font-semibold">
                 {artist?.username ?? "Anonymous"}
               </p>
             ) : (
-              <Skeleton className="h-6 w-28" />
+              <div className="h-8 w-28 animate-pulse rounded-md bg-pink-300"></div>
             )}
           </div>
 
@@ -109,7 +130,7 @@ function ArtistProfile() {
                       {formatNumber(artist.numberOfTabs)}
                     </div>
                   ) : (
-                    <Skeleton className="h-6 w-14" />
+                    <div className="h-6 w-14 animate-pulse rounded-md bg-pink-300"></div>
                   )}
                 </TooltipTrigger>
                 <TooltipContent side={"bottom"}>
@@ -127,7 +148,7 @@ function ArtistProfile() {
                       {formatNumber(artist.numberOfLikes)}
                     </div>
                   ) : (
-                    <Skeleton className="h-6 w-14" />
+                    <div className="h-6 w-14 animate-pulse rounded-md bg-pink-300"></div>
                   )}
                 </TooltipTrigger>
                 <TooltipContent side={"bottom"}>
@@ -142,7 +163,7 @@ function ArtistProfile() {
               artist.createdAt
             )}`}</p>
           ) : (
-            <Skeleton className="h-4 w-24" />
+            <div className="h-6 w-24 animate-pulse rounded-md bg-pink-300"></div>
           )}
         </div>
         {/* pinned tab */}
@@ -163,7 +184,7 @@ function ArtistProfile() {
                   height={isAboveMediumViewportWidth ? 180 : undefined}
                 />
               ) : (
-                <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 animate-pulse rounded-full bg-pink-300 transition-opacity"></div>
+                <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-full w-[285px] animate-pulse rounded-md bg-pink-300 transition-opacity md:w-[396.25px]"></div>
               )}
             </>
           )}

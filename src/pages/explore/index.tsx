@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import GenreBubbles from "~/components/Explore/GenreBubbles";
 import SearchInput from "~/components/Search/SearchInput";
@@ -17,25 +18,28 @@ import { GiMusicalScore } from "react-icons/gi";
 import { AiFillHeart } from "react-icons/ai";
 import { TbPinned } from "react-icons/tb";
 import { Separator } from "~/components/ui/separator";
-import { Skeleton } from "~/components/ui/skeleton";
+import { AiOutlineUser } from "react-icons/ai";
 import formatDate from "~/utils/formatDate";
 import GridTabCard from "~/components/Search/GridTabCard";
 import PinnedTabPlaceholder from "~/components/Profile/PinnedTabPlaceholder";
 
 function Explore() {
+  const [profileImageLoaded, setProfileImageLoaded] = useState(false);
+
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const { data: weeklyFeaturedArtistId } =
     api.weeklyFeaturedArtist.getIdOfWeeklyFeaturedArtist.useQuery();
 
-  const { data: artist } = api.artist.getByIdOrUsername.useQuery(
-    {
-      userId: weeklyFeaturedArtistId ?? "",
-    },
-    {
-      enabled: weeklyFeaturedArtistId !== undefined,
-    }
-  );
+  const { data: artist, isLoading: loadingCurrentArtist } =
+    api.artist.getByIdOrUsername.useQuery(
+      {
+        userId: weeklyFeaturedArtistId ?? "",
+      },
+      {
+        enabled: weeklyFeaturedArtistId !== undefined,
+      }
+    );
 
   const { data: fetchedTab, refetch: refetchTab } = api.tab.getTabById.useQuery(
     {
@@ -65,17 +69,37 @@ function Explore() {
         <div className="baseVertFlex w-full !flex-nowrap md:!flex-row md:gap-8">
           <div className="lightestGlassmorphic baseVertFlex h-72 min-w-[200px] !flex-nowrap gap-4 rounded-md p-4 md:h-80 md:gap-8 md:py-8">
             <div className="baseVertFlex gap-4">
-              {artist ? (
-                <Image
-                  src={artist?.profileImageUrl ?? ""}
-                  alt={`${artist?.username ?? "Anonymous"}'s profile image`}
-                  width={96}
-                  height={96}
-                  className="h-24 w-24 rounded-full bg-pink-800 object-cover object-center"
-                ></Image>
-              ) : (
-                <Skeleton className="h-16 w-16 rounded-full bg-pink-800" />
-              )}
+              <div className="grid grid-cols-1 grid-rows-1">
+                {artist || loadingCurrentArtist ? (
+                  <>
+                    <Image
+                      src={artist?.profileImageUrl ?? ""}
+                      alt={`${artist?.username ?? "Anonymous"}'s profile image`}
+                      width={96}
+                      height={96}
+                      // TODO: maybe just a developemnt thing, but it still very
+                      // briefly shows the default placeholder for a loading
+                      // or not found image before the actual image loads...
+                      onLoadingComplete={() => setProfileImageLoaded(true)}
+                      style={{
+                        opacity: profileImageLoaded ? 1 : 0,
+                      }}
+                      className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-800 object-cover object-center 
+                          transition-opacity"
+                    />
+                    <div
+                      style={{
+                        opacity: !profileImageLoaded ? 1 : 0,
+                      }}
+                      className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 transition-opacity
+                              ${!profileImageLoaded ? "animate-pulse" : ""}
+                            `}
+                    ></div>
+                  </>
+                ) : (
+                  <AiOutlineUser className="h-8 w-8" />
+                )}
+              </div>
 
               {artist ? (
                 <Button variant={"link"} asChild>
@@ -87,7 +111,7 @@ function Explore() {
                   </Link>
                 </Button>
               ) : (
-                <Skeleton className="h-6 w-28" />
+                <div className="h-8 w-28 animate-pulse rounded-md bg-pink-300"></div>
               )}
             </div>
 
@@ -101,7 +125,7 @@ function Explore() {
                         {formatNumber(artist.numberOfTabs)}
                       </div>
                     ) : (
-                      <Skeleton className="h-6 w-14" />
+                      <div className="h-6 w-14 animate-pulse rounded-md bg-pink-300"></div>
                     )}
                   </TooltipTrigger>
                   <TooltipContent side={"bottom"}>
@@ -119,7 +143,7 @@ function Explore() {
                         {formatNumber(artist.numberOfLikes)}
                       </div>
                     ) : (
-                      <Skeleton className="h-6 w-14" />
+                      <div className="h-6 w-14 animate-pulse rounded-md bg-pink-300"></div>
                     )}
                   </TooltipTrigger>
                   <TooltipContent side={"bottom"}>
@@ -134,7 +158,7 @@ function Explore() {
                 artist.createdAt
               )}`}</p>
             ) : (
-              <Skeleton className="h-4 w-24" />
+              <div className="h-6 w-24 animate-pulse rounded-md bg-pink-300"></div>
             )}
           </div>
           {/* pinned tab */}
@@ -155,7 +179,7 @@ function Explore() {
                     height={isAboveMediumViewportWidth ? 180 : undefined}
                   />
                 ) : (
-                  <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 animate-pulse rounded-full bg-pink-300 transition-opacity"></div>
+                  <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-full w-[285px] animate-pulse rounded-md bg-pink-300 transition-opacity md:w-[396.25px]"></div>
                 )}
               </>
             )}
