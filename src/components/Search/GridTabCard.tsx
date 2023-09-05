@@ -174,7 +174,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
             <Button variant={"link"} asChild>
               <Link
                 href={`/tab/${tab.id}`}
-                className="!p-0 !text-lg !font-semibold"
+                className="!p-0 !font-semibold md:!text-lg"
               >
                 <p
                   style={{
@@ -188,29 +188,32 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                 </p>
               </Link>
             </Button>
-            <p className="text-sm text-pink-50/90">
-              {formatDate(tab.updatedAt ?? tab.createdAt)}
-            </p>
 
-            {asPath.includes("genreId") && selectedPinnedTabId === tab.id && (
-              <Badge className="mt-2 bg-green-600">Pinned</Badge>
-            )}
+            <div className="baseFlex !flex-nowrap gap-2">
+              <p className="text-sm text-pink-50/90">
+                {formatDate(tab.updatedAt ?? tab.createdAt)}
+              </p>
 
-            {!asPath.includes("genreId") && (
-              <div className="baseFlex gap-2">
-                <Badge
-                  style={{
-                    backgroundColor: genreObject[tab.genreId]?.color,
-                  }}
-                  className="mt-2"
-                >
-                  {genreObject[tab.genreId]?.name}
-                </Badge>
-                {selectedPinnedTabId === tab.id && (
-                  <Badge className="mt-2 bg-green-600">Pinned</Badge>
-                )}
-              </div>
-            )}
+              {/* can bring back mt-2 on Badge if all in a row doesn't work */}
+              {asPath.includes("genreId") && selectedPinnedTabId === tab.id && (
+                <Badge className="bg-green-600">Pinned</Badge>
+              )}
+
+              {!asPath.includes("genreId") && (
+                <div className="baseFlex gap-2">
+                  <Badge
+                    style={{
+                      backgroundColor: genreObject[tab.genreId]?.color,
+                    }}
+                  >
+                    {genreObject[tab.genreId]?.name}
+                  </Badge>
+                  {selectedPinnedTabId === tab.id && (
+                    <Badge className="bg-green-600">Pinned</Badge>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* artist link & likes & play button */}
