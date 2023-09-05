@@ -223,7 +223,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   ]);
 
   useEffect(() => {
-    if (audioMetadata.type === "Artist recorded") return;
+    if (audioMetadata.type === "Artist recording") return;
 
     if (audioMetadata.playing && !oneSecondIntervalRef.current) {
       // kind of a hack, but need to have it moving towards one *as soon*
@@ -261,7 +261,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   ]);
 
   useEffect(() => {
-    if (audioMetadata.type === "Artist recorded") {
+    if (audioMetadata.type === "Artist recording") {
       localStorageAutoscroll.set("false");
     }
   }, [audioMetadata.type]);
@@ -285,7 +285,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
         location: audioMetadata.location ?? undefined,
       });
     } else if (
-      audioMetadata.type === "Artist recorded" &&
+      audioMetadata.type === "Artist recording" &&
       recordedAudioBuffer
     ) {
       void playRecordedAudio({
@@ -342,7 +342,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
         }
       };
 
-      if (audioMetadata.type === "Artist recorded" && recordedAudioFile) {
+      if (audioMetadata.type === "Artist recording" && recordedAudioFile) {
         // get audioBuffer from recordedAudioFile and setRecordedAudioBuffer(audioBuffer);
         const fileReader = new FileReader();
         fileReader.readAsArrayBuffer(recordedAudioFile);
@@ -354,7 +354,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
           }
         };
       } else if (
-        audioMetadata.type === "Artist recorded" &&
+        audioMetadata.type === "Artist recording" &&
         !recordedAudioFile &&
         !recordedAudioBuffer &&
         idOfAssociatedTab !== -1
@@ -408,7 +408,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   const disablePlayButton = useMemo(() => {
     if (artificalPlayButtonTimeout) return true;
 
-    if (audioMetadata.type === "Artist recorded") {
+    if (audioMetadata.type === "Artist recording") {
       return !recordedAudioBuffer;
     } else {
       return (
@@ -595,7 +595,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
 
                       setAudioMetadata({
                         ...audioMetadata,
-                        type: value as "Generated" | "Artist recorded",
+                        type: value as "Generated" | "Artist recording",
                         playing: false,
                       });
                     }
@@ -611,10 +611,10 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                       <SelectItem value={"Generated"}>Generated</SelectItem>
 
                       <SelectItem
-                        value={"Artist recorded"}
+                        value={"Artist recording"}
                         disabled={hasRecordedAudio === null}
                       >
-                        Artist recorded
+                        Artist recording
                       </SelectItem>
                     </SelectGroup>
                   </SelectContent>
@@ -624,7 +624,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               <div className="baseFlex !flex-nowrap gap-2">
                 <Label>Instrument</Label>
                 <Select
-                  disabled={audioMetadata.type === "Artist recorded"}
+                  disabled={audioMetadata.type === "Artist recording"}
                   value={currentInstrumentName}
                   onValueChange={(value) => {
                     pauseAudio();
@@ -668,7 +668,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               <div className="baseFlex !flex-nowrap gap-2">
                 <Label>Speed</Label>
                 <Select
-                  disabled={audioMetadata.type === "Artist recorded"}
+                  disabled={audioMetadata.type === "Artist recording"}
                   value={`${playbackSpeed}x`}
                   onValueChange={(value) => {
                     pauseAudio();
@@ -741,7 +741,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               {/* this should prob be either <Checkbox /> or <Toggle /> from shadcnui */}
               <Toggle
                 variant={"outline"}
-                disabled={audioMetadata.type === "Artist recorded"}
+                disabled={audioMetadata.type === "Artist recording"}
                 pressed={autoscrollEnabled}
                 onPressedChange={(value) =>
                   localStorageAutoscroll.set(String(value))
@@ -802,7 +802,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                 pauseAudio();
               } else {
                 if (
-                  audioMetadata.type === "Artist recorded" &&
+                  audioMetadata.type === "Artist recording" &&
                   recordedAudioBuffer
                 ) {
                   void playRecordedAudio({
@@ -842,7 +842,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
           <div className="baseFlex w-9/12 !flex-nowrap gap-2">
             <p>
               {formatSecondsToMinutes(
-                audioMetadata.type === "Artist recorded"
+                audioMetadata.type === "Artist recording"
                   ? tabProgressValue
                   : Math.min(
                       tabProgressValue,
@@ -857,7 +857,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               // technically should be ?? 0, but radix-slider thumb protrudes from box-model of
               // main slider if max is 0 it seems
               max={
-                audioMetadata.type === "Artist recorded"
+                audioMetadata.type === "Artist recording"
                   ? recordedAudioBuffer?.duration ?? 1
                   : currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 1
               }
@@ -908,7 +908,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
 
             <p>
               {formatSecondsToMinutes(
-                audioMetadata.type === "Artist recorded"
+                audioMetadata.type === "Artist recording"
                   ? recordedAudioBuffer?.duration ?? 0
                   : currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
               )}
@@ -966,7 +966,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
 
                         setAudioMetadata({
                           ...audioMetadata,
-                          type: value as "Generated" | "Artist recorded",
+                          type: value as "Generated" | "Artist recording",
                           playing: false,
                         });
                       }
@@ -982,10 +982,10 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                         <SelectItem value={"Generated"}>Generated</SelectItem>
 
                         <SelectItem
-                          value={"Artist recorded"}
+                          value={"Artist recording"}
                           disabled={hasRecordedAudio === null}
                         >
-                          Artist recorded
+                          Artist recording
                         </SelectItem>
                       </SelectGroup>
                     </SelectContent>
@@ -1071,7 +1071,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   <Label>Autoscroll</Label>
                   <Switch
                     id="autoscroll"
-                    disabled={audioMetadata.type === "Artist recorded"}
+                    disabled={audioMetadata.type === "Artist recording"}
                     checked={autoscrollEnabled}
                     onCheckedChange={(value) =>
                       localStorageAutoscroll.set(String(value))

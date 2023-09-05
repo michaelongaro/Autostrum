@@ -1043,7 +1043,7 @@ export default function useSound() {
     setAudioMetadata({
       ...audioMetadataRef.current,
       playing: true,
-      type: "Artist recorded",
+      type: "Artist recording",
     });
 
     const source = audioContext.createBufferSource();
@@ -1204,7 +1204,7 @@ export default function useSound() {
       return;
     }
 
-    if (audioMetadata.playing && audioMetadata.type === "Artist recorded") {
+    if (audioMetadata.playing && audioMetadata.type === "Artist recording") {
       recordedAudioBufferSourceNode?.stop();
 
       setAudioMetadata({

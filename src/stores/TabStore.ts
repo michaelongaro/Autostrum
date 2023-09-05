@@ -85,7 +85,7 @@ type InstrumentNames =
   | "electric_guitar_jazz";
 
 interface AudioMetadata {
-  type: "Generated" | "Artist recorded";
+  type: "Generated" | "Artist recording";
   playing: boolean;
   tabId: number;
   location: {

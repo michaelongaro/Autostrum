@@ -359,7 +359,7 @@ function MiscellaneousControls({
           variant="playPause"
           disabled={
             !currentInstrument ||
-            audioMetadata.type === "Artist recorded" ||
+            audioMetadata.type === "Artist recording" ||
             artificalPlayButtonTimeout ||
             sectionIsEffectivelyEmpty(tabData, sectionIndex, subSectionIndex)
           }

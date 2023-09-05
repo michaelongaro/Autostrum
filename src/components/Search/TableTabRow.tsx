@@ -221,7 +221,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
             disabled={
               (audioMetadata.type === "Generated" &&
                 (artificalPlayButtonTimeout || !currentInstrument)) ||
-              (audioMetadata.type === "Artist recorded" &&
+              (audioMetadata.type === "Artist recording" &&
                 audioMetadata.tabId === tab.id &&
                 !recordedAudioBuffer)
             }

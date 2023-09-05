@@ -220,7 +220,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
               variant="playPause"
               disabled={
                 !currentInstrument ||
-                audioMetadata.type === "Artist recorded" ||
+                audioMetadata.type === "Artist recording" ||
                 currentlyPlayingMetadata?.length === 0 ||
                 sectionIsEffectivelyEmpty(tabData, sectionIndex) ||
                 artificalPlayButtonTimeout
