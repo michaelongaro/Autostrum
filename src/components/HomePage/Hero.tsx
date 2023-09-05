@@ -15,7 +15,7 @@ function Hero() {
 
   const { data: fetchedTab, refetch: refetchTab } = api.tab.getTabById.useQuery(
     {
-      id: 5,
+      id: 22,
     }
   );
 
