@@ -79,7 +79,9 @@ function DesktopHeader() {
           {/* how to maybe get colors to match theme + also have an option to specify username? */}
           <SignUpButton
             mode="modal"
-            afterSignUpUrl="http://localhost:3000/postSignUpRegistration"
+            afterSignUpUrl={`${
+              process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+            }/postSignUpRegistration`}
           >
             <Button size={"lg"} className="hidden lg:block">
               Sign up
@@ -87,7 +89,9 @@ function DesktopHeader() {
           </SignUpButton>
           <SignInButton
             mode="modal"
-            afterSignUpUrl="http://localhost:3000/postSignUpRegistration"
+            afterSignUpUrl={`${
+              process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+            }/postSignUpRegistration`}
           >
             <Button variant={"secondary"} className="h-11">
               Sign in
@@ -107,7 +111,9 @@ function DesktopHeader() {
             >
               {user?.username}
               {/* will need to be based on env url */}
-              <UserButton afterSignOutUrl="http://localhost:3000" />
+              <UserButton
+                afterSignOutUrl={`${process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""}/`}
+              />
             </Link>
           </Button>
         </div>

@@ -55,13 +55,17 @@ function Hero() {
             >
               <SignUpButton
                 mode="modal"
-                afterSignUpUrl="http://localhost:3000/postSignUpRegistration"
+                afterSignUpUrl={`${
+                  process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+                }/postSignUpRegistration`}
               >
                 <Button size={"lg"}>Sign up</Button>
               </SignUpButton>
               <SignInButton
                 mode="modal"
-                afterSignUpUrl="http://localhost:3000/postSignUpRegistration"
+                afterSignUpUrl={`${
+                  process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+                }/postSignUpRegistration`}
               >
                 <Button variant={"secondary"} className="h-11">
                   Sign in

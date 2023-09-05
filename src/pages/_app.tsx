@@ -16,6 +16,7 @@ type ComponentWithPageLayout = AppProps & {
 function MyApp({ Component, pageProps }: ComponentWithPageLayout) {
   return (
     <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       appearance={{
         variables: {
           colorPrimary: "rgb(236, 72, 153)",
