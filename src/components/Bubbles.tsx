@@ -1,6 +1,5 @@
 import { useRef, useMemo } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { extend } from "@react-three/fiber";
 import type { Mesh } from "three";
 import {
@@ -10,9 +9,6 @@ import {
   MeshStandardMaterial,
   MeshPhysicalMaterial,
   DirectionalLight,
-  CameraHelper,
-  AxesHelper,
-  GridHelper,
 } from "three";
 extend({
   AmbientLight,
@@ -21,9 +17,6 @@ extend({
   MeshStandardMaterial,
   MeshPhysicalMaterial,
   DirectionalLight,
-  CameraHelper,
-  AxesHelper,
-  GridHelper,
 });
 
 function Bubbles() {
@@ -38,11 +31,11 @@ function Bubbles() {
     for (let i = 0; i < 25; i++) {
       const position = [
         (Math.random() * window.innerWidth - window.innerWidth / 2) / 10,
-        Math.floor(Math.random() * -30) + 5,
+        Math.floor(Math.random() * -30) + 35,
         Math.floor(Math.random() * 20),
       ];
-      const size = Math.random() * 0.5;
-      const velocity = Math.random();
+      const size = Math.random() * 0.65;
+      const velocity = Math.random() * 0.04 + 0.01;
       bubbleProps.push({ position, size, velocity });
     }
     // @ts-expect-error typing on arr
@@ -53,7 +46,7 @@ function Bubbles() {
     <Canvas
       style={{
         width: "100vw",
-        height: "100vh",
+        height: "100dvh",
         position: "fixed",
         top: 0,
         left: 0,
@@ -62,8 +55,6 @@ function Bubbles() {
       }}
       camera={{ position: [0, 0, 50] }}
     >
-      {/* <OrbitControls />
-      <axesHelper args={[5]} /> */}
       <ambientLight intensity={1.5} />
       <directionalLight color={"white"} intensity={0.5} />
 
@@ -89,19 +80,23 @@ interface Bubble {
 function Bubble({ position, size, velocity }: Bubble) {
   const meshRef = useRef<Mesh>(null!);
 
+  const frequency = 0.2 / size;
   // console.log(position, velocity);
 
   useFrame((state, delta) => {
     if (meshRef.current) {
+      const time = state.clock.getElapsedTime();
+
       // TODO: I think both should be inversely proportional to the bubbles size tbh
-      meshRef.current.position.y += velocity * 0.05;
+      meshRef.current.position.y += velocity;
 
       meshRef.current.position.x +=
-        Math.sin(meshRef.current.position.y) * 0.005;
+        // Math.sin(meshRef.current.position.y) * 0.005;
+        Math.cos(frequency * time) * 0.02;
 
       // Reset bubble position when it goes out of the screen
-      if (meshRef.current.position.y > 30) {
-        meshRef.current.position.y = -30;
+      if (meshRef.current.position.y > 40) {
+        meshRef.current.position.y = -40;
       }
     }
   });
@@ -114,7 +109,7 @@ function Bubble({ position, size, velocity }: Bubble) {
           roughness={0}
           metalness={0.5}
           reflectivity={1}
-          clearcoatRoughness={0.5}
+          clearcoatRoughness={0}
           clearcoat={0.8}
           color={"#f472b6"}
         />
