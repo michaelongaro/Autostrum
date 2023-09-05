@@ -269,10 +269,10 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   // REALLY hate having this here, but not sure how else to guarentee that the correct
   // currentChordIndex is used when playTab() is called... maybe a ref could work?
   useEffect(() => {
+    if (audioMetadata.playing || !waitForCurrentChordIndexToUpdate) return;
     if (
-      !audioMetadata.playing &&
-      waitForCurrentChordIndexToUpdate &&
-      updatedCurrentChordIndex === currentChordIndex // TODO: this line is problematic for record audio playing since we don't have these to worry about with recorded audio
+      audioMetadata.type === "Generated" &&
+      updatedCurrentChordIndex === currentChordIndex
     ) {
       void playTab({
         tabData,
@@ -284,9 +284,28 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
         playbackSpeed,
         location: audioMetadata.location ?? undefined,
       });
-      setWaitForCurrentChordIndexToUpdate(false);
+    } else if (
+      audioMetadata.type === "Artist recorded" &&
+      recordedAudioBuffer
+    ) {
+      void playRecordedAudio({
+        audioBuffer: recordedAudioBuffer,
+        secondsElapsed: tabProgressValue,
+      });
+
+      setArtificalPlayButtonTimeout(true);
+
+      setTimeout(() => {
+        setArtificalPlayButtonTimeout(false);
+      }, 300);
     }
+
+    setWaitForCurrentChordIndexToUpdate(false);
   }, [
+    audioMetadata.type,
+    playRecordedAudio,
+    recordedAudioBuffer,
+    tabProgressValue,
     currentChordIndex,
     waitForCurrentChordIndexToUpdate,
     updatedCurrentChordIndex,
@@ -850,15 +869,11 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               // TODO: prob want to refactor a bit so scrubbing / clicking on diff part of slider
               // for recorded audio still will autoplay onPointerUp
               onPointerDown={() => {
-                if (audioMetadata.type === "Generated")
-                  setWasPlayingBeforeScrubbing(audioMetadata.playing);
+                setWasPlayingBeforeScrubbing(audioMetadata.playing);
                 if (audioMetadata.playing) pauseAudio();
               }}
               onPointerUp={() => {
-                if (
-                  audioMetadata.type === "Generated" &&
-                  wasPlayingBeforeScrubbing
-                ) {
+                if (wasPlayingBeforeScrubbing) {
                   setWaitForCurrentChordIndexToUpdate(true);
                 }
               }}
