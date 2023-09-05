@@ -11,7 +11,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Separator } from "../ui/separator";
 
 function Hero() {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth();
 
   const { data: fetchedTab, refetch: refetchTab } = api.tab.getTabById.useQuery(
     {
@@ -40,17 +40,35 @@ function Hero() {
           <span className="italic text-pink-600 underline underline-offset-2">
             exactly
           </span>{" "}
-          how you want them to sound.
+          how you want them to sound
         </p>
 
         <AnimatePresence mode="wait">
-          {!isSignedIn && (
+          {!isLoaded && (
+            <motion.div
+              key={"homepageAuthSkeletonContainer"}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.15 }}
+              className="baseFlex mt-4 gap-4"
+            >
+              <div className="h-[44px] w-[114px] animate-pulse rounded-md bg-pink-300"></div>
+              <div
+                className={`h-[44px] ${
+                  isAboveMediumViewportWidth ? "w-[81px]" : "w-[73px]"
+                } animate-pulse rounded-md bg-pink-300`}
+              ></div>
+            </motion.div>
+          )}
+
+          {isLoaded && !isSignedIn && (
             <motion.div
               key={"homepageAuthContainer"}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1 }}
-              transition={{ duration: 0.25 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.15 }}
               className="baseFlex mt-4 gap-4"
             >
               <SignUpButton
