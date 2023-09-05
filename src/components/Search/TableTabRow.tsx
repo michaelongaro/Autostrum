@@ -16,6 +16,7 @@ import {
 } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { useRouter } from "next/router";
+import { AnimatePresence, motion } from "framer-motion";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
 import { TbPinned, TbPinnedFilled } from "react-icons/tb";
@@ -31,6 +32,17 @@ import type { RefetchTab } from "../Tab/Tab";
 import useSound from "~/hooks/useSound";
 import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
 import GenrePreviewBubbles from "../Tab/GenrePreviewBubbles";
+
+const opacityAndScaleVariants = {
+  expanded: {
+    opacity: 1,
+    scale: 1,
+  },
+  closed: {
+    opacity: 0,
+    scale: 0.5,
+  },
+};
 
 interface TableTabRow extends RefetchTab {
   tab: TabWithLikes;
@@ -59,6 +71,8 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
       setBpm,
       setChords,
       setCapo,
+      recordedAudioBuffer, // pick only one or are both useful here?
+      recordedAudioBufferSourceNode, // pick only one or are both useful here?
     } = useTabStore(
       (state) => ({
         playbackSpeed: state.playbackSpeed,
@@ -72,6 +86,8 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
         setBpm: state.setBpm,
         setChords: state.setChords,
         setCapo: state.setCapo,
+        recordedAudioBuffer: state.recordedAudioBuffer,
+        recordedAudioBufferSourceNode: state.recordedAudioBufferSourceNode,
       }),
       shallow
     );
@@ -106,6 +122,67 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
     } = api.artist.getByIdOrUsername.useQuery({
       userId: tab.createdById,
     });
+
+    function renderPlayButtonIcon() {
+      if (audioMetadata.playing && audioMetadata.tabId === tab.id) {
+        return (
+          <motion.div
+            key={`${tab.id}pauseButton`}
+            variants={opacityAndScaleVariants}
+            initial="closed"
+            animate="expanded"
+            exit="closed"
+            transition={{ duration: 0.15 }}
+          >
+            <BsFillPauseFill className="h-5 w-5" />
+          </motion.div>
+        );
+      } else if (
+        (audioMetadata.type === "Generated" && !currentInstrument) ||
+        (audioMetadata.type === "Artist recording" &&
+          !recordedAudioBufferSourceNode)
+      ) {
+        return (
+          <motion.svg
+            key={`${tab.id}loadingIcon`}
+            variants={opacityAndScaleVariants}
+            initial="closed"
+            animate="expanded"
+            exit="closed"
+            transition={{ duration: 0.15 }}
+            className="h-6 w-6 animate-spin rounded-full bg-inherit fill-none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </motion.svg>
+        );
+      } else {
+        return (
+          <motion.div
+            key={`${tab.id}playButton`}
+            variants={opacityAndScaleVariants}
+            initial="closed"
+            animate="expanded"
+            exit="closed"
+            transition={{ duration: 0.15 }}
+          >
+            <BsFillPlayFill className="h-5 w-5" />
+          </motion.div>
+        );
+      }
+    }
 
     return (
       <TableRow ref={ref} className="w-full">
@@ -237,9 +314,6 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
                 pauseAudio();
               } else {
                 // setting store w/ this tab's data
-                // setId(tab.id); // used specifically for artist recorded audio fetching purposes
-                // ^^ actually I forgot it looks like this is being set in playTab() already
-
                 setHasRecordedAudio(tab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
                 setTabData(tab.tabData as unknown as Section[]);
                 setSectionProgression(
@@ -265,11 +339,9 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
               }
             }}
           >
-            {audioMetadata.playing && audioMetadata.tabId === tab.id ? (
-              <BsFillPauseFill className="h-5 w-5" />
-            ) : (
-              <BsFillPlayFill className="h-5 w-5" />
-            )}
+            <AnimatePresence mode="wait">
+              {renderPlayButtonIcon()}
+            </AnimatePresence>
           </Button>
         </TableCell>
       </TableRow>

@@ -7,7 +7,7 @@ import {
   type SetStateAction,
 } from "react";
 import type { Genre, Tab } from "@prisma/client";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Separator } from "../ui/separator";
 import Image from "next/image";
 import { api } from "~/utils/api";
@@ -34,6 +34,17 @@ import type { RefetchTab } from "../Tab/Tab";
 import TabPreview from "../Tab/TabPreview";
 import useSound from "~/hooks/useSound";
 import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
+
+const opacityAndScaleVariants = {
+  expanded: {
+    opacity: 1,
+    scale: 1,
+  },
+  closed: {
+    opacity: 0,
+    scale: 0.5,
+  },
+};
 
 interface GridTabCard extends RefetchTab {
   tab: TabWithLikes;
@@ -78,7 +89,8 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
       setBpm,
       setChords,
       setCapo,
-      recordedAudioBuffer,
+      recordedAudioBuffer, // pick only one or are both useful here?
+      recordedAudioBufferSourceNode, // pick only one or are both useful here?
     } = useTabStore(
       (state) => ({
         playbackSpeed: state.playbackSpeed,
@@ -93,6 +105,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         setChords: state.setChords,
         setCapo: state.setCapo,
         recordedAudioBuffer: state.recordedAudioBuffer,
+        recordedAudioBufferSourceNode: state.recordedAudioBufferSourceNode,
       }),
       shallow
     );
@@ -125,6 +138,67 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
     } = api.artist.getByIdOrUsername.useQuery({
       userId: tab.createdById,
     });
+
+    function renderPlayButtonIcon() {
+      if (audioMetadata.playing && audioMetadata.tabId === tab.id) {
+        return (
+          <motion.div
+            key={`${tab.id}pauseButton`}
+            variants={opacityAndScaleVariants}
+            initial="closed"
+            animate="expanded"
+            exit="closed"
+            transition={{ duration: 0.15 }}
+          >
+            <BsFillPauseFill className="h-5 w-5" />
+          </motion.div>
+        );
+      } else if (
+        (audioMetadata.type === "Generated" && !currentInstrument) ||
+        (audioMetadata.type === "Artist recording" &&
+          !recordedAudioBufferSourceNode)
+      ) {
+        return (
+          <motion.svg
+            key={`${tab.id}loadingIcon`}
+            variants={opacityAndScaleVariants}
+            initial="closed"
+            animate="expanded"
+            exit="closed"
+            transition={{ duration: 0.15 }}
+            className="h-6 w-6 animate-spin rounded-full bg-inherit fill-none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </motion.svg>
+        );
+      } else {
+        return (
+          <motion.div
+            key={`${tab.id}playButton`}
+            variants={opacityAndScaleVariants}
+            initial="closed"
+            animate="expanded"
+            exit="closed"
+            transition={{ duration: 0.15 }}
+          >
+            <BsFillPlayFill className="h-5 w-5" />
+          </motion.div>
+        );
+      }
+    }
 
     return (
       <motion.div
@@ -355,11 +429,9 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                 }}
                 className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px] p-0"
               >
-                {audioMetadata.playing && audioMetadata.tabId === tab.id ? (
-                  <BsFillPauseFill className="h-5 w-5" />
-                ) : (
-                  <BsFillPlayFill className="h-5 w-5" />
-                )}
+                <AnimatePresence mode="wait">
+                  {renderPlayButtonIcon()}
+                </AnimatePresence>
               </Button>
             </div>
           </div>
