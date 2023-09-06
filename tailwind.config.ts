@@ -1,6 +1,9 @@
 import { type Config } from "tailwindcss";
 
 module.exports = {
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   darkMode: ["class"],
   content: ["./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
