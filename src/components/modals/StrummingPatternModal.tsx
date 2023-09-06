@@ -196,7 +196,7 @@ function StrummingPatternModal({
                 }
 
                 // @ts-expect-error undefined checks are done above
-                newTabData[sectionIndex]?.data[subSectionIndex].data[
+                newTabData[sectionIndex].data[subSectionIndex].data[
                   chordSequenceIndex
                   // @ts-expect-error undefined checks are done above
                 ]!.data = newChordProgression;
@@ -205,7 +205,7 @@ function StrummingPatternModal({
               // updating to new strumming pattern
 
               // @ts-expect-error undefined checks are done above
-              newTabData[sectionIndex]?.data[subSectionIndex].data[
+              newTabData[sectionIndex].data[subSectionIndex].data[
                 chordSequenceIndex
                 // @ts-expect-error undefined checks are done above
               ]!.strummingPattern = strummingPatternBeingEdited.value;
