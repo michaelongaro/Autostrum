@@ -28,8 +28,8 @@ export const toString = (
     .join(" ");
 };
 
-export const parse = (string: string) => {
-  return string
+export const parse = (notes: string) => {
+  return notes
     .split(" ")
     .map((name) => get(name).midi ?? (get(name).chroma ?? 0) + 12 * 3)
     .reverse();

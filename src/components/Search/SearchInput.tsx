@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { debounce } from "lodash";
+import debounce from "lodash.debounce";
 import { useRouter } from "next/router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";

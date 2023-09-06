@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import Soundfont from "soundfont-player";
-import { parse } from "react-guitar-tunings";
+import { parse } from "~/utils/tunings";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import type {

@@ -7,7 +7,7 @@ import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import { BsFillPlayFill } from "react-icons/bs";
 import Chord from "../Tab/Chord";
 import { Button } from "../ui/button";
-import { isEqual } from "lodash";
+import isEqual from "lodash.isequal";
 import { Input } from "../ui/input";
 import useSound from "~/hooks/useSound";
 
