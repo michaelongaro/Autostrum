@@ -1,25 +1,46 @@
-import { useRef, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { extend } from "@react-three/fiber";
+import { useState, useEffect, useRef, useMemo } from "react";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { Canvas, useFrame, extend } from "@react-three/fiber";
 import type { Mesh } from "three";
 import {
   AmbientLight,
   PointLight,
   SphereGeometry,
   MeshStandardMaterial,
-  MeshPhysicalMaterial,
   DirectionalLight,
+  MeshPhongMaterial,
+  ColorManagement,
 } from "three";
 extend({
   AmbientLight,
   PointLight,
   SphereGeometry,
   MeshStandardMaterial,
-  MeshPhysicalMaterial,
   DirectionalLight,
+  MeshPhongMaterial,
+  ColorManagement,
+});
+
+// needed to set color management to true in order to get the static
+// global mesh to render as it would if it were inline in the <Bubble /> component
+ColorManagement.enabled = true;
+const bubbleMesh = new MeshPhongMaterial({
+  color: "#f396c6",
+  emissive: "#b92248",
+  specular: "#fe67a8",
+  shininess: 100,
+  reflectivity: 1,
+  refractionRatio: 0.98,
 });
 
 function Bubbles() {
+  const [dpr, setDpr] = useState(1);
+  const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
+
+  useEffect(() => {
+    setDpr(Math.min(2, window?.devicePixelRatio ?? 2));
+  }, []);
+
   const bubbles = useMemo((): {
     position: [number, number, number];
     size: number;
@@ -28,19 +49,19 @@ function Bubbles() {
     if (typeof window === "undefined") return [];
     const bubbleProps = [];
 
-    for (let i = 0; i < 25; i++) {
+    for (let i = 0; i < (isAboveMediumViewportWidth ? 25 : 10); i++) {
       const position = [
         (Math.random() * window.innerWidth - window.innerWidth / 2) / 10,
-        Math.floor(Math.random() * -30) + 35,
+        Math.floor(Math.random() * -30),
         Math.floor(Math.random() * 20),
       ];
-      const size = Math.random() * 0.65;
+      const size = Math.random() * 0.35 + 0.1;
       const velocity = Math.random() * 0.04 + 0.01;
       bubbleProps.push({ position, size, velocity });
     }
     // @ts-expect-error typing on arr
     return bubbleProps;
-  }, []);
+  }, [isAboveMediumViewportWidth]);
 
   return (
     <Canvas
@@ -54,9 +75,10 @@ function Bubbles() {
         zIndex: 0,
       }}
       camera={{ position: [0, 0, 50] }}
+      dpr={dpr}
     >
-      <ambientLight intensity={1.5} />
-      <directionalLight color={"white"} intensity={0.5} />
+      <ambientLight color={"#fdf2f8"} intensity={0.15} />
+      <directionalLight color={"#fdf2f8"} intensity={0.25} />
 
       {bubbles.map((bubble, i) => (
         <Bubble
@@ -80,19 +102,20 @@ interface Bubble {
 function Bubble({ position, size, velocity }: Bubble) {
   const meshRef = useRef<Mesh>(null!);
 
-  const frequency = 0.2 / size;
-  // console.log(position, velocity);
+  const originalX = position[0];
+  const frequency = 1 / size; // Adding 1 to avoid division by zero
+  const amplitude = Math.min(0.45, size); // preventing small bubbles from swaying too much
 
   useFrame((state, delta) => {
     if (meshRef.current) {
       const time = state.clock.getElapsedTime();
 
-      // TODO: I think both should be inversely proportional to the bubbles size tbh
+      // Vertical movement
       meshRef.current.position.y += velocity;
 
-      meshRef.current.position.x +=
-        // Math.sin(meshRef.current.position.y) * 0.005;
-        Math.cos(frequency * time) * 0.02;
+      // Horizontal swaying
+      const offsetX = Math.cos(frequency * time) * amplitude;
+      meshRef.current.position.x = originalX + offsetX;
 
       // Reset bubble position when it goes out of the screen
       if (meshRef.current.position.y > 40) {
@@ -102,18 +125,8 @@ function Bubble({ position, size, velocity }: Bubble) {
   });
 
   return (
-    <>
-      <mesh ref={meshRef} position={position}>
-        <sphereGeometry args={[size, 50, 50]} />
-        <meshPhysicalMaterial
-          roughness={0}
-          metalness={0.5}
-          reflectivity={1}
-          clearcoatRoughness={0}
-          clearcoat={0.8}
-          color={"#f472b6"}
-        />
-      </mesh>
-    </>
+    <mesh ref={meshRef} material={bubbleMesh} position={position}>
+      <sphereGeometry args={[size, 32, 16]} />
+    </mesh>
   );
 }

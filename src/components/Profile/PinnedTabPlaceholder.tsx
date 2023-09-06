@@ -1,12 +1,33 @@
-import { useRef } from "react";
-import { Canvas } from "@react-three/fiber";
-
+import { useState, useEffect, useRef } from "react";
+import { Canvas, extend } from "@react-three/fiber";
+import {
+  AmbientLight,
+  PointLight,
+  SphereGeometry,
+  MeshStandardMaterial,
+  MeshPhysicalMaterial,
+  DirectionalLight,
+} from "three";
+extend({
+  AmbientLight,
+  PointLight,
+  SphereGeometry,
+  MeshStandardMaterial,
+  MeshPhysicalMaterial,
+  DirectionalLight,
+});
 interface PinnedTabPlaceholder {
   artistUsername: string;
 }
 
 function PinnedTabPlaceholder({ artistUsername }: PinnedTabPlaceholder) {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const [dpr, setDpr] = useState(1);
+
+  useEffect(() => {
+    setDpr(Math.min(2, window?.devicePixelRatio ?? 2));
+  }, []);
 
   return (
     <div
@@ -22,6 +43,7 @@ function PinnedTabPlaceholder({ artistUsername }: PinnedTabPlaceholder) {
         }}
         className="col-start-1 col-end-1 row-start-1 row-end-1"
         camera={{ position: [0, 0, 100] }}
+        dpr={dpr}
       >
         <ambientLight intensity={1.5} />
         <directionalLight color={"white"} intensity={0.5} />
@@ -63,7 +85,7 @@ function FloatingBubble({ position }: FloatingBubble) {
 
   return (
     <mesh position={position}>
-      <sphereGeometry args={[Math.random() * 5 + 1.5, 50, 50]} />
+      <sphereGeometry args={[Math.random() * 5 + 1.5, 32, 16]} />
       <meshPhysicalMaterial
         roughness={0}
         metalness={0.5}

@@ -1,10 +1,26 @@
-import { useState, useRef, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { Canvas, useFrame, extend } from "@react-three/fiber";
 import { useRouter } from "next/router";
-import type { Mesh } from "three";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 import type { GenreWithTotalTabNumbers } from "~/server/api/routers/genre";
 import { formatNumber } from "~/utils/formatNumber";
+import type { Mesh } from "three";
+import {
+  AmbientLight,
+  PointLight,
+  SphereGeometry,
+  MeshStandardMaterial,
+  MeshPhysicalMaterial,
+  DirectionalLight,
+} from "three";
+extend({
+  AmbientLight,
+  PointLight,
+  SphereGeometry,
+  MeshStandardMaterial,
+  MeshPhysicalMaterial,
+  DirectionalLight,
+});
 
 const opacityVariants = {
   expanded: {
@@ -20,6 +36,11 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
 
   const [hoveringOnGenre, setHoveringOnGenre] = useState(false);
   const [mouseDownOnGenre, setMouseDownOnGenre] = useState(false);
+  const [dpr, setDpr] = useState(1);
+
+  useEffect(() => {
+    setDpr(Math.min(2, window?.devicePixelRatio ?? 2));
+  }, []);
 
   const positions: [number, number, number][] = useMemo(() => {
     const positionBases = [
@@ -146,6 +167,7 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
             zIndex: 0,
           }}
           camera={{ position: [0, 0, 55] }}
+          dpr={dpr}
         >
           <ambientLight intensity={1.5} />
           <directionalLight color={"white"} intensity={0.5} />
@@ -238,7 +260,7 @@ function ConditionallyFloatingBubble({
 
   return (
     <mesh ref={meshRef} position={position}>
-      <sphereGeometry args={[radius, 50, 50]} />
+      <sphereGeometry args={[radius, 32, 16]} />
       <meshPhysicalMaterial
         roughness={0}
         metalness={0.5}

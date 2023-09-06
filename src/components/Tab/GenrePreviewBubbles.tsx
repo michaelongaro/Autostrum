@@ -1,10 +1,32 @@
-import { Canvas } from "@react-three/fiber";
-
+import { useState, useEffect } from "react";
+import { Canvas, extend } from "@react-three/fiber";
+import {
+  AmbientLight,
+  PointLight,
+  SphereGeometry,
+  MeshStandardMaterial,
+  MeshPhysicalMaterial,
+  DirectionalLight,
+} from "three";
+extend({
+  AmbientLight,
+  PointLight,
+  SphereGeometry,
+  MeshStandardMaterial,
+  MeshPhysicalMaterial,
+  DirectionalLight,
+});
 interface GenrePreviewBubbles {
   color: string;
 }
 
 function GenrePreviewBubbles({ color }: GenrePreviewBubbles) {
+  const [dpr, setDpr] = useState(1);
+
+  useEffect(() => {
+    setDpr(Math.min(2, window?.devicePixelRatio ?? 2));
+  }, []);
+
   return (
     <Canvas
       style={{
@@ -14,12 +36,13 @@ function GenrePreviewBubbles({ color }: GenrePreviewBubbles) {
         zIndex: 0,
       }}
       camera={{ position: [0, 0, 55] }}
+      dpr={dpr}
     >
       <ambientLight intensity={1.5} />
       <directionalLight color={"white"} intensity={0.5} />
 
       <mesh position={[-15, -18, 0]}>
-        <sphereGeometry args={[8, 25, 25]} />
+        <sphereGeometry args={[8, 16, 16]} />
         <meshPhysicalMaterial
           roughness={0}
           metalness={0.5}
@@ -31,7 +54,7 @@ function GenrePreviewBubbles({ color }: GenrePreviewBubbles) {
       </mesh>
 
       <mesh position={[-17, 9, 0]}>
-        <sphereGeometry args={[12, 25, 25]} />
+        <sphereGeometry args={[12, 16, 16]} />
         <meshPhysicalMaterial
           roughness={0}
           metalness={0.5}
@@ -43,7 +66,7 @@ function GenrePreviewBubbles({ color }: GenrePreviewBubbles) {
       </mesh>
 
       <mesh position={[20, 2, 0]}>
-        <sphereGeometry args={[18, 25, 25]} />
+        <sphereGeometry args={[18, 16, 16]} />
         <meshPhysicalMaterial
           roughness={0}
           metalness={0.5}
