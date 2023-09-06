@@ -766,7 +766,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               {audioMetadata.type === "Generated" &&
                 audioMetadata.location !== null && (
                   <motion.div
-                    key={"returnToEntireTabButton"}
+                    key={"mobileReturnToEntireTabButton"}
                     variants={opacityAndScaleVariants}
                     initial="closed"
                     animate="expanded"

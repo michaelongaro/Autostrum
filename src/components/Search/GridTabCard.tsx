@@ -203,7 +203,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
     return (
       <motion.div
         ref={ref} // hoping that if ref is undefined it will just ignore it
-        key={tab.id}
+        key={`${tab.id}gridTabCard`}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}

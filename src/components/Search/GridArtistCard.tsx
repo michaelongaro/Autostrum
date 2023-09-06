@@ -38,7 +38,7 @@ const GridArtistCard = forwardRef<HTMLDivElement, ArtistMetadata>(
     return (
       <motion.div
         ref={ref}
-        key={artist.id}
+        key={`${artist.id}gridArtistCard`}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
@@ -50,6 +50,7 @@ const GridArtistCard = forwardRef<HTMLDivElement, ArtistMetadata>(
         }}
       >
         <motion.div
+          key={`hoveredRadialGradient${artist.id}`}
           className="pointer-events-none absolute -inset-px z-[-1] rounded-xl opacity-0 transition duration-300 group-hover:opacity-100"
           style={{
             background: useMotionTemplate`

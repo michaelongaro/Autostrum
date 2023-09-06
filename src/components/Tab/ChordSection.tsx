@@ -196,7 +196,7 @@ function ChordSection({
       {/* <div className="baseVertFlex w-full !items-start gap-2"> */}
       <AnimatePresence mode="wait">
         <motion.div
-          key={subSectionData.id}
+          key={`${subSectionData.id}ChordSectionWrapper`}
           layout={"position"}
           variants={opacityAndScaleVariants}
           initial="closed"
