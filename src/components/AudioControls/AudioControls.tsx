@@ -675,7 +675,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
 
                       <SelectItem
                         value={"Artist recording"}
-                        disabled={hasRecordedAudio === null}
+                        disabled={!hasRecordedAudio}
                       >
                         Artist recording
                       </SelectItem>
@@ -1044,7 +1044,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
 
                         <SelectItem
                           value={"Artist recording"}
-                          disabled={hasRecordedAudio === null}
+                          disabled={!hasRecordedAudio}
                         >
                           Artist recording
                         </SelectItem>
