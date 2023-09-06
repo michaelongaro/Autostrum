@@ -534,7 +534,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
             >
               <Button
                 variant="ghost"
-                className="h-5 w-8 px-2 py-1"
+                className="h-5 w-8 p-0"
                 onClick={() => setVisibility("expanded")}
               >
                 <GoChevronUp className="h-5 w-5" />
@@ -991,7 +991,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               </Toggle>
               <Button
                 variant={"ghost"}
-                className="h-8 w-8 p-2"
+                className="h-8 w-8 p-0"
                 onClick={() => setVisibility("minimized")}
               >
                 <GoChevronDown className="h-5 w-5" />
