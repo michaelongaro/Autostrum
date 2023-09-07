@@ -199,7 +199,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
             }
           }}
           value={searchQuery}
-          className="h-9 w-80 pl-8 text-base md:h-12 md:w-96 md:pl-10 md:text-lg"
+          className="h-9 w-80 pl-8 text-base md:h-12 md:w-[25rem] md:pl-10 md:text-lg"
         />
 
         {/* autofill */}
