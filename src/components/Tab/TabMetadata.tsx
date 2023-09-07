@@ -733,6 +733,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
               <Input
                 type="text"
                 placeholder="0"
+                pattern="[0-9]*"
                 value={capo === -1 ? "" : capo}
                 onChange={handleCapoChange}
               />
