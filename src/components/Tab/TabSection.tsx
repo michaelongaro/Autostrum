@@ -87,6 +87,8 @@ function TabSection({
   const [showingDeleteColumnsButtons, setShowingDeleteColumnsButtons] =
     useState(false);
 
+  const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
+
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const sensors = useSensors(
@@ -95,6 +97,14 @@ function TabSection({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  useEffect(() => {
+    if (inputIdToFocus) {
+      const newNoteToFocus = document.getElementById(inputIdToFocus);
+      newNoteToFocus?.focus();
+      setInputIdToFocus(null);
+    }
+  }, [inputIdToFocus]);
 
   function getColumnIds() {
     const newIds = [];
@@ -139,6 +149,12 @@ function TabSection({
     }
 
     setTabData(newTabData);
+
+    const firstNewColumnIndex = subSectionData.data.length - 8; // this will be the first of the 8 new strums added
+
+    setInputIdToFocus(
+      `input-${sectionIndex}-${subSectionIndex}-${firstNewColumnIndex}-3`
+    );
   }
 
   interface TraverseSectionData {
@@ -529,6 +545,22 @@ function TabSection({
     setTabData(newTabData);
   }
 
+  function handleExtendTabButtonKeyDown(
+    e: React.KeyboardEvent<HTMLButtonElement>
+  ) {
+    if (e.key === "ArrowLeft") {
+      e.preventDefault(); // prevent cursor from moving
+
+      const firstNewColumnIndex = subSectionData.data.length - 1; // this will be the first of the 8 new strums added
+
+      const newNoteToFocus = document.getElementById(
+        `input-${sectionIndex}-${subSectionIndex}-${firstNewColumnIndex}-3`
+      );
+
+      newNoteToFocus?.focus();
+    }
+  }
+
   const sectionPadding = useMemo(() => {
     let padding = "0 1rem";
 
@@ -821,7 +853,15 @@ function TabSection({
         ></div>
       </div>
 
-      {editing && <Button onClick={addNewColumns}>Extend tab</Button>}
+      {editing && (
+        <Button
+          id={`${sectionIndex}${subSectionIndex}ExtendTabButton`}
+          onKeyDown={handleExtendTabButtonKeyDown}
+          onClick={addNewColumns}
+        >
+          Extend tab
+        </Button>
+      )}
     </motion.div>
   );
 }

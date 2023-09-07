@@ -95,6 +95,18 @@ function PalmMuteNode({
       let currentIndex = columnIndex + 1;
 
       while (!completedSearchOfPalmMuteNodes) {
+        if (
+          currentIndex >=
+          tabData[sectionIndex]!.data[subSectionIndex]!.data.length
+        ) {
+          const newNoteToFocus = document.getElementById(
+            `${sectionIndex}${subSectionIndex}ExtendTabButton`
+          );
+
+          newNoteToFocus?.focus();
+          return;
+        }
+
         // if PM node is reachable and not a connecting node between start & end
         // nodes, then focus the PM node
         if (

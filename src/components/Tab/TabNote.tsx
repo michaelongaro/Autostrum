@@ -159,6 +159,18 @@ function TabNote({
     } else if (e.key === "ArrowRight") {
       e.preventDefault(); // prevent cursor from moving
 
+      if (
+        columnIndex ===
+        tabData[sectionIndex]!.data[subSectionIndex]!.data.length - 1
+      ) {
+        const newNoteToFocus = document.getElementById(
+          `${sectionIndex}${subSectionIndex}ExtendTabButton`
+        );
+
+        newNoteToFocus?.focus();
+        return;
+      }
+
       const adjColumnIndex =
         tabData[sectionIndex]!.data[subSectionIndex].data[columnIndex + 1]?.[
           noteIndex

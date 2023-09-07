@@ -1,5 +1,6 @@
 import {
   useState,
+  useEffect,
   useMemo,
   useCallback,
   type Dispatch,
@@ -61,6 +62,8 @@ function StrummingPattern({
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
 
+  const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
+
   const [isFocused, setIsFocused] = useState<boolean[]>(
     data?.strums?.map(() => false)
   );
@@ -88,6 +91,14 @@ function StrummingPattern({
     }),
     shallow
   );
+
+  useEffect(() => {
+    if (inputIdToFocus) {
+      const newNoteToFocus = document.getElementById(inputIdToFocus);
+      newNoteToFocus?.focus();
+      setInputIdToFocus(null);
+    }
+  }, [inputIdToFocus]);
 
   const patternHasPalmMuting = useCallback(() => {
     return data.strums.some((strum) => strum.palmMute !== "");
@@ -262,6 +273,10 @@ function StrummingPattern({
       index: index ?? 0,
       value: newStrummingPattern,
     });
+
+    const firstNewStrumIndex = newStrummingPattern.strums.length - 4; // this will be the first of the 8 new strums added
+
+    setInputIdToFocus(`input-strummingPatternModal-${firstNewStrumIndex}-1`);
   }
 
   function handleDeletePalmMutedStrum(
