@@ -29,7 +29,6 @@ function EffectGlossaryModal() {
       initial="closed"
       animate="expanded"
       exit="closed"
-      onClick={() => setShowEffectGlossaryModal(false)}
     >
       <div
         style={{

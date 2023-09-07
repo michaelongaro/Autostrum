@@ -9,6 +9,7 @@ import { useTabStore } from "~/stores/TabStore";
 import SearchInput from "../Search/SearchInput";
 import SearchResults from "../Search/SearchResults";
 import { TbPinned } from "react-icons/tb";
+import FocusTrap from "focus-trap-react";
 import { Button } from "../ui/button";
 
 const backdropVariants = {
@@ -62,6 +63,13 @@ function PinnedTabModal({
   // }, [artist, currentlySelectedPinnedTabId]);
 
   useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, []);
+
+  useEffect(() => {
     setCurrentlySelectedPinnedTabId(pinnedTabIdFromDatabase);
   }, [pinnedTabIdFromDatabase]);
 
@@ -87,48 +95,53 @@ function PinnedTabModal({
       initial="closed"
       animate="expanded"
       exit="closed"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          // close modal
-          setShowPinnedTabModal(false);
-        }
-      }}
     >
-      {/* prob have to be wider max for mobile */}
-      <div className="baseVertFlex w-11/12 gap-4 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 lg:gap-8 xl:w-9/12">
-        {/* chord title */}
-        <div className="baseFlex gap-2">
-          <TbPinned className="h-5 w-5" />
-          <p className="text-xl font-semibold">Pinned tab</p>
-        </div>
-        <SearchInput initialSearchQueryFromUrl={searchQuery} />
+      <FocusTrap>
+        <div
+          tabIndex={-1}
+          className="baseVertFlex w-11/12 gap-4 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 lg:gap-8 xl:w-9/12"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setShowPinnedTabModal(false);
+            }
+          }}
+        >
+          {/* chord title */}
+          <div className="baseFlex gap-2">
+            <TbPinned className="h-5 w-5" />
+            <p className="text-xl font-semibold">Pinned tab</p>
+          </div>
+          <SearchInput initialSearchQueryFromUrl={searchQuery} />
 
-        <SearchResults
-          genreId={genreId}
-          type={type}
-          searchQuery={searchQuery}
-          sortByRelevance={sortByRelevance}
-          additionalSortFilter={additionalSortFilter}
-          viewType={viewType}
-          selectedPinnedTabId={currentlySelectedPinnedTabId}
-          setSelectedPinnedTabId={setCurrentlySelectedPinnedTabId}
-        />
+          <SearchResults
+            genreId={genreId}
+            type={type}
+            searchQuery={searchQuery}
+            sortByRelevance={sortByRelevance}
+            additionalSortFilter={additionalSortFilter}
+            viewType={viewType}
+            selectedPinnedTabId={currentlySelectedPinnedTabId}
+            setSelectedPinnedTabId={setCurrentlySelectedPinnedTabId}
+          />
 
-        <div className="baseFlex gap-8">
-          <Button
-            variant={"secondary"}
-            onClick={() => setShowPinnedTabModal(false)}
-          >
-            Close
-          </Button>
-          <Button
-            disabled={pinnedTabIdFromDatabase === currentlySelectedPinnedTabId}
-            onClick={handleUpdatePinnedTab}
-          >
-            Save
-          </Button>
+          <div className="baseFlex gap-8">
+            <Button
+              variant={"secondary"}
+              onClick={() => setShowPinnedTabModal(false)}
+            >
+              Close
+            </Button>
+            <Button
+              disabled={
+                pinnedTabIdFromDatabase === currentlySelectedPinnedTabId
+              }
+              onClick={handleUpdatePinnedTab}
+            >
+              Save
+            </Button>
+          </div>
         </div>
-      </div>
+      </FocusTrap>
     </motion.div>
   );
 }

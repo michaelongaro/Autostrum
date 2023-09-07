@@ -41,6 +41,7 @@
     "class-variance-authority": "^0.5.3",
     "clsx": "^1.2.1",
     "cmdk": "^0.2.0",
+    "focus-trap-react": "^10.2.1",
     "framer-motion": "^10.16.4",
     "hamburger-react": "^2.5.0",
     "lodash.debounce": "^4.0.8",

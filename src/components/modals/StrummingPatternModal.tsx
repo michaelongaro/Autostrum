@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   useTabStore,
   type StrummingPattern as StrummingPatternType,
@@ -27,6 +27,7 @@ import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import StrummingPatternPalmMuteNode from "../Tab/StrummingPatternPalmMuteNode";
 import StrummingPattern from "../Tab/StrummingPattern";
 import isEqual from "lodash.isequal";
+import FocusTrap from "focus-trap-react";
 import useSound from "~/hooks/useSound";
 
 const backdropVariants = {
@@ -56,7 +57,6 @@ function StrummingPatternModal({
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
 
-  const innerModalRef = useRef<HTMLDivElement>(null);
   const {
     tuning,
     strummingPatterns,
@@ -84,6 +84,13 @@ function StrummingPatternModal({
   );
 
   const { playPreview, pauseAudio } = useSound();
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, []);
 
   function handleNoteLengthChange(
     value:
@@ -237,190 +244,203 @@ function StrummingPatternModal({
       initial="closed"
       animate="expanded"
       exit="closed"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          if (audioMetadata.playing) pauseAudio();
-          setStrummingPatternBeingEdited(null);
-        }
-      }}
     >
-      <div
-        ref={innerModalRef}
-        className="baseVertFlex max-h-[90vh] min-w-[300px] max-w-[80vw] !flex-nowrap !justify-start gap-12 overflow-y-auto rounded-md bg-pink-400 p-4 shadow-sm transition-all md:p-8 xl:max-w-[50vw]"
-      >
-        {/* controls */}
-        <div className="baseFlex w-full !justify-start gap-2">
-          <Label>Note length</Label>
-          <Select
-            onValueChange={handleNoteLengthChange}
-            value={strummingPatternBeingEdited.value.noteLength}
-          >
-            <SelectTrigger className="w-[135px]">
-              <SelectValue placeholder="Select a length" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Note length</SelectLabel>
-                <SelectItem value="1/4th">1/4th</SelectItem>
-                <SelectItem value="1/4th triplet">1/4th triplet</SelectItem>
-                <SelectItem value="1/8th">1/8th</SelectItem>
-                <SelectItem value="1/8th triplet">1/8th triplet</SelectItem>
-                <SelectItem value="1/16th">1/16th</SelectItem>
-                <SelectItem value="1/16th triplet">1/16th triplet</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <div className="baseFlex">
-            <Button
-              disabled={editingPalmMuteNodes}
-              style={{
-                borderRadius: editingPalmMuteNodes
-                  ? "0.375rem 0 0 0.375rem"
-                  : "0.375rem",
-              }}
-              // className="transition-colors transition-opacity"
-              onClick={toggleEditingPalmMuteNodes}
+      <FocusTrap>
+        <div
+          tabIndex={-1}
+          // overflow-y-auto
+          className="baseVertFlex max-h-[95vh] min-w-[300px] max-w-[80vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all md:max-h-[90vh] md:gap-12 md:p-8 xl:max-w-[50vw]"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              if (audioMetadata.playing) pauseAudio();
+              setStrummingPatternBeingEdited(null);
+            }
+          }}
+        >
+          {/* controls */}
+          <div className="baseFlex w-full !justify-start gap-2">
+            <Label>Note length</Label>
+            <Select
+              onValueChange={handleNoteLengthChange}
+              value={strummingPatternBeingEdited.value.noteLength}
             >
-              Edit palm mute sections
-            </Button>
-
-            {editingPalmMuteNodes && (
+              <SelectTrigger className="w-[135px]">
+                <SelectValue placeholder="Select a length" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Note length</SelectLabel>
+                  <SelectItem value="1/4th">1/4th</SelectItem>
+                  <SelectItem value="1/4th triplet">1/4th triplet</SelectItem>
+                  <SelectItem value="1/8th">1/8th</SelectItem>
+                  <SelectItem value="1/8th triplet">1/8th triplet</SelectItem>
+                  <SelectItem value="1/16th">1/16th</SelectItem>
+                  <SelectItem value="1/16th triplet">1/16th triplet</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <div className="baseFlex">
               <Button
-                className="rounded-l-none rounded-r-md px-2 py-0"
+                disabled={editingPalmMuteNodes}
+                style={{
+                  borderRadius: editingPalmMuteNodes
+                    ? "0.375rem 0 0 0.375rem"
+                    : "0.375rem",
+                }}
+                // className="transition-colors transition-opacity"
                 onClick={toggleEditingPalmMuteNodes}
               >
-                <IoClose className="h-6 w-6" />
+                Edit palm mute sections
               </Button>
-            )}
-          </div>
-          {/* toggle delete strums */}
-          <div className="baseFlex">
-            <Button
-              variant={"destructive"}
-              disabled={showingDeleteStrumsButtons}
-              style={{
-                borderRadius: showingDeleteStrumsButtons
-                  ? "0.375rem 0 0 0.375rem"
-                  : "0.375rem",
-              }}
-              // className="transition-colors transition-opacity"
-              onClick={() =>
-                setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
-              }
-            >
-              Delete strums
-            </Button>
 
-            {showingDeleteStrumsButtons && (
+              {editingPalmMuteNodes && (
+                <Button
+                  className="rounded-l-none rounded-r-md px-2 py-0"
+                  onClick={toggleEditingPalmMuteNodes}
+                >
+                  <IoClose className="h-6 w-6" />
+                </Button>
+              )}
+            </div>
+            {/* toggle delete strums */}
+            <div className="baseFlex">
               <Button
                 variant={"destructive"}
-                className="rounded-l-none rounded-r-md px-2 py-0"
+                disabled={showingDeleteStrumsButtons}
+                style={{
+                  borderRadius: showingDeleteStrumsButtons
+                    ? "0.375rem 0 0 0.375rem"
+                    : "0.375rem",
+                }}
+                // className="transition-colors transition-opacity"
                 onClick={() =>
                   setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
                 }
               >
-                <IoClose className="h-6 w-6" />
+                Delete strums
               </Button>
-            )}
-          </div>
-        </div>
 
-        <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 text-sm ">
-          <HiOutlineInformationCircle className="mr-2 h-6 w-6" />
-          <div className="baseFlex gap-2">
-            <span className="font-semibold">v / d</span>
-            <p>-</p>
-            <p>Downstrum</p>
-          </div>
-          <div className="baseFlex gap-2">
-            <span className="font-semibold">^ / u</span>
-            <p>-</p>
-            <p>Upstrum</p>
-          </div>
-          <div className="baseFlex gap-2">
-            <p className="font-semibold">s</p>
-            <p>-</p>
-            <p>Slap</p>
-          </div>
-          <div className="baseFlex gap-2">
-            <p className="font-semibold">&gt;</p>
-            <p>-</p>
-            <p>Accented</p>
-          </div>
-        </div>
-
-        {/* editing inputs of strumming pattern */}
-        <StrummingPattern
-          data={strummingPatternBeingEdited.value}
-          mode={"editingStrummingPattern"}
-          index={strummingPatternBeingEdited.index}
-          editingPalmMuteNodes={editingPalmMuteNodes}
-          setEditingPalmMuteNodes={setEditingPalmMuteNodes}
-          showingDeleteStrumsButtons={showingDeleteStrumsButtons}
-        />
-
-        <div className="baseVertFlex gap-8">
-          <Button
-            disabled={artificalPlayButtonTimeout}
-            className="baseFlex gap-4"
-            onClick={() => {
-              if (
-                previewMetadata.playing &&
-                strummingPatternBeingEdited.index ===
-                  previewMetadata.indexOfPattern &&
-                previewMetadata.type === "strummingPattern"
-              ) {
-                setArtificalPlayButtonTimeout(true);
-
-                setTimeout(() => {
-                  setArtificalPlayButtonTimeout(false);
-                }, 300);
-                pauseAudio();
-              } else {
-                void playPreview({
-                  data: strummingPatternBeingEdited.value,
-                  index: strummingPatternBeingEdited.index,
-                  type: "strummingPattern",
-                });
-              }
-            }}
-          >
-            <>
-              {previewMetadata.playing &&
-              previewMetadata.type === "strummingPattern" ? (
-                <BsStopFill className="h-6 w-6" />
-              ) : (
-                <BsFillPlayFill className="h-6 w-6" />
+              {showingDeleteStrumsButtons && (
+                <Button
+                  variant={"destructive"}
+                  className="rounded-l-none rounded-r-md px-2 py-0"
+                  onClick={() =>
+                    setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
+                  }
+                >
+                  <IoClose className="h-6 w-6" />
+                </Button>
               )}
-              Preview strumming pattern
-            </>
-          </Button>
-          <div className="baseFlex gap-4">
-            <Button
-              variant={"secondary"}
-              onClick={() => setStrummingPatternBeingEdited(null)}
-            >
-              Close
-            </Button>
+            </div>
+          </div>
 
-            {/* should be disabled if lodash isEqual to the strummingPatterns original version */}
+          <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 text-sm">
+            <HiOutlineInformationCircle className="mr-2 h-6 w-6" />
+            <div className="baseFlex gap-2">
+              <span className="font-semibold">v / d</span>
+              <p>-</p>
+              <p>Downstrum</p>
+            </div>
+            <div className="baseFlex gap-2">
+              <span className="font-semibold">^ / u</span>
+              <p>-</p>
+              <p>Upstrum</p>
+            </div>
+            <div className="baseFlex gap-2">
+              <p className="font-semibold">s</p>
+              <p>-</p>
+              <p>Slap</p>
+            </div>
+            <div className="baseFlex gap-2">
+              <p className="font-semibold">&gt;</p>
+              <p>-</p>
+              <p>Accented</p>
+            </div>
+          </div>
+
+          <div className="baseFlex overflow-y-auto">
+            {/* editing inputs of strumming pattern */}
+            <StrummingPattern
+              data={strummingPatternBeingEdited.value}
+              mode={"editingStrummingPattern"}
+              index={strummingPatternBeingEdited.index}
+              editingPalmMuteNodes={editingPalmMuteNodes}
+              setEditingPalmMuteNodes={setEditingPalmMuteNodes}
+              showingDeleteStrumsButtons={showingDeleteStrumsButtons}
+            />
+          </div>
+
+          <div className="baseVertFlex gap-8">
             <Button
               disabled={
+                artificalPlayButtonTimeout ||
                 strummingPatternBeingEdited.value.strums.every(
                   (strum) => strum.strum === ""
-                ) ||
-                isEqual(
-                  strummingPatternBeingEdited.value,
-                  strummingPatterns[strummingPatternBeingEdited.index]
                 )
               }
-              onClick={handleSaveStrummingPattern}
+              className="baseFlex gap-4"
+              onClick={() => {
+                if (
+                  previewMetadata.playing &&
+                  strummingPatternBeingEdited.index ===
+                    previewMetadata.indexOfPattern &&
+                  previewMetadata.type === "strummingPattern"
+                ) {
+                  setArtificalPlayButtonTimeout(true);
+
+                  setTimeout(() => {
+                    setArtificalPlayButtonTimeout(false);
+                  }, 300);
+                  pauseAudio();
+                } else {
+                  void playPreview({
+                    data: strummingPatternBeingEdited.value,
+                    index: strummingPatternBeingEdited.index,
+                    type: "strummingPattern",
+                  });
+                }
+              }}
             >
-              Save
+              <>
+                {previewMetadata.playing &&
+                previewMetadata.type === "strummingPattern" ? (
+                  <BsStopFill className="h-6 w-6" />
+                ) : (
+                  <BsFillPlayFill className="h-6 w-6" />
+                )}
+                Preview strumming pattern
+              </>
             </Button>
+            <div className="baseFlex gap-4">
+              <Button
+                variant={"secondary"}
+                onClick={() => {
+                  if (audioMetadata.playing) pauseAudio();
+                  setStrummingPatternBeingEdited(null);
+                }}
+              >
+                Close
+              </Button>
+
+              {/* should be disabled if lodash isEqual to the strummingPatterns original version */}
+              <Button
+                disabled={
+                  strummingPatternBeingEdited.value.strums.every(
+                    (strum) => strum.strum === ""
+                  ) ||
+                  isEqual(
+                    strummingPatternBeingEdited.value,
+                    strummingPatterns[strummingPatternBeingEdited.index]
+                  )
+                }
+                onClick={handleSaveStrummingPattern}
+              >
+                Save
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      </FocusTrap>
     </motion.div>
   );
 }

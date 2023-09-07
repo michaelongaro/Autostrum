@@ -31,6 +31,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import isEqual from "lodash.isequal";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { Input } from "../ui/input";
+import FocusTrap from "focus-trap-react";
 import {
   Select,
   SelectContent,
@@ -84,6 +85,13 @@ function SectionProgressionModal() {
     }),
     shallow
   );
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, []);
 
   useEffect(() => {
     setLocalSectionProgression(structuredClone(sectionProgression));
@@ -183,89 +191,94 @@ function SectionProgressionModal() {
       initial="closed"
       animate="expanded"
       exit="closed"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          setShowSectionProgressionModal(false);
-        }
-      }}
     >
-      <div className="min-h-[25rem] min-w-[70vw] rounded-md bg-pink-400 p-2 shadow-sm md:min-w-[25rem] md:p-4">
-        <div className="baseVertFlex h-full max-h-[90vh] min-h-[25rem] w-full max-w-[90vw] !flex-nowrap !justify-between gap-8">
-          <div className="baseFlex lightGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
-            <p className="text-lg font-semibold">Section progression</p>
-          </div>
+      <FocusTrap>
+        <div
+          tabIndex={-1}
+          className="min-h-[20rem] min-w-[70vw] rounded-md bg-pink-400 p-2 shadow-sm md:min-w-[25rem] md:p-4"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setShowSectionProgressionModal(false);
+            }
+          }}
+        >
+          <div className="baseVertFlex h-full max-h-[90vh] min-h-[20rem] w-full max-w-[90vw] !flex-nowrap !justify-between gap-8">
+            <div className="baseFlex lightGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
+              <p className="text-lg font-semibold">Section progression</p>
+            </div>
 
-          <div
-            ref={scrollableSectionsRef}
-            className="baseVertFlex max-h-[70vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[70vh] md:w-3/4"
-          >
-            <DndContext
-              sensors={sensors}
-              modifiers={[
-                restrictToFirstScrollableAncestor,
-                restrictToVerticalAxis,
-              ]}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
+            <div
+              ref={scrollableSectionsRef}
+              className="baseVertFlex max-h-[70vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[70vh] md:w-3/4"
             >
-              <SortableContext
-                items={sectionProgressionIds}
-                strategy={verticalListSortingStrategy}
+              <DndContext
+                sensors={sensors}
+                modifiers={[
+                  restrictToFirstScrollableAncestor,
+                  restrictToVerticalAxis,
+                ]}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
               >
-                {localSectionProgression.length > 0 ? (
-                  <AnimatePresence mode="wait">
-                    <>
-                      {localSectionProgression.map((section, index) => (
-                        <Section
-                          key={section.id}
-                          id={section.id}
-                          index={index}
-                          title={section.title}
-                          repetitions={section.repetitions}
-                          sections={sections}
-                          localSectionProgression={localSectionProgression}
-                          setLocalSectionProgression={
-                            setLocalSectionProgression
-                          }
-                        />
-                      ))}
-                    </>
-                  </AnimatePresence>
-                ) : (
-                  <Button onClick={addNewSectionToProgression}>
-                    Add first section
-                  </Button>
-                )}
-              </SortableContext>
-            </DndContext>
-          </div>
+                <SortableContext
+                  items={sectionProgressionIds}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {localSectionProgression.length > 0 ? (
+                    <AnimatePresence mode="wait">
+                      <>
+                        {localSectionProgression.map((section, index) => (
+                          <Section
+                            key={section.id}
+                            id={section.id}
+                            index={index}
+                            title={section.title}
+                            repetitions={section.repetitions}
+                            sections={sections}
+                            localSectionProgression={localSectionProgression}
+                            setLocalSectionProgression={
+                              setLocalSectionProgression
+                            }
+                          />
+                        ))}
+                      </>
+                    </AnimatePresence>
+                  ) : (
+                    <Button onClick={addNewSectionToProgression}>
+                      Add first section
+                    </Button>
+                  )}
+                </SortableContext>
+              </DndContext>
+            </div>
 
-          {localSectionProgression.length > 0 && (
-            <Button
-              className="rounded-full p-2"
-              onClick={addNewSectionToProgression}
-            >
-              <BsPlus className="h-6 w-6" />
-            </Button>
-          )}
+            {localSectionProgression.length > 0 && (
+              <Button
+                className="rounded-full p-2"
+                onClick={addNewSectionToProgression}
+              >
+                <BsPlus className="h-6 w-6" />
+              </Button>
+            )}
 
-          <div className="baseFlex gap-2">
-            <Button
-              variant={"secondary"}
-              onClick={() => setShowSectionProgressionModal(false)}
-            >
-              Close
-            </Button>
+            <div className="baseFlex gap-4">
+              <Button
+                variant={"secondary"}
+                onClick={() => setShowSectionProgressionModal(false)}
+              >
+                Close
+              </Button>
 
-            <Button
-              disabled={isEqual(localSectionProgression, sectionProgression)}
-              onClick={closeModal}
-            >
-              Save
-            </Button>
+              <Button
+                disabled={isEqual(localSectionProgression, sectionProgression)}
+                onClick={closeModal}
+              >
+                Save
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      </FocusTrap>
     </motion.div>
   );
 }

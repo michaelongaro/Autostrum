@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect } from "react";
 import { Label } from "~/components/ui/label";
 import { motion } from "framer-motion";
 import { HiOutlineInformationCircle } from "react-icons/hi";
@@ -9,6 +9,7 @@ import Chord from "../Tab/Chord";
 import { Button } from "../ui/button";
 import isEqual from "lodash.isequal";
 import { Input } from "../ui/input";
+import FocusTrap from "focus-trap-react";
 import useSound from "~/hooks/useSound";
 
 const backdropVariants = {
@@ -25,8 +26,6 @@ interface ChordModal {
 }
 
 function ChordModal({ chordBeingEdited }: ChordModal) {
-  const innerModalRef = useRef<HTMLDivElement>(null);
-
   const {
     chords,
     setChords,
@@ -49,6 +48,13 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
   );
 
   const { playPreview, pauseAudio } = useSound();
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, []);
 
   function handleChordNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
@@ -156,89 +162,98 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       initial="closed"
       animate="expanded"
       exit="closed"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          if (audioMetadata.playing) pauseAudio();
-          setChordBeingEdited(null);
-        }
-      }}
     >
-      <div
-        ref={innerModalRef}
-        className="baseVertFlex min-w-[300px] max-w-[80vw] gap-8 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 xl:max-w-[50vw]"
-      >
-        {/* chord title */}
-        <div className="baseVertFlex !items-start gap-2">
-          <Label>Chord name</Label>
-          <Input
-            placeholder="Chord name (e.g. Cmaj7)"
-            value={chordBeingEdited?.value?.name}
-            onChange={handleChordNameChange}
-            className="w-[200px]"
-          />
-        </div>
-
-        <div className="baseVertFlex lightestGlassmorphic max-w-[23rem] gap-2 rounded-md p-2 text-sm">
-          <HiOutlineInformationCircle className="h-6 w-6" />
-          <div>
-            <span>You can quickly enter major or minor chords by typing</span>
-            <span className="font-semibold"> A-G </span>
-            <span>or</span>
-            <span className="font-semibold"> a-g </span>
-            <span>respectively.</span>
+      <FocusTrap>
+        <div
+          tabIndex={-1}
+          className="baseVertFlex min-w-[300px] max-w-[80vw] gap-8 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 xl:max-w-[50vw]"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              if (audioMetadata.playing) pauseAudio();
+              setChordBeingEdited(null);
+            }
+          }}
+        >
+          {/* chord title */}
+          <div className="baseVertFlex !items-start gap-2">
+            <Label>Chord name</Label>
+            <Input
+              placeholder="Chord name (e.g. Cmaj7)"
+              value={chordBeingEdited?.value?.name}
+              onChange={handleChordNameChange}
+              className="w-[200px]"
+            />
           </div>
-        </div>
 
-        <Chord
-          chordBeingEdited={chordBeingEdited}
-          editing={true}
-          highlightChord={
-            previewMetadata.indexOfPattern === chordBeingEdited.index &&
-            previewMetadata.playing &&
-            previewMetadata.type === "chord"
-          }
-        />
+          <div className="baseVertFlex lightestGlassmorphic max-w-[23rem] gap-2 rounded-md p-2 text-sm">
+            <HiOutlineInformationCircle className="h-6 w-6" />
+            <div>
+              <span>You can quickly enter major or minor chords by typing</span>
+              <span className="font-semibold"> A-G </span>
+              <span>or</span>
+              <span className="font-semibold"> a-g </span>
+              <span>respectively.</span>
+            </div>
+          </div>
 
-        <div className="baseVertFlex gap-8">
-          <Button
-            disabled={
+          <Chord
+            chordBeingEdited={chordBeingEdited}
+            editing={true}
+            highlightChord={
               previewMetadata.indexOfPattern === chordBeingEdited.index &&
               previewMetadata.playing &&
               previewMetadata.type === "chord"
             }
-            className="baseFlex gap-4"
-            onClick={() => {
-              void playPreview({
-                data: chordBeingEdited.value.frets,
-                index: chordBeingEdited.index,
-                type: "chord",
-              });
-            }}
-          >
-            <BsFillPlayFill className="h-6 w-6" />
-            Preview chord
-          </Button>
+          />
 
-          <div className="baseFlex gap-4">
-            <Button
-              variant={"secondary"}
-              onClick={() => setChordBeingEdited(null)}
-            >
-              Close
-            </Button>
+          <div className="baseVertFlex gap-8">
             <Button
               disabled={
-                chordBeingEdited.value.frets.every((fret) => fret === "") ||
-                chordBeingEdited.value.name === "" ||
-                isEqual(chordBeingEdited.value, chords[chordBeingEdited.index])
+                (previewMetadata.indexOfPattern === chordBeingEdited.index &&
+                  previewMetadata.playing &&
+                  previewMetadata.type === "chord") ||
+                chordBeingEdited.value.frets.every((fret) => fret === "")
               }
-              onClick={handleSaveChord}
+              className="baseFlex gap-4"
+              onClick={() => {
+                void playPreview({
+                  data: chordBeingEdited.value.frets,
+                  index: chordBeingEdited.index,
+                  type: "chord",
+                });
+              }}
             >
-              Save
+              <BsFillPlayFill className="h-6 w-6" />
+              Preview chord
             </Button>
+
+            <div className="baseFlex gap-4">
+              <Button
+                variant={"secondary"}
+                onClick={() => {
+                  if (audioMetadata.playing) pauseAudio();
+                  setChordBeingEdited(null);
+                }}
+              >
+                Close
+              </Button>
+              <Button
+                disabled={
+                  chordBeingEdited.value.frets.every((fret) => fret === "") ||
+                  chordBeingEdited.value.name === "" ||
+                  isEqual(
+                    chordBeingEdited.value,
+                    chords[chordBeingEdited.index]
+                  )
+                }
+                onClick={handleSaveChord}
+              >
+                Save
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      </FocusTrap>
     </motion.div>
   );
 }
