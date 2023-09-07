@@ -98,9 +98,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   const oneSecondIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const localStorageVolume = useLocalStorageValue("autostrumVolume");
-
   const localStorageAutoscroll = useLocalStorageValue("autostrumAutoscroll");
-
   const localStorageLooping = useLocalStorageValue("autostrumLooping");
 
   const volume = useGetLocalStorageValues().volume;
@@ -108,6 +106,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   const looping = useGetLocalStorageValues().looping;
 
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
+
   useAutoscrollToCurrentChord({ autoscrollEnabled });
 
   const {
@@ -378,6 +377,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     audioMetadata.type,
     hasRecordedAudio,
     recordedAudioFile,
+    recordedAudioBuffer,
+    setRecordedAudioBuffer,
     idOfAssociatedTab,
   ]);
 
@@ -388,7 +389,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       if (aboveLargeViewportWidth) {
         bottomValue = "-8rem";
       } else {
-        bottomValue = "-4rem";
+        bottomValue = "-5.5rem";
       }
     } else if (visibility === "minimized" || visibility === "keepMinimized") {
       if (aboveLargeViewportWidth) {
