@@ -249,6 +249,8 @@ function ChordSequence({
                   <Label>Repetitions</Label>
                   <Input
                     type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     className="w-12"
                     placeholder="1"
                     value={
@@ -264,6 +266,8 @@ function ChordSequence({
                   <Label>BPM</Label>
                   <Input
                     type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
                     placeholder={(bpm ?? 75).toString()}
                     value={

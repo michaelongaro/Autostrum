@@ -173,6 +173,8 @@ function ChordSection({
               <Label>Repetitions</Label>
               <Input
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="1"
                 className="w-12"
                 value={

@@ -733,6 +733,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
               <Input
                 type="text"
                 placeholder="0"
+                inputMode="numeric"
                 pattern="[0-9]*"
                 value={capo === -1 ? "" : capo}
                 onChange={handleCapoChange}
@@ -750,6 +751,8 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
               <Input
                 type="text"
                 placeholder="75"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={bpm === -1 ? "" : bpm}
                 style={{
                   boxShadow:
