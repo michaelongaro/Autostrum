@@ -110,18 +110,21 @@ function StrummingPattern({
   ) {
     const newStrummingPattern = { ...data };
 
-    // v/d for downstrum and ^/u for upstrum
-    if (e.key === "d") {
-      // techincally would overwrite w/e was in input..
+    // v/d for downstrum, ^/u for upstrum, and s for slap
+    if (e.key.toLowerCase() === "d" || e.key.toLowerCase() === "v") {
       newStrummingPattern.strums[beatIndex] = {
         ...data.strums[beatIndex]!, // ! because we know it's not undefined
         strum: "v",
       };
-    } else if (e.key === "u") {
-      // techincally would overwrite w/e was in input..
+    } else if (e.key.toLowerCase() === "u" || e.key === "^") {
       newStrummingPattern.strums[beatIndex] = {
         ...data.strums[beatIndex]!, // ! because we know it's not undefined
         strum: "^",
+      };
+    } else if (e.key.toLowerCase() === "s") {
+      newStrummingPattern.strums[beatIndex] = {
+        ...data.strums[beatIndex]!, // ! because we know it's not undefined
+        strum: "s",
       };
     }
 

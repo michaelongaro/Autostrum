@@ -176,16 +176,27 @@ function TabNote({
 
     const newTabData = [...tabData];
 
-    // v/d for downstrum and ^/u for upstrum
-    if ((e.key === "d" || e.key === "u") && noteIndex === 7) {
-      if (e.key === "d") {
+    // v/d for downstrum, ^/u for upstrum, and s for slap
+    if (
+      (e.key.toLowerCase() === "d" ||
+        e.key.toLowerCase() === "v" ||
+        e.key.toLowerCase() === "u" ||
+        e.key === "^" ||
+        e.key.toLowerCase() === "s") &&
+      noteIndex === 7
+    ) {
+      if (e.key.toLowerCase() === "d" || e.key.toLowerCase() === "v") {
         newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex]![
           noteIndex
         ] = "v";
-      } else {
+      } else if (e.key.toLowerCase() === "u" || e.key === "^") {
         newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex]![
           noteIndex
         ] = "^";
+      } else if (e.key.toLowerCase() === "s") {
+        newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex]![
+          noteIndex
+        ] = "s";
       }
     } else if (
       (e.ctrlKey && e.key === "c") || // Control + C for Windows/Linux
