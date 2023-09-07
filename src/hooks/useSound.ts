@@ -145,7 +145,7 @@ export default function useSound() {
   // soundfont file would be cached by the browser anyway, but it doesn't hurt
   // to leave it
   useEffect(() => {
-    const fetchInstrument = async () => {
+    const fetchInstrument = () => {
       if (!audioContext) return;
 
       // Check if the instrument is already in cache
@@ -155,26 +155,51 @@ export default function useSound() {
       }
 
       setCurrentInstrument(null);
-
       // If not in cache, fetch it
-      const guitarObj = await Soundfont.instrument(
-        audioContext,
-        currentInstrumentName,
-        {
-          soundfont: "MusyngKite",
-          format: "ogg",
-        }
-      ).then((player) => player.connect(masterVolumeGainNode));
+      // @ts-expect-error this isn't supported in safari yet, so we have regular fallback below
+      if (window.requestIdleCallback) {
+        requestIdleCallback(
+          () => {
+            void Soundfont.instrument(audioContext, currentInstrumentName, {
+              soundfont: "MusyngKite",
+              format: "ogg",
+            }).then((player) => {
+              player.connect(masterVolumeGainNode);
 
-      // Update the cache
-      const updatedInstruments = {
-        ...instruments,
-        [currentInstrumentName]: guitarObj,
-      };
-      setInstruments(updatedInstruments);
+              // Update the cache
+              const updatedInstruments = {
+                ...instruments,
+                [currentInstrumentName]: player,
+              };
+              setInstruments(updatedInstruments);
+              setCurrentInstrument(player);
+            });
+          },
+          {
+            timeout: currentInstrument ? 0 : 1500,
+          }
+        );
+      } else {
+        setTimeout(
+          () => {
+            void Soundfont.instrument(audioContext, currentInstrumentName, {
+              soundfont: "MusyngKite",
+              format: "ogg",
+            }).then((player) => {
+              player.connect(masterVolumeGainNode);
 
-      // Set the current instrument
-      setCurrentInstrument(guitarObj);
+              // Update the cache
+              const updatedInstruments = {
+                ...instruments,
+                [currentInstrumentName]: player,
+              };
+              setInstruments(updatedInstruments);
+              setCurrentInstrument(player);
+            });
+          },
+          currentInstrument ? 0 : 1500
+        );
+      }
     };
 
     void fetchInstrument();
@@ -183,6 +208,7 @@ export default function useSound() {
     audioContext,
     currentInstrumentName,
     instruments,
+    currentInstrument,
     setCurrentInstrument,
     setInstruments,
   ]);
