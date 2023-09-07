@@ -439,7 +439,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     if (audioMetadata.playing) {
       return (
         <motion.div
-          key={`${id}pauseButton`}
+          key={`${id}audioControlsPauseButton`}
           variants={opacityAndScaleVariants}
           initial="closed"
           animate="expanded"
@@ -456,7 +456,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     ) {
       return (
         <motion.svg
-          key={`${id}loadingIcon`}
+          key={`${id}audioControlsLoadingIcon`}
           variants={opacityAndScaleVariants}
           initial="closed"
           animate="expanded"
@@ -483,7 +483,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     } else {
       return (
         <motion.div
-          key={`${id}playButton`}
+          key={`${id}audioControlsPlayButton`}
           variants={opacityAndScaleVariants}
           initial="closed"
           animate="expanded"
