@@ -132,6 +132,8 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
     setBpm,
     timeSignature,
     setTimeSignature,
+    musicalKey,
+    setMusicalKey,
     numberOfLikes,
     capo,
     setCapo,
@@ -166,6 +168,8 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
       sectionProgression: state.sectionProgression,
       timeSignature: state.timeSignature,
       setTimeSignature: state.setTimeSignature,
+      musicalKey: state.musicalKey,
+      setMusicalKey: state.setMusicalKey,
       capo: state.capo,
       setCapo: state.setCapo,
       hasRecordedAudio: state.hasRecordedAudio,
@@ -231,22 +235,41 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
   function handleTimeSignatureChange(e: ChangeEvent<HTMLInputElement>) {
     const newValue = e.target.value;
     const parts = newValue.split("/");
-    if (parts.length > 2) return; // only allow one '/'
+
+    // Prevent '/' from being the first or only character
+    if (newValue === "/" || newValue.endsWith("//")) return;
+
+    // Only allow one '/'
+    if (parts.length > 2) return;
 
     for (const part of parts) {
       if (part !== "") {
-        // allow empty parts for ongoing inputs like '4/'
+        // Disallow more than two digits in either part
+        if (part.length > 2) return;
+
         const num = parseInt(part, 10);
-        // adjust validation to allow for ongoing inputs like '4/1'
+
+        // Adjust validation to allow for ongoing inputs like '4/1'
         if (isNaN(num) || num < 1 || (part.length === 2 && num > 20)) return;
       }
     }
 
-    // check if newValue is purely numeric or slash
+    // Check if newValue is purely numeric or contains a slash
     const regex = /^[0-9/]*$/;
     if (!regex.test(newValue)) return;
 
     setTimeSignature(newValue);
+  }
+
+  function handleMuscialKeyChange(e: ChangeEvent<HTMLInputElement>) {
+    const newValue = e.target.value;
+
+    // Only allow valid musical key notations for guitar
+    // E.g., "C", "C#", "Db", "A", "Am", "F#m", etc.
+    const regex = /^(C|C#|Db|D|D#|Eb|E|F|F#|Gb|G|G#|Ab|A|A#|Bb|B)(m?)$/;
+    if (regex.test(newValue) || newValue === "") {
+      setMusicalKey(newValue);
+    }
   }
 
   function handleCapoChange(event: ChangeEvent<HTMLInputElement>) {
@@ -631,8 +654,11 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                   transitionTimingFunction: "ease-in-out",
                   transitionDuration: "500ms",
                 }}
-                className="animate-errorShake"
-                onChange={(e) => setTitle(e.target.value)}
+                className="w-full animate-errorShake md:w-72"
+                onChange={(e) => {
+                  if (e.target.value.length > 30) return;
+                  setTitle(e.target.value);
+                }}
               />
             </div>
 
@@ -782,6 +808,20 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                 placeholder="4/4"
                 value={timeSignature ?? ""}
                 onChange={handleTimeSignatureChange}
+              />
+            </div>
+
+            <div
+              className={`${
+                classes.musicalKey ?? ""
+              } baseVertFlex w-16 max-w-sm !items-start gap-1.5`}
+            >
+              <Label htmlFor="musicalKey">Key</Label>
+              <Input
+                type="text"
+                placeholder="E"
+                value={musicalKey ?? ""}
+                onChange={handleMuscialKeyChange}
               />
             </div>
           </div>
@@ -966,7 +1006,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                   } baseVertFlex !items-start gap-2`}
                 >
                   <div className="font-semibold">Tuning</div>
-                  <div className="rounded-md border-2 border-pink-50 px-8 py-2 font-semibold ">
+                  <div className="rounded-md border-2 border-pink-50 px-4 py-2 font-semibold ">
                     {toString(parse(tuning), { pad: 2 })}
                   </div>
                 </div>
@@ -1005,6 +1045,17 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                     {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
                   </p>
                 </div>
+
+                {musicalKey && (
+                  <div
+                    className={`${
+                      classes.musicalKey ?? ""
+                    } baseVertFlex !items-start gap-2`}
+                  >
+                    <div className="font-semibold">Key</div>
+                    <div>{musicalKey}</div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

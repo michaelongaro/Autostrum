@@ -10,7 +10,7 @@
     "description description"
     "genre bpm"
     "tuning capo"
-    "timingSignature .";
+    "timingSignature musicalKey";
   gap: 1rem;
 }
 
@@ -24,7 +24,7 @@
       "title title title title"
       "description description description description"
       "genre genre tuning tuning"
-      "bpm capo timingSignature .";
+      "bpm capo timingSignature musicalKey";
   }
 }
 
@@ -35,7 +35,7 @@
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
     grid-template-areas:
       "title title title title genre genre tuning tuning"
-      "description description description description bpm capo timingSignature .";
+      "description description description description bpm capo timingSignature musicalKey";
     place-items: start;
   }
 }
@@ -115,4 +115,8 @@
 
 .timingSignature {
   grid-area: timingSignature;
+}
+
+.musicalKey {
+  grid-area: musicalKey;
 }

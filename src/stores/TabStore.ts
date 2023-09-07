@@ -234,6 +234,7 @@ const initialStoreState = {
   tuning: "e2 a2 d3 g3 b3 e4",
   bpm: 75,
   capo: 0,
+  musicalKey: "",
   hasRecordedAudio: false,
   chords: [],
   strummingPatterns: [],
@@ -309,6 +310,8 @@ interface TabState {
   setTimeSignature: (timeSignature: string) => void;
   capo: number;
   setCapo: (capo: number) => void;
+  musicalKey: string;
+  setMusicalKey: (musicalKey: string) => void;
   hasRecordedAudio: boolean;
   setHasRecordedAudio: (hasRecordedAudio: boolean) => void;
   chords: Chord[];
@@ -483,6 +486,8 @@ export const useTabStore = create<TabState>()(
     setTimeSignature: (timeSignature) => set({ timeSignature }),
     capo: 0,
     setCapo: (capo) => set({ capo }),
+    musicalKey: "",
+    setMusicalKey: (musicalKey) => set({ musicalKey }),
     hasRecordedAudio: false,
     setHasRecordedAudio: (hasRecordedAudio) => set({ hasRecordedAudio }),
     chords: [],

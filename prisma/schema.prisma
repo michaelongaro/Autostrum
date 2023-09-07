@@ -31,6 +31,7 @@ model Tab {
     sectionProgression Json
     description        String    @default("")
     timeSignature      String    @default("")
+    musicalKey         String    @default("")
     capo               Int       @default(0)
     hasRecordedAudio   Boolean   @default(false)
     createdAt          DateTime  @default(now())

@@ -58,6 +58,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setTuning,
     setBpm,
     setTimeSignature,
+    setMusicalKey,
     setHasRecordedAudio,
     setChords,
     strummingPatterns,
@@ -87,6 +88,7 @@ function Tab({ tab, refetchTab }: ITab) {
       setTuning: state.setTuning,
       setBpm: state.setBpm,
       setTimeSignature: state.setTimeSignature,
+      setMusicalKey: state.setMusicalKey,
       setHasRecordedAudio: state.setHasRecordedAudio,
       setChords: state.setChords,
       strummingPatterns: state.strummingPatterns,
@@ -123,6 +125,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setTuning(tab.tuning);
     setBpm(tab.bpm);
     setTimeSignature(tab.timeSignature);
+    setMusicalKey(tab.musicalKey);
     setHasRecordedAudio(tab.hasRecordedAudio);
     setNumberOfLikes(tab.numberOfLikes);
 
@@ -148,6 +151,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setStrummingPatterns,
     setTabData,
     setTimeSignature,
+    setMusicalKey,
     setTitle,
     setOriginalTabData,
     setTuning,
