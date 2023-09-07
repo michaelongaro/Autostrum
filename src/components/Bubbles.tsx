@@ -53,10 +53,10 @@ function Bubbles() {
       const position = [
         (Math.random() * window.innerWidth - window.innerWidth / 2) / 10,
         Math.floor(Math.random() * -30),
-        Math.floor(Math.random() * 20),
+        Math.floor(Math.random() * 35),
       ];
       const size = Math.random() * 0.35 + 0.1;
-      const velocity = Math.random() * 0.04 + 0.01;
+      const velocity = Math.random() * 0.03 + 0.01;
       bubbleProps.push({ position, size, velocity });
     }
     // @ts-expect-error typing on arr
@@ -120,6 +120,7 @@ function Bubble({ position, size, velocity }: Bubble) {
       // Reset bubble position when it goes out of the screen
       if (meshRef.current.position.y > 40) {
         meshRef.current.position.y = -40;
+        meshRef.current.position.x = originalX;
       }
     }
   });
