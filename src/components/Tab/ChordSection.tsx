@@ -153,7 +153,7 @@ function ChordSection({
       transition={{
         layout: {
           type: "spring",
-          bounce: 0.2,
+          bounce: 0.15,
           duration: 1,
         },
       }}
@@ -195,7 +195,6 @@ function ChordSection({
         </div>
       )}
 
-      {/* <div className="baseVertFlex w-full !items-start gap-2"> */}
       <AnimatePresence mode="wait">
         <motion.div
           key={`${subSectionData.id}ChordSectionWrapper`}
@@ -207,7 +206,7 @@ function ChordSection({
           transition={{
             layout: {
               type: "spring",
-              bounce: 0.2,
+              bounce: 0.15,
               duration: 1,
             },
           }}
@@ -258,7 +257,6 @@ function ChordSection({
           ))}
         </motion.div>
       </AnimatePresence>
-      {/* </div> */}
 
       {/* TODO: prob only show this when there is at least one strumming pattern defined */}
       {editing && (

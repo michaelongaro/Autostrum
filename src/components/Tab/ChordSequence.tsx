@@ -188,7 +188,7 @@ function ChordSequence({
       transition={{
         layout: {
           type: "spring",
-          bounce: 0.2,
+          bounce: 0.15,
           duration: 1,
         },
       }}
