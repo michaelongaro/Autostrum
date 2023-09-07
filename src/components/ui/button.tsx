@@ -29,7 +29,7 @@ const buttonVariants = cva(
         navigation:
           "bg-pink-200 hover:bg-pink-700 text-pink-800 hover:text-pink-200 active:bg-pink-800 active:text-pink-200",
         playPause:
-          "bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-90 disabled:bg-gray-500",
+          "bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-50 disabled:bg-gray-500",
       },
       size: {
         default: "h-10 px-4 py-2",
