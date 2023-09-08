@@ -29,6 +29,7 @@ import { LuClipboardPaste } from "react-icons/lu";
 import useSound from "~/hooks/useSound";
 import isEqual from "lodash.isequal";
 import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
+import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 
 interface MiscellaneousControls {
   type: "section" | "tab" | "chord" | "chordSequence";
@@ -410,15 +411,16 @@ function MiscellaneousControls({
             }
           }}
         >
-          {audioMetadata.type === "Generated" &&
-          audioMetadata.playing &&
-          audioMetadata.location?.sectionIndex === sectionIndex &&
-          audioMetadata.location?.subSectionIndex === subSectionIndex &&
-          audioMetadata.location?.chordSequenceIndex === chordSequenceIndex ? (
-            <BsFillPauseFill className="h-5 w-5" />
-          ) : (
-            <BsFillPlayFill className="h-5 w-5" />
-          )}
+          <PlayButtonIcon
+            uniqueLocationKey={`miscControls${sectionIndex}${
+              subSectionIndex ?? ""
+            }${chordSequenceIndex ?? ""}`}
+            currentInstrument={currentInstrument}
+            audioMetadata={audioMetadata}
+            sectionIndex={sectionIndex}
+            subSectionIndex={subSectionIndex}
+            chordSequenceIndex={chordSequenceIndex}
+          />
         </Button>
       )}
 

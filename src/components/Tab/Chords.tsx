@@ -14,11 +14,13 @@ import { HiOutlineInformationCircle } from "react-icons/hi";
 import Chord from "./Chord";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import useSound from "~/hooks/useSound";
+import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 
 function Chords() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const {
+    currentInstrument,
     chords,
     setChords,
     setChordBeingEdited,
@@ -29,6 +31,7 @@ function Chords() {
     previewMetadata,
   } = useTabStore(
     (state) => ({
+      currentInstrument: state.currentInstrument,
       chords: state.chords,
       setChords: state.setChords,
       setChordBeingEdited: state.setChordBeingEdited,
@@ -188,9 +191,10 @@ function Chords() {
                   <Button
                     variant={"playPause"}
                     disabled={
-                      previewMetadata.indexOfPattern === index &&
-                      previewMetadata.playing &&
-                      previewMetadata.type === "chord"
+                      !currentInstrument ||
+                      (previewMetadata.indexOfPattern === index &&
+                        previewMetadata.playing &&
+                        previewMetadata.type === "chord")
                     }
                     size={"sm"}
                     onClick={() => {
@@ -202,7 +206,13 @@ function Chords() {
                     }}
                     className="baseFlex h-full w-10 rounded-l-none border-l-2"
                   >
-                    <BsFillPlayFill className="h-6 w-6" />
+                    <PlayButtonIcon
+                      uniqueLocationKey={`chordPreview${index}}`}
+                      currentInstrument={currentInstrument}
+                      previewMetadata={previewMetadata}
+                      indexOfPattern={index}
+                      previewType="chord"
+                    />
                   </Button>
                 </>
               )}

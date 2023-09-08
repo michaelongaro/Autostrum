@@ -84,7 +84,7 @@ type InstrumentNames =
   | "electric_guitar_clean"
   | "electric_guitar_jazz";
 
-interface AudioMetadata {
+export interface AudioMetadata {
   type: "Generated" | "Artist recording";
   playing: boolean;
   tabId: number;
@@ -95,7 +95,7 @@ interface AudioMetadata {
   } | null;
 }
 
-interface PreviewMetadata {
+export interface PreviewMetadata {
   indexOfPattern: number;
   currentChordIndex: number;
   type: "chord" | "strummingPattern";

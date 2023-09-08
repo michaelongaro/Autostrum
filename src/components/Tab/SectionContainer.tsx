@@ -20,6 +20,7 @@ import useSound from "~/hooks/useSound";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import isEqual from "lodash.isequal";
 import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
+import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -264,13 +265,12 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
                 }
               }}
             >
-              {audioMetadata.type === "Generated" &&
-              audioMetadata.playing &&
-              audioMetadata.location?.sectionIndex === sectionIndex ? (
-                <BsFillPauseFill className="h-5 w-5" />
-              ) : (
-                <BsFillPlayFill className="h-5 w-5" />
-              )}
+              <PlayButtonIcon
+                uniqueLocationKey={`sectionContainer${sectionIndex}`}
+                currentInstrument={currentInstrument}
+                audioMetadata={audioMetadata}
+                sectionIndex={sectionIndex}
+              />
             </Button>
           </div>
         </div>

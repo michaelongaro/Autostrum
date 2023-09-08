@@ -20,6 +20,7 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import StrummingPattern from "./StrummingPattern";
 import isEqual from "lodash.isequal";
 import useSound from "~/hooks/useSound";
+import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 
 function StrummingPatterns() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
@@ -31,6 +32,7 @@ function StrummingPatterns() {
     useState(false);
 
   const {
+    currentInstrument,
     strummingPatterns,
     setStrummingPatterns,
     setStrummingPatternBeingEdited,
@@ -44,6 +46,7 @@ function StrummingPatterns() {
     previewMetadata,
   } = useTabStore(
     (state) => ({
+      currentInstrument: state.currentInstrument,
       strummingPatterns: state.strummingPatterns,
       setStrummingPatterns: state.setStrummingPatterns,
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
@@ -250,7 +253,7 @@ function StrummingPatterns() {
                   <Button
                     variant={"playPause"}
                     size={"sm"}
-                    disabled={artificalPlayButtonTimeout}
+                    disabled={!currentInstrument || artificalPlayButtonTimeout}
                     onClick={() => {
                       if (
                         previewMetadata.playing &&
@@ -273,12 +276,13 @@ function StrummingPatterns() {
                     }}
                     className="w-10 rounded-l-none rounded-r-sm border-2 border-l-0 p-3"
                   >
-                    {previewMetadata.playing &&
-                    previewMetadata.type === "strummingPattern" ? (
-                      <BsStopFill className="h-6 w-6" />
-                    ) : (
-                      <BsFillPlayFill className="h-6 w-6" />
-                    )}
+                    <PlayButtonIcon
+                      uniqueLocationKey={`strummingPatternPreview${index}}`}
+                      currentInstrument={currentInstrument}
+                      previewMetadata={previewMetadata}
+                      indexOfPattern={index}
+                      previewType="strummingPattern"
+                    />
                   </Button>
                 </div>
               )}
