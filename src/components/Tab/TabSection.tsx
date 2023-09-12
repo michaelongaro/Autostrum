@@ -149,12 +149,6 @@ function TabSection({
     }
 
     setTabData(newTabData);
-
-    const firstNewColumnIndex = subSectionData.data.length - 8; // this will be the first of the 8 new strums added
-
-    setInputIdToFocus(
-      `input-${sectionIndex}-${subSectionIndex}-${firstNewColumnIndex}-3`
-    );
   }
 
   interface TraverseSectionData {
@@ -558,6 +552,30 @@ function TabSection({
       );
 
       newNoteToFocus?.focus();
+    } else if (e.key === "Enter") {
+      const newTabData = [...tabData];
+
+      for (let i = 0; i < 8; i++) {
+        newTabData[sectionIndex]!.data[subSectionIndex]?.data.push(
+          Array.from({ length: 10 }, (_, index) => {
+            if (index === 8) {
+              return "note";
+            } else if (index === 9) {
+              return uuid();
+            } else {
+              return "";
+            }
+          })
+        );
+      }
+
+      setTabData(newTabData);
+
+      const firstNewColumnIndex = subSectionData.data.length - 8; // this will be the first of the 8 new strums added
+
+      setInputIdToFocus(
+        `input-${sectionIndex}-${subSectionIndex}-${firstNewColumnIndex}-3`
+      );
     }
   }
 
