@@ -220,11 +220,8 @@ export default function useSound() {
     bpm: number;
     when: number;
     effects?: string[];
-    prevTetheredNote?: {
-      note: number;
-      effect: string;
-    };
-    slideToFret?: number;
+    tetheredMetadata?: TetheredMetadata;
+    pluckBaseNote: boolean;
   }
 
   function playNoteWithEffects({
@@ -234,8 +231,8 @@ export default function useSound() {
     bpm,
     when,
     effects,
-    prevTetheredNote,
-    slideToFret,
+    tetheredMetadata,
+    pluckBaseNote,
   }: PlayNoteWithEffects) {
     if (!audioContext || !masterVolumeGainNode) return;
 
@@ -243,46 +240,39 @@ export default function useSound() {
 
     let noteWithEffectApplied = undefined;
 
-    if (prevTetheredNote || slideToFret) {
-      if (slideToFret) {
-        // effectively: these "arbitrary" slides (/3, 3/, etc.) are just
-        // played as a bend
-        noteWithEffectApplied = applyBendEffect({
+    if (tetheredMetadata) {
+      // "arbitrary" slides (/3, 3/, etc.) and regular bends/releases
+      if (
+        tetheredMetadata.transitionToFret !== undefined &&
+        (tetheredMetadata.effect === "b" || tetheredMetadata.effect === "r")
+      ) {
+        noteWithEffectApplied = applyBendOrReleaseEffect({
           note,
           baseFret: fret,
-          fretToBendTo: slideToFret,
-          stringIdx,
+          fretToBendTo: tetheredMetadata.transitionToFret,
           when,
           bpm,
+          pluckBaseNote,
         });
-      } else if (prevTetheredNote) {
+      } else if (tetheredMetadata.transitionFromFret !== undefined) {
         noteWithEffectApplied = applyTetheredEffect({
           note,
           currentEffects: effects,
           currentFret: fret,
-          tetheredEffect: prevTetheredNote.effect as "h" | "p" | "/" | "\\",
-          tetheredFret: prevTetheredNote.note,
+          tetheredEffect: tetheredMetadata.effect as "h" | "p" | "/" | "\\",
+          tetheredFret: tetheredMetadata.transitionFromFret,
           stringIdx,
           bpm,
           when,
         });
       }
     } else if (effects) {
-      // if note was tethered and also has an inline effect, it is handled
-      // within applyTetheredEffect() above
-
       if (effects.includes("~")) {
         noteWithEffectApplied = applyVibratoEffect({
           when: 0,
           note,
           bpm,
-        });
-      } else if (effects.includes("b")) {
-        noteWithEffectApplied = applyBendEffect({
-          note,
-          stringIdx,
-          when,
-          bpm,
+          pluckBaseNote,
         });
       } else if (effects.includes("x")) {
         noteWithEffectApplied = applyDeadNoteEffect(note);
@@ -296,11 +286,14 @@ export default function useSound() {
       );
     }
 
-    // ~ and b effects are applied to the note itself, so we don't need to
-    // connect() them again to the master volume gain node and audioContext.destination
+    // below conditions have to stop the note or reroute the note and need
+    // to be reconnect()'ed to the masterVolumeGainNode
     if (
       noteWithEffectApplied &&
-      (effects?.includes("PM") || prevTetheredNote || effects?.includes("x"))
+      (tetheredMetadata ||
+        // !pluckBaseNote || // don't think this is necessary anymore
+        effects?.includes("PM") ||
+        effects?.includes("x"))
     ) {
       noteWithEffectApplied.connect(masterVolumeGainNode);
       masterVolumeGainNode.connect(audioContext.destination);
@@ -309,45 +302,65 @@ export default function useSound() {
 
   interface ApplyBendEffect {
     note?: GainNode;
-    baseFret?: number;
-    fretToBendTo?: number;
     copiedNote?: AudioBufferSourceNode;
-    stringIdx: number;
+    baseFret: number;
+    fretToBendTo: number;
     when: number;
     bpm: number;
+    pluckBaseNote?: boolean;
   }
 
-  function applyBendEffect({
+  function applyBendOrReleaseEffect({
     note,
+    copiedNote,
     baseFret,
     fretToBendTo,
-    copiedNote,
-    stringIdx,
     when,
     bpm,
+    pluckBaseNote = true,
   }: ApplyBendEffect) {
     if (!audioContext) return;
 
-    let detuneValue = 0;
+    let source: AudioBufferSourceNode | undefined = undefined;
+    let sourceGain: GainNode | undefined = undefined;
+    if (!pluckBaseNote && note) {
+      note.source.stop(0);
+      source = audioContext.createBufferSource();
 
-    if (fretToBendTo !== undefined && baseFret !== undefined) {
-      detuneValue = (fretToBendTo - baseFret) * 100;
-    } else {
-      detuneValue = stringIdx > 1 ? 100 : -100;
+      source.buffer = note.source.buffer as AudioBuffer;
+      source.start(0, 0.85);
+
+      sourceGain = audioContext.createGain();
+      sourceGain.gain.exponentialRampToValueAtTime(
+        1.5,
+        audioContext.currentTime + when + 0.15 // TODO: would like to play around with this 0.15 value + with when the source starts + the sourceGain value
+      );
+      source.connect(sourceGain);
     }
 
-    if (note) {
+    const detuneValue = (fretToBendTo - baseFret) * 100;
+
+    if (source && sourceGain) {
+      // if not plucking base note, then start bend as soon as volume level of copiedNote is at 1.5
+      const extraDelay = 0.15;
+
+      source.detune.linearRampToValueAtTime(
+        detuneValue,
+        audioContext.currentTime + when + extraDelay + (60 / bpm) * 0.5
+      );
+      return sourceGain;
+    } else if (note) {
       note.source.detune.linearRampToValueAtTime(
         detuneValue,
-        audioContext.currentTime + when + (60 / bpm) * 0.5 // maybe * 0.5 or something
+        audioContext.currentTime + when + (60 / bpm) * 0.5
       );
       return note;
     } else if (copiedNote) {
       copiedNote.detune.linearRampToValueAtTime(
         detuneValue,
-        audioContext.currentTime + when + (60 / bpm) * 0.5 // maybe * 0.5 or something
+        audioContext.currentTime + when + (60 / bpm) * 0.5
       );
-      // increasing gain to match level set in applyTetheredEffect=
+      // increasing gain to match level set in applyTetheredEffect()
       const copiedNoteGain = audioContext.createGain();
       copiedNoteGain.gain.value = 1.5; // TODO: prob needs to be dynamic based on prevEffect being "p" or not
       copiedNote.connect(copiedNoteGain);
@@ -562,7 +575,7 @@ export default function useSound() {
     const sourceGain = audioContext.createGain();
     sourceGain.gain.exponentialRampToValueAtTime(
       tetheredEffect === "p" ? 0.75 : 1.5,
-      audioContext.currentTime + when + 0.15
+      audioContext.currentTime + when + 0.15 // TODO: would like to play around with this 0.15 value + with when the source starts + the sourceGain value
     );
     source.connect(sourceGain);
 
@@ -584,15 +597,16 @@ export default function useSound() {
     if (currentEffects) {
       if (currentEffects.includes("~")) {
         applyVibratoEffect({
-          copiedNote: source, // will be increasing gain w/in this function to match level set above
+          copiedNote: source,
           when: when + durationOfTransition,
           bpm,
         });
       } else if (currentEffects.includes("b")) {
-        applyBendEffect({
-          copiedNote: source, // will be increasing gain w/in this function to match level set above
+        applyBendOrReleaseEffect({
+          copiedNote: source,
+          baseFret: currentFret,
+          fretToBendTo: tetheredFret,
           when: when + durationOfTransition,
-          stringIdx,
           bpm,
         });
       }
@@ -606,6 +620,7 @@ export default function useSound() {
     copiedNote?: AudioBufferSourceNode;
     when: number; // offset to start the effect
     bpm: number;
+    pluckBaseNote?: boolean;
   }
 
   function applyVibratoEffect({
@@ -613,8 +628,27 @@ export default function useSound() {
     copiedNote,
     when,
     bpm,
+    pluckBaseNote = true,
   }: ApplyVibratoEffect) {
     if (!audioContext) return;
+
+    let source: AudioBufferSourceNode | undefined = undefined;
+    let sourceGain: GainNode | undefined = undefined;
+
+    if (!pluckBaseNote && note) {
+      note.source.stop(0);
+      source = audioContext.createBufferSource();
+
+      source.buffer = note.source.buffer as AudioBuffer;
+      source.start(0, 0.85);
+
+      sourceGain = audioContext.createGain();
+      sourceGain.gain.exponentialRampToValueAtTime(
+        1.5,
+        audioContext.currentTime + when + 0.15 // TODO: would like to play around with this 0.15 value + with when the source starts + the sourceGain value
+      );
+      source.connect(sourceGain);
+    }
 
     // Create a modulation oscillator
     const vibratoOscillator = audioContext.createOscillator();
@@ -628,9 +662,16 @@ export default function useSound() {
     // Connect the modulation oscillator to the gain
     vibratoOscillator.connect(vibratoDepth);
 
-    vibratoOscillator.start(audioContext.currentTime + when);
+    // in general might want to add tiny delay to allow pluck of note to be heard?
+    // but I was thinking if omitting the pluck, then add another tiny delay to allow
+    // the gain to ramp up to the normal value? obv play around with it
+    // currently: just trying out 0.15 to see what it sounds like
+    vibratoOscillator.start(audioContext.currentTime + when + 0.15);
 
-    if (note) {
+    if (source && sourceGain) {
+      vibratoDepth.connect(source.detune);
+      return sourceGain;
+    } else if (note) {
       vibratoDepth.connect(note.source.detune);
       return note;
     } else if (copiedNote) {
@@ -650,11 +691,8 @@ export default function useSound() {
     bpm: number;
     when: number;
     effects: string[];
-    prevTetheredNote?: {
-      note: number;
-      effect: string;
-    };
-    slideToFret?: number;
+    tetheredMetadata?: TetheredMetadata;
+    pluckBaseNote: boolean;
   }
 
   function playNote({
@@ -664,8 +702,8 @@ export default function useSound() {
     bpm,
     when,
     effects,
-    prevTetheredNote,
-    slideToFret,
+    tetheredMetadata,
+    pluckBaseNote,
   }: PlayNote) {
     if (!audioContext) return;
 
@@ -676,9 +714,10 @@ export default function useSound() {
       gain = 1.5;
     }
 
-    if (slideToFret) {
-      duration = 1;
-    }
+    // not 100% sure why we felt this was necessary below... test it out
+    // if (slideToFret) {
+    //   duration = 1;
+    // }
 
     // dead note and palm mute effects require us to basically hijack the note by almost muting it
     // and then creating a copy of it with a delay node, and adjusting the volume/effect from there
@@ -709,7 +748,7 @@ export default function useSound() {
       }
     );
 
-    if (note && (slideToFret || prevTetheredNote || effects.length > 0)) {
+    if (note && (tetheredMetadata || effects.length > 0)) {
       playNoteWithEffects({
         note: note as unknown as GainNode,
         stringIdx,
@@ -717,14 +756,18 @@ export default function useSound() {
         bpm,
         when,
         effects,
-        prevTetheredNote,
-        slideToFret,
+        tetheredMetadata,
+        pluckBaseNote,
       });
     }
 
-    // this same process is done inside of applyTetheredEffect() with the copy
-    // AudioBufferSourceNode that is made
-    if (!prevTetheredNote) {
+    // I believe we needed this maybe as a timing workaround where hp/\ effects were
+    // getting .stop()'d just as they were being played, so they got handled in applyTetheredEffect()?
+    if (
+      !tetheredMetadata ||
+      tetheredMetadata.effect === "b" ||
+      tetheredMetadata.effect === "r"
+    ) {
       setTimeout(() => {
         currentNoteArrayRef.current[stringIdx]?.stop();
         currentNoteArrayRef.current[stringIdx] = note;
@@ -787,15 +830,34 @@ export default function useSound() {
     return 1;
   }
 
-  function playNoteColumn(
-    currColumn: string[],
-    tuning: number[],
-    capo: number,
-    bpm: number,
-    prevColumn?: string[],
-    secondPrevColumn?: string[],
-    nextColumn?: string[]
-  ) {
+  interface TetheredMetadata {
+    effect: "h" | "p" | "/" | "\\" | "b" | "r";
+    pluckBaseNote: boolean; // used conditionally for b/r when they are not preceded by a tethered effect
+    transitionFromFret?: number; // used for hp/\ effects and pre-note arbitrary slides
+    transitionToFret?: number; // used for br effects and post-note arbitrary slides
+  }
+
+  interface PlayNoteColumn {
+    tuning: number[];
+    capo: number;
+    bpm: number;
+    thirdPrevColumn?: string[];
+    secondPrevColumn?: string[];
+    prevColumn?: string[];
+    currColumn: string[];
+    nextColumn?: string[];
+  }
+
+  function playNoteColumn({
+    tuning,
+    capo,
+    bpm,
+    thirdPrevColumn,
+    secondPrevColumn,
+    prevColumn,
+    currColumn,
+    nextColumn,
+  }: PlayNoteColumn) {
     return new Promise<void>((resolve) => {
       setTimeout(() => {
         resolve();
@@ -830,14 +892,18 @@ export default function useSound() {
         currColumn[7]?.includes("^") || false
       );
 
-      const allInlineEffects = /[hp\/\\\\~>.bx]/g;
+      const allInlineEffects = /[hp\/\\\\br~>.x]/g;
       const tetherEffects = /^[hp\/\\\\]$/;
+      const onlyHasFretNumber = /^[0-9]+$/;
+      const containsNumber = /\d/;
+      // const containsFretNumberAndEffect = /^[0-9]+[hp\/\\\\br~>.]$/;
 
       for (let index = 1; index < 7; index++) {
         // 1-6 is actually starting with "high e" normally, so reverse it if you want
         // to start with "low e" aka downwards strum
         const stringIdx = currColumn[7]?.includes("v") ? 7 - index : index;
 
+        const thirdPrevNote = thirdPrevColumn?.[stringIdx];
         const secondPrevNote = secondPrevColumn?.[stringIdx];
         const prevNote = prevColumn?.[stringIdx];
         const currNote = currColumn[stringIdx];
@@ -856,10 +922,17 @@ export default function useSound() {
           currNote === "" ||
           // skipping effects because next note is the one that actually gets played
           // in a "3 {effect} 5" scenario
+          currNote === "h" ||
+          currNote === "p" ||
           currNote === "/" ||
           currNote === "\\" ||
-          currNote === "h" ||
-          currNote === "p"
+          // don't want to pluck note that is the target frequency of the bend
+          (prevNote?.includes("b") && onlyHasFretNumber.test(currNote || "")) ||
+          // don't want to play a "release" effect if there is no bend to release
+          // from w/in last 2 columns
+          (currNote === "r" &&
+            !prevNote?.includes("b") &&
+            !secondPrevNote?.includes("b"))
         )
           continue;
 
@@ -867,7 +940,74 @@ export default function useSound() {
 
         let fret = 0;
 
-        // pre-note arbitrary slide up
+        let tetheredMetadata: TetheredMetadata | undefined = undefined;
+
+        let transitionFromFret = undefined;
+        let transitionToFret = undefined;
+        let pluckBaseNote = true;
+        let effect: "h" | "p" | "/" | "\\" | "b" | "r" | undefined = undefined;
+
+        // handling bends and releases
+        if (currNote && (currNote.includes("b") || currNote.includes("r"))) {
+          // baseFret = the first note of the bend/release pair, targetNote being the second
+          let baseFret = 0;
+
+          // need to find our baseFret of the release, which is the targetFret of the bend.
+          if (currNote === "r") {
+            baseFret = extractNumber(
+              prevNote?.includes("b") ? prevNote : secondPrevNote!
+            );
+          } else {
+            baseFret = extractNumber(currNote);
+            // ^ might be scuffed in a "3b   5r" scenario, but deal with the implications of that when you get to them
+          }
+
+          if (currNote.includes("b")) {
+            if (nextNote && containsNumber.test(nextNote)) {
+              transitionToFret = extractNumber(nextNote) + capo; // bend to specific fret
+            } else {
+              if (baseFret >= 20) {
+                transitionToFret = 22;
+              } else {
+                transitionToFret = baseFret + capo + 2; // non-specified generic: one semitone up
+              }
+            }
+          } else {
+            if (prevNote && prevNote.includes("b")) {
+              transitionToFret = extractNumber(prevNote) + capo; // release back to original note
+            } else if (secondPrevNote && secondPrevNote.includes("b")) {
+              transitionToFret = extractNumber(secondPrevNote) + capo; // release back to original note
+            } else {
+              if (baseFret <= 2) {
+                transitionToFret = 0;
+              } else {
+                transitionToFret = baseFret + capo - 2; // non-specified generic: one semitone down
+              }
+            }
+          }
+
+          // used to determine whether or not to pluck the base note of the bend,
+          // since in a continuous 3b 4r 3b 4r... it would be implied that it is a continuous
+          // bend -> release -> bend. but if the baseFret is different, then we need to pluck
+          // to maintain realism.
+          let baseNoteOfLastBend: number | undefined;
+
+          if (currNote.includes("b")) {
+            if (secondPrevNote?.includes("b")) {
+              baseNoteOfLastBend = extractNumber(secondPrevNote);
+            } else if (thirdPrevNote?.includes("b")) {
+              baseNoteOfLastBend = extractNumber(thirdPrevNote);
+            }
+          }
+
+          effect = currNote.includes("b") ? "b" : "r";
+          pluckBaseNote =
+            currNote.includes("b") &&
+            (!prevNote?.includes("r") ||
+              extractNumber(currNote) !== baseNoteOfLastBend);
+        }
+
+        // getting baseFret: pre-note arbitrary slide up
         if (currNote?.[0] === "/" && nextNote === "") {
           let baseFret = extractNumber(currNote);
 
@@ -879,7 +1019,7 @@ export default function useSound() {
 
           fret = baseFret + capo;
         }
-        // pre-note arbitrary slide down
+        // getting baseFret: pre-note arbitrary slide down
         else if (currNote?.[0] === "\\" && nextNote === "") {
           let baseFret = extractNumber(currNote);
 
@@ -890,16 +1030,40 @@ export default function useSound() {
           }
 
           fret = baseFret + capo;
+        } // handling bends and releases
+        if (currNote && (currNote.includes("b") || currNote.includes("r"))) {
+          // baseFret = the first note of the bend/release pair, targetNote being the second
+          let baseFret = 0;
+
+          // need to find our baseFret of the release, which is the targetFret of the bend.
+          if (currNote === "r") {
+            if (prevNote?.includes("b") && containsNumber.test(currNote)) {
+              baseFret = extractNumber(currNote);
+            } else if (secondPrevNote?.includes("b")) {
+              if (prevNote && containsNumber.test(prevNote)) {
+                baseFret = extractNumber(prevNote);
+              } else {
+                let tempBaseFret = extractNumber(currNote);
+
+                if (tempBaseFret >= 20) {
+                  tempBaseFret = 22;
+                } else {
+                  tempBaseFret += 2;
+                }
+
+                baseFret = tempBaseFret;
+              }
+            }
+          } else {
+            baseFret = extractNumber(currNote);
+            // ^ might be scuffed in a "3b   5r" scenario, but deal with the implications of that when you get to them
+          }
+
+          fret = baseFret + capo;
         } else {
           fret = extractNumber(currNote!) + capo;
         }
 
-        let prevNoteAndEffect = undefined;
-        let slideToFret = undefined;
-
-        // not 100% confident that completely barring unless [7] === "" is best
-        // I think it was mainly for v/^ cases timing wise...
-        // note, tetheredEffect, note extended syntax case
         if (
           secondPrevNote &&
           (prevNote === "/" ||
@@ -907,15 +1071,14 @@ export default function useSound() {
             prevNote === "h" ||
             prevNote === "p")
         ) {
-          prevNoteAndEffect = {
-            note: extractNumber(secondPrevNote) + capo,
-            effect: prevNote,
-          };
+          transitionFromFret = extractNumber(secondPrevNote) + capo;
+          effect = prevNote;
         }
 
         // pre-note arbitrary slide up/down
         else if (currNote?.[0] === "/" || currNote?.[0] === "\\") {
-          slideToFret = extractNumber(currNote);
+          transitionToFret = extractNumber(currNote);
+          effect = "b"; // these are played as bends in the engine
         }
 
         // post-note arbitrary slide up
@@ -928,7 +1091,8 @@ export default function useSound() {
             baseFret += 2;
           }
 
-          slideToFret = baseFret + capo;
+          transitionToFret = baseFret + capo;
+          effect = "b"; // these are played as bends in the engine
         }
         // post-note arbitrary slide down
         else if (currNote?.at(-1) === "\\" && nextNote === "") {
@@ -940,11 +1104,22 @@ export default function useSound() {
             baseFret -= 2;
           }
 
-          slideToFret = baseFret + capo;
-        } else if (prevNote && prevNoteHadTetherEffect) {
-          prevNoteAndEffect = {
-            note: extractNumber(prevNote) + capo,
-            effect: prevNote.at(-1)!,
+          transitionToFret = baseFret + capo;
+          effect = "b"; // these are played as bends in the engine
+        }
+
+        // handling hp/\ tethered effects
+        else if (prevNote && prevNoteHadTetherEffect) {
+          transitionFromFret = extractNumber(prevNote) + capo;
+          effect = prevNote.at(-1)! as "h" | "p" | "/" | "\\";
+        }
+
+        if (effect) {
+          tetheredMetadata = {
+            effect,
+            pluckBaseNote,
+            transitionFromFret,
+            transitionToFret,
           };
         }
 
@@ -959,23 +1134,27 @@ export default function useSound() {
           effects.push(">");
         }
 
-        // as a note, I don't know if it messes anything up, but prob keep hp/\ out of effects array
+        // this feels hacky, but it needs to be in separate state from tetheredMetadata for standalone
+        // fret + ~ scenario.
+        if (!currNote?.includes("b") && !currNote?.includes("r")) {
+          pluckBaseNote =
+            currNote?.includes("~") && prevNote?.includes("b") ? false : true;
+        }
 
         playNote({
           tuning,
           stringIdx: adjustedStringIdx,
           fret,
           bpm,
-          // want raw index instead of adjusted index since we only care about
+          // ^ want raw index instead of adjusted index since we only care about
           // how "far" into the chord the note is, also want to start multiplier
-          // based on first non-empty string to be as accurate as possible to how
-          // it would sound if it was played on a real guitar.
+          // based on first non-empty string for the timing to be as accurate as possible
           when:
             chordDelayMultiplier *
             Math.abs(indexOfFirstNonEmptyString - stringIdx),
           effects,
-          prevTetheredNote: prevNoteAndEffect,
-          slideToFret,
+          tetheredMetadata,
+          pluckBaseNote,
         });
       }
     });
@@ -1014,25 +1193,28 @@ export default function useSound() {
       });
       // ^^ doing this here because didn't update in time with one that was above
 
+      // prob don't need anything but currColumn since you can't have any fancy effects
+      // in the previews...
+
       const secondPrevColumn = compiledChords[chordIndex - 2];
       const prevColumn = compiledChords[chordIndex - 1];
-      const column = compiledChords[chordIndex];
+      const currColumn = compiledChords[chordIndex];
       const nextColumn = compiledChords[chordIndex + 1];
 
-      if (column === undefined) continue;
+      if (currColumn === undefined) continue;
 
       // alteredBpm = bpm for chord * (1 / noteLengthMultiplier)
-      const alteredBpm = Number(column[8]) * (1 / Number(column[9]));
+      const alteredBpm = Number(currColumn[8]) * (1 / Number(currColumn[9]));
 
-      await playNoteColumn(
-        column,
+      await playNoteColumn({
         tuning,
-        0,
-        alteredBpm,
-        prevColumn,
+        capo: 0,
+        bpm: alteredBpm,
         secondPrevColumn,
-        nextColumn
-      );
+        prevColumn,
+        currColumn,
+        nextColumn,
+      });
 
       if (breakOnNextPreviewChordRef.current) {
         setBreakOnNextPreviewChord(false);
@@ -1059,7 +1241,6 @@ export default function useSound() {
     audioBuffer,
     secondsElapsed,
   }: PlayRecordedAudio) {
-    console.log("called playRecordedAudio");
     if (!audioContext || !masterVolumeGainNode) return;
 
     if (audioMetadata.playing || previewMetadata.playing) {
@@ -1169,27 +1350,29 @@ export default function useSound() {
     ) {
       setCurrentChordIndex(chordIndex);
 
+      const thirdPrevColumn = compiledChords[chordIndex - 3];
       const secondPrevColumn = compiledChords[chordIndex - 2];
       const prevColumn = compiledChords[chordIndex - 1];
-      const column = compiledChords[chordIndex];
+      const currColumn = compiledChords[chordIndex];
       const nextColumn = compiledChords[chordIndex + 1];
 
-      if (column === undefined) continue;
+      if (currColumn === undefined) continue;
 
       // alteredBpm = bpm for chord * (1 / noteLengthMultiplier) * playbackSpeedMultiplier
       const alteredBpm =
-        Number(column[8]) * (1 / Number(column[9])) * playbackSpeed;
+        Number(currColumn[8]) * (1 / Number(currColumn[9])) * playbackSpeed;
 
       if (chordIndex !== compiledChords.length - 1) {
-        await playNoteColumn(
-          column,
+        await playNoteColumn({
           tuning,
-          capo ?? 0,
-          alteredBpm,
-          prevColumn,
+          capo: capo ?? 0,
+          bpm: alteredBpm,
+          thirdPrevColumn,
           secondPrevColumn,
-          nextColumn
-        );
+          prevColumn,
+          currColumn,
+          nextColumn,
+        });
       }
 
       if (breakOnNextChordRef.current) {
