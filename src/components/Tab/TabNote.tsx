@@ -38,8 +38,14 @@ function TabNote({
   const [isFocused, setIsFocused] = useState(false);
 
   function validNoteInput(input: string) {
-    // If input is '|' or 'x', it's valid
-    if (input === "|" || input === "x" || input === "h" || input === "p") {
+    // standalone effects
+    if (
+      input === "|" ||
+      input === "x" ||
+      input === "h" ||
+      input === "p" ||
+      input === "r"
+    ) {
       return true;
     }
 
@@ -48,7 +54,7 @@ function TabNote({
 
     // Regex pattern to match any *one* inline effect of:
     // "h", "p", "/", "\", "~", ">", ".", "b", "x"
-    const characterPattern = /^[hp\/\\\\~>.b]$/;
+    const characterPattern = /^[hp\/\\\\~>.br]$/;
 
     if (input[0] === "/" || input[0] === "\\") {
       if (input.length === 1) return true;
