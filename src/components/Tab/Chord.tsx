@@ -112,7 +112,8 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
       return;
     }
 
-    const numberPattern = /^(?:[1-9]|1[0-9]|2[0-2]|0)$/;
+    // allows 0-22 or a (case insensitive) x for a muted string
+    const numberPattern = /^(?:[1-9]|1[0-9]|2[0-2]|0|x|X)$/;
 
     if (value !== "" && !numberPattern.test(value)) return;
 
