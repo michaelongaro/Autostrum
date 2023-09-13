@@ -382,13 +382,23 @@ function compileTabSection({
   playbackSpeed,
 }: CompileTabSection) {
   const data = subSection.data;
+  let currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
 
   for (let chordIdx = 0; chordIdx < data.length; chordIdx++) {
     const chord = [...data[chordIdx]!];
 
-    if (chord?.[8] === "measureLine") continue;
+    if (chord?.[8] === "measureLine") {
+      const specifiedBpmToUsePostMeasureLine = chord?.[7];
+      if (
+        specifiedBpmToUsePostMeasureLine &&
+        specifiedBpmToUsePostMeasureLine !== "-1"
+      ) {
+        currentBpm = specifiedBpmToUsePostMeasureLine;
+      }
+      continue;
+    }
 
-    chord[8] = getBpmForChord(subSection.bpm, baselineBpm);
+    chord[8] = currentBpm;
     chord[9] = "1";
 
     metadata.push({
@@ -397,14 +407,12 @@ function compileTabSection({
         subSectionIndex,
         chordIndex: chordIdx,
       },
-      bpm: Number(getBpmForChord(subSection.bpm, baselineBpm)),
+      bpm: Number(currentBpm),
       noteLengthMultiplier: "1",
       elapsedSeconds: Math.floor(elapsedSeconds.value),
     });
 
-    elapsedSeconds.value +=
-      60 /
-      (Number(getBpmForChord(subSection.bpm, baselineBpm)) * playbackSpeed);
+    elapsedSeconds.value += 60 / (Number(currentBpm) * playbackSpeed);
 
     compiledChords.push(chord);
   }

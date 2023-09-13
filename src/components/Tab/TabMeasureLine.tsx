@@ -8,6 +8,13 @@ import { RxDragHandleDots2 } from "react-icons/rx";
 import { IoClose } from "react-icons/io5";
 import { Button } from "../ui/button";
 import { CSS } from "@dnd-kit/utilities";
+import { BsMusicNote } from "react-icons/bs";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { Input } from "../ui/input";
 
 const sectionVariants = {
   expanded: {
@@ -72,6 +79,19 @@ function TabMeasureLine({
     setTabData(newTabData);
   }
 
+  function handleBpmChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const newBpm = e.target.value.length === 0 ? -1 : parseInt(e.target.value);
+    if (isNaN(newBpm) || newBpm > 400) return;
+
+    const newTabData = [...tabData];
+
+    newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+      columnIndex
+    ][7] = `${newBpm}`;
+
+    setTabData(newTabData);
+  }
+
   return (
     <motion.div
       key={columnData[9]}
@@ -88,18 +108,37 @@ function TabMeasureLine({
       {columnData.map((note, index) => (
         <Fragment key={index}>
           {index === 0 && (
-            <div className="baseFlex mb-0 h-9 w-full">
-              {note === "-" && (
-                <div
-                  style={{
-                    // relative positioning here is a hack, not sure completely why tweaking margins
-                    // wasn't working
-                    top: editing ? "-0.45rem" : "0",
-                  }}
-                  className="relative top-[-0.45rem] h-[1px] w-full bg-pink-50"
-                ></div>
-              )}
-            </div>
+            <>
+              {!editing &&
+                tabData[sectionIndex]!.data[subSectionIndex]!.data[
+                  columnIndex
+                ][7] &&
+                tabData[sectionIndex]!.data[subSectionIndex]!.data[
+                  columnIndex
+                ][7] !== -1 && (
+                  <div className="baseFlex absolute -top-2 !flex-nowrap gap-[0.125rem] text-pink-50">
+                    <BsMusicNote className="h-4 w-4" />
+                    <p className="text-center text-xs">
+                      {tabData[sectionIndex]!.data[subSectionIndex]!.data[
+                        columnIndex
+                      ][7].toString()}
+                    </p>
+                  </div>
+                )}
+
+              <div className="baseFlex mb-0 h-9 w-full">
+                {note === "-" && (
+                  <div
+                    style={{
+                      // relative positioning here is a hack, not sure completely why tweaking margins
+                      // wasn't working
+                      top: editing ? "-0.45rem" : "0",
+                    }}
+                    className="relative top-[-0.45rem] h-[1px] w-full bg-pink-50"
+                  ></div>
+                )}
+              </div>
+            </>
           )}
 
           {index > 0 && index < 7 && (
@@ -125,12 +164,58 @@ function TabMeasureLine({
             ></div>
           )}
 
+          {index === 8 &&
+            editing &&
+            !reorderingColumns &&
+            !showingDeleteColumnsButtons && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button className="absolute -bottom-7 z-50 h-5 w-5 rounded-full p-[0.125rem] text-pink-50">
+                    <BsMusicNote className="h-5 w-5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="baseVertFlex w-52 !flex-nowrap gap-4 p-2"
+                  side="bottom"
+                >
+                  <p className="w-auto text-center text-sm">
+                    Specify a new BPM for this measure
+                  </p>
+
+                  <div className="baseFlex gap-2">
+                    <BsMusicNote className="h-5 w-5" />
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      className="placeholder:text-grey-800/50 h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
+                      placeholder={(tabData[sectionIndex]?.data[subSectionIndex]
+                        ?.bpm === -1
+                        ? 75
+                        : tabData[sectionIndex]?.data[subSectionIndex]?.bpm
+                      ).toString()}
+                      value={
+                        tabData[sectionIndex]!.data[subSectionIndex]!.data[
+                          columnIndex
+                        ][7] === "-1"
+                          ? ""
+                          : tabData[sectionIndex]!.data[subSectionIndex]!.data[
+                              columnIndex
+                            ][7].toString()
+                      }
+                      onChange={handleBpmChange}
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+
           {index === 8 && reorderingColumns && (
             <div
               ref={setActivatorNodeRef}
               {...attributes}
               {...listeners}
-              className="hover:box-shadow-md absolute bottom-[-2.7rem] cursor-grab rounded-md text-pink-50 active:cursor-grabbing"
+              className="hover:box-shadow-md absolute bottom-[-2.7rem] z-50 cursor-grab rounded-md text-pink-50 active:cursor-grabbing"
               onMouseEnter={() => setHoveringOnHandle(true)}
               onMouseDown={() => setGrabbingHandle(true)}
               onMouseLeave={() => {
@@ -156,7 +241,7 @@ function TabMeasureLine({
             <Button
               variant={"destructive"}
               size="sm"
-              className="absolute bottom-[-2.7rem] left-1/2 right-1/2 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
+              className="absolute bottom-[-2.7rem] left-1/2 right-1/2 z-50 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
               onClick={handleDeleteMeasureLine}
             >
               <IoClose className="h-6 w-6" />
