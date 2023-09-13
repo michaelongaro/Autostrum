@@ -188,7 +188,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       style={{
         paddingBottom: sectionIndex === tabData.length - 1 ? "2rem" : 0,
       }}
-      className="baseVertFlex w-full gap-2 px-2 md:px-7"
+      className="baseVertFlex w-full gap-4 px-2 md:px-7"
     >
       {editing && (
         <div className="baseFlex w-full !items-start">

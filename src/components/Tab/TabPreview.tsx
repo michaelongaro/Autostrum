@@ -87,7 +87,7 @@ function PreviewSectionContainer({
       style={{
         paddingBottom: sectionIndex === tabData.length - 1 ? "2rem" : 0,
       }}
-      className="baseVertFlex w-full gap-2 px-2 md:px-7"
+      className="baseVertFlex w-full gap-4 px-2 md:px-7"
     >
       <div className="baseFlex w-full !justify-start gap-4">
         <div className="baseFlex gap-4 rounded-md bg-pink-600 px-4 py-2">
