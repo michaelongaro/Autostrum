@@ -252,6 +252,7 @@ export default function useSound() {
           fretToBendTo: tetheredMetadata.transitionToFret,
           when,
           bpm,
+          stringIdx,
           pluckBaseNote,
         });
       } else if (tetheredMetadata.transitionFromFret !== undefined) {
@@ -264,6 +265,7 @@ export default function useSound() {
           stringIdx,
           bpm,
           when,
+          tetheredMetadata,
         });
       }
     } else if (effects) {
@@ -272,6 +274,7 @@ export default function useSound() {
           when: 0,
           note,
           bpm,
+          stringIdx,
           pluckBaseNote,
         });
       } else if (effects.includes("x")) {
@@ -291,7 +294,7 @@ export default function useSound() {
     if (
       noteWithEffectApplied &&
       (tetheredMetadata ||
-        // !pluckBaseNote || // don't think this is necessary anymore
+        !pluckBaseNote || // don't think this is necessary anymore
         effects?.includes("PM") ||
         effects?.includes("x"))
     ) {
@@ -307,6 +310,7 @@ export default function useSound() {
     fretToBendTo: number;
     when: number;
     bpm: number;
+    stringIdx: number;
     pluckBaseNote?: boolean;
   }
 
@@ -317,23 +321,32 @@ export default function useSound() {
     fretToBendTo,
     when,
     bpm,
+    stringIdx,
     pluckBaseNote = true,
   }: ApplyBendEffect) {
     if (!audioContext) return;
 
     let source: AudioBufferSourceNode | undefined = undefined;
     let sourceGain: GainNode | undefined = undefined;
+
     if (!pluckBaseNote && note) {
       note.source.stop(0);
+
       source = audioContext.createBufferSource();
+      sourceGain = audioContext.createGain();
+
+      setTimeout(() => {
+        currentNoteArrayRef.current[stringIdx]?.stop();
+        currentNoteArrayRef.current[stringIdx] = source;
+      }, when * 1000);
 
       source.buffer = note.source.buffer as AudioBuffer;
-      source.start(0, 0.85);
+      source.start(0, 0.5);
 
-      sourceGain = audioContext.createGain();
-      sourceGain.gain.exponentialRampToValueAtTime(
-        1.5,
-        audioContext.currentTime + when + 0.15 // TODO: would like to play around with this 0.15 value + with when the source starts + the sourceGain value
+      sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
+      sourceGain.gain.linearRampToValueAtTime(
+        1.3,
+        audioContext.currentTime + when + 0.1
       );
       source.connect(sourceGain);
     }
@@ -341,12 +354,9 @@ export default function useSound() {
     const detuneValue = (fretToBendTo - baseFret) * 100;
 
     if (source && sourceGain) {
-      // if not plucking base note, then start bend as soon as volume level of copiedNote is at 1.5
-      const extraDelay = 0.15;
-
       source.detune.linearRampToValueAtTime(
         detuneValue,
-        audioContext.currentTime + when + extraDelay + (60 / bpm) * 0.5
+        audioContext.currentTime + when + (60 / bpm) * 0.5
       );
       return sourceGain;
     } else if (note) {
@@ -362,7 +372,7 @@ export default function useSound() {
       );
       // increasing gain to match level set in applyTetheredEffect()
       const copiedNoteGain = audioContext.createGain();
-      copiedNoteGain.gain.value = 1.5; // TODO: prob needs to be dynamic based on prevEffect being "p" or not
+      copiedNoteGain.gain.value = 1.35;
       copiedNote.connect(copiedNoteGain);
       return copiedNoteGain;
     }
@@ -539,6 +549,7 @@ export default function useSound() {
     stringIdx: number;
     bpm: number;
     when: number;
+    tetheredMetadata: TetheredMetadata; // idk maybe want to refactor the props to try and go through this as much as possible?
   }
 
   function applyTetheredEffect({
@@ -550,6 +561,7 @@ export default function useSound() {
     stringIdx,
     bpm,
     when,
+    tetheredMetadata,
   }: ApplyTetheredEffect) {
     if (!audioContext) return;
 
@@ -558,6 +570,7 @@ export default function useSound() {
     note.source.stop(0);
 
     const source = audioContext.createBufferSource();
+    const sourceGain = audioContext.createGain();
 
     setTimeout(() => {
       currentNoteArrayRef.current[stringIdx]?.stop();
@@ -565,29 +578,29 @@ export default function useSound() {
     }, when * 1000);
 
     source.buffer = note.source.buffer as AudioBuffer;
-    source.start(0, tetheredEffect === "p" ? 0.25 : 0.85);
+    // immediately start detune at the value of the tetheredFret
+    source.detune.setValueAtTime(
+      (tetheredFret - currentFret) * 100,
+      audioContext.currentTime + when
+    );
+    source.start(
+      audioContext.currentTime + when,
+      tetheredEffect === "p" ? 0.1 : 0.2
+    );
 
-    // TODO: really more than anything want to get rid of the little static "pop" right at the
-    // very beginning of the sound, I don't know if it's maybe the original note being .stop()'d
-    // above, or where it's coming from, but it is the biggest thing that makes this sound
-    // "fake" to me
-
-    const sourceGain = audioContext.createGain();
-    sourceGain.gain.exponentialRampToValueAtTime(
-      tetheredEffect === "p" ? 0.75 : 1.5,
-      audioContext.currentTime + when + 0.15 // TODO: would like to play around with this 0.15 value + with when the source starts + the sourceGain value
+    sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
+    sourceGain.gain.linearRampToValueAtTime(
+      tetheredEffect === "p" ? 1.1 : 1.3,
+      audioContext.currentTime + when + 0.1
     );
     source.connect(sourceGain);
 
-    // immediately ramping from tetheredFret to currentFret with a duration defined by tetheredEffect
-    source.detune.setValueAtTime((tetheredFret - currentFret) * 100, 0);
-
-    // 1 feels too long, but fits the "structure" of how the tab is played better
-    let durationOfTransition = (60 / bpm) * 0.15;
+    let durationOfTransition = (60 / bpm) * 0.2;
     if (tetheredEffect === "h" || tetheredEffect === "p") {
-      durationOfTransition = 0; // hammer-ons and pull-offs should be instantaneous
+      durationOfTransition = 0; // hammer-ons and pull-offs are instantaneous
     }
 
+    // immediately ramping from tetheredFret to currentFret with a duration defined by durationOfTransition
     source.detune.linearRampToValueAtTime(
       0.001, // smallest viable value
       audioContext.currentTime + when + durationOfTransition
@@ -599,14 +612,19 @@ export default function useSound() {
         applyVibratoEffect({
           copiedNote: source,
           when: when + durationOfTransition,
+          stringIdx,
           bpm,
         });
-      } else if (currentEffects.includes("b")) {
+      } else if (
+        currentEffects.includes("b") &&
+        tetheredMetadata.transitionToFret
+      ) {
         applyBendOrReleaseEffect({
           copiedNote: source,
           baseFret: currentFret,
-          fretToBendTo: tetheredFret,
+          fretToBendTo: tetheredMetadata.transitionToFret,
           when: when + durationOfTransition,
+          stringIdx,
           bpm,
         });
       }
@@ -620,6 +638,7 @@ export default function useSound() {
     copiedNote?: AudioBufferSourceNode;
     when: number; // offset to start the effect
     bpm: number;
+    stringIdx: number;
     pluckBaseNote?: boolean;
   }
 
@@ -628,6 +647,7 @@ export default function useSound() {
     copiedNote,
     when,
     bpm,
+    stringIdx,
     pluckBaseNote = true,
   }: ApplyVibratoEffect) {
     if (!audioContext) return;
@@ -638,14 +658,20 @@ export default function useSound() {
     if (!pluckBaseNote && note) {
       note.source.stop(0);
       source = audioContext.createBufferSource();
+      sourceGain = audioContext.createGain();
+
+      setTimeout(() => {
+        currentNoteArrayRef.current[stringIdx]?.stop();
+        currentNoteArrayRef.current[stringIdx] = source;
+      }, when * 1000);
 
       source.buffer = note.source.buffer as AudioBuffer;
-      source.start(0, 0.85);
+      source.start(0, 0.5);
 
-      sourceGain = audioContext.createGain();
+      sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
       sourceGain.gain.exponentialRampToValueAtTime(
-        1.5,
-        audioContext.currentTime + when + 0.15 // TODO: would like to play around with this 0.15 value + with when the source starts + the sourceGain value
+        1.3,
+        audioContext.currentTime + when + 0.1
       );
       source.connect(sourceGain);
     }
@@ -662,11 +688,8 @@ export default function useSound() {
     // Connect the modulation oscillator to the gain
     vibratoOscillator.connect(vibratoDepth);
 
-    // in general might want to add tiny delay to allow pluck of note to be heard?
-    // but I was thinking if omitting the pluck, then add another tiny delay to allow
-    // the gain to ramp up to the normal value? obv play around with it
-    // currently: just trying out 0.15 to see what it sounds like
-    vibratoOscillator.start(audioContext.currentTime + when + 0.15);
+    const oscillatorDelay = (60 / bpm) * 0.15;
+    vibratoOscillator.start(audioContext.currentTime + when + oscillatorDelay);
 
     if (source && sourceGain) {
       vibratoDepth.connect(source.detune);
@@ -678,7 +701,7 @@ export default function useSound() {
       vibratoDepth.connect(copiedNote.detune);
       // increasing gain to match level set in applyTetheredEffect
       const copiedNoteGain = audioContext.createGain();
-      copiedNoteGain.gain.value = 1.5; // TODO: prob needs to be dynamic based on prevEffect being "p" or not
+      copiedNoteGain.gain.value = 1.35;
       copiedNote.connect(copiedNoteGain);
       return copiedNoteGain;
     }
@@ -713,11 +736,6 @@ export default function useSound() {
     if (effects.includes(">")) {
       gain = 1.5;
     }
-
-    // not 100% sure why we felt this was necessary below... test it out
-    // if (slideToFret) {
-    //   duration = 1;
-    // }
 
     // dead note and palm mute effects require us to basically hijack the note by almost muting it
     // and then creating a copy of it with a delay node, and adjusting the volume/effect from there
@@ -764,9 +782,10 @@ export default function useSound() {
     // I believe we needed this maybe as a timing workaround where hp/\ effects were
     // getting .stop()'d just as they were being played, so they got handled in applyTetheredEffect()?
     if (
-      !tetheredMetadata ||
-      tetheredMetadata.effect === "b" ||
-      tetheredMetadata.effect === "r"
+      pluckBaseNote &&
+      (!tetheredMetadata ||
+        tetheredMetadata.effect === "b" ||
+        tetheredMetadata.effect === "r")
     ) {
       setTimeout(() => {
         currentNoteArrayRef.current[stringIdx]?.stop();
