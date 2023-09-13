@@ -26,6 +26,7 @@ interface StrummingPatternPalmMuteNode {
   >;
   darkMode: boolean;
   viewingInSelectDropdown: boolean;
+  editingChordSequence: boolean;
   editing: boolean;
 }
 
@@ -39,6 +40,7 @@ function StrummingPatternPalmMuteNode({
   setLastModifiedPalmMuteNode,
   darkMode,
   viewingInSelectDropdown,
+  editingChordSequence,
   editing,
 }: StrummingPatternPalmMuteNode) {
   const [hoveringOnPalmMuteNode, setHoveringOnPalmMuteNode] = useState(false);
@@ -294,28 +296,38 @@ function StrummingPatternPalmMuteNode({
               }}
               className="baseFlex relative w-full !flex-nowrap"
             >
-              |<i className="absolute -top-3 left-3">PM</i>
               <div
-                className={` h-[1px] w-full ${
+                className={`h-4 w-[1px] ${
                   darkMode ? "bg-foreground" : "bg-background"
                 }`}
+              ></div>
+              <div
+                className={`h-[1px] 
+                ${editingChordSequence ? "w-full" : "w-1"} ${
+                  darkMode ? "bg-foreground" : "bg-background"
+                }`}
+              ></div>
+              <i className="mx-[0.125rem]">PM</i>
+              <div
+                className={`h-[1px] ${
+                  editingChordSequence ? "w-full" : "w-[3px]"
+                } ${darkMode ? "bg-foreground" : "bg-background"}`}
               ></div>
             </div>
           )}
 
           {value === "end" && (
-            <div
-              style={{
-                margin: viewingInSelectDropdown ? "0.15rem 0" : "0",
-              }}
-              className=" baseFlex relative w-full !flex-nowrap"
-            >
+            <div className=" baseFlex relative my-1 w-full !flex-nowrap">
               <div
-                className={` h-[1px] w-full ${
+                className={`h-[1px] w-full ${
                   darkMode ? "bg-foreground" : "bg-background"
                 }`}
               ></div>
-              |
+              <div
+                className={`h-4 w-[1px] ${
+                  darkMode ? "bg-foreground" : "bg-background"
+                }`}
+              ></div>
             </div>
           )}
         </>

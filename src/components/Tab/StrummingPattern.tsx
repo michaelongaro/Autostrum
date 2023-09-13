@@ -468,6 +468,7 @@ function StrummingPattern({
                   setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
                   darkMode={mode === "viewingInSelectDropdown"}
                   viewingInSelectDropdown={mode === "viewingInSelectDropdown"}
+                  editingChordSequence={mode === "editingChordSequence"}
                   editing={mode === "editingStrummingPattern"}
                 />
               ) : (

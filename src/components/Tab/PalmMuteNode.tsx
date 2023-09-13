@@ -298,15 +298,18 @@ function PalmMuteNode({
       {!editing && (value === "start" || value === "end") && (
         <>
           {value === "start" && (
-            <div className="baseFlex relative w-full !flex-nowrap">
-              |<i className="absolute -top-3 left-3">PM</i>
-              <div className="h-[1px] w-full bg-pink-50"></div>
+            <div className="baseFlex w-full !flex-nowrap">
+              <div className="h-4 w-[1px] bg-pink-50"></div>
+              <div className="h-[1px] w-1 bg-pink-50"></div>
+              <i className="mx-[0.125rem]">PM</i>
+              <div className="h-[1px] w-[3px] bg-pink-50"></div>
             </div>
           )}
 
           {value === "end" && (
-            <div className="baseFlex relative w-full !flex-nowrap">
-              <div className="h-[1px] w-full bg-pink-50"></div>|
+            <div className="baseFlex w-full !flex-nowrap">
+              <div className="h-[1px] w-full bg-pink-50"></div>
+              <div className="h-4 w-[1px] bg-pink-50"></div>
             </div>
           )}
         </>
