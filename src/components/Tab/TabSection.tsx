@@ -42,6 +42,76 @@ import { Label } from "~/components/ui/label";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import MiscellaneousControls from "./MiscellaneousControls";
 
+// idk custom sorting strategies don't seem to be working very well, prob a good idea to
+// give drag overlay a shot before calling it quits on the measure line behavior.
+
+// import type { ClientRect } from "@dnd-kit/core";
+// import type { SortingStrategy } from "@dnd-kit/sortable";
+
+// const defaultScale = {
+//   scaleX: 1,
+//   scaleY: 1,
+// };
+
+// export const horizontalWrappingListSortingStrategy: SortingStrategy = ({
+//   rects,
+//   activeNodeRect: fallbackActiveRect,
+//   activeIndex,
+//   overIndex,
+//   index,
+// }) => {
+//   const activeNodeRect = rects[activeIndex] ?? fallbackActiveRect;
+//   if (!activeNodeRect) return null;
+
+//   const activeRow = getRow(rects, activeIndex);
+//   const overRow = getRow(rects, overIndex);
+//   const indexRow = getRow(rects, index);
+
+//   let x = 0,
+//     y = 0;
+//   const itemGap = getItemGap(rects, index, activeIndex);
+
+//   if (index === activeIndex) {
+//     const newIndexRect = rects[overIndex];
+//     if (!newIndexRect) return null;
+//     x = newIndexRect.left - activeNodeRect.left;
+//     y = newIndexRect.top - activeNodeRect.top;
+//   } else {
+//     if (indexRow === activeRow && indexRow === overRow) {
+//       if (index > activeIndex && index <= overIndex)
+//         x = -activeNodeRect.width - itemGap;
+//       else if (index < activeIndex && index >= overIndex)
+//         x = activeNodeRect.width + itemGap;
+//     } else if (indexRow === overRow && index !== overIndex) {
+//       if (index > overIndex) x = -activeNodeRect.width - itemGap;
+//       else if (index < overIndex) x = activeNodeRect.width + itemGap;
+//     }
+//   }
+
+//   return { x, y, ...defaultScale };
+// };
+
+// function getItemGap(rects: ClientRect[], index: number, activeIndex: number) {
+//   const currentRect = rects[index];
+//   const previousRect = rects[index - 1];
+//   const nextRect = rects[index + 1];
+//   if (!currentRect || (!previousRect && !nextRect)) return 0;
+
+//   return activeIndex < index
+//     ? previousRect
+//       ? currentRect.left - (previousRect.left + previousRect.width)
+//       : nextRect.left - (currentRect.left + currentRect.width)
+//     : nextRect
+//     ? nextRect.left - (currentRect.left + currentRect.width)
+//     : currentRect.left - (previousRect.left + previousRect.width);
+// }
+
+// function getRow(rects: ClientRect[], index: number): number {
+//   const currentRect = rects[index];
+//   if (!currentRect) return -1;
+//   return currentRect.top;
+// }
+
 const opacityAndScaleVariants = {
   expanded: {
     opacity: 1,

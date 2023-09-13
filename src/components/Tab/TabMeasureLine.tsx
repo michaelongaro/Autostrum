@@ -7,6 +7,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { IoClose } from "react-icons/io5";
 import { Button } from "../ui/button";
+import { CSS } from "@dnd-kit/utilities";
 
 const sectionVariants = {
   expanded: {
@@ -76,34 +77,12 @@ function TabMeasureLine({
       key={columnData[9]}
       ref={setNodeRef}
       // layoutId={columnData[9]}
-      style={initialStyles}
-      initial="closed"
-      animate={
-        transform
-          ? {
-              x: transform.x,
-              y: transform.y,
-              zIndex: isDragging ? 1 : 0,
-            }
-          : initialStyles
-      }
-      exit="closed"
-      transition={{
-        duration: !isDragging ? 0.15 : 0,
-        easings: {
-          type: "spring",
-        },
-        x: {
-          duration: !isDragging ? 0.3 : 0,
-        },
-        y: {
-          duration: !isDragging ? 0.3 : 0,
-        },
-        zIndex: {
-          delay: isDragging ? 0 : 0.25,
-        },
+      style={{
+        transform: CSS.Transform.toString(
+          transform && { ...transform, scaleY: 1, scaleX: 1 }
+        ),
+        transition,
       }}
-      variants={sectionVariants}
       className="baseVertFlex relative mb-[3.2rem] mt-4"
     >
       {columnData.map((note, index) => (

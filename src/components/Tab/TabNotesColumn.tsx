@@ -15,6 +15,7 @@ import {
   type ChordSection as ChordSectionType,
   type Section,
 } from "~/stores/TabStore";
+import { CSS } from "@dnd-kit/utilities";
 import { shallow } from "zustand/shallow";
 import { useSortable } from "@dnd-kit/sortable";
 import { motion } from "framer-motion";
@@ -296,31 +297,39 @@ function TabNotesColumn({
       id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
       ref={setNodeRef}
       // layout={"position"}
-      style={initialStyles}
-      animate={
-        transform
-          ? {
-              x: transform.x,
-              y: transform.y,
-              zIndex: isDragging ? 1 : 0,
-            }
-          : initialStyles
-      }
-      transition={{
-        duration: !isDragging ? 0.15 : 0,
-        easings: {
-          type: "spring",
-        },
-        x: {
-          duration: !isDragging ? 0.3 : 0,
-        },
-        y: {
-          duration: !isDragging ? 0.3 : 0,
-        },
-        zIndex: {
-          delay: isDragging ? 0 : 0.25,
-        },
+      style={{
+        // transform: CSS.Transform.toString(transform),
+        transform: CSS.Transform.toString(
+          // just testing with Translate intstead of what I think it should be: Transform
+          transform && { ...transform, scaleY: 1, scaleX: 1 }
+        ),
+        transition,
       }}
+      // style={initialStyles}
+      // animate={
+      //   transform
+      //     ? {
+      //         x: transform.x,
+      //         y: transform.y,
+      //         zIndex: isDragging ? 1 : 0,
+      //       }
+      //     : initialStyles
+      // }
+      // transition={{
+      //   duration: !isDragging ? 0.15 : 0,
+      //   easings: {
+      //     type: "spring",
+      //   },
+      //   x: {
+      //     duration: !isDragging ? 0.3 : 0,
+      //   },
+      //   y: {
+      //     duration: !isDragging ? 0.3 : 0,
+      //   },
+      //   zIndex: {
+      //     delay: isDragging ? 0 : 0.25,
+      //   },
+      // }}
       className="baseVertFlex cursor-default scroll-m-8"
     >
       <div className="baseFlex relative">
