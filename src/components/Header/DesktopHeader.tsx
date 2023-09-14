@@ -73,9 +73,7 @@ function DesktopHeader() {
 
       {/* opting for double "&&" instead of ternary for better readability */}
       {!isSignedIn && (
-        <div
-          className={`${classes.authentication ?? ""} baseFlex gap-2 lg:gap-4`}
-        >
+        <div className={`${classes.authentication ?? ""} baseFlex gap-4`}>
           {/* how to maybe get colors to match theme + also have an option to specify username? */}
           <SignUpButton
             mode="modal"
@@ -101,9 +99,7 @@ function DesktopHeader() {
       )}
 
       {isSignedIn && (
-        <div
-          className={`${classes.authentication ?? ""} baseFlex gap-2 lg:gap-4`}
-        >
+        <div className={`${classes.authentication ?? ""} baseFlex`}>
           <Button variant={"ghost"} asChild className="px-4 py-0">
             <Link
               href={`/profile/preferences`}

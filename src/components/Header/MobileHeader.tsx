@@ -93,7 +93,7 @@ function MobileHeader() {
 
           {/* opting for double "&&" instead of ternary for better readability */}
           {!isSignedIn && (
-            <div className="baseFlex gap-2 lg:gap-4">
+            <div className="baseFlex gap-4">
               {/* how to maybe get colors to match theme + also have an option to specify username? */}
               <SignUpButton
                 mode="modal"
@@ -117,7 +117,7 @@ function MobileHeader() {
           )}
 
           {isSignedIn && (
-            <div className="baseFlex gap-2 lg:gap-4">
+            <div className="baseFlex">
               <Button variant={"ghost"} asChild className="px-4 py-0">
                 <Link
                   href={`/profile/preferences`}
