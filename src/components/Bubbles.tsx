@@ -38,7 +38,7 @@ function Bubbles() {
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   useEffect(() => {
-    setDpr(Math.min(2, window?.devicePixelRatio ?? 2));
+    setDpr(window.devicePixelRatio > 1 ? 1.1 : 1);
   }, []);
 
   const bubbles = useMemo((): {

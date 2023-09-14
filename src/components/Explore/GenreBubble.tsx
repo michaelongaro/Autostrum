@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 import type { GenreWithTotalTabNumbers } from "~/server/api/routers/genre";
 import { formatNumber } from "~/utils/formatNumber";
+import { isMobile } from "react-device-detect";
 import type { Mesh } from "three";
 import {
   AmbientLight,
@@ -39,7 +40,7 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
   const [dpr, setDpr] = useState(1);
 
   useEffect(() => {
-    setDpr(Math.min(2, window?.devicePixelRatio ?? 2));
+    setDpr(window.devicePixelRatio > 1 ? 1.1 : 1);
   }, []);
 
   const positions: [number, number, number][] = useMemo(() => {
@@ -168,6 +169,7 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
           }}
           camera={{ position: [0, 0, 55] }}
           dpr={dpr}
+          frameloop={isMobile ? "demand" : "always"}
         >
           <ambientLight intensity={1.5} />
           <directionalLight color={"white"} intensity={0.5} />

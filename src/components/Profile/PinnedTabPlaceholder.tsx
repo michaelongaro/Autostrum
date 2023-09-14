@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { isMobile } from "react-device-detect";
 import { Canvas, extend } from "@react-three/fiber";
 import {
   AmbientLight,
@@ -26,7 +27,7 @@ function PinnedTabPlaceholder({ artistUsername }: PinnedTabPlaceholder) {
   const [dpr, setDpr] = useState(1);
 
   useEffect(() => {
-    setDpr(Math.min(2, window?.devicePixelRatio ?? 2));
+    setDpr(window.devicePixelRatio > 1 ? 1.1 : 1);
   }, []);
 
   return (
@@ -44,6 +45,7 @@ function PinnedTabPlaceholder({ artistUsername }: PinnedTabPlaceholder) {
         className="col-start-1 col-end-1 row-start-1 row-end-1"
         camera={{ position: [0, 0, 100] }}
         dpr={dpr}
+        frameloop={isMobile ? "demand" : "always"}
       >
         <ambientLight intensity={1.5} />
         <directionalLight color={"white"} intensity={0.5} />

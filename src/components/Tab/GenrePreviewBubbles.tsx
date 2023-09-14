@@ -24,7 +24,7 @@ function GenrePreviewBubbles({ color }: GenrePreviewBubbles) {
   const [dpr, setDpr] = useState(1);
 
   useEffect(() => {
-    setDpr(Math.min(2, window?.devicePixelRatio ?? 2));
+    setDpr(window.devicePixelRatio > 1 ? 1.1 : 1);
   }, []);
 
   return (
@@ -37,6 +37,7 @@ function GenrePreviewBubbles({ color }: GenrePreviewBubbles) {
       }}
       camera={{ position: [0, 0, 55] }}
       dpr={dpr}
+      frameloop="demand"
     >
       <ambientLight intensity={1.5} />
       <directionalLight color={"white"} intensity={0.5} />
