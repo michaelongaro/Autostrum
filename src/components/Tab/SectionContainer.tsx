@@ -19,6 +19,7 @@ import { Label } from "~/components/ui/label";
 import useSound from "~/hooks/useSound";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import isEqual from "lodash.isequal";
+import { BsMusicNote } from "react-icons/bs";
 import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 
@@ -299,23 +300,44 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
               key={subSection.id}
               className="baseVertFlex w-full !items-start pb-2"
             >
-              {!editing && subSection.repetitions > 1 && (
-                <p
-                  className={`rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm ${
-                    audioMetadata.type === "Generated" &&
-                    audioMetadata.playing &&
-                    currentlyPlayingMetadata?.[currentChordIndex]?.location
-                      ?.sectionIndex === sectionIndex &&
-                    currentlyPlayingMetadata?.[currentChordIndex]?.location
-                      ?.subSectionIndex === index
-                      ? "animate-colorOscillate"
-                      : ""
-                  }
-                `}
-                >
-                  Repeat x{subSection.repetitions}
-                </p>
-              )}
+              {!editing &&
+                (subSection.type === "tab" || subSection.repetitions > 1) && (
+                  <div className="baseFlex gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
+                    {subSection.type === "tab" && (
+                      <div className="baseFlex gap-1">
+                        <BsMusicNote className="h-4 w-4" />
+                        {subSection.bpm}
+                      </div>
+                    )}
+
+                    {subSection.repetitions > 1 && (
+                      <div className="baseFlex gap-3">
+                        {subSection.type === "tab" && (
+                          <Separator
+                            className="h-4 w-[1px]"
+                            orientation="vertical"
+                          />
+                        )}
+
+                        <p
+                          className={`${
+                            audioMetadata.type === "Generated" &&
+                            audioMetadata.playing &&
+                            currentlyPlayingMetadata?.[currentChordIndex]
+                              ?.location?.sectionIndex === sectionIndex &&
+                            currentlyPlayingMetadata?.[currentChordIndex]
+                              ?.location?.subSectionIndex === index
+                              ? "animate-colorOscillate"
+                              : ""
+                          }
+                    `}
+                        >
+                          Repeat x{subSection.repetitions}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               <AnimatePresence mode="wait">
                 {subSection.type === "chord" ? (
                   <ChordSection

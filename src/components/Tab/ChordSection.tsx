@@ -28,6 +28,7 @@ import { Input } from "~/components/ui/input";
 import { Separator } from "~/components/ui/separator";
 import { AnimatePresence, motion } from "framer-motion";
 import StrummingSection from "./ChordSequence";
+import { BsMusicNote } from "react-icons/bs";
 import ChordSequence from "./ChordSequence";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import MiscellaneousControls from "./MiscellaneousControls";
@@ -219,24 +220,38 @@ function ChordSection({
                   key={chordSequence.id}
                   className="baseVertFlex w-full !items-start"
                 >
-                  {!editing && chordSequence.repetitions > 1 && (
-                    <p
-                      className={`rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm ${
-                        audioMetadata.type === "Generated" &&
-                        audioMetadata.playing &&
-                        currentlyPlayingMetadata?.[currentChordIndex]?.location
-                          ?.sectionIndex === sectionIndex &&
-                        currentlyPlayingMetadata?.[currentChordIndex]?.location
-                          ?.subSectionIndex === subSectionIndex &&
-                        currentlyPlayingMetadata?.[currentChordIndex]?.location
-                          ?.chordSequenceIndex === index
-                          ? "animate-colorOscillate"
-                          : ""
-                      }
-                `}
-                    >
-                      Repeat x{chordSequence.repetitions}
-                    </p>
+                  {!editing && (
+                    <div className="baseFlex gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
+                      <div className="baseFlex gap-1">
+                        <BsMusicNote className="h-4 w-4" />
+                        {chordSequence.bpm}
+                      </div>
+
+                      {chordSequence.repetitions > 1 && (
+                        <div className="baseFlex gap-3">
+                          <Separator
+                            className="h-4 w-[1px]"
+                            orientation="vertical"
+                          />
+
+                          <p
+                            className={`${
+                              audioMetadata.type === "Generated" &&
+                              audioMetadata.playing &&
+                              currentlyPlayingMetadata?.[currentChordIndex]
+                                ?.location?.sectionIndex === sectionIndex &&
+                              currentlyPlayingMetadata?.[currentChordIndex]
+                                ?.location?.subSectionIndex === index
+                                ? "animate-colorOscillate"
+                                : ""
+                            }
+                    `}
+                          >
+                            Repeat x{chordSequence.repetitions}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   )}
                   <AnimatePresence mode="wait">
                     <ChordSequence
