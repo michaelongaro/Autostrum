@@ -6,6 +6,7 @@ import { shallow } from "zustand/shallow";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useKeepArtistMetadataUpdatedWithClerk from "~/hooks/useKeepArtistMetadataUpdatedWithClerk";
+import useFetchAndLoadSoundfonts from "~/hooks/useFetchAndLoadSoundfonts";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import AudioControls from "../AudioControls/AudioControls";
@@ -45,6 +46,8 @@ function GeneralLayoutStatefulShell() {
 
   // reflects any updates made to username/profileImageUrl in Clerk to the ArtistMetadata
   useKeepArtistMetadataUpdatedWithClerk();
+
+  useFetchAndLoadSoundfonts();
 
   useAutoCompileChords();
 
