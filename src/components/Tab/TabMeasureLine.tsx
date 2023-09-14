@@ -116,7 +116,11 @@ function TabMeasureLine({
                 tabData[sectionIndex]!.data[subSectionIndex]!.data[
                   columnIndex
                 ][7] !== -1 && (
-                  <div className="baseFlex absolute -top-2 !flex-nowrap gap-[0.125rem] text-pink-50">
+                  <div
+                    className={`baseFlex absolute !flex-nowrap gap-[0.125rem] text-pink-50 ${
+                      note === "-" ? "-top-2" : "top-2"
+                    }`}
+                  >
                     <BsMusicNote className="h-4 w-4" />
                     <p className="text-center text-xs">
                       {tabData[sectionIndex]!.data[subSectionIndex]!.data[
