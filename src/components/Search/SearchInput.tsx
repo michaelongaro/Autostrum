@@ -40,14 +40,21 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
 
   useEffect(() => {
     const handleAutofillResultsVisibility = () => {
+      // not a fan of using the timeouts, however it was glitching out otherwise
+      // (potentially a strictmode only behavior?)
+
       if (
         debouncedSearchQuery.length > 0 &&
         (document.activeElement === searchInputRef.current ||
           document.activeElement?.id?.startsWith("autofillResult"))
       ) {
-        setShowAutofillResults(true);
+        setTimeout(() => {
+          setShowAutofillResults(true);
+        }, 100);
       } else {
-        setShowAutofillResults(false);
+        setTimeout(() => {
+          setShowAutofillResults(false);
+        }, 100);
       }
     };
 
@@ -55,7 +62,6 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
 
     window.addEventListener("focus", handleAutofillResultsVisibility, true);
     window.addEventListener("blur", handleAutofillResultsVisibility, true);
-    window.addEventListener("click", handleAutofillResultsVisibility, true);
 
     return () => {
       window.removeEventListener(
@@ -64,11 +70,6 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
         true
       );
       window.removeEventListener("blur", handleAutofillResultsVisibility, true);
-      window.removeEventListener(
-        "click",
-        handleAutofillResultsVisibility,
-        true
-      );
     };
   }, [debouncedSearchQuery]);
 
