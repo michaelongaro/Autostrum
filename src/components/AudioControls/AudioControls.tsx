@@ -435,8 +435,6 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     artificalPlayButtonTimeout,
     currentlyPlayingMetadata,
   ]);
-
-  // hmmm, create hook that will return w/e icon should be rendered?
   // but then idk how to handle the preview chord/strumming pattern ones, well yeah actually
   // just do previewAudioMetadata.playing, etc...
 
@@ -1089,7 +1087,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectLabel>Sections</SelectLabel>
+                        <SelectLabel>Instruments</SelectLabel>
 
                         <SelectItem value={"acoustic_guitar_nylon"}>
                           Acoustic guitar - Nylon
