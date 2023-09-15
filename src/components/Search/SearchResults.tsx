@@ -7,13 +7,20 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useLocalStorageValue } from "@react-hookz/web";
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectGroup,
-  SelectLabel,
   SelectItem,
-} from "../ui/select";
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { Switch } from "~/components/ui/switch";
+import { Separator } from "~/components/ui/separator";
 import { BsArrowDownShort, BsGridFill } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
 import GridTabView from "./GridTabView";
@@ -23,6 +30,7 @@ import TableArtistView from "./TableArtistView";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import { Badge } from "../ui/badge";
+import { LuFilter } from "react-icons/lu";
 
 interface SearchResults {
   genreId: number;
@@ -52,7 +60,6 @@ function SearchResults({
 }: SearchResults) {
   const { asPath, push, query, pathname } = useRouter();
 
-  // worry about skeletons later!
   const localStorageViewType = useLocalStorageValue("autostrumViewType");
 
   const { searchResultsCount } = useTabStore(
@@ -260,17 +267,175 @@ function SearchResults({
     );
   }
 
+  // we have individual options for each sort type on mobile instead of clicking
+  // through the either date/likes to cycle through the options.
+  function handleMobileSortChange(
+    type: "newest" | "oldest" | "leastLiked" | "mostLiked" | "none"
+  ) {
+    const newQueries = { ...query };
+
+    if (type === "newest") delete newQueries.sort;
+    else newQueries.sort = type;
+
+    // push new url to router
+    void push(
+      {
+        pathname,
+        query: newQueries,
+      },
+      undefined,
+      {
+        scroll: false, // defaults to true but try both
+        shallow: true,
+      }
+    );
+  }
+
   return (
     // prob better practice to let parent component decide vertical margin/padding
     // rather than do it here.
     <div className="baseVertFlex w-full rounded-md border-8 border-t-2 border-pink-800 shadow-md">
       {/* # of results + sorting options */}
-      <div className="baseVertFlex w-full !flex-col-reverse !items-start gap-4 bg-pink-800 p-2 md:!flex-row md:!items-center md:!justify-between">
+      <div className="baseFlex w-full !items-center !justify-between gap-4 bg-pink-800 p-2 @container">
         {/* # of results */}
         {queryResults}
 
-        {/* sorting options */}
-        <div className="baseFlex !justify-start gap-2 md:!justify-center md:gap-4">
+        {/* mobile sorting options */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant={"outline"} className="baseFlex gap-2 @3xl:hidden">
+              Filter
+              <LuFilter className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent
+            side={"bottom"}
+            className="baseVertFlex min-w-[20rem] !items-start gap-2 bg-pink-50 text-pink-950"
+          >
+            <Label className="baseFlex gap-2">
+              Search filters
+              <LuFilter className="h-4 w-4" />
+            </Label>
+            <Separator className="mb-2 w-full bg-pink-500" />
+            <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+              <Label>Type</Label>
+              <Select
+                value={type}
+                onValueChange={(value) =>
+                  handleTypeChange(value as "tabs" | "artists")
+                }
+              >
+                <SelectTrigger className="w-28">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Result type</SelectLabel>
+                    <SelectItem value="tabs">Tabs</SelectItem>
+                    <SelectItem value="artists">Artists</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+              <Label>Genre</Label>
+              <Select
+                value={genreId.toString()}
+                onValueChange={(value) => handleGenreChange(value)}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select a genre" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Genres</SelectLabel>
+
+                    {genreArrayData.map((genre) => {
+                      return (
+                        <SelectItem key={genre.id} value={genre.id.toString()}>
+                          <div className="baseFlex gap-2">
+                            <div
+                              style={{
+                                backgroundColor: genre.color,
+                              }}
+                              className="h-3 w-3 rounded-full"
+                            ></div>
+                            {genre.name}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+              <Label>View</Label>
+              <Select
+                value={viewType}
+                onValueChange={(value) =>
+                  handleViewChange(value as "grid" | "table")
+                }
+              >
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Results layout</SelectLabel>
+                    <SelectItem value="grid">Grid</SelectItem>
+                    <SelectItem value="table">Table</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+              <Label>Sort by</Label>
+              <Select
+                value={additionalSortFilter}
+                onValueChange={(value) =>
+                  handleMobileSortChange(
+                    value as
+                      | "newest"
+                      | "oldest"
+                      | "leastLiked"
+                      | "mostLiked"
+                      | "none"
+                  )
+                }
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Sort by</SelectLabel>
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="oldest">Oldest</SelectItem>
+                    <SelectItem value="leastLiked">Least likes</SelectItem>
+                    <SelectItem value="mostLiked">Most likes</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {searchQuery && (
+              <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+                <Label>Relevance</Label>
+                <Switch
+                  checked={sortByRelevance}
+                  onCheckedChange={() => handleRelevanceChange()}
+                />
+              </div>
+            )}
+          </PopoverContent>
+        </Popover>
+
+        {/* desktop sorting options */}
+        <div className="baseFlex !hidden !justify-start gap-2 @3xl:!flex md:!justify-center md:gap-4">
           {/* type (artist page only shows tabs so hide selector) */}
           {asPath.includes("/explore") && (
             <div className="baseVertFlex !items-start gap-1.5">
