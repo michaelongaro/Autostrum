@@ -6,12 +6,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableCell,
 } from "~/components/ui/table";
 import { api } from "~/utils/api";
 import { useInView } from "react-intersection-observer";
 import TableArtistRow from "./TableArtistRow";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
+import { AiFillHeart } from "react-icons/ai";
+import { GiMusicalScore } from "react-icons/gi";
 
 interface TableArtistView {
   searchQuery: string;
@@ -39,6 +42,7 @@ function TableArtistView({
   const {
     data: artistResults,
     isFetching,
+    isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
   } = api.artist.getInfiniteArtistsBySearchQuery.useInfiniteQuery(
@@ -94,81 +98,125 @@ function TableArtistView({
           </TableRow>
         </TableHeader>
         <TableBody className="w-full">
-          {artistResults?.pages.map((page) =>
-            page.data.artists?.map((artist, index) => (
-              <>
-                {index === page.data.artists.length - 1 ? (
-                  <TableArtistRow ref={ref} key={artist.id} {...artist} />
-                ) : (
-                  <TableArtistRow key={artist.id} {...artist} />
+          {(!showArtificialLoadingSpinner || isFetchingNextPage) &&
+          artistResults ? (
+            <>
+              {artistResults.pages.map((page) =>
+                page.data.artists?.map((artist, index) => (
+                  <>
+                    {index === page.data.artists.length - 1 ? (
+                      <TableArtistRow ref={ref} key={artist.id} {...artist} />
+                    ) : (
+                      <TableArtistRow key={artist.id} {...artist} />
+                    )}
+                  </>
+                ))
+              )}
+
+              {/* loading spinner */}
+              <AnimatePresence mode="wait">
+                {isFetchingNextPage && (
+                  // there is extra space on top during initial load when no cards are rendered, try to eliminate
+                  <motion.div
+                    key={"gridTabViewLoadingSpinner"}
+                    initial={{ opacity: 0, scale: 0, height: "0" }}
+                    animate={{ opacity: 1, scale: 1, height: "auto" }}
+                    exit={{ opacity: 0, scale: 0, height: "0" }}
+                    transition={{
+                      opacity: { duration: 0.25 },
+                      scale: { duration: 0.15 },
+                      height: { duration: 0.35 },
+                      // height: { duration: 0.25}
+                    }}
+                    className="baseFlex w-full"
+                  >
+                    <div className="baseFlex h-24 w-full gap-4">
+                      <p className="text-lg">Loading</p>
+                      <svg
+                        className="h-7 w-7 animate-spin rounded-full bg-inherit fill-none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                    </div>
+                  </motion.div>
                 )}
-              </>
-            ))
+              </AnimatePresence>
+            </>
+          ) : (
+            <>
+              {Array.from(Array(3).keys()).map((index) => (
+                <AnimatePresence key={index} mode={"wait"}>
+                  <TableArtistSkeleton key={`artistTableSkeleton${index}`} />
+                </AnimatePresence>
+              ))}
+            </>
           )}
         </TableBody>
       </Table>
 
       {/* no results */}
       <AnimatePresence mode="wait">
-        {artistResults?.pages?.[0]?.data.artists.length === 0 &&
-          !showArtificialLoadingSpinner &&
-          !isFetching && (
+        {!showArtificialLoadingSpinner &&
+          !isFetching &&
+          artistResults?.pages?.[0]?.data.artists.length === 0 && (
             <motion.p
               key={"tableArtistViewNoResults"}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
-              className="py-8 text-lg"
+              className="lightestGlassmorphic rounded-md px-8 py-4 text-lg transition-all"
             >
               No results found.
             </motion.p>
           )}
-      </AnimatePresence>
-
-      {/* loading spinner */}
-      <AnimatePresence mode="wait">
-        {(showArtificialLoadingSpinner || isFetching) && (
-          // there is extra space on top during initial load when no cards are rendered, try to eliminate
-          <motion.div
-            key={"gridTabViewLoadingSpinner"}
-            initial={{ opacity: 0, scale: 0, height: "0" }}
-            animate={{ opacity: 1, scale: 1, height: "auto" }}
-            exit={{ opacity: 0, scale: 0, height: "0" }}
-            transition={{
-              opacity: { duration: 0.25 },
-              scale: { duration: 0.15 },
-              height: { duration: 0.35 },
-              // height: { duration: 0.25}
-            }}
-            className="baseFlex w-full"
-          >
-            <div className="baseFlex h-24 w-full gap-4">
-              <p className="text-lg">Loading</p>
-              <svg
-                className="h-7 w-7 animate-spin rounded-full bg-inherit fill-none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-            </div>
-          </motion.div>
-        )}
       </AnimatePresence>
     </motion.div>
   );
 }
 
 export default TableArtistView;
+
+function TableArtistSkeleton() {
+  return (
+    <TableRow className="w-full">
+      <TableCell>
+        <div className="baseFlex !justify-start gap-2">
+          <div className="h-8 w-8 animate-pulse rounded-full bg-pink-300"></div>
+          <div className="h-6 w-24 animate-pulse rounded-md bg-pink-300"></div>
+        </div>
+      </TableCell>
+
+      <TableCell>
+        <div className="baseFlex !justify-start gap-2">
+          <GiMusicalScore className="h-6 w-6" />
+          <div className="h-6 w-8 animate-pulse rounded-md bg-pink-300"></div>
+        </div>
+      </TableCell>
+
+      <TableCell className="baseFlex !justify-start gap-2">
+        <div className="baseFlex !justify-start gap-2">
+          <AiFillHeart className="h-6 w-6 text-pink-800" />
+          <div className="h-6 w-8 animate-pulse rounded-md bg-pink-300"></div>
+        </div>
+      </TableCell>
+
+      <TableCell>
+        <div className="h-6 w-16 animate-pulse rounded-md bg-pink-300"></div>
+      </TableCell>
+    </TableRow>
+  );
+}

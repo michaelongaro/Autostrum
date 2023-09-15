@@ -52,19 +52,11 @@ interface GridTabCard extends RefetchTab {
   selectedPinnedTabId?: number;
   setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
   width?: number;
-  height?: number;
 }
 
 const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
   (
-    {
-      tab,
-      refetchTab,
-      selectedPinnedTabId,
-      setSelectedPinnedTabId,
-      width,
-      height,
-    },
+    { tab, refetchTab, selectedPinnedTabId, setSelectedPinnedTabId, width },
     ref
   ) => {
     const { userId, isLoaded } = useAuth();
@@ -144,9 +136,9 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
       <motion.div
         ref={ref} // hoping that if ref is undefined it will just ignore it
         key={`${tab.id}gridTabCard`}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         transition={{ duration: 0.25 }}
         style={{
           width: width ?? "100%",
@@ -157,7 +149,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         <div
           ref={previewRef}
           style={{
-            height: height ?? "9rem",
+            height: width ? width / 2.17 : "9rem",
           }}
           className="relative w-full cursor-pointer overflow-hidden rounded-t-md transition-all hover:bg-black/10 active:bg-black/20"
           onClick={() => {
@@ -177,70 +169,61 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
 
         <Separator />
 
-        <div
-          style={{
-            alignItems: !asPath.includes("genreId") ? "flex-end" : "center",
-          }}
-          className="baseFlex w-full !justify-between"
-        >
-          {/* title, date, and genre */}
-          <div className="baseVertFlex !items-start pb-2 pl-2">
+        <div className="baseVertFlex w-full !justify-between gap-2">
+          {/* title and date + genre */}
+          {/* hmmm what about the nowrap here, test w/ larget titles */}
+          <div className="baseVertFlex w-full !flex-nowrap !items-start gap-0 px-2">
             <Button variant={"link"} asChild>
               <Link
                 href={`/tab/${tab.id}`}
-                className="!p-0 !font-semibold md:!text-lg"
+                className="h-6 !p-0 !font-semibold md:h-8 md:!text-lg"
               >
-                <p
-                  className={`${
-                    // TODO: this is currently a bandaid fix, really want essentially a
-                    // container query solution, definitely check that out before production
-                    tab.title.length > 15
-                      ? "max-w-[100px] truncate sm:max-w-[150px] md:max-w-[220px]"
-                      : "whitespace-pre-wrap"
-                  }`}
-                >
-                  {tab.title}
-                </p>
+                <p>{tab.title}</p>
               </Link>
             </Button>
 
-            <p className="text-sm text-pink-50/90">
-              {formatDate(tab.updatedAt ?? tab.createdAt)}
-            </p>
+            <div className="baseFlex !flex-nowrap gap-2">
+              <p className="text-sm text-pink-50/90">
+                {formatDate(tab.updatedAt ?? tab.createdAt)}
+              </p>
 
-            {/* can bring back mt-2 on Badge if all in a row doesn't work */}
-            {asPath.includes("genreId") && selectedPinnedTabId === tab.id && (
-              <Badge className="mt-2 bg-green-600">Pinned</Badge>
-            )}
+              {asPath.includes("genreId") && selectedPinnedTabId === tab.id && (
+                <Badge className="bg-green-600">Pinned</Badge>
+              )}
 
-            {!asPath.includes("genreId") && (
-              <div className="baseFlex gap-2">
-                <Badge
-                  style={{
-                    backgroundColor: genreObject[tab.genreId]?.color,
-                  }}
-                  className="mt-2"
-                >
-                  {genreObject[tab.genreId]?.name}
-                </Badge>
-                {selectedPinnedTabId === tab.id && (
-                  <Badge className="mt-2 bg-green-600">Pinned</Badge>
-                )}
-              </div>
-            )}
+              {!asPath.includes("genreId") && (
+                <div className="baseFlex gap-2">
+                  <Badge
+                    style={{
+                      backgroundColor: genreObject[tab.genreId]?.color,
+                    }}
+                  >
+                    {genreObject[tab.genreId]?.name}
+                  </Badge>
+                  {selectedPinnedTabId === tab.id && (
+                    <Badge className="bg-green-600">Pinned</Badge>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* artist link & likes & play button */}
-          <div className="baseVertFlex gap-2">
-            <div className="baseFlex min-w-[112px] gap-2 px-2 py-1">
+          {/* artist/pin button and (likes & play button) */}
+          <div className="baseFlex w-full !flex-nowrap !items-end !justify-between gap-2">
+            {/* not sure if the min-w-[112px] is vestigial or not */}
+            <div className="baseFlex mb-1 w-1/2 !items-start gap-2 pl-2">
               {!asPath.includes("/artist") &&
                 !asPath.includes("/preferences") &&
                 !asPath.includes("/tabs") &&
                 asPath !== "/explore" && (
-                  <Button asChild variant={"ghost"} className="px-3 py-1">
+                  <Button
+                    asChild
+                    variant={"ghost"}
+                    className="h-full w-full px-3 py-1"
+                  >
                     <Link
                       href={`/artist/${tabCreator?.username ?? ""}`}
-                      className="baseFlex gap-2"
+                      className="baseFlex !justify-start gap-2"
                     >
                       <div className="grid grid-cols-1 grid-rows-1">
                         {tabCreator || loadingTabCreator ? (
@@ -277,7 +260,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                           <AiOutlineUser className="h-8 w-8" />
                         )}
                       </div>
-                      <span className="w-[58px] truncate">
+                      <span className="max-w-[50%] truncate">
                         {tabCreator?.username ?? "Anonymous"}
                       </span>
                     </Link>
@@ -305,7 +288,8 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                 </Button>
               )}
             </div>
-            <div className="baseFlex w-full !flex-nowrap !justify-evenly rounded-tl-md border-l-2 border-t-2">
+
+            <div className="baseFlex w-1/2 !flex-nowrap !justify-evenly rounded-tl-md border-l-2 border-t-2">
               {/* likes button */}
               <LikeAndUnlikeButton
                 customClassName="baseFlex h-8 w-1/2 gap-2 px-3 rounded-r-none rounded-bl-none rounded-tl-sm border-r-[1px]"

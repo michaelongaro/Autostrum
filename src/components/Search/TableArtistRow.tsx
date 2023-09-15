@@ -11,6 +11,7 @@ import type { ArtistMetadata } from "~/server/api/routers/artist";
 import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
 import { formatNumber } from "~/utils/formatNumber";
+import { AiOutlineUser } from "react-icons/ai";
 
 const TableArtistRow = forwardRef<HTMLTableRowElement, ArtistMetadata>(
   (artist, ref) => {
@@ -19,48 +20,48 @@ const TableArtistRow = forwardRef<HTMLTableRowElement, ArtistMetadata>(
 
     const [profileImageLoaded, setProfileImageLoaded] = useState(false);
 
-    // const { data: currentArtist, refetch: refetchCurrentArtist } =
-    //   api.artist.getByIdOrUsername.useQuery(
-    //     {
-    //       userId: userId!,
-    //     },
-    //     {
-    //       enabled: isLoaded,
-    //     }
-    //   );
-
-    // may need resize observer to refetch data when more tabs are able to be shown
-    // but maybe also is automatically handled by IntersectionObserver hook for main infinite scroll
-
-    // not sure if this is best workaround because I would ideally not have loading spinner at all but:
-    // maybe show loading spinner when isLoadingTabResults is true and then as soon as it is false
-    // have a manual timeout to show correct amount of cards being rendered with their skeleton loading
-    // state and then after that timeout is done, show the actual cards with their data?
-    // ^^^ really all depends on how long it takes to fetch data in first place
-
     return (
       <TableRow ref={ref} className="w-full">
         <TableCell>
-          <Button
-            variant={"ghost"}
-            className="baseFlex !justify-start gap-2 px-3 py-1"
-          >
+          {/* not sure why the profile image starts shrinking + eventually "pushed" out of view when
+          viewport is shrunk. maybe something to do with "object-cover or object-center"? */}
+          <Button asChild variant={"ghost"} className="px-3 py-1">
             <Link
-              // not sure if you fully have defaults down yet but definitely want to be able
-              // to have just baseline artist url w/o needing all search filter params
-              href={`/artist/${artist.username ?? ""}`}
-              className="baseFlex gap-2"
+              href={`/artist/${artist?.username ?? ""}`}
+              className="baseFlex w-fit !flex-nowrap !justify-start gap-2"
             >
-              <Image
-                src={artist.profileImageUrl ?? ""}
-                alt={`${artist.username ?? "Anonymous"}'s profile image`}
-                width={32}
-                height={32}
-                className="h-8 w-8 rounded-full bg-pink-800 object-cover object-center"
-              ></Image>
-              <span className="text-semibold">
-                {artist.username ?? "Anonymous"}
-              </span>
+              <div className="grid grid-cols-1 grid-rows-1">
+                {artist ? (
+                  <>
+                    <Image
+                      src={artist?.profileImageUrl ?? ""}
+                      alt={`${artist?.username ?? "Anonymous"}'s profile image`}
+                      width={32}
+                      height={32}
+                      // maybe just a developemnt thing, but it still very
+                      // briefly shows the default placeholder for a loading
+                      // or not found image before the actual image loads...
+                      onLoadingComplete={() => setProfileImageLoaded(true)}
+                      style={{
+                        opacity: profileImageLoaded ? 1 : 0,
+                      }}
+                      className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-800 object-cover object-center 
+                          transition-opacity"
+                    />
+                    <div
+                      style={{
+                        opacity: !profileImageLoaded ? 1 : 0,
+                      }}
+                      className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 transition-opacity
+                              ${!profileImageLoaded ? "animate-pulse" : ""}
+                            `}
+                    ></div>
+                  </>
+                ) : (
+                  <AiOutlineUser className="h-8 w-8" />
+                )}
+              </div>
+              <span>{artist?.username ?? "Anonymous"}</span>
             </Link>
           </Button>
         </TableCell>

@@ -22,6 +22,7 @@ import formatDate from "~/utils/formatDate";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import GridTabCard from "~/components/Search/GridTabCard";
 import PinnedTabPlaceholder from "~/components/Profile/PinnedTabPlaceholder";
+import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
 
 function ArtistProfile() {
   const router = useRouter();
@@ -181,10 +182,12 @@ function ArtistProfile() {
                   tab={fetchedTab}
                   refetchTab={refetchTab}
                   width={isAboveMediumViewportWidth ? 396.25 : undefined}
-                  height={isAboveMediumViewportWidth ? 180 : undefined}
                 />
               ) : (
-                <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-full w-[285px] animate-pulse rounded-md bg-pink-300 transition-opacity md:w-[396.25px]"></div>
+                <TabCardSkeleton
+                  key={`${artist?.id ?? ""}profileTabCardSkeleton`}
+                  width={isAboveMediumViewportWidth ? 396.25 : undefined}
+                />
               )}
             </>
           )}

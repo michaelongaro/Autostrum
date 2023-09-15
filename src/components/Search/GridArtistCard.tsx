@@ -39,9 +39,9 @@ const GridArtistCard = forwardRef<HTMLDivElement, ArtistMetadata>(
       <motion.div
         ref={ref}
         key={`${artist.id}gridArtistCard`}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         transition={{ duration: 0.25 }}
         className="lightestGlassmorphic baseVertFlex group relative w-full cursor-pointer gap-4 rounded-md border-2 p-2 shadow-sm brightness-100 transition-all hover:shadow-lg active:brightness-90"
         onMouseMove={handleMouseMove}

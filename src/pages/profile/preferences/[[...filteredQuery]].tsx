@@ -17,6 +17,7 @@ import { TabsContent } from "~/components/ui/tabs";
 import PinnedTabModal from "~/components/modals/PinnedTabModal";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import GridTabCard from "~/components/Search/GridTabCard";
+import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
 
 function Preferences() {
   const { user } = useClerk();
@@ -109,8 +110,14 @@ function Preferences() {
                 </div>
                 <div className="baseVertFlex min-h-[128px] w-full rounded-md md:w-4/5">
                   {/* if pinned tab, show card with tab info */}
-                  {artist?.pinnedTabId !== -1 && fetchedTab ? (
-                    <GridTabCard tab={fetchedTab} refetchTab={refetchTab} />
+                  {artist?.pinnedTabId !== -1 ? (
+                    <>
+                      {fetchedTab ? (
+                        <GridTabCard tab={fetchedTab} refetchTab={refetchTab} />
+                      ) : (
+                        <TabCardSkeleton key="profileTabCardSkeleton" />
+                      )}
+                    </>
                   ) : (
                     // add conditional popover to say "You haven't created any tabs yet"
                     <div className="lightestGlassmorphic baseFlex h-[128px] w-full">

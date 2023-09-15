@@ -199,7 +199,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
             }
           }}
           value={searchQuery}
-          className="h-9 w-80 pl-8 text-base md:h-12 md:w-[25rem] md:pl-10 md:text-lg"
+          className="h-9 w-80 border-2 pl-8 text-base shadow-md focus-within:shadow-lg md:h-12 md:w-[25rem] md:pl-10 md:text-lg"
         />
 
         {/* autofill */}
@@ -339,7 +339,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
             searchQuery
           );
         }}
-        className="hidden md:block"
+        className="hidden shadow-sm md:block"
       >
         Search
       </Button>

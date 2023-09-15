@@ -174,12 +174,12 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
         <TableCell>
           {/* not sure why the profile image starts shrinking + eventually "pushed" out of view when
           viewport is shrunk. maybe something to do with "object-cover or object-center"? */}
-          <Button asChild variant={"ghost"} className="w-full px-3 py-1">
+          <Button asChild variant={"ghost"} className="px-3 py-1">
             <Link
               href={`/artist/${tabCreator?.username ?? ""}`}
-              className="baseFlex w-full !flex-nowrap gap-2"
+              className="baseFlex w-fit !flex-nowrap !justify-start gap-2"
             >
-              <div className="grid w-full grid-cols-1 grid-rows-1">
+              <div className="grid grid-cols-1 grid-rows-1">
                 {tabCreator || loadingTabCreator ? (
                   <>
                     <Image
