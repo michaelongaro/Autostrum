@@ -143,7 +143,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         style={{
           width: width ?? "100%",
         }}
-        className="lightestGlassmorphic baseVertFlex rounded-md border-2"
+        className="baseVertFlex rounded-md border-2"
       >
         {/* tab preview */}
         <div
@@ -151,7 +151,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
           style={{
             height: width ? width / 2.17 : "9rem",
           }}
-          className="relative w-full cursor-pointer overflow-hidden rounded-t-md transition-all hover:bg-black/10 active:bg-black/20"
+          className="gridTabCardPreviewGlassmorphic relative w-full cursor-pointer overflow-hidden rounded-t-md transition-all hover:bg-black/10 active:bg-black/20"
           onClick={() => {
             void push(`/tab/${tab.id}`, undefined, {
               scroll: false, // defaults to true but try both
@@ -169,7 +169,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
 
         <Separator />
 
-        <div className="baseVertFlex w-full !justify-between gap-2">
+        <div className="baseVertFlex lightestGlassmorphic w-full !justify-between gap-2">
           {/* title and date + genre */}
           {/* hmmm what about the nowrap here, test w/ larget titles */}
           <div className="baseVertFlex w-full !flex-nowrap !items-start gap-0 px-2">
@@ -211,7 +211,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
           {/* artist/pin button and (likes & play button) */}
           <div className="baseFlex w-full !flex-nowrap !items-end !justify-between gap-2">
             {/* not sure if the min-w-[112px] is vestigial or not */}
-            <div className="baseFlex mb-1 w-1/2 !items-start gap-2 pl-2">
+            <div className="baseFlex mb-1 w-1/2 !items-start !justify-start gap-2 pl-2">
               {!asPath.includes("/artist") &&
                 !asPath.includes("/preferences") &&
                 !asPath.includes("/tabs") &&
@@ -219,7 +219,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                   <Button
                     asChild
                     variant={"ghost"}
-                    className="h-full w-full px-3 py-1"
+                    className="h-full px-3 py-1"
                   >
                     <Link
                       href={`/artist/${tabCreator?.username ?? ""}`}
@@ -260,7 +260,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                           <AiOutlineUser className="h-8 w-8" />
                         )}
                       </div>
-                      <span className="max-w-[50%] truncate">
+                      <span className="max-w-[100%] truncate">
                         {tabCreator?.username ?? "Anonymous"}
                       </span>
                     </Link>
