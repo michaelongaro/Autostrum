@@ -69,8 +69,8 @@ function GridTabView({
       userIdToSelectFrom:
         asPath.includes("/tabs") && userId
           ? userId
-          : typeof query.username === "string"
-          ? artistProfileBeingViewed?.userId
+          : artistProfileBeingViewed
+          ? artistProfileBeingViewed.userId
           : undefined,
     },
     {
