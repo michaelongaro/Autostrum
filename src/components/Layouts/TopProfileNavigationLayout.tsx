@@ -14,15 +14,14 @@ interface Layout {
 }
 
 function TopProfileNavigationLayout({ children }: Layout) {
-  const router = useRouter();
-  const { push, asPath } = useRouter();
+  const { asPath, push, query } = useRouter();
 
   const usernameFromUrl = useMemo(() => {
-    if (typeof router.query.username === "string") {
-      return router.query.username;
+    if (typeof query.username === "string") {
+      return query.username;
     }
     return "";
-  }, [router.query.username]);
+  }, [query.username]);
 
   const finalQueryOfUrl = useMemo(() => {
     if (asPath.includes("/tabs")) return "tabs";
@@ -40,10 +39,17 @@ function TopProfileNavigationLayout({ children }: Layout) {
     }
   );
 
+  function pushToTabsOrLikes(pushToTabs: boolean) {
+    void push(`/profile/${pushToTabs ? "tabs" : "likes"}/filters`, undefined, {
+      scroll: false, // defaults to true but try both
+      shallow: true,
+    });
+  }
+
   function getDynamicWidth() {
     if (finalQueryOfUrl === "tabs") return "w-10/12 md:w-3/4";
     if (finalQueryOfUrl === "likes") return "w-10/12 md:w-3/4";
-    if (finalQueryOfUrl === "preferences") return "w-11/12 md:max-w-[500px]";
+    if (finalQueryOfUrl === "preferences") return "w-11/12 md:w-[975px]";
   }
 
   return (
@@ -57,38 +63,41 @@ function TopProfileNavigationLayout({ children }: Layout) {
     >
       <Tabs
         defaultValue={finalQueryOfUrl}
-        onValueChange={
-          (value) => void push(`/profile/${value}`) // should probably include default params for search too right?
-        }
-        className="baseVertFlex my-12 md:my-24"
+        className="baseVertFlex my-12 w-full md:my-24"
       >
-        <TabsList className="grid h-full w-11/12 grid-cols-3 gap-2 md:w-[450px]">
-          {/* TODO: make this tabs container's width constant no matter which tab is selected */}
+        <TabsList className="z-40 grid h-full w-11/12 grid-cols-3 gap-2 md:w-[450px]">
           <TabsTrigger
             value="preferences"
             className="baseVertFlex gap-2 md:!flex-row"
+            onClick={() => {
+              void push(`/profile/preferences`);
+            }}
           >
             <IoSettingsOutline className="h-4 w-4" />
             Preferences
           </TabsTrigger>
-          <TabsTrigger value="tabs" className="baseVertFlex gap-2 md:!flex-row">
+          <TabsTrigger
+            value="tabs"
+            className="baseVertFlex gap-2 md:!flex-row"
+            onClick={() => {
+              pushToTabsOrLikes(true);
+            }}
+          >
             <FaGuitar className="h-4 w-4" />
             Tabs
           </TabsTrigger>
           <TabsTrigger
             value="likes"
             className="baseVertFlex gap-2 md:!flex-row"
+            onClick={() => {
+              pushToTabsOrLikes(false);
+            }}
           >
             <AiOutlineHeart className="h-4 w-4" />
             Likes
           </TabsTrigger>
         </TabsList>
-        <div
-          style={{
-            width: getDynamicWidth(),
-          }}
-          className="min-h-[100dvh]"
-        >
+        <div className={`min-h-[100dvh] ${getDynamicWidth()!}`}>
           <AnimatePresence mode="wait">{children}</AnimatePresence>
         </div>
       </Tabs>
