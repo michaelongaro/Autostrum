@@ -318,26 +318,28 @@ function SearchResults({
               <LuFilter className="h-4 w-4" />
             </Label>
             <Separator className="mb-2 w-full bg-pink-500" />
-            <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-              <Label>Type</Label>
-              <Select
-                value={type}
-                onValueChange={(value) =>
-                  handleTypeChange(value as "tabs" | "artists")
-                }
-              >
-                <SelectTrigger className="w-28">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Result type</SelectLabel>
-                    <SelectItem value="tabs">Tabs</SelectItem>
-                    <SelectItem value="artists">Artists</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
+            {pathname.includes("/explore") && (
+              <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+                <Label>Type</Label>
+                <Select
+                  value={type}
+                  onValueChange={(value) =>
+                    handleTypeChange(value as "tabs" | "artists")
+                  }
+                >
+                  <SelectTrigger className="w-28">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Result type</SelectLabel>
+                      <SelectItem value="tabs">Tabs</SelectItem>
+                      <SelectItem value="artists">Artists</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
               <Label>Genre</Label>
               <Select
