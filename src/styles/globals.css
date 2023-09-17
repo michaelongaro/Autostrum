@@ -11,6 +11,10 @@
   @apply flex flex-col items-center justify-center flex-wrap;
 }
 
+.gridTabCardPreviewGlassmorphic {
+  @apply backdrop-blur-sm shadow-lightGlassmorphic bg-gradient-to-br from-pink-500/10 via-pink-500/20 to-pink-500/30;
+}
+
 .lightestGlassmorphic {
   @apply backdrop-blur-sm shadow-lightGlassmorphic bg-gradient-to-br from-pink-500/40 via-pink-500/50 to-pink-500/70;
 }
