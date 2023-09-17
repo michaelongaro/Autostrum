@@ -118,7 +118,7 @@ function GeneralLayoutStatefulShell() {
         });
 
         timerId = null;
-      }, 350); // 350ms throttle
+      }, 200); // 200ms throttle
       setTicking(true);
     }
 
@@ -190,7 +190,7 @@ function GeneralLayoutStatefulShell() {
         });
 
         timerId = null;
-      }, 350); // 350ms throttle
+      }, 200); // 200ms throttle
       setScrollToTopTicking(true);
     }
 
