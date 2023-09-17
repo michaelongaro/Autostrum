@@ -123,23 +123,13 @@ export const tabRouter = createTRPCRouter({
       const { query, includeUsernames, userIdToSelectFrom, likedByUserId } =
         input;
 
-      const tabTitles = await ctx.prisma.tab.findMany({
+      const tabTitlesAndGenreIds = await ctx.prisma.tab.findMany({
         where: {
           title: {
             contains: query,
             mode: "insensitive",
           },
-          // TODO: really not sure it is good ux to limit search results to a specific genre
-          // genreId:
-          //   genreId === 9
-          //     ? {
-          //         lt: genreId,
-          //       }
-          //     : {
-          //         equals: genreId,
-          //       },
           createdById: userIdToSelectFrom,
-
           likes: {
             every: {
               artistWhoLikedId: likedByUserId,
@@ -148,6 +138,7 @@ export const tabRouter = createTRPCRouter({
         },
         select: {
           title: true,
+          genreId: true,
         },
         distinct: ["title"],
         orderBy: {
@@ -181,10 +172,10 @@ export const tabRouter = createTRPCRouter({
         });
       }
 
-      return combineTabTitlesAndUsernames(
-        tabTitles.map((tab) => tab.title),
-        artists.map((artist) => artist.username)
-      );
+      return combineTabTitlesAndUsernames({
+        tabs: tabTitlesAndGenreIds,
+        usernames: artists.map((artist) => artist.username),
+      });
     }),
 
   getInfiniteTabsBySearchQuery: publicProcedure

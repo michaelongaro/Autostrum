@@ -1,13 +1,21 @@
-export default function combineTabTitlesAndUsernamess(
-  tabTitles: string[],
-  usernames: string[]
-) {
+interface combineTabTitlesAndUsernames {
+  tabs: {
+    title: string;
+    genreId: number;
+  }[];
+  usernames: string[];
+}
+
+export default function combineTabTitlesAndUsernamess({
+  tabs,
+  usernames,
+}: combineTabTitlesAndUsernames) {
   const maxLength = 6;
   let res = [];
 
   // If one of the arrays is empty or can fill the result array by itself
-  if (tabTitles.length >= maxLength) {
-    return tabTitles
+  if (tabs.length >= maxLength) {
+    return tabs
       .slice(0, maxLength)
       .map((element) => ({ value: element, type: "title" }));
   }
@@ -16,37 +24,36 @@ export default function combineTabTitlesAndUsernamess(
       .slice(0, maxLength)
       .map((element) => ({ value: element, type: "username" }));
   }
-  if (tabTitles.length === 0) {
+  if (tabs.length === 0) {
     return usernames
       .slice(0, maxLength)
       .map((element) => ({ value: element, type: "username" }));
   }
   if (usernames.length === 0) {
-    return tabTitles.map((element) => ({ value: element, type: "title" }));
+    return tabs.map((element) => ({ value: element, type: "title" }));
   }
 
   // Determine the maximum amount of elements to take from each array
   const maxElemsFromEachArray = Math.ceil(maxLength / 2);
 
   // Determine how many elements to take from each array
-  let elemsFromtabTitles =
-    tabTitles.length <= maxElemsFromEachArray
-      ? tabTitles.length
-      : maxElemsFromEachArray;
-  let elemsFromusernames = maxLength - elemsFromtabTitles;
+  let elemsFromtabs =
+    tabs.length <= maxElemsFromEachArray ? tabs.length : maxElemsFromEachArray;
+  let elemsFromusernames = maxLength - elemsFromtabs;
 
   // If usernames does not have enough elements to fill the rest of the result array,
-  // take more elements from tabTitles
+  // take more elements from tabs
   if (usernames.length < elemsFromusernames) {
-    elemsFromtabTitles += elemsFromusernames - usernames.length;
+    elemsFromtabs += elemsFromusernames - usernames.length;
     elemsFromusernames = usernames.length;
   }
 
   // Combine the arrays
   res = [
-    ...tabTitles
-      .slice(0, elemsFromtabTitles)
-      .map((element) => ({ value: element, type: "title" })),
+    ...tabs.slice(0, elemsFromtabs).map((element) => ({
+      value: { title: element.title, genreId: element.genreId },
+      type: "title",
+    })),
     ...usernames
       .slice(0, elemsFromusernames)
       .map((element) => ({ value: element, type: "username" })),

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import debounce from "lodash.debounce";
 import { useRouter } from "next/router";
@@ -37,6 +37,24 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
     useState(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const genreArray = api.genre.getAll.useQuery();
+
+  const genreArrayData = useMemo(() => {
+    if (!genreArray.data) return [];
+
+    // not 100% sure why we can't just return below:
+    // [...genreArray.data, { id: 9, name: "All genres", color: "#ec4899" }]
+    if (genreArray.data.length === 8) {
+      genreArray.data.push({
+        id: 9,
+        name: "All genres",
+        color: "#ec4899",
+      });
+    }
+
+    return genreArray.data;
+  }, [genreArray.data]);
 
   useEffect(() => {
     const handleAutofillResultsVisibility = () => {
@@ -105,9 +123,9 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
 
   function adjustQueryParams(type: "tabs" | "artists", searchQuery: string) {
     const prevQuery = { ...query };
-    if (type === "artists" && query.genreId) {
-      delete prevQuery.genreId;
-    }
+
+    delete prevQuery.genreId;
+
     if (type === "artists") {
       prevQuery.type = "artists";
     } else {
@@ -266,7 +284,9 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                                   // response order is tabs and then artists, so if the first result is an artist,
                                   // we know that's the only type of result we have
                                   data.type === "title" ? "tabs" : "artists",
-                                  data.value
+                                  data.type === "title"
+                                    ? data.value.title
+                                    : data.value
                                 );
                               }}
                               onKeyDown={(e) => {
@@ -275,7 +295,9 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                                     // response order is tabs and then artists, so if the first result is an artist,
                                     // we know that's the only type of result we have
                                     data.type === "title" ? "tabs" : "artists",
-                                    data.value
+                                    data.type === "title"
+                                      ? data.value.title
+                                      : data.value
                                   );
                                 } else if (e.key === "Escape") {
                                   setShowAutofillResults(false);
@@ -305,16 +327,29 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                                 }
                               }}
                             >
-                              <Badge
-                                className={`${
-                                  data.type === "title"
-                                    ? "bg-blue-500"
-                                    : "bg-green-500"
-                                }`}
-                              >
-                                {data.type === "title" ? "Tab" : "Artist"}
-                              </Badge>
-                              {data.value}
+                              <div className="w-[75px]">
+                                <Badge
+                                  style={{
+                                    backgroundColor:
+                                      data.type === "title"
+                                        ? genreArrayData[data.value.genreId - 1]
+                                            ?.color
+                                        : "hsl(142, 71%, 45%)",
+                                  }}
+                                  className=""
+                                >
+                                  {data.type === "title"
+                                    ? genreArrayData[data.value.genreId - 1]
+                                        ?.name ?? ""
+                                    : "Artist"}
+                                </Badge>
+                              </div>
+
+                              <p>
+                                {data.type === "title"
+                                  ? data.value.title ?? ""
+                                  : data.value}
+                              </p>
                             </div>
                           )
                         )}
