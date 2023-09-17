@@ -23,7 +23,7 @@ function Hero() {
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   return (
-    <div className="baseVertFlex z-10 my-24 !flex-nowrap gap-16 xl:flex-row">
+    <div className="baseVertFlex z-10 my-24 !flex-nowrap gap-16">
       <div className="lightGlassmorphic baseVertFlex w-5/6 items-start gap-4 rounded-xl p-4 shadow-sm sm:w-auto md:p-8">
         <h1 className="baseVertFlex gap-2 text-3xl font-bold md:text-5xl">
           Welcome to
@@ -95,43 +95,45 @@ function Hero() {
         </AnimatePresence>
       </div>
 
-      <div className="baseVertFlex lightGlassmorphic w-4/5 gap-4 rounded-xl p-4 shadow-sm md:max-w-[550px] md:p-8">
-        <div className="baseFlex !flex-nowrap gap-4">
-          <div className="lightestGlassmorphic rounded-md p-2">
-            <GiMusicalScore className="h-8 w-8" />
+      <div className="baseVertFlex lightGlassmorphic w-4/5 !flex-nowrap gap-4 rounded-xl p-4 shadow-sm md:max-w-[550px] md:p-8 xl:w-[950px] xl:max-w-[950px]">
+        <div className="baseVertFlex !flex-nowrap gap-4 xl:flex-row xl:gap-12">
+          <div className="baseFlex !flex-nowrap gap-4 xl:flex-col xl:!items-start">
+            <div className="lightestGlassmorphic rounded-md p-2">
+              <GiMusicalScore className="h-8 w-8" />
+            </div>
+            <div className="baseVertFlex !items-start gap-1">
+              <p className="text-lg font-bold md:text-xl">Compose</p>
+              <p className="text-sm md:text-base xl:h-[125px] xl:w-[250px]">
+                Craft intricate guitar tabs with our advanced editor, complete
+                with strumming patterns, keyboard navigation, and more!
+              </p>
+            </div>
           </div>
-          <div className="baseVertFlex !items-start gap-1">
-            <p className="text-lg font-bold md:text-xl">Compose</p>
-            <p className="text-sm md:text-base">
-              Craft intricate guitar tabs with our advanced editor, complete
-              with strumming patterns, keyboard navigation, and more.
-            </p>
-          </div>
-        </div>
 
-        <div className="baseFlex !flex-nowrap gap-4">
-          <div className="lightestGlassmorphic rounded-md p-2">
-            <HiOutlineLightBulb className="h-8 w-8" />
+          <div className="baseFlex !flex-nowrap gap-4 xl:flex-col xl:!items-start">
+            <div className="lightestGlassmorphic rounded-md p-2">
+              <HiOutlineLightBulb className="h-8 w-8" />
+            </div>
+            <div className="baseVertFlex !items-start gap-1">
+              <p className="text-lg font-bold md:text-xl">Find inspiration</p>
+              <p className="text-sm md:text-base xl:h-[125px] xl:w-[250px]">
+                Explore an ever growing library of tabs and discover new talents
+                in our weekly featured artist section.
+              </p>
+            </div>
           </div>
-          <div className="baseVertFlex !items-start gap-1">
-            <p className="text-lg font-bold md:text-xl">Find inspiration</p>
-            <p className="text-sm md:text-base">
-              Explore an ever growing library of tabs and discover new talents
-              in our weekly featured artist section.
-            </p>
-          </div>
-        </div>
 
-        <div className="baseFlex !flex-nowrap gap-4">
-          <div className="lightestGlassmorphic rounded-md p-2">
-            <BsBarChartLine className="h-8 w-8" />
-          </div>
-          <div className="baseVertFlex !items-start gap-1">
-            <p className="text-lg font-bold md:text-xl">Practice</p>
-            <p className="text-sm md:text-base">
-              Hear your tabs come to life with true-to-life audio playback,
-              customizable speed playback, and artist-recorded audio guides.
-            </p>
+          <div className="baseFlex !flex-nowrap gap-4 xl:flex-col xl:!items-start">
+            <div className="lightestGlassmorphic rounded-md p-2">
+              <BsBarChartLine className="h-8 w-8" />
+            </div>
+            <div className="baseVertFlex !items-start gap-1">
+              <p className="text-lg font-bold md:text-xl">Practice</p>
+              <p className="text-sm md:text-base xl:h-[125px] xl:w-[250px]">
+                Play along with any tab, varying the playback speed, instrument,
+                or with the artist&apos;s official recording.
+              </p>
+            </div>
           </div>
         </div>
 
