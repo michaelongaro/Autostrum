@@ -18,6 +18,7 @@ import type {
   ChordSequence,
   TabSection,
 } from "~/stores/TabStore";
+import { BsMusicNote } from "react-icons/bs";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
 
@@ -108,10 +109,28 @@ function PreviewSectionContainer({
             key={subSection.id}
             className="baseVertFlex w-full !items-start pb-2"
           >
-            {subSection.repetitions > 1 && (
-              <p className="rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
-                Repeat x{subSection.repetitions}
-              </p>
+            {(subSection.type === "tab" || subSection.repetitions > 1) && (
+              <div className="baseFlex ml-4 gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
+                {subSection.type === "tab" && (
+                  <div className="baseFlex gap-1">
+                    <BsMusicNote className="h-4 w-4" />
+                    {subSection.bpm}
+                  </div>
+                )}
+
+                {subSection.repetitions > 1 && (
+                  <div className="baseFlex gap-3">
+                    {subSection.type === "tab" && (
+                      <Separator
+                        className="h-4 w-[1px]"
+                        orientation="vertical"
+                      />
+                    )}
+
+                    <p>Repeat x{subSection.repetitions}</p>
+                  </div>
+                )}
+              </div>
             )}
 
             {subSection.type === "chord" ? (
@@ -186,11 +205,21 @@ function PreviewChordSection({
             key={chordSequence.id}
             className="baseVertFlex w-full !items-start"
           >
-            {chordSequence.repetitions > 1 && (
-              <p className="rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
-                Repeat x{chordSequence.repetitions}
-              </p>
-            )}
+            <div className="baseFlex ml-4 gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
+              <div className="baseFlex gap-1">
+                <BsMusicNote className="h-4 w-4" />
+                {chordSequence.bpm}
+              </div>
+
+              {chordSequence.repetitions > 1 && (
+                <div className="baseFlex gap-3">
+                  <Separator className="h-4 w-[1px]" orientation="vertical" />
+
+                  <p>Repeat x{chordSequence.repetitions}</p>
+                </div>
+              )}
+            </div>
+
             <PreviewChordSequence
               tabData={tabData}
               sectionId={sectionId}

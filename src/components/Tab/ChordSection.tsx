@@ -221,7 +221,7 @@ function ChordSection({
                   className="baseVertFlex w-full !items-start"
                 >
                   {!editing && (
-                    <div className="baseFlex gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
+                    <div className="baseFlex ml-4 gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
                       <div className="baseFlex gap-1">
                         <BsMusicNote className="h-4 w-4" />
                         {chordSequence.bpm}
@@ -245,7 +245,7 @@ function ChordSection({
                                 ? "animate-colorOscillate"
                                 : ""
                             }
-                    `}
+                            `}
                           >
                             Repeat x{chordSequence.repetitions}
                           </p>
