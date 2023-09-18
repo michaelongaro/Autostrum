@@ -38,6 +38,12 @@
   background: linear-gradient(315deg, hsl(6, 100%, 63%), hsl(340, 100%, 76%), hsl(297, 100%, 90%)) fixed center / cover;
 }
 
+@media (min-width: 480px) {
+  .securedByClerkBreakpoint {
+    @apply max-w-[95%];
+  }
+}
+
 @layer base {
   :root {
     --background: 327 73% 97%;
