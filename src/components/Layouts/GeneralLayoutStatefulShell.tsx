@@ -86,7 +86,7 @@ function GeneralLayoutStatefulShell() {
 
           // handle scroll down
           if (scrollTop > lastScrollTop) {
-            if (scrollTop > 64) {
+            if (scrollTop > 64 && asPath.includes("/tab")) {
               setShowingHeader(false);
             }
 
@@ -130,6 +130,7 @@ function GeneralLayoutStatefulShell() {
       window.removeEventListener("scroll", handleScroll);
     };
   }, [
+    asPath,
     lastScrollTop,
     ticking,
     audioMetadata.playing,
@@ -278,7 +279,7 @@ function GeneralLayoutStatefulShell() {
             }
             style={{
               bottom: scrollToTopButtonBottomValue,
-              transition: "all 0.3s linear",
+              transition: "bottom 0.3s linear",
             }}
             className="baseFlex fixed right-1 z-50 lg:right-4"
           >
