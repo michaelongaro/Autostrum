@@ -29,12 +29,9 @@ export default function buildTabOrderBy(
     tempOrderBy.push({
       _relevance: {
         fields: ["title"],
-        // TODO: this probably is why the search isn't working w/ spaces...
-        // Replace spaces, newlines, tabs with underscore
+        // Replace spaces, newlines, tabs with underscore for postgres
+        // relevance query
         search: searchQuery.replace(/[\s\n\t]/g, "_"),
-
-        // https://news.freshports.org/2021/03/09/to_tsquery-gives-error-syntax-error-in-tsquery-when-it-contains-a-space/
-        // idk this would probably require a raw sql query though...
         sort: "asc",
       },
     });
