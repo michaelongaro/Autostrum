@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Squash as Hamburger } from "hamburger-react";
 import {
   SignUpButton,
@@ -21,6 +21,10 @@ function MobileHeader() {
 
   const { asPath } = useRouter();
 
+  useEffect(() => {
+    setOpen(false);
+  }, [asPath]);
+
   return (
     <div
       style={{
@@ -32,11 +36,7 @@ function MobileHeader() {
       }}
       className="absolute flex h-full w-full items-start justify-between overflow-clip p-2 transition-all md:hidden"
     >
-      <Link
-        href={"/"}
-        onClick={() => setOpen(false)}
-        className="baseFlex h-12 pl-2"
-      >
+      <Link href={"/"} className="baseFlex h-12 pl-2">
         <Image
           src="/logoWithTitle.svg"
           alt="Autostrum header logo"
@@ -65,7 +65,6 @@ function MobileHeader() {
                 : undefined,
               color: asPath.includes("/explore") ? "#fbcfe8" : undefined,
             }}
-            onClick={() => setOpen(false)}
           >
             <Link href={"/explore"} className="baseFlex gap-2 text-lg">
               <IoTelescopeOutline className="h-6 w-6" />
@@ -83,7 +82,6 @@ function MobileHeader() {
                 : undefined,
               color: asPath.includes("/create") ? "#fbcfe8" : undefined,
             }}
-            onClick={() => setOpen(false)}
           >
             <Link href={"/create"} className="baseFlex gap-2 text-lg">
               <FaGuitar className="h-6 w-6" />
@@ -94,7 +92,6 @@ function MobileHeader() {
           {/* opting for double "&&" instead of ternary for better readability */}
           {!isSignedIn && (
             <div className="baseFlex gap-4">
-              {/* how to maybe get colors to match theme + also have an option to specify username? */}
               <SignUpButton
                 mode="modal"
                 afterSignUpUrl={`${
@@ -122,10 +119,8 @@ function MobileHeader() {
                 <Link
                   href={`/profile/preferences`}
                   className="baseFlex gap-4 p-0 text-xl"
-                  onClick={() => setOpen(false)}
                 >
                   {user?.username}
-                  {/* will need to be based on env url */}
                   <UserButton
                     afterSignOutUrl={`${
                       process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
