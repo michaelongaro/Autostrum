@@ -169,7 +169,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
 
         <Separator />
 
-        <div className="baseVertFlex lightestGlassmorphic w-full !justify-between gap-2">
+        <div className="baseVertFlex lightestGlassmorphic w-full !justify-between gap-2 rounded-b-md">
           {/* title and date + genre */}
           {/* hmmm what about the nowrap here, test w/ larget titles */}
           <div className="baseVertFlex w-full !flex-nowrap !items-start gap-0 px-2">
