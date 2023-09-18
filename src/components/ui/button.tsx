@@ -6,7 +6,7 @@ import { cn } from "~/utils/utils";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center rounded-md text-sm shadow-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -19,8 +19,8 @@ const buttonVariants = cva(
         secondary:
           "lightGlassmorphic text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/60 border-2",
         ghost:
-          "hover:bg-accent hover:text-accent-foreground active:bg-accent/60",
-        link: "underline-offset-4 hover:underline",
+          "hover:bg-accent hover:text-accent-foreground shadow-none active:bg-accent/60",
+        link: "underline-offset-4 hover:underline shadow-none",
         recording: "bg-blue-600 hover:bg-blue-700 active:bg-blue-800",
         toggledOn:
           "bg-primary text-primary-foreground hover:bg-primary/80 active:bg-primary/60 border-2",
@@ -29,7 +29,7 @@ const buttonVariants = cva(
         navigation:
           "bg-pink-200 hover:bg-pink-700 text-pink-800 hover:text-pink-200 active:bg-pink-800 active:text-pink-200",
         playPause:
-          "bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-50 disabled:bg-gray-500",
+          "bg-green-600 hover:bg-green-700 shadow-none active:bg-green-800 disabled:opacity-50 disabled:bg-gray-500",
       },
       size: {
         default: "h-10 px-4 py-2",
