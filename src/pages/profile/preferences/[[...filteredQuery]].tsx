@@ -11,6 +11,8 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import Link from "next/link";
+import { LuExternalLink } from "react-icons/lu";
+import { FaTrashAlt } from "react-icons/fa";
 import formatDate from "~/utils/formatDate";
 import TopProfileNavigationLayout from "~/components/Layouts/TopProfileNavigationLayout";
 import { TabsContent } from "~/components/ui/tabs";
@@ -27,13 +29,6 @@ function Preferences() {
   // "relative" classes on any parent elems in this component
   const [showPinnedTabModal, setShowPinnedTabModal] = useState(false);
   const [showEmptyTabsWarning, setShowEmptyTabsWarning] = useState(false);
-
-  // const { pinne } = useTabStore(
-  //   (state) => ({
-  //     originalTabData: state.originalTabData,
-  //   }),
-  //   shallow
-  // );
 
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
@@ -81,103 +76,113 @@ function Preferences() {
       className="baseVertFlex z-50 w-full"
     >
       <TabsContent value="preferences">
-        <div className="baseVertFlex gap-2 md:gap-4">
-          {/* start of actual preferences component */}
-          <div className="baseVertFlex lightGlassmorphic my-4 w-full gap-12 rounded-2xl px-1 py-4 transition-all md:my-8 md:p-8 md:px-4">
-            <UserProfile />
+        <div className="baseVertFlex lightGlassmorphic mt-12 w-full gap-12 rounded-2xl p-2 transition-all md:my-8 md:p-8 md:px-4">
+          <UserProfile
+            appearance={{
+              elements: {
+                rootBox: "max-w-[100%] securedByClerkBreakpoint md:max-w-[95%]",
+                card: "max-w-[100%] securedByClerkBreakpoint md:max-w-[95%]",
+              },
+            }}
+          />
 
-            <div
-              style={{
-                height: isAboveMediumViewportWidth
-                  ? artist?.pinnedTabId === -1
-                    ? "200px"
-                    : "300px"
-                  : "auto",
-              }}
-              className="baseVertFlex relative w-full !flex-nowrap gap-4 md:flex-row md:gap-0"
-            >
-              <div className="baseVertFlex w-full gap-2 md:gap-4">
-                <div className="baseFlex w-full !justify-start gap-4 md:w-4/5">
-                  <p className="text-xl font-semibold">Pinned tab</p>
-                  {artist?.pinnedTabId !== -1 && (
-                    <Button
-                      onClick={() => setShowPinnedTabModal(true)}
-                      className="h-8 !py-0"
-                    >
-                      Edit
-                    </Button>
-                  )}
-                </div>
-                <div className="baseVertFlex min-h-[128px] w-full rounded-md md:w-4/5">
-                  {/* if pinned tab, show card with tab info */}
-                  {artist?.pinnedTabId !== -1 ? (
-                    <>
-                      {fetchedTab ? (
-                        <GridTabCard tab={fetchedTab} refetchTab={refetchTab} />
-                      ) : (
-                        <TabCardSkeleton key="profileTabCardSkeleton" />
-                      )}
-                    </>
-                  ) : (
-                    // add conditional popover to say "You haven't created any tabs yet"
-                    <div className="lightestGlassmorphic baseFlex h-[128px] w-full">
-                      <Popover
-                        onOpenChange={(open) => {
-                          if (open === false) {
-                            setShowEmptyTabsWarning(open);
-                          }
-                        }}
-                        open={showEmptyTabsWarning}
-                      >
-                        <PopoverTrigger asChild>
-                          <Button
-                            onClick={() => {
-                              if (artist?.numberOfTabs === 0) {
-                                setShowEmptyTabsWarning(true);
-                                setTimeout(() => {
-                                  setShowEmptyTabsWarning(false);
-                                }, 3000);
-                              } else setShowPinnedTabModal(true);
-                            }}
-                          >
-                            Add tab
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent
-                          className="baseVertFlex p-2"
-                          side="bottom"
-                        >
-                          <p>You haven&apos;t created any tabs yet.</p>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* absolute left-1/2 -translate-x-1/2 transform */}
-              <Separator className="h-[1px] w-full md:h-full md:w-[1px]" />
-
-              <div className="baseVertFlex w-full gap-4">
-                <Button>
-                  <Link href={`/artist/${artist?.username ?? ""}`}>
-                    View profile
-                  </Link>
-                </Button>
-                <Button
-                  variant={"destructive"}
-                  onClick={() => {
-                    // confirmation popover into trpc mutation to delete account
-                  }}
-                >
-                  Delete account
-                </Button>
-                {artist && (
-                  <div className="text-pink-200">{`Joined on ${formatDate(
-                    artist.createdAt
-                  )}`}</div>
+          <div
+            style={{
+              height: isAboveMediumViewportWidth
+                ? artist?.pinnedTabId === -1
+                  ? "200px"
+                  : "300px"
+                : "auto",
+            }}
+            className="baseVertFlex relative w-full !flex-nowrap gap-4 md:flex-row md:gap-0"
+          >
+            <div className="baseVertFlex w-full gap-2 md:gap-4">
+              <div className="baseFlex w-full !justify-start gap-4 md:w-4/5">
+                <p className="text-xl font-semibold">Pinned tab</p>
+                {artist?.pinnedTabId !== -1 && (
+                  <Button
+                    onClick={() => setShowPinnedTabModal(true)}
+                    className="h-8 !py-0"
+                  >
+                    Edit
+                  </Button>
                 )}
               </div>
+              <div className="baseVertFlex min-h-[128px] w-full rounded-md md:w-4/5">
+                {/* if pinned tab, show card with tab info */}
+                {artist?.pinnedTabId !== -1 ? (
+                  <>
+                    {fetchedTab ? (
+                      <GridTabCard tab={fetchedTab} refetchTab={refetchTab} />
+                    ) : (
+                      <TabCardSkeleton key="profileTabCardSkeleton" />
+                    )}
+                  </>
+                ) : (
+                  // add conditional popover to say "You haven't created any tabs yet"
+                  <div className="lightestGlassmorphic baseFlex h-[128px] w-full rounded-md">
+                    <Popover
+                      onOpenChange={(open) => {
+                        if (open === false) {
+                          setShowEmptyTabsWarning(open);
+                        }
+                      }}
+                      open={showEmptyTabsWarning}
+                    >
+                      <PopoverTrigger asChild>
+                        <Button
+                          onClick={() => {
+                            if (artist?.numberOfTabs === 0) {
+                              setShowEmptyTabsWarning(true);
+                              setTimeout(() => {
+                                setShowEmptyTabsWarning(false);
+                              }, 3000);
+                            } else setShowPinnedTabModal(true);
+                          }}
+                        >
+                          Add tab
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="baseVertFlex p-2"
+                        side="bottom"
+                      >
+                        <p>You haven&apos;t created any tabs yet.</p>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* absolute left-1/2 -translate-x-1/2 transform */}
+            <Separator className="h-[1px] w-full md:h-full md:w-[1px]" />
+
+            <div className="baseVertFlex w-full gap-4">
+              <Button asChild>
+                <Link
+                  href={`/artist/${artist?.username ?? ""}`}
+                  className="baseFlex gap-2"
+                >
+                  Visit profile
+                  <LuExternalLink className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button
+                variant={"destructive"}
+                onClick={() => {
+                  // confirmation popover into trpc mutation to delete account
+                }}
+                className="baseFlex gap-2"
+              >
+                Delete account
+                <FaTrashAlt className="h-4 w-4" />
+              </Button>
+              {artist && (
+                <div className="text-sm text-pink-200">{`Joined on ${formatDate(
+                  artist.createdAt
+                )}`}</div>
+              )}
             </div>
           </div>
         </div>
