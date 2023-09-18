@@ -47,9 +47,9 @@ function TopProfileNavigationLayout({ children }: Layout) {
   }
 
   function getDynamicWidth() {
-    if (finalQueryOfUrl === "tabs") return "w-10/12 md:w-3/4";
-    if (finalQueryOfUrl === "likes") return "w-10/12 md:w-3/4";
-    if (finalQueryOfUrl === "preferences") return "w-11/12 md:w-[975px]";
+    if (finalQueryOfUrl === "tabs") return "w-11/12 md:w-3/4";
+    if (finalQueryOfUrl === "likes") return "w-11/12 md:w-3/4";
+    if (finalQueryOfUrl === "preferences") return "w-11/12 lg:w-[975px]";
   }
 
   return (
