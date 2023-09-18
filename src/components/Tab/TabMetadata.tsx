@@ -55,6 +55,8 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
     useState(false);
   const [showPulsingError, setShowPulsingError] = useState(false);
   const [profileImageLoaded, setProfileImageLoaded] = useState(false);
+  const [showDeleteCheckmark, setShowDeleteCheckmark] = useState(false);
+  const [showPublishCheckmark, setShowPublishCheckmark] = useState(false);
 
   const overMediumViewportThreshold = useViewportWidthBreakpoint(768);
 
@@ -71,13 +73,17 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
 
   const { mutate: createOrUpdate, isLoading: isPosting } =
     api.tab.createOrUpdate.useMutation({
-      onSuccess: async (tab) => {
+      onSuccess: (tab) => {
         if (tab) {
-          if (asPath.includes("create")) {
-            await push(`/tab/${tab.id}`);
-          }
+          setShowPublishCheckmark(true);
 
-          setOriginalTabData(tab);
+          setTimeout(() => {
+            if (asPath.includes("create")) {
+              void push(`/tab/${tab.id}`);
+            }
+
+            setOriginalTabData(tab);
+          }, 500);
         }
       },
       onError: (e) => {
@@ -95,8 +101,12 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
 
   const { mutate: deleteTab, isLoading: isDeleting } =
     api.tab.deleteTabById.useMutation({
-      onSuccess: async () => {
-        await push(`/create`);
+      onSuccess: () => {
+        setShowDeleteCheckmark(true);
+
+        setTimeout(() => {
+          void push(`/create`);
+        }, 500);
       },
       onError: (e) => {
         //  const errorMessage = e.data?.zodError?.fieldErrors.content;
@@ -302,6 +312,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
 
   async function handleSave() {
     if (
+      !userId ||
       !title ||
       !genreId ||
       !tuning ||
@@ -450,15 +461,16 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                         // onClick={() => deleteTab()}
                         className="baseFlex gap-2"
                       >
-                        Delete
-                        {!isDeleting && <FaTrashAlt className="h-4 w-4" />}
+                        {isDeleting || showDeleteCheckmark
+                          ? "Deleting"
+                          : "Delete"}
+                        <FaTrashAlt className="h-4 w-4" />
                         <AnimatePresence mode="wait">
                           {isDeleting && (
                             <motion.svg
                               key="tabDeletionLoadingSpinner"
                               initial={{ opacity: 0, width: 0 }}
                               animate={{ opacity: 1, width: "24px" }}
-                              exit={{ opacity: 0, width: 0 }}
                               transition={{
                                 duration: 0.15,
                               }}
@@ -479,6 +491,20 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                               ></path>
                             </motion.svg>
+                          )}
+
+                          {showDeleteCheckmark && (
+                            <motion.div
+                              key="deletionSuccessCheckmark"
+                              initial={{ opacity: 0, scale: 0 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{
+                                duration: 0.25,
+                              }}
+                              className="h-6 w-6"
+                            >
+                              <Check className="h-5 w-5 text-green-600" />
+                            </motion.div>
                           )}
                         </AnimatePresence>
                       </Button>
@@ -557,8 +583,16 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                       className="baseFlex gap-2"
                     >
                       {asPath.includes("create")
-                        ? `${isPosting ? "Publishing" : "Publish"}`
-                        : `${isPosting ? "Saving" : "Save"}`}
+                        ? `${
+                            isPosting || showPublishCheckmark
+                              ? "Publishing"
+                              : "Publish"
+                          }`
+                        : `${
+                            isPosting || showPublishCheckmark
+                              ? "Saving"
+                              : "Save"
+                          }`}
 
                       <AnimatePresence mode="wait">
                         {/* will need to also include condition for while recording is being
@@ -569,7 +603,6 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                             key="postingLoadingSpinner"
                             initial={{ opacity: 0, width: 0 }}
                             animate={{ opacity: 1, width: "24px" }}
-                            exit={{ opacity: 0, width: 0 }}
                             transition={{
                               duration: 0.15,
                             }}
@@ -591,38 +624,67 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                             ></path>
                           </motion.svg>
                         )}
+
+                        {showPublishCheckmark && (
+                          <motion.div
+                            key="postingSuccessCheckmark"
+                            initial={{ opacity: 0, scale: 0 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{
+                              duration: 0.25,
+                            }}
+                            className="h-6 w-6"
+                          >
+                            <Check className="h-5 w-5 text-green-600" />
+                          </motion.div>
+                        )}
                       </AnimatePresence>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="baseVertFlex !items-start gap-2 bg-pink-50 p-2 text-sm text-pink-950 md:text-base">
-                    <div className="baseFlex gap-2">
-                      {title ? (
-                        <Check className="h-5 w-8 text-green-600" />
-                      ) : (
-                        <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
-                      )}
-                      <p className="font-semibold">Title entered</p>
-                    </div>
+                  <PopoverContent className="w-full p-0">
+                    {userId ? (
+                      <div className="baseVertFlex w-full !items-start gap-2 bg-pink-50 p-2 pr-4 text-sm text-pink-950 md:text-base">
+                        <div className="baseFlex gap-2">
+                          {title ? (
+                            <Check className="h-5 w-8 text-green-600" />
+                          ) : (
+                            <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
+                          )}
+                          <p className="font-semibold">Title entered</p>
+                        </div>
 
-                    <div className="baseFlex gap-2">
-                      {genreId !== -1 ? (
-                        <Check className="h-5 w-8 text-green-600" />
-                      ) : (
-                        <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
-                      )}
-                      <p className="font-semibold">Genre selected</p>
-                    </div>
+                        <div className="baseFlex gap-2">
+                          {genreId !== -1 ? (
+                            <Check className="h-5 w-8 text-green-600" />
+                          ) : (
+                            <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
+                          )}
+                          <p className="font-semibold">Genre selected</p>
+                        </div>
 
-                    <div className="baseFlex !flex-nowrap gap-2">
-                      {!tabIsEffectivelyEmpty(tabData) ? (
-                        <Check className="h-5 w-8 text-green-600" />
-                      ) : (
-                        <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
-                      )}
-                      <p className="font-semibold">
-                        At least one note present in tab
-                      </p>
-                    </div>
+                        <div className="baseFlex !flex-nowrap gap-2">
+                          {!tabIsEffectivelyEmpty(tabData) ? (
+                            <Check className="h-5 w-8 text-green-600" />
+                          ) : (
+                            <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
+                          )}
+                          <p className="font-semibold">
+                            At least one note present in tab
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="baseFlex w-full max-w-[350px] bg-pink-50 p-2 text-sm text-pink-950 md:max-w-[400px] md:text-base">
+                        <div className="baseFlex !flex-nowrap gap-2">
+                          <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
+                          <p>Only registered users can publish a tab.</p>
+                        </div>
+                        <p className="text-xs md:text-sm">
+                          This tab&apos;s data will be saved for you upon
+                          signing in.
+                        </p>
+                      </div>
+                    )}
                   </PopoverContent>
                 </Popover>
               </>
