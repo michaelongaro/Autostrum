@@ -12,7 +12,7 @@ function Header({ offscreen }: Header) {
         top: offscreen ? "-4rem" : "0",
         transition: "top 0.3s cubic-bezier(0.34, 1, 0.64, 1)",
       }}
-      className="heavyGlassmorphic sticky left-0 z-[49] grid h-16 w-full grid-cols-1 grid-rows-1 shadow-sm"
+      className="headerBackgroundGradient sticky left-0 z-[49] grid h-16 w-full grid-cols-1 grid-rows-1 shadow-sm"
     >
       <DesktopHeader />
       <MobileHeader />

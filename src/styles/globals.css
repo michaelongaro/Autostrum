@@ -31,6 +31,13 @@
   @apply bg-pink-400 bg-opacity-95 backdrop-blur-xl shadow-sm;
 }
 
+/* same gradient as background, but up by 7% on lightness value of hsl to match the
+   glassmorphic effect. Couldn't use glassmorphic since light content bleeding through
+   made for really bad contrast issues with nav links */
+.headerBackgroundGradient {
+  background: linear-gradient(315deg, hsl(6, 100%, 63%), hsl(340, 100%, 76%), hsl(297, 100%, 90%)) fixed center / cover;
+}
+
 @layer base {
   :root {
     --background: 327 73% 97%;
