@@ -201,6 +201,7 @@ export const tabRouter = createTRPCRouter({
         likedByUserId,
         cursor,
       } = input;
+
       const limit = 25;
 
       const orderBy = buildTabOrderBy(sortBy, sortByRelevance, searchQuery);
@@ -222,7 +223,7 @@ export const tabRouter = createTRPCRouter({
                   },
             createdById: userIdToSelectFrom,
             likes: {
-              every: {
+              some: {
                 artistWhoLikedId: likedByUserId,
               },
             },
@@ -245,7 +246,7 @@ export const tabRouter = createTRPCRouter({
                   },
             createdById: userIdToSelectFrom,
             likes: {
-              every: {
+              some: {
                 artistWhoLikedId: likedByUserId,
               },
             },
