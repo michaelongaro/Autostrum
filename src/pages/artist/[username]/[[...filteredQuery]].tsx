@@ -185,7 +185,7 @@ function ArtistProfile() {
                 />
               ) : (
                 <TabCardSkeleton
-                  key={`${artist?.id ?? ""}profileTabCardSkeleton`}
+                  uniqueKey={`${artist?.id ?? ""}profileTabCardSkeleton`}
                   width={isAboveMediumViewportWidth ? 396.25 : undefined}
                 />
               )}

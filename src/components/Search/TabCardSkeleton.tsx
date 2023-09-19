@@ -2,14 +2,14 @@ import { motion } from "framer-motion";
 import { Separator } from "~/components/ui/separator";
 
 interface TabCardSkeleton {
-  key: string;
+  uniqueKey: string;
   width?: number;
 }
 
-function TabCardSkeleton({ key, width }: TabCardSkeleton) {
+function TabCardSkeleton({ uniqueKey, width }: TabCardSkeleton) {
   return (
     <motion.div
-      key={key}
+      key={uniqueKey}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}

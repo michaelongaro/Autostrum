@@ -185,7 +185,7 @@ function GridTabView({
           <>
             {Array.from(Array(3).keys()).map((index) => (
               <AnimatePresence key={index} mode={"wait"}>
-                <TabCardSkeleton key={`tabCardSkeleton${index}`} />
+                <TabCardSkeleton uniqueKey={`tabCardSkeleton${index}`} />
               </AnimatePresence>
             ))}
           </>

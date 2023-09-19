@@ -115,7 +115,7 @@ function Preferences() {
                     {fetchedTab ? (
                       <GridTabCard tab={fetchedTab} refetchTab={refetchTab} />
                     ) : (
-                      <TabCardSkeleton key="profileTabCardSkeleton" />
+                      <TabCardSkeleton uniqueKey="profileTabCardSkeleton" />
                     )}
                   </>
                 ) : (
