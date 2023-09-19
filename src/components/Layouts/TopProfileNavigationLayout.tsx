@@ -8,12 +8,15 @@ import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import Link from "next/link";
 import { api } from "~/utils/api";
 import { motion } from "framer-motion";
+import { BiErrorCircle } from "react-icons/bi";
+import { useAuth } from "@clerk/nextjs";
 
 interface Layout {
   children: ReactNode;
 }
 
 function TopProfileNavigationLayout({ children }: Layout) {
+  const { userId } = useAuth();
   const { asPath, push, query } = useRouter();
 
   const usernameFromUrl = useMemo(() => {
@@ -30,15 +33,6 @@ function TopProfileNavigationLayout({ children }: Layout) {
     return "preferences";
   }, [asPath]);
 
-  const { data: artist } = api.artist.getByIdOrUsername.useQuery(
-    {
-      username: usernameFromUrl,
-    },
-    {
-      enabled: usernameFromUrl !== "",
-    }
-  );
-
   function pushToTabsOrLikes(pushToTabs: boolean) {
     void push(`/profile/${pushToTabs ? "tabs" : "likes"}/filters`, undefined, {
       scroll: false, // defaults to true but try both
@@ -50,6 +44,10 @@ function TopProfileNavigationLayout({ children }: Layout) {
     if (finalQueryOfUrl === "tabs") return "w-11/12 md:w-3/4";
     if (finalQueryOfUrl === "likes") return "w-11/12 md:w-3/4";
     if (finalQueryOfUrl === "preferences") return "w-11/12 lg:w-[975px]";
+  }
+
+  if (!userId) {
+    return <UserIsNotAuthenticated />;
   }
 
   return (
@@ -106,3 +104,17 @@ function TopProfileNavigationLayout({ children }: Layout) {
 }
 
 export default TopProfileNavigationLayout;
+
+function UserIsNotAuthenticated() {
+  return (
+    <div className="lightGlassmorphic baseVertFlex w-10/12 gap-4 rounded-md p-4 md:w-[550px]">
+      <div className="baseFlex gap-2">
+        <BiErrorCircle className="h-8 w-8" />
+        <h1 className="text-2xl font-bold">Access denied</h1>
+      </div>
+      <p className="text-center text-lg">
+        You must be logged in to view this page.
+      </p>
+    </div>
+  );
+}
