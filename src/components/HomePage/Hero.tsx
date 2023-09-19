@@ -1,4 +1,4 @@
-import { SignInButton, SignUpButton, useAuth } from "@clerk/nextjs";
+import { SignInButton, SignUpButton } from "@clerk/nextjs";
 import Image from "next/image";
 import { api } from "~/utils/api";
 import { GiMusicalScore } from "react-icons/gi";
@@ -11,9 +11,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Separator } from "../ui/separator";
 import TabCardSkeleton from "../Search/TabCardSkeleton";
 
-function Hero() {
-  const { isSignedIn, isLoaded } = useAuth();
-
+function Hero({
+  showSignUpAndSignInButtons,
+}: {
+  showSignUpAndSignInButtons: boolean;
+}) {
   const { data: fetchedTab, refetch: refetchTab } = api.tab.getTabById.useQuery(
     {
       id: 22,
@@ -44,55 +46,28 @@ function Hero() {
           how you want them to sound
         </p>
 
-        <AnimatePresence mode="wait">
-          {!isLoaded && (
-            <motion.div
-              key={"homepageAuthSkeletonContainer"}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.15 }}
-              className="baseFlex mt-4 gap-4"
+        {showSignUpAndSignInButtons && (
+          <div className="baseFlex mt-4 gap-4">
+            <SignUpButton
+              mode="modal"
+              afterSignUpUrl={`${
+                process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+              }/postSignUpRegistration`}
             >
-              <div className="h-[44px] w-[114px] animate-pulse rounded-md bg-pink-300"></div>
-              <div
-                className={`h-[44px] ${
-                  isAboveMediumViewportWidth ? "w-[81px]" : "w-[73px]"
-                } animate-pulse rounded-md bg-pink-300`}
-              ></div>
-            </motion.div>
-          )}
-
-          {isLoaded && !isSignedIn && (
-            <motion.div
-              key={"homepageAuthContainer"}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.15 }}
-              className="baseFlex mt-4 gap-4"
+              <Button size={"lg"}>Sign up</Button>
+            </SignUpButton>
+            <SignInButton
+              mode="modal"
+              afterSignUpUrl={`${
+                process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+              }/postSignUpRegistration`}
             >
-              <SignUpButton
-                mode="modal"
-                afterSignUpUrl={`${
-                  process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                }/postSignUpRegistration`}
-              >
-                <Button size={"lg"}>Sign up</Button>
-              </SignUpButton>
-              <SignInButton
-                mode="modal"
-                afterSignUpUrl={`${
-                  process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                }/postSignUpRegistration`}
-              >
-                <Button variant={"secondary"} className="h-11">
-                  Sign in
-                </Button>
-              </SignInButton>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <Button variant={"secondary"} className="h-11">
+                Sign in
+              </Button>
+            </SignInButton>
+          </div>
+        )}
       </div>
 
       <div className="baseVertFlex lightGlassmorphic w-4/5 !flex-nowrap gap-4 rounded-xl p-4 shadow-sm md:max-w-[550px] md:p-8 xl:w-[950px] xl:max-w-[950px]">
@@ -147,7 +122,7 @@ function Hero() {
               />
             ) : (
               <TabCardSkeleton
-                key={"homepageTabCardSkeleton"}
+                uniqueKey={"homepageTabCardSkeleton"}
                 width={isAboveMediumViewportWidth ? 396.25 : 150}
               />
             )}
