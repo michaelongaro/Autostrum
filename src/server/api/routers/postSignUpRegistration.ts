@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 export const postSignUpRegistrationRouter = createTRPCRouter({
   // doesn't feel fantastic putting this in it's own file, not sure of another
   // organized option though...
 
-  initializeNewUser: publicProcedure
+  initializeNewUser: protectedProcedure
     .input(
       z.object({
         userId: z.string(),

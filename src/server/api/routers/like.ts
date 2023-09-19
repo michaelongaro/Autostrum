@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 export const likeRouter = createTRPCRouter({
-  createLike: publicProcedure
+  createLike: protectedProcedure
     .input(
       z.object({
         tabId: z.number(),
@@ -22,7 +22,7 @@ export const likeRouter = createTRPCRouter({
         },
       });
     }),
-  deleteLike: publicProcedure
+  deleteLike: protectedProcedure
     .input(
       z.object({
         tabId: z.number(),

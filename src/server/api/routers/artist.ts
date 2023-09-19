@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { clerkClient } from "@clerk/nextjs/server";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  publicProcedure,
+  protectedProcedure,
+} from "~/server/api/trpc";
 import type { Artist } from "@prisma/client";
 import buildArtistOrderBy from "~/utils/buildArtistOrderBy";
 
@@ -12,7 +16,7 @@ export interface ArtistMetadata extends Artist {
 }
 
 export const artistRouter = createTRPCRouter({
-  updateArtist: publicProcedure
+  updateArtist: protectedProcedure
     .input(
       z.object({
         id: z.string(),
@@ -179,8 +183,7 @@ export const artistRouter = createTRPCRouter({
       };
     }),
 
-  // should be private
-  deleteArtist: publicProcedure
+  deleteArtist: protectedProcedure
     .input(z.string())
     .mutation(async ({ input: userId, ctx }) => {
       void clerkClient.users.deleteUser(userId);

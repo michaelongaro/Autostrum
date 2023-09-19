@@ -15,7 +15,11 @@ const s3 = new S3Client({
   },
 });
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  publicProcedure,
+  protectedProcedure,
+} from "~/server/api/trpc";
 import buildTabOrderBy from "~/utils/buildTabOrderBy";
 import combineTabTitlesAndUsernames from "~/utils/combineTabTitlesAndUsernames";
 
@@ -289,7 +293,7 @@ export const tabRouter = createTRPCRouter({
       };
     }),
 
-  deleteTabById: publicProcedure
+  deleteTabById: protectedProcedure
     .input(z.number())
     .mutation(async ({ input: idToDelete, ctx }) => {
       const tab = await ctx.prisma.tab.findUnique({
@@ -321,8 +325,7 @@ export const tabRouter = createTRPCRouter({
       });
     }),
 
-  // technically should be private, but don't have to worry about auth yet
-  createOrUpdate: publicProcedure
+  createOrUpdate: protectedProcedure
     .input(
       z.object({
         id: z.number().nullable(),
