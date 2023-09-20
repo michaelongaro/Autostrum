@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, memo, useEffect, useRef, useMemo } from "react";
 import { Canvas, useFrame, extend } from "@react-three/fiber";
 import { useRouter } from "next/router";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 import type { GenreWithTotalTabNumbers } from "~/server/api/routers/genre";
 import { formatNumber } from "~/utils/formatNumber";
 import { isMobile } from "react-device-detect";
+import { View } from "~/components/canvas/View";
 import type { Mesh } from "three";
 import {
   AmbientLight,
@@ -37,11 +38,6 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
 
   const [hoveringOnGenre, setHoveringOnGenre] = useState(false);
   const [mouseDownOnGenre, setMouseDownOnGenre] = useState(false);
-  const [dpr, setDpr] = useState(1);
-
-  useEffect(() => {
-    setDpr(window.devicePixelRatio > 1 ? 1.1 : 1);
-  }, []);
 
   const positions: [number, number, number][] = useMemo(() => {
     const positionBases = [
@@ -159,65 +155,53 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
         genre.totalTabs === 1 ? "tab" : "tabs"
       }`}</p>
 
-      <div className="absolute right-4 top-4 h-28 w-32">
-        <Canvas
-          style={{
-            width: "8rem",
-            height: "7rem",
-            pointerEvents: "none",
-            zIndex: 0,
-          }}
-          camera={{ position: [0, 0, 55] }}
-          dpr={dpr}
-          frameloop={isMobile ? "demand" : "always"}
-        >
-          <ambientLight intensity={1.5} />
-          <directionalLight color={"white"} intensity={0.5} />
+      <View className="absolute -right-4 top-8 h-28 w-32 scale-[.60] sm:right-4 sm:top-4 sm:scale-100">
+        <ambientLight intensity={1.5} />
+        <directionalLight color={"white"} intensity={0.5} />
 
-          <ConditionallyFloatingBubble
-            delay={Math.random()}
-            floating={hoveringOnGenre}
-            position={positions[0] as [number, number, number]}
-            radius={radii[0]}
-            color={genre.color}
-          />
-          <ConditionallyFloatingBubble
-            delay={Math.random()}
-            floating={hoveringOnGenre}
-            position={positions[1] as [number, number, number]}
-            radius={radii[1]}
-            color={genre.color}
-          />
-          <ConditionallyFloatingBubble
-            delay={Math.random()}
-            floating={hoveringOnGenre}
-            position={positions[2] as [number, number, number]}
-            radius={radii[2]}
-            color={genre.color}
-          />
-          <ConditionallyFloatingBubble
-            delay={Math.random()}
-            floating={hoveringOnGenre}
-            position={positions[3] as [number, number, number]}
-            radius={radii[3]}
-            color={genre.color}
-          />
-          <ConditionallyFloatingBubble
-            delay={Math.random()}
-            floating={hoveringOnGenre}
-            position={positions[4] as [number, number, number]}
-            radius={radii[4]}
-            color={genre.color}
-          />
-          <ConditionallyFloatingBubble
-            delay={Math.random()}
-            floating={hoveringOnGenre}
-            position={positions[5] as [number, number, number]}
-            radius={radii[5]}
-            color={genre.color}
-          />
-        </Canvas>
-      </div>
+        <ConditionallyFloatingBubble
+          delay={Math.random()}
+          floating={hoveringOnGenre}
+          position={positions[0] as [number, number, number]}
+          radius={radii[0]}
+          color={genre.color}
+        />
+        <ConditionallyFloatingBubble
+          delay={Math.random()}
+          floating={hoveringOnGenre}
+          position={positions[1] as [number, number, number]}
+          radius={radii[1]}
+          color={genre.color}
+        />
+        <ConditionallyFloatingBubble
+          delay={Math.random()}
+          floating={hoveringOnGenre}
+          position={positions[2] as [number, number, number]}
+          radius={radii[2]}
+          color={genre.color}
+        />
+        <ConditionallyFloatingBubble
+          delay={Math.random()}
+          floating={hoveringOnGenre}
+          position={positions[3] as [number, number, number]}
+          radius={radii[3]}
+          color={genre.color}
+        />
+        <ConditionallyFloatingBubble
+          delay={Math.random()}
+          floating={hoveringOnGenre}
+          position={positions[4] as [number, number, number]}
+          radius={radii[4]}
+          color={genre.color}
+        />
+        <ConditionallyFloatingBubble
+          delay={Math.random()}
+          floating={hoveringOnGenre}
+          position={positions[5] as [number, number, number]}
+          radius={radii[5]}
+          color={genre.color}
+        />
+      </View>
     </motion.div>
   );
 }

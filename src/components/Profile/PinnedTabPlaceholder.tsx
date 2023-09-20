@@ -24,29 +24,12 @@ interface PinnedTabPlaceholder {
 function PinnedTabPlaceholder({ artistUsername }: PinnedTabPlaceholder) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [dpr, setDpr] = useState(1);
-
-  useEffect(() => {
-    setDpr(window.devicePixelRatio > 1 ? 1.1 : 1);
-  }, []);
-
   return (
     <div
       ref={containerRef}
       className="lightestGlassmorphic grid h-full w-full grid-cols-1 grid-rows-1 rounded-md p-4"
     >
-      <Canvas
-        style={{
-          width: "100%",
-          height: "100%",
-          pointerEvents: "none",
-          zIndex: -1,
-        }}
-        className="col-start-1 col-end-1 row-start-1 row-end-1"
-        camera={{ position: [0, 0, 100] }}
-        dpr={dpr}
-        frameloop={isMobile ? "demand" : "always"}
-      >
+      <View className="pointer-events-none z-[-1] col-start-1 col-end-1 row-start-1 row-end-1 h-full w-full">
         <ambientLight intensity={1.5} />
         <directionalLight color={"white"} intensity={0.5} />
 
@@ -70,7 +53,7 @@ function PinnedTabPlaceholder({ artistUsername }: PinnedTabPlaceholder) {
             />
           );
         })}
-      </Canvas>
+      </View>
       <div className="baseFlex col-start-1 col-end-1 row-start-1 row-end-1 ">
         <p className="lightGlassmorphic rounded-md p-4 text-lg">{`${artistUsername} hasn't pinned a tab yet.`}</p>
       </div>
