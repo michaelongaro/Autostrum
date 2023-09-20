@@ -10,6 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import { useRouter } from "next/router";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { formatNumber } from "~/utils/formatNumber";
 import Link from "next/link";
@@ -25,6 +26,7 @@ import PinnedTabPlaceholder from "~/components/Profile/PinnedTabPlaceholder";
 import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
 
 function Explore() {
+  const { push } = useRouter();
   const [profileImageLoaded, setProfileImageLoaded] = useState(false);
 
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
@@ -68,7 +70,7 @@ function Explore() {
           <Separator className="w-full bg-pink-500" />
         </div>
         <div className="baseVertFlex w-full !flex-nowrap md:!flex-row md:gap-8">
-          <div className="lightestGlassmorphic baseVertFlex h-72 min-w-[200px] !flex-nowrap gap-4 rounded-md p-4 md:h-80 md:gap-8 md:py-8">
+          <div className="lightestGlassmorphic baseVertFlex h-64 min-w-[200px] !flex-nowrap gap-4 rounded-md p-4 md:h-80 md:gap-8 md:py-8">
             <div className="baseVertFlex gap-4">
               <div className="grid grid-cols-1 grid-rows-1">
                 {artist || loadingCurrentArtist ? (
@@ -82,11 +84,13 @@ function Explore() {
                       // briefly shows the default placeholder for a loading
                       // or not found image before the actual image loads...
                       onLoadingComplete={() => setProfileImageLoaded(true)}
+                      onClick={() =>
+                        void push(`/artist/${artist?.username ?? "Anonymous"}`)
+                      }
                       style={{
                         opacity: profileImageLoaded ? 1 : 0,
                       }}
-                      className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-800 object-cover object-center 
-                          transition-opacity"
+                      className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 cursor-pointer rounded-full bg-pink-800 object-cover object-center transition-opacity"
                     />
                     <div
                       style={{
@@ -103,10 +107,14 @@ function Explore() {
               </div>
 
               {artist ? (
-                <Button variant={"link"} asChild>
+                <Button
+                  variant={"link"}
+                  asChild
+                  className="inline-block max-w-[200px]"
+                >
                   <Link
                     href={`/artist/${artist?.username ?? "Anonymous"}`}
-                    className="!p-0 !text-xl !font-semibold"
+                    className="block  truncate !p-0 !text-xl !font-semibold"
                   >
                     {artist?.username}
                   </Link>
@@ -163,7 +171,7 @@ function Explore() {
             )}
           </div>
           {/* pinned tab */}
-          <div className="baseVertFlex h-80 !flex-nowrap !items-start gap-2">
+          <div className="baseVertFlex h-80 w-11/12 !flex-nowrap !items-start gap-2 sm:w-3/4 md:w-auto">
             <p className="baseFlex gap-2 text-lg font-semibold">
               <TbPinned className="h-5 w-5" />
               Pinned tab

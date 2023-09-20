@@ -74,11 +74,11 @@ function ArtistProfile() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
       // className="baseVertFlex w-full p-2 md:p-8"
-      className="lightGlassmorphic baseVertFlex my-12 min-h-[100dvh] w-11/12 !justify-start gap-8 rounded-md p-2 md:my-24 md:w-3/4 md:gap-16 md:p-8"
+      className="lightGlassmorphic baseVertFlex my-12 min-h-[100dvh] w-11/12 !justify-start gap-8 rounded-md px-2 py-4 md:my-24 md:w-3/4 md:gap-16 md:p-8"
     >
       {/* artist metadata + pinned tab */}
-      <div className="baseVertFlex !flex-nowrap md:!flex-row md:gap-8">
-        <div className="lightestGlassmorphic baseVertFlex h-72 min-w-[200px] !flex-nowrap gap-4 rounded-md p-4 md:h-80 md:gap-8 md:py-8">
+      <div className="baseVertFlex w-full !flex-nowrap md:!flex-row md:gap-8">
+        <div className="lightestGlassmorphic baseVertFlex h-64 min-w-[200px] !flex-nowrap gap-4 rounded-md p-4 md:h-80 md:gap-8 md:py-8">
           <div className="baseVertFlex gap-4">
             <div className="grid grid-cols-1 grid-rows-1">
               {artist || loadingCurrentArtist ? (
@@ -113,7 +113,7 @@ function ArtistProfile() {
             </div>
 
             {artist ? (
-              <p className="text-xl font-semibold">
+              <p className="max-w-[200px] truncate text-xl font-semibold">
                 {artist?.username ?? "Anonymous"}
               </p>
             ) : (
@@ -168,7 +168,7 @@ function ArtistProfile() {
           )}
         </div>
         {/* pinned tab */}
-        <div className="baseVertFlex h-80 !flex-nowrap !items-start gap-2">
+        <div className="baseVertFlex h-80 w-11/12 !flex-nowrap !items-start gap-2 sm:w-3/4 md:w-auto">
           <p className="baseFlex gap-2 text-lg font-semibold">
             <TbPinned className="h-5 w-5" />
             Pinned tab
