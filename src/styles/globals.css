@@ -38,6 +38,11 @@
   background: linear-gradient(315deg, hsl(6, 100%, 63%), hsl(340, 100%, 76%), hsl(297, 100%, 87%)) fixed center / cover;
 }
 
+/* shadow-md was too harsh for my liking, this is a scaled back version, in-between sm and md */
+.searchInputBoxShadow {
+  box-shadow: 0 3px 4px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
 @media (min-width: 480px) {
   .securedByClerkBreakpoint {
     @apply max-w-[95%];
