@@ -16,7 +16,7 @@ function GenreBubbles() {
         <Separator className="w-full bg-pink-500" />
       </div>
 
-      <div className="grid w-full grid-cols-1 place-items-center gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid w-full grid-cols-2 place-items-center gap-4 lg:grid-cols-3 2xl:grid-cols-4">
         {genresAreLoading || !genres ? (
           <>
             {indicies.map((index) => (
