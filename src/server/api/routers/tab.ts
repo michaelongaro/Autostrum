@@ -227,7 +227,9 @@ export const tabRouter = createTRPCRouter({
                   },
             createdById: userIdToSelectFrom,
             likes: {
-              some: {
+              // Prisma wouldn't ignore this condition for likes if likedByUserId was
+              // undefined, so have to be explicit
+              [likedByUserId ? "some" : "none"]: {
                 artistWhoLikedId: likedByUserId,
               },
             },
@@ -250,7 +252,9 @@ export const tabRouter = createTRPCRouter({
                   },
             createdById: userIdToSelectFrom,
             likes: {
-              some: {
+              // Prisma wouldn't ignore this condition for likes if likedByUserId was
+              // undefined, so have to be explicit
+              [likedByUserId ? "some" : "none"]: {
                 artistWhoLikedId: likedByUserId,
               },
             },
