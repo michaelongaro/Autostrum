@@ -4,6 +4,7 @@ import Bubbles from "../Bubbles";
 import Footer from "../Footer/Footer";
 import GeneralLayoutStatefulShell from "./GeneralLayoutStatefulShell";
 import { useRef } from "react";
+import { isMobile } from "react-device-detect";
 import dynamic from "next/dynamic";
 const Scene = dynamic(() => import("~/components/canvas/Scene"), {
   ssr: false,
@@ -18,7 +19,7 @@ function GeneralLayout({ children }: GeneralLayout) {
   const [dpr, setDpr] = useState(1);
 
   useEffect(() => {
-    setDpr(window.devicePixelRatio > 1 ? 1.1 : 1);
+    setDpr(isMobile ? 1 : window.devicePixelRatio);
   }, []);
 
   return (

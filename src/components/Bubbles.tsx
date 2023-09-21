@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { Canvas, useFrame, extend } from "@react-three/fiber";
+import { isMobile } from "react-device-detect";
 import type { Mesh } from "three";
 import {
   AmbientLight,
@@ -38,7 +39,7 @@ function Bubbles() {
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   useEffect(() => {
-    setDpr(window.devicePixelRatio > 1 ? 1.1 : 1);
+    setDpr(isMobile ? 1 : window.devicePixelRatio);
   }, []);
 
   const bubbles = useMemo((): {
