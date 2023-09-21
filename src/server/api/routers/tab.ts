@@ -226,13 +226,15 @@ export const tabRouter = createTRPCRouter({
                     equals: genreId,
                   },
             createdById: userIdToSelectFrom,
-            likes: {
-              // Prisma wouldn't ignore this condition for likes if likedByUserId was
-              // undefined, so have to be explicit
-              [likedByUserId ? "some" : "none"]: {
-                artistWhoLikedId: likedByUserId,
-              },
-            },
+            ...(likedByUserId !== undefined
+              ? {
+                  likes: {
+                    some: {
+                      artistWhoLikedId: likedByUserId,
+                    },
+                  },
+                }
+              : {}),
           },
         }),
         ctx.prisma.tab.findMany({
@@ -251,13 +253,15 @@ export const tabRouter = createTRPCRouter({
                     equals: genreId,
                   },
             createdById: userIdToSelectFrom,
-            likes: {
-              // Prisma wouldn't ignore this condition for likes if likedByUserId was
-              // undefined, so have to be explicit
-              [likedByUserId ? "some" : "none"]: {
-                artistWhoLikedId: likedByUserId,
-              },
-            },
+            ...(likedByUserId !== undefined
+              ? {
+                  likes: {
+                    some: {
+                      artistWhoLikedId: likedByUserId,
+                    },
+                  },
+                }
+              : {}),
           },
           include: {
             _count: {
