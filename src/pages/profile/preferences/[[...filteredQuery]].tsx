@@ -61,21 +61,6 @@ function Preferences() {
     }
   );
 
-  const { mutate: deleteAccount, isLoading: isDeleting } =
-    api.artist.deleteArtist.useMutation({
-      onSuccess: async () => {
-        await push(`/`);
-      },
-      onError: (e) => {
-        //  const errorMessage = e.data?.zodError?.fieldErrors.content;
-        //  if (errorMessage && errorMessage[0]) {
-        //    toast.error(errorMessage[0]);
-        //  } else {
-        //    toast.error("Failed to post! Please try again later.");
-        //  }
-      },
-    });
-
   return (
     <motion.div
       key={"ArtistPreferences"}
