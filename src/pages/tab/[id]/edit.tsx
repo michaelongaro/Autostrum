@@ -108,7 +108,6 @@ function TabNotFound() {
 
 function UserNotAllowedToEdit({ tabId }: { tabId: number }) {
   const { push } = useRouter();
-  console.log(tabId);
 
   return (
     <div className="lightGlassmorphic baseVertFlex w-10/12 gap-4 rounded-md p-4 md:w-[550px]">

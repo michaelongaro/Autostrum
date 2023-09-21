@@ -27,7 +27,6 @@ function useKeepArtistMetadataUpdatedWithClerk() {
       user.username !== artist.username ||
       user.profileImageUrl !== artist.profileImageUrl
     ) {
-      console.log("running in useKeepArtistmetadataUpdatedWithClerk");
       updateArtist({
         id: user.id,
         username: user.username!,
