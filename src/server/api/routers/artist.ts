@@ -184,13 +184,30 @@ export const artistRouter = createTRPCRouter({
     }),
 
   deleteArtist: protectedProcedure
-    .input(z.string())
-    .mutation(async ({ input: userId, ctx }) => {
-      void clerkClient.users.deleteUser(userId);
+    .input(
+      z.object({
+        userId: z.string(),
+        deleteAllOfArtistsTabs: z.boolean(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      await clerkClient.users.deleteUser(input.userId);
+
+      if (!input.deleteAllOfArtistsTabs) {
+        // keeping the tabs, just removing the artist from them
+        await ctx.prisma.tab.updateMany({
+          where: {
+            createdById: input.userId,
+          },
+          data: {
+            createdById: null,
+          },
+        });
+      }
 
       await ctx.prisma.artist.delete({
         where: {
-          userId,
+          userId: input.userId,
         },
       });
     }),
