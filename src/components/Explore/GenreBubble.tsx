@@ -118,7 +118,7 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
         backgroundColor: genre.color,
       }}
       className={`baseVertFlex group relative h-36 w-full cursor-pointer !items-start !justify-start gap-2 rounded-lg p-4 shadow-md transition-all hover:shadow-lg sm:!justify-center sm:p-6 ${
-        mouseDownOnGenre ? "brightness-75" : "brightness-100"
+        mouseDownOnGenre ? "brightness-90" : "brightness-100"
       }`}
       onMouseEnter={() => setHoveringOnGenre(true)}
       onMouseLeave={() => {
@@ -155,7 +155,7 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
         genre.totalTabs === 1 ? "tab" : "tabs"
       }`}</p>
 
-      <View className="absolute -right-4 top-8 h-28 w-32 scale-[.60] sm:right-4 sm:top-4 sm:scale-100">
+      <View className="absolute -right-4 top-8 h-28 w-32 scale-[.60] sm:right-4 sm:top-4 sm:scale-100 md:w-36">
         <ambientLight intensity={1.5} />
         <directionalLight color={"white"} intensity={0.5} />
 
