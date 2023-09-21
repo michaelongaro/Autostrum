@@ -5,6 +5,8 @@ import { Button } from "~/components/ui/button";
 import { api } from "~/utils/api";
 import { useClerk, UserProfile } from "@clerk/nextjs";
 import { Separator } from "~/components/ui/separator";
+import { shallow } from "zustand/shallow";
+import { useTabStore } from "~/stores/TabStore";
 import {
   Popover,
   PopoverContent,
@@ -20,6 +22,7 @@ import PinnedTabModal from "~/components/modals/PinnedTabModal";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import GridTabCard from "~/components/Search/GridTabCard";
 import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
+import DeleteAccountModal from "~/components/modals/DeleteAccountModal";
 
 function Preferences() {
   const { user } = useClerk();
@@ -31,6 +34,14 @@ function Preferences() {
   const [showEmptyTabsWarning, setShowEmptyTabsWarning] = useState(false);
 
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
+
+  const { showDeleteAccountModal, setShowDeleteAccountModal } = useTabStore(
+    (state) => ({
+      showDeleteAccountModal: state.showDeleteAccountModal,
+      setShowDeleteAccountModal: state.setShowDeleteAccountModal,
+    }),
+    shallow
+  );
 
   const { data: artist } = api.artist.getByIdOrUsername.useQuery(
     {
@@ -171,7 +182,7 @@ function Preferences() {
               <Button
                 variant={"destructive"}
                 onClick={() => {
-                  // confirmation popover into trpc mutation to delete account
+                  setShowDeleteAccountModal(true);
                 }}
                 className="baseFlex gap-2"
               >
@@ -196,6 +207,10 @@ function Preferences() {
           )}
         </AnimatePresence>
       </TabsContent>
+
+      <AnimatePresence mode="wait">
+        {showDeleteAccountModal && <DeleteAccountModal />}
+      </AnimatePresence>
     </motion.div>
   );
 }
