@@ -28,7 +28,7 @@ function GenrePreviewBubbles({ color }: GenrePreviewBubbles) {
       <directionalLight color={"white"} intensity={0.5} />
 
       <mesh position={[-15, -18, 0]}>
-        <sphereGeometry args={[8, 16, 16]} />
+        <sphereGeometry args={[8, 32, 16]} />
         <meshPhysicalMaterial
           roughness={0}
           metalness={0.5}
@@ -40,7 +40,7 @@ function GenrePreviewBubbles({ color }: GenrePreviewBubbles) {
       </mesh>
 
       <mesh position={[-21, 9, 0]}>
-        <sphereGeometry args={[12, 16, 16]} />
+        <sphereGeometry args={[12, 32, 16]} />
         <meshPhysicalMaterial
           roughness={0}
           metalness={0.5}
@@ -52,7 +52,7 @@ function GenrePreviewBubbles({ color }: GenrePreviewBubbles) {
       </mesh>
 
       <mesh position={[15, 2, 0]}>
-        <sphereGeometry args={[18, 16, 16]} />
+        <sphereGeometry args={[18, 32, 16]} />
         <meshPhysicalMaterial
           roughness={0}
           metalness={0.5}
