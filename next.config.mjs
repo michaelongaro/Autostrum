@@ -8,7 +8,7 @@ await import("./src/env.mjs");
 const config = {
   reactStrictMode: true,
   images: {
-    domains: ["images.clerk.dev", "www.gravatar.com"],
+    domains: ["images.clerk.dev", "www.gravatar.com", "img.clerk.com"],
   },
   typescript: {
     ignoreBuildErrors: true, // ideally don't want this, but our types are very transient right now
