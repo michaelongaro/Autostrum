@@ -25,12 +25,12 @@ function useKeepArtistMetadataUpdatedWithClerk() {
     if (!user || !artist) return;
     if (
       user.username !== artist.username ||
-      user.profileImageUrl !== artist.profileImageUrl
+      user.imageUrl !== artist.profileImageUrl
     ) {
       updateArtist({
-        id: user.id,
-        username: user.username!,
-        profileImageUrl: user.profileImageUrl,
+        userId: user.id,
+        username: user.username as string,
+        profileImageUrl: user.imageUrl,
       });
     }
   }, [user, artist, updateArtist]);

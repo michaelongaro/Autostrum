@@ -23,7 +23,7 @@ function useGetUrlParamFilters() {
     type: "tabs",
     searchQuery: "",
     sortByRelevance: true,
-    additionalSortFilter: "mostLiked",
+    additionalSortFilter: "newest",
   });
 
   useEffect(() => {

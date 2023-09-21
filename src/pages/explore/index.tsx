@@ -37,10 +37,10 @@ function Explore() {
   const { data: artist, isLoading: loadingCurrentArtist } =
     api.artist.getByIdOrUsername.useQuery(
       {
-        userId: weeklyFeaturedArtistId ?? "",
+        userId: weeklyFeaturedArtistId as string,
       },
       {
-        enabled: weeklyFeaturedArtistId !== undefined,
+        enabled: !!weeklyFeaturedArtistId,
       }
     );
 

@@ -205,7 +205,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
     refetch: refetchCurrentArtist,
   } = api.artist.getByIdOrUsername.useQuery(
     {
-      userId: userId ?? "",
+      userId: userId as string,
     },
     {
       enabled: !!userId,
@@ -216,7 +216,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
   const { data: tabCreator, refetch: refetchTabCreator } =
     api.artist.getByIdOrUsername.useQuery(
       {
-        userId: createdById,
+        userId: createdById as string,
       },
       {
         enabled: !!createdById,

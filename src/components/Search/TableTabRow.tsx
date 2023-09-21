@@ -109,10 +109,10 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
     const { data: currentArtist, refetch: refetchCurrentArtist } =
       api.artist.getByIdOrUsername.useQuery(
         {
-          userId: userId!,
+          userId: userId as string,
         },
         {
-          enabled: isLoaded,
+          enabled: !!userId,
         }
       );
 
@@ -120,9 +120,14 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
       data: tabCreator,
       isLoading: loadingTabCreator,
       refetch: refetchTabCreator,
-    } = api.artist.getByIdOrUsername.useQuery({
-      userId: tab.createdById,
-    });
+    } = api.artist.getByIdOrUsername.useQuery(
+      {
+        userId: tab.createdById as string,
+      },
+      {
+        enabled: !!tab.createdById,
+      }
+    );
 
     return (
       <TableRow ref={ref} className="w-full">

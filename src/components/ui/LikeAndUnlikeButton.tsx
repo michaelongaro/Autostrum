@@ -31,7 +31,7 @@ const opacityAndScaleVariants = {
 
 interface LikeAndUnlikeButton {
   id: number;
-  createdById: string;
+  createdById: string | null;
   numberOfLikes: number;
   refetchTab?: <TPageData>(
     options?: RefetchOptions & RefetchQueryFilters<TPageData>
@@ -70,7 +70,7 @@ function LikeAndUnlikeButton({
         await ctx.artist.getByIdOrUsername.cancel();
         ctx.artist.getByIdOrUsername.setData(
           {
-            userId: createdById,
+            userId: createdById as string,
           },
           (prevArtistData) => {
             if (!prevArtistData) return prevArtistData;
@@ -114,7 +114,7 @@ function LikeAndUnlikeButton({
         await ctx.artist.getByIdOrUsername.cancel();
         ctx.artist.getByIdOrUsername.setData(
           {
-            userId: createdById,
+            userId: createdById as string,
           },
           (prevArtistData) => {
             if (!prevArtistData) return prevArtistData;
@@ -192,7 +192,7 @@ function LikeAndUnlikeButton({
             } else {
               likeTab({
                 tabId: id,
-                tabArtistId: createdById,
+                tabArtistId: createdById!,
                 tabArtistUsername: tabCreator.username,
                 artistWhoLikedId: currentArtist.userId,
               });

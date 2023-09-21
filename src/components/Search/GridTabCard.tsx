@@ -59,7 +59,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
     { tab, refetchTab, selectedPinnedTabId, setSelectedPinnedTabId, width },
     ref
   ) => {
-    const { userId, isLoaded } = useAuth();
+    const { userId } = useAuth();
     const { push, asPath } = useRouter();
 
     const [profileImageLoaded, setProfileImageLoaded] = useState(false);
@@ -117,10 +117,10 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
     const { data: currentArtist, refetch: refetchCurrentArtist } =
       api.artist.getByIdOrUsername.useQuery(
         {
-          userId: userId!,
+          userId: userId as string,
         },
         {
-          enabled: isLoaded && userId !== null,
+          enabled: !!userId,
         }
       );
 
@@ -128,9 +128,14 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
       data: tabCreator,
       isLoading: loadingTabCreator,
       refetch: refetchTabCreator,
-    } = api.artist.getByIdOrUsername.useQuery({
-      userId: tab.createdById,
-    });
+    } = api.artist.getByIdOrUsername.useQuery(
+      {
+        userId: tab.createdById as string,
+      },
+      {
+        enabled: !!tab.createdById,
+      }
+    );
 
     return (
       <motion.div

@@ -4,7 +4,7 @@ import { shallow } from "zustand/shallow";
 import { api } from "~/utils/api";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
-import { useClerk } from "@clerk/nextjs";
+import { useAuth, useClerk } from "@clerk/nextjs";
 import { useTabStore } from "~/stores/TabStore";
 import SearchInput from "../Search/SearchInput";
 import SearchResults from "../Search/SearchResults";
@@ -30,20 +30,11 @@ function PinnedTabModal({
   pinnedTabIdFromDatabase,
   setShowPinnedTabModal,
 }: PinnedTabModal) {
-  const { user } = useClerk();
+  const { userId } = useAuth();
   const ctx = api.useContext();
 
   const [currentlySelectedPinnedTabId, setCurrentlySelectedPinnedTabId] =
     useState(pinnedTabIdFromDatabase);
-
-  // const { data: artist } = api.artist.getByIdOrUsername.useQuery(
-  //   {
-  //     userId: user?.id,
-  //   },
-  //   {
-  //     enabled: !!user,
-  //   }
-  // );
 
   const { mutate: updateArtist } = api.artist.updateArtist.useMutation({
     onSettled: () => {
@@ -51,16 +42,6 @@ function PinnedTabModal({
       void ctx.tab.getTabById.invalidate();
     },
   });
-
-  // useEffect(() => {
-  //   if (
-  //     artist &&
-  //     artist.pinnedTabId !== -1 &&
-  //     currentlySelectedPinnedTabId === -1
-  //   ) {
-  //     setCurrentlySelectedPinnedTabId(artist.pinnedTabId);
-  //   }
-  // }, [artist, currentlySelectedPinnedTabId]);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -79,10 +60,10 @@ function PinnedTabModal({
   const viewType = useGetLocalStorageValues().viewType;
 
   function handleUpdatePinnedTab() {
-    if (!user) return;
+    if (!userId) return;
 
     updateArtist({
-      id: user.id,
+      userId,
       pinnedTabId: currentlySelectedPinnedTabId,
     });
   }
@@ -90,7 +71,7 @@ function PinnedTabModal({
   return (
     <motion.div
       key={"PinnedTabModalBackdrop"}
-      className="baseFlex fixed left-0 top-0 z-50 h-[100vh] w-[100vw] bg-black/50"
+      className="baseFlex fixed left-0 top-0 z-[49] h-[100vh] w-[100vw] bg-black/50"
       variants={backdropVariants}
       initial="closed"
       animate="expanded"

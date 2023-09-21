@@ -19,21 +19,23 @@ export const artistRouter = createTRPCRouter({
   updateArtist: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        userId: z.string(),
         username: z.string().optional(),
         profileImageUrl: z.string().optional(),
         pinnedTabId: z.number().optional(),
       })
     )
     .mutation(({ input, ctx }) => {
+      const { userId, username, profileImageUrl, pinnedTabId } = input;
+
       return ctx.prisma.artist.update({
         where: {
-          userId: input.id,
+          userId,
         },
         data: {
-          username: input.username,
-          profileImageUrl: input.profileImageUrl,
-          pinnedTabId: input.pinnedTabId,
+          username,
+          profileImageUrl,
+          pinnedTabId,
         },
       });
     }),
