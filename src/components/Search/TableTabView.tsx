@@ -78,7 +78,7 @@ function TableTabView({
       sortBy: additionalSortFilter,
       likedByUserId: asPath.includes("/likes") && userId ? userId : undefined,
       userIdToSelectFrom:
-        asPath.includes("/tabs") && userId
+        (asPath.includes("/tabs") || asPath.includes("/preferences")) && userId
           ? userId
           : typeof query.username === "string"
           ? artistProfileBeingViewed?.userId

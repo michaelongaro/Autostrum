@@ -67,7 +67,7 @@ function GridTabView({
       sortBy: additionalSortFilter,
       likedByUserId: asPath.includes("/likes") && userId ? userId : undefined,
       userIdToSelectFrom:
-        asPath.includes("/tabs") && userId
+        (asPath.includes("/tabs") || asPath.includes("/preferences")) && userId
           ? userId
           : artistProfileBeingViewed
           ? artistProfileBeingViewed.userId
