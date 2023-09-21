@@ -458,7 +458,6 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                       <Button
                         variant={"destructive"}
                         disabled={isDeleting}
-                        // onClick={() => deleteTab()}
                         className="baseFlex gap-2"
                       >
                         {isDeleting || showDeleteCheckmark
@@ -501,9 +500,8 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                               transition={{
                                 duration: 0.25,
                               }}
-                              className="h-6 w-6"
                             >
-                              <Check className="h-5 w-5 text-green-600" />
+                              <Check className="h-5 w-5" />
                             </motion.div>
                           )}
                         </AnimatePresence>
@@ -624,7 +622,6 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                             ></path>
                           </motion.svg>
                         )}
-
                         {showPublishCheckmark && (
                           <motion.div
                             key="postingSuccessCheckmark"
@@ -633,9 +630,8 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                             transition={{
                               duration: 0.25,
                             }}
-                            className="h-6 w-6"
                           >
-                            <Check className="h-5 w-5 text-green-600" />
+                            <Check className="h-5 w-5" />
                           </motion.div>
                         )}
                       </AnimatePresence>
