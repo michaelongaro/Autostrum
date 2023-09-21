@@ -45,6 +45,7 @@ function GeneralLayout({ children }: GeneralLayout) {
           width: "100vw",
           height: "100vh",
           pointerEvents: "none",
+          zIndex: 100, // makes sure that the canvas is always on top of everything else
         }}
         camera={{ position: [0, 0, 50] }}
         dpr={dpr}
