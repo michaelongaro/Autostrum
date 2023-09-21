@@ -252,6 +252,7 @@ const initialStoreState = {
   chordBeingEdited: null,
   strummingPatternBeingEdited: null,
   showingEffectGlossary: false,
+  showDeleteAccountModal: false,
 
   // useSound
   breakOnNextChord: false,
@@ -368,6 +369,8 @@ interface TabState {
   ) => void;
   showEffectGlossaryModal: boolean;
   setShowEffectGlossaryModal: (showEffectGlossaryModal: boolean) => void;
+  showDeleteAccountModal: boolean;
+  setShowDeleteAccountModal: (showDeleteAccountModal: boolean) => void;
 
   // below are also used to determine if respective modal should be showing
   chordBeingEdited: {
@@ -577,6 +580,9 @@ export const useTabStore = create<TabState>()(
     showEffectGlossaryModal: false,
     setShowEffectGlossaryModal: (showEffectGlossaryModal) =>
       set({ showEffectGlossaryModal }),
+    showDeleteAccountModal: false,
+    setShowDeleteAccountModal: (showDeleteAccountModal) =>
+      set({ showDeleteAccountModal }),
 
     // below are also used to determine if respective modal should be showing
     chordBeingEdited: null,
