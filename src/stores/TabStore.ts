@@ -225,7 +225,7 @@ const initialStoreState = {
   // tab data
   originalTabData: null,
   id: -1,
-  createdById: "",
+  createdById: null,
   createdAt: null,
   updatedAt: null,
   title: "",
@@ -291,8 +291,8 @@ interface TabState {
   // used in <Tab />
   id: number;
   setId: (id: number) => void;
-  createdById: string;
-  setCreatedById: (createdById: string) => void;
+  createdById: string | null;
+  setCreatedById: (createdById: string | null) => void;
   createdAt: Date | null;
   setCreatedAt: (createdAt: Date | null) => void;
   updatedAt: Date | null;
@@ -469,7 +469,7 @@ export const useTabStore = create<TabState>()(
     setOriginalTabData: (originalTabData) => set({ originalTabData }),
     id: -1,
     setId: (id) => set({ id }),
-    createdById: "",
+    createdById: null,
     setCreatedById: (createdById) => set({ createdById }),
     createdAt: null,
     setCreatedAt: (createdAt) => set({ createdAt }),
