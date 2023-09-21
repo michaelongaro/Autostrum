@@ -21,6 +21,9 @@ import {
 import {
   DndContext,
   closestCenter,
+  closestCorners,
+  rectIntersection,
+  pointerWithin,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -41,76 +44,6 @@ import { Label } from "~/components/ui/label";
 
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import MiscellaneousControls from "./MiscellaneousControls";
-
-// idk custom sorting strategies don't seem to be working very well, prob a good idea to
-// give drag overlay a shot before calling it quits on the measure line behavior.
-
-// import type { ClientRect } from "@dnd-kit/core";
-// import type { SortingStrategy } from "@dnd-kit/sortable";
-
-// const defaultScale = {
-//   scaleX: 1,
-//   scaleY: 1,
-// };
-
-// export const horizontalWrappingListSortingStrategy: SortingStrategy = ({
-//   rects,
-//   activeNodeRect: fallbackActiveRect,
-//   activeIndex,
-//   overIndex,
-//   index,
-// }) => {
-//   const activeNodeRect = rects[activeIndex] ?? fallbackActiveRect;
-//   if (!activeNodeRect) return null;
-
-//   const activeRow = getRow(rects, activeIndex);
-//   const overRow = getRow(rects, overIndex);
-//   const indexRow = getRow(rects, index);
-
-//   let x = 0,
-//     y = 0;
-//   const itemGap = getItemGap(rects, index, activeIndex);
-
-//   if (index === activeIndex) {
-//     const newIndexRect = rects[overIndex];
-//     if (!newIndexRect) return null;
-//     x = newIndexRect.left - activeNodeRect.left;
-//     y = newIndexRect.top - activeNodeRect.top;
-//   } else {
-//     if (indexRow === activeRow && indexRow === overRow) {
-//       if (index > activeIndex && index <= overIndex)
-//         x = -activeNodeRect.width - itemGap;
-//       else if (index < activeIndex && index >= overIndex)
-//         x = activeNodeRect.width + itemGap;
-//     } else if (indexRow === overRow && index !== overIndex) {
-//       if (index > overIndex) x = -activeNodeRect.width - itemGap;
-//       else if (index < overIndex) x = activeNodeRect.width + itemGap;
-//     }
-//   }
-
-//   return { x, y, ...defaultScale };
-// };
-
-// function getItemGap(rects: ClientRect[], index: number, activeIndex: number) {
-//   const currentRect = rects[index];
-//   const previousRect = rects[index - 1];
-//   const nextRect = rects[index + 1];
-//   if (!currentRect || (!previousRect && !nextRect)) return 0;
-
-//   return activeIndex < index
-//     ? previousRect
-//       ? currentRect.left - (previousRect.left + previousRect.width)
-//       : nextRect.left - (currentRect.left + currentRect.width)
-//     : nextRect
-//     ? nextRect.left - (currentRect.left + currentRect.width)
-//     : currentRect.left - (previousRect.left + previousRect.width);
-// }
-
-// function getRow(rects: ClientRect[], index: number): number {
-//   const currentRect = rects[index];
-//   if (!currentRect) return -1;
-//   return currentRect.top;
-// }
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -156,6 +89,7 @@ function TabSection({
   const [reorderingColumns, setReorderingColumns] = useState(false);
   const [showingDeleteColumnsButtons, setShowingDeleteColumnsButtons] =
     useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
 
@@ -877,7 +811,7 @@ function TabSection({
 
         <div
           style={{
-            height: editing ? "284px" : "168px",
+            height: editing ? "283px" : "168px",
             gap: editing ? "1.35rem" : "0.05rem",
           }}
           className="baseVertFlex relative rounded-l-2xl border-2 border-pink-50 p-2"
@@ -890,19 +824,10 @@ function TabSection({
             ))}
         </div>
 
-        {/* TODO: when dragging measure line, the first <TabNoteAndEffectCombo /> will
-        be shrunk down to 1px width and moved out of the way. I _believe_ that this is due to 
-        maybe the dnd thinking that the measure line is actually as wide as the other elems but
-        I'm not too sure. 
-        
-        Also when moving across other measure lines it moves them up out of
-        the way when really I just want things to move horizontally/jump to next line if need
-        be... Maybe somehow try to increase width of section as a whole? seems like it is doing
-        the best it can but just has no space to expand out to. */}
         <DndContext
           sensors={sensors}
           modifiers={[restrictToParentElement]}
-          collisionDetection={closestCenter}
+          collisionDetection={rectIntersection}
           onDragEnd={handleDragEnd}
         >
           <SortableContext
@@ -912,10 +837,6 @@ function TabSection({
             {subSectionData.data.map((column, index) => (
               <TabColumn
                 key={column[9]} // this is a unique id for the column
-                // ^^^ idk if it was adding the "layout" props or what, but
-                // onDragEnd the column extends farther than it should and then
-                // snaps back to correct position, this goes away by fully rerendering
-                // by having key={index}, but feels like a copout to handle this way...
                 columnData={column}
                 sectionIndex={sectionIndex}
                 subSectionIndex={subSectionIndex}
@@ -935,7 +856,7 @@ function TabSection({
 
         <div
           style={{
-            height: editing ? "284px" : "168px",
+            height: editing ? "283px" : "168px",
           }}
           className="rounded-r-2xl border-2 border-pink-50 p-1"
         ></div>

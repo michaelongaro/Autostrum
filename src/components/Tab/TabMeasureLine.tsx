@@ -16,22 +16,6 @@ import {
 } from "~/components/ui/popover";
 import { Input } from "../ui/input";
 
-const sectionVariants = {
-  expanded: {
-    opacity: 1,
-    scale: 1,
-  },
-  closed: {
-    opacity: 1,
-    scale: 1,
-  },
-};
-
-const initialStyles = {
-  x: 0,
-  y: 0,
-};
-
 function TabMeasureLine({
   columnData,
   sectionIndex,
@@ -92,18 +76,150 @@ function TabMeasureLine({
     setTabData(newTabData);
   }
 
+  function renderMeasureLine(index: number) {
+    if (editing) {
+      if (index === 1) {
+        return (
+          <div className="baseVertFlex w-full !flex-nowrap">
+            {/* top border and vert stub to normalize heights of middle indicies */}
+            {reorderingColumns && !isDragging && (
+              <div className="baseVertFlex w-full">
+                <div className="h-[2px] w-full bg-pink-50"></div>
+                <div className="h-[5px] w-[2px] bg-pink-50"></div>
+              </div>
+            )}
+
+            <div className="baseFlex w-full">
+              {/* left dummy string */}
+              {reorderingColumns && !isDragging && (
+                <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+              )}
+
+              {/* measure line */}
+              <div
+                style={{
+                  height: getHeightOfMeasureLineSubSection(index),
+                }}
+                className="w-[2px] bg-pink-50"
+              ></div>
+
+              {/* right dummy string */}
+              {reorderingColumns && !isDragging && (
+                <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+              )}
+            </div>
+          </div>
+        );
+      } else if (index === 6) {
+        return (
+          <div className="baseVertFlex w-full !flex-nowrap">
+            <div className="baseFlex w-full">
+              {/* left dummy string */}
+              {reorderingColumns && !isDragging && (
+                <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+              )}
+
+              {/* measure line */}
+              <div
+                style={{
+                  height: getHeightOfMeasureLineSubSection(index),
+                }}
+                className="w-[2px] bg-pink-50"
+              ></div>
+
+              {/* right dummy string */}
+              {reorderingColumns && !isDragging && (
+                <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+              )}
+            </div>
+            {/* bottom border and vert stub to normalize heights of middle indicies */}
+            {reorderingColumns && !isDragging && (
+              <div className="baseVertFlex w-full">
+                <div className="h-[5px] w-[2px] bg-pink-50"></div>
+                <div className="h-[2px] w-full bg-pink-50"></div>
+              </div>
+            )}
+          </div>
+        );
+      } else {
+        return (
+          <div className="baseFlex w-full">
+            {/* left dummy string */}
+            {reorderingColumns && !isDragging && (
+              <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+            )}
+
+            {/* measure line */}
+            <div
+              style={{
+                height: getHeightOfMeasureLineSubSection(index),
+              }}
+              className="w-[2px] bg-pink-50"
+            ></div>
+
+            {/* right dummy string */}
+            {reorderingColumns && !isDragging && (
+              <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+            )}
+          </div>
+        );
+      }
+    }
+
+    // else:
+    return (
+      <div
+        style={{
+          height: getHeightOfMeasureLineSubSection(index),
+        }}
+        className="w-[2px] bg-pink-50"
+      ></div>
+    );
+  }
+
+  function getHeightOfMeasureLineSubSection(index: number) {
+    let height = "0px";
+
+    if (editing) {
+      if (reorderingColumns && !isDragging) {
+        height = "45px";
+      } else {
+        if (index === 1) {
+          height = "47px";
+        } else if (index === 6) {
+          height = "47px";
+        } else {
+          height = "47px";
+        }
+      }
+    } else {
+      if (index === 1) {
+        height = "24px";
+      } else if (index === 6) {
+        height = "29px";
+      } else {
+        height = "28.75px";
+      }
+    }
+
+    return height;
+  }
+
   return (
     <motion.div
       key={columnData[9]}
       ref={setNodeRef}
-      // layoutId={columnData[9]}
       style={{
         transform: CSS.Transform.toString(
           transform && { ...transform, scaleY: 1, scaleX: 1 }
         ),
-        transition,
+        // need to have same width as chords for the drag and drop algorithms
+        // to behave properly without the ui breaking
+        width: reorderingColumns ? "60px" : "2px",
+        transition: `${transition ?? ""}, width 0.15s ease-in-out`,
+        height: editing ? "403px" : "271px",
       }}
-      className="baseVertFlex relative mb-[3.2rem] mt-4"
+      className="baseVertFlex relative"
     >
       {columnData.map((note, index) => (
         <Fragment key={index}>
@@ -130,15 +246,13 @@ function TabMeasureLine({
                   </div>
                 )}
 
-              <div className="baseFlex mb-0 h-9 w-full">
+              <div className="baseFlex mb-0 h-0 w-full">
                 {note === "-" && (
                   <div
                     style={{
-                      // relative positioning here is a hack, not sure completely why tweaking margins
-                      // wasn't working
-                      top: editing ? "-0.45rem" : "0",
+                      top: editing ? "-1.65rem" : "-1.15rem",
                     }}
-                    className="relative top-[-0.45rem] h-[1px] w-full bg-pink-50"
+                    className="relative h-[1px] w-full bg-pink-50"
                   ></div>
                 )}
               </div>
@@ -146,26 +260,7 @@ function TabMeasureLine({
           )}
 
           {index > 0 && index < 7 && (
-            <div
-              style={{
-                borderTop: `${
-                  index === 1 ? "2px solid rgb(253 242 248)" : "none"
-                }`,
-                height: `${
-                  editing
-                    ? index === 1 || index === 6
-                      ? "46px"
-                      : "48px"
-                    : index === 1 || index === 6
-                    ? "26px"
-                    : "29px"
-                }`,
-                borderBottom: `${
-                  index === 6 ? "2px solid rgb(253 242 248)" : "none"
-                }`,
-              }}
-              className="w-[2px] bg-pink-50"
-            ></div>
+            <div className="baseFlex w-full">{renderMeasureLine(index)}</div>
           )}
 
           {index === 8 &&
@@ -174,7 +269,7 @@ function TabMeasureLine({
             !showingDeleteColumnsButtons && (
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button className="absolute -bottom-7 z-50 h-5 w-5 rounded-full p-[0.125rem] text-pink-50">
+                  <Button className="absolute bottom-7 z-50 h-5 w-5 rounded-full p-[0.125rem] text-pink-50">
                     <BsMusicNote className="h-5 w-5" />
                   </Button>
                 </PopoverTrigger>
@@ -213,46 +308,47 @@ function TabMeasureLine({
                 </PopoverContent>
               </Popover>
             )}
-
-          {index === 8 && reorderingColumns && (
-            <div
-              ref={setActivatorNodeRef}
-              {...attributes}
-              {...listeners}
-              className="hover:box-shadow-md absolute bottom-[-2.7rem] z-50 cursor-grab rounded-md text-pink-50 active:cursor-grabbing"
-              onMouseEnter={() => setHoveringOnHandle(true)}
-              onMouseDown={() => setGrabbingHandle(true)}
-              onMouseLeave={() => {
-                setGrabbingHandle(false);
-                setHoveringOnHandle(false);
-              }}
-              onMouseUp={() => {
-                setGrabbingHandle(false);
-                setHoveringOnHandle(false);
-              }}
-            >
-              <RxDragHandleDots2 className="h-8 w-6" />
-              <div
-                style={{
-                  opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
-                }}
-                className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-pink-200/30 p-4 transition-all"
-              ></div>
-            </div>
-          )}
-
-          {index === 8 && showingDeleteColumnsButtons && (
-            <Button
-              variant={"destructive"}
-              size="sm"
-              className="absolute bottom-[-2.7rem] left-1/2 right-1/2 z-50 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
-              onClick={handleDeleteMeasureLine}
-            >
-              <IoClose className="h-6 w-6" />
-            </Button>
-          )}
         </Fragment>
       ))}
+
+      {reorderingColumns && (
+        <div
+          ref={setActivatorNodeRef}
+          {...attributes}
+          {...listeners}
+          className={`hover:box-shadow-md isDragging ? "cursor-grabbing" : "cursor-grab" absolute bottom-4
+              z-50 cursor-grab rounded-md text-pink-50 active:cursor-grabbing`}
+          onMouseEnter={() => setHoveringOnHandle(true)}
+          onMouseDown={() => setGrabbingHandle(true)}
+          onMouseLeave={() => {
+            setGrabbingHandle(false);
+            setHoveringOnHandle(false);
+          }}
+          onMouseUp={() => {
+            setGrabbingHandle(false);
+            setHoveringOnHandle(false);
+          }}
+        >
+          <RxDragHandleDots2 className="h-8 w-6" />
+          <div
+            style={{
+              opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
+            }}
+            className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-pink-200/30 p-4 transition-all"
+          ></div>
+        </div>
+      )}
+
+      {showingDeleteColumnsButtons && (
+        <Button
+          variant={"destructive"}
+          size="sm"
+          className="absolute bottom-[-2.7rem] left-1/2 right-1/2 z-50 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
+          onClick={handleDeleteMeasureLine}
+        >
+          <IoClose className="h-6 w-6" />
+        </Button>
+      )}
     </motion.div>
   );
 }

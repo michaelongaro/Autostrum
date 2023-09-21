@@ -296,40 +296,12 @@ function TabNotesColumn({
       key={columnData[9]}
       id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
       ref={setNodeRef}
-      // layout={"position"}
       style={{
-        // transform: CSS.Transform.toString(transform),
         transform: CSS.Transform.toString(
-          // just testing with Translate intstead of what I think it should be: Transform
           transform && { ...transform, scaleY: 1, scaleX: 1 }
         ),
         transition,
       }}
-      // style={initialStyles}
-      // animate={
-      //   transform
-      //     ? {
-      //         x: transform.x,
-      //         y: transform.y,
-      //         zIndex: isDragging ? 1 : 0,
-      //       }
-      //     : initialStyles
-      // }
-      // transition={{
-      //   duration: !isDragging ? 0.15 : 0,
-      //   easings: {
-      //     type: "spring",
-      //   },
-      //   x: {
-      //     duration: !isDragging ? 0.3 : 0,
-      //   },
-      //   y: {
-      //     duration: !isDragging ? 0.3 : 0,
-      //   },
-      //   zIndex: {
-      //     delay: isDragging ? 0 : 0.25,
-      //   },
-      // }}
       className="baseVertFlex cursor-default scroll-m-8"
     >
       <div className="baseFlex relative">
@@ -375,11 +347,11 @@ function TabNotesColumn({
                     borderTop: `${
                       index === 1 ? "2px solid rgb(253 242 248)" : "none"
                     }`,
-                    paddingTop: `${index === 1 ? "0.45rem" : "0rem"}`,
+                    paddingTop: `${index === 1 ? "7px" : "0"}`,
                     borderBottom: `${
                       index === 6 ? "2px solid rgb(253 242 248)" : "none"
                     }`,
-                    paddingBottom: `${index === 6 ? "0.45rem" : "0rem"}`,
+                    paddingBottom: `${index === 6 ? "7px" : "0"}`,
 
                     // might need to refine these widths/values a bit if the sound playing overlay isn't
                     // as smooth/seamless as we want it to be.

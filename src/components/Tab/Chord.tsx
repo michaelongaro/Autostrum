@@ -136,7 +136,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
     <div className="baseFlex w-full">
       <div
         style={{
-          height: editing ? "284px" : "168px",
+          height: editing ? "283px" : "168px",
           gap: editing ? "1.35rem" : "0.05rem",
           padding: editing ? "0.5rem" : "0.5rem 0.35rem",
         }}
@@ -163,11 +163,11 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
               borderTop: `${
                 index === 0 ? "2px solid rgb(253 242 248)" : "none"
               }`,
-              paddingTop: `${index === 0 ? "0.45rem" : "0rem"}`,
+              paddingTop: `${index === 0 ? "7px" : "0"}`,
               borderBottom: `${
                 index === 5 ? "2px solid rgb(253 242 248)" : "none"
               }`,
-              paddingBottom: `${index === 5 ? "0.45rem" : "0rem"}`,
+              paddingBottom: `${index === 5 ? "7px" : "0"}`,
             }}
             className="baseFlex"
           >
@@ -241,7 +241,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
       </div>
       <div
         style={{
-          height: editing ? "284px" : "168px",
+          height: editing ? "283px" : "168px",
           padding: editing ? "0.25rem" : "0.25rem 0.15rem",
         }}
         className="rounded-r-2xl border-2 border-pink-50 p-1"
