@@ -213,7 +213,10 @@ function TableTabView({
             <>
               {Array.from(Array(3).keys()).map((index) => (
                 <AnimatePresence key={index} mode={"wait"}>
-                  <TableTabSkeleton key={`tabTableSkeleton${index}`} />
+                  <TableTabSkeleton
+                    key={`tabTableSkeleton${index}`}
+                    forPinnedModal={asPath.includes("/preferences")}
+                  />
                 </AnimatePresence>
               ))}
             </>
@@ -244,21 +247,30 @@ function TableTabView({
 
 export default TableTabView;
 
-function TableTabSkeleton() {
+// TODO: probably don't want to show the artist for pinned modal since it is already implied..
+
+function TableTabSkeleton({ forPinnedModal }: { forPinnedModal: boolean }) {
   return (
     <TableRow className="w-full">
       <TableCell>
         <div className="h-6 w-32 animate-pulse rounded-md bg-pink-300"></div>
       </TableCell>
+      {forPinnedModal && (
+        <TableCell>
+          <div className="h-8 w-16 animate-pulse rounded-md bg-pink-300"></div>
+        </TableCell>
+      )}
       <TableCell>
-        <div className="h-8 w-16 animate-pulse rounded-md bg-pink-300"></div>
+        <div className="h-8 w-32 animate-pulse rounded-md bg-pink-300"></div>
       </TableCell>
+
       <TableCell className="baseFlex !justify-start gap-2">
         <div className="h-8 w-8 animate-pulse rounded-full bg-pink-300"></div>
         <div className="h-6 w-24 animate-pulse rounded-md bg-pink-300"></div>
       </TableCell>
+
       <TableCell>
-        <div className="h-6 w-16 animate-pulse rounded-md bg-pink-300"></div>
+        <div className="h-8 w-24 animate-pulse rounded-md bg-pink-300"></div>
       </TableCell>
       <TableCell>
         <div className="h-8 w-12 animate-pulse rounded-md bg-pink-300"></div>
