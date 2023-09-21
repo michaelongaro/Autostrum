@@ -36,8 +36,8 @@ model Tab {
     hasRecordedAudio   Boolean   @default(false)
     createdAt          DateTime  @default(now())
     updatedAt          DateTime  @default(now()) @updatedAt
-    artist             Artist    @relation(fields: [createdById], references: [userId])
-    createdById        String
+    artist             Artist?   @relation(fields: [createdById], references: [userId], onDelete: Cascade)
+    createdById        String?
     likes              Like[]
     genre              Genre     @relation(fields: [genreId], references: [id])
     genreId            Int
@@ -48,10 +48,10 @@ model Like {
     id                Int    @id @default(autoincrement())
     tab               Tab    @relation(fields: [tabId], references: [id])
     tabId             Int
-    tabArtist         Artist @relation("likeRecipient", fields: [tabArtistId], references: [userId])
+    tabArtist         Artist @relation("likeRecipient", fields: [tabArtistId], references: [userId], onDelete: Cascade)
     tabArtistId       String
     tabArtistUsername String // necessary to avoid extra query when only searching with username
-    artistWhoLikes    Artist @relation("likeGiver", fields: [artistWhoLikedId], references: [userId])
+    artistWhoLikes    Artist @relation("likeGiver", fields: [artistWhoLikedId], references: [userId], onDelete: Cascade)
     artistWhoLikedId  String
 }
 
