@@ -53,6 +53,13 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
   const [showDeletePopover, setShowDeletePopover] = useState(false);
   const [showPublishCriteriaPopover, setShowPublishCriteriaPopover] =
     useState(false);
+  const [
+    showUnregisteredRecordingPopover,
+    setShowUnregisteredRecordingPopover,
+  ] = useState(false);
+  const [unregisteredPopoverTimeoutId, setUnregisteredPopoverTimeoutId] =
+    useState<NodeJS.Timeout | null>(null);
+
   const [showPulsingError, setShowPulsingError] = useState(false);
   const [profileImageLoaded, setProfileImageLoaded] = useState(false);
   const [showDeleteCheckmark, setShowDeleteCheckmark] = useState(false);
@@ -535,21 +542,56 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                   </Popover>
                 )}
 
-                <Button
-                  variant={"recording"}
-                  onClick={() => {
-                    setShowAudioRecorderModal(true);
-
-                    if (audioMetadata.playing || previewMetadata.playing) {
-                      pauseAudio();
+                <Popover
+                  open={showUnregisteredRecordingPopover}
+                  onOpenChange={(open) => {
+                    if (open === false) {
+                      setShowUnregisteredRecordingPopover(false);
+                      if (unregisteredPopoverTimeoutId) {
+                        clearTimeout(unregisteredPopoverTimeoutId);
+                        setUnregisteredPopoverTimeoutId(null);
+                      }
                     }
                   }}
                 >
-                  <div className="baseFlex gap-2">
-                    {hasRecordedAudio ? "Edit recording" : "Record tab"}
-                    <FaMicrophoneAlt className="h-5 w-5" />
-                  </div>
-                </Button>
+                  <PopoverTrigger
+                    asChild
+                    onClick={() => {
+                      if (!currentArtist) {
+                        setShowUnregisteredRecordingPopover(true);
+                        setUnregisteredPopoverTimeoutId(
+                          setTimeout(() => {
+                            setShowUnregisteredRecordingPopover(false);
+                          }, 2000)
+                        );
+                      }
+                    }}
+                  >
+                    <Button
+                      variant={"recording"}
+                      onClick={() => {
+                        if (!userId) return;
+
+                        setShowAudioRecorderModal(true);
+
+                        if (audioMetadata.playing || previewMetadata.playing) {
+                          pauseAudio();
+                        }
+                      }}
+                    >
+                      <div className="baseFlex gap-2">
+                        {hasRecordedAudio ? "Edit recording" : "Record tab"}
+                        <FaMicrophoneAlt className="h-5 w-5" />
+                      </div>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[325px] bg-pink-50 p-2 text-sm text-pink-950 md:w-[375px] md:text-base">
+                    <div className="baseFlex !flex-nowrap gap-2 pr-2">
+                      <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
+                      <p> Only registered users can record a tab.</p>
+                    </div>
+                  </PopoverContent>
+                </Popover>
 
                 <Button
                   variant={"secondary"}
