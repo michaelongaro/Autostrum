@@ -102,125 +102,6 @@ export interface PreviewMetadata {
   playing: boolean;
 }
 
-function modifyPalmMuteDashes(
-  tab: Section[],
-  setTabData: (tabData: Section[]) => void,
-  sectionIndex: number,
-  subSectionIndex: number,
-  startColumnIndex: number,
-  prevValue: string,
-  pairNodeValue?: string
-) {
-  // technically could just use tabData/setter from the store right?
-  let finishedModification = false;
-  const newTabData = [...tab];
-  let currentColumnIndex = startColumnIndex;
-
-  while (!finishedModification) {
-    // should prob extract to a variable so we can type check it and avoid the
-    // long chain being repeated over and over below
-
-    // start/end node already defined, meaning we just clicked on an empty node to be the other pair node
-    if (pairNodeValue !== undefined) {
-      if (currentColumnIndex === startColumnIndex) {
-        newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-          startColumnIndex
-        ]![0] = pairNodeValue === "" ? "end" : pairNodeValue;
-
-        pairNodeValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
-      } else if (
-        newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-          currentColumnIndex
-        ]![0] ===
-        (pairNodeValue === "" || pairNodeValue === "end" ? "start" : "end")
-      ) {
-        finishedModification = true;
-      } else {
-        newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-          currentColumnIndex
-        ]![0] = "-";
-        pairNodeValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
-      }
-    }
-    // pair already defined, meaning we just removed either the start/end node and need to remove dashes
-    // in between until we hit the other node
-    else {
-      if (
-        newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-          currentColumnIndex
-        ]?.[0] === (prevValue === "start" ? "end" : "start")
-      ) {
-        finishedModification = true;
-      } else {
-        newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-          currentColumnIndex
-        ]![0] = "";
-        prevValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
-      }
-    }
-  }
-
-  setTabData(newTabData);
-}
-
-function modifyStrummingPatternPalmMuteDashes(
-  strummingPatternBeingEdited: {
-    index: number;
-    value: StrummingPattern;
-  },
-  setStrummingPatternBeingEdited: (
-    strummingPatternBeingEdited: {
-      index: number;
-      value: StrummingPattern;
-    } | null
-  ) => void,
-  startColumnIndex: number,
-  prevValue: string,
-  pairNodeValue?: string
-) {
-  // technically could just use tabData/setter from the store right?
-  let finishedModification = false;
-  const newStrummingPattern = { ...strummingPatternBeingEdited };
-  let currentColumnIndex = startColumnIndex;
-
-  while (!finishedModification) {
-    // start/end node already defined, meaning we just clicked on an empty node to be the other pair node
-    if (pairNodeValue !== undefined) {
-      if (currentColumnIndex === startColumnIndex) {
-        newStrummingPattern.value.strums[startColumnIndex]!.palmMute =
-          pairNodeValue === ""
-            ? "end"
-            : (pairNodeValue as "start" | "end" | "-" | "");
-
-        pairNodeValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
-      } else if (
-        newStrummingPattern.value.strums[currentColumnIndex]!.palmMute ===
-        (pairNodeValue === "" || pairNodeValue === "end" ? "start" : "end")
-      ) {
-        finishedModification = true;
-      } else {
-        newStrummingPattern.value.strums[currentColumnIndex]!.palmMute = "-";
-        pairNodeValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
-      }
-    }
-    // pair already defined, meaning we just removed either the start/end node and need to remove dashes
-    // in between until we hit the other node
-    else {
-      if (
-        newStrummingPattern.value.strums[currentColumnIndex]!.palmMute ===
-        (prevValue === "start" ? "end" : "start")
-      ) {
-        finishedModification = true;
-      } else {
-        newStrummingPattern.value.strums[currentColumnIndex]!.palmMute = "";
-        prevValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
-      }
-    }
-  }
-
-  setStrummingPatternBeingEdited(newStrummingPattern);
-}
-
 const initialStoreState = {
   // tab data
   originalTabData: null,
@@ -331,34 +212,6 @@ interface TabState {
   setCurrentlyCopiedData: (currentlyCopiedData: CopiedData | null) => void;
   currentlyCopiedChord: string[] | null;
   setCurrentlyCopiedChord: (currentlyCopiedChord: string[] | null) => void;
-
-  // used in <TabSection />
-  modifyPalmMuteDashes: (
-    tab: Section[],
-    setTabData: (tabData: Section[]) => void,
-    sectionIndex: number,
-    subSectionIndex: number,
-    startColumnIndex: number,
-    prevValue: string,
-    pairNodeValue?: string
-  ) => void;
-
-  // used in <StrummingPatternModal />
-  modifyStrummingPatternPalmMuteDashes: (
-    strummingPatternBeingEdited: {
-      index: number;
-      value: StrummingPattern;
-    },
-    setStrummingPatternBeingEdited: (
-      strummingPatternBeingEdited: {
-        index: number;
-        value: StrummingPattern;
-      } | null
-    ) => void,
-    startColumnIndex: number,
-    prevValue: string,
-    pairNodeValue?: string
-  ) => void;
 
   // modals
   showAudioRecorderModal: boolean;
@@ -511,10 +364,6 @@ export const useTabStore = create<TabState>()(
     currentlyCopiedChord: null,
     setCurrentlyCopiedChord: (currentlyCopiedChord) =>
       set({ currentlyCopiedChord }),
-
-    // used in <TabSection />
-    modifyPalmMuteDashes,
-    modifyStrummingPatternPalmMuteDashes,
 
     // useSound related
     audioContext: null,
