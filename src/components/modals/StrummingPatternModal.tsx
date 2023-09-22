@@ -10,7 +10,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { BsFillPlayFill, BsStopFill } from "react-icons/bs";
 import { Label } from "~/components/ui/label";
-
+import { BsKeyboard } from "react-icons/bs";
 import {
   Select,
   SelectContent,
@@ -29,6 +29,7 @@ import StrummingPattern from "../Tab/StrummingPattern";
 import isEqual from "lodash.isequal";
 import FocusTrap from "focus-trap-react";
 import useSound from "~/hooks/useSound";
+import { traverseToRemoveHangingStrummingPatternPairNode } from "~/utils/palmMuteHelpers";
 
 const backdropVariants = {
   expanded: {
@@ -62,7 +63,6 @@ function StrummingPatternModal({
     strummingPatterns,
     setStrummingPatterns,
     setStrummingPatternBeingEdited,
-    modifyStrummingPatternPalmMuteDashes,
     tabData,
     setTabData,
     previewMetadata,
@@ -73,8 +73,6 @@ function StrummingPatternModal({
       strummingPatterns: state.strummingPatterns,
       setStrummingPatterns: state.setStrummingPatterns,
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
-      modifyStrummingPatternPalmMuteDashes:
-        state.modifyStrummingPatternPalmMuteDashes,
       tabData: state.tabData,
       setTabData: state.setTabData,
       previewMetadata: state.previewMetadata,
@@ -113,7 +111,8 @@ function StrummingPatternModal({
       setEditingPalmMuteNodes(true);
       return;
     } else if (lastModifiedPalmMuteNode) {
-      // if prevValue was "" then can just do hardcoded solution as before
+      // if only had a hanging "start" node, then just revert
+      // start node to being empty
       if (lastModifiedPalmMuteNode.prevValue === "") {
         const newStrummingPattern = {
           ...strummingPatternBeingEdited,
@@ -124,14 +123,16 @@ function StrummingPatternModal({
         ]!.palmMute = "";
 
         setStrummingPatternBeingEdited(newStrummingPattern);
-      } else {
-        modifyStrummingPatternPalmMuteDashes(
+      }
+      // otherwise need to traverse to find + remove pair node
+      else {
+        traverseToRemoveHangingStrummingPatternPairNode({
           strummingPatternBeingEdited,
           setStrummingPatternBeingEdited,
-          lastModifiedPalmMuteNode.columnIndex,
-          "tempRemoveLater",
-          lastModifiedPalmMuteNode.prevValue
-        );
+          startColumnIndex: lastModifiedPalmMuteNode.columnIndex,
+          pairNodeToRemove:
+            lastModifiedPalmMuteNode.prevValue === "start" ? "end" : "start",
+        });
       }
 
       setLastModifiedPalmMuteNode(null);
@@ -334,27 +335,33 @@ function StrummingPatternModal({
             </div>
           </div>
 
-          <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 text-sm">
-            <HiOutlineInformationCircle className="mr-2 h-6 w-6" />
+          <div className="baseVertFlex lightestGlassmorphic gap-2 rounded-md p-2 text-sm">
             <div className="baseFlex gap-2">
-              <span className="font-semibold">v / d</span>
-              <p>-</p>
-              <p>Downstrum</p>
+              <BsKeyboard className="h-6 w-6" />
+              Hotkeys
             </div>
-            <div className="baseFlex gap-2">
-              <span className="font-semibold">^ / u</span>
-              <p>-</p>
-              <p>Upstrum</p>
-            </div>
-            <div className="baseFlex gap-2">
-              <p className="font-semibold">s</p>
-              <p>-</p>
-              <p>Slap</p>
-            </div>
-            <div className="baseFlex gap-2">
-              <p className="font-semibold">&gt;</p>
-              <p>-</p>
-              <p>Accented</p>
+
+            <div className="baseFlex w-full !flex-nowrap gap-4 sm:gap-6">
+              <div className="baseFlex gap-2">
+                <span className="font-semibold">v / d</span>
+                <p className="hidden sm:block">-</p>
+                <p>Downstrum</p>
+              </div>
+              <div className="baseFlex gap-2">
+                <span className="font-semibold">^ / u</span>
+                <p className="hidden sm:block">-</p>
+                <p>Upstrum</p>
+              </div>
+              <div className="baseFlex gap-2">
+                <p className="font-semibold">s</p>
+                <p className="hidden sm:block">-</p>
+                <p>Slap</p>
+              </div>
+              <div className="baseFlex gap-2">
+                <p className="font-semibold">&gt;</p>
+                <p className="hidden sm:block">-</p>
+                <p>Accented</p>
+              </div>
             </div>
           </div>
 
@@ -367,6 +374,8 @@ function StrummingPatternModal({
               editingPalmMuteNodes={editingPalmMuteNodes}
               setEditingPalmMuteNodes={setEditingPalmMuteNodes}
               showingDeleteStrumsButtons={showingDeleteStrumsButtons}
+              lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+              setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
             />
           </div>
 

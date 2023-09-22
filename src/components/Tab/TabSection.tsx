@@ -13,6 +13,7 @@ import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
 import { FaTrashAlt } from "react-icons/fa";
 import { HiOutlineInformationCircle } from "react-icons/hi";
+import { BsKeyboard } from "react-icons/bs";
 import {
   Popover,
   PopoverContent,
@@ -786,8 +787,11 @@ function TabSection({
                     className="w-[300px] md:w-full"
                   >
                     <div className="baseVertFlex gap-1">
-                      <p className="font-semibold">Hotkeys</p>
-                      <ul className="list-disc pl-4">
+                      <p className="baseFlex gap-2 text-sm font-semibold md:text-base">
+                        <BsKeyboard className="h-5 w-5 sm:h-6 sm:w-6" />
+                        Hotkeys
+                      </p>
+                      <ul className="list-disc pl-4 text-sm md:text-base">
                         <li>
                           You can navigate through inputs with your arrow keys.
                         </li>

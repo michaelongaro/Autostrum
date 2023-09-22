@@ -5,6 +5,7 @@ import { HiOutlineInformationCircle } from "react-icons/hi";
 import { shallow } from "zustand/shallow";
 import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import { BsFillPlayFill } from "react-icons/bs";
+import { BsKeyboard } from "react-icons/bs";
 import Chord from "../Tab/Chord";
 import { Button } from "../ui/button";
 import isEqual from "lodash.isequal";
@@ -186,13 +187,22 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
           </div>
 
           <div className="baseVertFlex lightestGlassmorphic max-w-[23rem] gap-2 rounded-md p-2 text-sm">
-            <HiOutlineInformationCircle className="h-6 w-6" />
-            <div>
-              <span>You can quickly enter major or minor chords by typing</span>
-              <span className="font-semibold"> A-G </span>
-              <span>or</span>
-              <span className="font-semibold"> a-g </span>
-              <span>respectively.</span>
+            <div className="baseFlex gap-2">
+              <BsKeyboard className="h-6 w-6" />
+              Hotkeys
+            </div>
+            <div className="baseFlex gap-2 sm:gap-6">
+              <div className="baseFlex gap-2">
+                <span className="font-semibold">A-G</span>
+                <span>-</span>
+                <span>Major chords</span>
+              </div>
+
+              <div className="baseFlex gap-2">
+                <span className="font-semibold">a-g</span>
+                <span>-</span>
+                <span>Minor chords</span>
+              </div>
             </div>
           </div>
 
