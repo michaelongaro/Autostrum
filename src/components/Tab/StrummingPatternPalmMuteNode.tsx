@@ -10,6 +10,7 @@ import { BsPlus } from "react-icons/bs";
 import { type StrummingPattern, useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
+import { addOrRemoveStrummingPatternPalmMuteDashes } from "~/utils/palmMuteHelpers";
 
 interface StrummingPatternPalmMuteNode {
   value: string;
@@ -45,14 +46,9 @@ function StrummingPatternPalmMuteNode({
 }: StrummingPatternPalmMuteNode) {
   const [hoveringOnPalmMuteNode, setHoveringOnPalmMuteNode] = useState(false);
 
-  const {
-    setStrummingPatternBeingEdited,
-    modifyStrummingPatternPalmMuteDashes,
-  } = useTabStore(
+  const { setStrummingPatternBeingEdited } = useTabStore(
     (state) => ({
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
-      modifyStrummingPatternPalmMuteDashes:
-        state.modifyStrummingPatternPalmMuteDashes,
     }),
     shallow
   );
@@ -243,12 +239,13 @@ function StrummingPatternPalmMuteNode({
 
         setStrummingPatternBeingEdited(newStrummingPattern);
       } else {
-        modifyStrummingPatternPalmMuteDashes(
+        // removing node + dashes in between
+        addOrRemoveStrummingPatternPalmMuteDashes({
           strummingPatternBeingEdited,
           setStrummingPatternBeingEdited,
-          beatIndex,
-          value
-        );
+          startColumnIndex: beatIndex,
+          prevValue: value,
+        });
       }
     }
 
@@ -274,13 +271,15 @@ function StrummingPatternPalmMuteNode({
 
     // adding end node
     else {
-      modifyStrummingPatternPalmMuteDashes(
+      // adding node + dashes in between
+      addOrRemoveStrummingPatternPalmMuteDashes({
         strummingPatternBeingEdited,
         setStrummingPatternBeingEdited,
-        beatIndex,
-        value,
-        lastModifiedPalmMuteNode.prevValue
-      );
+        startColumnIndex: beatIndex,
+        prevValue: value,
+        pairNodeValue: lastModifiedPalmMuteNode.prevValue,
+      });
+
       setLastModifiedPalmMuteNode(null);
     }
   }
@@ -384,7 +383,13 @@ function StrummingPatternPalmMuteNode({
             margin: editing ? "1.1rem 0" : "0.75rem 0", // guessing on 0.75rem value
           }}
           className={`h-[1px] w-full ${
-            darkMode ? "bg-foreground" : "bg-background"
+            darkMode
+              ? "bg-foreground"
+              : !editing ||
+                !editingPalmMuteNodes ||
+                getButtonOpacity(value, beatIndex) === "1"
+              ? "bg-background"
+              : "bg-background/50"
           }`}
         ></div>
       )}

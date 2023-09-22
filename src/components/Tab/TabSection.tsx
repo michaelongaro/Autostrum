@@ -45,6 +45,7 @@ import { Label } from "~/components/ui/label";
 
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import MiscellaneousControls from "./MiscellaneousControls";
+import { traverseToRemoveHangingPairNode } from "~/utils/palmMuteHelpers";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -121,18 +122,16 @@ function TabSection({
     return newIds;
   }
 
-  const { bpm, tuning, modifyPalmMuteDashes, tabData, setTabData, editing } =
-    useTabStore(
-      (state) => ({
-        bpm: state.bpm,
-        tuning: state.tuning,
-        modifyPalmMuteDashes: state.modifyPalmMuteDashes,
-        tabData: state.tabData,
-        setTabData: state.setTabData,
-        editing: state.editing,
-      }),
-      shallow
-    );
+  const { bpm, tuning, tabData, setTabData, editing } = useTabStore(
+    (state) => ({
+      bpm: state.bpm,
+      tuning: state.tuning,
+      tabData: state.tabData,
+      setTabData: state.setTabData,
+      editing: state.editing,
+    }),
+    shallow
+  );
 
   // should these functions below be in zustand?
 
@@ -407,22 +406,27 @@ function TabSection({
       setEditingPalmMuteNodes(true);
       return;
     } else if (lastModifiedPalmMuteNode) {
-      // if prevValue was "" then can just do hardcoded solution as before
+      // if only had a hanging "start" node, then just revert
+      // start node to being empty
       if (lastModifiedPalmMuteNode.prevValue === "") {
         const newTabData = [...tabData];
         newTabData[sectionIndex]!.data[subSectionIndex]!.data[
           lastModifiedPalmMuteNode.columnIndex
         ]![0] = "";
+
         setTabData(newTabData);
-      } else {
-        modifyPalmMuteDashes(
+      }
+      // otherwise need to traverse to find + remove pair node
+      else {
+        traverseToRemoveHangingPairNode({
           tabData,
           setTabData,
           sectionIndex,
-          lastModifiedPalmMuteNode.columnIndex,
-          "tempRemoveLater",
-          lastModifiedPalmMuteNode.prevValue
-        );
+          subSectionIndex,
+          startColumnIndex: lastModifiedPalmMuteNode.columnIndex,
+          pairNodeToRemove:
+            lastModifiedPalmMuteNode.prevValue === "start" ? "end" : "start",
+        });
       }
 
       setLastModifiedPalmMuteNode(null);
@@ -767,9 +771,6 @@ function TabSection({
           />
         </div>
       )}
-
-      {/* try to use framer motion to animate sections sliding up/down to their new positions
-        (this would mean both sections would need to slide for each click of "up"/"down" ) */}
 
       <div className="baseFlex relative w-full !justify-start">
         {editing && (

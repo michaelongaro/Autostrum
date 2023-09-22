@@ -48,6 +48,10 @@ interface StrummingPattern {
   editingPalmMuteNodes?: boolean;
   setEditingPalmMuteNodes?: Dispatch<SetStateAction<boolean>>;
   showingDeleteStrumsButtons?: boolean;
+  lastModifiedPalmMuteNode: LastModifiedPalmMuteNodeLocation | null;
+  setLastModifiedPalmMuteNode: Dispatch<
+    SetStateAction<LastModifiedPalmMuteNodeLocation | null>
+  >;
 }
 
 function StrummingPattern({
@@ -58,10 +62,9 @@ function StrummingPattern({
   editingPalmMuteNodes,
   setEditingPalmMuteNodes,
   showingDeleteStrumsButtons,
+  lastModifiedPalmMuteNode,
+  setLastModifiedPalmMuteNode,
 }: StrummingPattern) {
-  const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
-    useState<LastModifiedPalmMuteNodeLocation | null>(null);
-
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
 
   const [isFocused, setIsFocused] = useState<boolean[]>(

@@ -10,6 +10,7 @@ import { BsPlus } from "react-icons/bs";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
+import { addOrRemovePalmMuteDashes } from "~/utils/palmMuteHelpers";
 
 interface PalmMuteNode {
   value: string;
@@ -36,15 +37,18 @@ function PalmMuteNode({
 }: PalmMuteNode) {
   const [hoveringOnPalmMuteNode, setHoveringOnPalmMuteNode] = useState(false);
 
-  const { editing, tabData, setTabData, modifyPalmMuteDashes } = useTabStore(
+  const { editing, tabData, setTabData } = useTabStore(
     (state) => ({
       editing: state.editing,
       tabData: state.tabData,
       setTabData: state.setTabData,
-      modifyPalmMuteDashes: state.modifyPalmMuteDashes,
     }),
     shallow
   );
+
+  useEffect(() => {
+    setHoveringOnPalmMuteNode(false);
+  }, [value]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
     // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
@@ -248,14 +252,14 @@ function PalmMuteNode({
         setTabData(newTabData);
       } else {
         // removing node + dashes in between
-        modifyPalmMuteDashes(
+        addOrRemovePalmMuteDashes({
           tabData,
           setTabData,
           sectionIndex,
           subSectionIndex,
-          columnIndex,
-          value
-        );
+          startColumnIndex: columnIndex,
+          prevValue: value,
+        });
       }
     }
 
@@ -279,15 +283,15 @@ function PalmMuteNode({
     // adding end node
     else {
       // adding node + dashes in between
-      modifyPalmMuteDashes(
+      addOrRemovePalmMuteDashes({
         tabData,
         setTabData,
         sectionIndex,
         subSectionIndex,
-        columnIndex,
-        value,
-        lastModifiedPalmMuteNode.prevValue
-      );
+        startColumnIndex: columnIndex,
+        prevValue: value,
+        pairNodeValue: lastModifiedPalmMuteNode.prevValue,
+      });
 
       setLastModifiedPalmMuteNode(null);
     }
@@ -359,7 +363,17 @@ function PalmMuteNode({
         </>
       )}
 
-      {value === "-" && <div className="h-[1px] w-full bg-pink-50"></div>}
+      {value === "-" && (
+        <div
+          className={`h-[1px] w-full ${
+            !editing ||
+            !editingPalmMuteNodes ||
+            getButtonOpacity(value, columnIndex) === "1"
+              ? "bg-pink-50"
+              : "bg-pink-50/50"
+          } `}
+        ></div>
+      )}
     </>
   );
 }
