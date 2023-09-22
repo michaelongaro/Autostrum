@@ -187,7 +187,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
           </div>
 
           <div className="baseVertFlex lightestGlassmorphic max-w-[23rem] gap-2 rounded-md p-2 text-sm">
-            <div className="baseFlex gap-2">
+            <div className="baseFlex gap-2 font-semibold">
               <BsKeyboard className="h-6 w-6" />
               Hotkeys
             </div>
