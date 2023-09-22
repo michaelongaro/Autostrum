@@ -373,6 +373,14 @@ function TabNote({
         ];
 
         setTabData(newTabData);
+
+        const newNoteToFocus = document.getElementById(
+          `input-${sectionIndex}-${subSectionIndex}-${
+            columnIndex + 1
+          }-${noteIndex}`
+        );
+
+        newNoteToFocus?.focus();
         return;
       }
     }
