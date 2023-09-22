@@ -28,6 +28,7 @@ import StrummingPatternModal from "../modals/StrummingPatternModal";
 import SectionContainer from "./SectionContainer";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import AudioRecorderModal from "../modals/AudioRecorderModal";
+import { useLocalStorageValue } from "@react-hookz/web";
 
 // not sure of best way to avoid having the same name for interface and component
 
@@ -46,6 +47,7 @@ function Tab({ tab, refetchTab }: ITab) {
   const { userId, isLoaded } = useAuth();
 
   const isAboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
+  const localStorageTabData = useLocalStorageValue("tabData");
 
   const {
     setId,
@@ -57,6 +59,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setGenreId,
     setTuning,
     setBpm,
+    setCapo,
     setTimeSignature,
     setMusicalKey,
     setHasRecordedAudio,
@@ -87,6 +90,7 @@ function Tab({ tab, refetchTab }: ITab) {
       setGenreId: state.setGenreId,
       setTuning: state.setTuning,
       setBpm: state.setBpm,
+      setCapo: state.setCapo,
       setTimeSignature: state.setTimeSignature,
       setMusicalKey: state.setMusicalKey,
       setHasRecordedAudio: state.setHasRecordedAudio,
@@ -124,6 +128,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setGenreId(tab.genreId);
     setTuning(tab.tuning);
     setBpm(tab.bpm);
+    setCapo(tab.capo);
     setTimeSignature(tab.timeSignature);
     setMusicalKey(tab.musicalKey);
     setHasRecordedAudio(tab.hasRecordedAudio);
@@ -144,6 +149,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setCreatedAt,
     setUpdatedAt,
     setBpm,
+    setCapo,
     setDescription,
     setGenreId,
     setChords,
@@ -170,6 +176,59 @@ function Tab({ tab, refetchTab }: ITab) {
       ]);
     }
   }, [tab, tabData, setTabData]);
+
+  useEffect(() => {
+    // console.log("hit?", localStorageTabData.value);
+    if (!localStorageTabData.value || tabData.length > 0) return;
+
+    // not sure of best way to check/validate types of localStorageTabData.value here..
+
+    const {
+      title,
+      description,
+      genreId,
+      tuning,
+      bpm,
+      timeSignature,
+      capo,
+      musicalKey,
+      chords,
+      strummingPatterns,
+      tabData: localStorageTabDataValue, // avoids name conflict with actual tabData
+      sectionProgression,
+    } = JSON.parse(localStorageTabData.value as string);
+
+    setTitle(title);
+    setDescription(description);
+    setGenreId(genreId);
+    setTuning(tuning);
+    setBpm(bpm);
+    setTimeSignature(timeSignature);
+    setCapo(capo);
+    setMusicalKey(musicalKey);
+    setChords(chords);
+    setStrummingPatterns(strummingPatterns);
+    setTabData(localStorageTabDataValue);
+    setSectionProgression(sectionProgression ?? []);
+
+    localStorageTabData.remove();
+  }, [
+    localStorageTabData,
+    tabData,
+    setBpm,
+    setCapo,
+    setDescription,
+    setGenreId,
+    setChords,
+    setStrummingPatterns,
+    setTabData,
+    setTimeSignature,
+    setMusicalKey,
+    setTitle,
+    setOriginalTabData,
+    setTuning,
+    setSectionProgression,
+  ]);
 
   function addNewSection() {
     const newTabData = [...tabData];

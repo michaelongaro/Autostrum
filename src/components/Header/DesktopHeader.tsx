@@ -9,17 +9,28 @@ import Link from "next/link";
 import { FaGuitar } from "react-icons/fa";
 import { IoTelescopeOutline } from "react-icons/io5";
 import { Button } from "../ui/button";
-
+import { useTabStore } from "~/stores/TabStore";
+import { shallow } from "zustand/shallow";
 import classes from "./DesktopHeader.module.css";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import Image from "next/image";
+import { useLocalStorageValue } from "@react-hookz/web";
 
 function DesktopHeader() {
-  const { isSignedIn } = useAuth();
+  const { userId, isSignedIn } = useAuth();
   const { user } = useUser();
-
   const { asPath } = useRouter();
+
+  const localStorageTabData = useLocalStorageValue("tabData");
+  const localStorageRedirectRoute = useLocalStorageValue("redirectRoute");
+
+  const { getStringifiedTabData } = useTabStore(
+    (state) => ({
+      getStringifiedTabData: state.getStringifiedTabData,
+    }),
+    shallow
+  );
 
   return (
     <div className={classes.desktopHeader}>
@@ -80,8 +91,22 @@ function DesktopHeader() {
             afterSignUpUrl={`${
               process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
             }/postSignUpRegistration`}
+            afterSignInUrl={`${
+              process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+            }${asPath}`}
           >
-            <Button size={"lg"} className="hidden lg:block">
+            <Button
+              size={"lg"}
+              onClick={() => {
+                if (asPath.includes("/create")) {
+                  localStorageTabData.set(getStringifiedTabData());
+                }
+
+                // technically can sign in from signup page and vice versa
+                if (!userId) localStorageRedirectRoute.set(asPath);
+                // ^^ but technically could just append it onto the postSignupRegistration route right?
+              }}
+            >
               Sign up
             </Button>
           </SignUpButton>
@@ -90,8 +115,23 @@ function DesktopHeader() {
             afterSignUpUrl={`${
               process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
             }/postSignUpRegistration`}
+            afterSignInUrl={`${
+              process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+            }${asPath}`}
           >
-            <Button variant={"secondary"} className="h-11">
+            <Button
+              variant={"secondary"}
+              className="h-11"
+              onClick={() => {
+                if (asPath.includes("/create")) {
+                  localStorageTabData.set(getStringifiedTabData());
+                }
+
+                // technically can sign in from signup page and vice versa
+                if (!userId) localStorageRedirectRoute.set(asPath);
+                // ^^ but technically could just append it onto the postSignupRegistration route right?
+              }}
+            >
               Sign in
             </Button>
           </SignInButton>

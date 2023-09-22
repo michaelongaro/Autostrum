@@ -161,9 +161,6 @@ const initialStoreState = {
   // idk if search needs to be included here
 };
 interface TabState {
-  // not sure if this will hurt us later on, but I would like to avoid making all of these optional
-  // and instead just set them to default-ish values
-
   // this is used to compare the current tabData to the original tabData to see if there are any
   // changes, and if so, enable the "save" button
   originalTabData: Tab | null;
@@ -212,6 +209,7 @@ interface TabState {
   setCurrentlyCopiedData: (currentlyCopiedData: CopiedData | null) => void;
   currentlyCopiedChord: string[] | null;
   setCurrentlyCopiedChord: (currentlyCopiedChord: string[] | null) => void;
+  getStringifiedTabData: () => string;
 
   // modals
   showAudioRecorderModal: boolean;
@@ -316,7 +314,7 @@ interface TabState {
 //        increase: (by) => set((state) => ({ bears: state.bears + by })),
 
 export const useTabStore = create<TabState>()(
-  devtools((set) => ({
+  devtools((set, get) => ({
     // used in <Tab />
     originalTabData: null,
     setOriginalTabData: (originalTabData) => set({ originalTabData }),
@@ -364,6 +362,37 @@ export const useTabStore = create<TabState>()(
     currentlyCopiedChord: null,
     setCurrentlyCopiedChord: (currentlyCopiedChord) =>
       set({ currentlyCopiedChord }),
+
+    getStringifiedTabData: () => {
+      const {
+        title,
+        description,
+        genreId,
+        tuning,
+        bpm,
+        timeSignature,
+        capo,
+        musicalKey,
+        chords,
+        strummingPatterns,
+        tabData,
+        sectionProgression,
+      } = get();
+      return JSON.stringify({
+        title,
+        description,
+        genreId,
+        tuning,
+        bpm,
+        timeSignature,
+        capo,
+        musicalKey,
+        chords,
+        strummingPatterns,
+        tabData,
+        sectionProgression,
+      });
+    },
 
     // useSound related
     audioContext: null,

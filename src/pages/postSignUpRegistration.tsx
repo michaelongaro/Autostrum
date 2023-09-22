@@ -2,15 +2,23 @@ import { useEffect } from "react";
 import { useClerk } from "@clerk/nextjs";
 import { api } from "~/utils/api";
 import { useRouter } from "next/router";
+import { useLocalStorageValue } from "@react-hookz/web";
 
 function PostSignUpRegistration() {
   const { user } = useClerk();
   const { push } = useRouter();
 
+  const localStorageRedirectRoute = useLocalStorageValue("redirectRoute");
+
   const { mutate: addNewUser } =
     api.postSignUpRegistration.initializeNewUser.useMutation({
       onSettled: () => {
-        void push("/");
+        if (localStorageRedirectRoute.value) {
+          void push(localStorageRedirectRoute.value as string);
+          localStorageRedirectRoute.remove();
+        } else {
+          void push("/");
+        }
       },
     });
 
