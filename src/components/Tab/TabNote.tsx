@@ -411,8 +411,14 @@ function TabNote({
             borderWidth: `${note.length > 0 && !isFocused ? "2px" : "1px"}`,
           }}
           className="rounded-full p-0 text-center shadow-sm"
-          onFocus={() => {
+          onFocus={(e) => {
             setIsFocused(true);
+
+            // focuses end of the input (better ux when navigating with arrow keys)
+            e.target.setSelectionRange(
+              e.target.value.length,
+              e.target.value.length
+            );
           }}
           onBlur={() => {
             setIsFocused(false);

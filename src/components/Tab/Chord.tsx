@@ -194,11 +194,17 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
                     : "hsl(327, 73%, 97%)",
                 }}
                 className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm"
-                onFocus={() => {
+                onFocus={(e) => {
                   setIsFocused((prev) => {
                     prev[index] = true;
                     return [...prev];
                   });
+
+                  // focuses end of the input (better ux when navigating with arrow keys)
+                  e.target.setSelectionRange(
+                    e.target.value.length,
+                    e.target.value.length
+                  );
                 }}
                 onBlur={() => {
                   setIsFocused((prev) => {
