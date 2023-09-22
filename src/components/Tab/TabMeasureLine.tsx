@@ -76,6 +76,61 @@ function TabMeasureLine({
     setTabData(newTabData);
   }
 
+  function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
+    e.stopPropagation();
+
+    // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
+    if (e.key === "ArrowLeft") {
+      e.preventDefault(); // prevent cursor from moving
+
+      const adjColumnIndex =
+        tabData[sectionIndex]!.data[subSectionIndex]!.data[
+          columnIndex - 1
+        ]?.[7] === "|"
+          ? columnIndex - 2
+          : columnIndex - 1;
+
+      const newNoteToFocus = document.getElementById(
+        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-7`
+      );
+
+      newNoteToFocus?.focus();
+      return;
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault(); // prevent cursor from moving
+
+      if (
+        columnIndex ===
+        tabData[sectionIndex]!.data[subSectionIndex]!.data.length - 1
+      ) {
+        const newNoteToFocus = document.getElementById(
+          `${sectionIndex}${subSectionIndex}ExtendTabButton`
+        );
+
+        newNoteToFocus?.focus();
+        return;
+      }
+
+      const adjColumnIndex =
+        tabData[sectionIndex]!.data[subSectionIndex].data[
+          columnIndex + 1
+        ]?.[7] === "|"
+          ? columnIndex + 2
+          : columnIndex + 1;
+
+      const newNoteToFocus = document.getElementById(
+        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-7`
+      );
+
+      newNoteToFocus?.focus();
+      return;
+    }
+
+    const newTabData = [...tabData];
+
+    setTabData(newTabData);
+  }
+
   function renderMeasureLine(index: number) {
     if (editing) {
       if (index === 1) {
@@ -189,7 +244,7 @@ function TabMeasureLine({
         } else if (index === 6) {
           height = "47px";
         } else {
-          height = "47px";
+          height = "47.5px";
         }
       }
     } else {
@@ -250,7 +305,7 @@ function TabMeasureLine({
                 {note === "-" && (
                   <div
                     style={{
-                      top: editing ? "-1.65rem" : "-1.15rem",
+                      top: editing ? "-1.6rem" : "-1.15rem",
                     }}
                     className="relative h-[1px] w-full bg-pink-50"
                   ></div>
@@ -269,7 +324,11 @@ function TabMeasureLine({
             !showingDeleteColumnsButtons && (
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button className="absolute bottom-7 z-50 h-5 w-5 rounded-full p-[0.125rem] text-pink-50">
+                  <Button
+                    id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`}
+                    className="absolute bottom-7 z-50 h-5 w-5 rounded-full p-[0.125rem] text-pink-50"
+                    onKeyDown={handleKeyDown}
+                  >
                     <BsMusicNote className="h-5 w-5" />
                   </Button>
                 </PopoverTrigger>
@@ -343,7 +402,7 @@ function TabMeasureLine({
         <Button
           variant={"destructive"}
           size="sm"
-          className="absolute bottom-[-2.7rem] left-1/2 right-1/2 z-50 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
+          className="absolute bottom-4 left-1/2 right-1/2 z-50 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
           onClick={handleDeleteMeasureLine}
         >
           <IoClose className="h-6 w-6" />
