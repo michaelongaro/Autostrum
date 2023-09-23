@@ -1,26 +1,30 @@
 import {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
   Fragment,
   memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
 } from "react";
-import { type TabWithLikes } from "~/server/api/routers/tab";
+import {
+  BsArrowDown,
+  BsArrowUp,
+  BsFillPlayFill,
+  BsMusicNote,
+} from "react-icons/bs";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
-import { parse, toString } from "~/utils/tunings";
-import { BsFillPlayFill, BsArrowUp, BsArrowDown } from "react-icons/bs";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { type TabWithLikes } from "~/server/api/routers/tab";
 import type {
-  StrummingPattern,
-  Section,
   ChordSection,
   ChordSequence,
+  Section,
+  StrummingPattern,
   TabSection,
 } from "~/stores/TabStore";
-import { BsMusicNote } from "react-icons/bs";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
+import { parse, toString } from "~/utils/tunings";
 
 // ---WARNING---: I really didn't want to have to do this approach, but this is the only way
 // I could avoid the horrendous performance/rerender issues that would happen when many

@@ -1,26 +1,22 @@
-import { useState, Fragment } from "react";
-import {
-  type TabSection as TabSectionType,
-  type ChordSection as ChordSectionType,
-  type StrummingPattern as StrummingPatternType,
-  useTabStore,
-} from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
-import { Separator } from "../ui/separator";
-import { Button } from "../ui/button";
-import { BsFillPlayFill, BsStopFill } from "react-icons/bs";
+import isEqual from "lodash.isequal";
+import { Fragment, useState } from "react";
 import { AiFillEdit } from "react-icons/ai";
 import { FaTrashAlt } from "react-icons/fa";
+import { shallow } from "zustand/shallow";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import StrummingPattern from "./StrummingPattern";
-import isEqual from "lodash.isequal";
 import useSound from "~/hooks/useSound";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import {
+  useTabStore,
+  type StrummingPattern as StrummingPatternType,
+} from "~/stores/TabStore";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
+import { Button } from "../ui/button";
+import StrummingPattern from "./StrummingPattern";
 
 function StrummingPatterns() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
@@ -37,12 +33,8 @@ function StrummingPatterns() {
     setStrummingPatterns,
     setStrummingPatternBeingEdited,
     editing,
-    bpm,
     tabData,
     setTabData,
-    sectionProgression,
-    setSectionProgression,
-    audioMetadata,
     previewMetadata,
   } = useTabStore(
     (state) => ({
@@ -51,12 +43,8 @@ function StrummingPatterns() {
       setStrummingPatterns: state.setStrummingPatterns,
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
       editing: state.editing,
-      bpm: state.bpm,
       tabData: state.tabData,
       setTabData: state.setTabData,
-      sectionProgression: state.sectionProgression,
-      setSectionProgression: state.setSectionProgression,
-      audioMetadata: state.audioMetadata,
       previewMetadata: state.previewMetadata,
     }),
     shallow

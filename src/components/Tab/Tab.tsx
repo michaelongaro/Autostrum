@@ -1,34 +1,30 @@
-import { useEffect } from "react";
 import type { Tab } from "@prisma/client";
-import { useClerk, useAuth } from "@clerk/nextjs";
-import TabMetadata from "./TabMetadata";
-import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
-import { v4 as uuid } from "uuid";
-import { AnimatePresence, LayoutGroup } from "framer-motion";
-import SectionProgression from "./SectionProgression";
-import SectionProgressionModal from "../modals/SectionProgressionModal";
-import EffectGlossaryModal from "../modals/EffectGlossaryModal";
-import { Button } from "../ui/button";
-import { FaItunesNote } from "react-icons/fa";
-import { FaBook } from "react-icons/fa";
-import { Separator } from "../ui/separator";
-import EffectGlossary from "../ui/EffectGlossary";
-import type { TabWithLikes } from "~/server/api/routers/tab";
 import type {
   QueryObserverResult,
   RefetchOptions,
   RefetchQueryFilters,
 } from "@tanstack/react-query";
+import { AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
+import { FaBook } from "react-icons/fa";
+import { v4 as uuid } from "uuid";
+import { shallow } from "zustand/shallow";
+import type { TabWithLikes } from "~/server/api/routers/tab";
+import { useTabStore } from "~/stores/TabStore";
+import EffectGlossaryModal from "../modals/EffectGlossaryModal";
+import SectionProgressionModal from "../modals/SectionProgressionModal";
+import { Button } from "../ui/button";
+import { Separator } from "../ui/separator";
+import SectionProgression from "./SectionProgression";
+import TabMetadata from "./TabMetadata";
 
-import Chords from "./Chords";
-import StrummingPatterns from "./StrummingPatterns";
+import { useLocalStorageValue } from "@react-hookz/web";
+import AudioRecorderModal from "../modals/AudioRecorderModal";
 import ChordModal from "../modals/ChordModal";
 import StrummingPatternModal from "../modals/StrummingPatternModal";
+import Chords from "./Chords";
 import SectionContainer from "./SectionContainer";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import AudioRecorderModal from "../modals/AudioRecorderModal";
-import { useLocalStorageValue } from "@react-hookz/web";
+import StrummingPatterns from "./StrummingPatterns";
 
 // not sure of best way to avoid having the same name for interface and component
 
@@ -43,10 +39,6 @@ interface ITab extends Partial<RefetchTab> {
 }
 
 function Tab({ tab, refetchTab }: ITab) {
-  const { user, loaded } = useClerk();
-  const { userId, isLoaded } = useAuth();
-
-  const isAboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
   const localStorageTabData = useLocalStorageValue("tabData");
 
   const {
@@ -64,14 +56,12 @@ function Tab({ tab, refetchTab }: ITab) {
     setMusicalKey,
     setHasRecordedAudio,
     setChords,
-    strummingPatterns,
     setStrummingPatterns,
     tabData,
     setTabData,
     setSectionProgression,
     setNumberOfLikes,
     editing,
-    setEditing,
     setOriginalTabData,
     showAudioRecorderModal,
     showSectionProgressionModal,
@@ -95,14 +85,12 @@ function Tab({ tab, refetchTab }: ITab) {
       setMusicalKey: state.setMusicalKey,
       setHasRecordedAudio: state.setHasRecordedAudio,
       setChords: state.setChords,
-      strummingPatterns: state.strummingPatterns,
       setStrummingPatterns: state.setStrummingPatterns,
       tabData: state.tabData,
       setTabData: state.setTabData,
       setSectionProgression: state.setSectionProgression,
       setNumberOfLikes: state.setNumberOfLikes,
       editing: state.editing,
-      setEditing: state.setEditing,
       setOriginalTabData: state.setOriginalTabData,
       showAudioRecorderModal: state.showAudioRecorderModal,
       showSectionProgressionModal: state.showSectionProgressionModal,

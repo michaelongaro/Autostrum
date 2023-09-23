@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
-import { useTabStore } from "../stores/TabStore";
 import {
   compileFullTab,
   compileSpecificChordGrouping,
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
+import { useTabStore } from "../stores/TabStore";
 
 function useAutoCompileChords() {
   const {

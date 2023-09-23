@@ -1,23 +1,30 @@
 import { useAuth } from "@clerk/nextjs";
 import { type Genre } from "@prisma/client";
+import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
+import { Check } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useMemo, useState, type ChangeEvent } from "react";
 import { AiFillEye, AiOutlineUser } from "react-icons/ai";
-import { BsArrowRightShort } from "react-icons/bs";
+import { BsArrowRightShort, BsPlus } from "react-icons/bs";
 import { FaMicrophoneAlt, FaTrashAlt } from "react-icons/fa";
 import { shallow } from "zustand/shallow";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import useSound from "~/hooks/useSound";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
-import { BsPlus } from "react-icons/bs";
+import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import { parse, toString } from "~/utils/tunings";
 import { CommandCombobox } from "../ui/CommandCombobox";
 import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
-import { Check } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -30,22 +37,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
-import { AnimatePresence, motion } from "framer-motion";
 import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
+import GenrePreviewBubbles from "./GenrePreviewBubbles";
 import type { RefetchTab } from "./Tab";
 import classes from "./TabMetadata.module.css";
-import GenrePreviewBubbles from "./GenrePreviewBubbles";
-import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
-import useSound from "~/hooks/useSound";
 
 function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
-  const { userId, isLoaded } = useAuth();
+  const { userId } = useAuth();
 
   const { push, asPath } = useRouter();
   const ctx = api.useContext();

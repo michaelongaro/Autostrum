@@ -1,5 +1,5 @@
-import { useEffect } from "react";
 import { useClerk } from "@clerk/nextjs";
+import { useEffect } from "react";
 import { api } from "~/utils/api";
 
 function useKeepArtistMetadataUpdatedWithClerk() {

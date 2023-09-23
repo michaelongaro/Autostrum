@@ -1,12 +1,12 @@
 import type {
-  SectionProgression,
-  Section,
-  TabSection,
+  Chord,
   ChordSection,
   ChordSequence,
-  StrummingPattern,
-  Chord,
   Metadata,
+  Section,
+  SectionProgression,
+  StrummingPattern,
+  TabSection,
 } from "../stores/TabStore";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
@@ -621,9 +621,9 @@ function generateDefaultSectionProgression(tabData: Section[]) {
 }
 
 export {
+  compileChord,
   compileFullTab,
   compileSpecificChordGrouping,
-  compileChord,
   compileStrummingPatternPreview,
   generateDefaultSectionProgression,
 };

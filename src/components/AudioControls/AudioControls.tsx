@@ -1,17 +1,28 @@
+import { useLocalStorageValue } from "@react-hookz/web";
+import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/router";
 import {
-  useState,
   useEffect,
-  useRef,
   useMemo,
+  useRef,
+  useState,
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ChordSection, useTabStore } from "~/stores/TabStore";
+import { FaVolumeDown, FaVolumeMute, FaVolumeUp } from "react-icons/fa";
+import { GoChevronDown, GoChevronUp } from "react-icons/go";
+import { IoSettingsOutline } from "react-icons/io5";
+import { RiArrowGoBackFill } from "react-icons/ri";
+import { TiArrowLoop } from "react-icons/ti";
 import { shallow } from "zustand/shallow";
+import { AudioProgressSlider } from "~/components/ui/AudioProgressSlider";
+import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
-import { Separator } from "~/components/ui/separator";
-import { Switch } from "~/components/ui/switch";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -21,31 +32,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
-import { api } from "~/utils/api";
-import { GoChevronUp, GoChevronDown } from "react-icons/go";
-import { AudioProgressSlider } from "~/components/ui/AudioProgressSlider";
-import { VerticalSlider } from "~/components/ui/verticalSlider";
+import { Separator } from "~/components/ui/separator";
 import { Slider } from "~/components/ui/slider";
-import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
+import { Switch } from "~/components/ui/switch";
+import { Toggle } from "~/components/ui/toggle";
+import { VerticalSlider } from "~/components/ui/verticalSlider";
+import useAutoscrollToCurrentChord from "~/hooks/useAutoscrollToCurrentChord";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useSound from "~/hooks/useSound";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { TiArrowLoop } from "react-icons/ti";
-import { IoSettingsOutline } from "react-icons/io5";
-import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
-import { Button } from "~/components/ui/button";
-import { Toggle } from "~/components/ui/toggle";
-import { FaVolumeMute, FaVolumeDown, FaVolumeUp } from "react-icons/fa";
-import { RiArrowGoBackFill } from "react-icons/ri";
-import useAutoscrollToCurrentChord from "~/hooks/useAutoscrollToCurrentChord";
-import { useLocalStorageValue } from "@react-hookz/web";
-import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import { useTabStore } from "~/stores/TabStore";
+import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
-import { useRouter } from "next/router";
 import PlayButtonIcon from "./PlayButtonIcon";
 
 const opacityAndScaleVariants = {
@@ -80,7 +78,7 @@ interface AudioControls {
 }
 
 function AudioControls({ visibility, setVisibility }: AudioControls) {
-  const router = useRouter();
+  const { query } = useRouter();
 
   const [tabProgressValue, setTabProgressValue] = useState(0);
   const [wasPlayingBeforeScrubbing, setWasPlayingBeforeScrubbing] =
@@ -324,12 +322,12 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   ]);
 
   const idOfAssociatedTab = useMemo(() => {
-    if (id === -1 && typeof router.query.id === "string") {
-      return parseInt(router.query.id, 10);
+    if (id === -1 && typeof query.id === "string") {
+      return parseInt(query.id, 10);
     } else {
       return id;
     }
-  }, [id, router.query.id]);
+  }, [id, query.id]);
 
   useEffect(() => {
     if (hasRecordedAudio) {
@@ -437,73 +435,6 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   ]);
   // but then idk how to handle the preview chord/strumming pattern ones, well yeah actually
   // just do previewAudioMetadata.playing, etc...
-
-  // const renderPlayButtonIcon = useMemo(() => {
-  //   if (audioMetadata.playing) {
-  //     return (
-  //       <motion.div
-  //         key={`${id}audioControlsPauseButton`}
-  //         variants={opacityAndScaleVariants}
-  //         initial="closed"
-  //         animate="expanded"
-  //         exit="closed"
-  //         transition={{ duration: 0.15 }}
-  //       >
-  //         <BsFillPauseFill className="h-5 w-5" />
-  //       </motion.div>
-  //     );
-  //   } else if (
-  //     (audioMetadata.type === "Generated" && !currentInstrument) ||
-  //     (audioMetadata.type === "Artist recording" &&
-  //       !recordedAudioBufferSourceNode)
-  //   ) {
-  //     return (
-  //       <motion.svg
-  //         key={`${id}audioControlsLoadingIcon`}
-  //         variants={opacityAndScaleVariants}
-  //         initial="closed"
-  //         animate="expanded"
-  //         exit="closed"
-  //         transition={{ duration: 0.15 }}
-  //         className="h-6 w-6 animate-spin rounded-full bg-inherit fill-none"
-  //         viewBox="0 0 24 24"
-  //       >
-  //         <circle
-  //           className="opacity-25"
-  //           cx="12"
-  //           cy="12"
-  //           r="10"
-  //           stroke="currentColor"
-  //           strokeWidth="4"
-  //         ></circle>
-  //         <path
-  //           className="opacity-75"
-  //           fill="currentColor"
-  //           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-  //         ></path>
-  //       </motion.svg>
-  //     );
-  //   }
-
-  //   return (
-  //     <motion.div
-  //       key={`${id}audioControlsPlayButton`}
-  //       variants={opacityAndScaleVariants}
-  //       initial="closed"
-  //       animate="expanded"
-  //       exit="closed"
-  //       transition={{ duration: 0.15 }}
-  //     >
-  //       <BsFillPlayFill className="h-5 w-5" />
-  //     </motion.div>
-  //   );
-  // }, [
-  //   id,
-  //   audioMetadata.playing,
-  //   audioMetadata.type,
-  //   currentInstrument,
-  //   recordedAudioBufferSourceNode,
-  // ]);
 
   const mainAudioControlsVariants = {
     expanded: {

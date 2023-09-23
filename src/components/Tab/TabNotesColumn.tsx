@@ -1,32 +1,22 @@
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { motion } from "framer-motion";
 import {
-  useState,
-  useEffect,
   Fragment,
+  useEffect,
   useMemo,
+  useState,
   type Dispatch,
   type SetStateAction,
 } from "react";
-import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
-import TabNote from "./TabNote";
-import PalmMuteNode from "./PalmMuteNode";
-import {
-  useTabStore,
-  type TabSection as TabSectionType,
-  type ChordSection as ChordSectionType,
-  type Section,
-} from "~/stores/TabStore";
-import { CSS } from "@dnd-kit/utilities";
-import { shallow } from "zustand/shallow";
-import { useSortable } from "@dnd-kit/sortable";
-import { motion } from "framer-motion";
-import { Button } from "../ui/button";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
-
-const initialStyles = {
-  x: 0,
-  y: 0,
-};
+import { shallow } from "zustand/shallow";
+import { useTabStore, type Section } from "~/stores/TabStore";
+import { Button } from "../ui/button";
+import PalmMuteNode from "./PalmMuteNode";
+import TabNote from "./TabNote";
+import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 
 interface TabNotesColumn {
   columnData: string[];

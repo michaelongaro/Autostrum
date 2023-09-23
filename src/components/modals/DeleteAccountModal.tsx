@@ -1,16 +1,16 @@
+import { useAuth } from "@clerk/nextjs";
 import FocusTrap from "focus-trap-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Check } from "lucide-react";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { AiOutlineWarning } from "react-icons/ai";
+import { FaTrashAlt } from "react-icons/fa";
 import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { useTabStore } from "~/stores/TabStore";
-import { FaTrashAlt } from "react-icons/fa";
 import { api } from "~/utils/api";
-import { useRouter } from "next/router";
-import { useAuth } from "@clerk/nextjs";
-import { Check } from "lucide-react";
 
 const backdropVariants = {
   expanded: {
@@ -42,10 +42,6 @@ function DeleteAccountModal() {
     }),
     shallow
   );
-
-  // HOWWWWWW has the search query stuff regressed... especially in production
-  // this is completely dumbfounding
-  // leyendo: Uc7z
 
   const { mutate: deleteAccount, isLoading: isDeleting } =
     api.artist.deleteArtist.useMutation({

@@ -1,52 +1,37 @@
+import { useAuth } from "@clerk/nextjs";
+import type { Genre } from "@prisma/client";
+import { motion } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/router";
 import {
   forwardRef,
-  useState,
   useMemo,
   useRef,
+  useState,
   type Dispatch,
   type SetStateAction,
 } from "react";
-import type { Genre, Tab } from "@prisma/client";
-import { AnimatePresence, motion } from "framer-motion";
-import { Separator } from "../ui/separator";
-import Image from "next/image";
-import { api } from "~/utils/api";
+import { AiOutlineUser } from "react-icons/ai";
+import { TbPinned, TbPinnedFilled } from "react-icons/tb";
+import { shallow } from "zustand/shallow";
+import useSound from "~/hooks/useSound";
+import type { TabWithLikes } from "~/server/api/routers/tab";
 import {
   useTabStore,
   type Chord,
   type Section,
   type SectionProgression,
 } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
-import { Skeleton } from "../ui/skeleton";
+import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
-import { Button } from "../ui/button";
-import Link from "next/link";
-import { useAuth } from "@clerk/nextjs";
-import { AiOutlineUser } from "react-icons/ai";
-import { formatNumber } from "~/utils/formatNumber";
-import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
-import { TbPinnedFilled, TbPinned } from "react-icons/tb";
-import { useRouter } from "next/router";
-import type { TabWithLikes } from "~/server/api/routers/tab";
-import { Badge } from "../ui/badge";
+import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 import type { RefetchTab } from "../Tab/Tab";
 import TabPreview from "../Tab/TabPreview";
-import useSound from "~/hooks/useSound";
 import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
-import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
-
-const opacityAndScaleVariants = {
-  expanded: {
-    opacity: 1,
-    scale: 1,
-  },
-  closed: {
-    opacity: 0,
-    scale: 0.5,
-  },
-};
-
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { Separator } from "../ui/separator";
 interface GridTabCard extends RefetchTab {
   tab: TabWithLikes;
   selectedPinnedTabId?: number;
@@ -74,7 +59,6 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
       playbackSpeed,
       audioMetadata,
       currentInstrument,
-      setId,
       setTabData,
       setSectionProgression,
       setHasRecordedAudio,
@@ -82,14 +66,12 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
       setBpm,
       setChords,
       setCapo,
-      recordedAudioBuffer, // pick only one or are both useful here?
-      recordedAudioBufferSourceNode, // pick only one or are both useful here?
+      recordedAudioBuffer,
     } = useTabStore(
       (state) => ({
         playbackSpeed: state.playbackSpeed,
         audioMetadata: state.audioMetadata,
         currentInstrument: state.currentInstrument,
-        setId: state.setId,
         setTabData: state.setTabData,
         setSectionProgression: state.setSectionProgression,
         setHasRecordedAudio: state.setHasRecordedAudio,
@@ -98,7 +80,6 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         setChords: state.setChords,
         setCapo: state.setCapo,
         recordedAudioBuffer: state.recordedAudioBuffer,
-        recordedAudioBufferSourceNode: state.recordedAudioBufferSourceNode,
       }),
       shallow
     );

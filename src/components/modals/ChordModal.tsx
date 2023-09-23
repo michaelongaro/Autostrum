@@ -1,17 +1,15 @@
-import { useEffect } from "react";
-import { Label } from "~/components/ui/label";
+import FocusTrap from "focus-trap-react";
 import { motion } from "framer-motion";
-import { HiOutlineInformationCircle } from "react-icons/hi";
+import isEqual from "lodash.isequal";
+import { useEffect } from "react";
+import { BsFillPlayFill, BsKeyboard } from "react-icons/bs";
 import { shallow } from "zustand/shallow";
+import { Label } from "~/components/ui/label";
+import useSound from "~/hooks/useSound";
 import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
-import { BsFillPlayFill } from "react-icons/bs";
-import { BsKeyboard } from "react-icons/bs";
 import Chord from "../Tab/Chord";
 import { Button } from "../ui/button";
-import isEqual from "lodash.isequal";
 import { Input } from "../ui/input";
-import FocusTrap from "focus-trap-react";
-import useSound from "~/hooks/useSound";
 
 const backdropVariants = {
   expanded: {

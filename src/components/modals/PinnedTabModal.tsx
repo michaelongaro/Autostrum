@@ -1,15 +1,13 @@
-import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
+import { useAuth } from "@clerk/nextjs";
+import FocusTrap from "focus-trap-react";
 import { motion } from "framer-motion";
-import { shallow } from "zustand/shallow";
-import { api } from "~/utils/api";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { TbPinned } from "react-icons/tb";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
-import { useAuth, useClerk } from "@clerk/nextjs";
-import { useTabStore } from "~/stores/TabStore";
+import { api } from "~/utils/api";
 import SearchInput from "../Search/SearchInput";
 import SearchResults from "../Search/SearchResults";
-import { TbPinned } from "react-icons/tb";
-import FocusTrap from "focus-trap-react";
 import { Button } from "../ui/button";
 
 const backdropVariants = {

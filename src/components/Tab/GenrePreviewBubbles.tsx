@@ -1,14 +1,13 @@
-import { useState, useEffect } from "react";
-import { Canvas, extend } from "@react-three/fiber";
-import { View } from "~/components/canvas/View";
+import { extend } from "@react-three/fiber";
 import {
   AmbientLight,
+  DirectionalLight,
+  MeshPhysicalMaterial,
+  MeshStandardMaterial,
   PointLight,
   SphereGeometry,
-  MeshStandardMaterial,
-  MeshPhysicalMaterial,
-  DirectionalLight,
 } from "three";
+import { View } from "~/components/canvas/View";
 extend({
   AmbientLight,
   PointLight,

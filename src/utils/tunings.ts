@@ -1,5 +1,5 @@
-import { get } from "@tonaljs/note";
 import { midiToNoteName } from "@tonaljs/midi";
+import { get } from "@tonaljs/note";
 
 export type Tuning = {
   name: string;

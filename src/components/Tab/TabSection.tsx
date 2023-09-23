@@ -1,51 +1,45 @@
-import { useState, useEffect, useMemo } from "react";
 import {
-  useTabStore,
-  type TabSection as TabSectionType,
-  type Section,
-} from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
-import TabColumn from "./TabColumn";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  rectIntersection,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { restrictToParentElement } from "@dnd-kit/modifiers";
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
 import { motion } from "framer-motion";
-import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
-import { IoClose } from "react-icons/io5";
+import { useEffect, useMemo, useState } from "react";
+import { BsKeyboard } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
 import { HiOutlineInformationCircle } from "react-icons/hi";
-import { BsKeyboard } from "react-icons/bs";
+import { IoClose } from "react-icons/io5";
+import { v4 as uuid } from "uuid";
+import { shallow } from "zustand/shallow";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
 import {
-  DndContext,
-  closestCenter,
-  closestCorners,
-  rectIntersection,
-  pointerWithin,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  rectSortingStrategy,
-} from "@dnd-kit/sortable";
-import { restrictToParentElement } from "@dnd-kit/modifiers";
+  useTabStore,
+  type TabSection as TabSectionType,
+} from "~/stores/TabStore";
 import { parse, toString } from "~/utils/tunings";
-import { v4 as uuid } from "uuid";
-import { Separator } from "~/components/ui/separator";
-import { Label } from "~/components/ui/label";
+import TabColumn from "./TabColumn";
 
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import MiscellaneousControls from "./MiscellaneousControls";
 import { traverseToRemoveHangingPairNode } from "~/utils/palmMuteHelpers";
+import MiscellaneousControls from "./MiscellaneousControls";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -91,7 +85,6 @@ function TabSection({
   const [reorderingColumns, setReorderingColumns] = useState(false);
   const [showingDeleteColumnsButtons, setShowingDeleteColumnsButtons] =
     useState(false);
-  const [activeId, setActiveId] = useState<string | null>(null);
 
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
 

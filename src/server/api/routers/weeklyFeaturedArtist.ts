@@ -1,5 +1,5 @@
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import type { Artist } from "@prisma/client";
+import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export interface ArtistMetadata extends Artist {
   numberOfLikes: number;

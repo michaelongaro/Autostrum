@@ -1,13 +1,13 @@
-import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
-import { api } from "~/utils/api";
-import { AnimatePresence, motion } from "framer-motion";
-import GridTabCard from "./GridTabCard";
-import { useInView } from "react-intersection-observer";
-import { useRouter } from "next/router";
 import { useAuth } from "@clerk/nextjs";
-import { useTabStore } from "~/stores/TabStore";
+import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/router";
+import { useInView } from "react-intersection-observer";
 import { shallow } from "zustand/shallow";
+import { useTabStore } from "~/stores/TabStore";
+import { api } from "~/utils/api";
+import GridTabCard from "./GridTabCard";
 import TabCardSkeleton from "./TabCardSkeleton";
 
 interface GridTabView {

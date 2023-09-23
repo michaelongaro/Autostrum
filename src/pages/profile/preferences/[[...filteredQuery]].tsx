@@ -1,32 +1,30 @@
-import { useState, useMemo } from "react";
+import { UserProfile, useClerk } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/router";
-import { Button } from "~/components/ui/button";
-import { api } from "~/utils/api";
-import { useClerk, UserProfile } from "@clerk/nextjs";
-import { Separator } from "~/components/ui/separator";
+import Link from "next/link";
+import { useState } from "react";
+import { FaTrashAlt } from "react-icons/fa";
+import { LuExternalLink } from "react-icons/lu";
 import { shallow } from "zustand/shallow";
-import { useTabStore } from "~/stores/TabStore";
+import TopProfileNavigationLayout from "~/components/Layouts/TopProfileNavigationLayout";
+import GridTabCard from "~/components/Search/GridTabCard";
+import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
+import DeleteAccountModal from "~/components/modals/DeleteAccountModal";
+import PinnedTabModal from "~/components/modals/PinnedTabModal";
+import { Button } from "~/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import Link from "next/link";
-import { LuExternalLink } from "react-icons/lu";
-import { FaTrashAlt } from "react-icons/fa";
-import formatDate from "~/utils/formatDate";
-import TopProfileNavigationLayout from "~/components/Layouts/TopProfileNavigationLayout";
+import { Separator } from "~/components/ui/separator";
 import { TabsContent } from "~/components/ui/tabs";
-import PinnedTabModal from "~/components/modals/PinnedTabModal";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import GridTabCard from "~/components/Search/GridTabCard";
-import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
-import DeleteAccountModal from "~/components/modals/DeleteAccountModal";
+import { useTabStore } from "~/stores/TabStore";
+import { api } from "~/utils/api";
+import formatDate from "~/utils/formatDate";
 
 function Preferences() {
   const { user } = useClerk();
-  const { push } = useRouter();
 
   // fair to have these here rather than store because (so far) we don't have to navigate around
   // "relative" classes on any parent elems in this component

@@ -1,20 +1,19 @@
-import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
-import { Button } from "../ui/button";
 import { AiFillEdit } from "react-icons/ai";
+import { FaTrashAlt } from "react-icons/fa";
+import { shallow } from "zustand/shallow";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { BsFillPlayFill } from "react-icons/bs";
-import { FaTrashAlt } from "react-icons/fa";
+import { useTabStore } from "~/stores/TabStore";
+import { Button } from "../ui/button";
 
 import { HiOutlineInformationCircle } from "react-icons/hi";
-import Chord from "./Chord";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import useSound from "~/hooks/useSound";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
+import Chord from "./Chord";
 
 function Chords() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
@@ -44,7 +43,7 @@ function Chords() {
     shallow
   );
 
-  const { playPreview, pauseAudio } = useSound();
+  const { playPreview } = useSound();
 
   function handleDeleteChord(index: number, chordNameToBeDeleted: string) {
     const newTabData = [...tabData];

@@ -1,14 +1,13 @@
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
+import { AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { api } from "~/utils/api";
+import { BsBarChartLine } from "react-icons/bs";
 import { GiMusicalScore } from "react-icons/gi";
 import { HiOutlineLightBulb } from "react-icons/hi";
-import { BsBarChartLine } from "react-icons/bs";
 import { Button } from "~/components/ui/button";
-import GridTabCard from "../Search/GridTabCard";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { AnimatePresence, motion } from "framer-motion";
-import { Separator } from "../ui/separator";
+import { api } from "~/utils/api";
+import GridTabCard from "../Search/GridTabCard";
 import TabCardSkeleton from "../Search/TabCardSkeleton";
 
 function Hero({

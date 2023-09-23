@@ -1,23 +1,16 @@
-import { useAuth } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/router";
-import { useState, forwardRef } from "react";
-import { AiFillHeart } from "react-icons/ai";
+import { forwardRef, useState } from "react";
+import { AiFillHeart, AiOutlineUser } from "react-icons/ai";
 import { GiMusicalScore } from "react-icons/gi";
 import { Button } from "~/components/ui/button";
 import { TableCell, TableRow } from "~/components/ui/table";
 import type { ArtistMetadata } from "~/server/api/routers/artist";
-import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
 import { formatNumber } from "~/utils/formatNumber";
-import { AiOutlineUser } from "react-icons/ai";
 
 const TableArtistRow = forwardRef<HTMLTableRowElement, ArtistMetadata>(
   (artist, ref) => {
-    const { userId, isLoaded } = useAuth();
-    const { push, asPath } = useRouter();
-
     const [profileImageLoaded, setProfileImageLoaded] = useState(false);
 
     return (

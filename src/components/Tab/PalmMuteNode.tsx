@@ -5,12 +5,12 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { Button } from "../ui/button";
 import { BsPlus } from "react-icons/bs";
-import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
-import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
+import { useTabStore } from "~/stores/TabStore";
 import { addOrRemovePalmMuteDashes } from "~/utils/palmMuteHelpers";
+import { Button } from "../ui/button";
+import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 
 interface PalmMuteNode {
   value: string;

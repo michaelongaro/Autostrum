@@ -1,20 +1,20 @@
-import { useState, useEffect, useRef, useMemo, memo } from "react";
-import { Canvas, useFrame, extend } from "@react-three/fiber";
-import { useRouter } from "next/router";
+import { Canvas, extend, useFrame } from "@react-three/fiber";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
-import type { GenreWithTotalTabNumbers } from "~/server/api/routers/genre";
-import { formatNumber } from "~/utils/formatNumber";
+import { useRouter } from "next/router";
+import { useMemo, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
-import { View } from "~/components/canvas/View";
 import type { Mesh } from "three";
 import {
   AmbientLight,
+  DirectionalLight,
+  MeshPhysicalMaterial,
+  MeshStandardMaterial,
   PointLight,
   SphereGeometry,
-  MeshStandardMaterial,
-  MeshPhysicalMaterial,
-  DirectionalLight,
 } from "three";
+import { View } from "~/components/canvas/View";
+import type { GenreWithTotalTabNumbers } from "~/server/api/routers/genre";
+import { formatNumber } from "~/utils/formatNumber";
 extend({
   AmbientLight,
   PointLight,

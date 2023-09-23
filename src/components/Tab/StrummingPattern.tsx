@@ -1,12 +1,13 @@
 import {
-  useState,
+  useCallback,
   useEffect,
   useMemo,
-  useCallback,
+  useState,
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { BsArrowDown, BsArrowUp } from "react-icons/bs";
+import { BsArrowDown, BsArrowUp, BsPlus } from "react-icons/bs";
+import { IoClose } from "react-icons/io5";
 import { shallow } from "zustand/shallow";
 import {
   Select,
@@ -20,16 +21,13 @@ import {
 import {
   useTabStore,
   type StrummingPattern as StrummingPatternType,
-  type Section,
 } from "~/stores/TabStore";
+import renderStrummingGuide from "~/utils/renderStrummingGuide";
 import StrummingPatternPalmMuteNode from "../Tab/StrummingPatternPalmMuteNode";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "../ui/button";
-import { IoClose } from "react-icons/io5";
-import { BsPlus } from "react-icons/bs";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import renderStrummingGuide from "~/utils/renderStrummingGuide";
 
 interface StrummingPattern {
   data: StrummingPatternType;
@@ -70,9 +68,6 @@ function StrummingPattern({
   const [isFocused, setIsFocused] = useState<boolean[]>(
     data?.strums?.map(() => false)
   );
-
-  // whenever adding more strums or deleting strums, immediately edit the isFocused array
-  // to either add new false values or delete the strum that was deleted!
 
   const {
     chords,

@@ -1,13 +1,12 @@
-import { useState, useEffect, useRef } from "react";
-import { isMobile } from "react-device-detect";
-import { Canvas, extend } from "@react-three/fiber";
+import { extend } from "@react-three/fiber";
+import { useRef } from "react";
 import {
   AmbientLight,
+  DirectionalLight,
+  MeshPhysicalMaterial,
+  MeshStandardMaterial,
   PointLight,
   SphereGeometry,
-  MeshStandardMaterial,
-  MeshPhysicalMaterial,
-  DirectionalLight,
 } from "three";
 extend({
   AmbientLight,

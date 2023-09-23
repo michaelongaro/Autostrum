@@ -1,10 +1,10 @@
-import type { AppProps, AppType } from "next/app";
 import { ClerkProvider } from "@clerk/nextjs";
+import type { AppProps } from "next/app";
 import Head from "next/head";
 import { api } from "~/utils/api";
 
-import "~/styles/globals.css";
 import GeneralLayout from "~/components/Layouts/GeneralLayout";
+import "~/styles/globals.css";
 
 // might in some way mess with t3 bootstrapping, be wary
 type ComponentWithPageLayout = AppProps & {

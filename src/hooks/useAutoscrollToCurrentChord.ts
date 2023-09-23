@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
+import { useTabStore } from "~/stores/TabStore";
 interface UseAutoscrollToCurrentChord {
   autoscrollEnabled: boolean;
 }

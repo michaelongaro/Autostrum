@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
-import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
-import { useInView } from "react-intersection-observer";
-import GridArtistCard from "./GridArtistCard";
-import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
+import { useEffect, useState } from "react";
 import { AiFillHeart } from "react-icons/ai";
 import { GiMusicalScore } from "react-icons/gi";
+import { useInView } from "react-intersection-observer";
+import { shallow } from "zustand/shallow";
+import { useTabStore } from "~/stores/TabStore";
+import { api } from "~/utils/api";
+import GridArtistCard from "./GridArtistCard";
 
 interface GridArtistView {
   searchQuery: string;

@@ -1,8 +1,8 @@
-import { useEffect } from "react";
 import { useClerk } from "@clerk/nextjs";
-import { api } from "~/utils/api";
-import { useRouter } from "next/router";
 import { useLocalStorageValue } from "@react-hookz/web";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+import { api } from "~/utils/api";
 
 function PostSignUpRegistration() {
   const { user } = useClerk();

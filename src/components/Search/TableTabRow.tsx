@@ -1,49 +1,33 @@
+import { useAuth } from "@clerk/nextjs";
+import type { Genre } from "@prisma/client";
+import Image from "next/image";
+import Link from "next/link";
 import {
-  useState,
-  useMemo,
   forwardRef,
+  useMemo,
+  useState,
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { useAuth } from "@clerk/nextjs";
-import Image from "next/image";
-import Link from "next/link";
+import { AiOutlineUser } from "react-icons/ai";
+import { TbPinned, TbPinnedFilled } from "react-icons/tb";
+import { shallow } from "zustand/shallow";
+import { Button } from "~/components/ui/button";
+import { TableCell, TableRow } from "~/components/ui/table";
+import useSound from "~/hooks/useSound";
+import type { TabWithLikes } from "~/server/api/routers/tab";
 import {
   useTabStore,
   type Chord,
   type Section,
   type SectionProgression,
 } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
-import { useRouter } from "next/router";
-import { AnimatePresence, motion } from "framer-motion";
-import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
-import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
-import { TbPinned, TbPinnedFilled } from "react-icons/tb";
-import { AiOutlineUser } from "react-icons/ai";
-import { Button } from "~/components/ui/button";
-import { TableCell, TableRow } from "~/components/ui/table";
-import type { TabWithLikes } from "~/server/api/routers/tab";
 import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
-import { formatNumber } from "~/utils/formatNumber";
-import type { Genre } from "@prisma/client";
-import type { RefetchTab } from "../Tab/Tab";
-import useSound from "~/hooks/useSound";
-import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
-import GenrePreviewBubbles from "../Tab/GenrePreviewBubbles";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
-
-const opacityAndScaleVariants = {
-  expanded: {
-    opacity: 1,
-    scale: 1,
-  },
-  closed: {
-    opacity: 0,
-    scale: 0.5,
-  },
-};
+import GenrePreviewBubbles from "../Tab/GenrePreviewBubbles";
+import type { RefetchTab } from "../Tab/Tab";
+import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
 
 interface TableTabRow extends RefetchTab {
   tab: TabWithLikes;
@@ -53,8 +37,7 @@ interface TableTabRow extends RefetchTab {
 
 const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
   ({ tab, refetchTab, selectedPinnedTabId, setSelectedPinnedTabId }, ref) => {
-    const { userId, isLoaded } = useAuth();
-    const { push, asPath } = useRouter();
+    const { userId } = useAuth();
 
     const [profileImageLoaded, setProfileImageLoaded] = useState(false);
     const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
@@ -64,7 +47,6 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
       playbackSpeed,
       audioMetadata,
       currentInstrument,
-      // setId,
       setHasRecordedAudio,
       setTabData,
       setSectionProgression,
@@ -72,14 +54,12 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
       setBpm,
       setChords,
       setCapo,
-      recordedAudioBuffer, // pick only one or are both useful here?
-      recordedAudioBufferSourceNode, // pick only one or are both useful here?
+      recordedAudioBuffer,
     } = useTabStore(
       (state) => ({
         playbackSpeed: state.playbackSpeed,
         audioMetadata: state.audioMetadata,
         currentInstrument: state.currentInstrument,
-        // setId: state.setId,
         setHasRecordedAudio: state.setHasRecordedAudio,
         setTabData: state.setTabData,
         setSectionProgression: state.setSectionProgression,
@@ -88,7 +68,6 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
         setChords: state.setChords,
         setCapo: state.setCapo,
         recordedAudioBuffer: state.recordedAudioBuffer,
-        recordedAudioBufferSourceNode: state.recordedAudioBufferSourceNode,
       }),
       shallow
     );

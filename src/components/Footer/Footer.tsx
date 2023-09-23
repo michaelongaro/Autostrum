@@ -1,5 +1,5 @@
-import { Button } from "~/components/ui/button";
 import { MdOutlineMailOutline } from "react-icons/md";
+import { Button } from "~/components/ui/button";
 
 function Footer() {
   return (

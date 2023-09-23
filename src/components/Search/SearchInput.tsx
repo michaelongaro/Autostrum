@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import debounce from "lodash.debounce";
 import { useRouter } from "next/router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { BiSearchAlt2 } from "react-icons/bi";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
 import { Badge } from "../ui/badge";
-import { BiSearchAlt2 } from "react-icons/bi";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useAuth } from "@clerk/nextjs";
 
 interface SearchInput {
   initialSearchQueryFromUrl?: string;

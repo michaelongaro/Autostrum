@@ -1,11 +1,7 @@
-import { useState, useEffect } from "react";
-import { ChordGroup, useTabStore } from "~/stores/TabStore";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { shallow } from "zustand/shallow";
-import TabMeasureLine from "./TabMeasureLine";
-import TabNotesColumn from "./TabNotesColumn";
-import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
-import { IoClose } from "react-icons/io5";
-import { arrayMove } from "@dnd-kit/sortable";
+import { Button } from "~/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -15,14 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { type LastModifiedPalmMuteNodeLocation } from "./TabSection";
-import { Button } from "~/components/ui/button";
-import StrummingPattern from "./StrummingPattern";
-import { Label } from "../ui/label";
-import { type ChordSequence as ChordSequenceData } from "~/stores/TabStore";
-import { motion } from "framer-motion";
+import {
+  useTabStore,
+  type ChordSequence as ChordSequenceData,
+} from "~/stores/TabStore";
+import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import MiscellaneousControls from "./MiscellaneousControls";
+import StrummingPattern from "./StrummingPattern";
 import StrummingPatternPreview from "./StrummingPatternPreview";
 
 const opacityAndScaleVariants = {
@@ -63,11 +60,16 @@ function ChordSequence({
     setIndexOfCurrentlySelectedStrummingPattern,
   ] = useState(0);
 
+  // this is hacky dummy state so that the <StrummingPattern /> can render the palm mute node
+  // as expected without actually having access to that state. Works fine for this case because
+  // we are only ever rendering the static palm mute data visually and never modifying it.
+  const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
+    useState<LastModifiedPalmMuteNodeLocation | null>(null);
+
   const {
     editing,
     bpm,
     strummingPatterns,
-    setStrummingPatterns,
     tabData,
     setTabData,
     setStrummingPatternBeingEdited,
@@ -76,7 +78,6 @@ function ChordSequence({
       editing: state.editing,
       bpm: state.bpm,
       strummingPatterns: state.strummingPatterns,
-      setStrummingPatterns: state.setStrummingPatterns,
       tabData: state.tabData,
       setTabData: state.setTabData,
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
@@ -306,6 +307,12 @@ function ChordSequence({
                               <StrummingPattern
                                 data={pattern}
                                 mode={"viewingInSelectDropdown"}
+                                lastModifiedPalmMuteNode={
+                                  lastModifiedPalmMuteNode
+                                }
+                                setLastModifiedPalmMuteNode={
+                                  setLastModifiedPalmMuteNode
+                                }
                               />
                             </SelectItem>
                           );

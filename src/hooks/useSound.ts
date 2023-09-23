@@ -1,23 +1,23 @@
 import { useEffect, useRef } from "react";
-import Soundfont from "soundfont-player";
-import { parse } from "~/utils/tunings";
-import { useTabStore } from "~/stores/TabStore";
+import type Soundfont from "soundfont-player";
 import { shallow } from "zustand/shallow";
-import type {
-  SectionProgression,
-  Section,
-  StrummingPattern,
-  Chord,
-} from "../stores/TabStore";
-import extractNumber from "~/utils/extractNumber";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import { useTabStore } from "~/stores/TabStore";
 import {
   compileFullTab,
   compileSpecificChordGrouping,
   compileStrummingPatternPreview,
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
+import extractNumber from "~/utils/extractNumber";
 import resetAudioSliderPosition from "~/utils/resetAudioSliderPosition";
-import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import { parse } from "~/utils/tunings";
+import type {
+  Chord,
+  Section,
+  SectionProgression,
+  StrummingPattern,
+} from "../stores/TabStore";
 
 export default function useSound() {
   const {
@@ -28,15 +28,11 @@ export default function useSound() {
     masterVolumeGainNode,
     setMasterVolumeGainNode,
     setCurrentlyPlayingMetadata,
-    currentInstrumentName,
     currentChordIndex,
     setCurrentChordIndex,
     audioMetadata,
     setAudioMetadata,
-    instruments,
-    setInstruments,
     currentInstrument,
-    setCurrentInstrument,
     breakOnNextPreviewChord,
     setBreakOnNextPreviewChord,
     previewMetadata,
@@ -53,15 +49,11 @@ export default function useSound() {
       masterVolumeGainNode: state.masterVolumeGainNode,
       setMasterVolumeGainNode: state.setMasterVolumeGainNode,
       setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
-      currentInstrumentName: state.currentInstrumentName,
       currentChordIndex: state.currentChordIndex,
       setCurrentChordIndex: state.setCurrentChordIndex,
       audioMetadata: state.audioMetadata,
       setAudioMetadata: state.setAudioMetadata,
-      instruments: state.instruments,
-      setInstruments: state.setInstruments,
       currentInstrument: state.currentInstrument,
-      setCurrentInstrument: state.setCurrentInstrument,
       breakOnNextPreviewChord: state.breakOnNextPreviewChord,
       setBreakOnNextPreviewChord: state.setBreakOnNextPreviewChord,
       previewMetadata: state.previewMetadata,

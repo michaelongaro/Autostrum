@@ -1,21 +1,21 @@
-import { useState, useEffect } from "react";
-import { Squash as Hamburger } from "hamburger-react";
 import {
-  SignUpButton,
   SignInButton,
+  SignUpButton,
+  UserButton,
   useAuth,
   useUser,
-  UserButton,
 } from "@clerk/nextjs";
+import { useLocalStorageValue } from "@react-hookz/web";
+import { Squash as Hamburger } from "hamburger-react";
+import Image from "next/image";
 import Link from "next/link";
-import { Button } from "../ui/button";
 import { useRouter } from "next/router";
-import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
+import { useEffect, useState } from "react";
 import { FaGuitar } from "react-icons/fa";
 import { IoTelescopeOutline } from "react-icons/io5";
-import Image from "next/image";
-import { useLocalStorageValue } from "@react-hookz/web";
+import { shallow } from "zustand/shallow";
+import { useTabStore } from "~/stores/TabStore";
+import { Button } from "../ui/button";
 
 function MobileHeader() {
   const [isOpen, setOpen] = useState(false);

@@ -1,7 +1,7 @@
 "use client";
 
-import { forwardRef, useImperativeHandle, useRef } from "react";
 import { View as ViewImpl } from "@react-three/drei";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import { Three } from "~/helpers/components/Three";
 
 const View = forwardRef(({ children, ...props }, ref) => {

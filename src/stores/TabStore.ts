@@ -1,8 +1,7 @@
+import type { Tab } from "@prisma/client";
 import type Soundfont from "soundfont-player";
-import { v4 as uuid } from "uuid";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import type { Tab } from "@prisma/client";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context

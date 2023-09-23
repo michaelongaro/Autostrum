@@ -20,18 +20,18 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FaTrashAlt } from "react-icons/fa";
 import { BsPlus } from "react-icons/bs";
+import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuid } from "uuid";
 import { shallow } from "zustand/shallow";
 import { useTabStore, type SectionProgression } from "~/stores/TabStore";
 import { Button } from "../ui/button";
 
 import { useSortable } from "@dnd-kit/sortable";
+import FocusTrap from "focus-trap-react";
 import isEqual from "lodash.isequal";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { Input } from "../ui/input";
-import FocusTrap from "focus-trap-react";
 import {
   Select,
   SelectContent,
@@ -70,14 +70,12 @@ function SectionProgressionModal() {
   const scrollableSectionsRef = useRef<HTMLDivElement>(null);
 
   const {
-    editing,
     tabData,
     sectionProgression,
     setSectionProgression,
     setShowSectionProgressionModal,
   } = useTabStore(
     (state) => ({
-      editing: state.editing,
       tabData: state.tabData,
       sectionProgression: state.sectionProgression,
       setSectionProgression: state.setSectionProgression,

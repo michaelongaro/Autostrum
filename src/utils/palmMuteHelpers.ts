@@ -222,7 +222,7 @@ function traverseToRemoveHangingStrummingPatternPairNode({
 
 export {
   addOrRemovePalmMuteDashes,
-  traverseToRemoveHangingPairNode,
   addOrRemoveStrummingPatternPalmMuteDashes,
+  traverseToRemoveHangingPairNode,
   traverseToRemoveHangingStrummingPatternPairNode,
 };

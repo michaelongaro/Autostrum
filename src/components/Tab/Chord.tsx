@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { type Chord as ChordType, useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
+import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import { parse, toString } from "~/utils/tunings";
 import { Input } from "../ui/input";
 

@@ -2,8 +2,8 @@ import { motion } from "framer-motion";
 import { BiErrorCircle } from "react-icons/bi";
 import SearchInput from "~/components/Search/SearchInput";
 import SearchResults from "~/components/Search/SearchResults";
-import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
 
 function FilteredQueryExplore() {
   const {

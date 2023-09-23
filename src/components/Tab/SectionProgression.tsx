@@ -1,28 +1,21 @@
-import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
-import { Button } from "../ui/button";
 import { BsArrowRightShort } from "react-icons/bs";
+import { shallow } from "zustand/shallow";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { useTabStore } from "~/stores/TabStore";
+import { Button } from "../ui/button";
 
 function SectionProgression() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
-  const {
-    editing,
-    tabData,
-    sectionProgression,
-    setSectionProgression,
-    setShowSectionProgressionModal,
-  } = useTabStore(
-    (state) => ({
-      editing: state.editing,
-      tabData: state.tabData,
-      sectionProgression: state.sectionProgression,
-      setSectionProgression: state.setSectionProgression,
-      setShowSectionProgressionModal: state.setShowSectionProgressionModal,
-    }),
-    shallow
-  );
+  const { editing, sectionProgression, setShowSectionProgressionModal } =
+    useTabStore(
+      (state) => ({
+        editing: state.editing,
+        sectionProgression: state.sectionProgression,
+        setShowSectionProgressionModal: state.setShowSectionProgressionModal,
+      }),
+      shallow
+    );
 
   return (
     <div

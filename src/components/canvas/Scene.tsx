@@ -1,7 +1,7 @@
 "use client";
 
-import { Canvas } from "@react-three/fiber";
 import { Preload } from "@react-three/drei";
+import { Canvas } from "@react-three/fiber";
 import { r3f } from "~/helpers/global";
 
 export default function Scene({ ...props }) {

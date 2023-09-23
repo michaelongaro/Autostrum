@@ -1,7 +1,7 @@
-import { useState, memo } from "react";
-import { Input } from "../ui/input";
-import { useTabStore } from "~/stores/TabStore";
+import { memo, useState } from "react";
 import { shallow } from "zustand/shallow";
+import { useTabStore } from "~/stores/TabStore";
+import { Input } from "../ui/input";
 
 interface TabNote {
   note: string;

@@ -1,6 +1,6 @@
-import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { BsFillPlayFill, BsFillPauseFill, BsStopFill } from "react-icons/bs";
+import { useMemo } from "react";
+import { BsFillPauseFill, BsFillPlayFill, BsStopFill } from "react-icons/bs";
 import type Soundfont from "soundfont-player";
 import type { AudioMetadata, PreviewMetadata } from "~/stores/TabStore";
 

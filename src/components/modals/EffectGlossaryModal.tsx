@@ -1,7 +1,4 @@
-import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
 import { motion } from "framer-motion";
-
 import EffectGlossary from "../ui/EffectGlossary";
 
 const backdropVariants = {
@@ -14,13 +11,6 @@ const backdropVariants = {
 };
 
 function EffectGlossaryModal() {
-  const { setShowEffectGlossaryModal } = useTabStore(
-    (state) => ({
-      setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
-    }),
-    shallow
-  );
-
   return (
     <motion.div
       key={"EffectGlossaryModalBackdrop"}

@@ -1,31 +1,31 @@
-import { useState, useMemo } from "react";
-import { useRouter } from "next/router";
 import { motion } from "framer-motion";
+import Image from "next/image";
+import { useRouter } from "next/router";
+import { useMemo, useState } from "react";
+import { AiFillHeart, AiOutlineUser } from "react-icons/ai";
 import { BiErrorCircle } from "react-icons/bi";
+import { GiMusicalScore } from "react-icons/gi";
+import { TbPinned } from "react-icons/tb";
+import PinnedTabPlaceholder from "~/components/Profile/PinnedTabPlaceholder";
+import GridTabCard from "~/components/Search/GridTabCard";
 import SearchInput from "~/components/Search/SearchInput";
 import SearchResults from "~/components/Search/SearchResults";
-import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
-import { api } from "~/utils/api";
-import Image from "next/image";
+import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { formatNumber } from "~/utils/formatNumber";
-import { GiMusicalScore } from "react-icons/gi";
-import { AiFillHeart, AiOutlineUser } from "react-icons/ai";
-import { TbPinned } from "react-icons/tb";
-import formatDate from "~/utils/formatDate";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
-import GridTabCard from "~/components/Search/GridTabCard";
-import PinnedTabPlaceholder from "~/components/Profile/PinnedTabPlaceholder";
-import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
+import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { api } from "~/utils/api";
+import formatDate from "~/utils/formatDate";
+import { formatNumber } from "~/utils/formatNumber";
 
 function ArtistProfile() {
-  const router = useRouter();
+  const { query } = useRouter();
   const {
     serve404Page,
     genreId,
@@ -41,11 +41,11 @@ function ArtistProfile() {
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const usernameFromUrl = useMemo(() => {
-    if (typeof router.query.username === "string") {
-      return router.query.username;
+    if (typeof query.username === "string") {
+      return query.username;
     }
     return "";
-  }, [router.query.username]);
+  }, [query.username]);
 
   const { data: artist, isLoading: loadingCurrentArtist } =
     api.artist.getByIdOrUsername.useQuery(

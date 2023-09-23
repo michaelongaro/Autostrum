@@ -1,20 +1,20 @@
-import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { AiFillHeart } from "react-icons/ai";
+import { GiMusicalScore } from "react-icons/gi";
+import { useInView } from "react-intersection-observer";
+import { shallow } from "zustand/shallow";
 import {
   Table,
   TableBody,
+  TableCell,
   TableHead,
   TableHeader,
   TableRow,
-  TableCell,
 } from "~/components/ui/table";
-import { api } from "~/utils/api";
-import { useInView } from "react-intersection-observer";
-import TableArtistRow from "./TableArtistRow";
 import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
-import { AiFillHeart } from "react-icons/ai";
-import { GiMusicalScore } from "react-icons/gi";
+import { api } from "~/utils/api";
+import TableArtistRow from "./TableArtistRow";
 
 interface TableArtistView {
   searchQuery: string;

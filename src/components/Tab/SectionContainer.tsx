@@ -1,28 +1,26 @@
-import { Fragment, useState, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import isEqual from "lodash.isequal";
+import { useState } from "react";
+import { BsMusicNote } from "react-icons/bs";
+import { v4 as uuid } from "uuid";
 import { shallow } from "zustand/shallow";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import useSound from "~/hooks/useSound";
 import {
   useTabStore,
-  type Section,
   type ChordSection as ChordSectionType,
+  type Section,
   type StrummingPattern,
   type TabSection as TabSectionType,
 } from "~/stores/TabStore";
-import TabSection from "./TabSection";
-import { Input } from "~/components/ui/input";
-import { Button } from "~/components/ui/button";
-import { v4 as uuid } from "uuid";
-import ChordSection from "./ChordSection";
-import { Separator } from "../ui/separator";
-import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
-import MiscellaneousControls from "./MiscellaneousControls";
-import { Label } from "~/components/ui/label";
-import useSound from "~/hooks/useSound";
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
-import isEqual from "lodash.isequal";
-import { BsMusicNote } from "react-icons/bs";
 import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
-
+import { Separator } from "../ui/separator";
+import ChordSection from "./ChordSection";
+import MiscellaneousControls from "./MiscellaneousControls";
+import TabSection from "./TabSection";
 const opacityAndScaleVariants = {
   expanded: {
     opacity: 1,
@@ -63,8 +61,6 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
     setSectionProgression,
     tuning,
     capo,
-    setChords,
-    setChordBeingEdited,
     audioMetadata,
     setAudioMetadata,
     currentInstrument,
@@ -83,8 +79,6 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       setSectionProgression: state.setSectionProgression,
       tuning: state.tuning,
       capo: state.capo,
-      setChords: state.setChords,
-      setChordBeingEdited: state.setChordBeingEdited,
       audioMetadata: state.audioMetadata,
       setAudioMetadata: state.setAudioMetadata,
       currentInstrument: state.currentInstrument,

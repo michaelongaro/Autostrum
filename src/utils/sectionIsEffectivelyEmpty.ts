@@ -1,4 +1,4 @@
-import type { Section, ChordSection } from "~/stores/TabStore";
+import type { ChordSection, Section } from "~/stores/TabStore";
 
 // if the whole section is empty (no tab/chord subsections), or the
 // section is filled with *only* chord subsections that are empty (no strumming

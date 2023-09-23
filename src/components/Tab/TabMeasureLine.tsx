@@ -1,20 +1,20 @@
-import { useState, Fragment } from "react";
-import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
-import { motion } from "framer-motion";
-import { type TabColumn } from "./TabColumn";
 import { useSortable } from "@dnd-kit/sortable";
-import { RxDragHandleDots2 } from "react-icons/rx";
-import { IoClose } from "react-icons/io5";
-import { Button } from "../ui/button";
 import { CSS } from "@dnd-kit/utilities";
+import { motion } from "framer-motion";
+import { Fragment, useState } from "react";
 import { BsMusicNote } from "react-icons/bs";
+import { IoClose } from "react-icons/io5";
+import { RxDragHandleDots2 } from "react-icons/rx";
+import { shallow } from "zustand/shallow";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import { useTabStore } from "~/stores/TabStore";
+import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { type TabColumn } from "./TabColumn";
 
 function TabMeasureLine({
   columnData,

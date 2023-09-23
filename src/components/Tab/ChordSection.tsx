@@ -1,37 +1,20 @@
-import { useState, useEffect, useMemo } from "react";
-import {
-  type ChordSection as ChordSectionType,
-  useTabStore,
-  Strum,
-} from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
-import TabMeasureLine from "./TabMeasureLine";
-import TabNotesColumn from "./TabNotesColumn";
-import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
-import { IoClose } from "react-icons/io5";
-import { arrayMove } from "@dnd-kit/sortable";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import { type LastModifiedPalmMuteNodeLocation } from "./TabSection";
-import { Button } from "~/components/ui/button";
-import { v4 as uuid } from "uuid";
-import StrummingPattern from "./StrummingPattern";
-import { Label } from "~/components/ui/label";
-import { Input } from "~/components/ui/input";
-import { Separator } from "~/components/ui/separator";
 import { AnimatePresence, motion } from "framer-motion";
-import StrummingSection from "./ChordSequence";
+import { useMemo } from "react";
 import { BsMusicNote } from "react-icons/bs";
-import ChordSequence from "./ChordSequence";
+import { v4 as uuid } from "uuid";
+import { shallow } from "zustand/shallow";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Separator } from "~/components/ui/separator";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import {
+  useTabStore,
+  type ChordSection as ChordSectionType,
+} from "~/stores/TabStore";
+import ChordSequence from "./ChordSequence";
 import MiscellaneousControls from "./MiscellaneousControls";
+import type StrummingPattern from "./StrummingPattern";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -67,9 +50,6 @@ function ChordSection({
   const {
     editing,
     bpm,
-    strummingPatterns,
-    setStrummingPatterns,
-    setStrummingPatternBeingEdited,
     tabData,
     setTabData,
     audioMetadata,
@@ -79,9 +59,6 @@ function ChordSection({
     (state) => ({
       editing: state.editing,
       bpm: state.bpm,
-      strummingPatterns: state.strummingPatterns,
-      setStrummingPatterns: state.setStrummingPatterns,
-      setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
       tabData: state.tabData,
       setTabData: state.setTabData,
       audioMetadata: state.audioMetadata,

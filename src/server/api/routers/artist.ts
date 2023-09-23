@@ -1,12 +1,12 @@
-import { z } from "zod";
 import { clerkClient } from "@clerk/nextjs/server";
+import { z } from "zod";
 
+import type { Artist } from "@prisma/client";
 import {
   createTRPCRouter,
-  publicProcedure,
   protectedProcedure,
+  publicProcedure,
 } from "~/server/api/trpc";
-import type { Artist } from "@prisma/client";
 import buildArtistOrderBy from "~/utils/buildArtistOrderBy";
 
 export interface ArtistMetadata extends Artist {

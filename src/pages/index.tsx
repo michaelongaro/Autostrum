@@ -1,7 +1,7 @@
-import Hero from "~/components/HomePage/Hero";
+import { buildClerkProps, getAuth } from "@clerk/nextjs/server";
 import { motion } from "framer-motion";
-import { getAuth, buildClerkProps } from "@clerk/nextjs/server";
 import type { GetServerSideProps } from "next";
+import Hero from "~/components/HomePage/Hero";
 
 const Home = ({
   showSignUpAndSignInButtons,

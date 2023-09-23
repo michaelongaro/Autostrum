@@ -1,37 +1,10 @@
-import { useState, useMemo, type ChangeEvent } from "react";
-import { useAuth, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/router";
-import { api } from "~/utils/api";
-import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
-import { Label } from "~/components/ui/label";
-import { Input } from "~/components/ui/input";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectGroup,
-  SelectLabel,
-  SelectItem,
-} from "~/components/ui/select";
-import { CommandCombobox } from "~/components/ui/CommandCombobox";
-import { Textarea } from "~/components/ui/textarea";
+import { AiOutlineHeart } from "react-icons/ai";
 import { Button } from "~/components/ui/button";
+import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
-import isEqual from "lodash.isequal";
-import { type Genre } from "@prisma/client";
-import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
-import { BsArrowRightShort } from "react-icons/bs";
-import { FaMicrophoneAlt } from "react-icons/fa";
-import { parse, toString } from "~/utils/tunings";
-import formatDate from "~/utils/formatDate";
-import Image from "next/image";
-import Link from "next/link";
 
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { formatNumber } from "~/utils/formatNumber";
-import type { RefetchTab } from "./Tab";
 import classes from "./TabMetadata.module.css";
 
 interface TabSkeleton {
@@ -39,12 +12,8 @@ interface TabSkeleton {
 }
 
 function TabSkeleton({ editing }: TabSkeleton) {
-  const { userId, isLoaded } = useAuth();
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
-
-  const { push, asPath } = useRouter();
-
-  const [profileImageLoaded, setProfileImageLoaded] = useState(false);
+  const { asPath } = useRouter();
 
   return (
     <div className="baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-md md:my-24 xl:w-8/12">

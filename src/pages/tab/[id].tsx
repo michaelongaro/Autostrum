@@ -1,15 +1,15 @@
-import { useEffect, useMemo } from "react";
+import { buildClerkProps } from "@clerk/nextjs/server";
+import { PrismaClient } from "@prisma/client";
+import { motion } from "framer-motion";
+import type { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
-import { api } from "~/utils/api";
-import { useTabStore } from "~/stores/TabStore";
+import { useEffect, useMemo } from "react";
+import { BiErrorCircle } from "react-icons/bi";
 import { shallow } from "zustand/shallow";
 import Tab from "~/components/Tab/Tab";
-import { motion } from "framer-motion";
 import TabSkeleton from "~/components/Tab/TabSkeleton";
-import { BiErrorCircle } from "react-icons/bi";
-import { buildClerkProps } from "@clerk/nextjs/server";
-import type { GetServerSideProps } from "next";
-import { PrismaClient } from "@prisma/client";
+import { useTabStore } from "~/stores/TabStore";
+import { api } from "~/utils/api";
 
 // not sure if this is correct file routing for slug
 
@@ -17,9 +17,8 @@ import { PrismaClient } from "@prisma/client";
 function IndividualTabView({ tabExists }: { tabExists: boolean }) {
   const router = useRouter();
 
-  const { editing, setEditing } = useTabStore(
+  const { setEditing } = useTabStore(
     (state) => ({
-      editing: state.editing,
       setEditing: state.setEditing,
     }),
     shallow

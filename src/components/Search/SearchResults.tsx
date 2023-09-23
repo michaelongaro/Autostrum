@@ -1,10 +1,16 @@
-import { useMemo, type Dispatch, type SetStateAction } from "react";
-import { useRouter } from "next/router";
-import { api } from "~/utils/api";
-import { Label } from "../ui/label";
-import { Button } from "../ui/button";
-import { AnimatePresence, motion } from "framer-motion";
 import { useLocalStorageValue } from "@react-hookz/web";
+import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/router";
+import { useMemo, type Dispatch, type SetStateAction } from "react";
+import { BsArrowDownShort, BsGridFill } from "react-icons/bs";
+import { CiViewTable } from "react-icons/ci";
+import { LuFilter } from "react-icons/lu";
+import { shallow } from "zustand/shallow";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -14,23 +20,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
-import { Switch } from "~/components/ui/switch";
 import { Separator } from "~/components/ui/separator";
-import { BsArrowDownShort, BsGridFill } from "react-icons/bs";
-import { CiViewTable } from "react-icons/ci";
-import GridTabView from "./GridTabView";
-import GridArtistView from "./GridArtistView";
-import TableTabView from "./TableTabView";
-import TableArtistView from "./TableArtistView";
+import { Switch } from "~/components/ui/switch";
 import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
+import { api } from "~/utils/api";
 import { Badge } from "../ui/badge";
-import { LuFilter } from "react-icons/lu";
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
+import GridArtistView from "./GridArtistView";
+import GridTabView from "./GridTabView";
+import TableArtistView from "./TableArtistView";
+import TableTabView from "./TableTabView";
 
 interface SearchResults {
   genreId: number;

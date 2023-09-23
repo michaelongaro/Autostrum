@@ -1,11 +1,9 @@
-import { useState, useEffect, type ReactNode } from "react";
 import { AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
+import { useRef, type ReactNode } from "react";
 import Bubbles from "../Bubbles";
 import Footer from "../Footer/Footer";
 import GeneralLayoutStatefulShell from "./GeneralLayoutStatefulShell";
-import { useRef } from "react";
-import { isMobile } from "react-device-detect";
-import dynamic from "next/dynamic";
 const Scene = dynamic(() => import("~/components/canvas/Scene"), {
   ssr: false,
 });

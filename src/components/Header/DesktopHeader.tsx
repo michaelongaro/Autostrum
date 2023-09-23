@@ -5,17 +5,16 @@ import {
   useAuth,
   useUser,
 } from "@clerk/nextjs";
+import { useLocalStorageValue } from "@react-hookz/web";
+import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { FaGuitar } from "react-icons/fa";
 import { IoTelescopeOutline } from "react-icons/io5";
-import { Button } from "../ui/button";
-import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
+import { useTabStore } from "~/stores/TabStore";
+import { Button } from "../ui/button";
 import classes from "./DesktopHeader.module.css";
-import { useRouter } from "next/router";
-import { api } from "~/utils/api";
-import Image from "next/image";
-import { useLocalStorageValue } from "@react-hookz/web";
 
 function DesktopHeader() {
   const { userId, isSignedIn } = useAuth();

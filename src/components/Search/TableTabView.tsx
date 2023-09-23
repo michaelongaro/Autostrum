@@ -1,25 +1,21 @@
-import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
-import { api } from "~/utils/api";
+import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/router";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { TbPinned } from "react-icons/tb";
+import { useInView } from "react-intersection-observer";
+import { shallow } from "zustand/shallow";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { HiPlayPause } from "react-icons/hi2";
-import { Button } from "~/components/ui/button";
-import Link from "next/link";
-import { TbPinned } from "react-icons/tb";
-import { useInView } from "react-intersection-observer";
-import TableTabRow from "./TableTabRow";
-import { useAuth } from "@clerk/nextjs";
-import { useRouter } from "next/router";
 import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
+import { api } from "~/utils/api";
+import TableTabRow from "./TableTabRow";
 
 interface TableTabView {
   genreId: number;

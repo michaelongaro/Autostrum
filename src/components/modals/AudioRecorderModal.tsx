@@ -1,19 +1,19 @@
-import { useEffect, useState, useRef } from "react";
+import FocusTrap from "focus-trap-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import { useAudioRecorder } from "react-audio-voice-recorder";
 import { BsStopFill } from "react-icons/bs";
 import { FaMicrophoneAlt, FaTrashAlt } from "react-icons/fa";
-import { shallow } from "zustand/shallow";
-import { useTabStore } from "~/stores/TabStore";
 import { HiOutlineInformationCircle } from "react-icons/hi";
-import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
-import { Button } from "../ui/button";
+import { shallow } from "zustand/shallow";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import FocusTrap from "focus-trap-react";
+import { useTabStore } from "~/stores/TabStore";
+import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
+import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 
 const backdropVariants = {

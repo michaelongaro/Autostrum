@@ -1,15 +1,15 @@
-import { useMemo } from "react";
-import { useRouter } from "next/router";
-import { api } from "~/utils/api";
-import Tab from "~/components/Tab/Tab";
-import { motion } from "framer-motion";
-import TabSkeleton from "~/components/Tab/TabSkeleton";
-import { BsArrowRightShort } from "react-icons/bs";
-import { BiErrorCircle } from "react-icons/bi";
-import { getAuth, buildClerkProps } from "@clerk/nextjs/server";
-import type { GetServerSideProps } from "next";
+import { buildClerkProps, getAuth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
+import { motion } from "framer-motion";
+import type { GetServerSideProps } from "next";
+import { useRouter } from "next/router";
+import { useMemo } from "react";
+import { BiErrorCircle } from "react-icons/bi";
+import { BsArrowRightShort } from "react-icons/bs";
+import Tab from "~/components/Tab/Tab";
+import TabSkeleton from "~/components/Tab/TabSkeleton";
 import { Button } from "~/components/ui/button";
+import { api } from "~/utils/api";
 
 // not sure if this is correct file routing for slug
 

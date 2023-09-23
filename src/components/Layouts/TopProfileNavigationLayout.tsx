@@ -1,15 +1,12 @@
-import { useMemo, type ReactNode } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { AnimatePresence } from "framer-motion";
-import { useRouter } from "next/router";
-import { IoSettingsOutline } from "react-icons/io5";
-import { FaGuitar } from "react-icons/fa";
-import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
-import Link from "next/link";
-import { api } from "~/utils/api";
-import { motion } from "framer-motion";
-import { BiErrorCircle } from "react-icons/bi";
 import { useAuth } from "@clerk/nextjs";
+import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/router";
+import { useMemo, type ReactNode } from "react";
+import { AiOutlineHeart } from "react-icons/ai";
+import { BiErrorCircle } from "react-icons/bi";
+import { FaGuitar } from "react-icons/fa";
+import { IoSettingsOutline } from "react-icons/io5";
+import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
 interface Layout {
   children: ReactNode;
@@ -17,14 +14,7 @@ interface Layout {
 
 function TopProfileNavigationLayout({ children }: Layout) {
   const { userId } = useAuth();
-  const { asPath, push, query } = useRouter();
-
-  const usernameFromUrl = useMemo(() => {
-    if (typeof query.username === "string") {
-      return query.username;
-    }
-    return "";
-  }, [query.username]);
+  const { asPath, push } = useRouter();
 
   const finalQueryOfUrl = useMemo(() => {
     if (asPath.includes("/tabs")) return "tabs";

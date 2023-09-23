@@ -1,16 +1,12 @@
-import { useState, useEffect } from "react";
-import {
-  useTabStore,
-  type StrummingPattern as StrummingPatternType,
-} from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
+import FocusTrap from "focus-trap-react";
 import { motion } from "framer-motion";
-import { parse, toString } from "~/utils/tunings";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { BsFillPlayFill, BsStopFill } from "react-icons/bs";
+import isEqual from "lodash.isequal";
+import { useEffect, useState } from "react";
+import { BsFillPlayFill, BsKeyboard, BsStopFill } from "react-icons/bs";
+import { FaTrashAlt } from "react-icons/fa";
+import { IoClose } from "react-icons/io5";
+import { shallow } from "zustand/shallow";
 import { Label } from "~/components/ui/label";
-import { BsKeyboard } from "react-icons/bs";
 import {
   Select,
   SelectContent,
@@ -20,17 +16,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
-import { IoClose } from "react-icons/io5";
-import { FaTrashAlt } from "react-icons/fa";
-import { HiOutlineInformationCircle } from "react-icons/hi";
-import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
-import StrummingPatternPalmMuteNode from "../Tab/StrummingPatternPalmMuteNode";
-import StrummingPattern from "../Tab/StrummingPattern";
-import isEqual from "lodash.isequal";
-import FocusTrap from "focus-trap-react";
 import useSound from "~/hooks/useSound";
+import {
+  useTabStore,
+  type StrummingPattern as StrummingPatternType,
+} from "~/stores/TabStore";
 import { traverseToRemoveHangingStrummingPatternPairNode } from "~/utils/palmMuteHelpers";
+import StrummingPattern from "../Tab/StrummingPattern";
+import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
+import { Button } from "../ui/button";
 
 const backdropVariants = {
   expanded: {
@@ -60,7 +54,6 @@ function StrummingPatternModal({
     useState(false);
 
   const {
-    tuning,
     strummingPatterns,
     setStrummingPatterns,
     setStrummingPatternBeingEdited,
@@ -70,7 +63,6 @@ function StrummingPatternModal({
     audioMetadata,
   } = useTabStore(
     (state) => ({
-      tuning: state.tuning,
       strummingPatterns: state.strummingPatterns,
       setStrummingPatterns: state.setStrummingPatterns,
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,

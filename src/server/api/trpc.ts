@@ -14,12 +14,12 @@
  *
  * These allow you to access things when processing a request, like the database, the session, etc.
  */
-import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
-import { getAuth } from "@clerk/nextjs/server";
 import type {
   SignedInAuthObject,
   SignedOutAuthObject,
 } from "@clerk/nextjs/api";
+import { getAuth } from "@clerk/nextjs/server";
+import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import { prisma } from "~/server/db";
 
 interface AuthContext {

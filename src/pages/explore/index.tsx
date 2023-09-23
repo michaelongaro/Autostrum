@@ -1,29 +1,28 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
-import GenreBubbles from "~/components/Explore/GenreBubbles";
-import SearchInput from "~/components/Search/SearchInput";
-import { api } from "~/utils/api";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { useState } from "react";
+import { AiFillHeart, AiOutlineUser } from "react-icons/ai";
+import { GiMusicalScore } from "react-icons/gi";
+import { TbPinned } from "react-icons/tb";
+import GenreBubbles from "~/components/Explore/GenreBubbles";
+import PinnedTabPlaceholder from "~/components/Profile/PinnedTabPlaceholder";
+import GridTabCard from "~/components/Search/GridTabCard";
+import SearchInput from "~/components/Search/SearchInput";
+import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
+import { Button } from "~/components/ui/button";
+import { Separator } from "~/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import { useRouter } from "next/router";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { formatNumber } from "~/utils/formatNumber";
-import Link from "next/link";
-import { Button } from "~/components/ui/button";
-import { GiMusicalScore } from "react-icons/gi";
-import { AiFillHeart } from "react-icons/ai";
-import { TbPinned } from "react-icons/tb";
-import { Separator } from "~/components/ui/separator";
-import { AiOutlineUser } from "react-icons/ai";
+import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
-import GridTabCard from "~/components/Search/GridTabCard";
-import PinnedTabPlaceholder from "~/components/Profile/PinnedTabPlaceholder";
-import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
+import { formatNumber } from "~/utils/formatNumber";
 
 function Explore() {
   const { push } = useRouter();

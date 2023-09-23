@@ -1,33 +1,29 @@
-import { useState } from "react";
-import {
-  useTabStore,
-  type Chord as ChordType,
-  type Section,
-  type TabSection,
-  type ChordSection,
-  type ChordSequence,
-} from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
 import { arrayMove } from "@dnd-kit/sortable";
+import { useState } from "react";
+import { AiOutlineEllipsis } from "react-icons/ai";
 import { BiDownArrowAlt, BiUpArrowAlt } from "react-icons/bi";
-import { IoClose } from "react-icons/io5";
+import { FaTrashAlt } from "react-icons/fa";
+import { HiOutlineClipboardCopy } from "react-icons/hi";
+import { LuClipboardPaste } from "react-icons/lu";
+import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { AiOutlineEllipsis } from "react-icons/ai";
-import { FaTrashAlt } from "react-icons/fa";
-import { BsFillPlayFill, BsFillPauseFill } from "react-icons/bs";
-import { HiOutlineClipboardCopy } from "react-icons/hi";
-import { LuClipboardPaste } from "react-icons/lu";
+import {
+  useTabStore,
+  type ChordSection,
+  type ChordSequence,
+  type Section,
+  type TabSection,
+} from "~/stores/TabStore";
 
-import useSound from "~/hooks/useSound";
 import isEqual from "lodash.isequal";
+import useSound from "~/hooks/useSound";
 import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 
@@ -60,8 +56,6 @@ function MiscellaneousControls({
     tuning,
     bpm,
     capo,
-    setChords,
-    setChordBeingEdited,
     audioMetadata,
     setAudioMetadata,
     currentInstrument,
@@ -78,8 +72,6 @@ function MiscellaneousControls({
       tuning: state.tuning,
       bpm: state.bpm,
       capo: state.capo,
-      setChords: state.setChords,
-      setChordBeingEdited: state.setChordBeingEdited,
       audioMetadata: state.audioMetadata,
       setAudioMetadata: state.setAudioMetadata,
       currentInstrument: state.currentInstrument,

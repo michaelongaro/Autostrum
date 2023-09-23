@@ -1,8 +1,7 @@
-import { useAuth } from "@clerk/nextjs";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useState, forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import { AiFillHeart } from "react-icons/ai";
 import { GiMusicalScore } from "react-icons/gi";
 import {
@@ -16,7 +15,6 @@ import { formatNumber } from "~/utils/formatNumber";
 
 const GridArtistCard = forwardRef<HTMLDivElement, ArtistMetadata>(
   (artist, ref) => {
-    const { userId, isLoaded } = useAuth();
     const { push } = useRouter();
 
     const [profileImageLoaded, setProfileImageLoaded] = useState(false);

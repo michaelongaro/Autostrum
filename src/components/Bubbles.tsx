@@ -1,17 +1,16 @@
-import { useState, useEffect, useRef, useMemo } from "react";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { Canvas, useFrame, extend } from "@react-three/fiber";
-import { isMobile } from "react-device-detect";
+import { Canvas, extend, useFrame } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
 import type { Mesh } from "three";
 import {
   AmbientLight,
-  PointLight,
-  SphereGeometry,
-  MeshStandardMaterial,
+  ColorManagement,
   DirectionalLight,
   MeshPhongMaterial,
-  ColorManagement,
+  MeshStandardMaterial,
+  PointLight,
+  SphereGeometry,
 } from "three";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 extend({
   AmbientLight,
   PointLight,

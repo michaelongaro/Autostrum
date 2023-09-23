@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
+import { useEffect, useMemo, useState } from "react";
 import { BsArrowUpShort } from "react-icons/bs";
 import { shallow } from "zustand/shallow";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
+import useFetchAndLoadSoundfonts from "~/hooks/useFetchAndLoadSoundfonts";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useKeepArtistMetadataUpdatedWithClerk from "~/hooks/useKeepArtistMetadataUpdatedWithClerk";
-import useFetchAndLoadSoundfonts from "~/hooks/useFetchAndLoadSoundfonts";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import AudioControls from "../AudioControls/AudioControls";
