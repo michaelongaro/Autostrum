@@ -22,6 +22,7 @@ import {
 } from "~/components/ui/select";
 import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
+import { FaTrashAlt } from "react-icons/fa";
 import { HiOutlineInformationCircle } from "react-icons/hi";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import StrummingPatternPalmMuteNode from "../Tab/StrummingPatternPalmMuteNode";
@@ -291,7 +292,7 @@ function StrummingPatternModal({
                 // className="transition-colors transition-opacity"
                 onClick={toggleEditingPalmMuteNodes}
               >
-                Edit palm mute sections
+                Edit PM sections
               </Button>
 
               {editingPalmMuteNodes && (
@@ -313,12 +314,13 @@ function StrummingPatternModal({
                     ? "0.375rem 0 0 0.375rem"
                     : "0.375rem",
                 }}
-                // className="transition-colors transition-opacity"
+                className="baseFlex gap-2"
                 onClick={() =>
                   setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
                 }
               >
                 Delete strums
+                <FaTrashAlt className="h-4 w-4" />
               </Button>
 
               {showingDeleteStrumsButtons && (

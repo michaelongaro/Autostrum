@@ -682,7 +682,7 @@ function TabSection({
                   // className="transition-colors transition-opacity"
                   onClick={toggleEditingPalmMuteNodes}
                 >
-                  Edit palm mute sections
+                  Edit PM sections
                 </Button>
 
                 {editingPalmMuteNodes && (
