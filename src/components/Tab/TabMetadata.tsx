@@ -712,7 +712,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                         </div>
                       </div>
                     ) : (
-                      <div className="baseFlex w-full max-w-[350px] bg-pink-50 p-2 text-sm text-pink-950 md:max-w-[400px] md:text-base">
+                      <div className="baseFlex w-full max-w-[350px] bg-pink-50 p-2 pt-1 text-sm text-pink-950 md:max-w-[400px] md:text-base">
                         <div className="baseFlex !flex-nowrap gap-2">
                           <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
                           <p>Only registered users can publish a tab.</p>
