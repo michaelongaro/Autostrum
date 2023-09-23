@@ -16,12 +16,6 @@ interface GeneralLayout {
 function GeneralLayout({ children }: GeneralLayout) {
   const ref = useRef<HTMLDivElement>(null);
 
-  const [dpr, setDpr] = useState(1);
-
-  useEffect(() => {
-    setDpr(isMobile ? 1 : window.devicePixelRatio);
-  }, []);
-
   return (
     <div
       ref={ref}
@@ -48,7 +42,6 @@ function GeneralLayout({ children }: GeneralLayout) {
           zIndex: 100, // makes sure that the canvas is always on top of everything else
         }}
         camera={{ position: [0, 0, 50] }}
-        dpr={dpr}
         eventSource={ref}
         eventPrefix="client"
       />

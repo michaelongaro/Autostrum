@@ -35,12 +35,7 @@ const bubbleMesh = new MeshPhongMaterial({
 });
 
 function Bubbles() {
-  const [dpr, setDpr] = useState(1);
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
-
-  useEffect(() => {
-    setDpr(isMobile ? 1 : window.devicePixelRatio);
-  }, []);
 
   const bubbles = useMemo((): {
     position: [number, number, number];
@@ -76,7 +71,6 @@ function Bubbles() {
         zIndex: 0,
       }}
       camera={{ position: [0, 0, 50] }}
-      dpr={dpr}
     >
       <ambientLight color={"#fdf2f8"} intensity={0.15} />
       <directionalLight color={"#fdf2f8"} intensity={0.25} />
