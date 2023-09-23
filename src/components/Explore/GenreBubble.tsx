@@ -1,4 +1,4 @@
-import { useState, memo, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, memo } from "react";
 import { Canvas, useFrame, extend } from "@react-three/fiber";
 import { useRouter } from "next/router";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
@@ -118,7 +118,7 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
         backgroundColor: genre.color,
       }}
       className={`baseVertFlex group relative h-36 w-full cursor-pointer !items-start !justify-start gap-2 rounded-lg p-4 shadow-md transition-all hover:shadow-lg sm:!justify-center sm:p-6 ${
-        mouseDownOnGenre ? "brightness-90" : "brightness-100"
+        mouseDownOnGenre ? "brightness-75" : "brightness-100"
       }`}
       onMouseEnter={() => setHoveringOnGenre(true)}
       onMouseLeave={() => {
@@ -155,53 +155,51 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
         genre.totalTabs === 1 ? "tab" : "tabs"
       }`}</p>
 
-      <View className="absolute -right-4 top-8 h-28 w-32 scale-[.60] sm:right-4 sm:top-4 sm:scale-100 md:w-36">
-        <ambientLight intensity={1.5} />
-        <directionalLight color={"white"} intensity={0.5} />
+      {/* wasn't able to get <View /> version to not reset state of bubbles on mouseEnter
+          of another genre bubblem, so on desktop just rendering w/ threejs canvas as normal */}
+      {isMobile ? (
+        <View className="absolute -right-4 top-8 h-28 w-32 scale-[.60] sm:right-4 sm:top-4 sm:scale-100 md:w-36">
+          <ambientLight intensity={1.5} />
+          <directionalLight color={"white"} intensity={0.5} />
 
-        <ConditionallyFloatingBubble
-          delay={Math.random()}
-          floating={hoveringOnGenre}
-          position={positions[0] as [number, number, number]}
-          radius={radii[0]}
-          color={genre.color}
-        />
-        <ConditionallyFloatingBubble
-          delay={Math.random()}
-          floating={hoveringOnGenre}
-          position={positions[1] as [number, number, number]}
-          radius={radii[1]}
-          color={genre.color}
-        />
-        <ConditionallyFloatingBubble
-          delay={Math.random()}
-          floating={hoveringOnGenre}
-          position={positions[2] as [number, number, number]}
-          radius={radii[2]}
-          color={genre.color}
-        />
-        <ConditionallyFloatingBubble
-          delay={Math.random()}
-          floating={hoveringOnGenre}
-          position={positions[3] as [number, number, number]}
-          radius={radii[3]}
-          color={genre.color}
-        />
-        <ConditionallyFloatingBubble
-          delay={Math.random()}
-          floating={hoveringOnGenre}
-          position={positions[4] as [number, number, number]}
-          radius={radii[4]}
-          color={genre.color}
-        />
-        <ConditionallyFloatingBubble
-          delay={Math.random()}
-          floating={hoveringOnGenre}
-          position={positions[5] as [number, number, number]}
-          radius={radii[5]}
-          color={genre.color}
-        />
-      </View>
+          {positions.map((position, index) => (
+            <ConditionallyFloatingBubble
+              key={index}
+              delay={Math.random()}
+              floating={hoveringOnGenre}
+              position={position as [number, number, number]}
+              radius={radii[index]!}
+              color={genre.color}
+            />
+          ))}
+        </View>
+      ) : (
+        <div className="absolute -right-4 top-8 h-28 w-32 scale-[.60] sm:right-4 sm:top-4 sm:scale-100 md:w-36">
+          <Canvas
+            style={{
+              width: "100%",
+              height: "100%",
+              pointerEvents: "none",
+              zIndex: 0,
+            }}
+            camera={{ position: [0, 0, 50] }}
+          >
+            <ambientLight intensity={1.5} />
+            <directionalLight color={"white"} intensity={0.5} />
+
+            {positions.map((position, index) => (
+              <ConditionallyFloatingBubble
+                key={index}
+                delay={Math.random()}
+                floating={hoveringOnGenre}
+                position={position as [number, number, number]}
+                radius={radii[index]!}
+                color={genre.color}
+              />
+            ))}
+          </Canvas>
+        </div>
+      )}
     </motion.div>
   );
 }
