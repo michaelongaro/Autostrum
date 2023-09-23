@@ -106,7 +106,7 @@ function Hero({
               <p className="text-lg font-bold md:text-xl">Practice</p>
               <p className="text-sm md:text-base xl:h-[125px] xl:w-[250px]">
                 Play along with any tab, varying the playback speed, instrument,
-                or with the artist&apos;s official recording.
+                or directly with the artist&apos;s official recording.
               </p>
             </div>
           </div>
