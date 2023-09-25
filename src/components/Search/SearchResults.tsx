@@ -292,11 +292,9 @@ function SearchResults({
   }
 
   return (
-    // prob better practice to let parent component decide vertical margin/padding
-    // rather than do it here.
-    <div className="baseVertFlex w-full rounded-md border-8 border-t-2 border-pink-800 shadow-md">
+    <div className="baseVertFlex min-h-[500px] w-full !justify-start rounded-md border-8 border-t-2 border-pink-800 shadow-md">
       {/* # of results + sorting options */}
-      <div className="baseFlex w-full !items-center !justify-between gap-4 bg-pink-800 p-2 @container">
+      <div className="baseFlex min-h-[76px] w-full !items-center !justify-between gap-4 bg-pink-800 p-2 @container">
         {/* # of results */}
         {queryResults}
 
