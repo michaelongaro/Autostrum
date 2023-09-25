@@ -1,6 +1,7 @@
 import { AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useRef, type ReactNode } from "react";
+import { isMobile } from "react-device-detect";
 import Bubbles from "../Bubbles";
 import Footer from "../Footer/Footer";
 import GeneralLayoutStatefulShell from "./GeneralLayoutStatefulShell";
@@ -29,20 +30,22 @@ function GeneralLayout({ children }: GeneralLayout) {
 
       <AnimatePresence mode="wait">{children}</AnimatePresence>
 
-      <Scene
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          pointerEvents: "none",
-          zIndex: 100, // makes sure that the canvas is always on top of everything else
-        }}
-        camera={{ position: [0, 0, 50] }}
-        eventSource={ref}
-        eventPrefix="client"
-      />
+      {isMobile && (
+        <Scene
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            pointerEvents: "none",
+            zIndex: 47, // high enough to be seen, but lower than header z-index
+          }}
+          camera={{ position: [0, 0, 50] }}
+          eventSource={ref}
+          eventPrefix="client"
+        />
+      )}
 
       <Footer />
     </div>

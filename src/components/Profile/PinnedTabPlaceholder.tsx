@@ -1,4 +1,4 @@
-import { extend } from "@react-three/fiber";
+import { Canvas, extend } from "@react-three/fiber";
 import { useRef } from "react";
 import {
   AmbientLight,
@@ -28,7 +28,16 @@ function PinnedTabPlaceholder({ artistUsername }: PinnedTabPlaceholder) {
       ref={containerRef}
       className="lightestGlassmorphic grid h-full w-full grid-cols-1 grid-rows-1 rounded-md p-4"
     >
-      <View className="pointer-events-none z-[-1] col-start-1 col-end-1 row-start-1 row-end-1 h-full w-full">
+      <Canvas
+        style={{
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+          zIndex: -1,
+        }}
+        className="col-start-1 col-end-1 row-start-1 row-end-1"
+        camera={{ position: [0, 0, 100] }}
+      >
         <ambientLight intensity={1.5} />
         <directionalLight color={"white"} intensity={0.5} />
 
@@ -39,11 +48,12 @@ function PinnedTabPlaceholder({ artistUsername }: PinnedTabPlaceholder) {
               position={
                 [
                   Math.random() *
-                    containerRef.current?.getBoundingClientRect().width *
+                    (containerRef.current?.getBoundingClientRect().width ?? 0) *
                     0.25 *
                     (Math.random() > 0.5 ? 1 : -1),
                   Math.random() *
-                    containerRef.current?.getBoundingClientRect().height *
+                    (containerRef.current?.getBoundingClientRect().height ??
+                      0) *
                     0.25 *
                     (Math.random() > 0.5 ? 1 : -1),
                   Math.random() * 2,
@@ -52,7 +62,7 @@ function PinnedTabPlaceholder({ artistUsername }: PinnedTabPlaceholder) {
             />
           );
         })}
-      </View>
+      </Canvas>
       <div className="baseFlex col-start-1 col-end-1 row-start-1 row-end-1 ">
         <p className="lightGlassmorphic rounded-md p-4 text-lg">{`${artistUsername} hasn't pinned a tab yet.`}</p>
       </div>
