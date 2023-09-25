@@ -32,6 +32,15 @@ import GridTabView from "./GridTabView";
 import TableArtistView from "./TableArtistView";
 import TableTabView from "./TableTabView";
 
+const opacityVariants = {
+  expanded: {
+    opacity: 1,
+  },
+  closed: {
+    opacity: 0,
+  },
+};
+
 interface SearchResults {
   genreId: number;
   type: "tabs" | "artists";
@@ -90,33 +99,71 @@ function SearchResults({
   }, [genreArray.data]);
 
   const queryResults = useMemo(() => {
-    const formattedResultString =
-      searchResultsCount === 1 ? "result" : "results";
     const formattedTabString = searchResultsCount === 1 ? "tab" : "tabs";
     const formattedArtistString =
       searchResultsCount === 1 ? "artist" : "artists";
 
-    if (searchQuery === "" && genreId >= 1 && genreId <= 8) {
-      return (
-        <div className="baseFlex gap-2 text-lg">
-          {`Found ${searchResultsCount}`}
-          <Badge
-            style={{ backgroundColor: genreArrayData[genreId - 1]?.color }}
-          >
-            {genreArrayData[genreId - 1]?.name}
-          </Badge>
-          {formattedTabString}
-        </div>
-      );
+    if (type === "tabs") {
+      // Found 10 "Rock" tabs
+      if (searchQuery === "" && genreId >= 1 && genreId <= 8) {
+        return (
+          <div className="text-lg">
+            {`Found ${searchResultsCount}`}
+            <Badge
+              style={{ backgroundColor: genreArrayData[genreId - 1]?.color }}
+              className="mx-2"
+            >
+              {genreArrayData[genreId - 1]?.name}
+            </Badge>
+            {formattedTabString}
+          </div>
+        );
+      }
+
+      // Found 10 "Rock" tabs for "search query"
+      if (searchQuery !== "" && genreId >= 1 && genreId <= 8) {
+        return (
+          <p className="text-lg">
+            Found {searchResultsCount}
+            <Badge
+              style={{ backgroundColor: genreArrayData[genreId - 1]?.color }}
+              className="mx-2"
+            >
+              {genreArrayData[genreId - 1]?.name}
+            </Badge>
+            tabs for &quot;
+            {searchQuery}
+            &quot;
+          </p>
+        );
+      }
+
+      // Found 10 tabs across "All genres"
+      if (searchQuery === "" && genreId === 9) {
+        return (
+          <div className="text-lg">
+            {`Found ${searchResultsCount} ${formattedTabString} across`}
+            <Badge className="mx-2 bg-pink-500">All genres</Badge>
+          </div>
+        );
+      }
+
+      // Found 10 tabs across "All genres" for "search query"
+      if (searchQuery !== "" && genreId === 9) {
+        return (
+          <div className="text-lg">
+            {`Found ${searchResultsCount} ${formattedTabString} across`}
+            <Badge className="mx-2 bg-pink-500">All genres</Badge>
+            for &quot;{searchQuery}&quot;
+          </div>
+        );
+      }
     }
-    if (searchQuery === "" && genreId === 9 && type === "tabs") {
-      return (
-        <div className="baseFlex gap-2 text-lg">
-          {`Found ${searchResultsCount} ${formattedTabString} across`}
-          <Badge className="bg-pink-500">All genres</Badge>
-        </div>
-      );
-    } else if (searchQuery === "" && type === "artists") {
+
+    // all "artist" results are below:
+
+    // Found 10 artists
+    if (searchQuery === "" && type === "artists") {
       return (
         <p className="text-lg">
           Found {searchResultsCount} {formattedArtistString}
@@ -124,13 +171,16 @@ function SearchResults({
       );
     }
 
-    return (
-      <p className="text-lg">
-        Found {searchResultsCount} {formattedResultString} for &quot;
-        {searchQuery}
-        &quot;
-      </p>
-    );
+    // Found 10 artists for "search query"
+    else {
+      return (
+        <p className="text-lg">
+          Found {searchResultsCount} artists for &quot;
+          {searchQuery}
+          &quot;
+        </p>
+      );
+    }
   }, [searchResultsCount, type, genreId, searchQuery, genreArrayData]);
 
   // all param change handlers below will remove the param if it is getting set
@@ -298,7 +348,29 @@ function SearchResults({
       {/* # of results + sorting options */}
       <div className="baseFlex min-h-[76px] w-full !items-center !justify-between gap-4 bg-pink-800 p-2 @container">
         {/* # of results */}
-        {queryResults}
+        <AnimatePresence mode="wait">
+          {resultsCountIsLoading ? (
+            <motion.div
+              key={"searchResultsCountSkeleton"}
+              variants={opacityVariants}
+              initial="closed"
+              animate="expanded"
+              exit="closed"
+            >
+              <div className="h-8 w-48 animate-pulse rounded-md bg-pink-300"></div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key={"searchResultsCount"}
+              variants={opacityVariants}
+              initial="closed"
+              animate="expanded"
+              exit="closed"
+            >
+              {queryResults}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* mobile sorting options */}
         <Popover>
