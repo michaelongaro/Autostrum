@@ -1,4 +1,4 @@
-import { extend } from "@react-three/fiber";
+import { Canvas, extend } from "@react-three/fiber";
 import {
   AmbientLight,
   DirectionalLight,
@@ -7,7 +7,6 @@ import {
   PointLight,
   SphereGeometry,
 } from "three";
-import { View } from "~/components/canvas/View";
 extend({
   AmbientLight,
   PointLight,
@@ -18,15 +17,41 @@ extend({
 });
 interface GenrePreviewBubbles {
   color: string;
+  reverseBubblePositions?: boolean;
+  enlargedBubbles?: boolean;
 }
 
-function GenrePreviewBubbles({ color }: GenrePreviewBubbles) {
+function GenrePreviewBubbles({
+  color,
+  reverseBubblePositions,
+  enlargedBubbles,
+}: GenrePreviewBubbles) {
+  const bubblePositions = reverseBubblePositions
+    ? [
+        [15, -18, 0],
+        [21, 9, 0],
+        [-15, 2, 0],
+      ]
+    : [
+        [-15, -18, 0],
+        [-21, 9, 0],
+        [15, 2, 0],
+      ];
+
   return (
-    <View className="pointer-events-none h-8 w-8">
+    <Canvas
+      style={{
+        width: enlargedBubbles ? "3rem" : "2rem",
+        height: enlargedBubbles ? "3rem" : "2rem",
+        pointerEvents: "none",
+        zIndex: 0,
+      }}
+      camera={{ position: [0, 0, 55] }}
+    >
       <ambientLight intensity={1.5} />
       <directionalLight color={"white"} intensity={0.5} />
 
-      <mesh position={[-15, -18, 0]}>
+      <mesh position={bubblePositions[0] as [number, number, number]}>
         <sphereGeometry args={[8, 32, 16]} />
         <meshPhysicalMaterial
           roughness={0}
@@ -38,7 +63,7 @@ function GenrePreviewBubbles({ color }: GenrePreviewBubbles) {
         />
       </mesh>
 
-      <mesh position={[-21, 9, 0]}>
+      <mesh position={bubblePositions[1] as [number, number, number]}>
         <sphereGeometry args={[12, 32, 16]} />
         <meshPhysicalMaterial
           roughness={0}
@@ -50,7 +75,7 @@ function GenrePreviewBubbles({ color }: GenrePreviewBubbles) {
         />
       </mesh>
 
-      <mesh position={[15, 2, 0]}>
+      <mesh position={bubblePositions[2] as [number, number, number]}>
         <sphereGeometry args={[18, 32, 16]} />
         <meshPhysicalMaterial
           roughness={0}
@@ -61,7 +86,7 @@ function GenrePreviewBubbles({ color }: GenrePreviewBubbles) {
           color={color}
         />
       </mesh>
-    </View>
+    </Canvas>
   );
 }
 
