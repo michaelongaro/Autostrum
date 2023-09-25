@@ -117,7 +117,7 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
       style={{
         backgroundColor: genre.color,
       }}
-      className={`baseVertFlex group relative h-36 w-full cursor-pointer !items-start !justify-start gap-2 rounded-lg p-4 shadow-md transition-all hover:shadow-lg sm:!justify-center sm:p-6 ${
+      className={`baseVertFlex group relative h-36 w-full cursor-pointer !items-start !justify-start gap-1 rounded-lg p-4 shadow-md transition-all hover:shadow-lg sm:!justify-center sm:p-6 md:gap-2 ${
         mouseDownOnGenre ? "brightness-75" : "brightness-100"
       }`}
       onMouseEnter={() => setHoveringOnGenre(true)}
