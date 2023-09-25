@@ -56,41 +56,6 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
     return genreArray.data;
   }, [genreArray.data]);
 
-  useEffect(() => {
-    const handleAutofillResultsVisibility = () => {
-      // not a fan of using the timeouts, however it was glitching out otherwise
-      // (potentially a strictmode only behavior?)
-
-      if (
-        debouncedSearchQuery.length > 0 &&
-        (document.activeElement === searchInputRef.current ||
-          document.activeElement?.id?.startsWith("autofillResult"))
-      ) {
-        setTimeout(() => {
-          setShowAutofillResults(true);
-        }, 100);
-      } else {
-        setTimeout(() => {
-          setShowAutofillResults(false);
-        }, 100);
-      }
-    };
-
-    handleAutofillResultsVisibility();
-
-    window.addEventListener("focus", handleAutofillResultsVisibility, true);
-    window.addEventListener("blur", handleAutofillResultsVisibility, true);
-
-    return () => {
-      window.removeEventListener(
-        "focus",
-        handleAutofillResultsVisibility,
-        true
-      );
-      window.removeEventListener("blur", handleAutofillResultsVisibility, true);
-    };
-  }, [debouncedSearchQuery]);
-
   const { data: artistProfileBeingViewed } =
     api.artist.getByIdOrUsername.useQuery(
       {
@@ -122,6 +87,8 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
   );
 
   function adjustQueryParams(type: "tabs" | "artists", searchQuery: string) {
+    setShowAutofillResults(false);
+
     const prevQuery = { ...query };
 
     delete prevQuery.genreId;
@@ -179,6 +146,20 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
           type="text"
           maxLength={30}
           placeholder={getPlaceholderTextBasedOnParams()}
+          onFocus={() => {
+            if (debouncedSearchQuery.length > 0) {
+              setShowAutofillResults(true);
+            }
+          }}
+          onBlur={() => {
+            // was focusing <body> without this timeout when clicking on an autofill
+            // result...
+            setTimeout(() => {
+              if (!document.activeElement?.id?.startsWith("autofillResult")) {
+                setShowAutofillResults(false);
+              }
+            }, 0);
+          }}
           onChange={(e) => {
             const query = e.target.value;
 
@@ -186,6 +167,9 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
             if (trimmedQuery !== searchQuery) {
               debounce(() => {
                 setDebouncedSearchQuery(trimmedQuery);
+                if (trimmedQuery.length > 0) {
+                  setShowAutofillResults(true);
+                }
                 setArtificallyShowLoadingSpinner(true);
                 setTimeout(() => setArtificallyShowLoadingSpinner(false), 250);
               }, 250)();
@@ -215,6 +199,8 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
               if (firstResult) {
                 firstResult.focus();
               }
+            } else if (debouncedSearchQuery.length > 0) {
+              setShowAutofillResults(true);
             }
           }}
           value={searchQuery}
@@ -279,6 +265,14 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                               id={`autofillResult${idx}`}
                               tabIndex={-1}
                               className="baseFlex w-full cursor-pointer !justify-start gap-2 rounded-md p-2 transition-all focus-within:bg-pink-500 hover:bg-pink-500"
+                              onFocus={() => {
+                                if (debouncedSearchQuery.length > 0) {
+                                  setShowAutofillResults(true);
+                                }
+                              }}
+                              onBlur={() => {
+                                setShowAutofillResults(false);
+                              }}
                               onClick={() => {
                                 adjustQueryParams(
                                   // response order is tabs and then artists, so if the first result is an artist,
@@ -364,8 +358,6 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
 
       <Button
         onClick={() => {
-          setShowAutofillResults(true);
-
           adjustQueryParams(
             // response order is tabs and then artists, so if the first result is an artist,
             // we know that's the only type of result we have
