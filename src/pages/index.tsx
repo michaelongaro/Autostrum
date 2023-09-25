@@ -1,6 +1,5 @@
-import { buildClerkProps, getAuth } from "@clerk/nextjs/server";
 import { motion } from "framer-motion";
-import type { GetServerSideProps } from "next";
+import Head from "next/head";
 import Hero from "~/components/HomePage/Hero";
 
 const Home = ({
@@ -17,20 +16,20 @@ const Home = ({
       transition={{ duration: 0.5 }}
       className="baseVertFlex w-full"
     >
+      <Head>
+        <meta property="og:title" content="Autostrum"></meta>
+        <meta property="og:url" content="www.autostrum.com" />
+        <meta
+          property="og:description"
+          content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music. Play along to any tab with our realistic generated audio or directly with the artist's recording."
+        />
+        <meta property="og:type" content="website" />
+        {/* should be just homepage ss of main page (not signed in probably?) */}
+        <meta property="og:image" content=""></meta>
+      </Head>
       <Hero showSignUpAndSignInButtons={showSignUpAndSignInButtons} />
     </motion.div>
   );
 };
 
 export default Home;
-
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const { userId } = getAuth(ctx.req);
-
-  return {
-    props: {
-      showSignUpAndSignInButtons: userId === null,
-      ...buildClerkProps(ctx.req),
-    },
-  };
-};

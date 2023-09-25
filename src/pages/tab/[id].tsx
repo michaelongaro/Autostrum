@@ -2,6 +2,7 @@ import { buildClerkProps } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
 import { motion } from "framer-motion";
 import type { GetServerSideProps } from "next";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo } from "react";
 import { BiErrorCircle } from "react-icons/bi";
@@ -11,10 +12,22 @@ import TabSkeleton from "~/components/Tab/TabSkeleton";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 
+interface OpenGraphData {
+  title: string;
+  url: string;
+  description: string;
+}
+
 // not sure if this is correct file routing for slug
 
 // not sure if this is the best name for this component
-function IndividualTabView({ tabExists }: { tabExists: boolean }) {
+function IndividualTabView({
+  tabExists,
+  openGraphData,
+}: {
+  tabExists: boolean;
+  openGraphData: OpenGraphData;
+}) {
   const router = useRouter();
 
   const { setEditing } = useTabStore(
@@ -57,6 +70,15 @@ function IndividualTabView({ tabExists }: { tabExists: boolean }) {
       transition={{ duration: 0.5 }}
       className="baseVertFlex w-full"
     >
+      <Head>
+        <meta property="og:title" content={openGraphData.title}></meta>
+        <meta property="og:url" content={openGraphData.url} />
+        <meta property="og:description" content={openGraphData.description} />
+        <meta property="og:type" content="website" />
+        {/* should be just homepage ss of w/e good tab you make? */}
+        <meta property="og:image" content=""></meta>
+      </Head>
+
       <>
         {fetchedTab ? (
           <Tab tab={fetchedTab} refetchTab={refetchTab} />
@@ -76,16 +98,46 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     where: {
       id: ctx.params?.id ? parseInt(ctx.params.id as string) : -1,
     },
-    include: {
-      _count: {
-        select: {
-          likes: true,
-        },
-      },
+    select: {
+      title: true,
+      createdById: true,
     },
   });
 
-  return { props: { tabExists: tab !== null, ...buildClerkProps(ctx.req) } };
+  let artist = null;
+
+  // get tab owner username
+  if (tab) {
+    artist = await prisma.artist.findUnique({
+      where: {
+        userId: tab.createdById as string, // could be a bit hairy if artist kept tab but deleted their account...
+      },
+      select: {
+        username: true,
+      },
+    });
+  }
+
+  const openGraphData: OpenGraphData = {
+    title: "Autostrum",
+    url: `www.autostrum.com/tab/${ctx.params!.id as string}`,
+    description: "View and listen to this tab on Autostrum.",
+  };
+
+  if (tab) {
+    openGraphData.title = `${tab.title} | Autostrum`;
+    openGraphData.description = `View ${
+      artist?.username ? `${artist.username}'s tab` : "the tab"
+    } ${tab.title} on Autostrum.`;
+  }
+
+  return {
+    props: {
+      tabExists: tab !== null,
+      openGraphData,
+      ...buildClerkProps(ctx.req),
+    },
+  };
 };
 
 function TabNotFound() {

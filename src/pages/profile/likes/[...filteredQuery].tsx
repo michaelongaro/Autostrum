@@ -7,6 +7,7 @@ import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
 
 import TopProfileNavigationLayout from "~/components/Layouts/TopProfileNavigationLayout";
 import { TabsContent } from "~/components/ui/tabs";
+import Head from "next/head";
 
 function ArtistLikes() {
   const {
@@ -30,6 +31,18 @@ function ArtistLikes() {
       // remove z-50 if possible, I think <Bubbles /> is messing it up
       className="lightGlassmorphic baseVertFlex z-50 mt-12 min-h-[100dvh] w-full !justify-start rounded-md p-2 md:p-8"
     >
+      <Head>
+        <meta property="og:title" content="Likes | Autostrum"></meta>
+        <meta property="og:url" content="www.autostrum.com/profile/likes" />
+        <meta
+          property="og:description"
+          content="Filter through and explore the tabs you have liked."
+        />
+        <meta property="og:type" content="website" />
+        {/* should be just homepage ss of homepage? */}
+        <meta property="og:image" content=""></meta>
+      </Head>
+
       <TabsContent value="likes">
         {/* search Results component */}
         {serve404Page ? (

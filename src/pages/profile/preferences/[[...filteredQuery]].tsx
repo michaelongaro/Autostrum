@@ -1,5 +1,6 @@
 import { UserProfile, useClerk } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
+import Head from "next/head";
 import Link from "next/link";
 import { useState } from "react";
 import { FaTrashAlt } from "react-icons/fa";
@@ -69,6 +70,21 @@ function Preferences() {
       // remove z-50 if possible, I think <Bubbles /> is messing it up
       className="baseVertFlex z-50 w-full"
     >
+      <Head>
+        <meta property="og:title" content="Preferences | Autostrum"></meta>
+        <meta
+          property="og:url"
+          content="www.autostrum.com/profile/preferences"
+        />
+        <meta
+          property="og:description"
+          content="Edit your acount preferences, change your pinned tab on your profile, and more."
+        />
+        <meta property="og:type" content="website" />
+        {/* should be just homepage ss of homepage? */}
+        <meta property="og:image" content=""></meta>
+      </Head>
+
       <TabsContent value="preferences">
         <div className="baseVertFlex lightGlassmorphic mt-12 w-full gap-12 rounded-2xl p-2 transition-all md:my-8 md:p-8 md:px-4">
           <UserProfile

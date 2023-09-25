@@ -2,6 +2,7 @@ import { buildClerkProps, getAuth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
 import { motion } from "framer-motion";
 import type { GetServerSideProps } from "next";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 import { BiErrorCircle } from "react-icons/bi";
@@ -11,15 +12,22 @@ import TabSkeleton from "~/components/Tab/TabSkeleton";
 import { Button } from "~/components/ui/button";
 import { api } from "~/utils/api";
 
+interface OpenGraphData {
+  title: string;
+  url: string;
+  description: string;
+}
 // not sure if this is correct file routing for slug
 
 // not sure if this is the best name for this component
 function IndividualTabEdit({
   userAllowedToEdit,
   tabExists,
+  openGraphData,
 }: {
   userAllowedToEdit: boolean;
   tabExists: boolean;
+  openGraphData: OpenGraphData;
 }) {
   const router = useRouter();
 
@@ -51,8 +59,14 @@ function IndividualTabEdit({
       transition={{ duration: 0.5 }}
       className="baseVertFlex w-full"
     >
-      {/* TODO: should ONLY render tab if the person viewing it is the owner of the tab, otherwise 
-          display text saying `Sorry, only ${tabOwnerUsername} can edit this tab` */}
+      <Head>
+        <meta property="og:title" content={openGraphData.title}></meta>
+        <meta property="og:url" content={openGraphData.url} />
+        <meta property="og:description" content={openGraphData.description} />
+        <meta property="og:type" content="website" />
+        {/* should be just homepage ss of w/e good tab you make? */}
+        <meta property="og:image" content=""></meta>
+      </Head>
 
       {fetchedTab ? (
         <Tab tab={fetchedTab.data} />
@@ -73,19 +87,37 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     where: {
       id: ctx.params?.id ? parseInt(ctx.params.id as string) : -1,
     },
-    include: {
-      _count: {
-        select: {
-          likes: true,
-        },
-      },
+    select: {
+      title: true,
+      createdById: true,
     },
   });
+
+  let artist = null;
+
+  // get tab owner username
+  if (tab) {
+    artist = await prisma.artist.findUnique({
+      where: {
+        userId: tab.createdById as string, // could be a bit hairy if artist kept tab but deleted their account...
+      },
+      select: {
+        username: true,
+      },
+    });
+  }
+
+  const openGraphData: OpenGraphData = {
+    title: "Autostrum",
+    url: `www.autostrum.com/tab/${ctx.params!.id as string}`,
+    description: "View and listen to this tab on Autostrum.",
+  };
 
   return {
     props: {
       userAllowedToEdit: tab?.createdById === userId,
       tabExists: tab !== null,
+      openGraphData,
       ...buildClerkProps(ctx.req),
     },
   };

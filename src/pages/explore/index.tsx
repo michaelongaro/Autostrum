@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -61,6 +62,18 @@ function Explore() {
       transition={{ duration: 0.5 }}
       className="lightGlassmorphic baseVertFlex my-12 min-h-[100dvh] w-11/12 !justify-start gap-8 rounded-md px-2 py-4 md:my-24 md:w-3/4 md:p-8 xl:w-8/12"
     >
+      <Head>
+        <meta property="og:title" content="Explore | Autostrum"></meta>
+        <meta property="og:url" content="www.autostrum.com/explore" />
+        <meta
+          property="og:description"
+          content="Find inspiration from our evergrowing library of tabs and discover new talents in our weekly featured artist section."
+        />
+        <meta property="og:type" content="website" />
+        {/* should be just homepage ss of main explore page */}
+        <meta property="og:image" content=""></meta>
+      </Head>
+
       <SearchInput />
 
       <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">

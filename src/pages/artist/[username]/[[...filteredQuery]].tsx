@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
@@ -76,6 +77,26 @@ function ArtistProfile() {
       // className="baseVertFlex w-full p-2 md:p-8"
       className="lightGlassmorphic baseVertFlex my-12 min-h-[100dvh] w-11/12 !justify-start gap-8 rounded-md px-2 py-4 md:my-24 md:w-3/4 md:gap-16 md:p-8"
     >
+      <Head>
+        <meta
+          property="og:title"
+          content={`${query.username as string}'s profile | Autostrum`}
+        ></meta>
+        <meta
+          property="og:url"
+          content={`www.autostrum.com/artist/${query.username as string}`}
+        />
+        <meta
+          property="og:description"
+          content={`Visit ${
+            query.username as string
+          }'s profile and listen to their tabs.`}
+        />
+        <meta property="og:type" content="website" />
+        {/* should be just homepage ss of idk my profile page? */}
+        <meta property="og:image" content=""></meta>
+      </Head>
+
       {/* artist metadata + pinned tab */}
       <div className="baseVertFlex w-full !flex-nowrap md:!flex-row md:gap-8">
         <div className="lightestGlassmorphic baseVertFlex h-64 min-w-[200px] !flex-nowrap gap-4 rounded-md p-4 md:h-80 md:gap-8 md:py-8">
