@@ -16,6 +16,7 @@ import {
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import TableTabRow from "./TableTabRow";
+import NoResultsFound from "./NoResultsFound";
 
 interface TableTabView {
   genreId: number;
@@ -221,22 +222,11 @@ function TableTabView({
       </Table>
 
       {/* no results */}
-      <AnimatePresence mode="wait">
-        {!showArtificialLoadingSpinner &&
-          !isFetching &&
-          tabResults?.pages?.[0]?.data.tabs.length === 0 && (
-            <motion.p
-              key={"tableTabViewNoResults"}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="lightestGlassmorphic rounded-md px-8 py-4 text-lg transition-all"
-            >
-              No results found.
-            </motion.p>
-          )}
-      </AnimatePresence>
+      {!showArtificialLoadingSpinner &&
+        !isFetching &&
+        tabResults?.pages?.[0]?.data.tabs.length === 0 && (
+          <NoResultsFound customKey={"tableTabViewNoResults"} />
+        )}
     </motion.div>
   );
 }

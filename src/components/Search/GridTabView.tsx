@@ -9,6 +9,7 @@ import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import GridTabCard from "./GridTabCard";
 import TabCardSkeleton from "./TabCardSkeleton";
+import NoResultsFound from "./NoResultsFound";
 
 interface GridTabView {
   genreId: number;
@@ -193,22 +194,11 @@ function GridTabView({
       </div>
 
       {/* no results */}
-      <AnimatePresence mode="wait">
-        {!showArtificialLoadingSpinner &&
-          !isFetching &&
-          tabResults?.pages?.[0]?.data.tabs.length === 0 && (
-            <motion.p
-              key={"gridTabViewNoResults"}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="lightestGlassmorphic mb-12 rounded-md px-8 py-4 text-lg transition-all"
-            >
-              No results found.
-            </motion.p>
-          )}
-      </AnimatePresence>
+      {!showArtificialLoadingSpinner &&
+        !isFetching &&
+        tabResults?.pages?.[0]?.data.tabs.length === 0 && (
+          <NoResultsFound customKey={"gridTabViewNoResults"} />
+        )}
     </motion.div>
   );
 }

@@ -7,6 +7,7 @@ import { shallow } from "zustand/shallow";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import GridArtistCard from "./GridArtistCard";
+import NoResultsFound from "./NoResultsFound";
 
 interface GridArtistView {
   searchQuery: string;
@@ -150,22 +151,11 @@ function GridArtistView({
       </div>
 
       {/* no results */}
-      <AnimatePresence mode="wait">
-        {!showArtificialLoadingSpinner &&
-          !isFetching &&
-          artistResults?.pages?.[0]?.data.artists.length === 0 && (
-            <motion.p
-              key={"gridArtistViewNoResults"}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="lightestGlassmorphic mb-12 rounded-md px-8 py-4 text-lg transition-all"
-            >
-              No results found.
-            </motion.p>
-          )}
-      </AnimatePresence>
+      {!showArtificialLoadingSpinner &&
+        !isFetching &&
+        artistResults?.pages?.[0]?.data.artists.length === 0 && (
+          <NoResultsFound customKey={"gridArtistViewNoResults"} />
+        )}
     </motion.div>
   );
 }

@@ -15,6 +15,7 @@ import {
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import TableArtistRow from "./TableArtistRow";
+import NoResultsFound from "./NoResultsFound";
 
 interface TableArtistView {
   searchQuery: string;
@@ -168,22 +169,11 @@ function TableArtistView({
       </Table>
 
       {/* no results */}
-      <AnimatePresence mode="wait">
-        {!showArtificialLoadingSpinner &&
-          !isFetching &&
-          artistResults?.pages?.[0]?.data.artists.length === 0 && (
-            <motion.p
-              key={"tableArtistViewNoResults"}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="lightestGlassmorphic rounded-md px-8 py-4 text-lg transition-all"
-            >
-              No results found.
-            </motion.p>
-          )}
-      </AnimatePresence>
+      {!showArtificialLoadingSpinner &&
+        !isFetching &&
+        artistResults?.pages?.[0]?.data.artists.length === 0 && (
+          <NoResultsFound customKey={"tableArtistViewNoResults"} />
+        )}
     </motion.div>
   );
 }
