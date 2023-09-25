@@ -1,5 +1,4 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
-
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
@@ -23,6 +22,7 @@ interface GridTabView {
     | "none";
   selectedPinnedTabId?: number;
   setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
+  setResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 function GridTabView({
@@ -32,6 +32,7 @@ function GridTabView({
   additionalSortFilter,
   selectedPinnedTabId,
   setSelectedPinnedTabId,
+  setResultsCountIsLoading,
 }: GridTabView) {
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
@@ -87,7 +88,7 @@ function GridTabView({
   });
 
   const [showArtificialLoadingSpinner, setShowArtificialLoadingSpinner] =
-    useState(false);
+    useState(true);
 
   useEffect(() => {
     if (isFetching) {
@@ -97,6 +98,10 @@ function GridTabView({
       }, 1500);
     }
   }, [isFetching]);
+
+  useEffect(() => {
+    setResultsCountIsLoading(showArtificialLoadingSpinner);
+  }, [setResultsCountIsLoading, showArtificialLoadingSpinner]);
 
   useEffect(() => {
     if (inView && hasNextPage) {

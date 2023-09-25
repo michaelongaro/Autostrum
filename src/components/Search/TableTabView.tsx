@@ -1,7 +1,13 @@
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useEffect,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+  Fragment,
+} from "react";
 import { TbPinned } from "react-icons/tb";
 import { useInView } from "react-intersection-observer";
 import { shallow } from "zustand/shallow";
@@ -30,6 +36,7 @@ interface TableTabView {
     | "none";
   selectedPinnedTabId?: number;
   setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
+  setResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 function TableTabView({
@@ -39,6 +46,7 @@ function TableTabView({
   additionalSortFilter,
   selectedPinnedTabId,
   setSelectedPinnedTabId,
+  setResultsCountIsLoading,
 }: TableTabView) {
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
@@ -94,7 +102,7 @@ function TableTabView({
   });
 
   const [showArtificialLoadingSpinner, setShowArtificialLoadingSpinner] =
-    useState(false);
+    useState(true);
 
   useEffect(() => {
     if (isFetching) {
@@ -104,6 +112,10 @@ function TableTabView({
       }, 1500);
     }
   }, [isFetching]);
+
+  useEffect(() => {
+    setResultsCountIsLoading(showArtificialLoadingSpinner);
+  }, [setResultsCountIsLoading, showArtificialLoadingSpinner]);
 
   useEffect(() => {
     if (inView && hasNextPage) {
@@ -142,7 +154,7 @@ function TableTabView({
             <>
               {tabResults.pages.map((page) =>
                 page.data.tabs?.map((tab, index) => (
-                  <>
+                  <Fragment key={tab.id}>
                     {index === page.data.tabs.length - 1 ? (
                       <TableTabRow
                         ref={ref}
@@ -161,7 +173,7 @@ function TableTabView({
                         setSelectedPinnedTabId={setSelectedPinnedTabId}
                       />
                     )}
-                  </>
+                  </Fragment>
                 ))
               )}
 

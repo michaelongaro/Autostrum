@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { AiFillHeart } from "react-icons/ai";
 import { GiMusicalScore } from "react-icons/gi";
 import { useInView } from "react-intersection-observer";
@@ -18,12 +18,14 @@ interface GridArtistView {
     | "leastLiked"
     | "mostLiked"
     | "none";
+  setResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 function GridArtistView({
   searchQuery,
   sortByRelevance,
   additionalSortFilter,
+  setResultsCountIsLoading,
 }: GridArtistView) {
   const { setSearchResultsCount } = useTabStore(
     (state) => ({
@@ -53,7 +55,7 @@ function GridArtistView({
   });
 
   const [showArtificialLoadingSpinner, setShowArtificialLoadingSpinner] =
-    useState(false);
+    useState(true);
 
   useEffect(() => {
     if (isFetching) {
@@ -63,6 +65,10 @@ function GridArtistView({
       }, 1500);
     }
   }, [isFetching]);
+
+  useEffect(() => {
+    setResultsCountIsLoading(showArtificialLoadingSpinner);
+  }, [setResultsCountIsLoading, showArtificialLoadingSpinner]);
 
   useEffect(() => {
     if (inView && hasNextPage) {

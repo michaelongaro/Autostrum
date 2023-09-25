@@ -1,5 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  Fragment,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { AiFillHeart } from "react-icons/ai";
 import { GiMusicalScore } from "react-icons/gi";
 import { useInView } from "react-intersection-observer";
@@ -26,12 +32,14 @@ interface TableArtistView {
     | "leastLiked"
     | "mostLiked"
     | "none";
+  setResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 function TableArtistView({
   searchQuery,
   sortByRelevance,
   additionalSortFilter,
+  setResultsCountIsLoading,
 }: TableArtistView) {
   const { setSearchResultsCount } = useTabStore(
     (state) => ({
@@ -61,7 +69,7 @@ function TableArtistView({
   });
 
   const [showArtificialLoadingSpinner, setShowArtificialLoadingSpinner] =
-    useState(false);
+    useState(true);
 
   useEffect(() => {
     if (isFetching) {
@@ -71,6 +79,10 @@ function TableArtistView({
       }, 1500);
     }
   }, [isFetching]);
+
+  useEffect(() => {
+    setResultsCountIsLoading(showArtificialLoadingSpinner);
+  }, [setResultsCountIsLoading, showArtificialLoadingSpinner]);
 
   useEffect(() => {
     if (inView && hasNextPage) {
@@ -104,13 +116,13 @@ function TableArtistView({
             <>
               {artistResults.pages.map((page) =>
                 page.data.artists?.map((artist, index) => (
-                  <>
+                  <Fragment key={artist.id}>
                     {index === page.data.artists.length - 1 ? (
                       <TableArtistRow ref={ref} key={artist.id} {...artist} />
                     ) : (
                       <TableArtistRow key={artist.id} {...artist} />
                     )}
-                  </>
+                  </Fragment>
                 ))
               )}
 

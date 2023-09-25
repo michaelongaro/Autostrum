@@ -1,7 +1,7 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import { useMemo, type Dispatch, type SetStateAction } from "react";
+import { useState, useMemo, type Dispatch, type SetStateAction } from "react";
 import { BsArrowDownShort, BsGridFill } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
 import { LuFilter } from "react-icons/lu";
@@ -61,6 +61,8 @@ function SearchResults({
   const { asPath, push, query, pathname } = useRouter();
 
   const localStorageViewType = useLocalStorageValue("autostrumViewType");
+
+  const [resultsCountIsLoading, setResultsCountIsLoading] = useState(false);
 
   const { searchResultsCount } = useTabStore(
     (state) => ({
@@ -636,12 +638,14 @@ function SearchResults({
                 additionalSortFilter={additionalSortFilter}
                 selectedPinnedTabId={selectedPinnedTabId}
                 setSelectedPinnedTabId={setSelectedPinnedTabId}
+                setResultsCountIsLoading={setResultsCountIsLoading}
               />
             ) : (
               <GridArtistView
                 searchQuery={searchQuery}
                 sortByRelevance={sortByRelevance}
                 additionalSortFilter={additionalSortFilter}
+                setResultsCountIsLoading={setResultsCountIsLoading}
               />
             )}
           </>
@@ -656,12 +660,14 @@ function SearchResults({
                 additionalSortFilter={additionalSortFilter}
                 selectedPinnedTabId={selectedPinnedTabId}
                 setSelectedPinnedTabId={setSelectedPinnedTabId}
+                setResultsCountIsLoading={setResultsCountIsLoading}
               />
             ) : (
               <TableArtistView
                 searchQuery={searchQuery}
                 sortByRelevance={sortByRelevance}
                 additionalSortFilter={additionalSortFilter}
+                setResultsCountIsLoading={setResultsCountIsLoading}
               />
             )}
           </>
