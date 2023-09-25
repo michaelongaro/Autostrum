@@ -3,30 +3,23 @@
   display: none;
 }
 
-
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .desktopHeader {
     padding: 0.5rem;
     display: grid;
+    gap: 1rem;
     grid-template-rows: 1fr;
-    grid-template-columns: repeat(12, 1fr);
-    grid-template-areas:
-      "logo . explore explore explore create create create authentication authentication authentication authentication";
     place-items: center;
-  }
-}
-
-@media (min-width: 1024px) {
-  .desktopHeader {
+    grid-template-columns: repeat(14, 1fr);
     grid-template-areas:
-      "logo logo . . explore explore create create . authentication authentication authentication";
+      "logo logo logo . explore explore explore create create create authentication authentication authentication authentication";
   }
 }
 
 @media (min-width: 1536px) {
   .desktopHeader {
     grid-template-areas:
-      "logo logo logo . . explore explore create create authentication authentication authentication";
+      ". logo logo . . . explore explore create create authentication authentication authentication authentication";
   }
 }
 

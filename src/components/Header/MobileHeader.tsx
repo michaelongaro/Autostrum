@@ -47,7 +47,7 @@ function MobileHeader() {
             "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)"
           : "0 4px 6px -1px transparent, 0 2px 4px -2px transparent",
       }}
-      className="absolute flex h-full w-full items-start justify-between overflow-clip p-2 transition-all md:hidden"
+      className="absolute flex h-full w-full items-start justify-between overflow-clip p-2 transition-all lg:hidden"
     >
       <Link href={"/"} className="baseFlex h-12 pl-2">
         <Image

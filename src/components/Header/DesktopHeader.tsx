@@ -55,9 +55,9 @@ function DesktopHeader() {
       >
         <Link
           href={"/explore"}
-          className="baseFlex gap-2 text-base lg:text-xl xl:gap-4"
+          className="baseFlex w-fit !flex-nowrap gap-4 text-xl"
         >
-          <IoTelescopeOutline className="h-4 w-4 xl:h-8 xl:w-8" />
+          <IoTelescopeOutline className="h-8 w-8" />
           Explore
         </Link>
       </Button>
@@ -74,9 +74,9 @@ function DesktopHeader() {
       >
         <Link
           href={"/create"}
-          className="baseFlex gap-2 text-base lg:text-xl xl:gap-4"
+          className="baseFlex w-fit !flex-nowrap gap-4 text-xl"
         >
-          <FaGuitar className="h-4 w-4 xl:h-8 xl:w-8" />
+          <FaGuitar className="h-8 w-8" />
           Create
         </Link>
       </Button>
@@ -142,10 +142,11 @@ function DesktopHeader() {
           <Button variant={"ghost"} asChild className="px-4 py-0">
             <Link
               href={`/profile/preferences`}
-              className="baseFlex gap-4 p-0 text-xl"
+              className="baseFlex  gap-4  p-0 text-xl"
             >
-              {user?.username}
-              {/* will need to be based on env url */}
+              <p className="max-w-[150px] truncate xl:max-w-[250px]">
+                {user?.username}
+              </p>
               <UserButton
                 afterSignOutUrl={`${process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""}/`}
               />
