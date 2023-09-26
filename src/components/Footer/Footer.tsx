@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { MdOutlineMailOutline } from "react-icons/md";
 import { Button } from "~/components/ui/button";
+import { Separator } from "~/components/ui/separator";
 
 function Footer() {
   return (
-    <footer className="heavyGlassmorphic baseFlex z-30 h-16 w-full shadow-sm">
+    <footer className="heavyGlassmorphic baseFlex z-30 h-16 w-full gap-4 shadow-sm">
       <Button id={"contact"} variant={"ghost"} asChild>
         <a
           href="mailto:michael.ongaro.dev@gmail.com"
@@ -14,6 +16,12 @@ function Footer() {
           <MdOutlineMailOutline className="h-6 w-6" />
           <p>Contact</p>
         </a>
+      </Button>
+
+      <Separator orientation="vertical" className="h-4" />
+
+      <Button variant={"link"} asChild>
+        <Link href={"/privacy"}>Privacy Policy</Link>
       </Button>
     </footer>
   );
