@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
 import {
@@ -178,10 +178,14 @@ function ChordSequence({
     setTabData(newTabData);
   }
 
+  const layoutProp = useMemo(() => {
+    return editing ? { layout: "position" as const } : {};
+  }, [editing]);
+
   return (
     <motion.div
       key={chordSequenceData.id}
-      layout={"position"}
+      {...layoutProp}
       variants={opacityAndScaleVariants}
       initial="closed"
       animate="expanded"

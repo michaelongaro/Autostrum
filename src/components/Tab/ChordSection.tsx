@@ -120,10 +120,14 @@ function ChordSection({
     return padding;
   }, [editing, aboveMediumViewportWidth]);
 
+  const layoutProp = useMemo(() => {
+    return editing ? { layout: "position" as const } : {};
+  }, [editing]);
+
   return (
     <motion.div
       key={subSectionData.id}
-      layout={"position"}
+      {...layoutProp}
       variants={opacityAndScaleVariants}
       initial="closed"
       animate="expanded"
@@ -176,7 +180,7 @@ function ChordSection({
       <AnimatePresence mode="wait">
         <motion.div
           key={`${subSectionData.id}ChordSectionWrapper`}
-          layout={"position"}
+          {...layoutProp}
           variants={opacityAndScaleVariants}
           initial="closed"
           animate="expanded"
