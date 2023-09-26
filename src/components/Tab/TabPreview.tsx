@@ -57,9 +57,9 @@ function TabPreview({ tab, scale }: TabPreview) {
           style={{
             transform: `scale(${scale})`,
           }}
-          className="pointer-events-none absolute left-0 top-0 z-[-1] mt-2 w-[1200px] origin-top-left select-none"
+          className="pointer-events-none absolute left-0 top-0 z-[-1] mt-2 w-[1200px] origin-top-left select-none p-4 md:p-0"
         >
-          {tabData.map((section, index) => (
+          {tabData.slice(0, 1).map((section, index) => (
             <PreviewSectionContainer
               key={section.id}
               tabData={tabData}
