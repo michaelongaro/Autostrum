@@ -140,7 +140,7 @@ function TabMeasureLine({
             {reorderingColumns && !isDragging && (
               <div className="baseVertFlex w-full">
                 <div className="h-[2px] w-full bg-pink-50"></div>
-                <div className="h-[5px] w-[2px] bg-pink-50"></div>
+                <div className="h-[3px] w-[2px] bg-pink-50"></div>
               </div>
             )}
 
@@ -190,7 +190,7 @@ function TabMeasureLine({
             {/* bottom border and vert stub to normalize heights of middle indicies */}
             {reorderingColumns && !isDragging && (
               <div className="baseVertFlex w-full">
-                <div className="h-[5px] w-[2px] bg-pink-50"></div>
+                <div className="h-[3px] w-[2px] bg-pink-50"></div>
                 <div className="h-[2px] w-full bg-pink-50"></div>
               </div>
             )}
@@ -239,22 +239,14 @@ function TabMeasureLine({
       if (reorderingColumns && !isDragging) {
         height = "45px";
       } else {
-        if (index === 1) {
-          height = "47px";
-        } else if (index === 6) {
+        if (index === 1 || index === 6) {
           height = "47px";
         } else {
-          height = "47.5px";
+          height = "46.5px"; // hacky "magic" number to get everything to line up correctly
         }
       }
     } else {
-      if (index === 1) {
-        height = "24px";
-      } else if (index === 6) {
-        height = "29px";
-      } else {
-        height = "28.75px";
-      }
+      height = "28px";
     }
 
     return height;
@@ -272,7 +264,7 @@ function TabMeasureLine({
         // to behave properly without the ui breaking
         width: reorderingColumns ? "60px" : "2px",
         transition: `${transition ?? ""}, width 0.15s ease-in-out`,
-        height: editing ? "403px" : "271px",
+        height: editing ? "400px" : "271px",
       }}
       className="baseVertFlex relative"
     >
@@ -289,7 +281,7 @@ function TabMeasureLine({
                 ][7] !== -1 && (
                   <div
                     className={`baseFlex absolute !flex-nowrap gap-[0.125rem] text-pink-50 ${
-                      note === "-" ? "-top-2" : "top-2"
+                      note === "-" ? "top-[10px]" : "top-[27px]"
                     }`}
                   >
                     <BsMusicNote className="h-4 w-4" />
@@ -305,7 +297,7 @@ function TabMeasureLine({
                 {note === "-" && (
                   <div
                     style={{
-                      top: editing ? "-1.6rem" : "-1.15rem",
+                      top: editing ? "-26px" : "-18px",
                     }}
                     className="relative h-[1px] w-full bg-pink-50"
                   ></div>

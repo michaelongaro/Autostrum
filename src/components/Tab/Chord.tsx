@@ -136,7 +136,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
     <div className="baseFlex w-full">
       <div
         style={{
-          height: editing ? "283px" : "168px",
+          height: editing ? "280px" : "168px",
           gap: editing ? "1.35rem" : "0.05rem",
           padding: editing ? "0.5rem" : "0.5rem 0.35rem",
         }}
@@ -169,7 +169,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
               }`,
               paddingBottom: `${index === 5 ? "7px" : "0"}`,
             }}
-            className="baseFlex"
+            className="baseFlex w-full"
           >
             <div
               style={{
@@ -193,7 +193,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
                     ? "hsl(333, 71%, 51%)"
                     : "hsl(327, 73%, 97%)",
                 }}
-                className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm"
+                className="h-[37px] w-[37px] rounded-full p-0 text-center shadow-sm"
                 onFocus={(e) => {
                   setIsFocused((prev) => {
                     prev[index] = true;
@@ -247,7 +247,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
       </div>
       <div
         style={{
-          height: editing ? "283px" : "168px",
+          height: editing ? "280px" : "168px",
           padding: editing ? "0.25rem" : "0.25rem 0.15rem",
         }}
         className="rounded-r-2xl border-2 border-pink-50 p-1"

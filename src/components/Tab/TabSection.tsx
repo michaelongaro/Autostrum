@@ -809,8 +809,9 @@ function TabSection({
 
         <div
           style={{
-            height: editing ? "283px" : "168px",
-            gap: editing ? "1.35rem" : "0.05rem",
+            height: editing ? "280px" : "168px",
+            gap: editing ? "1.35rem" : "0",
+            marginBottom: editing ? "0" : "-1px",
           }}
           className="baseVertFlex relative rounded-l-2xl border-2 border-pink-50 p-2"
         >
@@ -854,7 +855,8 @@ function TabSection({
 
         <div
           style={{
-            height: editing ? "283px" : "168px",
+            height: editing ? "280px" : "168px",
+            marginBottom: editing ? "0" : "-1px",
           }}
           className="rounded-r-2xl border-2 border-pink-50 p-1"
         ></div>

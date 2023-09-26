@@ -291,6 +291,7 @@ function TabNotesColumn({
           transform && { ...transform, scaleY: 1, scaleX: 1 }
         ),
         transition,
+        height: editing ? "400px" : "271px",
       }}
       className="baseVertFlex cursor-default scroll-m-8"
     >
