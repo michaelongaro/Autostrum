@@ -115,7 +115,6 @@ function TabSkeleton({ editing }: TabSkeleton) {
             </div>
           </div>
           <Separator className="w-[96%]" />
-
           <div className="baseVertFlex relative w-full gap-4">
             <div
               style={{
@@ -136,10 +135,9 @@ function TabSkeleton({ editing }: TabSkeleton) {
               className="h-28 w-1/2 max-w-[91.7%] animate-pulse rounded-md bg-pink-300"
             ></div>
 
-            <div className="h-8 w-16 animate-pulse rounded-md bg-pink-300 lg:absolute lg:right-7 lg:top-0"></div>
+            <div className="h-10 w-36 animate-pulse rounded-md bg-pink-300 lg:absolute lg:right-7 lg:top-0"></div>
           </div>
           <Separator className="w-[96%]" />
-
           <div className="baseVertFlex w-full gap-4 p-6">
             <div className="relative w-full">
               <div className="baseFlex w-full !justify-start gap-2">
@@ -152,7 +150,6 @@ function TabSkeleton({ editing }: TabSkeleton) {
           </div>
         </>
       )}
-
       {!editing && (
         <>
           <div className="min-h-[100px] w-full">
@@ -290,7 +287,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
               className="h-28 w-1/2 max-w-[91.7%] animate-pulse rounded-md bg-pink-300"
             ></div>
 
-            <div className="h-8 w-16 animate-pulse rounded-md bg-pink-300 lg:absolute lg:right-7 lg:top-0"></div>
+            <div className="h-10 w-36 animate-pulse rounded-md bg-pink-300 lg:absolute lg:right-7 lg:top-0"></div>
           </div>
           <Separator className="w-[96%]" />
 
