@@ -1,8 +1,10 @@
 import { Canvas, extend, useFrame } from "@react-three/fiber";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useMemo, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import type { Mesh } from "three";
 import {
   AmbientLight,
@@ -38,6 +40,8 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
 
   const [hoveringOnGenre, setHoveringOnGenre] = useState(false);
   const [mouseDownOnGenre, setMouseDownOnGenre] = useState(false);
+
+  const aboveSmallViewportWidth = useViewportWidthBreakpoint(640);
 
   const positions: [number, number, number][] = useMemo(() => {
     const positionBases = [
@@ -155,26 +159,26 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
         genre.totalTabs === 1 ? "tab" : "tabs"
       }`}</p>
 
-      {/* wasn't able to get <View /> version to not reset state of bubbles on mouseEnter
-          of another genre bubblem, so on desktop just rendering w/ threejs canvas as normal */}
       {isMobile ? (
-        <View className="absolute -right-4 top-8 h-28 w-32 scale-[.60] sm:right-4 sm:top-4 sm:scale-100 md:w-36">
-          <ambientLight intensity={1.5} />
-          <directionalLight color={"white"} intensity={0.5} />
-
-          {positions.map((position, index) => (
-            <ConditionallyFloatingBubble
-              key={index}
-              delay={Math.random()}
-              floating={hoveringOnGenre}
-              position={position as [number, number, number]}
-              radius={radii[index]!}
-              color={genre.color}
-            />
-          ))}
-        </View>
+        <Image
+          src={
+            aboveSmallViewportWidth
+              ? `genreButtonBubbles/largeBubbles/id${genre.id}.png`
+              : `genreButtonBubbles/smallBubbles/id${genre.id}.png`
+          }
+          alt="three genre preview bubbles with the same color as the associated genre"
+          width={aboveSmallViewportWidth ? 144 : 128}
+          height={112}
+          quality={100}
+          unoptimized
+          style={{
+            pointerEvents: "none",
+            userSelect: "none",
+          }}
+          className="absolute -right-4 top-10 h-28 w-32 scale-[0.60] sm:right-4 sm:top-4 sm:scale-100 md:w-36 "
+        />
       ) : (
-        <div className="absolute -right-4 top-8 h-28 w-32 scale-[.60] sm:right-4 sm:top-4 sm:scale-100 md:w-36">
+        <div className="absolute -right-8 top-12 h-28 w-32 scale-75 sm:right-4 sm:top-4 sm:scale-100 md:w-36 ">
           <Canvas
             style={{
               width: "100%",

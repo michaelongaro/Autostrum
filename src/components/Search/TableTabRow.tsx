@@ -150,8 +150,17 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
             className="baseFlex w-[150px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
           >
             {genreObject[tab.genreId]?.name}
-            <GenrePreviewBubbles
-              color={genreObject[tab.genreId]?.color ?? "#FFFFFF"}
+            <Image
+              src={`/genrePreviewBubbles/id${tab.genreId}.png`}
+              alt="three genre preview bubbles with the same color as the associated genre"
+              width={32}
+              height={32}
+              quality={100}
+              unoptimized
+              style={{
+                pointerEvents: "none",
+                userSelect: "none",
+              }}
             />
           </div>
         </TableCell>

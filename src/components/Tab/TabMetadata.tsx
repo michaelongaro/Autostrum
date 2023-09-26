@@ -1094,8 +1094,17 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                     } baseFlex w-[150px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]`}
                   >
                     {genreObject[genreId]?.name}
-                    <GenrePreviewBubbles
-                      color={genreObject[genreId]?.color ?? "#FFFFFF"}
+                    <Image
+                      src={`/genrePreviewBubbles/id${genreId}.png`}
+                      alt="three genre preview bubbles with the same color as the associated genre"
+                      width={32}
+                      height={32}
+                      quality={100}
+                      unoptimized
+                      style={{
+                        pointerEvents: "none",
+                        userSelect: "none",
+                      }}
                     />
                   </div>
                 </div>
