@@ -2,11 +2,11 @@ import { motion } from "framer-motion";
 import Head from "next/head";
 import Hero from "~/components/HomePage/Hero";
 
-const Home = ({
+function Home({
   showSignUpAndSignInButtons,
 }: {
   showSignUpAndSignInButtons: boolean;
-}) => {
+}) {
   return (
     <motion.div
       key={"home"}
@@ -30,6 +30,6 @@ const Home = ({
       <Hero showSignUpAndSignInButtons={showSignUpAndSignInButtons} />
     </motion.div>
   );
-};
+}
 
 export default Home;
