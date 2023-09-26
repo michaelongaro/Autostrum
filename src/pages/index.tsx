@@ -1,4 +1,6 @@
+import { buildClerkProps, getAuth } from "@clerk/nextjs/server";
 import { motion } from "framer-motion";
+import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import Hero from "~/components/HomePage/Hero";
 
@@ -33,3 +35,14 @@ function Home({
 }
 
 export default Home;
+
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const { userId } = getAuth(ctx.req);
+
+  return {
+    props: {
+      showSignUpAndSignInButtons: userId === null,
+      ...buildClerkProps(ctx.req),
+    },
+  };
+};
