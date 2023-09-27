@@ -116,7 +116,7 @@ function GridTabView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="baseVertFlex w-full gap-4 transition-all @container"
+      className="baseVertFlex w-full !flex-nowrap !justify-start gap-4 overflow-y-auto transition-all @container"
     >
       <div
         style={{ gridAutoRows: "minmax(min-content, max-content)" }}
