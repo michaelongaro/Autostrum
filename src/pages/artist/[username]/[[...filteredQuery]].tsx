@@ -109,19 +109,20 @@ function ArtistProfile() {
                     alt={`${artist?.username ?? "Anonymous"}'s profile image`}
                     width={96}
                     height={96}
-                    // TODO: maybe just a developemnt thing, but it still very
-                    // briefly shows the default placeholder for a loading
-                    // or not found image before the actual image loads...
-                    onLoadingComplete={() => setProfileImageLoaded(true)}
+                    onLoadingComplete={() => {
+                      setTimeout(() => {
+                        setProfileImageLoaded(true);
+                      }, 1000);
+                    }}
                     style={{
                       opacity: profileImageLoaded ? 1 : 0,
                     }}
-                    className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-800 object-cover object-center 
-                          transition-opacity"
+                    className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full object-cover object-center transition-opacity"
                   />
                   <div
                     style={{
                       opacity: !profileImageLoaded ? 1 : 0,
+                      zIndex: !profileImageLoaded ? 1 : -1,
                     }}
                     className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 transition-opacity
                               ${!profileImageLoaded ? "animate-pulse" : ""}
@@ -129,7 +130,9 @@ function ArtistProfile() {
                   ></div>
                 </>
               ) : (
-                <AiOutlineUser className="h-8 w-8" />
+                // kinda don't think this is necessary since the user should *always* have a profile image
+                // if they have an account right?
+                <AiOutlineUser className="my-9 h-16 w-16" />
               )}
             </div>
 
