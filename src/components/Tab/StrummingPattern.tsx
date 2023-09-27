@@ -28,6 +28,7 @@ import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 
 interface StrummingPattern {
   data: StrummingPatternType;
@@ -93,7 +94,7 @@ function StrummingPattern({
   useEffect(() => {
     if (inputIdToFocus) {
       const newNoteToFocus = document.getElementById(inputIdToFocus);
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
       setInputIdToFocus(null);
     }
   }, [inputIdToFocus]);
@@ -146,7 +147,7 @@ function StrummingPattern({
         `input-strummingPatternModal-${beatIndex}-0`
       );
 
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
     } else if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
 
@@ -154,7 +155,7 @@ function StrummingPattern({
         `input-strummingPatternModal-${beatIndex - 1}-1`
       );
 
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
     } else if (e.key === "ArrowRight") {
       e.preventDefault(); // prevent cursor from moving
 
@@ -163,7 +164,7 @@ function StrummingPattern({
           "strummingPatternExtendPatternButton"
         );
 
-        newNoteToFocus?.focus();
+        focusAndScrollIntoView(newNoteToFocus);
         return;
       }
 
@@ -171,7 +172,7 @@ function StrummingPattern({
         `input-strummingPatternModal-${beatIndex + 1}-1`
       );
 
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
     }
 
     setStrummingPatternBeingEdited({
@@ -193,7 +194,7 @@ function StrummingPattern({
         `input-strummingPatternModal-${lastStrumIndex}-1`
       );
 
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
     }
   }
 
@@ -438,7 +439,7 @@ function StrummingPattern({
             }-chordSequence${
               location?.chordSequenceIndex ?? ""
             }-chord${strumIndex}`}
-            className="baseFlex scroll-m-8"
+            className="baseFlex"
           >
             <div
               style={{

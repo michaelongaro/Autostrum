@@ -40,6 +40,7 @@ import TabColumn from "./TabColumn";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { traverseToRemoveHangingPairNode } from "~/utils/palmMuteHelpers";
 import MiscellaneousControls from "./MiscellaneousControls";
+import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -100,7 +101,7 @@ function TabSection({
   useEffect(() => {
     if (inputIdToFocus) {
       const newNoteToFocus = document.getElementById(inputIdToFocus);
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
       setInputIdToFocus(null);
     }
   }, [inputIdToFocus]);
@@ -553,7 +554,7 @@ function TabSection({
         `input-${sectionIndex}-${subSectionIndex}-${firstNewColumnIndex}-3`
       );
 
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
     } else if (e.key === "Enter") {
       const newTabData = [...tabData];
 

@@ -293,7 +293,7 @@ function TabNotesColumn({
         transition,
         height: editing ? "400px" : "271px",
       }}
-      className="baseVertFlex cursor-default scroll-m-8"
+      className="baseVertFlex cursor-default"
     >
       <div className="baseFlex relative">
         <div

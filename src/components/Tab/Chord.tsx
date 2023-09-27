@@ -3,6 +3,7 @@ import { shallow } from "zustand/shallow";
 import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import { parse, toString } from "~/utils/tunings";
 import { Input } from "../ui/input";
+import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 
 interface Chord {
   chordBeingEdited: { index: number; value: ChordType };
@@ -39,7 +40,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
         `input-chordModal-chordModal-${index + 1}`
       );
 
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
     } else if (e.key === "ArrowUp") {
       e.preventDefault(); // prevent cursor from moving
 
@@ -47,7 +48,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
         `input-chordModal-chordModal-${index - 1}`
       );
 
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
     }
   }
 

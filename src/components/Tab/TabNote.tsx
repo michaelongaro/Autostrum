@@ -2,6 +2,7 @@ import { memo, useState } from "react";
 import { shallow } from "zustand/shallow";
 import { useTabStore } from "~/stores/TabStore";
 import { Input } from "../ui/input";
+import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 
 interface TabNote {
   note: string;
@@ -133,7 +134,7 @@ function TabNote({
         }`
       );
 
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
       return;
     } else if (e.key === "ArrowUp") {
       e.preventDefault(); // prevent cursor from moving
@@ -144,7 +145,7 @@ function TabNote({
         }`
       );
 
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
       return;
     } else if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
@@ -160,7 +161,7 @@ function TabNote({
         `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`
       );
 
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
       return;
     } else if (e.key === "ArrowRight") {
       e.preventDefault(); // prevent cursor from moving
@@ -173,7 +174,7 @@ function TabNote({
           `${sectionIndex}${subSectionIndex}ExtendTabButton`
         );
 
-        newNoteToFocus?.focus();
+        focusAndScrollIntoView(newNoteToFocus);
         return;
       }
 
@@ -188,7 +189,7 @@ function TabNote({
         `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`
       );
 
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
       return;
     }
 
@@ -380,7 +381,7 @@ function TabNote({
           }-${noteIndex}`
         );
 
-        newNoteToFocus?.focus();
+        focusAndScrollIntoView(newNoteToFocus);
         return;
       }
     }

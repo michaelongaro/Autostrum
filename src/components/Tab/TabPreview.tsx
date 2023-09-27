@@ -384,7 +384,7 @@ function PreviewStrummingPattern({
         className="baseFlex relative !justify-start"
       >
         {data?.strums?.map((strum, strumIndex) => (
-          <div key={strumIndex} className="baseFlex scroll-m-8">
+          <div key={strumIndex} className="baseFlex">
             <div
               style={{
                 marginTop:
@@ -717,7 +717,7 @@ function TabNotesColumn({
   }
 
   return (
-    <div className="baseVertFlex cursor-default scroll-m-8">
+    <div className="baseVertFlex cursor-default">
       <div className="baseFlex relative">
         <div
           style={{

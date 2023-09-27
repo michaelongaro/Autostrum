@@ -11,6 +11,7 @@ import { useTabStore } from "~/stores/TabStore";
 import { addOrRemovePalmMuteDashes } from "~/utils/palmMuteHelpers";
 import { Button } from "../ui/button";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
+import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 
 interface PalmMuteNode {
   value: string;
@@ -59,7 +60,7 @@ function PalmMuteNode({
         `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-1`
       );
 
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
     } else if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
 
@@ -84,7 +85,7 @@ function PalmMuteNode({
             `input-${sectionIndex}-${subSectionIndex}-${currentIndex}-${0}`
           );
 
-          newNoteToFocus?.focus();
+          focusAndScrollIntoView(newNoteToFocus);
           return;
         }
 
@@ -107,7 +108,7 @@ function PalmMuteNode({
             `${sectionIndex}${subSectionIndex}ExtendTabButton`
           );
 
-          newNoteToFocus?.focus();
+          focusAndScrollIntoView(newNoteToFocus);
           return;
         }
 
@@ -128,7 +129,7 @@ function PalmMuteNode({
             `input-${sectionIndex}-${subSectionIndex}-${currentIndex}-${0}`
           );
 
-          newNoteToFocus?.focus();
+          focusAndScrollIntoView(newNoteToFocus);
           return;
         }
 

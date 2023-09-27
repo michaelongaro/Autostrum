@@ -41,18 +41,11 @@ function useAutoscrollToCurrentChord({
     }
 
     if (currentElement) {
-      const rect = currentElement.getBoundingClientRect();
-      if (
-        rect.top < 0 ||
-        rect.bottom >
-          (window.innerHeight || document.documentElement.clientHeight) // not sure if second part necessary
-      ) {
-        currentElement.scrollIntoView({
-          behavior: "instant",
-          block: "center",
-          inline: "center",
-        });
-      }
+      currentElement.scrollIntoView({
+        behavior: "instant",
+        block: "center",
+        inline: "center",
+      });
     }
   }, [
     currentlyPlayingMetadata,

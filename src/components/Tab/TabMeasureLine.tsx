@@ -15,6 +15,7 @@ import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { type TabColumn } from "./TabColumn";
+import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 
 function TabMeasureLine({
   columnData,
@@ -94,7 +95,7 @@ function TabMeasureLine({
         `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-7`
       );
 
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
       return;
     } else if (e.key === "ArrowRight") {
       e.preventDefault(); // prevent cursor from moving
@@ -107,7 +108,7 @@ function TabMeasureLine({
           `${sectionIndex}${subSectionIndex}ExtendTabButton`
         );
 
-        newNoteToFocus?.focus();
+        focusAndScrollIntoView(newNoteToFocus);
         return;
       }
 
@@ -122,7 +123,7 @@ function TabMeasureLine({
         `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-7`
       );
 
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
       return;
     }
 

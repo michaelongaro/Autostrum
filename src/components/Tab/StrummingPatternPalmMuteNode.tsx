@@ -10,6 +10,7 @@ import { useTabStore, type StrummingPattern } from "~/stores/TabStore";
 import { addOrRemoveStrummingPatternPalmMuteDashes } from "~/utils/palmMuteHelpers";
 import { Button } from "../ui/button";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
+import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 
 interface StrummingPatternPalmMuteNode {
   value: string;
@@ -61,7 +62,7 @@ function StrummingPatternPalmMuteNode({
         `input-strummingPatternModal-${beatIndex}-1`
       );
 
-      newNoteToFocus?.focus();
+      focusAndScrollIntoView(newNoteToFocus);
     } else if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
 
@@ -84,7 +85,7 @@ function StrummingPatternPalmMuteNode({
             `input-strummingPatternModal-${currentIndex}-${0}`
           );
 
-          newNoteToFocus?.focus();
+          focusAndScrollIntoView(newNoteToFocus);
           return;
         }
 
@@ -104,7 +105,7 @@ function StrummingPatternPalmMuteNode({
             "strummingPatternExtendPatternButton"
           );
 
-          newNoteToFocus?.focus();
+          focusAndScrollIntoView(newNoteToFocus);
           return;
         }
 
@@ -123,7 +124,7 @@ function StrummingPatternPalmMuteNode({
             `input-strummingPatternModal-${currentIndex}-${0}`
           );
 
-          newNoteToFocus?.focus();
+          focusAndScrollIntoView(newNoteToFocus);
           return;
         }
 
