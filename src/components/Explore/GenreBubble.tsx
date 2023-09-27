@@ -14,7 +14,6 @@ import {
   PointLight,
   SphereGeometry,
 } from "three";
-import { View } from "~/components/canvas/View";
 import type { GenreWithTotalTabNumbers } from "~/server/api/routers/genre";
 import { formatNumber } from "~/utils/formatNumber";
 extend({
