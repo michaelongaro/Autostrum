@@ -25,25 +25,27 @@ function Hero({
 
   return (
     <div className="baseVertFlex z-10 my-24 !flex-nowrap gap-16">
-      <div className="lightGlassmorphic baseVertFlex w-5/6 items-start gap-4 rounded-xl p-4 shadow-sm sm:w-auto md:p-8">
-        <h1 className="baseVertFlex gap-2 text-3xl font-bold md:text-5xl">
-          Welcome to
-          <Image
-            src="/logoWithTitle.svg"
-            alt="Autostrum logo"
-            width={isAboveMediumViewportWidth ? 300 : 200}
-            height={isAboveMediumViewportWidth ? 100 : 75}
-            priority
-          />
-        </h1>
+      <div className="lightGlassmorphic baseVertFlex w-5/6 items-start gap-2 rounded-xl p-4 shadow-sm sm:w-auto md:gap-4 md:p-8">
+        <div className="baseVertFlex gap-4">
+          <h1 className="baseVertFlex gap-2 text-3xl font-bold md:text-5xl">
+            Welcome to
+            <Image
+              src="/logoWithTitle.svg"
+              alt="Autostrum logo"
+              width={isAboveMediumViewportWidth ? 300 : 200}
+              height={isAboveMediumViewportWidth ? 100 : 75}
+              priority
+            />
+          </h1>
 
-        <p className="text-center text-sm md:text-base">
-          Create and share your riffs{" "}
-          <span className="italic text-pink-600 underline underline-offset-2">
-            exactly
-          </span>{" "}
-          how you want them to sound
-        </p>
+          <p className="text-center text-sm md:text-base">
+            Create and share your riffs{" "}
+            <span className="italic text-pink-600 underline underline-offset-2">
+              exactly
+            </span>{" "}
+            how you want them to sound
+          </p>
+        </div>
 
         {showSignUpAndSignInButtons && (
           <div className="baseFlex mt-4 gap-4">
