@@ -258,7 +258,7 @@ function LikeAndUnlikeButton({
           </AnimatePresence>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="baseFlex w-full bg-pink-50 py-2 text-pink-950">
+      <PopoverContent className="baseFlex w-full bg-pink-50 py-2 text-sm text-pink-950 md:text-base">
         Only registered users can like tabs.
       </PopoverContent>
     </Popover>
