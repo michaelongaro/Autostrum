@@ -90,6 +90,8 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
   );
 
   function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.value.length > 25) return;
+
     const newTabData = [...tabData];
     const newSectionProgression = [...sectionProgression];
 
