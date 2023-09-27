@@ -344,9 +344,9 @@ function SearchResults({
   }
 
   return (
-    <div className="baseVertFlex min-h-[500px] w-full !justify-start rounded-md border-8 border-t-2 border-pink-800 shadow-md">
+    <div className="baseVertFlex min-h-[500px] w-full !flex-nowrap !justify-start rounded-md border-8 border-t-2 border-pink-800 shadow-md">
       {/* # of results + sorting options */}
-      <div className="baseFlex min-h-[76px] w-full !items-center !justify-between gap-4 bg-pink-800 p-2 @container">
+      <div className="baseFlex w-full !items-center !justify-between gap-4 bg-pink-800 p-2 @container xl:min-h-[76px]">
         {/* # of results */}
         <AnimatePresence mode="wait">
           {resultsCountIsLoading ? (
