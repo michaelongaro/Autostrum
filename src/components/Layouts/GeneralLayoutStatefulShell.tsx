@@ -281,7 +281,7 @@ function GeneralLayoutStatefulShell() {
               bottom: scrollToTopButtonBottomValue,
               transition: "bottom 0.3s linear",
             }}
-            className="baseFlex fixed right-1 z-50 lg:right-4"
+            className="baseFlex fixed right-1 z-[49] lg:right-4"
           >
             <Button
               variant="secondary"
