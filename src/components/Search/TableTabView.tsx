@@ -262,7 +262,7 @@ function TableTabSkeleton({ forPinnedModal }: { forPinnedModal: boolean }) {
         <div className="h-8 w-32 animate-pulse rounded-md bg-pink-300"></div>
       </TableCell>
 
-      <TableCell className="baseFlex !justify-start gap-2">
+      <TableCell className="baseFlex !flex-nowrap !justify-start gap-2">
         <div className="h-8 w-8 animate-pulse rounded-full bg-pink-300"></div>
         <div className="h-6 w-24 animate-pulse rounded-md bg-pink-300"></div>
       </TableCell>

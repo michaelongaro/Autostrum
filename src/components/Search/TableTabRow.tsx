@@ -25,7 +25,6 @@ import {
 import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
-import GenrePreviewBubbles from "../Tab/GenrePreviewBubbles";
 import type { RefetchTab } from "../Tab/Tab";
 import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
 
@@ -97,7 +96,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
 
     const {
       data: tabCreator,
-      isLoading: loadingTabCreator,
+      isFetching: fetchingTabCreator,
       refetch: refetchTabCreator,
     } = api.artist.getByIdOrUsername.useQuery(
       {
@@ -165,15 +164,18 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
           </div>
         </TableCell>
         <TableCell>
-          {/* not sure why the profile image starts shrinking + eventually "pushed" out of view when
-          viewport is shrunk. maybe something to do with "object-cover or object-center"? */}
-          <Button asChild variant={"ghost"} className="px-3 py-1">
+          <Button
+            disabled={!tabCreator}
+            // asChild // hmm want to use asChild but it overrides the disabled prop
+            variant={"ghost"}
+            className="px-3 py-1"
+          >
             <Link
               href={`/artist/${tabCreator?.username ?? ""}`}
               className="baseFlex w-fit !flex-nowrap !justify-start gap-2"
             >
-              <div className="grid grid-cols-1 grid-rows-1">
-                {tabCreator || loadingTabCreator ? (
+              <div className="grid h-8 w-8 grid-cols-1 grid-rows-1">
+                {tabCreator || fetchingTabCreator ? (
                   <>
                     <Image
                       src={tabCreator?.profileImageUrl ?? ""}
@@ -206,7 +208,13 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
                   <AiOutlineUser className="h-8 w-8" />
                 )}
               </div>
-              <span>{tabCreator?.username ?? "Anonymous"}</span>
+              <span
+                className={`text-lg ${
+                  !tabCreator && !fetchingTabCreator ? "italic" : ""
+                }`}
+              >
+                {tabCreator?.username ?? "Anonymous"}
+              </span>
             </Link>
           </Button>
         </TableCell>
