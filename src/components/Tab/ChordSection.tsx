@@ -245,9 +245,7 @@ function ChordSection({
                   </AnimatePresence>
                 </div>
               ) : (
-                <p className="font-lg italic text-gray-200">
-                  Empty strumming pattern
-                </p>
+                <p className="italic text-pink-200">Empty strumming pattern</p>
               )}
             </>
           ))}
