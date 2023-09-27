@@ -19,7 +19,7 @@ function TabCardSkeleton({ uniqueKey, width }: TabCardSkeleton) {
       <div
         style={{
           width: width ?? "100%",
-          height: width ? width / 2.17 : "9rem",
+          height: width ? width / 2.45 : "9rem",
         }}
         className="animate-pulse rounded-t-sm bg-pink-300"
       ></div>
