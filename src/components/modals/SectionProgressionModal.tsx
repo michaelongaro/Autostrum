@@ -1,36 +1,14 @@
-import {
-  DndContext,
-  KeyboardSensor,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  restrictToFirstScrollableAncestor,
-  restrictToVerticalAxis,
-} from "@dnd-kit/modifiers";
-import {
-  SortableContext,
-  arrayMove,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import FocusTrap from "focus-trap-react";
 import { AnimatePresence, motion } from "framer-motion";
-
+import isEqual from "lodash.isequal";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BsPlus } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
+import { BsPlus } from "react-icons/bs";
+import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
 import { v4 as uuid } from "uuid";
 import { shallow } from "zustand/shallow";
 import { useTabStore, type SectionProgression } from "~/stores/TabStore";
 import { Button } from "../ui/button";
-
-import { useSortable } from "@dnd-kit/sortable";
-import FocusTrap from "focus-trap-react";
-import isEqual from "lodash.isequal";
-import { RxDragHandleDots2 } from "react-icons/rx";
 import { Input } from "../ui/input";
 import {
   Select,
@@ -58,7 +36,7 @@ const sectionVariants = {
   },
   closed: {
     opacity: 0,
-    scale: 0,
+    scale: 0.75,
   },
 };
 
@@ -95,49 +73,9 @@ function SectionProgressionModal() {
     setLocalSectionProgression(structuredClone(sectionProgression));
   }, [sectionProgression]);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
   const sections = useMemo(() => {
     return tabData.map((section) => ({ id: section.id, title: section.title }));
   }, [tabData]);
-
-  const sectionProgressionIds = useMemo(() => {
-    return localSectionProgression.map((section) => section.id);
-  }, [localSectionProgression]);
-
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-
-    if (over === null) return;
-
-    let newSectionProgression = [...localSectionProgression];
-
-    if (
-      typeof active.id === "string" &&
-      typeof over.id === "string" &&
-      active.id !== over.id
-    ) {
-      const startIndex = newSectionProgression.findIndex(
-        (section) => section.id === active.id
-      );
-      const endIndex = newSectionProgression.findIndex(
-        (section) => section.id === over.id
-      );
-
-      newSectionProgression = arrayMove(
-        newSectionProgression,
-        startIndex,
-        endIndex
-      );
-
-      setLocalSectionProgression(newSectionProgression);
-    }
-  }
 
   function addNewSectionToProgression() {
     const newSectionProgression = [...localSectionProgression];
@@ -209,53 +147,36 @@ function SectionProgressionModal() {
               ref={scrollableSectionsRef}
               className="baseVertFlex max-h-[70vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[70vh] md:w-3/4"
             >
-              <DndContext
-                sensors={sensors}
-                modifiers={[
-                  restrictToFirstScrollableAncestor,
-                  restrictToVerticalAxis,
-                ]}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={sectionProgressionIds}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {localSectionProgression.length > 0 ? (
-                    <AnimatePresence mode="wait">
-                      <>
-                        {localSectionProgression.map((section, index) => (
-                          <Section
-                            key={section.id}
-                            id={section.id}
-                            index={index}
-                            title={section.title}
-                            repetitions={section.repetitions}
-                            sections={sections}
-                            localSectionProgression={localSectionProgression}
-                            setLocalSectionProgression={
-                              setLocalSectionProgression
-                            }
-                          />
-                        ))}
-                      </>
-                    </AnimatePresence>
-                  ) : (
-                    <Button onClick={addNewSectionToProgression}>
-                      Add first section
-                    </Button>
-                  )}
-                </SortableContext>
-              </DndContext>
+              {localSectionProgression.length > 0 ? (
+                <AnimatePresence mode="wait">
+                  <>
+                    {localSectionProgression.map((section, index) => (
+                      <Section
+                        key={section.id}
+                        id={section.id}
+                        index={index}
+                        title={section.title}
+                        repetitions={section.repetitions}
+                        sections={sections}
+                        localSectionProgression={localSectionProgression}
+                        setLocalSectionProgression={setLocalSectionProgression}
+                      />
+                    ))}
+                  </>
+                </AnimatePresence>
+              ) : (
+                <Button onClick={addNewSectionToProgression}>
+                  Add first section
+                </Button>
+              )}
             </div>
 
             {localSectionProgression.length > 0 && (
               <Button
-                className="rounded-full p-2"
+                className="rounded-full !py-5 px-2 md:py-0"
                 onClick={addNewSectionToProgression}
               >
-                <BsPlus className="h-6 w-6" />
+                <BsPlus className="h-6 w-6 p-0" />
               </Button>
             )}
 
@@ -283,14 +204,6 @@ function SectionProgressionModal() {
 
 export default SectionProgressionModal;
 
-const initialStyles = {
-  x: 0,
-  y: 0,
-  scale: 1,
-  opacity: 1,
-  filter: "drop-shadow(0px 5px 5px transparent)",
-};
-
 interface Section {
   id: string;
   sections: {
@@ -315,19 +228,6 @@ function Section({
   localSectionProgression,
   setLocalSectionProgression,
 }: Section) {
-  const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
-  const [grabbingHandle, setGrabbingHandle] = useState(false);
-
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    setActivatorNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id, transition: null });
-
   function handleSectionChange(stringifiedIndex: string) {
     const newIndex = parseInt(stringifiedIndex);
     const newSectionProgression = [...localSectionProgression];
@@ -357,73 +257,56 @@ function Section({
     setLocalSectionProgression(newSectionProgression);
   }
 
+  function moveSectionUp() {
+    const newSectionProgression = [...localSectionProgression];
+    const temp = newSectionProgression[index - 1];
+    newSectionProgression[index - 1] = newSectionProgression[index];
+    newSectionProgression[index] = temp;
+    setLocalSectionProgression(newSectionProgression);
+  }
+
+  function moveSectionDown() {
+    const newSectionProgression = [...localSectionProgression];
+    const temp = newSectionProgression[index + 1];
+    newSectionProgression[index + 1] = newSectionProgression[index];
+    newSectionProgression[index] = temp;
+    setLocalSectionProgression(newSectionProgression);
+  }
+
   return (
     <motion.div
       key={`sectionProgression${id}`}
-      ref={setNodeRef}
-      layoutId={id}
-      style={initialStyles}
+      layout={"position"}
       initial="closed"
-      animate={
-        transform
-          ? {
-              x: transform.x,
-              y: transform.y,
-              opacity: 1,
-              scale: isDragging ? 1.05 : 1,
-              zIndex: isDragging ? 1 : 0,
-              filter: isDragging
-                ? "drop-shadow(0px 5px 5px rgba(0, 0, 0, 0.25)"
-                : "drop-shadow(0px 5px 5px transparent)",
-            }
-          : initialStyles
-      }
+      animate="expanded"
       exit="closed"
-      transition={{
-        duration: !isDragging ? 0.25 : 0,
-        easings: {
-          type: "spring",
-        },
-        x: {
-          duration: !isDragging ? 0.3 : 0,
-        },
-        y: {
-          duration: !isDragging ? 0.3 : 0,
-        },
-        scale: {
-          duration: 0.25,
-        },
-        zIndex: {
-          delay: isDragging ? 0 : 0.25,
-        },
-      }}
       variants={sectionVariants}
       className="baseFlex relative w-fit !flex-nowrap gap-2"
     >
-      <div
-        ref={setActivatorNodeRef}
-        {...attributes}
-        {...listeners}
-        className="relative cursor-grab rounded-md active:cursor-grabbing"
-        onMouseEnter={() => setHoveringOnHandle(true)}
-        onMouseDown={() => setGrabbingHandle(true)}
-        onMouseLeave={() => setHoveringOnHandle(false)}
-        onMouseUp={() => setGrabbingHandle(false)}
-      >
-        <RxDragHandleDots2 className="h-8 w-6" />
-        <div
-          style={{
-            opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
-          }}
-          className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-pink-200/30 p-4 transition-all"
-        ></div>
+      <div className="baseVertFlex gap-2">
+        <Button
+          disabled={index === 0}
+          variant="secondary"
+          className="px-2"
+          onClick={() => moveSectionUp()}
+        >
+          <BiUpArrowAlt className="h-5 w-5"></BiUpArrowAlt>
+        </Button>
+        <Button
+          disabled={index === localSectionProgression.length - 1}
+          variant="secondary"
+          className="px-2"
+          onClick={() => moveSectionDown()}
+        >
+          <BiDownArrowAlt className="h-5 w-5"></BiDownArrowAlt>
+        </Button>
       </div>
-      <div className="baseFlex w-full gap-4 rounded-md bg-pink-500 p-4 px-8 sm:px-4 md:w-fit ">
+      <div className="baseFlex w-full gap-4 rounded-md bg-pink-500 p-4 px-4 sm:px-4 md:w-fit ">
         <Select
           value={title === "" ? undefined : title}
           onValueChange={(value) => handleSectionChange(value)}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger>
             <SelectValue placeholder="Select a section">
               {title === "" ? "Select a section" : title}
             </SelectValue>
@@ -444,6 +327,7 @@ function Section({
         </Select>
 
         <div className="baseFlex gap-2">
+          <span className="mr-1">Repeat</span>
           x
           <Input
             className="max-w-[2.6rem]"
