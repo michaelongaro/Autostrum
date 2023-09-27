@@ -3,6 +3,14 @@ import { useRef, type ReactNode } from "react";
 import Bubbles from "../Bubbles";
 import Footer from "../Footer/Footer";
 import GeneralLayoutStatefulShell from "./GeneralLayoutStatefulShell";
+import { Noto_Sans } from "next/font/google";
+
+const notoSans = Noto_Sans({
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+  display: "swap",
+});
 
 interface GeneralLayout {
   children: ReactNode;
@@ -12,13 +20,9 @@ function GeneralLayout({ children }: GeneralLayout) {
   const ref = useRef<HTMLDivElement>(null);
 
   return (
-    <div
+    <main
       ref={ref}
-      style={{
-        background:
-          "linear-gradient(315deg, #ff3721, #ff6196, #fba6ff) fixed center / cover",
-      }}
-      className="baseVertFlex relative min-h-[100dvh] !justify-between"
+      className={`${notoSans.className} baseVertFlex relative min-h-[100dvh] !justify-between`}
     >
       <Bubbles />
 
@@ -27,7 +31,7 @@ function GeneralLayout({ children }: GeneralLayout) {
       <AnimatePresence mode="wait">{children}</AnimatePresence>
 
       <Footer />
-    </div>
+    </main>
   );
 }
 
