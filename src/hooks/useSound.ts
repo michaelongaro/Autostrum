@@ -164,7 +164,9 @@ export default function useSound() {
       // "arbitrary" slides (/3, 3/, etc.) and regular bends/releases
       if (
         tetheredMetadata.transitionToFret !== undefined &&
-        (tetheredMetadata.effect === "b" || tetheredMetadata.effect === "r")
+        (tetheredMetadata.effect === "b" ||
+          tetheredMetadata.effect === "r" ||
+          tetheredMetadata.effect === "arbitrarySlide")
       ) {
         noteWithEffectApplied = applyBendOrReleaseEffect({
           note,
@@ -174,6 +176,7 @@ export default function useSound() {
           bpm,
           stringIdx,
           pluckBaseNote,
+          isArbitrarySlide: tetheredMetadata.effect === "arbitrarySlide",
         });
       } else if (tetheredMetadata.transitionFromFret !== undefined) {
         noteWithEffectApplied = applyTetheredEffect({
@@ -232,6 +235,7 @@ export default function useSound() {
     bpm: number;
     stringIdx: number;
     pluckBaseNote?: boolean;
+    isArbitrarySlide?: boolean;
   }
 
   function applyBendOrReleaseEffect({
@@ -243,6 +247,7 @@ export default function useSound() {
     bpm,
     stringIdx,
     pluckBaseNote = true,
+    isArbitrarySlide = false,
   }: ApplyBendEffect) {
     if (!audioContext) return;
 
@@ -266,7 +271,7 @@ export default function useSound() {
       sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
       sourceGain.gain.linearRampToValueAtTime(
         1.3,
-        audioContext.currentTime + when + 0.1
+        audioContext.currentTime + when + 0.1 // maybe still need to do arbitrary stuff here?
       );
       source.connect(sourceGain);
     }
@@ -276,19 +281,25 @@ export default function useSound() {
     if (source && sourceGain) {
       source.detune.linearRampToValueAtTime(
         detuneValue,
-        audioContext.currentTime + when + (60 / bpm) * 0.5
+        audioContext.currentTime +
+          when +
+          (60 / bpm) * (isArbitrarySlide ? 0.25 : 0.5)
       );
       return sourceGain;
     } else if (note) {
       note.source.detune.linearRampToValueAtTime(
         detuneValue,
-        audioContext.currentTime + when + (60 / bpm) * 0.5
+        audioContext.currentTime +
+          when +
+          (60 / bpm) * (isArbitrarySlide ? 0.25 : 0.5)
       );
       return note;
     } else if (copiedNote) {
       copiedNote.detune.linearRampToValueAtTime(
         detuneValue,
-        audioContext.currentTime + when + (60 / bpm) * 0.5
+        audioContext.currentTime +
+          when +
+          (60 / bpm) * (isArbitrarySlide ? 0.25 : 0.5)
       );
       // increasing gain to match level set in applyTetheredEffect()
       const copiedNoteGain = audioContext.createGain();
@@ -770,7 +781,7 @@ export default function useSound() {
   }
 
   interface TetheredMetadata {
-    effect: "h" | "p" | "/" | "\\" | "b" | "r";
+    effect: "h" | "p" | "/" | "\\" | "b" | "r" | "arbitrarySlide";
     pluckBaseNote: boolean; // used conditionally for b/r when they are not preceded by a tethered effect
     transitionFromFret?: number; // used for hp/\ effects and pre-note arbitrary slides
     transitionToFret?: number; // used for br effects and post-note arbitrary slides
@@ -884,9 +895,17 @@ export default function useSound() {
         let transitionFromFret = undefined;
         let transitionToFret = undefined;
         let pluckBaseNote = true;
-        let effect: "h" | "p" | "/" | "\\" | "b" | "r" | undefined = undefined;
+        let effect:
+          | "h"
+          | "p"
+          | "/"
+          | "\\"
+          | "b"
+          | "r"
+          | "arbitrarySlide"
+          | undefined = undefined;
 
-        // handling bends and releases
+        // handling bends and releases (assigning transitionToFret)
         if (currNote && (currNote.includes("b") || currNote.includes("r"))) {
           // baseFret = the first note of the bend/release pair, targetNote being the second
           let baseFret = 0;
@@ -946,30 +965,7 @@ export default function useSound() {
               extractNumber(currNote) !== baseNoteOfLastBend);
         }
 
-        // getting baseFret: pre-note arbitrary slide up
-        if (currNote?.[0] === "/" && nextNote === "") {
-          let baseFret = extractNumber(currNote);
-
-          if (baseFret <= 2) {
-            baseFret = 0;
-          } else {
-            baseFret -= 2;
-          }
-
-          fret = baseFret + capo;
-        }
-        // getting baseFret: pre-note arbitrary slide down
-        else if (currNote?.[0] === "\\" && nextNote === "") {
-          let baseFret = extractNumber(currNote);
-
-          if (baseFret >= 20) {
-            baseFret = 22;
-          } else {
-            baseFret += 2;
-          }
-
-          fret = baseFret + capo;
-        } // handling bends and releases
+        // handling bends and releases (assigning fret)
         if (currNote && (currNote.includes("b") || currNote.includes("r"))) {
           // baseFret = the first note of the bend/release pair, targetNote being the second
           let baseFret = 0;
@@ -1016,8 +1012,30 @@ export default function useSound() {
 
         // pre-note arbitrary slide up/down
         else if (currNote?.[0] === "/" || currNote?.[0] === "\\") {
+          if (currNote?.[0] === "/") {
+            let baseFret = extractNumber(currNote);
+
+            if (baseFret <= 2) {
+              baseFret = 0;
+            } else {
+              baseFret -= 2;
+            }
+
+            fret = baseFret + capo;
+          } else {
+            let baseFret = extractNumber(currNote);
+
+            if (baseFret >= 20) {
+              baseFret = 22;
+            } else {
+              baseFret += 2;
+            }
+
+            fret = baseFret + capo;
+          }
+
           transitionToFret = extractNumber(currNote);
-          effect = "b"; // these are played as bends in the engine
+          effect = "arbitrarySlide";
         }
 
         // post-note arbitrary slide up
@@ -1031,7 +1049,7 @@ export default function useSound() {
           }
 
           transitionToFret = baseFret + capo;
-          effect = "b"; // these are played as bends in the engine
+          effect = "arbitrarySlide";
         }
         // post-note arbitrary slide down
         else if (currNote?.at(-1) === "\\" && nextNote === "") {
@@ -1044,7 +1062,7 @@ export default function useSound() {
           }
 
           transitionToFret = baseFret + capo;
-          effect = "b"; // these are played as bends in the engine
+          effect = "arbitrarySlide";
         }
 
         // handling hp/\ tethered effects
