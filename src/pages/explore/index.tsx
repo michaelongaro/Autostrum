@@ -81,8 +81,8 @@ function Explore() {
           <p className="text-xl font-bold">Weekly featured artist</p>
           <Separator className="w-full bg-pink-500" />
         </div>
-        <div className="baseVertFlex w-full !flex-nowrap md:!flex-row md:gap-8">
-          <div className="lightestGlassmorphic baseVertFlex h-64 min-w-[200px] !flex-nowrap gap-4 rounded-md p-4 md:h-80 md:gap-8 md:py-8">
+        <div className="baseVertFlex w-full !flex-nowrap gap-4 md:!flex-row md:!items-end md:gap-8">
+          <div className="lightestGlassmorphic baseVertFlex min-w-[200px] !flex-nowrap gap-4 rounded-md px-4 py-6">
             <div className="baseVertFlex gap-4">
               <div className="grid grid-cols-1 grid-rows-1">
                 {artist || loadingCurrentArtist ? (
@@ -126,7 +126,7 @@ function Explore() {
                 >
                   <Link
                     href={`/artist/${artist?.username ?? "Anonymous"}`}
-                    className="block  truncate !p-0 !text-xl !font-semibold"
+                    className="block truncate !p-0 !text-xl !font-semibold"
                   >
                     {artist?.username}
                   </Link>
@@ -175,7 +175,7 @@ function Explore() {
             </div>
 
             {artist ? (
-              <p className="text-sm italic">{`joined on ${formatDate(
+              <p className="mt-4 text-sm italic">{`joined on ${formatDate(
                 artist.createdAt
               )}`}</p>
             ) : (
@@ -183,7 +183,7 @@ function Explore() {
             )}
           </div>
           {/* pinned tab */}
-          <div className="baseVertFlex h-80 w-11/12 !flex-nowrap !items-start gap-2 sm:w-3/4 md:w-auto">
+          <div className="baseVertFlex w-11/12 !flex-nowrap !items-start gap-2 sm:w-3/4 md:w-auto">
             <p className="baseFlex gap-2 text-lg font-semibold">
               <TbPinned className="h-5 w-5" />
               Pinned tab
