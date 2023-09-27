@@ -166,7 +166,6 @@ function Tab({ tab, refetchTab }: ITab) {
   }, [tab, tabData, setTabData]);
 
   useEffect(() => {
-    // console.log("hit?", localStorageTabData.value);
     if (!localStorageTabData.value || tabData.length > 0) return;
 
     // not sure of best way to check/validate types of localStorageTabData.value here..
