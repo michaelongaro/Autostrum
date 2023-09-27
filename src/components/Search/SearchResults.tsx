@@ -193,19 +193,12 @@ function SearchResults({
       delete newQuery.type;
     }
 
-    void push(
-      {
-        pathname,
-        query: {
-          ...newQuery,
-        },
+    void push({
+      pathname,
+      query: {
+        ...newQuery,
       },
-      undefined,
-      {
-        scroll: false, // defaults to true but try both
-        shallow: true,
-      }
-    );
+    });
   }
 
   function handleGenreChange(stringifiedId: string) {
@@ -216,19 +209,14 @@ function SearchResults({
       delete newQuery.genreId;
     }
 
-    void push(
-      {
-        pathname,
-        query: {
-          ...newQuery,
-        },
+    console.log("hit");
+
+    void push({
+      pathname,
+      query: {
+        ...newQuery,
       },
-      undefined,
-      {
-        scroll: false, // defaults to true but try both
-        shallow: true,
-      }
-    );
+    });
   }
 
   function handleViewChange(viewType: "grid" | "table") {
@@ -243,19 +231,12 @@ function SearchResults({
       delete newQuery.relevance;
     }
 
-    void push(
-      {
-        pathname,
-        query: {
-          ...newQuery,
-        },
+    void push({
+      pathname,
+      query: {
+        ...newQuery,
       },
-      undefined,
-      {
-        scroll: false, // defaults to true but try both
-        shallow: true,
-      }
-    );
+    });
   }
 
   // ask chatgpt to clean this logic up for you
@@ -306,17 +287,10 @@ function SearchResults({
     else newQueries.sort = newSortParam;
 
     // push new url to router
-    void push(
-      {
-        pathname,
-        query: newQueries,
-      },
-      undefined,
-      {
-        scroll: false, // defaults to true but try both
-        shallow: true,
-      }
-    );
+    void push({
+      pathname,
+      query: newQueries,
+    });
   }
 
   // we have individual options for each sort type on mobile instead of clicking
@@ -330,17 +304,10 @@ function SearchResults({
     else newQueries.sort = type;
 
     // push new url to router
-    void push(
-      {
-        pathname,
-        query: newQueries,
-      },
-      undefined,
-      {
-        scroll: false, // defaults to true but try both
-        shallow: true,
-      }
-    );
+    void push({
+      pathname,
+      query: newQueries,
+    });
   }
 
   return (

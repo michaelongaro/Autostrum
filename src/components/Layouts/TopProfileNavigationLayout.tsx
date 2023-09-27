@@ -24,10 +24,7 @@ function TopProfileNavigationLayout({ children }: Layout) {
   }, [asPath]);
 
   function pushToTabsOrLikes(pushToTabs: boolean) {
-    void push(`/profile/${pushToTabs ? "tabs" : "likes"}/filters`, undefined, {
-      scroll: false, // defaults to true but try both
-      shallow: true,
-    });
+    void push(`/profile/${pushToTabs ? "tabs" : "likes"}/filters`);
   }
 
   function getDynamicWidth() {

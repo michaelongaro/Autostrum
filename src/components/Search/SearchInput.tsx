@@ -105,22 +105,15 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
       prevQuery.search = searchQuery;
     }
 
-    void push(
-      {
-        pathname:
-          asPath.includes("/explore") && !asPath.includes("filters")
-            ? `${pathname}/filters`
-            : pathname,
-        query: {
-          ...prevQuery,
-        },
+    void push({
+      pathname:
+        asPath.includes("/explore") && !asPath.includes("filters")
+          ? `${pathname}/filters`
+          : pathname,
+      query: {
+        ...prevQuery,
       },
-      undefined,
-      {
-        scroll: false, // defaults to true but try both
-        shallow: true,
-      }
-    );
+    });
   }
 
   function getPlaceholderTextBasedOnParams() {

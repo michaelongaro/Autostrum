@@ -139,10 +139,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
           }}
           className="gridTabCardPreviewGlassmorphic relative w-full cursor-pointer overflow-hidden rounded-t-md transition-all hover:bg-black/10 active:bg-black/20"
           onClick={() => {
-            void push(`/tab/${tab.id}`, undefined, {
-              scroll: false, // defaults to true but try both
-              shallow: true,
-            });
+            void push(`/tab/${tab.id}`);
           }}
         >
           <TabPreview

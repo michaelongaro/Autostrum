@@ -90,20 +90,13 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
   }
 
   function searchForSpecificGenre(genreId: number) {
-    void push(
-      {
-        pathname: `${pathname}/filters`,
-        query: {
-          ...query,
-          genreId,
-        },
+    void push({
+      pathname: `${pathname}/filters`,
+      query: {
+        ...query,
+        genreId,
       },
-      undefined,
-      {
-        scroll: false, // defaults to true but try both
-        shallow: true,
-      }
-    );
+    });
   }
 
   return (
