@@ -1,7 +1,7 @@
 import FocusTrap from "focus-trap-react";
 import { motion } from "framer-motion";
 import isEqual from "lodash.isequal";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { BsFillPlayFill, BsKeyboard } from "react-icons/bs";
 import { shallow } from "zustand/shallow";
 import { Label } from "~/components/ui/label";
@@ -10,6 +10,13 @@ import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import Chord from "../Tab/Chord";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "~/components/ui/accordion";
+import { isMobile } from "react-device-detect";
 
 const backdropVariants = {
   expanded: {
@@ -25,6 +32,10 @@ interface ChordModal {
 }
 
 function ChordModal({ chordBeingEdited }: ChordModal) {
+  const [accordionValue, setAccordionValue] = useState(
+    isMobile ? "" : "opened"
+  );
+
   const {
     chords,
     setChords,
@@ -165,7 +176,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       <FocusTrap>
         <div
           tabIndex={-1}
-          className="baseVertFlex min-w-[300px] max-w-[80vw] gap-8 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 xl:max-w-[50vw]"
+          className="baseVertFlex min-w-[300px] max-w-[90vw] gap-8 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 xl:max-w-[50vw]"
           onKeyDown={(e) => {
             if (e.key === "Escape") {
               if (audioMetadata.playing) pauseAudio();
@@ -184,25 +195,39 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
             />
           </div>
 
-          <div className="baseVertFlex lightestGlassmorphic max-w-[23rem] gap-2 rounded-md p-2 text-sm">
-            <div className="baseFlex gap-2 font-semibold">
-              <BsKeyboard className="h-6 w-6" />
-              Hotkeys
-            </div>
-            <div className="baseFlex gap-2 sm:gap-6">
-              <div className="baseFlex gap-2">
-                <span className="font-semibold">A-G</span>
-                <span>-</span>
-                <span>Major chords</span>
-              </div>
+          <Accordion
+            type="single"
+            collapsible
+            value={accordionValue}
+            onValueChange={(value) => {
+              setAccordionValue(value);
+            }}
+            className="baseVertFlex lightestGlassmorphic w-full gap-2 rounded-md px-2 py-0 text-sm"
+          >
+            <AccordionItem value="opened">
+              <AccordionTrigger className="w-[300px]">
+                <div className="baseFlex w-full gap-2 font-semibold">
+                  <BsKeyboard className="h-6 w-6" />
+                  Hotkeys
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="baseFlex gap-2 sm:gap-6">
+                  <div className="baseFlex gap-2">
+                    <span className="font-semibold">A-G</span>
+                    <span>-</span>
+                    <span>Major chords</span>
+                  </div>
 
-              <div className="baseFlex gap-2">
-                <span className="font-semibold">a-g</span>
-                <span>-</span>
-                <span>Minor chords</span>
-              </div>
-            </div>
-          </div>
+                  <div className="baseFlex gap-2">
+                    <span className="font-semibold">a-g</span>
+                    <span>-</span>
+                    <span>Minor chords</span>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
 
           <Chord
             chordBeingEdited={chordBeingEdited}

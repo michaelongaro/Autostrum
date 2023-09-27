@@ -25,6 +25,13 @@ import { traverseToRemoveHangingStrummingPatternPairNode } from "~/utils/palmMut
 import StrummingPattern from "../Tab/StrummingPattern";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "../ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "~/components/ui/accordion";
+import { isMobile } from "react-device-detect";
 
 const backdropVariants = {
   expanded: {
@@ -52,6 +59,10 @@ function StrummingPatternModal({
     useState(false);
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
+
+  const [accordionValue, setAccordionValue] = useState(
+    isMobile ? "" : "opened"
+  );
 
   const {
     strummingPatterns,
@@ -242,8 +253,7 @@ function StrummingPatternModal({
       <FocusTrap>
         <div
           tabIndex={-1}
-          // overflow-y-auto
-          className="baseVertFlex max-h-[95vh] min-w-[300px] max-w-[80vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all md:max-h-[90vh] md:gap-12 md:p-8 xl:max-w-[50vw]"
+          className="baseVertFlex max-h-[90vh] min-w-[300px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all md:max-h-[90vh] md:gap-12 md:p-8 xl:max-w-[50vw]"
           onKeyDown={(e) => {
             if (e.key === "Escape") {
               if (audioMetadata.playing) pauseAudio();
@@ -329,35 +339,48 @@ function StrummingPatternModal({
             </div>
           </div>
 
-          <div className="baseVertFlex lightestGlassmorphic gap-2 rounded-md p-2 text-sm">
-            <div className="baseFlex gap-2 font-semibold">
-              <BsKeyboard className="h-6 w-6" />
-              Hotkeys
-            </div>
-
-            <div className="baseFlex w-full !flex-nowrap gap-4 sm:gap-6">
-              <div className="baseFlex gap-2">
-                <span className="font-semibold">v / d</span>
-                <p className="hidden sm:block">-</p>
-                <p>Downstrum</p>
-              </div>
-              <div className="baseFlex gap-2">
-                <span className="font-semibold">^ / u</span>
-                <p className="hidden sm:block">-</p>
-                <p>Upstrum</p>
-              </div>
-              <div className="baseFlex gap-2">
-                <p className="font-semibold">s</p>
-                <p className="hidden sm:block">-</p>
-                <p>Slap</p>
-              </div>
-              <div className="baseFlex gap-2">
-                <p className="font-semibold">&gt;</p>
-                <p className="hidden sm:block">-</p>
-                <p>Accented</p>
-              </div>
-            </div>
-          </div>
+          <Accordion
+            type="single"
+            collapsible
+            value={accordionValue}
+            onValueChange={(value) => {
+              setAccordionValue(value);
+            }}
+            className="baseVertFlex lightestGlassmorphic w-[300px] gap-2 rounded-md px-2 py-0 text-sm sm:w-[500px]"
+          >
+            <AccordionItem value="opened">
+              <AccordionTrigger className="w-full">
+                <div className="baseFlex w-full gap-2 font-semibold">
+                  <BsKeyboard className="h-6 w-6" />
+                  Hotkeys
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="baseFlex  gap-4 sm:w-full sm:gap-6">
+                  <div className="baseFlex gap-2">
+                    <span className="font-semibold">v / d</span>
+                    <p>-</p>
+                    <p>Downstrum</p>
+                  </div>
+                  <div className="baseFlex gap-2">
+                    <span className="font-semibold">^ / u</span>
+                    <p>-</p>
+                    <p>Upstrum</p>
+                  </div>
+                  <div className="baseFlex gap-2">
+                    <p className="font-semibold">s</p>
+                    <p>-</p>
+                    <p>Slap</p>
+                  </div>
+                  <div className="baseFlex gap-2">
+                    <p className="font-semibold">&gt;</p>
+                    <p>-</p>
+                    <p>Accented</p>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
 
           <div className="baseFlex overflow-y-auto">
             {/* editing inputs of strumming pattern */}
