@@ -416,7 +416,7 @@ function MiscellaneousControls({
         </Button>
       )}
 
-      <DropdownMenu modal={false}>
+      <DropdownMenu modal={true}>
         <DropdownMenuTrigger asChild>
           <Button variant={"secondary"} className="px-2">
             <AiOutlineEllipsis className="h-8 w-8" />
