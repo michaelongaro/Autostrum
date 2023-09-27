@@ -233,7 +233,7 @@ function StrummingPatternModal({
   return (
     <motion.div
       key={"StrummingPatternModalBackdrop"}
-      className="baseFlex fixed left-0 top-0 z-50 h-[100vh] w-[100vw] bg-black/50"
+      className="baseFlex fixed left-0 top-0 z-50 h-[100dvh] w-[100vw] bg-black/50"
       variants={backdropVariants}
       initial="closed"
       animate="expanded"

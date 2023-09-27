@@ -68,7 +68,7 @@ function DeleteAccountModal() {
   return (
     <motion.div
       key={"DeleteAccountModalBackdrop"}
-      className="baseFlex fixed left-0 top-0 z-50 h-[100vh] w-[100vw] bg-black/50"
+      className="baseFlex fixed left-0 top-0 z-50 h-[100dvh] w-[100vw] bg-black/50"
       variants={backdropVariants}
       initial="closed"
       animate="expanded"
