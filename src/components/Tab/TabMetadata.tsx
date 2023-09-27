@@ -39,7 +39,6 @@ import {
 } from "../ui/select";
 import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
-import GenrePreviewBubbles from "./GenrePreviewBubbles";
 import type { RefetchTab } from "./Tab";
 import classes from "./TabMetadata.module.css";
 
@@ -205,29 +204,29 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
   const { pauseAudio } = useSound();
 
   // current user
-  const {
-    data: currentArtist,
-    isLoading: loadingCurrentArtist,
-    refetch: refetchCurrentArtist,
-  } = api.artist.getByIdOrUsername.useQuery(
-    {
-      userId: userId as string,
-    },
-    {
-      enabled: !!userId,
-    }
-  );
-
-  // owner of tab
-  const { data: tabCreator, refetch: refetchTabCreator } =
+  const { data: currentArtist, refetch: refetchCurrentArtist } =
     api.artist.getByIdOrUsername.useQuery(
       {
-        userId: createdById as string,
+        userId: userId as string,
       },
       {
-        enabled: !!createdById,
+        enabled: !!userId,
       }
     );
+
+  // owner of tab
+  const {
+    data: tabCreator,
+    isFetching: fetchingTabCreator,
+    refetch: refetchTabCreator,
+  } = api.artist.getByIdOrUsername.useQuery(
+    {
+      userId: createdById as string,
+    },
+    {
+      enabled: !!createdById,
+    }
+  );
 
   function handleGenreChange(stringifiedId: string) {
     const id = parseInt(stringifiedId);
@@ -970,7 +969,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                       className="baseFlex gap-2"
                     >
                       <div className="grid grid-cols-1 grid-rows-1">
-                        {tabCreator || loadingCurrentArtist ? (
+                        {tabCreator || fetchingTabCreator ? (
                           <>
                             <Image
                               src={tabCreator?.profileImageUrl ?? ""}
@@ -1004,12 +1003,18 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                         )}
                       </div>
 
-                      <span className="text-lg">
+                      <span
+                        className={`text-lg ${
+                          !tabCreator && !fetchingTabCreator ? "italic" : ""
+                        }`}
+                      >
                         {tabCreator?.username ?? "Anonymous"}
                       </span>
                     </Link>
                   </Button>
+
                   <Separator className="hidden h-[1px] w-4 md:block" />
+
                   <p className="ml-2">
                     {updatedAt && updatedAt.getTime() !== createdAt?.getTime()
                       ? `Updated on ${formatDate(updatedAt)}`
