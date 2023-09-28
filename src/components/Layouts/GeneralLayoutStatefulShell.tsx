@@ -56,6 +56,9 @@ function GeneralLayoutStatefulShell() {
     setShowingAudioControls,
     resetStoreToInitValues,
     setEditing,
+    setAudioMetadata,
+    setCurrentChordIndex,
+    setCurrentlyPlayingMetadata,
     audioMetadata,
   } = useTabStore(
     (state) => ({
@@ -63,6 +66,9 @@ function GeneralLayoutStatefulShell() {
       setShowingAudioControls: state.setShowingAudioControls,
       resetStoreToInitValues: state.resetStoreToInitValues,
       setEditing: state.setEditing,
+      setAudioMetadata: state.setAudioMetadata,
+      setCurrentChordIndex: state.setCurrentChordIndex,
+      setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
       audioMetadata: state.audioMetadata,
     }),
     shallow
@@ -206,6 +212,16 @@ function GeneralLayoutStatefulShell() {
   useEffect(() => {
     setAudioControlsVisibility("expanded");
 
+    // making sure all audio metadata is reset across route changes
+    setAudioMetadata({
+      type: "Generated",
+      tabId: -1,
+      playing: false,
+      location: null,
+    });
+    setCurrentChordIndex(0);
+    setCurrentlyPlayingMetadata(null);
+
     if (!asPath.includes("/tab") && !asPath.includes("/create")) {
       setShowingAudioControls(false);
     } else {
@@ -221,7 +237,15 @@ function GeneralLayoutStatefulShell() {
     if (asPath.includes("/create") || asPath.includes("edit")) {
       setEditing(true);
     }
-  }, [asPath, resetStoreToInitValues, setEditing, setShowingAudioControls]);
+  }, [
+    asPath,
+    resetStoreToInitValues,
+    setEditing,
+    setShowingAudioControls,
+    setAudioMetadata,
+    setCurrentChordIndex,
+    setCurrentlyPlayingMetadata,
+  ]);
 
   const scrollToTopButtonBottomValue = useMemo(() => {
     let bottomValue = "1rem";
