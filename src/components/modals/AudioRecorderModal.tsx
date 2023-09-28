@@ -113,7 +113,6 @@ function AudioRecorderModal() {
     if (recordingTime === 300) {
       togglePauseResume();
       setShowPostRecordingOptions(true);
-      setShowPostRecordingOptions(true);
     }
     // hopefully togglePauseResume is referentially stable...
   }, [togglePauseResume, recordingTime]);
@@ -134,7 +133,9 @@ function AudioRecorderModal() {
       animate="expanded"
       exit="closed"
     >
-      <FocusTrap>
+      {/* not sure exactly why, but radix's PopoverContent wasn't getting clicks when
+          FocusTrap was enabled */}
+      <FocusTrap paused={showPostRecordingOptions}>
         <div
           tabIndex={-1}
           className="baseVertFlex min-h-[350px] w-[350px] gap-10 rounded-md bg-pink-400 p-2 shadow-sm sm:w-[400px] md:p-4"
@@ -180,7 +181,11 @@ function AudioRecorderModal() {
               ></div>
             </div>
             <p>{formatSecondsToMinutes(recordingTime)}</p>
-            <Progress value={recordingTime} max={300} className="w-1/2" />
+            <Progress
+              value={(recordingTime / 300) * 100}
+              max={300}
+              className="w-1/2"
+            />
             <p>5:00</p>
           </div>
 
@@ -218,7 +223,7 @@ function AudioRecorderModal() {
                 className="baseVertFlex !flex-nowrap gap-4 p-2"
                 side="bottom"
               >
-                <p className="w-auto text-sm  underline underline-offset-2">
+                <p className="w-auto">
                   {localHasRecordedAudio
                     ? "Replace current recording?"
                     : "Save recording?"}
