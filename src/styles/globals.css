@@ -128,14 +128,22 @@
   }
 }
 
-html,
-body {
-  color: hsl(327, 73%, 97%);
-  /* make this (primary) foreground too? */
+/* semi hacky way to prevent empty space in gradient while mobile
+   address bar is animating out */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, #fba6ff, #ff6196, #ff3721) center / cover;
+  height: 100vh;
 }
 
 body {
-  background:
-    linear-gradient(315deg, #ff3721, #ff6196, #fba6ff) fixed center / cover;
+  background-color: #fd7984;
+  color: hsl(327, 73%, 97%);
   min-height: 100dvh;
 }
