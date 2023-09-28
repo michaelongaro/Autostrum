@@ -579,7 +579,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                     >
                       <div className="baseFlex gap-2">
                         {hasRecordedAudio ? "Edit recording" : "Record tab"}
-                        <FaMicrophoneAlt className="h-5 w-5" />
+                        <FaMicrophoneAlt className="h-4 w-4" />
                       </div>
                     </Button>
                   </PopoverTrigger>
