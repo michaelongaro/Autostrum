@@ -20,7 +20,7 @@ interface PlayButtonIcon {
   currentInstrument: Soundfont.Player | null;
   recordedAudioBufferSourceNode?: AudioBufferSourceNode | null;
   audioMetadata?: AudioMetadata;
-  tabId?: number;
+  tabId: number;
   sectionIndex?: number;
   subSectionIndex?: number;
   chordSequenceIndex?: number;
@@ -78,9 +78,13 @@ function PlayButtonIcon({
       (audioMetadata?.playing &&
         // just to make sure correct gridTabCard/tableTabRow responds w/ below jsx
         (audioMetadata?.tabId === tabId || tabId === -1) &&
-        audioMetadata.location?.sectionIndex === sectionIndex &&
-        audioMetadata.location?.subSectionIndex === subSectionIndex &&
-        audioMetadata.location?.chordSequenceIndex === chordSequenceIndex) ||
+        // TODO: refactor this whole mess to be more readable..
+
+        (uniqueLocationKey === "audioControls" ||
+          (audioMetadata.location?.sectionIndex === sectionIndex &&
+            audioMetadata.location?.subSectionIndex === subSectionIndex &&
+            audioMetadata.location?.chordSequenceIndex ===
+              chordSequenceIndex))) ||
       (previewMetadata?.playing &&
         previewMetadata?.indexOfPattern === indexOfPattern &&
         previewMetadata?.type === previewType)

@@ -266,23 +266,27 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
                 setChords(tab.chords as unknown as Chord[]);
                 setCapo(tab.capo);
 
-                void playTab({
-                  tabData: tab.tabData as unknown as Section[],
-                  rawSectionProgression:
-                    tab.sectionProgression as unknown as SectionProgression[],
-                  tuningNotes: tab.tuning,
-                  baselineBpm: tab.bpm,
-                  chords: tab.chords as unknown as Chord[],
-                  capo: tab.capo,
-                  tabId: tab.id,
-                  playbackSpeed,
-                  resetToStart: audioMetadata.tabId !== tab.id,
-                });
+                if (audioMetadata.playing) {
+                  pauseAudio(true);
+                }
+                setTimeout(() => {
+                  void playTab({
+                    tabData: tab.tabData as unknown as Section[],
+                    rawSectionProgression:
+                      tab.sectionProgression as unknown as SectionProgression[],
+                    tuningNotes: tab.tuning,
+                    baselineBpm: tab.bpm,
+                    chords: tab.chords as unknown as Chord[],
+                    capo: tab.capo,
+                    tabId: tab.id,
+                    playbackSpeed,
+                  });
+                }, 150); // hacky: trying to allow time for pauseAudio to finish and "flush out" state
               }
             }}
           >
             <PlayButtonIcon
-              uniqueLocationKey={`gridTabCard${tab.id}`}
+              uniqueLocationKey={`tableTabRow${tab.id}`}
               tabId={tab.id}
               currentInstrument={currentInstrument}
               audioMetadata={audioMetadata}

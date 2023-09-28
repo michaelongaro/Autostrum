@@ -282,6 +282,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
         chords,
         capo,
         playbackSpeed,
+        tabId: id,
         location: audioMetadata.location ?? undefined,
       });
     } else if (
@@ -314,6 +315,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     bpm,
     capo,
     chords,
+    id,
     playTab,
     playbackSpeed,
     sectionProgression,

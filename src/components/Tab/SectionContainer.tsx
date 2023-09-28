@@ -51,6 +51,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
   const { playTab, pauseAudio } = useSound();
 
   const {
+    id,
     bpm,
     strummingPatterns,
     tabData,
@@ -69,6 +70,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
     playbackSpeed,
   } = useTabStore(
     (state) => ({
+      id: state.id,
       bpm: state.bpm,
       strummingPatterns: state.strummingPatterns,
       tabData: state.tabData,
@@ -255,6 +257,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
                     baselineBpm: bpm,
                     chords,
                     capo,
+                    tabId: id,
                     playbackSpeed,
                     location: {
                       sectionIndex,
@@ -268,6 +271,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
             >
               <PlayButtonIcon
                 uniqueLocationKey={`sectionContainer${sectionIndex}`}
+                tabId={id}
                 currentInstrument={currentInstrument}
                 audioMetadata={audioMetadata}
                 sectionIndex={sectionIndex}

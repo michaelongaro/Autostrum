@@ -50,6 +50,7 @@ function MiscellaneousControls({
   const { playTab, pauseAudio } = useSound();
 
   const {
+    id,
     chords,
     sectionProgression,
     setSectionProgression,
@@ -66,6 +67,7 @@ function MiscellaneousControls({
     playbackSpeed,
   } = useTabStore(
     (state) => ({
+      id: state.id,
       chords: state.chords,
       sectionProgression: state.sectionProgression,
       setSectionProgression: state.setSectionProgression,
@@ -370,7 +372,7 @@ function MiscellaneousControls({
               setTimeout(() => {
                 setArtificialPlayButtonTimeout(false);
               }, 300);
-              pauseAudio();
+              pauseAudio(); // *
             } else {
               setAudioMetadata({
                 ...audioMetadata,
@@ -407,6 +409,7 @@ function MiscellaneousControls({
             uniqueLocationKey={`miscControls${sectionIndex}${
               subSectionIndex ?? ""
             }${chordSequenceIndex ?? ""}`}
+            tabId={id}
             currentInstrument={currentInstrument}
             audioMetadata={audioMetadata}
             sectionIndex={sectionIndex}

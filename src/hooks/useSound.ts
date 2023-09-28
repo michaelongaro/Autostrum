@@ -1264,7 +1264,11 @@ export default function useSound() {
   }: PlayTab) {
     setShowingAudioControls(true);
 
-    if (audioMetadata.playing || previewMetadata.playing || resetToStart) {
+    if (
+      audioMetadataRef.current.playing ||
+      previewMetadataRef.current.playing ||
+      resetToStart
+    ) {
       pauseAudio(resetToStart);
     }
 
