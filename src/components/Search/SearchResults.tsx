@@ -221,6 +221,20 @@ function SearchResults({
 
   function handleViewChange(viewType: "grid" | "table") {
     localStorageViewType.set(viewType);
+
+    const newQuery = { ...query };
+    if (viewType === "grid") {
+      delete newQuery.view;
+    } else {
+      newQuery.view = "table";
+    }
+
+    void push({
+      pathname,
+      query: {
+        ...newQuery,
+      },
+    });
   }
 
   function handleRelevanceChange() {

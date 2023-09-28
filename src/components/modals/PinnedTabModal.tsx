@@ -3,7 +3,6 @@ import FocusTrap from "focus-trap-react";
 import { motion } from "framer-motion";
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { TbPinned } from "react-icons/tb";
-import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
 import { api } from "~/utils/api";
 import SearchInput from "../Search/SearchInput";
@@ -52,10 +51,14 @@ function PinnedTabModal({
     setCurrentlySelectedPinnedTabId(pinnedTabIdFromDatabase);
   }, [pinnedTabIdFromDatabase]);
 
-  const { genreId, type, searchQuery, sortByRelevance, additionalSortFilter } =
-    useGetUrlParamFilters();
-
-  const viewType = useGetLocalStorageValues().viewType;
+  const {
+    genreId,
+    type,
+    searchQuery,
+    view,
+    sortByRelevance,
+    additionalSortFilter,
+  } = useGetUrlParamFilters();
 
   function handleUpdatePinnedTab() {
     if (!userId) return;
@@ -98,7 +101,7 @@ function PinnedTabModal({
             searchQuery={searchQuery}
             sortByRelevance={sortByRelevance}
             additionalSortFilter={additionalSortFilter}
-            viewType={viewType}
+            viewType={view}
             selectedPinnedTabId={currentlySelectedPinnedTabId}
             setSelectedPinnedTabId={setCurrentlySelectedPinnedTabId}
           />

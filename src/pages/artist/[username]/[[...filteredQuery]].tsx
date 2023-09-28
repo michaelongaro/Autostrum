@@ -18,7 +18,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
@@ -31,12 +30,12 @@ function ArtistProfile() {
     serve404Page,
     genreId,
     type,
+    view,
     searchQuery,
     sortByRelevance,
     additionalSortFilter,
   } = useGetUrlParamFilters();
 
-  const viewType = useGetLocalStorageValues().viewType;
   const [profileImageLoaded, setProfileImageLoaded] = useState(false);
 
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
@@ -238,7 +237,7 @@ function ArtistProfile() {
             searchQuery={searchQuery}
             sortByRelevance={sortByRelevance}
             additionalSortFilter={additionalSortFilter}
-            viewType={viewType}
+            viewType={view}
           />
         </div>
       )}

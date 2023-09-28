@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { BiErrorCircle } from "react-icons/bi";
 import SearchInput from "~/components/Search/SearchInput";
 import SearchResults from "~/components/Search/SearchResults";
-import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
 
 import TopProfileNavigationLayout from "~/components/Layouts/TopProfileNavigationLayout";
@@ -14,12 +13,11 @@ function ArtistLikes() {
     serve404Page,
     genreId,
     type,
+    view,
     searchQuery,
     sortByRelevance,
     additionalSortFilter,
   } = useGetUrlParamFilters();
-
-  const viewType = useGetLocalStorageValues().viewType;
 
   return (
     <motion.div
@@ -65,7 +63,7 @@ function ArtistLikes() {
               searchQuery={searchQuery}
               sortByRelevance={sortByRelevance}
               additionalSortFilter={additionalSortFilter}
-              viewType={viewType}
+              viewType={view}
             />
           </div>
         )}

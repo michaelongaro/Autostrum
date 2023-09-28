@@ -3,7 +3,6 @@ import Head from "next/head";
 import { BiErrorCircle } from "react-icons/bi";
 import SearchInput from "~/components/Search/SearchInput";
 import SearchResults from "~/components/Search/SearchResults";
-import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
 
 function FilteredQueryExplore() {
@@ -11,12 +10,11 @@ function FilteredQueryExplore() {
     serve404Page,
     genreId,
     type,
+    view,
     searchQuery,
     sortByRelevance,
     additionalSortFilter,
   } = useGetUrlParamFilters();
-
-  const viewType = useGetLocalStorageValues().viewType;
 
   return (
     <motion.div
@@ -61,7 +59,7 @@ function FilteredQueryExplore() {
             searchQuery={searchQuery}
             sortByRelevance={sortByRelevance}
             additionalSortFilter={additionalSortFilter}
-            viewType={viewType}
+            viewType={view}
           />
         </>
       )}

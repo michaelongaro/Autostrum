@@ -5,6 +5,7 @@ interface IUrlParamFilters {
   genreId: number;
   type: "tabs" | "artists";
   searchQuery: string;
+  view: "grid" | "table";
   sortByRelevance: boolean;
   additionalSortFilter:
     | "newest"
@@ -22,6 +23,7 @@ function useGetUrlParamFilters() {
     genreId: 9,
     type: "tabs",
     searchQuery: "",
+    view: "grid",
     sortByRelevance: true,
     additionalSortFilter: "newest",
   });
@@ -33,7 +35,14 @@ function useGetUrlParamFilters() {
 
     const { filteredQuery, ...queryObj } = query;
 
-    const validQueryKeys = ["genreId", "type", "search", "relevance", "sort"];
+    const validQueryKeys = [
+      "genreId",
+      "type",
+      "search",
+      "view",
+      "relevance",
+      "sort",
+    ];
 
     // check if any invalid query keys are present
     for (const key of Object.keys(queryObj)) {
@@ -73,6 +82,12 @@ function useGetUrlParamFilters() {
             return;
           }
           break;
+        case "view":
+          if (typeof value === "string" && value !== "table") {
+            setServe404Page(true);
+            return;
+          }
+          break;
         case "relevance":
           if (typeof value === "string" && value !== "false") {
             setServe404Page(true);
@@ -99,6 +114,7 @@ function useGetUrlParamFilters() {
       genreId: query.genreId ? parseInt(query.genreId as string) : 9,
       type: query.type ? (query.type as "tabs" | "artists") : "tabs",
       searchQuery: query.search ? (query.search as string) : "",
+      view: query.view ? (query.view as "grid" | "table") : "grid",
       sortByRelevance: query.relevance
         ? (query.relevance as string) === "true"
         : true,
