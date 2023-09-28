@@ -197,7 +197,7 @@ function ArtistProfile() {
             Pinned tab
           </p>
           {artist?.pinnedTabId === -1 ? (
-            <PinnedTabPlaceholder artistUsername={artist?.username ?? ""} />
+            <PinnedTabPlaceholder />
           ) : (
             <>
               {fetchedTab ? (
