@@ -193,12 +193,18 @@ function SearchResults({
       delete newQuery.type;
     }
 
-    void push({
-      pathname,
-      query: {
-        ...newQuery,
+    void push(
+      {
+        pathname,
+        query: {
+          ...newQuery,
+        },
       },
-    });
+      undefined,
+      {
+        scroll: false,
+      }
+    );
   }
 
   function handleGenreChange(stringifiedId: string) {
@@ -211,12 +217,18 @@ function SearchResults({
 
     console.log("hit");
 
-    void push({
-      pathname,
-      query: {
-        ...newQuery,
+    void push(
+      {
+        pathname,
+        query: {
+          ...newQuery,
+        },
       },
-    });
+      undefined,
+      {
+        scroll: false,
+      }
+    );
   }
 
   function handleViewChange(viewType: "grid" | "table") {
@@ -229,12 +241,18 @@ function SearchResults({
       newQuery.view = "table";
     }
 
-    void push({
-      pathname,
-      query: {
-        ...newQuery,
+    void push(
+      {
+        pathname,
+        query: {
+          ...newQuery,
+        },
       },
-    });
+      undefined,
+      {
+        scroll: false,
+      }
+    );
   }
 
   function handleRelevanceChange() {
@@ -245,12 +263,18 @@ function SearchResults({
       delete newQuery.relevance;
     }
 
-    void push({
-      pathname,
-      query: {
-        ...newQuery,
+    void push(
+      {
+        pathname,
+        query: {
+          ...newQuery,
+        },
       },
-    });
+      undefined,
+      {
+        scroll: false,
+      }
+    );
   }
 
   // ask chatgpt to clean this logic up for you
@@ -300,11 +324,16 @@ function SearchResults({
     if (newSortParam === "newest") delete newQueries.sort;
     else newQueries.sort = newSortParam;
 
-    // push new url to router
-    void push({
-      pathname,
-      query: newQueries,
-    });
+    void push(
+      {
+        pathname,
+        query: newQueries,
+      },
+      undefined,
+      {
+        scroll: false,
+      }
+    );
   }
 
   // we have individual options for each sort type on mobile instead of clicking
@@ -317,11 +346,16 @@ function SearchResults({
     if (type === "newest") delete newQueries.sort;
     else newQueries.sort = type;
 
-    // push new url to router
-    void push({
-      pathname,
-      query: newQueries,
-    });
+    void push(
+      {
+        pathname,
+        query: newQueries,
+      },
+      undefined,
+      {
+        scroll: false,
+      }
+    );
   }
 
   return (
