@@ -11,11 +11,13 @@ export interface SectionProgression {
 }
 
 export interface Chord {
+  id: string;
   name: string;
   frets: string[]; // prob should be number[] but just trying to match what ITabSection looks like
 }
 
 export interface StrummingPattern {
+  id: string;
   noteLength:
     | "1/4th"
     | "1/4th triplet"

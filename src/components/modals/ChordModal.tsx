@@ -155,6 +155,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       // when the chord is edited in the chord modal
       const newChord = { ...chordBeingEdited.value };
       newChords[chordBeingEdited.index] = {
+        id: newChord.id,
         name: newChord.name,
         frets: [...newChord.frets],
       };

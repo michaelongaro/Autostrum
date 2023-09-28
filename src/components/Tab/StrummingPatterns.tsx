@@ -17,6 +17,20 @@ import {
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 import { Button } from "../ui/button";
 import StrummingPattern from "./StrummingPattern";
+import { v4 as uuid } from "uuid";
+import { motion, AnimatePresence } from "framer-motion";
+import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
+
+const opacityAndScaleVariants = {
+  closed: {
+    opacity: 0,
+    scale: 0,
+  },
+  open: {
+    opacity: 1,
+    scale: 1,
+  },
+};
 
 function StrummingPatterns() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
@@ -26,8 +40,14 @@ function StrummingPatterns() {
   );
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
+  // this is hacky dummy state so that the <StrummingPattern /> can render the palm mute node
+  // as expected without actually having access to that state. Works fine for this case because
+  // we are only ever rendering the static palm mute data visually and never modifying it.
+  const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
+    useState<LastModifiedPalmMuteNodeLocation | null>(null);
 
   const {
+    id,
     currentInstrument,
     strummingPatterns,
     setStrummingPatterns,
@@ -38,6 +58,7 @@ function StrummingPatterns() {
     previewMetadata,
   } = useTabStore(
     (state) => ({
+      id: state.id,
       currentInstrument: state.currentInstrument,
       strummingPatterns: state.strummingPatterns,
       setStrummingPatterns: state.setStrummingPatterns,
@@ -132,150 +153,171 @@ function StrummingPatterns() {
         }`}
       >
         <div className="baseFlex !items-start !justify-start gap-4">
-          {strummingPatterns.map((pattern, index) => (
-            <Fragment key={index}>
-              {editing && (
-                <div className="baseVertFlex border-b-none !flex-nowrap rounded-md border-2">
-                  <StrummingPattern
-                    data={pattern}
-                    mode="viewing"
-                    index={index}
-                  />
-
-                  <div className="baseFlex w-full !justify-evenly rounded-bl-md border-t-2">
-                    <>
-                      {/* edit button */}
-                      <Button
-                        variant={"ghost"}
-                        size={"sm"}
-                        className="baseFlex h-8 w-1/2 gap-2 rounded-r-none rounded-bl-sm rounded-tl-none border-r-[1px]"
-                        onClick={() => {
-                          setStrummingPatternBeingEdited({
-                            index,
-                            value: pattern,
-                          });
-                        }}
-                      >
-                        {/* add the tooltip below for "Edit" */}
-                        <AiFillEdit className="h-6 w-6" />
-                      </Button>
-
-                      {/* delete button */}
-                      <Popover
-                        open={showingDeletePopover[index]}
-                        onOpenChange={(openValue) => {
-                          setShowingDeletePopover((prev) => {
-                            const prevShowingDeletePopover = [...prev];
-                            prevShowingDeletePopover[index] = openValue;
-                            return prevShowingDeletePopover;
-                          });
-                        }}
-                      >
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant={"destructive"}
-                            size="sm"
-                            className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px]"
-                          >
-                            {/* add the tooltip below for "Delete" */}
-                            <FaTrashAlt className="h-4 w-4" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent>
-                          <div className="baseVertFlex gap-4">
-                            <p className="w-auto text-center text-sm">
-                              Chord progressions that use this pattern will be
-                              modified.
-                            </p>
-
-                            <div className="baseFlex gap-4">
-                              <Button
-                                variant={"outline"}
-                                size="sm"
-                                className="border-none"
-                                onClick={() =>
-                                  setShowingDeletePopover((prev) => {
-                                    const prevShowingDeletePopover = [...prev];
-                                    prevShowingDeletePopover[index] = false;
-                                    return prevShowingDeletePopover;
-                                  })
-                                }
-                              >
-                                Cancel
-                              </Button>
-
-                              <Button
-                                variant={"destructive"}
-                                size="sm"
-                                // className="baseFlex h-8 w-1/2"
-                                onClick={() => {
-                                  handleDeleteStrummingPattern(index, pattern);
-                                  setShowingDeletePopover((prev) => {
-                                    const prevShowingDeletePopover = [...prev];
-                                    prevShowingDeletePopover[index] = false;
-                                    return prevShowingDeletePopover;
-                                  });
-                                }}
-                              >
-                                Confirm
-                              </Button>
-                            </div>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </>
-                  </div>
-                </div>
-              )}
-
-              {!editing && (
-                <div className="baseFlex !flex-nowrap !items-start">
-                  <div className="baseFlex border-b-none !flex-nowrap  rounded-md rounded-tr-none border-2 ">
+          <AnimatePresence>
+            {strummingPatterns.map((pattern, index) => (
+              <motion.div
+                key={pattern.id}
+                variants={opacityAndScaleVariants}
+                initial="closed"
+                animate="open"
+                exit="closed"
+                className="overflow-hidden"
+              >
+                {editing && (
+                  <div className="baseVertFlex border-b-none !flex-nowrap rounded-md border-2">
                     <StrummingPattern
                       data={pattern}
                       mode="viewing"
                       index={index}
+                      lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+                      setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
                     />
+
+                    <div className="baseFlex w-full !justify-evenly rounded-bl-md border-t-2">
+                      <>
+                        {/* edit button */}
+                        <Button
+                          variant={"ghost"}
+                          size={"sm"}
+                          className="baseFlex h-8 w-1/2 gap-2 rounded-r-none rounded-bl-sm rounded-tl-none border-r-[1px]"
+                          onClick={() => {
+                            setStrummingPatternBeingEdited({
+                              index,
+                              value: pattern,
+                            });
+                          }}
+                        >
+                          <AiFillEdit className="h-6 w-6" />
+                        </Button>
+
+                        {/* delete button */}
+                        <Popover
+                          open={showingDeletePopover[index]}
+                          onOpenChange={(openValue) => {
+                            setShowingDeletePopover((prev) => {
+                              const prevShowingDeletePopover = [...prev];
+                              prevShowingDeletePopover[index] = openValue;
+                              return prevShowingDeletePopover;
+                            });
+                          }}
+                        >
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant={"destructive"}
+                              size="sm"
+                              className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px]"
+                            >
+                              <FaTrashAlt className="h-4 w-4" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent>
+                            <div className="baseVertFlex gap-4">
+                              <p className="w-auto text-center text-sm">
+                                Chord progressions that use this pattern will be
+                                modified.
+                              </p>
+
+                              <div className="baseFlex gap-4">
+                                <Button
+                                  variant={"outline"}
+                                  size="sm"
+                                  onClick={() =>
+                                    setShowingDeletePopover((prev) => {
+                                      const prevShowingDeletePopover = [
+                                        ...prev,
+                                      ];
+                                      prevShowingDeletePopover[index] = false;
+                                      return prevShowingDeletePopover;
+                                    })
+                                  }
+                                >
+                                  Cancel
+                                </Button>
+
+                                <Button
+                                  variant={"destructive"}
+                                  size="sm"
+                                  onClick={() => {
+                                    setShowingDeletePopover((prev) => {
+                                      const prevShowingDeletePopover = [
+                                        ...prev,
+                                      ];
+                                      prevShowingDeletePopover[index] = false;
+                                      return prevShowingDeletePopover;
+                                    });
+                                    handleDeleteStrummingPattern(
+                                      index,
+                                      pattern
+                                    );
+                                  }}
+                                >
+                                  Confirm
+                                </Button>
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      </>
+                    </div>
                   </div>
+                )}
 
-                  <Button
-                    variant={"playPause"}
-                    size={"sm"}
-                    disabled={!currentInstrument || artificalPlayButtonTimeout}
-                    onClick={() => {
-                      if (
-                        previewMetadata.playing &&
-                        index === previewMetadata.indexOfPattern &&
-                        previewMetadata.type === "strummingPattern"
-                      ) {
-                        setArtificalPlayButtonTimeout(true);
+                {!editing && (
+                  <div className="baseFlex !flex-nowrap !items-start">
+                    <div className="baseFlex border-b-none !flex-nowrap  rounded-md rounded-tr-none border-2 ">
+                      <StrummingPattern
+                        data={pattern}
+                        mode="viewing"
+                        index={index}
+                        lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+                        setLastModifiedPalmMuteNode={
+                          setLastModifiedPalmMuteNode
+                        }
+                      />
+                    </div>
 
-                        setTimeout(() => {
-                          setArtificalPlayButtonTimeout(false);
-                        }, 300);
-                        pauseAudio();
-                      } else {
-                        void playPreview({
-                          data: pattern,
-                          index,
-                          type: "strummingPattern",
-                        });
+                    <Button
+                      variant={"playPause"}
+                      size={"sm"}
+                      disabled={
+                        !currentInstrument || artificalPlayButtonTimeout
                       }
-                    }}
-                    className="w-10 rounded-l-none rounded-r-sm border-2 border-l-0 p-3"
-                  >
-                    <PlayButtonIcon
-                      uniqueLocationKey={`strummingPatternPreview${index}}`}
-                      currentInstrument={currentInstrument}
-                      previewMetadata={previewMetadata}
-                      indexOfPattern={index}
-                      previewType="strummingPattern"
-                    />
-                  </Button>
-                </div>
-              )}
-            </Fragment>
-          ))}
+                      onClick={() => {
+                        if (
+                          previewMetadata.playing &&
+                          index === previewMetadata.indexOfPattern &&
+                          previewMetadata.type === "strummingPattern"
+                        ) {
+                          setArtificalPlayButtonTimeout(true);
+
+                          setTimeout(() => {
+                            setArtificalPlayButtonTimeout(false);
+                          }, 300);
+                          pauseAudio();
+                        } else {
+                          void playPreview({
+                            data: pattern,
+                            index,
+                            type: "strummingPattern",
+                          });
+                        }
+                      }}
+                      className="w-10 rounded-l-none rounded-r-sm border-2 border-l-0 p-3"
+                    >
+                      <PlayButtonIcon
+                        uniqueLocationKey={`strummingPatternPreview${index}}`}
+                        tabId={id}
+                        currentInstrument={currentInstrument}
+                        previewMetadata={previewMetadata}
+                        indexOfPattern={index}
+                        previewType="strummingPattern"
+                      />
+                    </Button>
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
         {editing && (
           <Button
@@ -283,6 +325,7 @@ function StrummingPatterns() {
               setStrummingPatternBeingEdited({
                 index: strummingPatterns.length,
                 value: {
+                  id: uuid(),
                   noteLength: "1/8th",
                   strums: Array.from({ length: 8 }, () => ({
                     palmMute: "",

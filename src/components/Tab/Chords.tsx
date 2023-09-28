@@ -8,17 +8,32 @@ import {
 } from "~/components/ui/popover";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
-
 import { HiOutlineInformationCircle } from "react-icons/hi";
 import useSound from "~/hooks/useSound";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 import Chord from "./Chord";
+import { v4 as uuid } from "uuid";
+import { motion, AnimatePresence } from "framer-motion";
+
+const opacityAndScaleVariants = {
+  closed: {
+    opacity: 0,
+    scale: 0.75,
+    width: 0,
+  },
+  open: {
+    opacity: 1,
+    scale: 1,
+    width: "auto",
+  },
+};
 
 function Chords() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const {
+    id,
     currentInstrument,
     chords,
     setChords,
@@ -26,10 +41,10 @@ function Chords() {
     tabData,
     setTabData,
     editing,
-    audioMetadata,
     previewMetadata,
   } = useTabStore(
     (state) => ({
+      id: state.id,
       currentInstrument: state.currentInstrument,
       chords: state.chords,
       setChords: state.setChords,
@@ -37,7 +52,6 @@ function Chords() {
       tabData: state.tabData,
       setTabData: state.setTabData,
       editing: state.editing,
-      audioMetadata: state.audioMetadata,
       previewMetadata: state.previewMetadata,
     }),
     shallow
@@ -113,117 +127,127 @@ function Chords() {
     >
       <p className="text-lg font-bold">Chords</p>
       <div className="baseFlex !justify-start gap-4">
-        {chords.map((chord, index) => (
-          <div
-            key={index}
-            className="baseFlex border-r-none h-10 !flex-nowrap rounded-md border-2"
-          >
-            <p
-              style={{
-                color:
-                  previewMetadata.indexOfPattern === index &&
-                  previewMetadata.playing &&
-                  previewMetadata.type === "chord"
-                    ? "hsl(333, 71%, 51%)"
-                    : "hsl(327, 73%, 97%)",
-              }}
-              className="px-3 font-semibold transition-colors"
+        <AnimatePresence>
+          {chords.map((chord, index) => (
+            <motion.div
+              key={chord.id}
+              variants={opacityAndScaleVariants}
+              initial="closed"
+              animate="open"
+              exit="closed"
+              className="baseFlex border-r-none h-10 !flex-nowrap overflow-hidden rounded-md border-2"
             >
-              {chord.name}
-            </p>
+              <p
+                style={{
+                  color:
+                    previewMetadata.indexOfPattern === index &&
+                    previewMetadata.playing &&
+                    previewMetadata.type === "chord"
+                      ? "hsl(333, 71%, 51%)"
+                      : "hsl(327, 73%, 97%)",
+                }}
+                className="px-3 font-semibold transition-colors"
+              >
+                {chord.name}
+              </p>
 
-            <div className="baseFlex h-full w-full !justify-evenly">
-              {editing ? (
-                <>
-                  {/* edit button */}
-                  <Button
-                    variant={"ghost"}
-                    size={"sm"}
-                    className="baseFlex h-full w-1/2 gap-2 rounded-none border-l-2 border-r-[1px]"
-                    onClick={() => {
-                      setChordBeingEdited({
-                        index,
-                        value: {
-                          name: chord.name,
-                          frets: [...chord.frets],
-                        },
-                      });
-                    }}
-                  >
-                    {/* add the tooltip below for "Edit" */}
-                    <AiFillEdit className="h-6 w-6" />
-                  </Button>
-                  {/* delete button */}
-                  <Button
-                    variant={"destructive"}
-                    size="sm"
-                    className="baseFlex h-full w-1/2 rounded-l-none border-l-[1px]"
-                    onClick={() => handleDeleteChord(index, chord.name)}
-                  >
-                    {/* add the tooltip below for "Delete" */}
-                    <FaTrashAlt className="h-4 w-4" />
-                  </Button>
-                </>
-              ) : (
-                <>
-                  {/* preview button */}
-                  <Popover>
-                    <PopoverTrigger className="baseFlex mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 active:hover:bg-white/10 ">
-                      <HiOutlineInformationCircle className="h-5 w-5" />
-                    </PopoverTrigger>
-                    <PopoverContent className="mobileNavbarGlassmorphic w-40 text-pink-50">
-                      <Chord
-                        chordBeingEdited={{
+              <div className="baseFlex h-full w-full !justify-evenly">
+                {editing ? (
+                  <>
+                    {/* edit button */}
+                    <Button
+                      variant={"ghost"}
+                      size={"sm"}
+                      className="baseFlex h-full w-1/2 gap-2 rounded-none border-l-2 border-r-[1px]"
+                      onClick={() => {
+                        setChordBeingEdited({
                           index,
-                          value: chord,
-                        }}
-                        editing={false}
-                        highlightChord={
-                          previewMetadata.indexOfPattern === index &&
+                          value: chord, // idk why were passing it property by property before..
+                          // {
+                          //   id: chord.id,
+                          //   name: chord.name,
+                          //   frets: [...chord.frets],
+                          // },
+                        });
+                      }}
+                    >
+                      {/* add the tooltip below for "Edit" */}
+                      <AiFillEdit className="h-6 w-6" />
+                    </Button>
+                    {/* delete button */}
+                    <Button
+                      variant={"destructive"}
+                      size="sm"
+                      className="baseFlex h-full w-1/2 rounded-l-none border-l-[1px]"
+                      onClick={() => handleDeleteChord(index, chord.name)}
+                    >
+                      {/* add the tooltip below for "Delete" */}
+                      <FaTrashAlt className="h-4 w-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    {/* preview button */}
+                    <Popover>
+                      <PopoverTrigger className="baseFlex mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 active:hover:bg-white/10 ">
+                        <HiOutlineInformationCircle className="h-5 w-5" />
+                      </PopoverTrigger>
+                      <PopoverContent className="mobileNavbarGlassmorphic w-40 text-pink-50">
+                        <Chord
+                          chordBeingEdited={{
+                            index,
+                            value: chord,
+                          }}
+                          editing={false}
+                          highlightChord={
+                            previewMetadata.indexOfPattern === index &&
+                            previewMetadata.playing &&
+                            previewMetadata.type === "chord"
+                          }
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    {/* preview chord button */}
+                    <Button
+                      variant={"playPause"}
+                      disabled={
+                        !currentInstrument ||
+                        (previewMetadata.indexOfPattern === index &&
                           previewMetadata.playing &&
-                          previewMetadata.type === "chord"
-                        }
+                          previewMetadata.type === "chord")
+                      }
+                      size={"sm"}
+                      onClick={() => {
+                        void playPreview({
+                          data: chord.frets,
+                          index,
+                          type: "chord",
+                        });
+                      }}
+                      className="baseFlex h-full w-10 rounded-l-none border-l-2"
+                    >
+                      <PlayButtonIcon
+                        uniqueLocationKey={`chordPreview${index}}`}
+                        tabId={id}
+                        currentInstrument={currentInstrument}
+                        previewMetadata={previewMetadata}
+                        indexOfPattern={index}
+                        previewType="chord"
                       />
-                    </PopoverContent>
-                  </Popover>
-                  {/* preview chord button */}
-                  <Button
-                    variant={"playPause"}
-                    disabled={
-                      !currentInstrument ||
-                      (previewMetadata.indexOfPattern === index &&
-                        previewMetadata.playing &&
-                        previewMetadata.type === "chord")
-                    }
-                    size={"sm"}
-                    onClick={() => {
-                      void playPreview({
-                        data: chord.frets,
-                        index,
-                        type: "chord",
-                      });
-                    }}
-                    className="baseFlex h-full w-10 rounded-l-none border-l-2"
-                  >
-                    <PlayButtonIcon
-                      uniqueLocationKey={`chordPreview${index}}`}
-                      currentInstrument={currentInstrument}
-                      previewMetadata={previewMetadata}
-                      indexOfPattern={index}
-                      previewType="chord"
-                    />
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        ))}
+                    </Button>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
         {editing && (
           <Button
             onClick={() => {
               setChordBeingEdited({
                 index: chords.length,
                 value: {
+                  id: uuid(),
                   name: "",
                   frets: ["", "", "", "", "", ""],
                 },
