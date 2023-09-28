@@ -80,6 +80,10 @@ function TabMeasureLine({
   function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
     e.stopPropagation();
 
+    const currentNote = document.getElementById(
+      `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`
+    );
+
     // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
     if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
@@ -95,7 +99,7 @@ function TabMeasureLine({
         `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-7`
       );
 
-      focusAndScrollIntoView(newNoteToFocus);
+      focusAndScrollIntoView(currentNote, newNoteToFocus);
       return;
     } else if (e.key === "ArrowRight") {
       e.preventDefault(); // prevent cursor from moving
@@ -108,7 +112,7 @@ function TabMeasureLine({
           `${sectionIndex}${subSectionIndex}ExtendTabButton`
         );
 
-        focusAndScrollIntoView(newNoteToFocus);
+        focusAndScrollIntoView(currentNote, newNoteToFocus);
         return;
       }
 
@@ -123,7 +127,7 @@ function TabMeasureLine({
         `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-7`
       );
 
-      focusAndScrollIntoView(newNoteToFocus);
+      focusAndScrollIntoView(currentNote, newNoteToFocus);
       return;
     }
 

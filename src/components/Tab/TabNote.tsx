@@ -124,6 +124,10 @@ function TabNote({
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     e.stopPropagation();
 
+    const currentNote = document.getElementById(
+      `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`
+    );
+
     // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
     if (e.key === "ArrowDown") {
       e.preventDefault(); // prevent cursor from moving
@@ -134,7 +138,7 @@ function TabNote({
         }`
       );
 
-      focusAndScrollIntoView(newNoteToFocus);
+      focusAndScrollIntoView(currentNote, newNoteToFocus);
       return;
     } else if (e.key === "ArrowUp") {
       e.preventDefault(); // prevent cursor from moving
@@ -145,7 +149,7 @@ function TabNote({
         }`
       );
 
-      focusAndScrollIntoView(newNoteToFocus);
+      focusAndScrollIntoView(currentNote, newNoteToFocus);
       return;
     } else if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
@@ -161,7 +165,7 @@ function TabNote({
         `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`
       );
 
-      focusAndScrollIntoView(newNoteToFocus);
+      focusAndScrollIntoView(currentNote, newNoteToFocus);
       return;
     } else if (e.key === "ArrowRight") {
       e.preventDefault(); // prevent cursor from moving
@@ -174,7 +178,7 @@ function TabNote({
           `${sectionIndex}${subSectionIndex}ExtendTabButton`
         );
 
-        focusAndScrollIntoView(newNoteToFocus);
+        focusAndScrollIntoView(currentNote, newNoteToFocus);
         return;
       }
 
@@ -189,7 +193,7 @@ function TabNote({
         `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`
       );
 
-      focusAndScrollIntoView(newNoteToFocus);
+      focusAndScrollIntoView(currentNote, newNoteToFocus);
       return;
     }
 
@@ -381,7 +385,7 @@ function TabNote({
           }-${noteIndex}`
         );
 
-        focusAndScrollIntoView(newNoteToFocus);
+        newNoteToFocus?.focus();
         return;
       }
     }

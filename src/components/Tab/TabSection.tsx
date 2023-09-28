@@ -100,11 +100,14 @@ function TabSection({
 
   useEffect(() => {
     if (inputIdToFocus) {
+      const currentNote = document.getElementById(
+        `${sectionIndex}${subSectionIndex}ExtendTabButton`
+      );
       const newNoteToFocus = document.getElementById(inputIdToFocus);
-      focusAndScrollIntoView(newNoteToFocus);
+      focusAndScrollIntoView(currentNote, newNoteToFocus);
       setInputIdToFocus(null);
     }
-  }, [inputIdToFocus]);
+  }, [inputIdToFocus, sectionIndex, subSectionIndex]);
 
   function getColumnIds() {
     const newIds = [];
@@ -550,11 +553,14 @@ function TabSection({
 
       const firstNewColumnIndex = subSectionData.data.length - 1; // this will be the first of the 8 new strums added
 
+      const currentNote = document.getElementById(
+        `${sectionIndex}${subSectionIndex}ExtendTabButton`
+      );
       const newNoteToFocus = document.getElementById(
         `input-${sectionIndex}-${subSectionIndex}-${firstNewColumnIndex}-3`
       );
 
-      focusAndScrollIntoView(newNoteToFocus);
+      focusAndScrollIntoView(currentNote, newNoteToFocus);
     } else if (e.key === "Enter") {
       const newTabData = [...tabData];
 

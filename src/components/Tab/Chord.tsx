@@ -40,7 +40,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
         `input-chordModal-chordModal-${index + 1}`
       );
 
-      focusAndScrollIntoView(newNoteToFocus);
+      newNoteToFocus?.focus();
     } else if (e.key === "ArrowUp") {
       e.preventDefault(); // prevent cursor from moving
 
@@ -48,7 +48,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
         `input-chordModal-chordModal-${index - 1}`
       );
 
-      focusAndScrollIntoView(newNoteToFocus);
+      newNoteToFocus?.focus();
     }
   }
 

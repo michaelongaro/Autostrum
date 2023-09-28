@@ -52,6 +52,10 @@ function PalmMuteNode({
   }, [value]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
+    const currentPalmMuteNode = document.getElementById(
+      `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-0`
+    );
+
     // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
     if (e.key === "ArrowDown") {
       e.preventDefault(); // prevent cursor from moving
@@ -60,16 +64,28 @@ function PalmMuteNode({
         `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-1`
       );
 
-      focusAndScrollIntoView(newNoteToFocus);
+      focusAndScrollIntoView(currentPalmMuteNode, newNoteToFocus);
     } else if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
 
       const completedSearchOfPalmMuteNodes = false;
       let currentIndex = columnIndex - 1;
 
+      // figure out how to get arrow key nav working across measure line when
+      // left and right nodes are empty (just the "+")
+
       while (!completedSearchOfPalmMuteNodes) {
         // if PM node is reachable and not a connecting node between start & end
         // nodes, then focus the PM node
+
+        if (
+          tabData[sectionIndex]!.data[subSectionIndex].data[
+            currentIndex
+          ]?.[8] === "measureLine"
+        ) {
+          currentIndex--;
+        }
+
         if (
           tabData[sectionIndex]!.data[subSectionIndex].data[
             currentIndex
@@ -85,7 +101,7 @@ function PalmMuteNode({
             `input-${sectionIndex}-${subSectionIndex}-${currentIndex}-${0}`
           );
 
-          focusAndScrollIntoView(newNoteToFocus);
+          focusAndScrollIntoView(currentPalmMuteNode, newNoteToFocus);
           return;
         }
 
@@ -101,6 +117,14 @@ function PalmMuteNode({
 
       while (!completedSearchOfPalmMuteNodes) {
         if (
+          tabData[sectionIndex]!.data[subSectionIndex].data[
+            currentIndex
+          ]?.[8] === "measureLine"
+        ) {
+          currentIndex++;
+        }
+
+        if (
           currentIndex >=
           tabData[sectionIndex]!.data[subSectionIndex]!.data.length
         ) {
@@ -108,7 +132,7 @@ function PalmMuteNode({
             `${sectionIndex}${subSectionIndex}ExtendTabButton`
           );
 
-          focusAndScrollIntoView(newNoteToFocus);
+          focusAndScrollIntoView(currentPalmMuteNode, newNoteToFocus);
           return;
         }
 
@@ -129,7 +153,7 @@ function PalmMuteNode({
             `input-${sectionIndex}-${subSectionIndex}-${currentIndex}-${0}`
           );
 
-          focusAndScrollIntoView(newNoteToFocus);
+          focusAndScrollIntoView(currentPalmMuteNode, newNoteToFocus);
           return;
         }
 

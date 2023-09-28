@@ -94,7 +94,7 @@ function StrummingPattern({
   useEffect(() => {
     if (inputIdToFocus) {
       const newNoteToFocus = document.getElementById(inputIdToFocus);
-      focusAndScrollIntoView(newNoteToFocus);
+      newNoteToFocus?.focus();
       setInputIdToFocus(null);
     }
   }, [inputIdToFocus]);
@@ -147,7 +147,7 @@ function StrummingPattern({
         `input-strummingPatternModal-${beatIndex}-0`
       );
 
-      focusAndScrollIntoView(newNoteToFocus);
+      newNoteToFocus?.focus();
     } else if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
 
@@ -155,7 +155,7 @@ function StrummingPattern({
         `input-strummingPatternModal-${beatIndex - 1}-1`
       );
 
-      focusAndScrollIntoView(newNoteToFocus);
+      newNoteToFocus?.focus();
     } else if (e.key === "ArrowRight") {
       e.preventDefault(); // prevent cursor from moving
 
@@ -164,7 +164,7 @@ function StrummingPattern({
           "strummingPatternExtendPatternButton"
         );
 
-        focusAndScrollIntoView(newNoteToFocus);
+        newNoteToFocus?.focus();
         return;
       }
 
@@ -172,7 +172,7 @@ function StrummingPattern({
         `input-strummingPatternModal-${beatIndex + 1}-1`
       );
 
-      focusAndScrollIntoView(newNoteToFocus);
+      newNoteToFocus?.focus();
     }
 
     setStrummingPatternBeingEdited({
@@ -194,7 +194,7 @@ function StrummingPattern({
         `input-strummingPatternModal-${lastStrumIndex}-1`
       );
 
-      focusAndScrollIntoView(newNoteToFocus);
+      newNoteToFocus?.focus();
     }
   }
 

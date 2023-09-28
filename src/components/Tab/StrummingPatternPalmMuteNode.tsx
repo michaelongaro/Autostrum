@@ -62,7 +62,7 @@ function StrummingPatternPalmMuteNode({
         `input-strummingPatternModal-${beatIndex}-1`
       );
 
-      focusAndScrollIntoView(newNoteToFocus);
+      newNoteToFocus?.focus();
     } else if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
 
@@ -85,7 +85,7 @@ function StrummingPatternPalmMuteNode({
             `input-strummingPatternModal-${currentIndex}-${0}`
           );
 
-          focusAndScrollIntoView(newNoteToFocus);
+          newNoteToFocus?.focus();
           return;
         }
 
@@ -105,7 +105,7 @@ function StrummingPatternPalmMuteNode({
             "strummingPatternExtendPatternButton"
           );
 
-          focusAndScrollIntoView(newNoteToFocus);
+          newNoteToFocus?.focus();
           return;
         }
 
@@ -124,7 +124,7 @@ function StrummingPatternPalmMuteNode({
             `input-strummingPatternModal-${currentIndex}-${0}`
           );
 
-          focusAndScrollIntoView(newNoteToFocus);
+          newNoteToFocus?.focus();
           return;
         }
 
