@@ -1,10 +1,11 @@
 export default function formatSecondsToMinutes(rawSeconds: number): string {
-  const minutes = Math.floor(Math.floor(rawSeconds) / 60);
+  const minutes = Math.floor(rawSeconds / 60);
   const seconds = Math.floor(rawSeconds) % 60;
 
-  // This ensures the numbers are always at least two digits.
-  const formattedMinutes =
-    minutes < 10 ? "0" + `${minutes}` : minutes.toString();
+  // Minutes will be displayed as-is without a leading zero.
+  const formattedMinutes = minutes.toString();
+
+  // This ensures seconds are always displayed with at least two digits.
   const formattedSeconds =
     seconds < 10 ? "0" + `${seconds}` : seconds.toString();
 
