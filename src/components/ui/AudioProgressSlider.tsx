@@ -75,7 +75,7 @@ const AudioProgressSlider = React.forwardRef<
       ref={ref}
       id="audioSlider"
       className={cn(
-        "relative flex w-full touch-none select-none items-center",
+        "relative flex w-full touch-none select-none items-center disabled:cursor-not-allowed data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
         className
       )}
       {...props}
