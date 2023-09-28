@@ -46,9 +46,8 @@ function useFetchAndLoadSoundfonts() {
           void Soundfont.instrument(audioContext, currentInstrumentName, {
             soundfont: "MusyngKite",
             format: "ogg",
+            destination: masterVolumeGainNode,
           }).then((player) => {
-            player.connect(masterVolumeGainNode);
-
             // Update the cache
             const updatedInstruments = {
               ...instruments,
