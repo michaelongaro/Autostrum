@@ -16,24 +16,32 @@ extend({
   MeshPhysicalMaterial,
   DirectionalLight,
 });
-interface PinnedTabPlaceholder {
-  artistUsername: string;
-}
 
-function PinnedTabPlaceholder({ artistUsername }: PinnedTabPlaceholder) {
+function PinnedTabPlaceholder() {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const positions: number[][] = [];
+
+  const radius = 65;
+  const deltaTheta = Math.PI / 10; // Increment angle by 10 degrees
+
+  for (let theta = 0; theta <= 2 * Math.PI; theta += deltaTheta) {
+    const x = radius * Math.cos(theta);
+    const y = radius * Math.sin(theta);
+    positions.push([x, y, 0]);
+  }
 
   return (
     <div
       ref={containerRef}
-      className="lightestGlassmorphic grid h-full w-full grid-cols-1 grid-rows-1 rounded-md p-4"
+      className="lightestGlassmorphic grid h-[250px] w-full grid-cols-1 grid-rows-1 rounded-md p-4 md:h-[288px] md:w-[392px]"
     >
       <Canvas
         style={{
           width: "100%",
           height: "100%",
           pointerEvents: "none",
-          zIndex: -1,
+          zIndex: 1,
         }}
         className="col-start-1 col-end-1 row-start-1 row-end-1"
         camera={{ position: [0, 0, 100] }}
@@ -41,30 +49,19 @@ function PinnedTabPlaceholder({ artistUsername }: PinnedTabPlaceholder) {
         <ambientLight intensity={1.5} />
         <directionalLight color={"white"} intensity={0.5} />
 
-        {Array.from({ length: 10 }, (_, i) => i).map((_, i) => {
+        {Array.from({ length: 20 }, (_, i) => i).map((_, i) => {
           return (
             <FloatingBubble
               key={i}
-              position={
-                [
-                  Math.random() *
-                    (containerRef.current?.getBoundingClientRect().width ?? 0) *
-                    0.25 *
-                    (Math.random() > 0.5 ? 1 : -1),
-                  Math.random() *
-                    (containerRef.current?.getBoundingClientRect().height ??
-                      0) *
-                    0.25 *
-                    (Math.random() > 0.5 ? 1 : -1),
-                  Math.random() * 2,
-                ] as [number, number, number]
-              }
+              position={positions[i] as [number, number, number]}
             />
           );
         })}
       </Canvas>
-      <div className="baseFlex col-start-1 col-end-1 row-start-1 row-end-1 ">
-        <p className="lightGlassmorphic rounded-md p-4 text-lg">{`${artistUsername} hasn't pinned a tab yet.`}</p>
+      <div className="baseFlex z-10 col-start-1 col-end-1 row-start-1 row-end-1">
+        <div className="baseVertFlex lightGlassmorphic gap-2 rounded-md p-4 text-lg">
+          <p>Pinned tab unavailable</p>
+        </div>
       </div>
     </div>
   );
@@ -75,11 +72,9 @@ interface FloatingBubble {
 }
 
 function FloatingBubble({ position }: FloatingBubble) {
-  // might end up making these float in some way... feels a bit out of place
-
   return (
     <mesh position={position}>
-      <sphereGeometry args={[Math.random() * 5 + 1.5, 32, 16]} />
+      <sphereGeometry args={[5, 32, 16]} />
       <meshPhysicalMaterial
         roughness={0}
         metalness={0.5}
