@@ -1,5 +1,8 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
+import { buildClerkProps } from "@clerk/nextjs/server";
+import { PrismaClient } from "@prisma/client";
+import type { GetServerSideProps } from "next";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
@@ -24,7 +27,7 @@ import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
 import { formatNumber } from "~/utils/formatNumber";
 
-function ArtistProfile() {
+function ArtistProfile({ artistExists }: { artistExists: boolean }) {
   const { query } = useRouter();
   const {
     serve404Page,
@@ -65,6 +68,10 @@ function ArtistProfile() {
       enabled: artist?.pinnedTabId !== -1,
     }
   );
+
+  if (!artistExists) {
+    return <ArtistNotFound />;
+  }
 
   return (
     <motion.div
@@ -246,3 +253,38 @@ function ArtistProfile() {
 }
 
 export default ArtistProfile;
+
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const prisma = new PrismaClient();
+  const artist = await prisma.artist.findUnique({
+    where: {
+      username: ctx.params?.username ? (ctx.params.username as string) : "",
+    },
+  });
+
+  return {
+    props: {
+      artistExists: artist !== null,
+      ...buildClerkProps(ctx.req),
+    },
+  };
+};
+
+function ArtistNotFound() {
+  return (
+    <div className="lightGlassmorphic baseVertFlex w-10/12 gap-4 rounded-md p-4 md:w-[500px]">
+      <div className="baseFlex gap-4">
+        <NoResultsFoundBubbles color={"#ec4899"} />
+        <div className="baseFlex gap-2">
+          <BiErrorCircle className="h-8 w-8" />
+          <h1 className="text-2xl font-bold">Artist not found</h1>
+        </div>
+        <NoResultsFoundBubbles color={"#ec4899"} reverseBubblePositions />
+      </div>
+      <p className="text-center text-lg">
+        The artist you are looking for does not exist. Please check the URL and
+        try again.
+      </p>
+    </div>
+  );
+}
