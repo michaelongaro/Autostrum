@@ -1,12 +1,11 @@
 import { motion } from "framer-motion";
-import { BiErrorCircle } from "react-icons/bi";
 import SearchInput from "~/components/Search/SearchInput";
 import SearchResults from "~/components/Search/SearchResults";
 import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
-
 import TopProfileNavigationLayout from "~/components/Layouts/TopProfileNavigationLayout";
 import { TabsContent } from "~/components/ui/tabs";
 import Head from "next/head";
+import Render404Page from "~/components/Search/Render404Page";
 
 function ArtistLikes() {
   const {
@@ -43,20 +42,11 @@ function ArtistLikes() {
 
       <TabsContent value="likes">
         {/* search Results component */}
-        {serve404Page ? (
-          <div className="baseVertFlex gap-2 px-8 py-4 md:gap-4">
-            <div className="baseFlex gap-4 text-2xl font-bold">
-              Search error <BiErrorCircle className="h-8 w-8" />
-            </div>
-            <div className="text-lg">Unable to load search results.</div>
-            <div className="mt-8">
-              Please check your URL for any typos and try again.
-            </div>
-          </div>
-        ) : (
-          <div className="baseVertFlex w-full gap-8">
-            <SearchInput initialSearchQueryFromUrl={searchQuery} />
-
+        <div className="baseVertFlex mt-8 w-full gap-8">
+          <SearchInput initialSearchQueryFromUrl={searchQuery} />
+          {serve404Page ? (
+            <Render404Page />
+          ) : (
             <SearchResults
               genreId={genreId}
               type={type}
@@ -65,8 +55,8 @@ function ArtistLikes() {
               additionalSortFilter={additionalSortFilter}
               viewType={view}
             />
-          </div>
-        )}
+          )}
+        </div>
       </TabsContent>
     </motion.div>
   );

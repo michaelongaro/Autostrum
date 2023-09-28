@@ -6,9 +6,9 @@ import type { GetServerSideProps } from "next";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
-import { AiFillHeart, AiOutlineUser } from "react-icons/ai";
-import { BiErrorCircle } from "react-icons/bi";
+import { AiFillHeart } from "react-icons/ai";
 import { GiMusicalScore } from "react-icons/gi";
+import { BiErrorCircle } from "react-icons/bi";
 import { TbPinned } from "react-icons/tb";
 import PinnedTabPlaceholder from "~/components/Profile/PinnedTabPlaceholder";
 import GridTabCard from "~/components/Search/GridTabCard";
@@ -26,6 +26,8 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
 import { formatNumber } from "~/utils/formatNumber";
+import Render404Page from "~/components/Search/Render404Page";
+import NoResultsFoundBubbles from "~/components/Search/NoResultsFoundBubbles";
 
 function ArtistProfile({ artistExists }: { artistExists: boolean }) {
   const { query } = useRouter();
@@ -50,15 +52,14 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
     return "";
   }, [query.username]);
 
-  const { data: artist, isLoading: loadingCurrentArtist } =
-    api.artist.getByIdOrUsername.useQuery(
-      {
-        username: usernameFromUrl,
-      },
-      {
-        enabled: !!usernameFromUrl,
-      }
-    );
+  const { data: artist } = api.artist.getByIdOrUsername.useQuery(
+    {
+      username: usernameFromUrl,
+    },
+    {
+      enabled: !!usernameFromUrl,
+    }
+  );
 
   const { data: fetchedTab, refetch: refetchTab } = api.tab.getTabById.useQuery(
     {
@@ -80,8 +81,8 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      // className="baseVertFlex w-full p-2 md:p-8"
-      className="lightGlassmorphic baseVertFlex my-12 min-h-[100dvh] w-11/12 !justify-start gap-8 rounded-md px-2 py-4 md:my-24 md:w-3/4 md:gap-16 md:p-8"
+      className="lightGlassmorphic baseVertFlex
+      my-12 min-h-[100dvh] w-11/12 !justify-start gap-8 rounded-md px-2 py-4 md:my-24 md:w-3/4 md:gap-16 md:p-8"
     >
       <Head>
         <meta
@@ -108,38 +109,30 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
         <div className="lightestGlassmorphic baseVertFlex min-w-[200px] !flex-nowrap gap-4 rounded-md px-4 py-6">
           <div className="baseVertFlex gap-4">
             <div className="grid grid-cols-1 grid-rows-1">
-              {artist || loadingCurrentArtist ? (
-                <>
-                  <Image
-                    src={artist?.profileImageUrl ?? ""}
-                    alt={`${artist?.username ?? "Anonymous"}'s profile image`}
-                    width={96}
-                    height={96}
-                    onLoadingComplete={() => {
-                      setTimeout(() => {
-                        setProfileImageLoaded(true);
-                      }, 1000);
-                    }}
-                    style={{
-                      opacity: profileImageLoaded ? 1 : 0,
-                    }}
-                    className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full object-cover object-center transition-opacity"
-                  />
-                  <div
-                    style={{
-                      opacity: !profileImageLoaded ? 1 : 0,
-                      zIndex: !profileImageLoaded ? 1 : -1,
-                    }}
-                    className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 transition-opacity
+              <Image
+                src={artist?.profileImageUrl ?? ""}
+                alt={`${artist?.username ?? "Anonymous"}'s profile image`}
+                width={96}
+                height={96}
+                onLoadingComplete={() => {
+                  setTimeout(() => {
+                    setProfileImageLoaded(true);
+                  }, 1000);
+                }}
+                style={{
+                  opacity: profileImageLoaded ? 1 : 0,
+                }}
+                className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full object-cover object-center transition-opacity"
+              />
+              <div
+                style={{
+                  opacity: !profileImageLoaded ? 1 : 0,
+                  zIndex: !profileImageLoaded ? 1 : -1,
+                }}
+                className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 transition-opacity
                               ${!profileImageLoaded ? "animate-pulse" : ""}
                             `}
-                  ></div>
-                </>
-              ) : (
-                // kinda don't think this is necessary since the user should *always* have a profile image
-                // if they have an account right?
-                <AiOutlineUser className="my-9 h-16 w-16" />
-              )}
+              ></div>
             </div>
 
             {artist ? (
@@ -223,21 +216,13 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
           )}
         </div>
       </div>
-      {/* search Results component */}
-      {serve404Page ? (
-        <div className="baseVertFlex gap-2 px-8 py-4 md:gap-4">
-          <div className="baseFlex gap-4 text-2xl font-bold">
-            Search error <BiErrorCircle className="h-8 w-8" />
-          </div>
-          <div className="text-lg">Unable to load search results.</div>
-          <div className="mt-8">
-            Please check your URL for any typos and try again.
-          </div>
-        </div>
-      ) : (
-        <div className="baseVertFlex mt-8 w-full gap-8">
-          <SearchInput initialSearchQueryFromUrl={searchQuery} />
 
+      {/* search Results component */}
+      <div className="baseVertFlex mt-8 w-full gap-8">
+        <SearchInput initialSearchQueryFromUrl={searchQuery} />
+        {serve404Page ? (
+          <Render404Page />
+        ) : (
           <SearchResults
             genreId={genreId}
             type={type}
@@ -246,8 +231,8 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
             additionalSortFilter={additionalSortFilter}
             viewType={view}
           />
-        </div>
-      )}
+        )}
+      </div>
     </motion.div>
   );
 }
