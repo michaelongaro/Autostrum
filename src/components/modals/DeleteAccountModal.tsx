@@ -73,6 +73,8 @@ function DeleteAccountModal() {
       initial="closed"
       animate="expanded"
       exit="closed"
+      // choosing to not allow click outside to close modal
+      // as a way to emphasize the importance of this action
     >
       <FocusTrap>
         <div

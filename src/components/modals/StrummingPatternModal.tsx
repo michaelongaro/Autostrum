@@ -31,7 +31,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
-import { isMobile } from "react-device-detect";
+import { isMobile, isDesktop } from "react-device-detect";
 
 const backdropVariants = {
   expanded: {
@@ -249,8 +249,18 @@ function StrummingPatternModal({
       initial="closed"
       animate="expanded"
       exit="closed"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && isDesktop) {
+          if (audioMetadata.playing) pauseAudio();
+          setStrummingPatternBeingEdited(null);
+        }
+      }}
     >
-      <FocusTrap>
+      <FocusTrap
+        focusTrapOptions={{
+          allowOutsideClick: true,
+        }}
+      >
         <div
           tabIndex={-1}
           className="baseVertFlex max-h-[90vh] min-w-[300px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all md:max-h-[90vh] md:gap-12 md:p-8 xl:max-w-[50vw]"

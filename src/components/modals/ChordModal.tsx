@@ -16,7 +16,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
-import { isMobile } from "react-device-detect";
+import { isDesktop, isMobile } from "react-device-detect";
 
 const backdropVariants = {
   expanded: {
@@ -173,8 +173,18 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       initial="closed"
       animate="expanded"
       exit="closed"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && isDesktop) {
+          if (audioMetadata.playing) pauseAudio();
+          setChordBeingEdited(null);
+        }
+      }}
     >
-      <FocusTrap>
+      <FocusTrap
+        focusTrapOptions={{
+          allowOutsideClick: true,
+        }}
+      >
         <div
           tabIndex={-1}
           className="baseVertFlex min-w-[300px] max-w-[90vw] gap-8 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 xl:max-w-[50vw]"

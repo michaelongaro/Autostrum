@@ -8,6 +8,7 @@ import { api } from "~/utils/api";
 import SearchInput from "../Search/SearchInput";
 import SearchResults from "../Search/SearchResults";
 import { Button } from "../ui/button";
+import { isDesktop } from "react-device-detect";
 
 const backdropVariants = {
   expanded: {
@@ -77,8 +78,17 @@ function PinnedTabModal({
       initial="closed"
       animate="expanded"
       exit="closed"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && isDesktop) {
+          setShowPinnedTabModal(false);
+        }
+      }}
     >
-      <FocusTrap>
+      <FocusTrap
+        focusTrapOptions={{
+          allowOutsideClick: true,
+        }}
+      >
         <div
           tabIndex={-1}
           className="baseVertFlex max-h-[90vh] w-11/12 !flex-nowrap gap-4 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 lg:gap-8 xl:w-9/12"

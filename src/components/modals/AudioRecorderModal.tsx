@@ -15,6 +15,7 @@ import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
+import { isDesktop } from "react-device-detect";
 
 const backdropVariants = {
   expanded: {
@@ -132,10 +133,20 @@ function AudioRecorderModal() {
       initial="closed"
       animate="expanded"
       exit="closed"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && isDesktop) {
+          if (isRecording) {
+            togglePauseResume();
+          }
+          setShowAudioRecorderModal(false);
+        }
+      }}
     >
-      {/* not sure exactly why, but radix's PopoverContent wasn't getting clicks when
-          FocusTrap was enabled */}
-      <FocusTrap paused={showPostRecordingOptions}>
+      <FocusTrap
+        focusTrapOptions={{
+          allowOutsideClick: true,
+        }}
+      >
         <div
           tabIndex={-1}
           className="baseVertFlex min-h-[350px] w-[350px] gap-10 rounded-md bg-pink-400 p-2 shadow-sm sm:w-[400px] md:p-4"

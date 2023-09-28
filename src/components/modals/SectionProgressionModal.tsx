@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { isDesktop } from "react-device-detect";
 
 const backdropVariants = {
   expanded: {
@@ -127,8 +128,17 @@ function SectionProgressionModal() {
       initial="closed"
       animate="expanded"
       exit="closed"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && isDesktop) {
+          setShowSectionProgressionModal(false);
+        }
+      }}
     >
-      <FocusTrap>
+      <FocusTrap
+        focusTrapOptions={{
+          allowOutsideClick: true,
+        }}
+      >
         <div
           tabIndex={-1}
           className="min-h-[20rem] min-w-[70vw] rounded-md bg-pink-400 p-2 shadow-sm md:min-w-[25rem] md:p-4"
