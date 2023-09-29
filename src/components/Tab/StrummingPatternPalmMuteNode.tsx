@@ -296,20 +296,20 @@ function StrummingPatternPalmMuteNode({
               className="baseFlex relative w-full !flex-nowrap"
             >
               <div
-                className={`h-4 w-[1px] ${
+                className={`h-4 w-[1px] flex-shrink-0 ${
                   darkMode ? "bg-foreground" : "bg-background"
                 }`}
               ></div>
               <div
-                className={`h-[1px] 
-                ${editingChordSequence ? "w-full" : "w-1"} ${
+                className={`h-[1px] flex-shrink-0
+                ${editingChordSequence ? "w-1" : "w-1"} ${
                   darkMode ? "bg-foreground" : "bg-background"
                 }`}
               ></div>
-              <i className="mx-[0.125rem]">PM</i>
+              <i className="mx-[0.125rem] flex-shrink-0">PM</i>
               <div
                 className={`h-[1px] ${
-                  editingChordSequence ? "w-full" : "w-[3px]"
+                  editingChordSequence ? "w-full" : "w-full"
                 } ${darkMode ? "bg-foreground" : "bg-background"}`}
               ></div>
             </div>
