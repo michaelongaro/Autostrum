@@ -155,7 +155,7 @@ function SectionProgressionModal() {
 
             <div
               ref={scrollableSectionsRef}
-              className="baseVertFlex max-h-[70vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[70vh] md:w-3/4"
+              className="baseVertFlex max-h-[70vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[70vh] md:w-8/12"
             >
               {localSectionProgression.length > 0 ? (
                 <AnimatePresence mode="wait">
@@ -291,12 +291,13 @@ function Section({
       animate="expanded"
       exit="closed"
       variants={sectionVariants}
-      className="baseFlex relative w-fit !flex-nowrap gap-2"
+      className="baseFlex relative w-full !flex-nowrap gap-2"
     >
       <div className="baseVertFlex gap-2">
         <Button
           disabled={index === 0}
           variant="secondary"
+          size="sm"
           className="px-2"
           onClick={() => moveSectionUp()}
         >
@@ -305,18 +306,19 @@ function Section({
         <Button
           disabled={index === localSectionProgression.length - 1}
           variant="secondary"
+          size="sm"
           className="px-2"
           onClick={() => moveSectionDown()}
         >
           <BiDownArrowAlt className="h-5 w-5"></BiDownArrowAlt>
         </Button>
       </div>
-      <div className="baseFlex w-full gap-4 rounded-md bg-pink-500 p-4 px-4 sm:px-4 md:w-fit ">
+      <div className="baseFlex lightestGlassmorphic w-full gap-4 rounded-md p-4 px-4 sm:px-4 ">
         <Select
           value={title === "" ? undefined : title}
           onValueChange={(value) => handleSectionChange(value)}
         >
-          <SelectTrigger>
+          <SelectTrigger className="min-w-[225px]">
             <SelectValue placeholder="Select a section">
               {title === "" ? "Select a section" : title}
             </SelectValue>
