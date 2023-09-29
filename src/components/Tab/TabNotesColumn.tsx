@@ -298,7 +298,9 @@ function TabNotesColumn({
       <div className="baseFlex relative">
         <div
           style={{
-            height: editing ? "280px" : "164px",
+            marginTop:
+              reorderingColumns || showingDeleteColumnsButtons ? "4px" : "0",
+            height: editing ? "276px" : "164px",
             width: highlightChord || columnHasBeenPlayed ? "100%" : "0%",
             transitionDuration: highlightChord
               ? `${durationOfCurrentChord}s`
