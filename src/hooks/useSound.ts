@@ -665,7 +665,7 @@ export default function useSound() {
     let gain = 1;
 
     if (effects.includes(">")) {
-      gain = 1.5;
+      gain = 1.9;
     }
 
     // dead note and palm mute effects require us to basically hijack the note by almost muting it
@@ -762,7 +762,7 @@ export default function useSound() {
     // Scale the number between 0.01 (when scaleFactor is 0)
     // and 0.05 (when scaleFactor is 1).
 
-    const accentedMultiplier = accented ? 0.5 : 1;
+    const accentedMultiplier = accented ? 0.25 : 1;
     return (0.01 + scaleFactor * (0.05 - 0.01)) * accentedMultiplier;
   }
 
