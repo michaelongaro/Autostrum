@@ -211,16 +211,7 @@ function GeneralLayoutStatefulShell() {
   // route change state reset handling
   useEffect(() => {
     setAudioControlsVisibility("expanded");
-
-    // making sure all audio metadata is reset across route changes
-    setAudioMetadata({
-      type: "Generated",
-      tabId: -1,
-      playing: false,
-      location: null,
-    });
-    setCurrentChordIndex(0);
-    setCurrentlyPlayingMetadata(null);
+    setCurrentChordIndex(0); // reset to first chord
 
     if (!asPath.includes("/tab") && !asPath.includes("/create")) {
       setShowingAudioControls(false);
