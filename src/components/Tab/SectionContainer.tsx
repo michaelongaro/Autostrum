@@ -306,11 +306,11 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
             >
               {!editing &&
                 (subSection.type === "tab" || subSection.repetitions > 1) && (
-                  <div className="baseFlex ml-4 gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
+                  <div className="baseFlex ml-4 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
                     {subSection.type === "tab" && (
                       <div className="baseFlex gap-1">
-                        <BsMusicNote className="h-4 w-4" />
-                        {subSection.bpm}
+                        <BsMusicNote className="h-3 w-3" />
+                        {subSection.bpm} BPM
                       </div>
                     )}
 

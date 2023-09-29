@@ -202,10 +202,10 @@ function ChordSection({
                   className="baseVertFlex w-full !items-start"
                 >
                   {!editing && (
-                    <div className="baseFlex ml-4 gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
+                    <div className="baseFlex ml-4 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
                       <div className="baseFlex gap-1">
-                        <BsMusicNote className="h-4 w-4" />
-                        {chordSequence.bpm}
+                        <BsMusicNote className="h-3 w-3" />
+                        {chordSequence.bpm} BPM
                       </div>
 
                       {chordSequence.repetitions > 1 && (
