@@ -29,7 +29,20 @@ export interface TabWithLikes extends Tab {
 }
 
 // experimentally testing this zod schema from a typescript types -> zod converter online
-export const strumSchema = z.object({
+const sectionProgressionSchema = z.object({
+  id: z.string(),
+  sectionId: z.string(),
+  title: z.string(),
+  repetitions: z.number(),
+});
+
+const chordSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  frets: z.array(z.string()),
+});
+
+const strumSchema = z.object({
   palmMute: z.union([
     z.literal(""),
     z.literal("-"),
@@ -47,14 +60,16 @@ export const strumSchema = z.object({
   ]),
 });
 
-export const tabSectionSchema = z.object({
+const tabSectionSchema = z.object({
+  id: z.string(),
   type: z.literal("tab"),
   bpm: z.number(),
   repetitions: z.number(),
   data: z.array(z.array(z.string())),
 });
 
-export const strummingPatternSchema = z.object({
+const strummingPatternSchema = z.object({
+  id: z.string(),
   noteLength: z.union([
     z.literal("1/4th"),
     z.literal("1/4th triplet"),
@@ -66,26 +81,26 @@ export const strummingPatternSchema = z.object({
   strums: z.array(strumSchema),
 });
 
-export const chordSequenceSchema = z.object({
+const chordSequenceSchema = z.object({
+  id: z.string(),
   strummingPattern: strummingPatternSchema,
   bpm: z.number(),
   repetitions: z.number(),
   data: z.array(z.string()),
 });
 
-export const chordSectionSchema = z.object({
+const chordSectionSchema = z.object({
+  id: z.string(),
   type: z.literal("chord"),
   repetitions: z.number(),
   data: z.array(chordSequenceSchema),
 });
 
-export const sectionSchema = z.array(
-  z.object({
-    id: z.string(),
-    title: z.string(),
-    data: z.array(z.union([tabSectionSchema, chordSectionSchema])),
-  })
-);
+const sectionSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  data: z.array(z.union([tabSectionSchema, chordSectionSchema])),
+});
 
 export const tabRouter = createTRPCRouter({
   getTabById: publicProcedure
@@ -345,32 +360,11 @@ export const tabRouter = createTRPCRouter({
         bpm: z.number(),
         timeSignature: z.string(),
         capo: z.number(),
-        chords: z.array(
-          z.object({
-            name: z.string(),
-            frets: z.array(z.string()),
-          })
-        ),
+        chords: z.array(chordSchema),
         hasRecordedAudio: z.boolean(),
-        strummingPatterns: z.array(
-          z.object({
-            noteLength: z.string(),
-            strums: z.array(
-              z.object({
-                palmMute: z.string(),
-                strum: z.string(),
-              })
-            ),
-          })
-        ),
-        tabData: sectionSchema,
-        sectionProgression: z.array(
-          z.object({
-            id: z.string(),
-            title: z.string(),
-            repetitions: z.number(),
-          })
-        ),
+        strummingPatterns: z.array(strummingPatternSchema),
+        tabData: z.array(sectionSchema),
+        sectionProgression: z.array(sectionProgressionSchema),
         base64RecordedAudioFile: z.string().nullable(),
         shouldUpdateInS3: z.boolean(),
         type: z.enum(["create", "update"]),
