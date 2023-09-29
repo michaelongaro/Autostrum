@@ -36,7 +36,7 @@ function SectionProgression() {
       </p>
 
       {sectionProgression.length > 0 && (
-        <div className="baseVertFlex !items-start gap-2 md:flex-row">
+        <div className="baseVertFlex !items-start !justify-start gap-2 md:flex-row">
           {sectionProgression.map((section, index) => (
             <div key={section.id} className="baseFlex gap-2">
               <p className="font-semibold">{section.title}</p>
