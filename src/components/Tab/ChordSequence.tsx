@@ -176,6 +176,10 @@ function ChordSequence({
       chordSequenceIndex
     ]!.strummingPattern = newPattern;
 
+    newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+      chordSequenceIndex
+    ]!.data = Array.from({ length: newPattern!.strums.length }, () => "");
+
     setIndexOfCurrentlySelectedStrummingPattern(parseInt(value));
 
     setTabData(newTabData);
