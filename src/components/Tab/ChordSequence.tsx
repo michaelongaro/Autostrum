@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
+import { v4 as uuid } from "uuid";
 import {
   Select,
   SelectContent,
@@ -151,10 +152,12 @@ function ChordSequence({
   }
 
   function handleStrummingPatternChange(value: string) {
+    // if the user is creating a new strumming pattern
     if (value === "-1") {
       setStrummingPatternBeingEdited({
         index: strummingPatterns.length,
         value: {
+          id: uuid(),
           noteLength: "1/8th",
           strums: Array.from({ length: 8 }, () => ({
             palmMute: "",
@@ -215,6 +218,7 @@ function ChordSequence({
               setStrummingPatternBeingEdited({
                 index: strummingPatterns.length,
                 value: {
+                  id: uuid(),
                   noteLength: "1/8th",
                   strums: Array.from({ length: 8 }, () => ({
                     palmMute: "",
@@ -344,6 +348,8 @@ function ChordSequence({
             data={chordSequenceData.strummingPattern}
             mode={editing ? "editingChordSequence" : "viewingWithChordNames"}
             location={{ sectionIndex, subSectionIndex, chordSequenceIndex }}
+            lastModifiedPalmMuteNode={lastModifiedPalmMuteNode} // hopefully this doesn't crash something
+            setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode} // hopefully this doesn't crash something
           />
         </div>
       )}
