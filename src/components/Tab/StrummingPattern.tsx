@@ -414,21 +414,9 @@ function StrummingPattern({
       }}
       className="baseFlex w-full"
     >
-      <div
-        style={{
-          paddingLeft: mode === "editingChordSequence" ? "3rem" : "0",
-        }}
-        className="baseFlex relative !justify-start"
-      >
+      <div className="baseFlex relative !justify-start">
         {mode === "editingChordSequence" && (
-          <Label
-            style={{
-              top: patternHasPalmMuting() ? "3rem" : "1.5rem",
-            }}
-            className="absolute left-0"
-          >
-            Chords
-          </Label>
+          <Label className="relative -top-8 left-0 pr-2">Chords</Label>
         )}
 
         {data?.strums?.map((strum, strumIndex) => (
