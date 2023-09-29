@@ -521,7 +521,6 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                         <Button
                           variant={"outline"}
                           size="sm"
-                          className="border-none"
                           onClick={() => setShowDeletePopover(false)}
                         >
                           Cancel
@@ -529,6 +528,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
 
                         <Button
                           variant={"destructive"}
+                          size="sm"
                           disabled={isDeleting}
                           onClick={() => deleteTab(id)}
                           className="baseFlex gap-2"
