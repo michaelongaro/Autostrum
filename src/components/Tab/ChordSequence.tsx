@@ -212,7 +212,7 @@ function ChordSequence({
           style={{
             borderTopLeftRadius: chordSequenceData.repetitions > 1 ? 0 : "auto",
           }}
-          className="baseVertFlex relative h-full w-full gap-2 rounded-md border-[1px] border-pink-50 bg-black/25 p-4"
+          className="baseVertFlex relative h-full w-full gap-2 rounded-md border-[1px] border-pink-50 bg-black/25 p-1"
         >
           <p className="mt-8 text-lg font-semibold sm:mt-0">
             No strumming patterns exist
