@@ -245,7 +245,12 @@ function ChordSection({
                   </AnimatePresence>
                 </div>
               ) : (
-                <p className="italic text-pink-200">Empty strumming pattern</p>
+                <p
+                  key={`emptyStrummingPattern${index}`}
+                  className="italic text-pink-200"
+                >
+                  Empty strumming pattern
+                </p>
               )}
             </>
           ))}
