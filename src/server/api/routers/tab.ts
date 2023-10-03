@@ -57,6 +57,12 @@ const strumSchema = z.object({
     z.literal("v>"),
     z.literal("^>"),
     z.literal("s>"),
+    z.literal("v.>"),
+    z.literal("^.>"),
+    z.literal("s.>"),
+    z.literal("v>."),
+    z.literal("u>."),
+    z.literal("s>."),
   ]),
 });
 
