@@ -1124,15 +1124,16 @@ export default function useSound() {
   interface PlayPreview {
     data: string[] | StrummingPattern;
     index: number; // technically only necessary for strumming pattern, not chord preview
+    tuningNotes?: string;
     type: "chord" | "strummingPattern";
   }
 
-  async function playPreview({ data, index, type }: PlayPreview) {
+  async function playPreview({ data, index, tuningNotes, type }: PlayPreview) {
     if (audioMetadata.playing || previewMetadata.playing) {
       pauseAudio();
     }
 
-    const tuning = parse("e2 a2 d3 g3 b3 e4");
+    const tuning = parse(tuningNotes ?? "e2 a2 d3 g3 b3 e4");
 
     const compiledChords =
       type === "chord"

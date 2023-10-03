@@ -37,6 +37,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
   );
 
   const {
+    tuning,
     chords,
     setChords,
     setChordBeingEdited,
@@ -46,6 +47,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
     previewMetadata,
   } = useTabStore(
     (state) => ({
+      tuning: state.tuning,
       chords: state.chords,
       setChords: state.setChords,
       setChordBeingEdited: state.setChordBeingEdited,
@@ -263,6 +265,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
                 void playPreview({
                   data: chordBeingEdited.value.frets,
                   index: chordBeingEdited.index,
+                  tuningNotes: tuning,
                   type: "chord",
                 });
               }}

@@ -35,6 +35,7 @@ function Chords() {
   const {
     id,
     currentInstrument,
+    tuning,
     chords,
     setChords,
     setChordBeingEdited,
@@ -46,6 +47,7 @@ function Chords() {
     (state) => ({
       id: state.id,
       currentInstrument: state.currentInstrument,
+      tuning: state.tuning,
       chords: state.chords,
       setChords: state.setChords,
       setChordBeingEdited: state.setChordBeingEdited,
@@ -221,6 +223,7 @@ function Chords() {
                         void playPreview({
                           data: chord.frets,
                           index,
+                          tuningNotes: tuning,
                           type: "chord",
                         });
                       }}
