@@ -88,7 +88,11 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
             }
 
             setOriginalTabData(tab);
-          }, 500);
+          }, 250);
+
+          setTimeout(() => {
+            setShowPublishCheckmark(false);
+          }, 1500);
         }
       },
       onError: (e) => {
@@ -111,7 +115,11 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
 
         setTimeout(() => {
           void push(`/create`);
-        }, 500);
+        }, 250);
+
+        setTimeout(() => {
+          setShowDeleteCheckmark(false);
+        }, 1500);
       },
       onError: (e) => {
         //  const errorMessage = e.data?.zodError?.fieldErrors.content;
@@ -305,7 +313,13 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
   }
 
   function handlePreview() {
-    if (!title || !genreId || !tuning || !bpm) {
+    if (
+      !title ||
+      genreId === -1 ||
+      !tuning ||
+      !bpm ||
+      tabIsEffectivelyEmpty(tabData)
+    ) {
       setShowPulsingError(true);
       setTimeout(() => setShowPulsingError(false), 500);
 
@@ -462,10 +476,12 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                     <PopoverTrigger asChild>
                       <Button
                         variant={"destructive"}
-                        disabled={isDeleting}
+                        disabled={isDeleting || showDeleteCheckmark}
                         className="baseFlex gap-2"
                       >
-                        {isDeleting || showDeleteCheckmark
+                        {showDeleteCheckmark && !isDeleting
+                          ? "Deleted"
+                          : isDeleting
                           ? "Deleting"
                           : "Delete"}
                         <FaTrashAlt className="h-4 w-4" />
@@ -530,7 +546,10 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                           variant={"destructive"}
                           size="sm"
                           disabled={isDeleting}
-                          onClick={() => deleteTab(id)}
+                          onClick={() => {
+                            deleteTab(id);
+                            setShowDeletePopover(false);
+                          }}
                           className="baseFlex gap-2"
                         >
                           Confirm
@@ -611,23 +630,27 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                 >
                   <PopoverTrigger asChild>
                     <Button
-                      // eventually add loading spinner here while saving
                       disabled={
                         isEqualToOriginalTabState() ||
                         showPulsingError ||
-                        isPosting
+                        isPosting ||
+                        showPublishCheckmark
                       }
                       onClick={() => void handleSave()}
                       className="baseFlex gap-2"
                     >
                       {asPath.includes("create")
                         ? `${
-                            isPosting || showPublishCheckmark
+                            showPublishCheckmark && !isPosting
+                              ? "Published"
+                              : isPosting
                               ? "Publishing"
                               : "Publish"
                           }`
                         : `${
-                            isPosting || showPublishCheckmark
+                            showPublishCheckmark && !isPosting
+                              ? "Saved"
+                              : isPosting
                               ? "Saving"
                               : "Save"
                           }`}
@@ -749,10 +772,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                     }),
                   animationPlayState:
                     showPulsingError && !title ? "running" : "paused",
-                  // could add below box shadow styles into tailwind too!
                   transitionProperty: "box-shadow",
-                  transitionTimingFunction: "ease-in-out",
-                  transitionDuration: "500ms",
                 }}
                 className="w-full animate-errorShake md:w-72"
                 onChange={(e) => {
@@ -892,8 +912,6 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                     showPulsingError && bpm === null ? "running" : "paused",
                   // could add below box shadow styles into tailwind too!
                   transitionProperty: "box-shadow",
-                  transitionTimingFunction: "ease-in-out",
-                  transitionDuration: "500ms",
                 }}
                 className="animate-errorShake"
                 onChange={handleBpmChange}

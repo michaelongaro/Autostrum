@@ -1,8 +1,9 @@
 import { useAuth } from "@clerk/nextjs";
 import FocusTrap from "focus-trap-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { TbPinned } from "react-icons/tb";
+import { Check } from "lucide-react";
 import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
 import { api } from "~/utils/api";
 import SearchInput from "../Search/SearchInput";
@@ -33,13 +34,27 @@ function PinnedTabModal({
 
   const [currentlySelectedPinnedTabId, setCurrentlySelectedPinnedTabId] =
     useState(pinnedTabIdFromDatabase);
+  const [showSaveCheckmark, setShowSaveCheckmark] = useState(false);
 
-  const { mutate: updateArtist } = api.artist.updateArtist.useMutation({
-    onSettled: () => {
-      void ctx.artist.getByIdOrUsername.invalidate();
-      void ctx.tab.getTabById.invalidate();
-    },
-  });
+  const { mutate: updateArtist, isLoading: isSaving } =
+    api.artist.updateArtist.useMutation({
+      onSuccess: () => {
+        setShowSaveCheckmark(true);
+
+        setTimeout(() => {
+          void ctx.artist.getByIdOrUsername.invalidate();
+          void ctx.tab.getTabById.invalidate();
+        }, 250);
+
+        setTimeout(() => {
+          setShowSaveCheckmark(false);
+        }, 1500);
+
+        setTimeout(() => {
+          setShowPinnedTabModal(false);
+        }, 2000);
+      },
+    });
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -125,11 +140,62 @@ function PinnedTabModal({
             </Button>
             <Button
               disabled={
-                pinnedTabIdFromDatabase === currentlySelectedPinnedTabId
+                pinnedTabIdFromDatabase === currentlySelectedPinnedTabId ||
+                isSaving ||
+                showSaveCheckmark
               }
               onClick={handleUpdatePinnedTab}
+              className="baseFlex gap-2"
             >
-              Save
+              {showSaveCheckmark && !isSaving
+                ? "Saved"
+                : isSaving
+                ? "Saving"
+                : "Save"}
+
+              <AnimatePresence mode="wait">
+                {/* will need to also include condition for while recording is being
+                            uploaded to s3 to also show loading spinner, don't necessarily have to
+                            communicate that it's uploading recorded audio imo */}
+                {isSaving && (
+                  <motion.svg
+                    key="pinnedModalSaveLoadingSpinner"
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: "24px" }}
+                    transition={{
+                      duration: 0.15,
+                    }}
+                    className="h-6 w-6 animate-spin rounded-full bg-inherit fill-none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </motion.svg>
+                )}
+                {showSaveCheckmark && (
+                  <motion.div
+                    key="pinnedModalSaveSuccessCheckmark"
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{
+                      duration: 0.25,
+                    }}
+                  >
+                    <Check className="h-5 w-5" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Button>
           </div>
         </div>

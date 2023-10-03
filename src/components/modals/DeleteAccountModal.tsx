@@ -50,7 +50,11 @@ function DeleteAccountModal() {
 
         setTimeout(() => {
           void push(`/`);
-        }, 500);
+        }, 250);
+
+        setTimeout(() => {
+          setShowDeleteCheckmark(false);
+        }, 1500);
       },
       onError: (e) => {
         //  const errorMessage = e.data?.zodError?.fieldErrors.content;
@@ -142,7 +146,9 @@ function DeleteAccountModal() {
                 });
               }}
             >
-              {isDeleting || showDeleteCheckmark
+              {showDeleteCheckmark && !isDeleting
+                ? "Deleted account"
+                : isDeleting
                 ? "Deleting account"
                 : "Delete account"}
               <FaTrashAlt className="h-4 w-4" />
@@ -150,7 +156,7 @@ function DeleteAccountModal() {
               <AnimatePresence mode="wait">
                 {isDeleting && (
                   <motion.svg
-                    key="postingLoadingSpinner"
+                    key="deleteAccountLoadingSpinner"
                     initial={{ opacity: 0, width: 0 }}
                     animate={{ opacity: 1, width: "24px" }}
                     transition={{
@@ -177,7 +183,7 @@ function DeleteAccountModal() {
 
                 {showDeleteCheckmark && (
                   <motion.div
-                    key="postingSuccessCheckmark"
+                    key="deleteAccountSuccessCheckmark"
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{
