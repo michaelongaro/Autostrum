@@ -224,6 +224,7 @@ interface TabState {
   currentlyCopiedChord: string[] | null;
   setCurrentlyCopiedChord: (currentlyCopiedChord: string[] | null) => void;
   getStringifiedTabData: () => string;
+  resetAudioMetadataOnRouteChange: () => void;
 
   // modals
   showAudioRecorderModal: boolean;
@@ -405,6 +406,19 @@ export const useTabStore = create<TabState>()(
         strummingPatterns,
         tabData,
         sectionProgression,
+      });
+    },
+
+    resetAudioMetadataOnRouteChange: () => {
+      const audioMetadata = get().audioMetadata;
+
+      set({
+        audioMetadata: {
+          ...audioMetadata,
+          location: null,
+          playing: false,
+        },
+        currentChordIndex: 0,
       });
     },
 

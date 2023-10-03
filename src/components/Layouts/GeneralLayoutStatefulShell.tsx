@@ -57,7 +57,7 @@ function GeneralLayoutStatefulShell() {
     resetStoreToInitValues,
     setEditing,
     setAudioMetadata,
-    setCurrentChordIndex,
+    resetAudioMetadataOnRouteChange,
     setCurrentlyPlayingMetadata,
     audioMetadata,
   } = useTabStore(
@@ -67,7 +67,7 @@ function GeneralLayoutStatefulShell() {
       resetStoreToInitValues: state.resetStoreToInitValues,
       setEditing: state.setEditing,
       setAudioMetadata: state.setAudioMetadata,
-      setCurrentChordIndex: state.setCurrentChordIndex,
+      resetAudioMetadataOnRouteChange: state.resetAudioMetadataOnRouteChange,
       setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
       audioMetadata: state.audioMetadata,
     }),
@@ -211,7 +211,7 @@ function GeneralLayoutStatefulShell() {
   // route change state reset handling
   useEffect(() => {
     setAudioControlsVisibility("expanded");
-    setCurrentChordIndex(0); // reset to first chord
+    resetAudioMetadataOnRouteChange();
 
     if (!asPath.includes("/tab") && !asPath.includes("/create")) {
       setShowingAudioControls(false);
@@ -234,7 +234,7 @@ function GeneralLayoutStatefulShell() {
     setEditing,
     setShowingAudioControls,
     setAudioMetadata,
-    setCurrentChordIndex,
+    resetAudioMetadataOnRouteChange,
     setCurrentlyPlayingMetadata,
   ]);
 
