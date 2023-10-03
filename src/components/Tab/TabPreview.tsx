@@ -114,7 +114,7 @@ function PreviewSectionContainer({
             className="baseVertFlex w-full !items-start pb-2"
           >
             {(subSection.type === "tab" || subSection.repetitions > 1) && (
-              <div className="baseFlex ml-4 gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
+              <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
                 {subSection.type === "tab" && (
                   <div className="baseFlex gap-1">
                     <BsMusicNote className="h-4 w-4" />
@@ -209,7 +209,7 @@ function PreviewChordSection({
             key={chordSequence.id}
             className="baseVertFlex w-full !items-start"
           >
-            <div className="baseFlex ml-4 gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
+            <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
               <div className="baseFlex gap-1">
                 <BsMusicNote className="h-4 w-4" />
                 {chordSequence.bpm} BPM
