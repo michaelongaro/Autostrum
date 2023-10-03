@@ -419,7 +419,9 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
         currentlyPlayingMetadata === null ||
         currentlyPlayingMetadata.length === 0 ||
         !currentInstrument ||
-        (currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0) === 0 ||
+        // this was disabling short sections that were at very high bpms, resulting in < 1 second of audio
+        // (currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0) === 0 ||
+
         // idk why this last condition is going over my head right now, make sure it makes sense before commit
         // maybe doesn't hurt anything, but could be covering some of the statements above,
         // so maybe try to leverage it's "complete"ness of it's check through the tab?
