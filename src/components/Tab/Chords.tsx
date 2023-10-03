@@ -19,7 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const opacityAndScaleVariants = {
   closed: {
     opacity: 0,
-    scale: 0.75,
+    scale: 0.5,
     width: 0,
   },
   open: {
