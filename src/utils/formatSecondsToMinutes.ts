@@ -9,5 +9,9 @@ export default function formatSecondsToMinutes(rawSeconds: number): string {
   const formattedSeconds =
     seconds < 10 ? "0" + `${seconds}` : seconds.toString();
 
-  return formattedMinutes + ":" + formattedSeconds;
+  return (
+    (formattedMinutes === "Infinity" ? "0" : formattedMinutes) +
+    ":" +
+    (formattedSeconds === "NaN" ? "00" : formattedSeconds)
+  );
 }
