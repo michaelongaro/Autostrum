@@ -28,7 +28,10 @@ function compileChord({
   stringifiedBpm,
   noteLengthMultiplier,
 }: CompileChord) {
-  if (chordName === "") {
+  const chordFrets =
+    chords[chords.findIndex((chord) => chord.name === chordName)]?.frets;
+
+  if (chordName === "" || !chordFrets) {
     return [
       "",
       "",
@@ -43,24 +46,8 @@ function compileChord({
     ];
   }
 
-  let chordFrets: string[] = [];
   let chordEffect = "";
-
-  const baseChordFrets =
-    chords[chords.findIndex((chord) => chord.name === chordName)]?.frets;
-
-  if (
-    baseChordFrets &&
-    strummingPattern.strums[chordIdx]?.strum.includes(">")
-  ) {
-    chordFrets = baseChordFrets.map((fret) =>
-      fret !== "" ? fret + ">" : fret
-    );
-    chordEffect = strummingPattern.strums[chordIdx]!.strum;
-  } else if (baseChordFrets) {
-    chordFrets = baseChordFrets;
-    chordEffect = strummingPattern.strums[chordIdx]!.strum;
-  }
+  chordEffect = strummingPattern.strums[chordIdx]!.strum;
 
   return [
     strummingPattern.strums[chordIdx]!.palmMute,
