@@ -139,6 +139,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       return {
         id: uuid(),
         type: "chord",
+        bpm: bpm ?? 75,
         repetitions: 1,
         data: [
           {
@@ -158,6 +159,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
     return {
       id: uuid(),
       type: "chord",
+      bpm: bpm ?? 75,
       repetitions: 1,
       data: [
         {
@@ -304,44 +306,39 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
               key={subSection.id}
               className="baseVertFlex w-full !items-start pb-2"
             >
-              {!editing &&
-                (subSection.type === "tab" || subSection.repetitions > 1) && (
-                  <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
-                    {subSection.type === "tab" && (
-                      <div className="baseFlex gap-1">
-                        <BsMusicNote className="h-3 w-3" />
-                        {subSection.bpm} BPM
-                      </div>
-                    )}
-
-                    {subSection.repetitions > 1 && (
-                      <div className="baseFlex gap-3">
-                        {subSection.type === "tab" && (
-                          <Separator
-                            className="h-4 w-[1px]"
-                            orientation="vertical"
-                          />
-                        )}
-
-                        <p
-                          className={`${
-                            audioMetadata.type === "Generated" &&
-                            audioMetadata.playing &&
-                            currentlyPlayingMetadata?.[currentChordIndex]
-                              ?.location?.sectionIndex === sectionIndex &&
-                            currentlyPlayingMetadata?.[currentChordIndex]
-                              ?.location?.subSectionIndex === index
-                              ? "animate-colorOscillate"
-                              : ""
-                          }
-                    `}
-                        >
-                          Repeat x{subSection.repetitions}
-                        </p>
-                      </div>
-                    )}
+              {!editing && (
+                <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
+                  <div className="baseFlex gap-1">
+                    <BsMusicNote className="h-3 w-3" />
+                    {subSection.bpm === -1 ? bpm : subSection.bpm} BPM
                   </div>
-                )}
+
+                  {subSection.repetitions > 1 && (
+                    <div className="baseFlex gap-3">
+                      <Separator
+                        className="h-4 w-[1px]"
+                        orientation="vertical"
+                      />
+
+                      <p
+                        className={`${
+                          audioMetadata.type === "Generated" &&
+                          audioMetadata.playing &&
+                          currentlyPlayingMetadata?.[currentChordIndex]
+                            ?.location?.sectionIndex === sectionIndex &&
+                          currentlyPlayingMetadata?.[currentChordIndex]
+                            ?.location?.subSectionIndex === index
+                            ? "animate-colorOscillate"
+                            : ""
+                        }
+                    `}
+                      >
+                        Repeat x{subSection.repetitions}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
               <AnimatePresence mode="wait">
                 {subSection.type === "chord" ? (
                   <ChordSection

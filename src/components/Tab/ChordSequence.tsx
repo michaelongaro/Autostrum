@@ -15,6 +15,7 @@ import {
 import {
   useTabStore,
   type ChordSequence as ChordSequenceData,
+  type ChordSection,
 } from "~/stores/TabStore";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Input } from "../ui/input";
@@ -47,6 +48,7 @@ export interface ChordSequence {
   subSectionIndex: number;
   chordSequenceIndex: number;
   chordSequenceData: ChordSequenceData;
+  subSectionData: ChordSection;
 }
 
 function ChordSequence({
@@ -55,6 +57,7 @@ function ChordSequence({
   subSectionIndex,
   chordSequenceIndex,
   chordSequenceData,
+  subSectionData,
 }: ChordSequence) {
   const [
     indexOfCurrentlySelectedStrummingPattern,
@@ -121,6 +124,16 @@ function ChordSequence({
     setTabData,
     tabData,
   ]);
+
+  const placeholderBpm = useMemo(() => {
+    if (chordSequenceData.bpm !== -1) return chordSequenceData.bpm.toString();
+
+    if (subSectionData.bpm !== -1) return subSectionData.bpm.toString();
+
+    if (bpm !== -1) return bpm.toString();
+
+    return "75";
+  }, [bpm, subSectionData.bpm, chordSequenceData.bpm]);
 
   function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newRepetitions =
@@ -287,7 +300,7 @@ function ChordSequence({
                     inputMode="numeric"
                     pattern="[0-9]*"
                     className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
-                    placeholder={(bpm ?? 75).toString()}
+                    placeholder={placeholderBpm}
                     value={
                       chordSequenceData.bpm === -1
                         ? ""

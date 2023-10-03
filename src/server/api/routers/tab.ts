@@ -98,6 +98,7 @@ const chordSequenceSchema = z.object({
 const chordSectionSchema = z.object({
   id: z.string(),
   type: z.literal("chord"),
+  bpm: z.number(),
   repetitions: z.number(),
   data: z.array(chordSequenceSchema),
 });

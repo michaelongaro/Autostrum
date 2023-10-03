@@ -84,6 +84,17 @@ function ChordSection({
     setTabData(newTabData);
   }
 
+  function handleBpmChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const newBpm = e.target.value.length === 0 ? -1 : parseInt(e.target.value);
+    if (isNaN(newBpm) || newBpm > 400) return;
+
+    const newTabData = [...tabData];
+
+    newTabData[sectionIndex]!.data[subSectionIndex]!.bpm = newBpm;
+
+    setTabData(newTabData);
+  }
+
   function addAnotherChordSequence() {
     const newTabData = [...tabData];
 
@@ -167,6 +178,25 @@ function ChordSection({
                 onChange={handleRepetitionsChange}
               />
             </div>
+
+            <div className="baseFlex gap-2">
+              <Label>BPM</Label>
+              <Input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
+                placeholder={
+                  subSectionData.bpm === -1
+                    ? bpm.toString()
+                    : subSectionData.bpm.toString()
+                }
+                value={
+                  subSectionData.bpm === -1 ? "" : subSectionData.bpm.toString()
+                }
+                onChange={handleBpmChange}
+              />
+            </div>
           </div>
           <MiscellaneousControls
             type={"chord"}
@@ -210,39 +240,51 @@ function ChordSection({
                   }}
                   className="baseVertFlex !items-start"
                 >
-                  {!editing && (
-                    <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
-                      <div className="baseFlex gap-1">
-                        <BsMusicNote className="h-3 w-3" />
-                        {chordSequence.bpm} BPM
-                      </div>
+                  {!editing &&
+                    ((chordSequence.bpm !== -1 &&
+                      chordSequence.bpm !== subSectionData.bpm) ||
+                      chordSequence.repetitions > 1) && (
+                      <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
+                        {chordSequence.bpm !== -1 &&
+                          chordSequence.bpm !== subSectionData.bpm && (
+                            <div className="baseFlex gap-1">
+                              <BsMusicNote className="h-3 w-3" />
+                              {chordSequence.bpm === -1
+                                ? bpm
+                                : chordSequence.bpm}{" "}
+                              BPM
+                            </div>
+                          )}
 
-                      {chordSequence.repetitions > 1 && (
-                        <div className="baseFlex gap-3">
-                          <Separator
-                            className="h-4 w-[1px]"
-                            orientation="vertical"
-                          />
+                        {chordSequence.repetitions > 1 && (
+                          <div className="baseFlex gap-3">
+                            {chordSequence.bpm !== -1 &&
+                              chordSequence.bpm !== subSectionData.bpm && (
+                                <Separator
+                                  className="h-4 w-[1px]"
+                                  orientation="vertical"
+                                />
+                              )}
 
-                          <p
-                            className={`${
-                              audioMetadata.type === "Generated" &&
-                              audioMetadata.playing &&
-                              currentlyPlayingMetadata?.[currentChordIndex]
-                                ?.location?.sectionIndex === sectionIndex &&
-                              currentlyPlayingMetadata?.[currentChordIndex]
-                                ?.location?.subSectionIndex === index
-                                ? "animate-colorOscillate"
-                                : ""
-                            }
+                            <p
+                              className={`${
+                                audioMetadata.type === "Generated" &&
+                                audioMetadata.playing &&
+                                currentlyPlayingMetadata?.[currentChordIndex]
+                                  ?.location?.sectionIndex === sectionIndex &&
+                                currentlyPlayingMetadata?.[currentChordIndex]
+                                  ?.location?.subSectionIndex === index
+                                  ? "animate-colorOscillate"
+                                  : ""
+                              }
                             `}
-                          >
-                            Repeat x{chordSequence.repetitions}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                            >
+                              Repeat x{chordSequence.repetitions}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   <AnimatePresence mode="wait">
                     <ChordSequence
                       sectionId={sectionId}
@@ -250,6 +292,7 @@ function ChordSection({
                       subSectionIndex={subSectionIndex}
                       chordSequenceIndex={index}
                       chordSequenceData={chordSequence}
+                      subSectionData={subSectionData}
                     />
                   </AnimatePresence>
                 </div>

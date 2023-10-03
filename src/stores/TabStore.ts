@@ -57,6 +57,7 @@ export interface ChordSequence {
 export interface ChordSection {
   id: string; // used to identify for keys in .map()
   type: "chord";
+  bpm: number;
   repetitions: number;
   data: ChordSequence[];
 }

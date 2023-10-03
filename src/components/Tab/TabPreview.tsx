@@ -67,6 +67,7 @@ function TabPreview({ tab, scale }: TabPreview) {
             <PreviewSectionContainer
               key={section.id}
               tabData={tabData}
+              baselineBpm={tab.bpm}
               tuning={tab.tuning}
               sectionIndex={index}
               sectionData={section}
@@ -80,6 +81,7 @@ function TabPreview({ tab, scale }: TabPreview) {
 
 interface PreviewSectionContainer {
   tabData: Section[];
+  baselineBpm: number;
   tuning: string;
   sectionIndex: number;
   sectionData: Section;
@@ -87,6 +89,7 @@ interface PreviewSectionContainer {
 
 function PreviewSectionContainer({
   tabData,
+  baselineBpm,
   tuning,
   sectionData,
   sectionIndex,
@@ -114,21 +117,14 @@ function PreviewSectionContainer({
           >
             {(subSection.type === "tab" || subSection.repetitions > 1) && (
               <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
-                {subSection.type === "tab" && (
-                  <div className="baseFlex gap-1">
-                    <BsMusicNote className="h-4 w-4" />
-                    {subSection.bpm} BPM
-                  </div>
-                )}
+                <div className="baseFlex gap-1">
+                  <BsMusicNote className="h-3 w-3" />
+                  {subSection.bpm === -1 ? baselineBpm : subSection.bpm} BPM
+                </div>
 
                 {subSection.repetitions > 1 && (
                   <div className="baseFlex gap-3">
-                    {subSection.type === "tab" && (
-                      <Separator
-                        className="h-4 w-[1px]"
-                        orientation="vertical"
-                      />
-                    )}
+                    <Separator className="h-4 w-[1px]" orientation="vertical" />
 
                     <p>Repeat x{subSection.repetitions}</p>
                   </div>
@@ -139,6 +135,7 @@ function PreviewSectionContainer({
             {subSection.type === "chord" ? (
               <PreviewChordSection
                 tabData={tabData}
+                baselineBpm={baselineBpm}
                 sectionId={sectionData.id}
                 sectionIndex={sectionIndex}
                 subSectionIndex={index}
@@ -163,6 +160,7 @@ function PreviewSectionContainer({
 
 interface PreviewChordSection {
   tabData: Section[];
+  baselineBpm: number;
   sectionId: string;
   sectionIndex: number;
   subSectionIndex: number;
@@ -171,6 +169,7 @@ interface PreviewChordSection {
 
 function PreviewChordSection({
   tabData,
+  baselineBpm,
   sectionId,
   sectionIndex,
   subSectionIndex,
@@ -205,20 +204,27 @@ function PreviewChordSection({
             key={chordSequence.id}
             className="baseVertFlex w-auto !items-start"
           >
-            <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
-              <div className="baseFlex gap-1">
-                <BsMusicNote className="h-4 w-4" />
-                {chordSequence.bpm} BPM
-              </div>
-
-              {chordSequence.repetitions > 1 && (
-                <div className="baseFlex gap-3">
-                  <Separator className="h-4 w-[1px]" orientation="vertical" />
-
-                  <p>Repeat x{chordSequence.repetitions}</p>
+            {((chordSequence.bpm !== -1 &&
+              chordSequence.bpm !== subSectionData.bpm) ||
+              chordSequence.repetitions > 1) && (
+              <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
+                <div className="baseFlex gap-1">
+                  <BsMusicNote className="h-3 w-3" />
+                  {chordSequence.bpm === -1
+                    ? baselineBpm
+                    : chordSequence.bpm}{" "}
+                  BPM
                 </div>
-              )}
-            </div>
+
+                {chordSequence.repetitions > 1 && (
+                  <div className="baseFlex gap-3">
+                    <Separator className="h-4 w-[1px]" orientation="vertical" />
+
+                    <p>Repeat x{chordSequence.repetitions}</p>
+                  </div>
+                )}
+              </div>
+            )}
 
             <PreviewChordSequence
               tabData={tabData}

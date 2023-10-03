@@ -183,6 +183,8 @@ function compileSpecificChordGrouping({
     location.subSectionIndex !== undefined &&
     location.sectionIndex !== undefined
   ) {
+    const subSectionBpm =
+      tabData[location.sectionIndex]!.data[location.subSectionIndex]!.bpm;
     const chordSequence =
       tabData[location.sectionIndex]!.data[location.subSectionIndex]!.data[
         location.chordSequenceIndex
@@ -196,6 +198,7 @@ function compileSpecificChordGrouping({
       subSectionIndex: location.subSectionIndex,
       chordSequenceIndex: location.chordSequenceIndex,
       baselineBpm,
+      subSectionBpm,
       compiledChords,
       metadata,
       chords,
@@ -445,6 +448,7 @@ function compileChordSection({
       subSectionIndex,
       chordSequenceIndex,
       baselineBpm,
+      subSectionBpm: subSection.bpm,
       compiledChords,
       metadata,
       chords,
@@ -460,6 +464,7 @@ interface CompileChordSequence {
   subSectionIndex: number;
   chordSequenceIndex: number;
   baselineBpm: number;
+  subSectionBpm: number;
   compiledChords: string[][];
   metadata: Metadata[];
   chords: Chord[];
@@ -473,6 +478,7 @@ function compileChordSequence({
   subSectionIndex,
   chordSequenceIndex,
   baselineBpm,
+  subSectionBpm,
   compiledChords,
   metadata,
   chords,
@@ -502,7 +508,11 @@ function compileChordSequence({
         chordName = lastSpecifiedChordName;
       }
 
-      const chordBpm = getBpmForChord(chordSequence.bpm, baselineBpm);
+      const chordBpm = getBpmForChord(
+        chordSequence.bpm,
+        baselineBpm,
+        subSectionBpm
+      );
 
       let noteLengthMultiplier = "1";
 
@@ -579,6 +589,7 @@ function compileStrummingPatternPreview({
         strummingPattern,
         chords: [
           {
+            id: "0", // no need for an actual id here
             name: "C",
             frets: ["0", "1", "0", "2", "3", ""],
           },
