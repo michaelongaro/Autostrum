@@ -45,10 +45,10 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
     ref
   ) => {
     const { userId } = useAuth();
-    const { push, asPath } = useRouter();
+    const { asPath } = useRouter();
 
     const [profileImageLoaded, setProfileImageLoaded] = useState(false);
-    const previewRef = useRef<HTMLDivElement>(null);
+    const previewRef = useRef<HTMLAnchorElement>(null);
 
     const genreArray = api.genre.getAll.useQuery();
 
@@ -132,23 +132,24 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         className="baseVertFlex rounded-md border-2"
       >
         {/* tab preview */}
-        <div
+        <Link
           ref={previewRef}
+          href={`/tab/${tab.id}`}
           style={{
             height: width ? width / 2.17 : "9rem",
           }}
-          className="gridTabCardPreviewGlassmorphic relative w-full cursor-pointer overflow-hidden rounded-t-md transition-all hover:bg-black/10 active:bg-black/20"
-          onClick={() => {
-            void push(`/tab/${tab.id}`);
-          }}
+          className="gridTabCardPreviewGlassmorphic relative w-full cursor-pointer overflow-hidden rounded-t-md"
         >
-          <TabPreview
-            tab={tab}
-            scale={
-              (previewRef.current?.getBoundingClientRect()?.width ?? 0) / 1200
-            }
-          />
-        </div>
+          <>
+            <TabPreview
+              tab={tab}
+              scale={
+                (previewRef.current?.getBoundingClientRect()?.width ?? 0) / 1200
+              }
+            />
+            <div className="h-full w-full transition-all hover:bg-black/10 active:bg-black/20"></div>
+          </>
+        </Link>
 
         <Separator />
 
