@@ -164,100 +164,95 @@ function StrummingPatterns() {
                 className="overflow-hidden"
               >
                 {editing && (
-                  <div className="baseVertFlex border-b-none !flex-nowrap rounded-md border-2">
-                    <StrummingPattern
-                      data={pattern}
-                      mode="viewing"
-                      index={index}
-                      lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
-                      setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
-                    />
+                  <div className="baseFlex !flex-nowrap !items-start">
+                    <div className="baseFlex border-b-none !flex-nowrap rounded-md rounded-tr-none border-2">
+                      <StrummingPattern
+                        data={pattern}
+                        mode="viewing"
+                        index={index}
+                        lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+                        setLastModifiedPalmMuteNode={
+                          setLastModifiedPalmMuteNode
+                        }
+                      />
+                    </div>
 
-                    <div className="baseFlex w-full !justify-evenly rounded-bl-md border-t-2">
-                      <>
-                        {/* edit button */}
-                        <Button
-                          variant={"ghost"}
-                          size={"sm"}
-                          className="baseFlex h-8 w-1/2 gap-2 rounded-r-none rounded-bl-sm rounded-tl-none border-r-[1px]"
-                          onClick={() => {
-                            setStrummingPatternBeingEdited({
-                              index,
-                              value: pattern,
-                            });
-                          }}
-                        >
-                          <AiFillEdit className="h-6 w-6" />
-                        </Button>
+                    <div className="baseVertFlex w-fit rounded-l-none rounded-r-sm border-2 border-l-0">
+                      {/* edit button */}
+                      <Button
+                        variant={"ghost"}
+                        size={"sm"}
+                        className="baseFlex h-8 w-10 rounded-none border-b-[1px] p-1"
+                        onClick={() => {
+                          setStrummingPatternBeingEdited({
+                            index,
+                            value: pattern,
+                          });
+                        }}
+                      >
+                        <AiFillEdit className="h-5 w-5" />
+                      </Button>
 
-                        {/* delete button */}
-                        <Popover
-                          open={showingDeletePopover[index]}
-                          onOpenChange={(openValue) => {
-                            setShowingDeletePopover((prev) => {
-                              const prevShowingDeletePopover = [...prev];
-                              prevShowingDeletePopover[index] = openValue;
-                              return prevShowingDeletePopover;
-                            });
-                          }}
-                        >
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant={"destructive"}
-                              size="sm"
-                              className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px]"
-                            >
-                              <FaTrashAlt className="h-4 w-4" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent>
-                            <div className="baseVertFlex gap-4">
-                              <p className="w-auto text-center text-sm">
-                                Chord progressions that use this pattern will be
-                                modified.
-                              </p>
+                      {/* delete button */}
+                      <Popover
+                        open={showingDeletePopover[index]}
+                        onOpenChange={(openValue) => {
+                          setShowingDeletePopover((prev) => {
+                            const prevShowingDeletePopover = [...prev];
+                            prevShowingDeletePopover[index] = openValue;
+                            return prevShowingDeletePopover;
+                          });
+                        }}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"destructive"}
+                            size="sm"
+                            className="baseFlex h-8 w-10 rounded-none border-t-[1px] p-0"
+                          >
+                            <FaTrashAlt className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent>
+                          <div className="baseVertFlex gap-4">
+                            <p className="w-auto text-center text-sm">
+                              Chord progressions that use this pattern will be
+                              modified.
+                            </p>
 
-                              <div className="baseFlex gap-4">
-                                <Button
-                                  variant={"outline"}
-                                  size="sm"
-                                  onClick={() =>
-                                    setShowingDeletePopover((prev) => {
-                                      const prevShowingDeletePopover = [
-                                        ...prev,
-                                      ];
-                                      prevShowingDeletePopover[index] = false;
-                                      return prevShowingDeletePopover;
-                                    })
-                                  }
-                                >
-                                  Cancel
-                                </Button>
+                            <div className="baseFlex gap-4">
+                              <Button
+                                variant={"outline"}
+                                size="sm"
+                                onClick={() =>
+                                  setShowingDeletePopover((prev) => {
+                                    const prevShowingDeletePopover = [...prev];
+                                    prevShowingDeletePopover[index] = false;
+                                    return prevShowingDeletePopover;
+                                  })
+                                }
+                              >
+                                Cancel
+                              </Button>
 
-                                <Button
-                                  variant={"destructive"}
-                                  size="sm"
-                                  onClick={() => {
-                                    setShowingDeletePopover((prev) => {
-                                      const prevShowingDeletePopover = [
-                                        ...prev,
-                                      ];
-                                      prevShowingDeletePopover[index] = false;
-                                      return prevShowingDeletePopover;
-                                    });
-                                    handleDeleteStrummingPattern(
-                                      index,
-                                      pattern
-                                    );
-                                  }}
-                                >
-                                  Confirm
-                                </Button>
-                              </div>
+                              <Button
+                                variant={"destructive"}
+                                size="sm"
+                                onClick={() => {
+                                  setShowingDeletePopover((prev) => {
+                                    const prevShowingDeletePopover = [...prev];
+                                    prevShowingDeletePopover[index] = false;
+                                    return prevShowingDeletePopover;
+                                  });
+                                  handleDeleteStrummingPattern(index, pattern);
+                                }}
+                              >
+                                Confirm
+                              </Button>
                             </div>
-                          </PopoverContent>
-                        </Popover>
-                      </>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                     </div>
                   </div>
                 )}
