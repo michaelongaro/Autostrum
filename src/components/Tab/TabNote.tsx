@@ -221,6 +221,8 @@ function TabNote({
           noteIndex
         ] = "s";
       }
+
+      setTabData(newTabData);
     } else if (
       (e.ctrlKey && e.key === "c") || // Control + C for Windows/Linux
       (e.metaKey && e.key === "c") // Command + C for macOS
@@ -251,8 +253,6 @@ function TabNote({
         id,
       ];
     }
-
-    setTabData(newTabData);
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -392,7 +392,7 @@ function TabNote({
 
     // chord effects
     else {
-      const chordEffects = /^[v^s]{1}>?$/;
+      const chordEffects = /^[v^s]{1}(>|\.|>\.|\.>)?$/;
       if (value !== "" && !chordEffects.test(value)) return;
     }
 
@@ -411,11 +411,11 @@ function TabNote({
         <Input
           id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`}
           style={{
-            width: `${noteIndex !== 7 ? "37px" : "1.75rem"}`,
-            height: `${noteIndex !== 7 ? "37px" : "1.75rem"}`,
-            borderWidth: `${note.length > 0 && !isFocused ? "2px" : "1px"}`,
+            width: noteIndex !== 7 ? "37px" : "30px",
+            height: noteIndex !== 7 ? "37px" : "30px",
+            borderWidth: note.length > 0 && !isFocused ? "2px" : "1px",
           }}
-          className="rounded-full p-0 text-center shadow-sm"
+          className="rounded-full p-0 text-center"
           onFocus={(e) => {
             setIsFocused(true);
 

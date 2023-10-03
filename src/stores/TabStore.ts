@@ -30,7 +30,20 @@ export interface StrummingPattern {
 
 export interface Strum {
   palmMute: "" | "-" | "start" | "end";
-  strum: "" | "v" | "^" | "s" | "v>" | "^>" | "s>";
+  strum:
+    | ""
+    | "v"
+    | "^"
+    | "s"
+    | "v>"
+    | "^>"
+    | "s>"
+    | "v.>"
+    | "^.>"
+    | "s.>"
+    | "v>."
+    | "u>."
+    | "s>.";
 }
 
 export interface ChordSequence {

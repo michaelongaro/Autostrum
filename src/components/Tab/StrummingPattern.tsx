@@ -204,14 +204,27 @@ function StrummingPattern({
   ) {
     const value = e.target.value;
 
-    const chordEffects = /^[v^s]{1}>?$/;
+    const chordEffects = /^[v^s]{1}(>|\.|>\.|\.>)?$/;
     if (value !== "" && !chordEffects.test(value)) return;
 
     const newStrummingPattern = { ...data };
 
     newStrummingPattern.strums[beatIndex] = {
       ...data.strums[beatIndex]!, // ! because we know it's not undefined
-      strum: value as "" | "v" | "^" | "s" | "v>" | "^>" | "s>",
+      strum: value as
+        | ""
+        | "v"
+        | "^"
+        | "s"
+        | "v>"
+        | "^>"
+        | "s>"
+        | "v.>"
+        | "^.>"
+        | "s.>"
+        | "v>."
+        | "u>."
+        | "s>.",
     };
 
     setStrummingPatternBeingEdited({
