@@ -1100,7 +1100,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                     }}
                     className={`${
                       classes.genre ?? ""
-                    } baseFlex w-[150px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]`}
+                    } baseFlex w-[140px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]`}
                   >
                     {genreObject[genreId]?.name}
                     <Image

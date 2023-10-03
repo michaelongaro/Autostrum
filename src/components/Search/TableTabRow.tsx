@@ -146,7 +146,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
             style={{
               backgroundColor: genreObject[tab.genreId]?.color,
             }}
-            className="baseFlex w-[150px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
+            className="baseFlex w-[140px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
           >
             {genreObject[tab.genreId]?.name}
             <Image
