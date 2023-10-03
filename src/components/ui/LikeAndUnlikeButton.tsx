@@ -210,7 +210,7 @@ function LikeAndUnlikeButton({
                 transition={{ duration: 0.15 }}
                 className="baseFlex !flex-nowrap gap-2"
               >
-                <AiFillHeart className="h-6 w-6" />
+                <AiFillHeart className="h-[18px] w-[18px] md:h-6 md:w-6" />
                 <AnimatePresence mode="wait">
                   {numberOfLikes > 0 && (
                     <motion.p
@@ -220,7 +220,7 @@ function LikeAndUnlikeButton({
                       animate="expanded"
                       exit="closed"
                       transition={{ duration: 0.15 }}
-                      className="text-lg"
+                      className="text-sm md:text-lg"
                     >
                       {formatNumber(numberOfLikes)}
                     </motion.p>
@@ -237,7 +237,7 @@ function LikeAndUnlikeButton({
                 transition={{ duration: 0.15 }}
                 className="baseFlex !flex-nowrap gap-2"
               >
-                <AiOutlineHeart className="h-6 w-6" />
+                <AiOutlineHeart className="h-[18px] w-[18px] md:h-6 md:w-6" />
                 <AnimatePresence mode="wait">
                   {numberOfLikes > 0 && (
                     <motion.p
@@ -247,7 +247,7 @@ function LikeAndUnlikeButton({
                       animate="expanded"
                       exit="closed"
                       transition={{ duration: 0.15 }}
-                      className="text-lg"
+                      className="text-sm md:text-lg"
                     >
                       {formatNumber(numberOfLikes)}
                     </motion.p>
