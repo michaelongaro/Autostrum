@@ -438,23 +438,13 @@ function TabNotesColumn({
                     }}
                     className="baseVertFlex absolute left-1/2 right-1/2 top-2 w-[1.5rem] -translate-x-1/2"
                   >
-                    {tabData[sectionIndex]?.data[subSectionIndex]?.data[
-                      columnIndex
-                    ]?.[7]?.includes("^") && (
+                    {columnData.includes("^") && (
                       <div className="relative top-1 rotate-180">v</div>
                     )}
-                    {tabData[sectionIndex]?.data[subSectionIndex]?.data[
-                      columnIndex
-                    ]?.[7]?.includes("v") && <div>v</div>}
-                    {tabData[sectionIndex]?.data[subSectionIndex]?.data[
-                      columnIndex
-                    ]?.[7]?.includes("s") && <div>s</div>}
-                    {tabData[sectionIndex]?.data[subSectionIndex]?.data[
-                      columnIndex
-                    ]?.[7]?.includes(">") && <div>{">"}</div>}
-                    {tabData[sectionIndex]?.data[subSectionIndex]?.data[
-                      columnIndex
-                    ]?.[7]?.includes(".") && (
+                    {columnData.includes("v") && <div>v</div>}
+                    {columnData.includes("s") && <div>s</div>}
+                    {columnData.includes(">") && <div>{">"}</div>}
+                    {columnData.includes(".") && (
                       <div className="relative bottom-2">.</div>
                     )}
                   </div>

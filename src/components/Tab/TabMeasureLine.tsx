@@ -277,26 +277,18 @@ function TabMeasureLine({
         <Fragment key={index}>
           {index === 0 && (
             <>
-              {!editing &&
-                tabData[sectionIndex]!.data[subSectionIndex]!.data[
-                  columnIndex
-                ][7] &&
-                tabData[sectionIndex]!.data[subSectionIndex]!.data[
-                  columnIndex
-                ][7] !== -1 && (
-                  <div
-                    className={`baseFlex absolute !flex-nowrap gap-[0.125rem] text-pink-50 ${
-                      note === "-" ? "top-[10px]" : "top-[27px]"
-                    }`}
-                  >
-                    <BsMusicNote className="h-4 w-4" />
-                    <p className="text-center text-xs">
-                      {tabData[sectionIndex]!.data[subSectionIndex]!.data[
-                        columnIndex
-                      ][7].toString()}
-                    </p>
-                  </div>
-                )}
+              {!editing && columnData[7] && columnData[7] !== "-1" && (
+                <div
+                  className={`baseFlex absolute !flex-nowrap gap-[0.125rem] text-pink-50 ${
+                    note === "-" ? "top-[10px]" : "top-[27px]"
+                  }`}
+                >
+                  <BsMusicNote className="h-3 w-3" />
+                  <p className="text-center text-xs">
+                    {columnData[7].toString()}
+                  </p>
+                </div>
+              )}
 
               <div className="baseFlex mb-0 h-0 w-full">
                 {note === "-" && (
@@ -326,7 +318,7 @@ function TabMeasureLine({
                     className="absolute bottom-7 z-50 h-5 w-5 rounded-full p-[0.125rem] text-pink-50"
                     onKeyDown={handleKeyDown}
                   >
-                    <BsMusicNote className="h-5 w-5" />
+                    <BsMusicNote className="h-3 w-3" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
@@ -338,7 +330,7 @@ function TabMeasureLine({
                   </p>
 
                   <div className="baseFlex gap-2">
-                    <BsMusicNote className="h-5 w-5" />
+                    <BsMusicNote className="h-4 w-4" />
                     <Input
                       type="text"
                       inputMode="numeric"
@@ -346,17 +338,11 @@ function TabMeasureLine({
                       className="placeholder:text-grey-800/50 h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
                       placeholder={(tabData[sectionIndex]?.data[subSectionIndex]
                         ?.bpm === -1
-                        ? 75
+                        ? "75"
                         : tabData[sectionIndex]?.data[subSectionIndex]?.bpm
                       ).toString()}
                       value={
-                        tabData[sectionIndex]!.data[subSectionIndex]!.data[
-                          columnIndex
-                        ][7] === "-1"
-                          ? ""
-                          : tabData[sectionIndex]!.data[subSectionIndex]!.data[
-                              columnIndex
-                            ][7].toString()
+                        columnData[7] === "-1" ? "" : columnData[7]!.toString()
                       }
                       onChange={handleBpmChange}
                     />

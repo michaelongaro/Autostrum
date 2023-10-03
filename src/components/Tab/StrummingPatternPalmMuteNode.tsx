@@ -301,16 +301,14 @@ function StrummingPatternPalmMuteNode({
                 }`}
               ></div>
               <div
-                className={`h-[1px] flex-shrink-0
-                ${editingChordSequence ? "w-1" : "w-1"} ${
-                  darkMode ? "bg-foreground" : "bg-background"
-                }`}
+                className={`h-[1px] w-1
+               flex-shrink-0 ${darkMode ? "bg-foreground" : "bg-background"}`}
               ></div>
               <i className="mx-[0.125rem] flex-shrink-0">PM</i>
               <div
-                className={`h-[1px] ${
-                  editingChordSequence ? "w-full" : "w-full"
-                } ${darkMode ? "bg-foreground" : "bg-background"}`}
+                className={`h-[1px] w-full ${
+                  darkMode ? "bg-foreground" : "bg-background"
+                }`}
               ></div>
             </div>
           )}
