@@ -294,6 +294,11 @@ function EffectGlossary() {
           <span className="col-span-1">-</span>
           <span className="col-span-3">Accented</span>
         </div>
+        <div className="grid w-full grid-cols-5 pl-1 text-sm">
+          <span className="col-span-1">.</span>
+          <span className="col-span-1">-</span>
+          <span className="col-span-3">Stacatto</span>
+        </div>
         <Label className="mt-2">Miscellaneous</Label>
         <Separator className="mb-2 w-full bg-pink-500" />
 
