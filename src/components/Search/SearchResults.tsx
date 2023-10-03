@@ -215,8 +215,6 @@ function SearchResults({
       delete newQuery.genreId;
     }
 
-    console.log("hit");
-
     void push(
       {
         pathname,
