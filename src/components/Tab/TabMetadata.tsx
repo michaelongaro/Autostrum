@@ -491,6 +491,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                               key="tabDeletionLoadingSpinner"
                               initial={{ opacity: 0, width: 0 }}
                               animate={{ opacity: 1, width: "24px" }}
+                              exit={{ opacity: 0 }}
                               transition={{
                                 duration: 0.15,
                               }}
@@ -516,8 +517,9 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                           {showDeleteCheckmark && (
                             <motion.div
                               key="deletionSuccessCheckmark"
-                              initial={{ opacity: 0, scale: 0 }}
-                              animate={{ opacity: 1, scale: 1 }}
+                              initial={{ opacity: 0, width: "20px" }}
+                              animate={{ opacity: 1, width: "20px" }}
+                              exit={{ opacity: 0, width: 0 }}
                               transition={{
                                 duration: 0.25,
                               }}
@@ -664,6 +666,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                             key="postingLoadingSpinner"
                             initial={{ opacity: 0, width: 0 }}
                             animate={{ opacity: 1, width: "24px" }}
+                            exit={{ opacity: 0 }}
                             transition={{
                               duration: 0.15,
                             }}
@@ -688,8 +691,9 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                         {showPublishCheckmark && (
                           <motion.div
                             key="postingSuccessCheckmark"
-                            initial={{ opacity: 0, scale: 0 }}
-                            animate={{ opacity: 1, scale: 1 }}
+                            initial={{ opacity: 0, width: "20px" }}
+                            animate={{ opacity: 1, width: "20px" }}
+                            exit={{ opacity: 0, width: 0 }}
                             transition={{
                               duration: 0.25,
                             }}

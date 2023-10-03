@@ -159,6 +159,7 @@ function DeleteAccountModal() {
                     key="deleteAccountLoadingSpinner"
                     initial={{ opacity: 0, width: 0 }}
                     animate={{ opacity: 1, width: "24px" }}
+                    exit={{ opacity: 0 }}
                     transition={{
                       duration: 0.15,
                     }}
@@ -184,8 +185,9 @@ function DeleteAccountModal() {
                 {showDeleteCheckmark && (
                   <motion.div
                     key="deleteAccountSuccessCheckmark"
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0, width: "20px" }}
+                    animate={{ opacity: 1, width: "20px" }}
+                    exit={{ opacity: 0, width: 0 }}
                     transition={{
                       duration: 0.25,
                     }}

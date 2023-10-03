@@ -162,6 +162,7 @@ function PinnedTabModal({
                     key="pinnedModalSaveLoadingSpinner"
                     initial={{ opacity: 0, width: 0 }}
                     animate={{ opacity: 1, width: "24px" }}
+                    exit={{ opacity: 0 }}
                     transition={{
                       duration: 0.15,
                     }}
@@ -186,8 +187,9 @@ function PinnedTabModal({
                 {showSaveCheckmark && (
                   <motion.div
                     key="pinnedModalSaveSuccessCheckmark"
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0, width: "20px" }}
+                    animate={{ opacity: 1, width: "20px" }}
+                    exit={{ opacity: 0, width: 0 }}
                     transition={{
                       duration: 0.25,
                     }}
