@@ -250,7 +250,7 @@ function GeneralLayoutStatefulShell() {
       ) {
         bottomValue = "3.15rem";
       } else if (audioControlsVisibility === "expanded") {
-        bottomValue = "6.5rem";
+        bottomValue = "7rem";
       }
     }
 
