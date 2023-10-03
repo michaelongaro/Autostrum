@@ -683,7 +683,8 @@ export default function useSound() {
     }
 
     if (effects.includes(".")) {
-      gain = 1.1; // in my head stacatto = high action => should be a bit louder than normal, but not 100% sure
+      // technically stacatto doesn't mean that the note should be played any louder
+      // than normal, so omitting any gain definition here
       duration = 0.25;
     }
 
@@ -749,7 +750,7 @@ export default function useSound() {
 
   function calculateRelativeChordDelayMultiplier(
     bpm: number,
-    accented: boolean
+    strumChordQuickly: boolean
   ) {
     // Ensure that the input number is positive
     const distance = Math.abs(bpm - 400);
@@ -762,7 +763,7 @@ export default function useSound() {
     // Scale the number between 0.01 (when scaleFactor is 0)
     // and 0.05 (when scaleFactor is 1).
 
-    const accentedMultiplier = accented ? 0.25 : 1;
+    const accentedMultiplier = strumChordQuickly ? 0.25 : 1;
     return (0.01 + scaleFactor * (0.05 - 0.01)) * accentedMultiplier;
   }
 
@@ -833,7 +834,7 @@ export default function useSound() {
       if (currColumn[7]?.includes("v") || currColumn[7]?.includes("^")) {
         chordDelayMultiplier = calculateRelativeChordDelayMultiplier(
           bpm,
-          currColumn[7]?.includes(">")
+          currColumn[7]?.includes(">") || currColumn[7]?.includes(".")
         );
       }
 
@@ -1089,6 +1090,9 @@ export default function useSound() {
         }
         if (currColumn[7]?.includes(">")) {
           effects.push(">");
+        }
+        if (currColumn[7]?.includes(".")) {
+          effects.push(".");
         }
 
         // this feels hacky, but it needs to be in separate state from tetheredMetadata for standalone
