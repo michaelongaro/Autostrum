@@ -741,10 +741,12 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                 placeholder="My new tab"
                 value={title}
                 style={{
-                  boxShadow:
-                    showPulsingError && !title
-                      ? "0 0 0 0.25rem hsl(0deg 100% 50%)"
-                      : "0 0 0 0 transparent",
+                  ...(showPulsingError &&
+                    !title && {
+                      boxShadow: "0 0 0 0.25rem hsl(0deg 100% 50%)",
+                      transitionTimingFunction: "ease-in-out",
+                      transitionDuration: "500ms",
+                    }),
                   animationPlayState:
                     showPulsingError && !title ? "running" : "paused",
                   // could add below box shadow styles into tailwind too!
@@ -768,6 +770,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
+                autoComplete="off"
                 placeholder="Add any extra information about how to play this tab."
                 maxLength={500}
                 value={description ?? ""}
@@ -879,10 +882,12 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                 pattern="[0-9]*"
                 value={bpm === -1 ? "" : bpm}
                 style={{
-                  boxShadow:
-                    showPulsingError && bpm === null
-                      ? "0 0 0 0.25rem hsl(0deg 100% 50%)"
-                      : "0 0 0 0 transparent",
+                  ...(showPulsingError &&
+                    bpm === null && {
+                      boxShadow: "0 0 0 0.25rem hsl(0deg 100% 50%)",
+                      transitionTimingFunction: "ease-in-out",
+                      transitionDuration: "500ms",
+                    }),
                   animationPlayState:
                     showPulsingError && bpm === null ? "running" : "paused",
                   // could add below box shadow styles into tailwind too!
