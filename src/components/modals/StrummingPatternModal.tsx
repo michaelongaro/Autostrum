@@ -356,7 +356,7 @@ function StrummingPatternModal({
             onValueChange={(value) => {
               setAccordionValue(value);
             }}
-            className="baseVertFlex lightestGlassmorphic w-[300px] gap-2 rounded-md px-2 py-0 text-sm sm:w-[500px]"
+            className="baseVertFlex lightestGlassmorphic w-[300px] gap-2 rounded-md px-2 py-0 text-sm sm:w-[650px]"
           >
             <AccordionItem value="opened">
               <AccordionTrigger className="w-full">
@@ -386,6 +386,11 @@ function StrummingPatternModal({
                     <p className="font-semibold">&gt;</p>
                     <p>-</p>
                     <p>Accented</p>
+                  </div>
+                  <div className="baseFlex gap-2">
+                    <p className="font-semibold">&gt;</p>
+                    <p>.</p>
+                    <p>Staccato</p>
                   </div>
                 </div>
               </AccordionContent>
