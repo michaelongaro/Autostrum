@@ -20,7 +20,7 @@ function EffectGlossaryModal() {
       animate="expanded"
       exit="closed"
     >
-      <div className="h-[590px]">
+      <div className="h-[643px]">
         <EffectGlossary />
       </div>
     </motion.div>
