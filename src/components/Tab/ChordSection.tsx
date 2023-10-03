@@ -192,17 +192,26 @@ function ChordSection({
               duration: 1,
             },
           }}
-          className="baseVertFlex w-full !items-start gap-2"
+          style={{
+            flexDirection: editing ? "column" : "row",
+            justifyContent: "flex-start",
+            width: editing ? "100%" : "auto",
+            gap: editing ? "0.5rem" : "2rem",
+          }}
+          className="baseVertFlex gap-2"
         >
           {subSectionData.data.map((chordSequence, index) => (
             <>
               {editing || (!editing && chordSequence.data.length > 0) ? (
                 <div
                   key={chordSequence.id}
-                  className="baseVertFlex w-full !items-start"
+                  style={{
+                    width: editing ? "100%" : "auto",
+                  }}
+                  className="baseVertFlex !items-start"
                 >
                   {!editing && (
-                    <div className="baseFlex ml-4 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
+                    <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
                       <div className="baseFlex gap-1">
                         <BsMusicNote className="h-3 w-3" />
                         {chordSequence.bpm} BPM

@@ -204,7 +204,10 @@ function ChordSequence({
           duration: 1,
         },
       }}
-      className="baseFlex w-full"
+      style={{
+        width: editing ? "100%" : "auto",
+      }}
+      className="baseFlex"
     >
       {editing &&
       Object.keys(chordSequenceData.strummingPattern).length === 0 ? (
@@ -252,8 +255,10 @@ function ChordSequence({
           style={{
             borderTopLeftRadius:
               !editing && chordSequenceData.repetitions > 1 ? 0 : "0.375rem",
+            padding: editing ? "1rem" : "0.25rem",
+            width: editing ? "100%" : "auto",
           }}
-          className="baseVertFlex relative w-full !justify-start gap-4 rounded-md border-[1px] border-pink-50 p-1"
+          className="baseVertFlex relative !justify-start gap-4 rounded-md border-[1px] border-pink-50 p-4"
         >
           {editing && (
             <div className="baseFlex w-full !items-start">
@@ -292,7 +297,7 @@ function ChordSequence({
                   />
                 </div>
 
-                <div className="baseFlex gap-2">
+                <div className="baseFlex !justify-start gap-2">
                   <Label>Strumming pattern</Label>
 
                   <Select
