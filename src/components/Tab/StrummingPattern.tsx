@@ -28,7 +28,6 @@ import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 
 interface StrummingPattern {
   data: StrummingPatternType;
@@ -177,8 +176,7 @@ function StrummingPattern({
 
     setStrummingPatternBeingEdited({
       index: index ?? 0,
-      value: { ...newStrummingPattern }, // I am pretty sure this or the one below is the problem
-      // but I don't know why it isn't a separate memory reference... prob chatgpt tbh
+      value: { ...newStrummingPattern },
     });
   }
 
@@ -195,6 +193,27 @@ function StrummingPattern({
       );
 
       newNoteToFocus?.focus();
+    } else if (e.key === "Enter") {
+      const newStrummingPattern = { ...data };
+
+      const remainingSpace = 32 - newStrummingPattern.strums.length;
+      const strumsToAdd = Math.min(remainingSpace, 4);
+
+      for (let i = 0; i < strumsToAdd; i++) {
+        newStrummingPattern.strums.push({
+          palmMute: "",
+          strum: "",
+        });
+      }
+
+      setStrummingPatternBeingEdited({
+        index: index ?? 0,
+        value: newStrummingPattern,
+      });
+
+      const firstNewStrumIndex = newStrummingPattern.strums.length - 4; // this will be the first of the 8 new strums added
+
+      setInputIdToFocus(`input-strummingPatternModal-${firstNewStrumIndex}-1`);
     }
   }
 
@@ -285,10 +304,6 @@ function StrummingPattern({
       index: index ?? 0,
       value: newStrummingPattern,
     });
-
-    const firstNewStrumIndex = newStrummingPattern.strums.length - 4; // this will be the first of the 8 new strums added
-
-    setInputIdToFocus(`input-strummingPatternModal-${firstNewStrumIndex}-1`);
   }
 
   function handleDeletePalmMutedStrum(
@@ -424,14 +439,21 @@ function StrummingPattern({
       style={{
         padding: mode === "editingStrummingPattern" ? "0" : "0.25rem",
         justifyContent: mode === "editingStrummingPattern" ? "center" : "start",
+        width: mode === "viewingWithChordNames" ? "auto" : "100%",
       }}
-      className="baseFlex w-full"
+      className="baseFlex"
     >
-      <div className="baseFlex relative !justify-start">
+      <div className="baseFlex relative mb-1 !justify-start">
         {mode === "editingChordSequence" && (
-          <Label className="relative -top-8 left-0 pr-2">Chords</Label>
+          <Label
+            style={{
+              top: patternHasPalmMuting() ? "-22px" : "-2rem",
+            }}
+            className="relative -top-8 left-0 pr-2"
+          >
+            Chords
+          </Label>
         )}
-
         {data?.strums?.map((strum, strumIndex) => (
           <div
             key={strumIndex}
@@ -554,11 +576,17 @@ function StrummingPattern({
                         : "hsl(327, 73%, 97%)",
                     }}
                     className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm"
-                    onFocus={() => {
+                    onFocus={(e) => {
                       setIsFocused((prev) => {
                         prev[strumIndex] = true;
                         return [...prev];
                       });
+
+                      // focuses end of the input (better ux when navigating with arrow keys)
+                      e.target.setSelectionRange(
+                        e.target.value.length,
+                        e.target.value.length
+                      );
                     }}
                     onBlur={() => {
                       setIsFocused((prev) => {
@@ -570,10 +598,6 @@ function StrummingPattern({
                 ) : (
                   <div
                     style={{
-                      marginBottom:
-                        strum.strum.includes(">") || !patternHasAccents()
-                          ? "0"
-                          : "1.5rem",
                       color:
                         mode === "viewingInSelectDropdown"
                           ? "hsl(336, 84%, 17%)"
@@ -581,28 +605,58 @@ function StrummingPattern({
                           ? "hsl(333, 71%, 51%)"
                           : "hsl(327, 73%, 97%)",
                     }}
-                    className="baseVertFlex h-full text-lg transition-colors"
+                    className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
                   >
                     {strum.strum.includes("v") && (
-                      <BsArrowDown className="h-5 w-5" />
+                      <BsArrowDown
+                        style={{
+                          width: strum.strum.includes(">") ? "18.5px" : "20px",
+                          height: strum.strum.includes(">") ? "18.5px" : "20px",
+                        }}
+                        strokeWidth={
+                          strum.strum.includes(">") ? "1.25px" : "0px"
+                        }
+                      />
                     )}
                     {strum.strum.includes("^") && (
-                      <BsArrowUp className="h-5 w-5" />
+                      <BsArrowUp
+                        style={{
+                          width: strum.strum.includes(">") ? "18.5px" : "20px",
+                          height: strum.strum.includes(">") ? "18.5px" : "20px",
+                        }}
+                        strokeWidth={
+                          strum.strum.includes(">") ? "1.25px" : "0px"
+                        }
+                      />
                     )}
 
                     {strum.strum.includes("s") && (
-                      <div className="baseFlex h-5 leading-[0]">
+                      <div
+                        style={{
+                          fontSize: "20px",
+                        }}
+                        className={`baseFlex h-5 leading-[0] ${
+                          strum.strum.includes(">")
+                            ? "font-semibold"
+                            : "font-thin"
+                        }`}
+                      >
                         {strum.strum[0]}
                       </div>
                     )}
 
-                    {strum.strum.includes(">") && <p>&gt;</p>}
-
-                    {/* buffer to keep vertical spacing the same no matter the type of strum */}
-                    {strum.strum !== "" && !strum.strum.includes(">") && (
-                      <div className="h-1"></div>
+                    {strum.strum.includes(".") && (
+                      <div
+                        style={{
+                          fontSize: "30px",
+                        }}
+                        className="absolute bottom-[-8px]"
+                      >
+                        .
+                      </div>
                     )}
-                    {strum.strum === "" && <div className="h-6 w-4"></div>}
+
+                    {strum.strum === "" && <div className="h-5 w-4"></div>}
                   </div>
                 )}
 
@@ -655,7 +709,7 @@ function StrummingPattern({
               data.strums.length < 32 && (
                 <Button
                   id={"strummingPatternExtendPatternButton"}
-                  className="ml-4 rounded-full px-[0.4rem] py-0 md:px-2"
+                  className="ml-2 mr-1 rounded-full px-[0.4rem] py-0 md:px-2"
                   onKeyDown={handleExtendPatternButtonKeyDown}
                   onClick={addStrumsToPattern}
                 >
