@@ -115,22 +115,20 @@ function PreviewSectionContainer({
             key={subSection.id}
             className="baseVertFlex w-full !items-start pb-2"
           >
-            {(subSection.type === "tab" || subSection.repetitions > 1) && (
-              <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
-                <div className="baseFlex gap-1">
-                  <BsMusicNote className="h-3 w-3" />
-                  {subSection.bpm === -1 ? baselineBpm : subSection.bpm} BPM
-                </div>
-
-                {subSection.repetitions > 1 && (
-                  <div className="baseFlex gap-3">
-                    <Separator className="h-4 w-[1px]" orientation="vertical" />
-
-                    <p>Repeat x{subSection.repetitions}</p>
-                  </div>
-                )}
+            <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
+              <div className="baseFlex gap-1">
+                <BsMusicNote className="h-3 w-3" />
+                {subSection.bpm === -1 ? baselineBpm : subSection.bpm} BPM
               </div>
-            )}
+
+              {subSection.repetitions > 1 && (
+                <div className="baseFlex gap-3">
+                  <Separator className="h-4 w-[1px]" orientation="vertical" />
+
+                  <p>Repeat x{subSection.repetitions}</p>
+                </div>
+              )}
+            </div>
 
             {subSection.type === "chord" ? (
               <PreviewChordSection
@@ -198,7 +196,7 @@ function PreviewChordSection({
       }}
       className="baseVertFlex lightestGlassmorphic relative h-full !justify-start rounded-md"
     >
-      <div className="baseFlex w-auto !justify-start gap-8">
+      <div className="baseFlex w-auto !items-end !justify-start gap-8">
         {subSectionData.data.map((chordSequence, index) => (
           <div
             key={chordSequence.id}
