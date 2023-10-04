@@ -3,7 +3,6 @@ import { shallow } from "zustand/shallow";
 import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import { parse, toString } from "~/utils/tunings";
 import { Input } from "../ui/input";
-import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 
 interface Chord {
   chordBeingEdited: { index: number; value: ChordType };
@@ -134,7 +133,11 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
   }
 
   return (
-    <div className="baseFlex w-full">
+    <div
+      className={`baseFlex w-full ${
+        !editing ? "lightestGlassmorphic rounded-md py-4" : ""
+      }`}
+    >
       <div
         style={{
           height: editing ? "280px" : "168px",

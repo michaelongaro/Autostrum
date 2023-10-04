@@ -194,7 +194,7 @@ function Chords() {
                       <PopoverTrigger className="baseFlex mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 active:hover:bg-white/10 ">
                         <HiOutlineInformationCircle className="h-5 w-5" />
                       </PopoverTrigger>
-                      <PopoverContent className="mobileNavbarGlassmorphic w-40 text-pink-50">
+                      <PopoverContent className="w-40 bg-pink-300 p-0 text-pink-50 shadow-lg">
                         <Chord
                           chordBeingEdited={{
                             index,
