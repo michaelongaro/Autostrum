@@ -771,7 +771,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
-                  className="baseVertFlex h-36 w-11 !flex-nowrap gap-2 p-2"
+                  className="baseVertFlex h-36 w-12 !flex-nowrap gap-2 p-2"
                   side="top"
                 >
                   <VerticalSlider
