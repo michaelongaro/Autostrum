@@ -21,7 +21,12 @@ import {
   type Section,
   type TabSection,
 } from "~/stores/TabStore";
-
+import {
+  replaceIdInChordSequence,
+  replaceIdInChordSection,
+  replaceIdInTabSection,
+  replaceIdInSection,
+} from "~/utils/replaceWithUniqueIdHelpers";
 import isEqual from "lodash.isequal";
 import useSound from "~/hooks/useSound";
 import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
@@ -239,10 +244,12 @@ function MiscellaneousControls({
       subSectionIndex !== undefined &&
       sectionIndex !== undefined
     ) {
-      const newChordSequence = structuredClone(
-        tabData[sectionIndex]?.data[subSectionIndex]?.data[
-          chordSequenceIndex
-        ] as ChordSequence
+      const newChordSequence = replaceIdInChordSequence(
+        structuredClone(
+          tabData[sectionIndex]?.data[subSectionIndex]?.data[
+            chordSequenceIndex
+          ] as ChordSequence
+        )
       );
 
       setCurrentlyCopiedData({
@@ -251,8 +258,10 @@ function MiscellaneousControls({
       });
     } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
       if (type === "chord") {
-        const newSubSection = structuredClone(
-          tabData[sectionIndex]?.data[subSectionIndex] as ChordSection
+        const newSubSection = replaceIdInChordSection(
+          structuredClone(
+            tabData[sectionIndex]?.data[subSectionIndex] as ChordSection
+          )
         );
 
         setCurrentlyCopiedData({
@@ -260,8 +269,10 @@ function MiscellaneousControls({
           data: newSubSection,
         });
       } else if (type === "tab") {
-        const newSubSection = structuredClone(
-          tabData[sectionIndex]?.data[subSectionIndex] as TabSection
+        const newSubSection = replaceIdInTabSection(
+          structuredClone(
+            tabData[sectionIndex]?.data[subSectionIndex] as TabSection
+          )
         );
 
         setCurrentlyCopiedData({
@@ -270,18 +281,9 @@ function MiscellaneousControls({
         });
       }
     } else if (sectionIndex !== undefined) {
-      // const countOfSection = tabData.filter((section) => {
-      //   return section?.title.includes(tabData[sectionIndex]!.title);
-      // }).length;
-
-      // const newSection = {
-      //   title: `${tabData[sectionIndex]!.title} ${countOfSection + 1}`,
-      //   data: cloneDeep(tabData[sectionIndex]!.data),
-      // } as Section;
-
       setCurrentlyCopiedData({
         type: "section",
-        data: structuredClone(tabData[sectionIndex]!),
+        data: replaceIdInSection(structuredClone(tabData[sectionIndex]!)),
       });
     }
   }
