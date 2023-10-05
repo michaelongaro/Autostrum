@@ -83,11 +83,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   const [tabProgressValue, setTabProgressValue] = useState(0);
   const [wasPlayingBeforeScrubbing, setWasPlayingBeforeScrubbing] =
     useState(false);
-  const [
-    waitForCurrentChordIndexToUpdate,
-    setWaitForCurrentChordIndexToUpdate,
-  ] = useState(false);
-  const [updatedCurrentChordIndex, setUpdatedCurrentChordIndex] = useState(0);
+
   const [previousChordIndex, setPreviousChordIndex] = useState(0);
   const [previousTabId, setPreviousTabId] = useState(0);
 
@@ -131,7 +127,6 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     recordedAudioFile,
     recordedAudioBuffer,
     setRecordedAudioBuffer,
-    recordedAudioBufferSourceNode,
   } = useTabStore(
     (state) => ({
       id: state.id,
@@ -156,7 +151,6 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       recordedAudioFile: state.recordedAudioFile,
       recordedAudioBuffer: state.recordedAudioBuffer,
       setRecordedAudioBuffer: state.setRecordedAudioBuffer,
-      recordedAudioBufferSourceNode: state.recordedAudioBufferSourceNode,
     }),
     shallow
   );
@@ -226,7 +220,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     if (audioMetadata.type === "Artist recording") return;
 
     if (audioMetadata.playing && !oneSecondIntervalRef.current) {
-      // kind of a hack, but need to have it moving towards one *as soon*
+      // feels hacky, but need to have it moving towards one *as soon*
       // as the play button is pressed, otherwise it will wait a full second
       // before starting to increment.
       if (tabProgressValue === 0) setTabProgressValue(1);
@@ -237,7 +231,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       }, 1000);
     } else if (
       (!audioMetadata.playing ||
-        (currentChordIndex === 0 && previousChordIndex !== 0)) && // is this line problematic for recorded audio playback?
+        (currentChordIndex === 0 && previousChordIndex !== 0)) &&
       oneSecondIntervalRef.current
     ) {
       clearInterval(oneSecondIntervalRef.current);
@@ -265,63 +259,6 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       localStorageAutoscroll.set("false");
     }
   }, [audioMetadata.type]);
-
-  // REALLY hate having this here, but not sure how else to guarentee that the correct
-  // currentChordIndex is used when playTab() is called... maybe a ref could work?
-  useEffect(() => {
-    if (audioMetadata.playing || !waitForCurrentChordIndexToUpdate) return;
-    if (
-      audioMetadata.type === "Generated" &&
-      updatedCurrentChordIndex === currentChordIndex
-    ) {
-      void playTab({
-        tabData,
-        rawSectionProgression: sectionProgression,
-        tuningNotes: tuning,
-        baselineBpm: bpm,
-        chords,
-        capo,
-        playbackSpeed,
-        tabId: id,
-        location: audioMetadata.location ?? undefined,
-      });
-    } else if (
-      audioMetadata.type === "Artist recording" &&
-      recordedAudioBuffer
-    ) {
-      void playRecordedAudio({
-        audioBuffer: recordedAudioBuffer,
-        secondsElapsed: tabProgressValue,
-      });
-
-      setArtificalPlayButtonTimeout(true);
-
-      setTimeout(() => {
-        setArtificalPlayButtonTimeout(false);
-      }, 300);
-    }
-
-    setWaitForCurrentChordIndexToUpdate(false);
-  }, [
-    audioMetadata.type,
-    playRecordedAudio,
-    recordedAudioBuffer,
-    tabProgressValue,
-    currentChordIndex,
-    waitForCurrentChordIndexToUpdate,
-    updatedCurrentChordIndex,
-    audioMetadata.playing,
-    audioMetadata.location,
-    bpm,
-    capo,
-    chords,
-    id,
-    playTab,
-    playbackSpeed,
-    sectionProgression,
-    tabData,
-    tuning,
-  ]);
 
   const idOfAssociatedTab = useMemo(() => {
     if (id === -1 && typeof query.id === "string") {
@@ -383,6 +320,25 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     idOfAssociatedTab,
   ]);
 
+  function resetAudioStateOnSourceChange(
+    audioTypeBeingChangedTo: "Generated" | "Artist recording"
+  ) {
+    pauseAudio(true);
+
+    if (oneSecondIntervalRef.current) {
+      clearInterval(oneSecondIntervalRef.current); // technically not needed, but "saves" an extra rerender I think
+      oneSecondIntervalRef.current = null; // technically not needed, but "saves" an extra rerender I think
+      setTabProgressValue(0);
+    }
+
+    setAudioMetadata({
+      tabId: id,
+      type: audioTypeBeingChangedTo,
+      playing: false,
+      location: null,
+    });
+  }
+
   const dynamicBottomValue = useMemo(() => {
     let bottomValue = "1rem";
 
@@ -419,9 +375,6 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
         currentlyPlayingMetadata === null ||
         currentlyPlayingMetadata.length === 0 ||
         !currentInstrument ||
-        // this was disabling short sections that were at very high bpms, resulting in < 1 second of audio
-        // (currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0) === 0 ||
-
         // idk why this last condition is going over my head right now, make sure it makes sense before commit
         // maybe doesn't hurt anything, but could be covering some of the statements above,
         // so maybe try to leverage it's "complete"ness of it's check through the tab?
@@ -437,8 +390,6 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     artificalPlayButtonTimeout,
     currentlyPlayingMetadata,
   ]);
-  // but then idk how to handle the preview chord/strumming pattern ones, well yeah actually
-  // just do previewAudioMetadata.playing, etc...
 
   const mainAudioControlsVariants = {
     expanded: {
@@ -593,19 +544,9 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   value={audioMetadata.type}
                   onValueChange={(value) => {
                     if (value !== audioMetadata.type) {
-                      pauseAudio(true);
-
-                      if (oneSecondIntervalRef.current) {
-                        clearInterval(oneSecondIntervalRef.current);
-                        oneSecondIntervalRef.current = null;
-                        setTabProgressValue(0);
-                      }
-
-                      setAudioMetadata({
-                        ...audioMetadata,
-                        type: value as "Generated" | "Artist recording",
-                        playing: false,
-                      });
+                      resetAudioStateOnSourceChange(
+                        value as "Generated" | "Artist recording"
+                      );
                     }
                   }}
                 >
@@ -845,7 +786,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               tabId={id}
               currentInstrument={currentInstrument}
               audioMetadata={audioMetadata}
-              recordedAudioBufferSourceNode={recordedAudioBufferSourceNode}
+              recordedAudioBuffer={recordedAudioBuffer}
             />
           </Button>
 
@@ -864,54 +805,90 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
             <AudioProgressSlider
               value={[tabProgressValue]}
               min={0}
-              // technically should be ?? 0, but radix-slider thumb protrudes from box-model of
-              // main slider if max is 0 it seems
+              // radix-slider thumb protrudes from lefthand side of the
+              // track if max has a value of 0...
               max={
                 audioMetadata.type === "Artist recording"
                   ? recordedAudioBuffer?.duration ?? 1
-                  : currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 1
+                  : currentlyPlayingMetadata?.at(-1)?.elapsedSeconds === 0
+                  ? 1
+                  : currentlyPlayingMetadata?.at(-1)?.elapsedSeconds
               }
               step={1}
               disabled={disablePlayButton}
               style={{
                 pointerEvents: disablePlayButton ? "none" : "auto",
               }}
-              // TODO: prob want to refactor a bit so scrubbing / clicking on diff part of slider
-              // for recorded audio still will autoplay onPointerUp
               onPointerDown={() => {
                 setWasPlayingBeforeScrubbing(audioMetadata.playing);
                 if (audioMetadata.playing) pauseAudio();
               }}
               onPointerUp={() => {
-                if (wasPlayingBeforeScrubbing) {
-                  setWaitForCurrentChordIndexToUpdate(true);
+                if (!wasPlayingBeforeScrubbing) return;
+
+                if (audioMetadata.type === "Generated") {
+                  // waiting; playTab() needs to have currentChordIndex
+                  // updated before it's called so it plays from the correct chord
+                  setTimeout(() => {
+                    void playTab({
+                      tabData,
+                      rawSectionProgression: sectionProgression,
+                      tuningNotes: tuning,
+                      baselineBpm: bpm,
+                      chords,
+                      capo,
+                      playbackSpeed,
+                      tabId: id,
+                      location: audioMetadata.location ?? undefined,
+                    });
+
+                    setArtificalPlayButtonTimeout(true);
+
+                    setTimeout(() => {
+                      setArtificalPlayButtonTimeout(false);
+                    }, 300);
+                  }, 50);
+                } else if (
+                  audioMetadata.type === "Artist recording" &&
+                  recordedAudioBuffer
+                ) {
+                  void playRecordedAudio({
+                    audioBuffer: recordedAudioBuffer,
+                    secondsElapsed: tabProgressValue,
+                  });
+
+                  setArtificalPlayButtonTimeout(true);
+
+                  setTimeout(() => {
+                    setArtificalPlayButtonTimeout(false);
+                  }, 300);
                 }
               }}
               onValueChange={(value) => {
                 setTabProgressValue(value[0]!);
 
                 if (
-                  audioMetadata.type === "Generated" &&
-                  currentlyPlayingMetadata
-                ) {
-                  let newCurrentChordIndex = -1;
+                  audioMetadata.type === "Artist recording" ||
+                  !currentlyPlayingMetadata
+                )
+                  return;
 
-                  for (let i = 0; i < currentlyPlayingMetadata.length; i++) {
-                    const metadata = currentlyPlayingMetadata[i]!;
+                let newCurrentChordIndex = -1;
 
-                    if (metadata.elapsedSeconds === value[0]) {
-                      newCurrentChordIndex = i;
-                      break;
-                    } else if (metadata.elapsedSeconds > value[0]! && i > 0) {
-                      newCurrentChordIndex = i - 1;
-                      break;
-                    }
+                for (let i = 0; i < currentlyPlayingMetadata.length; i++) {
+                  const metadata = currentlyPlayingMetadata[i]!;
+
+                  if (metadata.elapsedSeconds === value[0]) {
+                    newCurrentChordIndex = i;
+                    break;
+                  } else if (metadata.elapsedSeconds > value[0]! && i > 0) {
+                    newCurrentChordIndex = i - 1;
+                    break;
                   }
+                }
 
-                  if (newCurrentChordIndex !== -1) {
-                    setCurrentChordIndex(newCurrentChordIndex);
-                    setUpdatedCurrentChordIndex(newCurrentChordIndex);
-                  }
+                if (newCurrentChordIndex !== -1) {
+                  setCurrentChordIndex(newCurrentChordIndex);
                 }
               }}
             ></AudioProgressSlider>
@@ -966,19 +943,9 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                     value={audioMetadata.type}
                     onValueChange={(value) => {
                       if (value !== audioMetadata.type) {
-                        pauseAudio(true);
-
-                        if (oneSecondIntervalRef.current) {
-                          clearInterval(oneSecondIntervalRef.current);
-                          oneSecondIntervalRef.current = null;
-                          setTabProgressValue(0);
-                        }
-
-                        setAudioMetadata({
-                          ...audioMetadata,
-                          type: value as "Generated" | "Artist recording",
-                          playing: false,
-                        });
+                        resetAudioStateOnSourceChange(
+                          value as "Generated" | "Artist recording"
+                        );
                       }
                     }}
                   >
