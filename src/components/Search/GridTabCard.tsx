@@ -59,6 +59,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
       playbackSpeed,
       audioMetadata,
       currentInstrument,
+      setId,
       setTabData,
       setSectionProgression,
       setHasRecordedAudio,
@@ -72,6 +73,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         playbackSpeed: state.playbackSpeed,
         audioMetadata: state.audioMetadata,
         currentInstrument: state.currentInstrument,
+        setId: state.setId,
         setTabData: state.setTabData,
         setSectionProgression: state.setSectionProgression,
         setHasRecordedAudio: state.setHasRecordedAudio,
@@ -310,6 +312,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                     pauseAudio();
                   } else {
                     // setting store w/ this tab's data
+                    setId(tab.id);
                     setHasRecordedAudio(tab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
                     setTabData(tab.tabData as unknown as Section[]);
                     setSectionProgression(

@@ -46,6 +46,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
       playbackSpeed,
       audioMetadata,
       currentInstrument,
+      setId,
       setHasRecordedAudio,
       setTabData,
       setSectionProgression,
@@ -59,6 +60,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
         playbackSpeed: state.playbackSpeed,
         audioMetadata: state.audioMetadata,
         currentInstrument: state.currentInstrument,
+        setId: state.setId,
         setHasRecordedAudio: state.setHasRecordedAudio,
         setTabData: state.setTabData,
         setSectionProgression: state.setSectionProgression,
@@ -256,6 +258,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
                 pauseAudio();
               } else {
                 // setting store w/ this tab's data
+                setId(tab.id);
                 setHasRecordedAudio(tab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
                 setTabData(tab.tabData as unknown as Section[]);
                 setSectionProgression(
