@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { BsMusicNote } from "react-icons/bs";
 import { v4 as uuid } from "uuid";
 import { shallow } from "zustand/shallow";
@@ -177,10 +177,6 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
     setTabData(newTabData);
   }
 
-  const layoutProp = useMemo(() => {
-    return editing ? { layout: "position" as const } : {};
-  }, [editing]);
-
   return (
     <div
       style={{
@@ -275,7 +271,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       <AnimatePresence mode="wait">
         <motion.div
           key={sectionData.id}
-          {...layoutProp}
+          {...(editing && { layout: "position" })}
           variants={opacityAndScaleVariants}
           initial="closed"
           animate="expanded"

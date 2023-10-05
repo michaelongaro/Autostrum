@@ -608,14 +608,10 @@ function TabSection({
     return padding;
   }, [editing, aboveMediumViewportWidth]);
 
-  const layoutProp = useMemo(() => {
-    return editing ? { layout: "position" as const } : {};
-  }, [editing]);
-
   return (
     <motion.div
       key={subSectionData.id}
-      {...layoutProp}
+      {...(editing && { layout: "position" })}
       variants={opacityAndScaleVariants}
       initial="closed"
       animate="expanded"

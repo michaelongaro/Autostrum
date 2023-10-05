@@ -198,14 +198,10 @@ function ChordSequence({
     setTabData(newTabData);
   }
 
-  const layoutProp = useMemo(() => {
-    return editing ? { layout: "position" as const } : {};
-  }, [editing]);
-
   return (
     <motion.div
       key={chordSequenceData.id}
-      {...layoutProp}
+      {...(editing && { layout: "position" })}
       variants={opacityAndScaleVariants}
       initial="closed"
       animate="expanded"
