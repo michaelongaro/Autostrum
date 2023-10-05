@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAudioRecorder } from "react-audio-voice-recorder";
 import { BsStopFill } from "react-icons/bs";
 import { FaMicrophoneAlt, FaTrashAlt } from "react-icons/fa";
+import { BiErrorCircle } from "react-icons/bi";
 import { HiOutlineInformationCircle } from "react-icons/hi";
 import { shallow } from "zustand/shallow";
 import {
@@ -27,6 +28,8 @@ const backdropVariants = {
 };
 
 function AudioRecorderModal() {
+  const [microphoneAccessHasBeenDenied, setMicrophoneAccessHasBeenDenied] =
+    useState(false);
   const [showPostRecordingOptions, setShowPostRecordingOptions] =
     useState(false);
   const [localHasRecordedAudio, setLocalHasRecordedAudio] = useState(false);
@@ -61,10 +64,11 @@ function AudioRecorderModal() {
       echoCancellation: true,
       noiseSuppression: true,
       autoGainControl: true, // currently not supported in Safari - 08/31/2023
+    },
+    () => {
+      // called when getUserMedia promise is rejected
+      setMicrophoneAccessHasBeenDenied(true);
     }
-
-    // allows option to handle rejection of getUserMedia promise, probably want to
-    // then display something saying that the user needs to allow microphone access
   );
 
   const {
@@ -166,29 +170,46 @@ function AudioRecorderModal() {
 
           <div className="baseVertFlex lightestGlassmorphic max-w-[23rem] gap-2 rounded-md p-2 text-sm">
             <HiOutlineInformationCircle className="h-6 w-6" />
-            Thank you for creating an official recording of your tab to play
-            along with! Make sure your microphone is closeby and has a clear
-            pickup of your guitar.
+            <p className="text-center">
+              Thank you for creating an official recording of your tab to play
+              along with! Make sure your microphone is closeby and has a clear
+              pickup of your guitar.
+            </p>
           </div>
+
+          {/* microphone access denied message */}
+          {microphoneAccessHasBeenDenied && (
+            <div className="baseVertFlex max-w-[23rem] gap-2 rounded-md bg-red-700 p-2 text-sm">
+              <div className="baseFlex gap-2">
+                <BiErrorCircle className="h-5 w-5" />
+                <p className="font-semibold">Microphone access denied</p>
+              </div>
+              <p className="text-center">
+                This site does not have access to your microphone. Please allow
+                access in your browser&apos;s settings and refresh your page
+                afterwords to record your tab.
+              </p>
+            </div>
+          )}
 
           {/* current progress visualizer  */}
           <div className="baseFlex w-full gap-2 px-4 text-lg">
             <div
-              className={`relative h-4 w-4 rounded-full transition-colors
-          ${
-            isRecording && !showPostRecordingOptions
-              ? "bg-red-600"
-              : "bg-red-600/50"
-          }`}
+              className={`relative mr-1 h-4 w-4 rounded-full transition-colors
+                            ${
+                              isRecording && !showPostRecordingOptions
+                                ? "bg-red-600"
+                                : "bg-red-600/50"
+                            }`}
             >
               <div
                 className={`absolute left-0 top-0 h-4 w-4 rounded-full bg-red-600 transition-colors
-                        ${
-                          isRecording && !showPostRecordingOptions
-                            ? "animate-ping "
-                            : "bg-transparent"
-                        }
-          `}
+                            ${
+                              isRecording && !showPostRecordingOptions
+                                ? "animate-ping "
+                                : "bg-transparent"
+                            }
+                          `}
               ></div>
             </div>
             <p>{formatSecondsToMinutes(recordingTime)}</p>
@@ -206,7 +227,9 @@ function AudioRecorderModal() {
               <PopoverTrigger asChild>
                 <Button
                   variant={"recording"}
-                  disabled={showPostRecordingOptions}
+                  disabled={
+                    showPostRecordingOptions || microphoneAccessHasBeenDenied
+                  }
                   onClick={() => {
                     if (isRecording) {
                       togglePauseResume();
