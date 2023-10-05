@@ -40,7 +40,7 @@ function SectionProgression() {
           {sectionProgression.map((section, index) => (
             <div key={section.id} className="baseFlex gap-2">
               <p className="font-semibold">{section.title}</p>
-              <p>x{section.repetitions}</p>
+              {section.repetitions > 1 && <p>x{section.repetitions}</p>}
 
               {index !== sectionProgression.length - 1 && (
                 <BsArrowRightShort className="h-6 w-8 text-pink-50" />
