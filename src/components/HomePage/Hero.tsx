@@ -38,7 +38,7 @@ function Hero({
             />
           </h1>
 
-          <p className="text-center text-sm md:text-base">
+          <p className="text-center text-base md:text-lg">
             Create and share your riffs{" "}
             <span className="italic text-pink-600 underline underline-offset-2">
               exactly
