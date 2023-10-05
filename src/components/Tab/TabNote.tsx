@@ -420,7 +420,7 @@ function TabNote({
             height: noteIndex !== 7 ? "37px" : "30px",
             borderWidth: note.length > 0 && !isFocused ? "2px" : "1px",
           }}
-          className="rounded-full p-0 text-center"
+          className="rounded-full p-0 text-center shadow-sm shadow-pink-600"
           onFocus={(e) => {
             setIsFocused(true);
 

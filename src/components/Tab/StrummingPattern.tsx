@@ -575,7 +575,7 @@ function StrummingPattern({
                         ? "hsl(333, 71%, 51%)"
                         : "hsl(327, 73%, 97%)",
                     }}
-                    className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm"
+                    className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm shadow-pink-600"
                     onFocus={(e) => {
                       setIsFocused((prev) => {
                         prev[strumIndex] = true;

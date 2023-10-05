@@ -197,7 +197,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
                     ? "hsl(333, 71%, 51%)"
                     : "hsl(327, 73%, 97%)",
                 }}
-                className="h-[37px] w-[37px] rounded-full p-0 text-center shadow-sm"
+                className="h-[37px] w-[37px] rounded-full p-0 text-center shadow-sm shadow-pink-600"
                 onFocus={(e) => {
                   setIsFocused((prev) => {
                     prev[index] = true;
