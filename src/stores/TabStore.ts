@@ -618,7 +618,9 @@ export const useTabStore = create<TabState>()(
           });
         }
 
-        const { breakOnNextChord, looping } = get();
+        // need to get up to date values within loop here since they may have changed
+        // since the loop started/last iteration
+        const { audioMetadata, breakOnNextChord, looping } = get();
 
         if (breakOnNextChord) {
           set({
