@@ -275,7 +275,10 @@ function ChordSection({
                                 currentlyPlayingMetadata?.[currentChordIndex]
                                   ?.location?.sectionIndex === sectionIndex &&
                                 currentlyPlayingMetadata?.[currentChordIndex]
-                                  ?.location?.subSectionIndex === index
+                                  ?.location?.subSectionIndex ===
+                                  subSectionIndex &&
+                                currentlyPlayingMetadata?.[currentChordIndex]
+                                  ?.location?.chordSequenceIndex === index
                                   ? "animate-colorOscillate"
                                   : ""
                               }
