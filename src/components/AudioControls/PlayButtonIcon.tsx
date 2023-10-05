@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { BsFillPauseFill, BsFillPlayFill, BsStopFill } from "react-icons/bs";
 import type Soundfont from "soundfont-player";
 import type { AudioMetadata, PreviewMetadata } from "~/stores/TabStore";
@@ -18,7 +18,7 @@ const opacityAndScaleVariants = {
 interface PlayButtonIcon {
   uniqueLocationKey: string;
   currentInstrument: Soundfont.Player | null;
-  recordedAudioBufferSourceNode?: AudioBufferSourceNode | null;
+  recordedAudioBuffer?: AudioBuffer | null;
   audioMetadata?: AudioMetadata;
   tabId: number;
   sectionIndex?: number;
@@ -39,15 +39,56 @@ function PlayButtonIcon({
   previewMetadata,
   indexOfPattern,
   currentInstrument,
-  recordedAudioBufferSourceNode,
+  recordedAudioBuffer,
   previewType,
 }: PlayButtonIcon) {
+  type ShouldShowPauseIcon = Omit<
+    PlayButtonIcon,
+    "currentInstrument" | "recordedAudioBuffer"
+  >;
+
+  const shouldShowPauseIcon = useCallback(
+    ({
+      audioMetadata,
+      tabId,
+      sectionIndex,
+      subSectionIndex,
+      chordSequenceIndex,
+      previewMetadata,
+      indexOfPattern,
+      previewType,
+    }: ShouldShowPauseIcon) => {
+      const isAudioPlayingOnCurrentTab =
+        audioMetadata &&
+        audioMetadata?.playing &&
+        (audioMetadata?.tabId === tabId || tabId === -1);
+
+      const isAudioPlayingOnCurrentLocation =
+        uniqueLocationKey === "audioControls" ||
+        (audioMetadata &&
+          audioMetadata.location?.sectionIndex === sectionIndex &&
+          audioMetadata.location?.subSectionIndex === subSectionIndex &&
+          audioMetadata.location?.chordSequenceIndex === chordSequenceIndex);
+
+      const isPreviewPlayingWithPatternAndType =
+        previewMetadata?.playing &&
+        previewMetadata?.indexOfPattern === indexOfPattern &&
+        previewMetadata?.type === previewType;
+
+      return (
+        (isAudioPlayingOnCurrentTab && isAudioPlayingOnCurrentLocation) ||
+        isPreviewPlayingWithPatternAndType
+      );
+    },
+    []
+  );
+
   const renderPlayButtonIcon = useMemo(() => {
     if (
       !currentInstrument ||
-      (audioMetadata?.type === "Artist recording" &&
-        !previewMetadata &&
-        !recordedAudioBufferSourceNode)
+      (uniqueLocationKey === "audioControls" && // can only play recorded audio through <AudioControls />
+        audioMetadata?.type === "Artist recording" &&
+        !recordedAudioBuffer)
     ) {
       return (
         <motion.svg
@@ -75,19 +116,17 @@ function PlayButtonIcon({
         </motion.svg>
       );
     } else if (
-      (audioMetadata?.playing &&
-        // just to make sure correct gridTabCard/tableTabRow responds w/ below jsx
-        (audioMetadata?.tabId === tabId || tabId === -1) &&
-        // TODO: refactor this whole mess to be more readable..
-
-        (uniqueLocationKey === "audioControls" ||
-          (audioMetadata.location?.sectionIndex === sectionIndex &&
-            audioMetadata.location?.subSectionIndex === subSectionIndex &&
-            audioMetadata.location?.chordSequenceIndex ===
-              chordSequenceIndex))) ||
-      (previewMetadata?.playing &&
-        previewMetadata?.indexOfPattern === indexOfPattern &&
-        previewMetadata?.type === previewType)
+      shouldShowPauseIcon({
+        audioMetadata,
+        uniqueLocationKey,
+        tabId,
+        sectionIndex,
+        subSectionIndex,
+        chordSequenceIndex,
+        previewMetadata,
+        indexOfPattern,
+        previewType,
+      })
     ) {
       return (
         <motion.div
@@ -119,17 +158,18 @@ function PlayButtonIcon({
       </motion.div>
     );
   }, [
-    uniqueLocationKey,
     audioMetadata,
-    chordSequenceIndex,
-    indexOfPattern,
     tabId,
-    previewMetadata,
     sectionIndex,
     subSectionIndex,
-    currentInstrument,
-    recordedAudioBufferSourceNode,
+    chordSequenceIndex,
+    previewMetadata,
+    indexOfPattern,
     previewType,
+    currentInstrument,
+    recordedAudioBuffer,
+    shouldShowPauseIcon,
+    uniqueLocationKey,
   ]);
 
   return renderPlayButtonIcon;
