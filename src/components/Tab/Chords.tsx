@@ -230,7 +230,7 @@ function Chords() {
                       className="baseFlex h-full w-10 rounded-l-none border-l-2"
                     >
                       <PlayButtonIcon
-                        uniqueLocationKey={`chordPreview${index}}`}
+                        uniqueLocationKey={`chordPreview${index}`}
                         tabId={id}
                         currentInstrument={currentInstrument}
                         previewMetadata={previewMetadata}

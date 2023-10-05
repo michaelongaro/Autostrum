@@ -300,7 +300,7 @@ function StrummingPatterns() {
                       className="w-10 rounded-l-none rounded-r-sm border-2 border-l-0 p-3"
                     >
                       <PlayButtonIcon
-                        uniqueLocationKey={`strummingPatternPreview${index}}`}
+                        uniqueLocationKey={`strummingPatternPreview${index}`}
                         tabId={id}
                         currentInstrument={currentInstrument}
                         previewMetadata={previewMetadata}
