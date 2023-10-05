@@ -1116,6 +1116,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                   } baseVertFlex !items-start gap-2`}
                 >
                   <div className="font-semibold">Genre</div>
+                  {genreObject[genreId] && (
                   <div
                     style={{
                       backgroundColor: genreObject[genreId]?.color,
@@ -1138,6 +1139,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                       }}
                     />
                   </div>
+                  )}
                 </div>
                 <div
                   className={`${

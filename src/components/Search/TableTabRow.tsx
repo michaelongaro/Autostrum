@@ -14,7 +14,6 @@ import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
 import { TableCell, TableRow } from "~/components/ui/table";
-import useSound from "~/hooks/useSound";
 import type { TabWithLikes } from "~/server/api/routers/tab";
 import {
   useTabStore,
@@ -144,6 +143,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
           </TableCell>
         )}
         <TableCell>
+          {genreObject[tab.genreId] && (
           <div
             style={{
               backgroundColor: genreObject[tab.genreId]?.color,
@@ -164,6 +164,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
               }}
             />
           </div>
+          )}
         </TableCell>
         <TableCell>
           <Button
