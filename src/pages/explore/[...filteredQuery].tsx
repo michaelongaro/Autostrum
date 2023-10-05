@@ -26,6 +26,7 @@ function FilteredQueryExplore() {
       className="lightGlassmorphic baseVertFlex my-12 min-h-[100dvh] w-11/12 !justify-start gap-8 rounded-md p-2 md:my-24 md:w-3/4 md:p-8"
     >
       <Head>
+        <title>Explore | Autostrum</title>
         <meta property="og:title" content="Explore | Autostrum"></meta>
         <meta property="og:url" content="www.autostrum.com/explore" />
         <meta

@@ -12,6 +12,7 @@ function Privacy() {
       className="baseVertFlex w-full"
     >
       <Head>
+        <title>Privacy | Autostrum</title>
         <meta property="og:title" content="Privacy | Autostrum"></meta>
         <meta property="og:url" content="www.autostrum.com/privacy" />
         <meta

@@ -29,6 +29,7 @@ function ArtistLikes() {
       className="lightGlassmorphic baseVertFlex z-50 mt-12 min-h-[100dvh] w-full !justify-start rounded-md p-2 md:p-8"
     >
       <Head>
+        <title>Likes | Autostrum</title>
         <meta property="og:title" content="Likes | Autostrum"></meta>
         <meta property="og:url" content="www.autostrum.com/profile/likes" />
         <meta

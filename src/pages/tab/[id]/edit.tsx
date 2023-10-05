@@ -61,6 +61,7 @@ function IndividualTabEdit({
       className="baseVertFlex w-full"
     >
       <Head>
+        <title>{openGraphData.title}</title>
         <meta property="og:title" content={openGraphData.title}></meta>
         <meta property="og:url" content={openGraphData.url} />
         <meta property="og:description" content={openGraphData.description} />
@@ -115,8 +116,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   };
 
   if (tab) {
-    openGraphData.title = `${tab.title} | Autostrum`;
-    openGraphData.description = `View ${
+    openGraphData.title = `Edit ${tab.title} | Autostrum`;
+    openGraphData.description = `Edit ${
       artist?.username ? `${artist.username}'s tab` : "the tab"
     } ${tab.title} on Autostrum.`;
   }

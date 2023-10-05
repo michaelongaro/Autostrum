@@ -85,6 +85,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
       my-12 min-h-[100dvh] w-11/12 !justify-start gap-8 rounded-md px-2 py-4 md:my-24 md:w-3/4 md:gap-16 md:p-8"
     >
       <Head>
+        <title>{`${query.username as string}'s profile | Autostrum`}</title>
         <meta
           property="og:title"
           content={`${query.username as string}'s profile | Autostrum`}

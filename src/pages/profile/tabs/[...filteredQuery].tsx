@@ -29,6 +29,7 @@ function ArtistTabs() {
       className="lightGlassmorphic baseVertFlex z-50 mt-12 min-h-[100dvh] w-full !justify-start rounded-md p-2 md:p-8"
     >
       <Head>
+        <title>Tabs | Autostrum</title>
         <meta property="og:title" content="Tabs | Autostrum"></meta>
         <meta property="og:url" content="www.autostrum.com/profile/tabs" />
         <meta

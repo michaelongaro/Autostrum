@@ -72,6 +72,7 @@ function IndividualTabView({
       className="baseVertFlex w-full"
     >
       <Head>
+        <title>{openGraphData.title}</title>
         <meta property="og:title" content={openGraphData.title}></meta>
         <meta property="og:url" content={openGraphData.url} />
         <meta property="og:description" content={openGraphData.description} />

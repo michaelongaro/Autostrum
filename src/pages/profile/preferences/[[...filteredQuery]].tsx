@@ -71,6 +71,7 @@ function Preferences() {
       className="baseVertFlex z-50 w-full"
     >
       <Head>
+        <title>Preferences | Autostrum</title>
         <meta property="og:title" content="Preferences | Autostrum"></meta>
         <meta
           property="og:url"

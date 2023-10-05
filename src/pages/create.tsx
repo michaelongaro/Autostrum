@@ -13,6 +13,7 @@ function Create() {
       className="baseVertFlex w-full"
     >
       <Head>
+        <title>Create | Autostrum</title>
         <meta property="og:title" content="Create | Autostrum"></meta>
         <meta property="og:url" content="www.autostrum.com/create" />
         <meta

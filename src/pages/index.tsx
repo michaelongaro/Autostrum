@@ -19,6 +19,7 @@ function Home({
       className="baseVertFlex w-full"
     >
       <Head>
+        <title>Autostrum</title>
         <meta property="og:title" content="Autostrum"></meta>
         <meta property="og:url" content="www.autostrum.com" />
         <meta
