@@ -272,7 +272,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
               style={{
                 minWidth: aboveMediumViewportWidth ? "500px" : "300px",
               }}
-              className="h-28 w-1/2 max-w-[91.7%] animate-pulse rounded-md bg-pink-300"
+              className="h-20 w-1/2 max-w-[91.7%] animate-pulse rounded-md bg-pink-300"
             ></div>
             <div
               style={{
@@ -292,7 +292,9 @@ function TabSkeleton({ editing }: TabSkeleton) {
           <Separator className="w-[96%]" />
 
           <div className="baseVertFlex w-full !items-start gap-4 p-6">
-            <div className="h-8 w-32 animate-pulse rounded-md bg-pink-300"></div>
+            <div className="h-12 w-48 animate-pulse rounded-md bg-pink-300"></div>
+            <div className="h-36 w-full animate-pulse rounded-md bg-pink-300 "></div>
+            <div className="h-36 w-full animate-pulse rounded-md bg-pink-300 "></div>
             <div className="h-36 w-full animate-pulse rounded-md bg-pink-300 "></div>
           </div>
         </>
