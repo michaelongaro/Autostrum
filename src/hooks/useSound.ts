@@ -67,6 +67,7 @@ export default function useSound() {
 
   const looping = useGetLocalStorageValues().looping;
 
+  // I think this should be on route change in <Shell />, setting both of these to true (hmm maybe just
   useEffect(() => {
     return () => {
       breakOnNextChordRef.current = true;
@@ -516,12 +517,12 @@ export default function useSound() {
     );
     source.start(
       audioContext.currentTime + when,
-      tetheredEffect === "p" ? 0.1 : 0.2
+      tetheredEffect === "p" ? 0 : 0.2
     );
 
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
     sourceGain.gain.linearRampToValueAtTime(
-      tetheredEffect === "p" ? 1.1 : 1.3,
+      tetheredEffect === "p" ? 1 : 1.3,
       audioContext.currentTime + when + 0.1
     );
     source.connect(sourceGain);
