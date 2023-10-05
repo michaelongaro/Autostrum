@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import { BsFillPlayFill, BsKeyboard } from "react-icons/bs";
 import { shallow } from "zustand/shallow";
 import { Label } from "~/components/ui/label";
-import useSound from "~/hooks/useSound";
 import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import Chord from "../Tab/Chord";
 import { Button } from "../ui/button";
@@ -37,7 +36,6 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
   );
 
   const {
-    tuning,
     chords,
     setChords,
     setChordBeingEdited,
@@ -45,9 +43,10 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
     setTabData,
     audioMetadata,
     previewMetadata,
+    playPreview,
+    pauseAudio,
   } = useTabStore(
     (state) => ({
-      tuning: state.tuning,
       chords: state.chords,
       setChords: state.setChords,
       setChordBeingEdited: state.setChordBeingEdited,
@@ -55,11 +54,11 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       setTabData: state.setTabData,
       audioMetadata: state.audioMetadata,
       previewMetadata: state.previewMetadata,
+      playPreview: state.playPreview,
+      pauseAudio: state.pauseAudio,
     }),
     shallow
   );
-
-  const { playPreview, pauseAudio } = useSound();
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -265,7 +264,6 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
                 void playPreview({
                   data: chordBeingEdited.value.frets,
                   index: chordBeingEdited.index,
-                  tuningNotes: tuning,
                   type: "chord",
                 });
               }}

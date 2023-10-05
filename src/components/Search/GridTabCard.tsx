@@ -15,7 +15,6 @@ import {
 import { AiOutlineUser } from "react-icons/ai";
 import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import { shallow } from "zustand/shallow";
-import useSound from "~/hooks/useSound";
 import type { TabWithLikes } from "~/server/api/routers/tab";
 import {
   useTabStore,
@@ -56,7 +55,6 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
       useState(false);
 
     const {
-      playbackSpeed,
       audioMetadata,
       currentInstrument,
       setId,
@@ -68,9 +66,10 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
       setChords,
       setCapo,
       recordedAudioBuffer,
+      playTab,
+      pauseAudio,
     } = useTabStore(
       (state) => ({
-        playbackSpeed: state.playbackSpeed,
         audioMetadata: state.audioMetadata,
         currentInstrument: state.currentInstrument,
         setId: state.setId,
@@ -82,11 +81,11 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         setChords: state.setChords,
         setCapo: state.setCapo,
         recordedAudioBuffer: state.recordedAudioBuffer,
+        playTab: state.playTab,
+        pauseAudio: state.pauseAudio,
       }),
       shallow
     );
-
-    const { playTab, pauseAudio } = useSound();
 
     const genreObject: Record<number, Genre> = useMemo(() => {
       if (!genreArray.data) return {};
@@ -328,15 +327,8 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                     }
                     setTimeout(() => {
                       void playTab({
-                        tabData: tab.tabData as unknown as Section[],
-                        rawSectionProgression:
-                          tab.sectionProgression as unknown as SectionProgression[],
-                        tuningNotes: tab.tuning,
-                        baselineBpm: tab.bpm,
-                        chords: tab.chords as unknown as Chord[],
-                        capo: tab.capo,
                         tabId: tab.id,
-                        playbackSpeed,
+                        location: null,
                       });
                     }, 150); // hacky: trying to allow time for pauseAudio to finish and "flush out" state
                   }

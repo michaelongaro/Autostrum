@@ -2,6 +2,17 @@ import type { Tab } from "@prisma/client";
 import type Soundfont from "soundfont-player";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
+import {
+  compileFullTab,
+  compileSpecificChordGrouping,
+  compileStrummingPatternPreview,
+  generateDefaultSectionProgression,
+} from "~/utils/chordCompilationHelpers";
+import extractNumber from "~/utils/extractNumber";
+import resetAudioSliderPosition from "~/utils/resetAudioSliderPosition";
+import { parse } from "~/utils/tunings";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
@@ -117,6 +128,25 @@ export interface PreviewMetadata {
   playing: boolean;
 }
 
+interface PlayTab {
+  tabId: number;
+  location: {
+    sectionIndex: number;
+    subSectionIndex?: number;
+    chordSequenceIndex?: number;
+  } | null;
+  resetToStart?: boolean;
+}
+interface PlayPreview {
+  data: string[] | StrummingPattern;
+  index: number; // technically only necessary for strumming pattern, not chord preview
+  type: "chord" | "strummingPattern";
+}
+interface PlayRecordedAudio {
+  audioBuffer: AudioBuffer;
+  secondsElapsed: number;
+}
+
 const initialStoreState = {
   // tab data
   originalTabData: null,
@@ -150,7 +180,7 @@ const initialStoreState = {
   showingEffectGlossary: false,
   showDeleteAccountModal: false,
 
-  // useSound
+  // related to sound generation/playing
   breakOnNextChord: false,
   currentlyPlayingMetadata: null,
   playbackSpeed: 1,
@@ -225,7 +255,7 @@ interface TabState {
   currentlyCopiedChord: string[] | null;
   setCurrentlyCopiedChord: (currentlyCopiedChord: string[] | null) => void;
   getStringifiedTabData: () => string;
-  resetAudioMetadataOnRouteChange: () => void;
+  resetAudioAndMetadataOnRouteChange: () => void;
 
   // modals
   showAudioRecorderModal: boolean;
@@ -261,7 +291,7 @@ interface TabState {
     } | null
   ) => void;
 
-  // useSound related
+  // related to sound generation/playing
   audioContext: AudioContext | null;
   setAudioContext: (audioContext: AudioContext | null) => void;
   breakOnNextChord: boolean;
@@ -287,6 +317,8 @@ interface TabState {
       | "electric_guitar_clean"
       | "electric_guitar_jazz"
   ) => void;
+  looping: boolean;
+  setLooping: (looping: boolean) => void;
   playbackSpeed: 1 | 0.25 | 0.5 | 0.75 | 1.25 | 1.5;
   setPlaybackSpeed: (speed: 1 | 0.25 | 0.5 | 0.75 | 1.25 | 1.5) => void;
   currentChordIndex: number;
@@ -315,6 +347,15 @@ interface TabState {
   setRecordedAudioBufferSourceNode: (
     recordedAudioBufferSourceNode: AudioBufferSourceNode | null
   ) => void;
+
+  // playing/pausing sound functions
+  playTab: ({ location, resetToStart, tabId }: PlayTab) => Promise<void>;
+  playPreview: ({ data, index, type }: PlayPreview) => Promise<void>;
+  playRecordedAudio: ({
+    audioBuffer,
+    secondsElapsed,
+  }: PlayRecordedAudio) => void;
+  pauseAudio: (resetToStart?: boolean) => void;
 
   // related to search
   searchResultsCount: number;
@@ -410,8 +451,10 @@ export const useTabStore = create<TabState>()(
       });
     },
 
-    resetAudioMetadataOnRouteChange: () => {
-      const audioMetadata = get().audioMetadata;
+    resetAudioAndMetadataOnRouteChange: () => {
+      const { audioMetadata, pauseAudio } = get();
+
+      pauseAudio(true);
 
       set({
         audioMetadata: {
@@ -423,7 +466,7 @@ export const useTabStore = create<TabState>()(
       });
     },
 
-    // useSound related
+    // related to sound generation/playing
     audioContext: null,
     setAudioContext: (audioContext) => set({ audioContext }),
     breakOnNextChord: false,
@@ -440,6 +483,8 @@ export const useTabStore = create<TabState>()(
     currentInstrumentName: "acoustic_guitar_steel",
     setCurrentInstrumentName: (currentInstrumentName) =>
       set({ currentInstrumentName }),
+    looping: false,
+    setLooping: (looping) => set({ looping }),
     playbackSpeed: 1,
     setPlaybackSpeed: (playbackSpeed) => set({ playbackSpeed }),
     currentChordIndex: 0,
@@ -476,6 +521,340 @@ export const useTabStore = create<TabState>()(
     recordedAudioBufferSourceNode: null,
     setRecordedAudioBufferSourceNode: (recordedAudioBufferSourceNode) =>
       set({ recordedAudioBufferSourceNode }),
+
+    // playing/pausing sound functions
+    playTab: async ({ location, resetToStart, tabId }: PlayTab) => {
+      const {
+        tabData,
+        sectionProgression: rawSectionProgression,
+        tuning: tuningNotes,
+        bpm: baselineBpm,
+        capo,
+        chords,
+        playbackSpeed,
+        audioMetadata,
+        previewMetadata,
+        currentChordIndex,
+        currentInstrument,
+        audioContext,
+        masterVolumeGainNode,
+        setCurrentlyPlayingMetadata,
+        pauseAudio,
+      } = get();
+
+      if (!audioContext || !masterVolumeGainNode || !currentInstrument) return;
+
+      const currentlyPlayingStrings: (
+        | Soundfont.Player
+        | AudioBufferSourceNode
+        | undefined
+      )[] = [undefined, undefined, undefined, undefined, undefined, undefined];
+
+      set({
+        showingAudioControls: true,
+      });
+
+      if (audioMetadata.playing || previewMetadata.playing || resetToStart) {
+        pauseAudio(resetToStart);
+      }
+
+      set({
+        audioMetadata: {
+          tabId,
+          location,
+          playing: true,
+          type: "Generated",
+        },
+      });
+
+      const sectionProgression =
+        rawSectionProgression.length > 0
+          ? rawSectionProgression
+          : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
+      const tuning = parse(tuningNotes);
+
+      const compiledChords = location
+        ? compileSpecificChordGrouping({
+            tabData,
+            location,
+            chords,
+            baselineBpm,
+            playbackSpeed,
+            setCurrentlyPlayingMetadata,
+          })
+        : compileFullTab({
+            tabData,
+            sectionProgression,
+            chords,
+            baselineBpm,
+            playbackSpeed,
+            setCurrentlyPlayingMetadata,
+          });
+
+      for (
+        let chordIndex = currentChordIndex;
+        chordIndex < compiledChords.length;
+        chordIndex++
+      ) {
+        set({
+          currentChordIndex: chordIndex,
+        });
+
+        const thirdPrevColumn = compiledChords[chordIndex - 3];
+        const secondPrevColumn = compiledChords[chordIndex - 2];
+        const prevColumn = compiledChords[chordIndex - 1];
+        const currColumn = compiledChords[chordIndex];
+        const nextColumn = compiledChords[chordIndex + 1];
+
+        if (currColumn === undefined) continue;
+
+        // alteredBpm = bpm for chord * (1 / noteLengthMultiplier) * playbackSpeedMultiplier
+        const alteredBpm =
+          Number(currColumn[8]) * (1 / Number(currColumn[9])) * playbackSpeed;
+
+        if (chordIndex !== compiledChords.length - 1) {
+          await playNoteColumn({
+            tuning,
+            capo: capo ?? 0,
+            bpm: alteredBpm,
+            thirdPrevColumn,
+            secondPrevColumn,
+            prevColumn,
+            currColumn,
+            nextColumn,
+            audioContext,
+            masterVolumeGainNode,
+            currentInstrument,
+            currentlyPlayingStrings,
+          });
+        }
+
+        const { breakOnNextChord, looping } = get();
+
+        if (breakOnNextChord) {
+          set({
+            breakOnNextChord: false,
+          });
+          return;
+        }
+
+        // not 100% on moving this back to the top, but trying it out right now
+        if (chordIndex === compiledChords.length - 1) {
+          // if looping, reset the chordIndex to -1 so loop will start over
+          if (looping && audioMetadata.playing) {
+            resetAudioSliderPosition();
+
+            chordIndex = -1;
+            set({
+              currentChordIndex: 0,
+            });
+          } else {
+            set({
+              audioMetadata: {
+                ...audioMetadata,
+                playing: false,
+              },
+              currentChordIndex: 0,
+            });
+          }
+        }
+      }
+    },
+
+    playPreview: async ({ data, index, type }: PlayPreview) => {
+      const {
+        tuning: tuningNotes,
+        audioMetadata,
+        previewMetadata,
+        currentInstrument,
+        audioContext,
+        masterVolumeGainNode,
+        pauseAudio,
+      } = get();
+
+      if (!audioContext || !masterVolumeGainNode || !currentInstrument) return;
+
+      const currentlyPlayingStrings: (
+        | Soundfont.Player
+        | AudioBufferSourceNode
+        | undefined
+      )[] = [undefined, undefined, undefined, undefined, undefined, undefined];
+
+      if (audioMetadata.playing || previewMetadata.playing) {
+        pauseAudio();
+      }
+
+      const tuning = parse(tuningNotes);
+
+      const compiledChords =
+        type === "chord"
+          ? [["", ...(data as string[]), "v", "60", "1"]]
+          : compileStrummingPatternPreview({
+              strummingPattern: data as StrummingPattern,
+            });
+
+      for (
+        let chordIndex = previewMetadata.currentChordIndex;
+        chordIndex < compiledChords.length;
+        chordIndex++
+      ) {
+        set({
+          previewMetadata: {
+            playing: true,
+            indexOfPattern: index,
+            currentChordIndex: chordIndex,
+            type,
+          },
+        });
+        // ^^ doing this here because didn't update in time with one that was above
+
+        // prob don't need anything but currColumn since you can't have any fancy effects
+        // in the previews...
+
+        const secondPrevColumn = compiledChords[chordIndex - 2];
+        const prevColumn = compiledChords[chordIndex - 1];
+        const currColumn = compiledChords[chordIndex];
+        const nextColumn = compiledChords[chordIndex + 1];
+
+        if (currColumn === undefined) continue;
+
+        // alteredBpm = bpm for chord * (1 / noteLengthMultiplier)
+        const alteredBpm = Number(currColumn[8]) * (1 / Number(currColumn[9]));
+
+        await playNoteColumn({
+          tuning,
+          capo: 0,
+          bpm: alteredBpm,
+          secondPrevColumn,
+          prevColumn,
+          currColumn,
+          nextColumn,
+          audioContext,
+          masterVolumeGainNode,
+          currentInstrument,
+          currentlyPlayingStrings,
+        });
+
+        const { breakOnNextPreviewChord } = get();
+
+        if (breakOnNextPreviewChord) {
+          set({
+            breakOnNextPreviewChord: false,
+          });
+          return;
+        }
+
+        if (chordIndex === compiledChords.length - 1) {
+          set({
+            previewMetadata: {
+              ...previewMetadata,
+              indexOfPattern: -1,
+              currentChordIndex: 0,
+              playing: false,
+            },
+          });
+        }
+      }
+    },
+
+    playRecordedAudio: ({ audioBuffer, secondsElapsed }) => {
+      const {
+        audioMetadata,
+        previewMetadata,
+        audioContext,
+        masterVolumeGainNode,
+        pauseAudio,
+      } = get();
+
+      if (!audioContext || !masterVolumeGainNode) return;
+
+      if (audioMetadata.playing || previewMetadata.playing) {
+        pauseAudio();
+      }
+
+      set({
+        audioMetadata: {
+          ...audioMetadata,
+          playing: true,
+          type: "Artist recording",
+        },
+      });
+
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBuffer;
+      set({
+        recordedAudioBufferSourceNode: source,
+      });
+
+      source.connect(masterVolumeGainNode);
+      source.start(0, secondsElapsed);
+    },
+
+    pauseAudio: (resetToStart) => {
+      const {
+        audioMetadata,
+        previewMetadata,
+        currentInstrument,
+        recordedAudioBufferSourceNode,
+      } = get();
+
+      if (!audioMetadata.playing && !previewMetadata.playing) {
+        resetAudioSliderPosition();
+
+        set({
+          currentChordIndex: 0,
+        });
+        return;
+      }
+
+      if (audioMetadata.playing && audioMetadata.type === "Artist recording") {
+        recordedAudioBufferSourceNode?.stop();
+
+        set({
+          audioMetadata: {
+            ...audioMetadata,
+            playing: false,
+          },
+        });
+
+        if (resetToStart) {
+          resetAudioSliderPosition();
+        }
+      } else if (audioMetadata.playing && audioMetadata.type === "Generated") {
+        set({
+          audioMetadata: {
+            ...audioMetadata,
+            playing: false,
+          },
+          breakOnNextChord: true,
+        });
+
+        if (resetToStart) {
+          resetAudioSliderPosition();
+          set({
+            currentChordIndex: 0,
+          });
+        }
+      } else if (previewMetadata.playing) {
+        set({
+          previewMetadata: {
+            ...previewMetadata,
+            currentChordIndex: 0,
+            playing: false,
+          },
+          breakOnNextPreviewChord: true,
+        });
+
+        if (resetToStart) {
+          resetAudioSliderPosition();
+          set({
+            currentChordIndex: 0,
+          });
+        }
+      }
+
+      currentInstrument?.stop();
+    },
 
     // modals
     showAudioRecorderModal: false,

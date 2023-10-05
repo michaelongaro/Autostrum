@@ -28,7 +28,6 @@ import {
   replaceIdInSection,
 } from "~/utils/replaceWithUniqueIdHelpers";
 import isEqual from "lodash.isequal";
-import useSound from "~/hooks/useSound";
 import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 
@@ -52,16 +51,10 @@ function MiscellaneousControls({
   const [artificalPlayButtonTimeout, setArtificialPlayButtonTimeout] =
     useState(false);
 
-  const { playTab, pauseAudio } = useSound();
-
   const {
     id,
-    chords,
     sectionProgression,
     setSectionProgression,
-    tuning,
-    bpm,
-    capo,
     audioMetadata,
     setAudioMetadata,
     currentInstrument,
@@ -69,16 +62,13 @@ function MiscellaneousControls({
     setTabData,
     currentlyCopiedData,
     setCurrentlyCopiedData,
-    playbackSpeed,
+    playTab,
+    pauseAudio,
   } = useTabStore(
     (state) => ({
       id: state.id,
-      chords: state.chords,
       sectionProgression: state.sectionProgression,
       setSectionProgression: state.setSectionProgression,
-      tuning: state.tuning,
-      bpm: state.bpm,
-      capo: state.capo,
       audioMetadata: state.audioMetadata,
       setAudioMetadata: state.setAudioMetadata,
       currentInstrument: state.currentInstrument,
@@ -86,7 +76,8 @@ function MiscellaneousControls({
       setTabData: state.setTabData,
       currentlyCopiedData: state.currentlyCopiedData,
       setCurrentlyCopiedData: state.setCurrentlyCopiedData,
-      playbackSpeed: state.playbackSpeed,
+      playTab: state.playTab,
+      pauseAudio: state.pauseAudio,
     }),
     shallow
   );
@@ -374,7 +365,7 @@ function MiscellaneousControls({
               setTimeout(() => {
                 setArtificialPlayButtonTimeout(false);
               }, 300);
-              pauseAudio(); // *
+              pauseAudio();
             } else {
               setAudioMetadata({
                 ...audioMetadata,
@@ -386,13 +377,7 @@ function MiscellaneousControls({
               });
 
               void playTab({
-                tabData,
-                rawSectionProgression: sectionProgression,
-                tuningNotes: tuning,
-                baselineBpm: bpm,
-                chords,
-                capo,
-                playbackSpeed,
+                tabId: id,
                 location: {
                   sectionIndex,
                   subSectionIndex,

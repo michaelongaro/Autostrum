@@ -9,7 +9,6 @@ import {
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
 import { HiOutlineInformationCircle } from "react-icons/hi";
-import useSound from "~/hooks/useSound";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 import Chord from "./Chord";
@@ -35,7 +34,6 @@ function Chords() {
   const {
     id,
     currentInstrument,
-    tuning,
     chords,
     setChords,
     setChordBeingEdited,
@@ -43,11 +41,11 @@ function Chords() {
     setTabData,
     editing,
     previewMetadata,
+    playPreview,
   } = useTabStore(
     (state) => ({
       id: state.id,
       currentInstrument: state.currentInstrument,
-      tuning: state.tuning,
       chords: state.chords,
       setChords: state.setChords,
       setChordBeingEdited: state.setChordBeingEdited,
@@ -55,11 +53,10 @@ function Chords() {
       setTabData: state.setTabData,
       editing: state.editing,
       previewMetadata: state.previewMetadata,
+      playPreview: state.playPreview,
     }),
     shallow
   );
-
-  const { playPreview } = useSound();
 
   function handleDeleteChord(index: number, chordNameToBeDeleted: string) {
     const newTabData = [...tabData];
@@ -223,7 +220,6 @@ function Chords() {
                         void playPreview({
                           data: chord.frets,
                           index,
-                          tuningNotes: tuning,
                           type: "chord",
                         });
                       }}

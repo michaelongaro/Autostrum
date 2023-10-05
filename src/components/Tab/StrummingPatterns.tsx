@@ -1,5 +1,5 @@
 import isEqual from "lodash.isequal";
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { AiFillEdit } from "react-icons/ai";
 import { FaTrashAlt } from "react-icons/fa";
 import { shallow } from "zustand/shallow";
@@ -8,7 +8,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import useSound from "~/hooks/useSound";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import {
   useTabStore,
@@ -56,6 +55,8 @@ function StrummingPatterns() {
     tabData,
     setTabData,
     previewMetadata,
+    playPreview,
+    pauseAudio,
   } = useTabStore(
     (state) => ({
       id: state.id,
@@ -67,11 +68,11 @@ function StrummingPatterns() {
       tabData: state.tabData,
       setTabData: state.setTabData,
       previewMetadata: state.previewMetadata,
+      playPreview: state.playPreview,
+      pauseAudio: state.pauseAudio,
     }),
     shallow
   );
-
-  const { playPreview, pauseAudio } = useSound();
 
   function handleDeleteStrummingPattern(
     index: number,

@@ -43,6 +43,7 @@ function GeneralLayoutStatefulShell() {
     useState<boolean>(false);
 
   const autoscrollEnabled = useGetLocalStorageValues().autoscroll;
+  const looping = useGetLocalStorageValues().looping;
 
   // reflects any updates made to username/profileImageUrl in Clerk to the ArtistMetadata
   useKeepArtistMetadataUpdatedWithClerk();
@@ -52,29 +53,72 @@ function GeneralLayoutStatefulShell() {
   useAutoCompileChords();
 
   const {
+    setLooping,
     showingAudioControls,
     setShowingAudioControls,
     resetStoreToInitValues,
     setEditing,
     setAudioMetadata,
-    resetAudioMetadataOnRouteChange,
+    resetAudioAndMetadataOnRouteChange,
     setCurrentlyPlayingMetadata,
     audioMetadata,
+    audioContext,
+    setAudioContext,
+    masterVolumeGainNode,
+    setMasterVolumeGainNode,
+    recordedAudioBufferSourceNode,
   } = useTabStore(
     (state) => ({
+      setLooping: state.setLooping,
       showingAudioControls: state.showingAudioControls,
       setShowingAudioControls: state.setShowingAudioControls,
       resetStoreToInitValues: state.resetStoreToInitValues,
       setEditing: state.setEditing,
       setAudioMetadata: state.setAudioMetadata,
-      resetAudioMetadataOnRouteChange: state.resetAudioMetadataOnRouteChange,
+      resetAudioAndMetadataOnRouteChange:
+        state.resetAudioAndMetadataOnRouteChange,
       setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
       audioMetadata: state.audioMetadata,
+      audioContext: state.audioContext,
+      setAudioContext: state.setAudioContext,
+      masterVolumeGainNode: state.masterVolumeGainNode,
+      setMasterVolumeGainNode: state.setMasterVolumeGainNode,
+      recordedAudioBufferSourceNode: state.recordedAudioBufferSourceNode,
     }),
     shallow
   );
 
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
+
+  useEffect(() => {
+    if (audioContext && masterVolumeGainNode) return;
+
+    const newAudioContext = new AudioContext();
+
+    const newMasterVolumeGainNode = newAudioContext.createGain();
+
+    newMasterVolumeGainNode.connect(newAudioContext.destination);
+
+    setAudioContext(newAudioContext);
+    setMasterVolumeGainNode(newMasterVolumeGainNode);
+  }, [
+    audioContext,
+    masterVolumeGainNode,
+    setAudioContext,
+    setMasterVolumeGainNode,
+  ]);
+
+  // keeps looping local storage state in sync with store
+  useEffect(() => {
+    setLooping(looping);
+
+    // since playRecordedAudio() isn't async in any way, this is the only way to
+    // ensure that changes to the looping state are reflected on the audio buffer
+    // after it has already started playing.
+    if (recordedAudioBufferSourceNode) {
+      recordedAudioBufferSourceNode.loop = looping;
+    }
+  }, [looping, setLooping, recordedAudioBufferSourceNode]);
 
   // autohide/show header + audio controls on scroll
   useEffect(() => {
@@ -210,8 +254,8 @@ function GeneralLayoutStatefulShell() {
 
   // route change state reset handling
   useEffect(() => {
+    resetAudioAndMetadataOnRouteChange();
     setAudioControlsVisibility("expanded");
-    resetAudioMetadataOnRouteChange();
 
     if (asPath.includes("/tab/") || asPath.includes("/create")) {
       setShowingAudioControls(true);
@@ -234,7 +278,7 @@ function GeneralLayoutStatefulShell() {
     setEditing,
     setShowingAudioControls,
     setAudioMetadata,
-    resetAudioMetadataOnRouteChange,
+    resetAudioAndMetadataOnRouteChange,
     setCurrentlyPlayingMetadata,
   ]);
 

@@ -39,7 +39,6 @@ import { Toggle } from "~/components/ui/toggle";
 import { VerticalSlider } from "~/components/ui/verticalSlider";
 import useAutoscrollToCurrentChord from "~/hooks/useAutoscrollToCurrentChord";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
-import useSound from "~/hooks/useSound";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
@@ -119,14 +118,12 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     setAudioMetadata,
     currentInstrument,
     tabData,
-    sectionProgression,
-    tuning,
-    bpm,
-    chords,
-    capo,
     recordedAudioFile,
     recordedAudioBuffer,
     setRecordedAudioBuffer,
+    playTab,
+    playRecordedAudio,
+    pauseAudio,
   } = useTabStore(
     (state) => ({
       id: state.id,
@@ -143,19 +140,15 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       setAudioMetadata: state.setAudioMetadata,
       currentInstrument: state.currentInstrument,
       tabData: state.tabData,
-      sectionProgression: state.sectionProgression,
-      tuning: state.tuning,
-      bpm: state.bpm,
-      chords: state.chords,
-      capo: state.capo,
       recordedAudioFile: state.recordedAudioFile,
       recordedAudioBuffer: state.recordedAudioBuffer,
       setRecordedAudioBuffer: state.setRecordedAudioBuffer,
+      playTab: state.playTab,
+      playRecordedAudio: state.playRecordedAudio,
+      pauseAudio: state.pauseAudio,
     }),
     shallow
   );
-
-  const { playTab, pauseAudio, playRecordedAudio } = useSound();
 
   useEffect(() => {
     if (!masterVolumeGainNode) return;
@@ -271,7 +264,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   useEffect(() => {
     if (hasRecordedAudio) {
       const convertAudioBuffer = async (arrayBuffer: ArrayBuffer) => {
-        const audioContext = new AudioContext();
+        const audioContext = new AudioContext(); // TODO: can't we just use the store audioContext? why or why not
 
         try {
           const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -766,16 +759,9 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   }, 300);
                 } else {
                   void playTab({
-                    tabData,
-                    rawSectionProgression: sectionProgression,
-                    tuningNotes: tuning,
-                    baselineBpm: bpm,
-                    chords,
-                    capo,
-                    playbackSpeed,
                     tabId:
                       audioMetadata.tabId === -1 ? id : audioMetadata.tabId,
-                    location: audioMetadata.location ?? undefined,
+                    location: audioMetadata.location,
                   });
                 }
               }
@@ -831,15 +817,9 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   // updated before it's called so it plays from the correct chord
                   setTimeout(() => {
                     void playTab({
-                      tabData,
-                      rawSectionProgression: sectionProgression,
-                      tuningNotes: tuning,
-                      baselineBpm: bpm,
-                      chords,
-                      capo,
-                      playbackSpeed,
-                      tabId: id,
-                      location: audioMetadata.location ?? undefined,
+                      tabId:
+                        audioMetadata.tabId === -1 ? id : audioMetadata.tabId,
+                      location: audioMetadata.location,
                     });
 
                     setArtificalPlayButtonTimeout(true);

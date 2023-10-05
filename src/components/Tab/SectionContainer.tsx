@@ -7,7 +7,6 @@ import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import useSound from "~/hooks/useSound";
 import {
   useTabStore,
   type ChordSection as ChordSectionType,
@@ -48,8 +47,6 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
   const [artificalPlayButtonTimeout, setArtificialPlayButtonTimeout] =
     useState(false);
 
-  const { playTab, pauseAudio } = useSound();
-
   const {
     id,
     bpm,
@@ -57,17 +54,15 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
     tabData,
     setTabData,
     editing,
-    chords,
     sectionProgression,
     setSectionProgression,
-    tuning,
-    capo,
     audioMetadata,
     setAudioMetadata,
     currentInstrument,
     currentlyPlayingMetadata,
     currentChordIndex,
-    playbackSpeed,
+    playTab,
+    pauseAudio,
   } = useTabStore(
     (state) => ({
       id: state.id,
@@ -76,17 +71,15 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       tabData: state.tabData,
       setTabData: state.setTabData,
       editing: state.editing,
-      chords: state.chords,
       sectionProgression: state.sectionProgression,
       setSectionProgression: state.setSectionProgression,
-      tuning: state.tuning,
-      capo: state.capo,
       audioMetadata: state.audioMetadata,
       setAudioMetadata: state.setAudioMetadata,
       currentInstrument: state.currentInstrument,
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
       currentChordIndex: state.currentChordIndex,
-      playbackSpeed: state.playbackSpeed,
+      playTab: state.playTab,
+      pauseAudio: state.pauseAudio,
     }),
     shallow
   );
@@ -253,14 +246,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
                   });
 
                   void playTab({
-                    tabData,
-                    rawSectionProgression: sectionProgression,
-                    tuningNotes: tuning,
-                    baselineBpm: bpm,
-                    chords,
-                    capo,
                     tabId: id,
-                    playbackSpeed,
                     location: {
                       sectionIndex,
                     },

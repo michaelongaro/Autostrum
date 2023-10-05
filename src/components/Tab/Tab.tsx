@@ -284,7 +284,9 @@ function Tab({ tab, refetchTab }: ITab) {
       </AnimatePresence>
 
       <AnimatePresence mode="wait">
-        {chordBeingEdited && <ChordModal chordBeingEdited={chordBeingEdited} />}
+        {chordBeingEdited && (
+          <ChordModal chordBeingEdited={structuredClone(chordBeingEdited)} />
+        )}
       </AnimatePresence>
 
       <AnimatePresence mode="wait">

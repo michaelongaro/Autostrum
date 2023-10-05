@@ -42,7 +42,6 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
       useState(false);
 
     const {
-      playbackSpeed,
       audioMetadata,
       currentInstrument,
       setId,
@@ -54,9 +53,10 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
       setChords,
       setCapo,
       recordedAudioBuffer,
+      playTab,
+      pauseAudio,
     } = useTabStore(
       (state) => ({
-        playbackSpeed: state.playbackSpeed,
         audioMetadata: state.audioMetadata,
         currentInstrument: state.currentInstrument,
         setId: state.setId,
@@ -68,11 +68,11 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
         setChords: state.setChords,
         setCapo: state.setCapo,
         recordedAudioBuffer: state.recordedAudioBuffer,
+        playTab: state.playTab,
+        pauseAudio: state.pauseAudio,
       }),
       shallow
     );
-
-    const { playTab, pauseAudio } = useSound();
 
     const genreArray = api.genre.getAll.useQuery();
 
@@ -144,26 +144,25 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
         )}
         <TableCell>
           {genreObject[tab.genreId] && (
-          <div
-            style={{
-              backgroundColor: genreObject[tab.genreId]?.color,
-            }}
-            className="baseFlex w-[140px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
-          >
-            {genreObject[tab.genreId]?.name}
-            <Image
-              src={`/genrePreviewBubbles/id${tab.genreId}.png`}
-              alt="three genre preview bubbles with the same color as the associated genre"
-              width={32}
-              height={32}
-              quality={100}
-              unoptimized
+            <div
               style={{
-                pointerEvents: "none",
-                userSelect: "none",
+                backgroundColor: genreObject[tab.genreId]?.color,
               }}
-            />
-          </div>
+              className="baseFlex w-[140px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
+            >
+              {genreObject[tab.genreId]?.name}
+              <Image
+                src={`/genrePreviewBubbles/id${tab.genreId}.png`}
+                alt="three genre preview bubbles with the same color as the associated genre"
+                width={32}
+                height={32}
+                quality={100}
+                style={{
+                  pointerEvents: "none",
+                  userSelect: "none",
+                }}
+              />
+            </div>
           )}
         </TableCell>
         <TableCell>
@@ -275,15 +274,8 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
                 }
                 setTimeout(() => {
                   void playTab({
-                    tabData: tab.tabData as unknown as Section[],
-                    rawSectionProgression:
-                      tab.sectionProgression as unknown as SectionProgression[],
-                    tuningNotes: tab.tuning,
-                    baselineBpm: tab.bpm,
-                    chords: tab.chords as unknown as Chord[],
-                    capo: tab.capo,
                     tabId: tab.id,
-                    playbackSpeed,
+                    location: null,
                   });
                 }, 150); // hacky: trying to allow time for pauseAudio to finish and "flush out" state
               }

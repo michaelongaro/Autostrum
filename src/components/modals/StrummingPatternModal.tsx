@@ -16,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import useSound from "~/hooks/useSound";
 import {
   useTabStore,
   type StrummingPattern as StrummingPatternType,
@@ -72,6 +71,8 @@ function StrummingPatternModal({
     setTabData,
     previewMetadata,
     audioMetadata,
+    playPreview,
+    pauseAudio,
   } = useTabStore(
     (state) => ({
       strummingPatterns: state.strummingPatterns,
@@ -81,11 +82,11 @@ function StrummingPatternModal({
       setTabData: state.setTabData,
       previewMetadata: state.previewMetadata,
       audioMetadata: state.audioMetadata,
+      playPreview: state.playPreview,
+      pauseAudio: state.pauseAudio,
     }),
     shallow
   );
-
-  const { playPreview, pauseAudio } = useSound();
 
   useEffect(() => {
     document.body.style.overflow = "hidden";

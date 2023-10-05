@@ -16,7 +16,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import useSound from "~/hooks/useSound";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
@@ -169,6 +168,7 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
     shouldUpdateInS3,
     audioMetadata,
     previewMetadata,
+    pauseAudio,
   } = useTabStore(
     (state) => ({
       originalTabData: state.originalTabData,
@@ -205,11 +205,10 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
       shouldUpdateInS3: state.shouldUpdateInS3,
       audioMetadata: state.audioMetadata,
       previewMetadata: state.previewMetadata,
+      pauseAudio: state.pauseAudio,
     }),
     shallow
   );
-
-  const { pauseAudio } = useSound();
 
   // current user
   const { data: currentArtist, refetch: refetchCurrentArtist } =
@@ -1117,28 +1116,27 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                 >
                   <div className="font-semibold">Genre</div>
                   {genreObject[genreId] && (
-                  <div
-                    style={{
-                      backgroundColor: genreObject[genreId]?.color,
-                    }}
-                    className={`${
-                      classes.genre ?? ""
-                    } baseFlex w-[140px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]`}
-                  >
-                    {genreObject[genreId]?.name}
-                    <Image
-                      src={`/genrePreviewBubbles/id${genreId}.png`}
-                      alt="three genre preview bubbles with the same color as the associated genre"
-                      width={32}
-                      height={32}
-                      quality={100}
-                      unoptimized
+                    <div
                       style={{
-                        pointerEvents: "none",
-                        userSelect: "none",
+                        backgroundColor: genreObject[genreId]?.color,
                       }}
-                    />
-                  </div>
+                      className={`${
+                        classes.genre ?? ""
+                      } baseFlex w-[140px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]`}
+                    >
+                      {genreObject[genreId]?.name}
+                      <Image
+                        src={`/genrePreviewBubbles/id${genreId}.png`}
+                        alt="three genre preview bubbles with the same color as the associated genre"
+                        width={32}
+                        height={32}
+                        quality={100}
+                        style={{
+                          pointerEvents: "none",
+                          userSelect: "none",
+                        }}
+                      />
+                    </div>
                   )}
                 </div>
                 <div
