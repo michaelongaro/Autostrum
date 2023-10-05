@@ -57,7 +57,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
     sectionProgression,
     setSectionProgression,
     audioMetadata,
-    setAudioMetadata,
+    previewMetadata,
     currentInstrument,
     currentlyPlayingMetadata,
     currentChordIndex,
@@ -74,7 +74,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       sectionProgression: state.sectionProgression,
       setSectionProgression: state.setSectionProgression,
       audioMetadata: state.audioMetadata,
-      setAudioMetadata: state.setAudioMetadata,
+      previewMetadata: state.previewMetadata,
       currentInstrument: state.currentInstrument,
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
       currentChordIndex: state.currentChordIndex,
@@ -231,29 +231,31 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
                     sectionIndex,
                   })
                 ) {
+                  pauseAudio();
                   setArtificialPlayButtonTimeout(true);
 
                   setTimeout(() => {
                     setArtificialPlayButtonTimeout(false);
                   }, 300);
-                  void pauseAudio();
                 } else {
-                  setAudioMetadata({
-                    ...audioMetadata,
-                    location: {
-                      sectionIndex,
-                    },
-                  });
+                  if (audioMetadata.playing || previewMetadata.playing) {
+                    pauseAudio(true);
+                  }
 
-                  void playTab({
-                    tabId: id,
-                    location: {
-                      sectionIndex,
+                  setTimeout(
+                    () => {
+                      void playTab({
+                        tabId: id,
+                        location: {
+                          sectionIndex,
+                        },
+                        resetToStart: !isEqual(audioMetadata.location, {
+                          sectionIndex,
+                        }),
+                      });
                     },
-                    resetToStart: !isEqual(audioMetadata.location, {
-                      sectionIndex,
-                    }),
-                  });
+                    audioMetadata.playing ? 50 : 0
+                  );
                 }
               }}
             >

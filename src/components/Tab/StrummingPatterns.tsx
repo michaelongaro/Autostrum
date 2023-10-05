@@ -37,8 +37,9 @@ function StrummingPatterns() {
   const [showingDeletePopover, setShowingDeletePopover] = useState<boolean[]>(
     []
   );
-  const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
-    useState(false);
+  const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] = useState<
+    boolean[]
+  >([]);
   // this is hacky dummy state so that the <StrummingPattern /> can render the palm mute node
   // as expected without actually having access to that state. Works fine for this case because
   // we are only ever rendering the static palm mute data visually and never modifying it.
@@ -54,6 +55,7 @@ function StrummingPatterns() {
     editing,
     tabData,
     setTabData,
+    audioMetadata,
     previewMetadata,
     playPreview,
     pauseAudio,
@@ -67,6 +69,7 @@ function StrummingPatterns() {
       editing: state.editing,
       tabData: state.tabData,
       setTabData: state.setTabData,
+      audioMetadata: state.audioMetadata,
       previewMetadata: state.previewMetadata,
       playPreview: state.playPreview,
       pauseAudio: state.pauseAudio,
@@ -185,6 +188,7 @@ function StrummingPatterns() {
                         size={"sm"}
                         className="baseFlex h-8 w-10 rounded-none border-b-[1px] p-1"
                         onClick={() => {
+                          pauseAudio();
                           setStrummingPatternBeingEdited({
                             index,
                             value: pattern,
@@ -276,7 +280,7 @@ function StrummingPatterns() {
                       variant={"playPause"}
                       size={"sm"}
                       disabled={
-                        !currentInstrument || artificalPlayButtonTimeout
+                        !currentInstrument || artificalPlayButtonTimeout[index]
                       }
                       onClick={() => {
                         if (
@@ -284,18 +288,40 @@ function StrummingPatterns() {
                           index === previewMetadata.indexOfPattern &&
                           previewMetadata.type === "strummingPattern"
                         ) {
-                          setArtificalPlayButtonTimeout(true);
+                          pauseAudio();
+                          setArtificalPlayButtonTimeout((prev) => {
+                            const prevArtificalPlayButtonTimeout = [...prev];
+                            prevArtificalPlayButtonTimeout[index] = true;
+                            return prevArtificalPlayButtonTimeout;
+                          });
 
                           setTimeout(() => {
-                            setArtificalPlayButtonTimeout(false);
+                            setArtificalPlayButtonTimeout((prev) => {
+                              const prevArtificalPlayButtonTimeout = [...prev];
+                              prevArtificalPlayButtonTimeout[index] = false;
+                              return prevArtificalPlayButtonTimeout;
+                            });
                           }, 300);
-                          pauseAudio();
                         } else {
-                          void playPreview({
-                            data: pattern,
-                            index,
-                            type: "strummingPattern",
-                          });
+                          if (
+                            audioMetadata.playing ||
+                            previewMetadata.playing
+                          ) {
+                            pauseAudio();
+                          }
+
+                          setTimeout(
+                            () => {
+                              void playPreview({
+                                data: pattern,
+                                index,
+                                type: "strummingPattern",
+                              });
+                            },
+                            audioMetadata.playing || previewMetadata.playing
+                              ? 50
+                              : 0
+                          );
                         }
                       }}
                       className="w-10 rounded-l-none rounded-r-sm border-2 border-l-0 p-3"

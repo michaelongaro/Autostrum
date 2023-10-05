@@ -56,7 +56,7 @@ function MiscellaneousControls({
     sectionProgression,
     setSectionProgression,
     audioMetadata,
-    setAudioMetadata,
+    previewMetadata,
     currentInstrument,
     tabData,
     setTabData,
@@ -70,7 +70,7 @@ function MiscellaneousControls({
       sectionProgression: state.sectionProgression,
       setSectionProgression: state.setSectionProgression,
       audioMetadata: state.audioMetadata,
-      setAudioMetadata: state.setAudioMetadata,
+      previewMetadata: state.previewMetadata,
       currentInstrument: state.currentInstrument,
       tabData: state.tabData,
       setTabData: state.setTabData,
@@ -360,35 +360,30 @@ function MiscellaneousControls({
                 chordSequenceIndex,
               })
             ) {
+              pauseAudio();
               setArtificialPlayButtonTimeout(true);
 
               setTimeout(() => {
                 setArtificialPlayButtonTimeout(false);
               }, 300);
-              pauseAudio();
             } else {
-              setAudioMetadata({
-                ...audioMetadata,
-                location: {
-                  sectionIndex,
-                  subSectionIndex,
-                  chordSequenceIndex,
-                },
-              });
+              if (audioMetadata.playing || previewMetadata.playing) {
+                pauseAudio(true);
+              }
 
-              void playTab({
-                tabId: id,
-                location: {
-                  sectionIndex,
-                  subSectionIndex,
-                  chordSequenceIndex,
+              setTimeout(
+                () => {
+                  void playTab({
+                    tabId: id,
+                    location: {
+                      sectionIndex,
+                      subSectionIndex,
+                      chordSequenceIndex,
+                    },
+                  });
                 },
-                resetToStart: !isEqual(audioMetadata.location, {
-                  sectionIndex,
-                  subSectionIndex,
-                  chordSequenceIndex,
-                }),
-              });
+                audioMetadata.playing || previewMetadata.playing ? 50 : 0
+              );
             }
           }}
         >

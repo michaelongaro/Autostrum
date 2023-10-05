@@ -2,7 +2,6 @@ import type { Tab } from "@prisma/client";
 import type Soundfont from "soundfont-player";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
 import {
   compileFullTab,
@@ -10,7 +9,6 @@ import {
   compileStrummingPatternPreview,
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
-import extractNumber from "~/utils/extractNumber";
 import resetAudioSliderPosition from "~/utils/resetAudioSliderPosition";
 import { parse } from "~/utils/tunings";
 
@@ -349,7 +347,7 @@ interface TabState {
   ) => void;
 
   // playing/pausing sound functions
-  playTab: ({ location, resetToStart, tabId }: PlayTab) => Promise<void>;
+  playTab: ({ location, tabId }: PlayTab) => Promise<void>;
   playPreview: ({ data, index, type }: PlayPreview) => Promise<void>;
   playRecordedAudio: ({
     audioBuffer,
@@ -523,7 +521,7 @@ export const useTabStore = create<TabState>()(
       set({ recordedAudioBufferSourceNode }),
 
     // playing/pausing sound functions
-    playTab: async ({ location, resetToStart, tabId }: PlayTab) => {
+    playTab: async ({ location, tabId }: PlayTab) => {
       const {
         tabData,
         sectionProgression: rawSectionProgression,
@@ -533,13 +531,11 @@ export const useTabStore = create<TabState>()(
         chords,
         playbackSpeed,
         audioMetadata,
-        previewMetadata,
         currentChordIndex,
         currentInstrument,
         audioContext,
         masterVolumeGainNode,
         setCurrentlyPlayingMetadata,
-        pauseAudio,
       } = get();
 
       if (!audioContext || !masterVolumeGainNode || !currentInstrument) return;
@@ -552,13 +548,6 @@ export const useTabStore = create<TabState>()(
 
       set({
         showingAudioControls: true,
-      });
-
-      if (audioMetadata.playing || previewMetadata.playing || resetToStart) {
-        pauseAudio(resetToStart);
-      }
-
-      set({
         audioMetadata: {
           tabId,
           location,
@@ -664,12 +653,10 @@ export const useTabStore = create<TabState>()(
     playPreview: async ({ data, index, type }: PlayPreview) => {
       const {
         tuning: tuningNotes,
-        audioMetadata,
         previewMetadata,
         currentInstrument,
         audioContext,
         masterVolumeGainNode,
-        pauseAudio,
       } = get();
 
       if (!audioContext || !masterVolumeGainNode || !currentInstrument) return;
@@ -679,10 +666,6 @@ export const useTabStore = create<TabState>()(
         | AudioBufferSourceNode
         | undefined
       )[] = [undefined, undefined, undefined, undefined, undefined, undefined];
-
-      if (audioMetadata.playing || previewMetadata.playing) {
-        pauseAudio();
-      }
 
       const tuning = parse(tuningNotes);
 
@@ -772,17 +755,15 @@ export const useTabStore = create<TabState>()(
         pauseAudio();
       }
 
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBuffer;
+
       set({
         audioMetadata: {
           ...audioMetadata,
           playing: true,
           type: "Artist recording",
         },
-      });
-
-      const source = audioContext.createBufferSource();
-      source.buffer = audioBuffer;
-      set({
         recordedAudioBufferSourceNode: source,
       });
 

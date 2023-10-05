@@ -40,8 +40,10 @@ function Chords() {
     tabData,
     setTabData,
     editing,
+    audioMetadata,
     previewMetadata,
     playPreview,
+    pauseAudio,
   } = useTabStore(
     (state) => ({
       id: state.id,
@@ -52,8 +54,10 @@ function Chords() {
       tabData: state.tabData,
       setTabData: state.setTabData,
       editing: state.editing,
+      audioMetadata: state.audioMetadata,
       previewMetadata: state.previewMetadata,
       playPreview: state.playPreview,
+      pauseAudio: state.pauseAudio,
     }),
     shallow
   );
@@ -159,14 +163,10 @@ function Chords() {
                       size={"sm"}
                       className="baseFlex h-full w-1/2 gap-2 rounded-none border-l-2 border-r-[1px]"
                       onClick={() => {
+                        pauseAudio();
                         setChordBeingEdited({
                           index,
-                          value: chord, // idk why were passing it property by property before..
-                          // {
-                          //   id: chord.id,
-                          //   name: chord.name,
-                          //   frets: [...chord.frets],
-                          // },
+                          value: chord,
                         });
                       }}
                     >
@@ -217,11 +217,22 @@ function Chords() {
                       }
                       size={"sm"}
                       onClick={() => {
-                        void playPreview({
-                          data: chord.frets,
-                          index,
-                          type: "chord",
-                        });
+                        if (audioMetadata.playing || previewMetadata.playing) {
+                          pauseAudio();
+                        }
+
+                        setTimeout(
+                          () => {
+                            void playPreview({
+                              data: chord.frets,
+                              index,
+                              type: "chord",
+                            });
+                          },
+                          audioMetadata.playing || previewMetadata.playing
+                            ? 50
+                            : 0
+                        );
                       }}
                       className="baseFlex h-full w-10 rounded-l-none border-l-2"
                     >

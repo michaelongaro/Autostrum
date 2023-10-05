@@ -116,6 +116,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     currentlyPlayingMetadata,
     audioMetadata,
     setAudioMetadata,
+    previewMetadata,
     currentInstrument,
     tabData,
     recordedAudioFile,
@@ -138,6 +139,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
       audioMetadata: state.audioMetadata,
       setAudioMetadata: state.setAudioMetadata,
+      previewMetadata: state.previewMetadata,
       currentInstrument: state.currentInstrument,
       tabData: state.tabData,
       recordedAudioFile: state.recordedAudioFile,
@@ -758,11 +760,19 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                     setArtificalPlayButtonTimeout(false);
                   }, 300);
                 } else {
-                  void playTab({
-                    tabId:
-                      audioMetadata.tabId === -1 ? id : audioMetadata.tabId,
-                    location: audioMetadata.location,
-                  });
+                  if (audioMetadata.playing || previewMetadata.playing) {
+                    pauseAudio();
+                  }
+
+                  setTimeout(
+                    () => {
+                      void playTab({
+                        tabId: id,
+                        location: audioMetadata.location,
+                      });
+                    },
+                    audioMetadata.playing || previewMetadata.playing ? 50 : 0
+                  );
                 }
               }
             }}
@@ -817,8 +827,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   // updated before it's called so it plays from the correct chord
                   setTimeout(() => {
                     void playTab({
-                      tabId:
-                        audioMetadata.tabId === -1 ? id : audioMetadata.tabId,
+                      tabId: id,
                       location: audioMetadata.location,
                     });
 
