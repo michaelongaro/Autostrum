@@ -10,6 +10,12 @@ const s3 = new S3Client({
   },
 });
 
+export const config = {
+  api: {
+    responseLimit: false,
+  },
+};
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
