@@ -83,29 +83,39 @@ function Explore() {
           <Separator className="w-full bg-pink-500" />
         </div>
         <div className="baseVertFlex w-full !flex-nowrap gap-4 md:!flex-row md:!items-end md:gap-8">
-          <div className="lightestGlassmorphic baseVertFlex min-w-[200px] !flex-nowrap gap-4 rounded-md px-4 py-6">
+          <div className="lightestGlassmorphic baseVertFlex min-w-[200px] !flex-nowrap gap-3 rounded-md px-4 py-6">
             <div className="baseVertFlex gap-4">
               <div className="grid grid-cols-1 grid-rows-1">
                 {artist || loadingCurrentArtist ? (
                   <>
-                    <Image
-                      src={artist?.profileImageUrl ?? ""}
-                      alt={`${artist?.username ?? "Anonymous"}'s profile image`}
-                      width={96}
-                      height={96}
-                      onLoadingComplete={() => {
-                        setTimeout(() => {
-                          setProfileImageLoaded(true);
-                        }, 1000);
-                      }}
-                      onClick={() =>
-                        void push(`/artist/${artist?.username ?? "Anonymous"}`)
-                      }
-                      style={{
-                        opacity: profileImageLoaded ? 1 : 0,
-                      }}
-                      className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 cursor-pointer rounded-full object-cover object-center transition-opacity"
-                    />
+                    <Link
+                      href={`/artist/${artist?.username ?? "Anonymous"}`}
+                      className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24"
+                    >
+                      <Image
+                        src={artist?.profileImageUrl ?? ""}
+                        alt={`${
+                          artist?.username ?? "Anonymous"
+                        }'s profile image`}
+                        width={96}
+                        height={96}
+                        onLoadingComplete={() => {
+                          setTimeout(() => {
+                            setProfileImageLoaded(true);
+                          }, 1000);
+                        }}
+                        onClick={() =>
+                          void push(
+                            `/artist/${artist?.username ?? "Anonymous"}`
+                          )
+                        }
+                        style={{
+                          opacity: profileImageLoaded ? 1 : 0,
+                        }}
+                        className="h-24 w-24 rounded-full object-cover object-center transition-opacity"
+                      />
+                    </Link>
+
                     <div
                       style={{
                         opacity: !profileImageLoaded ? 1 : 0,
@@ -117,7 +127,9 @@ function Explore() {
                     ></div>
                   </>
                 ) : (
-                  <AiOutlineUser className="h-8 w-8" />
+                  <div className="baseFlex h-24 w-24 rounded-full border-2 shadow-md">
+                    <AiOutlineUser className="h-16 w-16" />
+                  </div>
                 )}
               </div>
 
@@ -135,7 +147,7 @@ function Explore() {
                   </Link>
                 </Button>
               ) : (
-                <div className="h-8 w-28 animate-pulse rounded-md bg-pink-300"></div>
+                <div className="my-3 h-6 w-28 animate-pulse rounded-md bg-pink-300"></div>
               )}
             </div>
 
@@ -182,7 +194,7 @@ function Explore() {
                 artist.createdAt
               )}`}</p>
             ) : (
-              <div className="h-6 w-24 animate-pulse rounded-md bg-pink-300"></div>
+              <div className="mb-1 mt-3 h-4 w-24 animate-pulse rounded-md bg-pink-300"></div>
             )}
           </div>
           {/* pinned tab */}

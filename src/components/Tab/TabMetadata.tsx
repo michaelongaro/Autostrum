@@ -1025,7 +1025,9 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                             ></div>
                           </>
                         ) : (
-                          <AiOutlineUser className="h-8 w-8" />
+                          <div className="baseFlex h-8 w-8 rounded-full border-[1px] shadow-md">
+                            <AiOutlineUser className="h-5 w-5" />
+                          </div>
                         )}
                       </div>
 

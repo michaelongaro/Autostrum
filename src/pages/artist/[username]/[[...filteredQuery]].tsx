@@ -107,7 +107,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
 
       {/* artist metadata + pinned tab */}
       <div className="baseVertFlex w-full !flex-nowrap gap-4 md:!flex-row md:!items-end md:gap-8">
-        <div className="lightestGlassmorphic baseVertFlex min-w-[200px] !flex-nowrap gap-4 rounded-md px-4 py-6">
+        <div className="lightestGlassmorphic baseVertFlex min-w-[200px] !flex-nowrap gap-3 rounded-md px-4 py-6">
           <div className="baseVertFlex gap-4">
             <div className="grid grid-cols-1 grid-rows-1">
               <Image
@@ -141,7 +141,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
                 {artist?.username ?? "Anonymous"}
               </p>
             ) : (
-              <div className="h-8 w-28 animate-pulse rounded-md bg-pink-300"></div>
+              <div className="my-3 h-6 w-28 animate-pulse rounded-md bg-pink-300"></div>
             )}
           </div>
 
@@ -188,7 +188,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
               artist.createdAt
             )}`}</p>
           ) : (
-            <div className="h-6 w-24 animate-pulse rounded-md bg-pink-300"></div>
+            <div className="mb-1 mt-3 h-4 w-24 animate-pulse rounded-md bg-pink-300"></div>
           )}
         </div>
         {/* pinned tab */}
