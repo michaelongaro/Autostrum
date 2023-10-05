@@ -261,7 +261,7 @@ function PreviewChordSequence({
       style={{
         borderTopLeftRadius: chordSequenceData.repetitions > 1 ? 0 : "0.375rem",
       }}
-      className="baseVertFlex relative w-auto !justify-start gap-8 rounded-md border-[1px] border-pink-50 p-1"
+      className="baseVertFlex relative w-auto !justify-start gap-8 rounded-md border-2 border-pink-50 p-1"
     >
       <PreviewStrummingPattern
         tabData={tabData}
