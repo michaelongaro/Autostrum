@@ -228,9 +228,9 @@ function ChordSection({
           style={{
             flexDirection: editing ? "column" : "row",
             width: editing ? "100%" : "auto",
-            gap: editing ? "0.5rem" : "2rem",
+            gap: editing ? "1.5rem" : "2rem",
           }}
-          className="baseVertFlex !items-end !justify-start gap-2"
+          className="baseVertFlex !items-end !justify-start"
         >
           {subSectionData.data.map((chordSequence, index) => (
             <>
