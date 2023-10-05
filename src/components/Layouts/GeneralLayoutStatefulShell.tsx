@@ -213,15 +213,15 @@ function GeneralLayoutStatefulShell() {
     setAudioControlsVisibility("expanded");
     resetAudioMetadataOnRouteChange();
 
-    if (!asPath.includes("/tab") && !asPath.includes("/create")) {
-      setShowingAudioControls(false);
-    } else {
+    if (asPath.includes("/tab/") || asPath.includes("/create")) {
       setShowingAudioControls(true);
+    } else {
+      setShowingAudioControls(false);
     }
 
     // only case where we want to keep tab state is when we are navigating onto a tab
     // page, or going to /edit from a tab page, etc.
-    if (!asPath.includes("/tab")) {
+    if (!asPath.includes("/tab/")) {
       resetStoreToInitValues();
     }
 
