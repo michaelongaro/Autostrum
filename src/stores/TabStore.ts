@@ -254,6 +254,7 @@ interface TabState {
   setCurrentlyCopiedChord: (currentlyCopiedChord: string[] | null) => void;
   getStringifiedTabData: () => string;
   resetAudioAndMetadataOnRouteChange: () => void;
+  getTabData: () => Section[];
 
   // modals
   showAudioRecorderModal: boolean;
@@ -464,6 +465,10 @@ export const useTabStore = create<TabState>()(
       });
     },
 
+    getTabData: () => {
+      return structuredClone(get().tabData);
+    },
+
     // related to sound generation/playing
     audioContext: null,
     setAudioContext: (audioContext) => set({ audioContext }),
@@ -530,7 +535,6 @@ export const useTabStore = create<TabState>()(
         capo,
         chords,
         playbackSpeed,
-        audioMetadata,
         currentChordIndex,
         currentInstrument,
         audioContext,

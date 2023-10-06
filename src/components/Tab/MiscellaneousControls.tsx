@@ -58,7 +58,7 @@ function MiscellaneousControls({
     audioMetadata,
     previewMetadata,
     currentInstrument,
-    tabData,
+    getTabData,
     setTabData,
     currentlyCopiedData,
     setCurrentlyCopiedData,
@@ -72,7 +72,7 @@ function MiscellaneousControls({
       audioMetadata: state.audioMetadata,
       previewMetadata: state.previewMetadata,
       currentInstrument: state.currentInstrument,
-      tabData: state.tabData,
+      getTabData: state.getTabData,
       setTabData: state.setTabData,
       currentlyCopiedData: state.currentlyCopiedData,
       setCurrentlyCopiedData: state.setCurrentlyCopiedData,
@@ -84,19 +84,19 @@ function MiscellaneousControls({
 
   function disableMoveDown() {
     if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
-      const chordSequence = tabData[sectionIndex]?.data[subSectionIndex]
+      const chordSequence = getTabData()[sectionIndex]?.data[subSectionIndex]
         ?.data as ChordSequence[];
 
       return chordSequenceIndex === chordSequence.length - 1;
     } else if (subSectionIndex !== undefined) {
-      const subSection = tabData[sectionIndex]?.data as (
+      const subSection = getTabData()[sectionIndex]?.data as (
         | TabSection
         | ChordSection
       )[];
 
       return subSectionIndex === subSection.length - 1;
     } else {
-      return sectionIndex === tabData.length - 1;
+      return sectionIndex === getTabData().length - 1;
     }
   }
 
@@ -111,7 +111,7 @@ function MiscellaneousControls({
   }
 
   function moveUp() {
-    let newTabData = [...tabData];
+    let newTabData = getTabData();
 
     if (
       chordSequenceIndex !== undefined &&
@@ -149,7 +149,7 @@ function MiscellaneousControls({
   }
 
   function moveDown() {
-    let newTabData = [...tabData];
+    let newTabData = getTabData();
 
     if (
       chordSequenceIndex !== undefined &&
@@ -187,7 +187,7 @@ function MiscellaneousControls({
   }
 
   function deleteSection() {
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     if (
       chordSequenceIndex !== undefined &&
@@ -237,7 +237,7 @@ function MiscellaneousControls({
     ) {
       const newChordSequence = replaceIdInChordSequence(
         structuredClone(
-          tabData[sectionIndex]?.data[subSectionIndex]?.data[
+          getTabData()[sectionIndex]?.data[subSectionIndex]?.data[
             chordSequenceIndex
           ] as ChordSequence
         )
@@ -251,7 +251,7 @@ function MiscellaneousControls({
       if (type === "chord") {
         const newSubSection = replaceIdInChordSection(
           structuredClone(
-            tabData[sectionIndex]?.data[subSectionIndex] as ChordSection
+            getTabData()[sectionIndex]?.data[subSectionIndex] as ChordSection
           )
         );
 
@@ -262,7 +262,7 @@ function MiscellaneousControls({
       } else if (type === "tab") {
         const newSubSection = replaceIdInTabSection(
           structuredClone(
-            tabData[sectionIndex]?.data[subSectionIndex] as TabSection
+            getTabData()[sectionIndex]?.data[subSectionIndex] as TabSection
           )
         );
 
@@ -274,7 +274,7 @@ function MiscellaneousControls({
     } else if (sectionIndex !== undefined) {
       setCurrentlyCopiedData({
         type: "section",
-        data: replaceIdInSection(structuredClone(tabData[sectionIndex]!)),
+        data: replaceIdInSection(structuredClone(getTabData()[sectionIndex]!)),
       });
     }
   }
@@ -287,7 +287,7 @@ function MiscellaneousControls({
 
   function pasteSection() {
     if (!currentlyCopiedData) return;
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     if (
       currentlyCopiedData.type === "chordSequence" &&
@@ -322,7 +322,7 @@ function MiscellaneousControls({
       // TODO: technically should be isolating just the name of the section w/o any numbers
       // I think will have problems if you try to do a letters only regex if the person
       // put numbers specifically in the original title of the section...
-      const countOfSection = tabData.filter((section) => {
+      const countOfSection = getTabData().filter((section) => {
         return section?.title.includes(currentlyCopiedData.data.title);
       }).length;
 
@@ -349,7 +349,11 @@ function MiscellaneousControls({
             !currentInstrument ||
             audioMetadata.type === "Artist recording" ||
             artificalPlayButtonTimeout ||
-            sectionIsEffectivelyEmpty(tabData, sectionIndex, subSectionIndex)
+            sectionIsEffectivelyEmpty(
+              getTabData(),
+              sectionIndex,
+              subSectionIndex
+            )
           }
           onClick={() => {
             if (

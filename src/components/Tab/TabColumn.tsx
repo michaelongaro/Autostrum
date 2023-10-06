@@ -1,4 +1,4 @@
-import type { Dispatch, SetStateAction } from "react";
+import { memo, type Dispatch, type SetStateAction } from "react";
 import TabMeasureLine from "./TabMeasureLine";
 import TabNotesColumn from "./TabNotesColumn";
 import { type LastModifiedPalmMuteNodeLocation } from "./TabSection";
@@ -59,4 +59,26 @@ function TabColumn({
   );
 }
 
-export default TabColumn;
+export default memo(TabColumn, (prevProps, nextProps) => {
+  const { columnData: prevColumnData, ...restPrev } = prevProps;
+  const { columnData: nextColumnData, ...restNext } = nextProps;
+
+  // Custom comparison for tabData related prop
+  if (
+    JSON.parse(JSON.stringify(prevColumnData)) !==
+    JSON.parse(JSON.stringify(nextColumnData))
+  ) {
+    return false; // props are not equal, so component should re-render
+  }
+
+  // Default shallow comparison for other props using Object.is()
+  const allKeys = new Set([...Object.keys(restPrev), ...Object.keys(restNext)]);
+  for (const key of allKeys) {
+    // @ts-expect-error we know that these keys are in the objects
+    if (!Object.is(restPrev[key], restNext[key])) {
+      return false; // props are not equal, so component should re-render
+    }
+  }
+
+  return true;
+});

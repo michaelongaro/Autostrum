@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, memo } from "react";
 import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
+import isEqual from "lodash.isequal";
 import { v4 as uuid } from "uuid";
 import {
   Select,
@@ -74,7 +75,7 @@ function ChordSequence({
     editing,
     bpm,
     strummingPatterns,
-    tabData,
+    getTabData,
     setTabData,
     setStrummingPatternBeingEdited,
   } = useTabStore(
@@ -82,7 +83,7 @@ function ChordSequence({
       editing: state.editing,
       bpm: state.bpm,
       strummingPatterns: state.strummingPatterns,
-      tabData: state.tabData,
+      getTabData: state.getTabData,
       setTabData: state.setTabData,
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
     }),
@@ -95,7 +96,7 @@ function ChordSequence({
       Object.keys(chordSequenceData.strummingPattern).length === 0 &&
       strummingPatterns[0]
     ) {
-      const newTabData = [...tabData];
+      const newTabData = getTabData();
 
       // fill in the chord sequence with empty strings the size of the strumming pattern
       newTabData[sectionIndex]!.data[subSectionIndex]!.data[
@@ -122,7 +123,7 @@ function ChordSequence({
     chordSequenceData,
     chordSequenceIndex,
     setTabData,
-    tabData,
+    getTabData,
   ]);
 
   const placeholderBpm = useMemo(() => {
@@ -141,7 +142,7 @@ function ChordSequence({
 
     if (isNaN(newRepetitions) || newRepetitions > 99) return;
 
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     newTabData[sectionIndex]!.data[subSectionIndex]!.data[
       chordSequenceIndex
@@ -155,7 +156,7 @@ function ChordSequence({
     const newBpm = e.target.value.length === 0 ? -1 : parseInt(e.target.value);
     if (isNaN(newBpm) || newBpm > 400) return;
 
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     newTabData[sectionIndex]!.data[subSectionIndex]!.data[
       chordSequenceIndex
@@ -181,7 +182,7 @@ function ChordSequence({
       return;
     }
 
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     const newPattern = strummingPatterns[parseInt(value)];
 
@@ -365,7 +366,9 @@ function ChordSequence({
           <StrummingPattern
             data={chordSequenceData.strummingPattern}
             mode={editing ? "editingChordSequence" : "viewingWithChordNames"}
-            location={{ sectionIndex, subSectionIndex, chordSequenceIndex }}
+            sectionIndex={sectionIndex}
+            subSectionIndex={subSectionIndex}
+            chordSequenceIndex={chordSequenceIndex}
             lastModifiedPalmMuteNode={lastModifiedPalmMuteNode} // hopefully this doesn't crash something
             setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode} // hopefully this doesn't crash something
           />
@@ -375,4 +378,23 @@ function ChordSequence({
   );
 }
 
-export default ChordSequence;
+export default memo(ChordSequence, (prevProps, nextProps) => {
+  const { chordSequenceData: prevChordSequenceData, ...restPrev } = prevProps;
+  const { chordSequenceData: nextChordSequenceData, ...restNext } = nextProps;
+
+  // Custom comparison for getTabData() related prop
+  if (!isEqual(prevChordSequenceData, nextChordSequenceData)) {
+    return false; // props are not equal, so component should re-render
+  }
+
+  // Default shallow comparison for other props using Object.is()
+  const allKeys = new Set([...Object.keys(restPrev), ...Object.keys(restNext)]);
+  for (const key of allKeys) {
+    // @ts-expect-error we know that these keys are in the objects
+    if (!Object.is(restPrev[key], restNext[key])) {
+      return false; // props are not equal, so component should re-render
+    }
+  }
+
+  return true;
+});

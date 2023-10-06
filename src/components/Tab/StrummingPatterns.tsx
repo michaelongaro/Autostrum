@@ -53,7 +53,7 @@ function StrummingPatterns() {
     setStrummingPatterns,
     setStrummingPatternBeingEdited,
     editing,
-    tabData,
+    getTabData,
     setTabData,
     audioMetadata,
     previewMetadata,
@@ -67,7 +67,7 @@ function StrummingPatterns() {
       setStrummingPatterns: state.setStrummingPatterns,
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
       editing: state.editing,
-      tabData: state.tabData,
+      getTabData: state.getTabData,
       setTabData: state.setTabData,
       audioMetadata: state.audioMetadata,
       previewMetadata: state.previewMetadata,
@@ -81,7 +81,7 @@ function StrummingPatterns() {
     index: number,
     strummingPattern: StrummingPatternType
   ) {
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     for (
       let sectionIndex = newTabData.length - 1;

@@ -37,7 +37,7 @@ function Chords() {
     chords,
     setChords,
     setChordBeingEdited,
-    tabData,
+    getTabData,
     setTabData,
     editing,
     audioMetadata,
@@ -51,7 +51,7 @@ function Chords() {
       chords: state.chords,
       setChords: state.setChords,
       setChordBeingEdited: state.setChordBeingEdited,
-      tabData: state.tabData,
+      getTabData: state.getTabData,
       setTabData: state.setTabData,
       editing: state.editing,
       audioMetadata: state.audioMetadata,
@@ -63,7 +63,7 @@ function Chords() {
   );
 
   function handleDeleteChord(index: number, chordNameToBeDeleted: string) {
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     for (
       let sectionIndex = 0;

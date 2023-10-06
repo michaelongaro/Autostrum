@@ -654,13 +654,7 @@ function PreviewTabColumn({
       {columnData.includes("|") ? (
         <PreviewTabMeasureLine columnData={columnData} />
       ) : (
-        <TabNotesColumn
-          tabData={tabData}
-          sectionIndex={sectionIndex}
-          subSectionIndex={subSectionIndex}
-          columnIndex={columnIndex}
-          columnData={columnData}
-        />
+        <TabNotesColumn columnIndex={columnIndex} columnData={columnData} />
       )}
     </>
   );
@@ -710,24 +704,41 @@ function PreviewTabMeasureLine({ columnData }: ColumnDataMockup) {
 }
 
 interface TabNotesColumn {
-  tabData: Section[];
   columnData: string[];
-  sectionIndex: number;
-  subSectionIndex: number;
   columnIndex: number;
 }
 
-function TabNotesColumn({
-  tabData,
-  columnData,
-  sectionIndex,
-  subSectionIndex,
-  columnIndex,
-}: TabNotesColumn) {
+function TabNotesColumn({ columnData, columnIndex }: TabNotesColumn) {
   function relativelyGetColumn(indexRelativeToCurrentCombo: number): string[] {
-    return (tabData[sectionIndex]?.data[subSectionIndex]?.data[
-      columnIndex + indexRelativeToCurrentCombo
-    ] ?? []) as string[];
+    return (columnData[columnIndex + indexRelativeToCurrentCombo] ??
+      []) as string[];
+  }
+
+  function lineBeforeNoteOpacity(index: number): boolean {
+    const colMinus1 = relativelyGetColumn(-1);
+    const colMinus2 = relativelyGetColumn(-2);
+    const col0 = relativelyGetColumn(0);
+
+    return (
+      colMinus1[index] === "" ||
+      (colMinus1[index] === "|" &&
+        (colMinus2[index] === "" || col0[index] === "")) ||
+      colMinus1[index] === "~" ||
+      colMinus1[index] === undefined
+    );
+  }
+
+  function lineAfterNoteOpacity(index: number): boolean {
+    const col0 = relativelyGetColumn(0);
+    const col1 = relativelyGetColumn(1);
+    const col2 = relativelyGetColumn(2);
+
+    return (
+      col1[index] === "" ||
+      (col1[index] === "|" && (col2[index] === "" || col0[index] === "")) ||
+      col1[index] === "~" ||
+      col1[index] === undefined
+    );
   }
 
   return (
@@ -764,26 +775,7 @@ function TabNotesColumn({
                 >
                   <div
                     style={{
-                      // width: editing
-                      //   ? relativelyGetColumn(-1)?.[8] === "measureLine"
-                      //     ? "4px"
-                      //     : "8px"
-                      //   : // need to fix logic below
-                      //   // relativelyGetColumn(-1)?.[8] === "measureLine" &&
-                      //   //   (relativelyGetColumn(0)?.[index]?.length ?? 0) < 2
-                      //   (relativelyGetColumn(0)?.[index]?.length ?? 0) > 1
-                      //   ? "0px"
-                      //   : "1px",
-
-                      opacity:
-                        relativelyGetColumn(-1)[index] === "" ||
-                        (relativelyGetColumn(-1)[index] === "|" &&
-                          (relativelyGetColumn(-2)[index] === "" ||
-                            relativelyGetColumn(0)[index] === "")) ||
-                        relativelyGetColumn(-1)[index] === "~" ||
-                        relativelyGetColumn(-1)[index] === undefined
-                          ? 1
-                          : 0,
+                      opacity: lineBeforeNoteOpacity(index) ? 1 : 0,
                     }}
                     className="h-[1px] flex-[1] bg-pink-50/50"
                   ></div>
@@ -792,20 +784,7 @@ function TabNotesColumn({
 
                   <div
                     style={{
-                      // width: editing
-                      //   ? "8px"
-                      //   : `${
-                      //       (relativelyGetColumn(0)?.[index]?.length ?? 0) > 1
-                      //         ? "0px"
-                      //         : "1px"
-                      //     }`,
-                      opacity:
-                        relativelyGetColumn(1)[index] === "" ||
-                        (relativelyGetColumn(2)[index] === "|" &&
-                          relativelyGetColumn(2)[index] === "") ||
-                        relativelyGetColumn(1)[index] === undefined
-                          ? 1
-                          : 0,
+                      opacity: lineAfterNoteOpacity(index) ? 1 : 0,
                     }}
                     className="h-[1px] flex-[1] bg-pink-50/50"
                   ></div>

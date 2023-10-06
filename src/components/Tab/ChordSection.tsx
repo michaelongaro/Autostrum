@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 import { BsMusicNote } from "react-icons/bs";
 import { v4 as uuid } from "uuid";
 import { shallow } from "zustand/shallow";
+import isEqual from "lodash.isequal";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -50,7 +51,7 @@ function ChordSection({
   const {
     editing,
     bpm,
-    tabData,
+    getTabData,
     setTabData,
     audioMetadata,
     currentlyPlayingMetadata,
@@ -59,7 +60,7 @@ function ChordSection({
     (state) => ({
       editing: state.editing,
       bpm: state.bpm,
-      tabData: state.tabData,
+      getTabData: state.getTabData,
       setTabData: state.setTabData,
       audioMetadata: state.audioMetadata,
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
@@ -76,7 +77,7 @@ function ChordSection({
 
     if (isNaN(newRepetitions) || newRepetitions > 99) return;
 
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     newTabData[sectionIndex]!.data[subSectionIndex]!.repetitions =
       newRepetitions;
@@ -88,7 +89,7 @@ function ChordSection({
     const newBpm = e.target.value.length === 0 ? -1 : parseInt(e.target.value);
     if (isNaN(newBpm) || newBpm > 400) return;
 
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     newTabData[sectionIndex]!.data[subSectionIndex]!.bpm = newBpm;
 
@@ -96,7 +97,7 @@ function ChordSection({
   }
 
   function addAnotherChordSequence() {
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     // Tries to initialize with the section bpm first if available
     const relativeBpm = subSectionData.bpm === -1 ? bpm : subSectionData.bpm;
@@ -310,7 +311,6 @@ function ChordSection({
         </motion.div>
       </AnimatePresence>
 
-      {/* TODO: prob only show this when there is at least one strumming pattern defined */}
       {editing && (
         <Button onClick={addAnotherChordSequence}>
           {`Add ${
@@ -322,4 +322,23 @@ function ChordSection({
   );
 }
 
-export default ChordSection;
+export default memo(ChordSection, (prevProps, nextProps) => {
+  const { subSectionData: prevSubSectionData, ...restPrev } = prevProps;
+  const { subSectionData: nextSubSectionDataData, ...restNext } = nextProps;
+
+  // Custom comparison for getTabData() related prop
+  if (!isEqual(prevSubSectionData, nextSubSectionDataData)) {
+    return false; // props are not equal, so component should re-render
+  }
+
+  // Default shallow comparison for other props using Object.is()
+  const allKeys = new Set([...Object.keys(restPrev), ...Object.keys(restNext)]);
+  for (const key of allKeys) {
+    // @ts-expect-error we know that these keys are in the objects
+    if (!Object.is(restPrev[key], restNext[key])) {
+      return false; // props are not equal, so component should re-render
+    }
+  }
+
+  return true;
+});

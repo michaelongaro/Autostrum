@@ -1,11 +1,13 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
+import isEqual from "lodash.isequal";
 import {
   Fragment,
   useEffect,
   useMemo,
   useState,
+  memo,
   type Dispatch,
   type SetStateAction,
 } from "react";
@@ -65,7 +67,7 @@ function TabNotesColumn({
 
   const {
     editing,
-    tabData,
+    getTabData,
     setTabData,
     currentlyPlayingMetadata,
     currentChordIndex,
@@ -74,7 +76,7 @@ function TabNotesColumn({
   } = useTabStore(
     (state) => ({
       editing: state.editing,
-      tabData: state.tabData,
+      getTabData: state.getTabData,
       setTabData: state.setTabData,
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
       currentChordIndex: state.currentChordIndex,
@@ -85,15 +87,43 @@ function TabNotesColumn({
   );
 
   function relativelyGetColumn(indexRelativeToCurrentCombo: number): string[] {
-    return (tabData[sectionIndex]?.data[subSectionIndex]?.data[
-      columnIndex + indexRelativeToCurrentCombo
-    ] ?? []) as string[];
+    return (columnData[columnIndex + indexRelativeToCurrentCombo] ??
+      []) as string[];
+  }
+
+  function lineBeforeNoteOpacity(index: number): boolean {
+    const colMinus1 = relativelyGetColumn(-1);
+    const colMinus2 = relativelyGetColumn(-2);
+    const col0 = relativelyGetColumn(0);
+
+    return (
+      editing ||
+      colMinus1[index] === "" ||
+      (colMinus1[index] === "|" &&
+        (colMinus2[index] === "" || col0[index] === "")) ||
+      colMinus1[index] === "~" ||
+      colMinus1[index] === undefined
+    );
+  }
+
+  function lineAfterNoteOpacity(index: number): boolean {
+    const col0 = relativelyGetColumn(0);
+    const col1 = relativelyGetColumn(1);
+    const col2 = relativelyGetColumn(2);
+
+    return (
+      editing ||
+      col1[index] === "" ||
+      (col1[index] === "|" && (col2[index] === "" || col0[index] === "")) ||
+      col1[index] === "~" ||
+      col1[index] === undefined
+    );
   }
 
   const deleteColumnButtonDisabled = useMemo(() => {
     let disabled = false;
 
-    const currentSection = tabData[sectionIndex]?.data[subSectionIndex];
+    const currentSection = getTabData()[sectionIndex]?.data[subSectionIndex];
 
     if (currentSection === undefined) return true;
 
@@ -121,7 +151,7 @@ function TabNotesColumn({
     }
 
     return disabled;
-  }, [tabData, sectionIndex, subSectionIndex, columnIndex]);
+  }, [getTabData, sectionIndex, subSectionIndex, columnIndex]);
 
   const columnIsBeingPlayed = useMemo(() => {
     if (currentlyPlayingMetadata === null) return false;
@@ -228,8 +258,8 @@ function TabNotesColumn({
     return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
   }, [currentlyPlayingMetadata, currentChordIndex, playbackSpeed]);
 
-  function handleDeletePalmMutedChord(tabData: Section[]) {
-    const newTabData = [...tabData];
+  function handleDeletePalmMutedChord() {
+    const newTabData = getTabData();
     const currentPalmMuteNodeValue =
       newTabData[sectionIndex]?.data[subSectionIndex]?.data[columnIndex]?.[0];
     const currentTabSectionLength =
@@ -271,7 +301,7 @@ function TabNotesColumn({
   }
 
   function handleDeleteChord() {
-    const newTabData = handleDeletePalmMutedChord(tabData);
+    const newTabData = handleDeletePalmMutedChord();
 
     newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
       columnIndex,
@@ -356,27 +386,7 @@ function TabNotesColumn({
                 >
                   <div
                     style={{
-                      // width: editing
-                      //   ? relativelyGetColumn(-1)?.[8] === "measureLine"
-                      //     ? "4px"
-                      //     : "8px"
-                      //   : // need to fix logic below
-                      //   // relativelyGetColumn(-1)?.[8] === "measureLine" &&
-                      //   //   (relativelyGetColumn(0)?.[index]?.length ?? 0) < 2
-                      //   (relativelyGetColumn(0)?.[index]?.length ?? 0) > 1
-                      //   ? "0px"
-                      //   : "1px",
-
-                      opacity:
-                        editing ||
-                        relativelyGetColumn(-1)[index] === "" ||
-                        (relativelyGetColumn(-1)[index] === "|" &&
-                          (relativelyGetColumn(-2)[index] === "" ||
-                            relativelyGetColumn(0)[index] === "")) ||
-                        relativelyGetColumn(-1)[index] === "~" ||
-                        relativelyGetColumn(-1)[index] === undefined
-                          ? 1
-                          : 0,
+                      opacity: lineBeforeNoteOpacity(index) ? 1 : 0,
                     }}
                     className="h-[1px] flex-[1] bg-pink-50/50"
                   ></div>
@@ -391,21 +401,7 @@ function TabNotesColumn({
 
                   <div
                     style={{
-                      // width: editing
-                      //   ? "8px"
-                      //   : `${
-                      //       (relativelyGetColumn(0)?.[index]?.length ?? 0) > 1
-                      //         ? "0px"
-                      //         : "1px"
-                      //     }`,
-                      opacity:
-                        editing ||
-                        relativelyGetColumn(1)[index] === "" ||
-                        (relativelyGetColumn(2)[index] === "|" &&
-                          relativelyGetColumn(2)[index] === "") ||
-                        relativelyGetColumn(1)[index] === undefined
-                          ? 1
-                          : 0,
+                      opacity: lineAfterNoteOpacity(index) ? 1 : 0,
                     }}
                     className="h-[1px] flex-[1] bg-pink-50/50"
                   ></div>
@@ -504,4 +500,25 @@ function TabNotesColumn({
   );
 }
 
-export default TabNotesColumn;
+// god idk just ditch the memo entirely? this is so rediculous
+
+export default memo(TabNotesColumn, (prevProps, nextProps) => {
+  const { columnData: prevColumnData, ...restPrev } = prevProps;
+  const { columnData: nextColumnData, ...restNext } = nextProps;
+
+  // Custom comparison for getTabData() related prop
+  if (!isEqual(prevColumnData, nextColumnData)) {
+    return false; // props are not equal, so component should re-render
+  }
+
+  // Default shallow comparison for other props using Object.is()
+  const allKeys = new Set([...Object.keys(restPrev), ...Object.keys(restNext)]);
+  for (const key of allKeys) {
+    // @ts-expect-error we know that these keys are in the objects
+    if (!Object.is(restPrev[key], restNext[key])) {
+      return false; // props are not equal, so component should re-render
+    }
+  }
+
+  return true;
+});

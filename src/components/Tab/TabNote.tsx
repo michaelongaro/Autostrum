@@ -21,14 +21,14 @@ function TabNote({
 }: TabNote) {
   const {
     editing,
-    tabData,
+    getTabData,
     setTabData,
     currentlyCopiedChord,
     setCurrentlyCopiedChord,
   } = useTabStore(
     (state) => ({
       editing: state.editing,
-      tabData: state.tabData,
+      getTabData: state.getTabData,
       setTabData: state.setTabData,
       currentlyCopiedChord: state.currentlyCopiedChord,
       setCurrentlyCopiedChord: state.setCurrentlyCopiedChord,
@@ -155,9 +155,9 @@ function TabNote({
       e.preventDefault(); // prevent cursor from moving
 
       const adjColumnIndex =
-        tabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex - 1]?.[
-          noteIndex
-        ] === "|"
+        getTabData()[sectionIndex]!.data[subSectionIndex]!.data[
+          columnIndex - 1
+        ]?.[noteIndex] === "|"
           ? columnIndex - 2
           : columnIndex - 1;
 
@@ -172,7 +172,7 @@ function TabNote({
 
       if (
         columnIndex ===
-        tabData[sectionIndex]!.data[subSectionIndex]!.data.length - 1
+        getTabData()[sectionIndex]!.data[subSectionIndex]!.data.length - 1
       ) {
         const newNoteToFocus = document.getElementById(
           `${sectionIndex}${subSectionIndex}ExtendTabButton`
@@ -183,9 +183,9 @@ function TabNote({
       }
 
       const adjColumnIndex =
-        tabData[sectionIndex]!.data[subSectionIndex].data[columnIndex + 1]?.[
-          noteIndex
-        ] === "|"
+        getTabData()[sectionIndex]!.data[subSectionIndex].data[
+          columnIndex + 1
+        ]?.[noteIndex] === "|"
           ? columnIndex + 2
           : columnIndex + 1;
 
@@ -197,7 +197,7 @@ function TabNote({
       return;
     }
 
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     if (
       (e.ctrlKey && e.key === "c") || // Control + C for Windows/Linux
@@ -314,7 +314,7 @@ function TabNote({
         }
 
         if (ableToOverwrite) {
-          const newTabData = [...tabData];
+          const newTabData = getTabData();
           const palmMuteNode =
             newTabData[sectionIndex]!.data[subSectionIndex]!.data[
               columnIndex
@@ -351,18 +351,19 @@ function TabNote({
         if (
           columnIndex === 0 ||
           columnIndex ===
-            tabData[sectionIndex]!.data[subSectionIndex]!.data.length - 1 ||
-          tabData[sectionIndex]!.data[subSectionIndex].data[
+            getTabData()[sectionIndex]!.data[subSectionIndex]!.data.length -
+              1 ||
+          getTabData()[sectionIndex]!.data[subSectionIndex].data[
             columnIndex - 1
           ]?.[8] === "measureLine" ||
-          tabData[sectionIndex]!.data[subSectionIndex].data[
+          getTabData()[sectionIndex]!.data[subSectionIndex].data[
             columnIndex + 1
           ]?.[8] === "measureLine"
         ) {
           return;
         }
 
-        const newTabData = [...tabData];
+        const newTabData = getTabData();
         const palmMuteNode =
           newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex]![0];
         newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex]![0];
@@ -401,7 +402,7 @@ function TabNote({
       if (value !== "" && !chordEffects.test(value)) return;
     }
 
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex]![
       noteIndex

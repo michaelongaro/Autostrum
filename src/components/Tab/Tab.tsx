@@ -58,6 +58,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setChords,
     setStrummingPatterns,
     tabData,
+    getTabData,
     setTabData,
     setSectionProgression,
     setNumberOfLikes,
@@ -87,6 +88,7 @@ function Tab({ tab, refetchTab }: ITab) {
       setChords: state.setChords,
       setStrummingPatterns: state.setStrummingPatterns,
       tabData: state.tabData,
+      getTabData: state.getTabData,
       setTabData: state.setTabData,
       setSectionProgression: state.setSectionProgression,
       setNumberOfLikes: state.setNumberOfLikes,
@@ -218,7 +220,7 @@ function Tab({ tab, refetchTab }: ITab) {
   ]);
 
   function addNewSection() {
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     const newSectionData = {
       id: uuid(),

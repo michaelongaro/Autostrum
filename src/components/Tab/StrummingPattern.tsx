@@ -3,9 +3,11 @@ import {
   useEffect,
   useMemo,
   useState,
+  memo,
   type Dispatch,
   type SetStateAction,
 } from "react";
+import isEqual from "lodash.isequal";
 import { BsArrowDown, BsArrowUp, BsPlus } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
 import { shallow } from "zustand/shallow";
@@ -38,11 +40,12 @@ interface StrummingPattern {
     | "viewing"
     | "viewingInSelectDropdown";
   index?: number; // index of strumming pattern in strummingPatterns array (used for editing pattern)
-  location?: {
-    sectionIndex: number;
-    subSectionIndex: number;
-    chordSequenceIndex: number;
-  }; // location of strumming pattern in tabData array (used for editing chord sequence)
+
+  // location of strumming pattern in getTabData() array (used for editing chord sequence)
+  sectionIndex?: number;
+  subSectionIndex?: number;
+  chordSequenceIndex?: number;
+
   editingPalmMuteNodes?: boolean;
   setEditingPalmMuteNodes?: Dispatch<SetStateAction<boolean>>;
   showingDeleteStrumsButtons?: boolean;
@@ -56,7 +59,9 @@ function StrummingPattern({
   data,
   mode,
   index,
-  location,
+  sectionIndex,
+  subSectionIndex,
+  chordSequenceIndex,
   editingPalmMuteNodes,
   setEditingPalmMuteNodes,
   showingDeleteStrumsButtons,
@@ -71,7 +76,7 @@ function StrummingPattern({
 
   const {
     chords,
-    tabData,
+    getTabData,
     setTabData,
     setStrummingPatternBeingEdited,
     currentlyPlayingMetadata,
@@ -80,7 +85,7 @@ function StrummingPattern({
   } = useTabStore(
     (state) => ({
       chords: state.chords,
-      tabData: state.tabData,
+      getTabData: state.getTabData,
       setTabData: state.setTabData,
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
@@ -118,7 +123,7 @@ function StrummingPattern({
     e: React.KeyboardEvent<HTMLInputElement>,
     beatIndex: number
   ) {
-    const newStrummingPattern = { ...data };
+    const newStrummingPattern = structuredClone(data);
 
     // v/d for downstrum, ^/u for upstrum, and s for slap
     if (e.key.toLowerCase() === "d" || e.key.toLowerCase() === "v") {
@@ -194,7 +199,7 @@ function StrummingPattern({
 
       newNoteToFocus?.focus();
     } else if (e.key === "Enter") {
-      const newStrummingPattern = { ...data };
+      const newStrummingPattern = structuredClone(data);
 
       const remainingSpace = 32 - newStrummingPattern.strums.length;
       const strumsToAdd = Math.min(remainingSpace, 4);
@@ -226,7 +231,7 @@ function StrummingPattern({
     const chordEffects = /^[v^s]{1}(>|\.|>\.|\.>)?$/;
     if (value !== "" && !chordEffects.test(value)) return;
 
-    const newStrummingPattern = { ...data };
+    const newStrummingPattern = structuredClone(data);
 
     newStrummingPattern.strums[beatIndex] = {
       ...data.strums[beatIndex]!, // ! because we know it's not undefined
@@ -288,7 +293,7 @@ function StrummingPattern({
   }
 
   function addStrumsToPattern() {
-    const newStrummingPattern = { ...data };
+    const newStrummingPattern = structuredClone(data);
 
     const remainingSpace = 32 - newStrummingPattern.strums.length;
     const strumsToAdd = Math.min(remainingSpace, 4);
@@ -357,19 +362,12 @@ function StrummingPattern({
     });
   }
 
-  function patternHasAccents() {
-    return data.strums.some((strum) => strum.strum.includes(">"));
-  }
-
   function getChordName(beatIndex: number) {
     const chordSection =
-      tabData[location?.sectionIndex ?? 0]?.data[
-        location?.subSectionIndex ?? 0
-      ];
+      getTabData()[sectionIndex ?? 0]?.data[subSectionIndex ?? 0];
 
     if (chordSection && chordSection.type === "chord") {
-      const chord =
-        chordSection.data[location?.chordSequenceIndex ?? 0]?.data[beatIndex];
+      const chord = chordSection.data[chordSequenceIndex ?? 0]?.data[beatIndex];
       return chord ?? "";
     }
 
@@ -378,21 +376,17 @@ function StrummingPattern({
 
   function handleChordChange(value: string, beatIndex: number) {
     const chordSection =
-      tabData[location?.sectionIndex ?? 0]?.data[
-        location?.subSectionIndex ?? 0
-      ];
+      getTabData()[sectionIndex ?? 0]?.data[subSectionIndex ?? 0];
 
     if (chordSection && chordSection.type === "chord") {
       const newChordSection = { ...chordSection };
 
-      newChordSection.data[location?.chordSequenceIndex ?? 0]!.data[beatIndex] =
-        value;
+      newChordSection.data[chordSequenceIndex ?? 0]!.data[beatIndex] = value;
 
-      const newTabData = [...tabData];
+      const newTabData = getTabData();
 
-      newTabData[location?.sectionIndex ?? 0]!.data[
-        location?.subSectionIndex ?? 0
-      ] = newChordSection;
+      newTabData[sectionIndex ?? 0]!.data[subSectionIndex ?? 0] =
+        newChordSection;
 
       setTabData(newTabData);
     }
@@ -416,11 +410,11 @@ function StrummingPattern({
       (currentlyPlayingMetadata === null ||
         !location ||
         currentlyPlayingMetadata[currentChordIndex]?.location.sectionIndex !==
-          location.sectionIndex ||
+          sectionIndex ||
         currentlyPlayingMetadata[currentChordIndex]?.location
-          .subSectionIndex !== location.subSectionIndex ||
+          .subSectionIndex !== subSectionIndex ||
         currentlyPlayingMetadata[currentChordIndex]?.location
-          .chordSequenceIndex !== location.chordSequenceIndex ||
+          .chordSequenceIndex !== chordSequenceIndex ||
         (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ??
           -1) !== chordIndex)
     ) {
@@ -457,11 +451,9 @@ function StrummingPattern({
         {data?.strums?.map((strum, strumIndex) => (
           <div
             key={strumIndex}
-            id={`section${location?.sectionIndex ?? ""}-subSection${
-              location?.subSectionIndex ?? ""
-            }-chordSequence${
-              location?.chordSequenceIndex ?? ""
-            }-chord${strumIndex}`}
+            id={`section${sectionIndex ?? ""}-subSection${
+              subSectionIndex ?? ""
+            }-chordSequence${chordSequenceIndex ?? ""}-chord${strumIndex}`}
             className="baseFlex"
           >
             <div
@@ -490,7 +482,6 @@ function StrummingPattern({
                   setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
                   darkMode={mode === "viewingInSelectDropdown"}
                   viewingInSelectDropdown={mode === "viewingInSelectDropdown"}
-                  editingChordSequence={mode === "editingChordSequence"}
                   editing={mode === "editingStrummingPattern"}
                 />
               ) : (
@@ -723,4 +714,25 @@ function StrummingPattern({
   );
 }
 
-export default StrummingPattern;
+export default memo(StrummingPattern, (prevProps, nextProps) => {
+  const { data: prevData, ...restPrev } = prevProps;
+  const { data: nextData, ...restNext } = nextProps;
+
+  // TODO: maybe need more props to be checked here...
+
+  // Custom comparison for getTabData() related prop
+  if (!isEqual(prevData, nextData)) {
+    return false; // props are not equal, so component should re-render
+  }
+
+  // Default shallow comparison for other props using Object.is()
+  const allKeys = new Set([...Object.keys(restPrev), ...Object.keys(restNext)]);
+  for (const key of allKeys) {
+    // @ts-expect-error we know that these keys are in the objects
+    if (!Object.is(restPrev[key], restNext[key])) {
+      return false; // props are not equal, so component should re-render
+    }
+  }
+
+  return true;
+});

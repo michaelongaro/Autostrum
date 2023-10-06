@@ -52,6 +52,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
     bpm,
     strummingPatterns,
     tabData,
+    getTabData,
     setTabData,
     editing,
     sectionProgression,
@@ -69,6 +70,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       bpm: state.bpm,
       strummingPatterns: state.strummingPatterns,
       tabData: state.tabData,
+      getTabData: state.getTabData,
       setTabData: state.setTabData,
       editing: state.editing,
       sectionProgression: state.sectionProgression,
@@ -87,7 +89,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
   function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.value.length > 25) return;
 
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
     const newSectionProgression = [...sectionProgression];
 
     newTabData[sectionIndex]!.title = e.target.value;
@@ -167,7 +169,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
   }
 
   function addNewBlock(type: "tab" | "chord") {
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     const newBlockData =
       type === "tab" ? generateNewColumns() : getDefaultStrummingPattern();

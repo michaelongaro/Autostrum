@@ -67,7 +67,7 @@ function StrummingPatternModal({
     strummingPatterns,
     setStrummingPatterns,
     setStrummingPatternBeingEdited,
-    tabData,
+    getTabData,
     setTabData,
     previewMetadata,
     audioMetadata,
@@ -78,7 +78,7 @@ function StrummingPatternModal({
       strummingPatterns: state.strummingPatterns,
       setStrummingPatterns: state.setStrummingPatterns,
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
-      tabData: state.tabData,
+      getTabData: state.getTabData,
       setTabData: state.setTabData,
       previewMetadata: state.previewMetadata,
       audioMetadata: state.audioMetadata,
@@ -104,7 +104,7 @@ function StrummingPatternModal({
       | "1/16th"
       | "1/16th triplet"
   ) {
-    const newStrummingPattern = { ...strummingPatternBeingEdited };
+    const newStrummingPattern = structuredClone(strummingPatternBeingEdited);
 
     newStrummingPattern.value.noteLength = value;
 
@@ -119,9 +119,9 @@ function StrummingPatternModal({
       // if only had a hanging "start" node, then just revert
       // start node to being empty
       if (lastModifiedPalmMuteNode.prevValue === "") {
-        const newStrummingPattern = {
-          ...strummingPatternBeingEdited,
-        };
+        const newStrummingPattern = structuredClone(
+          strummingPatternBeingEdited
+        );
 
         newStrummingPattern.value.strums[
           lastModifiedPalmMuteNode.columnIndex
@@ -153,7 +153,7 @@ function StrummingPatternModal({
       strummingPatterns[strummingPatternBeingEdited.index]?.strums?.length;
 
     if (oldLength !== undefined) {
-      const newTabData = [...tabData];
+      const newTabData = getTabData();
       for (
         let sectionIndex = 0;
         sectionIndex < newTabData.length;
@@ -198,7 +198,7 @@ function StrummingPatternModal({
                 newTabData[sectionIndex].data[subSectionIndex].data[
                   chordSequenceIndex
                   // @ts-expect-error undefined checks are done above
-                ]!.data = [...chordProgression.slice(0, newLength)]; // hoping "..." is enough to give new memory reference
+                ]!.data = structuredClone(chordProgression.slice(0, newLength));
               } else {
                 // new pattern w/ extra empty string elements
 
@@ -230,7 +230,7 @@ function StrummingPatternModal({
       setTabData(newTabData);
     }
 
-    const newStrummingPatterns = [...strummingPatterns];
+    const newStrummingPatterns = structuredClone(strummingPatterns);
 
     newStrummingPatterns[strummingPatternBeingEdited.index] = structuredClone({
       ...strummingPatternBeingEdited.value,

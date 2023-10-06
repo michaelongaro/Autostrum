@@ -8,6 +8,7 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { restrictToParentElement } from "@dnd-kit/modifiers";
+import isEqual from "lodash.isequal";
 import {
   SortableContext,
   arrayMove,
@@ -15,7 +16,7 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, memo } from "react";
 import { BsKeyboard } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
 import { HiOutlineInformationCircle } from "react-icons/hi";
@@ -119,11 +120,11 @@ function TabSection({
     return newIds;
   }
 
-  const { bpm, tuning, tabData, setTabData, editing } = useTabStore(
+  const { bpm, tuning, getTabData, setTabData, editing } = useTabStore(
     (state) => ({
       bpm: state.bpm,
       tuning: state.tuning,
-      tabData: state.tabData,
+      getTabData: state.getTabData,
       setTabData: state.setTabData,
       editing: state.editing,
     }),
@@ -133,7 +134,7 @@ function TabSection({
   // should these functions below be in zustand?
 
   function addNewColumns() {
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     for (let i = 0; i < 8; i++) {
       newTabData[sectionIndex]!.data[subSectionIndex]?.data.push(
@@ -406,7 +407,7 @@ function TabSection({
       // if only had a hanging "start" node, then just revert
       // start node to being empty
       if (lastModifiedPalmMuteNode.prevValue === "") {
-        const newTabData = [...tabData];
+        const newTabData = getTabData();
         newTabData[sectionIndex]!.data[subSectionIndex]!.data[
           lastModifiedPalmMuteNode.columnIndex
         ]![0] = "";
@@ -416,7 +417,7 @@ function TabSection({
       // otherwise need to traverse to find + remove pair node
       else {
         traverseToRemoveHangingPairNode({
-          tabData,
+          tabData: getTabData(),
           setTabData,
           sectionIndex,
           subSectionIndex,
@@ -434,7 +435,7 @@ function TabSection({
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
 
-    const prevTabData = [...tabData];
+    const prevTabData = getTabData();
     let prevSectionData = prevTabData[sectionIndex]?.data[subSectionIndex];
 
     if (
@@ -526,7 +527,7 @@ function TabSection({
       e.target.value.length === 0 ? -1 : parseInt(e.target.value);
     if (isNaN(newRepetitions) || newRepetitions > 99) return;
 
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     newTabData[sectionIndex]!.data[subSectionIndex]!.repetitions =
       newRepetitions;
@@ -538,7 +539,7 @@ function TabSection({
     const newBpm = e.target.value.length === 0 ? -1 : parseInt(e.target.value);
     if (isNaN(newBpm) || newBpm > 400) return;
 
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     newTabData[sectionIndex]!.data[subSectionIndex]!.bpm = newBpm;
 
@@ -562,7 +563,7 @@ function TabSection({
 
       focusAndScrollIntoView(currentNote, newNoteToFocus);
     } else if (e.key === "Enter") {
-      const newTabData = [...tabData];
+      const newTabData = getTabData();
 
       for (let i = 0; i < 8; i++) {
         newTabData[sectionIndex]!.data[subSectionIndex]?.data.push(
@@ -882,4 +883,23 @@ function TabSection({
   );
 }
 
-export default TabSection;
+export default memo(TabSection, (prevProps, nextProps) => {
+  const { subSectionData: prevSubSectionData, ...restPrev } = prevProps;
+  const { subSectionData: nextSubSectionDataData, ...restNext } = nextProps;
+
+  // Custom comparison for getTabData() related prop
+  if (!isEqual(prevSubSectionData, nextSubSectionDataData)) {
+    return false; // props are not equal, so component should re-render
+  }
+
+  // Default shallow comparison for other props using Object.is()
+  const allKeys = new Set([...Object.keys(restPrev), ...Object.keys(restNext)]);
+  for (const key of allKeys) {
+    // @ts-expect-error we know that these keys are in the objects
+    if (!Object.is(restPrev[key], restNext[key])) {
+      return false; // props are not equal, so component should re-render
+    }
+  }
+
+  return true;
+});

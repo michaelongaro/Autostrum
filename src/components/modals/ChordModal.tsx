@@ -39,7 +39,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
     chords,
     setChords,
     setChordBeingEdited,
-    tabData,
+    getTabData,
     setTabData,
     audioMetadata,
     previewMetadata,
@@ -50,7 +50,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       chords: state.chords,
       setChords: state.setChords,
       setChordBeingEdited: state.setChordBeingEdited,
-      tabData: state.tabData,
+      getTabData: state.getTabData,
       setTabData: state.setTabData,
       audioMetadata: state.audioMetadata,
       previewMetadata: state.previewMetadata,
@@ -78,7 +78,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
     )
       return;
 
-    const modifiedChord = { ...chordBeingEdited };
+    const modifiedChord = structuredClone(chordBeingEdited);
     modifiedChord.value.name = value;
 
     setChordBeingEdited(modifiedChord);
@@ -100,7 +100,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       if (
         chords[chordBeingEdited.index]?.name !== chordBeingEdited.value.name
       ) {
-        const newTabData = [...tabData];
+        const newTabData = getTabData();
 
         for (
           let sectionIndex = 0;
@@ -150,11 +150,11 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       }
 
       // save chord
-      const newChords = [...chords];
+      const newChords = structuredClone(chords);
 
       // decomposed shallow copy of frets so that the chord elem won't get updated
       // when the chord is edited in the chord modal
-      const newChord = { ...chordBeingEdited.value };
+      const newChord = structuredClone(chordBeingEdited.value);
       newChords[chordBeingEdited.index] = {
         id: newChord.id,
         name: newChord.name,

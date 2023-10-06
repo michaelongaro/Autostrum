@@ -10,7 +10,6 @@ import { useTabStore, type StrummingPattern } from "~/stores/TabStore";
 import { addOrRemoveStrummingPatternPalmMuteDashes } from "~/utils/palmMuteHelpers";
 import { Button } from "../ui/button";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
-import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 
 interface StrummingPatternPalmMuteNode {
   value: string;
@@ -27,7 +26,6 @@ interface StrummingPatternPalmMuteNode {
   >;
   darkMode: boolean;
   viewingInSelectDropdown: boolean;
-  editingChordSequence: boolean;
   editing: boolean;
 }
 
@@ -41,7 +39,6 @@ function StrummingPatternPalmMuteNode({
   setLastModifiedPalmMuteNode,
   darkMode,
   viewingInSelectDropdown,
-  editingChordSequence,
   editing,
 }: StrummingPatternPalmMuteNode) {
   const [hoveringOnPalmMuteNode, setHoveringOnPalmMuteNode] = useState(false);

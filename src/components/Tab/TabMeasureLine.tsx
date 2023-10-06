@@ -1,11 +1,12 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
-import { Fragment, useState } from "react";
+import { Fragment, useState, memo } from "react";
 import { BsMusicNote } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { shallow } from "zustand/shallow";
+import isEqual from "lodash.isequal";
 import {
   Popover,
   PopoverContent,
@@ -44,17 +45,17 @@ function TabMeasureLine({
     isDragging,
   } = useSortable({ id: columnData[9]! });
 
-  const { editing, tabData, setTabData } = useTabStore(
+  const { editing, getTabData, setTabData } = useTabStore(
     (state) => ({
       editing: state.editing,
-      tabData: state.tabData,
+      getTabData: state.getTabData,
       setTabData: state.setTabData,
     }),
     shallow
   );
 
   function handleDeleteMeasureLine() {
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
       columnIndex,
@@ -68,7 +69,7 @@ function TabMeasureLine({
     const newBpm = e.target.value.length === 0 ? -1 : parseInt(e.target.value);
     if (isNaN(newBpm) || newBpm > 400) return;
 
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     newTabData[sectionIndex]!.data[subSectionIndex]!.data[
       columnIndex
@@ -89,7 +90,7 @@ function TabMeasureLine({
       e.preventDefault(); // prevent cursor from moving
 
       const adjColumnIndex =
-        tabData[sectionIndex]!.data[subSectionIndex]!.data[
+        getTabData()[sectionIndex]!.data[subSectionIndex]!.data[
           columnIndex - 1
         ]?.[7] === "|"
           ? columnIndex - 2
@@ -106,7 +107,7 @@ function TabMeasureLine({
 
       if (
         columnIndex ===
-        tabData[sectionIndex]!.data[subSectionIndex]!.data.length - 1
+        getTabData()[sectionIndex]!.data[subSectionIndex]!.data.length - 1
       ) {
         const newNoteToFocus = document.getElementById(
           `${sectionIndex}${subSectionIndex}ExtendTabButton`
@@ -117,7 +118,7 @@ function TabMeasureLine({
       }
 
       const adjColumnIndex =
-        tabData[sectionIndex]!.data[subSectionIndex].data[
+        getTabData()[sectionIndex]!.data[subSectionIndex].data[
           columnIndex + 1
         ]?.[7] === "|"
           ? columnIndex + 2
@@ -131,7 +132,7 @@ function TabMeasureLine({
       return;
     }
 
-    const newTabData = [...tabData];
+    const newTabData = getTabData();
 
     setTabData(newTabData);
   }
@@ -336,10 +337,11 @@ function TabMeasureLine({
                       inputMode="numeric"
                       pattern="[0-9]*"
                       className="placeholder:text-grey-800/50 h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
-                      placeholder={(tabData[sectionIndex]?.data[subSectionIndex]
-                        ?.bpm === -1
+                      placeholder={(getTabData()[sectionIndex]?.data[
+                        subSectionIndex
+                      ]?.bpm === -1
                         ? "75"
-                        : tabData[sectionIndex]?.data[subSectionIndex]?.bpm
+                        : getTabData()[sectionIndex]?.data[subSectionIndex]?.bpm
                       ).toString()}
                       value={
                         columnData[7] === "-1" ? "" : columnData[7]!.toString()
@@ -395,4 +397,23 @@ function TabMeasureLine({
   );
 }
 
-export default TabMeasureLine;
+export default memo(TabMeasureLine, (prevProps, nextProps) => {
+  const { columnData: prevColumnData, ...restPrev } = prevProps;
+  const { columnData: nextColumnData, ...restNext } = nextProps;
+
+  // Custom comparison for getTabData() related prop
+  if (!isEqual(prevColumnData, nextColumnData)) {
+    return false; // props are not equal, so component should re-render
+  }
+
+  // Default shallow comparison for other props using Object.is()
+  const allKeys = new Set([...Object.keys(restPrev), ...Object.keys(restNext)]);
+  for (const key of allKeys) {
+    // @ts-expect-error we know that these keys are in the objects
+    if (!Object.is(restPrev[key], restNext[key])) {
+      return false; // props are not equal, so component should re-render
+    }
+  }
+
+  return true;
+});
