@@ -372,7 +372,13 @@ function MiscellaneousControls({
               }, 300);
             } else {
               if (audioMetadata.playing || previewMetadata.playing) {
-                pauseAudio(true);
+                pauseAudio(
+                  !isEqual(audioMetadata.location, {
+                    sectionIndex,
+                    subSectionIndex,
+                    chordSequenceIndex,
+                  })
+                );
               }
 
               setTimeout(
