@@ -230,7 +230,7 @@ function playSlapSound({
   // Create an OscillatorNode to simulate the slap sound
   const oscillator = audioContext.createOscillator();
   oscillator.type = "sine";
-  oscillator.frequency.value = 90; // changing this doesn't reflect as you would expect (not linear in terms of volume/pitch)
+  oscillator.frequency.value = 100;
 
   // Create a buffer for noise
   const noiseBuffer = audioContext.createBuffer(
@@ -312,19 +312,20 @@ function applyDeadNoteEffect({ note, audioContext }: ApplyDeadNoteEffect) {
   // Create a BiquadFilterNode to act as a low-pass filter
   const lowPassFilter = audioContext.createBiquadFilter();
   lowPassFilter.type = "lowpass";
-  lowPassFilter.frequency.value = 350; // Lower this value to cut more high frequencies
+  lowPassFilter.frequency.value = 700; // Lower this value to cut more high frequencies
+  lowPassFilter.Q.value = 0.25; // Quality factor - lower values make the boost range broader
 
   // Create a BiquadFilterNode to boost the bass frequencies
   const bassBoost = audioContext.createBiquadFilter();
   bassBoost.type = "peaking";
-  bassBoost.frequency.value = 200; // Frequency to boost - around 120Hz is a typical bass frequency
-  bassBoost.gain.value = 25; // Amount of boost in dB
-  bassBoost.Q.value = 50; // Quality factor - lower values make the boost range broader
+  bassBoost.frequency.value = 120; // Frequency to boost - around 120Hz is a typical bass frequency
+  bassBoost.gain.value = 20; // Amount of boost in dB
+  bassBoost.Q.value = 10; // Quality factor - lower values make the boost range broader
 
   // Create a GainNode to reduce volume
   const gainNode = audioContext.createGain();
 
-  gainNode.gain.value = 40; // Reduce gain to simulate the quieter sound of a dead note
+  gainNode.gain.value = 20; // Reduce gain to simulate the quieter sound of a dead note
 
   // Connect the note to the filter, and the filter to the gain node
   note.connect(lowPassFilter);
@@ -344,8 +345,8 @@ function applyPalmMute({ note, inlineEffects, audioContext }: ApplyPalmMute) {
   // Create a BiquadFilterNode to act as a low-pass filter
   const lowPassFilter = audioContext.createBiquadFilter();
   lowPassFilter.type = "lowpass";
-  lowPassFilter.frequency.value = 800; // Lower this value to cut more high frequencies was 2000
-  lowPassFilter.Q.value = 0.5; // Quality factor - lower values make the boost range broader
+  lowPassFilter.frequency.value = 700; // Lower this value to cut more high frequencies was 2000
+  lowPassFilter.Q.value = 0.25; // Quality factor - lower values make the boost range broader
 
   // Create a BiquadFilterNode to boost the bass frequencies
   const bassBoost = audioContext.createBiquadFilter();
@@ -357,13 +358,11 @@ function applyPalmMute({ note, inlineEffects, audioContext }: ApplyPalmMute) {
   // Create a GainNode to reduce volume
   const gainNode = audioContext.createGain();
 
-  // palm muting is a little quieter than normal notes
-  let gainValue = 40;
+  // palm muting is a little quieter than normal notes, can think of this as 70% of normal volume
+  let gainValue = 70;
 
   if (inlineEffects?.includes(">")) {
-    gainValue = 75;
-  } else if (inlineEffects?.includes(".")) {
-    gainValue = 45;
+    gainValue = 85;
   }
 
   gainNode.gain.value = gainValue;
@@ -596,7 +595,7 @@ function playNote({
   let gain = 1;
 
   if (effects.includes(">")) {
-    gain = 1.9;
+    gain = 1.8;
   }
 
   // dead note and palm mute effects require us to basically hijack the note by almost muting it
@@ -605,7 +604,8 @@ function playNote({
   // tethered effects
   if (effects.includes("PM")) {
     gain = 0.01;
-    // duration = 0.45; I think ideally sustain should be changed, not duration
+    duration = 0.45;
+    // I think ideally sustain should be changed, not duration
     // but it seemed like changing sustain value didn't have intended effect..
   }
   if (effects.includes("x")) {
@@ -670,7 +670,7 @@ function columnHasNoNotes(column: string[]) {
 
 function calculateRelativeVibratoFrequency(bpm: number) {
   // Ensure that the input number is positive
-  const distance = Math.abs(bpm - 400);
+  const distance = Math.abs(bpm > 400 ? 400 : bpm - 400);
 
   // Calculate the scale factor between 0 and 1.
   // When bpm: number is 400, scaleFactor will be 0.
@@ -686,19 +686,11 @@ function calculateRelativeChordDelayMultiplier(
   bpm: number,
   strumChordQuickly: boolean
 ) {
-  // Ensure that the input number is positive
-  const distance = Math.abs(bpm - 400);
-
-  // Calculate the scale factor between 0 and 1.
-  // When bpm: number is 400, scaleFactor will be 0.
-  // When bpm: number is 0, scaleFactor will be 1.
+  const distance = Math.abs(bpm > 400 ? 400 : bpm - 400);
   const scaleFactor = Math.min(distance / 400, 1);
 
-  // Scale the number between 0.01 (when scaleFactor is 0)
-  // and 0.05 (when scaleFactor is 1).
-
-  const accentedMultiplier = strumChordQuickly ? 0.25 : 1;
-  return (0.01 + scaleFactor * (0.05 - 0.01)) * accentedMultiplier;
+  const accentedMultiplier = strumChordQuickly ? 0.3 : 1;
+  return (0.01 + scaleFactor * 0.06) * accentedMultiplier;
 }
 
 function getIndexOfFirstNonEmptyString(column: string[], isAnUpstrum: boolean) {
@@ -770,7 +762,6 @@ function playNoteColumn({
           masterVolumeGainNode,
           currentlyPlayingStrings,
         });
-        // TODO: technically I think the sound will bleed into the next note at high bpms
       }
       return;
     }
@@ -793,7 +784,6 @@ function playNoteColumn({
     const tetherEffects = /^[hp\/\\\\]$/;
     const onlyHasFretNumber = /^[0-9]+$/;
     const containsNumber = /\d/;
-    // const containsFretNumberAndEffect = /^[0-9]+[hp\/\\\\br~>.]$/;
 
     for (let index = 1; index < 7; index++) {
       // 1-6 is actually starting with "high e" normally, so reverse it if you want
