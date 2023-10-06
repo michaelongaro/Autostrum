@@ -143,7 +143,6 @@ body::before {
 }
 
 body {
-  background-color: #fd7984;
   color: hsl(327, 73%, 97%);
   min-height: 100dvh;
 }
