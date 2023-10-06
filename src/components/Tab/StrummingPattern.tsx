@@ -352,7 +352,10 @@ function StrummingPattern({
   }
 
   function deleteStrum(beatIndex: number) {
-    const newStrummingPattern = handleDeletePalmMutedStrum(data, beatIndex);
+    const newStrummingPattern = handleDeletePalmMutedStrum(
+      structuredClone(data),
+      beatIndex
+    );
 
     newStrummingPattern.strums.splice(beatIndex, 1);
 
