@@ -143,18 +143,20 @@ function TabMeasureLine({
         return (
           <div className="baseVertFlex w-full !flex-nowrap">
             {/* top border and vert stub to normalize heights of middle indicies */}
-            {reorderingColumns && !isDragging && (
-              <div className="baseVertFlex w-full">
-                <div className="h-[2px] w-full bg-pink-50"></div>
-                <div className="h-[3px] w-[2px] bg-pink-50"></div>
-              </div>
-            )}
+            {(reorderingColumns || showingDeleteColumnsButtons) &&
+              !isDragging && (
+                <div className="baseVertFlex w-full">
+                  <div className="h-[2px] w-full bg-pink-50"></div>
+                  <div className="h-[3px] w-[2px] bg-pink-50"></div>
+                </div>
+              )}
 
             <div className="baseFlex w-full">
               {/* left dummy string */}
-              {reorderingColumns && !isDragging && (
-                <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
-              )}
+              {(reorderingColumns || showingDeleteColumnsButtons) &&
+                !isDragging && (
+                  <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+                )}
 
               {/* measure line */}
               <div
@@ -165,9 +167,10 @@ function TabMeasureLine({
               ></div>
 
               {/* right dummy string */}
-              {reorderingColumns && !isDragging && (
-                <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
-              )}
+              {(reorderingColumns || showingDeleteColumnsButtons) &&
+                !isDragging && (
+                  <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+                )}
             </div>
           </div>
         );
@@ -176,9 +179,10 @@ function TabMeasureLine({
           <div className="baseVertFlex w-full !flex-nowrap">
             <div className="baseFlex w-full">
               {/* left dummy string */}
-              {reorderingColumns && !isDragging && (
-                <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
-              )}
+              {(reorderingColumns || showingDeleteColumnsButtons) &&
+                !isDragging && (
+                  <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+                )}
 
               {/* measure line */}
               <div
@@ -189,26 +193,29 @@ function TabMeasureLine({
               ></div>
 
               {/* right dummy string */}
-              {reorderingColumns && !isDragging && (
-                <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
-              )}
+              {(reorderingColumns || showingDeleteColumnsButtons) &&
+                !isDragging && (
+                  <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+                )}
             </div>
             {/* bottom border and vert stub to normalize heights of middle indicies */}
-            {reorderingColumns && !isDragging && (
-              <div className="baseVertFlex w-full">
-                <div className="h-[3px] w-[2px] bg-pink-50"></div>
-                <div className="h-[2px] w-full bg-pink-50"></div>
-              </div>
-            )}
+            {(reorderingColumns || showingDeleteColumnsButtons) &&
+              !isDragging && (
+                <div className="baseVertFlex w-full">
+                  <div className="h-[3px] w-[2px] bg-pink-50"></div>
+                  <div className="h-[2px] w-full bg-pink-50"></div>
+                </div>
+              )}
           </div>
         );
       } else {
         return (
           <div className="baseFlex w-full">
             {/* left dummy string */}
-            {reorderingColumns && !isDragging && (
-              <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
-            )}
+            {(reorderingColumns || showingDeleteColumnsButtons) &&
+              !isDragging && (
+                <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+              )}
 
             {/* measure line */}
             <div
@@ -219,9 +226,10 @@ function TabMeasureLine({
             ></div>
 
             {/* right dummy string */}
-            {reorderingColumns && !isDragging && (
-              <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
-            )}
+            {(reorderingColumns || showingDeleteColumnsButtons) &&
+              !isDragging && (
+                <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+              )}
           </div>
         );
       }
@@ -242,7 +250,7 @@ function TabMeasureLine({
     let height = "0px";
 
     if (editing) {
-      if (reorderingColumns && !isDragging) {
+      if ((reorderingColumns || showingDeleteColumnsButtons) && !isDragging) {
         height = "45px";
       } else {
         if (index === 1 || index === 6) {
@@ -268,7 +276,8 @@ function TabMeasureLine({
         ),
         // need to have same width as chords for the drag and drop algorithms
         // to behave properly without the ui breaking
-        width: reorderingColumns ? "60px" : "2px",
+        width:
+          reorderingColumns || showingDeleteColumnsButtons ? "50px" : "2px",
         transition: `${transition ?? ""}, width 0.15s ease-in-out`,
         height: editing ? "400px" : "271px",
       }}

@@ -375,11 +375,8 @@ function TabNotesColumn({
                       index === 6 ? "2px solid rgb(253 242 248)" : "none"
                     }`,
                     paddingBottom: `${index === 6 ? "7px" : "0"}`,
-
-                    // might need to refine these widths/values a bit if the sound playing overlay isn't
-                    // as smooth/seamless as we want it to be.
-                    width: editing ? "60px" : "35px",
-
+                    width: editing ? "50px" : "35px",
+                    transition: "width 0.15s ease-in-out",
                     // maybe also need "flex-basis: content" here if editing?
                   }}
                   className="baseFlex relative basis-[content]"
