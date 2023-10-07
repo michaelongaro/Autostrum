@@ -498,34 +498,43 @@ function StrummingPattern({
 
               {/* chord selector */}
               {mode === "editingChordSequence" && (
-                <Select
-                  onValueChange={(value) =>
-                    handleChordChange(value, strumIndex)
-                  }
-                  value={
-                    getChordName(strumIndex) === ""
-                      ? "blues" // TODO: currently have no clue why this (any) random value is needed. I would imagine that
-                      : // I could pass "" and the value would be "" but that doesn't work
-                        getChordName(strumIndex)
-                  }
-                >
-                  <SelectTrigger className="w-fit">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Chord</SelectLabel>
-                      <SelectItem value="" className="italic !text-gray-500">
-                        No chord
-                      </SelectItem>
-                      {chords.map((chord) => (
-                        <SelectItem key={chord.name} value={chord.name}>
-                          {chord.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                <>
+                  {strum.strum.includes("s") || strum.strum === "" ? (
+                    <div className="h-[40px] w-[42px]"></div>
+                  ) : (
+                    <Select
+                      onValueChange={(value) =>
+                        handleChordChange(value, strumIndex)
+                      }
+                      value={
+                        getChordName(strumIndex) === ""
+                          ? "blues" // TODO: currently have no clue why this (any) random value is needed. I would imagine that
+                          : // I could pass "" and the value would be "" but that doesn't work
+                            getChordName(strumIndex)
+                      }
+                    >
+                      <SelectTrigger className="w-fit">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Chord</SelectLabel>
+                          <SelectItem
+                            value=""
+                            className="italic !text-gray-500"
+                          >
+                            No chord
+                          </SelectItem>
+                          {chords.map((chord) => (
+                            <SelectItem key={chord.name} value={chord.name}>
+                              {chord.name}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  )}
+                </>
               )}
 
               {/* chord viewer */}
@@ -629,7 +638,7 @@ function StrummingPattern({
                         style={{
                           fontSize: "20px",
                         }}
-                        className={`baseFlex h-5 leading-[0] ${
+                        className={`baseFlex mb-1 h-5 leading-[0] ${
                           strum.strum.includes(">")
                             ? "font-semibold"
                             : "font-thin"
