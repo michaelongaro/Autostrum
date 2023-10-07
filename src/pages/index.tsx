@@ -20,6 +20,10 @@ function Home({
     >
       <Head>
         <title>Autostrum</title>
+        <meta
+          name="description"
+          content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music. Play along to any tab with our realistic generated audio or directly with the artist's recording."
+        />
         <meta property="og:title" content="Autostrum"></meta>
         <meta property="og:url" content="www.autostrum.com" />
         <meta
