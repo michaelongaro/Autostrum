@@ -318,12 +318,11 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   function resetAudioStateOnSourceChange(
     audioTypeBeingChangedTo: "Generated" | "Artist recording"
   ) {
-    pauseAudio(true);
+    pauseAudio();
 
     if (oneSecondIntervalRef.current) {
       clearInterval(oneSecondIntervalRef.current); // technically not needed, but "saves" an extra rerender I think
       oneSecondIntervalRef.current = null; // technically not needed, but "saves" an extra rerender I think
-      setTabProgressValue(0);
     }
 
     setAudioMetadata({
@@ -615,7 +614,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   disabled={audioMetadata.type === "Artist recording"}
                   value={`${playbackSpeed}x`}
                   onValueChange={(value) => {
-                    pauseAudio();
+                    pauseAudio(true);
 
                     const newPlaybackSpeed = Number(
                       value.slice(0, value.length - 1)
@@ -805,7 +804,9 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               // track if max has a value of 0...
               max={
                 audioMetadata.type === "Artist recording"
-                  ? recordedAudioBuffer?.duration ?? 1
+                  ? recordedAudioBuffer?.duration === 0
+                    ? 1
+                    : recordedAudioBuffer?.duration
                   : currentlyPlayingMetadata?.at(-1)?.elapsedSeconds === 0
                   ? 1
                   : currentlyPlayingMetadata?.at(-1)?.elapsedSeconds
@@ -1004,7 +1005,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   <Select
                     value={`${playbackSpeed}x`}
                     onValueChange={(value) => {
-                      pauseAudio();
+                      pauseAudio(true);
 
                       setPlaybackSpeed(
                         Number(value.slice(0, value.length - 1)) as

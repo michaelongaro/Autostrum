@@ -785,9 +785,8 @@ export const useTabStore = create<TabState>()(
         recordedAudioBufferSourceNode,
       } = get();
 
-      if (!audioMetadata.playing && !previewMetadata.playing) {
+      if (!audioMetadata.playing && !previewMetadata.playing && resetToStart) {
         resetAudioSliderPosition();
-
         set({
           currentChordIndex: 0,
         });

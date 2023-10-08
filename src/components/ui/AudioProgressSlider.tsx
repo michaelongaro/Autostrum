@@ -49,19 +49,14 @@ const AudioProgressSlider = React.forwardRef<
   useEffect(() => {
     if (!thumbElemNode || !trackElemNode) return;
 
-    if (currentChordIndex === 0 && !audioMetadata.playing) {
+    if (!audioMetadata.playing || isDragging) {
       thumbElemNode.style.transition = "none";
       trackElemNode.style.transition = "none";
       return;
     }
 
-    if (isDragging) {
-      thumbElemNode.style.transition = "none";
-      trackElemNode.style.transition = "none";
-    } else {
-      thumbElemNode.style.transition = "left 1s linear";
-      trackElemNode.style.transition = "right 1s linear";
-    }
+    thumbElemNode.style.transition = "left 1s linear";
+    trackElemNode.style.transition = "right 1s linear";
   }, [
     thumbElemNode,
     trackElemNode,
