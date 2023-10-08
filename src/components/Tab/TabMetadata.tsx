@@ -710,30 +710,35 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
                           {title ? (
                             <Check className="h-5 w-8 text-green-600" />
                           ) : (
-                            <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
+                            <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 p-0 text-red-600" />
                           )}
-                          <p className="font-semibold">Title entered</p>
+                          <p>{`Title is ${title ? "present" : "missing"}`}</p>
                         </div>
 
                         <div className="baseFlex gap-2">
                           {genreId !== -1 ? (
                             <Check className="h-5 w-8 text-green-600" />
                           ) : (
-                            <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
+                            <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
                           )}
-                          <p className="font-semibold">Genre selected</p>
-                        </div>
-
-                        <div className="baseFlex !flex-nowrap gap-2">
-                          {!tabIsEffectivelyEmpty(tabData) ? (
-                            <Check className="h-5 w-8 text-green-600" />
-                          ) : (
-                            <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
-                          )}
-                          <p className="font-semibold">
-                            At least one note present in tab
+                          <p>
+                            {`Genre has ${
+                              genreId === -1 ? "not" : ""
+                            } been selected`}
                           </p>
                         </div>
+
+                        {!tabIsEffectivelyEmpty(tabData) ? (
+                          <div className="baseFlex !flex-nowrap gap-2">
+                            <Check className="h-5 w-8 text-green-600" />
+                            <p>Tab isn&apos;t empty</p>
+                          </div>
+                        ) : (
+                          <div className="baseFlex !flex-nowrap gap-2">
+                            <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
+                            <p>Tab is empty</p>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="baseFlex w-full max-w-[350px] bg-pink-50 p-2 pt-1 text-sm text-pink-950 md:max-w-[400px] md:text-base">
