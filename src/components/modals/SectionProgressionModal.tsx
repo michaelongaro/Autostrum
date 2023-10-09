@@ -53,22 +53,40 @@ function SectionProgressionModal() {
     sectionProgression,
     setSectionProgression,
     setShowSectionProgressionModal,
+    setPreventFramerLayoutShift,
   } = useTabStore(
     (state) => ({
       tabData: state.tabData,
       sectionProgression: state.sectionProgression,
       setSectionProgression: state.setSectionProgression,
       setShowSectionProgressionModal: state.setShowSectionProgressionModal,
+      setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
     }),
     shallow
   );
 
   useEffect(() => {
-    document.body.style.overflow = "hidden";
+    setPreventFramerLayoutShift(true);
+
+    setTimeout(() => {
+      const offsetY = window.scrollY;
+      document.body.style.top = `${-offsetY}px`;
+      document.body.classList.add("noScroll");
+    }, 50);
+
     return () => {
-      document.body.style.overflow = "unset";
+      setPreventFramerLayoutShift(false);
+
+      setTimeout(() => {
+        const offsetY = Math.abs(
+          parseInt(`${document.body.style.top || 0}`, 10)
+        );
+        document.body.classList.remove("noScroll");
+        document.body.style.removeProperty("top");
+        window.scrollTo(0, offsetY || 0);
+      }, 50);
     };
-  }, []);
+  }, [setPreventFramerLayoutShift]);
 
   useEffect(() => {
     setLocalSectionProgression(structuredClone(sectionProgression));

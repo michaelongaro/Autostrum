@@ -45,13 +45,6 @@ function AudioRecorderModal() {
 
   const blockSaveRecordingRef = useRef(false);
 
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, []);
-
   const {
     isRecording,
     startRecording,
@@ -79,6 +72,7 @@ function AudioRecorderModal() {
     recordedAudioFile,
     setRecordedAudioFile,
     setShouldUpdateInS3,
+    setPreventFramerLayoutShift,
   } = useTabStore(
     (state) => ({
       id: state.id,
@@ -88,9 +82,33 @@ function AudioRecorderModal() {
       recordedAudioFile: state.recordedAudioFile,
       setRecordedAudioFile: state.setRecordedAudioFile,
       setShouldUpdateInS3: state.setShouldUpdateInS3,
+      setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
     }),
     shallow
   );
+
+  useEffect(() => {
+    setPreventFramerLayoutShift(true);
+
+    setTimeout(() => {
+      const offsetY = window.scrollY;
+      document.body.style.top = `${-offsetY}px`;
+      document.body.classList.add("noScroll");
+    }, 50);
+
+    return () => {
+      setPreventFramerLayoutShift(false);
+
+      setTimeout(() => {
+        const offsetY = Math.abs(
+          parseInt(`${document.body.style.top || 0}`, 10)
+        );
+        document.body.classList.remove("noScroll");
+        document.body.style.removeProperty("top");
+        window.scrollTo(0, offsetY || 0);
+      }, 50);
+    };
+  }, [setPreventFramerLayoutShift]);
 
   useEffect(() => {
     if (hasInitializedWithStoreValues) return;

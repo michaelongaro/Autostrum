@@ -34,10 +34,15 @@ function Preferences() {
 
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
-  const { showDeleteAccountModal, setShowDeleteAccountModal } = useTabStore(
+  const {
+    showDeleteAccountModal,
+    setShowDeleteAccountModal,
+    setPreventFramerLayoutShift,
+  } = useTabStore(
     (state) => ({
       showDeleteAccountModal: state.showDeleteAccountModal,
       setShowDeleteAccountModal: state.setShowDeleteAccountModal,
+      setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
     }),
     shallow
   );
@@ -203,6 +208,7 @@ function Preferences() {
             <PinnedTabModal
               pinnedTabIdFromDatabase={artist.pinnedTabId}
               setShowPinnedTabModal={setShowPinnedTabModal}
+              setPreventFramerLayoutShift={setPreventFramerLayoutShift}
             />
           )}
         </AnimatePresence>

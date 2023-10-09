@@ -29,19 +29,37 @@ function DeleteAccountModal() {
   const [deleteAllOfArtistsTabs, setDeleteAllOfArtistsTabs] = useState(false);
   const [showDeleteCheckmark, setShowDeleteCheckmark] = useState(false);
 
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, []);
+  const { setShowDeleteAccountModal, setPreventFramerLayoutShift } =
+    useTabStore(
+      (state) => ({
+        setShowDeleteAccountModal: state.setShowDeleteAccountModal,
+        setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
+      }),
+      shallow
+    );
 
-  const { setShowDeleteAccountModal } = useTabStore(
-    (state) => ({
-      setShowDeleteAccountModal: state.setShowDeleteAccountModal,
-    }),
-    shallow
-  );
+  useEffect(() => {
+    setPreventFramerLayoutShift(true);
+
+    setTimeout(() => {
+      const offsetY = window.scrollY;
+      document.body.style.top = `${-offsetY}px`;
+      document.body.classList.add("noScroll");
+    }, 50);
+
+    return () => {
+      setPreventFramerLayoutShift(false);
+
+      setTimeout(() => {
+        const offsetY = Math.abs(
+          parseInt(`${document.body.style.top || 0}`, 10)
+        );
+        document.body.classList.remove("noScroll");
+        document.body.style.removeProperty("top");
+        window.scrollTo(0, offsetY || 0);
+      }, 50);
+    };
+  }, [setPreventFramerLayoutShift]);
 
   const { mutate: deleteAccount, isLoading: isDeleting } =
     api.artist.deleteArtist.useMutation({

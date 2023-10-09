@@ -133,7 +133,6 @@ interface PlayTab {
     subSectionIndex?: number;
     chordSequenceIndex?: number;
   } | null;
-  resetToStart?: boolean;
 }
 interface PlayPreview {
   data: string[] | StrummingPattern;
@@ -257,6 +256,8 @@ interface TabState {
   getTabData: () => Section[];
   isProgramaticallyScrolling: boolean;
   setIsProgramaticallyScrolling: (isProgramaticallyScrolling: boolean) => void;
+  preventFramerLayoutShift: boolean;
+  setPreventFramerLayoutShift: (preventFramerLayoutShift: boolean) => void;
 
   // modals
   showAudioRecorderModal: boolean;
@@ -529,6 +530,9 @@ export const useTabStore = create<TabState>()(
     isProgramaticallyScrolling: false,
     setIsProgramaticallyScrolling: (isProgramaticallyScrolling) =>
       set({ isProgramaticallyScrolling }),
+    preventFramerLayoutShift: false,
+    setPreventFramerLayoutShift: (preventFramerLayoutShift) =>
+      set({ preventFramerLayoutShift }),
 
     // playing/pausing sound functions
     playTab: async ({ location, tabId }: PlayTab) => {

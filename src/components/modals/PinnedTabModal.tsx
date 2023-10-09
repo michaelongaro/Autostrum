@@ -23,11 +23,13 @@ const backdropVariants = {
 interface PinnedTabModal {
   pinnedTabIdFromDatabase: number;
   setShowPinnedTabModal: Dispatch<SetStateAction<boolean>>;
+  setPreventFramerLayoutShift: (preventFramerLayoutShift: boolean) => void;
 }
 
 function PinnedTabModal({
   pinnedTabIdFromDatabase,
   setShowPinnedTabModal,
+  setPreventFramerLayoutShift,
 }: PinnedTabModal) {
   const { userId } = useAuth();
   const ctx = api.useContext();
@@ -35,6 +37,29 @@ function PinnedTabModal({
   const [currentlySelectedPinnedTabId, setCurrentlySelectedPinnedTabId] =
     useState(pinnedTabIdFromDatabase);
   const [showSaveCheckmark, setShowSaveCheckmark] = useState(false);
+
+  useEffect(() => {
+    setPreventFramerLayoutShift(true);
+
+    setTimeout(() => {
+      const offsetY = window.scrollY;
+      document.body.style.top = `${-offsetY}px`;
+      document.body.classList.add("noScroll");
+    }, 50);
+
+    return () => {
+      setPreventFramerLayoutShift(false);
+
+      setTimeout(() => {
+        const offsetY = Math.abs(
+          parseInt(`${document.body.style.top || 0}`, 10)
+        );
+        document.body.classList.remove("noScroll");
+        document.body.style.removeProperty("top");
+        window.scrollTo(0, offsetY || 0);
+      }, 50);
+    };
+  }, [setPreventFramerLayoutShift]);
 
   const { mutate: updateArtist, isLoading: isSaving } =
     api.artist.updateArtist.useMutation({
@@ -55,13 +80,6 @@ function PinnedTabModal({
         }, 2000);
       },
     });
-
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, []);
 
   useEffect(() => {
     setCurrentlySelectedPinnedTabId(pinnedTabIdFromDatabase);

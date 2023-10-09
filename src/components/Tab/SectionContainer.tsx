@@ -58,10 +58,10 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
     sectionProgression,
     setSectionProgression,
     audioMetadata,
-    previewMetadata,
     currentInstrument,
     currentlyPlayingMetadata,
     currentChordIndex,
+    preventFramerLayoutShift,
     playTab,
     pauseAudio,
   } = useTabStore(
@@ -80,6 +80,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       currentInstrument: state.currentInstrument,
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
       currentChordIndex: state.currentChordIndex,
+      preventFramerLayoutShift: state.preventFramerLayoutShift,
       playTab: state.playTab,
       pauseAudio: state.pauseAudio,
     }),
@@ -273,7 +274,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       <AnimatePresence mode="wait">
         <motion.div
           key={sectionData.id}
-          {...(editing && { layout: "position" })}
+          {...(editing && !preventFramerLayoutShift && { layout: "position" })}
           variants={opacityAndScaleVariants}
           initial="closed"
           animate="expanded"

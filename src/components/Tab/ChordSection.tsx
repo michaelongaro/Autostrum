@@ -56,6 +56,7 @@ function ChordSection({
     audioMetadata,
     currentlyPlayingMetadata,
     currentChordIndex,
+    preventFramerLayoutShift,
   } = useTabStore(
     (state) => ({
       editing: state.editing,
@@ -65,6 +66,7 @@ function ChordSection({
       audioMetadata: state.audioMetadata,
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
       currentChordIndex: state.currentChordIndex,
+      preventFramerLayoutShift: state.preventFramerLayoutShift,
     }),
     shallow
   );
@@ -138,7 +140,7 @@ function ChordSection({
   return (
     <motion.div
       key={subSectionData.id}
-      {...(editing && { layout: "position" })}
+      {...(editing && !preventFramerLayoutShift && { layout: "position" })}
       variants={opacityAndScaleVariants}
       initial="closed"
       animate="expanded"
@@ -210,7 +212,7 @@ function ChordSection({
       <AnimatePresence mode="wait">
         <motion.div
           key={`${subSectionData.id}ChordSectionWrapper`}
-          {...(editing && { layout: "position" })}
+          {...(editing && !preventFramerLayoutShift && { layout: "position" })}
           variants={opacityAndScaleVariants}
           initial="closed"
           animate="expanded"

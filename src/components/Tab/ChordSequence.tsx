@@ -75,6 +75,7 @@ function ChordSequence({
     editing,
     bpm,
     strummingPatterns,
+    preventFramerLayoutShift,
     getTabData,
     setTabData,
     setStrummingPatternBeingEdited,
@@ -83,6 +84,7 @@ function ChordSequence({
       editing: state.editing,
       bpm: state.bpm,
       strummingPatterns: state.strummingPatterns,
+      preventFramerLayoutShift: state.preventFramerLayoutShift,
       getTabData: state.getTabData,
       setTabData: state.setTabData,
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
@@ -202,7 +204,7 @@ function ChordSequence({
   return (
     <motion.div
       key={chordSequenceData.id}
-      {...(editing && { layout: "position" })}
+      {...(editing && !preventFramerLayoutShift && { layout: "position" })}
       variants={opacityAndScaleVariants}
       initial="closed"
       animate="expanded"

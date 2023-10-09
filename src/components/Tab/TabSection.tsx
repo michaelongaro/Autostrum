@@ -120,13 +120,21 @@ function TabSection({
     return newIds;
   }
 
-  const { bpm, tuning, getTabData, setTabData, editing } = useTabStore(
+  const {
+    bpm,
+    tuning,
+    getTabData,
+    setTabData,
+    editing,
+    preventFramerLayoutShift,
+  } = useTabStore(
     (state) => ({
       bpm: state.bpm,
       tuning: state.tuning,
       getTabData: state.getTabData,
       setTabData: state.setTabData,
       editing: state.editing,
+      preventFramerLayoutShift: state.preventFramerLayoutShift,
     }),
     shallow
   );
@@ -612,7 +620,7 @@ function TabSection({
   return (
     <motion.div
       key={subSectionData.id}
-      {...(editing && { layout: "position" })}
+      {...(editing && !preventFramerLayoutShift && { layout: "position" })}
       variants={opacityAndScaleVariants}
       initial="closed"
       animate="expanded"
