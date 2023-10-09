@@ -59,11 +59,9 @@ function TabPreview({ tab, scale }: TabPreview) {
           }}
           className="pointer-events-none absolute left-0 top-0 z-[-1] mt-2 w-[1200px] origin-top-left select-none p-4 md:p-0"
         >
-          {/* this is risky performance wise, really want to limit it to showing just one section
-          but for short first sections it leaves unwanted "whitespace". Maybe look into
-          shrinking down overall aspect ratio for preview to almost just render what would be
-          one "row". Probably one and a half rows of height to show that there is more to the tab */}
-          {tabData.slice(0, 2).map((section, index) => (
+          {/* tradeoff: 0, 1 renders less but is more performant, 
+              otherway around for showing 0, 2. */}
+          {tabData.slice(0, 1).map((section, index) => (
             <PreviewSectionContainer
               key={section.id}
               tabData={tabData}
