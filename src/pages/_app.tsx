@@ -1,7 +1,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { AppProps } from "next/app";
 import { api } from "~/utils/api";
-
+import NextProgress from "next-progress";
 import GeneralLayout from "~/components/Layouts/GeneralLayout";
 import "~/styles/globals.css";
 
@@ -33,6 +33,13 @@ function MyApp({ Component, pageProps }: ComponentWithPageLayout) {
       }}
       {...pageProps}
     >
+      <NextProgress
+        color={"#be185d"}
+        height={3}
+        delay={300}
+        disableSameRoute
+        options={{ showSpinner: false }}
+      />
       <GeneralLayout>
         {Component.PageLayout ? (
           <Component.PageLayout>
