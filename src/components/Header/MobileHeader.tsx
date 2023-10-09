@@ -115,7 +115,7 @@ function MobileHeader() {
                 }${asPath}`}
               >
                 <Button
-                  size={"lg"}
+                  className="h-10 px-6"
                   onClick={() => {
                     if (asPath.includes("/create")) {
                       localStorageTabData.set(getStringifiedTabData());
@@ -140,7 +140,7 @@ function MobileHeader() {
               >
                 <Button
                   variant={"secondary"}
-                  className="h-11"
+                  className="h-10"
                   onClick={() => {
                     if (asPath.includes("/create")) {
                       localStorageTabData.set(getStringifiedTabData());

@@ -56,7 +56,7 @@ function Hero({
                 process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
               }/postSignUpRegistration`}
             >
-              <Button size={"lg"}>Sign up</Button>
+              <Button className="h-10 px-6 md:h-11 md:px-8">Sign up</Button>
             </SignUpButton>
             <SignInButton
               mode="modal"
@@ -64,7 +64,7 @@ function Hero({
                 process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
               }/postSignUpRegistration`}
             >
-              <Button variant={"secondary"} className="h-11">
+              <Button variant={"secondary"} className="h-10 md:h-11">
                 Sign in
               </Button>
             </SignInButton>
