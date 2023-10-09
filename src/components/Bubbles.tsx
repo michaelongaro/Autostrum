@@ -97,10 +97,10 @@ function Bubble({ position, size, velocity }: Bubble) {
   const meshRef = useRef<Mesh>(null!);
 
   const originalX = position[0];
-  const frequency = 1 / size; // Adding 1 to avoid division by zero
-  const amplitude = Math.min(0.45, size); // preventing small bubbles from swaying too much
+  const frequency = 1 / Math.max(0.25, size); // prevents small bubbles from swaying too much
+  const amplitude = size;
 
-  useFrame((state, delta) => {
+  useFrame((state) => {
     if (meshRef.current) {
       const time = state.clock.getElapsedTime();
 
