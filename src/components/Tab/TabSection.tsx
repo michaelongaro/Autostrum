@@ -589,7 +589,7 @@ function TabSection({
 
       setTabData(newTabData);
 
-      const firstNewColumnIndex = subSectionData.data.length - 8; // this will be the first of the 8 new strums added
+      const firstNewColumnIndex = subSectionData.data.length;
 
       setInputIdToFocus(
         `input-${sectionIndex}-${subSectionIndex}-${firstNewColumnIndex}-3`
