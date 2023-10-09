@@ -8,15 +8,20 @@ interface UseAutoscrollToCurrentChord {
 function useAutoscrollToCurrentChord({
   autoscrollEnabled,
 }: UseAutoscrollToCurrentChord) {
-  const { currentlyPlayingMetadata, currentChordIndex, audioMetadata } =
-    useTabStore(
-      (state) => ({
-        currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-        currentChordIndex: state.currentChordIndex,
-        audioMetadata: state.audioMetadata,
-      }),
-      shallow
-    );
+  const {
+    currentlyPlayingMetadata,
+    currentChordIndex,
+    audioMetadata,
+    setIsProgramaticallyScrolling,
+  } = useTabStore(
+    (state) => ({
+      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+      currentChordIndex: state.currentChordIndex,
+      audioMetadata: state.audioMetadata,
+      setIsProgramaticallyScrolling: state.setIsProgramaticallyScrolling,
+    }),
+    shallow
+  );
 
   useEffect(() => {
     if (
@@ -25,6 +30,8 @@ function useAutoscrollToCurrentChord({
       !autoscrollEnabled
     )
       return;
+
+    setIsProgramaticallyScrolling(true);
 
     const { sectionIndex, subSectionIndex, chordSequenceIndex, chordIndex } =
       currentlyPlayingMetadata[currentChordIndex]!.location;
@@ -46,12 +53,17 @@ function useAutoscrollToCurrentChord({
         block: "center",
         inline: "center",
       });
+
+      setTimeout(() => {
+        setIsProgramaticallyScrolling(false);
+      }, 0);
     }
   }, [
     currentlyPlayingMetadata,
     currentChordIndex,
     autoscrollEnabled,
     audioMetadata,
+    setIsProgramaticallyScrolling,
   ]);
 }
 

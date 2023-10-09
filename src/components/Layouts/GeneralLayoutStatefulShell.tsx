@@ -12,6 +12,7 @@ import { useTabStore } from "~/stores/TabStore";
 import AudioControls from "../AudioControls/AudioControls";
 import Header from "../Header/Header";
 import { Button } from "../ui/button";
+import { useLocalStorageValue } from "@react-hookz/web";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -38,9 +39,10 @@ function GeneralLayoutStatefulShell() {
   const [audioControlsVisibility, setAudioControlsVisibility] = useState<
     "expanded" | "minimized" | "keepMinimized"
   >("expanded");
-  const [showingHeader, setShowingHeader] = useState(true);
   const [scrollThresholdReached, setScrollThresholdReached] =
     useState<boolean>(false);
+
+  const localStorageAutoscroll = useLocalStorageValue("autostrumAutoscroll");
 
   const autoscrollEnabled = useGetLocalStorageValues().autoscroll;
   const looping = useGetLocalStorageValues().looping;
@@ -67,6 +69,7 @@ function GeneralLayoutStatefulShell() {
     masterVolumeGainNode,
     setMasterVolumeGainNode,
     recordedAudioBufferSourceNode,
+    isProgramaticallyScrolling,
   } = useTabStore(
     (state) => ({
       setLooping: state.setLooping,
@@ -84,6 +87,7 @@ function GeneralLayoutStatefulShell() {
       masterVolumeGainNode: state.masterVolumeGainNode,
       setMasterVolumeGainNode: state.setMasterVolumeGainNode,
       recordedAudioBufferSourceNode: state.recordedAudioBufferSourceNode,
+      isProgramaticallyScrolling: state.isProgramaticallyScrolling,
     }),
     shallow
   );
@@ -136,10 +140,6 @@ function GeneralLayoutStatefulShell() {
 
           // handle scroll down
           if (scrollTop > lastScrollTop) {
-            if (scrollTop > 64 && asPath.includes("/tab")) {
-              setShowingHeader(false);
-            }
-
             if (
               !audioMetadata.playing &&
               audioControlsVisibility !== "keepMinimized"
@@ -150,12 +150,6 @@ function GeneralLayoutStatefulShell() {
 
           // handle scroll up
           else {
-            // only valid to block showing header if playing with autoscroll since it would
-            // be way too jarring visually
-            if (!autoscrollEnabled || !audioMetadata.playing) {
-              setShowingHeader(true);
-            }
-
             if (
               !audioMetadata.playing &&
               audioControlsVisibility !== "keepMinimized"
@@ -222,7 +216,7 @@ function GeneralLayoutStatefulShell() {
     };
   }, []);
 
-  // Scroll to top button handling
+  // Scroll to top button handling + break out of autoscroll if user scrolls
   useEffect(() => {
     let timerId: NodeJS.Timeout | null = null;
 
@@ -234,6 +228,10 @@ function GeneralLayoutStatefulShell() {
 
       timerId = setTimeout(() => {
         window.requestAnimationFrame(() => {
+          if (!isProgramaticallyScrolling && audioMetadata.playing) {
+            localStorageAutoscroll.set("false");
+          }
+
           setScrollThresholdReached(
             window.scrollY > Math.floor(0.35 * window.innerHeight)
           );
@@ -250,7 +248,12 @@ function GeneralLayoutStatefulShell() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [scrollToTopTicking]);
+  }, [
+    scrollToTopTicking,
+    isProgramaticallyScrolling,
+    localStorageAutoscroll,
+    audioMetadata.playing,
+  ]);
 
   // route change state reset handling
   useEffect(() => {

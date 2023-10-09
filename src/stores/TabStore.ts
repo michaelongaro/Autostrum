@@ -255,6 +255,8 @@ interface TabState {
   getStringifiedTabData: () => string;
   resetAudioAndMetadataOnRouteChange: () => void;
   getTabData: () => Section[];
+  isProgramaticallyScrolling: boolean;
+  setIsProgramaticallyScrolling: (isProgramaticallyScrolling: boolean) => void;
 
   // modals
   showAudioRecorderModal: boolean;
@@ -524,6 +526,9 @@ export const useTabStore = create<TabState>()(
     recordedAudioBufferSourceNode: null,
     setRecordedAudioBufferSourceNode: (recordedAudioBufferSourceNode) =>
       set({ recordedAudioBufferSourceNode }),
+    isProgramaticallyScrolling: false,
+    setIsProgramaticallyScrolling: (isProgramaticallyScrolling) =>
+      set({ isProgramaticallyScrolling }),
 
     // playing/pausing sound functions
     playTab: async ({ location, tabId }: PlayTab) => {
