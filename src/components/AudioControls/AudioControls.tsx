@@ -735,6 +735,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
             disabled={disablePlayButton}
             onClick={() => {
               if (audioMetadata.playing) {
+                pauseAudio();
+
                 if (audioMetadata.type === "Generated") {
                   setArtificalPlayButtonTimeout(true);
 
@@ -742,7 +744,6 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                     setArtificalPlayButtonTimeout(false);
                   }, 300);
                 }
-                pauseAudio();
               } else {
                 if (
                   audioMetadata.type === "Artist recording" &&

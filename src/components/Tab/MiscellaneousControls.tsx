@@ -56,7 +56,7 @@ function MiscellaneousControls({
     sectionProgression,
     setSectionProgression,
     audioMetadata,
-    previewMetadata,
+    setAudioMetadata,
     currentInstrument,
     getTabData,
     setTabData,
@@ -70,7 +70,7 @@ function MiscellaneousControls({
       sectionProgression: state.sectionProgression,
       setSectionProgression: state.setSectionProgression,
       audioMetadata: state.audioMetadata,
-      previewMetadata: state.previewMetadata,
+      setAudioMetadata: state.setAudioMetadata,
       currentInstrument: state.currentInstrument,
       getTabData: state.getTabData,
       setTabData: state.setTabData,
@@ -187,20 +187,26 @@ function MiscellaneousControls({
   }
 
   function deleteSection() {
+    // need to pause + reset location if group being deleted is in the current section
+    if (audioMetadata.location?.sectionIndex === sectionIndex) {
+      pauseAudio(true);
+      setAudioMetadata({
+        ...audioMetadata,
+        playing: false, // should get set to false by pauseAudio, but isn't hurting anything
+        location: null,
+      });
+    }
+
     const newTabData = getTabData();
 
-    if (
-      chordSequenceIndex !== undefined &&
-      subSectionIndex !== undefined &&
-      sectionIndex !== undefined
-    ) {
+    if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
       const newChordSequence = newTabData[sectionIndex]?.data[subSectionIndex]
         ?.data as ChordSequence[];
 
       newChordSequence.splice(chordSequenceIndex, 1);
 
       newTabData[sectionIndex]!.data[subSectionIndex]!.data = newChordSequence;
-    } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
+    } else if (subSectionIndex !== undefined) {
       const newSubSection = newTabData[sectionIndex]?.data as (
         | TabSection
         | ChordSection
@@ -209,7 +215,7 @@ function MiscellaneousControls({
       newSubSection.splice(subSectionIndex, 1);
 
       newTabData[sectionIndex]!.data = newSubSection;
-    } else if (sectionIndex !== undefined) {
+    } else {
       const newSectionProgression = [...sectionProgression];
 
       for (let i = newSectionProgression.length - 1; i >= 0; i--) {
@@ -226,8 +232,6 @@ function MiscellaneousControls({
 
     setTabData(newTabData);
   }
-
-  // concept mostly working below but still not getting new memory reference... just throw into chatgpt
 
   function copySection() {
     if (
@@ -356,14 +360,13 @@ function MiscellaneousControls({
             )
           }
           onClick={() => {
-            if (
-              audioMetadata.playing &&
-              isEqual(audioMetadata.location, {
-                sectionIndex,
-                subSectionIndex,
-                chordSequenceIndex,
-              })
-            ) {
+            const locationIsEqual = isEqual(audioMetadata.location, {
+              sectionIndex,
+              subSectionIndex,
+              chordSequenceIndex,
+            });
+
+            if (audioMetadata.playing && locationIsEqual) {
               pauseAudio();
               setArtificialPlayButtonTimeout(true);
 
@@ -371,14 +374,8 @@ function MiscellaneousControls({
                 setArtificialPlayButtonTimeout(false);
               }, 300);
             } else {
-              if (audioMetadata.playing || previewMetadata.playing) {
-                pauseAudio(
-                  !isEqual(audioMetadata.location, {
-                    sectionIndex,
-                    subSectionIndex,
-                    chordSequenceIndex,
-                  })
-                );
+              if (!locationIsEqual) {
+                pauseAudio(true);
               }
 
               setTimeout(
@@ -392,7 +389,7 @@ function MiscellaneousControls({
                     },
                   });
                 },
-                audioMetadata.playing || previewMetadata.playing ? 50 : 0
+                !locationIsEqual ? 50 : 0
               );
             }
           }}

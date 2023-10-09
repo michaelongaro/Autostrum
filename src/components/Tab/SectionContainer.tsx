@@ -76,7 +76,6 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       sectionProgression: state.sectionProgression,
       setSectionProgression: state.setSectionProgression,
       audioMetadata: state.audioMetadata,
-      previewMetadata: state.previewMetadata,
       currentInstrument: state.currentInstrument,
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
       currentChordIndex: state.currentChordIndex,
@@ -224,12 +223,11 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
                 artificalPlayButtonTimeout
               }
               onClick={() => {
-                if (
-                  audioMetadata.playing &&
-                  isEqual(audioMetadata.location, {
-                    sectionIndex,
-                  })
-                ) {
+                const locationIsEqual = isEqual(audioMetadata.location, {
+                  sectionIndex,
+                });
+
+                if (audioMetadata.playing && locationIsEqual) {
                   pauseAudio();
                   setArtificialPlayButtonTimeout(true);
 
@@ -237,7 +235,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
                     setArtificialPlayButtonTimeout(false);
                   }, 300);
                 } else {
-                  if (audioMetadata.playing || previewMetadata.playing) {
+                  if (!locationIsEqual) {
                     pauseAudio(true);
                   }
 
@@ -248,12 +246,9 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
                         location: {
                           sectionIndex,
                         },
-                        resetToStart: !isEqual(audioMetadata.location, {
-                          sectionIndex,
-                        }),
                       });
                     },
-                    audioMetadata.playing ? 50 : 0
+                    !locationIsEqual ? 50 : 0
                   );
                 }
               }}
