@@ -308,7 +308,7 @@ function GeneralLayoutStatefulShell() {
 
   return (
     <>
-      <Header offscreen={!showingHeader} />
+      <Header />
 
       <AnimatePresence mode="wait">
         {showingAudioControls && (
@@ -321,7 +321,7 @@ function GeneralLayoutStatefulShell() {
         )}
       </AnimatePresence>
 
-      {/* bottom right scroll to top button */}
+      {/* scroll to top button */}
       <AnimatePresence mode="wait">
         {scrollThresholdReached && (
           <motion.div
