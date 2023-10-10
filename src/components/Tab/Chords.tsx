@@ -1,4 +1,4 @@
-import { AiFillEdit } from "react-icons/ai";
+import { MdModeEditOutline } from "react-icons/md";
 import { FaTrashAlt } from "react-icons/fa";
 import { shallow } from "zustand/shallow";
 import {
@@ -171,7 +171,7 @@ function Chords() {
                       }}
                     >
                       {/* add the tooltip below for "Edit" */}
-                      <AiFillEdit className="h-6 w-6" />
+                      <MdModeEditOutline className="h-6 w-6" />
                     </Button>
                     {/* delete button */}
                     <Button

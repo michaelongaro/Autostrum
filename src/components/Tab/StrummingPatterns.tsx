@@ -1,6 +1,6 @@
 import isEqual from "lodash.isequal";
 import { useState } from "react";
-import { AiFillEdit } from "react-icons/ai";
+import { MdModeEditOutline } from "react-icons/md";
 import { FaTrashAlt } from "react-icons/fa";
 import { shallow } from "zustand/shallow";
 import {
@@ -195,7 +195,7 @@ function StrummingPatterns() {
                           });
                         }}
                       >
-                        <AiFillEdit className="h-5 w-5" />
+                        <MdModeEditOutline className="h-5 w-5" />
                       </Button>
 
                       {/* delete button */}
