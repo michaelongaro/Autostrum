@@ -135,8 +135,8 @@ function DeleteAccountModal() {
                   Delete all of my tabs along with my account.
                 </label>
                 <p className="text-sm text-pink-200">
-                  Leaving this unchecked will preserve your tabs, while
-                  displaying the artist as &ldquo;Anonymous&rdquo;.
+                  Leaving this unchecked will preserve your tabs, and will
+                  display the artist as &ldquo;Anonymous&rdquo;.
                 </p>
               </div>
             </div>
