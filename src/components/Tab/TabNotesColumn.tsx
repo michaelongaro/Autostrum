@@ -190,9 +190,11 @@ function TabNotesColumn({
       if (
         // edge case to show the last chord as played when the song is paused and
         // the audio controls progress bar is all the way completed. Won't work normally
-        // since the columnIndex has to be greater than the last chord index
+        // since the columnIndex has to be greater than the last chord index.
+        // -2 instead of -1 since we have the dummy chord to line up the thumb of
+        // <AudioControls />
         !audioMetadata.playing &&
-        currentChordIndex === currentlyPlayingMetadata.length
+        currentChordIndex === currentlyPlayingMetadata.length - 2
       ) {
         return true;
       } else if (
