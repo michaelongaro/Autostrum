@@ -5,7 +5,7 @@ import type {
   RefetchQueryFilters,
 } from "@tanstack/react-query";
 import { AnimatePresence } from "framer-motion";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { FaBook } from "react-icons/fa";
 import { v4 as uuid } from "uuid";
 import { shallow } from "zustand/shallow";
@@ -25,6 +25,7 @@ import StrummingPatternModal from "../modals/StrummingPatternModal";
 import Chords from "./Chords";
 import SectionContainer from "./SectionContainer";
 import StrummingPatterns from "./StrummingPatterns";
+import CustomTuningModal from "../modals/CustomTuningModal";
 
 // not sure of best way to avoid having the same name for interface and component
 
@@ -39,6 +40,8 @@ interface ITab extends Partial<RefetchTab> {
 }
 
 function Tab({ tab, refetchTab }: ITab) {
+  const [customTuning, setCustomTuning] = useState("");
+
   const localStorageTabData = useLocalStorageValue("tabData");
 
   const {
@@ -70,6 +73,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setShowEffectGlossaryModal,
     chordBeingEdited,
     strummingPatternBeingEdited,
+    showCustomTuningModal,
   } = useTabStore(
     (state) => ({
       setId: state.setId,
@@ -100,6 +104,7 @@ function Tab({ tab, refetchTab }: ITab) {
       setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
       chordBeingEdited: state.chordBeingEdited,
       strummingPatternBeingEdited: state.strummingPatternBeingEdited,
+      showCustomTuningModal: state.showCustomTuningModal,
     }),
     shallow
   );
@@ -235,7 +240,7 @@ function Tab({ tab, refetchTab }: ITab) {
   return (
     <>
       <div className="baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-md md:my-24 xl:w-8/12">
-        <TabMetadata refetchTab={refetchTab} />
+        <TabMetadata refetchTab={refetchTab} customTuning={customTuning} />
 
         <Separator className="w-[96%]" />
 
@@ -275,6 +280,15 @@ function Tab({ tab, refetchTab }: ITab) {
 
       <AnimatePresence mode="wait">
         {showAudioRecorderModal && <AudioRecorderModal />}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        {showCustomTuningModal && (
+          <CustomTuningModal
+            customTuning={customTuning}
+            setCustomTuning={setCustomTuning}
+          />
+        )}
       </AnimatePresence>
 
       <AnimatePresence mode="wait">

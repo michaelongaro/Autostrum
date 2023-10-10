@@ -41,7 +41,11 @@ import { Textarea } from "../ui/textarea";
 import type { RefetchTab } from "./Tab";
 import classes from "./TabMetadata.module.css";
 
-function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
+type TabMetadata = {
+  customTuning: string;
+} & Partial<RefetchTab>;
+
+function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
   const { userId } = useAuth();
 
   const { push, asPath } = useRouter();
@@ -875,8 +879,10 @@ function TabMetadata({ refetchTab }: Partial<RefetchTab>) {
               <Label htmlFor="tuning">
                 Tuning <span className="text-brightRed">*</span>
               </Label>
-              {/* TODO: ability to add custom tunings */}
-              <CommandCombobox showPulsingError={showPulsingError} />
+              <CommandCombobox
+                showPulsingError={showPulsingError}
+                customTuning={customTuning}
+              />
             </div>
 
             <div

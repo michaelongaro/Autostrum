@@ -60,6 +60,7 @@ function ChordSequence({
   chordSequenceData,
   subSectionData,
 }: ChordSequence) {
+  const [selectIsOpen, setSelectIsOpen] = useState(false);
   const [
     indexOfCurrentlySelectedStrummingPattern,
     setIndexOfCurrentlySelectedStrummingPattern,
@@ -313,6 +314,8 @@ function ChordSequence({
                   <Label>Strumming pattern</Label>
 
                   <Select
+                    open={selectIsOpen}
+                    onOpenChange={setSelectIsOpen}
                     onValueChange={handleStrummingPatternChange}
                     value={`${indexOfCurrentlySelectedStrummingPattern}`}
                   >
@@ -346,9 +349,27 @@ function ChordSequence({
                             </SelectItem>
                           );
                         })}
-                        <SelectItem value={`${-1}`}>
-                          <p>Add new pattern</p>
-                        </SelectItem>
+                        <div className="baseFlex my-2 w-full">
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setSelectIsOpen(false);
+                              setStrummingPatternBeingEdited({
+                                index: strummingPatterns.length,
+                                value: {
+                                  id: uuid(),
+                                  noteLength: "1/8th",
+                                  strums: Array.from({ length: 8 }, () => ({
+                                    palmMute: "",
+                                    strum: "",
+                                  })),
+                                },
+                              });
+                            }}
+                          >
+                            Add new pattern
+                          </Button>
+                        </div>
                       </SelectGroup>
                     </SelectContent>
                   </Select>

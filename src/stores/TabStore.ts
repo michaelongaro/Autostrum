@@ -176,6 +176,7 @@ const initialStoreState = {
   strummingPatternBeingEdited: null,
   showingEffectGlossary: false,
   showDeleteAccountModal: false,
+  showCustomTuningModal: false,
 
   // related to sound generation/playing
   breakOnNextChord: false,
@@ -270,6 +271,8 @@ interface TabState {
   setShowEffectGlossaryModal: (showEffectGlossaryModal: boolean) => void;
   showDeleteAccountModal: boolean;
   setShowDeleteAccountModal: (showDeleteAccountModal: boolean) => void;
+  showCustomTuningModal: boolean;
+  setShowCustomTuningModal: (showCustomTuningModal: boolean) => void;
 
   // below are also used to determine if respective modal should be showing
   chordBeingEdited: {
@@ -864,6 +867,9 @@ export const useTabStore = create<TabState>()(
     showDeleteAccountModal: false,
     setShowDeleteAccountModal: (showDeleteAccountModal) =>
       set({ showDeleteAccountModal }),
+    showCustomTuningModal: false,
+    setShowCustomTuningModal: (showCustomTuningModal) =>
+      set({ showCustomTuningModal }),
 
     // below are also used to determine if respective modal should be showing
     chordBeingEdited: null,
