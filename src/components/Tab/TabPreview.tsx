@@ -106,7 +106,7 @@ function PreviewSectionContainer({
 
       {/* map over tab/chord subSections */}
       <div className="baseVertFlex w-full gap-4">
-        {sectionData.data.map((subSection, index) => (
+        {sectionData.data.slice(0, 2).map((subSection, index) => (
           // TODO: this index is probably not the best since the array can be reordered/mutated,
           // also applies to further child components
           <div
