@@ -7,6 +7,7 @@ import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { BsPlus } from "react-icons/bs";
 import {
   useTabStore,
   type ChordSection as ChordSectionType,
@@ -344,9 +345,18 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       </AnimatePresence>
 
       {editing && (
-        <div className="baseFlex my-4 gap-2">
-          <Button onClick={() => addNewBlock("tab")}>Add tab block</Button>
-          <Button onClick={() => addNewBlock("chord")}>Add chord block</Button>
+        <div className="baseFlex my-4 gap-4">
+          <Button onClick={() => addNewBlock("tab")} className="baseFlex pl-3">
+            <BsPlus className="mr-1 h-5 w-5" />
+            Tab block
+          </Button>
+          <Button
+            onClick={() => addNewBlock("chord")}
+            className="baseFlex pl-3"
+          >
+            <BsPlus className="mr-1 h-5 w-5" />
+            Strumming block
+          </Button>
         </div>
       )}
 
