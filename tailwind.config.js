@@ -74,6 +74,13 @@ module.exports = {
           "60%": { translate: "-7px" },
           "80%": { translate: "8px" },
         },
+        smallErrorShake: {
+          "0%, 100%": { translate: "0px" },
+          "20%": { translate: "-5px" },
+          "40%": { translate: "5px" },
+          "60%": { translate: "-3px" },
+          "80%": { translate: "4px" },
+        },
         colorOscillate: {
           "0%": { color: "hsl(327, 73%, 97%)" },
           "50%": { color: "hsla(327, 73%, 97%, 0.65)" },
@@ -84,6 +91,7 @@ module.exports = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         errorShake: "errorShake 0.5s ease-in-out infinite",
+        smallErrorShake: "smallErrorShake 0.5s ease-in-out infinite",
         colorOscillate: "colorOscillate 1.75s ease-in-out infinite",
       },
     },
