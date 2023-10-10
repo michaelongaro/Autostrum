@@ -88,13 +88,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
   function handleChordNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
 
-    const allowAnyValidLetterOrNumber = /^[\p{L}\p{N} ]+$/gu;
-
-    if (
-      value.length > 10 ||
-      (value.length > 0 && !allowAnyValidLetterOrNumber.test(value))
-    )
-      return;
+    if (value.length > 10) return;
 
     const modifiedChord = structuredClone(chordBeingEdited);
     modifiedChord.value.name = value;
