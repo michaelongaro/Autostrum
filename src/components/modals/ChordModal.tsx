@@ -236,7 +236,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <div className="baseFlex gap-2 sm:gap-6">
+                <div className="baseFlex mt-2 gap-2 sm:gap-6">
                   <div className="baseFlex gap-2">
                     <span className="font-semibold">A-G</span>
                     <span>-</span>

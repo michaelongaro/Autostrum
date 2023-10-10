@@ -385,7 +385,7 @@ function StrummingPatternModal({
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <div className="baseFlex  gap-4 sm:w-full sm:gap-6">
+                <div className="baseFlex mt-2 gap-4 sm:w-full sm:gap-6">
                   <div className="baseFlex gap-2">
                     <span className="font-semibold">v / d</span>
                     <p>-</p>
