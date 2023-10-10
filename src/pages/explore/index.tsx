@@ -82,120 +82,114 @@ function Explore() {
           <p className="text-xl font-bold">Weekly featured artist</p>
           <Separator className="w-full bg-pink-500" />
         </div>
-        <div className="baseVertFlex w-full !flex-nowrap gap-4 md:!flex-row md:!items-end md:gap-8">
-          <div className="lightestGlassmorphic baseVertFlex min-w-[200px] !flex-nowrap gap-3 rounded-md px-4 py-6">
-            <div className="baseVertFlex gap-4">
-              <div className="grid grid-cols-1 grid-rows-1">
-                {artist || loadingCurrentArtist ? (
-                  <>
-                    <Link
-                      href={`/artist/${artist?.username ?? "Anonymous"}`}
-                      className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24"
-                    >
-                      <Image
-                        src={artist?.profileImageUrl ?? ""}
-                        alt={`${
-                          artist?.username ?? "Anonymous"
-                        }'s profile image`}
-                        width={96}
-                        height={96}
-                        onLoadingComplete={() => {
-                          setTimeout(() => {
-                            setProfileImageLoaded(true);
-                          }, 1000);
-                        }}
-                        onClick={() =>
-                          void push(
-                            `/artist/${artist?.username ?? "Anonymous"}`
-                          )
-                        }
-                        style={{
-                          opacity: profileImageLoaded ? 1 : 0,
-                        }}
-                        className="h-24 w-24 rounded-full object-cover object-center transition-opacity"
-                      />
-                    </Link>
+        <div className="baseVertFlex w-full !flex-nowrap md:!flex-row md:!items-end md:gap-8">
+          <div className="baseFlex h-[285px]">
+            <div className="lightestGlassmorphic baseVertFlex min-w-[200px] !flex-nowrap gap-3 rounded-md px-4 py-6">
+              <div className="baseVertFlex gap-4">
+                <div className="grid grid-cols-1 grid-rows-1">
+                  {artist || loadingCurrentArtist ? (
+                    <>
+                      <Link
+                        href={`/artist/${artist?.username ?? "Anonymous"}`}
+                        className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24"
+                      >
+                        <Image
+                          src={artist?.profileImageUrl ?? ""}
+                          alt={`${
+                            artist?.username ?? "Anonymous"
+                          }'s profile image`}
+                          width={96}
+                          height={96}
+                          onLoadingComplete={() => {
+                            setTimeout(() => {
+                              setProfileImageLoaded(true);
+                            }, 1000);
+                          }}
+                          onClick={() =>
+                            void push(
+                              `/artist/${artist?.username ?? "Anonymous"}`
+                            )
+                          }
+                          style={{
+                            opacity: profileImageLoaded ? 1 : 0,
+                          }}
+                          className="h-24 w-24 rounded-full object-cover object-center transition-opacity"
+                        />
+                      </Link>
 
-                    <div
-                      style={{
-                        opacity: !profileImageLoaded ? 1 : 0,
-                        zIndex: !profileImageLoaded ? 1 : -1,
-                      }}
-                      className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 transition-opacity
+                      <div
+                        style={{
+                          opacity: !profileImageLoaded ? 1 : 0,
+                          zIndex: !profileImageLoaded ? 1 : -1,
+                        }}
+                        className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 transition-opacity
                               ${!profileImageLoaded ? "animate-pulse" : ""}
                             `}
-                    ></div>
-                  </>
+                      ></div>
+                    </>
+                  ) : (
+                    <div className="baseFlex h-24 w-24 rounded-full border-2 shadow-md">
+                      <AiOutlineUser className="h-16 w-16" />
+                    </div>
+                  )}
+                </div>
+
+                {artist ? (
+                  <Button
+                    variant={"link"}
+                    asChild
+                    className="inline-block max-w-[200px]"
+                  >
+                    <Link
+                      href={`/artist/${artist?.username ?? "Anonymous"}`}
+                      className="block truncate !p-0 !text-xl !font-semibold"
+                    >
+                      {artist?.username}
+                    </Link>
+                  </Button>
                 ) : (
-                  <div className="baseFlex h-24 w-24 rounded-full border-2 shadow-md">
-                    <AiOutlineUser className="h-16 w-16" />
-                  </div>
+                  <div className="my-3 h-6 w-28 animate-pulse rounded-md bg-pink-300"></div>
                 )}
               </div>
 
-              {artist ? (
-                <Button
-                  variant={"link"}
-                  asChild
-                  className="inline-block max-w-[200px]"
-                >
-                  <Link
-                    href={`/artist/${artist?.username ?? "Anonymous"}`}
-                    className="block truncate !p-0 !text-xl !font-semibold"
-                  >
-                    {artist?.username}
-                  </Link>
-                </Button>
-              ) : (
-                <div className="my-3 h-6 w-28 animate-pulse rounded-md bg-pink-300"></div>
-              )}
+              <div className="baseFlex gap-4">
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      {artist ? (
+                        <div className="baseFlex gap-2">
+                          <GiMusicalScore className="h-6 w-6" />
+                          {formatNumber(artist.numberOfTabs)}
+                        </div>
+                      ) : (
+                        <div className="h-6 w-14 animate-pulse rounded-md bg-pink-300"></div>
+                      )}
+                    </TooltipTrigger>
+                    <TooltipContent side={"bottom"}>
+                      <p>Total tabs</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      {artist ? (
+                        <div className="baseFlex gap-2">
+                          <AiFillHeart className="h-6 w-6 text-pink-800" />
+                          {formatNumber(artist.numberOfLikes)}
+                        </div>
+                      ) : (
+                        <div className="h-6 w-14 animate-pulse rounded-md bg-pink-300"></div>
+                      )}
+                    </TooltipTrigger>
+                    <TooltipContent side={"bottom"}>
+                      <p>Total likes</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
-
-            <div className="baseFlex gap-4">
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    {artist ? (
-                      <div className="baseFlex gap-2">
-                        <GiMusicalScore className="h-6 w-6" />
-                        {formatNumber(artist.numberOfTabs)}
-                      </div>
-                    ) : (
-                      <div className="h-6 w-14 animate-pulse rounded-md bg-pink-300"></div>
-                    )}
-                  </TooltipTrigger>
-                  <TooltipContent side={"bottom"}>
-                    <p>Total tabs</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    {artist ? (
-                      <div className="baseFlex gap-2">
-                        <AiFillHeart className="h-6 w-6 text-pink-800" />
-                        {formatNumber(artist.numberOfLikes)}
-                      </div>
-                    ) : (
-                      <div className="h-6 w-14 animate-pulse rounded-md bg-pink-300"></div>
-                    )}
-                  </TooltipTrigger>
-                  <TooltipContent side={"bottom"}>
-                    <p>Total likes</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-
-            {artist ? (
-              <p className="mt-4 text-sm italic">{`joined on ${formatDate(
-                artist.createdAt
-              )}`}</p>
-            ) : (
-              <div className="mb-1 mt-3 h-4 w-24 animate-pulse rounded-md bg-pink-300"></div>
-            )}
           </div>
           {/* pinned tab */}
           <div className="baseVertFlex w-11/12 !flex-nowrap !items-start gap-2 sm:w-3/4 md:w-auto">
