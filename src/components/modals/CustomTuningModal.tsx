@@ -44,14 +44,11 @@ function CustomTuningModal({
   const [accordionValue, setAccordionValue] = useState(
     isMobile ? "" : "opened"
   );
-  const [customInputValues, setCustomInputValues] = useState<string[]>([
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-  ]);
+  const [customInputValues, setCustomInputValues] = useState<string[]>(
+    customTuning.length === 0
+      ? ["", "", "", "", "", ""]
+      : customTuning.split(" ")
+  );
 
   const [showInvalidInputPerIndex, setShowInvalidInputPerIndex] = useState([
     false,
@@ -64,27 +61,15 @@ function CustomTuningModal({
 
   const placeholderNotes = ["e2", "a2", "d3", "g3", "b3", "e4"];
 
-  useEffect(() => {
-    if (customTuning && customInputValues.some((value) => value !== "")) return;
-
-    const parsedTuning = customTuning.split(" ");
-    setCustomInputValues(parsedTuning);
-  }, [customInputValues, customTuning]);
-
-  const {
-    tuning,
-    setTuning,
-    setPreventFramerLayoutShift,
-    setShowCustomTuningModal,
-  } = useTabStore(
-    (state) => ({
-      tuning: state.tuning,
-      setTuning: state.setTuning,
-      setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
-      setShowCustomTuningModal: state.setShowCustomTuningModal,
-    }),
-    shallow
-  );
+  const { setTuning, setPreventFramerLayoutShift, setShowCustomTuningModal } =
+    useTabStore(
+      (state) => ({
+        setTuning: state.setTuning,
+        setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
+        setShowCustomTuningModal: state.setShowCustomTuningModal,
+      }),
+      shallow
+    );
 
   useEffect(() => {
     setPreventFramerLayoutShift(true);
