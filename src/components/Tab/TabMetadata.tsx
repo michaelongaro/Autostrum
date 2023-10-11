@@ -339,7 +339,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
     if (
       !userId ||
       !title ||
-      !genreId ||
+      genreId === -1 ||
       !tuning ||
       !bpm ||
       tabIsEffectivelyEmpty(tabData)
