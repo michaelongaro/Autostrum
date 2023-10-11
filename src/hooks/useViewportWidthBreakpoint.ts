@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 
 function useViewportWidthBreakpoint(width: number) {
-  const [viewportLargerThanBreakpoint, setviewportLargerThanBreakpoint] =
+  const [viewportLargerThanBreakpoint, setViewportLargerThanBreakpoint] =
     useState(false);
 
   useEffect(() => {
     function handleResize() {
       if (window.innerWidth >= width) {
-        setviewportLargerThanBreakpoint(true);
+        setViewportLargerThanBreakpoint(true);
       } else {
-        setviewportLargerThanBreakpoint(false);
+        setViewportLargerThanBreakpoint(false);
       }
     }
 
