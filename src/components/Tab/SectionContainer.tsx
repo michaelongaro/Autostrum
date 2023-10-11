@@ -212,7 +212,9 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       {!editing && (
         <div className="baseFlex w-full !justify-start gap-4">
           <div className="baseFlex gap-4 rounded-md bg-pink-600 px-4 py-2">
-            <p className="text-xl font-semibold">{sectionData.title}</p>
+            <p className="text-lg font-semibold md:text-xl">
+              {sectionData.title}
+            </p>
 
             <Button
               variant="playPause"
@@ -253,6 +255,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
                   );
                 }
               }}
+              className="h-8 md:h-auto"
             >
               <PlayButtonIcon
                 uniqueLocationKey={`sectionContainer${sectionIndex}`}
