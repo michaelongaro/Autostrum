@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
+import debounce from "lodash.debounce";
 import { useState } from "react";
 import { BsMusicNote } from "react-icons/bs";
 import { v4 as uuid } from "uuid";
@@ -45,6 +46,7 @@ interface SectionContainer {
 }
 
 function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
+  const [localTitle, setLocalTitle] = useState(sectionData.title);
   const [artificalPlayButtonTimeout, setArtificialPlayButtonTimeout] =
     useState(false);
 
@@ -90,19 +92,26 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
   function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.value.length > 25) return;
 
-    const newTabData = getTabData();
-    const newSectionProgression = [...sectionProgression];
+    setLocalTitle(e.target.value);
 
-    newTabData[sectionIndex]!.title = e.target.value;
+    // in general app slows down w/ size of tab increasing, but it's especially
+    // noticeable when updating the title of a section since it can be
+    // updated faster than the tab data (in general)
+    debounce(() => {
+      const newTabData = getTabData();
+      const newSectionProgression = [...sectionProgression];
 
-    for (const section of newSectionProgression) {
-      if (section.sectionId === newTabData[sectionIndex]!.id) {
-        section.title = e.target.value;
+      newTabData[sectionIndex]!.title = e.target.value;
+
+      for (const section of newSectionProgression) {
+        if (section.sectionId === newTabData[sectionIndex]!.id) {
+          section.title = e.target.value;
+        }
       }
-    }
 
-    setTabData(newTabData);
-    setSectionProgression(newSectionProgression);
+      setTabData(newTabData);
+      setSectionProgression(newSectionProgression);
+    }, 1000)();
   }
 
   function generateNewColumns(): TabSectionType {
@@ -193,7 +202,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
             <div className="baseFlex gap-2">
               <Label className="text-lg font-semibold">Title</Label>
               <Input
-                value={sectionData.title}
+                value={localTitle}
                 placeholder="Section title"
                 onChange={updateSectionTitle}
                 className="max-w-[10rem] font-semibold sm:max-w-[12rem]"
