@@ -388,6 +388,7 @@ function ChordSequence({
 
           <StrummingPattern
             data={chordSequenceData.strummingPattern}
+            chordSequenceData={chordSequenceData.data}
             mode={editing ? "editingChordSequence" : "viewingWithChordNames"}
             sectionIndex={sectionIndex}
             subSectionIndex={subSectionIndex}

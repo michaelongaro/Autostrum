@@ -33,6 +33,8 @@ import { Label } from "../ui/label";
 
 interface StrummingPattern {
   data: StrummingPatternType;
+  chordSequenceData?: string[];
+
   mode:
     | "editingStrummingPattern"
     | "editingChordSequence"
@@ -57,6 +59,7 @@ interface StrummingPattern {
 
 function StrummingPattern({
   data,
+  chordSequenceData,
   mode,
   index,
   sectionIndex,
@@ -118,6 +121,10 @@ function StrummingPattern({
 
     return "0";
   }, [mode, patternHasPalmMuting]);
+
+  // const chordSection = useMemo(() => {
+  //   return getTabData()[sectionIndex ?? 0]?.data[subSectionIndex ?? 0];
+  // }, [getTabData, sectionIndex, subSectionIndex]);
 
   function handleKeyDown(
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -365,18 +372,6 @@ function StrummingPattern({
     });
   }
 
-  function getChordName(beatIndex: number) {
-    const chordSection =
-      getTabData()[sectionIndex ?? 0]?.data[subSectionIndex ?? 0];
-
-    if (chordSection && chordSection.type === "chord") {
-      const chord = chordSection.data[chordSequenceIndex ?? 0]?.data[beatIndex];
-      return chord ?? "";
-    }
-
-    return "";
-  }
-
   function handleChordChange(value: string, beatIndex: number) {
     const chordSection =
       getTabData()[sectionIndex ?? 0]?.data[subSectionIndex ?? 0];
@@ -507,10 +502,10 @@ function StrummingPattern({
                         handleChordChange(value, strumIndex)
                       }
                       value={
-                        getChordName(strumIndex) === ""
+                        chordSequenceData?.[strumIndex] === ""
                           ? "blues" // TODO: currently have no clue why this (any) random value is needed. I would imagine that
                           : // I could pass "" and the value would be "" but that doesn't work
-                            getChordName(strumIndex)
+                            chordSequenceData?.[strumIndex]
                       }
                     >
                       <SelectTrigger className="w-fit">
@@ -545,9 +540,9 @@ function StrummingPattern({
                       ? "hsl(333, 71%, 51%)"
                       : "hsl(327, 73%, 97%)",
                   }}
-                  className="h-6 font-semibold transition-colors"
+                  className="mb-1 h-6 font-semibold transition-colors"
                 >
-                  {getChordName(strumIndex)}
+                  {chordSequenceData?.[strumIndex]}
                 </p>
               )}
 
@@ -653,7 +648,7 @@ function StrummingPattern({
                         style={{
                           fontSize: "30px",
                         }}
-                        className="absolute bottom-[-8px]"
+                        className="absolute bottom-[-9px]"
                       >
                         .
                       </div>
@@ -727,13 +722,24 @@ function StrummingPattern({
 }
 
 export default memo(StrummingPattern, (prevProps, nextProps) => {
-  const { data: prevData, ...restPrev } = prevProps;
-  const { data: nextData, ...restNext } = nextProps;
+  const {
+    data: prevData,
+    chordSequenceData: prevChordSequenceData,
+    ...restPrev
+  } = prevProps;
+  const {
+    data: nextData,
+    chordSequenceData: nextChordSequenceData,
+    ...restNext
+  } = nextProps;
 
   // TODO: maybe need more props to be checked here...
 
   // Custom comparison for getTabData() related prop
-  if (!isEqual(prevData, nextData)) {
+  if (
+    !isEqual(prevData, nextData) ||
+    !isEqual(prevChordSequenceData, nextChordSequenceData)
+  ) {
     return false; // props are not equal, so component should re-render
   }
 

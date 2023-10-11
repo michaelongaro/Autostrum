@@ -263,9 +263,12 @@ function PreviewChordSequence({
     >
       <PreviewStrummingPattern
         tabData={tabData}
+        chordSequenceData={chordSequenceData.data}
         data={chordSequenceData.strummingPattern}
         mode={"viewingWithChordNames"}
-        location={{ sectionIndex, subSectionIndex, chordSequenceIndex }}
+        sectionIndex={sectionIndex}
+        subSectionIndex={subSectionIndex}
+        chordSequenceIndex={chordSequenceIndex}
       />
     </div>
   );
@@ -275,6 +278,7 @@ function PreviewChordSequence({
 
 interface PreviewStrummingPattern {
   tabData: Section[];
+  chordSequenceData: string[];
   data: StrummingPattern;
   mode:
     | "editingStrummingPattern"
@@ -283,19 +287,21 @@ interface PreviewStrummingPattern {
     | "viewing"
     | "viewingInSelectDropdown";
   index?: number; // index of strumming pattern in strummingPatterns array (used for editing pattern)
-  location?: {
-    sectionIndex: number;
-    subSectionIndex: number;
-    chordSequenceIndex: number;
-  }; // location of strumming pattern in tabData array (used for editing chord sequence)
+
+  sectionIndex?: number;
+  subSectionIndex?: number;
+  chordSequenceIndex?: number;
 }
 
 function PreviewStrummingPattern({
   tabData,
+  chordSequenceData,
   data,
   mode,
   index,
-  location,
+  sectionIndex,
+  subSectionIndex,
+  chordSequenceIndex,
 }: PreviewStrummingPattern) {
   const patternHasPalmMuting = useCallback(() => {
     return data.strums.some((strum) => strum.palmMute !== "");
@@ -348,25 +354,6 @@ function PreviewStrummingPattern({
     return beat.toString();
   }
 
-  function patternHasAccents() {
-    return data.strums.some((strum) => strum.strum.includes(">"));
-  }
-
-  function getChordName(beatIndex: number) {
-    const chordSection =
-      tabData[location?.sectionIndex ?? 0]?.data[
-        location?.subSectionIndex ?? 0
-      ];
-
-    if (chordSection && chordSection.type === "chord") {
-      const chord =
-        chordSection.data[location?.chordSequenceIndex ?? 0]?.data[beatIndex];
-      return chord ?? "";
-    }
-
-    return "";
-  }
-
   return (
     <div
       style={{
@@ -412,9 +399,9 @@ function PreviewStrummingPattern({
                 style={{
                   color: "hsl(327, 73%, 97%)",
                 }}
-                className="h-6 font-semibold transition-colors"
+                className="mb-1 h-6 font-semibold transition-colors"
               >
-                {getChordName(strumIndex)}
+                {chordSequenceData?.[strumIndex]}
               </p>
 
               <div className="baseFlex !flex-nowrap">
@@ -470,7 +457,7 @@ function PreviewStrummingPattern({
                       style={{
                         fontSize: "30px",
                       }}
-                      className="absolute bottom-[-8px]"
+                      className="absolute bottom-[-9px]"
                     >
                       .
                     </div>
