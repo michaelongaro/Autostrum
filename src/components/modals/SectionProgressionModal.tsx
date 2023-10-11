@@ -342,7 +342,7 @@ function Section({
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectGroup>
+            <SelectGroup className="max-h-60 overflow-y-auto">
               <SelectLabel>Sections</SelectLabel>
 
               {sections.map((section, idx) => {

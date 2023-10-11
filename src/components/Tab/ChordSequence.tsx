@@ -331,7 +331,7 @@ function ChordSequence({
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectGroup>
+                      <SelectGroup className="max-h-60 overflow-y-auto">
                         <SelectLabel>Strumming patterns</SelectLabel>
                         {strummingPatterns.map((pattern, index) => {
                           return (

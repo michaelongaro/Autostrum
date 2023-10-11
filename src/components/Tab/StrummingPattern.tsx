@@ -517,7 +517,7 @@ function StrummingPattern({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectGroup>
+                        <SelectGroup className="max-h-60 overflow-y-auto">
                           <SelectLabel>Chord</SelectLabel>
                           <SelectItem
                             value=""
