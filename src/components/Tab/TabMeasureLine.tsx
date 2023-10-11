@@ -325,7 +325,7 @@ function TabMeasureLine({
                 <PopoverTrigger asChild>
                   <Button
                     id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`}
-                    className="absolute bottom-7 z-50 h-5 w-5 rounded-full p-[0.125rem] text-pink-50"
+                    className="absolute bottom-9 z-50 h-5 w-5 rounded-full p-[0.125rem] text-pink-50"
                     onKeyDown={handleKeyDown}
                   >
                     <BsMusicNote className="h-3 w-3" />
