@@ -7,7 +7,7 @@ import GeneralLayoutStatefulShell from "./GeneralLayoutStatefulShell";
 import { Noto_Sans } from "next/font/google";
 
 const notoSans = Noto_Sans({
-  weight: ["100", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
   subsets: ["latin"],
   display: "swap",

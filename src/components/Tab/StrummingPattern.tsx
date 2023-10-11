@@ -641,7 +641,7 @@ function StrummingPattern({
                         className={`baseFlex mb-1 h-5 leading-[0] ${
                           strum.strum.includes(">")
                             ? "font-semibold"
-                            : "font-thin"
+                            : "font-normal"
                         }`}
                       >
                         {strum.strum[0]}
