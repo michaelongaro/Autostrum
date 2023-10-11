@@ -13,6 +13,7 @@ import AudioControls from "../AudioControls/AudioControls";
 import Header from "../Header/Header";
 import { Button } from "../ui/button";
 import { useLocalStorageValue } from "@react-hookz/web";
+import useDetectRouteChanges from "~/hooks/useDetectRouteChanges";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -53,6 +54,8 @@ function GeneralLayoutStatefulShell() {
   useFetchAndLoadSoundfonts();
 
   useAutoCompileChords();
+
+  useDetectRouteChanges();
 
   const {
     setLooping,

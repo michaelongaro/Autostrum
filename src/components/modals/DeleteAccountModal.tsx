@@ -29,14 +29,18 @@ function DeleteAccountModal() {
   const [deleteAllOfArtistsTabs, setDeleteAllOfArtistsTabs] = useState(false);
   const [showDeleteCheckmark, setShowDeleteCheckmark] = useState(false);
 
-  const { setShowDeleteAccountModal, setPreventFramerLayoutShift } =
-    useTabStore(
-      (state) => ({
-        setShowDeleteAccountModal: state.setShowDeleteAccountModal,
-        setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
-      }),
-      shallow
-    );
+  const {
+    isLoadingARoute,
+    setShowDeleteAccountModal,
+    setPreventFramerLayoutShift,
+  } = useTabStore(
+    (state) => ({
+      isLoadingARoute: state.isLoadingARoute,
+      setShowDeleteAccountModal: state.setShowDeleteAccountModal,
+      setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
+    }),
+    shallow
+  );
 
   useEffect(() => {
     setPreventFramerLayoutShift(true);
@@ -153,6 +157,7 @@ function DeleteAccountModal() {
             </Button>
 
             <Button
+              disabled={isDeleting || isLoadingARoute || showDeleteCheckmark}
               variant={"destructive"}
               className="baseFlex gap-2"
               onClick={() => {

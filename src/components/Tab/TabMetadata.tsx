@@ -9,6 +9,7 @@ import { useRouter } from "next/router";
 import { useMemo, useState, type ChangeEvent } from "react";
 import { AiFillEye, AiOutlineUser } from "react-icons/ai";
 import { BsArrowRightShort, BsPlus } from "react-icons/bs";
+import { MdModeEditOutline } from "react-icons/md";
 import { FaMicrophoneAlt, FaTrashAlt } from "react-icons/fa";
 import { shallow } from "zustand/shallow";
 import {
@@ -173,6 +174,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
     audioMetadata,
     previewMetadata,
     pauseAudio,
+    isLoadingARoute,
   } = useTabStore(
     (state) => ({
       originalTabData: state.originalTabData,
@@ -210,6 +212,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
       audioMetadata: state.audioMetadata,
       previewMetadata: state.previewMetadata,
       pauseAudio: state.pauseAudio,
+      isLoadingARoute: state.isLoadingARoute,
     }),
     shallow
   );
@@ -457,6 +460,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
             <div className="baseFlex">
               {!asPath.includes("create") && (
                 <Button
+                  disabled={isLoadingARoute}
                   className="px-1 py-0 md:px-4 md:py-2"
                   onClick={() => void push(`/tab/${id}`)}
                 >
@@ -479,7 +483,9 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                     <PopoverTrigger asChild>
                       <Button
                         variant={"destructive"}
-                        disabled={isDeleting || showDeleteCheckmark}
+                        disabled={
+                          isDeleting || showDeleteCheckmark || isLoadingARoute
+                        }
                         className="baseFlex gap-2"
                       >
                         {showDeleteCheckmark && !isDeleting
@@ -636,6 +642,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                   <PopoverTrigger asChild>
                     <Button
                       disabled={
+                        isLoadingARoute ||
                         isEqualToOriginalTabState() ||
                         showPulsingError ||
                         isPosting ||
@@ -968,15 +975,200 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
           <div
             className={`${
               classes.headerInfo ?? ""
-            } w-full rounded-t-md bg-pink-700 shadow-md`}
+            } w-full rounded-t-md bg-pink-700 !px-4 shadow-md md:!px-6`}
           >
-            <div className="baseVertFlex w-full !justify-end gap-2 md:!flex-row md:!justify-between md:gap-0">
-              <div className="baseVertFlex gap-4 md:!flex-row md:gap-2">
-                <div className="baseFlex !justify-between gap-2 md:!justify-center">
+            {overMediumViewportThreshold ? (
+              <div className="baseFlex w-full !justify-between">
+                <div className="baseFlex gap-2">
+                  <div className="baseFlex gap-2">
+                    <div className="text-2xl font-bold">{title}</div>
+
+                    <LikeAndUnlikeButton
+                      customClassName="baseFlex gap-2 p-2"
+                      createdById={createdById}
+                      id={id}
+                      numberOfLikes={numberOfLikes}
+                      tabCreator={tabCreator}
+                      currentArtist={currentArtist}
+                      // fix typing/linting errors later
+                      refetchCurrentArtist={refetchCurrentArtist}
+                      // fix typing/linting errors later
+                      refetchTabCreator={refetchTabCreator}
+                      refetchTab={refetchTab}
+                    />
+                  </div>
+
+                  <Separator orientation="vertical" className="h-8" />
+
+                  <div className="baseFlex gap-2">
+                    <Button
+                      disabled={!tabCreator}
+                      variant={"ghost"}
+                      className="px-3 py-1"
+                    >
+                      <Link
+                        href={`/artist/${tabCreator?.username ?? ""}`}
+                        className="baseFlex gap-2"
+                      >
+                        <div className="grid grid-cols-1 grid-rows-1">
+                          {tabCreator || fetchingTabCreator ? (
+                            <>
+                              <Image
+                                src={tabCreator?.profileImageUrl ?? ""}
+                                alt={`${
+                                  tabCreator?.username ?? "Anonymous"
+                                }'s profile image`}
+                                width={32}
+                                height={32}
+                                onLoadingComplete={() => {
+                                  setTimeout(() => {
+                                    setProfileImageLoaded(true);
+                                  }, 1000);
+                                }}
+                                style={{
+                                  opacity: profileImageLoaded ? 1 : 0,
+                                }}
+                                className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full object-cover object-center transition-opacity"
+                              />
+                              <div
+                                style={{
+                                  opacity: !profileImageLoaded ? 1 : 0,
+                                  zIndex: !profileImageLoaded ? 1 : -1,
+                                }}
+                                className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 transition-opacity
+                              ${!profileImageLoaded ? "animate-pulse" : ""}
+                            `}
+                              ></div>
+                            </>
+                          ) : (
+                            <div className="baseFlex h-8 w-8 rounded-full border-[1px] shadow-md">
+                              <AiOutlineUser className="h-5 w-5" />
+                            </div>
+                          )}
+                        </div>
+
+                        <span
+                          className={`text-lg ${
+                            !tabCreator && !fetchingTabCreator ? "italic" : ""
+                          }`}
+                        >
+                          {tabCreator?.username ?? "Anonymous"}
+                        </span>
+                      </Link>
+                    </Button>
+
+                    <Separator className="h-[1px] w-4" />
+
+                    <p className="ml-2 text-pink-200">
+                      {updatedAt && updatedAt.getTime() !== createdAt?.getTime()
+                        ? `Updated on ${formatDate(updatedAt)}`
+                        : `Created on ${formatDate(createdAt ?? new Date())}`}
+                    </p>
+                  </div>
+                </div>
+
+                {/* if you still wanted to add "forking" functionality, then that would go here */}
+
+                {((userId && createdById === userId) ||
+                  asPath.includes("create")) && (
+                  <Button
+                    disabled={isLoadingARoute}
+                    className="baseFlex gap-2"
+                    onClick={() => {
+                      if (asPath.includes("create") || asPath.includes("edit"))
+                        setEditing(true);
+                      else void push(`/tab/${id}/edit`);
+                    }}
+                  >
+                    {asPath.includes("edit") || asPath.includes("create")
+                      ? "Continue editing"
+                      : "Edit"}
+                    <MdModeEditOutline className="h-5 w-5" />
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="baseVertFlex relative w-full !items-start gap-2">
+                <div className="baseVertFlex !items-start gap-4">
                   <div className="text-2xl font-bold">{title}</div>
 
+                  <div className="baseVertFlex !items-start gap-2">
+                    <Button
+                      disabled={!tabCreator}
+                      variant={"ghost"}
+                      className="px-3 py-1"
+                    >
+                      <Link
+                        href={`/artist/${tabCreator?.username ?? ""}`}
+                        className="baseFlex gap-2"
+                      >
+                        <div className="grid grid-cols-1 grid-rows-1">
+                          {tabCreator || fetchingTabCreator ? (
+                            <>
+                              <Image
+                                src={tabCreator?.profileImageUrl ?? ""}
+                                alt={`${
+                                  tabCreator?.username ?? "Anonymous"
+                                }'s profile image`}
+                                width={32}
+                                height={32}
+                                onLoadingComplete={() => {
+                                  setTimeout(() => {
+                                    setProfileImageLoaded(true);
+                                  }, 1000);
+                                }}
+                                style={{
+                                  opacity: profileImageLoaded ? 1 : 0,
+                                }}
+                                className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full object-cover object-center transition-opacity"
+                              />
+                              <div
+                                style={{
+                                  opacity: !profileImageLoaded ? 1 : 0,
+                                  zIndex: !profileImageLoaded ? 1 : -1,
+                                }}
+                                className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 transition-opacity
+                              ${!profileImageLoaded ? "animate-pulse" : ""}
+                            `}
+                              ></div>
+                            </>
+                          ) : (
+                            <div className="baseFlex h-8 w-8 rounded-full border-[1px] shadow-md">
+                              <AiOutlineUser className="h-5 w-5" />
+                            </div>
+                          )}
+                        </div>
+
+                        <span
+                          className={`text-lg ${
+                            !tabCreator && !fetchingTabCreator ? "italic" : ""
+                          }`}
+                        >
+                          {tabCreator?.username ?? "Anonymous"}
+                        </span>
+                      </Link>
+                    </Button>
+
+                    <p className="ml-2 text-sm text-pink-200">
+                      {updatedAt && updatedAt.getTime() !== createdAt?.getTime()
+                        ? `Updated on ${formatDate(updatedAt)}`
+                        : `Created on ${formatDate(createdAt ?? new Date())}`}
+                    </p>
+                  </div>
+                </div>
+
+                {/* if you still wanted to add "forking" functionality, then that would go here */}
+
+                <div
+                  className={`baseFlex bottom-0 right-0 w-full !justify-end gap-2 ${
+                    (userId && createdById === userId) ||
+                    asPath.includes("create")
+                      ? "relative mt-2"
+                      : "absolute"
+                  }`}
+                >
                   <LikeAndUnlikeButton
-                    customClassName="baseFlex !hidden gap-2 px-2 py-0 md:!flex md:p-2"
+                    customClassName="baseFlex gap-2 px-1 py-0 h-6"
                     createdById={createdById}
                     id={id}
                     numberOfLikes={numberOfLikes}
@@ -988,113 +1180,30 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                     refetchTabCreator={refetchTabCreator}
                     refetchTab={refetchTab}
                   />
-                </div>
 
-                <Separator
-                  orientation="vertical"
-                  className="hidden h-8 md:block"
-                />
-
-                <div className="baseVertFlex gap-2 md:!flex-row">
-                  <Button
-                    disabled={!tabCreator}
-                    variant={"ghost"}
-                    className="px-3 py-1"
-                  >
-                    <Link
-                      href={`/artist/${tabCreator?.username ?? ""}`}
+                  {((userId && createdById === userId) ||
+                    asPath.includes("create")) && (
+                    <Button
+                      disabled={isLoadingARoute}
                       className="baseFlex gap-2"
+                      onClick={() => {
+                        if (
+                          asPath.includes("create") ||
+                          asPath.includes("edit")
+                        )
+                          setEditing(true);
+                        else void push(`/tab/${id}/edit`);
+                      }}
                     >
-                      <div className="grid grid-cols-1 grid-rows-1">
-                        {tabCreator || fetchingTabCreator ? (
-                          <>
-                            <Image
-                              src={tabCreator?.profileImageUrl ?? ""}
-                              alt={`${
-                                tabCreator?.username ?? "Anonymous"
-                              }'s profile image`}
-                              width={32}
-                              height={32}
-                              onLoadingComplete={() => {
-                                setTimeout(() => {
-                                  setProfileImageLoaded(true);
-                                }, 1000);
-                              }}
-                              style={{
-                                opacity: profileImageLoaded ? 1 : 0,
-                              }}
-                              className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full object-cover object-center transition-opacity"
-                            />
-                            <div
-                              style={{
-                                opacity: !profileImageLoaded ? 1 : 0,
-                                zIndex: !profileImageLoaded ? 1 : -1,
-                              }}
-                              className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 transition-opacity
-                              ${!profileImageLoaded ? "animate-pulse" : ""}
-                            `}
-                            ></div>
-                          </>
-                        ) : (
-                          <div className="baseFlex h-8 w-8 rounded-full border-[1px] shadow-md">
-                            <AiOutlineUser className="h-5 w-5" />
-                          </div>
-                        )}
-                      </div>
-
-                      <span
-                        className={`text-lg ${
-                          !tabCreator && !fetchingTabCreator ? "italic" : ""
-                        }`}
-                      >
-                        {tabCreator?.username ?? "Anonymous"}
-                      </span>
-                    </Link>
-                  </Button>
-
-                  <Separator className="hidden h-[1px] w-4 md:block" />
-
-                  <p className="ml-2">
-                    {updatedAt && updatedAt.getTime() !== createdAt?.getTime()
-                      ? `Updated on ${formatDate(updatedAt)}`
-                      : `Created on ${formatDate(createdAt ?? new Date())}`}
-                  </p>
+                      {asPath.includes("edit") || asPath.includes("create")
+                        ? "Continue editing"
+                        : "Edit"}{" "}
+                      <MdModeEditOutline className="h-5 w-5" />
+                    </Button>
+                  )}
                 </div>
               </div>
-
-              {/* if you still wanted to add "forking" functionality, then that would go here */}
-
-              <div className="baseFlex w-full !justify-end gap-2 md:w-auto md:!justify-center">
-                <LikeAndUnlikeButton
-                  customClassName="baseFlex gap-2 px-2 py-0 md:hidden md:p-2"
-                  createdById={createdById}
-                  id={id}
-                  numberOfLikes={numberOfLikes}
-                  tabCreator={tabCreator}
-                  currentArtist={currentArtist}
-                  // fix typing/linting errors later
-                  refetchCurrentArtist={refetchCurrentArtist}
-                  // fix typing/linting errors later
-                  refetchTabCreator={refetchTabCreator}
-                  refetchTab={refetchTab}
-                />
-
-                {((userId && createdById === userId) ||
-                  asPath.includes("create")) && (
-                  <Button
-                    onClick={() => {
-                      if (asPath.includes("create") || asPath.includes("edit"))
-                        setEditing(true);
-                      else void push(`/tab/${id}/edit`);
-                    }}
-                  >
-                    {asPath.includes("edit") || asPath.includes("create")
-                      ? "Continue editing"
-                      : "Edit"}
-                  </Button>
-                )}
-              </div>
-            </div>
+            )}
           </div>
 
           <div className={classes.metadataContainer}>

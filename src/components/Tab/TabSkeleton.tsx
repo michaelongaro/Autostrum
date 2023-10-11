@@ -156,49 +156,58 @@ function TabSkeleton({ editing }: TabSkeleton) {
             <div
               className={`${
                 classes.headerInfo ?? ""
-              } w-full rounded-t-md bg-pink-700 shadow-md`}
+              } w-full rounded-t-md bg-pink-700 !px-4 shadow-md md:!px-6`}
             >
-              <div className="baseVertFlex w-full !justify-end gap-2 md:!flex-row md:!justify-between md:gap-0">
-                <div className="baseVertFlex gap-4 md:!flex-row md:gap-2">
-                  <div className="baseFlex !justify-between gap-2 md:!justify-center">
-                    <div className="text-2xl font-bold">
-                      <div className="h-8 w-48 animate-pulse rounded-md bg-pink-300"></div>
+              {aboveMediumViewportWidth ? (
+                <div className="baseFlex w-full !justify-between">
+                  <div className="baseFlex gap-2">
+                    <div className="baseFlex gap-2">
+                      <div className="text-2xl font-bold">
+                        <div className="h-8 w-52 animate-pulse rounded-md bg-pink-300"></div>
+                      </div>
+
+                      <Button
+                        variant={"ghost"}
+                        disabled
+                        className="baseFlex gap-2 p-2"
+                      >
+                        <AiOutlineHeart className="h-6 w-6" />
+                      </Button>
                     </div>
 
-                    <Button
-                      variant={"ghost"}
-                      disabled
-                      className="baseFlex !hidden gap-2 p-2 md:!flex"
-                    >
-                      <AiOutlineHeart className="h-6 w-6" />
+                    <Separator orientation="vertical" className="h-8" />
+
+                    <div className="baseFlex gap-2">
+                      <div className="baseFlex gap-2">
+                        <div className="h-8 w-8 animate-pulse rounded-full bg-pink-300"></div>
+                        <div className="h-8 w-32 animate-pulse rounded-md bg-pink-300"></div>
+                      </div>
+                      <Separator className="h-[1px] w-4" />
+                      <div className="h-8 w-20 animate-pulse rounded-md bg-pink-300"></div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="baseVertFlex relative w-full !items-start gap-2">
+                  <div className="baseVertFlex !items-start gap-4">
+                    <div className="h-8 w-52 animate-pulse rounded-md bg-pink-300"></div>
+
+                    <div className="baseVertFlex !items-start gap-2">
+                      <div className="baseFlex gap-2">
+                        <div className="h-8 w-8 animate-pulse rounded-full bg-pink-300"></div>
+                        <div className="h-7 w-32 animate-pulse rounded-md bg-pink-300"></div>
+                      </div>
+                      <div className="h-5 w-32 animate-pulse rounded-md bg-pink-300"></div>
+                    </div>
+                  </div>
+
+                  <div className="baseFlex absolute bottom-0 right-0 w-full !justify-end">
+                    <Button variant={"ghost"} disabled className="baseFlex p-0">
+                      <AiOutlineHeart className="h-5 w-5" />
                     </Button>
                   </div>
-
-                  <Separator
-                    orientation="vertical"
-                    className="hidden h-8 md:block"
-                  />
-
-                  <div className="baseVertFlex gap-2 md:!flex-row">
-                    <div className="baseFlex gap-2">
-                      <div className="h-8 w-8 animate-pulse rounded-full bg-pink-300"></div>
-                      <div className="h-8 w-32 animate-pulse rounded-md bg-pink-300"></div>
-                    </div>
-                    <Separator className="hidden h-[1px] w-4 md:block" />
-                    <div className="ml-2 h-8 w-20 animate-pulse rounded-md bg-pink-300"></div>
-                  </div>
                 </div>
-
-                <div className="baseFlex w-full !justify-end gap-2 md:w-auto md:!justify-center">
-                  <Button
-                    variant={"ghost"}
-                    disabled
-                    className="baseFlex gap-2 p-2 md:!hidden"
-                  >
-                    <AiOutlineHeart className="h-6 w-6" />
-                  </Button>
-                </div>
-              </div>
+              )}
             </div>
 
             <div className={classes.metadataContainer}>

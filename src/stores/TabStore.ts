@@ -201,6 +201,7 @@ const initialStoreState = {
   recordedAudioBuffer: null,
   recordedAudioBufferSourceNode: null,
 
+  isLoadingARoute: false,
   // idk if search needs to be included here
 };
 interface TabState {
@@ -365,6 +366,9 @@ interface TabState {
   // related to search
   searchResultsCount: number;
   setSearchResultsCount: (searchResultsCount: number) => void;
+
+  isLoadingARoute: boolean;
+  setIsLoadingARoute: (isLoadingARoute: boolean) => void;
 
   // reset
   resetStoreToInitValues: () => void;
@@ -881,6 +885,9 @@ export const useTabStore = create<TabState>()(
     // search
     searchResultsCount: 0,
     setSearchResultsCount: (searchResultsCount) => set({ searchResultsCount }),
+
+    isLoadingARoute: false,
+    setIsLoadingARoute: (isLoadingARoute) => set({ isLoadingARoute }),
 
     // reset (investigate what exactly the ts error is saying)
     resetStoreToInitValues: () => set(initialStoreState),
