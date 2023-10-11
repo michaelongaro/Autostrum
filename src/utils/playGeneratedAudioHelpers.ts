@@ -80,7 +80,11 @@ function playNoteWithEffects({
         audioContext,
         currentlyPlayingStrings,
       });
-    } else if (effects.includes("x")) {
+    }
+    // temporary: since they are both hacky with how they deal with the base note's volume,
+    // only want this to play when it's not palm muted, shouldn't make a huge
+    // difference anyway.
+    else if (effects.includes("x") && !effects.includes("PM")) {
       noteWithEffectApplied = applyDeadNoteEffect({
         note,
         audioContext,
@@ -625,6 +629,8 @@ function playNote({
     {
       duration,
       gain,
+      // slightly slower (smoother) attack for strums
+      attack: effects.includes("v") || effects.includes("^") ? 0.015 : 0.01, // can maybe also use this for tetherd effects too, didn't realize it actually works!
       // TODO: might be fun/more accurate to change sustain value instead of duration for some effects
     }
   );
@@ -669,28 +675,33 @@ function columnHasNoNotes(column: string[]) {
 }
 
 function calculateRelativeVibratoFrequency(bpm: number) {
-  // Ensure that the input number is positive
   const distance = Math.abs(bpm > 400 ? 400 : bpm - 400);
-
-  // Calculate the scale factor between 0 and 1.
-  // When bpm: number is 400, scaleFactor will be 0.
-  // When bpm: number is 0, scaleFactor will be 1.
   const scaleFactor = Math.min(distance / 400, 1);
 
-  // Scale the number between 2 (when scaleFactor is 0)
-  // and 4 (when scaleFactor is 1).
-  return 3 + scaleFactor * (5 - 3);
+  // result will be between 3 and 5
+  return 3 + scaleFactor * 2;
 }
 
 function calculateRelativeChordDelayMultiplier(
   bpm: number,
   strumChordQuickly: boolean
 ) {
-  const distance = Math.abs(bpm > 400 ? 400 : bpm - 400);
-  const scaleFactor = Math.min(distance / 400, 1);
-
+  const BASE_DELAY = 0.01;
+  let delay = 0;
   const accentedMultiplier = strumChordQuickly ? 0.3 : 1;
-  return (0.01 + scaleFactor * 0.06) * accentedMultiplier;
+
+  // would love to somehow convey this split in logic in the UI but I really
+  // have no clue the best way to be transparent with it..
+
+  if (bpm <= 60) {
+    const distance = 61 - bpm;
+    delay = Math.min(distance / 60, 0.5); // idk prob needs to be fine tuned
+  } else {
+    const distance = bpm > 400 ? 400 : 400 - bpm;
+    delay = Math.min(distance / 361, 1) * 0.02;
+  }
+
+  return (BASE_DELAY + delay) * accentedMultiplier;
 }
 
 function getIndexOfFirstNonEmptyString(column: string[], isAnUpstrum: boolean) {
@@ -1022,11 +1033,9 @@ function playNoteColumn({
           effects.push(effect);
         });
       }
-      if (currColumn[7]?.includes(">")) {
-        effects.push(">");
-      }
-      if (currColumn[7]?.includes(".")) {
-        effects.push(".");
+
+      if (currColumn[7] !== "") {
+        effects.push(currColumn[7]!);
       }
 
       // this feels hacky, but it needs to be in separate state from tetheredMetadata for standalone
