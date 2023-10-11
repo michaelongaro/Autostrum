@@ -14,7 +14,7 @@ import {
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { shallow } from "zustand/shallow";
-import { useTabStore, type Section } from "~/stores/TabStore";
+import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
 import PalmMuteNode from "./PalmMuteNode";
 import TabNote from "./TabNote";
@@ -153,61 +153,20 @@ function TabNotesColumn({
     return disabled;
   }, [getTabData, sectionIndex, subSectionIndex, columnIndex]);
 
-  const columnIsBeingPlayed = useMemo(() => {
-    if (currentlyPlayingMetadata === null) return false;
+  const { columnIsBeingPlayed, columnHasBeenPlayed } = useMemo(() => {
+    const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
+    if (!currentlyPlayingMetadata || !location)
+      return { columnIsBeingPlayed: false, columnHasBeenPlayed: false };
 
-    // TOOD: clean up this logic later
+    const isSameSection =
+      location.sectionIndex === sectionIndex &&
+      location.subSectionIndex === subSectionIndex;
 
-    if (
-      currentlyPlayingMetadata[currentChordIndex]?.location.sectionIndex !==
-        sectionIndex ||
-      currentlyPlayingMetadata[currentChordIndex]?.location.subSectionIndex !==
-        subSectionIndex ||
-      currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex !==
-        columnIndex
-    ) {
-      return false;
-    }
-
-    return true;
+    return {
+      columnIsBeingPlayed: isSameSection && location.chordIndex === columnIndex,
+      columnHasBeenPlayed: isSameSection && location.chordIndex > columnIndex,
+    };
   }, [
-    currentlyPlayingMetadata,
-    currentChordIndex,
-    sectionIndex,
-    subSectionIndex,
-    columnIndex,
-  ]);
-
-  const columnHasBeenPlayed = useMemo(() => {
-    if (currentlyPlayingMetadata === null) return false;
-
-    if (
-      currentlyPlayingMetadata[currentChordIndex]?.location.sectionIndex ===
-        sectionIndex &&
-      currentlyPlayingMetadata[currentChordIndex]?.location.subSectionIndex ===
-        subSectionIndex
-    ) {
-      if (
-        // edge case to show the last chord as played when the song is paused and
-        // the audio controls progress bar is all the way completed. Won't work normally
-        // since the columnIndex has to be greater than the last chord index.
-        // -2 instead of -1 since we have the dummy chord to line up the thumb of
-        // <AudioControls />
-        !audioMetadata.playing &&
-        currentChordIndex === currentlyPlayingMetadata.length - 2
-      ) {
-        return true;
-      } else if (
-        currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex! >
-        columnIndex
-      ) {
-        return true;
-      }
-    }
-
-    return false;
-  }, [
-    audioMetadata,
     currentlyPlayingMetadata,
     currentChordIndex,
     sectionIndex,

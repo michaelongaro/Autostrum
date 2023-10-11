@@ -791,10 +791,9 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               {formatSecondsToMinutes(
                 audioMetadata.type === "Artist recording"
                   ? tabProgressValue
-                  : Math.min(
-                      tabProgressValue,
-                      currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
-                    )
+                  : currentlyPlayingMetadata
+                  ? currentlyPlayingMetadata[currentChordIndex]!.elapsedSeconds
+                  : 0
               )}
             </p>
 
@@ -808,9 +807,9 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   ? recordedAudioBuffer?.duration === 0
                     ? 1
                     : recordedAudioBuffer?.duration
-                  : currentlyPlayingMetadata?.at(-1)?.elapsedSeconds === 0
-                  ? 1
-                  : currentlyPlayingMetadata?.at(-1)?.elapsedSeconds
+                  : currentlyPlayingMetadata
+                  ? currentlyPlayingMetadata.length - 1
+                  : 1
               }
               step={1}
               disabled={disablePlayButton}
@@ -864,23 +863,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                 )
                   return;
 
-                let newCurrentChordIndex = -1;
-
-                for (let i = 0; i < currentlyPlayingMetadata.length; i++) {
-                  const metadata = currentlyPlayingMetadata[i]!;
-
-                  if (metadata.elapsedSeconds === value[0]) {
-                    newCurrentChordIndex = i;
-                    break;
-                  } else if (metadata.elapsedSeconds > value[0]! && i > 0) {
-                    newCurrentChordIndex = i - 1;
-                    break;
-                  }
-                }
-
-                if (newCurrentChordIndex !== -1) {
-                  setCurrentChordIndex(newCurrentChordIndex);
-                }
+                setCurrentChordIndex(value[0]!);
               }}
             ></AudioProgressSlider>
 
