@@ -123,7 +123,7 @@ function DeleteAccountModal() {
               be undone.
             </p>
 
-            <div className="baseFlex !flex-nowrap !items-start gap-2">
+            <div className="lightestGlassmorphic baseFlex !flex-nowrap !items-start gap-2 rounded-md p-4">
               <Checkbox
                 id="deleteTabs"
                 checked={deleteAllOfArtistsTabs}
@@ -132,7 +132,7 @@ function DeleteAccountModal() {
                     value === "indeterminate" ? false : value
                   )
                 }
-                className="ml-4 mt-1 h-5 w-5"
+                className="mt-1 h-5 w-5"
               />
               <div className="baseVertFlex !items-start">
                 <label htmlFor="deleteTabs">
