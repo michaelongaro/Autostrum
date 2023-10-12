@@ -371,15 +371,15 @@ function PalmMuteNode({
               onClick={handlePalmMuteNodeClick}
             >
               {value === "start" && (
-                <div className="baseVertFlex px-2 text-xs">
-                  <span>PM</span>
-                  <span>start</span>
+                <div className="baseVertFlex text-[0.65rem]">
+                  <span className="h-[13px] leading-[1.35]">PM</span>
+                  <span className="h-[13px] leading-[1.35]">start</span>
                 </div>
               )}
               {value === "end" && (
-                <div className="baseVertFlex px-2 text-xs">
-                  <span>PM</span>
-                  <span>end</span>
+                <div className="baseVertFlex text-[0.65rem]">
+                  <span className="h-[13px] leading-[1.35]">PM</span>
+                  <span className="h-[13px] leading-[1.35]">end</span>
                 </div>
               )}
               {editingPalmMuteNodes && value === "" && (
