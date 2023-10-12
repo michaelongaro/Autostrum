@@ -132,9 +132,9 @@ function PinnedTabModal({
           }}
         >
           {/* chord title */}
-          <div className="baseFlex gap-2">
+          <div className="baseFlex lightGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
             <TbPinned className="h-5 w-5" />
-            <p className="text-xl font-semibold">Pinned tab</p>
+            <p className="text-lg font-semibold">Pinned tab</p>
           </div>
           <SearchInput initialSearchQueryFromUrl={searchQuery} />
 
