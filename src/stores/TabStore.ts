@@ -179,7 +179,6 @@ const initialStoreState = {
   showCustomTuningModal: false,
 
   // related to sound generation/playing
-  breakOnNextChord: false,
   currentlyPlayingMetadata: null,
   playbackSpeed: 1,
   currentChordIndex: 0,
@@ -195,7 +194,6 @@ const initialStoreState = {
     type: "chord",
     playing: false,
   },
-  breakOnNextPreviewChord: false,
   recordedAudioFile: null,
   shouldUpdateInS3: false,
   recordedAudioBuffer: null,
