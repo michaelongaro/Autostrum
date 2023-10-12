@@ -1,5 +1,6 @@
 import { UserProfile, useClerk } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
+import { MdModeEditOutline } from "react-icons/md";
 import Head from "next/head";
 import Link from "next/link";
 import { useState } from "react";
@@ -118,9 +119,10 @@ function Preferences() {
                 {artist?.pinnedTabId !== -1 && (
                   <Button
                     onClick={() => setShowPinnedTabModal(true)}
-                    className="h-8 !py-0"
+                    className="baseFlex h-8 gap-2 !py-0"
                   >
                     Edit
+                    <MdModeEditOutline className="h-4 w-4" />
                   </Button>
                 )}
               </div>
