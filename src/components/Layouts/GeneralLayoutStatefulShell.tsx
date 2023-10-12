@@ -272,7 +272,11 @@ function GeneralLayoutStatefulShell() {
     // only case where we want to keep tab state is when we are navigating onto a tab
     // page, or going to /edit from a tab page, etc.
     if (!asPath.includes("/tab/")) {
-      resetStoreToInitValues();
+      setTimeout(() => {
+        resetStoreToInitValues();
+      }, 1000); // needed to allow any "breakOnNextChord/PreviewChord" to properly break
+      // *** technically... if on a super low bpm it wouldn't catch the breakOnNextChord flag being true
+      // in time, but not worried about that for now
     }
 
     if (asPath.includes("/create") || asPath.includes("edit")) {
