@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { useTabStore } from "~/stores/TabStore";
 import { shallow } from "zustand/shallow";
-import resetAudioSliderPosition from "~/utils/resetAudioSliderPosition";
 
 import { cn } from "~/utils/utils";
 
@@ -36,7 +35,6 @@ const AudioProgressSlider = React.forwardRef<
           Array.from(audioSliderNode.children[0].children)[0] as HTMLSpanElement
         );
       }
-      resetAudioSliderPosition(true);
     }, 1000);
   }, []);
 

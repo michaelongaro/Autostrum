@@ -461,6 +461,10 @@ export const useTabStore = create<TabState>()(
     resetAudioAndMetadataOnRouteChange: () => {
       const { audioMetadata, pauseAudio } = get();
 
+      // radix slider thumb position gets out of whack if
+      // this isn't there
+      resetAudioSliderPosition();
+
       pauseAudio(true);
 
       set({
