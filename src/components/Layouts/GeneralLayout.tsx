@@ -25,14 +25,6 @@ function GeneralLayout({ children }: GeneralLayout) {
       ref={ref}
       className={`${notoSans.className} baseVertFlex relative min-h-[100dvh] !justify-between`}
     >
-      <Head>
-        <meta name="theme-color" content="#ec4899"></meta>
-        <meta
-          name="apple-mobile-web-app-status-bar-style"
-          content="#ec4899"
-        ></meta>
-      </Head>
-
       <Bubbles />
 
       <GeneralLayoutStatefulShell />
