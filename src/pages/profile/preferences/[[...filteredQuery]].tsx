@@ -173,34 +173,38 @@ function Preferences() {
               </div>
             </div>
 
-            {/* absolute left-1/2 -translate-x-1/2 transform */}
             <Separator className="h-[1px] w-full md:h-full md:w-[1px]" />
 
-            <div className="baseVertFlex w-full gap-4">
-              <Button asChild>
-                <Link
-                  href={`/artist/${artist?.username ?? ""}`}
+            <div className="baseVertFlex h-full w-full !flex-nowrap !items-start !justify-start">
+              <p className="ml-1 text-xl font-semibold md:ml-4 md:mt-[0.35rem]">
+                Miscellaneous actions
+              </p>
+              <div className="baseVertFlex my-8 h-full w-full gap-4 md:mt-0">
+                <Button asChild>
+                  <Link
+                    href={`/artist/${artist?.username ?? ""}`}
+                    className="baseFlex gap-2"
+                  >
+                    Visit profile
+                    <LuExternalLink className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button
+                  variant={"destructive"}
+                  onClick={() => {
+                    setShowDeleteAccountModal(true);
+                  }}
                   className="baseFlex gap-2"
                 >
-                  Visit profile
-                  <LuExternalLink className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button
-                variant={"destructive"}
-                onClick={() => {
-                  setShowDeleteAccountModal(true);
-                }}
-                className="baseFlex gap-2"
-              >
-                Delete account
-                <FaTrashAlt className="h-4 w-4" />
-              </Button>
-              {artist && (
-                <div className="text-sm text-pink-200">{`Joined on ${formatDate(
-                  artist.createdAt
-                )}`}</div>
-              )}
+                  Delete account
+                  <FaTrashAlt className="h-4 w-4" />
+                </Button>
+                {artist && (
+                  <div className="text-sm italic text-pink-200">{`Joined on ${formatDate(
+                    artist.createdAt
+                  )}`}</div>
+                )}
+              </div>
             </div>
           </div>
         </div>
