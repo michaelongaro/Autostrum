@@ -673,6 +673,7 @@ export const useTabStore = create<TabState>()(
     playPreview: async ({ data, index, type }: PlayPreview) => {
       const {
         tuning: tuningNotes,
+        capo,
         previewMetadata,
         currentInstrument,
         audioContext,
@@ -726,7 +727,7 @@ export const useTabStore = create<TabState>()(
 
         await playNoteColumn({
           tuning,
-          capo: 0,
+          capo: type === "chord" ? capo : 0,
           bpm: alteredBpm,
           secondPrevColumn,
           prevColumn,
