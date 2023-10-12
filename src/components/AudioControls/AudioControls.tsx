@@ -791,9 +791,10 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               {formatSecondsToMinutes(
                 audioMetadata.type === "Artist recording"
                   ? tabProgressValue
-                  : currentlyPlayingMetadata
-                  ? currentlyPlayingMetadata[currentChordIndex]!.elapsedSeconds
-                  : 0
+                  : Math.min(
+                      tabProgressValue,
+                      currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
+                    )
               )}
             </p>
 
@@ -808,7 +809,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                     ? 1
                     : recordedAudioBuffer?.duration
                   : currentlyPlayingMetadata
-                  ? currentlyPlayingMetadata.length - 1
+                  ? currentlyPlayingMetadata.at(-1)?.elapsedSeconds
                   : 1
               }
               step={1}
@@ -863,7 +864,20 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                 )
                   return;
 
-                setCurrentChordIndex(value[0]!);
+                let newCurrentChordIndex = -1;
+
+                for (let i = 0; i < currentlyPlayingMetadata.length; i++) {
+                  const metadata = currentlyPlayingMetadata[i]!;
+
+                  if (metadata.elapsedSeconds === value[0]) {
+                    newCurrentChordIndex = i;
+                    break;
+                  }
+                }
+
+                if (newCurrentChordIndex !== -1) {
+                  setCurrentChordIndex(newCurrentChordIndex);
+                }
               }}
             ></AudioProgressSlider>
 
