@@ -235,9 +235,17 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       if (currentChordIndex === 0) {
         setTabProgressValue(0);
       } else {
-        setTabProgressValue(
-          currentlyPlayingMetadata?.[currentChordIndex]?.elapsedSeconds ?? 0
-        );
+        const currentElapsedSeconds =
+          currentlyPlayingMetadata?.[currentChordIndex]?.elapsedSeconds ?? 0;
+
+        if (currentElapsedSeconds === 0) {
+          setTabProgressValue(0);
+          setCurrentChordIndex(0);
+        } else {
+          setTabProgressValue(
+            currentlyPlayingMetadata?.[currentChordIndex]?.elapsedSeconds ?? 0
+          );
+        }
       }
     }
   }, [
@@ -247,6 +255,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     currentChordIndex,
     previousChordIndex,
     tabProgressValue,
+    setCurrentChordIndex,
   ]);
 
   useEffect(() => {
