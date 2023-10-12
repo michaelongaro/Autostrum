@@ -378,13 +378,13 @@ function StrummingPatternModal({
             className="baseVertFlex lightestGlassmorphic w-[300px] gap-2 rounded-md px-2 py-0 text-sm sm:w-[650px]"
           >
             <AccordionItem value="opened">
-              <AccordionTrigger className="w-full">
+              <AccordionTrigger extraPadding className="w-full">
                 <div className="baseFlex w-full gap-2 font-semibold">
                   <BsKeyboard className="h-6 w-6" />
                   Hotkeys
                 </div>
               </AccordionTrigger>
-              <AccordionContent>
+              <AccordionContent extraPaddingBottom>
                 <div className="baseFlex mt-2 gap-4 sm:w-full sm:gap-6">
                   <div className="baseFlex gap-2">
                     <span className="font-semibold">v / d</span>

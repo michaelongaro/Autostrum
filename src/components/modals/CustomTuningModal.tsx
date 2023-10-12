@@ -177,13 +177,13 @@ function CustomTuningModal({
             className="baseVertFlex lightestGlassmorphic w-full gap-2 rounded-md px-2 py-0 text-sm"
           >
             <AccordionItem value="opened">
-              <AccordionTrigger className="w-[300px]">
+              <AccordionTrigger extraPadding className="w-[300px]">
                 <div className="baseFlex w-full gap-2 font-semibold">
                   <FaBook className="h-4 w-4" />
                   Valid notation formula
                 </div>
               </AccordionTrigger>
-              <AccordionContent>
+              <AccordionContent extraPaddingBottom>
                 <div className="baseFlex mt-2 gap-2 sm:gap-6">
                   <div className="baseVertFlex gap-2">
                     <div className="grid w-full grid-cols-3 place-items-center text-sm">

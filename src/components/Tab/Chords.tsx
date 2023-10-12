@@ -130,7 +130,7 @@ function Chords() {
             : "500px"
           : "300px",
       }}
-      className="baseVertFlex lightestGlassmorphic w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 md:px-8 md:py-4"
+      className="baseVertFlex lightestGlassmorphic w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 md:p-4"
     >
       <Accordion
         type="single"
@@ -139,14 +139,14 @@ function Chords() {
         onValueChange={(value) => {
           setAccordionValue(value);
         }}
-        className="baseVertFlex w-full !items-start gap-2 rounded-md "
+        className="baseVertFlex w-full !items-start gap-2 rounded-md"
       >
         <AccordionItem value="opened">
           <AccordionTrigger>
             <p className="text-lg font-bold">Chords</p>
           </AccordionTrigger>
           <AccordionContent>
-            <div className="baseFlex !justify-start gap-4">
+            <div className="baseFlex mt-4 !justify-start gap-4">
               {chords.map((chord, index) => (
                 <motion.div
                   key={chord.id}

@@ -151,7 +151,7 @@ function StrummingPatterns() {
             : "500px"
           : "300px",
       }}
-      className="baseVertFlex lightestGlassmorphic w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 md:px-8 md:py-4"
+      className="baseVertFlex lightestGlassmorphic w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 md:p-4"
     >
       <Accordion
         type="single"
@@ -168,7 +168,7 @@ function StrummingPatterns() {
           </AccordionTrigger>
           <AccordionContent>
             <div
-              className={`baseFlex !justify-start ${
+              className={`baseFlex mt-4 !justify-start ${
                 // just to get around inherent flexbox space that is taken up by children
                 // even when there is no dimensions to them
                 strummingPatterns.length > 0 ? "gap-4" : "gap-0"
