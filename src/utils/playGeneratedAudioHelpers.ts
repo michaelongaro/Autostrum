@@ -81,15 +81,6 @@ function playNoteWithEffects({
         currentlyPlayingStrings,
       });
     }
-    // temporary: since they are both hacky with how they deal with the base note's volume,
-    // only want this to play when it's not palm muted, shouldn't make a huge
-    // difference anyway.
-    else if (effects.includes("x") && !effects.includes("PM")) {
-      noteWithEffectApplied = applyDeadNoteEffect({
-        note,
-        audioContext,
-      });
-    }
   }
 
   if (effects?.includes("PM")) {
@@ -97,6 +88,7 @@ function playNoteWithEffects({
       note: noteWithEffectApplied ?? note,
       inlineEffects: effects,
       audioContext,
+      isHighString: stringIdx <= 2,
     });
   }
 
@@ -106,8 +98,7 @@ function playNoteWithEffects({
     noteWithEffectApplied &&
     (tetheredMetadata ||
       !pluckBaseNote || // don't think this is necessary anymore
-      effects?.includes("PM") ||
-      effects?.includes("x"))
+      effects?.includes("PM"))
   ) {
     noteWithEffectApplied.connect(masterVolumeGainNode);
     masterVolumeGainNode.connect(audioContext.destination);
@@ -201,6 +192,120 @@ function applyBendOrReleaseEffect({
     copiedNote.connect(copiedNoteGain);
     return copiedNoteGain;
   }
+}
+
+function mapStringAndFretToOscillatorFrequency(
+  stringIndex: number,
+  fretIndex: number
+) {
+  // Invert string index, so 0 becomes 5 and 5 becomes 0
+  const invertedStringIndex = 5 - stringIndex;
+
+  // Weighted average calculation
+  const stringWeight = invertedStringIndex * (75 / 5); // Maps 0-5 to 0-75
+  const fretWeight = (fretIndex - 1) * (25 / 11); // Maps 1-12 to 0-25
+
+  // Sum to get the desired range of 50-150
+  return 50 + stringWeight + fretWeight;
+}
+
+interface PlayDeadNote {
+  stringIdx: number;
+  fret: number;
+  accented: boolean;
+  palmMuted: boolean;
+  audioContext: AudioContext;
+  masterVolumeGainNode: GainNode;
+  currentlyPlayingStrings: (
+    | Soundfont.Player
+    | AudioBufferSourceNode
+    | undefined
+  )[];
+}
+
+function playDeadNote({
+  stringIdx,
+  fret,
+  accented,
+  palmMuted,
+  audioContext,
+  masterVolumeGainNode,
+  currentlyPlayingStrings,
+}: PlayDeadNote) {
+  // stopping any note on string that is currently playing
+  currentlyPlayingStrings[stringIdx]?.stop();
+
+  const frequency = mapStringAndFretToOscillatorFrequency(
+    stringIdx,
+    fret === 0 ? 1 : fret
+  );
+
+  // Create an OscillatorNode to simulate the slap sound
+  const oscillator = audioContext.createOscillator();
+  oscillator.type = "sine";
+  oscillator.frequency.value = frequency;
+
+  // Create a GainNode to control the volume
+  const gainNode = audioContext.createGain();
+
+  let gainTarget = 0.05;
+
+  if (accented) gainTarget = 0.075;
+  if (palmMuted) gainTarget = 0.025;
+
+  if (accented && palmMuted) gainTarget = 0.06;
+
+  // Dynamic Gain Compensation
+  switch (stringIdx) {
+    case 5: // Low E
+      gainTarget *= 1.7;
+      break;
+    case 4: // A
+      gainTarget *= 1.6;
+      break;
+    case 3: // D
+      gainTarget *= 1.5;
+      break;
+    case 2: // G
+      gainTarget *= 1.2;
+      break;
+    case 1: // B
+      gainTarget *= 1.1;
+      break;
+  }
+
+  gainNode.gain.setValueAtTime(gainTarget, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(
+    0.01,
+    audioContext.currentTime + 0.25
+  );
+
+  // Create a BiquadFilterNode for a low-pass filter
+  const lowPassFilter = audioContext.createBiquadFilter();
+  lowPassFilter.type = "highpass";
+  lowPassFilter.frequency.value = 100; // TODO: still have to play around with this value
+
+  // Create a BiquadFilterNode for boosting the mid frequencies
+  const midBoost = audioContext.createBiquadFilter();
+  midBoost.type = "peaking";
+  midBoost.frequency.value = 800; // Frequency to boost
+  midBoost.gain.value = 1; // Amount of boost in dB
+  midBoost.Q.value = 1; // Quality factor
+
+  // Connect the oscillator and noise to the gainNode
+  oscillator.connect(lowPassFilter);
+  lowPassFilter.connect(midBoost);
+  midBoost.connect(gainNode);
+
+  // // Connect the gainNode to the audioContext's destination
+  gainNode.connect(masterVolumeGainNode);
+  masterVolumeGainNode.connect(audioContext.destination);
+
+  // Start the oscillator and noise now
+  oscillator.start(audioContext.currentTime);
+
+  // Stop the oscillator and noise shortly afterward to simulate a short, percussive sound
+  oscillator.stop(audioContext.currentTime + 0.2);
 }
 
 interface PlaySlapSound {
@@ -307,71 +412,48 @@ function playSlapSound({
   noise.stop(audioContext.currentTime + 0.25);
 }
 
-interface ApplyDeadNoteEffect {
-  note: GainNode;
-  audioContext: AudioContext;
-}
-
-function applyDeadNoteEffect({ note, audioContext }: ApplyDeadNoteEffect) {
-  // Create a BiquadFilterNode to act as a low-pass filter
-  const lowPassFilter = audioContext.createBiquadFilter();
-  lowPassFilter.type = "lowpass";
-  lowPassFilter.frequency.value = 700; // Lower this value to cut more high frequencies
-  lowPassFilter.Q.value = 0.25; // Quality factor - lower values make the boost range broader
-
-  // Create a BiquadFilterNode to boost the bass frequencies
-  const bassBoost = audioContext.createBiquadFilter();
-  bassBoost.type = "peaking";
-  bassBoost.frequency.value = 120; // Frequency to boost - around 120Hz is a typical bass frequency
-  bassBoost.gain.value = 20; // Amount of boost in dB
-  bassBoost.Q.value = 10; // Quality factor - lower values make the boost range broader
-
-  // Create a GainNode to reduce volume
-  const gainNode = audioContext.createGain();
-
-  gainNode.gain.value = 20; // Reduce gain to simulate the quieter sound of a dead note
-
-  // Connect the note to the filter, and the filter to the gain node
-  note.connect(lowPassFilter);
-  lowPassFilter.connect(bassBoost);
-  bassBoost.connect(gainNode);
-
-  return gainNode;
-}
-
 interface ApplyPalmMute {
   note: GainNode | AudioBufferSourceNode;
   inlineEffects?: string[];
   audioContext: AudioContext;
+  isHighString: boolean;
 }
 
-function applyPalmMute({ note, inlineEffects, audioContext }: ApplyPalmMute) {
-  // Create a BiquadFilterNode to act as a low-pass filter
+function applyPalmMute({
+  note,
+  inlineEffects,
+  audioContext,
+  isHighString,
+}: ApplyPalmMute) {
   const lowPassFilter = audioContext.createBiquadFilter();
-  lowPassFilter.type = "lowpass";
-  lowPassFilter.frequency.value = 700; // Lower this value to cut more high frequencies was 2000
-  lowPassFilter.Q.value = 0.25; // Quality factor - lower values make the boost range broader
-
-  // Create a BiquadFilterNode to boost the bass frequencies
   const bassBoost = audioContext.createBiquadFilter();
-  bassBoost.type = "peaking";
-  bassBoost.frequency.value = 120; // Frequency to boost - around 120Hz is a typical bass frequency
-  bassBoost.gain.value = 20; // Amount of boost in dB
-  bassBoost.Q.value = 10; // Quality factor - lower values make the boost range broader
-
-  // Create a GainNode to reduce volume
   const gainNode = audioContext.createGain();
 
-  // palm muting is a little quieter than normal notes, can think of this as 70% of normal volume
-  let gainValue = 70;
+  // Adjust lowPassFilter based on whether it's a high or low string
+  if (isHighString) {
+    lowPassFilter.frequency.value = 500;
+  } else {
+    lowPassFilter.frequency.value = 1000;
+  }
+  lowPassFilter.type = "lowpass";
+  lowPassFilter.Q.value = 5;
 
+  // Adjust bassBoost based on whether it's a high or low string
+  if (isHighString) {
+    bassBoost.gain.value = 10;
+  } else {
+    bassBoost.gain.value = 30;
+  }
+  bassBoost.type = "peaking";
+  bassBoost.frequency.value = 120;
+  bassBoost.Q.value = 10;
+
+  let gainValue = 70;
   if (inlineEffects?.includes(">")) {
     gainValue = 85;
   }
-
   gainNode.gain.value = gainValue;
 
-  // Connect the note to the filter, filter to the bass boost, and the bass boost to the gain node
   note.connect(lowPassFilter);
   lowPassFilter.connect(bassBoost);
   bassBoost.connect(gainNode);
@@ -602,7 +684,7 @@ function playNote({
     gain = 1.5;
   }
 
-  // dead note and palm mute effects require us to basically hijack the note by almost muting it
+  // palm mute require us to basically hijack the note by almost muting it
   // and then creating a copy of it with a delay node, and adjusting the volume/effect from there
   // ^ TODO: wouldn't be too surprised if we can try to refactor by using the "source" prop like in
   // tethered effects
@@ -611,10 +693,6 @@ function playNote({
     duration = 0.45;
     // I think ideally sustain should be changed, not duration
     // but it seemed like changing sustain value didn't have intended effect..
-  }
-  if (effects.includes("x")) {
-    gain = 0.01;
-    duration = 0.35; // play around with this value
   }
 
   if (effects.includes(".")) {
@@ -802,6 +880,21 @@ function playNoteColumn({
       // 1-6 is actually starting with "high e" normally, so reverse it if you want
       // to start with "low e" aka downwards strum
       const stringIdx = currColumn[7]?.includes("v") ? 7 - index : index;
+      const adjustedStringIdx = stringIdx - 1; // adjusting for 0-indexing
+
+      if (currColumn[stringIdx] === "x") {
+        playDeadNote({
+          stringIdx: adjustedStringIdx,
+          fret: capo === 0 ? 1 : capo,
+          accented: currColumn[7]?.includes(">") || false,
+          palmMuted: currColumn[0] !== "",
+          audioContext,
+          masterVolumeGainNode,
+          currentlyPlayingStrings,
+        });
+
+        continue;
+      }
 
       const thirdPrevNote = thirdPrevColumn?.[stringIdx];
       const secondPrevNote = secondPrevColumn?.[stringIdx];
@@ -833,8 +926,6 @@ function playNoteColumn({
           !secondPrevNote?.includes("b"))
       )
         continue;
-
-      const adjustedStringIdx = stringIdx - 1; // adjusting for 0-indexing
 
       let fret = 0;
 
