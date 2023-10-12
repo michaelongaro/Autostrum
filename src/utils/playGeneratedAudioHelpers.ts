@@ -430,17 +430,17 @@ function applyTetheredEffect({
   );
   source.start(
     audioContext.currentTime + when,
-    tetheredEffect === "p" ? 0 : 0.2
+    tetheredEffect === "p" ? 0 : tetheredEffect === "h" ? 0.1 : 0.2
   );
 
   sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
   sourceGain.gain.linearRampToValueAtTime(
-    tetheredEffect === "p" ? 1 : 1.3,
-    audioContext.currentTime + when + 0.1
+    tetheredEffect === "p" || tetheredEffect === "h" ? 1 : 1.3,
+    audioContext.currentTime + when + 0.05
   );
   source.connect(sourceGain);
 
-  let durationOfTransition = (60 / bpm) * 0.2;
+  let durationOfTransition = (60 / bpm) * 0.25;
   if (tetheredEffect === "h" || tetheredEffect === "p") {
     durationOfTransition = 0; // hammer-ons and pull-offs are instantaneous
   }
