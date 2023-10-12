@@ -630,7 +630,8 @@ function playNote({
       duration,
       gain,
       // slightly slower (smoother) attack for strums
-      attack: effects.includes("v") || effects.includes("^") ? 0.015 : 0.01, // can maybe also use this for tetherd effects too, didn't realize it actually works!
+      //    -can maybe also use this for tetherd effects too, didn't realize it actually works!
+      attack: effects.includes("v") || effects.includes("^") ? 0.0125 : 0.01,
       // TODO: might be fun/more accurate to change sustain value instead of duration for some effects
     }
   );
