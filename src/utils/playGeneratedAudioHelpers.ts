@@ -599,7 +599,7 @@ function playNote({
   let gain = 1;
 
   if (effects.includes(">")) {
-    gain = 1.8;
+    gain = 1.5;
   }
 
   // dead note and palm mute effects require us to basically hijack the note by almost muting it
@@ -780,6 +780,7 @@ function playNoteColumn({
 
     let chordDelayMultiplier = 0;
 
+    // TODO: allow just > and or . to be present + provide handling for these cases
     if (currColumn[7]?.includes("v") || currColumn[7]?.includes("^")) {
       chordDelayMultiplier = calculateRelativeChordDelayMultiplier(
         bpm,
@@ -1036,7 +1037,10 @@ function playNoteColumn({
       }
 
       if (currColumn[7] !== "") {
-        effects.push(currColumn[7]!);
+        const separatedEffects = currColumn[7]!.split("");
+        separatedEffects.forEach((effect) => {
+          effects.push(effect);
+        });
       }
 
       // this feels hacky, but it needs to be in separate state from tetheredMetadata for standalone
