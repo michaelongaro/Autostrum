@@ -184,7 +184,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
           </div>
 
           {artist ? (
-            <p className="mt-4 text-sm italic">{`joined on ${formatDate(
+            <p className="mt-[1.3rem] text-sm italic">{`joined on ${formatDate(
               artist.createdAt
             )}`}</p>
           ) : (
