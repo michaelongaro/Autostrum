@@ -4,7 +4,7 @@ import type {
   RefetchOptions,
   RefetchQueryFilters,
 } from "@tanstack/react-query";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { FaBook } from "react-icons/fa";
 import { v4 as uuid } from "uuid";
@@ -27,6 +27,24 @@ import SectionContainer from "./SectionContainer";
 import StrummingPatterns from "./StrummingPatterns";
 import CustomTuningModal from "../modals/CustomTuningModal";
 
+const opacityAndScaleVariants = {
+  expanded: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      ease: "easeInOut",
+      duration: 0.25,
+    },
+  },
+  closed: {
+    opacity: 0,
+    scale: 0.85,
+    transition: {
+      ease: "easeInOut",
+      duration: 0.25,
+    },
+  },
+};
 // not sure of best way to avoid having the same name for interface and component
 
 export interface RefetchTab {
@@ -74,6 +92,7 @@ function Tab({ tab, refetchTab }: ITab) {
     chordBeingEdited,
     strummingPatternBeingEdited,
     showCustomTuningModal,
+    preventFramerLayoutShift,
   } = useTabStore(
     (state) => ({
       setId: state.setId,
@@ -105,6 +124,7 @@ function Tab({ tab, refetchTab }: ITab) {
       chordBeingEdited: state.chordBeingEdited,
       strummingPatternBeingEdited: state.strummingPatternBeingEdited,
       showCustomTuningModal: state.showCustomTuningModal,
+      preventFramerLayoutShift: state.preventFramerLayoutShift,
     }),
     shallow
   );
@@ -264,11 +284,25 @@ function Tab({ tab, refetchTab }: ITab) {
         <Separator className="w-[96%]" />
 
         {tabData.map((section, index) => (
-          <SectionContainer
+          <motion.div
             key={section.id}
-            sectionIndex={index}
-            sectionData={section}
-          />
+            {...(editing &&
+              !preventFramerLayoutShift && { layout: "position" })}
+            variants={opacityAndScaleVariants}
+            // initial="closed"
+            // animate="expanded"
+            // exit="closed"
+            transition={{
+              layout: {
+                type: "spring",
+                bounce: 0.15,
+                duration: 1,
+              },
+            }}
+            className="baseVertFlex w-full"
+          >
+            <SectionContainer sectionIndex={index} sectionData={section} />
+          </motion.div>
         ))}
 
         {editing && (

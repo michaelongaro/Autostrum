@@ -142,9 +142,9 @@ function ChordSection({
       key={subSectionData.id}
       {...(editing && !preventFramerLayoutShift && { layout: "position" })}
       variants={opacityAndScaleVariants}
-      initial="closed"
-      animate="expanded"
-      exit="closed"
+      // initial="closed"
+      // animate="expanded"
+      // exit="closed"
       transition={{
         layout: {
           type: "spring",
@@ -214,9 +214,9 @@ function ChordSection({
           key={`${subSectionData.id}ChordSectionWrapper`}
           {...(editing && !preventFramerLayoutShift && { layout: "position" })}
           variants={opacityAndScaleVariants}
-          initial="closed"
-          animate="expanded"
-          exit="closed"
+          // initial="closed"
+          // animate="expanded"
+          // exit="closed"
           transition={{
             layout: {
               type: "spring",

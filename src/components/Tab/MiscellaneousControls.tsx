@@ -345,7 +345,10 @@ function MiscellaneousControls({
   }
 
   return (
-    <div className="baseFlex w-1/6 !flex-col-reverse !items-end gap-2 lg:!flex-row lg:!justify-end">
+    <div
+      className="baseFlex w-1/6 !flex-col-reverse !items-end gap-2 lg:!flex-row lg:!justify-end"
+      onClick={(e) => e.stopPropagation()}
+    >
       {!hidePlayPauseButton && (
         <Button
           variant="playPause"
@@ -410,7 +413,17 @@ function MiscellaneousControls({
 
       <DropdownMenu modal={true}>
         <DropdownMenuTrigger asChild>
-          <Button variant={"secondary"} className="px-2">
+          <Button
+            variant={"secondary"}
+            style={{
+              marginRight:
+                subSectionIndex === undefined &&
+                chordSequenceIndex === undefined
+                  ? "2rem"
+                  : "0",
+            }}
+            className="px-2"
+          >
             <AiOutlineEllipsis className="h-8 w-8" />
           </Button>
         </DropdownMenuTrigger>
