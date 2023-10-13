@@ -28,7 +28,8 @@ interface AccordionTriggerProps
   extends React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger> {
   extraPadding?: boolean;
   showUnderline?: boolean;
-  chevronExtraMarginRight?: boolean;
+  editingSectionContainer?: boolean;
+  viewingSectionContainer?: boolean;
 }
 
 const AccordionTrigger = React.forwardRef<
@@ -39,14 +40,19 @@ const AccordionTrigger = React.forwardRef<
     {
       extraPadding,
       showUnderline = true,
-      chevronExtraMarginRight,
+      editingSectionContainer,
+      viewingSectionContainer,
       className,
       children,
       ...props
     },
     ref
   ) => (
-    <AccordionPrimitive.Header className="flex">
+    <AccordionPrimitive.Header
+      className={`${
+        editingSectionContainer || viewingSectionContainer ? "relative" : ""
+      } flex`}
+    >
       <AccordionPrimitive.Trigger
         ref={ref}
         className={cn(
@@ -62,7 +68,11 @@ const AccordionTrigger = React.forwardRef<
         {children}
         <ChevronDown
           className={`absolute ${
-            chevronExtraMarginRight ? "right-8" : "right-4"
+            viewingSectionContainer
+              ? "bottom-4 right-1"
+              : editingSectionContainer
+              ? "bottom-3 right-1"
+              : "right-4"
           } h-4 w-4 shrink-0 transition-transform duration-200`}
         />
       </AccordionPrimitive.Trigger>
