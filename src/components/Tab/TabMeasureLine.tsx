@@ -43,7 +43,10 @@ function TabMeasureLine({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: columnData[9]! });
+  } = useSortable({
+    id: columnData[9]!,
+    disabled: !reorderingColumns, // hopefully this is a performance improvement?
+  });
 
   const { editing, getTabData, setTabData } = useTabStore(
     (state) => ({

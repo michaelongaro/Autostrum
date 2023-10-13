@@ -52,6 +52,7 @@ function TabNotesColumn({
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
   const [highlightChord, setHighlightChord] = useState(false);
+  const [columnHasBeenPlayed, setColumnHasBeenPlayed] = useState(false);
 
   const {
     attributes,
@@ -63,6 +64,7 @@ function TabNotesColumn({
     isDragging,
   } = useSortable({
     id: columnData[9]!,
+    disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
   const {
@@ -153,28 +155,19 @@ function TabNotesColumn({
     return disabled;
   }, [getTabData, sectionIndex, subSectionIndex, columnIndex]);
 
-  const { columnIsBeingPlayed, columnHasBeenPlayed } = useMemo(() => {
+  useEffect(() => {
     const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
-    if (!currentlyPlayingMetadata || !location)
-      return { columnIsBeingPlayed: false, columnHasBeenPlayed: false };
+    if (!currentlyPlayingMetadata || !location) return;
 
     const isSameSection =
       location.sectionIndex === sectionIndex &&
       location.subSectionIndex === subSectionIndex;
 
-    return {
-      columnIsBeingPlayed: isSameSection && location.chordIndex === columnIndex,
-      columnHasBeenPlayed: isSameSection && location.chordIndex > columnIndex,
-    };
-  }, [
-    currentlyPlayingMetadata,
-    currentChordIndex,
-    sectionIndex,
-    subSectionIndex,
-    columnIndex,
-  ]);
+    const columnIsBeingPlayed =
+      isSameSection && location.chordIndex === columnIndex;
 
-  useEffect(() => {
+    setColumnHasBeenPlayed(isSameSection && location.chordIndex > columnIndex);
+
     if (
       !columnIsBeingPlayed ||
       !audioMetadata.playing ||
@@ -201,20 +194,24 @@ function TabNotesColumn({
       setHighlightChord(true);
     }
   }, [
-    columnIsBeingPlayed,
+    currentChordIndex,
+    currentlyPlayingMetadata,
+    sectionIndex,
+    subSectionIndex,
     columnIndex,
     audioMetadata.type,
     audioMetadata.playing,
   ]);
 
   const durationOfCurrentChord = useMemo(() => {
-    if (currentlyPlayingMetadata === null) return 0;
+    if (
+      currentlyPlayingMetadata === null ||
+      currentlyPlayingMetadata[currentChordIndex] === undefined
+    )
+      return 0;
 
-    const bpm = currentlyPlayingMetadata[currentChordIndex]?.bpm;
-    const noteLengthMultiplier =
-      currentlyPlayingMetadata[currentChordIndex]?.noteLengthMultiplier;
-
-    if (bpm === undefined || noteLengthMultiplier === undefined) return 0;
+    const { bpm, noteLengthMultiplier } =
+      currentlyPlayingMetadata[currentChordIndex]!;
 
     return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
   }, [currentlyPlayingMetadata, currentChordIndex, playbackSpeed]);

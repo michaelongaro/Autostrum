@@ -1,7 +1,7 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import isEqual from "lodash.isequal";
 import debounce from "lodash.debounce";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BsMusicNote } from "react-icons/bs";
 import { v4 as uuid } from "uuid";
 import { shallow } from "zustand/shallow";
@@ -28,7 +28,8 @@ import { Separator } from "../ui/separator";
 import ChordSection from "./ChordSection";
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabSection from "./TabSection";
-import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+// import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import { Freeze } from "react-freeze";
 
 interface SectionContainer {
   sectionIndex: number;
@@ -41,7 +42,9 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
   const [artificalPlayButtonTimeout, setArtificialPlayButtonTimeout] =
     useState(false);
 
-  const autoscrollEnabled = useGetLocalStorageValues().autoscroll;
+  const testRef = useRef(null);
+
+  // const autoscrollEnabled = useGetLocalStorageValues().autoscroll;
 
   const {
     id,
@@ -84,36 +87,26 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
     setAccordionOpen("opened");
   }, [editing]);
 
-  useEffect(() => {
-    if (
-      audioMetadata.playing &&
-      audioMetadata.type === "Generated" &&
-      autoscrollEnabled
-    ) {
-      console.log(
-        "setting accordion open to ",
-        sectionIndex,
-        currentlyPlayingMetadata?.[currentChordIndex]?.location
-          ?.sectionIndex === sectionIndex
-          ? "opened"
-          : "closed"
-      );
-
-      setAccordionOpen(
-        currentlyPlayingMetadata?.[currentChordIndex]?.location
-          ?.sectionIndex === sectionIndex
-          ? "opened"
-          : "closed"
-      );
-    }
-  }, [
-    audioMetadata.playing,
-    audioMetadata.type,
-    autoscrollEnabled,
-    currentlyPlayingMetadata,
-    currentChordIndex,
-    sectionIndex,
-  ]); // also doing on editing view for now
+  // useEffect(() => {
+  //   if (
+  //     accordionOpen === "closed" &&
+  //     audioMetadata.playing &&
+  //     audioMetadata.type === "Generated" &&
+  //     autoscrollEnabled &&
+  //     currentlyPlayingMetadata?.[currentChordIndex]?.location?.sectionIndex ===
+  //       sectionIndex
+  //   ) {
+  //     setAccordionOpen("opened");
+  //   }
+  // }, [
+  //   accordionOpen,
+  //   audioMetadata.playing,
+  //   audioMetadata.type,
+  //   autoscrollEnabled,
+  //   currentlyPlayingMetadata,
+  //   currentChordIndex,
+  //   sectionIndex,
+  // ]);
 
   function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.value.length > 25) return;
@@ -227,15 +220,11 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
         collapsible
         value={accordionOpen}
         onValueChange={(value) => {
-          setAccordionOpen(value);
+          setAccordionOpen(value === "opened" ? value : "closed");
         }}
       >
         <AccordionItem value="opened">
-          <AccordionTrigger
-            showUnderline={false}
-            chevronExtraMarginRight
-            extraPadding
-          >
+          <>
             {editing && (
               <div className="baseFlex w-full !items-start">
                 <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
@@ -323,7 +312,12 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
                 </div>
               </div>
             )}
-          </AccordionTrigger>
+          </>
+          <AccordionTrigger
+            showUnderline={false}
+            editingSectionContainer={editing}
+            viewingSectionContainer={editing === false}
+          ></AccordionTrigger>
 
           <AccordionContent
             animated={
@@ -331,86 +325,105 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
               // wasn't successful w/o harsh side effects
               false
             }
+            className="pt-4"
           >
-            {/* map over tab/chord subSections */}
-            <div className="baseVertFlex w-full">
-              {sectionData.data.map((subSection, index) => (
-                <div
-                  key={subSection.id}
-                  className="baseVertFlex w-full !items-start pb-2"
-                >
-                  {!editing && (
-                    <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
-                      <div className="baseFlex gap-1">
-                        <BsMusicNote className="h-3 w-3" />
-                        {subSection.bpm === -1 ? bpm : subSection.bpm} BPM
-                      </div>
-
-                      {subSection.repetitions > 1 && (
-                        <div className="baseFlex gap-3">
-                          <Separator
-                            className="h-4 w-[1px]"
-                            orientation="vertical"
-                          />
-
-                          <p
-                            className={`${
-                              audioMetadata.type === "Generated" &&
-                              audioMetadata.playing &&
-                              currentlyPlayingMetadata?.[currentChordIndex]
-                                ?.location?.sectionIndex === sectionIndex &&
-                              currentlyPlayingMetadata?.[currentChordIndex]
-                                ?.location?.subSectionIndex === index
-                                ? "animate-colorOscillate"
-                                : ""
-                            }
-                    `}
-                          >
-                            Repeat x{subSection.repetitions}
-                          </p>
+            <Freeze
+              freeze={
+                !editing &&
+                audioMetadata.playing &&
+                audioMetadata.type === "Generated" &&
+                currentlyPlayingMetadata?.[currentChordIndex]?.location
+                  ?.sectionIndex !== sectionIndex
+              }
+              // placeholder={
+              //   testRef?.current
+              //   // document.getElementById(`sectionIndex${sectionIndex}`).innerHTML
+              // }
+            >
+              {/* map over tab/chord subSections */}
+              <div
+                ref={testRef}
+                id={`sectionIndex${sectionIndex}`}
+                className="baseVertFlex w-full"
+              >
+                {sectionData.data.map((subSection, index) => (
+                  <div
+                    key={subSection.id}
+                    className="baseVertFlex w-full !items-start pb-2"
+                  >
+                    {!editing && (
+                      <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
+                        <div className="baseFlex gap-1">
+                          <BsMusicNote className="h-3 w-3" />
+                          {subSection.bpm === -1 ? bpm : subSection.bpm} BPM
                         </div>
-                      )}
-                    </div>
-                  )}
-                  <AnimatePresence mode="wait">
-                    {subSection.type === "chord" ? (
-                      <ChordSection
-                        sectionId={sectionData.id}
-                        sectionIndex={sectionIndex}
-                        subSectionIndex={index}
-                        subSectionData={subSection}
-                      />
-                    ) : (
-                      <TabSection
-                        sectionId={sectionData.id}
-                        sectionIndex={sectionIndex}
-                        subSectionIndex={index}
-                        subSectionData={subSection}
-                      />
-                    )}
-                  </AnimatePresence>
-                </div>
-              ))}
-            </div>
 
-            {editing && (
-              <div className="baseFlex my-4 gap-4">
-                <Button
-                  onClick={() => addNewBlock("tab")}
-                  className="baseFlex pl-3"
-                >
-                  <BsPlus className="mr-1 h-5 w-5" />
-                  Tab block
-                </Button>
-                <Button
-                  onClick={() => addNewBlock("chord")}
-                  className="baseFlex pl-3"
-                >
-                  <BsPlus className="mr-1 h-5 w-5" />
-                  Strumming block
-                </Button>
+                        {subSection.repetitions > 1 && (
+                          <div className="baseFlex gap-3">
+                            <Separator
+                              className="h-4 w-[1px]"
+                              orientation="vertical"
+                            />
+
+                            <p
+                              className={`${
+                                audioMetadata.type === "Generated" &&
+                                audioMetadata.playing &&
+                                currentlyPlayingMetadata?.[currentChordIndex]
+                                  ?.location?.sectionIndex === sectionIndex &&
+                                currentlyPlayingMetadata?.[currentChordIndex]
+                                  ?.location?.subSectionIndex === index
+                                  ? "animate-colorOscillate"
+                                  : ""
+                              }
+                    `}
+                            >
+                              Repeat x{subSection.repetitions}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <AnimatePresence mode="wait">
+                      {subSection.type === "chord" ? (
+                        <ChordSection
+                          sectionId={sectionData.id}
+                          sectionIndex={sectionIndex}
+                          subSectionIndex={index}
+                          subSectionData={subSection}
+                        />
+                      ) : (
+                        <TabSection
+                          sectionId={sectionData.id}
+                          sectionIndex={sectionIndex}
+                          subSectionIndex={index}
+                          subSectionData={subSection}
+                        />
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
               </div>
-            )}
+
+              {editing && (
+                <div className="baseFlex my-4 gap-4">
+                  <Button
+                    onClick={() => addNewBlock("tab")}
+                    className="baseFlex pl-3"
+                  >
+                    <BsPlus className="mr-1 h-5 w-5" />
+                    Tab block
+                  </Button>
+                  <Button
+                    onClick={() => addNewBlock("chord")}
+                    className="baseFlex pl-3"
+                  >
+                    <BsPlus className="mr-1 h-5 w-5" />
+                    Strumming block
+                  </Button>
+                </div>
+              )}
+            </Freeze>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
