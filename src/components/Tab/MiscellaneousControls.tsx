@@ -239,12 +239,10 @@ function MiscellaneousControls({
       subSectionIndex !== undefined &&
       sectionIndex !== undefined
     ) {
-      const newChordSequence = replaceIdInChordSequence(
-        structuredClone(
-          getTabData()[sectionIndex]?.data[subSectionIndex]?.data[
-            chordSequenceIndex
-          ] as ChordSequence
-        )
+      const newChordSequence = structuredClone(
+        getTabData()[sectionIndex]?.data[subSectionIndex]?.data[
+          chordSequenceIndex
+        ] as ChordSequence
       );
 
       setCurrentlyCopiedData({
@@ -253,10 +251,8 @@ function MiscellaneousControls({
       });
     } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
       if (type === "chord") {
-        const newSubSection = replaceIdInChordSection(
-          structuredClone(
-            getTabData()[sectionIndex]?.data[subSectionIndex] as ChordSection
-          )
+        const newSubSection = structuredClone(
+          getTabData()[sectionIndex]?.data[subSectionIndex] as ChordSection
         );
 
         setCurrentlyCopiedData({
@@ -278,7 +274,7 @@ function MiscellaneousControls({
     } else if (sectionIndex !== undefined) {
       setCurrentlyCopiedData({
         type: "section",
-        data: replaceIdInSection(structuredClone(getTabData()[sectionIndex]!)),
+        data: structuredClone(getTabData()[sectionIndex]!),
       });
     }
   }
@@ -301,21 +297,23 @@ function MiscellaneousControls({
     ) {
       newTabData[sectionIndex]!.data[subSectionIndex]!.data[
         chordSequenceIndex
-      ] = currentlyCopiedData.data as ChordSequence;
+      ] = replaceIdInChordSequence(currentlyCopiedData.data as ChordSequence);
     } else if (
       currentlyCopiedData.type === "chord" &&
       sectionIndex !== undefined &&
       subSectionIndex !== undefined
     ) {
-      newTabData[sectionIndex]!.data[subSectionIndex] =
-        currentlyCopiedData.data as ChordSection;
+      newTabData[sectionIndex]!.data[subSectionIndex] = replaceIdInChordSection(
+        currentlyCopiedData.data as ChordSection
+      );
     } else if (
       currentlyCopiedData.type === "tab" &&
       sectionIndex !== undefined &&
       subSectionIndex !== undefined
     ) {
-      newTabData[sectionIndex]!.data[subSectionIndex] =
-        currentlyCopiedData.data as TabSection;
+      newTabData[sectionIndex]!.data[subSectionIndex] = replaceIdInTabSection(
+        currentlyCopiedData.data as TabSection
+      );
     } else if (
       currentlyCopiedData.type === "section" &&
       sectionIndex !== undefined
@@ -337,7 +335,7 @@ function MiscellaneousControls({
       newTabData[sectionIndex] = {
         id: sectionId,
         title: uniqueTitle,
-        data: structuredClone(currentlyCopiedData.data.data),
+        data: replaceIdInSection(currentlyCopiedData as Section).data,
       } as Section;
     }
 
