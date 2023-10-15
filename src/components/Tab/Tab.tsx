@@ -93,6 +93,8 @@ function Tab({ tab, refetchTab }: ITab) {
     strummingPatternBeingEdited,
     showCustomTuningModal,
     preventFramerLayoutShift,
+    currentlyPlayingMetadata,
+    currentChordIndex,
   } = useTabStore(
     (state) => ({
       setId: state.setId,
@@ -125,6 +127,8 @@ function Tab({ tab, refetchTab }: ITab) {
       strummingPatternBeingEdited: state.strummingPatternBeingEdited,
       showCustomTuningModal: state.showCustomTuningModal,
       preventFramerLayoutShift: state.preventFramerLayoutShift,
+      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+      currentChordIndex: state.currentChordIndex,
     }),
     shallow
   );
@@ -301,7 +305,18 @@ function Tab({ tab, refetchTab }: ITab) {
             }}
             className="baseVertFlex w-full"
           >
-            <SectionContainer sectionIndex={index} sectionData={section} />
+            <SectionContainer
+              sectionIndex={index}
+              sectionData={section}
+              currentlyPlayingSectionIndex={
+                currentlyPlayingMetadata?.[currentChordIndex]?.location
+                  .sectionIndex ?? 0
+              }
+              currentlyPlayingSubSectionIndex={
+                currentlyPlayingMetadata?.[currentChordIndex]?.location
+                  .subSectionIndex ?? 0
+              }
+            />
           </motion.div>
         ))}
 

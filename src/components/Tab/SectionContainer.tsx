@@ -1,7 +1,7 @@
 import { AnimatePresence } from "framer-motion";
 import isEqual from "lodash.isequal";
 import debounce from "lodash.debounce";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { BsMusicNote } from "react-icons/bs";
 import { v4 as uuid } from "uuid";
 import { shallow } from "zustand/shallow";
@@ -28,23 +28,26 @@ import { Separator } from "../ui/separator";
 import ChordSection from "./ChordSection";
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabSection from "./TabSection";
-// import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { Freeze } from "react-freeze";
+import { PreviewSectionContainerTest } from "./TabPreview";
 
 interface SectionContainer {
   sectionIndex: number;
   sectionData: Section;
+  currentlyPlayingSectionIndex: number;
+  currentlyPlayingSubSectionIndex: number;
 }
 
-function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
+function SectionContainer({
+  sectionData,
+  sectionIndex,
+  currentlyPlayingSectionIndex,
+  currentlyPlayingSubSectionIndex,
+}: SectionContainer) {
   const [accordionOpen, setAccordionOpen] = useState("opened");
   const [localTitle, setLocalTitle] = useState(sectionData.title);
   const [artificalPlayButtonTimeout, setArtificialPlayButtonTimeout] =
     useState(false);
-
-  const testRef = useRef(null);
-
-  // const autoscrollEnabled = useGetLocalStorageValues().autoscroll;
 
   const {
     id,
@@ -53,13 +56,12 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
     tabData,
     getTabData,
     setTabData,
+    tuning,
     editing,
     sectionProgression,
     setSectionProgression,
     audioMetadata,
     currentInstrument,
-    currentlyPlayingMetadata,
-    currentChordIndex,
     playTab,
     pauseAudio,
   } = useTabStore(
@@ -70,13 +72,12 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       tabData: state.tabData,
       getTabData: state.getTabData,
       setTabData: state.setTabData,
+      tuning: state.tuning,
       editing: state.editing,
       sectionProgression: state.sectionProgression,
       setSectionProgression: state.setSectionProgression,
       audioMetadata: state.audioMetadata,
       currentInstrument: state.currentInstrument,
-      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-      currentChordIndex: state.currentChordIndex,
       playTab: state.playTab,
       pauseAudio: state.pauseAudio,
     }),
@@ -86,27 +87,6 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
   useEffect(() => {
     setAccordionOpen("opened");
   }, [editing]);
-
-  // useEffect(() => {
-  //   if (
-  //     accordionOpen === "closed" &&
-  //     audioMetadata.playing &&
-  //     audioMetadata.type === "Generated" &&
-  //     autoscrollEnabled &&
-  //     currentlyPlayingMetadata?.[currentChordIndex]?.location?.sectionIndex ===
-  //       sectionIndex
-  //   ) {
-  //     setAccordionOpen("opened");
-  //   }
-  // }, [
-  //   accordionOpen,
-  //   audioMetadata.playing,
-  //   audioMetadata.type,
-  //   autoscrollEnabled,
-  //   currentlyPlayingMetadata,
-  //   currentChordIndex,
-  //   sectionIndex,
-  // ]);
 
   function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.value.length > 25) return;
@@ -218,7 +198,14 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
       <Accordion
         type="single"
         collapsible
-        value={accordionOpen}
+        value={
+          // auto opens accordion if section is playing
+          audioMetadata.playing &&
+          audioMetadata.type === "Generated" &&
+          currentlyPlayingSectionIndex === sectionIndex
+            ? "opened"
+            : accordionOpen
+        }
         onValueChange={(value) => {
           setAccordionOpen(value === "opened" ? value : "closed");
         }}
@@ -265,7 +252,7 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
                     disabled={
                       !currentInstrument ||
                       audioMetadata.type === "Artist recording" ||
-                      currentlyPlayingMetadata?.length === 0 ||
+                      // currentlyPlayingMetadata?.length === 0 || be careful on this one, need to test if fine to leave commented out
                       sectionIsEffectivelyEmpty(tabData, sectionIndex) ||
                       artificalPlayButtonTimeout
                     }
@@ -328,21 +315,20 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
             className="pt-4"
           >
             <Freeze
-              freeze={
-                !editing &&
-                audioMetadata.playing &&
-                audioMetadata.type === "Generated" &&
-                currentlyPlayingMetadata?.[currentChordIndex]?.location
-                  ?.sectionIndex !== sectionIndex
+              freeze={!editing && currentlyPlayingSectionIndex !== sectionIndex}
+              placeholder={
+                <PreviewSectionContainerTest
+                  tabData={tabData}
+                  tuning={tuning}
+                  baselineBpm={bpm}
+                  sectionData={sectionData}
+                  sectionIndex={sectionIndex}
+                  isPlaceholder
+                />
               }
-              // placeholder={
-              //   testRef?.current
-              //   // document.getElementById(`sectionIndex${sectionIndex}`).innerHTML
-              // }
             >
               {/* map over tab/chord subSections */}
               <div
-                ref={testRef}
                 id={`sectionIndex${sectionIndex}`}
                 className="baseVertFlex w-full"
               >
@@ -369,10 +355,8 @@ function SectionContainer({ sectionData, sectionIndex }: SectionContainer) {
                               className={`${
                                 audioMetadata.type === "Generated" &&
                                 audioMetadata.playing &&
-                                currentlyPlayingMetadata?.[currentChordIndex]
-                                  ?.location?.sectionIndex === sectionIndex &&
-                                currentlyPlayingMetadata?.[currentChordIndex]
-                                  ?.location?.subSectionIndex === index
+                                currentlyPlayingSectionIndex === sectionIndex &&
+                                currentlyPlayingSubSectionIndex === index
                                   ? "animate-colorOscillate"
                                   : ""
                               }

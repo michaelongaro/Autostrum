@@ -83,6 +83,7 @@ interface PreviewSectionContainer {
   tuning: string;
   sectionIndex: number;
   sectionData: Section;
+  isPlaceholder?: boolean;
 }
 
 function PreviewSectionContainer({
@@ -91,68 +92,80 @@ function PreviewSectionContainer({
   tuning,
   sectionData,
   sectionIndex,
+  isPlaceholder,
 }: PreviewSectionContainer) {
   return (
-    <div className="baseVertFlex w-full gap-4 px-2 pb-4 md:px-7">
-      <div className="baseFlex w-full !justify-start gap-4">
-        <div className="baseFlex gap-4 rounded-md bg-pink-600 px-4 py-2">
-          <p className="text-xl font-semibold">{sectionData.title}</p>
+    <div
+      className={`baseVertFlex w-full ${
+        !isPlaceholder ? "gap-4 px-2 pb-4 md:px-7" : ""
+      }`}
+    >
+      {!isPlaceholder && (
+        <div className="baseFlex w-full !justify-start gap-4">
+          <div className="baseFlex gap-4 rounded-md bg-pink-600 px-4 py-2">
+            <p className="text-xl font-semibold">{sectionData.title}</p>
 
-          <Button variant="playPause" tabIndex={-1}>
-            <BsFillPlayFill className="h-5 w-5" />
-          </Button>
+            <Button variant="playPause" tabIndex={-1}>
+              <BsFillPlayFill className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* map over tab/chord subSections */}
-      <div className="baseVertFlex w-full gap-4">
-        {sectionData.data.slice(0, 2).map((subSection, index) => (
-          // TODO: this index is probably not the best since the array can be reordered/mutated,
-          // also applies to further child components
-          <div
-            key={subSection.id}
-            className="baseVertFlex w-full !items-start pb-2"
-          >
-            <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
-              <div className="baseFlex gap-1">
-                <BsMusicNote className="h-3 w-3" />
-                {subSection.bpm === -1 ? baselineBpm : subSection.bpm} BPM
+      <div className="baseVertFlex w-full">
+        {sectionData.data
+          .slice(0, isPlaceholder ? sectionData.data.length : 2)
+          .map((subSection, index) => (
+            // TODO: this index is probably not the best since the array can be reordered/mutated,
+            // also applies to further child components
+            <div
+              key={subSection.id}
+              className="baseVertFlex w-full !items-start pb-2"
+            >
+              <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
+                <div className="baseFlex gap-1">
+                  <BsMusicNote className="h-3 w-3" />
+                  {subSection.bpm === -1 ? baselineBpm : subSection.bpm} BPM
+                </div>
+
+                {subSection.repetitions > 1 && (
+                  <div className="baseFlex gap-3">
+                    <Separator className="h-4 w-[1px]" orientation="vertical" />
+
+                    <p>Repeat x{subSection.repetitions}</p>
+                  </div>
+                )}
               </div>
 
-              {subSection.repetitions > 1 && (
-                <div className="baseFlex gap-3">
-                  <Separator className="h-4 w-[1px]" orientation="vertical" />
-
-                  <p>Repeat x{subSection.repetitions}</p>
-                </div>
+              {subSection.type === "chord" ? (
+                <PreviewChordSection
+                  tabData={tabData}
+                  baselineBpm={baselineBpm}
+                  sectionId={sectionData.id}
+                  sectionIndex={sectionIndex}
+                  subSectionIndex={index}
+                  subSectionData={subSection}
+                />
+              ) : (
+                <PreviewTabSection
+                  tabData={tabData}
+                  tuning={tuning}
+                  sectionIndex={sectionIndex}
+                  subSectionIndex={index}
+                  subSectionData={subSection}
+                />
               )}
             </div>
-
-            {subSection.type === "chord" ? (
-              <PreviewChordSection
-                tabData={tabData}
-                baselineBpm={baselineBpm}
-                sectionId={sectionData.id}
-                sectionIndex={sectionIndex}
-                subSectionIndex={index}
-                subSectionData={subSection}
-              />
-            ) : (
-              <PreviewTabSection
-                tabData={tabData}
-                tuning={tuning}
-                sectionId={sectionData.id}
-                sectionIndex={sectionIndex}
-                subSectionIndex={index}
-                subSectionData={subSection}
-              />
-            )}
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   );
 }
+
+export const PreviewSectionContainerTest = memo(PreviewSectionContainer, () => {
+  return true;
+});
 
 interface PreviewChordSection {
   tabData: Section[];
@@ -203,7 +216,7 @@ function PreviewChordSection({
             {((chordSequence.bpm !== -1 &&
               chordSequence.bpm !== subSectionData.bpm) ||
               chordSequence.repetitions > 1) && (
-              <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 !shadow-sm">
+              <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
                 <div className="baseFlex gap-1">
                   <BsMusicNote className="h-3 w-3" />
                   {chordSequence.bpm === -1
@@ -239,7 +252,6 @@ function PreviewChordSection({
 
 interface PreviewChordSequence {
   tabData: Section[];
-  sectionId: string;
   sectionIndex: number;
   subSectionIndex: number;
   chordSequenceIndex: number;
@@ -248,7 +260,6 @@ interface PreviewChordSequence {
 
 function PreviewChordSequence({
   tabData,
-  sectionId,
   sectionIndex,
   subSectionIndex,
   chordSequenceIndex,
@@ -277,7 +288,6 @@ function PreviewChordSequence({
 // mode shoudl only ever be viewingWithChordNames btw
 
 interface PreviewStrummingPattern {
-  tabData: Section[];
   chordSequenceData: string[];
   data: StrummingPattern;
   mode:
@@ -286,22 +296,12 @@ interface PreviewStrummingPattern {
     | "viewingWithChordNames"
     | "viewing"
     | "viewingInSelectDropdown";
-  index?: number; // index of strumming pattern in strummingPatterns array (used for editing pattern)
-
-  sectionIndex?: number;
-  subSectionIndex?: number;
-  chordSequenceIndex?: number;
 }
 
 function PreviewStrummingPattern({
-  tabData,
   chordSequenceData,
   data,
   mode,
-  index,
-  sectionIndex,
-  subSectionIndex,
-  chordSequenceIndex,
 }: PreviewStrummingPattern) {
   const patternHasPalmMuting = useCallback(() => {
     return data.strums.some((strum) => strum.palmMute !== "");
@@ -542,7 +542,6 @@ function PreviewStrummingPatternPalmMuteNode({
 interface PreviewTabSection {
   tabData: Section[];
   tuning: string;
-  sectionId: string;
   sectionIndex: number;
   subSectionIndex: number;
   subSectionData: TabSection;
@@ -551,7 +550,6 @@ interface PreviewTabSection {
 function PreviewTabSection({
   tabData,
   tuning,
-  sectionId,
   sectionIndex,
   subSectionIndex,
   subSectionData,
@@ -620,26 +618,20 @@ function PreviewTabSection({
 }
 
 interface PreviewTabColumn {
-  tabData: Section[];
   columnData: string[];
-  sectionIndex: number;
-  subSectionIndex: number;
   columnIndex: number;
 }
 
-function PreviewTabColumn({
-  tabData,
-  columnData,
-  sectionIndex,
-  subSectionIndex,
-  columnIndex,
-}: PreviewTabColumn) {
+function PreviewTabColumn({ columnData, columnIndex }: PreviewTabColumn) {
   return (
     <>
       {columnData.includes("|") ? (
         <PreviewTabMeasureLine columnData={columnData} />
       ) : (
-        <TabNotesColumn columnIndex={columnIndex} columnData={columnData} />
+        <PreviewTabNotesColumn
+          columnIndex={columnIndex}
+          columnData={columnData}
+        />
       )}
     </>
   );
@@ -688,12 +680,15 @@ function PreviewTabMeasureLine({ columnData }: ColumnDataMockup) {
   );
 }
 
-interface TabNotesColumn {
+interface PreviewTabNotesColumn {
   columnData: string[];
   columnIndex: number;
 }
 
-function TabNotesColumn({ columnData, columnIndex }: TabNotesColumn) {
+function PreviewTabNotesColumn({
+  columnData,
+  columnIndex,
+}: PreviewTabNotesColumn) {
   function relativelyGetColumn(indexRelativeToCurrentCombo: number): string[] {
     return (columnData[columnIndex + indexRelativeToCurrentCombo] ??
       []) as string[];
