@@ -25,6 +25,7 @@ import type {
 } from "~/stores/TabStore";
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
 import { parse, toString } from "~/utils/tunings";
+import HighlightTabColumnWrapper from "./HighlightTabColumnWrapper";
 
 // ---WARNING---: I really didn't want to have to do this approach, but this is the only way
 // I could avoid the horrendous performance/rerender issues that would happen when many
@@ -140,21 +141,21 @@ function PreviewSectionContainer({
 
               {subSection.type === "chord" ? (
                 <PreviewChordSection
-                  tabData={tabData}
                   baselineBpm={baselineBpm}
-                  sectionId={sectionData.id}
-                  sectionIndex={sectionIndex}
-                  subSectionIndex={index}
                   subSectionData={subSection}
                 />
               ) : (
-                <PreviewTabSection
-                  tabData={tabData}
-                  tuning={tuning}
-                  sectionIndex={sectionIndex}
-                  subSectionIndex={index}
-                  subSectionData={subSection}
-                />
+                <div className="baseVertFlex relative h-full w-full !items-start">
+                  <HighlightTabColumnWrapper
+                    sectionIndex={sectionIndex}
+                    subSectionIndex={index}
+                    subSectionData={subSection}
+                  />
+                  <PreviewTabSection
+                    tuning={tuning}
+                    subSectionData={subSection}
+                  />
+                </div>
               )}
             </div>
           ))}
@@ -168,20 +169,12 @@ export const PreviewSectionContainerTest = memo(PreviewSectionContainer, () => {
 });
 
 interface PreviewChordSection {
-  tabData: Section[];
   baselineBpm: number;
-  sectionId: string;
-  sectionIndex: number;
-  subSectionIndex: number;
   subSectionData: ChordSection;
 }
 
 function PreviewChordSection({
-  tabData,
   baselineBpm,
-  sectionId,
-  sectionIndex,
-  subSectionIndex,
   subSectionData,
 }: PreviewChordSection) {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
@@ -235,14 +228,7 @@ function PreviewChordSection({
               </div>
             )}
 
-            <PreviewChordSequence
-              tabData={tabData}
-              sectionId={sectionId}
-              sectionIndex={sectionIndex}
-              subSectionIndex={subSectionIndex}
-              chordSequenceIndex={index}
-              chordSequenceData={chordSequence}
-            />
+            <PreviewChordSequence chordSequenceData={chordSequence} />
           </div>
         ))}
       </div>
@@ -251,20 +237,10 @@ function PreviewChordSection({
 }
 
 interface PreviewChordSequence {
-  tabData: Section[];
-  sectionIndex: number;
-  subSectionIndex: number;
-  chordSequenceIndex: number;
   chordSequenceData: ChordSequence;
 }
 
-function PreviewChordSequence({
-  tabData,
-  sectionIndex,
-  subSectionIndex,
-  chordSequenceIndex,
-  chordSequenceData,
-}: PreviewChordSequence) {
+function PreviewChordSequence({ chordSequenceData }: PreviewChordSequence) {
   return (
     <div
       style={{
@@ -273,13 +249,9 @@ function PreviewChordSequence({
       className="baseVertFlex relative w-auto !justify-start gap-8 rounded-md border-2 border-pink-50 p-1"
     >
       <PreviewStrummingPattern
-        tabData={tabData}
         chordSequenceData={chordSequenceData.data}
         data={chordSequenceData.strummingPattern}
         mode={"viewingWithChordNames"}
-        sectionIndex={sectionIndex}
-        subSectionIndex={subSectionIndex}
-        chordSequenceIndex={chordSequenceIndex}
       />
     </div>
   );
@@ -540,20 +512,11 @@ function PreviewStrummingPatternPalmMuteNode({
 }
 
 interface PreviewTabSection {
-  tabData: Section[];
   tuning: string;
-  sectionIndex: number;
-  subSectionIndex: number;
   subSectionData: TabSection;
 }
 
-function PreviewTabSection({
-  tabData,
-  tuning,
-  sectionIndex,
-  subSectionIndex,
-  subSectionData,
-}: PreviewTabSection) {
+function PreviewTabSection({ tuning, subSectionData }: PreviewTabSection) {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const sectionPadding = useMemo(() => {
@@ -595,14 +558,13 @@ function PreviewTabSection({
         </div>
 
         {subSectionData.data.map((column, index) => (
-          <PreviewTabColumn
-            tabData={tabData}
-            key={column[9]} // this is a unique id for the column
-            columnData={column}
-            sectionIndex={sectionIndex}
-            subSectionIndex={subSectionIndex}
-            columnIndex={index}
-          />
+          <Fragment key={column[9]}>
+            {column.includes("|") ? (
+              <PreviewTabMeasureLine columnData={column} />
+            ) : (
+              <PreviewTabNotesColumn columnIndex={index} columnData={column} />
+            )}
+          </Fragment>
         ))}
 
         <div
@@ -614,26 +576,6 @@ function PreviewTabSection({
         ></div>
       </div>
     </div>
-  );
-}
-
-interface PreviewTabColumn {
-  columnData: string[];
-  columnIndex: number;
-}
-
-function PreviewTabColumn({ columnData, columnIndex }: PreviewTabColumn) {
-  return (
-    <>
-      {columnData.includes("|") ? (
-        <PreviewTabMeasureLine columnData={columnData} />
-      ) : (
-        <PreviewTabNotesColumn
-          columnIndex={columnIndex}
-          columnData={columnData}
-        />
-      )}
-    </>
   );
 }
 

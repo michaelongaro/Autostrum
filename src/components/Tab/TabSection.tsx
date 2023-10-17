@@ -16,7 +16,7 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { motion } from "framer-motion";
-import { useEffect, useMemo, useState, memo } from "react";
+import { useEffect, useMemo, useState, memo, Fragment } from "react";
 import { BsKeyboard } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
 import { HiOutlineInformationCircle } from "react-icons/hi";
@@ -36,12 +36,12 @@ import {
   type TabSection as TabSectionType,
 } from "~/stores/TabStore";
 import { parse, toString } from "~/utils/tunings";
-import TabColumn from "./TabColumn";
-
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { traverseToRemoveHangingPairNode } from "~/utils/palmMuteHelpers";
 import MiscellaneousControls from "./MiscellaneousControls";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
+import TabMeasureLine from "./TabMeasureLine";
+import TabNotesColumn from "./TabNotesColumn";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -127,6 +127,10 @@ function TabSection({
     setTabData,
     editing,
     preventFramerLayoutShift,
+    currentlyPlayingMetadata,
+    currentChordIndex,
+    playbackSpeed,
+    audioMetadata,
   } = useTabStore(
     (state) => ({
       bpm: state.bpm,
@@ -135,6 +139,10 @@ function TabSection({
       setTabData: state.setTabData,
       editing: state.editing,
       preventFramerLayoutShift: state.preventFramerLayoutShift,
+      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+      currentChordIndex: state.currentChordIndex,
+      playbackSpeed: state.playbackSpeed,
+      audioMetadata: state.audioMetadata,
     }),
     shallow
   );
@@ -597,6 +605,45 @@ function TabSection({
     }
   }
 
+  function columnIsBeingPlayed(columnIndex: number) {
+    const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
+    if (!currentlyPlayingMetadata || !location) return false;
+
+    const isSameSection =
+      location.sectionIndex === sectionIndex &&
+      location.subSectionIndex === subSectionIndex;
+
+    const columnIsBeingPlayed =
+      isSameSection && location.chordIndex === columnIndex;
+
+    return (
+      columnIsBeingPlayed &&
+      audioMetadata.playing &&
+      audioMetadata.type === "Generated"
+    );
+  }
+
+  function columnHasBeenPlayed(columnIndex: number) {
+    const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
+    if (!currentlyPlayingMetadata || !location) return false;
+
+    const isSameSection =
+      location.sectionIndex === sectionIndex &&
+      location.subSectionIndex === subSectionIndex;
+
+    return isSameSection && location.chordIndex > columnIndex;
+  }
+
+  function getDurationOfChord(columnIndex: number) {
+    const location = currentlyPlayingMetadata?.[columnIndex]?.location;
+    if (!currentlyPlayingMetadata || !location) return 0;
+
+    const { bpm, noteLengthMultiplier } =
+      currentlyPlayingMetadata[columnIndex]!;
+
+    return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
+  }
+
   const sectionPadding = useMemo(() => {
     let padding = "0 1rem";
 
@@ -850,21 +897,34 @@ function TabSection({
             strategy={rectSortingStrategy}
           >
             {subSectionData.data.map((column, index) => (
-              <TabColumn
-                key={column[9]} // this is a unique id for the column
-                columnData={column}
-                sectionIndex={sectionIndex}
-                subSectionIndex={subSectionIndex}
-                columnIndex={index}
-                editingPalmMuteNodes={editing ? editingPalmMuteNodes : false}
-                setEditingPalmMuteNodes={setEditingPalmMuteNodes}
-                lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
-                setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
-                reorderingColumns={editing ? reorderingColumns : false}
-                showingDeleteColumnsButtons={
-                  editing ? showingDeleteColumnsButtons : false
-                }
-              />
+              <Fragment key={column[9]}>
+                {column.includes("|") ? (
+                  <TabMeasureLine
+                    columnData={column}
+                    sectionIndex={sectionIndex}
+                    subSectionIndex={subSectionIndex}
+                    columnIndex={index}
+                    reorderingColumns={reorderingColumns}
+                    showingDeleteColumnsButtons={showingDeleteColumnsButtons}
+                  />
+                ) : (
+                  <TabNotesColumn
+                    sectionIndex={sectionIndex}
+                    subSectionIndex={subSectionIndex}
+                    columnIndex={index}
+                    columnData={column}
+                    columnIsBeingPlayed={columnIsBeingPlayed(index)}
+                    columnHasBeenPlayed={columnHasBeenPlayed(index)}
+                    durationOfChord={getDurationOfChord(index)}
+                    editingPalmMuteNodes={editingPalmMuteNodes}
+                    setEditingPalmMuteNodes={setEditingPalmMuteNodes}
+                    lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+                    setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
+                    reorderingColumns={reorderingColumns}
+                    showingDeleteColumnsButtons={showingDeleteColumnsButtons}
+                  />
+                )}
+              </Fragment>
             ))}
           </SortableContext>
         </DndContext>

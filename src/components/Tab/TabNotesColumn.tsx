@@ -26,6 +26,10 @@ interface TabNotesColumn {
   subSectionIndex: number;
   columnIndex: number;
 
+  columnIsBeingPlayed: boolean;
+  columnHasBeenPlayed: boolean;
+  durationOfChord: number;
+
   editingPalmMuteNodes: boolean;
   setEditingPalmMuteNodes: Dispatch<SetStateAction<boolean>>;
   lastModifiedPalmMuteNode: LastModifiedPalmMuteNodeLocation | null;
@@ -42,6 +46,10 @@ function TabNotesColumn({
   subSectionIndex,
   columnIndex,
 
+  columnIsBeingPlayed,
+  columnHasBeenPlayed,
+  durationOfChord,
+
   editingPalmMuteNodes,
   setEditingPalmMuteNodes,
   lastModifiedPalmMuteNode,
@@ -52,7 +60,6 @@ function TabNotesColumn({
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
   const [highlightChord, setHighlightChord] = useState(false);
-  const [columnHasBeenPlayed, setColumnHasBeenPlayed] = useState(false);
 
   const {
     attributes,
@@ -67,26 +74,33 @@ function TabNotesColumn({
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const {
-    editing,
-    getTabData,
-    setTabData,
-    currentlyPlayingMetadata,
-    currentChordIndex,
-    playbackSpeed,
-    audioMetadata,
-  } = useTabStore(
+  const { editing, getTabData, setTabData } = useTabStore(
     (state) => ({
       editing: state.editing,
       getTabData: state.getTabData,
       setTabData: state.setTabData,
-      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-      currentChordIndex: state.currentChordIndex,
-      playbackSpeed: state.playbackSpeed,
-      audioMetadata: state.audioMetadata,
     }),
     shallow
   );
+
+  // ideally don't need this and can just use prop values passed in, but need to have
+  // [0] index special case since when looping it would keep the [0] index at 100% width
+  // immediately, so we need this semi hacky solution
+  useEffect(() => {
+    if (columnIndex === 0) {
+      if (columnIsBeingPlayed) {
+        setHighlightChord(false);
+
+        setTimeout(() => {
+          setHighlightChord(true);
+        }, 0);
+      } else {
+        setHighlightChord(false);
+      }
+    } else {
+      setHighlightChord(columnIsBeingPlayed);
+    }
+  }, [columnIndex, columnIsBeingPlayed]);
 
   function relativelyGetColumn(indexRelativeToCurrentCombo: number): string[] {
     return (columnData[columnIndex + indexRelativeToCurrentCombo] ??
@@ -154,67 +168,6 @@ function TabNotesColumn({
 
     return disabled;
   }, [getTabData, sectionIndex, subSectionIndex, columnIndex]);
-
-  useEffect(() => {
-    const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
-    if (!currentlyPlayingMetadata || !location) return;
-
-    const isSameSection =
-      location.sectionIndex === sectionIndex &&
-      location.subSectionIndex === subSectionIndex;
-
-    const columnIsBeingPlayed =
-      isSameSection && location.chordIndex === columnIndex;
-
-    setColumnHasBeenPlayed(isSameSection && location.chordIndex > columnIndex);
-
-    if (
-      !columnIsBeingPlayed ||
-      !audioMetadata.playing ||
-      audioMetadata.type !== "Generated"
-    ) {
-      setHighlightChord(false);
-    } else if (
-      columnIndex === 0 &&
-      columnIsBeingPlayed &&
-      audioMetadata.playing &&
-      audioMetadata.type === "Generated"
-    ) {
-      setHighlightChord(false);
-
-      setTimeout(() => {
-        setHighlightChord(true);
-      }, 0);
-    } else if (
-      columnIndex !== 0 &&
-      columnIsBeingPlayed &&
-      audioMetadata.playing &&
-      audioMetadata.type === "Generated"
-    ) {
-      setHighlightChord(true);
-    }
-  }, [
-    currentChordIndex,
-    currentlyPlayingMetadata,
-    sectionIndex,
-    subSectionIndex,
-    columnIndex,
-    audioMetadata.type,
-    audioMetadata.playing,
-  ]);
-
-  const durationOfCurrentChord = useMemo(() => {
-    if (
-      currentlyPlayingMetadata === null ||
-      currentlyPlayingMetadata[currentChordIndex] === undefined
-    )
-      return 0;
-
-    const { bpm, noteLengthMultiplier } =
-      currentlyPlayingMetadata[currentChordIndex]!;
-
-    return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
-  }, [currentlyPlayingMetadata, currentChordIndex, playbackSpeed]);
 
   function handleDeletePalmMutedChord() {
     const newTabData = getTabData();
@@ -290,9 +243,7 @@ function TabNotesColumn({
               reorderingColumns || showingDeleteColumnsButtons ? "4px" : "0",
             height: editing ? "276px" : "164px",
             width: highlightChord || columnHasBeenPlayed ? "100%" : "0%",
-            transitionDuration: highlightChord
-              ? `${durationOfCurrentChord}s`
-              : "0s",
+            transitionDuration: highlightChord ? `${durationOfChord}s` : "0s",
             msTransitionProperty: "width",
             transitionTimingFunction: "linear",
           }}
@@ -454,8 +405,6 @@ function TabNotesColumn({
     </motion.div>
   );
 }
-
-// god idk just ditch the memo entirely? this is so rediculous
 
 export default memo(TabNotesColumn, (prevProps, nextProps) => {
   const {
