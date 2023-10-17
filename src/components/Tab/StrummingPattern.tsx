@@ -725,20 +725,21 @@ export default memo(StrummingPattern, (prevProps, nextProps) => {
   const {
     data: prevData,
     chordSequenceData: prevChordSequenceData,
+    lastModifiedPalmMuteNode: prevLastModifiedPalmMuteNode,
     ...restPrev
   } = prevProps;
   const {
     data: nextData,
     chordSequenceData: nextChordSequenceData,
+    lastModifiedPalmMuteNode: nextLastModifiedPalmMuteNode,
     ...restNext
   } = nextProps;
 
-  // TODO: maybe need more props to be checked here...
-
-  // Custom comparison for getTabData() related prop
+  // Custom comparison for props that are objects
   if (
     !isEqual(prevData, nextData) ||
-    !isEqual(prevChordSequenceData, nextChordSequenceData)
+    !isEqual(prevChordSequenceData, nextChordSequenceData) ||
+    !isEqual(prevLastModifiedPalmMuteNode, nextLastModifiedPalmMuteNode)
   ) {
     return false; // props are not equal, so component should re-render
   }

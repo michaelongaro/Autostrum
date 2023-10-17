@@ -458,11 +458,23 @@ function TabNotesColumn({
 // god idk just ditch the memo entirely? this is so rediculous
 
 export default memo(TabNotesColumn, (prevProps, nextProps) => {
-  const { columnData: prevColumnData, ...restPrev } = prevProps;
-  const { columnData: nextColumnData, ...restNext } = nextProps;
+  const {
+    columnData: prevColumnData,
+    lastModifiedPalmMuteNode: prevLastModifiedPMNode,
+    ...restPrev
+  } = prevProps;
+  const {
+    columnData: nextColumnData,
+    lastModifiedPalmMuteNode: nextLastModifiedPMNode,
+    ...restNext
+  } = nextProps;
 
-  // Custom comparison for getTabData() related prop
-  if (!isEqual(prevColumnData, nextColumnData)) {
+  // Custom comparison for getTabData() related prop + lastModifiedPalmMuteNode since their memory addresses
+  // could change across renders, even if values are the same
+  if (
+    !isEqual(prevColumnData, nextColumnData) ||
+    !isEqual(prevLastModifiedPMNode, nextLastModifiedPMNode)
+  ) {
     return false; // props are not equal, so component should re-render
   }
 

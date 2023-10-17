@@ -403,11 +403,22 @@ function ChordSequence({
 }
 
 export default memo(ChordSequence, (prevProps, nextProps) => {
-  const { chordSequenceData: prevChordSequenceData, ...restPrev } = prevProps;
-  const { chordSequenceData: nextChordSequenceData, ...restNext } = nextProps;
+  const {
+    chordSequenceData: prevChordSequenceData,
+    subSectionData: prevSubSectionData,
+    ...restPrev
+  } = prevProps;
+  const {
+    chordSequenceData: nextChordSequenceData,
+    subSectionData: nextSubSectionDataData,
+    ...restNext
+  } = nextProps;
 
-  // Custom comparison for getTabData() related prop
-  if (!isEqual(prevChordSequenceData, nextChordSequenceData)) {
+  // Custom comparison for object props
+  if (
+    !isEqual(prevChordSequenceData, nextChordSequenceData) ||
+    !isEqual(prevSubSectionData, nextSubSectionDataData)
+  ) {
     return false; // props are not equal, so component should re-render
   }
 
