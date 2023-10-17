@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 
 function useViewportWidthBreakpoint(width: number) {
   const [viewportLargerThanBreakpoint, setViewportLargerThanBreakpoint] =
     useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     function handleResize() {
       if (window.innerWidth >= width) {
         setViewportLargerThanBreakpoint(true);
