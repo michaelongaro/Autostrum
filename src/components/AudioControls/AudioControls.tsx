@@ -510,7 +510,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
 
             {/* audio slider */}
             <div
-              className={`baseFlex col-span-5 w-full !flex-nowrap gap-2 ${
+              className={`baseFlex col-span-5 w-full !flex-nowrap gap-2 md:w-1/2 md:justify-self-end ${
                 visibility === "minimized" || visibility === "keepMinimized"
                   ? "opacity-0"
                   : "opacity-100"
@@ -741,6 +741,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
           {/* play/pause button*/}
           <Button
             variant="playPause"
+            size={aboveLargeViewportWidth ? "default" : "sm"}
             disabled={disablePlayButton}
             onClick={() => {
               if (audioMetadata.playing) {
@@ -923,7 +924,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
           ) : (
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant={"outline"} className="p-1">
+                <Button size="sm" variant={"outline"} className="p-1">
                   <IoSettingsOutline className="h-6 w-6" />
                 </Button>
               </PopoverTrigger>
