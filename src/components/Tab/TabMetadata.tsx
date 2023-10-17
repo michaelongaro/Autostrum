@@ -1210,7 +1210,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
             <div
               className={`${
                 classes.description ?? ""
-              } baseVertFlex w-full !items-start gap-2`}
+              } baseVertFlex w-full !items-start gap-2 lg:w-[90%]`}
             >
               <div className="font-semibold">Description</div>
 
