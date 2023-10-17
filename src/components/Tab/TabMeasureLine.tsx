@@ -15,8 +15,16 @@ import {
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { type TabColumn } from "./TabColumn";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
+
+interface TabMeasureLine {
+  columnData: string[];
+  sectionIndex: number;
+  subSectionIndex: number;
+  columnIndex: number;
+  reorderingColumns: boolean;
+  showingDeleteColumnsButtons: boolean;
+}
 
 function TabMeasureLine({
   columnData,
@@ -25,14 +33,7 @@ function TabMeasureLine({
   columnIndex,
   reorderingColumns,
   showingDeleteColumnsButtons,
-}: Omit<
-  TabColumn,
-  | "sectionId"
-  | "editingPalmMuteNodes"
-  | "setEditingPalmMuteNodes"
-  | "lastModifiedPalmMuteNode"
-  | "setLastModifiedPalmMuteNode"
->) {
+}: TabMeasureLine) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
   const {
