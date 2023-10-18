@@ -418,7 +418,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       exit="closed"
     >
       <div className="baseVertFlex h-full w-[95vw] gap-2 rounded-xl bg-pink-600 p-2 shadow-2xl lg:rounded-full lg:px-8 lg:py-2 xl:w-10/12 2xl:w-1/2">
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence mode="wait">
           {aboveLargeViewportWidth && visibility === "minimized" && (
             <motion.div
               key={"audioControlsTopLayer"}
