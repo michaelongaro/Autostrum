@@ -60,6 +60,7 @@ function Bubbles() {
 
   return (
     <Canvas
+      id="mainFloatingBubblesBackground"
       style={{
         width: "100vw",
         height: "100dvh",
