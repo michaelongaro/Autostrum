@@ -103,8 +103,6 @@ function HighlightTabColumnWrapper({
     return padding;
   }, [editing, aboveMediumViewportWidth]);
 
-  console.log("rerendering");
-
   return (
     <div
       style={{
@@ -244,7 +242,7 @@ function HighlightTabNoteColumn({
       }}
       className="baseVertFlex w-[35px] cursor-default"
     >
-      <div className="baseFlex relative">
+      <div className="baseFlex relative h-full w-full">
         <div
           style={{
             marginTop:
