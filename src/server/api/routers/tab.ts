@@ -431,8 +431,9 @@ export const tabRouter = createTRPCRouter({
           y: 160,
           width: 1245,
           height: 581,
-          scale: 0.45, // was too blurry with correct ratio of ~0.315
+          scale: 0.75,
         },
+        quality: 100,
         type: "webp",
       });
       await page.close();
@@ -644,8 +645,9 @@ export const tabRouter = createTRPCRouter({
   //         y: 160,
   //         width: 1245,
   //         height: 581,
-  //         scale: 0.45, // was too blurry with correct ratio of ~0.315
+  //         scale: 0.75,
   //       },
+  //       quality: 100,
   //       type: "webp",
   //     });
   //     await page.close();
@@ -668,6 +670,6 @@ export const tabRouter = createTRPCRouter({
   //       console.log(e);
   //       // return null;
   //     }
-  // }
+  //   }
   // }),
 });
