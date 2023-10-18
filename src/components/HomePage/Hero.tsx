@@ -72,7 +72,7 @@ function Hero({
         )}
       </div>
 
-      <div className="baseVertFlex lightGlassmorphic w-4/5 !flex-nowrap gap-8 rounded-xl p-4 shadow-sm md:max-w-[550px] md:gap-4 md:p-8 xl:w-[950px] xl:max-w-[950px]">
+      <div className="baseVertFlex lightGlassmorphic w-11/12 !flex-nowrap gap-8 rounded-xl p-4 shadow-sm sm:w-4/5 md:max-w-[550px] md:gap-4 md:p-8 xl:w-[950px] xl:max-w-[950px]">
         <div className="baseVertFlex !flex-nowrap gap-8 xl:flex-row xl:gap-12">
           {/* ideally would try to be smarter about mobile vs desktop styles/org rather than repeat
               myself twice here */}

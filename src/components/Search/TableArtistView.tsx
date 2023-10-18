@@ -97,7 +97,7 @@ function TableArtistView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="baseVertFlex w-full gap-4 p-2 transition-all md:p-4"
+      className="baseVertFlex w-full gap-4 p-4 transition-all"
     >
       <Table>
         {/* ideally want table to be rounded, but wasn't having much luck. look up online

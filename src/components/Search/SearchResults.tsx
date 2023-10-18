@@ -42,6 +42,7 @@ const opacityVariants = {
 };
 
 interface SearchResults {
+  forPinnedModal?: boolean;
   genreId: number;
   type: "tabs" | "artists";
   searchQuery: string;
@@ -58,6 +59,7 @@ interface SearchResults {
 }
 
 function SearchResults({
+  forPinnedModal,
   genreId,
   type,
   searchQuery,
@@ -107,7 +109,7 @@ function SearchResults({
       // Found 10 "Rock" tabs
       if (searchQuery === "" && genreId >= 1 && genreId <= 8) {
         return (
-          <div className="text-lg">
+          <div className="text-base sm:text-lg">
             {`Found ${searchResultsCount}`}
             <Badge
               style={{ backgroundColor: genreArrayData[genreId - 1]?.color }}
@@ -123,7 +125,7 @@ function SearchResults({
       // Found 10 "Rock" tabs for "search query"
       if (searchQuery !== "" && genreId >= 1 && genreId <= 8) {
         return (
-          <p className="text-lg">
+          <p className="text-base sm:text-lg">
             Found {searchResultsCount}
             <Badge
               style={{ backgroundColor: genreArrayData[genreId - 1]?.color }}
@@ -141,7 +143,7 @@ function SearchResults({
       // Found 10 tabs across "All genres"
       if (searchQuery === "" && genreId === 9) {
         return (
-          <div className="text-lg">
+          <div className="text-base sm:text-lg">
             {`Found ${searchResultsCount} ${formattedTabString} across`}
             <Badge className="relative bottom-[2px] mx-2 bg-pink-500">
               All genres
@@ -153,7 +155,7 @@ function SearchResults({
       // Found 10 tabs across "All genres" for "search query"
       if (searchQuery !== "" && genreId === 9) {
         return (
-          <div className="text-lg">
+          <div className="text-base sm:text-lg">
             {`Found ${searchResultsCount} ${formattedTabString} across`}
             <Badge className="relative bottom-[2px] mx-2 bg-pink-500">
               All genres
@@ -169,7 +171,7 @@ function SearchResults({
     // Found 10 artists
     if (searchQuery === "" && type === "artists") {
       return (
-        <p className="text-lg">
+        <p className="text-base sm:text-lg">
           Found {searchResultsCount} {formattedArtistString}
         </p>
       );
@@ -178,7 +180,7 @@ function SearchResults({
     // Found 10 artists for "search query"
     else {
       return (
-        <p className="text-lg">
+        <p className="text-base sm:text-lg">
           Found {searchResultsCount} artists for &quot;
           {searchQuery}
           &quot;
@@ -361,7 +363,11 @@ function SearchResults({
   }
 
   return (
-    <div className="baseVertFlex min-h-[500px] w-full !flex-nowrap !justify-start rounded-md border-8 border-t-2 border-pink-800 shadow-md">
+    <div
+      className={`baseVertFlex ${
+        forPinnedModal ? "min-h-[350px]" : "min-h-[500px]"
+      } w-full !flex-nowrap !justify-start rounded-md border-8 border-t-2 border-pink-800 shadow-md`}
+    >
       {/* # of results + sorting options */}
       <div className="baseFlex w-full !items-center !justify-between gap-4 bg-pink-800 p-2 @container xl:min-h-[76px]">
         {/* # of results */}

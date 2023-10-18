@@ -219,7 +219,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
       </div>
 
       {/* search Results component */}
-      <div className="baseVertFlex mt-4 w-full gap-8 md:mt-0">
+      <div className="baseVertFlex mt-8 w-full gap-8">
         <SearchInput initialSearchQueryFromUrl={searchQuery} />
         {serve404Page ? (
           <Render404Page />

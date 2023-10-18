@@ -120,7 +120,7 @@ function GridTabView({
     >
       <div
         style={{ gridAutoRows: "minmax(min-content, max-content)" }}
-        className="grid w-full grid-cols-1 place-items-center gap-4 p-2 @2xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4 md:p-4"
+        className="grid w-full grid-cols-1 place-items-center gap-4 p-4 @2xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4"
       >
         {(!showArtificialLoadingSpinner || isFetchingNextPage) && tabResults ? (
           <>

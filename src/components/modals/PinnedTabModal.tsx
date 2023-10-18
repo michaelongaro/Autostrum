@@ -124,7 +124,7 @@ function PinnedTabModal({
       >
         <div
           tabIndex={-1}
-          className="baseVertFlex max-h-[90vh] w-11/12 !flex-nowrap gap-4 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 lg:gap-8 xl:w-9/12"
+          className="baseVertFlex max-h-[90vh] w-[98vw] !flex-nowrap gap-4 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 lg:gap-8 xl:w-9/12"
           onKeyDown={(e) => {
             if (e.key === "Escape") {
               setShowPinnedTabModal(false);
@@ -139,6 +139,7 @@ function PinnedTabModal({
           <SearchInput initialSearchQueryFromUrl={searchQuery} />
 
           <SearchResults
+            forPinnedModal
             genreId={genreId}
             type={type}
             searchQuery={searchQuery}
@@ -149,7 +150,7 @@ function PinnedTabModal({
             setSelectedPinnedTabId={setCurrentlySelectedPinnedTabId}
           />
 
-          <div className="baseFlex gap-8">
+          <div className="baseFlex gap-4">
             <Button
               variant={"secondary"}
               onClick={() => setShowPinnedTabModal(false)}

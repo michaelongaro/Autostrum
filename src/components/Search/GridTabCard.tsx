@@ -31,6 +31,7 @@ import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 interface GridTabCard extends RefetchTab {
   tab: TabWithLikes;
   selectedPinnedTabId?: number;
@@ -56,6 +57,8 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
     const [tabScreenshotLoaded, setTabScreenshotLoaded] = useState(false);
     const [profileImageLoaded, setProfileImageLoaded] = useState(false);
     const previewRef = useRef<HTMLAnchorElement>(null);
+
+    const isAboveExtraSmallViewportWidth = useViewportWidthBreakpoint(450);
 
     const genreArray = api.genre.getAll.useQuery();
 
@@ -161,7 +164,9 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         exit={{ opacity: 0 }}
         transition={{ duration: 0.25 }}
         style={{
-          width: `${largeVariant ? 400 : 317}px`, // accounts for border (may need to add a few px to custom width now that I think about it)
+          width: `${
+            largeVariant ? 400 : isAboveExtraSmallViewportWidth ? 317 : 270
+          }px`, // accounts for border (may need to add a few px to custom width now that I think about it)
           // height: `${width ? 183 : 146}px`,
         }}
         className="baseVertFlex !flex-nowrap rounded-md border-2"
@@ -171,8 +176,16 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
           ref={previewRef}
           href={`/tab/${tab.id}`}
           style={{
-            width: largeVariant ? 396 : 313,
-            height: largeVariant ? 185 : 146,
+            width: largeVariant
+              ? 396
+              : isAboveExtraSmallViewportWidth
+              ? 313
+              : 266,
+            height: largeVariant
+              ? 185
+              : isAboveExtraSmallViewportWidth
+              ? 146
+              : 124,
           }}
           className="relative w-full cursor-pointer rounded-t-md transition-all hover:brightness-90 active:brightness-75"
         >
@@ -181,9 +194,12 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
             <Image
               src={tabScreenshot ?? ""}
               alt={`screenshot of ${tab.title}`}
-              width={largeVariant ? 396 : 313}
-              height={largeVariant ? 185 : 146}
-              // unoptimized
+              width={
+                largeVariant ? 396 : isAboveExtraSmallViewportWidth ? 313 : 266
+              }
+              height={
+                largeVariant ? 185 : isAboveExtraSmallViewportWidth ? 146 : 124
+              }
               onLoadingComplete={() => {
                 setTimeout(() => {
                   setTabScreenshotLoaded(true);
@@ -198,8 +214,16 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
               style={{
                 opacity: !tabScreenshotLoaded ? 1 : 0,
                 zIndex: !tabScreenshotLoaded ? 1 : -1,
-                width: largeVariant ? 396 : 313,
-                height: largeVariant ? 185 : 146,
+                width: largeVariant
+                  ? 396
+                  : isAboveExtraSmallViewportWidth
+                  ? 313
+                  : 266,
+                height: largeVariant
+                  ? 185
+                  : isAboveExtraSmallViewportWidth
+                  ? 146
+                  : 124,
               }}
               className={`col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-md bg-pink-300 transition-opacity
                               ${!tabScreenshotLoaded ? "animate-pulse" : ""}

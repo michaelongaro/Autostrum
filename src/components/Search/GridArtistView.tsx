@@ -87,7 +87,7 @@ function GridArtistView({
     >
       <div
         style={{ gridAutoRows: "minmax(min-content, max-content)" }}
-        className="grid w-full grid-cols-2 place-items-center gap-4 p-2 md:grid-cols-3 md:p-4 lg:grid-cols-4 xl:grid-cols-5"
+        className="grid w-full grid-cols-1 place-items-center gap-4 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
       >
         {(!showArtificialLoadingSpinner || isFetchingNextPage) &&
         artistResults ? (

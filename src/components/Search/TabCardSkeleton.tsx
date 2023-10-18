@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Separator } from "~/components/ui/separator";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 interface TabCardSkeleton {
   uniqueKey: string;
@@ -7,6 +8,8 @@ interface TabCardSkeleton {
 }
 
 function TabCardSkeleton({ uniqueKey, largeVariant }: TabCardSkeleton) {
+  const isAboveExtraSmallViewportWidth = useViewportWidthBreakpoint(450);
+
   return (
     <motion.div
       key={uniqueKey}
@@ -14,12 +17,20 @@ function TabCardSkeleton({ uniqueKey, largeVariant }: TabCardSkeleton) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="lightestGlassmorphic baseVertFlex rounded-md border-2"
+      className="lightestGlassmorphic baseVertFlex !w-min rounded-md border-2"
     >
       <div
         style={{
-          width: largeVariant ? 396 : 313,
-          height: largeVariant ? 185 : 146,
+          width: largeVariant
+            ? 396
+            : isAboveExtraSmallViewportWidth
+            ? 313
+            : 266,
+          height: largeVariant
+            ? 185
+            : isAboveExtraSmallViewportWidth
+            ? 146
+            : 124,
         }}
         className="animate-pulse rounded-t-sm bg-pink-300"
       ></div>
@@ -39,9 +50,9 @@ function TabCardSkeleton({ uniqueKey, largeVariant }: TabCardSkeleton) {
         {/* artist link & likes & play button */}
         <div className="baseFlex w-full !flex-nowrap !items-end !justify-between gap-2">
           {/* artist link */}
-          <div className="baseFlex mb-1 w-1/2 !justify-start gap-2 pl-2">
+          <div className="baseFlex mb-1 w-1/2 !flex-nowrap !justify-start gap-2 pl-2">
             <div className="h-8 w-8 animate-pulse rounded-full bg-pink-300"></div>
-            <div className="h-6 w-24 animate-pulse rounded-md bg-pink-300"></div>
+            <div className="h-6 w-20 animate-pulse rounded-md bg-pink-300"></div>
           </div>
 
           <div className="baseFlex w-1/2 !flex-nowrap !justify-evenly rounded-tl-md border-l-2 border-t-2">

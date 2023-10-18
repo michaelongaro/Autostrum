@@ -23,7 +23,7 @@ function FilteredQueryExplore() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="lightGlassmorphic baseVertFlex my-12 min-h-[100dvh] w-11/12 !justify-start gap-8 rounded-md p-2 md:my-24 md:w-3/4 md:p-8"
+      className="lightGlassmorphic baseVertFlex my-12 min-h-[100dvh] w-[98vw] !justify-start gap-8 rounded-md p-2 md:my-24 md:w-3/4 md:p-8"
     >
       <Head>
         <title>Explore | Autostrum</title>
@@ -39,7 +39,7 @@ function FilteredQueryExplore() {
       </Head>
 
       {/* search Results component */}
-      <div className="baseVertFlex mt-8 w-full gap-8">
+      <div className="baseVertFlex mt-4 w-full gap-8 md:mt-0">
         <SearchInput initialSearchQueryFromUrl={searchQuery} />
         {serve404Page ? (
           <Render404Page />

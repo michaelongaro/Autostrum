@@ -124,7 +124,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
           <TableCell>
             <Button
               variant={"ghost"}
-              className="baseFlex w-28 gap-2 px-3 py-1"
+              className="baseFlex w-fit !flex-nowrap gap-2 px-3 py-1"
               onClick={() => {
                 if (!setSelectedPinnedTabId) return;
                 setSelectedPinnedTabId(
