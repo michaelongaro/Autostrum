@@ -111,7 +111,7 @@ function SearchResults({
             {`Found ${searchResultsCount}`}
             <Badge
               style={{ backgroundColor: genreArrayData[genreId - 1]?.color }}
-              className="mx-2"
+              className="relative bottom-[2px] mx-2"
             >
               {genreArrayData[genreId - 1]?.name}
             </Badge>
@@ -127,7 +127,7 @@ function SearchResults({
             Found {searchResultsCount}
             <Badge
               style={{ backgroundColor: genreArrayData[genreId - 1]?.color }}
-              className="mx-2"
+              className="relative bottom-[2px] mx-2"
             >
               {genreArrayData[genreId - 1]?.name}
             </Badge>
@@ -143,7 +143,9 @@ function SearchResults({
         return (
           <div className="text-lg">
             {`Found ${searchResultsCount} ${formattedTabString} across`}
-            <Badge className="mx-2 bg-pink-500">All genres</Badge>
+            <Badge className="relative bottom-[2px] mx-2 bg-pink-500">
+              All genres
+            </Badge>
           </div>
         );
       }
@@ -153,7 +155,9 @@ function SearchResults({
         return (
           <div className="text-lg">
             {`Found ${searchResultsCount} ${formattedTabString} across`}
-            <Badge className="mx-2 bg-pink-500">All genres</Badge>
+            <Badge className="relative bottom-[2px] mx-2 bg-pink-500">
+              All genres
+            </Badge>
             for &quot;{searchQuery}&quot;
           </div>
         );
@@ -384,7 +388,6 @@ function SearchResults({
             </motion.div>
           )}
         </AnimatePresence>
-
         {/* mobile sorting options */}
         <Popover>
           <PopoverTrigger asChild>
@@ -520,7 +523,6 @@ function SearchResults({
             )}
           </PopoverContent>
         </Popover>
-
         {/* desktop sorting options */}
         <div className="baseFlex !hidden !justify-start gap-2 @3xl:!flex md:!justify-center md:gap-4">
           {/* type (artist page only shows tabs so hide selector) */}
