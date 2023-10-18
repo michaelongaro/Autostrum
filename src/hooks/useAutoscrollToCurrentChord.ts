@@ -56,7 +56,7 @@ function useAutoscrollToCurrentChord({
 
       setTimeout(() => {
         setIsProgramaticallyScrolling(false);
-      }, 0);
+      }, 50);
     }
   }, [
     currentlyPlayingMetadata,
