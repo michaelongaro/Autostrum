@@ -1,11 +1,4 @@
-import {
-  Fragment,
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { Fragment, memo, useCallback, useMemo } from "react";
 import {
   BsArrowDown,
   BsArrowUp,
@@ -15,7 +8,6 @@ import {
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { type TabWithLikes } from "~/server/api/routers/tab";
 import type {
   ChordSection,
   ChordSequence,
@@ -35,138 +27,159 @@ import HighlightTabColumnWrapper from "./HighlightTabColumnWrapper";
 // and edited out the parts that didn't seem necessary.
 
 interface TabPreview {
-  tab: TabWithLikes | undefined | null;
-  scale: number;
+  tabData: Section[];
+  baselineBpm: number;
+  tuning: string;
 }
 
-function TabPreview({ tab, scale }: TabPreview) {
-  const [tabData, setTabData] = useState<Section[]>();
+function TabPreview({ tabData, baselineBpm, tuning }: TabPreview) {
+  return (
+    <div className="mt-4 w-full">
+      {tabData.map((section, index) => (
+        <PreviewSectionContainer
+          key={section.id}
+          baselineBpm={baselineBpm}
+          tuning={tuning}
+          sectionIndex={index}
+          sectionData={section}
+        />
+      ))}
+    </div>
+  );
+}
 
-  useEffect(() => {
-    if (tab) {
-      // @ts-expect-error can't specify type from prisma Json value, but we know it's correct
-      setTabData(tab.tabData);
-    }
-  }, [tab]);
+interface PreviewSectionContainer {
+  baselineBpm: number;
+  tuning: string;
+  sectionIndex: number;
+  sectionData: Section;
+}
 
+function PreviewSectionContainer({
+  baselineBpm,
+  tuning,
+  sectionData,
+  sectionIndex,
+}: PreviewSectionContainer) {
+  return (
+    <div className="baseVertFlex w-full gap-4 px-2 pb-4 md:px-7">
+      <div className="baseFlex w-full !justify-start gap-4">
+        <div className="baseFlex gap-4 rounded-md bg-pink-600 px-4 py-2">
+          <p className="text-xl font-semibold">{sectionData.title}</p>
+
+          <Button variant="playPause" tabIndex={-1} className="h-8 md:h-auto">
+            <BsFillPlayFill className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+
+      {/* map over tab/chord subSections */}
+      <div className="baseVertFlex w-full">
+        {sectionData.data.map((subSection, index) => (
+          // TODO: this index is probably not the best since the array can be reordered/mutated,
+          // also applies to further child components
+          <div
+            key={subSection.id}
+            className="baseVertFlex w-full !items-start pb-2"
+          >
+            <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
+              <div className="baseFlex gap-1">
+                <BsMusicNote className="h-3 w-3" />
+                {subSection.bpm === -1 ? baselineBpm : subSection.bpm} BPM
+              </div>
+
+              {subSection.repetitions > 1 && (
+                <div className="baseFlex gap-3">
+                  <Separator className="h-4 w-[1px]" orientation="vertical" />
+
+                  <p>Repeat x{subSection.repetitions}</p>
+                </div>
+              )}
+            </div>
+
+            {subSection.type === "chord" ? (
+              <PreviewChordSection
+                baselineBpm={baselineBpm}
+                subSectionData={subSection}
+              />
+            ) : (
+              <div className="baseVertFlex relative h-full w-full !items-start">
+                {/* should this not be "currentSectionPlaying && (<Highlihgt... />) " */}
+                <HighlightTabColumnWrapper
+                  sectionIndex={sectionIndex}
+                  subSectionIndex={index}
+                  subSectionData={subSection}
+                />
+                <PreviewTabSection
+                  tuning={tuning}
+                  subSectionData={subSection}
+                  subSectionIndex={index}
+                  sectionIndex={sectionIndex}
+                />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface PreviewSubSectionContainer {
+  baselineBpm: number;
+  tuning: string;
+  sectionIndex: number;
+  subSectionIndex: number;
+  subSectionData: TabSection | ChordSection;
+  currentSubSectionisPlaying?: boolean;
+}
+
+function PreviewSubSectionContainer({
+  baselineBpm,
+  tuning,
+  sectionIndex,
+  subSectionIndex,
+  subSectionData,
+  currentSubSectionisPlaying,
+}: PreviewSubSectionContainer) {
   return (
     <>
-      {!tab && <div className="h-full w-full animate-pulse rounded-t-md"></div>}
-
-      {tab && tabData && (
-        <div
-          style={{
-            transform: `scale(${scale})`,
-          }}
-          className="pointer-events-none absolute left-0 top-0 z-[-1] mt-2 w-[1200px] origin-top-left select-none p-4 md:p-0"
-        >
-          {/* tradeoff: 0, 1 renders less but is more performant, 
-              otherway around for showing 0, 2. */}
-          {tabData.slice(0, 1).map((section, index) => (
-            <PreviewSectionContainer
-              key={section.id}
-              tabData={tabData}
-              baselineBpm={tab.bpm}
-              tuning={tab.tuning}
-              sectionIndex={index}
-              sectionData={section}
+      {subSectionData.type === "chord" ? (
+        <PreviewChordSection
+          baselineBpm={baselineBpm}
+          subSectionData={subSectionData}
+        />
+      ) : (
+        <div className="baseVertFlex relative h-full w-full !items-start">
+          {currentSubSectionisPlaying && (
+            <HighlightTabColumnWrapper
+              sectionIndex={sectionIndex}
+              subSectionIndex={subSectionIndex}
+              subSectionData={subSectionData}
             />
-          ))}
+          )}
+
+          <PreviewTabSection
+            tuning={tuning}
+            subSectionData={subSectionData}
+            subSectionIndex={subSectionIndex}
+            sectionIndex={sectionIndex}
+          />
         </div>
       )}
     </>
   );
 }
 
-interface PreviewSectionContainer {
-  tabData: Section[];
-  baselineBpm: number;
-  tuning: string;
-  sectionIndex: number;
-  sectionData: Section;
-  isPlaceholder?: boolean;
-}
-
-function PreviewSectionContainer({
-  tabData,
-  baselineBpm,
-  tuning,
-  sectionData,
-  sectionIndex,
-  isPlaceholder,
-}: PreviewSectionContainer) {
-  return (
-    <div
-      className={`baseVertFlex w-full ${
-        !isPlaceholder ? "gap-4 px-2 pb-4 md:px-7" : ""
-      }`}
-    >
-      {!isPlaceholder && (
-        <div className="baseFlex w-full !justify-start gap-4">
-          <div className="baseFlex gap-4 rounded-md bg-pink-600 px-4 py-2">
-            <p className="text-xl font-semibold">{sectionData.title}</p>
-
-            <Button variant="playPause" tabIndex={-1}>
-              <BsFillPlayFill className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* map over tab/chord subSections */}
-      <div className="baseVertFlex w-full">
-        {sectionData.data
-          .slice(0, isPlaceholder ? sectionData.data.length : 2)
-          .map((subSection, index) => (
-            // TODO: this index is probably not the best since the array can be reordered/mutated,
-            // also applies to further child components
-            <div
-              key={subSection.id}
-              className="baseVertFlex w-full !items-start pb-2"
-            >
-              <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
-                <div className="baseFlex gap-1">
-                  <BsMusicNote className="h-3 w-3" />
-                  {subSection.bpm === -1 ? baselineBpm : subSection.bpm} BPM
-                </div>
-
-                {subSection.repetitions > 1 && (
-                  <div className="baseFlex gap-3">
-                    <Separator className="h-4 w-[1px]" orientation="vertical" />
-
-                    <p>Repeat x{subSection.repetitions}</p>
-                  </div>
-                )}
-              </div>
-
-              {subSection.type === "chord" ? (
-                <PreviewChordSection
-                  baselineBpm={baselineBpm}
-                  subSectionData={subSection}
-                />
-              ) : (
-                <div className="baseVertFlex relative h-full w-full !items-start">
-                  <HighlightTabColumnWrapper
-                    sectionIndex={sectionIndex}
-                    subSectionIndex={index}
-                    subSectionData={subSection}
-                  />
-                  <PreviewTabSection
-                    tuning={tuning}
-                    subSectionData={subSection}
-                  />
-                </div>
-              )}
-            </div>
-          ))}
-      </div>
-    </div>
-  );
-}
-
-export const PreviewSectionContainerTest = memo(PreviewSectionContainer, () => {
-  return true;
-});
+export const MemoizedPreviewSubSectionContainer = memo(
+  PreviewSubSectionContainer,
+  (prevProps, nextProps) => {
+    return (
+      prevProps.currentSubSectionisPlaying ===
+      nextProps.currentSubSectionisPlaying
+    );
+  }
+);
 
 interface PreviewChordSection {
   baselineBpm: number;
@@ -514,9 +527,16 @@ function PreviewStrummingPatternPalmMuteNode({
 interface PreviewTabSection {
   tuning: string;
   subSectionData: TabSection;
+  subSectionIndex: number;
+  sectionIndex: number;
 }
 
-function PreviewTabSection({ tuning, subSectionData }: PreviewTabSection) {
+function PreviewTabSection({
+  tuning,
+  subSectionData,
+  subSectionIndex,
+  sectionIndex,
+}: PreviewTabSection) {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const sectionPadding = useMemo(() => {
@@ -562,7 +582,12 @@ function PreviewTabSection({ tuning, subSectionData }: PreviewTabSection) {
             {column.includes("|") ? (
               <PreviewTabMeasureLine columnData={column} />
             ) : (
-              <PreviewTabNotesColumn columnIndex={index} columnData={column} />
+              <PreviewTabNotesColumn
+                columnIndex={index}
+                subSectionIndex={subSectionIndex}
+                sectionIndex={sectionIndex}
+                columnData={column}
+              />
             )}
           </Fragment>
         ))}
@@ -625,11 +650,15 @@ function PreviewTabMeasureLine({ columnData }: ColumnDataMockup) {
 interface PreviewTabNotesColumn {
   columnData: string[];
   columnIndex: number;
+  subSectionIndex: number;
+  sectionIndex: number;
 }
 
 function PreviewTabNotesColumn({
   columnData,
   columnIndex,
+  sectionIndex,
+  subSectionIndex,
 }: PreviewTabNotesColumn) {
   function relativelyGetColumn(indexRelativeToCurrentCombo: number): string[] {
     return (columnData[columnIndex + indexRelativeToCurrentCombo] ??
@@ -664,7 +693,10 @@ function PreviewTabNotesColumn({
   }
 
   return (
-    <div className="baseVertFlex h-[271px] cursor-default">
+    <div
+      id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
+      className="baseVertFlex h-[271px] cursor-default"
+    >
       <div className="baseFlex relative">
         <div className="baseVertFlex mb-[3.2rem] mt-4">
           {columnData.map((note, index) => (
