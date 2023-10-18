@@ -17,7 +17,7 @@ function Hero({
 }) {
   const { data: fetchedTab, refetch: refetchTab } = api.tab.getTabById.useQuery(
     {
-      id: 22,
+      id: 77,
     }
   );
 
@@ -175,12 +175,12 @@ function Hero({
               <GridTabCard
                 tab={fetchedTab}
                 refetchTab={refetchTab}
-                width={isAboveMediumViewportWidth ? 396.25 : undefined}
+                largeVariant={isAboveMediumViewportWidth}
               />
             ) : (
               <TabCardSkeleton
                 uniqueKey={"homepageTabCardSkeleton"}
-                width={isAboveMediumViewportWidth ? 396.25 : 150}
+                largeVariant={isAboveMediumViewportWidth}
               />
             )}
           </AnimatePresence>

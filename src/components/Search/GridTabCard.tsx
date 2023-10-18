@@ -9,6 +9,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useEffect,
   type Dispatch,
   type SetStateAction,
 } from "react";
@@ -26,7 +27,6 @@ import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 import type { RefetchTab } from "../Tab/Tab";
-import TabPreview from "../Tab/TabPreview";
 import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -35,17 +35,25 @@ interface GridTabCard extends RefetchTab {
   tab: TabWithLikes;
   selectedPinnedTabId?: number;
   setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
-  width?: number;
+  largeVariant?: boolean;
 }
 
 const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
   (
-    { tab, refetchTab, selectedPinnedTabId, setSelectedPinnedTabId, width },
+    {
+      tab,
+      refetchTab,
+      selectedPinnedTabId,
+      setSelectedPinnedTabId,
+      largeVariant,
+    },
     ref
   ) => {
     const { userId } = useAuth();
     const { asPath } = useRouter();
 
+    const [tabScreenshot, setTabScreenshot] = useState<string>();
+    const [tabScreenshotLoaded, setTabScreenshotLoaded] = useState(false);
     const [profileImageLoaded, setProfileImageLoaded] = useState(false);
     const previewRef = useRef<HTMLAnchorElement>(null);
 
@@ -119,6 +127,31 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
       }
     );
 
+    useEffect(() => {
+      if (tabScreenshot) return;
+
+      const fetchImage = async () => {
+        try {
+          const res = await fetch(`/api/getTabScreenshot/${tab.id}`);
+          if (!res.ok) {
+            console.error("Failed to fetch image");
+            return;
+          }
+          const blob = await res.blob();
+
+          const reader = new FileReader();
+          reader.onloadend = function () {
+            setTabScreenshot(reader.result);
+          };
+          reader.readAsDataURL(blob);
+        } catch (error) {
+          console.error("Error fetching image:", error, tab.id);
+        }
+      };
+
+      void fetchImage();
+    }, [tabScreenshot, tab.id]);
+
     return (
       <motion.div
         ref={ref} // hoping that if ref is undefined it will just ignore it
@@ -128,28 +161,51 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         exit={{ opacity: 0 }}
         transition={{ duration: 0.25 }}
         style={{
-          width: width ?? "100%",
+          width: `${largeVariant ? 400 : 317}px`, // accounts for border (may need to add a few px to custom width now that I think about it)
+          // height: `${width ? 183 : 146}px`,
         }}
-        className="baseVertFlex rounded-md border-2"
+        className="baseVertFlex !flex-nowrap rounded-md border-2"
       >
         {/* tab preview */}
         <Link
           ref={previewRef}
           href={`/tab/${tab.id}`}
           style={{
-            height: width ? width / 2.17 : "9rem",
+            width: largeVariant ? 396 : 313,
+            height: largeVariant ? 185 : 146,
           }}
-          className="gridTabCardPreviewGlassmorphic relative w-full cursor-pointer overflow-hidden rounded-t-md"
+          className="relative w-full cursor-pointer rounded-t-md transition-all hover:brightness-90 active:brightness-75"
         >
-          <>
-            <TabPreview
-              tab={tab}
-              scale={
-                (previewRef.current?.getBoundingClientRect()?.width ?? 0) / 1200
-              }
+          {/* tab preview screenshot */}
+          <div className="grid grid-cols-1 grid-rows-1">
+            <Image
+              src={tabScreenshot ?? ""}
+              alt={`screenshot of ${tab.title}`}
+              width={largeVariant ? 396 : 313}
+              height={largeVariant ? 185 : 146}
+              // unoptimized
+              onLoadingComplete={() => {
+                setTimeout(() => {
+                  setTabScreenshotLoaded(true);
+                }, 1000);
+              }}
+              style={{
+                opacity: tabScreenshotLoaded ? 1 : 0,
+              }}
+              className="col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-md object-cover object-center transition-opacity"
             />
-            <div className="h-full w-full transition-all hover:bg-black/10 active:bg-black/20"></div>
-          </>
+            <div
+              style={{
+                opacity: !tabScreenshotLoaded ? 1 : 0,
+                zIndex: !tabScreenshotLoaded ? 1 : -1,
+                width: largeVariant ? 396 : 313,
+                height: largeVariant ? 185 : 146,
+              }}
+              className={`col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-md bg-pink-300 transition-opacity
+                              ${!tabScreenshotLoaded ? "animate-pulse" : ""}
+                            `}
+            ></div>
+          </div>
         </Link>
 
         <Separator />

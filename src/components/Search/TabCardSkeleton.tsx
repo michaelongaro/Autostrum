@@ -3,10 +3,10 @@ import { Separator } from "~/components/ui/separator";
 
 interface TabCardSkeleton {
   uniqueKey: string;
-  width?: number;
+  largeVariant?: boolean;
 }
 
-function TabCardSkeleton({ uniqueKey, width }: TabCardSkeleton) {
+function TabCardSkeleton({ uniqueKey, largeVariant }: TabCardSkeleton) {
   return (
     <motion.div
       key={uniqueKey}
@@ -18,8 +18,8 @@ function TabCardSkeleton({ uniqueKey, width }: TabCardSkeleton) {
     >
       <div
         style={{
-          width: width ?? "100%",
-          height: width ? width / 2.45 : "9rem",
+          width: largeVariant ? 396 : 313,
+          height: largeVariant ? 185 : 146,
         }}
         className="animate-pulse rounded-t-sm bg-pink-300"
       ></div>

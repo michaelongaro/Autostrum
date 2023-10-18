@@ -192,7 +192,7 @@ function Explore() {
             </div>
           </div>
           {/* pinned tab */}
-          <div className="baseVertFlex w-11/12 !flex-nowrap !items-start gap-2 sm:w-3/4 md:w-auto">
+          <div className="baseVertFlex !flex-nowrap !items-start gap-2">
             <p className="baseFlex gap-2 text-lg font-semibold">
               <TbPinned className="h-5 w-5" />
               Pinned tab
@@ -205,12 +205,12 @@ function Explore() {
                   <GridTabCard
                     tab={fetchedTab}
                     refetchTab={refetchTab}
-                    width={isAboveMediumViewportWidth ? 396.25 : undefined}
+                    largeVariant={isAboveMediumViewportWidth}
                   />
                 ) : (
                   <TabCardSkeleton
                     uniqueKey={`${artist?.id ?? ""}profileTabCardSkeleton`}
-                    width={isAboveMediumViewportWidth ? 396.25 : undefined}
+                    largeVariant={isAboveMediumViewportWidth}
                   />
                 )}
               </>
