@@ -696,7 +696,7 @@ export const useTabStore = create<TabState>()(
 
       const compiledChords =
         type === "chord"
-          ? [["", ...(data as string[]), "v", "60", "1"]]
+          ? [["", ...(data as string[]), "v", "58", "1"]]
           : compileStrummingPatternPreview({
               strummingPattern: data as StrummingPattern,
             });
