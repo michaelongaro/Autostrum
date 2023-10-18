@@ -1,4 +1,4 @@
-import { Fragment, memo, useCallback, useMemo } from "react";
+import { Fragment, memo, useCallback, useMemo, type ReactNode } from "react";
 import {
   BsArrowDown,
   BsArrowUp,
@@ -104,12 +104,6 @@ function PreviewSectionContainer({
               />
             ) : (
               <div className="baseVertFlex relative h-full w-full !items-start">
-                {/* should this not be "currentSectionPlaying && (<Highlihgt... />) " */}
-                <HighlightTabColumnWrapper
-                  sectionIndex={sectionIndex}
-                  subSectionIndex={index}
-                  subSectionData={subSection}
-                />
                 <PreviewTabSection
                   tuning={tuning}
                   subSectionData={subSection}
@@ -151,20 +145,20 @@ function PreviewSubSectionContainer({
         />
       ) : (
         <div className="baseVertFlex relative h-full w-full !items-start">
-          {currentSubSectionisPlaying && (
-            <HighlightTabColumnWrapper
-              sectionIndex={sectionIndex}
-              subSectionIndex={subSectionIndex}
-              subSectionData={subSectionData}
-            />
-          )}
-
           <PreviewTabSection
             tuning={tuning}
             subSectionData={subSectionData}
             subSectionIndex={subSectionIndex}
             sectionIndex={sectionIndex}
-          />
+          >
+            {currentSubSectionisPlaying && (
+              <HighlightTabColumnWrapper
+                sectionIndex={sectionIndex}
+                subSectionIndex={subSectionIndex}
+                subSectionData={subSectionData}
+              />
+            )}
+          </PreviewTabSection>
         </div>
       )}
     </>
@@ -529,6 +523,7 @@ interface PreviewTabSection {
   subSectionData: TabSection;
   subSectionIndex: number;
   sectionIndex: number;
+  children: ReactNode;
 }
 
 function PreviewTabSection({
@@ -536,6 +531,7 @@ function PreviewTabSection({
   subSectionData,
   subSectionIndex,
   sectionIndex,
+  children,
 }: PreviewTabSection) {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
@@ -561,6 +557,8 @@ function PreviewTabSection({
       }}
       className="baseVertFlex lightestGlassmorphic relative h-full !justify-start rounded-md"
     >
+      {children}
+
       <div className="baseFlex relative w-full !justify-start">
         <div
           style={{

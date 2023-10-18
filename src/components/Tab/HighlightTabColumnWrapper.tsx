@@ -27,7 +27,6 @@ function HighlightTabColumnWrapper({
 
   const {
     tuning,
-    editing,
     currentlyPlayingMetadata,
     currentChordIndex,
     playbackSpeed,
@@ -35,7 +34,6 @@ function HighlightTabColumnWrapper({
   } = useTabStore(
     (state) => ({
       tuning: state.tuning,
-      editing: state.editing,
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
       currentChordIndex: state.currentChordIndex,
       playbackSpeed: state.playbackSpeed,
@@ -83,46 +81,15 @@ function HighlightTabColumnWrapper({
     return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
   }
 
-  const sectionPadding = useMemo(() => {
-    let padding = "0 1rem";
-
-    if (aboveMediumViewportWidth) {
-      if (editing) {
-        padding = "2rem";
-      } else {
-        padding = "0 2rem";
-      }
-    } else {
-      if (editing) {
-        padding = "1rem 0.5rem 1rem 0.5rem";
-      } else {
-        padding = "0 1rem";
-      }
-    }
-
-    return padding;
-  }, [editing, aboveMediumViewportWidth]);
-
   return (
     <div
       style={{
-        gap: editing ? "1rem" : "0",
-        padding: sectionPadding,
-        width: editing ? "100%" : "auto",
-        borderTopLeftRadius:
-          !editing && subSectionData.repetitions > 1 ? 0 : "0.375rem",
+        padding: aboveMediumViewportWidth ? "0 2rem" : "0 1rem",
       }}
       className="baseVertFlex absolute left-0 top-0 h-full !justify-start rounded-md"
     >
       <div className="baseFlex relative w-full !justify-start">
-        <div
-          style={{
-            height: editing ? "280px" : "168px",
-            gap: editing ? "1.35rem" : "0",
-            marginBottom: editing ? "0" : "-1px",
-          }}
-          className="baseVertFlex relative rounded-l-2xl border-2 border-pink-50 p-2 opacity-0"
-        >
+        <div className="baseVertFlex relative mb-[-1px] h-[168px] rounded-l-2xl border-2 border-pink-50 p-2 opacity-0">
           {toString(parse(tuning), { pad: 1 })
             .split(" ")
             .reverse()
@@ -146,25 +113,16 @@ function HighlightTabColumnWrapper({
               </div>
             ) : (
               <HighlightTabNoteColumn
-                editing={editing}
                 columnIndex={index}
                 columnIsBeingPlayed={columnIsBeingPlayed(index)}
                 columnHasBeenPlayed={columnHasBeenPlayed(index)}
                 durationOfChord={getDurationOfChord(index)}
-                reorderingColumns={false}
-                showingDeleteColumnsButtons={false}
               />
             )}
           </Fragment>
         ))}
 
-        <div
-          style={{
-            height: editing ? "280px" : "168px",
-            marginBottom: editing ? "0" : "-1px",
-          }}
-          className="rounded-r-2xl border-2 border-pink-50 p-1 opacity-0"
-        ></div>
+        <div className="mb-[-1px] h-[168px] rounded-r-2xl border-2 border-pink-50 p-1 opacity-0"></div>
       </div>
     </div>
   );
@@ -192,27 +150,17 @@ export default memo(HighlightTabColumnWrapper, (prevProps, nextProps) => {
 });
 
 interface HighlightTabNoteColumn {
-  editing: boolean;
   columnIndex: number;
-
   columnIsBeingPlayed: boolean;
   columnHasBeenPlayed: boolean;
   durationOfChord: number;
-
-  reorderingColumns: boolean;
-  showingDeleteColumnsButtons: boolean;
 }
 
 function HighlightTabNoteColumn({
-  editing,
   columnIndex,
-
   columnIsBeingPlayed,
   columnHasBeenPlayed,
   durationOfChord,
-
-  reorderingColumns,
-  showingDeleteColumnsButtons,
 }: HighlightTabNoteColumn) {
   const [highlightChord, setHighlightChord] = useState(false);
 
@@ -236,24 +184,16 @@ function HighlightTabNoteColumn({
   }, [columnIndex, columnIsBeingPlayed]);
 
   return (
-    <div
-      style={{
-        height: editing ? "400px" : "271px",
-      }}
-      className="baseVertFlex w-[35px] cursor-default"
-    >
+    <div className="baseVertFlex h-[271px] w-[35px] cursor-default">
       <div className="baseFlex relative h-full w-full">
         <div
           style={{
-            marginTop:
-              reorderingColumns || showingDeleteColumnsButtons ? "4px" : "0",
-            height: editing ? "276px" : "164px",
             width: highlightChord || columnHasBeenPlayed ? "100%" : "0%",
             transitionDuration: highlightChord ? `${durationOfChord}s` : "0s",
             msTransitionProperty: "width",
             transitionTimingFunction: "linear",
           }}
-          className="absolute left-0 top-1/2 w-0 -translate-y-1/2 bg-pink-600"
+          className="absolute left-0 top-1/2 z-[-1] h-[164px] w-0 -translate-y-1/2 bg-pink-600"
         ></div>
       </div>
     </div>
