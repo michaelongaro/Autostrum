@@ -392,6 +392,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
         capo,
         base64RecordedAudioFile,
         shouldUpdateInS3,
+        musicalKey,
         type: asPath.includes("create") ? "create" : "update",
       });
     }
@@ -415,6 +416,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
       hasRecordedAudio: originalTabData.hasRecordedAudio,
       chords: originalTabData.chords,
       strummingPatterns: originalTabData.strummingPatterns,
+      musicalKey: originalTabData.musicalKey,
     };
 
     const sanitizedCurrentTabData = {
@@ -432,6 +434,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
       hasRecordedAudio,
       chords,
       strummingPatterns,
+      musicalKey,
     };
 
     return isEqual(originalData, sanitizedCurrentTabData);
