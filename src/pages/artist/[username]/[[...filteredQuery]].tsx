@@ -212,6 +212,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
                 <TabCardSkeleton
                   uniqueKey={`${artist?.id ?? ""}profileTabCardSkeleton`}
                   largeVariant={isAboveMediumViewportWidth}
+                  hideArtist
                 />
               )}
             </>

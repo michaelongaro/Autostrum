@@ -211,6 +211,7 @@ function Explore() {
                   <TabCardSkeleton
                     uniqueKey={`${artist?.id ?? ""}profileTabCardSkeleton`}
                     largeVariant={isAboveMediumViewportWidth}
+                    hideArtist
                   />
                 )}
               </>
