@@ -14,6 +14,7 @@ import { GoChevronDown, GoChevronUp } from "react-icons/go";
 import { IoSettingsOutline } from "react-icons/io5";
 import { RiArrowGoBackFill } from "react-icons/ri";
 import { TiArrowLoop } from "react-icons/ti";
+import { Drawer } from "vaul";
 import { shallow } from "zustand/shallow";
 import { AudioProgressSlider } from "~/components/ui/AudioProgressSlider";
 import { Button } from "~/components/ui/button";
@@ -77,7 +78,7 @@ interface AudioControls {
 }
 
 function AudioControls({ visibility, setVisibility }: AudioControls) {
-  const { query } = useRouter();
+  const { asPath, query } = useRouter();
 
   const [tabProgressValue, setTabProgressValue] = useState(0);
   const [wasPlayingBeforeScrubbing, setWasPlayingBeforeScrubbing] =
@@ -126,6 +127,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     playRecordedAudio,
     pauseAudio,
     fetchingFullTabData,
+    audioControlsOpacity,
+    setAudioControlsOpacity,
   } = useTabStore(
     (state) => ({
       id: state.id,
@@ -150,6 +153,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       playRecordedAudio: state.playRecordedAudio,
       pauseAudio: state.pauseAudio,
       fetchingFullTabData: state.fetchingFullTabData,
+      audioControlsOpacity: state.audioControlsOpacity,
+      setAudioControlsOpacity: state.setAudioControlsOpacity,
     }),
     shallow
   );
@@ -412,15 +417,21 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     <motion.div
       key={"audioControls"}
       style={{
+        zIndex: asPath.includes("/preferences") ? 60 : 40,
         transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
       }}
-      className="baseFlex fixed z-40 w-[100vw]"
+      className="baseFlex fixed w-[100vw]"
       variants={mainAudioControlsVariants}
       initial="closed"
       animate="expanded"
       exit="closed"
     >
-      <div className="baseVertFlex h-full w-[95vw] gap-2 rounded-xl bg-pink-600 p-2 shadow-2xl lg:rounded-full lg:px-8 lg:py-2 xl:w-10/12 2xl:w-1/2">
+      <div
+        style={{
+          opacity: audioControlsOpacity,
+        }}
+        className="baseVertFlex h-full w-[95vw] gap-2 rounded-xl bg-pink-600 p-2 shadow-2xl transition-opacity lg:rounded-full lg:px-8 lg:py-2 xl:w-10/12 2xl:w-1/2"
+      >
         <AnimatePresence mode="wait">
           {aboveLargeViewportWidth && visibility === "minimized" && (
             <motion.div
@@ -926,149 +937,153 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               </Button>
             </>
           ) : (
-            <Popover>
-              <PopoverTrigger asChild>
+            <Drawer.Root
+              onOpenChange={(value) => {
+                setAudioControlsOpacity(value ? 0 : 1);
+              }}
+            >
+              <Drawer.Trigger asChild>
                 <Button size="sm" variant={"outline"} className="p-1">
                   <IoSettingsOutline className="h-6 w-6" />
                 </Button>
-              </PopoverTrigger>
+              </Drawer.Trigger>
+              <Drawer.Portal>
+                <Drawer.Content className="baseVertFlex fixed bottom-0 left-0 right-0 !items-start gap-2 bg-pink-50 p-4 pb-6 text-pink-950">
+                  <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
 
-              <PopoverContent
-                side={"top"}
-                className="baseVertFlex min-w-[20rem] !items-start gap-2 bg-pink-50 text-pink-950"
-              >
-                <Label>Audio settings</Label>
-                <Separator className="mb-2 w-full bg-pink-500" />
-                <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-                  <Label>Source</Label>
-                  <Select
-                    value={audioMetadata.type}
-                    onValueChange={(value) => {
-                      if (value !== audioMetadata.type) {
-                        resetAudioStateOnSourceChange(
-                          value as "Generated" | "Artist recording"
+                  <Label>Audio settings</Label>
+                  <Separator className="mb-2 w-full bg-pink-500" />
+                  <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+                    <Label>Source</Label>
+                    <Select
+                      value={audioMetadata.type}
+                      onValueChange={(value) => {
+                        if (value !== audioMetadata.type) {
+                          resetAudioStateOnSourceChange(
+                            value as "Generated" | "Artist recording"
+                          );
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="max-w-[10rem]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Audio source</SelectLabel>
+
+                          <SelectItem value={"Generated"}>Generated</SelectItem>
+
+                          <SelectItem
+                            value={"Artist recording"}
+                            disabled={!hasRecordedAudio}
+                          >
+                            Artist recording
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+                    <Label>Instrument</Label>
+                    <Select
+                      value={currentInstrumentName}
+                      onValueChange={(value) => {
+                        pauseAudio();
+
+                        setCurrentInstrumentName(
+                          value as
+                            | "acoustic_guitar_nylon"
+                            | "acoustic_guitar_steel"
+                            | "electric_guitar_clean"
+                            | "electric_guitar_jazz"
                         );
+                      }}
+                    >
+                      <SelectTrigger className="max-w-[15rem]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Instruments</SelectLabel>
+
+                          <SelectItem value={"acoustic_guitar_nylon"}>
+                            Acoustic guitar - Nylon
+                          </SelectItem>
+
+                          <SelectItem value={"acoustic_guitar_steel"}>
+                            Acoustic guitar - Steel
+                          </SelectItem>
+
+                          <SelectItem value={"electric_guitar_clean"}>
+                            Electric guitar - Clean
+                          </SelectItem>
+
+                          <SelectItem value={"electric_guitar_jazz"}>
+                            Electric guitar - Jazz
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+                    <Label>Speed</Label>
+                    <Select
+                      value={`${playbackSpeed}x`}
+                      onValueChange={(value) => {
+                        pauseAudio(true);
+
+                        setPlaybackSpeed(
+                          Number(value.slice(0, value.length - 1)) as
+                            | 0.25
+                            | 0.5
+                            | 0.75
+                            | 1
+                            | 1.25
+                            | 1.5
+                        );
+                      }}
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Speed</SelectLabel>
+                          <SelectItem value={"0.25x"}>0.25x</SelectItem>
+                          <SelectItem value={"0.5x"}>0.5x</SelectItem>
+                          <SelectItem value={"0.75x"}>0.75x</SelectItem>
+                          <SelectItem value={"1x"}>1x</SelectItem>
+                          <SelectItem value={"1.25x"}>1.25x</SelectItem>
+                          <SelectItem value={"1.5x"}>1.5x</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+                    <Label>Autoscroll</Label>
+                    <Switch
+                      id="autoscroll"
+                      disabled={audioMetadata.type === "Artist recording"}
+                      checked={autoscrollEnabled}
+                      onCheckedChange={(value) =>
+                        localStorageAutoscroll.set(String(value))
                       }
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Audio source</SelectLabel>
-
-                        <SelectItem value={"Generated"}>Generated</SelectItem>
-
-                        <SelectItem
-                          value={"Artist recording"}
-                          disabled={!hasRecordedAudio}
-                        >
-                          Artist recording
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-                  <Label>Instrument</Label>
-                  <Select
-                    value={currentInstrumentName}
-                    onValueChange={(value) => {
-                      pauseAudio();
-
-                      setCurrentInstrumentName(
-                        value as
-                          | "acoustic_guitar_nylon"
-                          | "acoustic_guitar_steel"
-                          | "electric_guitar_clean"
-                          | "electric_guitar_jazz"
-                      );
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Instruments</SelectLabel>
-
-                        <SelectItem value={"acoustic_guitar_nylon"}>
-                          Acoustic guitar - Nylon
-                        </SelectItem>
-
-                        <SelectItem value={"acoustic_guitar_steel"}>
-                          Acoustic guitar - Steel
-                        </SelectItem>
-
-                        <SelectItem value={"electric_guitar_clean"}>
-                          Electric guitar - Clean
-                        </SelectItem>
-
-                        <SelectItem value={"electric_guitar_jazz"}>
-                          Electric guitar - Jazz
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-                  <Label>Speed</Label>
-                  <Select
-                    value={`${playbackSpeed}x`}
-                    onValueChange={(value) => {
-                      pauseAudio(true);
-
-                      setPlaybackSpeed(
-                        Number(value.slice(0, value.length - 1)) as
-                          | 0.25
-                          | 0.5
-                          | 0.75
-                          | 1
-                          | 1.25
-                          | 1.5
-                      );
-                    }}
-                  >
-                    <SelectTrigger className="w-24">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Speed</SelectLabel>
-                        <SelectItem value={"0.25x"}>0.25x</SelectItem>
-                        <SelectItem value={"0.5x"}>0.5x</SelectItem>
-                        <SelectItem value={"0.75x"}>0.75x</SelectItem>
-                        <SelectItem value={"1x"}>1x</SelectItem>
-                        <SelectItem value={"1.25x"}>1.25x</SelectItem>
-                        <SelectItem value={"1.5x"}>1.5x</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-                  <Label>Autoscroll</Label>
-                  <Switch
-                    id="autoscroll"
-                    disabled={audioMetadata.type === "Artist recording"}
-                    checked={autoscrollEnabled}
-                    onCheckedChange={(value) =>
-                      localStorageAutoscroll.set(String(value))
-                    }
-                  />
-                </div>
-                <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-                  <Label>Loop</Label>
-                  <Switch
-                    id="loop"
-                    checked={looping}
-                    onCheckedChange={(value) =>
-                      localStorageLooping.set(String(value))
-                    }
-                  />
-                </div>
-              </PopoverContent>
-            </Popover>
+                    />
+                  </div>
+                  <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+                    <Label>Loop</Label>
+                    <Switch
+                      id="loop"
+                      checked={looping}
+                      onCheckedChange={(value) =>
+                        localStorageLooping.set(String(value))
+                      }
+                    />
+                  </div>
+                </Drawer.Content>
+              </Drawer.Portal>
+            </Drawer.Root>
           )}
         </div>
       </div>

@@ -12,11 +12,7 @@ import { BsArrowDownShort, BsGridFill } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
 import { LuFilter } from "react-icons/lu";
 import { shallow } from "zustand/shallow";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
+import { Drawer } from "vaul";
 import {
   Select,
   SelectContent,
@@ -90,9 +86,10 @@ function SearchResults({
 
   const [resultsCountIsLoading, setResultsCountIsLoading] = useState(false);
 
-  const { searchResultsCount } = useTabStore(
+  const { searchResultsCount, setAudioControlsOpacity } = useTabStore(
     (state) => ({
       searchResultsCount: state.searchResultsCount,
+      setAudioControlsOpacity: state.setAudioControlsOpacity,
     }),
     shallow
   );
@@ -401,8 +398,6 @@ function SearchResults({
     );
   }
 
-  console.log("results:", resultsCountIsLoading);
-
   return (
     <div
       className={`baseVertFlex ${
@@ -437,140 +432,169 @@ function SearchResults({
         </AnimatePresence>
 
         {/* mobile sorting options */}
-        <Popover>
-          <PopoverTrigger asChild>
+        <Drawer.Root
+          onOpenChange={(value) => {
+            setAudioControlsOpacity(value ? 0 : 1);
+          }}
+        >
+          <Drawer.Trigger asChild>
             <Button variant={"outline"} className="baseFlex gap-2 @3xl:hidden">
               Filter
               <LuFilter className="h-4 w-4" />
             </Button>
-          </PopoverTrigger>
+          </Drawer.Trigger>
+          <Drawer.Portal>
+            <Drawer.Content
+              style={{
+                zIndex: asPath.includes("/preferences") ? 60 : "auto",
+              }}
+              className="baseVertFlex fixed bottom-0 left-0 right-0 !items-start gap-2 bg-pink-50 p-4 pb-6 text-pink-950"
+            >
+              <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
 
-          <PopoverContent
-            side={"bottom"}
-            className="baseVertFlex min-w-[20rem] !items-start gap-2 bg-pink-50 text-pink-950"
-          >
-            <Label className="baseFlex gap-2">
-              Search filters
-              <LuFilter className="h-4 w-4" />
-            </Label>
-            <Separator className="mb-2 w-full bg-pink-500" />
-            {pathname.includes("/explore") && (
+              <Label className="baseFlex gap-2">
+                Search filters
+                <LuFilter className="h-4 w-4" />
+              </Label>
+              <Separator className="mb-2 w-full bg-pink-500" />
+              {pathname.includes("/explore") && (
+                <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+                  <Label>Type</Label>
+                  <Select
+                    value={type}
+                    onValueChange={(value) =>
+                      handleTypeChange(value as "tabs" | "artists")
+                    }
+                  >
+                    <SelectTrigger className="w-28">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent
+                      style={{
+                        zIndex: asPath.includes("/preferences") ? 60 : "auto",
+                      }}
+                    >
+                      <SelectGroup>
+                        <SelectLabel>Result type</SelectLabel>
+                        <SelectItem value="tabs">Tabs</SelectItem>
+                        <SelectItem value="artists">Artists</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-                <Label>Type</Label>
+                <Label>Genre</Label>
                 <Select
-                  value={type}
-                  onValueChange={(value) =>
-                    handleTypeChange(value as "tabs" | "artists")
-                  }
+                  value={genreId.toString()}
+                  onValueChange={(value) => handleGenreChange(value)}
                 >
-                  <SelectTrigger className="w-28">
-                    <SelectValue />
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select a genre" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent
+                    style={{
+                      zIndex: asPath.includes("/preferences") ? 60 : "auto",
+                    }}
+                  >
                     <SelectGroup>
-                      <SelectLabel>Result type</SelectLabel>
-                      <SelectItem value="tabs">Tabs</SelectItem>
-                      <SelectItem value="artists">Artists</SelectItem>
+                      <SelectLabel>Genres</SelectLabel>
+
+                      {genreArrayData.map((genre) => {
+                        return (
+                          <SelectItem
+                            key={genre.id}
+                            value={genre.id.toString()}
+                          >
+                            <div className="baseFlex gap-2">
+                              <div
+                                style={{
+                                  backgroundColor: genre.color,
+                                }}
+                                className="h-3 w-3 rounded-full"
+                              ></div>
+                              {genre.name}
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>
-            )}
-            <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-              <Label>Genre</Label>
-              <Select
-                value={genreId.toString()}
-                onValueChange={(value) => handleGenreChange(value)}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select a genre" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Genres</SelectLabel>
-
-                    {genreArrayData.map((genre) => {
-                      return (
-                        <SelectItem key={genre.id} value={genre.id.toString()}>
-                          <div className="baseFlex gap-2">
-                            <div
-                              style={{
-                                backgroundColor: genre.color,
-                              }}
-                              className="h-3 w-3 rounded-full"
-                            ></div>
-                            {genre.name}
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-              <Label>View</Label>
-              <Select
-                value={viewType}
-                onValueChange={(value) =>
-                  handleViewChange(value as "grid" | "table")
-                }
-              >
-                <SelectTrigger className="w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Results layout</SelectLabel>
-                    <SelectItem value="grid">Grid</SelectItem>
-                    <SelectItem value="table">Table</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-              <Label>Sort by</Label>
-              <Select
-                value={additionalSortFilter}
-                onValueChange={(value) =>
-                  handleMobileSortChange(
-                    value as
-                      | "newest"
-                      | "oldest"
-                      | "leastLiked"
-                      | "mostLiked"
-                      | "none"
-                  )
-                }
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Sort by</SelectLabel>
-                    <SelectItem value="newest">Newest</SelectItem>
-                    <SelectItem value="oldest">Oldest</SelectItem>
-                    <SelectItem value="leastLiked">Least likes</SelectItem>
-                    <SelectItem value="mostLiked">Most likes</SelectItem>
-                    <SelectItem value="none">None</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {searchQuery && (
               <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-                <Label>Relevance</Label>
-                <Switch
-                  checked={sortByRelevance}
-                  onCheckedChange={() => handleRelevanceChange()}
-                />
+                <Label>View</Label>
+                <Select
+                  value={viewType}
+                  onValueChange={(value) =>
+                    handleViewChange(value as "grid" | "table")
+                  }
+                >
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    style={{
+                      zIndex: asPath.includes("/preferences") ? 60 : "auto",
+                    }}
+                  >
+                    <SelectGroup>
+                      <SelectLabel>Results layout</SelectLabel>
+                      <SelectItem value="grid">Grid</SelectItem>
+                      <SelectItem value="table">Table</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
-            )}
-          </PopoverContent>
-        </Popover>
+
+              <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+                <Label>Sort by</Label>
+                <Select
+                  value={additionalSortFilter}
+                  onValueChange={(value) =>
+                    handleMobileSortChange(
+                      value as
+                        | "newest"
+                        | "oldest"
+                        | "leastLiked"
+                        | "mostLiked"
+                        | "none"
+                    )
+                  }
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    style={{
+                      zIndex: asPath.includes("/preferences") ? 60 : "auto",
+                    }}
+                  >
+                    <SelectGroup>
+                      <SelectLabel>Sort by</SelectLabel>
+                      <SelectItem value="newest">Newest</SelectItem>
+                      <SelectItem value="oldest">Oldest</SelectItem>
+                      <SelectItem value="leastLiked">Least likes</SelectItem>
+                      <SelectItem value="mostLiked">Most likes</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {searchQuery && (
+                <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+                  <Label>Relevance</Label>
+                  <Switch
+                    checked={sortByRelevance}
+                    onCheckedChange={() => handleRelevanceChange()}
+                  />
+                </div>
+              )}
+            </Drawer.Content>
+          </Drawer.Portal>
+        </Drawer.Root>
+
         {/* desktop sorting options */}
         <div className="baseFlex !hidden !justify-start gap-2 @3xl:!flex md:!justify-center md:gap-4">
           {/* type (artist page only shows tabs so hide selector) */}
