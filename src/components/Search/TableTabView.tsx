@@ -36,7 +36,6 @@ interface TableTabView {
     | "none";
   selectedPinnedTabId?: number;
   setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
-  setResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 function TableTabView({
@@ -46,7 +45,6 @@ function TableTabView({
   additionalSortFilter,
   selectedPinnedTabId,
   setSelectedPinnedTabId,
-  setResultsCountIsLoading,
 }: TableTabView) {
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
@@ -68,15 +66,8 @@ function TableTabView({
     shallow
   );
 
-  const {
-    data: tabResults,
-    isFetching,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-    refetch: refetchTabs,
-  } = api.tab.getInfiniteTabsBySearchQuery.useInfiniteQuery(
-    {
+  function getInfiniteQueryParams() {
+    return {
       searchQuery,
       genreId: genreId,
       sortByRelevance,
@@ -85,10 +76,21 @@ function TableTabView({
       userIdToSelectFrom:
         (asPath.includes("/tabs") || asPath.includes("/preferences")) && userId
           ? userId
-          : typeof query.username === "string"
-          ? artistProfileBeingViewed?.userId
+          : artistProfileBeingViewed
+          ? artistProfileBeingViewed.userId
           : undefined,
-    },
+    };
+  }
+
+  const {
+    data: tabResults,
+    isFetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch: refetchTabs,
+  } = api.tab.getInfiniteTabsBySearchQuery.useInfiniteQuery(
+    getInfiniteQueryParams(),
     {
       getNextPageParam: (lastPage) => lastPage.data.nextCursor,
       onSuccess: (data) => {
@@ -97,31 +99,14 @@ function TableTabView({
     }
   );
 
-  const { ref, inView } = useInView({
+  const { ref } = useInView({
     threshold: 0.75,
+    onChange: (inView) => {
+      if (inView && hasNextPage) {
+        void fetchNextPage();
+      }
+    },
   });
-
-  const [showArtificialLoadingSpinner, setShowArtificialLoadingSpinner] =
-    useState(true);
-
-  useEffect(() => {
-    if (isFetching) {
-      setShowArtificialLoadingSpinner(true);
-      setTimeout(() => {
-        setShowArtificialLoadingSpinner(false);
-      }, 1500);
-    }
-  }, [isFetching]);
-
-  useEffect(() => {
-    setResultsCountIsLoading(showArtificialLoadingSpinner);
-  }, [setResultsCountIsLoading, showArtificialLoadingSpinner]);
-
-  useEffect(() => {
-    if (inView && hasNextPage) {
-      void fetchNextPage();
-    }
-  }, [inView, hasNextPage, fetchNextPage]);
 
   return (
     <motion.div
@@ -149,78 +134,34 @@ function TableTabView({
           </TableRow>
         </TableHeader>
         <TableBody className="w-full">
-          {(!showArtificialLoadingSpinner || isFetchingNextPage) &&
-          tabResults ? (
-            <>
-              {tabResults.pages.map((page) =>
-                page.data.tabs?.map((tab, index) => (
-                  <Fragment key={tab.id}>
-                    {index === page.data.tabs.length - 1 ? (
-                      <TableTabRow
-                        ref={ref}
-                        key={tab.id}
-                        tab={tab}
-                        refetchTab={refetchTabs}
-                        selectedPinnedTabId={selectedPinnedTabId}
-                        setSelectedPinnedTabId={setSelectedPinnedTabId}
-                      />
-                    ) : (
-                      <TableTabRow
-                        key={tab.id}
-                        tab={tab}
-                        refetchTab={refetchTabs}
-                        selectedPinnedTabId={selectedPinnedTabId}
-                        setSelectedPinnedTabId={setSelectedPinnedTabId}
-                      />
-                    )}
-                  </Fragment>
-                ))
-              )}
+          <>
+            {tabResults?.pages.map((page) =>
+              page.data.tabs?.map((tab, index) => (
+                <Fragment key={tab.id}>
+                  {index === page.data.tabs.length - 1 ? (
+                    <TableTabRow
+                      ref={ref}
+                      key={tab.id}
+                      minimalTab={tab}
+                      selectedPinnedTabId={selectedPinnedTabId}
+                      setSelectedPinnedTabId={setSelectedPinnedTabId}
+                      infiniteQueryParams={getInfiniteQueryParams()}
+                    />
+                  ) : (
+                    <TableTabRow
+                      key={tab.id}
+                      minimalTab={tab}
+                      selectedPinnedTabId={selectedPinnedTabId}
+                      setSelectedPinnedTabId={setSelectedPinnedTabId}
+                      infiniteQueryParams={getInfiniteQueryParams()}
+                    />
+                  )}
+                </Fragment>
+              ))
+            )}
 
-              {/* loading spinner */}
-              <AnimatePresence mode="wait">
-                {isFetchingNextPage && (
-                  <motion.div
-                    key={"tableTabViewLoadingSpinner"}
-                    initial={{ opacity: 0, scale: 0, height: "0" }}
-                    animate={{ opacity: 1, scale: 1, height: "auto" }}
-                    exit={{ opacity: 0, scale: 0, height: "0" }}
-                    transition={{
-                      opacity: { duration: 0.25 },
-                      scale: { duration: 0.15 },
-                      height: { duration: 0.35 },
-                      // height: { duration: 0.25}
-                    }}
-                    className="baseFlex w-full"
-                  >
-                    <div className="baseFlex h-24 w-full gap-4">
-                      <p className="text-lg">Loading</p>
-                      <svg
-                        className="h-7 w-7 animate-spin rounded-full bg-inherit fill-none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </>
-          ) : (
-            <>
-              {Array.from(Array(3).keys()).map((index) => (
+            {isFetchingNextPage &&
+              Array.from(Array(3).keys()).map((index) => (
                 <AnimatePresence key={index} mode={"wait"}>
                   <TableTabSkeleton
                     key={`tabTableSkeleton${index}`}
@@ -228,17 +169,14 @@ function TableTabView({
                   />
                 </AnimatePresence>
               ))}
-            </>
-          )}
+          </>
         </TableBody>
       </Table>
 
       {/* no results */}
-      {!showArtificialLoadingSpinner &&
-        !isFetching &&
-        tabResults?.pages?.[0]?.data.tabs.length === 0 && (
-          <NoResultsFound customKey={"tableTabViewNoResults"} />
-        )}
+      {!isFetching && tabResults?.pages?.[0]?.data.tabs.length === 0 && (
+        <NoResultsFound customKey={"tableTabViewNoResults"} />
+      )}
     </motion.div>
   );
 }

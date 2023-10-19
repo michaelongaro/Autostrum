@@ -1270,7 +1270,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                   } baseVertFlex !items-start gap-2`}
                 >
                   <div className="font-semibold">Tuning</div>
-                  <div className="rounded-md border-2 border-pink-50 px-4 py-2 font-semibold ">
+                  <div className="rounded-md border-2 border-pink-50 px-2 py-2 font-semibold md:px-4">
                     {toString(parse(tuning), { pad: 2 })}
                   </div>
                 </div>

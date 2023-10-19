@@ -16,7 +16,10 @@ import {
 import { AiOutlineUser } from "react-icons/ai";
 import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import { shallow } from "zustand/shallow";
-import type { TabWithLikes } from "~/server/api/routers/tab";
+import type {
+  MinimalTabRepresentation,
+  TabWithLikes,
+} from "~/server/api/routers/tab";
 import {
   useTabStore,
   type Chord,
@@ -26,33 +29,35 @@ import {
 import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
-import type { RefetchTab } from "../Tab/Tab";
 import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-interface GridTabCard extends RefetchTab {
-  tab: TabWithLikes;
+import { type InfiniteQueryParams } from "./SearchResults";
+interface GridTabCard {
+  minimalTab: MinimalTabRepresentation;
   selectedPinnedTabId?: number;
   setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
   largeVariant?: boolean;
+  infiniteQueryParams?: InfiniteQueryParams;
 }
 
 const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
   (
     {
-      tab,
-      refetchTab,
+      minimalTab,
       selectedPinnedTabId,
       setSelectedPinnedTabId,
       largeVariant,
+      infiniteQueryParams,
     },
     ref
   ) => {
     const { userId } = useAuth();
     const { asPath } = useRouter();
 
+    const [fullTab, setFullTab] = useState<TabWithLikes>();
     const [tabScreenshot, setTabScreenshot] = useState<string>();
     const [tabScreenshotLoaded, setTabScreenshotLoaded] = useState(false);
     const [profileImageLoaded, setProfileImageLoaded] = useState(false);
@@ -68,6 +73,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
     const {
       audioMetadata,
       currentInstrument,
+      id,
       setId,
       setTabData,
       setSectionProgression,
@@ -79,10 +85,12 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
       recordedAudioBuffer,
       playTab,
       pauseAudio,
+      setFetchingFullTabData,
     } = useTabStore(
       (state) => ({
         audioMetadata: state.audioMetadata,
         currentInstrument: state.currentInstrument,
+        id: state.id,
         setId: state.setId,
         setTabData: state.setTabData,
         setSectionProgression: state.setSectionProgression,
@@ -94,6 +102,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         recordedAudioBuffer: state.recordedAudioBuffer,
         playTab: state.playTab,
         pauseAudio: state.pauseAudio,
+        setFetchingFullTabData: state.setFetchingFullTabData,
       }),
       shallow
     );
@@ -123,19 +132,62 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
       refetch: refetchTabCreator,
     } = api.artist.getByIdOrUsername.useQuery(
       {
-        userId: tab.createdById as string,
+        userId: minimalTab.createdById as string,
       },
       {
-        enabled: !!tab.createdById,
+        enabled: !!minimalTab.createdById,
       }
     );
+
+    const { mutate: fetchFullTab, isLoading: loadingFullTab } =
+      api.tab.getTabByIdMutateVariation.useMutation({
+        onSuccess: (fullTab) => {
+          if (fullTab) {
+            // if user clicked play on another tab before this
+            // tab finished loading, then don't autoplay this tab
+            if (fullTab.id !== id) return;
+
+            // setting store w/ this tab's data
+            setHasRecordedAudio(fullTab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
+            setTabData(fullTab.tabData as unknown as Section[]);
+            setSectionProgression(
+              fullTab.sectionProgression as unknown as SectionProgression[]
+            );
+            setTuning(fullTab.tuning);
+            setBpm(fullTab.bpm);
+            setChords(fullTab.chords as unknown as Chord[]);
+            setCapo(fullTab.capo);
+
+            if (audioMetadata.playing) {
+              pauseAudio(true);
+            }
+            setTimeout(() => {
+              void playTab({
+                tabId: fullTab.id,
+                location: null,
+              });
+            }, 150); // hacky: trying to allow time for pauseAudio to finish and "flush out" state
+
+            setFullTab(fullTab);
+            setFetchingFullTabData(false);
+          }
+        },
+        onError: (e) => {
+          //  const errorMessage = e.data?.zodError?.fieldErrors.content;
+          //  if (errorMessage && errorMessage[0]) {
+          //    toast.error(errorMessage[0]);
+          //  } else {
+          //    toast.error("Failed to post! Please try again later.");
+          //  }
+        },
+      });
 
     useEffect(() => {
       if (tabScreenshot) return;
 
       const fetchImage = async () => {
         try {
-          const res = await fetch(`/api/getTabScreenshot/${tab.id}`);
+          const res = await fetch(`/api/getTabScreenshot/${minimalTab.id}`);
           if (!res.ok) {
             console.error("Failed to fetch image");
             return;
@@ -148,17 +200,17 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
           };
           reader.readAsDataURL(blob);
         } catch (error) {
-          console.error("Error fetching image:", error, tab.id);
+          console.error("Error fetching image:", error, minimalTab.id);
         }
       };
 
       void fetchImage();
-    }, [tabScreenshot, tab.id]);
+    }, [tabScreenshot, minimalTab.id]);
 
     return (
       <motion.div
         ref={ref} // hoping that if ref is undefined it will just ignore it
-        key={`${tab.id}gridTabCard`}
+        key={`${minimalTab.id}gridTabCard`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -174,7 +226,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         {/* tab preview */}
         <Link
           ref={previewRef}
-          href={`/tab/${tab.id}`}
+          href={`/tab/${minimalTab.id}`}
           style={{
             width: largeVariant
               ? 396
@@ -187,13 +239,13 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
               ? 146
               : 124,
           }}
-          className="relative w-full cursor-pointer rounded-t-md transition-all hover:brightness-90 active:brightness-75"
+          className="relative w-full cursor-pointer rounded-t-md transition-all hover:brightness-90 active:brightness-[0.8]"
         >
           {/* tab preview screenshot */}
           <div className="grid grid-cols-1 grid-rows-1">
             <Image
               src={tabScreenshot ?? ""}
-              alt={`screenshot of ${tab.title}`}
+              alt={`screenshot of ${minimalTab.title}`}
               width={
                 largeVariant ? 396 : isAboveExtraSmallViewportWidth ? 313 : 266
               }
@@ -240,32 +292,33 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
           <div className="baseVertFlex w-full !flex-nowrap !items-start gap-0 px-2">
             <Button variant={"link"} asChild>
               <Link
-                href={`/tab/${tab.id}`}
+                href={`/tab/${minimalTab.id}`}
                 className="h-6 !p-0 !font-semibold md:h-8 md:!text-lg"
               >
-                <p>{tab.title}</p>
+                <p>{minimalTab.title}</p>
               </Link>
             </Button>
 
             <div className="baseFlex !flex-nowrap gap-2">
               <p className="text-sm text-pink-50/90">
-                {formatDate(tab.updatedAt ?? tab.createdAt)}
+                {formatDate(minimalTab.updatedAt ?? minimalTab.createdAt)}
               </p>
 
-              {asPath.includes("genreId") && selectedPinnedTabId === tab.id && (
-                <Badge className="bg-green-600">Pinned</Badge>
-              )}
+              {asPath.includes("genreId") &&
+                selectedPinnedTabId === minimalTab.id && (
+                  <Badge className="bg-green-600">Pinned</Badge>
+                )}
 
               {!asPath.includes("genreId") && (
                 <div className="baseFlex gap-2">
                   <Badge
                     style={{
-                      backgroundColor: genreObject[tab.genreId]?.color,
+                      backgroundColor: genreObject[minimalTab.genreId]?.color,
                     }}
                   >
-                    {genreObject[tab.genreId]?.name}
+                    {genreObject[minimalTab.genreId]?.name}
                   </Badge>
-                  {selectedPinnedTabId === tab.id && (
+                  {selectedPinnedTabId === minimalTab.id && (
                     <Badge className="bg-green-600">Pinned</Badge>
                   )}
                 </div>
@@ -340,17 +393,19 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                   onClick={() => {
                     if (!setSelectedPinnedTabId) return;
                     setSelectedPinnedTabId(
-                      selectedPinnedTabId === tab.id ? -1 : tab.id
+                      selectedPinnedTabId === minimalTab.id ? -1 : minimalTab.id
                     );
                   }}
                 >
-                  {selectedPinnedTabId === tab.id ? (
+                  {selectedPinnedTabId === minimalTab.id ? (
                     <TbPinnedFilled className="h-4 w-4" />
                   ) : (
                     <TbPinned className="h-4 w-4" />
                   )}
 
-                  {selectedPinnedTabId === tab.id ? "Unpin tab" : "Pin tab"}
+                  {selectedPinnedTabId === minimalTab.id
+                    ? "Unpin tab"
+                    : "Pin tab"}
                 </Button>
               )}
             </div>
@@ -359,16 +414,16 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
               {/* likes button */}
               <LikeAndUnlikeButton
                 customClassName="baseFlex h-8 w-1/2 gap-2 px-3 rounded-r-none rounded-bl-none rounded-tl-sm border-r-[1px]"
-                createdById={tab.createdById}
-                id={tab.id}
-                numberOfLikes={tab.numberOfLikes}
+                createdById={minimalTab.createdById}
+                id={minimalTab.id}
+                numberOfLikes={minimalTab.numberOfLikes}
                 tabCreator={tabCreator}
                 currentArtist={currentArtist}
                 // fix typing/linting errors later
                 refetchCurrentArtist={refetchCurrentArtist}
                 // fix typing/linting errors later
                 refetchTabCreator={refetchTabCreator}
-                refetchTab={refetchTab}
+                infiniteQueryParams={infiniteQueryParams}
               />
 
               {/* play/pause button*/}
@@ -376,13 +431,18 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                 variant="playPause"
                 disabled={
                   (audioMetadata.type === "Generated" &&
-                    (artificalPlayButtonTimeout || !currentInstrument)) ||
+                    (artificalPlayButtonTimeout ||
+                      !currentInstrument ||
+                      loadingFullTab)) ||
                   (audioMetadata.type === "Artist recording" &&
-                    audioMetadata.tabId === tab.id &&
+                    audioMetadata.tabId === minimalTab.id &&
                     !recordedAudioBuffer)
                 }
                 onClick={() => {
-                  if (audioMetadata.playing && audioMetadata.tabId === tab.id) {
+                  if (
+                    audioMetadata.playing &&
+                    audioMetadata.tabId === minimalTab.id
+                  ) {
                     if (audioMetadata.type === "Generated") {
                       setArtificalPlayButtonTimeout(true);
 
@@ -391,25 +451,29 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                       }, 300);
                     }
                     pauseAudio();
+                  } else if (!fullTab) {
+                    // fetch the full tab
+                    void fetchFullTab({ id: minimalTab.id });
+                    setId(minimalTab.id);
+                    setFetchingFullTabData(true);
                   } else {
                     // setting store w/ this tab's data
-                    setId(tab.id);
-                    setHasRecordedAudio(tab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
-                    setTabData(tab.tabData as unknown as Section[]);
+                    setHasRecordedAudio(fullTab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
+                    setTabData(fullTab.tabData as unknown as Section[]);
                     setSectionProgression(
-                      tab.sectionProgression as unknown as SectionProgression[]
+                      fullTab.sectionProgression as unknown as SectionProgression[]
                     );
-                    setTuning(tab.tuning);
-                    setBpm(tab.bpm);
-                    setChords(tab.chords as unknown as Chord[]);
-                    setCapo(tab.capo);
+                    setTuning(fullTab.tuning);
+                    setBpm(fullTab.bpm);
+                    setChords(fullTab.chords as unknown as Chord[]);
+                    setCapo(fullTab.capo);
 
                     if (audioMetadata.playing) {
                       pauseAudio(true);
                     }
                     setTimeout(() => {
                       void playTab({
-                        tabId: tab.id,
+                        tabId: minimalTab.id,
                         location: null,
                       });
                     }, 150); // hacky: trying to allow time for pauseAudio to finish and "flush out" state
@@ -418,10 +482,11 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                 className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px] p-0"
               >
                 <PlayButtonIcon
-                  uniqueLocationKey={`gridTabCard${tab.id}`}
-                  tabId={tab.id}
+                  uniqueLocationKey={`gridTabCard${minimalTab.id}`}
+                  tabId={minimalTab.id}
                   currentInstrument={currentInstrument}
                   audioMetadata={audioMetadata}
+                  loadingTabData={loadingFullTab}
                 />
               </Button>
             </div>

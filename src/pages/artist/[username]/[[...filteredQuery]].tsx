@@ -61,14 +61,15 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
     }
   );
 
-  const { data: fetchedTab, refetch: refetchTab } = api.tab.getTabById.useQuery(
-    {
-      id: artist?.pinnedTabId ?? -1,
-    },
-    {
-      enabled: artist?.pinnedTabId !== -1,
-    }
-  );
+  const { data: fetchedTab, refetch: refetchTab } =
+    api.tab.getMinimalTabById.useQuery(
+      {
+        id: artist?.pinnedTabId ?? -1,
+      },
+      {
+        enabled: artist?.pinnedTabId !== -1,
+      }
+    );
 
   if (!artistExists) {
     return <ArtistNotFound />;
@@ -203,7 +204,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
             <>
               {fetchedTab ? (
                 <GridTabCard
-                  tab={fetchedTab}
+                  minimalTab={fetchedTab}
                   refetchTab={refetchTab}
                   largeVariant={isAboveMediumViewportWidth}
                 />

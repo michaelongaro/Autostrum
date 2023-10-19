@@ -1,7 +1,13 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import { useState, useMemo, type Dispatch, type SetStateAction } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { BsArrowDownShort, BsGridFill } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
 import { LuFilter } from "react-icons/lu";
@@ -40,6 +46,15 @@ const opacityVariants = {
     opacity: 0,
   },
 };
+
+export interface InfiniteQueryParams {
+  searchQuery: string;
+  genreId: number;
+  sortByRelevance: boolean;
+  sortBy: "newest" | "oldest" | "mostLiked" | "leastLiked" | "none";
+  likedByUserId: string | undefined;
+  userIdToSelectFrom: string | undefined;
+}
 
 interface SearchResults {
   forPinnedModal?: boolean;
@@ -82,6 +97,17 @@ function SearchResults({
     shallow
   );
 
+  // not happy with this solution, but does provide decent ui/ux with
+  // regards to syncronizing the search results count with the actual
+  // results.
+  useEffect(() => {
+    if (resultsCountIsLoading) {
+      setTimeout(() => {
+        setResultsCountIsLoading(false);
+      }, 1000);
+    }
+  }, [resultsCountIsLoading]);
+
   const genreArray = api.genre.getAll.useQuery();
 
   const genreArrayData = useMemo(() => {
@@ -100,7 +126,7 @@ function SearchResults({
     return genreArray.data;
   }, [genreArray.data]);
 
-  const queryResults = useMemo(() => {
+  function formatQueryResultsCount() {
     const formattedTabString = searchResultsCount === 1 ? "tab" : "tabs";
     const formattedArtistString =
       searchResultsCount === 1 ? "artist" : "artists";
@@ -178,16 +204,14 @@ function SearchResults({
     }
 
     // Found 10 artists for "search query"
-    else {
-      return (
-        <p className="text-base sm:text-lg">
-          Found {searchResultsCount} artists for &quot;
-          {searchQuery}
-          &quot;
-        </p>
-      );
-    }
-  }, [searchResultsCount, type, genreId, searchQuery, genreArrayData]);
+    return (
+      <p className="text-base sm:text-lg">
+        Found {searchResultsCount} artists for &quot;
+        {searchQuery}
+        &quot;
+      </p>
+    );
+  }
 
   // all param change handlers below will remove the param if it is getting set
   // to the "default" values that we have defined in the useGetUrlParamFilters hook
@@ -198,6 +222,8 @@ function SearchResults({
     } else {
       delete newQuery.type;
     }
+
+    setResultsCountIsLoading(true);
 
     void push(
       {
@@ -220,6 +246,8 @@ function SearchResults({
     } else {
       delete newQuery.genreId;
     }
+
+    setResultsCountIsLoading(true);
 
     void push(
       {
@@ -245,6 +273,8 @@ function SearchResults({
       newQuery.view = "table";
     }
 
+    setResultsCountIsLoading(true);
+
     void push(
       {
         pathname,
@@ -266,6 +296,8 @@ function SearchResults({
     } else {
       delete newQuery.relevance;
     }
+
+    setResultsCountIsLoading(true);
 
     void push(
       {
@@ -328,6 +360,8 @@ function SearchResults({
     if (newSortParam === "newest") delete newQueries.sort;
     else newQueries.sort = newSortParam;
 
+    setResultsCountIsLoading(true);
+
     void push(
       {
         pathname,
@@ -350,6 +384,8 @@ function SearchResults({
     if (type === "newest") delete newQueries.sort;
     else newQueries.sort = type;
 
+    setResultsCountIsLoading(true);
+
     void push(
       {
         pathname,
@@ -361,6 +397,8 @@ function SearchResults({
       }
     );
   }
+
+  console.log("results:", resultsCountIsLoading);
 
   return (
     <div
@@ -390,10 +428,11 @@ function SearchResults({
               animate="expanded"
               exit="closed"
             >
-              {queryResults}
+              {formatQueryResultsCount()}
             </motion.div>
           )}
         </AnimatePresence>
+
         {/* mobile sorting options */}
         <Popover>
           <PopoverTrigger asChild>
@@ -731,14 +770,12 @@ function SearchResults({
                 additionalSortFilter={additionalSortFilter}
                 selectedPinnedTabId={selectedPinnedTabId}
                 setSelectedPinnedTabId={setSelectedPinnedTabId}
-                setResultsCountIsLoading={setResultsCountIsLoading}
               />
             ) : (
               <GridArtistView
                 searchQuery={searchQuery}
                 sortByRelevance={sortByRelevance}
                 additionalSortFilter={additionalSortFilter}
-                setResultsCountIsLoading={setResultsCountIsLoading}
               />
             )}
           </>
@@ -753,14 +790,12 @@ function SearchResults({
                 additionalSortFilter={additionalSortFilter}
                 selectedPinnedTabId={selectedPinnedTabId}
                 setSelectedPinnedTabId={setSelectedPinnedTabId}
-                setResultsCountIsLoading={setResultsCountIsLoading}
               />
             ) : (
               <TableArtistView
                 searchQuery={searchQuery}
                 sortByRelevance={sortByRelevance}
                 additionalSortFilter={additionalSortFilter}
-                setResultsCountIsLoading={setResultsCountIsLoading}
               />
             )}
           </>

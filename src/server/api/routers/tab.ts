@@ -25,6 +25,15 @@ import {
 import buildTabOrderBy from "~/utils/buildTabOrderBy";
 import combineTabTitlesAndUsernames from "~/utils/combineTabTitlesAndUsernames";
 
+export interface MinimalTabRepresentation {
+  id: number;
+  title: string;
+  genreId: number;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById: string | null;
+  numberOfLikes: number;
+}
 export interface TabWithLikes extends Tab {
   numberOfLikes: number;
   // numberOfComments: number;
@@ -99,8 +108,70 @@ const sectionSchema = z.object({
 
 export const tabRouter = createTRPCRouter({
   getTabById: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const tab = await ctx.prisma.tab.findUnique({
+        where: {
+          id: input.id,
+        },
+        include: {
+          _count: {
+            select: {
+              likes: true,
+            },
+          },
+        },
+      });
+
+      if (!tab) return null;
+
+      const tabWithLikes: TabWithLikes = {
+        ...tab,
+        numberOfLikes: tab._count.likes,
+      };
+
+      return tabWithLikes;
+    }),
+
+  getMinimalTabById: publicProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ input, ctx }) => {
+      const tab = await ctx.prisma.tab.findUnique({
+        where: {
+          id: input.id,
+        },
+        select: {
+          id: true,
+          title: true,
+          genreId: true,
+          createdAt: true,
+          updatedAt: true,
+          createdById: true,
+          _count: {
+            select: {
+              likes: true,
+            },
+          },
+        },
+      });
+
+      if (!tab) return null;
+
+      const tabWithLikes: MinimalTabRepresentation = {
+        ...tab,
+        numberOfLikes: tab._count.likes,
+      };
+
+      return tabWithLikes;
+    }),
+
+  getTabByIdMutateVariation: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input, ctx }) => {
       const tab = await ctx.prisma.tab.findUnique({
         where: {
           id: input.id,
@@ -216,7 +287,7 @@ export const tabRouter = createTRPCRouter({
         cursor,
       } = input;
 
-      const limit = 25;
+      const limit = 15;
 
       const orderBy = buildTabOrderBy(sortBy, sortByRelevance, searchQuery);
 
@@ -249,6 +320,7 @@ export const tabRouter = createTRPCRouter({
         }),
         ctx.prisma.tab.findMany({
           take: limit + 1, // get an extra item at the end which we'll use as next cursor
+          distinct: ["id"],
           where: {
             title: {
               contains: searchQuery,
@@ -273,7 +345,14 @@ export const tabRouter = createTRPCRouter({
                 }
               : {}),
           },
-          include: {
+          // gets bare minimum data to display in search results
+          select: {
+            id: true,
+            title: true,
+            genreId: true,
+            createdAt: true,
+            updatedAt: true,
+            createdById: true,
             _count: {
               select: {
                 likes: true,
@@ -293,7 +372,7 @@ export const tabRouter = createTRPCRouter({
         }
       }
 
-      const tabsWithLikes: TabWithLikes[] = [];
+      const tabsWithLikes: MinimalTabRepresentation[] = [];
 
       for (const tab of tabs) {
         tabsWithLikes.push({
@@ -319,6 +398,20 @@ export const tabRouter = createTRPCRouter({
           id: idToDelete,
         },
       });
+
+      const command = new DeleteObjectCommand({
+        Bucket: "autostrum-screenshots",
+        Key: `${idToDelete}.webm`,
+      });
+      await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
+
+      try {
+        const res = await s3.send(command);
+        console.log(res);
+      } catch (e) {
+        console.log(e);
+        // return null;
+      }
 
       if (tab?.hasRecordedAudio) {
         const command = new DeleteObjectCommand({

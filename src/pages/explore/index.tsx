@@ -22,7 +22,6 @@ import {
 } from "~/components/ui/tooltip";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
-import formatDate from "~/utils/formatDate";
 import { formatNumber } from "~/utils/formatNumber";
 
 function Explore() {
@@ -44,14 +43,15 @@ function Explore() {
       }
     );
 
-  const { data: fetchedTab, refetch: refetchTab } = api.tab.getTabById.useQuery(
-    {
-      id: artist?.pinnedTabId ?? -1,
-    },
-    {
-      enabled: artist?.pinnedTabId !== -1,
-    }
-  );
+  const { data: fetchedTab, refetch: refetchTab } =
+    api.tab.getMinimalTabById.useQuery(
+      {
+        id: artist?.pinnedTabId ?? -1,
+      },
+      {
+        enabled: artist?.pinnedTabId !== -1,
+      }
+    );
 
   return (
     <motion.div
@@ -203,7 +203,7 @@ function Explore() {
               <>
                 {fetchedTab ? (
                   <GridTabCard
-                    tab={fetchedTab}
+                    minimalTab={fetchedTab}
                     refetchTab={refetchTab}
                     largeVariant={isAboveMediumViewportWidth}
                   />

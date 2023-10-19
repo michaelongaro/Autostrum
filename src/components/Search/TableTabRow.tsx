@@ -14,7 +14,10 @@ import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
 import { TableCell, TableRow } from "~/components/ui/table";
-import type { TabWithLikes } from "~/server/api/routers/tab";
+import type {
+  MinimalTabRepresentation,
+  TabWithLikes,
+} from "~/server/api/routers/tab";
 import {
   useTabStore,
   type Chord,
@@ -24,19 +27,29 @@ import {
 import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
-import type { RefetchTab } from "../Tab/Tab";
 import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
+import type { InfiniteQueryParams } from "./SearchResults";
 
-interface TableTabRow extends RefetchTab {
-  tab: TabWithLikes;
+interface TableTabRow {
+  minimalTab: MinimalTabRepresentation;
   selectedPinnedTabId?: number;
   setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
+  infiniteQueryParams?: InfiniteQueryParams;
 }
 
 const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
-  ({ tab, refetchTab, selectedPinnedTabId, setSelectedPinnedTabId }, ref) => {
+  (
+    {
+      minimalTab,
+      selectedPinnedTabId,
+      setSelectedPinnedTabId,
+      infiniteQueryParams,
+    },
+    ref
+  ) => {
     const { userId } = useAuth();
 
+    const [fullTab, setFullTab] = useState<TabWithLikes>();
     const [profileImageLoaded, setProfileImageLoaded] = useState(false);
     const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
       useState(false);
@@ -44,6 +57,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
     const {
       audioMetadata,
       currentInstrument,
+      id,
       setId,
       setHasRecordedAudio,
       setTabData,
@@ -55,10 +69,12 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
       recordedAudioBuffer,
       playTab,
       pauseAudio,
+      setFetchingFullTabData,
     } = useTabStore(
       (state) => ({
         audioMetadata: state.audioMetadata,
         currentInstrument: state.currentInstrument,
+        id: state.id,
         setId: state.setId,
         setHasRecordedAudio: state.setHasRecordedAudio,
         setTabData: state.setTabData,
@@ -70,6 +86,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
         recordedAudioBuffer: state.recordedAudioBuffer,
         playTab: state.playTab,
         pauseAudio: state.pauseAudio,
+        setFetchingFullTabData: state.setFetchingFullTabData,
       }),
       shallow
     );
@@ -101,22 +118,65 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
       refetch: refetchTabCreator,
     } = api.artist.getByIdOrUsername.useQuery(
       {
-        userId: tab.createdById as string,
+        userId: minimalTab.createdById as string,
       },
       {
-        enabled: !!tab.createdById,
+        enabled: !!minimalTab.createdById,
       }
     );
+
+    const { mutate: fetchFullTab, isLoading: loadingFullTab } =
+      api.tab.getTabByIdMutateVariation.useMutation({
+        onSuccess: (fullTab) => {
+          if (fullTab) {
+            // if user clicked play on another tab before this
+            // tab finished loading, then don't autoplay this tab
+            if (fullTab.id !== id) return;
+
+            // setting store w/ this tab's data
+            setHasRecordedAudio(fullTab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
+            setTabData(fullTab.tabData as unknown as Section[]);
+            setSectionProgression(
+              fullTab.sectionProgression as unknown as SectionProgression[]
+            );
+            setTuning(fullTab.tuning);
+            setBpm(fullTab.bpm);
+            setChords(fullTab.chords as unknown as Chord[]);
+            setCapo(fullTab.capo);
+
+            if (audioMetadata.playing) {
+              pauseAudio(true);
+            }
+            setTimeout(() => {
+              void playTab({
+                tabId: fullTab.id,
+                location: null,
+              });
+            }, 150); // hacky: trying to allow time for pauseAudio to finish and "flush out" state
+
+            setFullTab(fullTab);
+            setFetchingFullTabData(false);
+          }
+        },
+        onError: (e) => {
+          //  const errorMessage = e.data?.zodError?.fieldErrors.content;
+          //  if (errorMessage && errorMessage[0]) {
+          //    toast.error(errorMessage[0]);
+          //  } else {
+          //    toast.error("Failed to post! Please try again later.");
+          //  }
+        },
+      });
 
     return (
       <TableRow ref={ref} className="w-full">
         <TableCell className="whitespace-nowrap">
           <Button variant={"link"} asChild>
             <Link
-              href={`/tab/${tab.id}`}
+              href={`/tab/${minimalTab.id}`}
               className="!p-0 !text-lg !font-semibold"
             >
-              {tab.title}
+              {minimalTab.title}
             </Link>
           </Button>
         </TableCell>
@@ -128,31 +188,31 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
               onClick={() => {
                 if (!setSelectedPinnedTabId) return;
                 setSelectedPinnedTabId(
-                  selectedPinnedTabId === tab.id ? -1 : tab.id
+                  selectedPinnedTabId === minimalTab.id ? -1 : minimalTab.id
                 );
               }}
             >
-              {selectedPinnedTabId === tab.id ? (
+              {selectedPinnedTabId === minimalTab.id ? (
                 <TbPinnedFilled className="h-4 w-4" />
               ) : (
                 <TbPinned className="h-4 w-4" />
               )}
 
-              {selectedPinnedTabId === tab.id ? "Unpin tab" : "Pin tab"}
+              {selectedPinnedTabId === minimalTab.id ? "Unpin tab" : "Pin tab"}
             </Button>
           </TableCell>
         )}
         <TableCell>
-          {genreObject[tab.genreId] && (
+          {genreObject[minimalTab.genreId] && (
             <div
               style={{
-                backgroundColor: genreObject[tab.genreId]?.color,
+                backgroundColor: genreObject[minimalTab.genreId]?.color,
               }}
               className="baseFlex w-[140px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
             >
-              {genreObject[tab.genreId]?.name}
+              {genreObject[minimalTab.genreId]?.name}
               <Image
-                src={`/genrePreviewBubbles/id${tab.genreId}.png`}
+                src={`/genrePreviewBubbles/id${minimalTab.genreId}.png`}
                 alt="three genre preview bubbles with the same color as the associated genre"
                 width={32}
                 height={32}
@@ -222,20 +282,22 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
             </Link>
           </Button>
         </TableCell>
-        <TableCell>{formatDate(tab.updatedAt ?? tab.createdAt)}</TableCell>
+        <TableCell>
+          {formatDate(minimalTab.updatedAt ?? minimalTab.createdAt)}
+        </TableCell>
         <TableCell>
           <LikeAndUnlikeButton
             customClassName="baseFlex gap-2 px-3"
-            createdById={tab.createdById}
-            id={tab.id}
-            numberOfLikes={tab.numberOfLikes}
+            createdById={minimalTab.createdById}
+            id={minimalTab.id}
+            numberOfLikes={minimalTab.numberOfLikes}
             tabCreator={tabCreator}
             currentArtist={currentArtist}
             // fix typing/linting errors later
             refetchCurrentArtist={refetchCurrentArtist}
             // fix typing/linting errors later
             refetchTabCreator={refetchTabCreator}
-            refetchTab={refetchTab}
+            infiniteQueryParams={infiniteQueryParams}
           />
         </TableCell>
         <TableCell>
@@ -245,11 +307,14 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
               (audioMetadata.type === "Generated" &&
                 (artificalPlayButtonTimeout || !currentInstrument)) ||
               (audioMetadata.type === "Artist recording" &&
-                audioMetadata.tabId === tab.id &&
+                audioMetadata.tabId === minimalTab.id &&
                 !recordedAudioBuffer)
             }
             onClick={() => {
-              if (audioMetadata.playing && audioMetadata.tabId === tab.id) {
+              if (
+                audioMetadata.playing &&
+                audioMetadata.tabId === minimalTab.id
+              ) {
                 if (audioMetadata.type === "Generated") {
                   setArtificalPlayButtonTimeout(true);
 
@@ -258,25 +323,29 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
                   }, 300);
                 }
                 pauseAudio();
+              } else if (!fullTab) {
+                // fetch the full tab
+                void fetchFullTab({ id: minimalTab.id });
+                setId(minimalTab.id);
+                setFetchingFullTabData(true);
               } else {
                 // setting store w/ this tab's data
-                setId(tab.id);
-                setHasRecordedAudio(tab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
-                setTabData(tab.tabData as unknown as Section[]);
+                setHasRecordedAudio(fullTab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
+                setTabData(fullTab.tabData as unknown as Section[]);
                 setSectionProgression(
-                  tab.sectionProgression as unknown as SectionProgression[]
+                  fullTab.sectionProgression as unknown as SectionProgression[]
                 );
-                setTuning(tab.tuning);
-                setBpm(tab.bpm);
-                setChords(tab.chords as unknown as Chord[]);
-                setCapo(tab.capo);
+                setTuning(fullTab.tuning);
+                setBpm(fullTab.bpm);
+                setChords(fullTab.chords as unknown as Chord[]);
+                setCapo(fullTab.capo);
 
                 if (audioMetadata.playing) {
                   pauseAudio(true);
                 }
                 setTimeout(() => {
                   void playTab({
-                    tabId: tab.id,
+                    tabId: minimalTab.id,
                     location: null,
                   });
                 }, 150); // hacky: trying to allow time for pauseAudio to finish and "flush out" state
@@ -284,10 +353,11 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
             }}
           >
             <PlayButtonIcon
-              uniqueLocationKey={`tableTabRow${tab.id}`}
-              tabId={tab.id}
+              uniqueLocationKey={`tableTabRow${minimalTab.id}`}
+              tabId={minimalTab.id}
               currentInstrument={currentInstrument}
               audioMetadata={audioMetadata}
+              loadingTabData={loadingFullTab}
             />
           </Button>
         </TableCell>

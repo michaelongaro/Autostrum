@@ -125,6 +125,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     playTab,
     playRecordedAudio,
     pauseAudio,
+    fetchingFullTabData,
   } = useTabStore(
     (state) => ({
       id: state.id,
@@ -148,6 +149,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       playTab: state.playTab,
       playRecordedAudio: state.playRecordedAudio,
       pauseAudio: state.pauseAudio,
+      fetchingFullTabData: state.fetchingFullTabData,
     }),
     shallow
   );
@@ -369,7 +371,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   }, [aboveLargeViewportWidth, visibility]);
 
   const disablePlayButton = useMemo(() => {
-    if (artificalPlayButtonTimeout) return true;
+    if (artificalPlayButtonTimeout || fetchingFullTabData) return true;
 
     if (audioMetadata.type === "Artist recording") {
       return !recordedAudioBuffer;
@@ -385,6 +387,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       );
     }
   }, [
+    fetchingFullTabData,
     audioMetadata.location,
     audioMetadata.type,
     currentInstrument,
@@ -793,6 +796,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               currentInstrument={currentInstrument}
               audioMetadata={audioMetadata}
               recordedAudioBuffer={recordedAudioBuffer}
+              loadingTabData={fetchingFullTabData}
             />
           </Button>
 

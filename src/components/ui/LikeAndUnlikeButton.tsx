@@ -10,13 +10,8 @@ import {
 import type { ArtistMetadata } from "~/server/api/routers/artist";
 import { api } from "~/utils/api";
 import { formatNumber } from "~/utils/formatNumber";
-import type { RefetchTab } from "../Tab/Tab";
 import { Button } from "../ui/button";
-import type {
-  QueryObserverResult,
-  RefetchOptions,
-  RefetchQueryFilters,
-} from "@tanstack/react-query";
+import type { InfiniteQueryParams } from "../Search/SearchResults";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -33,27 +28,24 @@ interface LikeAndUnlikeButton {
   id: number;
   createdById: string | null;
   numberOfLikes: number;
-  refetchTab?: <TPageData>(
-    options?: RefetchOptions & RefetchQueryFilters<TPageData>
-    // @ts-expect-error asdf
-  ) => Promise<QueryObserverResult<TData, TError>>;
   refetchCurrentArtist: () => void;
   refetchTabCreator: () => void;
   currentArtist: ArtistMetadata | null | undefined;
   tabCreator: ArtistMetadata | null | undefined;
   customClassName: string;
+  infiniteQueryParams?: InfiniteQueryParams;
 }
 
 function LikeAndUnlikeButton({
   id,
   createdById,
   numberOfLikes,
-  refetchTab,
   refetchCurrentArtist,
   refetchTabCreator,
   currentArtist,
   tabCreator,
   customClassName,
+  infiniteQueryParams,
 }: LikeAndUnlikeButton) {
   const [showUnregisteredPopover, setShowUnregisteredPopover] = useState(false);
   const [unregisteredPopoverTimeoutId, setUnregisteredPopoverTimeoutId] =
@@ -95,12 +87,58 @@ function LikeAndUnlikeButton({
             };
           }
         );
+
+        // this logic isn't perfect, but it does the job pretty well as far as I can tell
+        // in an optimistic sense
+
+        if (infiniteQueryParams) {
+          await ctx.tab.getInfiniteTabsBySearchQuery.cancel();
+          ctx.tab.getInfiniteTabsBySearchQuery.setInfiniteData(
+            infiniteQueryParams,
+            (prevTabData) => {
+              if (!prevTabData) return { pages: [], pageParams: [] };
+
+              const modifiedPages = prevTabData.pages.map((page) => {
+                // Deep copy of page and its nested data
+                const modifiedPage = {
+                  ...page,
+                  data: {
+                    ...page.data,
+                    tabs: page.data.tabs.map((tab) => ({ ...tab })),
+                  },
+                };
+
+                modifiedPage.data.tabs = modifiedPage.data.tabs.map((tab) => {
+                  if (tab.id !== id) return tab;
+                  return { ...tab, numberOfLikes: tab.numberOfLikes + 1 };
+                });
+
+                if (
+                  infiniteQueryParams.sortBy === "mostLiked" ||
+                  infiniteQueryParams.sortBy === "leastLiked"
+                ) {
+                  modifiedPage.data.tabs.sort((a, b) => {
+                    return infiniteQueryParams.sortBy === "mostLiked"
+                      ? b.numberOfLikes - a.numberOfLikes
+                      : a.numberOfLikes - b.numberOfLikes;
+                  });
+                }
+
+                return modifiedPage;
+              });
+
+              return {
+                pages: modifiedPages,
+                pageParams: prevTabData.pageParams,
+              };
+            }
+          );
+        }
       },
       onError: (e) => {
         console.error(e);
       },
       onSettled: () => {
-        void refetchTab?.();
         void refetchCurrentArtist();
         if (asPath.includes("artist")) void refetchTabCreator();
       },
@@ -140,12 +178,58 @@ function LikeAndUnlikeButton({
             };
           }
         );
+
+        // this logic isn't perfect, but it does the job pretty well as far as I can tell
+        // in an optimistic sense
+
+        if (infiniteQueryParams) {
+          await ctx.tab.getInfiniteTabsBySearchQuery.cancel();
+          ctx.tab.getInfiniteTabsBySearchQuery.setInfiniteData(
+            infiniteQueryParams,
+            (prevTabData) => {
+              if (!prevTabData) return { pages: [], pageParams: [] };
+
+              const modifiedPages = prevTabData.pages.map((page) => {
+                // Deep copy of page and its nested data
+                const modifiedPage = {
+                  ...page,
+                  data: {
+                    ...page.data,
+                    tabs: page.data.tabs.map((tab) => ({ ...tab })),
+                  },
+                };
+
+                modifiedPage.data.tabs = modifiedPage.data.tabs.map((tab) => {
+                  if (tab.id !== id) return tab;
+                  return { ...tab, numberOfLikes: tab.numberOfLikes - 1 };
+                });
+
+                if (
+                  infiniteQueryParams.sortBy === "mostLiked" ||
+                  infiniteQueryParams.sortBy === "leastLiked"
+                ) {
+                  modifiedPage.data.tabs.sort((a, b) => {
+                    return infiniteQueryParams.sortBy === "mostLiked"
+                      ? b.numberOfLikes - a.numberOfLikes
+                      : a.numberOfLikes - b.numberOfLikes;
+                  });
+                }
+
+                return modifiedPage;
+              });
+
+              return {
+                pages: modifiedPages,
+                pageParams: prevTabData.pageParams,
+              };
+            }
+          );
+        }
       },
       onError: (e) => {
         console.error(e);
       },
       onSettled: () => {
-        void refetchTab?.();
         void refetchCurrentArtist();
         if (asPath.includes("artist")) void refetchTabCreator();
       },
@@ -210,7 +294,7 @@ function LikeAndUnlikeButton({
                 transition={{ duration: 0.15 }}
                 className="baseFlex !flex-nowrap gap-2"
               >
-                <AiFillHeart className="h-[18px] w-[18px] md:h-6 md:w-6" />
+                <AiFillHeart className="h-[18px] w-[18px] md:h-5 md:w-5" />
                 <AnimatePresence mode="wait">
                   {numberOfLikes > 0 && (
                     <motion.p
@@ -237,7 +321,7 @@ function LikeAndUnlikeButton({
                 transition={{ duration: 0.15 }}
                 className="baseFlex !flex-nowrap gap-2"
               >
-                <AiOutlineHeart className="h-[18px] w-[18px] md:h-6 md:w-6" />
+                <AiOutlineHeart className="h-[18px] w-[18px] md:h-5 md:w-5" />
                 <AnimatePresence mode="wait">
                   {numberOfLikes > 0 && (
                     <motion.p

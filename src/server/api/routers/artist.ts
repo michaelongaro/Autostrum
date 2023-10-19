@@ -100,7 +100,7 @@ export const artistRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       const { searchQuery, sortByRelevance, sortBy, cursor } = input;
-      const limit = 25;
+      const limit = 15;
 
       const orderBy = buildArtistOrderBy(sortBy, sortByRelevance, searchQuery);
 
@@ -127,6 +127,7 @@ export const artistRouter = createTRPCRouter({
             id: true,
             userId: true,
           },
+          distinct: ["userId"],
           cursor: cursor ? { id: cursor } : undefined,
           ...(orderBy !== undefined ? { orderBy: orderBy } : {}),
         }),

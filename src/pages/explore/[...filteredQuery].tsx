@@ -23,7 +23,7 @@ function FilteredQueryExplore() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="lightGlassmorphic baseVertFlex my-12 min-h-[100dvh] w-[98vw] !justify-start gap-8 rounded-md p-2 md:my-24 md:w-3/4 md:p-8"
+      className="lightGlassmorphic baseVertFlex my-12 min-h-[100dvh] w-11/12 !justify-start gap-8 rounded-md p-2 md:my-24 md:w-3/4 md:p-8"
     >
       <Head>
         <title>Explore | Autostrum</title>

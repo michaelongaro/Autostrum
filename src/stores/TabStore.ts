@@ -167,6 +167,7 @@ const initialStoreState = {
   sectionProgression: [],
   currentlyCopiedData: null,
   currentlyCopiedChord: null,
+  fetchingFullTabData: false,
 
   // modals
   showAudioRecorderModal: false,
@@ -258,6 +259,8 @@ interface TabState {
   setIsProgramaticallyScrolling: (isProgramaticallyScrolling: boolean) => void;
   preventFramerLayoutShift: boolean;
   setPreventFramerLayoutShift: (preventFramerLayoutShift: boolean) => void;
+  fetchingFullTabData: boolean;
+  setFetchingFullTabData: (fetchingFullTabData: boolean) => void;
 
   // modals
   showAudioRecorderModal: boolean;
@@ -426,6 +429,9 @@ export const useTabStore = create<TabState>()(
     currentlyCopiedChord: null,
     setCurrentlyCopiedChord: (currentlyCopiedChord) =>
       set({ currentlyCopiedChord }),
+    fetchingFullTabData: false,
+    setFetchingFullTabData: (fetchingFullTabData) =>
+      set({ fetchingFullTabData }),
 
     getStringifiedTabData: () => {
       const {

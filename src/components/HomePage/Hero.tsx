@@ -15,11 +15,10 @@ function Hero({
 }: {
   showSignUpAndSignInButtons: boolean;
 }) {
-  const { data: fetchedTab, refetch: refetchTab } = api.tab.getTabById.useQuery(
-    {
+  const { data: fetchedTab, refetch: refetchTab } =
+    api.tab.getMinimalTabById.useQuery({
       id: 77,
-    }
-  );
+    });
 
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
   const isAboveExtraLargeViewportWidth = useViewportWidthBreakpoint(1280);
@@ -173,7 +172,7 @@ function Hero({
           <AnimatePresence mode="wait">
             {fetchedTab ? (
               <GridTabCard
-                tab={fetchedTab}
+                minimalTab={fetchedTab}
                 refetchTab={refetchTab}
                 largeVariant={isAboveMediumViewportWidth}
               />

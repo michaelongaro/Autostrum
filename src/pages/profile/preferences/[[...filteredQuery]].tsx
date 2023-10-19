@@ -57,14 +57,15 @@ function Preferences() {
     }
   );
 
-  const { data: fetchedTab, refetch: refetchTab } = api.tab.getTabById.useQuery(
-    {
-      id: artist?.pinnedTabId ?? -1,
-    },
-    {
-      enabled: artist?.pinnedTabId !== -1,
-    }
-  );
+  const { data: fetchedTab, refetch: refetchTab } =
+    api.tab.getMinimalTabById.useQuery(
+      {
+        id: artist?.pinnedTabId ?? -1,
+      },
+      {
+        enabled: artist?.pinnedTabId !== -1,
+      }
+    );
 
   return (
     <motion.div
@@ -131,7 +132,10 @@ function Preferences() {
                 {artist?.pinnedTabId !== -1 ? (
                   <>
                     {fetchedTab ? (
-                      <GridTabCard tab={fetchedTab} refetchTab={refetchTab} />
+                      <GridTabCard
+                        minimalTab={fetchedTab}
+                        refetchTab={refetchTab}
+                      />
                     ) : (
                       <TabCardSkeleton uniqueKey="profileTabCardSkeleton" />
                     )}
