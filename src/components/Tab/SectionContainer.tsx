@@ -188,12 +188,6 @@ function SectionContainer({
     setTabData(newTabData);
   }
 
-  console.log(
-    currentlyPlayingSectionIndex,
-    sectionIndex,
-    currentlyPlayingSubSectionIndex
-  );
-
   return (
     <div
       style={{

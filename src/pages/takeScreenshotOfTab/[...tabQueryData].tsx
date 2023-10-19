@@ -21,8 +21,6 @@ function ScreenshotReadyTab() {
 
     const { tuning, baselineBpm } = query;
 
-    console.log(tuning, baselineBpm);
-
     // definitely aware that this is a react antipattern, but didn't want to go through
     // too many extra hoops with basically posting tab and then fetching it again
     // to take screenshot + upload screenshot url, etc...
