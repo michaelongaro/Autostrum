@@ -351,6 +351,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
                 }, 150); // hacky: trying to allow time for pauseAudio to finish and "flush out" state
               }
             }}
+            className="h-8 md:h-auto"
           >
             <PlayButtonIcon
               uniqueLocationKey={`tableTabRow${minimalTab.id}`}
