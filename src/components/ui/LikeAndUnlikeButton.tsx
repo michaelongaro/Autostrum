@@ -30,6 +30,7 @@ interface LikeAndUnlikeButton {
   numberOfLikes: number;
   refetchCurrentArtist: () => void;
   refetchTabCreator: () => void;
+  refetchTab?: () => void;
   currentArtist: ArtistMetadata | null | undefined;
   tabCreator: ArtistMetadata | null | undefined;
   customClassName: string;
@@ -42,6 +43,7 @@ function LikeAndUnlikeButton({
   numberOfLikes,
   refetchCurrentArtist,
   refetchTabCreator,
+  refetchTab,
   currentArtist,
   tabCreator,
   customClassName,
@@ -139,6 +141,7 @@ function LikeAndUnlikeButton({
         console.error(e);
       },
       onSettled: () => {
+        if (refetchTab) void refetchTab();
         void refetchCurrentArtist();
         if (asPath.includes("artist")) void refetchTabCreator();
       },
@@ -230,6 +233,7 @@ function LikeAndUnlikeButton({
         console.error(e);
       },
       onSettled: () => {
+        if (refetchTab) void refetchTab();
         void refetchCurrentArtist();
         if (asPath.includes("artist")) void refetchTabCreator();
       },

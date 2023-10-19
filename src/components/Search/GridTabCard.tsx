@@ -26,6 +26,11 @@ import {
   type Section,
   type SectionProgression,
 } from "~/stores/TabStore";
+import type {
+  QueryObserverResult,
+  RefetchOptions,
+  RefetchQueryFilters,
+} from "@tanstack/react-query";
 import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
@@ -41,11 +46,16 @@ interface GridTabCard {
   setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
   largeVariant?: boolean;
   infiniteQueryParams?: InfiniteQueryParams;
+  refetchTab?: <TPageData>(
+    options?: RefetchOptions & RefetchQueryFilters<TPageData>
+    // @ts-expect-error asdf
+  ) => Promise<QueryObserverResult<TData, TError>>;
 }
 
 const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
   (
     {
+      refetchTab,
       minimalTab,
       selectedPinnedTabId,
       setSelectedPinnedTabId,
@@ -423,6 +433,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                 refetchCurrentArtist={refetchCurrentArtist}
                 // fix typing/linting errors later
                 refetchTabCreator={refetchTabCreator}
+                refetchTab={refetchTab}
                 infiniteQueryParams={infiniteQueryParams}
               />
 
