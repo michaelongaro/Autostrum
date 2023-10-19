@@ -190,6 +190,9 @@ function SearchResults({
           </div>
         );
       }
+
+      // fallback test
+      return <div></div>;
     }
 
     // all "artist" results are below:
