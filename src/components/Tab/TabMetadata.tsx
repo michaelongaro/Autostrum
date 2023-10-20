@@ -464,14 +464,11 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
               {!asPath.includes("create") && (
                 <Button
                   disabled={isLoadingARoute}
-                  className="px-1 py-0 md:px-4 md:py-2"
+                  className="baseFlex py-1 pl-1 pr-3 md:py-2"
                   onClick={() => void push(`/tab/${id}`)}
                 >
-                  {overMediumViewportThreshold ? (
-                    "Return to tab"
-                  ) : (
-                    <BsArrowRightShort className="h-6 w-8 rotate-180 text-pink-50" />
-                  )}
+                  <BsArrowRightShort className="h-6 w-8 rotate-180 text-pink-50" />
+                  Return to tab
                 </Button>
               )}
             </div>
@@ -1217,7 +1214,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
             >
               <div className="font-semibold">Description</div>
 
-              <div className="baseVertFlex !items-start gap-2">
+              <div className="baseVertFlex !items-start gap-2 text-sm md:text-base">
                 {description.length > 0 ? (
                   description.split("\n").map((paragraph, index) => (
                     <p key={index} className="break-all">
@@ -1270,7 +1267,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                   } baseVertFlex !items-start gap-2`}
                 >
                   <div className="font-semibold">Tuning</div>
-                  <div className="rounded-md border-2 border-pink-50 px-2 py-2 font-semibold md:px-4">
+                  <div className="rounded-md border-2 border-pink-50 px-2 py-2.5 text-sm font-semibold md:px-4 md:text-base">
                     {toString(parse(tuning), { pad: 2 })}
                   </div>
                 </div>
