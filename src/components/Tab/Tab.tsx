@@ -289,25 +289,27 @@ function Tab({ tab, refetchTab }: ITab) {
             <FaBook className="h-4 w-4" />
           </Button>
 
-          <Popover>
-            <PopoverTrigger className="baseFlex absolute bottom-[0.15rem] right-1 mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:bottom-0 sm:right-7 ">
-              <HiOutlineLightBulb className="h-5 w-5 " />
-            </PopoverTrigger>
-            <PopoverContent
-              side="left"
-              className="baseVertFlex w-72 gap-2 p-2 text-sm shadow-lg"
-            >
-              <div className="baseFlex gap-2 font-semibold">
-                <HiOutlineInformationCircle className="h-4 w-4" />
-                Tip
-              </div>
-              <p>
-                If performance degrades while playing generated audio, try
-                minimizing sections that aren&apos;t being played or opt to
-                listen in preview mode.
-              </p>
-            </PopoverContent>
-          </Popover>
+          {editing && (
+            <Popover>
+              <PopoverTrigger className="baseFlex absolute bottom-[0.15rem] right-1 mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:bottom-0 sm:right-7 ">
+                <HiOutlineLightBulb className="h-5 w-5 " />
+              </PopoverTrigger>
+              <PopoverContent
+                side="left"
+                className="baseVertFlex w-72 gap-2 p-2 text-sm shadow-lg"
+              >
+                <div className="baseFlex gap-2 font-semibold">
+                  <HiOutlineInformationCircle className="h-4 w-4" />
+                  Tip
+                </div>
+                <p>
+                  If performance degrades while playing generated audio, try
+                  minimizing sections that aren&apos;t being played or opt to
+                  listen in preview mode.
+                </p>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
 
         <Separator className="w-[96%]" />
