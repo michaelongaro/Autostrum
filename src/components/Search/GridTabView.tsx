@@ -1,4 +1,4 @@
-import { type Dispatch, type SetStateAction } from "react";
+import { useEffect, type Dispatch, type SetStateAction } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
@@ -22,6 +22,7 @@ interface GridTabView {
     | "none";
   selectedPinnedTabId?: number;
   setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
+  setResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 function GridTabView({
@@ -31,6 +32,7 @@ function GridTabView({
   additionalSortFilter,
   selectedPinnedTabId,
   setSelectedPinnedTabId,
+  setResultsCountIsLoading,
 }: GridTabView) {
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
@@ -84,6 +86,11 @@ function GridTabView({
     }
   );
 
+  useEffect(() => {
+    // only want to show loading indicator if we're fetching initial "page"
+    setResultsCountIsLoading(isFetching && !isFetchingNextPage);
+  }, [isFetching, isFetchingNextPage, setResultsCountIsLoading]);
+
   const { ref } = useInView({
     threshold: 0.75,
     onChange: (inView) => {
@@ -130,7 +137,7 @@ function GridTabView({
             ))
           )}
 
-          {isFetchingNextPage &&
+          {isFetching &&
             Array.from(Array(3).keys()).map((index) => (
               <AnimatePresence key={index} mode={"wait"}>
                 <TabCardSkeleton uniqueKey={`tabCardSkeleton${index}`} />

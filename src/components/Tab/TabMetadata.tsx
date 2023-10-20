@@ -1023,10 +1023,10 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                                 }'s profile image`}
                                 width={32}
                                 height={32}
-                                onLoadingComplete={() => {
+                                onLoad={() => {
                                   setTimeout(() => {
                                     setProfileImageLoaded(true);
-                                  }, 1000);
+                                  }, 1500);
                                 }}
                                 style={{
                                   opacity: profileImageLoaded ? 1 : 0,
@@ -1115,10 +1115,10 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                                 }'s profile image`}
                                 width={32}
                                 height={32}
-                                onLoadingComplete={() => {
+                                onLoad={() => {
                                   setTimeout(() => {
                                     setProfileImageLoaded(true);
-                                  }, 1000);
+                                  }, 1500);
                                 }}
                                 style={{
                                   opacity: profileImageLoaded ? 1 : 0,

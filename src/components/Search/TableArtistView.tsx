@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Fragment } from "react";
+import { useEffect, Fragment, type Dispatch, type SetStateAction } from "react";
 import { AiFillHeart } from "react-icons/ai";
 import { GiMusicalScore } from "react-icons/gi";
 import { useInView } from "react-intersection-observer";
@@ -26,12 +26,14 @@ interface TableArtistView {
     | "leastLiked"
     | "mostLiked"
     | "none";
+  setResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 function TableArtistView({
   searchQuery,
   sortByRelevance,
   additionalSortFilter,
+  setResultsCountIsLoading,
 }: TableArtistView) {
   const { setSearchResultsCount } = useTabStore(
     (state) => ({
@@ -55,6 +57,11 @@ function TableArtistView({
       },
     }
   );
+
+  useEffect(() => {
+    // only want to show loading indicator if we're fetching initial "page"
+    setResultsCountIsLoading(isFetching && !isFetchingNextPage);
+  }, [isFetching, isFetchingNextPage, setResultsCountIsLoading]);
 
   const { ref } = useInView({
     threshold: 0.75,
@@ -99,7 +106,7 @@ function TableArtistView({
               ))
             )}
 
-            {isFetchingNextPage &&
+            {isFetching &&
               Array.from(Array(3).keys()).map((index) => (
                 <AnimatePresence key={index} mode={"wait"}>
                   <TableArtistSkeleton key={`artistTableSkeleton${index}`} />

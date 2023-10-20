@@ -116,10 +116,10 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
                 alt={`${artist?.username ?? "Anonymous"}'s profile image`}
                 width={96}
                 height={96}
-                onLoadingComplete={() => {
+                onLoad={() => {
                   setTimeout(() => {
                     setProfileImageLoaded(true);
-                  }, 1000);
+                  }, 1500);
                 }}
                 style={{
                   opacity: profileImageLoaded ? 1 : 0,

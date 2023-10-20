@@ -1,13 +1,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import {
-  useEffect,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-  Fragment,
-} from "react";
+import { useEffect, type Dispatch, type SetStateAction, Fragment } from "react";
 import { TbPinned } from "react-icons/tb";
 import { useInView } from "react-intersection-observer";
 import { shallow } from "zustand/shallow";
@@ -36,6 +30,7 @@ interface TableTabView {
     | "none";
   selectedPinnedTabId?: number;
   setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
+  setResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 function TableTabView({
@@ -45,6 +40,7 @@ function TableTabView({
   additionalSortFilter,
   selectedPinnedTabId,
   setSelectedPinnedTabId,
+  setResultsCountIsLoading,
 }: TableTabView) {
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
@@ -88,7 +84,6 @@ function TableTabView({
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
-    refetch: refetchTabs,
   } = api.tab.getInfiniteTabsBySearchQuery.useInfiniteQuery(
     getInfiniteQueryParams(),
     {
@@ -98,6 +93,11 @@ function TableTabView({
       },
     }
   );
+
+  useEffect(() => {
+    // only want to show loading indicator if we're fetching initial "page"
+    setResultsCountIsLoading(isFetching && !isFetchingNextPage);
+  }, [isFetching, isFetchingNextPage, setResultsCountIsLoading]);
 
   const { ref } = useInView({
     threshold: 0.75,
@@ -160,7 +160,7 @@ function TableTabView({
               ))
             )}
 
-            {isFetchingNextPage &&
+            {isFetching &&
               Array.from(Array(3).keys()).map((index) => (
                 <AnimatePresence key={index} mode={"wait"}>
                   <TableTabSkeleton

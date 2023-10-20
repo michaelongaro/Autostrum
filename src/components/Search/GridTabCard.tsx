@@ -262,10 +262,10 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
               height={
                 largeVariant ? 185 : isAboveExtraSmallViewportWidth ? 146 : 124
               }
-              onLoadingComplete={() => {
+              onLoad={() => {
                 setTimeout(() => {
                   setTabScreenshotLoaded(true);
-                }, 1000);
+                }, 1500);
               }}
               style={{
                 opacity: tabScreenshotLoaded ? 1 : 0,
@@ -363,10 +363,10 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                               }'s profile image`}
                               width={32}
                               height={32}
-                              onLoadingComplete={() => {
+                              onLoad={() => {
                                 setTimeout(() => {
                                   setProfileImageLoaded(true);
-                                }, 1000);
+                                }, 1500);
                               }}
                               style={{
                                 opacity: profileImageLoaded ? 1 : 0,

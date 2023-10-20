@@ -1,3 +1,4 @@
+import { useEffect, type Dispatch, type SetStateAction } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AiFillHeart } from "react-icons/ai";
 import { GiMusicalScore } from "react-icons/gi";
@@ -17,12 +18,14 @@ interface GridArtistView {
     | "leastLiked"
     | "mostLiked"
     | "none";
+  setResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 function GridArtistView({
   searchQuery,
   sortByRelevance,
   additionalSortFilter,
+  setResultsCountIsLoading,
 }: GridArtistView) {
   const { setSearchResultsCount } = useTabStore(
     (state) => ({
@@ -46,6 +49,11 @@ function GridArtistView({
       },
     }
   );
+
+  useEffect(() => {
+    // only want to show loading indicator if we're fetching initial "page"
+    setResultsCountIsLoading(isFetching && !isFetchingNextPage);
+  }, [isFetching, isFetchingNextPage, setResultsCountIsLoading]);
 
   const { ref } = useInView({
     threshold: 0.75,
@@ -82,7 +90,7 @@ function GridArtistView({
             ))
           )}
 
-          {isFetchingNextPage &&
+          {isFetching &&
             Array.from(Array(3).keys()).map((index) => (
               <AnimatePresence key={index} mode={"wait"}>
                 <ArtistCardSkeleton key={`artistCardSkeleton${index}`} />

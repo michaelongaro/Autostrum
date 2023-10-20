@@ -100,10 +100,10 @@ function Explore() {
                           }'s profile image`}
                           width={96}
                           height={96}
-                          onLoadingComplete={() => {
+                          onLoad={() => {
                             setTimeout(() => {
                               setProfileImageLoaded(true);
-                            }, 1000);
+                            }, 1500);
                           }}
                           onClick={() =>
                             void push(

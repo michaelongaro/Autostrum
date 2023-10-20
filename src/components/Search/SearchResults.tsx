@@ -1,13 +1,7 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import {
-  useState,
-  useEffect,
-  useMemo,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import { useState, useMemo, type Dispatch, type SetStateAction } from "react";
 import { BsArrowDownShort, BsGridFill } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
 import { LuFilter } from "react-icons/lu";
@@ -94,17 +88,6 @@ function SearchResults({
     shallow
   );
 
-  // not happy with this solution, but does provide decent ui/ux with
-  // regards to syncronizing the search results count with the actual
-  // results.
-  useEffect(() => {
-    if (resultsCountIsLoading) {
-      setTimeout(() => {
-        setResultsCountIsLoading(false);
-      }, 1000);
-    }
-  }, [resultsCountIsLoading]);
-
   const genreArray = api.genre.getAll.useQuery();
 
   const genreArrayData = useMemo(() => {
@@ -163,27 +146,15 @@ function SearchResults({
         );
       }
 
-      // Found 10 tabs across "All genres"
-      if (searchQuery === "" && genreId === 9) {
+      // Found 10 tabs across "All genres" (for search query)
+      if (genreId === 9) {
         return (
           <div className="text-base sm:text-lg">
             {`Found ${searchResultsCount} ${formattedTabString} across`}
             <Badge className="relative bottom-[2px] mx-2 bg-pink-500">
               All genres
             </Badge>
-          </div>
-        );
-      }
-
-      // Found 10 tabs across "All genres" for "search query"
-      if (searchQuery !== "" && genreId === 9) {
-        return (
-          <div className="text-base sm:text-lg">
-            {`Found ${searchResultsCount} ${formattedTabString} across`}
-            <Badge className="relative bottom-[2px] mx-2 bg-pink-500">
-              All genres
-            </Badge>
-            for &quot;{searchQuery}&quot;
+            {searchQuery !== "" && <span>for &quot;{searchQuery}&quot;</span>}
           </div>
         );
       }
@@ -223,8 +194,6 @@ function SearchResults({
       delete newQuery.type;
     }
 
-    setResultsCountIsLoading(true);
-
     void push(
       {
         pathname,
@@ -246,8 +215,6 @@ function SearchResults({
     } else {
       delete newQuery.genreId;
     }
-
-    setResultsCountIsLoading(true);
 
     void push(
       {
@@ -273,8 +240,6 @@ function SearchResults({
       newQuery.view = "table";
     }
 
-    setResultsCountIsLoading(true);
-
     void push(
       {
         pathname,
@@ -296,8 +261,6 @@ function SearchResults({
     } else {
       delete newQuery.relevance;
     }
-
-    setResultsCountIsLoading(true);
 
     void push(
       {
@@ -360,8 +323,6 @@ function SearchResults({
     if (newSortParam === "newest") delete newQueries.sort;
     else newQueries.sort = newSortParam;
 
-    setResultsCountIsLoading(true);
-
     void push(
       {
         pathname,
@@ -384,8 +345,6 @@ function SearchResults({
     if (type === "newest") delete newQueries.sort;
     else newQueries.sort = type;
 
-    setResultsCountIsLoading(true);
-
     void push(
       {
         pathname,
@@ -407,29 +366,27 @@ function SearchResults({
       {/* # of results + sorting options */}
       <div className="baseFlex w-full !items-center !justify-between gap-4 bg-pink-800 p-2 @container xl:min-h-[76px]">
         {/* # of results */}
-        <AnimatePresence mode="wait">
-          {resultsCountIsLoading ? (
-            <motion.div
-              key={"searchResultsCountSkeleton"}
-              variants={opacityVariants}
-              initial="closed"
-              animate="expanded"
-              exit="closed"
-            >
-              <div className="h-8 w-48 animate-pulse rounded-md bg-pink-300"></div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key={"searchResultsCount"}
-              variants={opacityVariants}
-              initial="closed"
-              animate="expanded"
-              exit="closed"
-            >
-              {formatQueryResultsCount()}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {resultsCountIsLoading ? (
+          <motion.div
+            key={"searchResultsCountSkeleton"}
+            variants={opacityVariants}
+            initial="closed"
+            animate="expanded"
+            exit="closed"
+          >
+            <div className="h-8 w-48 animate-pulse rounded-md bg-pink-300"></div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key={"searchResultsCount"}
+            variants={opacityVariants}
+            initial="closed"
+            animate="expanded"
+            exit="closed"
+          >
+            {formatQueryResultsCount()}
+          </motion.div>
+        )}
 
         {/* mobile sorting options */}
         <Drawer.Root
@@ -797,12 +754,14 @@ function SearchResults({
                 additionalSortFilter={additionalSortFilter}
                 selectedPinnedTabId={selectedPinnedTabId}
                 setSelectedPinnedTabId={setSelectedPinnedTabId}
+                setResultsCountIsLoading={setResultsCountIsLoading}
               />
             ) : (
               <GridArtistView
                 searchQuery={searchQuery}
                 sortByRelevance={sortByRelevance}
                 additionalSortFilter={additionalSortFilter}
+                setResultsCountIsLoading={setResultsCountIsLoading}
               />
             )}
           </>
@@ -817,12 +776,14 @@ function SearchResults({
                 additionalSortFilter={additionalSortFilter}
                 selectedPinnedTabId={selectedPinnedTabId}
                 setSelectedPinnedTabId={setSelectedPinnedTabId}
+                setResultsCountIsLoading={setResultsCountIsLoading}
               />
             ) : (
               <TableArtistView
                 searchQuery={searchQuery}
                 sortByRelevance={sortByRelevance}
                 additionalSortFilter={additionalSortFilter}
+                setResultsCountIsLoading={setResultsCountIsLoading}
               />
             )}
           </>
