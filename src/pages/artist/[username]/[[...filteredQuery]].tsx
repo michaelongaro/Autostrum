@@ -114,8 +114,9 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
               <Image
                 src={artist?.profileImageUrl ?? ""}
                 alt={`${artist?.username ?? "Anonymous"}'s profile image`}
-                width={96}
-                height={96}
+                width={300}
+                height={300}
+                quality={100}
                 onLoad={() => {
                   setTimeout(() => {
                     setProfileImageLoaded(true);
@@ -123,6 +124,8 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
                 }}
                 style={{
                   opacity: profileImageLoaded ? 1 : 0,
+                  width: "6rem",
+                  height: "6rem",
                 }}
                 className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full object-cover object-center transition-opacity"
               />
@@ -185,7 +188,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
           </div>
 
           {artist ? (
-            <p className="mt-[1.3rem] text-sm italic">{`joined on ${formatDate(
+            <p className="mt-[1.3rem] text-sm italic text-pink-200">{`joined on ${formatDate(
               artist.createdAt
             )}`}</p>
           ) : (

@@ -98,8 +98,9 @@ function Explore() {
                           alt={`${
                             artist?.username ?? "Anonymous"
                           }'s profile image`}
-                          width={96}
-                          height={96}
+                          width={300}
+                          height={300}
+                          quality={100}
                           onLoad={() => {
                             setTimeout(() => {
                               setProfileImageLoaded(true);
@@ -112,6 +113,8 @@ function Explore() {
                           }
                           style={{
                             opacity: profileImageLoaded ? 1 : 0,
+                            width: "6rem",
+                            height: "6rem",
                           }}
                           className="h-24 w-24 rounded-full object-cover object-center transition-opacity"
                         />

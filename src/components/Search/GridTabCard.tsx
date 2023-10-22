@@ -361,8 +361,9 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                               alt={`${
                                 tabCreator?.username ?? "Anonymous"
                               }'s profile image`}
-                              width={32}
-                              height={32}
+                              width={75}
+                              height={75}
+                              quality={100}
                               onLoad={() => {
                                 setTimeout(() => {
                                   setProfileImageLoaded(true);
@@ -370,6 +371,8 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                               }}
                               style={{
                                 opacity: profileImageLoaded ? 1 : 0,
+                                height: "2rem",
+                                width: "2rem",
                               }}
                               className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full object-cover object-center transition-opacity"
                             />

@@ -26,7 +26,7 @@ export default async function handler(
 
   const command = new GetObjectCommand({
     Bucket: "autostrum-screenshots",
-    Key: `${typeof id === "string" ? id : "-1"}.webp`,
+    Key: `${typeof id === "string" ? id : "-1"}.jpeg`,
   });
   const url = await getSignedUrl(s3, command, { expiresIn: 15 * 60 });
 
@@ -40,7 +40,7 @@ export default async function handler(
       res.status(response.status).end();
       return;
     }
-    res.setHeader("Content-Type", "image/webp");
+    res.setHeader("Content-Type", "image/jpeg");
     (response.data as Readable).pipe(res);
   } catch (e) {
     console.error(e);

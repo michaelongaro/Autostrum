@@ -1075,8 +1075,9 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                                 alt={`${
                                   tabCreator?.username ?? "Anonymous"
                                 }'s profile image`}
-                                width={32}
-                                height={32}
+                                width={75}
+                                height={75}
+                                quality={100}
                                 onLoad={() => {
                                   setTimeout(() => {
                                     setProfileImageLoaded(true);
@@ -1084,6 +1085,8 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                                 }}
                                 style={{
                                   opacity: profileImageLoaded ? 1 : 0,
+                                  height: "2rem",
+                                  width: "2rem",
                                 }}
                                 className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full object-cover object-center transition-opacity"
                               />
@@ -1167,8 +1170,9 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                                 alt={`${
                                   tabCreator?.username ?? "Anonymous"
                                 }'s profile image`}
-                                width={32}
-                                height={32}
+                                width={75}
+                                height={75}
+                                quality={100}
                                 onLoad={() => {
                                   setTimeout(() => {
                                     setProfileImageLoaded(true);
@@ -1176,6 +1180,8 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                                 }}
                                 style={{
                                   opacity: profileImageLoaded ? 1 : 0,
+                                  height: "2rem",
+                                  width: "2rem",
                                 }}
                                 className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full object-cover object-center transition-opacity"
                               />
