@@ -41,7 +41,7 @@ const GridArtistCard = forwardRef<HTMLDivElement, ArtistMetadata>(
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.25 }}
-        className="lightestGlassmorphic baseVertFlex group relative w-full cursor-pointer gap-4 rounded-md border-2 p-2 shadow-sm brightness-100 transition-all hover:shadow-lg active:brightness-90"
+        className="lightestGlassmorphic baseVertFlex group relative w-full cursor-pointer gap-6 rounded-md border-2 px-2 py-4 shadow-sm brightness-100 transition-all hover:shadow-lg active:brightness-90"
         onMouseMove={handleMouseMove}
         onClick={() => {
           void push(`/artist/${artist.username}`);
@@ -60,7 +60,7 @@ const GridArtistCard = forwardRef<HTMLDivElement, ArtistMetadata>(
           `,
           }}
         />
-        <div className="baseVertFlex gap-1">
+        <div className="baseVertFlex gap-3">
           <div className="grid grid-cols-1 grid-rows-1">
             <Image
               src={artist.profileImageUrl ?? ""}

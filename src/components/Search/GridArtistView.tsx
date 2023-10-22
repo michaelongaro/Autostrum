@@ -121,12 +121,12 @@ function ArtistCardSkeleton({ key }: ArtistCardSkeleton) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="lightestGlassmorphic baseVertFlex w-full gap-4 rounded-md border-2 p-2 shadow-sm"
+      className="lightestGlassmorphic baseVertFlex w-full gap-6 rounded-md border-2 px-2 py-4 shadow-sm"
     >
-      <div className="baseVertFlex gap-1">
+      <div className="baseVertFlex gap-3">
         {/* profile image + username */}
         <div className="h-16 w-16 animate-pulse rounded-full bg-pink-300"></div>
-        <div className="h-6 w-24 animate-pulse rounded-md bg-pink-300"></div>
+        <div className="my-1 h-5 w-24 animate-pulse rounded-md bg-pink-300"></div>
       </div>
 
       {/* artist total tabs + likes */}
