@@ -268,7 +268,10 @@ function Tab({ tab, refetchTab }: ITab) {
 
   return (
     <>
-      <div className="baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-md md:my-24 xl:w-8/12">
+      <div
+        id={"mainTabComponent"}
+        className="baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-md md:my-24 xl:w-8/12"
+      >
         <TabMetadata refetchTab={refetchTab} customTuning={customTuning} />
 
         <Separator className="w-[96%]" />

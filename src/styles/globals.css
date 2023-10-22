@@ -1,4 +1,13 @@
 @tailwind base;
+
+/* still not 100% sure why this works, but fixes alignment
+   issues with text inside of html2canvas "screenshot"  */
+@layer base {
+  img {
+    @apply inline-block;
+  }
+}
+
 @tailwind components;
 @tailwind utilities;
 

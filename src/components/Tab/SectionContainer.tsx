@@ -286,7 +286,7 @@ function SectionContainer({
                         );
                       }
                     }}
-                    className="h-8 md:h-auto"
+                    className="h-8 md:h-9"
                   >
                     <PlayButtonIcon
                       uniqueLocationKey={`sectionContainer${sectionIndex}`}

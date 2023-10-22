@@ -67,7 +67,7 @@ function PreviewSectionContainer({
         <div className="baseFlex gap-4 rounded-md bg-pink-600 px-4 py-2">
           <p className="text-xl font-semibold">{sectionData.title}</p>
 
-          <Button variant="playPause" tabIndex={-1} className="h-8 md:h-auto">
+          <Button variant="playPause" tabIndex={-1} className="h-8 md:h-9">
             <BsFillPlayFill className="h-5 w-5" />
           </Button>
         </div>
@@ -523,7 +523,7 @@ interface PreviewTabSection {
   subSectionData: TabSection;
   subSectionIndex: number;
   sectionIndex: number;
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 function PreviewTabSection({

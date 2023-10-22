@@ -456,81 +456,15 @@ export const tabRouter = createTRPCRouter({
         base64RecordedAudioFile: z.string().nullable(),
         shouldUpdateInS3: z.boolean(),
         musicalKey: z.string().nullable(),
+        base64TabScreenshot: z.string(),
         type: z.enum(["create", "update"]),
       })
     )
     .mutation(async ({ input, ctx }) => {
       // can we destructure input into it's fields here or does prisma not like that?
 
-      const tabData = input.tabData;
-
-      const modifiedTabData: Section[] = [];
-
-      // gets first two subsections from first section
-      if (tabData[0]!.data.length > 1) {
-        modifiedTabData.push({
-          ...tabData[0]!,
-          data: tabData[0]!.data.slice(0, 2),
-        });
-      }
-      // combined first subsection from first two sections
-      else if (tabData.length > 1) {
-        modifiedTabData.push(
-          {
-            ...tabData[0]!,
-            data: [...tabData[0]!.data],
-          },
-          {
-            ...tabData[1]!,
-            data: [...tabData[1]!.data.slice(0, 1)],
-          }
-        );
-      }
-      // only has one section w/ one subsection within, and uses that
-      else {
-        modifiedTabData.push({
-          ...tabData[0]!,
-          data: [...tabData[0]!.data],
-        });
-      }
-
-      const stringifiedTabData = JSON.stringify(modifiedTabData);
-
-      const url = `${
-        process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-      }/takeScreenshotOfTab/filters?tuning=${encodeURIComponent(
-        input.tuning
-      )}&baselineBpm=${input.bpm}`;
-
-      const browser = await puppeteer.launch({
-        headless: "new",
-        defaultViewport: {
-          width: 1903,
-          height: 1080,
-        },
-      });
-      const page = await browser.newPage();
-
-      await page.evaluateOnNewDocument((data) => {
-        window.myInjectedData = data;
-      }, stringifiedTabData);
-
-      await page.goto(url, { waitUntil: "networkidle0" });
-      await page.waitForTimeout(3500);
-
-      const tabScreenshot = await page.screenshot({
-        clip: {
-          x: 330,
-          y: 160,
-          width: 1245,
-          height: 581,
-          scale: 0.75,
-        },
-        quality: 100,
-        type: "webp",
-      });
-      await page.close();
-      await browser.close();
+      const base64Data = input.base64TabScreenshot.split(",")[1]!;
+      const imageBuffer = Buffer.from(base64Data, "base64");
 
       if (input.type === "create") {
         const tab = await ctx.prisma.tab.create({
@@ -554,9 +488,9 @@ export const tabRouter = createTRPCRouter({
         // uploading screenshot to s3 bucket
         const command = new PutObjectCommand({
           Bucket: "autostrum-screenshots",
-          Key: `${tab.id}.webp`,
-          Body: tabScreenshot,
-          ContentType: "image/webp",
+          Key: `${tab.id}.jpeg`,
+          Body: imageBuffer,
+          ContentType: "image/jpeg",
         });
         await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
 
@@ -593,9 +527,9 @@ export const tabRouter = createTRPCRouter({
         // uploading screenshot to s3 bucket
         const command = new PutObjectCommand({
           Bucket: "autostrum-screenshots",
-          Key: `${input.id}.webp`,
-          Body: tabScreenshot,
-          ContentType: "image/webp",
+          Key: `${input.id}.jpeg`,
+          Body: imageBuffer,
+          ContentType: "image/jpeg",
         });
         await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
 

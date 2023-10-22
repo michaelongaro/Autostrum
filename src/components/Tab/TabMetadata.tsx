@@ -6,19 +6,21 @@ import { Check } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useMemo, useState, type ChangeEvent } from "react";
+import { useMemo, useState, useRef, type ChangeEvent } from "react";
+import { createPortal } from "react-dom";
 import { AiFillEye, AiOutlineUser } from "react-icons/ai";
 import { BsArrowRightShort, BsPlus } from "react-icons/bs";
 import { MdModeEditOutline } from "react-icons/md";
 import { FaMicrophoneAlt, FaTrashAlt } from "react-icons/fa";
 import { shallow } from "zustand/shallow";
+import html2canvas from "html2canvas";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabStore } from "~/stores/TabStore";
+import { type Section, useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
@@ -41,6 +43,7 @@ import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
 import type { RefetchTab } from "./Tab";
 import classes from "./TabMetadata.module.css";
+import TabPreview from "./TabPreview";
 
 type TabMetadata = {
   customTuning: string;
@@ -51,6 +54,10 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
 
   const { push, asPath } = useRouter();
   const ctx = api.useContext();
+
+  const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
+  const [takingScreenshot, setTakingScreenshot] = useState(false);
+  const tabPreviewScreenshotRef = useRef(null);
 
   const [showDeletePopover, setShowDeletePopover] = useState(false);
   const [showPublishCriteriaPopover, setShowPublishCriteriaPopover] =
@@ -335,6 +342,40 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
     setEditing(false);
   }
 
+  function getMinifiedTabData() {
+    const modifiedTabData: Section[] = [];
+
+    // gets first two subsections from first section
+    if (tabData[0]!.data.length > 1) {
+      modifiedTabData.push({
+        ...tabData[0]!,
+        data: tabData[0]!.data.slice(0, 2),
+      });
+    }
+    // combined first subsection from first two sections
+    else if (tabData.length > 1) {
+      modifiedTabData.push(
+        {
+          ...tabData[0]!,
+          data: [...tabData[0]!.data],
+        },
+        {
+          ...tabData[1]!,
+          data: [...tabData[1]!.data.slice(0, 1)],
+        }
+      );
+    }
+    // only has one section w/ one subsection within, and uses that
+    else {
+      modifiedTabData.push({
+        ...tabData[0]!,
+        data: [...tabData[0]!.data],
+      });
+    }
+
+    return modifiedTabData;
+  }
+
   async function handleSave() {
     if (
       !userId ||
@@ -373,29 +414,40 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
         });
     }
 
-    // update in prisma
-    if (userId) {
-      createOrUpdate({
-        id,
-        createdById: userId,
-        title,
-        description,
-        genreId,
-        chords,
-        strummingPatterns,
-        tabData,
-        sectionProgression,
-        hasRecordedAudio,
-        tuning,
-        bpm,
-        timeSignature,
-        capo,
-        base64RecordedAudioFile,
-        shouldUpdateInS3,
-        musicalKey,
-        type: asPath.includes("create") ? "create" : "update",
+    setMinifiedTabData(getMinifiedTabData());
+    setTakingScreenshot(true);
+
+    setTimeout(() => {
+      void html2canvas(tabPreviewScreenshotRef.current!).then((canvas) => {
+        const base64Screenshot = canvas.toDataURL("image/jpeg", 0.75);
+        if (userId) {
+          createOrUpdate({
+            id,
+            createdById: userId,
+            title,
+            description,
+            genreId,
+            chords,
+            strummingPatterns,
+            tabData,
+            sectionProgression,
+            hasRecordedAudio,
+            tuning,
+            bpm,
+            timeSignature,
+            capo,
+            base64RecordedAudioFile,
+            shouldUpdateInS3,
+            musicalKey,
+            base64TabScreenshot: base64Screenshot,
+            type: asPath.includes("create") ? "create" : "update",
+          });
+        }
+
+        setMinifiedTabData(undefined);
+        setTakingScreenshot(false);
       });
-    }
+    }, 1000); // trying to give ample time for state to update and <TabPreview /> to completely render
   }
 
   function isEqualToOriginalTabState() {
@@ -646,23 +698,28 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                         isEqualToOriginalTabState() ||
                         showPulsingError ||
                         isPosting ||
-                        showPublishCheckmark
+                        showPublishCheckmark ||
+                        takingScreenshot
                       }
                       onClick={() => void handleSave()}
                       className="baseFlex gap-2"
                     >
                       {asPath.includes("create")
                         ? `${
-                            showPublishCheckmark && !isPosting
+                            showPublishCheckmark &&
+                            !isPosting &&
+                            !takingScreenshot
                               ? "Published"
-                              : isPosting
+                              : isPosting || takingScreenshot
                               ? "Publishing"
                               : "Publish"
                           }`
                         : `${
-                            showPublishCheckmark && !isPosting
+                            showPublishCheckmark &&
+                            !isPosting &&
+                            !takingScreenshot
                               ? "Saved"
-                              : isPosting
+                              : isPosting || takingScreenshot
                               ? "Saving"
                               : "Save"
                           }`}
@@ -671,7 +728,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                         {/* will need to also include condition for while recording is being
                             uploaded to s3 to also show loading spinner, don't necessarily have to
                             communicate that it's uploading recorded audio imo */}
-                        {isPosting && (
+                        {(isPosting || takingScreenshot) && (
                           <motion.svg
                             key="postingLoadingSpinner"
                             initial={{ opacity: 0, width: 0 }}
@@ -1322,6 +1379,29 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
           </div>
         </div>
       )}
+
+      {minifiedTabData &&
+        createPortal(
+          <div className="h-full w-full overflow-hidden">
+            <div
+              ref={tabPreviewScreenshotRef}
+              style={{
+                background:
+                  "linear-gradient(315deg, hsl(6, 100%, 63%), hsl(340, 100%, 76%), hsl(297, 100%, 87%)) fixed center / cover",
+              }}
+              className="baseFlex h-[581px] w-[1245px] scale-75" // technically scale isn't necessary but the background gradient was getting messed up without it...
+            >
+              <div className="h-[581px] w-[1245px] bg-pink-500 bg-opacity-20 ">
+                <TabPreview
+                  baselineBpm={bpm}
+                  tuning={tuning}
+                  tabData={minifiedTabData}
+                />
+              </div>
+            </div>
+          </div>,
+          document.getElementById("mainTabComponent")!
+        )}
     </>
   );
 }
