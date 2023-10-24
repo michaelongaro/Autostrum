@@ -148,6 +148,7 @@ function PinnedTabModal({
             viewType={view}
             selectedPinnedTabId={currentlySelectedPinnedTabId}
             setSelectedPinnedTabId={setCurrentlySelectedPinnedTabId}
+            hideLikesAndPlayButtons={true}
           />
 
           <div className="baseFlex gap-4">

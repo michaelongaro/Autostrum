@@ -77,7 +77,7 @@ function Explore() {
 
       <SearchInput />
 
-      <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
+      <div className="baseVertFlex w-full !items-start gap-0 p-1 md:gap-4 md:p-4">
         <div className="baseVertFlex gap-0 md:gap-1">
           <p className="text-xl font-bold">Weekly featured artist</p>
           <Separator className="w-full bg-pink-500" />
@@ -101,10 +101,8 @@ function Explore() {
                           width={300}
                           height={300}
                           quality={100}
-                          onLoad={() => {
-                            setTimeout(() => {
-                              setProfileImageLoaded(true);
-                            }, 1500);
+                          onLoadingComplete={() => {
+                            setProfileImageLoaded(true);
                           }}
                           onClick={() =>
                             void push(

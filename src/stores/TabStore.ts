@@ -199,7 +199,6 @@ const initialStoreState = {
   shouldUpdateInS3: false,
   recordedAudioBuffer: null,
   recordedAudioBufferSourceNode: null,
-  audioControlsOpacity: 1,
 
   isLoadingARoute: false,
   // idk if search needs to be included here
@@ -355,8 +354,6 @@ interface TabState {
   setRecordedAudioBufferSourceNode: (
     recordedAudioBufferSourceNode: AudioBufferSourceNode | null
   ) => void;
-  audioControlsOpacity: number;
-  setAudioControlsOpacity: (audioControlsOpacity: number) => void;
 
   // playing/pausing sound functions
   playTab: ({ location, tabId }: PlayTab) => Promise<void>;
@@ -551,9 +548,6 @@ export const useTabStore = create<TabState>()(
     preventFramerLayoutShift: false,
     setPreventFramerLayoutShift: (preventFramerLayoutShift) =>
       set({ preventFramerLayoutShift }),
-    audioControlsOpacity: 1,
-    setAudioControlsOpacity: (audioControlsOpacity) =>
-      set({ audioControlsOpacity }),
 
     // playing/pausing sound functions
     playTab: async ({ location, tabId }: PlayTab) => {

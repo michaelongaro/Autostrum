@@ -13,7 +13,7 @@ function NoResultsFound({ customKey }: NoResultsFound) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="baseVertFlex h-[366px] pb-12"
+      className="baseVertFlex h-[400px] pb-12"
     >
       <div className="baseVertFlex lightestGlassmorphic gap-2 rounded-md px-8 py-4 text-xl transition-all">
         <div className="baseFlex gap-4">

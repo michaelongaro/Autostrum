@@ -5,7 +5,7 @@ import { Separator } from "~/components/ui/separator";
 
 function Footer() {
   return (
-    <footer className="heavyGlassmorphic baseFlex z-30 h-16 w-full gap-4 shadow-sm">
+    <footer className="footerBackgroundGradient baseFlex z-30 h-16 w-full gap-4 shadow-sm">
       <Button id={"contact"} variant={"ghost"} asChild>
         <a
           href="mailto:michael.ongaro.dev@gmail.com"

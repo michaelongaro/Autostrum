@@ -27,6 +27,7 @@ import GridArtistView from "./GridArtistView";
 import GridTabView from "./GridTabView";
 import TableArtistView from "./TableArtistView";
 import TableTabView from "./TableTabView";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 const opacityVariants = {
   expanded: {
@@ -61,6 +62,7 @@ interface SearchResults {
   viewType: "grid" | "table";
   selectedPinnedTabId?: number;
   setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
+  hideLikesAndPlayButtons?: boolean;
 }
 
 function SearchResults({
@@ -73,6 +75,7 @@ function SearchResults({
   viewType,
   selectedPinnedTabId,
   setSelectedPinnedTabId,
+  hideLikesAndPlayButtons,
 }: SearchResults) {
   const { asPath, push, query, pathname } = useRouter();
 
@@ -80,10 +83,11 @@ function SearchResults({
 
   const [resultsCountIsLoading, setResultsCountIsLoading] = useState(false);
 
-  const { searchResultsCount, setAudioControlsOpacity } = useTabStore(
+  const isAboveSmallViewportWidth = useViewportWidthBreakpoint(640);
+
+  const { searchResultsCount } = useTabStore(
     (state) => ({
       searchResultsCount: state.searchResultsCount,
-      setAudioControlsOpacity: state.setAudioControlsOpacity,
     }),
     shallow
   );
@@ -118,6 +122,7 @@ function SearchResults({
           <div className="text-base sm:text-lg">
             {`Found ${searchResultsCount}`}
             <Badge
+              variant={isAboveSmallViewportWidth ? "default" : "smallerText"}
               style={{ backgroundColor: genreArrayData[genreId - 1]?.color }}
               className="relative bottom-[2px] mx-2"
             >
@@ -134,6 +139,7 @@ function SearchResults({
           <p className="text-base sm:text-lg">
             Found {searchResultsCount}
             <Badge
+              variant={isAboveSmallViewportWidth ? "default" : "smallerText"}
               style={{ backgroundColor: genreArrayData[genreId - 1]?.color }}
               className="relative bottom-[2px] mx-2"
             >
@@ -151,7 +157,10 @@ function SearchResults({
         return (
           <div className="text-base sm:text-lg">
             {`Found ${searchResultsCount} ${formattedTabString} across`}
-            <Badge className="relative bottom-[2px] mx-2 bg-pink-500">
+            <Badge
+              variant={isAboveSmallViewportWidth ? "default" : "smallerText"}
+              className="relative bottom-[2px] mx-2 bg-pink-500"
+            >
               All genres
             </Badge>
             {searchQuery !== "" && <span>for &quot;{searchQuery}&quot;</span>}
@@ -358,13 +367,12 @@ function SearchResults({
   }
 
   return (
-    <div
-      className={`baseVertFlex ${
-        forPinnedModal ? "min-h-[350px]" : "min-h-[500px]"
-      } w-full !flex-nowrap !justify-start rounded-md border-8 border-t-2 border-pink-800 shadow-md`}
-    >
+    <div className="baseVertFlex min-h-[375px] w-full !flex-nowrap !justify-start rounded-md md:min-h-[525px]">
       {/* # of results + sorting options */}
-      <div className="baseFlex w-full !items-center !justify-between gap-4 bg-pink-800 p-2 @container xl:min-h-[76px]">
+      <div
+        className="baseFlex w-full !items-center !justify-between gap-4 rounded-md  
+ bg-gradient-to-br from-pink-800/90 via-pink-800/95 to-pink-800 px-4 py-2 @container xl:min-h-[76px]"
+      >
         {/* # of results */}
         {resultsCountIsLoading ? (
           <motion.div
@@ -389,11 +397,7 @@ function SearchResults({
         )}
 
         {/* mobile sorting options */}
-        <Drawer.Root
-          onOpenChange={(value) => {
-            setAudioControlsOpacity(value ? 0 : 1);
-          }}
-        >
+        <Drawer.Root>
           <Drawer.Trigger asChild>
             <Button variant={"outline"} className="baseFlex gap-2 @3xl:hidden">
               Filter
@@ -755,6 +759,7 @@ function SearchResults({
                 selectedPinnedTabId={selectedPinnedTabId}
                 setSelectedPinnedTabId={setSelectedPinnedTabId}
                 setResultsCountIsLoading={setResultsCountIsLoading}
+                hideLikesAndPlayButtons={hideLikesAndPlayButtons}
               />
             ) : (
               <GridArtistView
@@ -777,6 +782,7 @@ function SearchResults({
                 selectedPinnedTabId={selectedPinnedTabId}
                 setSelectedPinnedTabId={setSelectedPinnedTabId}
                 setResultsCountIsLoading={setResultsCountIsLoading}
+                hideLikesAndPlayButtons={hideLikesAndPlayButtons}
               />
             ) : (
               <TableArtistView

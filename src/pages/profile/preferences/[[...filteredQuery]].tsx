@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { MdModeEditOutline } from "react-icons/md";
 import Head from "next/head";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 import { LuExternalLink } from "react-icons/lu";
 import { shallow } from "zustand/shallow";
@@ -32,6 +32,7 @@ function Preferences() {
   // "relative" classes on any parent elems in this component
   const [showPinnedTabModal, setShowPinnedTabModal] = useState(false);
   const [showEmptyTabsWarning, setShowEmptyTabsWarning] = useState(false);
+  const [showClerkUserProfile, setShowClerkUserProfile] = useState(false);
 
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
@@ -47,6 +48,12 @@ function Preferences() {
     }),
     shallow
   );
+
+  useEffect(() => {
+    setTimeout(() => {
+      setShowClerkUserProfile(true);
+    }, 1000);
+  }, []);
 
   const { data: artist } = api.artist.getByIdOrUsername.useQuery(
     {
@@ -95,14 +102,32 @@ function Preferences() {
 
       <TabsContent value="preferences">
         <div className="baseVertFlex lightGlassmorphic mt-12 w-full gap-12 rounded-2xl p-2 transition-all md:my-8 md:p-8 md:px-4">
-          <UserProfile
-            appearance={{
-              elements: {
-                rootBox: "max-w-[100%] securedByClerkBreakpoint md:max-w-[95%]",
-                card: "max-w-[100%] securedByClerkBreakpoint md:max-w-[95%]",
-              },
-            }}
-          />
+          <div className="grid min-h-[500px] w-full grid-cols-1 place-items-center">
+            <div
+              style={{
+                opacity: showClerkUserProfile ? 1 : 0,
+              }}
+              className="baseFlex col-start-1 col-end-2 row-start-1 row-end-2 h-full w-full !max-w-[100%] transition-opacity"
+            >
+              <UserProfile
+                appearance={{
+                  elements: {
+                    rootBox:
+                      "max-w-[100%] securedByClerkBreakpoint md:max-w-[95%]",
+                    card: "max-w-[100%] securedByClerkBreakpoint md:max-w-[95%]",
+                  },
+                }}
+              />
+            </div>
+
+            <div
+              className={`baseFlex col-start-1 col-end-2 row-start-1 row-end-2 h-full w-11/12 rounded-2xl bg-pink-300 transition-opacity ${
+                showClerkUserProfile
+                  ? "z-[-1] opacity-0"
+                  : "animate-pulse opacity-100"
+              }`}
+            ></div>
+          </div>
 
           <div
             style={{
@@ -112,11 +137,14 @@ function Preferences() {
                   : "300px"
                 : "auto",
             }}
-            className="baseVertFlex relative w-full !flex-nowrap gap-4 md:flex-row md:gap-0"
+            className="baseVertFlex relative w-full !flex-nowrap gap-6 md:flex-row md:gap-0"
           >
-            <div className="baseVertFlex w-full gap-2 md:gap-4">
+            <div className="baseVertFlex w-full gap-6">
               <div className="baseFlex w-full !justify-start gap-4 md:w-4/5">
-                <p className="text-xl font-semibold">Pinned tab</p>
+                <div className="baseVertFlex">
+                  <p className="text-xl font-semibold">Pinned tab</p>
+                  <Separator className="w-full bg-pink-500" />
+                </div>
                 {artist?.pinnedTabId !== -1 && (
                   <Button
                     onClick={() => setShowPinnedTabModal(true)}
@@ -177,12 +205,13 @@ function Preferences() {
               </div>
             </div>
 
-            <Separator className="h-[1px] w-full md:h-full md:w-[1px]" />
+            <Separator className="h-[2px] w-full md:h-full md:w-[2px]" />
 
             <div className="baseVertFlex h-full w-full !flex-nowrap !items-start !justify-start">
-              <p className="ml-1 text-xl font-semibold md:ml-4 md:mt-[0.35rem]">
-                Miscellaneous actions
-              </p>
+              <div className="baseVertFlex ml-1 md:ml-4">
+                <p className="text-xl font-semibold ">Miscellaneous actions</p>
+                <Separator className="w-full bg-pink-500" />
+              </div>
               <div className="baseVertFlex my-8 h-full w-full gap-4 md:mt-0">
                 <Button asChild>
                   <Link

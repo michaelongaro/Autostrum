@@ -357,7 +357,7 @@ function PalmMuteNode({
                 pointerEvents:
                   getButtonOpacity(value, columnIndex) === "1" ? "all" : "none",
                 boxShadow: hoveringOnPalmMuteNode
-                  ? "0 0 5px 2px hsl(327, 73%, 97%)"
+                  ? "0 0 2px 2px hsl(327, 73%, 97%)"
                   : "",
                 opacity: getButtonOpacity(value, columnIndex),
               }}

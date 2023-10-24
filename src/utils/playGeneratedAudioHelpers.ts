@@ -774,7 +774,7 @@ function calculateRelativeChordDelayMultiplier(
 
   if (bpm <= 60) {
     const distance = 61 - bpm;
-    delay = Math.min(distance / 60, 0.5); // idk prob needs to be fine tuned
+    delay = Math.min(distance / 60, 0.35); // idk prob needs to be fine tuned
   } else {
     const distance = bpm > 400 ? 400 : 400 - bpm;
     delay = Math.min(distance / 361, 1) * 0.02;

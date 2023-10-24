@@ -31,6 +31,7 @@ interface TableTabView {
   selectedPinnedTabId?: number;
   setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
   setResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
+  hideLikesAndPlayButtons?: boolean;
 }
 
 function TableTabView({
@@ -41,6 +42,7 @@ function TableTabView({
   selectedPinnedTabId,
   setSelectedPinnedTabId,
   setResultsCountIsLoading,
+  hideLikesAndPlayButtons,
 }: TableTabView) {
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
@@ -146,6 +148,7 @@ function TableTabView({
                       selectedPinnedTabId={selectedPinnedTabId}
                       setSelectedPinnedTabId={setSelectedPinnedTabId}
                       infiniteQueryParams={getInfiniteQueryParams()}
+                      hideLikesAndPlayButtons={hideLikesAndPlayButtons}
                     />
                   ) : (
                     <TableTabRow
@@ -154,6 +157,7 @@ function TableTabView({
                       selectedPinnedTabId={selectedPinnedTabId}
                       setSelectedPinnedTabId={setSelectedPinnedTabId}
                       infiniteQueryParams={getInfiniteQueryParams()}
+                      hideLikesAndPlayButtons={hideLikesAndPlayButtons}
                     />
                   )}
                 </Fragment>
@@ -185,7 +189,13 @@ export default TableTabView;
 
 // TODO: probably don't want to show the artist for pinned modal since it is already implied..
 
-function TableTabSkeleton({ forPinnedModal }: { forPinnedModal: boolean }) {
+function TableTabSkeleton({
+  forPinnedModal,
+  hideLikesAndPlayButtons,
+}: {
+  forPinnedModal: boolean;
+  hideLikesAndPlayButtons?: boolean;
+}) {
   return (
     <TableRow className="w-full">
       <TableCell>
@@ -208,12 +218,16 @@ function TableTabSkeleton({ forPinnedModal }: { forPinnedModal: boolean }) {
       <TableCell>
         <div className="h-8 w-24 animate-pulse rounded-md bg-pink-300"></div>
       </TableCell>
-      <TableCell>
-        <div className="h-8 w-12 animate-pulse rounded-md bg-pink-300"></div>
-      </TableCell>
-      <TableCell>
-        <div className="h-8 w-12 animate-pulse rounded-md bg-pink-300"></div>
-      </TableCell>
+      {!hideLikesAndPlayButtons && (
+        <>
+          <TableCell>
+            <div className="h-8 w-12 animate-pulse rounded-md bg-pink-300"></div>
+          </TableCell>
+          <TableCell>
+            <div className="h-8 w-12 animate-pulse rounded-md bg-pink-300"></div>
+          </TableCell>
+        </>
+      )}
     </TableRow>
   );
 }

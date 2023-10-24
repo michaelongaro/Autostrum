@@ -33,19 +33,16 @@ const opacityAndScaleVariants = {
 function GeneralLayoutStatefulShell() {
   const { asPath } = useRouter();
 
-  const [lastScrollTop, setLastScrollTop] = useState(0);
-  const [ticking, setTicking] = useState(false);
   const [scrollToTopTicking, setScrollToTopTicking] = useState(false);
   const [submitButtonInView, setSubmitButtonInView] = useState(false);
   const [audioControlsVisibility, setAudioControlsVisibility] = useState<
-    "expanded" | "minimized" | "keepMinimized"
+    "expanded" | "minimized"
   >("expanded");
   const [scrollThresholdReached, setScrollThresholdReached] =
     useState<boolean>(false);
 
   const localStorageAutoscroll = useLocalStorageValue("autostrumAutoscroll");
 
-  const autoscrollEnabled = useGetLocalStorageValues().autoscroll;
   const looping = useGetLocalStorageValues().looping;
 
   // reflects any updates made to username/profileImageUrl in Clerk to the ArtistMetadata
@@ -127,64 +124,6 @@ function GeneralLayoutStatefulShell() {
     }
   }, [looping, setLooping, recordedAudioBufferSourceNode]);
 
-  // autohide/show header + audio controls on scroll
-  useEffect(() => {
-    let timerId: NodeJS.Timeout | null = null;
-
-    function handleScroll() {
-      if (timerId) {
-        // Exit early if there's already a pending timer
-        return;
-      }
-
-      timerId = setTimeout(() => {
-        window.requestAnimationFrame(() => {
-          const scrollTop = window.scrollY;
-
-          // handle scroll down
-          if (scrollTop > lastScrollTop) {
-            if (
-              !audioMetadata.playing &&
-              audioControlsVisibility !== "keepMinimized"
-            ) {
-              setAudioControlsVisibility("minimized");
-            }
-          }
-
-          // handle scroll up
-          else {
-            if (
-              !audioMetadata.playing &&
-              audioControlsVisibility !== "keepMinimized"
-            ) {
-              setAudioControlsVisibility("expanded");
-            }
-          }
-          setLastScrollTop(scrollTop <= 0 ? 0 : scrollTop);
-          setTicking(false);
-        });
-
-        timerId = null;
-      }, 200); // 200ms throttle
-      setTicking(true);
-    }
-
-    if ("ontouchstart" in window) {
-      window.addEventListener("scroll", handleScroll, { passive: true });
-    }
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [
-    asPath,
-    lastScrollTop,
-    ticking,
-    audioMetadata.playing,
-    audioControlsVisibility,
-    autoscrollEnabled,
-  ]);
-
   // Contact button intersection observer
   useEffect(() => {
     const target = document.getElementById("contact");
@@ -242,7 +181,7 @@ function GeneralLayoutStatefulShell() {
         });
 
         timerId = null;
-      }, 200); // 200ms throttle
+      }, 500); // 500ms throttle, doesn't need to be super accurate
       setScrollToTopTicking(true);
     }
 
@@ -294,10 +233,7 @@ function GeneralLayoutStatefulShell() {
     if (!aboveLargeViewportWidth && showingAudioControls) {
       if (submitButtonInView) {
         bottomValue = "1rem";
-      } else if (
-        audioControlsVisibility === "minimized" ||
-        audioControlsVisibility === "keepMinimized"
-      ) {
+      } else if (audioControlsVisibility === "minimized") {
         bottomValue = "3.15rem";
       } else if (audioControlsVisibility === "expanded") {
         bottomValue = "7rem";

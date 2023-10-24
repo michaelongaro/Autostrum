@@ -1,7 +1,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import { useMemo, type ReactNode } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import { AiOutlineHeart } from "react-icons/ai";
 import { BiErrorCircle } from "react-icons/bi";
 import { FaGuitar } from "react-icons/fa";
@@ -13,8 +13,12 @@ interface Layout {
 }
 
 function TopProfileNavigationLayout({ children }: Layout) {
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
   const { asPath, push } = useRouter();
+
+  const [tabValue, setTabValue] = useState<"preferences" | "tabs" | "likes">(
+    "preferences"
+  );
 
   const finalQueryOfUrl = useMemo(() => {
     if (asPath.includes("/tabs")) return "tabs";
@@ -23,14 +27,22 @@ function TopProfileNavigationLayout({ children }: Layout) {
     return "preferences";
   }, [asPath]);
 
-  function pushToTabsOrLikes(pushToTabs: boolean) {
-    void push(`/profile/${pushToTabs ? "tabs" : "likes"}/filters`);
+  function pushToNewUrl(tabValue: "preferences" | "tabs" | "likes") {
+    if (tabValue === "preferences") {
+      void push(`/profile/preferences`);
+    } else {
+      void push(`/profile/${tabValue}/filters`);
+    }
   }
 
   function getDynamicWidth() {
     if (finalQueryOfUrl === "tabs") return "w-11/12 md:w-3/4";
     if (finalQueryOfUrl === "likes") return "w-11/12 md:w-3/4";
     if (finalQueryOfUrl === "preferences") return "w-11/12 lg:w-[975px]";
+  }
+
+  if (!isLoaded) {
+    return null;
   }
 
   if (!userId) {
@@ -48,12 +60,17 @@ function TopProfileNavigationLayout({ children }: Layout) {
     >
       <Tabs
         defaultValue={finalQueryOfUrl}
+        value={tabValue}
+        onValueChange={(value) => {
+          setTabValue(value as "preferences" | "tabs" | "likes");
+          pushToNewUrl(value as "preferences" | "tabs" | "likes");
+        }}
         className="baseVertFlex my-12 w-full md:my-24"
       >
         <TabsList className="z-40 grid h-full w-11/12 grid-cols-3 gap-2 md:w-[450px]">
           <TabsTrigger
             value="preferences"
-            className="baseVertFlex gap-2 md:!flex-row"
+            className="baseVertFlex w-full gap-2 md:!flex-row"
             onClick={() => {
               void push(`/profile/preferences`);
             }}
@@ -63,20 +80,14 @@ function TopProfileNavigationLayout({ children }: Layout) {
           </TabsTrigger>
           <TabsTrigger
             value="tabs"
-            className="baseVertFlex gap-2 md:!flex-row"
-            onClick={() => {
-              pushToTabsOrLikes(true);
-            }}
+            className="baseVertFlex w-full gap-2 md:!flex-row"
           >
             <FaGuitar className="h-4 w-4" />
             Tabs
           </TabsTrigger>
           <TabsTrigger
             value="likes"
-            className="baseVertFlex gap-2 md:!flex-row"
-            onClick={() => {
-              pushToTabsOrLikes(false);
-            }}
+            className="baseVertFlex w-full gap-2 md:!flex-row"
           >
             <AiOutlineHeart className="h-4 w-4" />
             Likes

@@ -45,6 +45,7 @@ interface GridTabCard {
   selectedPinnedTabId?: number;
   setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
   largeVariant?: boolean;
+  hideLikesAndPlayButtons?: boolean;
   infiniteQueryParams?: InfiniteQueryParams;
   refetchTab?: <TPageData>(
     options?: RefetchOptions & RefetchQueryFilters<TPageData>
@@ -60,6 +61,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
       selectedPinnedTabId,
       setSelectedPinnedTabId,
       largeVariant,
+      hideLikesAndPlayButtons,
       infiniteQueryParams,
     },
     ref
@@ -262,10 +264,8 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
               height={
                 largeVariant ? 185 : isAboveExtraSmallViewportWidth ? 146 : 124
               }
-              onLoad={() => {
-                setTimeout(() => {
-                  setTabScreenshotLoaded(true);
-                }, 1500);
+              onLoadingComplete={() => {
+                setTabScreenshotLoaded(true);
               }}
               style={{
                 opacity: tabScreenshotLoaded ? 1 : 0,
@@ -339,7 +339,11 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
           {/* artist/pin button and (likes & play button) */}
           <div className="baseFlex w-full !flex-nowrap !items-end !justify-between gap-2">
             {/* not sure if the min-w-[112px] is vestigial or not */}
-            <div className="baseFlex mb-1 w-1/2 !items-start !justify-start gap-2 pl-2">
+            <div
+              className={`baseFlex w-1/2 !items-start !justify-start gap-2 pl-2 ${
+                hideLikesAndPlayButtons ? "" : "mb-1"
+              }`}
+            >
               {!asPath.includes("/artist") &&
                 !asPath.includes("/preferences") &&
                 !asPath.includes("/tabs") &&
@@ -364,10 +368,8 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                               width={75}
                               height={75}
                               quality={100}
-                              onLoad={() => {
-                                setTimeout(() => {
-                                  setProfileImageLoaded(true);
-                                }, 1500);
+                              onLoadingComplete={() => {
+                                setProfileImageLoaded(true);
                               }}
                               style={{
                                 opacity: profileImageLoaded ? 1 : 0,
@@ -398,112 +400,112 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                     </Link>
                   </Button>
                 )}
-
-              {selectedPinnedTabId !== undefined && (
-                <Button
-                  variant={"ghost"}
-                  className="baseFlex gap-2 px-3 py-1"
-                  onClick={() => {
-                    if (!setSelectedPinnedTabId) return;
-                    setSelectedPinnedTabId(
-                      selectedPinnedTabId === minimalTab.id ? -1 : minimalTab.id
-                    );
-                  }}
-                >
-                  {selectedPinnedTabId === minimalTab.id ? (
-                    <TbPinnedFilled className="h-4 w-4" />
-                  ) : (
-                    <TbPinned className="h-4 w-4" />
-                  )}
-
-                  {selectedPinnedTabId === minimalTab.id
-                    ? "Unpin tab"
-                    : "Pin tab"}
-                </Button>
-              )}
             </div>
 
-            <div className="baseFlex w-1/2 !flex-nowrap !justify-evenly rounded-tl-md border-l-2 border-t-2">
-              {/* likes button */}
-              <LikeAndUnlikeButton
-                customClassName="baseFlex h-8 w-1/2 gap-2 px-3 rounded-r-none rounded-bl-none rounded-tl-sm border-r-[1px]"
-                createdById={minimalTab.createdById}
-                id={minimalTab.id}
-                numberOfLikes={minimalTab.numberOfLikes}
-                tabCreator={tabCreator}
-                currentArtist={currentArtist}
-                // fix typing/linting errors later
-                refetchCurrentArtist={refetchCurrentArtist}
-                // fix typing/linting errors later
-                refetchTabCreator={refetchTabCreator}
-                refetchTab={refetchTab}
-                infiniteQueryParams={infiniteQueryParams}
-              />
-
-              {/* play/pause button*/}
-              <Button
-                variant="playPause"
-                disabled={
-                  (audioMetadata.type === "Generated" &&
-                    (artificalPlayButtonTimeout ||
-                      !currentInstrument ||
-                      loadingFullTab)) ||
-                  (audioMetadata.type === "Artist recording" &&
-                    audioMetadata.tabId === minimalTab.id &&
-                    !recordedAudioBuffer)
-                }
-                onClick={() => {
-                  if (
-                    audioMetadata.playing &&
-                    audioMetadata.tabId === minimalTab.id
-                  ) {
-                    if (audioMetadata.type === "Generated") {
-                      setArtificalPlayButtonTimeout(true);
-
-                      setTimeout(() => {
-                        setArtificalPlayButtonTimeout(false);
-                      }, 300);
-                    }
-                    pauseAudio();
-                  } else if (!fullTab) {
-                    // fetch the full tab
-                    void fetchFullTab({ id: minimalTab.id });
-                    setId(minimalTab.id);
-                    setFetchingFullTabData(true);
-                  } else {
-                    // setting store w/ this tab's data
-                    setHasRecordedAudio(fullTab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
-                    setTabData(fullTab.tabData as unknown as Section[]);
-                    setSectionProgression(
-                      fullTab.sectionProgression as unknown as SectionProgression[]
-                    );
-                    setTuning(fullTab.tuning);
-                    setBpm(fullTab.bpm);
-                    setChords(fullTab.chords as unknown as Chord[]);
-                    setCapo(fullTab.capo);
-
-                    if (audioMetadata.playing) {
-                      pauseAudio(true);
-                    }
-                    setTimeout(() => {
-                      void playTab({
-                        tabId: minimalTab.id,
-                        location: null,
-                      });
-                    }, 150); // hacky: trying to allow time for pauseAudio to finish and "flush out" state
-                  }
-                }}
-                className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px] p-0"
-              >
-                <PlayButtonIcon
-                  uniqueLocationKey={`gridTabCard${minimalTab.id}`}
-                  tabId={minimalTab.id}
-                  currentInstrument={currentInstrument}
-                  audioMetadata={audioMetadata}
-                  loadingTabData={loadingFullTab}
+            {!hideLikesAndPlayButtons ? (
+              <div className="baseFlex w-1/2 !flex-nowrap !justify-evenly rounded-tl-md border-l-2 border-t-2">
+                {/* likes button */}
+                <LikeAndUnlikeButton
+                  customClassName="baseFlex h-8 w-1/2 gap-2 px-3 rounded-r-none rounded-bl-none rounded-tl-sm border-r-[1px]"
+                  createdById={minimalTab.createdById}
+                  id={minimalTab.id}
+                  numberOfLikes={minimalTab.numberOfLikes}
+                  tabCreator={tabCreator}
+                  currentArtist={currentArtist}
+                  // fix typing/linting errors later
+                  refetchCurrentArtist={refetchCurrentArtist}
+                  // fix typing/linting errors later
+                  refetchTabCreator={refetchTabCreator}
+                  refetchTab={refetchTab}
+                  infiniteQueryParams={infiniteQueryParams}
                 />
+
+                {/* play/pause button*/}
+                <Button
+                  variant="playPause"
+                  disabled={
+                    (audioMetadata.type === "Generated" &&
+                      (artificalPlayButtonTimeout ||
+                        !currentInstrument ||
+                        loadingFullTab)) ||
+                    (audioMetadata.type === "Artist recording" &&
+                      audioMetadata.tabId === minimalTab.id &&
+                      !recordedAudioBuffer)
+                  }
+                  onClick={() => {
+                    if (
+                      audioMetadata.playing &&
+                      audioMetadata.tabId === minimalTab.id
+                    ) {
+                      if (audioMetadata.type === "Generated") {
+                        setArtificalPlayButtonTimeout(true);
+
+                        setTimeout(() => {
+                          setArtificalPlayButtonTimeout(false);
+                        }, 300);
+                      }
+                      pauseAudio();
+                    } else if (!fullTab) {
+                      // fetch the full tab
+                      void fetchFullTab({ id: minimalTab.id });
+                      setId(minimalTab.id);
+                      setFetchingFullTabData(true);
+                    } else {
+                      // setting store w/ this tab's data
+                      setHasRecordedAudio(fullTab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
+                      setTabData(fullTab.tabData as unknown as Section[]);
+                      setSectionProgression(
+                        fullTab.sectionProgression as unknown as SectionProgression[]
+                      );
+                      setTuning(fullTab.tuning);
+                      setBpm(fullTab.bpm);
+                      setChords(fullTab.chords as unknown as Chord[]);
+                      setCapo(fullTab.capo);
+
+                      if (audioMetadata.playing) {
+                        pauseAudio(true);
+                      }
+                      setTimeout(() => {
+                        void playTab({
+                          tabId: minimalTab.id,
+                          location: null,
+                        });
+                      }, 150); // hacky: trying to allow time for pauseAudio to finish and "flush out" state
+                    }
+                  }}
+                  className="baseFlex h-8 w-1/2 rounded-l-none rounded-br-sm rounded-tr-none border-l-[1px] p-0"
+                >
+                  <PlayButtonIcon
+                    uniqueLocationKey={`gridTabCard${minimalTab.id}`}
+                    tabId={minimalTab.id}
+                    currentInstrument={currentInstrument}
+                    audioMetadata={audioMetadata}
+                    loadingTabData={loadingFullTab}
+                  />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant={"ghost"}
+                className="baseFlex mb-1 mr-2 gap-2 px-3 py-1"
+                onClick={() => {
+                  if (!setSelectedPinnedTabId) return;
+                  setSelectedPinnedTabId(
+                    selectedPinnedTabId === minimalTab.id ? -1 : minimalTab.id
+                  );
+                }}
+              >
+                {selectedPinnedTabId === minimalTab.id ? (
+                  <TbPinnedFilled className="h-4 w-4" />
+                ) : (
+                  <TbPinned className="h-4 w-4" />
+                )}
+
+                {selectedPinnedTabId === minimalTab.id
+                  ? "Unpin tab"
+                  : "Pin tab"}
               </Button>
-            </div>
+            )}
           </div>
         </div>
       </motion.div>

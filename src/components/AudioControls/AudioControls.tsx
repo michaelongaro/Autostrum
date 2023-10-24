@@ -71,10 +71,8 @@ const widthAndHeightVariants = {
 };
 
 interface AudioControls {
-  visibility: "expanded" | "minimized" | "keepMinimized" | "offscreen";
-  setVisibility: Dispatch<
-    SetStateAction<"expanded" | "minimized" | "keepMinimized">
-  >;
+  visibility: "expanded" | "minimized" | "offscreen";
+  setVisibility: Dispatch<SetStateAction<"expanded" | "minimized">>;
 }
 
 function AudioControls({ visibility, setVisibility }: AudioControls) {
@@ -127,8 +125,6 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     playRecordedAudio,
     pauseAudio,
     fetchingFullTabData,
-    audioControlsOpacity,
-    setAudioControlsOpacity,
   } = useTabStore(
     (state) => ({
       id: state.id,
@@ -153,8 +149,6 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       playRecordedAudio: state.playRecordedAudio,
       pauseAudio: state.pauseAudio,
       fetchingFullTabData: state.fetchingFullTabData,
-      audioControlsOpacity: state.audioControlsOpacity,
-      setAudioControlsOpacity: state.setAudioControlsOpacity,
     }),
     shallow
   );
@@ -358,7 +352,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       } else {
         bottomValue = "-5.5rem";
       }
-    } else if (visibility === "minimized" || visibility === "keepMinimized") {
+    } else if (visibility === "minimized") {
       if (aboveLargeViewportWidth) {
         bottomValue = "-6.15rem";
       } else {
@@ -417,21 +411,15 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     <motion.div
       key={"audioControls"}
       style={{
-        zIndex: asPath.includes("/preferences") ? 60 : 40,
         transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
       }}
-      className="baseFlex fixed w-[100vw]"
+      className="baseFlex fixed z-40 w-[100vw]"
       variants={mainAudioControlsVariants}
       initial="closed"
       animate="expanded"
       exit="closed"
     >
-      <div
-        style={{
-          opacity: audioControlsOpacity,
-        }}
-        className="baseVertFlex h-full w-[95vw] gap-2 rounded-xl bg-pink-600 p-2 shadow-2xl transition-opacity lg:rounded-full lg:px-8 lg:py-2 xl:w-10/12 2xl:w-1/2"
-      >
+      <div className="baseVertFlex audioControlsBoxShadow h-full w-[95vw] gap-2 rounded-xl bg-pink-600 p-2 transition-opacity lg:rounded-full lg:px-8 lg:py-2 xl:w-10/12 2xl:w-1/2">
         <AnimatePresence mode="wait">
           {aboveLargeViewportWidth && visibility === "minimized" && (
             <motion.div
@@ -509,13 +497,11 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               className="col-span-2 h-7 w-7 p-0"
               onClick={() =>
                 setVisibility(
-                  visibility === "minimized" || visibility === "keepMinimized"
-                    ? "expanded"
-                    : "keepMinimized"
+                  visibility === "minimized" ? "expanded" : "minimized"
                 )
               }
             >
-              {visibility === "minimized" || visibility === "keepMinimized" ? (
+              {visibility === "minimized" ? (
                 <GoChevronUp className="h-5 w-5" />
               ) : (
                 <GoChevronDown className="h-5 w-5" />
@@ -525,9 +511,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
             {/* audio slider */}
             <div
               className={`baseFlex col-span-5 w-full !flex-nowrap gap-2 md:w-1/2 md:justify-self-end ${
-                visibility === "minimized" || visibility === "keepMinimized"
-                  ? "opacity-0"
-                  : "opacity-100"
+                visibility === "minimized" ? "opacity-0" : "opacity-100"
               } transition-opacity`}
             >
               {volume === 0 ? (
@@ -937,18 +921,14 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               </Button>
             </>
           ) : (
-            <Drawer.Root
-              onOpenChange={(value) => {
-                setAudioControlsOpacity(value ? 0 : 1);
-              }}
-            >
+            <Drawer.Root>
               <Drawer.Trigger asChild>
                 <Button size="sm" variant={"outline"} className="p-1">
                   <IoSettingsOutline className="h-6 w-6" />
                 </Button>
               </Drawer.Trigger>
               <Drawer.Portal>
-                <Drawer.Content className="baseVertFlex fixed bottom-0 left-0 right-0 !items-start gap-2 bg-pink-50 p-4 pb-6 text-pink-950">
+                <Drawer.Content className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-2 bg-pink-50 p-4 pb-6 text-pink-950">
                   <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
 
                   <Label>Audio settings</Label>

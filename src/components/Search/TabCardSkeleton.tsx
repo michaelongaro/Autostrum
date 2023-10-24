@@ -6,12 +6,14 @@ interface TabCardSkeleton {
   uniqueKey: string;
   largeVariant?: boolean;
   hideArtist?: boolean;
+  hideLikesAndPlayButtons?: boolean;
 }
 
 function TabCardSkeleton({
   uniqueKey,
   largeVariant,
   hideArtist,
+  hideLikesAndPlayButtons,
 }: TabCardSkeleton) {
   const isAboveExtraSmallViewportWidth = useViewportWidthBreakpoint(450);
 
@@ -64,20 +66,28 @@ function TabCardSkeleton({
         >
           {/* artist link */}
           {!hideArtist && (
-            <div className="baseFlex mb-1 w-1/2 !flex-nowrap !justify-start gap-2 pl-2">
+            <div
+              className={`baseFlex w-1/2 !flex-nowrap !justify-start gap-2 pl-2 ${
+                hideLikesAndPlayButtons ? "" : "mb-1"
+              }`}
+            >
               <div className="h-8 w-8 animate-pulse rounded-full bg-pink-300"></div>
               <div className="h-6 w-20 animate-pulse rounded-md bg-pink-300"></div>
             </div>
           )}
 
-          <div className="baseFlex w-1/2 !flex-nowrap !justify-evenly rounded-tl-md border-l-2 border-t-2">
-            {/* likes button */}
-            <div className="h-8 w-full animate-pulse rounded-r-none rounded-bl-none rounded-tl-sm  bg-pink-300"></div>
-            <Separator className="h-8 w-[1px]" />
+          {!hideLikesAndPlayButtons ? (
+            <div className="baseFlex w-1/2 !flex-nowrap !justify-evenly rounded-tl-md border-l-2 border-t-2">
+              {/* likes button */}
+              <div className="h-8 w-full animate-pulse rounded-r-none rounded-bl-none rounded-tl-sm  bg-pink-300"></div>
+              <Separator className="h-8 w-[1px]" />
 
-            {/* play/pause button*/}
-            <div className="h-8 w-full animate-pulse rounded-l-none rounded-br-sm rounded-tr-none  bg-pink-300"></div>
-          </div>
+              {/* play/pause button*/}
+              <div className="h-8 w-full animate-pulse rounded-l-none rounded-br-sm rounded-tr-none  bg-pink-300"></div>
+            </div>
+          ) : (
+            <div className="mb-1 mr-2 h-9 w-20 animate-pulse rounded-md bg-pink-300"></div>
+          )}
         </div>
       </div>
     </motion.div>

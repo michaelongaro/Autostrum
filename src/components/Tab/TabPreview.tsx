@@ -819,4 +819,4 @@ function PreviewTabNote({ note }: PreviewTabNote) {
   );
 }
 
-export default memo(TabPreview);
+export default TabPreview;

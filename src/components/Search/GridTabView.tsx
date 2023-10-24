@@ -23,6 +23,7 @@ interface GridTabView {
   selectedPinnedTabId?: number;
   setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
   setResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
+  hideLikesAndPlayButtons?: boolean;
 }
 
 function GridTabView({
@@ -33,6 +34,7 @@ function GridTabView({
   selectedPinnedTabId,
   setSelectedPinnedTabId,
   setResultsCountIsLoading,
+  hideLikesAndPlayButtons,
 }: GridTabView) {
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
@@ -124,6 +126,7 @@ function GridTabView({
                     selectedPinnedTabId={selectedPinnedTabId}
                     setSelectedPinnedTabId={setSelectedPinnedTabId}
                     infiniteQueryParams={getInfiniteQueryParams()}
+                    hideLikesAndPlayButtons={hideLikesAndPlayButtons}
                   />
                 ) : (
                   <GridTabCard
@@ -131,6 +134,7 @@ function GridTabView({
                     selectedPinnedTabId={selectedPinnedTabId}
                     setSelectedPinnedTabId={setSelectedPinnedTabId}
                     infiniteQueryParams={getInfiniteQueryParams()}
+                    hideLikesAndPlayButtons={hideLikesAndPlayButtons}
                   />
                 )}
               </AnimatePresence>
@@ -140,7 +144,11 @@ function GridTabView({
           {isFetching &&
             Array.from(Array(3).keys()).map((index) => (
               <AnimatePresence key={index} mode={"wait"}>
-                <TabCardSkeleton uniqueKey={`tabCardSkeleton${index}`} />
+                <TabCardSkeleton
+                  uniqueKey={`tabCardSkeleton${index}`}
+                  hideArtist={asPath.includes("/preferences")}
+                  hideLikesAndPlayButtons={hideLikesAndPlayButtons}
+                />
               </AnimatePresence>
             ))}
         </>

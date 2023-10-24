@@ -31,7 +31,20 @@ function useGetUrlParamFilters() {
   useEffect(() => {
     // may need to extract this to a separate function and call it both here and in
     // [...filteredQuery] index.tsx
-    if (Object.keys(query).length === 0) return;
+    if (Object.keys(query).length === 0) {
+      // needed for /preferences pinned modal, since it defaults back to no
+      // /filters? at all if no filters are selected, and therefore we need to reset
+      // the urlParamFilters state to its default values.
+      setUrlParamFilters({
+        genreId: 9,
+        type: "tabs",
+        searchQuery: "",
+        view: "grid",
+        sortByRelevance: true,
+        additionalSortFilter: "newest",
+      });
+      return;
+    }
 
     const { filteredQuery, ...queryObj } = query;
 

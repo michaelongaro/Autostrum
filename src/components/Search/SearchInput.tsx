@@ -133,7 +133,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
   return (
     <div className="baseFlex gap-4">
       <div className="relative">
-        <BiSearchAlt2 className="absolute left-2 top-[0.6rem] h-5 w-5 md:left-[0.7rem] md:top-[0.8rem] md:h-6 md:w-6" />
+        <BiSearchAlt2 className="absolute left-2 top-[0.72rem] h-5 w-5 md:left-[0.7rem] md:top-[0.8rem] md:h-6 md:w-6" />
         <Input
           ref={searchInputRef}
           type="text"
@@ -197,7 +197,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
             }
           }}
           value={searchQuery}
-          className="searchInputBoxShadow h-9 w-80 border-2 pl-8 text-sm focus-within:shadow-lg md:h-12 md:w-[25rem] md:pl-10 md:text-lg"
+          className="searchInputBoxShadow h-10 w-80 border-2 pl-8 text-sm focus-within:shadow-lg md:h-12 md:w-[25rem] md:pl-10 md:text-lg"
         />
 
         {/* autofill */}

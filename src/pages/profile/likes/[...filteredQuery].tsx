@@ -26,7 +26,7 @@ function ArtistLikes() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
       // remove z-50 if possible, I think <Bubbles /> is messing it up
-      className="lightGlassmorphic baseVertFlex z-50 mt-12 min-h-[100dvh] w-full !justify-start rounded-md p-2 md:p-8"
+      className="lightGlassmorphic baseVertFlex z-50 mt-12 min-h-[650px] w-full !justify-start rounded-md p-2 md:p-8"
     >
       <Head>
         <title>Likes | Autostrum</title>

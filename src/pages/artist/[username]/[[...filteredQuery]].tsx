@@ -117,10 +117,8 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
                 width={300}
                 height={300}
                 quality={100}
-                onLoad={() => {
-                  setTimeout(() => {
-                    setProfileImageLoaded(true);
-                  }, 1500);
+                onLoadingComplete={() => {
+                  setProfileImageLoaded(true);
                 }}
                 style={{
                   opacity: profileImageLoaded ? 1 : 0,

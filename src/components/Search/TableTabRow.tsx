@@ -35,6 +35,7 @@ interface TableTabRow {
   selectedPinnedTabId?: number;
   setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
   infiniteQueryParams?: InfiniteQueryParams;
+  hideLikesAndPlayButtons?: boolean;
 }
 
 const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
@@ -44,6 +45,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
       selectedPinnedTabId,
       setSelectedPinnedTabId,
       infiniteQueryParams,
+      hideLikesAndPlayButtons,
     },
     ref
   ) => {
@@ -184,7 +186,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
           <TableCell>
             <Button
               variant={"ghost"}
-              className="baseFlex w-fit !flex-nowrap gap-2 px-3 py-1"
+              className="baseFlex w-fit !flex-nowrap gap-2 whitespace-nowrap px-3 py-1"
               onClick={() => {
                 if (!setSelectedPinnedTabId) return;
                 setSelectedPinnedTabId(
@@ -247,10 +249,8 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
                       width={75}
                       height={75}
                       quality={100}
-                      onLoad={() => {
-                        setTimeout(() => {
-                          setProfileImageLoaded(true);
-                        }, 1500);
+                      onLoadingComplete={() => {
+                        setProfileImageLoaded(true);
                       }}
                       style={{
                         opacity: profileImageLoaded ? 1 : 0,
@@ -288,83 +288,88 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
         <TableCell>
           {formatDate(minimalTab.updatedAt ?? minimalTab.createdAt)}
         </TableCell>
-        <TableCell>
-          <LikeAndUnlikeButton
-            customClassName="baseFlex gap-2 px-3"
-            createdById={minimalTab.createdById}
-            id={minimalTab.id}
-            numberOfLikes={minimalTab.numberOfLikes}
-            tabCreator={tabCreator}
-            currentArtist={currentArtist}
-            // fix typing/linting errors later
-            refetchCurrentArtist={refetchCurrentArtist}
-            // fix typing/linting errors later
-            refetchTabCreator={refetchTabCreator}
-            infiniteQueryParams={infiniteQueryParams}
-          />
-        </TableCell>
-        <TableCell>
-          <Button
-            variant="playPause"
-            disabled={
-              (audioMetadata.type === "Generated" &&
-                (artificalPlayButtonTimeout || !currentInstrument)) ||
-              (audioMetadata.type === "Artist recording" &&
-                audioMetadata.tabId === minimalTab.id &&
-                !recordedAudioBuffer)
-            }
-            onClick={() => {
-              if (
-                audioMetadata.playing &&
-                audioMetadata.tabId === minimalTab.id
-              ) {
-                if (audioMetadata.type === "Generated") {
-                  setArtificalPlayButtonTimeout(true);
 
-                  setTimeout(() => {
-                    setArtificalPlayButtonTimeout(false);
-                  }, 300);
+        {!hideLikesAndPlayButtons && (
+          <>
+            <TableCell>
+              <LikeAndUnlikeButton
+                customClassName="baseFlex gap-2 px-3"
+                createdById={minimalTab.createdById}
+                id={minimalTab.id}
+                numberOfLikes={minimalTab.numberOfLikes}
+                tabCreator={tabCreator}
+                currentArtist={currentArtist}
+                // fix typing/linting errors later
+                refetchCurrentArtist={refetchCurrentArtist}
+                // fix typing/linting errors later
+                refetchTabCreator={refetchTabCreator}
+                infiniteQueryParams={infiniteQueryParams}
+              />
+            </TableCell>
+            <TableCell>
+              <Button
+                variant="playPause"
+                disabled={
+                  (audioMetadata.type === "Generated" &&
+                    (artificalPlayButtonTimeout || !currentInstrument)) ||
+                  (audioMetadata.type === "Artist recording" &&
+                    audioMetadata.tabId === minimalTab.id &&
+                    !recordedAudioBuffer)
                 }
-                pauseAudio();
-              } else if (!fullTab) {
-                // fetch the full tab
-                void fetchFullTab({ id: minimalTab.id });
-                setId(minimalTab.id);
-                setFetchingFullTabData(true);
-              } else {
-                // setting store w/ this tab's data
-                setHasRecordedAudio(fullTab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
-                setTabData(fullTab.tabData as unknown as Section[]);
-                setSectionProgression(
-                  fullTab.sectionProgression as unknown as SectionProgression[]
-                );
-                setTuning(fullTab.tuning);
-                setBpm(fullTab.bpm);
-                setChords(fullTab.chords as unknown as Chord[]);
-                setCapo(fullTab.capo);
+                onClick={() => {
+                  if (
+                    audioMetadata.playing &&
+                    audioMetadata.tabId === minimalTab.id
+                  ) {
+                    if (audioMetadata.type === "Generated") {
+                      setArtificalPlayButtonTimeout(true);
 
-                if (audioMetadata.playing) {
-                  pauseAudio(true);
-                }
-                setTimeout(() => {
-                  void playTab({
-                    tabId: minimalTab.id,
-                    location: null,
-                  });
-                }, 150); // hacky: trying to allow time for pauseAudio to finish and "flush out" state
-              }
-            }}
-            className="h-8 md:h-9"
-          >
-            <PlayButtonIcon
-              uniqueLocationKey={`tableTabRow${minimalTab.id}`}
-              tabId={minimalTab.id}
-              currentInstrument={currentInstrument}
-              audioMetadata={audioMetadata}
-              loadingTabData={loadingFullTab}
-            />
-          </Button>
-        </TableCell>
+                      setTimeout(() => {
+                        setArtificalPlayButtonTimeout(false);
+                      }, 300);
+                    }
+                    pauseAudio();
+                  } else if (!fullTab) {
+                    // fetch the full tab
+                    void fetchFullTab({ id: minimalTab.id });
+                    setId(minimalTab.id);
+                    setFetchingFullTabData(true);
+                  } else {
+                    // setting store w/ this tab's data
+                    setHasRecordedAudio(fullTab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
+                    setTabData(fullTab.tabData as unknown as Section[]);
+                    setSectionProgression(
+                      fullTab.sectionProgression as unknown as SectionProgression[]
+                    );
+                    setTuning(fullTab.tuning);
+                    setBpm(fullTab.bpm);
+                    setChords(fullTab.chords as unknown as Chord[]);
+                    setCapo(fullTab.capo);
+
+                    if (audioMetadata.playing) {
+                      pauseAudio(true);
+                    }
+                    setTimeout(() => {
+                      void playTab({
+                        tabId: minimalTab.id,
+                        location: null,
+                      });
+                    }, 150); // hacky: trying to allow time for pauseAudio to finish and "flush out" state
+                  }
+                }}
+                className="h-8 md:h-9"
+              >
+                <PlayButtonIcon
+                  uniqueLocationKey={`tableTabRow${minimalTab.id}`}
+                  tabId={minimalTab.id}
+                  currentInstrument={currentInstrument}
+                  audioMetadata={audioMetadata}
+                  loadingTabData={loadingFullTab}
+                />
+              </Button>
+            </TableCell>
+          </>
+        )}
       </TableRow>
     );
   }
