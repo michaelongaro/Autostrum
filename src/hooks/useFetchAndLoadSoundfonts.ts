@@ -57,7 +57,7 @@ function useFetchAndLoadSoundfonts() {
             setCurrentInstrument(player);
           });
         },
-        currentInstrument ? 0 : 1500
+        currentInstrument ? 0 : 3000 // want to reduce inital fetching of instrument when app loads
       );
     };
 
