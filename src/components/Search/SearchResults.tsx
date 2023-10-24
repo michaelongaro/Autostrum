@@ -1,12 +1,12 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import { useState, useMemo, type Dispatch, type SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { BsArrowDownShort, BsGridFill } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
 import { LuFilter } from "react-icons/lu";
-import { shallow } from "zustand/shallow";
 import { Drawer } from "vaul";
+import { shallow } from "zustand/shallow";
 import {
   Select,
   SelectContent,
@@ -18,8 +18,9 @@ import {
 } from "~/components/ui/select";
 import { Separator } from "~/components/ui/separator";
 import { Switch } from "~/components/ui/switch";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
-import { api } from "~/utils/api";
+import { genreList } from "~/utils/genreList";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
@@ -27,7 +28,6 @@ import GridArtistView from "./GridArtistView";
 import GridTabView from "./GridTabView";
 import TableArtistView from "./TableArtistView";
 import TableTabView from "./TableTabView";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 const opacityVariants = {
   expanded: {
@@ -48,7 +48,6 @@ export interface InfiniteQueryParams {
 }
 
 interface SearchResults {
-  forPinnedModal?: boolean;
   genreId: number;
   type: "tabs" | "artists";
   searchQuery: string;
@@ -66,7 +65,6 @@ interface SearchResults {
 }
 
 function SearchResults({
-  forPinnedModal,
   genreId,
   type,
   searchQuery,
@@ -92,24 +90,6 @@ function SearchResults({
     shallow
   );
 
-  const genreArray = api.genre.getAll.useQuery();
-
-  const genreArrayData = useMemo(() => {
-    if (!genreArray.data) return [];
-
-    // not 100% sure why we can't just return below:
-    // [...genreArray.data, { id: 9, name: "All genres", color: "#ec4899" }]
-    if (genreArray.data.length === 8) {
-      genreArray.data.push({
-        id: 9,
-        name: "All genres",
-        color: "#ec4899",
-      });
-    }
-
-    return genreArray.data;
-  }, [genreArray.data]);
-
   function formatQueryResultsCount() {
     const formattedTabString = searchResultsCount === 1 ? "tab" : "tabs";
     const formattedArtistString =
@@ -123,10 +103,10 @@ function SearchResults({
             {`Found ${searchResultsCount}`}
             <Badge
               variant={isAboveSmallViewportWidth ? "default" : "smallerText"}
-              style={{ backgroundColor: genreArrayData[genreId - 1]?.color }}
+              style={{ backgroundColor: genreList[genreId]?.color }}
               className="relative bottom-[2px] mx-2"
             >
-              {genreArrayData[genreId - 1]?.name}
+              {genreList[genreId]?.name}
             </Badge>
             {formattedTabString}
           </div>
@@ -140,10 +120,10 @@ function SearchResults({
             Found {searchResultsCount}
             <Badge
               variant={isAboveSmallViewportWidth ? "default" : "smallerText"}
-              style={{ backgroundColor: genreArrayData[genreId - 1]?.color }}
+              style={{ backgroundColor: genreList[genreId]?.color }}
               className="relative bottom-[2px] mx-2"
             >
-              {genreArrayData[genreId - 1]?.name}
+              {genreList[genreId]?.name}
             </Badge>
             tabs for &quot;
             {searchQuery}
@@ -370,8 +350,8 @@ function SearchResults({
     <div className="baseVertFlex min-h-[375px] w-full !flex-nowrap !justify-start rounded-md md:min-h-[525px]">
       {/* # of results + sorting options */}
       <div
-        className="baseFlex w-full !items-center !justify-between gap-4 rounded-md  
- bg-gradient-to-br from-pink-800/90 via-pink-800/95 to-pink-800 px-4 py-2 @container xl:min-h-[76px]"
+        className="baseFlex w-full !items-center !justify-between gap-4 rounded-md bg-gradient-to-br
+ from-pink-800/90 via-pink-800/95 to-pink-800 px-4 py-2 shadow-md @container xl:min-h-[76px]"
       >
         {/* # of results */}
         {resultsCountIsLoading ? (
@@ -407,7 +387,7 @@ function SearchResults({
           <Drawer.Portal>
             <Drawer.Content
               style={{
-                zIndex: asPath.includes("/preferences") ? 60 : "auto",
+                zIndex: asPath.includes("/preferences") ? 60 : 50,
               }}
               className="baseVertFlex fixed bottom-0 left-0 right-0 !items-start gap-2 bg-pink-50 p-4 pb-6 text-pink-950"
             >
@@ -461,7 +441,7 @@ function SearchResults({
                     <SelectGroup>
                       <SelectLabel>Genres</SelectLabel>
 
-                      {genreArrayData.map((genre) => {
+                      {Object.values(genreList).map((genre) => {
                         return (
                           <SelectItem
                             key={genre.id}
@@ -614,7 +594,7 @@ function SearchResults({
                     <SelectGroup>
                       <SelectLabel>Genres</SelectLabel>
 
-                      {genreArrayData.map((genre) => {
+                      {Object.values(genreList).map((genre) => {
                         return (
                           <SelectItem
                             key={genre.id}

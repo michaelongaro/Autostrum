@@ -1,28 +1,28 @@
 import { useAuth } from "@clerk/nextjs";
-import { type Genre } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
+import html2canvas from "html2canvas";
 import isEqual from "lodash.isequal";
 import { Check } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useMemo, useState, useRef, type ChangeEvent } from "react";
+import { useRef, useState, type ChangeEvent } from "react";
 import { createPortal } from "react-dom";
 import { AiFillEye, AiOutlineUser } from "react-icons/ai";
 import { BsArrowRightShort, BsPlus } from "react-icons/bs";
-import { MdModeEditOutline } from "react-icons/md";
 import { FaMicrophoneAlt, FaTrashAlt } from "react-icons/fa";
+import { MdModeEditOutline } from "react-icons/md";
 import { shallow } from "zustand/shallow";
-import html2canvas from "html2canvas";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { type Section, useTabStore } from "~/stores/TabStore";
+import { useTabStore, type Section } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
+import { genreList } from "~/utils/genreList";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import { parse, toString } from "~/utils/tunings";
 import { CommandCombobox } from "../ui/CommandCombobox";
@@ -60,8 +60,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
   const tabPreviewScreenshotRef = useRef(null);
 
   const [showDeletePopover, setShowDeletePopover] = useState(false);
-  const [showPublishCriteriaPopover, setShowPublishCriteriaPopover] =
-    useState(false);
+  const [showPublishPopover, setShowPublishPopover] = useState(false);
   const [
     showUnregisteredRecordingPopover,
     setShowUnregisteredRecordingPopover,
@@ -69,23 +68,13 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
   const [unregisteredPopoverTimeoutId, setUnregisteredPopoverTimeoutId] =
     useState<NodeJS.Timeout | null>(null);
 
+  const [publishErrorOccurred, setPublishErrorOccurred] = useState(false);
   const [showPulsingError, setShowPulsingError] = useState(false);
   const [profileImageLoaded, setProfileImageLoaded] = useState(false);
   const [showDeleteCheckmark, setShowDeleteCheckmark] = useState(false);
   const [showPublishCheckmark, setShowPublishCheckmark] = useState(false);
 
   const overMediumViewportThreshold = useViewportWidthBreakpoint(768);
-
-  const genreArray = api.genre.getAll.useQuery();
-
-  const genreObject: Record<number, Genre> = useMemo(() => {
-    if (!genreArray.data) return {};
-
-    return genreArray.data.reduce((acc: Record<number, Genre>, genre) => {
-      acc[genre.id] = genre;
-      return acc;
-    }, {});
-  }, [genreArray.data]);
 
   const { mutate: createOrUpdate, isLoading: isPosting } =
     api.tab.createOrUpdate.useMutation({
@@ -107,12 +96,8 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
         }
       },
       onError: (e) => {
-        //  const errorMessage = e.data?.zodError?.fieldErrors.content;
-        //  if (errorMessage && errorMessage[0]) {
-        //    toast.error(errorMessage[0]);
-        //  } else {
-        //    toast.error("Failed to post! Please try again later.");
-        //  }
+        setPublishErrorOccurred(true);
+        setShowPublishPopover(true);
       },
       onSettled: () => {
         void ctx.tab.getTabById.invalidate();
@@ -386,7 +371,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
       tabIsEffectivelyEmpty(tabData)
     ) {
       setShowPulsingError(true);
-      setShowPublishCriteriaPopover(true);
+      setShowPublishPopover(true);
       setTimeout(() => setShowPulsingError(false), 500);
 
       return;
@@ -490,6 +475,67 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
     };
 
     return isEqual(originalData, sanitizedCurrentTabData);
+  }
+
+  function renderSavePopoverContent() {
+    if (publishErrorOccurred) {
+      return (
+        <div className="baseVertFlex w-full !items-start gap-2 bg-pink-50 p-2 text-sm text-pink-950 md:text-base">
+          <div className="baseFlex gap-2">
+            <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
+            <p>Failed to publish tab. Please try again later.</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (userId) {
+      return (
+        <div className="baseVertFlex w-full !items-start gap-2 bg-pink-50 p-2 pr-4 text-sm text-pink-950 md:text-base">
+          <div className="baseFlex gap-2">
+            {title ? (
+              <Check className="h-5 w-8 text-green-600" />
+            ) : (
+              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 p-0 text-red-600" />
+            )}
+            <p>{`Title is ${title ? "present" : "missing"}`}</p>
+          </div>
+
+          <div className="baseFlex gap-2">
+            {genreId !== -1 ? (
+              <Check className="h-5 w-8 text-green-600" />
+            ) : (
+              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
+            )}
+            <p>{`Genre has ${genreId === -1 ? "not" : ""} been selected`}</p>
+          </div>
+
+          {!tabIsEffectivelyEmpty(tabData) ? (
+            <div className="baseFlex !flex-nowrap gap-2">
+              <Check className="h-5 w-8 text-green-600" />
+              <p>Tab isn&apos;t empty</p>
+            </div>
+          ) : (
+            <div className="baseFlex !flex-nowrap gap-2">
+              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
+              <p>Tab is empty</p>
+            </div>
+          )}
+        </div>
+      );
+
+      return (
+        <div className="baseFlex w-full max-w-[350px] bg-pink-50 p-2 pt-1 text-sm text-pink-950 md:max-w-[400px] md:text-base">
+          <div className="baseFlex !flex-nowrap gap-2">
+            <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
+            <p>Only registered users can publish a tab.</p>
+          </div>
+          <p className="text-xs md:text-sm">
+            This tab&apos;s data will be saved for you upon signing in.
+          </p>
+        </div>
+      );
+    }
   }
 
   function getOrdinalSuffix(num: number) {
@@ -684,10 +730,14 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                 </Button>
 
                 <Popover
-                  open={showPublishCriteriaPopover}
+                  open={showPublishPopover}
                   onOpenChange={(open) => {
                     if (open === false) {
-                      setShowPublishCriteriaPopover(false);
+                      setShowPublishPopover(false);
+
+                      if (publishErrorOccurred) {
+                        setPublishErrorOccurred(false);
+                      }
                     }
                   }}
                 >
@@ -772,54 +822,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-full p-0">
-                    {userId ? (
-                      <div className="baseVertFlex w-full !items-start gap-2 bg-pink-50 p-2 pr-4 text-sm text-pink-950 md:text-base">
-                        <div className="baseFlex gap-2">
-                          {title ? (
-                            <Check className="h-5 w-8 text-green-600" />
-                          ) : (
-                            <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 p-0 text-red-600" />
-                          )}
-                          <p>{`Title is ${title ? "present" : "missing"}`}</p>
-                        </div>
-
-                        <div className="baseFlex gap-2">
-                          {genreId !== -1 ? (
-                            <Check className="h-5 w-8 text-green-600" />
-                          ) : (
-                            <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
-                          )}
-                          <p>
-                            {`Genre has ${
-                              genreId === -1 ? "not" : ""
-                            } been selected`}
-                          </p>
-                        </div>
-
-                        {!tabIsEffectivelyEmpty(tabData) ? (
-                          <div className="baseFlex !flex-nowrap gap-2">
-                            <Check className="h-5 w-8 text-green-600" />
-                            <p>Tab isn&apos;t empty</p>
-                          </div>
-                        ) : (
-                          <div className="baseFlex !flex-nowrap gap-2">
-                            <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
-                            <p>Tab is empty</p>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="baseFlex w-full max-w-[350px] bg-pink-50 p-2 pt-1 text-sm text-pink-950 md:max-w-[400px] md:text-base">
-                        <div className="baseFlex !flex-nowrap gap-2">
-                          <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
-                          <p>Only registered users can publish a tab.</p>
-                        </div>
-                        <p className="text-xs md:text-sm">
-                          This tab&apos;s data will be saved for you upon
-                          signing in.
-                        </p>
-                      </div>
-                    )}
+                    {renderSavePopoverContent()}
                   </PopoverContent>
                 </Popover>
               </>
@@ -891,7 +894,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                 Genre <span className="text-brightRed">*</span>
               </Label>
               <Select
-                value={genreObject[genreId]?.id.toString()}
+                value={genreList[genreId]?.id.toString()}
                 onValueChange={(value) => handleGenreChange(value)}
               >
                 <SelectTrigger
@@ -915,7 +918,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                   <SelectGroup>
                     <SelectLabel>Genres</SelectLabel>
 
-                    {genreArray.data?.map((genre) => {
+                    {Object.values(genreList).map((genre) => {
                       return (
                         <SelectItem key={genre.id} value={genre.id.toString()}>
                           <div className="baseFlex gap-2">
@@ -1296,16 +1299,16 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                   } baseVertFlex !items-start gap-2`}
                 >
                   <div className="font-semibold">Genre</div>
-                  {genreObject[genreId] && (
+                  {genreList[genreId] && (
                     <div
                       style={{
-                        backgroundColor: genreObject[genreId]?.color,
+                        backgroundColor: genreList[genreId]?.color,
                       }}
                       className={`${
                         classes.genre ?? ""
                       } baseFlex w-[140px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]`}
                     >
-                      {genreObject[genreId]?.name}
+                      {genreList[genreId]?.name}
                       <Image
                         src={`/genrePreviewBubbles/id${genreId}.png`}
                         alt="three genre preview bubbles with the same color as the associated genre"

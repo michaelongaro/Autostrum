@@ -16,16 +16,16 @@ function TopProfileNavigationLayout({ children }: Layout) {
   const { userId, isLoaded } = useAuth();
   const { asPath, push } = useRouter();
 
-  const [tabValue, setTabValue] = useState<"preferences" | "tabs" | "likes">(
-    "preferences"
-  );
-
   const finalQueryOfUrl = useMemo(() => {
     if (asPath.includes("/tabs")) return "tabs";
     if (asPath.includes("/likes")) return "likes";
     if (asPath.includes("/preferences")) return "preferences";
     return "preferences";
   }, [asPath]);
+
+  const [tabValue, setTabValue] = useState<"preferences" | "tabs" | "likes">(
+    finalQueryOfUrl
+  );
 
   function pushToNewUrl(tabValue: "preferences" | "tabs" | "likes") {
     if (tabValue === "preferences") {

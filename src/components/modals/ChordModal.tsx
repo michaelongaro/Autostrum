@@ -196,6 +196,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       <FocusTrap
         focusTrapOptions={{
           allowOutsideClick: true,
+          initialFocus: false,
         }}
       >
         <div

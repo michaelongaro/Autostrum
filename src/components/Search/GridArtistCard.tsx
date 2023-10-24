@@ -41,7 +41,7 @@ const GridArtistCard = forwardRef<HTMLDivElement, ArtistMetadata>(
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.25 }}
-        className="lightestGlassmorphic baseVertFlex group relative w-full cursor-pointer gap-6 rounded-md border-2 px-2 py-4 shadow-sm brightness-100 transition-all hover:shadow-lg active:brightness-90"
+        className="lightestGlassmorphic baseVertFlex group relative w-full cursor-pointer gap-6 rounded-md border-2 px-2 py-4 !shadow-none !shadow-none shadow-sm brightness-100 transition-all hover:shadow-lg active:brightness-90"
         onMouseMove={handleMouseMove}
         onClick={() => {
           void push(`/artist/${artist.username}`);

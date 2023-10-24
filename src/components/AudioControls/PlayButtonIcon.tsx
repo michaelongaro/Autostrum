@@ -27,7 +27,7 @@ interface PlayButtonIcon {
   previewMetadata?: PreviewMetadata;
   indexOfPattern?: number;
   previewType?: "strummingPattern" | "chord";
-  loadingTabData?: boolean;
+  forceShowLoadingSpinner?: boolean;
 }
 
 function PlayButtonIcon({
@@ -42,7 +42,7 @@ function PlayButtonIcon({
   currentInstrument,
   recordedAudioBuffer,
   previewType,
-  loadingTabData,
+  forceShowLoadingSpinner,
 }: PlayButtonIcon) {
   type ShouldShowPauseIcon = Omit<
     PlayButtonIcon,
@@ -51,6 +51,7 @@ function PlayButtonIcon({
 
   const shouldShowPauseIcon = useCallback(
     ({
+      uniqueLocationKey,
       audioMetadata,
       tabId,
       sectionIndex,
@@ -88,7 +89,7 @@ function PlayButtonIcon({
   const renderPlayButtonIcon = useMemo(() => {
     if (
       !currentInstrument ||
-      loadingTabData ||
+      forceShowLoadingSpinner ||
       (uniqueLocationKey === "audioControls" && // can only play recorded audio through <AudioControls />
         audioMetadata?.type === "Artist recording" &&
         !recordedAudioBuffer)
@@ -173,7 +174,7 @@ function PlayButtonIcon({
     recordedAudioBuffer,
     shouldShowPauseIcon,
     uniqueLocationKey,
-    loadingTabData,
+    forceShowLoadingSpinner,
   ]);
 
   return renderPlayButtonIcon;

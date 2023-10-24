@@ -278,6 +278,7 @@ function StrummingPatternModal({
       <FocusTrap
         focusTrapOptions={{
           allowOutsideClick: true,
+          initialFocus: false,
         }}
       >
         <div

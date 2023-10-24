@@ -16,7 +16,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
   const { asPath } = useRouter();
 
   return (
-    <div className="baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-md md:my-24 xl:w-8/12">
+    <div className="baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-md shadow-md md:my-24 xl:w-8/12">
       {editing && (
         <>
           <div className="baseVertFlex w-full gap-2">

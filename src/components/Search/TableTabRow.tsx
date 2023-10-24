@@ -1,10 +1,8 @@
 import { useAuth } from "@clerk/nextjs";
-import type { Genre } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 import {
   forwardRef,
-  useMemo,
   useState,
   type Dispatch,
   type SetStateAction,
@@ -26,6 +24,7 @@ import {
 } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
+import { genreList } from "~/utils/genreList";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
 import type { InfiniteQueryParams } from "./SearchResults";
@@ -55,6 +54,8 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
     const [profileImageLoaded, setProfileImageLoaded] = useState(false);
     const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
       useState(false);
+    const [forceShowLoadingSpinner, setForceShowLoadingSpinner] =
+      useState(false);
 
     const {
       audioMetadata,
@@ -72,6 +73,8 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
       playTab,
       pauseAudio,
       setFetchingFullTabData,
+      showingAudioControls,
+      setShowingAudioControls,
     } = useTabStore(
       (state) => ({
         audioMetadata: state.audioMetadata,
@@ -89,20 +92,11 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
         playTab: state.playTab,
         pauseAudio: state.pauseAudio,
         setFetchingFullTabData: state.setFetchingFullTabData,
+        showingAudioControls: state.showingAudioControls,
+        setShowingAudioControls: state.setShowingAudioControls,
       }),
       shallow
     );
-
-    const genreArray = api.genre.getAll.useQuery();
-
-    const genreObject: Record<number, Genre> = useMemo(() => {
-      if (!genreArray.data) return {};
-
-      return genreArray.data.reduce((acc: Record<number, Genre>, genre) => {
-        acc[genre.id] = genre;
-        return acc;
-      }, {});
-    }, [genreArray.data]);
 
     const { data: currentArtist, refetch: refetchCurrentArtist } =
       api.artist.getByIdOrUsername.useQuery(
@@ -146,15 +140,20 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
             setChords(fullTab.chords as unknown as Chord[]);
             setCapo(fullTab.capo);
 
-            if (audioMetadata.playing) {
+            if (audioMetadata.tabId !== fullTab.id) {
               pauseAudio(true);
             }
-            setTimeout(() => {
-              void playTab({
-                tabId: fullTab.id,
-                location: null,
-              });
-            }, 150); // hacky: trying to allow time for pauseAudio to finish and "flush out" state
+
+            setTimeout(
+              () => {
+                void playTab({
+                  tabId: fullTab.id,
+                  location: null,
+                });
+                setForceShowLoadingSpinner(false);
+              },
+              showingAudioControls ? 150 : 500
+            ); // hacky: trying to allow time for pauseAudio to finish and "flush out" state
 
             setFullTab(fullTab);
             setFetchingFullTabData(false);
@@ -205,14 +204,14 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
           </TableCell>
         )}
         <TableCell>
-          {genreObject[minimalTab.genreId] && (
+          {genreList[minimalTab.genreId] && (
             <div
               style={{
-                backgroundColor: genreObject[minimalTab.genreId]?.color,
+                backgroundColor: genreList[minimalTab.genreId]?.color,
               }}
               className="baseFlex w-[140px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
             >
-              {genreObject[minimalTab.genreId]?.name}
+              {genreList[minimalTab.genreId]?.name}
               <Image
                 src={`/genrePreviewBubbles/id${minimalTab.genreId}.png`}
                 alt="three genre preview bubbles with the same color as the associated genre"
@@ -311,7 +310,9 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
                 variant="playPause"
                 disabled={
                   (audioMetadata.type === "Generated" &&
-                    (artificalPlayButtonTimeout || !currentInstrument)) ||
+                    (artificalPlayButtonTimeout ||
+                      !currentInstrument ||
+                      forceShowLoadingSpinner)) ||
                   (audioMetadata.type === "Artist recording" &&
                     audioMetadata.tabId === minimalTab.id &&
                     !recordedAudioBuffer)
@@ -330,12 +331,14 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
                     }
                     pauseAudio();
                   } else if (!fullTab) {
-                    // fetch the full tab
                     void fetchFullTab({ id: minimalTab.id });
+                    setForceShowLoadingSpinner(true);
                     setId(minimalTab.id);
                     setFetchingFullTabData(true);
+                    setShowingAudioControls(true);
                   } else {
                     // setting store w/ this tab's data
+                    setId(fullTab.id);
                     setHasRecordedAudio(fullTab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
                     setTabData(fullTab.tabData as unknown as Section[]);
                     setSectionProgression(
@@ -346,9 +349,10 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
                     setChords(fullTab.chords as unknown as Chord[]);
                     setCapo(fullTab.capo);
 
-                    if (audioMetadata.playing) {
+                    if (audioMetadata.tabId !== fullTab.id) {
                       pauseAudio(true);
                     }
+
                     setTimeout(() => {
                       void playTab({
                         tabId: minimalTab.id,
@@ -364,7 +368,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
                   tabId={minimalTab.id}
                   currentInstrument={currentInstrument}
                   audioMetadata={audioMetadata}
-                  loadingTabData={loadingFullTab}
+                  forceShowLoadingSpinner={forceShowLoadingSpinner}
                 />
               </Button>
             </TableCell>

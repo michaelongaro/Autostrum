@@ -1,21 +1,25 @@
 import { useAuth } from "@clerk/nextjs";
-import type { Genre } from "@prisma/client";
+import type {
+  QueryObserverResult,
+  RefetchOptions,
+  RefetchQueryFilters,
+} from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import {
   forwardRef,
-  useMemo,
+  useEffect,
   useRef,
   useState,
-  useEffect,
   type Dispatch,
   type SetStateAction,
 } from "react";
 import { AiOutlineUser } from "react-icons/ai";
 import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import { shallow } from "zustand/shallow";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import type {
   MinimalTabRepresentation,
   TabWithLikes,
@@ -26,20 +30,16 @@ import {
   type Section,
   type SectionProgression,
 } from "~/stores/TabStore";
-import type {
-  QueryObserverResult,
-  RefetchOptions,
-  RefetchQueryFilters,
-} from "@tanstack/react-query";
 import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
+import { genreList } from "~/utils/genreList";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { type InfiniteQueryParams } from "./SearchResults";
+
 interface GridTabCard {
   minimalTab: MinimalTabRepresentation;
   selectedPinnedTabId?: number;
@@ -73,11 +73,11 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
     const [tabScreenshot, setTabScreenshot] = useState<string>();
     const [tabScreenshotLoaded, setTabScreenshotLoaded] = useState(false);
     const [profileImageLoaded, setProfileImageLoaded] = useState(false);
+    const [forceShowLoadingSpinner, setForceShowLoadingSpinner] =
+      useState(false);
     const previewRef = useRef<HTMLAnchorElement>(null);
 
     const isAboveExtraSmallViewportWidth = useViewportWidthBreakpoint(450);
-
-    const genreArray = api.genre.getAll.useQuery();
 
     const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
       useState(false);
@@ -98,6 +98,8 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
       playTab,
       pauseAudio,
       setFetchingFullTabData,
+      showingAudioControls,
+      setShowingAudioControls,
     } = useTabStore(
       (state) => ({
         audioMetadata: state.audioMetadata,
@@ -115,18 +117,11 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         playTab: state.playTab,
         pauseAudio: state.pauseAudio,
         setFetchingFullTabData: state.setFetchingFullTabData,
+        showingAudioControls: state.showingAudioControls,
+        setShowingAudioControls: state.setShowingAudioControls,
       }),
       shallow
     );
-
-    const genreObject: Record<number, Genre> = useMemo(() => {
-      if (!genreArray.data) return {};
-
-      return genreArray.data.reduce((acc: Record<number, Genre>, genre) => {
-        acc[genre.id] = genre;
-        return acc;
-      }, {});
-    }, [genreArray.data]);
 
     const { data: currentArtist, refetch: refetchCurrentArtist } =
       api.artist.getByIdOrUsername.useQuery(
@@ -151,7 +146,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
       }
     );
 
-    const { mutate: fetchFullTab, isLoading: loadingFullTab } =
+    const { mutate: fetchFullTab } =
       api.tab.getTabByIdMutateVariation.useMutation({
         onSuccess: (fullTab) => {
           if (fullTab) {
@@ -170,15 +165,20 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
             setChords(fullTab.chords as unknown as Chord[]);
             setCapo(fullTab.capo);
 
-            if (audioMetadata.playing) {
+            if (audioMetadata.tabId !== fullTab.id) {
               pauseAudio(true);
             }
-            setTimeout(() => {
-              void playTab({
-                tabId: fullTab.id,
-                location: null,
-              });
-            }, 150); // hacky: trying to allow time for pauseAudio to finish and "flush out" state
+
+            setTimeout(
+              () => {
+                void playTab({
+                  tabId: fullTab.id,
+                  location: null,
+                });
+                setForceShowLoadingSpinner(false);
+              },
+              showingAudioControls ? 150 : 500
+            ); // hacky: trying to allow time for pauseAudio to finish and "flush out" state
 
             setFullTab(fullTab);
             setFetchingFullTabData(false);
@@ -208,7 +208,9 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
 
           const reader = new FileReader();
           reader.onloadend = function () {
-            setTabScreenshot(reader.result);
+            if (typeof reader?.result === "string") {
+              setTabScreenshot(reader.result);
+            }
           };
           reader.readAsDataURL(blob);
         } catch (error) {
@@ -233,7 +235,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
           }px`, // accounts for border (may need to add a few px to custom width now that I think about it)
           // height: `${width ? 183 : 146}px`,
         }}
-        className="baseVertFlex !flex-nowrap rounded-md border-2"
+        className="baseVertFlex !flex-nowrap rounded-md border-2 shadow-md"
       >
         {/* tab preview */}
         <Link
@@ -296,7 +298,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
 
         <Separator />
 
-        <div className="baseVertFlex lightestGlassmorphic w-full !justify-between gap-2 rounded-b-md">
+        <div className="baseVertFlex lightestGlassmorphic w-full !justify-between gap-2 rounded-b-md !shadow-none">
           {/* title and date + genre */}
           {/* hmmm what about the nowrap here, test w/ larget titles */}
           <div className="baseVertFlex w-full !flex-nowrap !items-start gap-0 px-2">
@@ -323,10 +325,10 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                 <div className="baseFlex gap-2">
                   <Badge
                     style={{
-                      backgroundColor: genreObject[minimalTab.genreId]?.color,
+                      backgroundColor: genreList[minimalTab.genreId]?.color,
                     }}
                   >
-                    {genreObject[minimalTab.genreId]?.name}
+                    {genreList[minimalTab.genreId]?.name}
                   </Badge>
                   {selectedPinnedTabId === minimalTab.id && (
                     <Badge className="bg-green-600">Pinned</Badge>
@@ -427,7 +429,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                     (audioMetadata.type === "Generated" &&
                       (artificalPlayButtonTimeout ||
                         !currentInstrument ||
-                        loadingFullTab)) ||
+                        forceShowLoadingSpinner)) ||
                     (audioMetadata.type === "Artist recording" &&
                       audioMetadata.tabId === minimalTab.id &&
                       !recordedAudioBuffer)
@@ -446,12 +448,14 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                       }
                       pauseAudio();
                     } else if (!fullTab) {
-                      // fetch the full tab
                       void fetchFullTab({ id: minimalTab.id });
+                      setForceShowLoadingSpinner(true);
                       setId(minimalTab.id);
                       setFetchingFullTabData(true);
+                      setShowingAudioControls(true);
                     } else {
                       // setting store w/ this tab's data
+                      setId(fullTab.id);
                       setHasRecordedAudio(fullTab.hasRecordedAudio); // used specifically for artist recorded audio fetching purposes
                       setTabData(fullTab.tabData as unknown as Section[]);
                       setSectionProgression(
@@ -462,9 +466,10 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                       setChords(fullTab.chords as unknown as Chord[]);
                       setCapo(fullTab.capo);
 
-                      if (audioMetadata.playing) {
+                      if (audioMetadata.tabId !== fullTab.id) {
                         pauseAudio(true);
                       }
+
                       setTimeout(() => {
                         void playTab({
                           tabId: minimalTab.id,
@@ -480,7 +485,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                     tabId={minimalTab.id}
                     currentInstrument={currentInstrument}
                     audioMetadata={audioMetadata}
-                    loadingTabData={loadingFullTab}
+                    forceShowLoadingSpinner={forceShowLoadingSpinner}
                   />
                 </Button>
               </div>

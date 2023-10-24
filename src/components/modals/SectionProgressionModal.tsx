@@ -155,6 +155,7 @@ function SectionProgressionModal() {
       <FocusTrap
         focusTrapOptions={{
           allowOutsideClick: true,
+          initialFocus: false,
         }}
       >
         <div

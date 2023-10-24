@@ -102,7 +102,7 @@ function Preferences() {
 
       <TabsContent value="preferences">
         <div className="baseVertFlex lightGlassmorphic mt-12 w-full gap-12 rounded-2xl p-2 transition-all md:my-8 md:p-8 md:px-4">
-          <div className="grid min-h-[500px] w-full grid-cols-1 place-items-center">
+          <div className="grid min-h-[500px] w-full grid-cols-1 place-items-center overflow-hidden">
             <div
               style={{
                 opacity: showClerkUserProfile ? 1 : 0,
@@ -133,13 +133,13 @@ function Preferences() {
             style={{
               height: isAboveMediumViewportWidth
                 ? artist?.pinnedTabId === -1
-                  ? "200px"
-                  : "300px"
+                  ? "275px"
+                  : "305px"
                 : "auto",
             }}
             className="baseVertFlex relative w-full !flex-nowrap gap-6 md:flex-row md:gap-0"
           >
-            <div className="baseVertFlex w-full gap-6">
+            <div className="baseVertFlex h-full w-full !justify-start gap-6">
               <div className="baseFlex w-full !justify-start gap-4 md:w-4/5">
                 <div className="baseVertFlex">
                   <p className="text-xl font-semibold">Pinned tab</p>
@@ -170,7 +170,7 @@ function Preferences() {
                   </>
                 ) : (
                   // add conditional popover to say "You haven't created any tabs yet"
-                  <div className="lightestGlassmorphic baseFlex h-[128px] w-full rounded-md">
+                  <div className="lightestGlassmorphic baseFlex h-[200px] w-full rounded-md">
                     <Popover
                       onOpenChange={(open) => {
                         if (open === false) {
@@ -207,7 +207,7 @@ function Preferences() {
 
             <Separator className="h-[2px] w-full md:h-full md:w-[2px]" />
 
-            <div className="baseVertFlex h-full w-full !flex-nowrap !items-start !justify-start">
+            <div className="baseVertFlex h-full w-full !flex-nowrap !items-start !justify-start gap-6">
               <div className="baseVertFlex ml-1 md:ml-4">
                 <p className="text-xl font-semibold ">Miscellaneous actions</p>
                 <Separator className="w-full bg-pink-500" />

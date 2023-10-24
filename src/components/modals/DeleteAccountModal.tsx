@@ -102,7 +102,11 @@ function DeleteAccountModal() {
       // choosing to not allow click outside to close modal
       // as a way to emphasize the importance of this action
     >
-      <FocusTrap>
+      <FocusTrap
+        focusTrapOptions={{
+          initialFocus: false,
+        }}
+      >
         <div
           tabIndex={-1}
           className="baseVertFlex w-[350px] gap-10 rounded-md bg-pink-400 p-2 shadow-sm sm:w-[675px] md:px-8 md:py-4"

@@ -2,12 +2,13 @@ import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import debounce from "lodash.debounce";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BiSearchAlt2 } from "react-icons/bi";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
+import { genreList } from "~/utils/genreList";
 import { Badge } from "../ui/badge";
 
 interface SearchInput {
@@ -31,30 +32,12 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
   }, [initialSearchQueryFromUrl]);
 
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-
+  const [enterButtonBeingPressed, setEnterButtonBeingPressed] = useState(false);
   const [showAutofillResults, setShowAutofillResults] = useState(false);
   const [artificallyShowLoadingSpinner, setArtificallyShowLoadingSpinner] =
     useState(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  const genreArray = api.genre.getAll.useQuery();
-
-  const genreArrayData = useMemo(() => {
-    if (!genreArray.data) return [];
-
-    // not 100% sure why we can't just return below:
-    // [...genreArray.data, { id: 9, name: "All genres", color: "#ec4899" }]
-    if (genreArray.data.length === 8) {
-      genreArray.data.push({
-        id: 9,
-        name: "All genres",
-        color: "#ec4899",
-      });
-    }
-
-    return genreArray.data;
-  }, [genreArray.data]);
 
   const { data: artistProfileBeingViewed } =
     api.artist.getByIdOrUsername.useQuery(
@@ -172,8 +155,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              // TODO: probably also want to darken search button on enter down
-              // and then lighten on enter up
+              setEnterButtonBeingPressed(true);
 
               adjustQueryParams(
                 // response order is tabs and then artists, so if the first result is an artist,
@@ -196,8 +178,13 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
               setShowAutofillResults(true);
             }
           }}
+          onKeyUp={(e) => {
+            if (e.key === "Enter") {
+              setEnterButtonBeingPressed(false);
+            }
+          }}
           value={searchQuery}
-          className="searchInputBoxShadow h-10 w-80 border-2 pl-8 text-sm focus-within:shadow-lg md:h-12 md:w-[25rem] md:pl-10 md:text-lg"
+          className="searchInputBoxShadow h-10 w-80 scroll-m-6 border-2 pl-8 text-sm focus-within:shadow-lg md:h-12 md:w-[25rem] md:pl-10 md:text-lg"
         />
 
         {/* autofill */}
@@ -319,15 +306,15 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                                   style={{
                                     backgroundColor:
                                       data.type === "title"
-                                        ? genreArrayData[data.value.genreId - 1]
+                                        ? genreList[data.value.genreId - 1]
                                             ?.color
                                         : "hsl(142, 71%, 45%)",
                                   }}
                                   className=""
                                 >
                                   {data.type === "title"
-                                    ? genreArrayData[data.value.genreId - 1]
-                                        ?.name ?? ""
+                                    ? genreList[data.value.genreId - 1]?.name ??
+                                      ""
                                     : "Artist"}
                                 </Badge>
                               </div>
@@ -360,7 +347,19 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
             searchQuery
           );
         }}
-        className="hidden shadow-sm md:block"
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            setEnterButtonBeingPressed(true);
+          }
+        }}
+        onKeyUp={(e) => {
+          if (e.key === "Enter") {
+            setEnterButtonBeingPressed(false);
+          }
+        }}
+        className={`hidden shadow-sm md:block ${
+          enterButtonBeingPressed ? "!brightness-75" : ""
+        }`}
       >
         Search
       </Button>

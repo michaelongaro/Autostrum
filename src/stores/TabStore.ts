@@ -575,7 +575,6 @@ export const useTabStore = create<TabState>()(
       )[] = [undefined, undefined, undefined, undefined, undefined, undefined];
 
       set({
-        showingAudioControls: true,
         audioMetadata: {
           tabId,
           location,

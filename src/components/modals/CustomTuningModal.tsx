@@ -143,6 +143,7 @@ function CustomTuningModal({
       <FocusTrap
         focusTrapOptions={{
           allowOutsideClick: true,
+          initialFocus: false,
         }}
       >
         <div

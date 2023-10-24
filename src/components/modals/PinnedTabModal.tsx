@@ -120,6 +120,7 @@ function PinnedTabModal({
       <FocusTrap
         focusTrapOptions={{
           allowOutsideClick: true,
+          initialFocus: false,
         }}
       >
         <div
@@ -139,7 +140,6 @@ function PinnedTabModal({
           <SearchInput initialSearchQueryFromUrl={searchQuery} />
 
           <SearchResults
-            forPinnedModal
             genreId={genreId}
             type={type}
             searchQuery={searchQuery}
