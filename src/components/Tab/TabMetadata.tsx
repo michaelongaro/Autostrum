@@ -1073,24 +1073,26 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                         <div className="grid grid-cols-1 grid-rows-1">
                           {tabCreator || fetchingTabCreator ? (
                             <>
-                              <Image
-                                src={tabCreator?.profileImageUrl ?? ""}
-                                alt={`${
-                                  tabCreator?.username ?? "Anonymous"
-                                }'s profile image`}
-                                width={75}
-                                height={75}
-                                quality={100}
-                                onLoadingComplete={() => {
-                                  setProfileImageLoaded(true);
-                                }}
-                                style={{
-                                  opacity: profileImageLoaded ? 1 : 0,
-                                  height: "2rem",
-                                  width: "2rem",
-                                }}
-                                className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full object-cover object-center transition-opacity"
-                              />
+                              {tabCreator && (
+                                <Image
+                                  src={tabCreator.profileImageUrl}
+                                  alt={`${
+                                    tabCreator?.username ?? "Anonymous"
+                                  }'s profile image`}
+                                  width={75}
+                                  height={75}
+                                  quality={100}
+                                  onLoadingComplete={() => {
+                                    setProfileImageLoaded(true);
+                                  }}
+                                  style={{
+                                    opacity: profileImageLoaded ? 1 : 0,
+                                    height: "2rem",
+                                    width: "2rem",
+                                  }}
+                                  className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full object-cover object-center transition-opacity"
+                                />
+                              )}
                               <div
                                 style={{
                                   opacity: !profileImageLoaded ? 1 : 0,
@@ -1108,13 +1110,23 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                           )}
                         </div>
 
-                        <span
-                          className={`text-lg ${
-                            !tabCreator && !fetchingTabCreator ? "italic" : ""
-                          }`}
-                        >
-                          {tabCreator?.username ?? "Anonymous"}
-                        </span>
+                        {tabCreator || fetchingTabCreator ? (
+                          <div className="grid grid-cols-1 grid-rows-1">
+                            <>
+                              {tabCreator ? (
+                                <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate ">
+                                  {tabCreator.username}
+                                </span>
+                              ) : (
+                                <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-5 w-20 animate-pulse rounded-md bg-pink-300 "></div>
+                              )}
+                            </>
+                          </div>
+                        ) : (
+                          <span className="italic text-pink-200">
+                            Anonymous
+                          </span>
+                        )}
                       </Link>
                     </Button>
 
@@ -1166,24 +1178,26 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                         <div className="grid grid-cols-1 grid-rows-1">
                           {tabCreator || fetchingTabCreator ? (
                             <>
-                              <Image
-                                src={tabCreator?.profileImageUrl ?? ""}
-                                alt={`${
-                                  tabCreator?.username ?? "Anonymous"
-                                }'s profile image`}
-                                width={75}
-                                height={75}
-                                quality={100}
-                                onLoadingComplete={() => {
-                                  setProfileImageLoaded(true);
-                                }}
-                                style={{
-                                  opacity: profileImageLoaded ? 1 : 0,
-                                  height: "2rem",
-                                  width: "2rem",
-                                }}
-                                className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full object-cover object-center transition-opacity"
-                              />
+                              {tabCreator && (
+                                <Image
+                                  src={tabCreator?.profileImageUrl ?? ""}
+                                  alt={`${
+                                    tabCreator?.username ?? "Anonymous"
+                                  }'s profile image`}
+                                  width={75}
+                                  height={75}
+                                  quality={100}
+                                  onLoadingComplete={() => {
+                                    setProfileImageLoaded(true);
+                                  }}
+                                  style={{
+                                    opacity: profileImageLoaded ? 1 : 0,
+                                    height: "2rem",
+                                    width: "2rem",
+                                  }}
+                                  className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full object-cover object-center transition-opacity"
+                                />
+                              )}
                               <div
                                 style={{
                                   opacity: !profileImageLoaded ? 1 : 0,
@@ -1201,13 +1215,23 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                           )}
                         </div>
 
-                        <span
-                          className={`text-lg ${
-                            !tabCreator && !fetchingTabCreator ? "italic" : ""
-                          }`}
-                        >
-                          {tabCreator?.username ?? "Anonymous"}
-                        </span>
+                        {tabCreator || fetchingTabCreator ? (
+                          <div className="grid grid-cols-1 grid-rows-1">
+                            <>
+                              {tabCreator ? (
+                                <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate ">
+                                  {tabCreator.username}
+                                </span>
+                              ) : (
+                                <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-5 w-20 animate-pulse rounded-md bg-pink-300 "></div>
+                              )}
+                            </>
+                          </div>
+                        ) : (
+                          <span className="italic text-pink-200">
+                            Anonymous
+                          </span>
+                        )}
                       </Link>
                     </Button>
 

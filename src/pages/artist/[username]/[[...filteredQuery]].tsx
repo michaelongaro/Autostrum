@@ -52,14 +52,15 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
     return "";
   }, [query.username]);
 
-  const { data: artist } = api.artist.getByIdOrUsername.useQuery(
-    {
-      username: usernameFromUrl,
-    },
-    {
-      enabled: !!usernameFromUrl,
-    }
-  );
+  const { data: artist, isFetching: isFetchingArtist } =
+    api.artist.getByIdOrUsername.useQuery(
+      {
+        username: usernameFromUrl,
+      },
+      {
+        enabled: !!usernameFromUrl,
+      }
+    );
 
   const { data: fetchedTab, refetch: refetchTab } =
     api.tab.getMinimalTabById.useQuery(
@@ -111,31 +112,35 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
         <div className="lightestGlassmorphic baseVertFlex min-w-[200px] !flex-nowrap gap-3 rounded-md px-4 py-6">
           <div className="baseVertFlex gap-4">
             <div className="grid grid-cols-1 grid-rows-1">
-              <Image
-                src={artist?.profileImageUrl ?? ""}
-                alt={`${artist?.username ?? "Anonymous"}'s profile image`}
-                width={300}
-                height={300}
-                quality={100}
-                onLoadingComplete={() => {
-                  setProfileImageLoaded(true);
-                }}
-                style={{
-                  opacity: profileImageLoaded ? 1 : 0,
-                  width: "6rem",
-                  height: "6rem",
-                }}
-                className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full object-cover object-center transition-opacity"
-              />
-              <div
-                style={{
-                  opacity: !profileImageLoaded ? 1 : 0,
-                  zIndex: !profileImageLoaded ? 1 : -1,
-                }}
-                className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 transition-opacity
+              <>
+                {artist && (
+                  <Image
+                    src={artist?.profileImageUrl ?? ""}
+                    alt={`${artist?.username ?? "Anonymous"}'s profile image`}
+                    width={300}
+                    height={300}
+                    quality={100}
+                    onLoadingComplete={() => {
+                      setProfileImageLoaded(true);
+                    }}
+                    style={{
+                      opacity: profileImageLoaded ? 1 : 0,
+                      width: "6rem",
+                      height: "6rem",
+                    }}
+                    className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full object-cover object-center transition-opacity"
+                  />
+                )}
+                <div
+                  style={{
+                    opacity: !profileImageLoaded ? 1 : 0,
+                    zIndex: !profileImageLoaded ? 1 : -1,
+                  }}
+                  className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 transition-opacity
                               ${!profileImageLoaded ? "animate-pulse" : ""}
                             `}
-              ></div>
+                ></div>
+              </>
             </div>
 
             {artist ? (

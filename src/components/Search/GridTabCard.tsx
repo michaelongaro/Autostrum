@@ -257,23 +257,33 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
         >
           {/* tab preview screenshot */}
           <div className="grid grid-cols-1 grid-rows-1">
-            <Image
-              src={tabScreenshot ?? ""}
-              alt={`screenshot of ${minimalTab.title}`}
-              width={
-                largeVariant ? 396 : isAboveExtraSmallViewportWidth ? 313 : 266
-              }
-              height={
-                largeVariant ? 185 : isAboveExtraSmallViewportWidth ? 146 : 124
-              }
-              onLoadingComplete={() => {
-                setTabScreenshotLoaded(true);
-              }}
-              style={{
-                opacity: tabScreenshotLoaded ? 1 : 0,
-              }}
-              className="col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-md object-cover object-center transition-opacity"
-            />
+            {tabScreenshot && (
+              <Image
+                src={tabScreenshot}
+                alt={`screenshot of ${minimalTab.title}`}
+                width={
+                  largeVariant
+                    ? 396
+                    : isAboveExtraSmallViewportWidth
+                    ? 313
+                    : 266
+                }
+                height={
+                  largeVariant
+                    ? 185
+                    : isAboveExtraSmallViewportWidth
+                    ? 146
+                    : 124
+                }
+                onLoadingComplete={() => {
+                  setTabScreenshotLoaded(true);
+                }}
+                style={{
+                  opacity: tabScreenshotLoaded ? 1 : 0,
+                }}
+                className="col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-md object-cover object-center transition-opacity"
+              />
+            )}
             <div
               style={{
                 opacity: !tabScreenshotLoaded ? 1 : 0,
@@ -362,24 +372,26 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                       <div className="grid grid-cols-1 grid-rows-1">
                         {tabCreator || loadingTabCreator ? (
                           <>
-                            <Image
-                              src={tabCreator?.profileImageUrl ?? ""}
-                              alt={`${
-                                tabCreator?.username ?? "Anonymous"
-                              }'s profile image`}
-                              width={75}
-                              height={75}
-                              quality={100}
-                              onLoadingComplete={() => {
-                                setProfileImageLoaded(true);
-                              }}
-                              style={{
-                                opacity: profileImageLoaded ? 1 : 0,
-                                height: "2rem",
-                                width: "2rem",
-                              }}
-                              className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full object-cover object-center transition-opacity"
-                            />
+                            {tabCreator && (
+                              <Image
+                                src={tabCreator.profileImageUrl}
+                                alt={`${
+                                  tabCreator?.username ?? "Anonymous"
+                                }'s profile image`}
+                                width={75}
+                                height={75}
+                                quality={100}
+                                onLoadingComplete={() => {
+                                  setProfileImageLoaded(true);
+                                }}
+                                style={{
+                                  opacity: profileImageLoaded ? 1 : 0,
+                                  height: "2rem",
+                                  width: "2rem",
+                                }}
+                                className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full object-cover object-center transition-opacity"
+                              />
+                            )}
                             <div
                               style={{
                                 opacity: !profileImageLoaded ? 1 : 0,
@@ -396,9 +408,21 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                           </div>
                         )}
                       </div>
-                      <span className="max-w-[100%] truncate">
-                        {tabCreator?.username ?? "Anonymous"}
-                      </span>
+                      {tabCreator || loadingTabCreator ? (
+                        <div className="grid grid-cols-1 grid-rows-1">
+                          <>
+                            {tabCreator ? (
+                              <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate ">
+                                {tabCreator.username}
+                              </span>
+                            ) : (
+                              <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-5 w-20 animate-pulse rounded-md bg-pink-300 "></div>
+                            )}
+                          </>
+                        </div>
+                      ) : (
+                        <span className="italic text-pink-200">Anonymous</span>
+                      )}
                     </Link>
                   </Button>
                 )}

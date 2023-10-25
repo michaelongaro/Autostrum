@@ -89,34 +89,36 @@ function Explore() {
                 <div className="grid grid-cols-1 grid-rows-1">
                   {artist || loadingCurrentArtist ? (
                     <>
-                      <Link
-                        href={`/artist/${artist?.username ?? "Anonymous"}`}
-                        className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24"
-                      >
-                        <Image
-                          src={artist?.profileImageUrl ?? ""}
-                          alt={`${
-                            artist?.username ?? "Anonymous"
-                          }'s profile image`}
-                          width={300}
-                          height={300}
-                          quality={100}
-                          onLoadingComplete={() => {
-                            setProfileImageLoaded(true);
-                          }}
-                          onClick={() =>
-                            void push(
-                              `/artist/${artist?.username ?? "Anonymous"}`
-                            )
-                          }
-                          style={{
-                            opacity: profileImageLoaded ? 1 : 0,
-                            width: "6rem",
-                            height: "6rem",
-                          }}
-                          className="h-24 w-24 rounded-full object-cover object-center transition-opacity"
-                        />
-                      </Link>
+                      {artist && (
+                        <Link
+                          href={`/artist/${artist.username}`}
+                          className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24"
+                        >
+                          <Image
+                            src={artist.profileImageUrl}
+                            alt={`${
+                              artist?.username ?? "Anonymous"
+                            }'s profile image`}
+                            width={300}
+                            height={300}
+                            quality={100}
+                            onLoadingComplete={() => {
+                              setProfileImageLoaded(true);
+                            }}
+                            onClick={() =>
+                              void push(
+                                `/artist/${artist?.username ?? "Anonymous"}`
+                              )
+                            }
+                            style={{
+                              opacity: profileImageLoaded ? 1 : 0,
+                              width: "6rem",
+                              height: "6rem",
+                            }}
+                            className="h-24 w-24 rounded-full object-cover object-center transition-opacity"
+                          />
+                        </Link>
+                      )}
 
                       <div
                         style={{
