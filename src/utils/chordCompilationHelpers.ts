@@ -139,7 +139,7 @@ function compileFullTab({
       },
       bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
       noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
-      elapsedSeconds: Math.floor(elapsedSeconds.value),
+      elapsedSeconds: Math.floor(elapsedSeconds.value + 1),
     });
 
     compiledChords.push([]);
@@ -275,7 +275,7 @@ function compileSpecificChordGrouping({
       },
       bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
       noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
-      elapsedSeconds: Math.floor(elapsedSeconds.value),
+      elapsedSeconds: Math.floor(elapsedSeconds.value + 1),
     });
 
     compiledChords.push([]);

@@ -71,12 +71,12 @@ function HighlightTabColumnWrapper({
     return isSameSection && location.chordIndex > columnIndex;
   }
 
-  function getDurationOfChord(columnIndex: number) {
-    const location = currentlyPlayingMetadata?.[columnIndex]?.location;
+  function getDurationOfCurrentChord() {
+    const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
     if (!currentlyPlayingMetadata || !location) return 0;
 
     const { bpm, noteLengthMultiplier } =
-      currentlyPlayingMetadata[columnIndex]!;
+      currentlyPlayingMetadata[currentChordIndex]!;
 
     return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
   }
@@ -116,7 +116,7 @@ function HighlightTabColumnWrapper({
                 columnIndex={index}
                 columnIsBeingPlayed={columnIsBeingPlayed(index)}
                 columnHasBeenPlayed={columnHasBeenPlayed(index)}
-                durationOfChord={getDurationOfChord(index)}
+                durationOfChord={getDurationOfCurrentChord()}
               />
             )}
           </Fragment>
