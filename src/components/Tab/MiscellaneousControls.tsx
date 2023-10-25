@@ -187,15 +187,12 @@ function MiscellaneousControls({
   }
 
   function deleteSection() {
-    // need to pause + reset location if group being deleted is in the current section
-    if (audioMetadata.location?.sectionIndex === sectionIndex) {
-      pauseAudio(true);
-      setAudioMetadata({
-        ...audioMetadata,
-        playing: false, // should get set to false by pauseAudio, but isn't hurting anything
-        location: null,
-      });
-    }
+    pauseAudio(true);
+    setAudioMetadata({
+      ...audioMetadata,
+      playing: false, // should get set to false by pauseAudio, but isn't hurting anything
+      location: null,
+    });
 
     const newTabData = getTabData();
 
@@ -397,6 +394,7 @@ function MiscellaneousControls({
       <DropdownMenu modal={true}>
         <DropdownMenuTrigger asChild>
           <Button
+            aria-label="Miscellaneous controls dropdown trigger"
             variant={"secondary"}
             style={{
               marginRight:

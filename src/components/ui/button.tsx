@@ -58,6 +58,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     return (
       <Comp
+        {...(variant === "playPause" ? { "aria-label": "Play/Pause" } : {})}
         className={cn(
           buttonVariants({
             variant,

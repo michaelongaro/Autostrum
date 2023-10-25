@@ -266,6 +266,7 @@ function LikeAndUnlikeButton({
         className="baseFlex p-0"
       >
         <Button
+          aria-label={"Like/Unlike"}
           variant={"ghost"}
           disabled={isLiking || isUnliking || !tabCreator}
           className={customClassName}
