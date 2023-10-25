@@ -43,8 +43,14 @@ function useAutoscrollToCurrentChord({
       );
     } else {
       currentElement = document.getElementById(
-        `section${sectionIndex}-subSection${subSectionIndex}-chord${chordIndex}`
+        `tabPreview-section${sectionIndex}-subSection${subSectionIndex}-chord${chordIndex}`
       );
+
+      if (!currentElement) {
+        currentElement = document.getElementById(
+          `section${sectionIndex}-subSection${subSectionIndex}-chord${chordIndex}`
+        );
+      }
     }
 
     if (currentElement) {

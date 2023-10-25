@@ -692,7 +692,7 @@ function PreviewTabNotesColumn({
 
   return (
     <div
-      id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
+      id={`tabPreview-section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
       className="baseVertFlex h-[271px] cursor-default"
     >
       <div className="baseFlex relative">
