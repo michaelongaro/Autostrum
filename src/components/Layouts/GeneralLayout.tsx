@@ -1,6 +1,5 @@
 import { AnimatePresence } from "framer-motion";
 import { useRef, type ReactNode } from "react";
-import Head from "next/head";
 import Bubbles from "../Bubbles";
 import Footer from "../Footer/Footer";
 import GeneralLayoutStatefulShell from "./GeneralLayoutStatefulShell";
