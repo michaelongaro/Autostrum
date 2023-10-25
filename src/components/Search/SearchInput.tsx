@@ -306,15 +306,13 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                                   style={{
                                     backgroundColor:
                                       data.type === "title"
-                                        ? genreList[data.value.genreId - 1]
-                                            ?.color
+                                        ? genreList[data.value.genreId]?.color
                                         : "hsl(142, 71%, 45%)",
                                   }}
                                   className=""
                                 >
                                   {data.type === "title"
-                                    ? genreList[data.value.genreId - 1]?.name ??
-                                      ""
+                                    ? genreList[data.value.genreId]?.name ?? ""
                                     : "Artist"}
                                 </Badge>
                               </div>
