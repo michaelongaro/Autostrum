@@ -248,12 +248,13 @@ function playDeadNote({
   // Create a GainNode to control the volume
   const gainNode = audioContext.createGain();
 
-  let gainTarget = 0.05;
+  // had to crank these values down by a ton since they were so prominent
+  let gainTarget = 0.0125;
 
-  if (accented) gainTarget = 0.075;
-  if (palmMuted) gainTarget = 0.025;
+  if (accented) gainTarget = 0.0175;
+  if (palmMuted) gainTarget = 0.0075;
 
-  if (accented && palmMuted) gainTarget = 0.06;
+  if (accented && palmMuted) gainTarget = 0.015;
 
   // Dynamic Gain Compensation
   switch (stringIdx) {
@@ -267,10 +268,13 @@ function playDeadNote({
       gainTarget *= 1.5;
       break;
     case 2: // G
-      gainTarget *= 1.2;
+      gainTarget *= 0.8;
       break;
     case 1: // B
-      gainTarget *= 1.1;
+      gainTarget *= 0.7;
+      break;
+    case 0: // High E
+      gainTarget *= 0.6;
       break;
   }
 
@@ -767,7 +771,7 @@ function calculateRelativeChordDelayMultiplier(
 ) {
   const BASE_DELAY = 0.01;
   let delay = 0;
-  const accentedMultiplier = strumChordQuickly ? 0.3 : 1;
+  const accentedMultiplier = strumChordQuickly ? 0.9 : 1;
 
   // would love to somehow convey this split in logic in the UI but I really
   // have no clue the best way to be transparent with it..
