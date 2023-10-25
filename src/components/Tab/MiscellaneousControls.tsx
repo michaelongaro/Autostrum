@@ -318,24 +318,9 @@ function MiscellaneousControls({
       currentlyCopiedData.type === "section" &&
       sectionIndex !== undefined
     ) {
-      // titles of sections need to be unique in order for section progression
-      // to not have two completely different sections with the same title
-
-      // TODO: technically should be isolating just the name of the section w/o any numbers
-      // I think will have problems if you try to do a letters only regex if the person
-      // put numbers specifically in the original title of the section...
-      const countOfSection = getTabData().filter((section) => {
-        return section?.title.includes(currentlyCopiedData.data.title);
-      }).length;
-
-      const uniqueTitle = `${currentlyCopiedData.data.title} ${
-        countOfSection + 1
-      }`;
-
       newTabData[sectionIndex] = {
-        id: sectionId,
-        title: uniqueTitle,
-        data: replaceIdInSection(currentlyCopiedData as Section).data,
+        ...getTabData()[sectionIndex],
+        data: replaceIdInSection(currentlyCopiedData.data as Section),
       } as Section;
     }
 
