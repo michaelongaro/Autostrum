@@ -540,7 +540,7 @@ function StrummingPattern({
                       ? "hsl(333, 71%, 51%)"
                       : "hsl(327, 73%, 97%)",
                   }}
-                  className="mb-1 h-6 font-semibold transition-colors"
+                  className="mx-0.5 mb-1 h-6 font-semibold transition-colors"
                 >
                   {chordSequenceData?.[strumIndex]}
                 </p>
