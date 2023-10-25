@@ -521,7 +521,7 @@ function applyTetheredEffect({
 
   sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
   sourceGain.gain.linearRampToValueAtTime(
-    tetheredEffect === "p" || tetheredEffect === "h" ? 1 : 1.3,
+    tetheredEffect === "p" ? 1 : tetheredEffect === "h" ? 1.1 : 1.3,
     audioContext.currentTime + when + 0.05
   );
   source.connect(sourceGain);
