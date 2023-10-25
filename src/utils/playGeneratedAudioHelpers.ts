@@ -771,7 +771,7 @@ function calculateRelativeChordDelayMultiplier(
 ) {
   const BASE_DELAY = 0.01;
   let delay = 0;
-  const accentedMultiplier = strumChordQuickly ? 0.9 : 1;
+  const accentedMultiplier = strumChordQuickly ? 0.75 : 1;
 
   // would love to somehow convey this split in logic in the UI but I really
   // have no clue the best way to be transparent with it..
