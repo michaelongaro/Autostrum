@@ -490,7 +490,7 @@ function PreviewStrummingPatternPalmMuteNode({
         <>
           {value === "start" && (
             <div className="baseFlex relative w-full !flex-nowrap">
-              <div className="h-4 w-[1px] flex-shrink-0 bg-background"></div>
+              <div className="h-[14px] w-[1px] flex-shrink-0 bg-background"></div>
               <div className="h-[1px] w-1 flex-shrink-0 bg-background"></div>
               <i className="mx-[0.125rem] flex-shrink-0">PM</i>
               <div className="h-[1px] w-full bg-background"></div>
@@ -500,7 +500,7 @@ function PreviewStrummingPatternPalmMuteNode({
           {value === "end" && (
             <div className="baseFlex relative my-1 w-full !flex-nowrap">
               <div className="h-[1px] w-full bg-background"></div>
-              <div className="h-4 w-[1px] bg-background"></div>
+              <div className="h-[14px] w-[1px] bg-background"></div>
             </div>
           )}
         </>
@@ -783,7 +783,7 @@ function PreviewPalmMuteNode({ value }: PreviewPalmMuteNode) {
         <>
           {value === "start" && (
             <div className="baseFlex w-full !flex-nowrap">
-              <div className="h-4 w-[1px] bg-pink-50"></div>
+              <div className="h-[14px] w-[1px] bg-pink-50"></div>
               <div className="h-[1px] w-1 bg-pink-50"></div>
               <i className="mx-[0.125rem]">PM</i>
               <div className="h-[1px] w-[3px] bg-pink-50"></div>
@@ -793,7 +793,7 @@ function PreviewPalmMuteNode({ value }: PreviewPalmMuteNode) {
           {value === "end" && (
             <div className="baseFlex w-full !flex-nowrap">
               <div className="h-[1px] w-full bg-pink-50"></div>
-              <div className="h-4 w-[1px] bg-pink-50"></div>
+              <div className="h-[14px] w-[1px] bg-pink-50"></div>
             </div>
           )}
         </>
