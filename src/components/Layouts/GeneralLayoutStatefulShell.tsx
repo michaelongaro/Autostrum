@@ -34,7 +34,6 @@ function GeneralLayoutStatefulShell() {
   const { asPath } = useRouter();
 
   const [scrollToTopTicking, setScrollToTopTicking] = useState(false);
-  const [submitButtonInView, setSubmitButtonInView] = useState(false);
   const [audioControlsVisibility, setAudioControlsVisibility] = useState<
     "expanded" | "minimized"
   >("expanded");
@@ -124,40 +123,6 @@ function GeneralLayoutStatefulShell() {
     }
   }, [looping, setLooping, recordedAudioBufferSourceNode]);
 
-  // Contact button intersection observer
-  useEffect(() => {
-    const target = document.getElementById("contact");
-
-    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach((entry) => {
-        setSubmitButtonInView(
-          entry.isIntersecting && entry.intersectionRatio === 1
-        );
-      });
-    };
-
-    const observerOptions = {
-      root: null,
-      rootMargin: "0px",
-      threshold: 1.0, // 100% of the target is visible
-    };
-
-    const observer = new IntersectionObserver(
-      handleIntersection,
-      observerOptions
-    );
-
-    if (target) {
-      observer.observe(target);
-    }
-
-    return () => {
-      if (target) {
-        observer.unobserve(target);
-      }
-    };
-  }, []);
-
   // Scroll to top button handling + break out of autoscroll if user scrolls
   useEffect(() => {
     let timerId: NodeJS.Timeout | null = null;
@@ -231,9 +196,7 @@ function GeneralLayoutStatefulShell() {
     let bottomValue = "1rem";
 
     if (!aboveLargeViewportWidth && showingAudioControls) {
-      if (submitButtonInView) {
-        bottomValue = "1rem";
-      } else if (audioControlsVisibility === "minimized") {
+      if (audioControlsVisibility === "minimized") {
         bottomValue = "3.15rem";
       } else if (audioControlsVisibility === "expanded") {
         bottomValue = "7rem";
@@ -241,12 +204,7 @@ function GeneralLayoutStatefulShell() {
     }
 
     return bottomValue;
-  }, [
-    submitButtonInView,
-    audioControlsVisibility,
-    aboveLargeViewportWidth,
-    showingAudioControls,
-  ]);
+  }, [audioControlsVisibility, aboveLargeViewportWidth, showingAudioControls]);
 
   return (
     <>
@@ -255,9 +213,7 @@ function GeneralLayoutStatefulShell() {
       <AnimatePresence mode="wait">
         {showingAudioControls && (
           <AudioControls
-            visibility={
-              submitButtonInView ? "offscreen" : audioControlsVisibility
-            }
+            visibility={audioControlsVisibility}
             setVisibility={setAudioControlsVisibility}
           />
         )}

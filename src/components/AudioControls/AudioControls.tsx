@@ -71,7 +71,7 @@ const widthAndHeightVariants = {
 };
 
 interface AudioControls {
-  visibility: "expanded" | "minimized" | "offscreen";
+  visibility: "expanded" | "minimized";
   setVisibility: Dispatch<SetStateAction<"expanded" | "minimized">>;
 }
 
@@ -346,13 +346,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   const dynamicBottomValue = useMemo(() => {
     let bottomValue = "1rem";
 
-    if (visibility === "offscreen") {
-      if (aboveLargeViewportWidth) {
-        bottomValue = "-8rem";
-      } else {
-        bottomValue = "-5.5rem";
-      }
-    } else if (visibility === "minimized") {
+    if (visibility === "minimized") {
       if (aboveLargeViewportWidth) {
         bottomValue = "-6.15rem";
       } else {
