@@ -13,5 +13,11 @@ export default function resetAudioSliderPosition() {
     childElements[1]!.style.transition = "none";
     // calc prob not necessary, but consistent w/ radix's styles
     childElements[1]!.style.left = "calc(0% + 10px)";
+
+    // resetting back to being animated
+    setTimeout(() => {
+      childElements[0]!.children[0]!.style.transition = "right 1s linear";
+      childElements[1]!.style.transition = "left 1s linear";
+    }, 0);
   }
 }
