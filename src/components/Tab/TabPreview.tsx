@@ -578,7 +578,11 @@ function PreviewTabSection({
         {subSectionData.data.map((column, index) => (
           <Fragment key={column[9]}>
             {column.includes("|") ? (
-              <PreviewTabMeasureLine columnData={column} />
+              <PreviewTabMeasureLine
+                tabSectionData={subSectionData}
+                columnIndex={index}
+                columnData={column}
+              />
             ) : (
               <PreviewTabNotesColumn
                 columnIndex={index}
@@ -602,18 +606,44 @@ function PreviewTabSection({
   );
 }
 
-interface ColumnDataMockup {
+interface PreviewTabMeasureLine {
+  tabSectionData: TabSection;
+  columnIndex: number;
   columnData: string[];
 }
 
-function PreviewTabMeasureLine({ columnData }: ColumnDataMockup) {
+function PreviewTabMeasureLine({
+  tabSectionData,
+  columnIndex,
+  columnData,
+}: PreviewTabMeasureLine) {
+  // alternatively, when changing one measure line, you would at the same time seek through the tabData in your
+  // tabsection to change the next one too? hmm
+
+  // legit not bad idea ^^^
+
+  const conditionalBaselineBpmToShow = useMemo(() => {
+    const tabSection = tabSectionData.data;
+    const tabSectionBpm = tabSectionData.bpm;
+
+    for (let i = columnIndex - 1; i > 0; i--) {
+      const bpm = parseInt(tabSection[i][7]);
+      if (bpm > 0) {
+        return (tabSectionBpm === -1 ? "75" : tabSectionBpm).toString();
+      }
+    }
+
+    return null;
+  }, [columnIndex, tabSectionData]);
+
   return (
     <div className="baseVertFlex relative h-[271px]">
       {columnData.map((note, index) => (
         <Fragment key={index}>
           {index === 0 && (
             <>
-              {columnData[7] && columnData[7] !== "-1" && (
+              {((columnData[7] && columnData[7] !== "-1") ||
+                conditionalBaselineBpmToShow) && (
                 <div
                   className={`baseFlex absolute !flex-nowrap gap-[0.125rem] text-pink-50 ${
                     note === "-" ? "top-[10px]" : "top-[27px]"
@@ -621,7 +651,9 @@ function PreviewTabMeasureLine({ columnData }: ColumnDataMockup) {
                 >
                   <BsMusicNote className="h-3 w-3" />
                   <p className="text-center text-xs">
-                    {columnData[7].toString()}
+                    {columnData[7] !== "-1" && columnData[7] !== ""
+                      ? columnData[7]!.toString()
+                      : conditionalBaselineBpmToShow}
                   </p>
                 </div>
               )}

@@ -384,6 +384,8 @@ function compileTabSection({
         specifiedBpmToUsePostMeasureLine !== "-1"
       ) {
         currentBpm = specifiedBpmToUsePostMeasureLine;
+      } else {
+        currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
       }
       continue;
     }
