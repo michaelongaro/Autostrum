@@ -412,7 +412,7 @@ function SearchResults({
                     </SelectTrigger>
                     <SelectContent
                       style={{
-                        zIndex: asPath.includes("/preferences") ? 60 : "auto",
+                        zIndex: asPath.includes("/preferences") ? 60 : 50,
                       }}
                     >
                       <SelectGroup>
@@ -435,7 +435,7 @@ function SearchResults({
                   </SelectTrigger>
                   <SelectContent
                     style={{
-                      zIndex: asPath.includes("/preferences") ? 60 : "auto",
+                      zIndex: asPath.includes("/preferences") ? 60 : 50,
                     }}
                   >
                     <SelectGroup>
@@ -476,7 +476,7 @@ function SearchResults({
                   </SelectTrigger>
                   <SelectContent
                     style={{
-                      zIndex: asPath.includes("/preferences") ? 60 : "auto",
+                      zIndex: asPath.includes("/preferences") ? 60 : 50,
                     }}
                   >
                     <SelectGroup>
@@ -508,7 +508,7 @@ function SearchResults({
                   </SelectTrigger>
                   <SelectContent
                     style={{
-                      zIndex: asPath.includes("/preferences") ? 60 : "auto",
+                      zIndex: asPath.includes("/preferences") ? 60 : 50,
                     }}
                   >
                     <SelectGroup>
