@@ -38,9 +38,8 @@ const AudioProgressSlider = React.forwardRef<
     }, 1000);
   }, []);
 
-  const { currentChordIndex, audioMetadata } = useTabStore(
+  const { audioMetadata } = useTabStore(
     (state) => ({
-      currentChordIndex: state.currentChordIndex,
       audioMetadata: state.audioMetadata,
     }),
     shallow
@@ -57,13 +56,7 @@ const AudioProgressSlider = React.forwardRef<
 
     thumbElemNode.style.transition = "left 1s linear";
     trackElemNode.style.transition = "right 1s linear";
-  }, [
-    thumbElemNode,
-    trackElemNode,
-    isDragging,
-    currentChordIndex,
-    audioMetadata.playing,
-  ]);
+  }, [thumbElemNode, trackElemNode, isDragging, audioMetadata.playing]);
 
   return (
     <SliderPrimitive.Root
