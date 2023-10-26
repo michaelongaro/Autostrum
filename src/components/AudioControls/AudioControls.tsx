@@ -341,6 +341,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       location: null,
     });
 
+    setTabProgressValue(0);
     setCurrentChordIndex(0);
   }
 
