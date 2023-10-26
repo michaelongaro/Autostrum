@@ -17,3 +17,4 @@ This project would not have been possible without these incredible technologies:
 - [Shadcnui](https://ui.shadcn.com/)
 - [Clerk](https://clerk.com/)
 - [Soundfont-player](https://github.com/danigb/soundfont-player)
+- The [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
