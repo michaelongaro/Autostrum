@@ -8,6 +8,7 @@ import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
 function FilteredQueryExplore() {
   const {
     serve404Page,
+    initializedWithParams,
     genreId,
     type,
     view,
@@ -50,14 +51,18 @@ function FilteredQueryExplore() {
         {serve404Page ? (
           <Render404Page />
         ) : (
-          <SearchResults
-            genreId={genreId}
-            type={type}
-            searchQuery={searchQuery}
-            sortByRelevance={sortByRelevance}
-            additionalSortFilter={additionalSortFilter}
-            viewType={view}
-          />
+          <>
+            {initializedWithParams && (
+              <SearchResults
+                genreId={genreId}
+                type={type}
+                searchQuery={searchQuery}
+                sortByRelevance={sortByRelevance}
+                additionalSortFilter={additionalSortFilter}
+                viewType={view}
+              />
+            )}
+          </>
         )}
       </div>
     </motion.div>

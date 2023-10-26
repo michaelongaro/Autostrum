@@ -18,6 +18,9 @@ interface IUrlParamFilters {
 function useGetUrlParamFilters() {
   const { query, asPath } = useRouter();
 
+  // this doesn't feel the best, but the extra checks in every consumer of this hook
+  // to check whether the indiv fields were defined seems worse than a separate flag.
+  const [initializedWithParams, setInitializedWithParams] = useState(false);
   const [serve404Page, setServe404Page] = useState(false);
   const [urlParamFilters, setUrlParamFilters] = useState<IUrlParamFilters>({
     genreId: 9,
@@ -140,9 +143,11 @@ function useGetUrlParamFilters() {
             | "none")
         : "newest",
     });
+
+    setInitializedWithParams(true);
   }, [query, asPath]);
 
-  return { serve404Page, ...urlParamFilters };
+  return { initializedWithParams, serve404Page, ...urlParamFilters };
 }
 
 export default useGetUrlParamFilters;

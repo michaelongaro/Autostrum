@@ -10,6 +10,7 @@ import Render404Page from "~/components/Search/Render404Page";
 function ArtistLikes() {
   const {
     serve404Page,
+    initializedWithParams,
     genreId,
     type,
     view,
@@ -54,14 +55,18 @@ function ArtistLikes() {
           {serve404Page ? (
             <Render404Page />
           ) : (
-            <SearchResults
-              genreId={genreId}
-              type={type}
-              searchQuery={searchQuery}
-              sortByRelevance={sortByRelevance}
-              additionalSortFilter={additionalSortFilter}
-              viewType={view}
-            />
+            <>
+              {initializedWithParams && (
+                <SearchResults
+                  genreId={genreId}
+                  type={type}
+                  searchQuery={searchQuery}
+                  sortByRelevance={sortByRelevance}
+                  additionalSortFilter={additionalSortFilter}
+                  viewType={view}
+                />
+              )}
+            </>
           )}
         </div>
       </TabsContent>

@@ -33,6 +33,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
   const { query } = useRouter();
   const {
     serve404Page,
+    initializedWithParams,
     genreId,
     type,
     view,
@@ -240,14 +241,18 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
         {serve404Page ? (
           <Render404Page />
         ) : (
-          <SearchResults
-            genreId={genreId}
-            type={type}
-            searchQuery={searchQuery}
-            sortByRelevance={sortByRelevance}
-            additionalSortFilter={additionalSortFilter}
-            viewType={view}
-          />
+          <>
+            {initializedWithParams && (
+              <SearchResults
+                genreId={genreId}
+                type={type}
+                searchQuery={searchQuery}
+                sortByRelevance={sortByRelevance}
+                additionalSortFilter={additionalSortFilter}
+                viewType={view}
+              />
+            )}
+          </>
         )}
       </div>
     </motion.div>
