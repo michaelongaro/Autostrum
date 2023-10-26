@@ -54,9 +54,11 @@ function AudioRecorderModal() {
     togglePauseResume,
   } = useAudioRecorder(
     {
-      echoCancellation: true,
-      noiseSuppression: true,
-      autoGainControl: true, // currently not supported in Safari - 08/31/2023
+      // ideally would want to enable these all the time, but at the very least
+      // mobile android chrome absolutely ruins the audio quality with these enabled
+      echoCancellation: isDesktop,
+      noiseSuppression: isDesktop,
+      autoGainControl: isDesktop, // currently not supported in Safari - 08/31/2023
     },
     () => {
       // called when getUserMedia promise is rejected
