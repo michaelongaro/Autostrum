@@ -45,6 +45,7 @@ import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import PlayButtonIcon from "./PlayButtonIcon";
+import resetAudioSliderPosition from "~/utils/resetAudioSliderPosition";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -190,15 +191,18 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       oneSecondIntervalRef.current = setInterval(() => {
         setTabProgressValue((prev) => prev + 1);
       }, 1000);
-    } else if (
+    }
+    // TODO: fix this so you don't have the hacky + 1 in there, currently unsure of the best approach..
+    else if (
       (!audioMetadata.playing ||
-        tabProgressValue === recordedAudioBuffer.duration) &&
+        tabProgressValue + 1 === Math.floor(recordedAudioBuffer.duration)) &&
       oneSecondIntervalRef.current
     ) {
       clearInterval(oneSecondIntervalRef.current);
       oneSecondIntervalRef.current = null;
 
-      if (tabProgressValue === recordedAudioBuffer.duration) {
+      if (tabProgressValue + 1 === Math.floor(recordedAudioBuffer.duration)) {
+        resetAudioSliderPosition();
         setTabProgressValue(0);
       }
     }
@@ -274,7 +278,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   }, [id, query.id]);
 
   useEffect(() => {
-    if (hasRecordedAudio) {
+    if (hasRecordedAudio && !recordedAudioBuffer) {
       const convertAudioBuffer = async (arrayBuffer: ArrayBuffer) => {
         const audioContext = new AudioContext(); // TODO: can't we just use the store audioContext? why or why not
 
@@ -313,7 +317,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
           }
         );
       }
-    } else {
+    } else if (!recordedAudioBuffer) {
       setRecordedAudioBuffer(null);
     }
   }, [
@@ -328,12 +332,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   function resetAudioStateOnSourceChange(
     audioTypeBeingChangedTo: "Generated" | "Artist recording"
   ) {
-    pauseAudio();
-
-    if (oneSecondIntervalRef.current) {
-      clearInterval(oneSecondIntervalRef.current); // technically not needed, but "saves" an extra rerender I think
-      oneSecondIntervalRef.current = null; // technically not needed, but "saves" an extra rerender I think
-    }
+    pauseAudio(true);
 
     setAudioMetadata({
       tabId: id,
@@ -341,6 +340,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       playing: false,
       location: null,
     });
+
+    setCurrentChordIndex(0);
   }
 
   const dynamicBottomValue = useMemo(() => {
@@ -785,7 +786,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               currentInstrument={currentInstrument}
               audioMetadata={audioMetadata}
               recordedAudioBuffer={recordedAudioBuffer}
-              loadingTabData={fetchingFullTabData}
+              forceShowLoadingSpinner={fetchingFullTabData}
             />
           </Button>
 
@@ -810,7 +811,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                 audioMetadata.type === "Artist recording"
                   ? recordedAudioBuffer?.duration === 0
                     ? 1
-                    : recordedAudioBuffer?.duration
+                    : recordedAudioBuffer?.duration - 1
                   : currentlyPlayingMetadata
                   ? currentlyPlayingMetadata.at(-1)?.elapsedSeconds
                   : 1
@@ -887,7 +888,9 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
             <p>
               {formatSecondsToMinutes(
                 audioMetadata.type === "Artist recording"
-                  ? recordedAudioBuffer?.duration ?? 0
+                  ? recordedAudioBuffer?.duration
+                    ? recordedAudioBuffer.duration - 1
+                    : 0
                   : currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
               )}
             </p>

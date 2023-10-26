@@ -799,6 +799,19 @@ export const useTabStore = create<TabState>()(
 
       source.connect(masterVolumeGainNode);
       source.start(0, secondsElapsed);
+
+      source.onended = () => {
+        const { audioMetadata, looping } = get();
+
+        if (!looping) {
+          set({
+            audioMetadata: {
+              ...audioMetadata,
+              playing: false,
+            },
+          });
+        }
+      };
     },
 
     pauseAudio: (resetToStart) => {
