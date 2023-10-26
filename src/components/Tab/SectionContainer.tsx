@@ -213,8 +213,8 @@ function SectionContainer({
         <AccordionItem value="opened">
           <>
             {editing && (
-              <div className="baseFlex w-full !items-start">
-                <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
+              <div className="baseFlex w-full">
+                <div className="baseVertFlex w-4/6 !items-start gap-2 sm:w-5/6 sm:!flex-row sm:!justify-start">
                   <div
                     className="baseFlex gap-2"
                     onClick={(e) => e.stopPropagation()}
@@ -224,7 +224,7 @@ function SectionContainer({
                       value={localTitle}
                       placeholder="Section title"
                       onChange={updateSectionTitle}
-                      className="max-w-[10rem] font-semibold sm:max-w-[12rem]"
+                      className="max-w-[8rem] font-semibold sm:max-w-[12rem]"
                     />
                   </div>
                 </div>
@@ -233,6 +233,7 @@ function SectionContainer({
                   type={"section"}
                   sectionIndex={sectionIndex}
                   sectionId={sectionData.id}
+                  forSectionContainer={true}
                 />
               </div>
             )}

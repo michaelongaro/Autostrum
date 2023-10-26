@@ -38,6 +38,7 @@ interface MiscellaneousControls {
   subSectionIndex?: number;
   chordSequenceIndex?: number;
   hidePlayPauseButton?: boolean;
+  forSectionContainer?: boolean;
 }
 
 function MiscellaneousControls({
@@ -47,6 +48,7 @@ function MiscellaneousControls({
   subSectionIndex,
   chordSequenceIndex,
   hidePlayPauseButton,
+  forSectionContainer,
 }: MiscellaneousControls) {
   const [artificalPlayButtonTimeout, setArtificialPlayButtonTimeout] =
     useState(false);
@@ -326,7 +328,11 @@ function MiscellaneousControls({
 
   return (
     <div
-      className="baseFlex w-1/6 !flex-col-reverse !items-end gap-2 lg:!flex-row lg:!justify-end"
+      className={`baseFlex !items-end gap-2 ${
+        forSectionContainer
+          ? "w-2/6 !flex-nowrap !justify-end sm:w-1/6 sm:!flex-row sm:!justify-end"
+          : "w-1/6 !flex-col-reverse !flex-nowrap lg:!flex-row lg:!justify-end"
+      }`}
       onClick={(e) => e.stopPropagation()}
     >
       {!hidePlayPauseButton && (
