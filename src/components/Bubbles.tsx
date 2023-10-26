@@ -46,7 +46,7 @@ function Bubbles() {
 
     for (let i = 0; i < (isAboveMediumViewportWidth ? 25 : 10); i++) {
       const position = [
-        (Math.random() * window.innerWidth - window.innerWidth / 2) / 10,
+        (Math.random() * window.innerWidth - window.innerWidth / 2) / 15,
         Math.floor(Math.random() * -30),
         Math.floor(Math.random() * 35),
       ];
@@ -122,7 +122,7 @@ function Bubble({ position, size, velocity }: Bubble) {
 
   return (
     <mesh ref={meshRef} material={bubbleMesh} position={position}>
-      <sphereGeometry args={[size, 32, 16]} />
+      <sphereGeometry args={[size, 16, 8]} />
     </mesh>
   );
 }
