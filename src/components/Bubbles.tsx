@@ -47,7 +47,7 @@ function Bubbles() {
     for (let i = 0; i < (isAboveMediumViewportWidth ? 25 : 10); i++) {
       const position = [
         (Math.random() * window.innerWidth - window.innerWidth / 2) / 15,
-        Math.floor(Math.random() * -30),
+        Math.floor(Math.random() * -125) + 15,
         Math.floor(Math.random() * 35),
       ];
       const size = Math.random() * 0.35 + 0.1;
