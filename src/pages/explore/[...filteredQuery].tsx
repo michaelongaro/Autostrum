@@ -27,6 +27,10 @@ function FilteredQueryExplore() {
     >
       <Head>
         <title>Explore | Autostrum</title>
+        <meta
+          name="description"
+          content="Find inspiration from our evergrowing library of tabs and discover new talents in our weekly featured artist section."
+        />
         <meta property="og:title" content="Explore | Autostrum"></meta>
         <meta property="og:url" content="www.autostrum.com/explore" />
         <meta
@@ -34,8 +38,10 @@ function FilteredQueryExplore() {
           content="Find inspiration from our evergrowing library of tabs and discover new talents in our weekly featured artist section."
         />
         <meta property="og:type" content="website" />
-        {/* should be just homepage ss of main explore page */}
-        <meta property="og:image" content=""></meta>
+        <meta
+          property="og:image"
+          content="https://www.autostrum.com/opengraphScreenshots/explore.png"
+        ></meta>
       </Head>
 
       {/* search Results component */}

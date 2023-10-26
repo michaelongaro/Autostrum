@@ -13,6 +13,7 @@ function Privacy() {
     >
       <Head>
         <title>Privacy | Autostrum</title>
+        <meta name="description" content="Our privacy policy at Autostrum." />
         <meta property="og:title" content="Privacy | Autostrum"></meta>
         <meta property="og:url" content="www.autostrum.com/privacy" />
         <meta
@@ -20,8 +21,10 @@ function Privacy() {
           content="Our privacy policy at Autostrum."
         />
         <meta property="og:type" content="website" />
-        {/* should be just homepage ss of main page (not signed in probably?) */}
-        <meta property="og:image" content=""></meta>
+        <meta
+          property="og:image"
+          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
+        ></meta>
       </Head>
       <div className="baseVertFlex z-10 my-24 !flex-nowrap gap-16">
         <div className="baseVertFlex lightGlassmorphic baseVertFlex w-5/6 items-start gap-4 rounded-xl p-4 shadow-sm sm:w-auto md:p-8">

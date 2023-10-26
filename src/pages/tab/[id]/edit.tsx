@@ -62,12 +62,15 @@ function IndividualTabEdit({
     >
       <Head>
         <title>{openGraphData.title}</title>
+        <meta name="description" content={openGraphData.description} />
         <meta property="og:title" content={openGraphData.title}></meta>
         <meta property="og:url" content={openGraphData.url} />
         <meta property="og:description" content={openGraphData.description} />
         <meta property="og:type" content="website" />
-        {/* should be just homepage ss of w/e good tab you make? */}
-        <meta property="og:image" content=""></meta>
+        <meta
+          property="og:image"
+          content="https://www.autostrum.com/opengraphScreenshots/editingTab.png"
+        ></meta>
       </Head>
 
       {fetchedTab ? (

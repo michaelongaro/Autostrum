@@ -30,6 +30,10 @@ function ArtistLikes() {
     >
       <Head>
         <title>Likes | Autostrum</title>
+        <meta
+          name="description"
+          content="Filter through and explore the tabs you have liked."
+        />
         <meta property="og:title" content="Likes | Autostrum"></meta>
         <meta property="og:url" content="www.autostrum.com/profile/likes" />
         <meta
@@ -37,8 +41,10 @@ function ArtistLikes() {
           content="Filter through and explore the tabs you have liked."
         />
         <meta property="og:type" content="website" />
-        {/* should be just homepage ss of homepage? */}
-        <meta property="og:image" content=""></meta>
+        <meta
+          property="og:image"
+          content="https://www.autostrum.com/opengraphScreenshots/profile.png"
+        ></meta>
       </Head>
 
       <TabsContent value="likes">

@@ -86,6 +86,10 @@ function Preferences() {
     >
       <Head>
         <title>Preferences | Autostrum</title>
+        <meta
+          name="description"
+          content="Edit your acount preferences, change your pinned tab on your profile, and more."
+        />
         <meta property="og:title" content="Preferences | Autostrum"></meta>
         <meta
           property="og:url"
@@ -96,8 +100,10 @@ function Preferences() {
           content="Edit your acount preferences, change your pinned tab on your profile, and more."
         />
         <meta property="og:type" content="website" />
-        {/* should be just homepage ss of homepage? */}
-        <meta property="og:image" content=""></meta>
+        <meta
+          property="og:image"
+          content="https://www.autostrum.com/opengraphScreenshots/profile.png"
+        ></meta>
       </Head>
 
       <TabsContent value="preferences">

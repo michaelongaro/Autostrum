@@ -31,8 +31,10 @@ function Home({
           content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music. Play along to any tab with our realistic generated audio or directly with the artist's recording."
         />
         <meta property="og:type" content="website" />
-        {/* should be just homepage ss of main page (not signed in probably?) */}
-        <meta property="og:image" content=""></meta>
+        <meta
+          property="og:image"
+          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
+        ></meta>
       </Head>
       <Hero showSignUpAndSignInButtons={showSignUpAndSignInButtons} />
     </motion.div>

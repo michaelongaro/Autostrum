@@ -14,6 +14,10 @@ function Create() {
     >
       <Head>
         <title>Create | Autostrum</title>
+        <meta
+          name="description"
+          content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music."
+        />
         <meta property="og:title" content="Create | Autostrum"></meta>
         <meta property="og:url" content="www.autostrum.com/create" />
         <meta
@@ -21,8 +25,10 @@ function Create() {
           content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music."
         />
         <meta property="og:type" content="website" />
-        {/* should be just homepage ss of some top part of create page w/ some tab data in there? */}
-        <meta property="og:image" content=""></meta>
+        <meta
+          property="og:image"
+          content="https://www.autostrum.com/opengraphScreenshots/editingTab.png"
+        ></meta>
       </Head>
       <Tab tab={undefined} />
     </motion.div>

@@ -30,6 +30,10 @@ function ArtistTabs() {
     >
       <Head>
         <title>Tabs | Autostrum</title>
+        <meta
+          name="description"
+          content="Filter through and explore the tabs you have created."
+        />
         <meta property="og:title" content="Tabs | Autostrum"></meta>
         <meta property="og:url" content="www.autostrum.com/profile/tabs" />
         <meta
@@ -37,8 +41,10 @@ function ArtistTabs() {
           content="Filter through and explore the tabs you have created."
         />
         <meta property="og:type" content="website" />
-        {/* should be just homepage ss of homepage? */}
-        <meta property="og:image" content=""></meta>
+        <meta
+          property="og:image"
+          content="https://www.autostrum.com/opengraphScreenshots/profile.png"
+        ></meta>
       </Head>
 
       <TabsContent value="tabs">

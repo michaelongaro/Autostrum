@@ -89,6 +89,12 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
       <Head>
         <title>{`${query.username as string}'s profile | Autostrum`}</title>
         <meta
+          name="description"
+          content={`Visit ${
+            query.username as string
+          }'s profile and listen to their tabs.`}
+        />
+        <meta
           property="og:title"
           content={`${query.username as string}'s profile | Autostrum`}
         ></meta>
@@ -103,8 +109,10 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
           }'s profile and listen to their tabs.`}
         />
         <meta property="og:type" content="website" />
-        {/* should be just homepage ss of idk my profile page? */}
-        <meta property="og:image" content=""></meta>
+        <meta
+          property="og:image"
+          content="https://www.autostrum.com/opengraphScreenshots/viewingUserProfile.png"
+        ></meta>
       </Head>
 
       {/* artist metadata + pinned tab */}
