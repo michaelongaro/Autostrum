@@ -369,7 +369,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                       href={`/artist/${tabCreator?.username ?? ""}`}
                       className="baseFlex !flex-nowrap !justify-start gap-2"
                     >
-                      <div className="grid grid-cols-1 grid-rows-1">
+                      <div className="grid min-h-[32px] min-w-[32px] grid-cols-1 grid-rows-1">
                         {tabCreator || loadingTabCreator ? (
                           <>
                             {tabCreator && (

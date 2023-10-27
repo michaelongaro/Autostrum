@@ -175,7 +175,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
           <Button variant={"link"} asChild>
             <Link
               href={`/tab/${minimalTab.id}`}
-              className="!p-0 !text-lg !font-semibold"
+              className="!p-0 !text-base !font-semibold md:!text-lg"
             >
               {minimalTab.title}
             </Link>
@@ -237,7 +237,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
               href={`/artist/${tabCreator?.username ?? ""}`}
               className="baseFlex w-fit !flex-nowrap !justify-start gap-2"
             >
-              <div className="grid h-8 w-8 grid-cols-1 grid-rows-1">
+              <div className="grid min-h-[32px] min-w-[32px] grid-cols-1 grid-rows-1">
                 {tabCreator || fetchingTabCreator ? (
                   <>
                     {tabCreator && (
