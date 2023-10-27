@@ -10,7 +10,7 @@ import { Squash as Hamburger } from "hamburger-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { FaGuitar } from "react-icons/fa";
 import { IoTelescopeOutline } from "react-icons/io5";
 import { shallow } from "zustand/shallow";
@@ -18,7 +18,6 @@ import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
 
 function MobileHeader() {
-  const [isOpen, setOpen] = useState(false);
   const { userId, isSignedIn } = useAuth();
   const { user } = useUser();
 
@@ -27,22 +26,24 @@ function MobileHeader() {
   const localStorageTabData = useLocalStorageValue("tabData");
   const localStorageRedirectRoute = useLocalStorageValue("redirectRoute");
 
-  const { getStringifiedTabData } = useTabStore(
+  const {
+    getStringifiedTabData,
+    showMobileHeaderModal,
+    setShowMobileHeaderModal,
+  } = useTabStore(
     (state) => ({
       getStringifiedTabData: state.getStringifiedTabData,
+      showMobileHeaderModal: state.showMobileHeaderModal,
+      setShowMobileHeaderModal: state.setShowMobileHeaderModal,
     }),
     shallow
   );
 
-  useEffect(() => {
-    setOpen(false);
-  }, [asPath]);
-
   return (
     <div
       style={{
-        height: isOpen ? "15.75rem" : "4rem",
-        boxShadow: isOpen
+        height: showMobileHeaderModal ? "15.75rem" : "4rem",
+        boxShadow: showMobileHeaderModal
           ? // these are roughly tailwind shadow-md values
             "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)"
           : "0 4px 6px -1px transparent, 0 2px 4px -2px transparent",
@@ -59,8 +60,10 @@ function MobileHeader() {
         />
       </Link>
       <Hamburger
-        toggled={isOpen}
-        toggle={setOpen}
+        toggled={showMobileHeaderModal}
+        onToggle={(open) => {
+          setShowMobileHeaderModal(open);
+        }}
         color="#fdf2f8"
         rounded
         size={28}

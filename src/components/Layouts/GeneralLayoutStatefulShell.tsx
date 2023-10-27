@@ -14,6 +14,7 @@ import Header from "../Header/Header";
 import { Button } from "../ui/button";
 import { useLocalStorageValue } from "@react-hookz/web";
 import useDetectRouteChanges from "~/hooks/useDetectRouteChanges";
+import MobileHeaderModal from "../modals/MobileHeaderModal";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -69,6 +70,8 @@ function GeneralLayoutStatefulShell() {
     setMasterVolumeGainNode,
     recordedAudioBufferSourceNode,
     isProgramaticallyScrolling,
+    showMobileHeaderModal,
+    setShowMobileHeaderModal,
   } = useTabStore(
     (state) => ({
       setLooping: state.setLooping,
@@ -87,6 +90,8 @@ function GeneralLayoutStatefulShell() {
       setMasterVolumeGainNode: state.setMasterVolumeGainNode,
       recordedAudioBufferSourceNode: state.recordedAudioBufferSourceNode,
       isProgramaticallyScrolling: state.isProgramaticallyScrolling,
+      showMobileHeaderModal: state.showMobileHeaderModal,
+      setShowMobileHeaderModal: state.setShowMobileHeaderModal,
     }),
     shallow
   );
@@ -209,6 +214,14 @@ function GeneralLayoutStatefulShell() {
   return (
     <>
       <Header />
+
+      <AnimatePresence mode="wait">
+        {showMobileHeaderModal && (
+          <MobileHeaderModal
+            setShowMobileHeaderModal={setShowMobileHeaderModal}
+          />
+        )}
+      </AnimatePresence>
 
       <AnimatePresence mode="wait">
         {showingAudioControls && (
