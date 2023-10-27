@@ -80,6 +80,7 @@ function SearchResults({
   const localStorageViewType = useLocalStorageValue("autostrumViewType");
 
   const [resultsCountIsLoading, setResultsCountIsLoading] = useState(false);
+  const [drawerHandleDisabled, setDrawerHandleDisabled] = useState(false);
 
   const isAboveSmallViewportWidth = useViewportWidthBreakpoint(640);
 
@@ -377,7 +378,7 @@ function SearchResults({
         )}
 
         {/* mobile sorting options */}
-        <Drawer.Root>
+        <Drawer.Root dismissible={!drawerHandleDisabled}>
           <Drawer.Trigger asChild>
             <Button variant={"outline"} className="baseFlex gap-2 @3xl:hidden">
               Filter
@@ -403,6 +404,7 @@ function SearchResults({
                 <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
                   <Label>Type</Label>
                   <Select
+                    onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
                     value={type}
                     onValueChange={(value) =>
                       handleTypeChange(value as "tabs" | "artists")
@@ -428,6 +430,7 @@ function SearchResults({
               <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
                 <Label>Genre</Label>
                 <Select
+                  onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
                   value={genreId.toString()}
                   onValueChange={(value) => handleGenreChange(value)}
                 >
@@ -467,6 +470,7 @@ function SearchResults({
               <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
                 <Label>View</Label>
                 <Select
+                  onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
                   value={viewType}
                   onValueChange={(value) =>
                     handleViewChange(value as "grid" | "table")
@@ -492,6 +496,7 @@ function SearchResults({
               <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
                 <Label>Sort by</Label>
                 <Select
+                  onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
                   value={additionalSortFilter}
                   onValueChange={(value) =>
                     handleMobileSortChange(

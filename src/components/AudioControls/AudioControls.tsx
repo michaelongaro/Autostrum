@@ -77,7 +77,7 @@ interface AudioControls {
 }
 
 function AudioControls({ visibility, setVisibility }: AudioControls) {
-  const { asPath, query } = useRouter();
+  const { query } = useRouter();
 
   const [tabProgressValue, setTabProgressValue] = useState(0);
   const [wasPlayingBeforeScrubbing, setWasPlayingBeforeScrubbing] =
@@ -88,6 +88,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
+  const [drawerHandleDisabled, setDrawerHandleDisabled] = useState(false);
 
   const oneSecondIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -919,7 +920,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               </Button>
             </>
           ) : (
-            <Drawer.Root>
+            <Drawer.Root dismissible={!drawerHandleDisabled}>
               <Drawer.Trigger asChild>
                 <Button size="sm" variant={"outline"} className="p-1">
                   <IoSettingsOutline className="h-6 w-6" />
@@ -935,6 +936,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
                     <Label>Source</Label>
                     <Select
+                      onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
                       value={audioMetadata.type}
                       onValueChange={(value) => {
                         if (value !== audioMetadata.type) {
@@ -966,6 +968,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
                     <Label>Instrument</Label>
                     <Select
+                      onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
                       value={currentInstrumentName}
                       onValueChange={(value) => {
                         pauseAudio();
@@ -1008,6 +1011,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
                     <Label>Speed</Label>
                     <Select
+                      onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
                       value={`${playbackSpeed}x`}
                       onValueChange={(value) => {
                         pauseAudio(true);
