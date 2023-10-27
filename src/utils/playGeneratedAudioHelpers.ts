@@ -53,6 +53,7 @@ function playNoteWithEffects({
         isArbitrarySlide: tetheredMetadata.effect === "arbitrarySlide",
         audioContext,
         currentlyPlayingStrings,
+        isPalmMuted: effects?.includes("PM"),
       });
     } else if (tetheredMetadata.transitionFromFret !== undefined) {
       noteWithEffectApplied = applyTetheredEffect({
@@ -67,20 +68,21 @@ function playNoteWithEffects({
         tetheredMetadata,
         audioContext,
         currentlyPlayingStrings,
+        isPalmMuted: effects?.includes("PM"),
       });
     }
-  } else if (effects) {
-    if (effects.includes("~")) {
-      noteWithEffectApplied = applyVibratoEffect({
-        when: 0,
-        note,
-        bpm,
-        stringIdx,
-        pluckBaseNote,
-        audioContext,
-        currentlyPlayingStrings,
-      });
-    }
+  }
+
+  if (effects?.includes("~")) {
+    noteWithEffectApplied = applyVibratoEffect({
+      when: 0,
+      note,
+      bpm,
+      stringIdx,
+      pluckBaseNote,
+      audioContext,
+      currentlyPlayingStrings,
+    });
   }
 
   if (effects?.includes("PM")) {
@@ -89,6 +91,7 @@ function playNoteWithEffects({
       inlineEffects: effects,
       audioContext,
       isHighString: stringIdx <= 2,
+      isATetheredEffect: tetheredMetadata !== undefined,
     });
   }
 
@@ -121,6 +124,7 @@ interface ApplyBendEffect {
     | AudioBufferSourceNode
     | undefined
   )[];
+  isPalmMuted?: boolean;
 }
 
 function applyBendOrReleaseEffect({
@@ -135,6 +139,7 @@ function applyBendOrReleaseEffect({
   isArbitrarySlide = false,
   audioContext,
   currentlyPlayingStrings,
+  isPalmMuted,
 }: ApplyBendEffect) {
   let source: AudioBufferSourceNode | undefined = undefined;
   let sourceGain: GainNode | undefined = undefined;
@@ -151,7 +156,7 @@ function applyBendOrReleaseEffect({
     }, when * 1000);
 
     source.buffer = note.source.buffer as AudioBuffer;
-    source.start(0, 0.5);
+    source.start(0, 0.5, isPalmMuted ? 0.45 : undefined);
 
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
     sourceGain.gain.linearRampToValueAtTime(
@@ -421,6 +426,7 @@ interface ApplyPalmMute {
   inlineEffects?: string[];
   audioContext: AudioContext;
   isHighString: boolean;
+  isATetheredEffect?: boolean;
 }
 
 function applyPalmMute({
@@ -428,6 +434,7 @@ function applyPalmMute({
   inlineEffects,
   audioContext,
   isHighString,
+  isATetheredEffect,
 }: ApplyPalmMute) {
   const lowPassFilter = audioContext.createBiquadFilter();
   const bassBoost = audioContext.createBiquadFilter();
@@ -452,10 +459,12 @@ function applyPalmMute({
   bassBoost.frequency.value = 120;
   bassBoost.Q.value = 10;
 
-  let gainValue = 70;
-  if (inlineEffects?.includes(">")) {
-    gainValue = 85;
+  let gainValue = inlineEffects?.includes(">") ? 115 : 70;
+
+  if (isATetheredEffect) {
+    gainValue = inlineEffects?.includes(">") ? 1.15 : 0.75;
   }
+
   gainNode.gain.value = gainValue;
 
   note.connect(lowPassFilter);
@@ -481,6 +490,7 @@ interface ApplyTetheredEffect {
     | AudioBufferSourceNode
     | undefined
   )[];
+  isPalmMuted?: boolean;
 }
 
 function applyTetheredEffect({
@@ -495,6 +505,7 @@ function applyTetheredEffect({
   tetheredMetadata,
   audioContext,
   currentlyPlayingStrings,
+  isPalmMuted,
 }: ApplyTetheredEffect) {
   // immediately stop current note because we don't ever want to hear the pluck on
   // a tethered note
@@ -516,7 +527,8 @@ function applyTetheredEffect({
   );
   source.start(
     audioContext.currentTime + when,
-    tetheredEffect === "p" ? 0 : tetheredEffect === "h" ? 0.1 : 0.2
+    tetheredEffect === "p" ? 0 : tetheredEffect === "h" ? 0.1 : 0.2,
+    isPalmMuted ? 0.45 : undefined
   );
 
   sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
