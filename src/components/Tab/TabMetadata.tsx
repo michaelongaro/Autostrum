@@ -474,7 +474,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
       musicalKey,
     };
 
-    return isEqual(originalData, sanitizedCurrentTabData);
+    return isEqual(originalData, sanitizedCurrentTabData) && !shouldUpdateInS3;
   }
 
   function renderSavePopoverContent() {
