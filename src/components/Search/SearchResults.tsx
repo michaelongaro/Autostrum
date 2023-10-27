@@ -385,6 +385,7 @@ function SearchResults({
             </Button>
           </Drawer.Trigger>
           <Drawer.Portal>
+            <Drawer.Overlay className="fixed inset-0 z-50 bg-black/50" />
             <Drawer.Content
               style={{
                 zIndex: asPath.includes("/preferences") ? 60 : 50,
