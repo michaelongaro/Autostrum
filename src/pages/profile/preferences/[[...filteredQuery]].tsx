@@ -113,7 +113,7 @@ function Preferences() {
               style={{
                 opacity: showClerkUserProfile ? 1 : 0,
               }}
-              className="baseFlex col-start-1 col-end-2 row-start-1 row-end-2 h-full w-full !max-w-[100%] transition-opacity"
+              className="baseFlex col-start-1 col-end-2 row-start-1 row-end-2 h-full w-full !max-w-[100%] pb-1 transition-opacity"
             >
               <UserProfile
                 appearance={{
