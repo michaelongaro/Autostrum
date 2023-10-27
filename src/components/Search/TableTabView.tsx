@@ -131,8 +131,11 @@ function TableTabView({
               </TableHead>
             )}
             <TableHead>Genre</TableHead>
-            <TableHead>Artist</TableHead>
+            <TableHead className="min-w-[175px]">Artist</TableHead>
             <TableHead>Date</TableHead>
+            {/* empty headers for likes and play/pause columns */}
+            <TableHead></TableHead>
+            <TableHead></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="w-full">
