@@ -127,6 +127,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     playRecordedAudio,
     pauseAudio,
     fetchingFullTabData,
+    audioContext,
   } = useTabStore(
     (state) => ({
       id: state.id,
@@ -151,6 +152,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       playRecordedAudio: state.playRecordedAudio,
       pauseAudio: state.pauseAudio,
       fetchingFullTabData: state.fetchingFullTabData,
+      audioContext: state.audioContext,
     }),
     shallow
   );
@@ -279,10 +281,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   }, [id, query.id]);
 
   useEffect(() => {
-    if (hasRecordedAudio && !recordedAudioBuffer) {
+    if (audioContext && hasRecordedAudio && !recordedAudioBuffer) {
       const convertAudioBuffer = async (arrayBuffer: ArrayBuffer) => {
-        const audioContext = new AudioContext(); // TODO: can't we just use the store audioContext? why or why not
-
         try {
           const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
           setRecordedAudioBuffer(audioBuffer);
@@ -328,6 +328,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     recordedAudioBuffer,
     setRecordedAudioBuffer,
     idOfAssociatedTab,
+    audioContext,
   ]);
 
   function resetAudioStateOnSourceChange(
