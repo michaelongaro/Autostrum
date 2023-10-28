@@ -71,18 +71,20 @@ function playNoteWithEffects({
         isPalmMuted: effects?.includes("PM"),
       });
     }
-  }
-
-  if (effects?.includes("~")) {
-    noteWithEffectApplied = applyVibratoEffect({
-      when: 0,
-      note,
-      bpm,
-      stringIdx,
-      pluckBaseNote,
-      audioContext,
-      currentlyPlayingStrings,
-    });
+  } else if (effects) {
+    // needs to be in separate block because if the tethered note has vibrato,
+    // it gets handled from applyTetheredEffect() above
+    if (effects?.includes("~")) {
+      noteWithEffectApplied = applyVibratoEffect({
+        when: 0,
+        note,
+        bpm,
+        stringIdx,
+        pluckBaseNote,
+        audioContext,
+        currentlyPlayingStrings,
+      });
+    }
   }
 
   if (effects?.includes("PM")) {
