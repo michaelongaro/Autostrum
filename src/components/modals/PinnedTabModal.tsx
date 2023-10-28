@@ -186,7 +186,7 @@ function PinnedTabModal({
                     transition={{
                       duration: 0.15,
                     }}
-                    className="h-6 w-6 animate-spin rounded-full bg-inherit fill-none"
+                    className="h-6 w-6 animate-stableSpin rounded-full bg-inherit fill-none"
                     viewBox="0 0 24 24"
                   >
                     <circle

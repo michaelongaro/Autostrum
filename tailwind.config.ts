@@ -87,6 +87,10 @@ module.exports = {
           "50%": { color: "hsla(327, 73%, 97%, 0.65)" },
           "100%": { color: "hsl(327, 73%, 97%)" },
         },
+        stableSpin: {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(360deg)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -94,6 +98,7 @@ module.exports = {
         errorShake: "errorShake 0.5s ease-in-out infinite",
         smallErrorShake: "smallErrorShake 0.5s ease-in-out infinite",
         colorOscillate: "colorOscillate 1.75s ease-in-out infinite",
+        stableSpin: "stableSpin 1s linear infinite",
       },
     },
   },

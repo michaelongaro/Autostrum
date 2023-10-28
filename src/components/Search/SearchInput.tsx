@@ -213,7 +213,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                   <div className="baseFlex w-full gap-4 py-4">
                     <p>Loading</p>
                     <svg
-                      className="h-6 w-6 animate-spin rounded-full bg-inherit fill-none"
+                      className="h-6 w-6 animate-stableSpin rounded-full bg-inherit fill-none"
                       viewBox="0 0 24 24"
                     >
                       <circle
