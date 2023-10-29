@@ -455,16 +455,16 @@ function applyPalmMute({
   if (isHighString) {
     bassBoost.gain.value = 10;
   } else {
-    bassBoost.gain.value = 30;
+    bassBoost.gain.value = 20;
   }
   bassBoost.type = "peaking";
   bassBoost.frequency.value = 120;
   bassBoost.Q.value = 10;
 
-  let gainValue = inlineEffects?.includes(">") ? 115 : 70;
+  let gainValue = inlineEffects?.includes(">") ? 100 : 70;
 
   if (isATetheredEffect) {
-    gainValue = inlineEffects?.includes(">") ? 1.15 : 0.75;
+    gainValue = inlineEffects?.includes(">") ? 1 : 0.7;
   }
 
   gainNode.gain.value = gainValue;
