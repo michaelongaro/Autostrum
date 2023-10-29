@@ -145,9 +145,11 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
         }}
       />
 
-      <p className="text-lg font-semibold">{genre.name}</p>
+      {/* z-index as fallback just incase for weird safari positioning */}
+      <p className="z-10 text-lg font-semibold">{genre.name}</p>
 
-      <p>{`${formatNumber(genre.totalTabs)} ${
+      {/* z-index as fallback just incase for weird safari positioning */}
+      <p className="z-10">{`${formatNumber(genre.totalTabs)} ${
         genre.totalTabs === 1 ? "tab" : "tabs"
       }`}</p>
 
