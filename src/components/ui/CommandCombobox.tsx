@@ -7,7 +7,6 @@ import { cn } from "~/utils/utils";
 import { Button } from "~/components/ui/button";
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -116,6 +115,7 @@ export function CommandCombobox({
                     className="baseFlex gap-2"
                     onClick={() => {
                       setShowCustomTuningModal(true);
+                      setOpen(false);
                     }}
                   >
                     Edit
@@ -130,6 +130,7 @@ export function CommandCombobox({
                 size="sm"
                 onClick={() => {
                   setShowCustomTuningModal(true);
+                  setOpen(false);
                 }}
               >
                 Create custom tuning
