@@ -123,6 +123,10 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
           maxLength={30}
           placeholder={getPlaceholderTextBasedOnParams()}
           onFocus={() => {
+            searchInputRef.current?.scrollIntoView({
+              behavior: "smooth",
+            });
+
             if (debouncedSearchQuery.length > 0) {
               setShowAutofillResults(true);
             }
@@ -184,7 +188,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
             }
           }}
           value={searchQuery}
-          className="searchInputBoxShadow h-10 w-80 scroll-m-6 border-2 pl-8 text-sm focus-within:shadow-lg md:h-12 md:w-[25rem] md:pl-10 md:text-lg"
+          className="searchInputBoxShadow h-10 w-80 !scroll-mt-24 border-2 pl-8 text-sm focus-within:shadow-lg md:h-12 md:w-[25rem] md:pl-10 md:text-lg"
         />
 
         {/* autofill */}
@@ -301,7 +305,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                                 }
                               }}
                             >
-                              <div className="w-[75px]">
+                              <div className="w-[70px]">
                                 <Badge
                                   style={{
                                     backgroundColor:
@@ -317,7 +321,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                                 </Badge>
                               </div>
 
-                              <p>
+                              <p className="max-w-[70%] truncate">
                                 {data.type === "title"
                                   ? data.value.title ?? ""
                                   : data.value}
