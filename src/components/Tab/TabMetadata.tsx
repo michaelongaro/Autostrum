@@ -744,6 +744,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                   <PopoverTrigger asChild>
                     <Button
                       disabled={
+                        audioMetadata.playing || // helps with performance when playing audio (while editing)
                         isLoadingARoute ||
                         isEqualToOriginalTabState() ||
                         showPulsingError ||
