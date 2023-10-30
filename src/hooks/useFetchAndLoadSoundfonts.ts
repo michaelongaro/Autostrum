@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import Soundfont from "soundfont-player";
 import { shallow } from "zustand/shallow";
 import { useTabStore } from "~/stores/TabStore";
+import { isIOS, isSafari } from "react-device-detect";
 
 function useFetchAndLoadSoundfonts() {
   const {
@@ -45,7 +46,7 @@ function useFetchAndLoadSoundfonts() {
         () => {
           void Soundfont.instrument(audioContext, currentInstrumentName, {
             soundfont: "MusyngKite",
-            format: "ogg",
+            format: isSafari || isIOS ? "mp3" : "ogg", // safari doesn't support .ogg files
             destination: masterVolumeGainNode,
           }).then((player) => {
             // Update the cache
