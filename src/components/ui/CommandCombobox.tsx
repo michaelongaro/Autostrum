@@ -25,14 +25,10 @@ import tunings, { parse, toString } from "~/utils/tunings";
 // but may need to be more generic in the future
 
 interface CommandCombobox {
-  showPulsingError: boolean;
   customTuning: string;
 }
 
-export function CommandCombobox({
-  showPulsingError,
-  customTuning,
-}: CommandCombobox) {
+export function CommandCombobox({ customTuning }: CommandCombobox) {
   const [open, setOpen] = useState(false);
 
   const { tuning, setTuning, setShowCustomTuningModal } = useTabStore(
@@ -60,19 +56,7 @@ export function CommandCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          style={{
-            boxShadow:
-              showPulsingError && tuning === ""
-                ? "0 0 0 0.25rem hsl(0deg 100% 50%)"
-                : "0 0 0 0 transparent",
-            animationPlayState:
-              showPulsingError && tuning === "" ? "running" : "paused",
-            // could add below box shadow styles into tailwind too!
-            transitionProperty: "box-shadow",
-            transitionTimingFunction: "ease-in-out",
-            transitionDuration: "500ms",
-          }}
-          className="w-[200px] animate-errorShake justify-between"
+          className="w-[200px] justify-between"
         >
           {tuning
             ? tuningIsCustom(tuning)

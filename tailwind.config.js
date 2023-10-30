@@ -99,8 +99,8 @@ module.exports = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        errorShake: "errorShake 0.5s ease-in-out infinite",
-        smallErrorShake: "smallErrorShake 0.5s ease-in-out infinite",
+        errorShake: "errorShake 0.5s ease-in-out forwards",
+        smallErrorShake: "smallErrorShake 0.5s ease-in-out forwards",
         colorOscillate: "colorOscillate 1.75s ease-in-out infinite",
         stableSpin: "stableSpin 1s linear infinite",
         pulse: "pulse 0.35s ease-in-out forwards",

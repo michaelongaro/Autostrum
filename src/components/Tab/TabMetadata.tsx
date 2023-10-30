@@ -525,17 +525,17 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
       );
     }
 
-      return (
-        <div className="baseFlex w-full max-w-[350px] bg-pink-50 p-2 pt-1 text-sm text-pink-950 md:max-w-[400px] md:text-base">
-          <div className="baseFlex !flex-nowrap gap-2">
-            <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
-            <p>Only registered users can publish a tab.</p>
-          </div>
-          <p className="text-xs md:text-sm">
-            This tab&apos;s data will be saved for you upon signing in.
-          </p>
+    return (
+      <div className="baseFlex w-full max-w-[350px] bg-pink-50 p-2 pt-1 text-sm text-pink-950 md:max-w-[400px] md:text-base">
+        <div className="baseFlex !flex-nowrap gap-2">
+          <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
+          <p>Only registered users can publish a tab.</p>
         </div>
-      );
+        <p className="text-xs md:text-sm">
+          This tab&apos;s data will be saved for you upon signing in.
+        </p>
+      </div>
+    );
   }
 
   function getOrdinalSuffix(num: number) {
@@ -843,18 +843,8 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                 type="text"
                 placeholder="My new tab"
                 value={title}
-                style={{
-                  ...(showPulsingError &&
-                    !title && {
-                      boxShadow: "0 0 0 0.25rem hsl(0deg 100% 50%)",
-                      transitionTimingFunction: "ease-in-out",
-                      transitionDuration: "500ms",
-                    }),
-                  animationPlayState:
-                    showPulsingError && !title ? "running" : "paused",
-                  transitionProperty: "box-shadow",
-                }}
-                className="w-full animate-errorShake md:w-72"
+                showingErrorShakeAnimation={showPulsingError && !title}
+                className="w-full md:w-72"
                 onChange={(e) => {
                   if (e.target.value.length > 30) return;
                   setTitle(e.target.value);
@@ -904,14 +894,15 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                       showPulsingError && genreId === -1
                         ? "0 0 0 0.25rem hsl(0deg 100% 50%)"
                         : "0 0 0 0 transparent",
-                    animationPlayState:
-                      showPulsingError && genreId === -1 ? "running" : "paused",
-                    // could add below box shadow styles into tailwind too!
                     transitionProperty: "box-shadow",
                     transitionTimingFunction: "ease-in-out",
                     transitionDuration: "500ms",
                   }}
-                  className="w-[180px] animate-errorShake"
+                  className={`w-[180px] ${
+                    showPulsingError && genreId === -1
+                      ? "animate-errorShake"
+                      : ""
+                  }`}
                 >
                   <SelectValue placeholder="Select a genre" />
                 </SelectTrigger>
@@ -947,10 +938,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
               <Label htmlFor="tuning">
                 Tuning <span className="text-brightRed">*</span>
               </Label>
-              <CommandCombobox
-                showPulsingError={showPulsingError}
-                customTuning={customTuning}
-              />
+              <CommandCombobox customTuning={customTuning} />
             </div>
 
             <div

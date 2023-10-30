@@ -232,18 +232,9 @@ function CustomTuningModal({
                 key={index}
                 placeholder={placeholderNotes[index]}
                 value={value}
-                style={{
-                  ...(showInvalidInputPerIndex[index] && {
-                    boxShadow: "0 0 0 0.25rem hsl(0deg 100% 50%)",
-                    transitionTimingFunction: "ease-in-out",
-                    transitionDuration: "500ms",
-                  }),
-                  animationPlayState: showInvalidInputPerIndex[index]
-                    ? "running"
-                    : "paused",
-                  transitionProperty: "box-shadow",
-                }}
-                className="w-12 animate-smallErrorShake p-2 text-center"
+                showingErrorShakeAnimation={showInvalidInputPerIndex[index]}
+                smallErrorShakeAnimation={true}
+                className="w-12 p-2 text-center"
                 onChange={(e) => {
                   if (e.target.value.length > 3) return;
 
