@@ -523,6 +523,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
           )}
         </div>
       );
+    }
 
       return (
         <div className="baseFlex w-full max-w-[350px] bg-pink-50 p-2 pt-1 text-sm text-pink-950 md:max-w-[400px] md:text-base">
@@ -535,7 +536,6 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
           </p>
         </div>
       );
-    }
   }
 
   function getOrdinalSuffix(num: number) {
