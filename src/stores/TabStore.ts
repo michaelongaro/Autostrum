@@ -262,6 +262,18 @@ interface TabState {
   setPreventFramerLayoutShift: (preventFramerLayoutShift: boolean) => void;
   fetchingFullTabData: boolean;
   setFetchingFullTabData: (fetchingFullTabData: boolean) => void;
+  pulseChordLocation: {
+    sectionIndex: number;
+    subSectionIndex: number;
+    chordIndex: number;
+  } | null;
+  setPulseChordLocation: (
+    pulseChordLocation: {
+      sectionIndex: number;
+      subSectionIndex: number;
+      chordIndex: number;
+    } | null
+  ) => void;
 
   // modals
   showAudioRecorderModal: boolean;
@@ -435,6 +447,8 @@ export const useTabStore = create<TabState>()(
     fetchingFullTabData: false,
     setFetchingFullTabData: (fetchingFullTabData) =>
       set({ fetchingFullTabData }),
+    pulseChordLocation: null,
+    setPulseChordLocation: (pulseChordLocation) => set({ pulseChordLocation }),
 
     getStringifiedTabData: () => {
       const {

@@ -91,6 +91,11 @@ module.exports = {
           from: { transform: "rotate(0deg)" },
           to: { transform: "rotate(360deg)" },
         },
+        pulse: {
+          "0%": { transform: "scale(0.75)", opacity: "0" },
+          "50%": { transform: "scale(1)", opacity: "0.5" },
+          "100%": { transform: "scale(1)", opacity: "0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -99,6 +104,7 @@ module.exports = {
         smallErrorShake: "smallErrorShake 0.5s ease-in-out infinite",
         colorOscillate: "colorOscillate 1.75s ease-in-out infinite",
         stableSpin: "stableSpin 1s linear infinite",
+        pulse: "pulse 0.35s ease-in-out forwards",
       },
     },
   },

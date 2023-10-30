@@ -74,9 +74,10 @@ function TabNotesColumn({
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const { editing, getTabData, setTabData } = useTabStore(
+  const { editing, pulseChordLocation, getTabData, setTabData } = useTabStore(
     (state) => ({
       editing: state.editing,
+      pulseChordLocation: state.pulseChordLocation,
       getTabData: state.getTabData,
       setTabData: state.setTabData,
     }),
@@ -237,6 +238,19 @@ function TabNotesColumn({
       className="baseVertFlex cursor-default"
     >
       <div className="baseFlex relative">
+        <div
+          className={`absolute h-[276px] w-full bg-pink-300 opacity-0 ${
+            isEqual(pulseChordLocation, {
+              sectionIndex,
+              subSectionIndex,
+              chordIndex: columnIndex,
+            })
+              ? "animate-pulse"
+              : ""
+          }
+        } `}
+        ></div>
+
         <div
           style={{
             marginTop:
