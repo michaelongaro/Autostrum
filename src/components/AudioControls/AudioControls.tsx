@@ -195,16 +195,16 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
         setTabProgressValue((prev) => prev + 1);
       }, 1000);
     }
-    // TODO: fix this so you don't have the hacky + 1 in there, currently unsure of the best approach..
+    // TODO: fix this so you don't have the hacky - 1 in there, currently unsure of the best approach..
     else if (
       (!audioMetadata.playing ||
-        tabProgressValue + 1 === Math.floor(recordedAudioBuffer.duration)) &&
+        tabProgressValue - 1 === Math.floor(recordedAudioBuffer.duration)) &&
       oneSecondIntervalRef.current
     ) {
       clearInterval(oneSecondIntervalRef.current);
       oneSecondIntervalRef.current = null;
 
-      if (tabProgressValue + 1 === Math.floor(recordedAudioBuffer.duration)) {
+      if (tabProgressValue - 1 === Math.floor(recordedAudioBuffer.duration)) {
         resetAudioSliderPosition();
         setTabProgressValue(0);
       }
@@ -265,12 +265,6 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     tabProgressValue,
     setCurrentChordIndex,
   ]);
-
-  useEffect(() => {
-    if (audioMetadata.type === "Artist recording") {
-      localStorageAutoscroll.set("false");
-    }
-  }, [audioMetadata.type]);
 
   const idOfAssociatedTab = useMemo(() => {
     if (id === -1 && typeof query.id === "string") {
@@ -334,6 +328,11 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   function resetAudioStateOnSourceChange(
     audioTypeBeingChangedTo: "Generated" | "Artist recording"
   ) {
+    if (oneSecondIntervalRef.current) {
+      clearInterval(oneSecondIntervalRef.current);
+      oneSecondIntervalRef.current = null;
+    }
+
     pauseAudio(true);
 
     setAudioMetadata({
@@ -814,7 +813,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                 audioMetadata.type === "Artist recording"
                   ? recordedAudioBuffer?.duration === 0
                     ? 1
-                    : recordedAudioBuffer?.duration - 1
+                    : recordedAudioBuffer?.duration
                   : currentlyPlayingMetadata
                   ? currentlyPlayingMetadata.at(-1)?.elapsedSeconds
                   : 1
@@ -892,7 +891,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               {formatSecondsToMinutes(
                 audioMetadata.type === "Artist recording"
                   ? recordedAudioBuffer?.duration
-                    ? recordedAudioBuffer.duration - 1
+                    ? recordedAudioBuffer.duration
                     : 0
                   : currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
               )}
