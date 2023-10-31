@@ -772,7 +772,7 @@ function columnHasNoNotes(column: string[]) {
 }
 
 function calculateRelativeVibratoFrequency(bpm: number) {
-  const distance = Math.abs(bpm > 400 ? 400 : bpm - 400);
+  const distance = Math.abs((bpm > 400 ? 400 : bpm) - 400);
   const scaleFactor = Math.min(distance / 400, 1);
 
   // result will be between 3 and 5
