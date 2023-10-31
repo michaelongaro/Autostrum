@@ -74,10 +74,17 @@ function TabNotesColumn({
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const { editing, pulseChordLocation, getTabData, setTabData } = useTabStore(
+  const {
+    editing,
+    pulseChordLocation,
+    setPulseChordLocation,
+    getTabData,
+    setTabData,
+  } = useTabStore(
     (state) => ({
       editing: state.editing,
       pulseChordLocation: state.pulseChordLocation,
+      setPulseChordLocation: state.setPulseChordLocation,
       getTabData: state.getTabData,
       setTabData: state.setTabData,
     }),
@@ -239,19 +246,6 @@ function TabNotesColumn({
     >
       <div className="baseFlex relative">
         <div
-          className={`absolute h-[276px] w-full bg-pink-300 opacity-0 ${
-            isEqual(pulseChordLocation, {
-              sectionIndex,
-              subSectionIndex,
-              chordIndex: columnIndex,
-            })
-              ? "animate-chordPulse"
-              : ""
-          }
-        } `}
-        ></div>
-
-        <div
           style={{
             marginTop:
               reorderingColumns || showingDeleteColumnsButtons ? "4px" : "0",
@@ -262,6 +256,22 @@ function TabNotesColumn({
             transitionTimingFunction: "linear",
           }}
           className="absolute left-0 top-1/2 w-0 -translate-y-1/2 bg-pink-600"
+        ></div>
+
+        <div
+          onAnimationEnd={() => {
+            setPulseChordLocation(null);
+          }}
+          className={`absolute h-[270px] w-[95%] rounded-full bg-pink-300 opacity-0 ${
+            isEqual(pulseChordLocation, {
+              sectionIndex,
+              subSectionIndex,
+              chordIndex: columnIndex,
+            })
+              ? "animate-chordPulse"
+              : ""
+          }
+        } `}
         ></div>
 
         <div
