@@ -244,7 +244,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
   function handleBpmChange(event: ChangeEvent<HTMLInputElement>) {
     const inputValue = event.target.value;
 
-    // Check if the input value is empty (backspace case) or a number between 1 and 400
+    // Check if the input value is empty (backspace case) or a number between 1 and 500
     if (
       inputValue === "" ||
       (Number(inputValue) >= 1 && Number(inputValue) <= 500)
