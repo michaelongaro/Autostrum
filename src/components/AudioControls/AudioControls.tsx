@@ -45,7 +45,10 @@ import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import PlayButtonIcon from "./PlayButtonIcon";
-import resetAudioSliderPosition from "~/utils/resetAudioSliderPosition";
+import {
+  resetTabSliderPosition,
+  returnTransitionToTabSlider,
+} from "~/utils/tabSliderHelpers";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -191,6 +194,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     if (audioMetadata.type === "Generated" || !recordedAudioBuffer) return;
 
     if (audioMetadata.playing && !oneSecondIntervalRef.current) {
+      returnTransitionToTabSlider();
       oneSecondIntervalRef.current = setInterval(() => {
         setTabProgressValue((prev) => prev + 1);
       }, 1000);
@@ -205,7 +209,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       oneSecondIntervalRef.current = null;
 
       if (tabProgressValue - 1 === Math.floor(recordedAudioBuffer.duration)) {
-        resetAudioSliderPosition();
+        resetTabSliderPosition();
         setTabProgressValue(0);
       }
     }
@@ -223,6 +227,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     if (audioMetadata.type === "Artist recording") return;
 
     if (audioMetadata.playing && !oneSecondIntervalRef.current) {
+      returnTransitionToTabSlider();
+
       // feels hacky, but need to have it moving towards one *as soon*
       // as the play button is pressed, otherwise it will wait a full second
       // before starting to increment.

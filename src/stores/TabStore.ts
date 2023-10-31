@@ -9,7 +9,7 @@ import {
   compileStrummingPatternPreview,
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
-import resetAudioSliderPosition from "~/utils/resetAudioSliderPosition";
+import { resetTabSliderPosition } from "~/utils/tabSliderHelpers";
 import { parse } from "~/utils/tunings";
 
 export interface SectionProgression {
@@ -486,7 +486,7 @@ export const useTabStore = create<TabState>()(
 
       // radix slider thumb position gets out of whack if
       // this isn't there
-      resetAudioSliderPosition();
+      resetTabSliderPosition();
 
       pauseAudio(true);
 
@@ -677,7 +677,7 @@ export const useTabStore = create<TabState>()(
         if (chordIndex === compiledChords.length - 1) {
           // if looping, reset the chordIndex to -1 so loop will start over
           if (looping && audioMetadata.playing) {
-            resetAudioSliderPosition();
+            resetTabSliderPosition();
 
             chordIndex = -1;
             set({
@@ -840,7 +840,7 @@ export const useTabStore = create<TabState>()(
       } = get();
 
       if (!audioMetadata.playing && !previewMetadata.playing && resetToStart) {
-        resetAudioSliderPosition();
+        resetTabSliderPosition();
         set({
           currentChordIndex: 0,
         });
@@ -858,7 +858,7 @@ export const useTabStore = create<TabState>()(
         });
 
         if (resetToStart) {
-          resetAudioSliderPosition();
+          resetTabSliderPosition();
         }
       } else if (audioMetadata.playing && audioMetadata.type === "Generated") {
         set({
@@ -870,7 +870,7 @@ export const useTabStore = create<TabState>()(
         });
 
         if (resetToStart) {
-          resetAudioSliderPosition();
+          resetTabSliderPosition();
           set({
             currentChordIndex: 0,
           });
@@ -886,7 +886,7 @@ export const useTabStore = create<TabState>()(
         });
 
         if (resetToStart) {
-          resetAudioSliderPosition();
+          resetTabSliderPosition();
           set({
             currentChordIndex: 0,
           });
