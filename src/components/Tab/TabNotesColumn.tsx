@@ -245,7 +245,7 @@ function TabNotesColumn({
               subSectionIndex,
               chordIndex: columnIndex,
             })
-              ? "animate-pulse"
+              ? "animate-chordPulse"
               : ""
           }
         } `}
