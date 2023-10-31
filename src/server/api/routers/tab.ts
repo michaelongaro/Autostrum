@@ -5,8 +5,6 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { Tab } from "@prisma/client";
-import type { Section } from "~/stores/TabStore";
-import puppeteer from "puppeteer";
 import { z } from "zod";
 
 const s3 = new S3Client({
@@ -429,6 +427,26 @@ export const tabRouter = createTRPCRouter({
         }
       }
 
+      // if this tab is the artist's pinned tab, then set the artist's pinnedTabId to -1 (default value)
+      if (tab && tab.createdById) {
+        const artist = await ctx.prisma.artist.findUnique({
+          where: {
+            userId: tab.createdById,
+          },
+        });
+
+        if (artist?.pinnedTabId === idToDelete) {
+          await ctx.prisma.artist.update({
+            where: {
+              id: artist.id,
+            },
+            data: {
+              pinnedTabId: -1,
+            },
+          });
+        }
+      }
+
       await ctx.prisma.tab.delete({
         where: {
           id: idToDelete,
@@ -602,101 +620,4 @@ export const tabRouter = createTRPCRouter({
         });
       }
     }),
-
-  // keeping this in here just in case we need it again
-  // recaptureAllTabScreenshots: publicProcedure.mutation(async ({ ctx }) => {
-  //   // get all tabs
-  //   const tabs = await ctx.prisma.tab.findMany();
-
-  //   // asynronously loop through all tabs and take screenshots and upload them to s3
-  //   for (const tab of tabs) {
-  //     const tabData = tab.tabData;
-
-  //     const modifiedTabData: Section[] = [];
-
-  //     // gets first two subsections from first section
-  //     if (tabData[0]!.data.length > 1) {
-  //       modifiedTabData.push({
-  //         ...tabData[0]!,
-  //         data: tabData[0]!.data.slice(0, 2),
-  //       });
-  //     }
-  //     // combined first subsection from first two sections
-  //     else if (tabData.length > 1) {
-  //       modifiedTabData.push(
-  //         {
-  //           ...tabData[0]!,
-  //           data: [...tabData[0]!.data],
-  //         },
-  //         {
-  //           ...tabData[1]!,
-  //           data: [...tabData[1]!.data.slice(0, 1)],
-  //         }
-  //       );
-  //     }
-  //     // only has one section w/ one subsection within, and uses that
-  //     else {
-  //       modifiedTabData.push({
-  //         ...tabData[0]!,
-  //         data: [...tabData[0]!.data],
-  //       });
-  //     }
-
-  //     const stringifiedTabData = JSON.stringify(modifiedTabData);
-
-  //     const url = `${
-  //       process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-  //     }/takeScreenshotOfTab/filters?tuning=${encodeURIComponent(
-  //       tab.tuning
-  //     )}&baselineBpm=${tab.bpm}`;
-
-  //     const browser = await puppeteer.launch({
-  //       headless: "new",
-  //       defaultViewport: {
-  //         width: 1903,
-  //         height: 1080,
-  //       },
-  //     });
-  //     const page = await browser.newPage();
-
-  //     await page.evaluateOnNewDocument((data) => {
-  //       window.myInjectedData = data;
-  //     }, stringifiedTabData);
-
-  //     await page.goto(url, { waitUntil: "networkidle0" });
-  //     await page.waitForTimeout(3500);
-
-  //     const tabScreenshot = await page.screenshot({
-  //       clip: {
-  //         x: 330,
-  //         y: 160,
-  //         width: 1245,
-  //         height: 581,
-  //         scale: 0.75,
-  //       },
-  //       quality: 100,
-  //       type: "webp",
-  //     });
-  //     await page.close();
-  //     await browser.close();
-
-  //     // uploading screenshot to s3 bucket
-  //     const command = new PutObjectCommand({
-  //       Bucket: "autostrum-screenshots",
-  //       Key: `${tab.id}.webp`,
-  //       Body: tabScreenshot,
-  //       ContentType: "image/webp",
-  //     });
-
-  //     await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
-
-  //     try {
-  //       const res = await s3.send(command);
-  //       console.log(res);
-  //     } catch (e) {
-  //       console.log(e);
-  //       // return null;
-  //     }
-  //   }
-  // }),
 });
