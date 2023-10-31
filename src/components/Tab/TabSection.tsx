@@ -906,6 +906,7 @@ function TabSection({
                     columnIndex={index}
                     reorderingColumns={reorderingColumns}
                     showingDeleteColumnsButtons={showingDeleteColumnsButtons}
+                    columnHasBeenPlayed={columnHasBeenPlayed(index - 1)} // measure lines aren't "played", so tieing logic to closest previous column
                   />
                 ) : (
                   <TabNotesColumn

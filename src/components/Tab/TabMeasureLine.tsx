@@ -24,6 +24,7 @@ interface TabMeasureLine {
   columnIndex: number;
   reorderingColumns: boolean;
   showingDeleteColumnsButtons: boolean;
+  columnHasBeenPlayed: boolean;
 }
 
 function TabMeasureLine({
@@ -33,6 +34,7 @@ function TabMeasureLine({
   columnIndex,
   reorderingColumns,
   showingDeleteColumnsButtons,
+  columnHasBeenPlayed,
 }: TabMeasureLine) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
@@ -287,6 +289,14 @@ function TabMeasureLine({
       }}
       className="baseVertFlex relative"
     >
+      {editing && (reorderingColumns || showingDeleteColumnsButtons) && (
+        <div
+          style={{
+            width: columnHasBeenPlayed ? "100%" : "0%",
+          }}
+          className="absolute left-0 top-1/2 z-[-1] h-[276px] w-0 -translate-y-1/2 bg-pink-600"
+        ></div>
+      )}
       {columnData.map((note, index) => (
         <Fragment key={index}>
           {index === 0 && (
