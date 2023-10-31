@@ -9,13 +9,13 @@ function renderStrummingGuide(
     | "viewingInSelectDropdown"
 ) {
   let innermostDiv = <div></div>;
-  let height = "6px";
+  let height = "7px";
   switch (noteLength) {
     case "1/4th":
       height = "6px";
       innermostDiv = (
         <div
-          className={`h-full w-[1px] ${
+          className={`h-full w-[1px] rounded-md ${
             mode === "viewingInSelectDropdown"
               ? "bg-foreground"
               : "bg-background"
@@ -25,11 +25,11 @@ function renderStrummingGuide(
 
       break;
     case "1/8th":
-      height = "6px";
+      height = "7px";
       innermostDiv = (
         <>
           <div
-            className={`h-full w-[1px] ${
+            className={`h-full w-[1px] rounded-md ${
               mode === "viewingInSelectDropdown"
                 ? "bg-foreground"
                 : "bg-background"
@@ -57,11 +57,11 @@ function renderStrummingGuide(
       );
       break;
     case "1/16th":
-      height = "6px";
+      height = "7px";
       innermostDiv = (
         <>
           <div
-            className={`h-full w-[1px] ${
+            className={`h-full w-[1px] rounded-md ${
               mode === "viewingInSelectDropdown"
                 ? "bg-foreground"
                 : "bg-background"
@@ -110,9 +110,9 @@ function renderStrummingGuide(
     case "1/4th triplet":
       height = "25px";
       innermostDiv = (
-        <div className="baseVertFlex h-full w-full !flex-nowrap !justify-start gap-1">
+        <div className="baseVertFlex h-full w-full !flex-nowrap !justify-start">
           <div
-            className={`h-[6px] w-[1px] ${
+            className={`h-[7px] w-[1px] rounded-md ${
               mode === "viewingInSelectDropdown"
                 ? "bg-foreground"
                 : "bg-background"
@@ -120,7 +120,7 @@ function renderStrummingGuide(
           ></div>
           {beatIndex % 3 === 1 && (
             <p
-              className={`text-xs ${
+              className={`mt-[3px] text-xs ${
                 mode === "viewingInSelectDropdown"
                   ? "text-foreground"
                   : "text-background"
@@ -137,9 +137,9 @@ function renderStrummingGuide(
       height = "25px";
 
       innermostDiv = (
-        <div className="baseVertFlex relative h-full w-full !flex-nowrap !justify-start gap-1">
+        <div className="baseVertFlex relative h-full w-full !flex-nowrap !justify-start">
           <div
-            className={`h-[6px] w-[1px] ${
+            className={`h-[7px] w-[1px] rounded-md ${
               mode === "viewingInSelectDropdown"
                 ? "bg-foreground"
                 : "bg-background"
@@ -190,7 +190,7 @@ function renderStrummingGuide(
 
           {beatIndex % 3 === 1 && (
             <p
-              className={`text-xs ${
+              className={`mt-[3px] text-xs ${
                 mode === "viewingInSelectDropdown"
                   ? "text-foreground"
                   : "text-background"
@@ -205,9 +205,9 @@ function renderStrummingGuide(
     case "1/16th triplet":
       height = "25px";
       innermostDiv = (
-        <div className="baseVertFlex relative h-full w-full !flex-nowrap !justify-start gap-1">
+        <div className="baseVertFlex relative h-full w-full !flex-nowrap !justify-start">
           <div
-            className={`h-[6px] w-[1px] ${
+            className={`h-[7px] w-[1px] rounded-md ${
               mode === "viewingInSelectDropdown"
                 ? "bg-foreground"
                 : "bg-background"
@@ -286,7 +286,7 @@ function renderStrummingGuide(
 
           {beatIndex % 3 === 1 && (
             <p
-              className={`text-xs ${
+              className={`mt-[3px] text-xs ${
                 mode === "viewingInSelectDropdown"
                   ? "text-foreground"
                   : "text-background"
