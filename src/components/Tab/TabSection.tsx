@@ -553,7 +553,7 @@ function TabSection({
 
   function handleBpmChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newBpm = e.target.value.length === 0 ? -1 : parseInt(e.target.value);
-    if (isNaN(newBpm) || newBpm > 400) return;
+    if (isNaN(newBpm) || newBpm > 500) return;
 
     const newTabData = getTabData();
 

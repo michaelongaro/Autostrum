@@ -247,7 +247,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
     // Check if the input value is empty (backspace case) or a number between 1 and 400
     if (
       inputValue === "" ||
-      (Number(inputValue) >= 1 && Number(inputValue) <= 400)
+      (Number(inputValue) >= 1 && Number(inputValue) <= 500)
     ) {
       setBpm(Number(inputValue) === 0 ? -1 : Number(inputValue));
     }
