@@ -416,7 +416,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                                 {tabCreator.username}
                               </span>
                             ) : (
-                              <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-5 w-20 animate-pulse rounded-md bg-pink-300 "></div>
+                              <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-5 w-16 animate-pulse rounded-md bg-pink-300 sm:w-20 "></div>
                             )}
                           </>
                         </div>
