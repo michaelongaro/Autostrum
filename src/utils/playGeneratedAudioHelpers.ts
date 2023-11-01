@@ -205,15 +205,27 @@ function mapStringAndFretToOscillatorFrequency(
   stringIndex: number,
   fretIndex: number
 ) {
-  // Invert string index, so 0 becomes 5 and 5 becomes 0
-  const invertedStringIndex = 5 - stringIndex;
+  // The difference between the maximum and minimum frequency defines the range.
+  const frequencyRange = 200 - 50;
 
-  // Weighted average calculation
-  const stringWeight = invertedStringIndex * (75 / 5); // Maps 0-5 to 0-75
-  const fretWeight = (fretIndex - 1) * (25 / 11); // Maps 1-12 to 0-25
+  // Normalize the string index to a range of [0, 1] with 0 being the highest string.
+  const normalizedStringIndex = stringIndex / 5;
 
-  // Sum to get the desired range of 50-150
-  return 50 + stringWeight + fretWeight;
+  // Normalize the fret index to a range of [0, 1].
+  const normalizedFretIndex = fretIndex / 22;
+
+  // Calculate the weighted reduction for both string and fret indices.
+  // String index will have a more significant influence on the frequency.
+  const weightedStringReduction = normalizedStringIndex * frequencyRange * 0.7; // 70% influence from string index.
+  const weightedFretReduction = normalizedFretIndex * frequencyRange * 0.3; // 30% influence from fret index.
+
+  // Calculate the frequency by subtracting the reductions from the max frequency.
+  const maxFrequency = 200;
+  const frequency =
+    maxFrequency - (weightedStringReduction + weightedFretReduction);
+
+  // Ensure the frequency is within the range [50, 200].
+  return Math.max(frequency, 50);
 }
 
 interface PlayDeadNote {
@@ -288,24 +300,24 @@ function playDeadNote({
   gainNode.gain.setValueAtTime(gainTarget, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(
     0.01,
-    audioContext.currentTime + 0.25
+    audioContext.currentTime + 0.1
   );
 
   // Create a BiquadFilterNode for a low-pass filter
-  const lowPassFilter = audioContext.createBiquadFilter();
-  lowPassFilter.type = "highpass";
-  lowPassFilter.frequency.value = 100; // TODO: still have to play around with this value
+  const highpassFilter = audioContext.createBiquadFilter();
+  highpassFilter.type = "highpass";
+  highpassFilter.frequency.value = 100; // TODO: still have to play around with this value
 
   // Create a BiquadFilterNode for boosting the mid frequencies
   const midBoost = audioContext.createBiquadFilter();
   midBoost.type = "peaking";
-  midBoost.frequency.value = 800; // Frequency to boost
+  midBoost.frequency.value = 1200; // Frequency to boost
   midBoost.gain.value = 1; // Amount of boost in dB
   midBoost.Q.value = 1; // Quality factor
 
   // Connect the oscillator and noise to the gainNode
-  oscillator.connect(lowPassFilter);
-  lowPassFilter.connect(midBoost);
+  oscillator.connect(highpassFilter);
+  highpassFilter.connect(midBoost);
   midBoost.connect(gainNode);
 
   // // Connect the gainNode to the audioContext's destination
@@ -316,11 +328,12 @@ function playDeadNote({
   oscillator.start(audioContext.currentTime);
 
   // Stop the oscillator and noise shortly afterward to simulate a short, percussive sound
-  oscillator.stop(audioContext.currentTime + 0.2);
+  oscillator.stop(audioContext.currentTime + 0.1);
 }
 
 interface PlaySlapSound {
   accented: boolean;
+  stacatto?: boolean;
   palmMuted: boolean;
   audioContext: AudioContext;
   masterVolumeGainNode: GainNode;
@@ -333,6 +346,7 @@ interface PlaySlapSound {
 
 function playSlapSound({
   accented,
+  stacatto,
   palmMuted,
   audioContext,
   masterVolumeGainNode,
@@ -377,10 +391,17 @@ function playSlapSound({
 
   if (accented && palmMuted) gainTarget = 0.3;
 
+  const duration = stacatto || palmMuted ? 0.1 : 0.25;
+
+  // was too quiet for my liking, so increasing gain specifically for shorter duration slaps
+  if (stacatto || palmMuted) {
+    gainTarget *= 1.25;
+  }
+
   gainNode.gain.setValueAtTime(gainTarget, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(
     0.01,
-    audioContext.currentTime + 0.25
+    audioContext.currentTime + duration
   );
 
   // Create a BiquadFilterNode for a low-pass filter
@@ -400,7 +421,7 @@ function playSlapSound({
   noiseGain.gain.setValueAtTime(0.2, audioContext.currentTime);
   noiseGain.gain.exponentialRampToValueAtTime(
     0.01,
-    audioContext.currentTime + 0.25
+    audioContext.currentTime + duration
   );
 
   // Connect the oscillator and noise to the gainNode
@@ -419,8 +440,8 @@ function playSlapSound({
   noise.start(audioContext.currentTime);
 
   // Stop the oscillator and noise shortly afterward to simulate a short, percussive sound
-  oscillator.stop(audioContext.currentTime + 0.25);
-  noise.stop(audioContext.currentTime + 0.25);
+  oscillator.stop(audioContext.currentTime + duration);
+  noise.stop(audioContext.currentTime + duration);
 }
 
 interface ApplyPalmMute {
@@ -865,6 +886,7 @@ function playNoteColumn({
       if (currColumn[7]?.includes("s")) {
         playSlapSound({
           accented: currColumn[7].includes(">"),
+          stacatto: currColumn[7].includes("."),
           palmMuted: currColumn[0] !== "",
           audioContext,
           masterVolumeGainNode,
