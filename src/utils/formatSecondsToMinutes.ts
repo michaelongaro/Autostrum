@@ -1,4 +1,6 @@
 export default function formatSecondsToMinutes(rawSeconds: number): string {
+  if (rawSeconds <= 0) return "0:00";
+
   const minutes = Math.floor(rawSeconds / 60);
   const seconds = Math.floor(rawSeconds) % 60;
 
