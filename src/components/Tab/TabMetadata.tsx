@@ -313,9 +313,9 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
   function handlePreview() {
     if (
       !title ||
-      genreId === -1 ||
       !tuning ||
-      !bpm ||
+      genreId === -1 ||
+      bpm === -1 ||
       tabIsEffectivelyEmpty(tabData)
     ) {
       setShowPulsingError(true);
@@ -365,9 +365,9 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
     if (
       !userId ||
       !title ||
-      genreId === -1 ||
       !tuning ||
-      !bpm ||
+      genreId === -1 ||
+      bpm === -1 ||
       tabIsEffectivelyEmpty(tabData)
     ) {
       setShowPulsingError(true);
@@ -508,6 +508,15 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
               <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
             )}
             <p>{`Genre has ${genreId === -1 ? "not" : ""} been selected`}</p>
+          </div>
+
+          <div className="baseFlex gap-2">
+            {bpm !== -1 ? (
+              <Check className="h-5 w-8 text-green-600" />
+            ) : (
+              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
+            )}
+            <p>{`BPM is ${bpm === -1 ? "not" : ""} defined`}</p>
           </div>
 
           {!tabIsEffectivelyEmpty(tabData) ? (
@@ -971,19 +980,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                 inputMode="numeric"
                 pattern="[0-9]*"
                 value={bpm === -1 ? "" : bpm}
-                style={{
-                  ...(showPulsingError &&
-                    bpm === null && {
-                      boxShadow: "0 0 0 0.25rem hsl(0deg 100% 50%)",
-                      transitionTimingFunction: "ease-in-out",
-                      transitionDuration: "500ms",
-                    }),
-                  animationPlayState:
-                    showPulsingError && bpm === null ? "running" : "paused",
-                  // could add below box shadow styles into tailwind too!
-                  transitionProperty: "box-shadow",
-                }}
-                className="animate-errorShake"
+                showingErrorShakeAnimation={showPulsingError && bpm === -1}
                 onChange={handleBpmChange}
               />
             </div>
