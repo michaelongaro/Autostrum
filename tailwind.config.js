@@ -90,10 +90,15 @@ module.exports = {
           from: { transform: "rotate(0deg)" },
           to: { transform: "rotate(360deg)" },
         },
-        chordPulse: {
+        copyChordPulse: {
           "0%": { transform: "scale(0.75)", opacity: "0" },
           "50%": { transform: "scale(1)", opacity: "0.5" },
           "100%": { transform: "scale(1)", opacity: "0" },
+        },
+        pasteChordPulse: {
+          "0%": { transform: "scale(0.75)", opacity: "0" },
+          "50%": { transform: "scale(1)", opacity: "0.5" },
+          "100%": { transform: "scale(0.85)", opacity: "0" },
         },
       },
       animation: {
@@ -103,7 +108,8 @@ module.exports = {
         smallErrorShake: "smallErrorShake 0.5s ease-in-out forwards",
         colorOscillate: "colorOscillate 1.75s ease-in-out infinite",
         stableSpin: "stableSpin 1s linear infinite",
-        chordPulse: "chordPulse 0.35s ease-in-out forwards",
+        copyChordPulse: "copyChordPulse 0.35s ease-in-out forwards",
+        pasteChordPulse: "pasteChordPulse 0.35s ease-in-out forwards",
       },
     },
   },

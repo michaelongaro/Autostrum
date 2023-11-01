@@ -25,7 +25,7 @@ function TabNote({
     setTabData,
     currentlyCopiedChord,
     setCurrentlyCopiedChord,
-    setPulseChordLocation,
+    setChordPulse,
   } = useTabStore(
     (state) => ({
       editing: state.editing,
@@ -33,7 +33,7 @@ function TabNote({
       setTabData: state.setTabData,
       currentlyCopiedChord: state.currentlyCopiedChord,
       setCurrentlyCopiedChord: state.setCurrentlyCopiedChord,
-      setPulseChordLocation: state.setPulseChordLocation,
+      setChordPulse: state.setChordPulse,
     }),
     shallow
   );
@@ -211,10 +211,13 @@ function TabNote({
         columnIndex
       ]!.slice(1, 8);
 
-      setPulseChordLocation({
-        sectionIndex,
-        subSectionIndex,
-        chordIndex: columnIndex,
+      setChordPulse({
+        location: {
+          sectionIndex,
+          subSectionIndex,
+          chordIndex: columnIndex,
+        },
+        type: "copy",
       });
       setCurrentlyCopiedChord(copiedChord as string[]);
     } else if (
@@ -236,10 +239,13 @@ function TabNote({
         id,
       ];
 
-      setPulseChordLocation({
-        sectionIndex,
-        subSectionIndex,
-        chordIndex: columnIndex,
+      setChordPulse({
+        location: {
+          sectionIndex,
+          subSectionIndex,
+          chordIndex: columnIndex,
+        },
+        type: "paste",
       });
       setTabData(newTabData);
       return;

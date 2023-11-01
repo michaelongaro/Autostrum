@@ -74,17 +74,12 @@ function TabNotesColumn({
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const {
-    editing,
-    pulseChordLocation,
-    setPulseChordLocation,
-    getTabData,
-    setTabData,
-  } = useTabStore(
+  const { editing, chordPulse, setChordPulse, getTabData, setTabData } =
+    useTabStore(
     (state) => ({
       editing: state.editing,
-      pulseChordLocation: state.pulseChordLocation,
-      setPulseChordLocation: state.setPulseChordLocation,
+        chordPulse: state.chordPulse,
+        setChordPulse: state.setChordPulse,
       getTabData: state.getTabData,
       setTabData: state.setTabData,
     }),
@@ -260,15 +255,17 @@ function TabNotesColumn({
 
         <div
           onAnimationEnd={() => {
-            setPulseChordLocation(null);
+            setChordPulse(null);
           }}
           className={`absolute h-[270px] w-[95%] rounded-full bg-pink-300 opacity-0 ${
-            isEqual(pulseChordLocation, {
+            isEqual(chordPulse?.location, {
               sectionIndex,
               subSectionIndex,
               chordIndex: columnIndex,
             })
-              ? "animate-chordPulse"
+              ? chordPulse!.type === "copy"
+                ? "animate-copyChordPulse"
+                : "animate-pasteChordPulse"
               : ""
           }
         } `}
