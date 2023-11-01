@@ -65,6 +65,10 @@ interface ITab extends Partial<RefetchTab> {
 function Tab({ tab, refetchTab }: ITab) {
   const [customTuning, setCustomTuning] = useState("");
 
+  // true when creating new section, results in way less cpu/ram usage for arguably worse ux
+  const [forceCloseSectionAccordions, setForceCloseSectionAccordions] =
+    useState(false);
+
   const localStorageTabData = useLocalStorageValue("tabData");
 
   const {
@@ -264,6 +268,7 @@ function Tab({ tab, refetchTab }: ITab) {
     newTabData.push(newSectionData);
 
     setTabData(newTabData);
+    setForceCloseSectionAccordions(true);
   }
 
   return (
@@ -321,7 +326,8 @@ function Tab({ tab, refetchTab }: ITab) {
           <motion.div
             key={section.id}
             {...(editing &&
-              !preventFramerLayoutShift && { layout: "position" })}
+              !preventFramerLayoutShift &&
+              !forceCloseSectionAccordions && { layout: "position" })}
             variants={opacityAndScaleVariants}
             // initial="closed"
             // animate="expanded"
@@ -346,12 +352,16 @@ function Tab({ tab, refetchTab }: ITab) {
                 currentlyPlayingMetadata?.[currentChordIndex]?.location
                   .subSectionIndex ?? 0
               }
+              forceCloseSectionAccordions={
+                forceCloseSectionAccordions && index !== tabData.length - 1
+              }
+              setForceCloseSectionAccordions={setForceCloseSectionAccordions}
             />
           </motion.div>
         ))}
 
         {editing && (
-          <Button onClick={() => addNewSection()} className="mb-12">
+          <Button onClick={addNewSection} className="mb-12">
             Add another section
           </Button>
         )}

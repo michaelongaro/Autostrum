@@ -1,7 +1,7 @@
 import { AnimatePresence } from "framer-motion";
 import isEqual from "lodash.isequal";
 import debounce from "lodash.debounce";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
 import { BsMusicNote } from "react-icons/bs";
 import { v4 as uuid } from "uuid";
 import { shallow } from "zustand/shallow";
@@ -36,6 +36,8 @@ interface SectionContainer {
   sectionData: Section;
   currentlyPlayingSectionIndex: number;
   currentlyPlayingSubSectionIndex: number;
+  forceCloseSectionAccordions: boolean;
+  setForceCloseSectionAccordions: Dispatch<SetStateAction<boolean>>;
 }
 
 function SectionContainer({
@@ -43,6 +45,8 @@ function SectionContainer({
   sectionIndex,
   currentlyPlayingSectionIndex,
   currentlyPlayingSubSectionIndex,
+  forceCloseSectionAccordions,
+  setForceCloseSectionAccordions,
 }: SectionContainer) {
   const [accordionOpen, setAccordionOpen] = useState("opened");
   const [localTitle, setLocalTitle] = useState(sectionData.title);
@@ -87,6 +91,13 @@ function SectionContainer({
   useEffect(() => {
     setAccordionOpen("opened");
   }, [editing]);
+
+  useEffect(() => {
+    if (forceCloseSectionAccordions) {
+      setAccordionOpen("closed");
+      setForceCloseSectionAccordions(false);
+    }
+  }, [forceCloseSectionAccordions, setForceCloseSectionAccordions]);
 
   function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.value.length > 25) return;
@@ -188,6 +199,19 @@ function SectionContainer({
     setTabData(newTabData);
   }
 
+  function getAccordionOpenValue() {
+    // auto opens accordion if section is playing
+    if (
+      audioMetadata.playing &&
+      audioMetadata.type === "Generated" &&
+      currentlyPlayingSectionIndex === sectionIndex
+    ) {
+      return "opened";
+    }
+
+    return forceCloseSectionAccordions ? "closed" : accordionOpen;
+  }
+
   return (
     <div
       style={{
@@ -198,14 +222,7 @@ function SectionContainer({
       <Accordion
         type="single"
         collapsible
-        value={
-          // auto opens accordion if section is playing
-          audioMetadata.playing &&
-          audioMetadata.type === "Generated" &&
-          currentlyPlayingSectionIndex === sectionIndex
-            ? "opened"
-            : accordionOpen
-        }
+        value={getAccordionOpenValue()}
         onValueChange={(value) => {
           setAccordionOpen(value === "opened" ? value : "closed");
         }}
