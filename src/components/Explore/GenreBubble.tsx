@@ -180,7 +180,7 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
               pointerEvents: "none",
               zIndex: 0,
             }}
-            camera={{ position: [0, 0, 50] }}
+            camera={{ position: [0, 0, 60] }}
           >
             <ambientLight intensity={1.5} />
             <directionalLight color={"white"} intensity={0.5} />
