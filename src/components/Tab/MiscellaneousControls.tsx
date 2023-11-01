@@ -55,6 +55,7 @@ function MiscellaneousControls({
 
   const {
     id,
+    bpm,
     sectionProgression,
     setSectionProgression,
     audioMetadata,
@@ -69,6 +70,7 @@ function MiscellaneousControls({
   } = useTabStore(
     (state) => ({
       id: state.id,
+      bpm: state.bpm,
       sectionProgression: state.sectionProgression,
       setSectionProgression: state.setSectionProgression,
       audioMetadata: state.audioMetadata,
@@ -339,6 +341,7 @@ function MiscellaneousControls({
         <Button
           variant="playPause"
           disabled={
+            bpm === -1 ||
             !currentInstrument ||
             audioMetadata.type === "Artist recording" ||
             artificalPlayButtonTimeout ||

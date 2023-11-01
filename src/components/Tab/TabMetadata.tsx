@@ -1352,7 +1352,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                   } baseVertFlex !items-start gap-2`}
                 >
                   <div className="font-semibold">BPM</div>
-                  <div>{bpm}</div>
+                  <div>{bpm === -1 ? "" : bpm}</div>
                 </div>
 
                 {timeSignature && (

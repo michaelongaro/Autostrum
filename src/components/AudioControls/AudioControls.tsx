@@ -109,6 +109,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
 
   const {
     id,
+    bpm,
     hasRecordedAudio,
     currentInstrumentName,
     setCurrentInstrumentName,
@@ -134,6 +135,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   } = useTabStore(
     (state) => ({
       id: state.id,
+      bpm: state.bpm,
       hasRecordedAudio: state.hasRecordedAudio,
       currentInstrumentName: state.currentInstrumentName,
       setCurrentInstrumentName: state.setCurrentInstrumentName,
@@ -379,6 +381,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       return !recordedAudioBuffer;
     } else {
       return (
+        bpm === -1 ||
         currentlyPlayingMetadata === null ||
         currentlyPlayingMetadata.length === 0 ||
         !currentInstrument ||
@@ -389,6 +392,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       );
     }
   }, [
+    bpm,
     fetchingFullTabData,
     audioMetadata.location,
     audioMetadata.type,

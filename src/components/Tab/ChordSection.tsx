@@ -101,13 +101,10 @@ function ChordSection({
   function addAnotherChordSequence() {
     const newTabData = getTabData();
 
-    // Tries to initialize with the section bpm first if available
-    const relativeBpm = subSectionData.bpm === -1 ? bpm : subSectionData.bpm;
-
     newTabData[sectionIndex]!.data[subSectionIndex]!.data.push({
       id: uuid(),
       repetitions: 1,
-      bpm: relativeBpm,
+      bpm: -1,
       // @ts-expect-error the correct strummingPattern will get set in <ChordSequence /> if it is available
       strummingPattern: {} as StrummingPattern,
       data: [], // this will also get set in <ChordSequence />
@@ -190,7 +187,9 @@ function ChordSection({
                 className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
                 placeholder={
                   subSectionData.bpm === -1
-                    ? bpm.toString()
+                    ? bpm === -1
+                      ? ""
+                      : bpm.toString()
                     : subSectionData.bpm.toString()
                 }
                 value={

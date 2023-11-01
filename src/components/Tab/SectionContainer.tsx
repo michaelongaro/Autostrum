@@ -143,7 +143,7 @@ function SectionContainer({
     return {
       id: uuid(),
       type: "tab",
-      bpm: bpm ?? 75,
+      bpm: -1,
       repetitions: 1,
       data: baseArray,
     };
@@ -154,12 +154,12 @@ function SectionContainer({
       return {
         id: uuid(),
         type: "chord",
-        bpm: bpm ?? 75,
+        bpm: -1,
         repetitions: 1,
         data: [
           {
             id: uuid(),
-            bpm,
+            bpm: -1,
             strummingPattern: strummingPatterns[0]!,
             repetitions: 1,
             data: new Array<string>(strummingPatterns[0]!.strums.length).fill(
@@ -174,7 +174,7 @@ function SectionContainer({
     return {
       id: uuid(),
       type: "chord",
-      bpm: bpm ?? 75,
+      bpm: -1,
       repetitions: 1,
       data: [
         {
@@ -268,6 +268,7 @@ function SectionContainer({
                   <Button
                     variant="playPause"
                     disabled={
+                      bpm === -1 ||
                       !currentInstrument ||
                       audioMetadata.type === "Artist recording" ||
                       // currentlyPlayingMetadata?.length === 0 || be careful on this one, need to test if fine to leave commented out

@@ -107,7 +107,7 @@ function ChordSequence({
       ] = {
         id: chordSequenceData.id,
         repetitions: chordSequenceData.repetitions,
-        bpm: chordSequenceData.bpm,
+        bpm: -1,
         strummingPattern: strummingPatterns[0]!,
         data: Array.from(
           { length: strummingPatterns[0]!.strums.length },
@@ -136,7 +136,7 @@ function ChordSequence({
 
     if (bpm !== -1) return bpm.toString();
 
-    return "75";
+    return "";
   }, [bpm, subSectionData.bpm, chordSequenceData.bpm]);
 
   function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
