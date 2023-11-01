@@ -235,6 +235,7 @@ function TabNotesColumn({
           transform && { ...transform, scaleY: 1, scaleX: 1 }
         ),
         transition,
+        zIndex: isDragging ? 50 : "auto",
         height: editing ? "400px" : "271px",
       }}
       className="baseVertFlex cursor-default"
