@@ -76,15 +76,15 @@ function TabNotesColumn({
 
   const { editing, chordPulse, setChordPulse, getTabData, setTabData } =
     useTabStore(
-    (state) => ({
-      editing: state.editing,
+      (state) => ({
+        editing: state.editing,
         chordPulse: state.chordPulse,
         setChordPulse: state.setChordPulse,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-    }),
-    shallow
-  );
+        getTabData: state.getTabData,
+        setTabData: state.setTabData,
+      }),
+      shallow
+    );
 
   // ideally don't need this and can just use prop values passed in, but need to have
   // [0] index special case since when looping it would keep the [0] index at 100% width
@@ -139,7 +139,7 @@ function TabNotesColumn({
     );
   }
 
-  const deleteColumnButtonDisabled = useMemo(() => {
+  function deleteColumnButtonDisabled() {
     let disabled = false;
 
     const currentSection = getTabData()[sectionIndex]?.data[subSectionIndex];
@@ -170,7 +170,7 @@ function TabNotesColumn({
     }
 
     return disabled;
-  }, [getTabData, sectionIndex, subSectionIndex, columnIndex]);
+  }
 
   function handleDeletePalmMutedChord() {
     const newTabData = getTabData();
@@ -416,7 +416,7 @@ function TabNotesColumn({
           <Button
             variant={"destructive"}
             size="sm"
-            disabled={deleteColumnButtonDisabled}
+            disabled={deleteColumnButtonDisabled()}
             className="absolute bottom-4 left-1/2 right-1/2 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
             onClick={handleDeleteChord}
           >
