@@ -283,7 +283,7 @@ function PreviewStrummingPattern({
   mode,
 }: PreviewStrummingPattern) {
   const patternHasPalmMuting = useCallback(() => {
-    return data.strums.some((strum) => strum.palmMute !== "");
+    return data.strums?.some((strum) => strum.palmMute !== "");
   }, [data]);
 
   const heightOfStrummingPatternFiller = useMemo(() => {
