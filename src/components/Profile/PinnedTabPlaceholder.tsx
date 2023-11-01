@@ -1,4 +1,4 @@
-import { Canvas, extend } from "@react-three/fiber";
+import { Canvas, extend, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import {
   AmbientLight,
@@ -72,8 +72,25 @@ interface FloatingBubble {
 }
 
 function FloatingBubble({ position }: FloatingBubble) {
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  useFrame((state) => {
+    const time = state.clock.getElapsedTime();
+    const rotationSpeed = 0.1; // Adjust rotation speed as needed
+    // Calculate the angle of rotation based on time and rotationSpeed
+    const angle = time * rotationSpeed;
+    // Apply rotation around the Z-axis
+    const x = position[1] * Math.sin(angle) - position[0] * Math.cos(angle);
+    const y = position[0] * Math.sin(angle) + position[1] * Math.cos(angle);
+    // Update the position of the bubble
+    if (meshRef.current) {
+      meshRef.current.position.x = x;
+      meshRef.current.position.y = y;
+    }
+  });
+
   return (
-    <mesh position={position}>
+    <mesh ref={meshRef} position={position}>
       <sphereGeometry args={[5, 32, 16]} />
       <meshPhysicalMaterial
         roughness={0}
