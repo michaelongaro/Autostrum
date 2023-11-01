@@ -24,15 +24,17 @@ export default async function handler() {
   );
 
   const randomIndex = Math.floor(Math.random() * filteredArtistIds.length);
-  const newFeaturedArtistId = filteredArtistIds[randomIndex]!.userId;
+  const newFeaturedArtistId = filteredArtistIds[randomIndex]?.userId;
 
-  // update the artistId of row id 0 to new artistId
-  await prisma.weeklyFeaturedArtist.update({
-    where: {
-      id: 0,
-    },
-    data: {
-      artistId: newFeaturedArtistId,
-    },
-  });
+  if (newFeaturedArtistId !== undefined) {
+    // update the artistId of row id 0 to new artistId
+    await prisma.weeklyFeaturedArtist.update({
+      where: {
+        id: 0,
+      },
+      data: {
+        artistId: newFeaturedArtistId,
+      },
+    });
+  }
 }
