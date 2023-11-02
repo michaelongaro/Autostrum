@@ -1,9 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useMemo, memo } from "react";
+import isEqual from "lodash.isequal";
+import { Fragment, memo, useMemo } from "react";
 import { BsMusicNote } from "react-icons/bs";
 import { v4 as uuid } from "uuid";
 import { shallow } from "zustand/shallow";
-import isEqual from "lodash.isequal";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -15,7 +15,6 @@ import {
 } from "~/stores/TabStore";
 import ChordSequence from "./ChordSequence";
 import MiscellaneousControls from "./MiscellaneousControls";
-import type StrummingPattern from "./StrummingPattern";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -231,10 +230,9 @@ function ChordSection({
           className="baseVertFlex !items-end !justify-start"
         >
           {subSectionData.data.map((chordSequence, index) => (
-            <>
+            <Fragment key={`${chordSequence.id}wrapper`}>
               {editing || (!editing && chordSequence.data.length > 0) ? (
                 <div
-                  key={`${chordSequence.id}wrapper`}
                   style={{
                     width: editing ? "100%" : "auto",
                   }}
@@ -300,14 +298,9 @@ function ChordSection({
                   </AnimatePresence>
                 </div>
               ) : (
-                <p
-                  key={`emptyStrummingPattern${index}`}
-                  className="italic text-pink-200"
-                >
-                  Empty strumming pattern
-                </p>
+                <p className="italic text-pink-200">Empty strumming pattern</p>
               )}
-            </>
+            </Fragment>
           ))}
         </motion.div>
       </AnimatePresence>

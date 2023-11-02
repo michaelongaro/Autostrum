@@ -6,13 +6,13 @@ import {
   BsMusicNote,
 } from "react-icons/bs";
 import { Button } from "~/components/ui/button";
-import { Separator } from "~/components/ui/separator";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import { Separator } from "~/components/ui/separator";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import type {
   ChordSection,
   ChordSequence,
@@ -23,8 +23,8 @@ import type {
 } from "~/stores/TabStore";
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
 import { parse, toString } from "~/utils/tunings";
-import HighlightTabColumnWrapper from "./HighlightTabColumnWrapper";
 import Chord from "./Chord";
+import HighlightTabColumnWrapper from "./HighlightTabColumnWrapper";
 
 // ---WARNING---: I really didn't want to have to do this approach, but this is the only way
 // I could avoid the horrendous performance/rerender issues that would happen when many
@@ -227,47 +227,50 @@ function PreviewChordSection({
       className="baseVertFlex lightestGlassmorphic relative h-full !justify-start rounded-md"
     >
       <div className="baseFlex w-auto !items-end !justify-start gap-8">
-        {subSectionData.data.map((chordSequence, index) => (
-          <div
-            key={chordSequence.id}
-            className="baseVertFlex w-auto !items-start"
-          >
-            {((chordSequence.bpm !== -1 &&
-              chordSequence.bpm !== subSectionData.bpm) ||
-              chordSequence.repetitions > 1) && (
-              <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
-                {chordSequence.bpm !== -1 &&
-                  chordSequence.bpm !== subSectionData.bpm && (
-                    <div className="baseFlex gap-1">
-                      <BsMusicNote className="h-3 w-3" />
-                      {chordSequence.bpm === -1
-                        ? baselineBpm
-                        : chordSequence.bpm}{" "}
-                      BPM
-                    </div>
-                  )}
-
-                {chordSequence.repetitions > 1 && (
-                  <div className="baseFlex gap-3">
+        {subSectionData.data.map((chordSequence) => (
+          <Fragment key={`${chordSequence.id}wrapper`}>
+            {chordSequence.data.length > 0 ? (
+              <div className="baseVertFlex w-auto !items-start">
+                {((chordSequence.bpm !== -1 &&
+                  chordSequence.bpm !== subSectionData.bpm) ||
+                  chordSequence.repetitions > 1) && (
+                  <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
                     {chordSequence.bpm !== -1 &&
                       chordSequence.bpm !== subSectionData.bpm && (
-                        <Separator
-                          className="h-4 w-[1px]"
-                          orientation="vertical"
-                        />
+                        <div className="baseFlex gap-1">
+                          <BsMusicNote className="h-3 w-3" />
+                          {chordSequence.bpm === -1
+                            ? baselineBpm
+                            : chordSequence.bpm}{" "}
+                          BPM
+                        </div>
                       )}
 
-                    <p>Repeat x{chordSequence.repetitions}</p>
+                    {chordSequence.repetitions > 1 && (
+                      <div className="baseFlex gap-3">
+                        {chordSequence.bpm !== -1 &&
+                          chordSequence.bpm !== subSectionData.bpm && (
+                            <Separator
+                              className="h-4 w-[1px]"
+                              orientation="vertical"
+                            />
+                          )}
+
+                        <p>Repeat x{chordSequence.repetitions}</p>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            )}
 
-            <PreviewChordSequence
-              chordSequenceData={chordSequence}
-              chords={chords}
-            />
-          </div>
+                <PreviewChordSequence
+                  chordSequenceData={chordSequence}
+                  chords={chords}
+                />
+              </div>
+            ) : (
+              <p className="italic text-pink-200">Empty strumming pattern</p>
+            )}
+          </Fragment>
         ))}
       </div>
     </div>
