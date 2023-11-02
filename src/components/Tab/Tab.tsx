@@ -104,6 +104,9 @@ function Tab({ tab, refetchTab }: ITab) {
     preventFramerLayoutShift,
     currentlyPlayingMetadata,
     currentChordIndex,
+    sectionProgression,
+    chords,
+    strummingPatterns,
   } = useTabStore(
     (state) => ({
       setId: state.setId,
@@ -138,6 +141,9 @@ function Tab({ tab, refetchTab }: ITab) {
       preventFramerLayoutShift: state.preventFramerLayoutShift,
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
       currentChordIndex: state.currentChordIndex,
+      sectionProgression: state.sectionProgression,
+      chords: state.chords,
+      strummingPatterns: state.strummingPatterns,
     }),
     shallow
   );
@@ -279,8 +285,28 @@ function Tab({ tab, refetchTab }: ITab) {
       >
         <TabMetadata refetchTab={refetchTab} customTuning={customTuning} />
 
+        {!editing &&
+          sectionProgression.length === 0 &&
+          chords.length === 0 &&
+          strummingPatterns.length === 0 && (
+            <div className="baseFlex relative h-10 w-full">
+              <Button
+                variant={"secondary"}
+                className="baseFlex !flex-nowrap gap-2 lg:absolute lg:right-7 lg:top-0"
+                onClick={() => setShowEffectGlossaryModal(true)}
+              >
+                Effect glossary
+                <FaBook className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
         <Separator className="w-[96%]" />
 
+        {(editing ||
+          sectionProgression.length > 0 ||
+          chords.length > 0 ||
+          strummingPatterns.length > 0) && (
         <div className="baseVertFlex relative w-full gap-4">
           <SectionProgression />
 
@@ -299,7 +325,7 @@ function Tab({ tab, refetchTab }: ITab) {
 
           {editing && (
             <Popover>
-              <PopoverTrigger className="baseFlex absolute bottom-[0.15rem] right-1 mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:bottom-0 sm:right-7 ">
+                <PopoverTrigger className="baseFlex absolute bottom-5 right-3 mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:bottom-3 sm:right-7 ">
                 <HiOutlineLightBulb className="h-5 w-5 " />
               </PopoverTrigger>
               <PopoverContent
@@ -318,9 +344,9 @@ function Tab({ tab, refetchTab }: ITab) {
               </PopoverContent>
             </Popover>
           )}
+            <Separator className="w-[96%]" />
         </div>
-
-        <Separator className="w-[96%]" />
+        )}
 
         {tabData.map((section, index) => (
           <motion.div

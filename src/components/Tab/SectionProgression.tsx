@@ -20,6 +20,11 @@ function SectionProgression() {
   return (
     <div
       style={{
+        display: editing
+          ? "flex"
+          : sectionProgression.length === 0
+          ? "none"
+          : "flex",
         minWidth: aboveMediumViewportWidth
           ? sectionProgression.length === 0
             ? "450px"
