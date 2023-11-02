@@ -307,57 +307,60 @@ function Tab({ tab, refetchTab }: ITab) {
           sectionProgression.length > 0 ||
           chords.length > 0 ||
           strummingPatterns.length > 0) && (
-        <div className="baseVertFlex relative w-full gap-4">
-          <SectionProgression />
+          <div className="baseVertFlex relative w-full gap-4">
+            <SectionProgression />
 
-          <Chords />
+            <Chords />
 
-          <StrummingPatterns />
+            <StrummingPatterns />
 
-          <Button
-            variant={"secondary"}
-            className="baseFlex !flex-nowrap gap-2 lg:absolute lg:right-7 lg:top-0"
-            onClick={() => setShowEffectGlossaryModal(true)}
-          >
-            Effect glossary
-            <FaBook className="h-4 w-4" />
-          </Button>
+            <Button
+              variant={"secondary"}
+              className="baseFlex !flex-nowrap gap-2 lg:absolute lg:right-7 lg:top-0"
+              onClick={() => setShowEffectGlossaryModal(true)}
+            >
+              Effect glossary
+              <FaBook className="h-4 w-4" />
+            </Button>
 
-          {editing && (
-            <Popover>
+            {editing && (
+              <Popover>
                 <PopoverTrigger className="baseFlex absolute bottom-5 right-3 mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:bottom-3 sm:right-7 ">
-                <HiOutlineLightBulb className="h-5 w-5 " />
-              </PopoverTrigger>
-              <PopoverContent
-                side="left"
-                className="baseVertFlex w-72 gap-2 p-2 text-sm shadow-lg"
-              >
-                <div className="baseFlex gap-2 font-semibold">
-                  <HiOutlineInformationCircle className="h-4 w-4" />
-                  Tip
-                </div>
-                <p>
-                  If performance degrades while playing generated audio, try
-                  minimizing sections that aren&apos;t being played or opt to
-                  listen in preview mode.
-                </p>
-              </PopoverContent>
-            </Popover>
-          )}
+                  <HiOutlineLightBulb className="h-5 w-5 " />
+                </PopoverTrigger>
+                <PopoverContent
+                  side="left"
+                  className="baseVertFlex w-72 gap-2 p-2 text-sm shadow-lg"
+                >
+                  <div className="baseFlex gap-2 font-semibold">
+                    <HiOutlineInformationCircle className="h-4 w-4" />
+                    Tip
+                  </div>
+                  <p>
+                    If performance degrades while playing generated audio, try
+                    minimizing sections that aren&apos;t being played or opt to
+                    listen in preview mode.
+                  </p>
+                </PopoverContent>
+              </Popover>
+            )}
             <Separator className="w-[96%]" />
-        </div>
+          </div>
         )}
 
         {tabData.map((section, index) => (
           <motion.div
             key={section.id}
+            // TODO: I don't know why the spring transition only occurs when
+            // the section has something in it (not empty)... doesn't seem like that
+            // should make a difference but it does for some reason
             {...(editing &&
               !preventFramerLayoutShift &&
               !forceCloseSectionAccordions && { layout: "position" })}
             variants={opacityAndScaleVariants}
-            // initial="closed"
-            // animate="expanded"
-            // exit="closed"
+            initial="closed"
+            animate="expanded"
+            exit="closed"
             transition={{
               layout: {
                 type: "spring",
