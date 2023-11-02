@@ -46,7 +46,7 @@ model Tab {
 
 model Like {
     id                Int    @id @default(autoincrement())
-    tab               Tab    @relation(fields: [tabId], references: [id])
+    tab               Tab    @relation(fields: [tabId], references: [id], onDelete: Cascade)
     tabId             Int
     tabArtist         Artist @relation("likeRecipient", fields: [tabArtistId], references: [userId], onDelete: Cascade)
     tabArtistId       String
