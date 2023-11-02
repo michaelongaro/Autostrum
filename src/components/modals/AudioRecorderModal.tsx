@@ -75,6 +75,10 @@ function AudioRecorderModal() {
     setRecordedAudioFile,
     setShouldUpdateInS3,
     setPreventFramerLayoutShift,
+    setRecordedAudioBuffer,
+    audioMetadata,
+    setAudioMetadata,
+    setCurrentChordIndex,
   } = useTabStore(
     (state) => ({
       id: state.id,
@@ -85,6 +89,10 @@ function AudioRecorderModal() {
       setRecordedAudioFile: state.setRecordedAudioFile,
       setShouldUpdateInS3: state.setShouldUpdateInS3,
       setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
+      setRecordedAudioBuffer: state.setRecordedAudioBuffer,
+      audioMetadata: state.audioMetadata,
+      setAudioMetadata: state.setAudioMetadata,
+      setCurrentChordIndex: state.setCurrentChordIndex,
     }),
     shallow
   );
@@ -143,6 +151,18 @@ function AudioRecorderModal() {
   }, [togglePauseResume, recordingTime]);
 
   function handleSaveRecording() {
+    setRecordedAudioBuffer(null); // always want to flush this out
+
+    if (!localHasRecordedAudio) {
+      setAudioMetadata({
+        ...audioMetadata,
+        location: null,
+        type: "Generated",
+        playing: false,
+      });
+      setCurrentChordIndex(0);
+    }
+
     setHasRecordedAudio(localHasRecordedAudio);
     setRecordedAudioFile(localRecordedAudioFile);
     setShouldUpdateInS3(true);
@@ -190,7 +210,7 @@ function AudioRecorderModal() {
           </div>
 
           <div className="baseVertFlex lightestGlassmorphic max-w-[23rem] gap-2 rounded-md p-2 text-sm">
-            <HiOutlineInformationCircle className="h-6 w-6" />
+            <HiOutlineInformationCircle className="h-5 w-5" />
             <p className="text-center">
               Thank you for creating an official recording of your tab to play
               along with! Make sure your microphone is closeby and has a clear

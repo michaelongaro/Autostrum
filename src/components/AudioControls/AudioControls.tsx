@@ -333,6 +333,12 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     audioContext,
   ]);
 
+  // a little overkill, but didn't want to expose tabProgressValue as a store value to be able
+  // to update from <AudioRecorderModal />, so we settled with this.
+  useEffect(() => {
+    setTabProgressValue(0);
+  }, [audioMetadata.type]);
+
   function resetAudioStateOnSourceChange(
     audioTypeBeingChangedTo: "Generated" | "Artist recording"
   ) {
@@ -823,7 +829,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                 audioMetadata.type === "Artist recording"
                   ? recordedAudioBuffer?.duration === 0
                     ? 1
-                    : recordedAudioBuffer?.duration
+                    : Math.floor(recordedAudioBuffer?.duration)
                   : currentlyPlayingMetadata
                   ? currentlyPlayingMetadata.at(-1)?.elapsedSeconds
                   : 1
@@ -901,7 +907,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               {formatSecondsToMinutes(
                 audioMetadata.type === "Artist recording"
                   ? recordedAudioBuffer?.duration
-                    ? recordedAudioBuffer.duration
+                    ? Math.floor(recordedAudioBuffer.duration)
                     : 0
                   : currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
               )}
