@@ -203,7 +203,7 @@ function StrummingPatterns() {
                           <Button
                             variant={"ghost"}
                             size={"sm"}
-                            className="baseFlex h-8 w-10 rounded-none border-b-[1px] p-1"
+                            className="baseFlex h-8 w-10 rounded-none rounded-tr-[1px] border-b-[1px] p-1"
                             onClick={() => {
                               pauseAudio();
                               setStrummingPatternBeingEdited({
@@ -230,7 +230,7 @@ function StrummingPatterns() {
                               <Button
                                 variant={"destructive"}
                                 size="sm"
-                                className="baseFlex h-8 w-10 rounded-none border-t-[1px] p-0"
+                                className="baseFlex h-8 w-10 rounded-none rounded-br-[3px] border-t-[1px] p-0"
                               >
                                 <FaTrashAlt className="h-4 w-4" />
                               </Button>
