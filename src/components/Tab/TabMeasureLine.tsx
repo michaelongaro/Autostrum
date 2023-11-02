@@ -51,9 +51,10 @@ function TabMeasureLine({
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const { editing, getTabData, setTabData } = useTabStore(
+  const { editing, bpm, getTabData, setTabData } = useTabStore(
     (state) => ({
       editing: state.editing,
+      bpm: state.bpm,
       getTabData: state.getTabData,
       setTabData: state.setTabData,
     }),
@@ -356,7 +357,9 @@ function TabMeasureLine({
                       placeholder={(getTabData()[sectionIndex]?.data[
                         subSectionIndex
                       ]?.bpm === -1
-                        ? "75"
+                        ? bpm === -1
+                          ? ""
+                          : bpm.toString()
                         : getTabData()[sectionIndex]?.data[subSectionIndex]?.bpm
                       ).toString()}
                       value={

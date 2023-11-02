@@ -109,6 +109,7 @@ function PreviewSectionContainer({
                   subSectionData={subSection}
                   subSectionIndex={index}
                   sectionIndex={sectionIndex}
+                  baselineBpm={baselineBpm}
                 />
               </div>
             )}
@@ -150,6 +151,7 @@ function PreviewSubSectionContainer({
             subSectionData={subSectionData}
             subSectionIndex={subSectionIndex}
             sectionIndex={sectionIndex}
+            baselineBpm={baselineBpm}
           >
             {currentSubSectionisPlaying && (
               <HighlightTabColumnWrapper
@@ -532,6 +534,7 @@ interface PreviewTabSection {
   subSectionData: TabSection;
   subSectionIndex: number;
   sectionIndex: number;
+  baselineBpm: number;
   children?: ReactNode;
 }
 
@@ -540,6 +543,7 @@ function PreviewTabSection({
   subSectionData,
   subSectionIndex,
   sectionIndex,
+  baselineBpm,
   children,
 }: PreviewTabSection) {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
@@ -591,6 +595,7 @@ function PreviewTabSection({
                 tabSectionData={subSectionData}
                 columnIndex={index}
                 columnData={column}
+                baselineBpm={baselineBpm}
               />
             ) : (
               <PreviewTabNotesColumn
@@ -619,18 +624,15 @@ interface PreviewTabMeasureLine {
   tabSectionData: TabSection;
   columnIndex: number;
   columnData: string[];
+  baselineBpm: number;
 }
 
 function PreviewTabMeasureLine({
   tabSectionData,
   columnIndex,
   columnData,
+  baselineBpm,
 }: PreviewTabMeasureLine) {
-  // alternatively, when changing one measure line, you would at the same time seek through the tabData in your
-  // tabsection to change the next one too? hmm
-
-  // legit not bad idea ^^^
-
   const conditionalBaselineBpmToShow = useMemo(() => {
     const tabSection = tabSectionData.data;
     const tabSectionBpm = tabSectionData.bpm;
@@ -638,12 +640,12 @@ function PreviewTabMeasureLine({
     for (let i = columnIndex - 1; i > 0; i--) {
       const bpm = parseInt(tabSection[i][7]);
       if (bpm > 0) {
-        return (tabSectionBpm === -1 ? "75" : tabSectionBpm).toString();
+        return (tabSectionBpm === -1 ? baselineBpm : tabSectionBpm).toString();
       }
     }
 
     return null;
-  }, [columnIndex, tabSectionData]);
+  }, [columnIndex, tabSectionData, baselineBpm]);
 
   return (
     <div className="baseVertFlex relative h-[271px]">
