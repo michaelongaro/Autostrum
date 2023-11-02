@@ -44,10 +44,10 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
 
   const positions: [number, number, number][] = useMemo(() => {
     const positionBases = [
-      [-25, 10, 0],
+      [-20, 15, 0],
       [0, 15, 0],
       [25, 5, 0],
-      [-10, -30, 0],
+      [-10, -25, 0],
       [15, -20, 0],
       [-27, -15, 0],
     ];
@@ -67,12 +67,12 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
   const radii: [number, number, number, number, number, number] =
     useMemo(() => {
       return [
-        Math.random() * 8 + 3.5,
-        Math.random() * 8 + 3.5,
-        Math.random() * 8 + 3.5,
-        Math.random() * 8 + 3.5,
-        Math.random() * 8 + 3.5,
-        Math.random() * 8 + 3.5,
+        Math.random() * 8.5 + 3.5,
+        Math.random() * 8.5 + 3.5,
+        Math.random() * 8.5 + 3.5,
+        Math.random() * 8.5 + 3.5,
+        Math.random() * 8.5 + 3.5,
+        Math.random() * 8.5 + 3.5,
       ];
     }, []);
 
