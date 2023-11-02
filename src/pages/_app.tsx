@@ -35,7 +35,7 @@ function MyApp({ Component, pageProps }: ComponentWithPageLayout) {
     >
       <NextProgress
         color={"#be185d"}
-        height={3}
+        height={4}
         delay={300}
         disableSameRoute
         options={{ showSpinner: false }}
