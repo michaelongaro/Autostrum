@@ -21,6 +21,11 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import {
   useTabStore,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
@@ -30,6 +35,7 @@ import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import Chord from "./Chord";
 
 interface StrummingPattern {
   data: StrummingPatternType;
@@ -534,16 +540,48 @@ function StrummingPattern({
 
               {/* chord viewer */}
               {mode === "viewingWithChordNames" && (
-                <p
-                  style={{
-                    color: highlightChord(strumIndex)
-                      ? "hsl(333, 71%, 51%)"
-                      : "hsl(327, 73%, 97%)",
-                  }}
-                  className="mx-0.5 mb-1 h-6 font-semibold transition-colors"
-                >
-                  {chordSequenceData?.[strumIndex]}
-                </p>
+                <Popover>
+                  <PopoverTrigger
+                    asChild
+                    disabled={chordSequenceData?.[strumIndex] === ""}
+                    className="baseFlex rounded-md transition-all hover:bg-white/20 active:hover:bg-white/10"
+                  >
+                    <Button
+                      variant={"ghost"}
+                      className="baseFlex mb-1 h-6 px-1 py-0"
+                    >
+                      <p
+                        style={{
+                          color: highlightChord(strumIndex)
+                            ? "hsl(333, 71%, 51%)"
+                            : "hsl(327, 73%, 97%)",
+                        }}
+                        className="mx-0.5 h-6 text-base font-semibold transition-colors"
+                      >
+                        {chordSequenceData?.[strumIndex]}
+                      </p>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side="bottom"
+                    className="w-40 bg-pink-300 p-0 text-pink-50 shadow-lg"
+                  >
+                    <Chord
+                      chordBeingEdited={{
+                        index: -1,
+                        value:
+                          chords[
+                            chords.findIndex(
+                              (chord) =>
+                                chord.name === chordSequenceData?.[strumIndex]
+                            ) ?? 0
+                          ],
+                      }}
+                      editing={false}
+                      highlightChord={false}
+                    />
+                  </PopoverContent>
+                </Popover>
               )}
 
               <div className="baseFlex !flex-nowrap">

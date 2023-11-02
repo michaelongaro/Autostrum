@@ -56,6 +56,7 @@ function SectionContainer({
   const {
     id,
     bpm,
+    chords,
     strummingPatterns,
     tabData,
     getTabData,
@@ -72,6 +73,7 @@ function SectionContainer({
     (state) => ({
       id: state.id,
       bpm: state.bpm,
+      chords: state.chords,
       strummingPatterns: state.strummingPatterns,
       tabData: state.tabData,
       getTabData: state.getTabData,
@@ -393,6 +395,7 @@ function SectionContainer({
                           currentlyPlayingSectionIndex === sectionIndex &&
                           currentlyPlayingSubSectionIndex === index
                         }
+                        chords={chords}
                       />
                     }
                   >

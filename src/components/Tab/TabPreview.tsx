@@ -8,9 +8,15 @@ import {
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 import type {
   ChordSection,
   ChordSequence,
+  Chord as ChordType,
   Section,
   StrummingPattern,
   TabSection,
@@ -18,6 +24,7 @@ import type {
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
 import { parse, toString } from "~/utils/tunings";
 import HighlightTabColumnWrapper from "./HighlightTabColumnWrapper";
+import Chord from "./Chord";
 
 // ---WARNING---: I really didn't want to have to do this approach, but this is the only way
 // I could avoid the horrendous performance/rerender issues that would happen when many
@@ -30,9 +37,10 @@ interface TabPreview {
   tabData: Section[];
   baselineBpm: number;
   tuning: string;
+  chords: ChordType[];
 }
 
-function TabPreview({ tabData, baselineBpm, tuning }: TabPreview) {
+function TabPreview({ tabData, baselineBpm, tuning, chords }: TabPreview) {
   return (
     <div className="mt-4 w-full">
       {tabData.map((section, index) => (
@@ -42,6 +50,7 @@ function TabPreview({ tabData, baselineBpm, tuning }: TabPreview) {
           tuning={tuning}
           sectionIndex={index}
           sectionData={section}
+          chords={chords}
         />
       ))}
     </div>
@@ -53,6 +62,7 @@ interface PreviewSectionContainer {
   tuning: string;
   sectionIndex: number;
   sectionData: Section;
+  chords: ChordType[];
 }
 
 function PreviewSectionContainer({
@@ -60,6 +70,7 @@ function PreviewSectionContainer({
   tuning,
   sectionData,
   sectionIndex,
+  chords,
 }: PreviewSectionContainer) {
   return (
     <div className="baseVertFlex w-full gap-4 px-2 pb-4 md:px-7">
@@ -101,6 +112,7 @@ function PreviewSectionContainer({
               <PreviewChordSection
                 baselineBpm={baselineBpm}
                 subSectionData={subSection}
+                chords={chords}
               />
             ) : (
               <div className="baseVertFlex relative h-full w-full !items-start">
@@ -127,6 +139,7 @@ interface PreviewSubSectionContainer {
   subSectionIndex: number;
   subSectionData: TabSection | ChordSection;
   currentSubSectionisPlaying?: boolean;
+  chords: ChordType[];
 }
 
 function PreviewSubSectionContainer({
@@ -136,6 +149,7 @@ function PreviewSubSectionContainer({
   subSectionIndex,
   subSectionData,
   currentSubSectionisPlaying,
+  chords,
 }: PreviewSubSectionContainer) {
   return (
     <>
@@ -143,6 +157,7 @@ function PreviewSubSectionContainer({
         <PreviewChordSection
           baselineBpm={baselineBpm}
           subSectionData={subSectionData}
+          chords={chords}
         />
       ) : (
         <div className="baseVertFlex relative h-full w-full !items-start">
@@ -180,11 +195,13 @@ export const MemoizedPreviewSubSectionContainer = memo(
 interface PreviewChordSection {
   baselineBpm: number;
   subSectionData: ChordSection;
+  chords: ChordType[];
 }
 
 function PreviewChordSection({
   baselineBpm,
   subSectionData,
+  chords,
 }: PreviewChordSection) {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
@@ -246,7 +263,10 @@ function PreviewChordSection({
               </div>
             )}
 
-            <PreviewChordSequence chordSequenceData={chordSequence} />
+            <PreviewChordSequence
+              chordSequenceData={chordSequence}
+              chords={chords}
+            />
           </div>
         ))}
       </div>
@@ -256,9 +276,13 @@ function PreviewChordSection({
 
 interface PreviewChordSequence {
   chordSequenceData: ChordSequence;
+  chords: ChordType[];
 }
 
-function PreviewChordSequence({ chordSequenceData }: PreviewChordSequence) {
+function PreviewChordSequence({
+  chordSequenceData,
+  chords,
+}: PreviewChordSequence) {
   return (
     <div
       style={{
@@ -270,12 +294,11 @@ function PreviewChordSequence({ chordSequenceData }: PreviewChordSequence) {
         chordSequenceData={chordSequenceData.data}
         data={chordSequenceData.strummingPattern}
         mode={"viewingWithChordNames"}
+        chords={chords}
       />
     </div>
   );
 }
-
-// mode shoudl only ever be viewingWithChordNames btw
 
 interface PreviewStrummingPattern {
   chordSequenceData: string[];
@@ -286,12 +309,14 @@ interface PreviewStrummingPattern {
     | "viewingWithChordNames"
     | "viewing"
     | "viewingInSelectDropdown";
+  chords: ChordType[];
 }
 
 function PreviewStrummingPattern({
   chordSequenceData,
   data,
   mode,
+  chords,
 }: PreviewStrummingPattern) {
   const patternHasPalmMuting = useCallback(() => {
     return data.strums?.some((strum) => strum.palmMute !== "");
@@ -385,14 +410,46 @@ function PreviewStrummingPattern({
 
               {/* chord viewer */}
 
-              <p
-                style={{
-                  color: "hsl(327, 73%, 97%)",
-                }}
-                className="mx-0.5 mb-1 h-6 font-semibold transition-colors"
-              >
-                {chordSequenceData?.[strumIndex]}
-              </p>
+              <Popover>
+                <PopoverTrigger
+                  asChild
+                  disabled={chordSequenceData?.[strumIndex] === ""}
+                  className="baseFlex rounded-md transition-all hover:bg-white/20 active:hover:bg-white/10"
+                >
+                  <Button
+                    variant={"ghost"}
+                    className="baseFlex mb-1 h-6 px-1 py-0"
+                  >
+                    <p
+                      style={{
+                        color: "hsl(327, 73%, 97%)",
+                      }}
+                      className="mx-0.5  h-6 text-base font-semibold transition-colors"
+                    >
+                      {chordSequenceData?.[strumIndex]}
+                    </p>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  side="bottom"
+                  className="w-40 bg-pink-300 p-0 text-pink-50 shadow-lg"
+                >
+                  <Chord
+                    chordBeingEdited={{
+                      index: -1,
+                      value:
+                        chords[
+                          chords.findIndex(
+                            (chord) =>
+                              chord.name === chordSequenceData?.[strumIndex]
+                          ) ?? 0
+                        ],
+                    }}
+                    editing={false}
+                    highlightChord={false}
+                  />
+                </PopoverContent>
+              </Popover>
 
               <div className="baseFlex !flex-nowrap">
                 <div

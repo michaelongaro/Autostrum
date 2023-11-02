@@ -919,21 +919,26 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                   <SelectGroup>
                     <SelectLabel>Genres</SelectLabel>
 
-                    {Object.values(genreList).map((genre) => {
-                      return (
-                        <SelectItem key={genre.id} value={genre.id.toString()}>
-                          <div className="baseFlex gap-2">
-                            <div
-                              style={{
-                                backgroundColor: genre.color,
-                              }}
-                              className="h-3 w-3 rounded-full"
-                            ></div>
-                            {genre.name}
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
+                    {Object.values(genreList)
+                      .slice(0, Object.values(genreList).length - 1)
+                      .map((genre) => {
+                        return (
+                          <SelectItem
+                            key={genre.id}
+                            value={genre.id.toString()}
+                          >
+                            <div className="baseFlex gap-2">
+                              <div
+                                style={{
+                                  backgroundColor: genre.color,
+                                }}
+                                className="h-3 w-3 rounded-full"
+                              ></div>
+                              {genre.name}
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -1339,7 +1344,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                   } baseVertFlex !items-start gap-2`}
                 >
                   <div className="font-semibold">Tuning</div>
-                  <div className="rounded-md border-2 border-pink-50 px-2 py-2.5 text-sm font-semibold md:px-4 md:text-base">
+                  <div className="rounded-md border-2 border-pink-50 px-2 py-2.5 text-sm font-semibold md:px-4 md:py-2 md:text-base">
                     {toString(parse(tuning), { pad: 2 })}
                   </div>
                 </div>
@@ -1411,6 +1416,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                   baselineBpm={bpm}
                   tuning={tuning}
                   tabData={minifiedTabData}
+                  chords={chords}
                 />
               </div>
             </div>
