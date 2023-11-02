@@ -17,7 +17,7 @@ function Hero({
 }) {
   const { data: fetchedTab, refetch: refetchTab } =
     api.tab.getMinimalTabById.useQuery({
-      id: 80,
+      id: 83,
     });
 
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
