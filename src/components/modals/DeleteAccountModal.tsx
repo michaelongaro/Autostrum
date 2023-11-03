@@ -22,7 +22,7 @@ const backdropVariants = {
 };
 
 function DeleteAccountModal() {
-  const { push } = useRouter();
+  const { push, reload } = useRouter();
   const ctx = api.useContext();
   const { userId } = useAuth();
 
@@ -71,7 +71,9 @@ function DeleteAccountModal() {
         setShowDeleteCheckmark(true);
 
         setTimeout(() => {
-          void push(`/`);
+          void push(`/`).then(() => {
+            void reload();
+          });
         }, 250);
 
         setTimeout(() => {
