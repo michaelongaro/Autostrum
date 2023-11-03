@@ -135,7 +135,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
 
     const {
       data: tabCreator,
-      isLoading: loadingTabCreator,
+      isFetching: fetchingTabCreator,
       refetch: refetchTabCreator,
     } = api.artist.getByIdOrUsername.useQuery(
       {
@@ -361,7 +361,8 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                 !asPath.includes("/tabs") &&
                 asPath !== "/explore" && (
                   <Button
-                    asChild
+                    disabled={!tabCreator}
+                    {...(tabCreator && { asChild: true })}
                     variant={"ghost"}
                     className="h-full px-3 py-1"
                   >
@@ -370,7 +371,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                       className="baseFlex !flex-nowrap !justify-start gap-2"
                     >
                       <div className="grid min-h-[32px] min-w-[32px] grid-cols-1 grid-rows-1">
-                        {tabCreator || loadingTabCreator ? (
+                        {tabCreator || fetchingTabCreator ? (
                           <>
                             {tabCreator && (
                               <Image
@@ -408,7 +409,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                           </div>
                         )}
                       </div>
-                      {tabCreator || loadingTabCreator ? (
+                      {tabCreator || fetchingTabCreator ? (
                         <div className="grid grid-cols-1 grid-rows-1">
                           <>
                             {tabCreator ? (
@@ -421,7 +422,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                           </>
                         </div>
                       ) : (
-                        <span className="italic text-pink-200">Anonymous</span>
+                        <span className="italic text-pink-50">Anonymous</span>
                       )}
                     </Link>
                   </Button>

@@ -1114,9 +1114,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
                             </>
                           </div>
                         ) : (
-                          <span className="italic text-pink-200">
-                            Anonymous
-                          </span>
+                          <span className="italic text-pink-50">Anonymous</span>
                         )}
                       </Link>
                     </Button>

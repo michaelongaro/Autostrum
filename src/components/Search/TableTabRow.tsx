@@ -229,7 +229,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
         <TableCell>
           <Button
             disabled={!tabCreator}
-            // asChild // hmm want to use asChild but it overrides the disabled prop
+            {...(tabCreator && { asChild: true })}
             variant={"ghost"}
             className="px-3 py-1"
           >
@@ -288,7 +288,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
                   </>
                 </div>
               ) : (
-                <span className="italic text-pink-200">Anonymous</span>
+                <span className="italic text-pink-50">Anonymous</span>
               )}
             </Link>
           </Button>
