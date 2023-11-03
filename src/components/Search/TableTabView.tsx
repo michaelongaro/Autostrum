@@ -117,7 +117,9 @@ function TableTabView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="baseVertFlex w-full gap-4 p-4 transition-all"
+      className={`baseVertFlex  w-full gap-4 overflow-y-auto p-4 transition-all ${
+        hideLikesAndPlayButtons ? "max-h-[70vh]" : ""
+      }`}
     >
       <Table>
         {/* ideally want table to be rounded, but wasn't having much luck. look up online
