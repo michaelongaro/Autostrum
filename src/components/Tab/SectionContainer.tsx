@@ -101,6 +101,21 @@ function SectionContainer({
     }
   }, [forceCloseSectionAccordions, setForceCloseSectionAccordions]);
 
+  useEffect(() => {
+    if (
+      audioMetadata.playing &&
+      audioMetadata.type === "Generated" &&
+      currentlyPlayingSectionIndex === sectionIndex
+    ) {
+      setAccordionOpen("opened");
+    }
+  }, [
+    audioMetadata.playing,
+    audioMetadata.type,
+    currentlyPlayingSectionIndex,
+    sectionIndex,
+  ]);
+
   function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.value.length > 25) return;
 
@@ -201,19 +216,6 @@ function SectionContainer({
     setTabData(newTabData);
   }
 
-  function getAccordionOpenValue() {
-    // auto opens accordion if section is playing
-    if (
-      audioMetadata.playing &&
-      audioMetadata.type === "Generated" &&
-      currentlyPlayingSectionIndex === sectionIndex
-    ) {
-      return "opened";
-    }
-
-    return forceCloseSectionAccordions ? "closed" : accordionOpen;
-  }
-
   return (
     <div
       style={{
@@ -224,7 +226,7 @@ function SectionContainer({
       <Accordion
         type="single"
         collapsible
-        value={getAccordionOpenValue()}
+        value={accordionOpen}
         onValueChange={(value) => {
           setAccordionOpen(value === "opened" ? value : "closed");
         }}
