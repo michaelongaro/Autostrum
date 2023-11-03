@@ -50,7 +50,7 @@ function TabCardSkeleton({
         }`}
       >
         {/* title, date, and genre */}
-        <div className="baseVertFlex mt-2 !items-start gap-2 pb-1 pl-2">
+        <div className="baseVertFlex mt-[6px] !items-start gap-2 pb-1 pl-2">
           <div className="h-6 w-48 animate-pulse rounded-md bg-pink-300"></div>
           <div className="baseFlex gap-2">
             <div className="h-5 w-16 animate-pulse rounded-md bg-pink-300"></div>
@@ -67,7 +67,7 @@ function TabCardSkeleton({
           {/* artist link */}
           {!hideArtist && (
             <div
-              className={`baseFlex w-1/2 !flex-nowrap !justify-start gap-2 pl-2 ${
+              className={`baseFlex w-1/2 !flex-nowrap !justify-start gap-2 pl-5 ${
                 hideLikesAndPlayButtons ? "" : "mb-1"
               }`}
             >
