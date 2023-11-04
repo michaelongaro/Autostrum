@@ -391,7 +391,7 @@ function SearchResults({
               style={{
                 zIndex: asPath.includes("/preferences") ? 60 : 50,
               }}
-              className="baseVertFlex fixed bottom-0 left-0 right-0 !items-start gap-2 bg-pink-50 p-4 pb-6 text-pink-950"
+              className="baseVertFlex fixed bottom-0 left-0 right-0 !items-start gap-4 bg-pink-50 p-4 pb-6 text-pink-950"
             >
               <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
 

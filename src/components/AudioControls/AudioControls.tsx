@@ -944,7 +944,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               </Drawer.Trigger>
               <Drawer.Portal>
                 <Drawer.Overlay className="fixed inset-0 z-50 bg-black/50" />
-                <Drawer.Content className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-2 bg-pink-50 p-4 pb-6 text-pink-950">
+                <Drawer.Content className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 bg-pink-50 p-4 pb-6 text-pink-950">
                   <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
 
                   <Label>Audio settings</Label>
