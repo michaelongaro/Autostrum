@@ -32,26 +32,6 @@ import SectionContainer from "./SectionContainer";
 import StrummingPatterns from "./StrummingPatterns";
 import CustomTuningModal from "../modals/CustomTuningModal";
 
-const opacityAndScaleVariants = {
-  expanded: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      ease: "easeInOut",
-      duration: 0.25,
-    },
-  },
-  closed: {
-    opacity: 0,
-    scale: 0.85,
-    transition: {
-      ease: "easeInOut",
-      duration: 0.25,
-    },
-  },
-};
-// not sure of best way to avoid having the same name for interface and component
-
 export interface RefetchTab {
   refetchTab: <TPageData>(
     options?: RefetchOptions & RefetchQueryFilters<TPageData>
@@ -357,10 +337,6 @@ function Tab({ tab, refetchTab }: ITab) {
             {...(editing &&
               !preventFramerLayoutShift &&
               !forceCloseSectionAccordions && { layout: "position" })}
-            variants={opacityAndScaleVariants}
-            initial="closed"
-            animate="expanded"
-            exit="closed"
             transition={{
               layout: {
                 type: "spring",
