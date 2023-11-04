@@ -25,6 +25,7 @@ import renderStrummingGuide from "~/utils/renderStrummingGuide";
 import { parse, toString } from "~/utils/tunings";
 import Chord from "./Chord";
 import HighlightTabColumnWrapper from "./HighlightTabColumnWrapper";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 
 // ---WARNING---: I really didn't want to have to do this approach, but this is the only way
 // I could avoid the horrendous performance/rerender issues that would happen when many
@@ -113,6 +114,8 @@ function PreviewSectionContainer({
                 baselineBpm={baselineBpm}
                 subSectionData={subSection}
                 chords={chords}
+                sectionIndex={sectionIndex}
+                subSectionIndex={index}
               />
             ) : (
               <div className="baseVertFlex relative h-full w-full !items-start">
@@ -151,6 +154,8 @@ function PreviewSubSectionContainer({
   currentSubSectionisPlaying,
   chords,
 }: PreviewSubSectionContainer) {
+  const enableHighlighting = useGetLocalStorageValues().enableHighlighting;
+
   return (
     <>
       {subSectionData.type === "chord" ? (
@@ -158,6 +163,8 @@ function PreviewSubSectionContainer({
           baselineBpm={baselineBpm}
           subSectionData={subSectionData}
           chords={chords}
+          sectionIndex={sectionIndex}
+          subSectionIndex={subSectionIndex}
         />
       ) : (
         <div className="baseVertFlex relative h-full w-full !items-start">
@@ -168,7 +175,7 @@ function PreviewSubSectionContainer({
             sectionIndex={sectionIndex}
             baselineBpm={baselineBpm}
           >
-            {currentSubSectionisPlaying && (
+            {currentSubSectionisPlaying && enableHighlighting && (
               <HighlightTabColumnWrapper
                 sectionIndex={sectionIndex}
                 subSectionIndex={subSectionIndex}
@@ -196,12 +203,16 @@ interface PreviewChordSection {
   baselineBpm: number;
   subSectionData: ChordSection;
   chords: ChordType[];
+  sectionIndex: number;
+  subSectionIndex: number;
 }
 
 function PreviewChordSection({
   baselineBpm,
   subSectionData,
   chords,
+  sectionIndex,
+  subSectionIndex,
 }: PreviewChordSection) {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
@@ -227,7 +238,7 @@ function PreviewChordSection({
       className="baseVertFlex lightestGlassmorphic relative h-full !justify-start rounded-md"
     >
       <div className="baseFlex w-auto !items-end !justify-start gap-8">
-        {subSectionData.data.map((chordSequence) => (
+        {subSectionData.data.map((chordSequence, index) => (
           <Fragment key={`${chordSequence.id}wrapper`}>
             {chordSequence.data.length > 0 ? (
               <div className="baseVertFlex w-auto !items-start">
@@ -265,6 +276,9 @@ function PreviewChordSection({
                 <PreviewChordSequence
                   chordSequenceData={chordSequence}
                   chords={chords}
+                  sectionIndex={sectionIndex}
+                  subSectionIndex={subSectionIndex}
+                  chordSequenceIndex={index}
                 />
               </div>
             ) : (
@@ -280,11 +294,17 @@ function PreviewChordSection({
 interface PreviewChordSequence {
   chordSequenceData: ChordSequence;
   chords: ChordType[];
+  sectionIndex: number;
+  subSectionIndex: number;
+  chordSequenceIndex: number;
 }
 
 function PreviewChordSequence({
   chordSequenceData,
   chords,
+  sectionIndex,
+  subSectionIndex,
+  chordSequenceIndex,
 }: PreviewChordSequence) {
   return (
     <div
@@ -298,6 +318,9 @@ function PreviewChordSequence({
         data={chordSequenceData.strummingPattern}
         mode={"viewingWithChordNames"}
         chords={chords}
+        sectionIndex={sectionIndex}
+        subSectionIndex={subSectionIndex}
+        chordSequenceIndex={chordSequenceIndex}
       />
     </div>
   );
@@ -313,6 +336,9 @@ interface PreviewStrummingPattern {
     | "viewing"
     | "viewingInSelectDropdown";
   chords: ChordType[];
+  sectionIndex: number;
+  subSectionIndex: number;
+  chordSequenceIndex: number;
 }
 
 function PreviewStrummingPattern({
@@ -320,6 +346,9 @@ function PreviewStrummingPattern({
   data,
   mode,
   chords,
+  sectionIndex,
+  subSectionIndex,
+  chordSequenceIndex,
 }: PreviewStrummingPattern) {
   const patternHasPalmMuting = useCallback(() => {
     return data.strums?.some((strum) => strum.palmMute !== "");
@@ -387,7 +416,13 @@ function PreviewStrummingPattern({
         className="baseFlex relative mb-1 !justify-start"
       >
         {data?.strums?.map((strum, strumIndex) => (
-          <div key={strumIndex} className="baseFlex">
+          <div
+            key={strumIndex}
+            id={`tabPreview-section${sectionIndex}-subSection${subSectionIndex}-chordSequence${
+              chordSequenceIndex ?? ""
+            }-chord${strumIndex}`}
+            className="baseFlex"
+          >
             <div
               style={{
                 marginTop:
@@ -693,14 +728,27 @@ function PreviewTabMeasureLine({
   columnData,
   baselineBpm,
 }: PreviewTabMeasureLine) {
+  // TODO: I honestly don't like the general approach to defining bpms on measure lines
+  // but the edge cases of getting things working right are not trivial...
   const conditionalBaselineBpmToShow = useMemo(() => {
     const tabSection = tabSectionData.data;
     const tabSectionBpm = tabSectionData.bpm;
 
     for (let i = columnIndex - 1; i > 0; i--) {
-      const bpm = parseInt(tabSection[i][7]);
-      if (bpm > 0) {
+      if (tabSection[i]?.[8] !== "measureLine") continue;
+
+      const stringifiedBpm = tabSection[i][7];
+
+      if (stringifiedBpm === "") return null;
+
+      if (
+        parseInt(stringifiedBpm) > 0 &&
+        parseInt(stringifiedBpm) !==
+          (tabSectionBpm === -1 ? baselineBpm : tabSectionBpm)
+      ) {
         return (tabSectionBpm === -1 ? baselineBpm : tabSectionBpm).toString();
+      } else {
+        return null;
       }
     }
 
@@ -708,7 +756,9 @@ function PreviewTabMeasureLine({
   }, [columnIndex, tabSectionData, baselineBpm]);
 
   return (
-    <div className="baseVertFlex relative h-[271px]">
+    // I believe the conditional 1px of margin-top is due to some subpixel rendering issues
+    // this should keep everything aligned properly
+    <div className="baseVertFlex relative mt-[1px] h-[271px] md:mt-0">
       {columnData.map((note, index) => (
         <Fragment key={index}>
           {index === 0 && (

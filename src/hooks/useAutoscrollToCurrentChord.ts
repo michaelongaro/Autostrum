@@ -39,8 +39,14 @@ function useAutoscrollToCurrentChord({
 
     if (chordSequenceIndex !== undefined) {
       currentElement = document.getElementById(
-        `section${sectionIndex}-subSection${subSectionIndex}-chordSequence${chordSequenceIndex}-chord${chordIndex}`
+        `tabPreview-section${sectionIndex}-subSection${subSectionIndex}-chordSequence${chordSequenceIndex}-chord${chordIndex}`
       );
+
+      if (!currentElement) {
+        currentElement = document.getElementById(
+          `section${sectionIndex}-subSection${subSectionIndex}-chordSequence${chordSequenceIndex}-chord${chordIndex}`
+        );
+      }
     } else {
       currentElement = document.getElementById(
         `tabPreview-section${sectionIndex}-subSection${subSectionIndex}-chord${chordIndex}`

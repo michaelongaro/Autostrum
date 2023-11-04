@@ -30,6 +30,7 @@ import MiscellaneousControls from "./MiscellaneousControls";
 import TabSection from "./TabSection";
 import { Freeze } from "react-freeze";
 import { MemoizedPreviewSubSectionContainer } from "./TabPreview";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 
 interface SectionContainer {
   sectionIndex: number;
@@ -52,6 +53,8 @@ function SectionContainer({
   const [localTitle, setLocalTitle] = useState(sectionData.title);
   const [artificalPlayButtonTimeout, setArtificialPlayButtonTimeout] =
     useState(false);
+
+  const enableHighlighting = useGetLocalStorageValues().enableHighlighting;
 
   const {
     id,
@@ -381,8 +384,12 @@ function SectionContainer({
                   <Freeze
                     freeze={
                       !editing &&
+                      // TODO: create <ChordSection /> version of <HighlightChordWrapper />
+                      // so that we can use slimmed down more performant viewing version of chord
+                      // container w/ highlights
                       ((subSection.type === "chord" &&
-                        (currentlyPlayingSectionIndex !== sectionIndex ||
+                        (!enableHighlighting ||
+                          currentlyPlayingSectionIndex !== sectionIndex ||
                           currentlyPlayingSubSectionIndex !== index)) ||
                         subSection.type === "tab")
                     }
