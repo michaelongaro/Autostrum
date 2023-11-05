@@ -92,6 +92,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandleDisabled, setDrawerHandleDisabled] = useState(false);
 
   const oneSecondIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -940,7 +942,17 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               </Button>
             </>
           ) : (
-            <Drawer.Root dismissible={!drawerHandleDisabled}>
+            <Drawer.Root
+              open={drawerOpen}
+              onOpenChange={(open) => {
+                if (open && audioMetadata.playing) {
+                  pauseAudio();
+                }
+
+                setDrawerOpen(open);
+              }}
+              dismissible={!drawerHandleDisabled}
+            >
               <Drawer.Trigger asChild>
                 <Button size="sm" variant={"outline"} className="p-1">
                   <IoSettingsOutline className="h-6 w-6" />
