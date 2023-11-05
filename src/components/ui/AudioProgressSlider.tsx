@@ -71,7 +71,7 @@ const AudioProgressSlider = React.forwardRef<
       <SliderPrimitive.Track
         onPointerDown={() => setIsDragging(true)}
         onPointerUp={() => setIsDragging(false)}
-        className="relative h-2 w-full grow cursor-pointer overflow-hidden rounded-full bg-secondary"
+        className="relative h-[10px] w-full grow cursor-pointer overflow-hidden rounded-full bg-secondary"
       >
         <SliderPrimitive.Range className="active absolute h-full bg-primary" />
       </SliderPrimitive.Track>
