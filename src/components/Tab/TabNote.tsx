@@ -416,8 +416,14 @@ function TabNote({
 
     // chord effects
     else {
-      const chordEffects = /^[v^s]{1}(>|\.|>\.|\.>)?$/;
-      if (value !== "" && !chordEffects.test(value)) return;
+      const combinedEffects = /^[v^s]{1}(>|\.|>\.|\.>)?$/;
+      const justAccentedAndStaccato = /^(>|\.|>\.|\.>)$/;
+      if (
+        value !== "" &&
+        !combinedEffects.test(value) &&
+        !justAccentedAndStaccato.test(value)
+      )
+        return;
     }
 
     const newTabData = getTabData();
