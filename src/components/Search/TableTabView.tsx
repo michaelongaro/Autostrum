@@ -5,6 +5,8 @@ import { useEffect, type Dispatch, type SetStateAction, Fragment } from "react";
 import { TbPinned } from "react-icons/tb";
 import { useInView } from "react-intersection-observer";
 import { shallow } from "zustand/shallow";
+import { AiFillHeart } from "react-icons/ai";
+import { BsFillPlayFill } from "react-icons/bs";
 import {
   Table,
   TableBody,
@@ -126,18 +128,30 @@ function TableTabView({
         because I know on lyricize it was a bit of a hassle*/}
         <TableHeader>
           <TableRow>
+            {!hideLikesAndPlayButtons && (
+              <>
+                <TableHead>
+                  <div className="baseFlex">
+                    <BsFillPlayFill className="h-4 w-4" />
+                  </div>
+                </TableHead>
+                <TableHead>
+                  <div className="baseFlex">
+                    <AiFillHeart className="h-4 w-4" />
+                  </div>
+                </TableHead>
+              </>
+            )}
             <TableHead>Title</TableHead>
             {selectedPinnedTabId !== undefined && (
               <TableHead>
                 <TbPinned className="h-4 w-4" />
               </TableHead>
             )}
-            <TableHead>Genre</TableHead>
+            {genreId === 9 && <TableHead>Genre</TableHead>}
             <TableHead className="min-w-[175px]">Artist</TableHead>
             <TableHead>Date</TableHead>
             {/* empty headers for likes and play/pause columns */}
-            <TableHead></TableHead>
-            <TableHead></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="w-full">
