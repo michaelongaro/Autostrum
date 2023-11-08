@@ -20,11 +20,11 @@
 }
 
 .lightestGlassmorphic {
-  @apply backdrop-blur-sm shadow-lightGlassmorphic bg-gradient-to-br from-pink-500/40 via-pink-500/50 to-pink-500/70;
+  @apply backdrop-blur-sm shadow-lightestGlassmorphic bg-gradient-to-br from-pink-500/40 via-pink-500/50 to-pink-500/70;
 }
 
 .lightGlassmorphic {
-  @apply bg-pink-200 bg-opacity-20 backdrop-blur-sm shadow-sm;
+  @apply bg-pink-200 bg-opacity-[0.15] backdrop-blur-sm shadow-lightGlassmorphic;
 }
 
 .mobileNavbarGlassmorphic {
