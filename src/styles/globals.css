@@ -28,7 +28,7 @@
 }
 
 .mobileNavbarGlassmorphic {
-  @apply bg-pink-400 bg-opacity-95 backdrop-blur-xl shadow-sm;
+  @apply bg-gradient-to-br from-pink-400 to-pink-400/90 backdrop-blur-xl shadow-sm;
 }
 
 /* below are same gradients as background, but up by ~7% on lightness value of hsl to match the
@@ -37,7 +37,7 @@
 .headerBackgroundGradient {
   /* need to do this instead of one-liner for safari compatability 
      with background-attachment: fixed */
-  background: linear-gradient(315deg, hsl(353, 100%, 71%), hsl(331, 95%, 77%), hsl(298, 100%, 85%));
+  background: linear-gradient(315deg, hsl(331, 95%, 75%), hsl(298, 100%, 85%));
   background-repeat: no-repeat;
   background-position: center;
 }
@@ -45,7 +45,7 @@
 .footerBackgroundGradient {
   /* need to do this instead of one-liner for safari compatability 
      with background-attachment: fixed */
-  background: linear-gradient(315deg, hsl(6, 100%, 67%), hsl(349, 100%, 74%), hsl(328, 96%, 78%));
+  background: linear-gradient(315deg, hsl(6, 100%, 65%), hsl(349, 100%, 75%));
   background-repeat: no-repeat;
   background-position: center;
   box-shadow: 0 -2px 8px 0 rgb(0 0 0 / 0.06);
@@ -64,6 +64,16 @@
 @media (min-width: 480px) {
   .securedByClerkBreakpoint {
     @apply max-w-[95%];
+  }
+}
+
+@media(min-width: 768px) {
+  .headerBackgroundGradient {
+    background: linear-gradient(315deg, hsl(353, 100%, 71%), hsl(331, 95%, 77%), hsl(298, 100%, 85%));
+  }
+
+  .footerBackgroundGradient {
+    background: linear-gradient(315deg, hsl(6, 100%, 67%), hsl(349, 100%, 74%), hsl(328, 96%, 78%));
   }
 }
 
