@@ -31,6 +31,7 @@ import TabSection from "./TabSection";
 import { Freeze } from "react-freeze";
 import { MemoizedPreviewSubSectionContainer } from "./TabPreview";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import { useRouter } from "next/router";
 
 interface SectionContainer {
   sectionIndex: number;
@@ -49,9 +50,11 @@ function SectionContainer({
   forceCloseSectionAccordions,
   setForceCloseSectionAccordions,
 }: SectionContainer) {
+  const { asPath } = useRouter();
+
   const [accordionOpen, setAccordionOpen] = useState("opened");
   const [localTitle, setLocalTitle] = useState(sectionData.title);
-  const [artificalPlayButtonTimeout, setArtificialPlayButtonTimeout] =
+  const [artificialPlayButtonTimeout, setArtificialPlayButtonTimeout] =
     useState(false);
 
   const enableHighlighting = useGetLocalStorageValues().enableHighlighting;
@@ -69,9 +72,12 @@ function SectionContainer({
     sectionProgression,
     setSectionProgression,
     audioMetadata,
+    previewMetadata,
     currentInstrument,
     playTab,
     pauseAudio,
+    countInTimer,
+    setCountInTimer,
   } = useTabStore(
     (state) => ({
       id: state.id,
@@ -86,9 +92,12 @@ function SectionContainer({
       sectionProgression: state.sectionProgression,
       setSectionProgression: state.setSectionProgression,
       audioMetadata: state.audioMetadata,
+      previewMetadata: state.previewMetadata,
       currentInstrument: state.currentInstrument,
       playTab: state.playTab,
       pauseAudio: state.pauseAudio,
+      countInTimer: state.countInTimer,
+      setCountInTimer: state.setCountInTimer,
     }),
     shallow
   );
@@ -219,6 +228,44 @@ function SectionContainer({
     setTabData(newTabData);
   }
 
+  function handlePlayButtonClick() {
+    const locationIsEqual = isEqual(audioMetadata.location, {
+      sectionIndex,
+    });
+    const isViewingTabPath =
+      asPath.includes("/tab") && !asPath.includes("edit");
+    const delayPlayStart = isViewingTabPath ? 3000 : 0;
+    const delayForStoreStateToUpdate =
+      !locationIsEqual || previewMetadata.playing ? 50 : 0;
+    const setPlayButtonTimeout = () => {
+      setArtificialPlayButtonTimeout(true);
+      setTimeout(() => setArtificialPlayButtonTimeout(false), 300);
+    };
+
+    if (audioMetadata.playing && locationIsEqual) {
+      pauseAudio();
+      setPlayButtonTimeout();
+    } else {
+      if (isViewingTabPath)
+        setCountInTimer({
+          showing: true,
+          forSectionContainer: sectionIndex,
+        });
+      if (!locationIsEqual || previewMetadata.playing) pauseAudio(true);
+      setTimeout(() => {
+        setTimeout(() => {
+          void playTab({ tabId: id, location: { sectionIndex } });
+        }, delayForStoreStateToUpdate);
+
+        if (isViewingTabPath)
+          setCountInTimer({
+            showing: false,
+            forSectionContainer: sectionIndex,
+          });
+      }, delayPlayStart);
+    }
+  }
+
   return (
     <div
       style={{
@@ -275,43 +322,15 @@ function SectionContainer({
                   <Button
                     variant="playPause"
                     disabled={
+                      countInTimer.showing ||
                       bpm === -1 ||
                       !currentInstrument ||
                       audioMetadata.type === "Artist recording" ||
                       // currentlyPlayingMetadata?.length === 0 || be careful on this one, need to test if fine to leave commented out
                       sectionIsEffectivelyEmpty(tabData, sectionIndex) ||
-                      artificalPlayButtonTimeout
+                      artificialPlayButtonTimeout
                     }
-                    onClick={() => {
-                      const locationIsEqual = isEqual(audioMetadata.location, {
-                        sectionIndex,
-                      });
-
-                      if (audioMetadata.playing && locationIsEqual) {
-                        pauseAudio();
-                        setArtificialPlayButtonTimeout(true);
-
-                        setTimeout(() => {
-                          setArtificialPlayButtonTimeout(false);
-                        }, 300);
-                      } else {
-                        if (!locationIsEqual) {
-                          pauseAudio(true);
-                        }
-
-                        setTimeout(
-                          () => {
-                            void playTab({
-                              tabId: id,
-                              location: {
-                                sectionIndex,
-                              },
-                            });
-                          },
-                          !locationIsEqual ? 50 : 0
-                        );
-                      }
-                    }}
+                    onClick={handlePlayButtonClick}
                     className="h-8 md:h-9"
                   >
                     <PlayButtonIcon
@@ -320,6 +339,10 @@ function SectionContainer({
                       currentInstrument={currentInstrument}
                       audioMetadata={audioMetadata}
                       sectionIndex={sectionIndex}
+                      showCountInTimer={
+                        countInTimer.showing &&
+                        countInTimer.forSectionContainer === sectionIndex
+                      }
                     />
                   </Button>
                 </div>

@@ -169,6 +169,11 @@ const initialStoreState = {
   currentlyCopiedChord: null,
   fetchingFullTabData: false,
 
+  countInTimer: {
+    showing: false,
+    forSectionContainer: null,
+  },
+
   // modals
   showAudioRecorderModal: false,
   showSectionProgressionModal: false,
@@ -280,6 +285,14 @@ interface TabState {
       type: "copy" | "paste";
     } | null
   ) => void;
+  countInTimer: {
+    showing: boolean;
+    forSectionContainer: number | null;
+  };
+  setCountInTimer: (countInTimer: {
+    showing: boolean;
+    forSectionContainer: number | null;
+  }) => void;
 
   // modals
   showAudioRecorderModal: boolean;
@@ -455,6 +468,11 @@ export const useTabStore = create<TabState>()(
       set({ fetchingFullTabData }),
     chordPulse: null,
     setChordPulse: (chordPulse) => set({ chordPulse }),
+    countInTimer: {
+      showing: false,
+      forSectionContainer: null,
+    },
+    setCountInTimer: (countInTimer) => set({ countInTimer }),
 
     getStringifiedTabData: () => {
       const {

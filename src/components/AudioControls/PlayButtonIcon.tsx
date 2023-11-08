@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { BsFillPauseFill, BsFillPlayFill, BsStopFill } from "react-icons/bs";
 import type Soundfont from "soundfont-player";
 import type { AudioMetadata, PreviewMetadata } from "~/stores/TabStore";
@@ -26,6 +26,7 @@ interface PlayButtonIcon {
   chordSequenceIndex?: number;
   previewMetadata?: PreviewMetadata;
   indexOfPattern?: number;
+  showCountInTimer?: boolean;
   previewType?: "strummingPattern" | "chord";
   forceShowLoadingSpinner?: boolean;
 }
@@ -41,6 +42,7 @@ function PlayButtonIcon({
   indexOfPattern,
   currentInstrument,
   recordedAudioBuffer,
+  showCountInTimer,
   previewType,
   forceShowLoadingSpinner,
 }: PlayButtonIcon) {
@@ -48,6 +50,22 @@ function PlayButtonIcon({
     PlayButtonIcon,
     "currentInstrument" | "recordedAudioBuffer"
   >;
+
+  const [countInNumber, setCountInNumber] = useState(3);
+
+  useEffect(() => {
+    if (!showCountInTimer) return;
+
+    setTimeout(() => {
+      setCountInNumber(2);
+      setTimeout(() => {
+        setCountInNumber(1);
+        setTimeout(() => {
+          setCountInNumber(3);
+        }, 1000);
+      }, 1000);
+    }, 1000);
+  }, [showCountInTimer]);
 
   const shouldShowPauseIcon = useCallback(
     ({
@@ -87,6 +105,21 @@ function PlayButtonIcon({
   );
 
   const renderPlayButtonIcon = useMemo(() => {
+    if (showCountInTimer) {
+      return (
+        <motion.p
+          key={`${uniqueLocationKey}CountInTimer`}
+          variants={opacityAndScaleVariants}
+          initial="closed"
+          animate="expanded"
+          transition={{ duration: 0.15 }}
+          className="h-5 w-5"
+        >
+          {countInNumber}
+        </motion.p>
+      );
+    }
+
     if (
       !currentInstrument ||
       forceShowLoadingSpinner ||
@@ -175,6 +208,8 @@ function PlayButtonIcon({
     shouldShowPauseIcon,
     uniqueLocationKey,
     forceShowLoadingSpinner,
+    countInNumber,
+    showCountInTimer,
   ]);
 
   return renderPlayButtonIcon;

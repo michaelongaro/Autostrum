@@ -81,7 +81,7 @@ interface AudioControls {
 }
 
 function AudioControls({ visibility, setVisibility }: AudioControls) {
-  const { query } = useRouter();
+  const { query, asPath } = useRouter();
 
   const [tabProgressValue, setTabProgressValue] = useState(0);
   const [wasPlayingBeforeScrubbing, setWasPlayingBeforeScrubbing] =
@@ -139,6 +139,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     pauseAudio,
     fetchingFullTabData,
     audioContext,
+    countInTimer,
+    setCountInTimer,
   } = useTabStore(
     (state) => ({
       id: state.id,
@@ -165,6 +167,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       pauseAudio: state.pauseAudio,
       fetchingFullTabData: state.fetchingFullTabData,
       audioContext: state.audioContext,
+      countInTimer: state.countInTimer,
+      setCountInTimer: state.setCountInTimer,
     }),
     shallow
   );
@@ -367,6 +371,50 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     setCurrentChordIndex(0);
   }
 
+  // fk need it to be global dangit
+
+  function handlePlayButtonClick() {
+    const isViewingTabPath =
+      asPath.includes("/tab") && !asPath.includes("edit");
+    const delayPlayStart = isViewingTabPath ? 3000 : 0;
+    const delayForStoreStateToUpdate = previewMetadata.playing ? 50 : 0;
+    const setPlayButtonTimeout = () => {
+      setArtificalPlayButtonTimeout(true);
+      setTimeout(() => setArtificalPlayButtonTimeout(false), 300);
+    };
+
+    if (audioMetadata.playing) {
+      pauseAudio();
+      if (audioMetadata.type === "Generated") setPlayButtonTimeout();
+    } else {
+      if (isViewingTabPath)
+        setCountInTimer({
+          ...countInTimer,
+          showing: true,
+        });
+      if (previewMetadata.playing) pauseAudio();
+
+      setTimeout(() => {
+        if (audioMetadata.type === "Artist recording" && recordedAudioBuffer) {
+          playRecordedAudio({
+            audioBuffer: recordedAudioBuffer,
+            secondsElapsed: tabProgressValue,
+          });
+          setPlayButtonTimeout();
+        } else {
+          setTimeout(() => {
+            void playTab({ tabId: id, location: audioMetadata.location });
+          }, delayForStoreStateToUpdate);
+        }
+        if (isViewingTabPath)
+          setCountInTimer({
+            ...countInTimer,
+            showing: false,
+          });
+      }, delayPlayStart);
+    }
+  }
+
   const dynamicBottomValue = useMemo(() => {
     let bottomValue = "1rem";
 
@@ -388,7 +436,12 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   }, [aboveLargeViewportWidth, visibility]);
 
   const disablePlayButton = useMemo(() => {
-    if (artificalPlayButtonTimeout || fetchingFullTabData) return true;
+    if (
+      countInTimer.showing ||
+      artificalPlayButtonTimeout ||
+      fetchingFullTabData
+    )
+      return true;
 
     if (audioMetadata.type === "Artist recording") {
       return !recordedAudioBuffer;
@@ -405,6 +458,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       );
     }
   }, [
+    countInTimer.showing,
     bpm,
     fetchingFullTabData,
     audioMetadata.location,
@@ -487,6 +541,11 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                       <Button
                         variant="ghost" // or secondary maybe
                         onClick={() => {
+                          setCountInTimer({
+                            ...countInTimer,
+                            forSectionContainer: null,
+                          });
+
                           setArtificalPlayButtonTimeout(true);
 
                           setTimeout(() => {
@@ -563,6 +622,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                 <Label>Source</Label>
                 <Select
                   value={audioMetadata.type}
+                  disabled={countInTimer.showing}
                   onValueChange={(value) => {
                     if (value !== audioMetadata.type) {
                       resetAudioStateOnSourceChange(
@@ -594,7 +654,10 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               <div className="baseFlex !flex-nowrap gap-2">
                 <Label>Instrument</Label>
                 <Select
-                  disabled={audioMetadata.type === "Artist recording"}
+                  disabled={
+                    audioMetadata.type === "Artist recording" ||
+                    countInTimer.showing
+                  }
                   value={currentInstrumentName}
                   onValueChange={(value) => {
                     pauseAudio();
@@ -638,7 +701,10 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               <div className="baseFlex !flex-nowrap gap-2">
                 <Label>Speed</Label>
                 <Select
-                  disabled={audioMetadata.type === "Artist recording"}
+                  disabled={
+                    audioMetadata.type === "Artist recording" ||
+                    countInTimer.showing
+                  }
                   value={`${playbackSpeed}x`}
                   onValueChange={(value) => {
                     pauseAudio(true);
@@ -682,7 +748,13 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   >
                     <Button
                       variant="ghost" // or secondary maybe
+                      disabled={countInTimer.showing}
                       onClick={() => {
+                        setCountInTimer({
+                          ...countInTimer,
+                          forSectionContainer: null,
+                        });
+
                         setArtificalPlayButtonTimeout(true);
 
                         setTimeout(() => {
@@ -760,49 +832,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
             variant="playPause"
             size={aboveLargeViewportWidth ? "default" : "sm"}
             disabled={disablePlayButton}
-            onClick={() => {
-              if (audioMetadata.playing) {
-                pauseAudio();
-
-                if (audioMetadata.type === "Generated") {
-                  setArtificalPlayButtonTimeout(true);
-
-                  setTimeout(() => {
-                    setArtificalPlayButtonTimeout(false);
-                  }, 300);
-                }
-              } else {
-                if (
-                  audioMetadata.type === "Artist recording" &&
-                  recordedAudioBuffer
-                ) {
-                  void playRecordedAudio({
-                    audioBuffer: recordedAudioBuffer,
-                    secondsElapsed: tabProgressValue,
-                  });
-
-                  setArtificalPlayButtonTimeout(true);
-
-                  setTimeout(() => {
-                    setArtificalPlayButtonTimeout(false);
-                  }, 300);
-                } else {
-                  if (audioMetadata.playing || previewMetadata.playing) {
-                    pauseAudio();
-                  }
-
-                  setTimeout(
-                    () => {
-                      void playTab({
-                        tabId: id,
-                        location: audioMetadata.location,
-                      });
-                    },
-                    audioMetadata.playing || previewMetadata.playing ? 50 : 0
-                  );
-                }
-              }
-            }}
+            onClick={handlePlayButtonClick}
           >
             <PlayButtonIcon
               uniqueLocationKey="audioControls"
@@ -811,6 +841,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               audioMetadata={audioMetadata}
               recordedAudioBuffer={recordedAudioBuffer}
               forceShowLoadingSpinner={fetchingFullTabData}
+              showCountInTimer={countInTimer.showing}
             />
           </Button>
 
@@ -968,6 +999,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
                     <Label>Source</Label>
                     <Select
+                      disabled={countInTimer.showing}
                       onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
                       value={audioMetadata.type}
                       onValueChange={(value) => {
@@ -1000,6 +1032,10 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
                     <Label>Instrument</Label>
                     <Select
+                      disabled={
+                        audioMetadata.type === "Artist recording" ||
+                        countInTimer.showing
+                      }
                       onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
                       value={currentInstrumentName}
                       onValueChange={(value) => {
@@ -1043,6 +1079,10 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
                     <Label>Speed</Label>
                     <Select
+                      disabled={
+                        audioMetadata.type === "Artist recording" ||
+                        countInTimer.showing
+                      }
                       onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
                       value={`${playbackSpeed}x`}
                       onValueChange={(value) => {
