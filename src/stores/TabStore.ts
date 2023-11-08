@@ -261,8 +261,6 @@ interface TabState {
   getStringifiedTabData: () => string;
   resetAudioAndMetadataOnRouteChange: () => void;
   getTabData: () => Section[];
-  isProgramaticallyScrolling: boolean;
-  setIsProgramaticallyScrolling: (isProgramaticallyScrolling: boolean) => void;
   preventFramerLayoutShift: boolean;
   setPreventFramerLayoutShift: (preventFramerLayoutShift: boolean) => void;
   fetchingFullTabData: boolean;
@@ -583,9 +581,6 @@ export const useTabStore = create<TabState>()(
     recordedAudioBufferSourceNode: null,
     setRecordedAudioBufferSourceNode: (recordedAudioBufferSourceNode) =>
       set({ recordedAudioBufferSourceNode }),
-    isProgramaticallyScrolling: false,
-    setIsProgramaticallyScrolling: (isProgramaticallyScrolling) =>
-      set({ isProgramaticallyScrolling }),
     preventFramerLayoutShift: false,
     setPreventFramerLayoutShift: (preventFramerLayoutShift) =>
       set({ preventFramerLayoutShift }),

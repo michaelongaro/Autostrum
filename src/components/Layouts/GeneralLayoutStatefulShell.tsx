@@ -12,7 +12,6 @@ import { useTabStore } from "~/stores/TabStore";
 import AudioControls from "../AudioControls/AudioControls";
 import Header from "../Header/Header";
 import { Button } from "../ui/button";
-import { useLocalStorageValue } from "@react-hookz/web";
 import useDetectRouteChanges from "~/hooks/useDetectRouteChanges";
 import MobileHeaderModal from "../modals/MobileHeaderModal";
 
@@ -41,8 +40,6 @@ function GeneralLayoutStatefulShell() {
   const [scrollThresholdReached, setScrollThresholdReached] =
     useState<boolean>(false);
 
-  const localStorageAutoscroll = useLocalStorageValue("autostrumAutoscroll");
-
   const looping = useGetLocalStorageValues().looping;
 
   // reflects any updates made to username/profileImageUrl in Clerk to the ArtistMetadata
@@ -69,7 +66,6 @@ function GeneralLayoutStatefulShell() {
     masterVolumeGainNode,
     setMasterVolumeGainNode,
     recordedAudioBufferSourceNode,
-    isProgramaticallyScrolling,
     showMobileHeaderModal,
     setShowMobileHeaderModal,
   } = useTabStore(
@@ -89,7 +85,6 @@ function GeneralLayoutStatefulShell() {
       masterVolumeGainNode: state.masterVolumeGainNode,
       setMasterVolumeGainNode: state.setMasterVolumeGainNode,
       recordedAudioBufferSourceNode: state.recordedAudioBufferSourceNode,
-      isProgramaticallyScrolling: state.isProgramaticallyScrolling,
       showMobileHeaderModal: state.showMobileHeaderModal,
       setShowMobileHeaderModal: state.setShowMobileHeaderModal,
     }),
@@ -140,10 +135,6 @@ function GeneralLayoutStatefulShell() {
 
       timerId = setTimeout(() => {
         window.requestAnimationFrame(() => {
-          if (!isProgramaticallyScrolling && audioMetadata.playing) {
-            localStorageAutoscroll.set("false");
-          }
-
           setScrollThresholdReached(
             window.scrollY > Math.floor(0.35 * window.innerHeight)
           );
@@ -160,12 +151,7 @@ function GeneralLayoutStatefulShell() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [
-    scrollToTopTicking,
-    isProgramaticallyScrolling,
-    localStorageAutoscroll,
-    audioMetadata.playing,
-  ]);
+  }, [scrollToTopTicking, audioMetadata.playing]);
 
   // route change state reset handling
   useEffect(() => {

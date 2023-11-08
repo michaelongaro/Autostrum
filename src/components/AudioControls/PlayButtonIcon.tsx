@@ -7,11 +7,9 @@ import type { AudioMetadata, PreviewMetadata } from "~/stores/TabStore";
 const opacityAndScaleVariants = {
   expanded: {
     opacity: 1,
-    scale: 1,
   },
   closed: {
     opacity: 0,
-    scale: 0.85,
   },
 };
 
@@ -113,7 +111,7 @@ function PlayButtonIcon({
           initial="closed"
           animate="expanded"
           transition={{ duration: 0.15 }}
-          className="h-5 w-5"
+          className=" h-5 w-5 text-[18px]"
         >
           {countInNumber}
         </motion.p>

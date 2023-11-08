@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 import { useTabStore } from "~/stores/TabStore";
+import { scroller } from "react-scroll";
 interface UseAutoscrollToCurrentChord {
   autoscrollEnabled: boolean;
 }
@@ -15,20 +16,15 @@ function useAutoscrollToCurrentChord({
   const [previousChordYScrollValue, setPreviousChordYScrollValue] =
     useState(-1);
 
-  const {
-    currentlyPlayingMetadata,
-    currentChordIndex,
-    audioMetadata,
-    setIsProgramaticallyScrolling,
-  } = useTabStore(
-    (state) => ({
-      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-      currentChordIndex: state.currentChordIndex,
-      audioMetadata: state.audioMetadata,
-      setIsProgramaticallyScrolling: state.setIsProgramaticallyScrolling,
-    }),
-    shallow
-  );
+  const { currentlyPlayingMetadata, currentChordIndex, audioMetadata } =
+    useTabStore(
+      (state) => ({
+        currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+        currentChordIndex: state.currentChordIndex,
+        audioMetadata: state.audioMetadata,
+      }),
+      shallow
+    );
 
   useEffect(() => {
     if (
@@ -37,8 +33,6 @@ function useAutoscrollToCurrentChord({
       !autoscrollEnabled
     )
       return;
-
-    setIsProgramaticallyScrolling(true);
 
     const { sectionIndex, subSectionIndex, chordSequenceIndex, chordIndex } =
       currentlyPlayingMetadata[currentChordIndex]!.location;
@@ -55,35 +49,44 @@ function useAutoscrollToCurrentChord({
     }
 
     if (currentElement) {
-      // if the current chord is still visible, don't scroll
-      const currentChordYScrollValue = currentElement.getBoundingClientRect().y;
+      const rect = currentElement.getBoundingClientRect();
+      const currentChordYScrollValue = rect.y;
 
       if (
         previousChordYScrollValue !== -1 &&
         Math.abs(previousChordYScrollValue - currentChordYScrollValue) < 50
       ) {
-        setIsProgramaticallyScrolling(false);
         return;
       }
 
-      currentElement.scrollIntoView({
-        behavior: "instant",
-        block: "center",
-        inline: "center",
-      });
+      const isAboveLargeViewport = window.innerWidth >= 1024;
+      const targetIsWayOutOfViewport =
+        Math.abs(previousChordYScrollValue - currentChordYScrollValue) >
+        window.innerHeight * 3;
+      const targetIsOutOfViewportWithMargins =
+        rect.top < 100 ||
+        rect.bottom > window.innerHeight - (isAboveLargeViewport ? 120 : 100);
+
+      if (targetIsOutOfViewportWithMargins) {
+        scroller.scrollTo(currentElement.id, {
+          duration: targetIsWayOutOfViewport ? 0 : 300, // prevents jarring scroll
+          delay: 0,
+          smooth: "easeOutQuart",
+          offset: -(
+            window.innerHeight / 2 -
+            rect.height / 2 -
+            window.innerHeight * 0.25
+          ),
+        });
+      }
 
       setPreviousChordYScrollValue(currentChordYScrollValue);
-
-      setTimeout(() => {
-        setIsProgramaticallyScrolling(false);
-      }, 50);
     }
   }, [
     currentlyPlayingMetadata,
     currentChordIndex,
     autoscrollEnabled,
     audioMetadata,
-    setIsProgramaticallyScrolling,
     previousChordYScrollValue,
   ]);
 }

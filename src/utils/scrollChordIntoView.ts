@@ -1,3 +1,5 @@
+import { scroller } from "react-scroll";
+
 interface ScrollChordIntoView {
   location: {
     sectionIndex: number;
@@ -24,10 +26,17 @@ export default function scrollChordIntoView({ location }: ScrollChordIntoView) {
   }
 
   if (currentElement) {
-    currentElement.scrollIntoView({
-      behavior: "instant",
-      block: "center",
-      inline: "center",
+    const rect = currentElement.getBoundingClientRect();
+
+    scroller.scrollTo(currentElement.id, {
+      duration: 425,
+      delay: 0,
+      smooth: "easeOutQuart",
+      offset: -(
+        window.innerHeight / 2 -
+        rect.height / 2 -
+        window.innerHeight * 0.25
+      ),
     });
   }
 }

@@ -8,6 +8,7 @@ import {
   type SetStateAction,
 } from "react";
 import isEqual from "lodash.isequal";
+import { Element } from "react-scroll";
 import { BsArrowDown, BsArrowUp, BsPlus } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
 import { shallow } from "zustand/shallow";
@@ -453,8 +454,11 @@ function StrummingPattern({
           </Label>
         )}
         {data?.strums?.map((strum, strumIndex) => (
-          <div
+          <Element
             key={strumIndex}
+            name={`section${sectionIndex ?? ""}-subSection${
+              subSectionIndex ?? ""
+            }-chordSequence${chordSequenceIndex ?? ""}-chord${strumIndex}`}
             id={`section${sectionIndex ?? ""}-subSection${
               subSectionIndex ?? ""
             }-chordSequence${chordSequenceIndex ?? ""}-chord${strumIndex}`}
@@ -752,7 +756,7 @@ function StrummingPattern({
                   <BsPlus className="h-6 w-6" />
                 </Button>
               )}
-          </div>
+          </Element>
         ))}
       </div>
     </div>

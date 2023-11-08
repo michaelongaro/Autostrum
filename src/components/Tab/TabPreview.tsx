@@ -1,4 +1,5 @@
 import { Fragment, memo, useCallback, useMemo, type ReactNode } from "react";
+import { Element } from "react-scroll";
 import {
   BsArrowDown,
   BsArrowUp,
@@ -416,12 +417,15 @@ function PreviewStrummingPattern({
         className="baseFlex relative mb-1 !justify-start"
       >
         {data?.strums?.map((strum, strumIndex) => (
-          <div
+          <Element
             key={strumIndex}
             id={`section${sectionIndex}-subSection${subSectionIndex}-chordSequence${
               chordSequenceIndex ?? ""
             }-chord${strumIndex}`}
-            className="baseFlex"
+            name={`section${sectionIndex}-subSection${subSectionIndex}-chordSequence${
+              chordSequenceIndex ?? ""
+            }-chord${strumIndex}`}
+            className="baseFlex "
           >
             <div
               style={{
@@ -576,7 +580,7 @@ function PreviewStrummingPattern({
               {/* strumming guide */}
               {renderStrummingGuide(data.noteLength, strumIndex, mode)}
             </div>
-          </div>
+          </Element>
         ))}
       </div>
     </div>
@@ -857,9 +861,10 @@ function PreviewTabNotesColumn({
   }
 
   return (
-    <div
+    <Element
       id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
-      className="baseVertFlex cursor-default"
+      name={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
+      className="baseVertFlex "
     >
       <div className="baseFlex relative">
         <div className="baseVertFlex">
@@ -935,7 +940,7 @@ function PreviewTabNotesColumn({
           ))}
         </div>
       </div>
-    </div>
+    </Element>
   );
 }
 

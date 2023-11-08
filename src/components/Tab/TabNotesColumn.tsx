@@ -2,10 +2,10 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
 import isEqual from "lodash.isequal";
+import { Element } from "react-scroll";
 import {
   Fragment,
   useEffect,
-  useMemo,
   useState,
   memo,
   type Dispatch,
@@ -228,7 +228,7 @@ function TabNotesColumn({
   return (
     <motion.div
       key={columnData[9]}
-      id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
+      // id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
       ref={setNodeRef}
       style={{
         transform: CSS.Transform.toString(
@@ -240,7 +240,11 @@ function TabNotesColumn({
       }}
       className="baseVertFlex cursor-default"
     >
-      <div className="baseFlex relative">
+      <Element
+        name={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
+        id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
+        className="baseFlex relative"
+      >
         <div
           style={{
             marginTop:
@@ -377,7 +381,7 @@ function TabNotesColumn({
             </Fragment>
           ))}
         </div>
-      </div>
+      </Element>
 
       {/* drag handle / delete button */}
       {reorderingColumns && (
