@@ -1,6 +1,5 @@
 import { api } from "~/utils/api";
 import { Separator } from "../ui/separator";
-import { Skeleton } from "../ui/skeleton";
 import GenreBubble from "./GenreBubble";
 
 const indicies = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -20,7 +19,10 @@ function GenreBubbles() {
         {genresAreLoading || !genres ? (
           <>
             {indicies.map((index) => (
-              <Skeleton key={index} className="h-36 w-full rounded-lg" />
+              <div
+                key={index}
+                className="h-36 w-full animate-pulse rounded-lg bg-pink-300"
+              ></div>
             ))}
           </>
         ) : (
