@@ -7,7 +7,7 @@ function useGetLocalStorageValues() {
   });
 
   const localStorageAutoscroll = useLocalStorageValue("autostrumAutoscroll", {
-    defaultValue: "false",
+    defaultValue: "true",
     initializeWithValue: false,
   });
 
