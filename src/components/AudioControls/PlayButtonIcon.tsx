@@ -11,7 +11,7 @@ const opacityAndScaleVariants = {
   },
   closed: {
     opacity: 0,
-    scale: 0.75,
+    scale: 0.85,
   },
 };
 
@@ -108,7 +108,7 @@ function PlayButtonIcon({
     if (showCountInTimer) {
       return (
         <motion.p
-          key={`${uniqueLocationKey}CountInTimer`}
+          key={`${uniqueLocationKey}CountInTimer${countInNumber}`}
           variants={opacityAndScaleVariants}
           initial="closed"
           animate="expanded"
