@@ -560,10 +560,10 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                             location: null,
                           });
                         }}
-                        className="baseFlex !flex-nowrap gap-2 p-1"
+                        className="baseFlex h-[28px] !flex-nowrap gap-2 !py-0 px-1"
                       >
-                        <RiArrowGoBackFill className="h-4 w-4" />
-                        <p className="text-sm">Play whole tab</p>
+                        <RiArrowGoBackFill className="h-3.5 w-3.5" />
+                        <p className="text-xs">Play whole tab</p>
                       </Button>
                     </motion.div>
                   )}
