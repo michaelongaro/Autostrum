@@ -31,15 +31,24 @@
   @apply bg-pink-400 bg-opacity-95 backdrop-blur-xl shadow-sm;
 }
 
-/* same gradients as background, but up by ~7% on lightness value of hsl to match the
+/* below are same gradients as background, but up by ~7% on lightness value of hsl to match the
    glassmorphic effect. Couldn't use glassmorphic since light content bleeding through
    made for really bad contrast issues with nav links */
 .headerBackgroundGradient {
-  background: linear-gradient(315deg, hsl(6, 100%, 63%), hsl(340, 100%, 76%), hsl(297, 100%, 87%)) fixed center / cover;
+  /* need to do this instead of one-liner for safari compatability with background-attachment */
+  background: linear-gradient(315deg, hsl(6, 100%, 65%), hsl(340, 100%, 77%), hsl(297, 100%, 85%));
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
 }
 
 .footerBackgroundGradient {
-  background: linear-gradient(315deg, hsl(6, 100%, 67%), hsl(340, 100%, 79%), hsl(297, 100%, 91%)) fixed center / cover;
+  /* need to do this instead of one-liner for safari compatability with background-attachment */
+  background: linear-gradient(315deg, hsl(6, 100%, 68%), hsl(340, 100%, 75%), hsl(297, 100%, 84%));
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
+  box-shadow: 0 -2px 8px 0 rgb(0 0 0 / 0.06);
 }
 
 /* shadow-md was too harsh for my liking, this is a scaled back version, in-between sm and md */
