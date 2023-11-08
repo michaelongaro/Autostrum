@@ -81,8 +81,10 @@ const AudioProgressSlider = React.forwardRef<
         onBlur={() => setIsDragging(false)}
         onPointerDown={() => setIsDragging(true)}
         onPointerUp={() => setIsDragging(false)}
-        // also figure out where the focus-ring is going/why we can't see it
-        className="block h-5 w-5 cursor-grab rounded-full
+        // relative + right-[1px] are hacks, there was sometimes one pixel of whitespace
+        // showing between thumb and range, this mostly fixes it I think with a tradeoff of when
+        // the thumb is all the way to the right, it's not perfectly flush with the right edge of the range
+        className="relative right-[1px] block h-5 w-5 cursor-grab rounded-full
 border-2 border-primary bg-background ring-offset-background hover:scale-105 
 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 active:cursor-grabbing active:shadow-md disabled:pointer-events-none disabled:opacity-50"
       />
