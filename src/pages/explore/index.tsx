@@ -85,7 +85,9 @@ function Explore() {
 
       <div className="baseVertFlex w-full !items-start gap-0 p-1 md:gap-4 md:p-4">
         <div className="baseVertFlex gap-0 md:gap-1">
-          <p className="text-xl font-bold">Weekly featured artist</p>
+          <p className="text-xl font-bold md:text-[1.35rem]">
+            Weekly featured artist
+          </p>
           <Separator className="w-full bg-pink-500" />
         </div>
         <div className="baseVertFlex w-full !flex-nowrap md:!flex-row md:!items-end md:gap-8">
