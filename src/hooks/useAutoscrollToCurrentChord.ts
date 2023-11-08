@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 import { useTabStore } from "~/stores/TabStore";
 interface UseAutoscrollToCurrentChord {
@@ -8,6 +8,13 @@ interface UseAutoscrollToCurrentChord {
 function useAutoscrollToCurrentChord({
   autoscrollEnabled,
 }: UseAutoscrollToCurrentChord) {
+  // not my favorite hack: but is used to avoid scrolling when
+  // the current chord is still visible but there is small difference
+  // in height (<50px) between the current chord and the previous chord
+  // to avoid jarring scrolling effects.
+  const [previousChordYScrollValue, setPreviousChordYScrollValue] =
+    useState(-1);
+
   const {
     currentlyPlayingMetadata,
     currentChordIndex,
@@ -39,32 +46,33 @@ function useAutoscrollToCurrentChord({
 
     if (chordSequenceIndex !== undefined) {
       currentElement = document.getElementById(
-        `tabPreview-section${sectionIndex}-subSection${subSectionIndex}-chordSequence${chordSequenceIndex}-chord${chordIndex}`
+        `section${sectionIndex}-subSection${subSectionIndex}-chordSequence${chordSequenceIndex}-chord${chordIndex}`
       );
-
-      if (!currentElement) {
-        currentElement = document.getElementById(
-          `section${sectionIndex}-subSection${subSectionIndex}-chordSequence${chordSequenceIndex}-chord${chordIndex}`
-        );
-      }
     } else {
       currentElement = document.getElementById(
-        `tabPreview-section${sectionIndex}-subSection${subSectionIndex}-chord${chordIndex}`
+        `section${sectionIndex}-subSection${subSectionIndex}-chord${chordIndex}`
       );
-
-      if (!currentElement) {
-        currentElement = document.getElementById(
-          `section${sectionIndex}-subSection${subSectionIndex}-chord${chordIndex}`
-        );
-      }
     }
 
     if (currentElement) {
+      // if the current chord is still visible, don't scroll
+      const currentChordYScrollValue = currentElement.getBoundingClientRect().y;
+
+      if (
+        previousChordYScrollValue !== -1 &&
+        Math.abs(previousChordYScrollValue - currentChordYScrollValue) < 50
+      ) {
+        setIsProgramaticallyScrolling(false);
+        return;
+      }
+
       currentElement.scrollIntoView({
         behavior: "instant",
         block: "center",
         inline: "center",
       });
+
+      setPreviousChordYScrollValue(currentChordYScrollValue);
 
       setTimeout(() => {
         setIsProgramaticallyScrolling(false);
@@ -76,6 +84,7 @@ function useAutoscrollToCurrentChord({
     autoscrollEnabled,
     audioMetadata,
     setIsProgramaticallyScrolling,
+    previousChordYScrollValue,
   ]);
 }
 

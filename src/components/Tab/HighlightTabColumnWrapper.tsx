@@ -1,10 +1,10 @@
 import isEqual from "lodash.isequal";
-import { Fragment, memo, useMemo, useState, useEffect } from "react";
+import { Fragment, memo, useState, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore, type TabSection } from "~/stores/TabStore";
 import { parse, toString } from "~/utils/tunings";
-import TabMeasureLine from "./TabMeasureLine";
+import { PreviewTabMeasureLine } from "./TabPreview";
 
 export interface LastModifiedPalmMuteNodeLocation {
   columnIndex: number;
@@ -27,6 +27,7 @@ function HighlightTabColumnWrapper({
 
   const {
     tuning,
+    bpm,
     currentlyPlayingMetadata,
     currentChordIndex,
     playbackSpeed,
@@ -34,6 +35,7 @@ function HighlightTabColumnWrapper({
   } = useTabStore(
     (state) => ({
       tuning: state.tuning,
+      bpm: state.bpm,
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
       currentChordIndex: state.currentChordIndex,
       playbackSpeed: state.playbackSpeed,
@@ -81,6 +83,21 @@ function HighlightTabColumnWrapper({
     return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
   }
 
+  function getPaddingBottom(chordEffects: string) {
+    switch (chordEffects.length) {
+      case 0:
+        return "0px";
+      case 1:
+        return "18px";
+      case 2:
+        return "32px";
+      case 3:
+        return "46px";
+      default:
+        return "0px";
+    }
+  }
+
   return (
     <div
       style={{
@@ -88,7 +105,7 @@ function HighlightTabColumnWrapper({
       }}
       className="baseVertFlex absolute left-0 top-0 h-full !justify-start rounded-md"
     >
-      <div className="baseFlex relative w-full !justify-start">
+      <div className="baseFlex relative w-full !items-start !justify-start pb-8 pt-4">
         <div className="baseVertFlex relative mb-[-1px] h-[168px] rounded-l-2xl border-2 border-pink-50 p-2 opacity-0">
           {toString(parse(tuning), { pad: 1 })
             .split(" ")
@@ -102,21 +119,22 @@ function HighlightTabColumnWrapper({
           <Fragment key={column[9]}>
             {column.includes("|") ? (
               <div className="baseFlex opacity-0">
-                <TabMeasureLine
+                <PreviewTabMeasureLine
                   columnData={column}
-                  sectionIndex={sectionIndex}
-                  subSectionIndex={subSectionIndex}
+                  tabSectionData={subSectionData}
+                  baselineBpm={bpm}
                   columnIndex={index}
-                  reorderingColumns={false}
-                  showingDeleteColumnsButtons={false}
                 />
               </div>
             ) : (
               <HighlightTabNoteColumn
+                sectionIndex={sectionIndex}
+                subSectionIndex={subSectionIndex}
                 columnIndex={index}
                 columnIsBeingPlayed={columnIsBeingPlayed(index)}
                 columnHasBeenPlayed={columnHasBeenPlayed(index)}
                 durationOfChord={getDurationOfCurrentChord()}
+                highlightPaddingBottom={getPaddingBottom(column[7]!)}
               />
             )}
           </Fragment>
@@ -150,19 +168,36 @@ export default memo(HighlightTabColumnWrapper, (prevProps, nextProps) => {
 });
 
 interface HighlightTabNoteColumn {
+  sectionIndex: number;
+  subSectionIndex: number;
   columnIndex: number;
   columnIsBeingPlayed: boolean;
   columnHasBeenPlayed: boolean;
   durationOfChord: number;
+  highlightPaddingBottom: string;
 }
 
 function HighlightTabNoteColumn({
+  sectionIndex,
+  subSectionIndex,
   columnIndex,
   columnIsBeingPlayed,
   columnHasBeenPlayed,
   durationOfChord,
+  highlightPaddingBottom,
 }: HighlightTabNoteColumn) {
   const [highlightChord, setHighlightChord] = useState(false);
+  const [heightOfActualColumn, setHeightOfActualColumn] = useState("0px");
+
+  useEffect(() => {
+    const actualColumnElement = document.getElementById(
+      `section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`
+    );
+
+    if (actualColumnElement) {
+      setHeightOfActualColumn(`${actualColumnElement.offsetHeight}px`);
+    }
+  }, [sectionIndex, subSectionIndex, columnIndex]);
 
   // ideally don't need this and can just use prop values passed in, but need to have
   // [0] index special case since when looping it would keep the [0] index at 100% width
@@ -184,16 +219,23 @@ function HighlightTabNoteColumn({
   }, [columnIndex, columnIsBeingPlayed]);
 
   return (
-    <div className="baseVertFlex h-[271px] w-[35px] cursor-default">
-      <div className="baseFlex relative h-full w-full">
+    <div
+      style={{
+        minHeight: heightOfActualColumn,
+        opacity: heightOfActualColumn === "0px" ? 0 : 1,
+      }}
+      className="baseVertFlex w-[35px] !justify-end"
+    >
+      <div className="baseFlex relative w-full">
         <div
           style={{
             width: highlightChord || columnHasBeenPlayed ? "100%" : "0%",
             transitionDuration: highlightChord ? `${durationOfChord}s` : "0s",
             msTransitionProperty: "width",
             transitionTimingFunction: "linear",
+            bottom: highlightPaddingBottom,
           }}
-          className="absolute left-0 top-1/2 z-[-1] h-[164px] w-0 -translate-y-1/2 bg-pink-600"
+          className=" absolute left-0 z-[-1] h-[168px] w-0 bg-pink-600"
         ></div>
       </div>
     </div>

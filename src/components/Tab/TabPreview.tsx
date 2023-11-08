@@ -13,13 +13,13 @@ import {
 } from "~/components/ui/popover";
 import { Separator } from "~/components/ui/separator";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import type {
-  ChordSection,
-  ChordSequence,
-  Chord as ChordType,
-  Section,
-  StrummingPattern,
-  TabSection,
+import {
+  type ChordSection,
+  type ChordSequence,
+  type Chord as ChordType,
+  type Section,
+  type StrummingPattern,
+  type TabSection,
 } from "~/stores/TabStore";
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
 import { parse, toString } from "~/utils/tunings";
@@ -418,7 +418,7 @@ function PreviewStrummingPattern({
         {data?.strums?.map((strum, strumIndex) => (
           <div
             key={strumIndex}
-            id={`tabPreview-section${sectionIndex}-subSection${subSectionIndex}-chordSequence${
+            id={`section${sectionIndex}-subSection${subSectionIndex}-chordSequence${
               chordSequenceIndex ?? ""
             }-chord${strumIndex}`}
             className="baseFlex"
@@ -667,11 +667,12 @@ function PreviewTabSection({
     >
       {children}
 
-      <div className="baseFlex relative w-full !justify-start">
+      <div className="baseFlex relative w-full !items-start !justify-start pb-8 pt-4">
         <div
           style={{
             height: "168px",
             marginBottom: "-1px",
+            marginTop: "36px",
           }}
           className="baseVertFlex relative rounded-l-2xl border-2 border-pink-50 p-2"
         >
@@ -707,6 +708,7 @@ function PreviewTabSection({
           style={{
             height: "168px",
             marginBottom: "-1px",
+            marginTop: "36px",
           }}
           className="rounded-r-2xl border-2 border-pink-50 p-1"
         ></div>
@@ -722,7 +724,7 @@ interface PreviewTabMeasureLine {
   baselineBpm: number;
 }
 
-function PreviewTabMeasureLine({
+export function PreviewTabMeasureLine({
   tabSectionData,
   columnIndex,
   columnData,
@@ -758,7 +760,16 @@ function PreviewTabMeasureLine({
   return (
     // I believe the conditional 1px of margin-top is due to some subpixel rendering issues
     // this should keep everything aligned properly
-    <div className="baseVertFlex relative mt-[1px] h-[271px] md:mt-0">
+    <div
+      style={{
+        height:
+          (columnData[7] && columnData[7] !== "-1") ||
+          conditionalBaselineBpmToShow
+            ? "222px"
+            : "237px",
+      }}
+      className="baseVertFlex relative mt-[1px] h-[237px] "
+    >
       {columnData.map((note, index) => (
         <Fragment key={index}>
           {index === 0 && (
@@ -766,16 +777,18 @@ function PreviewTabMeasureLine({
               {((columnData[7] && columnData[7] !== "-1") ||
                 conditionalBaselineBpmToShow) && (
                 <div
-                  className={`baseFlex absolute !flex-nowrap gap-[0.125rem] text-pink-50 ${
-                    note === "-" ? "top-[10px]" : "top-[27px]"
+                  className={`baseFlex relative w-[2px] text-pink-50 ${
+                    note === "-" ? "top-[-23px]" : "top-[-7px]"
                   }`}
                 >
-                  <BsMusicNote className="h-3 w-3" />
-                  <p className="text-center text-xs">
-                    {columnData[7] !== "-1" && columnData[7] !== ""
-                      ? columnData[7]!.toString()
-                      : conditionalBaselineBpmToShow}
-                  </p>
+                  <div className="baseFlex !flex-nowrap gap-[0.125rem]">
+                    <BsMusicNote className="h-3 w-3" />
+                    <p className="text-center text-xs">
+                      {columnData[7] !== "-1" && columnData[7] !== ""
+                        ? columnData[7]!.toString()
+                        : conditionalBaselineBpmToShow}
+                    </p>
+                  </div>
                 </div>
               )}
 
@@ -845,11 +858,11 @@ function PreviewTabNotesColumn({
 
   return (
     <div
-      id={`tabPreview-section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
-      className="baseVertFlex h-[271px] cursor-default"
+      id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
+      className="baseVertFlex cursor-default"
     >
       <div className="baseFlex relative">
-        <div className="baseVertFlex mb-[3.2rem] mt-4">
+        <div className="baseVertFlex">
           {columnData.map((note, index) => (
             <Fragment key={index}>
               {index === 0 && (
@@ -896,14 +909,15 @@ function PreviewTabNotesColumn({
                 </div>
               )}
 
-              {index === 7 && (
-                <div className="relative h-0 w-full">
+              {index === 7 && columnData[7] !== "" && (
+                <div className="relative w-full">
                   <div
                     style={{
-                      top: "0.25rem",
-                      lineHeight: "16px",
+                      paddingTop: "0.25rem",
+                      lineHeight: "14px",
+                      fontSize: "14px",
                     }}
-                    className="baseVertFlex absolute left-1/2 right-1/2 top-2 w-[1.5rem] -translate-x-1/2"
+                    className="baseVertFlex relative"
                   >
                     {columnData[7]?.includes("^") && (
                       <div className="relative top-1 rotate-180">v</div>

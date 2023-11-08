@@ -28,7 +28,6 @@ import { Separator } from "../ui/separator";
 import ChordSection from "./ChordSection";
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabSection from "./TabSection";
-import { Freeze } from "react-freeze";
 import { MemoizedPreviewSubSectionContainer } from "./TabPreview";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useRouter } from "next/router";
@@ -404,33 +403,27 @@ function SectionContainer({
                       )}
                     </div>
                   )}
-                  <Freeze
-                    freeze={
-                      !editing &&
-                      // TODO: create <ChordSection /> version of <HighlightChordWrapper />
-                      // so that we can use slimmed down more performant viewing version of chord
-                      // container w/ highlights
-                      ((subSection.type === "chord" &&
-                        (!enableHighlighting ||
-                          currentlyPlayingSectionIndex !== sectionIndex ||
-                          currentlyPlayingSubSectionIndex !== index)) ||
-                        subSection.type === "tab")
-                    }
-                    placeholder={
-                      <MemoizedPreviewSubSectionContainer
-                        baselineBpm={bpm}
-                        tuning={tuning}
-                        sectionIndex={sectionIndex}
-                        subSectionIndex={index}
-                        subSectionData={subSection}
-                        currentSubSectionisPlaying={
-                          currentlyPlayingSectionIndex === sectionIndex &&
-                          currentlyPlayingSubSectionIndex === index
-                        }
-                        chords={chords}
-                      />
-                    }
-                  >
+
+                  {!editing &&
+                  // chord sections seem harder to do the lightweight highlight...
+                  ((subSection.type === "chord" &&
+                    (!enableHighlighting ||
+                      currentlyPlayingSectionIndex !== sectionIndex ||
+                      currentlyPlayingSubSectionIndex !== index)) ||
+                    subSection.type === "tab") ? (
+                    <MemoizedPreviewSubSectionContainer
+                      baselineBpm={bpm}
+                      tuning={tuning}
+                      sectionIndex={sectionIndex}
+                      subSectionIndex={index}
+                      subSectionData={subSection}
+                      currentSubSectionisPlaying={
+                        currentlyPlayingSectionIndex === sectionIndex &&
+                        currentlyPlayingSubSectionIndex === index
+                      }
+                      chords={chords}
+                    />
+                  ) : (
                     <AnimatePresence mode="wait">
                       {subSection.type === "chord" ? (
                         <ChordSection
@@ -448,7 +441,7 @@ function SectionContainer({
                         />
                       )}
                     </AnimatePresence>
-                  </Freeze>
+                  )}
                 </div>
               ))}
             </div>
