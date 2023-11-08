@@ -50,6 +50,7 @@ import {
   resetTabSliderPosition,
   returnTransitionToTabSlider,
 } from "~/utils/tabSliderHelpers";
+import scrollChordIntoView from "~/utils/scrollChordIntoView";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -387,11 +388,20 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       pauseAudio();
       if (audioMetadata.type === "Generated") setPlayButtonTimeout();
     } else {
-      if (isViewingTabPath)
+      if (isViewingTabPath) {
+        if (
+          currentlyPlayingMetadata?.[currentChordIndex] &&
+          autoscrollEnabled
+        ) {
+          scrollChordIntoView({
+            location: currentlyPlayingMetadata[currentChordIndex]!.location,
+          });
+        }
         setCountInTimer({
           ...countInTimer,
           showing: true,
         });
+      }
       if (previewMetadata.playing) pauseAudio();
 
       setTimeout(() => {
