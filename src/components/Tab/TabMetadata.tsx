@@ -1291,11 +1291,9 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
 
               <div className="baseVertFlex !items-start gap-2 text-sm md:text-base">
                 {description.length > 0 ? (
-                  description.split("\n").map((paragraph, index) => (
-                    <p key={index} className="break-all">
-                      {paragraph}
-                    </p>
-                  ))
+                  description
+                    .split("\n")
+                    .map((paragraph, index) => <p key={index}>{paragraph}</p>)
                 ) : (
                   <p className="italic text-pink-200">
                     No description provided.
