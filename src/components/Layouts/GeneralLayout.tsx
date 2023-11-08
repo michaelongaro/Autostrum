@@ -1,6 +1,5 @@
 import { AnimatePresence } from "framer-motion";
 import { useRef, type ReactNode } from "react";
-import Bubbles from "../Bubbles";
 import Footer from "../Footer/Footer";
 import GeneralLayoutStatefulShell from "./GeneralLayoutStatefulShell";
 import { Noto_Sans } from "next/font/google";
@@ -24,8 +23,6 @@ function GeneralLayout({ children }: GeneralLayout) {
       ref={ref}
       className={`${notoSans.className} baseVertFlex relative min-h-[100dvh] !justify-between`}
     >
-      <Bubbles />
-
       <GeneralLayoutStatefulShell />
 
       <AnimatePresence mode="wait">{children}</AnimatePresence>
