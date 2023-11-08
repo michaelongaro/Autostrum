@@ -20,7 +20,7 @@
 }
 
 .lightestGlassmorphic {
-  @apply backdrop-blur-sm shadow-lightestGlassmorphic bg-gradient-to-br from-pink-500/40 via-pink-500/50 to-pink-500/70;
+  @apply backdrop-blur-sm shadow-lightestGlassmorphic bg-gradient-to-br from-pink-500/[0.47] via-pink-500/[0.57] to-pink-500/[0.65];
 }
 
 .lightGlassmorphic {
@@ -157,7 +157,7 @@ body::before {
   bottom: 0;
   left: 0;
   z-index: -1;
-  background: linear-gradient(135deg, #fba6ff, #ff6196, #ff3721) center / cover;
+  background: linear-gradient(135deg, hsl(297, 100%, 80%), hsl(340, 100%, 67%), hsl(6, 100%, 56%)) center / cover;
   height: 100vh;
 }
 
