@@ -24,7 +24,7 @@
 }
 
 .lightGlassmorphic {
-  @apply bg-pink-200 bg-opacity-[0.15] backdrop-blur-sm shadow-lightGlassmorphic;
+  @apply bg-pink-200 bg-opacity-[0.18] backdrop-blur-sm shadow-lightGlassmorphic;
 }
 
 .mobileNavbarGlassmorphic {
@@ -36,7 +36,7 @@
    made for really bad contrast issues with nav links */
 .headerBackgroundGradient {
   /* need to do this instead of one-liner for safari compatability with background-attachment */
-  background: linear-gradient(315deg, hsl(6, 100%, 65%), hsl(340, 100%, 77%), hsl(297, 100%, 85%));
+  background: linear-gradient(315deg, hsl(6, 100%, 60%), hsl(340, 100%, 75%), hsl(297, 100%, 85%));
   background-repeat: no-repeat;
   background-position: center;
   background-attachment: fixed;
