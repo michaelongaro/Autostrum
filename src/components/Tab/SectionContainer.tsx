@@ -245,11 +245,13 @@ function SectionContainer({
       pauseAudio();
       setPlayButtonTimeout();
     } else {
-      if (isViewingTabPath)
+      if (isViewingTabPath) {
         setCountInTimer({
           showing: true,
           forSectionContainer: sectionIndex,
         });
+      }
+
       if (!locationIsEqual || previewMetadata.playing) pauseAudio(true);
       setTimeout(() => {
         setTimeout(() => {
