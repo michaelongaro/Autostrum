@@ -74,9 +74,9 @@ const AudioProgressSlider = React.forwardRef<
         // would love to make this height larger, but radix-ui slider thumb positioning calculations
         // are a bit off, so making the height larger makes the inconsistency more noticeable
         // ^ https://github.com/radix-ui/primitives/issues/1966
-        className="relative h-[9px] w-full grow cursor-pointer overflow-hidden rounded-full bg-secondary"
+        className="relative h-[8px] w-full grow cursor-pointer overflow-hidden rounded-full bg-secondary"
       >
-        <SliderPrimitive.Range className="active absolute h-full rounded-none bg-primary" />
+        <SliderPrimitive.Range className="active absolute h-full bg-primary" />
       </SliderPrimitive.Track>
 
       <SliderPrimitive.Thumb
