@@ -1403,13 +1403,9 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
           <div className="h-full w-full overflow-hidden">
             <div
               ref={tabPreviewScreenshotRef}
-              style={{
-                background:
-                  "linear-gradient(315deg, hsl(6, 100%, 63%), hsl(340, 100%, 76%), hsl(297, 100%, 87%)) fixed center / cover",
-              }}
-              className="baseFlex h-[581px] w-[1245px] scale-75" // technically scale isn't necessary but the background gradient was getting messed up without it...
+              className="baseFlex h-[581px] w-[1245px] scale-75 bg-pink-300"
             >
-              <div className="h-[581px] w-[1245px] bg-pink-500 bg-opacity-20 ">
+              <div className="h-[581px] w-[1245px] bg-pink-500 bg-opacity-40 ">
                 <TabPreview
                   baselineBpm={bpm}
                   tuning={tuning}
