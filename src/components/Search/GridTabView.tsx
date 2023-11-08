@@ -143,7 +143,7 @@ function GridTabView({
 
           {isFetching &&
             Array.from(Array(3).keys()).map((index) => (
-              <AnimatePresence key={index} mode={"wait"}>
+              <AnimatePresence key={index} mode={"sync"}>
                 <TabCardSkeleton
                   uniqueKey={`tabCardSkeleton${index}`}
                   hideArtist={asPath.includes("/preferences")}

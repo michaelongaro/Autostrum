@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Head from "next/head";
 import { buildClerkProps } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
@@ -216,7 +216,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
           {artist?.pinnedTabId === -1 ? (
             <PinnedTabPlaceholder />
           ) : (
-            <>
+            <AnimatePresence mode="sync">
               {fetchedTab ? (
                 <GridTabCard
                   minimalTab={fetchedTab}
@@ -230,7 +230,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
                   hideArtist
                 />
               )}
-            </>
+            </AnimatePresence>
           )}
         </div>
       </div>

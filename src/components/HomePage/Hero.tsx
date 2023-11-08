@@ -168,8 +168,8 @@ function Hero({
           )}
         </div>
 
-        <div className="baseFlex mt-4 w-full">
-          <AnimatePresence mode="wait">
+        <div className="baseFlex my-4 w-full">
+          <AnimatePresence mode="sync">
             {fetchedTab ? (
               <GridTabCard
                 minimalTab={fetchedTab}

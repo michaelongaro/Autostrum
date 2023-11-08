@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
@@ -209,7 +209,7 @@ function Explore() {
             {artist?.pinnedTabId === -1 ? (
               <PinnedTabPlaceholder />
             ) : (
-              <>
+              <AnimatePresence mode="sync">
                 {fetchedTab ? (
                   <GridTabCard
                     minimalTab={fetchedTab}
@@ -223,7 +223,7 @@ function Explore() {
                     hideArtist
                   />
                 )}
-              </>
+              </AnimatePresence>
             )}
           </div>
         </div>

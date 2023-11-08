@@ -164,7 +164,7 @@ function Preferences() {
               <div className="baseVertFlex min-h-[128px] w-full rounded-md md:w-4/5">
                 {/* if pinned tab, show card with tab info */}
                 {artist?.pinnedTabId !== -1 ? (
-                  <>
+                  <AnimatePresence mode="sync">
                     {fetchedTab ? (
                       <GridTabCard
                         minimalTab={fetchedTab}
@@ -173,7 +173,7 @@ function Preferences() {
                     ) : (
                       <TabCardSkeleton uniqueKey="profileTabCardSkeleton" />
                     )}
-                  </>
+                  </AnimatePresence>
                 ) : (
                   // add conditional popover to say "You haven't created any tabs yet"
                   <div className="lightestGlassmorphic baseFlex h-[200px] w-full rounded-md">
