@@ -51,6 +51,7 @@ module.exports = {
         },
       },
       boxShadow: {
+        primaryButton: "0 2px 1px 0 rgb(0 0 0 / 0.15)",
         lightGlassmorphic: "0 2px 3px 0 rgb(0 0 0 / 0.08)",
         lightestGlassmorphic: "0px 2px 3px 0 rgb(0 0 0 / 0.23)",
       },
