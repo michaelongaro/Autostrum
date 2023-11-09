@@ -269,10 +269,6 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
         if (currentElapsedSeconds === 0) {
           setTabProgressValue(0);
           setCurrentChordIndex(0);
-        } else {
-          setTabProgressValue(
-            currentlyPlayingMetadata?.[currentChordIndex]?.elapsedSeconds ?? 0
-          );
         }
       }
     }
@@ -717,12 +713,21 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   }
                   value={`${playbackSpeed}x`}
                   onValueChange={(value) => {
-                    pauseAudio(true);
+                    pauseAudio();
 
                     const newPlaybackSpeed = Number(
                       value.slice(0, value.length - 1)
                     ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
 
+                    // Normalize the progress value to 1x speed
+                    const normalizedProgress = tabProgressValue * playbackSpeed;
+
+                    // Adjust the progress value to the new playback speed
+                    const adjustedProgress =
+                      normalizedProgress / newPlaybackSpeed;
+
+                    // Set the new progress value
+                    setTabProgressValue(adjustedProgress);
                     setPlaybackSpeed(newPlaybackSpeed);
                   }}
                 >
@@ -1096,17 +1101,23 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                       onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
                       value={`${playbackSpeed}x`}
                       onValueChange={(value) => {
-                        pauseAudio(true);
+                        pauseAudio();
 
-                        setPlaybackSpeed(
-                          Number(value.slice(0, value.length - 1)) as
-                            | 0.25
-                            | 0.5
-                            | 0.75
-                            | 1
-                            | 1.25
-                            | 1.5
-                        );
+                        const newPlaybackSpeed = Number(
+                          value.slice(0, value.length - 1)
+                        ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
+
+                        // Normalize the progress value to 1x speed
+                        const normalizedProgress =
+                          tabProgressValue * playbackSpeed;
+
+                        // Adjust the progress value to the new playback speed
+                        const adjustedProgress =
+                          normalizedProgress / newPlaybackSpeed;
+
+                        // Set the new progress value
+                        setTabProgressValue(adjustedProgress);
+                        setPlaybackSpeed(newPlaybackSpeed);
                       }}
                     >
                       <SelectTrigger className="w-24">
