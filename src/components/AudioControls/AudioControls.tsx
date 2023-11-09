@@ -682,7 +682,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectLabel>Sections</SelectLabel>
+                      <SelectLabel>Instruments</SelectLabel>
 
                       <SelectItem value={"acoustic_guitar_nylon"}>
                         Acoustic guitar - Nylon
