@@ -250,12 +250,14 @@ function TabNotesColumn({
             marginTop:
               reorderingColumns || showingDeleteColumnsButtons ? "4px" : "0",
             height: editing ? "276px" : "164px",
-            width: highlightChord || columnHasBeenPlayed ? "100%" : "0%",
+            transform:
+              highlightChord || columnHasBeenPlayed ? "scaleX(1)" : "scaleX(0)",
+            transformOrigin: "left center",
             transitionDuration: highlightChord ? `${durationOfChord}s` : "0s",
-            msTransitionProperty: "width",
+            msTransitionProperty: "transform",
             transitionTimingFunction: "linear",
           }}
-          className="absolute left-0 top-1/2 w-0 -translate-y-1/2 bg-pink-600"
+          className="absolute left-0 w-full bg-pink-600"
         ></div>
 
         <div

@@ -229,13 +229,15 @@ function HighlightTabNoteColumn({
       <div className="baseFlex relative w-full">
         <div
           style={{
-            width: highlightChord || columnHasBeenPlayed ? "100%" : "0%",
+            transform:
+              highlightChord || columnHasBeenPlayed ? "scaleX(1)" : "scaleX(0)",
+            transformOrigin: "left center",
             transitionDuration: highlightChord ? `${durationOfChord}s` : "0s",
-            msTransitionProperty: "width",
+            msTransitionProperty: "transform",
             transitionTimingFunction: "linear",
             bottom: highlightPaddingBottom,
           }}
-          className=" absolute left-0 z-[-1] h-[168px] w-0 bg-pink-600"
+          className="absolute left-0 z-[-1] h-[168px] w-full bg-pink-600"
         ></div>
       </div>
     </div>
