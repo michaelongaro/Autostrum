@@ -87,7 +87,7 @@ function useAutoscrollToCurrentChord({
             : -(
                 window.innerHeight / 2 -
                 rect.height / 2 -
-                window.innerHeight * 0.25
+                window.innerHeight * 0.26
               ),
         });
       }
