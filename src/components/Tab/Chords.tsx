@@ -130,7 +130,7 @@ function Chords() {
             : "500px"
           : "300px",
       }}
-      className="baseVertFlex lightestGlassmorphic w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 md:p-4"
+      className="baseVertFlex lightestGlassmorphic w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 !shadow-lighterGlassmorphic md:p-4"
     >
       <Accordion
         type="single"

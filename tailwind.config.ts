@@ -52,8 +52,10 @@ module.exports = {
         },
       },
       boxShadow: {
+        primaryButton: "0 1px 2px 0 rgb(0 0 0 / 0.2)",
         lightGlassmorphic: "0 2px 3px 0 rgb(0 0 0 / 0.08)",
-        lightestGlassmorphic: "0 1px 2px 0 rgb(0 0 0 / 0.15)",
+        lighterGlassmorphic: "0 2px 3px 0 rgb(0 0 0 / 0.18)",
+        lightestGlassmorphic: "0px 2px 3px 0 rgb(0 0 0 / 0.23)",
       },
       borderRadius: {
         lg: "var(--radius)",
