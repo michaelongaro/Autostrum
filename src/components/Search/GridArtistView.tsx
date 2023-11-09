@@ -93,7 +93,7 @@ function GridArtistView({
           {isFetching &&
             Array.from(Array(3).keys()).map((index) => (
               <AnimatePresence key={index} mode={"wait"}>
-                <ArtistCardSkeleton key={`artistCardSkeleton${index}`} />
+                <ArtistCardSkeleton uniqueKey={`artistCardSkeleton${index}`} />
               </AnimatePresence>
             ))}
         </>
@@ -110,13 +110,13 @@ function GridArtistView({
 export default GridArtistView;
 
 interface ArtistCardSkeleton {
-  key: string;
+  uniqueKey: string;
 }
 
-function ArtistCardSkeleton({ key }: ArtistCardSkeleton) {
+function ArtistCardSkeleton({ uniqueKey }: ArtistCardSkeleton) {
   return (
     <motion.div
-      key={key}
+      key={uniqueKey}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
