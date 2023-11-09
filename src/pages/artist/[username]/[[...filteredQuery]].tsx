@@ -112,7 +112,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
         <meta property="og:type" content="website" />
         <meta
           property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/viewingUserProfile.png"
+          content="https://www.autostrum.com/opengraphScreenshots/artistProfile.png"
         ></meta>
       </Head>
 
