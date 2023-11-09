@@ -217,6 +217,20 @@ function TableTabSkeleton({
 }) {
   return (
     <TableRow className="w-full">
+      {!hideLikesAndPlayButtons && (
+        <>
+          <TableCell>
+            <div className="baseFlex w-full">
+              <div className="h-8 w-12 animate-pulse rounded-md bg-pink-300"></div>
+            </div>
+          </TableCell>
+          <TableCell>
+            <div className="baseFlex w-full">
+              <div className="h-8 w-12 animate-pulse rounded-md bg-pink-300"></div>
+            </div>
+          </TableCell>
+        </>
+      )}
       <TableCell>
         <div className="h-6 w-32 animate-pulse rounded-md bg-pink-300"></div>
       </TableCell>
@@ -237,16 +251,6 @@ function TableTabSkeleton({
       <TableCell>
         <div className="h-8 w-24 animate-pulse rounded-md bg-pink-300"></div>
       </TableCell>
-      {!hideLikesAndPlayButtons && (
-        <>
-          <TableCell>
-            <div className="h-8 w-12 animate-pulse rounded-md bg-pink-300"></div>
-          </TableCell>
-          <TableCell>
-            <div className="h-8 w-12 animate-pulse rounded-md bg-pink-300"></div>
-          </TableCell>
-        </>
-      )}
     </TableRow>
   );
 }
