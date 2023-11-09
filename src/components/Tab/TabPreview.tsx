@@ -234,7 +234,6 @@ function PreviewChordSection({
       style={{
         padding: padding,
         width: "auto",
-        borderTopLeftRadius: subSectionData.repetitions > 1 ? 0 : "0.375rem",
       }}
       className="baseVertFlex lightestGlassmorphic relative h-full !justify-start rounded-md"
     >
@@ -308,12 +307,7 @@ function PreviewChordSequence({
   chordSequenceIndex,
 }: PreviewChordSequence) {
   return (
-    <div
-      style={{
-        borderTopLeftRadius: chordSequenceData.repetitions > 1 ? 0 : "0.375rem",
-      }}
-      className="baseVertFlex relative w-auto !justify-start gap-8 rounded-md border-2 border-pink-50 p-1"
-    >
+    <div className="baseVertFlex relative w-auto !justify-start gap-8 rounded-md border-2 border-pink-50 p-1">
       <PreviewStrummingPattern
         chordSequenceData={chordSequenceData.data}
         data={chordSequenceData.strummingPattern}
@@ -665,7 +659,6 @@ function PreviewTabSection({
         gap: "0",
         padding: sectionPadding,
         width: "auto",
-        borderTopLeftRadius: subSectionData.repetitions > 1 ? 0 : "0.375rem",
       }}
       className="baseVertFlex lightestGlassmorphic relative h-full !justify-start rounded-md"
     >

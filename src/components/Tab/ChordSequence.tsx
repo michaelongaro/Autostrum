@@ -224,12 +224,7 @@ function ChordSequence({
     >
       {editing &&
       Object.keys(chordSequenceData.strummingPattern).length === 0 ? (
-        <div
-          style={{
-            borderTopLeftRadius: chordSequenceData.repetitions > 1 ? 0 : "auto",
-          }}
-          className="baseVertFlex relative h-full w-full gap-2 rounded-md border-2 border-pink-50 bg-black/25 p-4 shadow-sm"
-        >
+        <div className="baseVertFlex relative h-full w-full gap-2 rounded-md border-2 border-pink-50 bg-black/25 p-4 shadow-sm">
           <p className="mt-8 text-lg font-semibold sm:mt-0">
             No strumming patterns exist
           </p>
@@ -266,8 +261,6 @@ function ChordSequence({
       ) : (
         <div
           style={{
-            borderTopLeftRadius:
-              !editing && chordSequenceData.repetitions > 1 ? 0 : "0.375rem",
             padding: editing ? "1rem" : "0.25rem",
             width: editing ? "100%" : "auto",
           }}

@@ -152,8 +152,6 @@ function ChordSection({
         gap: editing ? "1rem" : "0",
         padding: padding,
         width: editing ? "100%" : "auto",
-        borderTopLeftRadius:
-          !editing && subSectionData.repetitions > 1 ? 0 : "0.375rem",
       }}
       className="baseVertFlex lightestGlassmorphic relative h-full !justify-start rounded-md"
     >
