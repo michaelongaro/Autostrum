@@ -15,6 +15,8 @@ function useAutoscrollToCurrentChord({
   // to avoid jarring scrolling effects.
   const [previousChordYScrollValue, setPreviousChordYScrollValue] =
     useState(-1);
+  const [previousChordSectionIndex, setPreviousChordSectionIndex] =
+    useState(-1);
 
   const { currentlyPlayingMetadata, currentChordIndex, audioMetadata } =
     useTabStore(
@@ -54,7 +56,8 @@ function useAutoscrollToCurrentChord({
 
       if (
         previousChordYScrollValue !== -1 &&
-        Math.abs(previousChordYScrollValue - currentChordYScrollValue) < 50
+        Math.abs(previousChordYScrollValue - currentChordYScrollValue) < 50 &&
+        previousChordSectionIndex === sectionIndex
       ) {
         return;
       }
@@ -66,21 +69,31 @@ function useAutoscrollToCurrentChord({
       const targetIsOutOfViewportWithMargins =
         rect.top < 100 ||
         rect.bottom > window.innerHeight - (isAboveLargeViewport ? 120 : 100);
+      const isFirstChordOfNewStrummingSection =
+        chordSequenceIndex !== undefined &&
+        previousChordSectionIndex !== sectionIndex &&
+        chordIndex === 0;
 
-      if (targetIsOutOfViewportWithMargins) {
+      if (
+        targetIsOutOfViewportWithMargins ||
+        isFirstChordOfNewStrummingSection
+      ) {
         scroller.scrollTo(currentElement.id, {
-          duration: targetIsWayOutOfViewport ? 0 : 300, // prevents jarring scroll
+          duration: targetIsWayOutOfViewport ? 0 : 200, // prevents jarring scroll
           delay: 0,
-          smooth: "easeOutQuart",
-          offset: -(
-            window.innerHeight / 2 -
-            rect.height / 2 -
-            window.innerHeight * 0.25
-          ),
+          smooth: "easeInOutQuad",
+          offset: isFirstChordOfNewStrummingSection
+            ? -160
+            : -(
+                window.innerHeight / 2 -
+                rect.height / 2 -
+                window.innerHeight * 0.25
+              ),
         });
       }
 
       setPreviousChordYScrollValue(currentChordYScrollValue);
+      setPreviousChordSectionIndex(sectionIndex);
     }
   }, [
     currentlyPlayingMetadata,
@@ -88,6 +101,7 @@ function useAutoscrollToCurrentChord({
     autoscrollEnabled,
     audioMetadata,
     previousChordYScrollValue,
+    previousChordSectionIndex,
   ]);
 }
 

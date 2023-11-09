@@ -29,9 +29,9 @@ export default function scrollChordIntoView({ location }: ScrollChordIntoView) {
     const rect = currentElement.getBoundingClientRect();
 
     scroller.scrollTo(currentElement.id, {
-      duration: 425,
+      duration: 500,
       delay: 0,
-      smooth: "easeOutQuart",
+      smooth: "easeInOutQuad",
       offset: -(
         window.innerHeight / 2 -
         rect.height / 2 -
