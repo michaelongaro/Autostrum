@@ -26,7 +26,6 @@ import renderStrummingGuide from "~/utils/renderStrummingGuide";
 import { parse, toString } from "~/utils/tunings";
 import Chord from "./Chord";
 import HighlightTabColumnWrapper from "./HighlightTabColumnWrapper";
-import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 
 // ---WARNING---: I really didn't want to have to do this approach, but this is the only way
 // I could avoid the horrendous performance/rerender issues that would happen when many
@@ -155,8 +154,6 @@ function PreviewSubSectionContainer({
   currentSubSectionisPlaying,
   chords,
 }: PreviewSubSectionContainer) {
-  const enableHighlighting = useGetLocalStorageValues().enableHighlighting;
-
   return (
     <>
       {subSectionData.type === "chord" ? (
@@ -176,7 +173,7 @@ function PreviewSubSectionContainer({
             sectionIndex={sectionIndex}
             baselineBpm={baselineBpm}
           >
-            {currentSubSectionisPlaying && enableHighlighting && (
+            {currentSubSectionisPlaying && (
               <HighlightTabColumnWrapper
                 sectionIndex={sectionIndex}
                 subSectionIndex={subSectionIndex}

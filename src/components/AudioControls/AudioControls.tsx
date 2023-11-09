@@ -102,14 +102,10 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   const localStorageVolume = useLocalStorageValue("autostrumVolume");
   const localStorageAutoscroll = useLocalStorageValue("autostrumAutoscroll");
   const localStorageLooping = useLocalStorageValue("autostrumLooping");
-  const localStorageEnableHighlighting = useLocalStorageValue(
-    "autostrumEnableHighlighting"
-  );
 
   const volume = useGetLocalStorageValues().volume;
   const autoscrollEnabled = useGetLocalStorageValues().autoscroll;
   const looping = useGetLocalStorageValues().looping;
-  const enableHighlighting = useGetLocalStorageValues().enableHighlighting;
 
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
 
@@ -1157,24 +1153,6 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                       }
                     />
                   </div>
-                  {isMobile && (
-                    <div className="baseFlex w-full !flex-nowrap !items-start !justify-between gap-4">
-                      <div className="baseVertFlex mt-1 !items-start !justify-start gap-1">
-                        <Label>Highlight chords while playing</Label>
-                        <p className="text-sm italic text-gray-400">
-                          Disable this if you are experiencing lag when playing
-                          generated audio.
-                        </p>
-                      </div>
-                      <Switch
-                        id="enableHighlighting"
-                        checked={enableHighlighting}
-                        onCheckedChange={(value) =>
-                          localStorageEnableHighlighting.set(String(value))
-                        }
-                      />
-                    </div>
-                  )}
                 </Drawer.Content>
               </Drawer.Portal>
             </Drawer.Root>

@@ -29,7 +29,6 @@ import ChordSection from "./ChordSection";
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabSection from "./TabSection";
 import { MemoizedPreviewSubSectionContainer } from "./TabPreview";
-import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useRouter } from "next/router";
 
 interface SectionContainer {
@@ -55,8 +54,6 @@ function SectionContainer({
   const [localTitle, setLocalTitle] = useState(sectionData.title);
   const [artificialPlayButtonTimeout, setArtificialPlayButtonTimeout] =
     useState(false);
-
-  const enableHighlighting = useGetLocalStorageValues().enableHighlighting;
 
   const {
     id,
@@ -409,8 +406,7 @@ function SectionContainer({
                   {!editing &&
                   // chord sections seem harder to do the lightweight highlight...
                   ((subSection.type === "chord" &&
-                    (!enableHighlighting ||
-                      currentlyPlayingSectionIndex !== sectionIndex ||
+                    (currentlyPlayingSectionIndex !== sectionIndex ||
                       currentlyPlayingSubSectionIndex !== index)) ||
                     subSection.type === "tab") ? (
                     <MemoizedPreviewSubSectionContainer
