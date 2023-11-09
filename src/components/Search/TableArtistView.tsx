@@ -89,7 +89,7 @@ function TableArtistView({
             <TableHead>Artist</TableHead>
             <TableHead>Tabs</TableHead>
             <TableHead>Likes</TableHead>
-            <TableHead>Date joined</TableHead>
+            <TableHead className="whitespace-nowrap">Date joined</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="w-full">
