@@ -772,7 +772,7 @@ export function PreviewTabMeasureLine({
             ? "222px"
             : "237px",
       }}
-      className="baseVertFlex relative mt-[1px] h-[237px] "
+      className="baseVertFlex relative mt-[1.5px] h-[237px]"
     >
       {columnData.map((note, index) => (
         <Fragment key={index}>
