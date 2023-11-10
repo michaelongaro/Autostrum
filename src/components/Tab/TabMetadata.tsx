@@ -6,7 +6,14 @@ import { Check } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useRef, useState, type ChangeEvent } from "react";
+import {
+  useRef,
+  useState,
+  useEffect,
+  type ChangeEvent,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { createPortal } from "react-dom";
 import { AiFillEye, AiOutlineUser } from "react-icons/ai";
 import { BsArrowRightShort, BsPlus } from "react-icons/bs";
@@ -47,9 +54,14 @@ import TabPreview from "./TabPreview";
 
 type TabMetadata = {
   customTuning: string;
+  setIsPostingOrSaving: Dispatch<SetStateAction<boolean>>;
 } & Partial<RefetchTab>;
 
-function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
+function TabMetadata({
+  refetchTab,
+  customTuning,
+  setIsPostingOrSaving,
+}: TabMetadata) {
   const { userId } = useAuth();
 
   const { push, asPath } = useRouter();
@@ -81,13 +93,12 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
       onSuccess: (tab) => {
         if (tab) {
           setShowPublishCheckmark(true);
+          setOriginalTabData(tab);
 
           setTimeout(() => {
             if (asPath.includes("create")) {
               void push(`/tab/${tab.id}`);
             }
-
-            setOriginalTabData(tab);
           }, 250);
 
           setTimeout(() => {
@@ -129,6 +140,10 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
         void ctx.tab.getTabById.invalidate();
       },
     });
+
+  useEffect(() => {
+    setIsPostingOrSaving(isPosting);
+  }, [isPosting, setIsPostingOrSaving]);
 
   const {
     originalTabData,
@@ -376,6 +391,10 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
 
       return;
     }
+
+    // have to set this manually rather than relying on the effect since it takes
+    // a bit for the posting to actually occur, this should be more synchronous
+    setIsPostingOrSaving(true);
 
     let base64RecordedAudioFile: string | null = null;
 

@@ -44,6 +44,7 @@ interface ITab extends Partial<RefetchTab> {
 
 function Tab({ tab, refetchTab }: ITab) {
   const [customTuning, setCustomTuning] = useState("");
+  const [isPostingOrSaving, setIsPostingOrSaving] = useState(false);
 
   // true when creating new section, results in way less cpu/ram usage for arguably worse ux
   const [forceCloseSectionAccordions, setForceCloseSectionAccordions] =
@@ -261,9 +262,20 @@ function Tab({ tab, refetchTab }: ITab) {
     <>
       <div
         id={"mainTabComponent"}
-        className="baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-md md:my-24 xl:w-8/12"
+        style={{
+          transition: "filter 0.5s ease-in-out",
+        }}
+        className={`baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-md md:my-24 xl:w-8/12 ${
+          isPostingOrSaving
+            ? "pointer-events-none brightness-90"
+            : "brightness-100"
+        }`}
       >
-        <TabMetadata refetchTab={refetchTab} customTuning={customTuning} />
+        <TabMetadata
+          refetchTab={refetchTab}
+          customTuning={customTuning}
+          setIsPostingOrSaving={setIsPostingOrSaving}
+        />
 
         {!editing &&
           sectionProgression.length === 0 &&
