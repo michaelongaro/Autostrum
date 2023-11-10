@@ -845,7 +845,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
               } baseVertFlex w-full !items-start gap-1.5`}
             >
               <Label htmlFor="title">
-                Title <span className="text-brightRed">*</span>
+                Title <span className="text-destructiveRed">*</span>
               </Label>
               <Input
                 id="title"
@@ -891,7 +891,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
               } baseVertFlex !items-start gap-1.5`}
             >
               <Label>
-                Genre <span className="text-brightRed">*</span>
+                Genre <span className="text-destructiveRed">*</span>
               </Label>
               <Select
                 value={genreList[genreId]?.id.toString()}
@@ -950,7 +950,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
               } baseVertFlex max-w-sm !items-start gap-1.5`}
             >
               <Label htmlFor="tuning">
-                Tuning <span className="text-brightRed">*</span>
+                Tuning <span className="text-destructiveRed">*</span>
               </Label>
               <CommandCombobox customTuning={customTuning} />
             </div>
@@ -977,7 +977,7 @@ function TabMetadata({ refetchTab, customTuning }: TabMetadata) {
               } baseVertFlex relative w-16 max-w-sm !items-start gap-1.5`}
             >
               <Label htmlFor="bpm">
-                BPM <span className="text-brightRed">*</span>
+                BPM <span className="text-destructiveRed">*</span>
               </Label>
               <Input
                 type="text"

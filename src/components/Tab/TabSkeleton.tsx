@@ -48,7 +48,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
                 } baseVertFlex w-full !items-start gap-1.5`}
               >
                 <Label htmlFor="title">
-                  Title <span className="text-brightRed">*</span>
+                  Title <span className="text-destructiveRed">*</span>
                 </Label>
                 <div className="h-8 w-full animate-pulse rounded-md bg-pink-300"></div>
               </div>
@@ -68,7 +68,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
                 } baseVertFlex w-11/12 !items-start gap-1.5`}
               >
                 <Label>
-                  Genre <span className="text-brightRed">*</span>
+                  Genre <span className="text-destructiveRed">*</span>
                 </Label>
                 <div className="h-8 w-full animate-pulse rounded-md bg-pink-300"></div>
               </div>
@@ -79,7 +79,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
                 } baseVertFlex w-11/12 max-w-sm !items-start gap-1.5`}
               >
                 <Label htmlFor="tuning">
-                  Tuning <span className="text-brightRed">*</span>
+                  Tuning <span className="text-destructiveRed">*</span>
                 </Label>
                 <div className="h-8 w-full animate-pulse rounded-md bg-pink-300"></div>
               </div>
@@ -99,7 +99,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
                 } baseVertFlex relative w-16 max-w-sm !items-start gap-1.5`}
               >
                 <Label htmlFor="bpm">
-                  BPM <span className="text-brightRed">*</span>
+                  BPM <span className="text-destructiveRed">*</span>
                 </Label>
                 <div className="h-8 w-16 animate-pulse rounded-md bg-pink-300"></div>
               </div>
