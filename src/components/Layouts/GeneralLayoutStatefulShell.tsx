@@ -10,10 +10,11 @@ import useKeepArtistMetadataUpdatedWithClerk from "~/hooks/useKeepArtistMetadata
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import AudioControls from "../AudioControls/AudioControls";
-import Header from "../Header/Header";
 import { Button } from "../ui/button";
 import useDetectRouteChanges from "~/hooks/useDetectRouteChanges";
 import MobileHeaderModal from "../modals/MobileHeaderModal";
+import DesktopHeader from "../Header/DesktopHeader";
+import MobileHeader from "../Header/MobileHeader";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -199,7 +200,7 @@ function GeneralLayoutStatefulShell() {
 
   return (
     <>
-      <Header />
+      {aboveLargeViewportWidth ? <DesktopHeader /> : <MobileHeader />}
 
       <AnimatePresence mode="wait">
         {mobileHeaderModal.showing && (
