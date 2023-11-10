@@ -66,8 +66,8 @@ function GeneralLayoutStatefulShell() {
     masterVolumeGainNode,
     setMasterVolumeGainNode,
     recordedAudioBufferSourceNode,
-    showMobileHeaderModal,
-    setShowMobileHeaderModal,
+    mobileHeaderModal,
+    setMobileHeaderModal,
   } = useTabStore(
     (state) => ({
       setLooping: state.setLooping,
@@ -85,8 +85,8 @@ function GeneralLayoutStatefulShell() {
       masterVolumeGainNode: state.masterVolumeGainNode,
       setMasterVolumeGainNode: state.setMasterVolumeGainNode,
       recordedAudioBufferSourceNode: state.recordedAudioBufferSourceNode,
-      showMobileHeaderModal: state.showMobileHeaderModal,
-      setShowMobileHeaderModal: state.setShowMobileHeaderModal,
+      mobileHeaderModal: state.mobileHeaderModal,
+      setMobileHeaderModal: state.setMobileHeaderModal,
     }),
     shallow
   );
@@ -202,9 +202,10 @@ function GeneralLayoutStatefulShell() {
       <Header />
 
       <AnimatePresence mode="wait">
-        {showMobileHeaderModal && (
+        {mobileHeaderModal.showing && (
           <MobileHeaderModal
-            setShowMobileHeaderModal={setShowMobileHeaderModal}
+            mobileHeaderModal={mobileHeaderModal}
+            setMobileHeaderModal={setMobileHeaderModal}
           />
         )}
       </AnimatePresence>

@@ -183,7 +183,10 @@ const initialStoreState = {
   showingEffectGlossary: false,
   showDeleteAccountModal: false,
   showCustomTuningModal: false,
-  showMobileHeaderModal: false,
+  mobileHeaderModal: {
+    showing: false,
+    zIndex: 48,
+  },
 
   // related to sound generation/playing
   currentlyPlayingMetadata: null,
@@ -305,8 +308,14 @@ interface TabState {
   setShowDeleteAccountModal: (showDeleteAccountModal: boolean) => void;
   showCustomTuningModal: boolean;
   setShowCustomTuningModal: (showCustomTuningModal: boolean) => void;
-  showMobileHeaderModal: boolean;
-  setShowMobileHeaderModal: (showMobileHeaderModal: boolean) => void;
+  mobileHeaderModal: {
+    showing: boolean;
+    zIndex: number;
+  };
+  setMobileHeaderModal: (mobileHeaderModal: {
+    showing: boolean;
+    zIndex: number;
+  }) => void;
 
   // below are also used to determine if respective modal should be showing
   chordBeingEdited: {
@@ -931,9 +940,11 @@ export const useTabStore = create<TabState>()(
     showCustomTuningModal: false,
     setShowCustomTuningModal: (showCustomTuningModal) =>
       set({ showCustomTuningModal }),
-    showMobileHeaderModal: false,
-    setShowMobileHeaderModal: (showMobileHeaderModal) =>
-      set({ showMobileHeaderModal }),
+    mobileHeaderModal: {
+      showing: false,
+      zIndex: 48,
+    },
+    setMobileHeaderModal: (mobileHeaderModal) => set({ mobileHeaderModal }),
 
     // below are also used to determine if respective modal should be showing
     chordBeingEdited: null,

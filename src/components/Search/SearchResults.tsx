@@ -1,7 +1,7 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
 import { BsArrowDownShort, BsGridFill } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
 import { LuFilter } from "react-icons/lu";
@@ -79,17 +79,27 @@ function SearchResults({
 
   const localStorageViewType = useLocalStorageValue("autostrumViewType");
 
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [resultsCountIsLoading, setResultsCountIsLoading] = useState(false);
   const [drawerHandleDisabled, setDrawerHandleDisabled] = useState(false);
 
   const isAboveSmallViewportWidth = useViewportWidthBreakpoint(640);
 
-  const { searchResultsCount } = useTabStore(
-    (state) => ({
-      searchResultsCount: state.searchResultsCount,
-    }),
-    shallow
-  );
+  const { searchResultsCount, mobileHeaderModal, setMobileHeaderModal } =
+    useTabStore(
+      (state) => ({
+        searchResultsCount: state.searchResultsCount,
+        mobileHeaderModal: state.mobileHeaderModal,
+        setMobileHeaderModal: state.setMobileHeaderModal,
+      }),
+      shallow
+    );
+
+  useEffect(() => {
+    if (!mobileHeaderModal.showing) {
+      setDrawerOpen(false);
+    }
+  }, [mobileHeaderModal.showing]);
 
   function formatQueryResultsCount() {
     const formattedTabString = searchResultsCount === 1 ? "tab" : "tabs";
@@ -378,7 +388,18 @@ function SearchResults({
         )}
 
         {/* mobile sorting options */}
-        <Drawer.Root dismissible={!drawerHandleDisabled}>
+        <Drawer.Root
+          open={drawerOpen}
+          onOpenChange={(open) => {
+            setDrawerOpen(open);
+            setMobileHeaderModal({
+              showing: open,
+              zIndex: open ? (asPath.includes("/profile") ? 50 : 49) : 48,
+            });
+          }}
+          modal={false}
+          dismissible={!drawerHandleDisabled}
+        >
           <Drawer.Trigger asChild>
             <Button variant={"outline"} className="baseFlex gap-2 @3xl:hidden">
               Filter
@@ -386,7 +407,6 @@ function SearchResults({
             </Button>
           </Drawer.Trigger>
           <Drawer.Portal>
-            <Drawer.Overlay className="fixed inset-0 z-50 bg-black/50" />
             <Drawer.Content
               style={{
                 zIndex: asPath.includes("/preferences") ? 60 : 50,

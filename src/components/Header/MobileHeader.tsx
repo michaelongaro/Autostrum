@@ -5,12 +5,12 @@ import {
   useAuth,
   useUser,
 } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
 import { useLocalStorageValue } from "@react-hookz/web";
 import { Squash as Hamburger } from "hamburger-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
 import { FaGuitar } from "react-icons/fa";
 import { IoTelescopeOutline } from "react-icons/io5";
 import { shallow } from "zustand/shallow";
@@ -20,35 +20,39 @@ import { Button } from "../ui/button";
 function MobileHeader() {
   const { userId, isSignedIn } = useAuth();
   const { user } = useUser();
-
   const { asPath } = useRouter();
+
+  const [mobileHeaderIsOpen, setMobileHeaderIsOpen] = useState(false);
 
   const localStorageTabData = useLocalStorageValue("tabData");
   const localStorageRedirectRoute = useLocalStorageValue("redirectRoute");
 
-  const {
-    getStringifiedTabData,
-    showMobileHeaderModal,
-    setShowMobileHeaderModal,
-  } = useTabStore(
-    (state) => ({
-      getStringifiedTabData: state.getStringifiedTabData,
-      showMobileHeaderModal: state.showMobileHeaderModal,
-      setShowMobileHeaderModal: state.setShowMobileHeaderModal,
-    }),
-    shallow
-  );
+  const { getStringifiedTabData, mobileHeaderModal, setMobileHeaderModal } =
+    useTabStore(
+      (state) => ({
+        getStringifiedTabData: state.getStringifiedTabData,
+        mobileHeaderModal: state.mobileHeaderModal,
+        setMobileHeaderModal: state.setMobileHeaderModal,
+      }),
+      shallow
+    );
+
+  useEffect(() => {
+    if (!mobileHeaderModal.showing) {
+      setMobileHeaderIsOpen(false);
+    }
+  }, [mobileHeaderModal]);
 
   return (
     <div
       style={{
-        height: showMobileHeaderModal ? "15.75rem" : "4rem",
-        boxShadow: showMobileHeaderModal
+        height: mobileHeaderIsOpen ? "15.75rem" : "4rem",
+        boxShadow: mobileHeaderIsOpen
           ? // these are roughly tailwind shadow-md values
             "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)"
           : "0 4px 6px -1px transparent, 0 2px 4px -2px transparent",
       }}
-      className="absolute flex h-full w-full items-start justify-between overflow-clip p-2 transition-all lg:hidden"
+      className="absolute flex h-full w-full items-start justify-between overflow-clip p-2 transition-all duration-300 lg:hidden"
     >
       <Link href={"/"} className="baseFlex h-12 pl-2">
         <Image
@@ -60,9 +64,13 @@ function MobileHeader() {
         />
       </Link>
       <Hamburger
-        toggled={showMobileHeaderModal}
+        toggled={mobileHeaderIsOpen}
         onToggle={(open) => {
-          setShowMobileHeaderModal(open);
+          setMobileHeaderIsOpen(open);
+          setMobileHeaderModal({
+            showing: open,
+            zIndex: 48,
+          });
         }}
         color="#fdf2f8"
         rounded

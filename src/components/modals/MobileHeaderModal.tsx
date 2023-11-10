@@ -13,10 +13,20 @@ const backdropVariants = {
 };
 
 interface MobileHeaderModal {
-  setShowMobileHeaderModal: (showMobileHeaderModal: boolean) => void;
+  mobileHeaderModal: {
+    showing: boolean;
+    zIndex: number;
+  };
+  setMobileHeaderModal: (showMobileHeaderModal: {
+    showing: boolean;
+    zIndex: number;
+  }) => void;
 }
 
-function MobileHeaderModal({ setShowMobileHeaderModal }: MobileHeaderModal) {
+function MobileHeaderModal({
+  mobileHeaderModal,
+  setMobileHeaderModal,
+}: MobileHeaderModal) {
   const { setPreventFramerLayoutShift } = useTabStore(
     (state) => ({
       setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
@@ -50,14 +60,20 @@ function MobileHeaderModal({ setShowMobileHeaderModal }: MobileHeaderModal) {
   return (
     <motion.div
       key={"MobileHeaderModalBackdrop"}
-      className="baseFlex fixed left-0 top-0 z-[48] h-[100dvh] w-[100vw] bg-black/50"
+      style={{
+        zIndex: mobileHeaderModal.zIndex,
+      }}
+      className="baseFlex fixed left-0 top-0 h-[100dvh] w-[100vw] bg-black/50"
       variants={backdropVariants}
       initial="closed"
       animate="expanded"
       exit="closed"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          setShowMobileHeaderModal(false);
+          setMobileHeaderModal({
+            ...mobileHeaderModal,
+            showing: false,
+          });
         }
       }}
     ></motion.div>

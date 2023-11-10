@@ -45,7 +45,6 @@ import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import PlayButtonIcon from "./PlayButtonIcon";
-import { isMobile } from "react-device-detect";
 import {
   resetTabSliderPosition,
   returnTransitionToTabSlider,
@@ -138,6 +137,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     audioContext,
     countInTimer,
     setCountInTimer,
+    mobileHeaderModal,
+    setMobileHeaderModal,
   } = useTabStore(
     (state) => ({
       id: state.id,
@@ -166,9 +167,17 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       audioContext: state.audioContext,
       countInTimer: state.countInTimer,
       setCountInTimer: state.setCountInTimer,
+      mobileHeaderModal: state.mobileHeaderModal,
+      setMobileHeaderModal: state.setMobileHeaderModal,
     }),
     shallow
   );
+
+  useEffect(() => {
+    if (!mobileHeaderModal.showing) {
+      setDrawerOpen(false);
+    }
+  }, [mobileHeaderModal.showing]);
 
   useEffect(() => {
     if (!masterVolumeGainNode) return;
@@ -992,16 +1001,24 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                 }
 
                 setDrawerOpen(open);
+                setMobileHeaderModal({
+                  showing: open,
+                  zIndex: open ? 49 : 48,
+                });
               }}
+              // ideally we would have modal={true}, but currently radix-ui
+              // dialogs cause horrible forced reflows which caused 3-5+ seconds
+              // of the main thread being fully blocked... using this with the main
+              // drawback being that it scrolls up to the top of the page when opened
+              modal={false}
               dismissible={!drawerHandleDisabled}
             >
               <Drawer.Trigger asChild>
-                <Button size="sm" variant={"outline"} className="p-1">
-                  <IoSettingsOutline className="h-6 w-6" />
+                <Button size="sm" variant={"outline"} className="px-2 py-1">
+                  <IoSettingsOutline className="h-5 w-5" />
                 </Button>
               </Drawer.Trigger>
               <Drawer.Portal>
-                <Drawer.Overlay className="fixed inset-0 z-50 bg-black/50" />
                 <Drawer.Content className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 bg-pink-50 p-4 pb-6 text-pink-950">
                   <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
 
