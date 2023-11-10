@@ -27,7 +27,7 @@ function PostSignUpRegistration() {
     addNewUser({
       userId: user.id,
       username: user.username!,
-      profileImageUrl: user.profileImageUrl,
+      profileImageUrl: user.imageUrl,
     });
   }, [user, addNewUser]);
 
