@@ -1,6 +1,6 @@
 # Autostrum 🎸
 
-https://github.com/michaelongaro/Autostrum/assets/35980684/2c189888-b8cf-43d1-96d2-13908a61ee62
+https://github.com/michaelongaro/Autostrum/assets/35980684/0696867e-01f0-4c28-b675-2311858f0bb2
 
 <br></br>
 
