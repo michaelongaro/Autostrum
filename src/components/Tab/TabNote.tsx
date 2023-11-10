@@ -282,7 +282,7 @@ function TabNote({
     let value = e.target.value;
 
     // regular notes
-    if (noteIndex !== 7) {
+    if (noteIndex !== 7 || value === "|") {
       // wanted to always allow a-g in regular note even if there was a number
       // present for easy placement of major chords
       let valueHasAChordLetter = false;
