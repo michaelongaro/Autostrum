@@ -57,7 +57,7 @@ function MobileHeader() {
 
   return (
     <>
-      <AnimatePresence mode="sync">
+      <AnimatePresence mode="wait">
         {mobileHeaderIsOpen && (
           <motion.div
             key={"mobileHamburgerMenu"}
@@ -65,8 +65,8 @@ function MobileHeader() {
             initial="closed"
             animate="expanded"
             exit="closed"
-            transition={{ duration: 0.15 }}
-            className="mobileNavbarGlassmorphic fixed left-0 top-16 z-[49] h-48 w-full transition-all"
+            transition={{ duration: 0.3 }}
+            className="mobileNavbarGlassmorphic fixed left-0 top-16 z-[49] h-48 w-full"
           >
             <div className="baseVertFlex h-full items-center justify-center gap-4 shadow-md">
               <Button
