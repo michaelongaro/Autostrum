@@ -568,7 +568,7 @@ function StrummingPattern({
                   </PopoverTrigger>
                   <PopoverContent
                     side="bottom"
-                    className="w-40 bg-pink-300 p-0 text-pink-50 shadow-lg"
+                    className="chordPreviewGlassmorphic w-40 border-2 p-0 text-pink-50"
                   >
                     <Chord
                       chordBeingEdited={{
