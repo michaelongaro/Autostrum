@@ -2,7 +2,6 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
 import { Fragment, useState, memo } from "react";
-import { BsMusicNote } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { shallow } from "zustand/shallow";
@@ -301,7 +300,7 @@ function TabMeasureLine({
                     note === "-" ? "top-[10px]" : "top-[27px]"
                   }`}
                 >
-                  <BsMusicNote className="h-3 w-3" />
+                  <span className="mr-[1px] h-[1.275rem] text-[1.2rem]">𝅘𝅥</span>
                   <p className="text-center text-xs">
                     {columnData[7].toString()}
                   </p>
@@ -336,7 +335,7 @@ function TabMeasureLine({
                     className="absolute bottom-9 z-50 h-5 w-5 rounded-full p-[0.125rem] text-pink-50"
                     onKeyDown={handleKeyDown}
                   >
-                    <BsMusicNote className="h-3 w-3" />
+                    <span className=" mb-[2px] mr-[1px] text-[1.1rem]">𝅘𝅥</span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
@@ -344,11 +343,12 @@ function TabMeasureLine({
                   side="bottom"
                 >
                   <p className="w-auto text-center text-sm">
-                    Specify a new BPM for this measure
+                    Specify a new BPM for the following measure
                   </p>
 
                   <div className="baseFlex gap-2">
-                    <BsMusicNote className="h-4 w-4" />
+                    <span className=" mb-[2px] mr-[1px] text-[1.5rem]">𝅘𝅥</span>
+
                     <Input
                       type="text"
                       inputMode="numeric"

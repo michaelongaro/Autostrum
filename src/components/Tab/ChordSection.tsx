@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { Fragment, memo, useMemo } from "react";
-import { BsMusicNote } from "react-icons/bs";
 import { v4 as uuid } from "uuid";
 import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
@@ -12,9 +11,14 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import {
   useTabStore,
   type ChordSection as ChordSectionType,
+  type ChordSequence as ChordSequenceType,
 } from "~/stores/TabStore";
 import ChordSequence from "./ChordSequence";
 import MiscellaneousControls from "./MiscellaneousControls";
+import {
+  chordSequencesAllHaveSameNoteLength,
+  getDynamicNoteLengthIcon,
+} from "~/utils/bpmIconRenderingHelpers";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -110,6 +114,12 @@ function ChordSection({
     });
 
     setTabData(newTabData);
+  }
+
+  function showBpm(chordSequence: ChordSequenceType) {
+    if (!chordSequencesAllHaveSameNoteLength(subSectionData)) return true;
+
+    return chordSequence.bpm !== -1 && chordSequence.bpm !== subSectionData.bpm;
   }
 
   const padding = useMemo(() => {
@@ -237,30 +247,31 @@ function ChordSection({
                   className="baseVertFlex !items-start"
                 >
                   {!editing &&
-                    ((chordSequence.bpm !== -1 &&
-                      chordSequence.bpm !== subSectionData.bpm) ||
+                    (showBpm(chordSequence) ||
                       chordSequence.repetitions > 1) && (
                       <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
-                        {chordSequence.bpm !== -1 &&
-                          chordSequence.bpm !== subSectionData.bpm && (
-                            <div className="baseFlex gap-1">
-                              <BsMusicNote className="h-3 w-3" />
-                              {chordSequence.bpm === -1
+                        {showBpm(chordSequence) && (
+                          <div className="baseFlex gap-1">
+                            {getDynamicNoteLengthIcon(
+                              chordSequence.strummingPattern.noteLength
+                            )}
+                            {chordSequence.bpm === -1
+                              ? subSectionData.bpm === -1
                                 ? bpm
-                                : chordSequence.bpm}{" "}
-                              BPM
-                            </div>
-                          )}
+                                : subSectionData.bpm
+                              : chordSequence.bpm}{" "}
+                            BPM
+                          </div>
+                        )}
 
                         {chordSequence.repetitions > 1 && (
                           <div className="baseFlex gap-3">
-                            {chordSequence.bpm !== -1 &&
-                              chordSequence.bpm !== subSectionData.bpm && (
-                                <Separator
-                                  className="h-4 w-[1px]"
-                                  orientation="vertical"
-                                />
-                              )}
+                            {showBpm(chordSequence) && (
+                              <Separator
+                                className="h-4 w-[1px]"
+                                orientation="vertical"
+                              />
+                            )}
 
                             <p
                               className={`${

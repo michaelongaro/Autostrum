@@ -1,11 +1,6 @@
 import { Fragment, memo, useCallback, useMemo, type ReactNode } from "react";
 import { Element } from "react-scroll";
-import {
-  BsArrowDown,
-  BsArrowUp,
-  BsFillPlayFill,
-  BsMusicNote,
-} from "react-icons/bs";
+import { BsArrowDown, BsArrowUp, BsFillPlayFill } from "react-icons/bs";
 import { Button } from "~/components/ui/button";
 import {
   Popover,
@@ -26,6 +21,10 @@ import renderStrummingGuide from "~/utils/renderStrummingGuide";
 import { parse, toString } from "~/utils/tunings";
 import Chord from "./Chord";
 import HighlightTabColumnWrapper from "./HighlightTabColumnWrapper";
+import {
+  chordSequencesAllHaveSameNoteLength,
+  getDynamicNoteLengthIcon,
+} from "~/utils/bpmIconRenderingHelpers";
 
 // ---WARNING---: I really didn't want to have to do this approach, but this is the only way
 // I could avoid the horrendous performance/rerender issues that would happen when many
@@ -94,20 +93,38 @@ function PreviewSectionContainer({
             key={subSection.id}
             className="baseVertFlex w-full !items-start pb-2"
           >
-            <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
-              <div className="baseFlex gap-1">
-                <BsMusicNote className="h-3 w-3" />
-                {subSection.bpm === -1 ? baselineBpm : subSection.bpm} BPM
+            {(subSection.type === "tab" ||
+              chordSequencesAllHaveSameNoteLength(subSection) ||
+              subSection.repetitions > 1) && (
+              <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
+                {(subSection.type === "tab" ||
+                  chordSequencesAllHaveSameNoteLength(subSection)) && (
+                  <div className="baseFlex gap-1.5">
+                    {getDynamicNoteLengthIcon(
+                      subSection.type === "tab"
+                        ? "1/4th"
+                        : subSection.data[0]?.strummingPattern.noteLength ??
+                            "1/4th"
+                    )}
+                    {subSection.bpm === -1 ? baselineBpm : subSection.bpm} BPM
+                  </div>
+                )}
+
+                {subSection.repetitions > 1 && (
+                  <div className="baseFlex gap-3">
+                    {(subSection.type === "tab" ||
+                      chordSequencesAllHaveSameNoteLength(subSection)) && (
+                      <Separator
+                        className="h-4 w-[1px]"
+                        orientation="vertical"
+                      />
+                    )}
+
+                    <p>Repeat x{subSection.repetitions}</p>
+                  </div>
+                )}
               </div>
-
-              {subSection.repetitions > 1 && (
-                <div className="baseFlex gap-3">
-                  <Separator className="h-4 w-[1px]" orientation="vertical" />
-
-                  <p>Repeat x{subSection.repetitions}</p>
-                </div>
-              )}
-            </div>
+            )}
 
             {subSection.type === "chord" ? (
               <PreviewChordSection
@@ -226,6 +243,17 @@ function PreviewChordSection({
     return padding;
   }, [aboveMediumViewportWidth]);
 
+  function showBpm(chordSequence: ChordSequence) {
+    console.log(
+      subSectionIndex,
+      chordSequencesAllHaveSameNoteLength(subSectionData)
+    );
+
+    if (!chordSequencesAllHaveSameNoteLength(subSectionData)) return true;
+
+    return chordSequence.bpm !== -1 && chordSequence.bpm !== subSectionData.bpm;
+  }
+
   return (
     <div
       style={{
@@ -239,30 +267,30 @@ function PreviewChordSection({
           <Fragment key={`${chordSequence.id}wrapper`}>
             {chordSequence.data.length > 0 ? (
               <div className="baseVertFlex w-auto !items-start">
-                {((chordSequence.bpm !== -1 &&
-                  chordSequence.bpm !== subSectionData.bpm) ||
-                  chordSequence.repetitions > 1) && (
+                {(showBpm(chordSequence) || chordSequence.repetitions > 1) && (
                   <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
-                    {chordSequence.bpm !== -1 &&
-                      chordSequence.bpm !== subSectionData.bpm && (
-                        <div className="baseFlex gap-1">
-                          <BsMusicNote className="h-3 w-3" />
-                          {chordSequence.bpm === -1
+                    {showBpm(chordSequence) && (
+                      <div className="baseFlex gap-1.5">
+                        {getDynamicNoteLengthIcon(
+                          chordSequence.strummingPattern.noteLength
+                        )}
+                        {chordSequence.bpm === -1
+                          ? subSectionData.bpm === -1
                             ? baselineBpm
-                            : chordSequence.bpm}{" "}
-                          BPM
-                        </div>
-                      )}
+                            : subSectionData.bpm
+                          : chordSequence.bpm}{" "}
+                        BPM
+                      </div>
+                    )}
 
                     {chordSequence.repetitions > 1 && (
                       <div className="baseFlex gap-3">
-                        {chordSequence.bpm !== -1 &&
-                          chordSequence.bpm !== subSectionData.bpm && (
-                            <Separator
-                              className="h-4 w-[1px]"
-                              orientation="vertical"
-                            />
-                          )}
+                        {showBpm(chordSequence) && (
+                          <Separator
+                            className="h-4 w-[1px]"
+                            orientation="vertical"
+                          />
+                        )}
 
                         <p>Repeat x{chordSequence.repetitions}</p>
                       </div>
@@ -465,7 +493,7 @@ function PreviewStrummingPattern({
                 </PopoverTrigger>
                 <PopoverContent
                   side="bottom"
-                  className="w-40 bg-pink-300 p-0 text-pink-50 shadow-lg"
+                  className="chordPreviewGlassmorphic w-40 border-2 p-0 text-pink-50"
                 >
                   <Chord
                     chordBeingEdited={{
@@ -759,7 +787,7 @@ export function PreviewTabMeasureLine({
         height:
           (columnData[7] && columnData[7] !== "-1") ||
           conditionalBaselineBpmToShow
-            ? "222px"
+            ? "221px"
             : "237px",
       }}
       className="baseVertFlex relative mt-[1.5px] h-[237px]"
@@ -776,7 +804,9 @@ export function PreviewTabMeasureLine({
                   }`}
                 >
                   <div className="baseFlex !flex-nowrap gap-[0.125rem]">
-                    <BsMusicNote className="h-3 w-3" />
+                    <span className="relative left-[-1px] top-[-4.5px] h-[16px] text-center text-[16px]">
+                      𝅘𝅥
+                    </span>
                     <p className="text-center text-xs">
                       {columnData[7] !== "-1" && columnData[7] !== ""
                         ? columnData[7]!.toString()
@@ -788,7 +818,7 @@ export function PreviewTabMeasureLine({
 
               <div className="baseFlex mb-0 h-0 w-full">
                 {note === "-" && (
-                  <div className="relative top-[-18px] h-[1px] w-full bg-pink-50"></div>
+                  <div className="relative top-[-18.5px] h-[1px] w-full bg-pink-50"></div>
                 )}
               </div>
             </>

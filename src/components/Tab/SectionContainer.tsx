@@ -2,7 +2,6 @@ import { AnimatePresence } from "framer-motion";
 import isEqual from "lodash.isequal";
 import debounce from "lodash.debounce";
 import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
-import { BsMusicNote } from "react-icons/bs";
 import { v4 as uuid } from "uuid";
 import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
@@ -30,6 +29,10 @@ import MiscellaneousControls from "./MiscellaneousControls";
 import TabSection from "./TabSection";
 import { MemoizedPreviewSubSectionContainer } from "./TabPreview";
 import { useRouter } from "next/router";
+import {
+  chordSequencesAllHaveSameNoteLength,
+  getDynamicNoteLengthIcon,
+} from "~/utils/bpmIconRenderingHelpers";
 
 interface SectionContainer {
   sectionIndex: number;
@@ -371,37 +374,53 @@ function SectionContainer({
                   key={subSection.id}
                   className="baseVertFlex w-full !items-start pb-2"
                 >
-                  {!editing && (
-                    <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
-                      <div className="baseFlex gap-1">
-                        <BsMusicNote className="h-3 w-3" />
-                        {subSection.bpm === -1 ? bpm : subSection.bpm} BPM
-                      </div>
+                  {!editing &&
+                    (subSection.type === "tab" ||
+                      chordSequencesAllHaveSameNoteLength(subSection) ||
+                      subSection.repetitions > 1) && (
+                      <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
+                        {(subSection.type === "tab" ||
+                          chordSequencesAllHaveSameNoteLength(subSection)) && (
+                          <div className="baseFlex gap-1.5">
+                            {getDynamicNoteLengthIcon(
+                              subSection.type === "tab"
+                                ? "1/4th"
+                                : subSection.data[0]?.strummingPattern
+                                    .noteLength ?? "1/4th"
+                            )}
+                            {subSection.bpm === -1 ? bpm : subSection.bpm} BPM
+                          </div>
+                        )}
 
-                      {subSection.repetitions > 1 && (
-                        <div className="baseFlex gap-3">
-                          <Separator
-                            className="h-4 w-[1px]"
-                            orientation="vertical"
-                          />
+                        {subSection.repetitions > 1 && (
+                          <div className="baseFlex gap-3">
+                            {(subSection.type === "tab" ||
+                              chordSequencesAllHaveSameNoteLength(
+                                subSection
+                              )) && (
+                              <Separator
+                                className="h-4 w-[1px]"
+                                orientation="vertical"
+                              />
+                            )}
 
-                          <p
-                            className={`${
-                              audioMetadata.type === "Generated" &&
-                              audioMetadata.playing &&
-                              currentlyPlayingSectionIndex === sectionIndex &&
-                              currentlyPlayingSubSectionIndex === index
-                                ? "animate-colorOscillate"
-                                : ""
-                            }
+                            <p
+                              className={`${
+                                audioMetadata.type === "Generated" &&
+                                audioMetadata.playing &&
+                                currentlyPlayingSectionIndex === sectionIndex &&
+                                currentlyPlayingSubSectionIndex === index
+                                  ? "animate-colorOscillate"
+                                  : ""
+                              }
                     `}
-                          >
-                            Repeat x{subSection.repetitions}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                            >
+                              Repeat x{subSection.repetitions}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                   {!editing &&
                   // chord sections seem harder to do the lightweight highlight...
