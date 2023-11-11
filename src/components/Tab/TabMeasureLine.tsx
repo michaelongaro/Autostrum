@@ -15,6 +15,7 @@ import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
+import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
 
 interface TabMeasureLine {
   columnData: string[];
@@ -300,7 +301,7 @@ function TabMeasureLine({
                     note === "-" ? "top-[10px]" : "top-[27px]"
                   }`}
                 >
-                  <span className="mr-[1px] h-[1.275rem] text-[1.2rem]">𝅘𝅥</span>
+                  <QuarterNote />
                   <p className="text-center text-xs">
                     {columnData[7].toString()}
                   </p>
@@ -335,7 +336,7 @@ function TabMeasureLine({
                     className="absolute bottom-9 z-50 h-5 w-5 rounded-full p-[0.125rem] text-pink-50"
                     onKeyDown={handleKeyDown}
                   >
-                    <span className=" mb-[2px] mr-[1px] text-[1.1rem]">𝅘𝅥</span>
+                    <QuarterNote className="mr-[1px] h-[1rem]" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
@@ -347,7 +348,7 @@ function TabMeasureLine({
                   </p>
 
                   <div className="baseFlex gap-2">
-                    <span className=" mb-[2px] mr-[1px] text-[1.5rem]">𝅘𝅥</span>
+                    <QuarterNote className="fill-pink-950" />
 
                     <Input
                       type="text"

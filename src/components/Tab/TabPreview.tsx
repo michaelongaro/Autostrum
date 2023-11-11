@@ -22,6 +22,7 @@ import { parse, toString } from "~/utils/tunings";
 import Chord from "./Chord";
 import HighlightTabColumnWrapper from "./HighlightTabColumnWrapper";
 import {
+  QuarterNote,
   chordSequencesAllHaveSameNoteLength,
   getDynamicNoteLengthIcon,
 } from "~/utils/bpmIconRenderingHelpers";
@@ -99,7 +100,7 @@ function PreviewSectionContainer({
               <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
                 {(subSection.type === "tab" ||
                   chordSequencesAllHaveSameNoteLength(subSection)) && (
-                  <div className="baseFlex gap-1.5">
+                  <div className="baseFlex gap-1">
                     {getDynamicNoteLengthIcon(
                       subSection.type === "tab"
                         ? "1/4th"
@@ -265,7 +266,7 @@ function PreviewChordSection({
                 {(showBpm(chordSequence) || chordSequence.repetitions > 1) && (
                   <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
                     {showBpm(chordSequence) && (
-                      <div className="baseFlex gap-1.5">
+                      <div className="baseFlex gap-1">
                         {getDynamicNoteLengthIcon(
                           chordSequence.strummingPattern.noteLength
                         )}
@@ -799,9 +800,7 @@ export function PreviewTabMeasureLine({
                   }`}
                 >
                   <div className="baseFlex !flex-nowrap gap-[0.125rem]">
-                    <span className="relative left-[-1px] top-[-4.5px] h-[16px] text-center text-[16px]">
-                      𝅘𝅥
-                    </span>
+                    <QuarterNote />
                     <p className="text-center text-xs">
                       {columnData[7] !== "-1" && columnData[7] !== ""
                         ? columnData[7]!.toString()
