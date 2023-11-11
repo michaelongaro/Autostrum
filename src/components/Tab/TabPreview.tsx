@@ -244,11 +244,6 @@ function PreviewChordSection({
   }, [aboveMediumViewportWidth]);
 
   function showBpm(chordSequence: ChordSequence) {
-    console.log(
-      subSectionIndex,
-      chordSequencesAllHaveSameNoteLength(subSectionData)
-    );
-
     if (!chordSequencesAllHaveSameNoteLength(subSectionData)) return true;
 
     return chordSequence.bpm !== -1 && chordSequence.bpm !== subSectionData.bpm;
