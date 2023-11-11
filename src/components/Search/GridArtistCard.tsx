@@ -75,14 +75,14 @@ const GridArtistCard = forwardRef<HTMLDivElement, ArtistMetadata>(
                 width: "4rem",
                 height: "4rem",
               }}
-              className="col-start-1 col-end-2 row-start-1 row-end-2 h-16 w-16 rounded-full object-cover object-center transition-opacity"
+              className="col-start-1 col-end-2 row-start-1 row-end-2 h-16 w-16 rounded-full object-cover object-center shadow-md transition-opacity"
             />
             <div
               style={{
                 opacity: !profileImageLoaded ? 1 : 0,
                 zIndex: !profileImageLoaded ? 1 : -1,
               }}
-              className={`col-start-1 col-end-2 row-start-1 row-end-2 h-16 w-16 rounded-full bg-pink-300 transition-opacity
+              className={`col-start-1 col-end-2 row-start-1 row-end-2 h-16 w-16 rounded-full bg-pink-300 shadow-md transition-opacity
                               ${!profileImageLoaded ? "animate-pulse" : ""}
                             `}
             ></div>

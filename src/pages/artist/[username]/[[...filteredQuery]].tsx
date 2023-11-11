@@ -137,7 +137,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
                       width: "6rem",
                       height: "6rem",
                     }}
-                    className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full object-cover object-center transition-opacity"
+                    className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full object-cover object-center shadow-md transition-opacity"
                   />
                 )}
                 <div
@@ -145,7 +145,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
                     opacity: !profileImageLoaded ? 1 : 0,
                     zIndex: !profileImageLoaded ? 1 : -1,
                   }}
-                  className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 transition-opacity
+                  className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 shadow-md transition-opacity
                               ${!profileImageLoaded ? "animate-pulse" : ""}
                             `}
                 ></div>

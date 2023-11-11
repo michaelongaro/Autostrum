@@ -36,14 +36,14 @@ const TableArtistRow = forwardRef<HTMLTableRowElement, ArtistMetadata>(
                     height: "2rem",
                     width: "2rem",
                   }}
-                  className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full object-cover object-center transition-opacity"
+                  className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full object-cover object-center shadow-md transition-opacity"
                 />
                 <div
                   style={{
                     opacity: !profileImageLoaded ? 1 : 0,
                     zIndex: !profileImageLoaded ? 1 : -1,
                   }}
-                  className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 transition-opacity
+                  className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 shadow-md transition-opacity
                               ${!profileImageLoaded ? "animate-pulse" : ""}
                             `}
                 ></div>
