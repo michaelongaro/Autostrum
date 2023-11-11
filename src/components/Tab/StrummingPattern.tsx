@@ -719,6 +719,8 @@ function StrummingPattern({
                   color:
                     mode === "viewingInSelectDropdown"
                       ? "hsl(336, 84%, 17%)"
+                      : highlightChord(strumIndex, index !== undefined)
+                      ? "hsl(333, 71%, 51%)"
                       : "hsl(327, 73%, 97%)",
                 }}
                 className="text-sm transition-colors"
