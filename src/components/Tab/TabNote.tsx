@@ -388,6 +388,11 @@ function TabNote({
         const id =
           newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex]![9];
 
+        // this technically is fine, but I don't want to implement it now, also might have
+        // weird ui side effects by having more space on either side of the measure line than
+        // originally planned for
+        if (palmMuteNode === "start" || palmMuteNode === "end") return;
+
         newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex] = [
           palmMuteNode ?? "",
           "|",
