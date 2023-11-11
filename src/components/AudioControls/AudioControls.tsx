@@ -878,17 +878,21 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
             </p>
 
             <AudioProgressSlider
-              value={[tabProgressValue]}
+              value={[
+                audioMetadata.type === "Artist recording"
+                  ? tabProgressValue
+                  : currentChordIndex,
+              ]}
               min={0}
               // radix-slider thumb protrudes from lefthand side of the
               // track if max has a value of 0...
               max={
                 audioMetadata.type === "Artist recording"
-                  ? recordedAudioBuffer?.duration === 0
-                    ? 1
-                    : Math.floor(recordedAudioBuffer?.duration)
+                  ? recordedAudioBuffer
+                    ? Math.floor(recordedAudioBuffer.duration)
+                    : 1
                   : currentlyPlayingMetadata
-                  ? currentlyPlayingMetadata.at(-1)?.elapsedSeconds
+                  ? currentlyPlayingMetadata.length - 1
                   : 1
               }
               step={1}
@@ -935,28 +939,15 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                 }
               }}
               onValueChange={(value) => {
-                setTabProgressValue(value[0]!);
+                setTabProgressValue(
+                  audioMetadata.type === "Artist recording"
+                    ? value[0]!
+                    : currentlyPlayingMetadata?.[value[0]!]?.elapsedSeconds ?? 0
+                );
 
-                if (
-                  audioMetadata.type === "Artist recording" ||
-                  !currentlyPlayingMetadata
-                )
-                  return;
+                if (audioMetadata.type === "Artist recording") return;
 
-                let newCurrentChordIndex = -1;
-
-                for (let i = 0; i < currentlyPlayingMetadata.length; i++) {
-                  const metadata = currentlyPlayingMetadata[i]!;
-
-                  if (metadata.elapsedSeconds === value[0]) {
-                    newCurrentChordIndex = i;
-                    break;
-                  }
-                }
-
-                if (newCurrentChordIndex !== -1) {
-                  setCurrentChordIndex(newCurrentChordIndex);
-                }
+                setCurrentChordIndex(value[0]!);
               }}
             ></AudioProgressSlider>
 
