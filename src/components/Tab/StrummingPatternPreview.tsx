@@ -2,10 +2,12 @@ import { BiDownArrowAlt, BiUpArrowAlt } from "react-icons/bi";
 import { type StrummingPattern } from "~/stores/TabStore";
 
 interface StrummingPatternPreview {
-  data: StrummingPattern;
+  data?: StrummingPattern;
 }
 
 function StrummingPatternPreview({ data }: StrummingPatternPreview) {
+  if (!data) return null;
+
   return (
     <div className="baseFlex w-full !justify-start p-1">
       <div

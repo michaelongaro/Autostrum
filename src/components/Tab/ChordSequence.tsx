@@ -318,7 +318,7 @@ function ChordSequence({
                           data={
                             strummingPatterns[
                               indexOfCurrentlySelectedStrummingPattern
-                            ]!
+                            ]
                           }
                         />
                       </SelectValue>
