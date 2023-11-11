@@ -800,7 +800,7 @@ export function PreviewTabMeasureLine({
                   }`}
                 >
                   <div className="baseFlex !flex-nowrap gap-[0.125rem]">
-                    <QuarterNote />
+                    <QuarterNote className="mr-[1px] h-[0.9rem]" />
                     <p className="text-center text-xs">
                       {columnData[7] !== "-1" && columnData[7] !== ""
                         ? columnData[7]!.toString()
