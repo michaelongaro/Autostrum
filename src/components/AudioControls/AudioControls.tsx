@@ -878,21 +878,17 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
             </p>
 
             <AudioProgressSlider
-              value={[
-                audioMetadata.type === "Artist recording"
-                  ? tabProgressValue
-                  : currentChordIndex,
-              ]}
+              value={[tabProgressValue]}
               min={0}
               // radix-slider thumb protrudes from lefthand side of the
               // track if max has a value of 0...
               max={
                 audioMetadata.type === "Artist recording"
                   ? recordedAudioBuffer
-                    ? Math.floor(recordedAudioBuffer.duration)
+                    ? Math.floor(recordedAudioBuffer?.duration)
                     : 1
                   : currentlyPlayingMetadata
-                  ? currentlyPlayingMetadata.length - 1
+                  ? currentlyPlayingMetadata.at(-1)?.elapsedSeconds
                   : 1
               }
               step={1}
@@ -939,15 +935,28 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                 }
               }}
               onValueChange={(value) => {
-                setTabProgressValue(
-                  audioMetadata.type === "Artist recording"
-                    ? value[0]!
-                    : currentlyPlayingMetadata?.[value[0]!]?.elapsedSeconds ?? 0
-                );
+                setTabProgressValue(value[0]!);
 
-                if (audioMetadata.type === "Artist recording") return;
+                if (
+                  audioMetadata.type === "Artist recording" ||
+                  !currentlyPlayingMetadata
+                )
+                  return;
 
-                setCurrentChordIndex(value[0]!);
+                let newCurrentChordIndex = -1;
+
+                for (let i = 0; i < currentlyPlayingMetadata.length; i++) {
+                  const metadata = currentlyPlayingMetadata[i]!;
+
+                  if (metadata.elapsedSeconds === value[0]) {
+                    newCurrentChordIndex = i;
+                    break;
+                  }
+                }
+
+                if (newCurrentChordIndex !== -1) {
+                  setCurrentChordIndex(newCurrentChordIndex);
+                }
               }}
             ></AudioProgressSlider>
 
