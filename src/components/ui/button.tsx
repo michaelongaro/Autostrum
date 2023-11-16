@@ -68,6 +68,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         ref={ref}
         {...props}
+        style={{
+          ...props.style,
+          textShadow:
+            variant === "navigation" || variant === "secondary"
+              ? "none"
+              : "0 1px 2px hsla(336, 84%, 17%, 0.15)",
+        }}
       />
     );
   }
