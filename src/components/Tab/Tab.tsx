@@ -8,7 +8,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { FaBook } from "react-icons/fa";
 import { v4 as uuid } from "uuid";
-import { shallow } from "zustand/shallow";
 import type { TabWithLikes } from "~/server/api/routers/tab";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
@@ -100,46 +99,43 @@ function Tab({ tab, refetchTab }: ITab) {
     sectionProgression,
     chords,
     strummingPatterns,
-  } = useTabStore(
-    (state) => ({
-      setId: state.setId,
-      setCreatedById: state.setCreatedById,
-      setCreatedAt: state.setCreatedAt,
-      setUpdatedAt: state.setUpdatedAt,
-      setTitle: state.setTitle,
-      setDescription: state.setDescription,
-      setGenreId: state.setGenreId,
-      setTuning: state.setTuning,
-      setBpm: state.setBpm,
-      setCapo: state.setCapo,
-      setTimeSignature: state.setTimeSignature,
-      setMusicalKey: state.setMusicalKey,
-      setHasRecordedAudio: state.setHasRecordedAudio,
-      setChords: state.setChords,
-      setStrummingPatterns: state.setStrummingPatterns,
-      tabData: state.tabData,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-      setSectionProgression: state.setSectionProgression,
-      setNumberOfLikes: state.setNumberOfLikes,
-      editing: state.editing,
-      setOriginalTabData: state.setOriginalTabData,
-      showAudioRecorderModal: state.showAudioRecorderModal,
-      showSectionProgressionModal: state.showSectionProgressionModal,
-      showEffectGlossaryModal: state.showEffectGlossaryModal,
-      setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
-      chordBeingEdited: state.chordBeingEdited,
-      strummingPatternBeingEdited: state.strummingPatternBeingEdited,
-      showCustomTuningModal: state.showCustomTuningModal,
-      preventFramerLayoutShift: state.preventFramerLayoutShift,
-      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-      currentChordIndex: state.currentChordIndex,
-      sectionProgression: state.sectionProgression,
-      chords: state.chords,
-      strummingPatterns: state.strummingPatterns,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    setId: state.setId,
+    setCreatedById: state.setCreatedById,
+    setCreatedAt: state.setCreatedAt,
+    setUpdatedAt: state.setUpdatedAt,
+    setTitle: state.setTitle,
+    setDescription: state.setDescription,
+    setGenreId: state.setGenreId,
+    setTuning: state.setTuning,
+    setBpm: state.setBpm,
+    setCapo: state.setCapo,
+    setTimeSignature: state.setTimeSignature,
+    setMusicalKey: state.setMusicalKey,
+    setHasRecordedAudio: state.setHasRecordedAudio,
+    setChords: state.setChords,
+    setStrummingPatterns: state.setStrummingPatterns,
+    tabData: state.tabData,
+    getTabData: state.getTabData,
+    setTabData: state.setTabData,
+    setSectionProgression: state.setSectionProgression,
+    setNumberOfLikes: state.setNumberOfLikes,
+    editing: state.editing,
+    setOriginalTabData: state.setOriginalTabData,
+    showAudioRecorderModal: state.showAudioRecorderModal,
+    showSectionProgressionModal: state.showSectionProgressionModal,
+    showEffectGlossaryModal: state.showEffectGlossaryModal,
+    setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
+    chordBeingEdited: state.chordBeingEdited,
+    strummingPatternBeingEdited: state.strummingPatternBeingEdited,
+    showCustomTuningModal: state.showCustomTuningModal,
+    preventFramerLayoutShift: state.preventFramerLayoutShift,
+    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+    currentChordIndex: state.currentChordIndex,
+    sectionProgression: state.sectionProgression,
+    chords: state.chords,
+    strummingPatterns: state.strummingPatterns,
+  }));
 
   useEffect(() => {
     if (!tab) return;

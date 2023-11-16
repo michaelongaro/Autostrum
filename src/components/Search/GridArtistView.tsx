@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { AiFillHeart } from "react-icons/ai";
 import { GiMusicalScore } from "react-icons/gi";
 import { useInView } from "react-intersection-observer";
-import { shallow } from "zustand/shallow";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import GridArtistCard from "./GridArtistCard";
@@ -27,12 +26,9 @@ function GridArtistView({
   additionalSortFilter,
   setResultsCountIsLoading,
 }: GridArtistView) {
-  const { setSearchResultsCount } = useTabStore(
-    (state) => ({
-      setSearchResultsCount: state.setSearchResultsCount,
-    }),
-    shallow
-  );
+  const { setSearchResultsCount } = useTabStore((state) => ({
+    setSearchResultsCount: state.setSearchResultsCount,
+  }));
 
   const {
     data: artistResults,

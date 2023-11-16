@@ -13,7 +13,6 @@ import {
 } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
-import { shallow } from "zustand/shallow";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
 import PalmMuteNode from "./PalmMuteNode";
@@ -81,17 +80,14 @@ function TabNotesColumn({
     setChordPulse,
     getTabData,
     setTabData,
-  } = useTabStore(
-    (state) => ({
-      editing: state.editing,
-      audioMetadata: state.audioMetadata,
-      chordPulse: state.chordPulse,
-      setChordPulse: state.setChordPulse,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    editing: state.editing,
+    audioMetadata: state.audioMetadata,
+    chordPulse: state.chordPulse,
+    setChordPulse: state.setChordPulse,
+    getTabData: state.getTabData,
+    setTabData: state.setTabData,
+  }));
 
   // ideally don't need this and can just use prop values passed in, but need to have
   // [0] index special case since when looping it would keep the [0] index at 100% width

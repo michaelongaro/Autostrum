@@ -15,7 +15,6 @@ import { IoSettingsOutline } from "react-icons/io5";
 import { RiArrowGoBackFill } from "react-icons/ri";
 import { TiArrowLoop } from "react-icons/ti";
 import { Drawer } from "vaul";
-import { shallow } from "zustand/shallow";
 import { AudioProgressSlider } from "~/components/ui/AudioProgressSlider";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import { Button } from "~/components/ui/button";
@@ -141,39 +140,36 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     setCountInTimer,
     mobileHeaderModal,
     setMobileHeaderModal,
-  } = useTabStore(
-    (state) => ({
-      id: state.id,
-      bpm: state.bpm,
-      hasRecordedAudio: state.hasRecordedAudio,
-      currentInstrumentName: state.currentInstrumentName,
-      setCurrentInstrumentName: state.setCurrentInstrumentName,
-      playbackSpeed: state.playbackSpeed,
-      setPlaybackSpeed: state.setPlaybackSpeed,
-      masterVolumeGainNode: state.masterVolumeGainNode,
-      currentChordIndex: state.currentChordIndex,
-      setCurrentChordIndex: state.setCurrentChordIndex,
-      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-      audioMetadata: state.audioMetadata,
-      setAudioMetadata: state.setAudioMetadata,
-      previewMetadata: state.previewMetadata,
-      currentInstrument: state.currentInstrument,
-      tabData: state.tabData,
-      recordedAudioFile: state.recordedAudioFile,
-      recordedAudioBuffer: state.recordedAudioBuffer,
-      setRecordedAudioBuffer: state.setRecordedAudioBuffer,
-      playTab: state.playTab,
-      playRecordedAudio: state.playRecordedAudio,
-      pauseAudio: state.pauseAudio,
-      fetchingFullTabData: state.fetchingFullTabData,
-      audioContext: state.audioContext,
-      countInTimer: state.countInTimer,
-      setCountInTimer: state.setCountInTimer,
-      mobileHeaderModal: state.mobileHeaderModal,
-      setMobileHeaderModal: state.setMobileHeaderModal,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    id: state.id,
+    bpm: state.bpm,
+    hasRecordedAudio: state.hasRecordedAudio,
+    currentInstrumentName: state.currentInstrumentName,
+    setCurrentInstrumentName: state.setCurrentInstrumentName,
+    playbackSpeed: state.playbackSpeed,
+    setPlaybackSpeed: state.setPlaybackSpeed,
+    masterVolumeGainNode: state.masterVolumeGainNode,
+    currentChordIndex: state.currentChordIndex,
+    setCurrentChordIndex: state.setCurrentChordIndex,
+    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+    audioMetadata: state.audioMetadata,
+    setAudioMetadata: state.setAudioMetadata,
+    previewMetadata: state.previewMetadata,
+    currentInstrument: state.currentInstrument,
+    tabData: state.tabData,
+    recordedAudioFile: state.recordedAudioFile,
+    recordedAudioBuffer: state.recordedAudioBuffer,
+    setRecordedAudioBuffer: state.setRecordedAudioBuffer,
+    playTab: state.playTab,
+    playRecordedAudio: state.playRecordedAudio,
+    pauseAudio: state.pauseAudio,
+    fetchingFullTabData: state.fetchingFullTabData,
+    audioContext: state.audioContext,
+    countInTimer: state.countInTimer,
+    setCountInTimer: state.setCountInTimer,
+    mobileHeaderModal: state.mobileHeaderModal,
+    setMobileHeaderModal: state.setMobileHeaderModal,
+  }));
 
   useEffect(() => {
     if (!mobileHeaderModal.showing) {

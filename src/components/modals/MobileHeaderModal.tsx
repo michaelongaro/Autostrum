@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { useEffect } from "react";
-import { shallow } from "zustand/shallow";
 import { useTabStore } from "~/stores/TabStore";
 
 const backdropVariants = {
@@ -27,12 +26,9 @@ function MobileHeaderModal({
   mobileHeaderModal,
   setMobileHeaderModal,
 }: MobileHeaderModal) {
-  const { setPreventFramerLayoutShift } = useTabStore(
-    (state) => ({
-      setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
-    }),
-    shallow
-  );
+  const { setPreventFramerLayoutShift } = useTabStore((state) => ({
+    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
+  }));
 
   useEffect(() => {
     setPreventFramerLayoutShift(true);

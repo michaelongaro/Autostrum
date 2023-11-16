@@ -6,7 +6,6 @@ import { isDesktop, isMobile } from "react-device-detect";
 import { FaBook } from "react-icons/fa";
 import { HiOutlineInformationCircle } from "react-icons/hi";
 import { HiOutlineWrench } from "react-icons/hi2";
-import { shallow } from "zustand/shallow";
 import {
   Tooltip,
   TooltipContent,
@@ -62,14 +61,11 @@ function CustomTuningModal({
   const placeholderNotes = ["e2", "a2", "d3", "g3", "b3", "e4"];
 
   const { setTuning, setPreventFramerLayoutShift, setShowCustomTuningModal } =
-    useTabStore(
-      (state) => ({
-        setTuning: state.setTuning,
-        setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
-        setShowCustomTuningModal: state.setShowCustomTuningModal,
-      }),
-      shallow
-    );
+    useTabStore((state) => ({
+      setTuning: state.setTuning,
+      setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
+      setShowCustomTuningModal: state.setShowCustomTuningModal,
+    }));
 
   useEffect(() => {
     setPreventFramerLayoutShift(true);

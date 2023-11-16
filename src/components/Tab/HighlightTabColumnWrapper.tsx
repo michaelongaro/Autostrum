@@ -1,5 +1,4 @@
 import { Fragment, useState, useEffect } from "react";
-import { shallow } from "zustand/shallow";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore, type TabSection } from "~/stores/TabStore";
 import { parse, toString } from "~/utils/tunings";
@@ -31,17 +30,14 @@ function HighlightTabColumnWrapper({
     currentChordIndex,
     playbackSpeed,
     audioMetadata,
-  } = useTabStore(
-    (state) => ({
-      tuning: state.tuning,
-      bpm: state.bpm,
-      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-      currentChordIndex: state.currentChordIndex,
-      playbackSpeed: state.playbackSpeed,
-      audioMetadata: state.audioMetadata,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    tuning: state.tuning,
+    bpm: state.bpm,
+    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+    currentChordIndex: state.currentChordIndex,
+    playbackSpeed: state.playbackSpeed,
+    audioMetadata: state.audioMetadata,
+  }));
 
   function columnIsBeingPlayed(columnIndex: number) {
     const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;

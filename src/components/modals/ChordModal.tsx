@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { useState, useEffect } from "react";
 import { BsFillPlayFill, BsKeyboard } from "react-icons/bs";
-import { shallow } from "zustand/shallow";
 import { Label } from "~/components/ui/label";
 import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import Chord from "../Tab/Chord";
@@ -46,21 +45,18 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
     playPreview,
     pauseAudio,
     setPreventFramerLayoutShift,
-  } = useTabStore(
-    (state) => ({
-      chords: state.chords,
-      setChords: state.setChords,
-      setChordBeingEdited: state.setChordBeingEdited,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-      audioMetadata: state.audioMetadata,
-      previewMetadata: state.previewMetadata,
-      playPreview: state.playPreview,
-      pauseAudio: state.pauseAudio,
-      setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    chords: state.chords,
+    setChords: state.setChords,
+    setChordBeingEdited: state.setChordBeingEdited,
+    getTabData: state.getTabData,
+    setTabData: state.setTabData,
+    audioMetadata: state.audioMetadata,
+    previewMetadata: state.previewMetadata,
+    playPreview: state.playPreview,
+    pauseAudio: state.pauseAudio,
+    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
+  }));
 
   useEffect(() => {
     setPreventFramerLayoutShift(true);

@@ -1,7 +1,8 @@
 import type { Tab } from "@prisma/client";
 import type Soundfont from "soundfont-player";
-import { create } from "zustand";
 import { devtools } from "zustand/middleware";
+import { createWithEqualityFn } from "zustand/traditional";
+import { shallow } from "zustand/shallow";
 import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
 import {
   compileFullTab,
@@ -433,284 +434,406 @@ interface TabState {
 // although it will prob need to be much more generic given you are updating nested objects (immer?)
 //        increase: (by) => set((state) => ({ bears: state.bears + by })),
 
-export const useTabStore = create<TabState>()(
-  devtools((set, get) => ({
-    // used in <Tab />
-    originalTabData: null,
-    setOriginalTabData: (originalTabData) => set({ originalTabData }),
-    id: -1,
-    setId: (id) => set({ id }),
-    createdById: null,
-    setCreatedById: (createdById) => set({ createdById }),
-    createdAt: null,
-    setCreatedAt: (createdAt) => set({ createdAt }),
-    updatedAt: null,
-    setUpdatedAt: (updatedAt) => set({ updatedAt }),
-    title: "",
-    setTitle: (title) => set({ title }),
-    description: "",
-    setDescription: (description) => set({ description }),
-    genreId: -1,
-    setGenreId: (genreId) => set({ genreId }),
-    tuning: "e2 a2 d3 g3 b3 e4",
-    setTuning: (tuning) => set({ tuning }),
-    bpm: 75,
-    setBpm: (bpm) => set({ bpm }),
-    timeSignature: "",
-    setTimeSignature: (timeSignature) => set({ timeSignature }),
-    capo: 0,
-    setCapo: (capo) => set({ capo }),
-    musicalKey: "",
-    setMusicalKey: (musicalKey) => set({ musicalKey }),
-    hasRecordedAudio: false,
-    setHasRecordedAudio: (hasRecordedAudio) => set({ hasRecordedAudio }),
-    chords: [],
-    setChords: (chords) => set({ chords }),
-    strummingPatterns: [],
-    setStrummingPatterns: (strummingPatterns) => set({ strummingPatterns }),
-    tabData: [],
-    setTabData: (tabData) => set({ tabData }),
-    numberOfLikes: 0,
-    setNumberOfLikes: (numberOfLikes) => set({ numberOfLikes }),
-    editing: false,
-    setEditing: (editing) => set({ editing }),
-    sectionProgression: [],
-    setSectionProgression: (sectionProgression) => set({ sectionProgression }),
-    currentlyCopiedData: null,
-    setCurrentlyCopiedData: (currentlyCopiedData) =>
-      set({ currentlyCopiedData }),
-    currentlyCopiedChord: null,
-    setCurrentlyCopiedChord: (currentlyCopiedChord) =>
-      set({ currentlyCopiedChord }),
-    fetchingFullTabData: false,
-    setFetchingFullTabData: (fetchingFullTabData) =>
-      set({ fetchingFullTabData }),
-    chordPulse: null,
-    setChordPulse: (chordPulse) => set({ chordPulse }),
-    countInTimer: {
-      showing: false,
-      forSectionContainer: null,
-    },
-    setCountInTimer: (countInTimer) => set({ countInTimer }),
+export const useTabStore = createWithEqualityFn<TabState>()(
+  devtools(
+    (set, get) => ({
+      // used in <Tab />
+      originalTabData: null,
+      setOriginalTabData: (originalTabData) => set({ originalTabData }),
+      id: -1,
+      setId: (id) => set({ id }),
+      createdById: null,
+      setCreatedById: (createdById) => set({ createdById }),
+      createdAt: null,
+      setCreatedAt: (createdAt) => set({ createdAt }),
+      updatedAt: null,
+      setUpdatedAt: (updatedAt) => set({ updatedAt }),
+      title: "",
+      setTitle: (title) => set({ title }),
+      description: "",
+      setDescription: (description) => set({ description }),
+      genreId: -1,
+      setGenreId: (genreId) => set({ genreId }),
+      tuning: "e2 a2 d3 g3 b3 e4",
+      setTuning: (tuning) => set({ tuning }),
+      bpm: 75,
+      setBpm: (bpm) => set({ bpm }),
+      timeSignature: "",
+      setTimeSignature: (timeSignature) => set({ timeSignature }),
+      capo: 0,
+      setCapo: (capo) => set({ capo }),
+      musicalKey: "",
+      setMusicalKey: (musicalKey) => set({ musicalKey }),
+      hasRecordedAudio: false,
+      setHasRecordedAudio: (hasRecordedAudio) => set({ hasRecordedAudio }),
+      chords: [],
+      setChords: (chords) => set({ chords }),
+      strummingPatterns: [],
+      setStrummingPatterns: (strummingPatterns) => set({ strummingPatterns }),
+      tabData: [],
+      setTabData: (tabData) => set({ tabData }),
+      numberOfLikes: 0,
+      setNumberOfLikes: (numberOfLikes) => set({ numberOfLikes }),
+      editing: false,
+      setEditing: (editing) => set({ editing }),
+      sectionProgression: [],
+      setSectionProgression: (sectionProgression) =>
+        set({ sectionProgression }),
+      currentlyCopiedData: null,
+      setCurrentlyCopiedData: (currentlyCopiedData) =>
+        set({ currentlyCopiedData }),
+      currentlyCopiedChord: null,
+      setCurrentlyCopiedChord: (currentlyCopiedChord) =>
+        set({ currentlyCopiedChord }),
+      fetchingFullTabData: false,
+      setFetchingFullTabData: (fetchingFullTabData) =>
+        set({ fetchingFullTabData }),
+      chordPulse: null,
+      setChordPulse: (chordPulse) => set({ chordPulse }),
+      countInTimer: {
+        showing: false,
+        forSectionContainer: null,
+      },
+      setCountInTimer: (countInTimer) => set({ countInTimer }),
 
-    getStringifiedTabData: () => {
-      const {
-        title,
-        description,
-        genreId,
-        tuning,
-        bpm,
-        timeSignature,
-        capo,
-        musicalKey,
-        chords,
-        strummingPatterns,
-        tabData,
-        sectionProgression,
-      } = get();
-      return JSON.stringify({
-        title,
-        description,
-        genreId,
-        tuning,
-        bpm,
-        timeSignature,
-        capo,
-        musicalKey,
-        chords,
-        strummingPatterns,
-        tabData,
-        sectionProgression,
-      });
-    },
+      getStringifiedTabData: () => {
+        const {
+          title,
+          description,
+          genreId,
+          tuning,
+          bpm,
+          timeSignature,
+          capo,
+          musicalKey,
+          chords,
+          strummingPatterns,
+          tabData,
+          sectionProgression,
+        } = get();
+        return JSON.stringify({
+          title,
+          description,
+          genreId,
+          tuning,
+          bpm,
+          timeSignature,
+          capo,
+          musicalKey,
+          chords,
+          strummingPatterns,
+          tabData,
+          sectionProgression,
+        });
+      },
 
-    resetAudioAndMetadataOnRouteChange: () => {
-      const { audioMetadata, pauseAudio } = get();
+      resetAudioAndMetadataOnRouteChange: () => {
+        const { audioMetadata, pauseAudio } = get();
 
-      // radix slider thumb position gets out of whack if
-      // this isn't there
-      resetTabSliderPosition();
+        // radix slider thumb position gets out of whack if
+        // this isn't there
+        resetTabSliderPosition();
 
-      pauseAudio(true);
+        pauseAudio(true);
 
-      set({
-        audioMetadata: {
-          ...audioMetadata,
-          location: null,
-          playing: false,
-        },
-        currentChordIndex: 0,
-      });
-    },
-
-    getTabData: () => {
-      return structuredClone(get().tabData);
-    },
-    atomicallyUpdateAudioMetadata: (newFields: Partial<AudioMetadata>) => {
-      const { audioMetadata } = get();
-
-      set({
-        audioMetadata: {
-          ...audioMetadata,
-          ...newFields,
-        },
-      });
-    },
-
-    // related to sound generation/playing
-    audioContext: null,
-    setAudioContext: (audioContext) => set({ audioContext }),
-    breakOnNextChord: false,
-    setBreakOnNextChord: (breakOnNextChord) => set({ breakOnNextChord }),
-    masterVolumeGainNode: null,
-    setMasterVolumeGainNode: (masterVolumeGainNode) =>
-      set({ masterVolumeGainNode }),
-    showingAudioControls: false,
-    setShowingAudioControls: (showingAudioControls) =>
-      set({ showingAudioControls }),
-    currentlyPlayingMetadata: null,
-    setCurrentlyPlayingMetadata: (currentlyPlayingMetadata) =>
-      set({ currentlyPlayingMetadata }),
-    currentInstrumentName: "acoustic_guitar_steel",
-    setCurrentInstrumentName: (currentInstrumentName) =>
-      set({ currentInstrumentName }),
-    looping: false,
-    setLooping: (looping) => set({ looping }),
-    playbackSpeed: 1,
-    setPlaybackSpeed: (playbackSpeed) => set({ playbackSpeed }),
-    currentChordIndex: 0,
-    setCurrentChordIndex: (currentChordIndex) => set({ currentChordIndex }),
-    audioMetadata: {
-      type: "Generated",
-      tabId: -1,
-      playing: false,
-      location: null,
-      startLoopIndex: 0,
-      endLoopIndex: -1,
-      editingLoopRange: false,
-      fullCurrentlyPlayingMetadataLength: -1,
-    },
-    setAudioMetadata: (audioMetadata) => set({ audioMetadata }),
-    // @ts-expect-error fix this type later
-    instruments: {},
-    setInstruments: (instruments) => set({ instruments }),
-    currentInstrument: null,
-    setCurrentInstrument: (currentInstrument) => set({ currentInstrument }),
-    previewMetadata: {
-      indexOfPattern: -1,
-      currentChordIndex: 0,
-      type: "chord",
-      playing: false,
-    },
-    setPreviewMetadata: (previewMetadata) => set({ previewMetadata }),
-    breakOnNextPreviewChord: false,
-    setBreakOnNextPreviewChord: (breakOnNextPreviewChord) =>
-      set({ breakOnNextPreviewChord }),
-    recordedAudioFile: null,
-    setRecordedAudioFile: (recordedAudioFile) => set({ recordedAudioFile }),
-    shouldUpdateInS3: false,
-    setShouldUpdateInS3: (shouldUpdateInS3) => set({ shouldUpdateInS3 }),
-    recordedAudioBuffer: null,
-    setRecordedAudioBuffer: (recordedAudioBuffer) =>
-      set({ recordedAudioBuffer }),
-    recordedAudioBufferSourceNode: null,
-    setRecordedAudioBufferSourceNode: (recordedAudioBufferSourceNode) =>
-      set({ recordedAudioBufferSourceNode }),
-    preventFramerLayoutShift: false,
-    setPreventFramerLayoutShift: (preventFramerLayoutShift) =>
-      set({ preventFramerLayoutShift }),
-
-    // playing/pausing sound functions
-    playTab: async ({ location, tabId }: PlayTab) => {
-      const {
-        audioMetadata,
-        tabData,
-        sectionProgression: rawSectionProgression,
-        tuning: tuningNotes,
-        bpm: baselineBpm,
-        capo,
-        chords,
-        playbackSpeed,
-        currentChordIndex,
-        currentInstrument,
-        audioContext,
-        masterVolumeGainNode,
-        setCurrentlyPlayingMetadata,
-      } = get();
-
-      if (!audioContext || !masterVolumeGainNode || !currentInstrument) return;
-
-      const currentlyPlayingStrings: (
-        | Soundfont.Player
-        | AudioBufferSourceNode
-        | undefined
-      )[] = [undefined, undefined, undefined, undefined, undefined, undefined];
-
-      set({
-        audioMetadata: {
-          ...audioMetadata,
-          tabId,
-          location,
-          playing: true,
-          type: "Generated",
-        },
-      });
-
-      const sectionProgression =
-        rawSectionProgression.length > 0
-          ? rawSectionProgression
-          : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
-      const tuning = parse(tuningNotes);
-
-      const compiledChords = location
-        ? compileSpecificChordGrouping({
-            tabData,
-            location,
-            chords,
-            baselineBpm,
-            playbackSpeed,
-            setCurrentlyPlayingMetadata,
-            startLoopIndex: audioMetadata.startLoopIndex,
-            endLoopIndex: audioMetadata.endLoopIndex,
-          })
-        : compileFullTab({
-            tabData,
-            sectionProgression,
-            chords,
-            baselineBpm,
-            playbackSpeed,
-            setCurrentlyPlayingMetadata,
-            startLoopIndex: audioMetadata.startLoopIndex,
-            endLoopIndex: audioMetadata.endLoopIndex,
-          });
-
-      for (
-        let chordIndex = currentChordIndex;
-        chordIndex < compiledChords.length;
-        chordIndex++
-      ) {
         set({
-          currentChordIndex: chordIndex,
+          audioMetadata: {
+            ...audioMetadata,
+            location: null,
+            playing: false,
+          },
+          currentChordIndex: 0,
+        });
+      },
+
+      getTabData: () => {
+        return structuredClone(get().tabData);
+      },
+      atomicallyUpdateAudioMetadata: (newFields: Partial<AudioMetadata>) => {
+        const { audioMetadata } = get();
+
+        set({
+          audioMetadata: {
+            ...audioMetadata,
+            ...newFields,
+          },
+        });
+      },
+
+      // related to sound generation/playing
+      audioContext: null,
+      setAudioContext: (audioContext) => set({ audioContext }),
+      breakOnNextChord: false,
+      setBreakOnNextChord: (breakOnNextChord) => set({ breakOnNextChord }),
+      masterVolumeGainNode: null,
+      setMasterVolumeGainNode: (masterVolumeGainNode) =>
+        set({ masterVolumeGainNode }),
+      showingAudioControls: false,
+      setShowingAudioControls: (showingAudioControls) =>
+        set({ showingAudioControls }),
+      currentlyPlayingMetadata: null,
+      setCurrentlyPlayingMetadata: (currentlyPlayingMetadata) =>
+        set({ currentlyPlayingMetadata }),
+      currentInstrumentName: "acoustic_guitar_steel",
+      setCurrentInstrumentName: (currentInstrumentName) =>
+        set({ currentInstrumentName }),
+      looping: false,
+      setLooping: (looping) => set({ looping }),
+      playbackSpeed: 1,
+      setPlaybackSpeed: (playbackSpeed) => set({ playbackSpeed }),
+      currentChordIndex: 0,
+      setCurrentChordIndex: (currentChordIndex) => set({ currentChordIndex }),
+      audioMetadata: {
+        type: "Generated",
+        tabId: -1,
+        playing: false,
+        location: null,
+        startLoopIndex: 0,
+        endLoopIndex: -1,
+        editingLoopRange: false,
+        fullCurrentlyPlayingMetadataLength: -1,
+      },
+      setAudioMetadata: (audioMetadata) => set({ audioMetadata }),
+      // @ts-expect-error fix this type later
+      instruments: {},
+      setInstruments: (instruments) => set({ instruments }),
+      currentInstrument: null,
+      setCurrentInstrument: (currentInstrument) => set({ currentInstrument }),
+      previewMetadata: {
+        indexOfPattern: -1,
+        currentChordIndex: 0,
+        type: "chord",
+        playing: false,
+      },
+      setPreviewMetadata: (previewMetadata) => set({ previewMetadata }),
+      breakOnNextPreviewChord: false,
+      setBreakOnNextPreviewChord: (breakOnNextPreviewChord) =>
+        set({ breakOnNextPreviewChord }),
+      recordedAudioFile: null,
+      setRecordedAudioFile: (recordedAudioFile) => set({ recordedAudioFile }),
+      shouldUpdateInS3: false,
+      setShouldUpdateInS3: (shouldUpdateInS3) => set({ shouldUpdateInS3 }),
+      recordedAudioBuffer: null,
+      setRecordedAudioBuffer: (recordedAudioBuffer) =>
+        set({ recordedAudioBuffer }),
+      recordedAudioBufferSourceNode: null,
+      setRecordedAudioBufferSourceNode: (recordedAudioBufferSourceNode) =>
+        set({ recordedAudioBufferSourceNode }),
+      preventFramerLayoutShift: false,
+      setPreventFramerLayoutShift: (preventFramerLayoutShift) =>
+        set({ preventFramerLayoutShift }),
+
+      // playing/pausing sound functions
+      playTab: async ({ location, tabId }: PlayTab) => {
+        const {
+          audioMetadata,
+          tabData,
+          sectionProgression: rawSectionProgression,
+          tuning: tuningNotes,
+          bpm: baselineBpm,
+          capo,
+          chords,
+          playbackSpeed,
+          currentChordIndex,
+          currentInstrument,
+          audioContext,
+          masterVolumeGainNode,
+          setCurrentlyPlayingMetadata,
+        } = get();
+
+        if (!audioContext || !masterVolumeGainNode || !currentInstrument)
+          return;
+
+        const currentlyPlayingStrings: (
+          | Soundfont.Player
+          | AudioBufferSourceNode
+          | undefined
+        )[] = [
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+        ];
+
+        set({
+          audioMetadata: {
+            ...audioMetadata,
+            tabId,
+            location,
+            playing: true,
+            type: "Generated",
+          },
         });
 
-        const thirdPrevColumn = compiledChords[chordIndex - 3];
-        const secondPrevColumn = compiledChords[chordIndex - 2];
-        const prevColumn = compiledChords[chordIndex - 1];
-        const currColumn = compiledChords[chordIndex];
-        const nextColumn = compiledChords[chordIndex + 1];
+        const sectionProgression =
+          rawSectionProgression.length > 0
+            ? rawSectionProgression
+            : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
+        const tuning = parse(tuningNotes);
 
-        if (currColumn === undefined) continue;
+        const compiledChords = location
+          ? compileSpecificChordGrouping({
+              tabData,
+              location,
+              chords,
+              baselineBpm,
+              playbackSpeed,
+              setCurrentlyPlayingMetadata,
+              startLoopIndex: audioMetadata.startLoopIndex,
+              endLoopIndex: audioMetadata.endLoopIndex,
+            })
+          : compileFullTab({
+              tabData,
+              sectionProgression,
+              chords,
+              baselineBpm,
+              playbackSpeed,
+              setCurrentlyPlayingMetadata,
+              startLoopIndex: audioMetadata.startLoopIndex,
+              endLoopIndex: audioMetadata.endLoopIndex,
+            });
 
-        // alteredBpm = bpm for chord * (1 / noteLengthMultiplier) * playbackSpeedMultiplier
-        const alteredBpm =
-          Number(currColumn[8]) * (1 / Number(currColumn[9])) * playbackSpeed;
+        for (
+          let chordIndex = currentChordIndex;
+          chordIndex < compiledChords.length;
+          chordIndex++
+        ) {
+          set({
+            currentChordIndex: chordIndex,
+          });
 
-        if (chordIndex !== compiledChords.length - 1) {
+          const thirdPrevColumn = compiledChords[chordIndex - 3];
+          const secondPrevColumn = compiledChords[chordIndex - 2];
+          const prevColumn = compiledChords[chordIndex - 1];
+          const currColumn = compiledChords[chordIndex];
+          const nextColumn = compiledChords[chordIndex + 1];
+
+          if (currColumn === undefined) continue;
+
+          // alteredBpm = bpm for chord * (1 / noteLengthMultiplier) * playbackSpeedMultiplier
+          const alteredBpm =
+            Number(currColumn[8]) * (1 / Number(currColumn[9])) * playbackSpeed;
+
+          if (chordIndex !== compiledChords.length - 1) {
+            await playNoteColumn({
+              tuning,
+              capo: capo ?? 0,
+              bpm: alteredBpm,
+              thirdPrevColumn,
+              secondPrevColumn,
+              prevColumn,
+              currColumn,
+              nextColumn,
+              audioContext,
+              masterVolumeGainNode,
+              currentInstrument,
+              currentlyPlayingStrings,
+            });
+          }
+
+          // need to get up to date values within loop here since they may have changed
+          // since the loop started/last iteration
+          const { audioMetadata, breakOnNextChord, looping } = get();
+
+          if (breakOnNextChord) {
+            set({
+              breakOnNextChord: false,
+            });
+            return;
+          }
+
+          // not 100% on moving this back to the top, but trying it out right now
+          if (chordIndex === compiledChords.length - 1) {
+            // if looping, reset the chordIndex to -1 so loop will start over
+            if (looping && audioMetadata.playing) {
+              resetTabSliderPosition();
+
+              chordIndex = -1;
+              set({
+                currentChordIndex: 0,
+              });
+            } else {
+              set({
+                audioMetadata: {
+                  ...audioMetadata,
+                  playing: false,
+                },
+                currentChordIndex: 0,
+              });
+            }
+          }
+        }
+      },
+
+      playPreview: async ({ data, index, type }: PlayPreview) => {
+        const {
+          capo,
+          previewMetadata,
+          currentInstrument,
+          audioContext,
+          masterVolumeGainNode,
+        } = get();
+
+        if (!audioContext || !masterVolumeGainNode || !currentInstrument)
+          return;
+
+        const currentlyPlayingStrings: (
+          | Soundfont.Player
+          | AudioBufferSourceNode
+          | undefined
+        )[] = [
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+        ];
+
+        const tuning = parse("e2 a2 d3 g3 b3 e4");
+
+        const compiledChords =
+          type === "chord"
+            ? [["", ...(data as string[]), "v", "58", "1"]]
+            : compileStrummingPatternPreview({
+                strummingPattern: data as StrummingPattern,
+              });
+
+        for (
+          let chordIndex = previewMetadata.currentChordIndex;
+          chordIndex < compiledChords.length;
+          chordIndex++
+        ) {
+          set({
+            previewMetadata: {
+              playing: true,
+              indexOfPattern: index,
+              currentChordIndex: chordIndex,
+              type,
+            },
+          });
+          // ^^ doing this here because didn't update in time with one that was above
+
+          // prob don't need anything but currColumn since you can't have any fancy effects
+          // in the previews...
+
+          const secondPrevColumn = compiledChords[chordIndex - 2];
+          const prevColumn = compiledChords[chordIndex - 1];
+          const currColumn = compiledChords[chordIndex];
+          const nextColumn = compiledChords[chordIndex + 1];
+
+          if (currColumn === undefined) continue;
+
+          // alteredBpm = bpm for chord * (1 / noteLengthMultiplier)
+          const alteredBpm =
+            Number(currColumn[8]) * (1 / Number(currColumn[9]));
+
           await playNoteColumn({
             tuning,
-            capo: capo ?? 0,
+            capo: type === "chord" ? capo : 0,
             bpm: alteredBpm,
-            thirdPrevColumn,
             secondPrevColumn,
             prevColumn,
             currColumn,
@@ -720,278 +843,188 @@ export const useTabStore = create<TabState>()(
             currentInstrument,
             currentlyPlayingStrings,
           });
-        }
 
-        // need to get up to date values within loop here since they may have changed
-        // since the loop started/last iteration
-        const { audioMetadata, breakOnNextChord, looping } = get();
+          const { breakOnNextPreviewChord } = get();
 
-        if (breakOnNextChord) {
-          set({
-            breakOnNextChord: false,
-          });
-          return;
-        }
-
-        // not 100% on moving this back to the top, but trying it out right now
-        if (chordIndex === compiledChords.length - 1) {
-          // if looping, reset the chordIndex to -1 so loop will start over
-          if (looping && audioMetadata.playing) {
-            resetTabSliderPosition();
-
-            chordIndex = -1;
+          if (breakOnNextPreviewChord) {
             set({
-              currentChordIndex: 0,
+              breakOnNextPreviewChord: false,
             });
-          } else {
+            return;
+          }
+
+          if (chordIndex === compiledChords.length - 1) {
+            set({
+              previewMetadata: {
+                ...previewMetadata,
+                indexOfPattern: -1,
+                currentChordIndex: 0,
+                playing: false,
+              },
+            });
+          }
+        }
+      },
+
+      playRecordedAudio: ({ audioBuffer, secondsElapsed }) => {
+        const {
+          audioMetadata,
+          previewMetadata,
+          audioContext,
+          masterVolumeGainNode,
+          pauseAudio,
+        } = get();
+
+        if (!audioContext || !masterVolumeGainNode) return;
+
+        if (audioMetadata.playing || previewMetadata.playing) {
+          pauseAudio();
+        }
+
+        const source = audioContext.createBufferSource();
+        source.buffer = audioBuffer;
+
+        set({
+          audioMetadata: {
+            ...audioMetadata,
+            playing: true,
+            type: "Artist recording",
+          },
+          recordedAudioBufferSourceNode: source,
+        });
+
+        source.connect(masterVolumeGainNode);
+        source.start(0, secondsElapsed);
+
+        source.onended = () => {
+          const { audioMetadata, looping } = get();
+
+          if (!looping) {
             set({
               audioMetadata: {
                 ...audioMetadata,
                 playing: false,
               },
-              currentChordIndex: 0,
             });
           }
-        }
-      }
-    },
+        };
+      },
 
-    playPreview: async ({ data, index, type }: PlayPreview) => {
-      const {
-        capo,
-        previewMetadata,
-        currentInstrument,
-        audioContext,
-        masterVolumeGainNode,
-      } = get();
-
-      if (!audioContext || !masterVolumeGainNode || !currentInstrument) return;
-
-      const currentlyPlayingStrings: (
-        | Soundfont.Player
-        | AudioBufferSourceNode
-        | undefined
-      )[] = [undefined, undefined, undefined, undefined, undefined, undefined];
-
-      const tuning = parse("e2 a2 d3 g3 b3 e4");
-
-      const compiledChords =
-        type === "chord"
-          ? [["", ...(data as string[]), "v", "58", "1"]]
-          : compileStrummingPatternPreview({
-              strummingPattern: data as StrummingPattern,
-            });
-
-      for (
-        let chordIndex = previewMetadata.currentChordIndex;
-        chordIndex < compiledChords.length;
-        chordIndex++
-      ) {
-        set({
-          previewMetadata: {
-            playing: true,
-            indexOfPattern: index,
-            currentChordIndex: chordIndex,
-            type,
-          },
-        });
-        // ^^ doing this here because didn't update in time with one that was above
-
-        // prob don't need anything but currColumn since you can't have any fancy effects
-        // in the previews...
-
-        const secondPrevColumn = compiledChords[chordIndex - 2];
-        const prevColumn = compiledChords[chordIndex - 1];
-        const currColumn = compiledChords[chordIndex];
-        const nextColumn = compiledChords[chordIndex + 1];
-
-        if (currColumn === undefined) continue;
-
-        // alteredBpm = bpm for chord * (1 / noteLengthMultiplier)
-        const alteredBpm = Number(currColumn[8]) * (1 / Number(currColumn[9]));
-
-        await playNoteColumn({
-          tuning,
-          capo: type === "chord" ? capo : 0,
-          bpm: alteredBpm,
-          secondPrevColumn,
-          prevColumn,
-          currColumn,
-          nextColumn,
-          audioContext,
-          masterVolumeGainNode,
+      pauseAudio: (resetToStart) => {
+        const {
+          audioMetadata,
+          previewMetadata,
           currentInstrument,
-          currentlyPlayingStrings,
-        });
+          recordedAudioBufferSourceNode,
+        } = get();
 
-        const { breakOnNextPreviewChord } = get();
-
-        if (breakOnNextPreviewChord) {
+        if (
+          !audioMetadata.playing &&
+          !previewMetadata.playing &&
+          resetToStart
+        ) {
+          resetTabSliderPosition();
           set({
-            breakOnNextPreviewChord: false,
+            currentChordIndex: 0,
           });
           return;
         }
 
-        if (chordIndex === compiledChords.length - 1) {
-          set({
-            previewMetadata: {
-              ...previewMetadata,
-              indexOfPattern: -1,
-              currentChordIndex: 0,
-              playing: false,
-            },
-          });
-        }
-      }
-    },
+        if (
+          audioMetadata.playing &&
+          audioMetadata.type === "Artist recording"
+        ) {
+          recordedAudioBufferSourceNode?.stop();
 
-    playRecordedAudio: ({ audioBuffer, secondsElapsed }) => {
-      const {
-        audioMetadata,
-        previewMetadata,
-        audioContext,
-        masterVolumeGainNode,
-        pauseAudio,
-      } = get();
-
-      if (!audioContext || !masterVolumeGainNode) return;
-
-      if (audioMetadata.playing || previewMetadata.playing) {
-        pauseAudio();
-      }
-
-      const source = audioContext.createBufferSource();
-      source.buffer = audioBuffer;
-
-      set({
-        audioMetadata: {
-          ...audioMetadata,
-          playing: true,
-          type: "Artist recording",
-        },
-        recordedAudioBufferSourceNode: source,
-      });
-
-      source.connect(masterVolumeGainNode);
-      source.start(0, secondsElapsed);
-
-      source.onended = () => {
-        const { audioMetadata, looping } = get();
-
-        if (!looping) {
           set({
             audioMetadata: {
               ...audioMetadata,
               playing: false,
             },
           });
-        }
-      };
-    },
 
-    pauseAudio: (resetToStart) => {
-      const {
-        audioMetadata,
-        previewMetadata,
-        currentInstrument,
-        recordedAudioBufferSourceNode,
-      } = get();
-
-      if (!audioMetadata.playing && !previewMetadata.playing && resetToStart) {
-        resetTabSliderPosition();
-        set({
-          currentChordIndex: 0,
-        });
-        return;
-      }
-
-      if (audioMetadata.playing && audioMetadata.type === "Artist recording") {
-        recordedAudioBufferSourceNode?.stop();
-
-        set({
-          audioMetadata: {
-            ...audioMetadata,
-            playing: false,
-          },
-        });
-
-        if (resetToStart) {
-          resetTabSliderPosition();
-        }
-      } else if (audioMetadata.playing && audioMetadata.type === "Generated") {
-        set({
-          audioMetadata: {
-            ...audioMetadata,
-            playing: false,
-          },
-          breakOnNextChord: true,
-        });
-
-        if (resetToStart) {
-          resetTabSliderPosition();
+          if (resetToStart) {
+            resetTabSliderPosition();
+          }
+        } else if (
+          audioMetadata.playing &&
+          audioMetadata.type === "Generated"
+        ) {
           set({
-            currentChordIndex: 0,
+            audioMetadata: {
+              ...audioMetadata,
+              playing: false,
+            },
+            breakOnNextChord: true,
           });
-        }
-      } else if (previewMetadata.playing) {
-        set({
-          previewMetadata: {
-            ...previewMetadata,
-            currentChordIndex: 0,
-            playing: false,
-          },
-          breakOnNextPreviewChord: true,
-        });
 
-        if (resetToStart) {
-          resetTabSliderPosition();
+          if (resetToStart) {
+            resetTabSliderPosition();
+            set({
+              currentChordIndex: 0,
+            });
+          }
+        } else if (previewMetadata.playing) {
           set({
-            currentChordIndex: 0,
+            previewMetadata: {
+              ...previewMetadata,
+              currentChordIndex: 0,
+              playing: false,
+            },
+            breakOnNextPreviewChord: true,
           });
+
+          if (resetToStart) {
+            resetTabSliderPosition();
+            set({
+              currentChordIndex: 0,
+            });
+          }
         }
-      }
 
-      currentInstrument?.stop();
-    },
+        currentInstrument?.stop();
+      },
 
-    // modals
-    showAudioRecorderModal: false,
-    setShowAudioRecorderModal: (showAudioRecorderModal) =>
-      set({ showAudioRecorderModal }),
-    showSectionProgressionModal: false,
-    setShowSectionProgressionModal: (showSectionProgressionModal) =>
-      set({ showSectionProgressionModal }),
-    showEffectGlossaryModal: false,
-    setShowEffectGlossaryModal: (showEffectGlossaryModal) =>
-      set({ showEffectGlossaryModal }),
-    showDeleteAccountModal: false,
-    setShowDeleteAccountModal: (showDeleteAccountModal) =>
-      set({ showDeleteAccountModal }),
-    showCustomTuningModal: false,
-    setShowCustomTuningModal: (showCustomTuningModal) =>
-      set({ showCustomTuningModal }),
-    mobileHeaderModal: {
-      showing: false,
-      zIndex: 48,
-    },
-    setMobileHeaderModal: (mobileHeaderModal) => set({ mobileHeaderModal }),
+      // modals
+      showAudioRecorderModal: false,
+      setShowAudioRecorderModal: (showAudioRecorderModal) =>
+        set({ showAudioRecorderModal }),
+      showSectionProgressionModal: false,
+      setShowSectionProgressionModal: (showSectionProgressionModal) =>
+        set({ showSectionProgressionModal }),
+      showEffectGlossaryModal: false,
+      setShowEffectGlossaryModal: (showEffectGlossaryModal) =>
+        set({ showEffectGlossaryModal }),
+      showDeleteAccountModal: false,
+      setShowDeleteAccountModal: (showDeleteAccountModal) =>
+        set({ showDeleteAccountModal }),
+      showCustomTuningModal: false,
+      setShowCustomTuningModal: (showCustomTuningModal) =>
+        set({ showCustomTuningModal }),
+      mobileHeaderModal: {
+        showing: false,
+        zIndex: 48,
+      },
+      setMobileHeaderModal: (mobileHeaderModal) => set({ mobileHeaderModal }),
 
-    // below are also used to determine if respective modal should be showing
-    chordBeingEdited: null,
-    setChordBeingEdited: (chordBeingEdited) => set({ chordBeingEdited }),
-    strummingPatternBeingEdited: null,
-    setStrummingPatternBeingEdited: (strummingPatternBeingEdited) =>
-      set({ strummingPatternBeingEdited }),
+      // below are also used to determine if respective modal should be showing
+      chordBeingEdited: null,
+      setChordBeingEdited: (chordBeingEdited) => set({ chordBeingEdited }),
+      strummingPatternBeingEdited: null,
+      setStrummingPatternBeingEdited: (strummingPatternBeingEdited) =>
+        set({ strummingPatternBeingEdited }),
 
-    // search
-    searchResultsCount: 0,
-    setSearchResultsCount: (searchResultsCount) => set({ searchResultsCount }),
+      // search
+      searchResultsCount: 0,
+      setSearchResultsCount: (searchResultsCount) =>
+        set({ searchResultsCount }),
 
-    isLoadingARoute: false,
-    setIsLoadingARoute: (isLoadingARoute) => set({ isLoadingARoute }),
+      isLoadingARoute: false,
+      setIsLoadingARoute: (isLoadingARoute) => set({ isLoadingARoute }),
 
-    // reset (investigate what exactly the ts error is saying)
-    resetStoreToInitValues: () => set(initialStoreState),
-  }))
+      // reset (investigate what exactly the ts error is saying)
+      resetStoreToInitValues: () => set(initialStoreState),
+    }),
+    shallow
+  )
 );

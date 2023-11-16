@@ -6,7 +6,6 @@ import {
   type SetStateAction,
 } from "react";
 import { BsPlus } from "react-icons/bs";
-import { shallow } from "zustand/shallow";
 import { useTabStore } from "~/stores/TabStore";
 import { addOrRemovePalmMuteDashes } from "~/utils/palmMuteHelpers";
 import { Button } from "../ui/button";
@@ -38,14 +37,11 @@ function PalmMuteNode({
 }: PalmMuteNode) {
   const [hoveringOnPalmMuteNode, setHoveringOnPalmMuteNode] = useState(false);
 
-  const { editing, getTabData, setTabData } = useTabStore(
-    (state) => ({
-      editing: state.editing,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-    }),
-    shallow
-  );
+  const { editing, getTabData, setTabData } = useTabStore((state) => ({
+    editing: state.editing,
+    getTabData: state.getTabData,
+    setTabData: state.setTabData,
+  }));
 
   useEffect(() => {
     setHoveringOnPalmMuteNode(false);

@@ -6,7 +6,6 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo } from "react";
 import { BiErrorCircle } from "react-icons/bi";
-import { shallow } from "zustand/shallow";
 import NoResultsFoundBubbles from "~/components/Search/NoResultsFoundBubbles";
 import Tab from "~/components/Tab/Tab";
 import TabSkeleton from "~/components/Tab/TabSkeleton";
@@ -31,12 +30,9 @@ function IndividualTabView({
 }) {
   const router = useRouter();
 
-  const { setEditing } = useTabStore(
-    (state) => ({
-      setEditing: state.setEditing,
-    }),
-    shallow
-  );
+  const { setEditing } = useTabStore((state) => ({
+    setEditing: state.setEditing,
+  }));
 
   useEffect(() => {
     setEditing(false); // zustand setters should be referential so it won't ever be stale

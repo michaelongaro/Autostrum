@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import Soundfont from "soundfont-player";
-import { shallow } from "zustand/shallow";
 import { useTabStore } from "~/stores/TabStore";
 import { isIOS, isSafari } from "react-device-detect";
 
@@ -13,18 +12,15 @@ function useFetchAndLoadSoundfonts() {
     setInstruments,
     currentInstrument,
     setCurrentInstrument,
-  } = useTabStore(
-    (state) => ({
-      audioContext: state.audioContext,
-      masterVolumeGainNode: state.masterVolumeGainNode,
-      currentInstrumentName: state.currentInstrumentName,
-      instruments: state.instruments,
-      setInstruments: state.setInstruments,
-      currentInstrument: state.currentInstrument,
-      setCurrentInstrument: state.setCurrentInstrument,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    audioContext: state.audioContext,
+    masterVolumeGainNode: state.masterVolumeGainNode,
+    currentInstrumentName: state.currentInstrumentName,
+    instruments: state.instruments,
+    setInstruments: state.setInstruments,
+    currentInstrument: state.currentInstrument,
+    setCurrentInstrument: state.setCurrentInstrument,
+  }));
 
   // even though browser will cache network request to soundfont file,
   // the soundfont player will still need to parse the file and create the instrument

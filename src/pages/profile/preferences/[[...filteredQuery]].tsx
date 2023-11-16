@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 import { LuExternalLink } from "react-icons/lu";
-import { shallow } from "zustand/shallow";
 import TopProfileNavigationLayout from "~/components/Layouts/TopProfileNavigationLayout";
 import GridTabCard from "~/components/Search/GridTabCard";
 import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
@@ -46,14 +45,11 @@ function Preferences() {
     showDeleteAccountModal,
     setShowDeleteAccountModal,
     setPreventFramerLayoutShift,
-  } = useTabStore(
-    (state) => ({
-      showDeleteAccountModal: state.showDeleteAccountModal,
-      setShowDeleteAccountModal: state.setShowDeleteAccountModal,
-      setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    showDeleteAccountModal: state.showDeleteAccountModal,
+    setShowDeleteAccountModal: state.setShowDeleteAccountModal,
+    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
+  }));
 
   useEffect(() => {
     setTimeout(() => {

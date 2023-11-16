@@ -1,6 +1,5 @@
 import { MdModeEditOutline } from "react-icons/md";
 import { FaTrashAlt } from "react-icons/fa";
-import { shallow } from "zustand/shallow";
 import { useState } from "react";
 import {
   Popover,
@@ -48,23 +47,20 @@ function Chords() {
     previewMetadata,
     playPreview,
     pauseAudio,
-  } = useTabStore(
-    (state) => ({
-      id: state.id,
-      currentInstrument: state.currentInstrument,
-      chords: state.chords,
-      setChords: state.setChords,
-      setChordBeingEdited: state.setChordBeingEdited,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-      editing: state.editing,
-      audioMetadata: state.audioMetadata,
-      previewMetadata: state.previewMetadata,
-      playPreview: state.playPreview,
-      pauseAudio: state.pauseAudio,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    id: state.id,
+    currentInstrument: state.currentInstrument,
+    chords: state.chords,
+    setChords: state.setChords,
+    setChordBeingEdited: state.setChordBeingEdited,
+    getTabData: state.getTabData,
+    setTabData: state.setTabData,
+    editing: state.editing,
+    audioMetadata: state.audioMetadata,
+    previewMetadata: state.previewMetadata,
+    playPreview: state.playPreview,
+    pauseAudio: state.pauseAudio,
+  }));
 
   function handleDeleteChord(index: number, chordNameToBeDeleted: string) {
     const newTabData = getTabData();

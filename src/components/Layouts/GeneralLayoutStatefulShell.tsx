@@ -2,7 +2,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { BsArrowUpShort } from "react-icons/bs";
-import { shallow } from "zustand/shallow";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import useFetchAndLoadSoundfonts from "~/hooks/useFetchAndLoadSoundfonts";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
@@ -73,28 +72,25 @@ function GeneralLayoutStatefulShell() {
     recordedAudioBufferSourceNode,
     mobileHeaderModal,
     setMobileHeaderModal,
-  } = useTabStore(
-    (state) => ({
-      setLooping: state.setLooping,
-      showingAudioControls: state.showingAudioControls,
-      setShowingAudioControls: state.setShowingAudioControls,
-      resetStoreToInitValues: state.resetStoreToInitValues,
-      setEditing: state.setEditing,
-      setAudioMetadata: state.setAudioMetadata,
-      resetAudioAndMetadataOnRouteChange:
-        state.resetAudioAndMetadataOnRouteChange,
-      setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
-      audioMetadata: state.audioMetadata,
-      audioContext: state.audioContext,
-      setAudioContext: state.setAudioContext,
-      masterVolumeGainNode: state.masterVolumeGainNode,
-      setMasterVolumeGainNode: state.setMasterVolumeGainNode,
-      recordedAudioBufferSourceNode: state.recordedAudioBufferSourceNode,
-      mobileHeaderModal: state.mobileHeaderModal,
-      setMobileHeaderModal: state.setMobileHeaderModal,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    setLooping: state.setLooping,
+    showingAudioControls: state.showingAudioControls,
+    setShowingAudioControls: state.setShowingAudioControls,
+    resetStoreToInitValues: state.resetStoreToInitValues,
+    setEditing: state.setEditing,
+    setAudioMetadata: state.setAudioMetadata,
+    resetAudioAndMetadataOnRouteChange:
+      state.resetAudioAndMetadataOnRouteChange,
+    setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
+    audioMetadata: state.audioMetadata,
+    audioContext: state.audioContext,
+    setAudioContext: state.setAudioContext,
+    masterVolumeGainNode: state.masterVolumeGainNode,
+    setMasterVolumeGainNode: state.setMasterVolumeGainNode,
+    recordedAudioBufferSourceNode: state.recordedAudioBufferSourceNode,
+    mobileHeaderModal: state.mobileHeaderModal,
+    setMobileHeaderModal: state.setMobileHeaderModal,
+  }));
 
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
 

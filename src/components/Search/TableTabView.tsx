@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import { useEffect, type Dispatch, type SetStateAction, Fragment } from "react";
 import { TbPinned } from "react-icons/tb";
 import { useInView } from "react-intersection-observer";
-import { shallow } from "zustand/shallow";
 import { AiFillHeart } from "react-icons/ai";
 import { BsFillPlayFill } from "react-icons/bs";
 import {
@@ -59,12 +58,9 @@ function TableTabView({
       }
     );
 
-  const { setSearchResultsCount } = useTabStore(
-    (state) => ({
-      setSearchResultsCount: state.setSearchResultsCount,
-    }),
-    shallow
-  );
+  const { setSearchResultsCount } = useTabStore((state) => ({
+    setSearchResultsCount: state.setSearchResultsCount,
+  }));
 
   function getInfiniteQueryParams() {
     return {

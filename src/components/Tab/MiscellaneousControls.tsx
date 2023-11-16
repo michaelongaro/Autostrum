@@ -5,7 +5,6 @@ import { BiDownArrowAlt, BiUpArrowAlt } from "react-icons/bi";
 import { FaTrashAlt } from "react-icons/fa";
 import { HiOutlineClipboardCopy } from "react-icons/hi";
 import { LuClipboardPaste } from "react-icons/lu";
-import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -67,24 +66,21 @@ function MiscellaneousControls({
     setCurrentlyCopiedData,
     playTab,
     pauseAudio,
-  } = useTabStore(
-    (state) => ({
-      id: state.id,
-      bpm: state.bpm,
-      sectionProgression: state.sectionProgression,
-      setSectionProgression: state.setSectionProgression,
-      audioMetadata: state.audioMetadata,
-      setAudioMetadata: state.setAudioMetadata,
-      currentInstrument: state.currentInstrument,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-      currentlyCopiedData: state.currentlyCopiedData,
-      setCurrentlyCopiedData: state.setCurrentlyCopiedData,
-      playTab: state.playTab,
-      pauseAudio: state.pauseAudio,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    id: state.id,
+    bpm: state.bpm,
+    sectionProgression: state.sectionProgression,
+    setSectionProgression: state.setSectionProgression,
+    audioMetadata: state.audioMetadata,
+    setAudioMetadata: state.setAudioMetadata,
+    currentInstrument: state.currentInstrument,
+    getTabData: state.getTabData,
+    setTabData: state.setTabData,
+    currentlyCopiedData: state.currentlyCopiedData,
+    setCurrentlyCopiedData: state.setCurrentlyCopiedData,
+    playTab: state.playTab,
+    pauseAudio: state.pauseAudio,
+  }));
 
   function disableMoveDown() {
     if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {

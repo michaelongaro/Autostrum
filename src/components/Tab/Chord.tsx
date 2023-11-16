@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { shallow } from "zustand/shallow";
 import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import { parse, toString } from "~/utils/tunings";
 import { Input } from "../ui/input";
@@ -20,13 +19,10 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
     false,
   ]);
 
-  const { tuning, setChordBeingEdited } = useTabStore(
-    (state) => ({
-      tuning: state.tuning,
-      setChordBeingEdited: state.setChordBeingEdited,
-    }),
-    shallow
-  );
+  const { tuning, setChordBeingEdited } = useTabStore((state) => ({
+    tuning: state.tuning,
+    setChordBeingEdited: state.setChordBeingEdited,
+  }));
 
   function handleKeyDown(
     e: React.KeyboardEvent<HTMLInputElement>,

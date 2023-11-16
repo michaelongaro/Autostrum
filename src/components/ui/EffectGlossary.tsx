@@ -1,5 +1,4 @@
 import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
 import {
@@ -14,8 +13,7 @@ function EffectGlossary() {
     (state) => ({
       showEffectGlossaryModal: state.showEffectGlossaryModal,
       setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
-    }),
-    shallow
+    })
   );
 
   // TODO: modularize this component as much as possible

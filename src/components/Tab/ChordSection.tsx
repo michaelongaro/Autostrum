@@ -2,7 +2,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { Fragment, memo, useMemo } from "react";
 import { v4 as uuid } from "uuid";
-import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -60,19 +59,16 @@ function ChordSection({
     currentlyPlayingMetadata,
     currentChordIndex,
     preventFramerLayoutShift,
-  } = useTabStore(
-    (state) => ({
-      editing: state.editing,
-      bpm: state.bpm,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-      audioMetadata: state.audioMetadata,
-      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-      currentChordIndex: state.currentChordIndex,
-      preventFramerLayoutShift: state.preventFramerLayoutShift,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    editing: state.editing,
+    bpm: state.bpm,
+    getTabData: state.getTabData,
+    setTabData: state.setTabData,
+    audioMetadata: state.audioMetadata,
+    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+    currentChordIndex: state.currentChordIndex,
+    preventFramerLayoutShift: state.preventFramerLayoutShift,
+  }));
 
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 

@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useState, memo } from "react";
-import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
 import isEqual from "lodash.isequal";
 import { v4 as uuid } from "uuid";
@@ -80,18 +79,15 @@ function ChordSequence({
     getTabData,
     setTabData,
     setStrummingPatternBeingEdited,
-  } = useTabStore(
-    (state) => ({
-      editing: state.editing,
-      bpm: state.bpm,
-      strummingPatterns: state.strummingPatterns,
-      preventFramerLayoutShift: state.preventFramerLayoutShift,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-      setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    editing: state.editing,
+    bpm: state.bpm,
+    strummingPatterns: state.strummingPatterns,
+    preventFramerLayoutShift: state.preventFramerLayoutShift,
+    getTabData: state.getTabData,
+    setTabData: state.setTabData,
+    setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
+  }));
 
   // sets sequence's strumming pattern to first existing pattern if the current pattern is empty
   useEffect(() => {

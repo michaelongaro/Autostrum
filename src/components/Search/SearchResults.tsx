@@ -6,7 +6,6 @@ import { BsArrowDownShort, BsGridFill } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
 import { LuFilter } from "react-icons/lu";
 import { Drawer } from "vaul";
-import { shallow } from "zustand/shallow";
 import {
   Select,
   SelectContent,
@@ -86,14 +85,11 @@ function SearchResults({
   const isAboveSmallViewportWidth = useViewportWidthBreakpoint(640);
 
   const { searchResultsCount, mobileHeaderModal, setMobileHeaderModal } =
-    useTabStore(
-      (state) => ({
-        searchResultsCount: state.searchResultsCount,
-        mobileHeaderModal: state.mobileHeaderModal,
-        setMobileHeaderModal: state.setMobileHeaderModal,
-      }),
-      shallow
-    );
+    useTabStore((state) => ({
+      searchResultsCount: state.searchResultsCount,
+      mobileHeaderModal: state.mobileHeaderModal,
+      setMobileHeaderModal: state.setMobileHeaderModal,
+    }));
 
   useEffect(() => {
     if (!mobileHeaderModal.showing) {

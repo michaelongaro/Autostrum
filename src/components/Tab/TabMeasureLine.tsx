@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { Fragment, useState, memo } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
-import { shallow } from "zustand/shallow";
 import isEqual from "lodash.isequal";
 import {
   Popover,
@@ -58,8 +57,7 @@ function TabMeasureLine({
       bpm: state.bpm,
       getTabData: state.getTabData,
       setTabData: state.setTabData,
-    }),
-    shallow
+    })
   );
 
   function handleDeleteMeasureLine() {

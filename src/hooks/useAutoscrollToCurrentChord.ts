@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { shallow } from "zustand/shallow";
 import { useTabStore } from "~/stores/TabStore";
 import { scroller } from "react-scroll";
 interface UseAutoscrollToCurrentChord {
@@ -19,14 +18,11 @@ function useAutoscrollToCurrentChord({
     useState(-1);
 
   const { currentlyPlayingMetadata, currentChordIndex, audioMetadata } =
-    useTabStore(
-      (state) => ({
-        currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-        currentChordIndex: state.currentChordIndex,
-        audioMetadata: state.audioMetadata,
-      }),
-      shallow
-    );
+    useTabStore((state) => ({
+      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+      currentChordIndex: state.currentChordIndex,
+      audioMetadata: state.audioMetadata,
+    }));
 
   useEffect(() => {
     if (

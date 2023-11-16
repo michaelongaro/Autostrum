@@ -11,7 +11,6 @@ import isEqual from "lodash.isequal";
 import { Element } from "react-scroll";
 import { BsArrowDown, BsArrowUp, BsPlus } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
-import { shallow } from "zustand/shallow";
 import {
   Select,
   SelectContent,
@@ -93,19 +92,16 @@ function StrummingPattern({
     currentChordIndex,
     previewMetadata,
     audioMetadata,
-  } = useTabStore(
-    (state) => ({
-      chords: state.chords,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-      setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
-      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-      currentChordIndex: state.currentChordIndex,
-      previewMetadata: state.previewMetadata,
-      audioMetadata: state.audioMetadata,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    chords: state.chords,
+    getTabData: state.getTabData,
+    setTabData: state.setTabData,
+    setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
+    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+    currentChordIndex: state.currentChordIndex,
+    previewMetadata: state.previewMetadata,
+    audioMetadata: state.audioMetadata,
+  }));
 
   useEffect(() => {
     if (inputIdToFocus) {

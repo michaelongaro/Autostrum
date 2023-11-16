@@ -3,7 +3,6 @@ import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
 import { useInView } from "react-intersection-observer";
-import { shallow } from "zustand/shallow";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import GridTabCard from "./GridTabCard";
@@ -49,12 +48,9 @@ function GridTabView({
       }
     );
 
-  const { setSearchResultsCount } = useTabStore(
-    (state) => ({
-      setSearchResultsCount: state.setSearchResultsCount,
-    }),
-    shallow
-  );
+  const { setSearchResultsCount } = useTabStore((state) => ({
+    setSearchResultsCount: state.setSearchResultsCount,
+  }));
 
   function getInfiniteQueryParams() {
     return {

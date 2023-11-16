@@ -11,7 +11,6 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { FaGuitar } from "react-icons/fa";
 import { IoTelescopeOutline } from "react-icons/io5";
-import { shallow } from "zustand/shallow";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
 import classes from "./DesktopHeader.module.css";
@@ -24,12 +23,9 @@ function DesktopHeader() {
   const localStorageTabData = useLocalStorageValue("tabData");
   const localStorageRedirectRoute = useLocalStorageValue("redirectRoute");
 
-  const { getStringifiedTabData } = useTabStore(
-    (state) => ({
-      getStringifiedTabData: state.getStringifiedTabData,
-    }),
-    shallow
-  );
+  const { getStringifiedTabData } = useTabStore((state) => ({
+    getStringifiedTabData: state.getStringifiedTabData,
+  }));
 
   return (
     <nav className="headerBackgroundGradient sticky left-0 top-0 z-[49] grid h-16 w-full grid-cols-1 grid-rows-1 shadow-lightGlassmorphic">

@@ -1,5 +1,4 @@
 import { memo, useState } from "react";
-import { shallow } from "zustand/shallow";
 import { useTabStore } from "~/stores/TabStore";
 import { Input } from "../ui/input";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
@@ -26,17 +25,14 @@ function TabNote({
     currentlyCopiedChord,
     setCurrentlyCopiedChord,
     setChordPulse,
-  } = useTabStore(
-    (state) => ({
-      editing: state.editing,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-      currentlyCopiedChord: state.currentlyCopiedChord,
-      setCurrentlyCopiedChord: state.setCurrentlyCopiedChord,
-      setChordPulse: state.setChordPulse,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    editing: state.editing,
+    getTabData: state.getTabData,
+    setTabData: state.setTabData,
+    currentlyCopiedChord: state.currentlyCopiedChord,
+    setCurrentlyCopiedChord: state.setCurrentlyCopiedChord,
+    setChordPulse: state.setChordPulse,
+  }));
 
   const [isFocused, setIsFocused] = useState(false);
 

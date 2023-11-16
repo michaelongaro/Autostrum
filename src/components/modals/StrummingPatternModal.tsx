@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { BsFillPlayFill, BsKeyboard, BsStopFill } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
-import { shallow } from "zustand/shallow";
 import { Label } from "~/components/ui/label";
 import {
   Select,
@@ -74,21 +73,18 @@ function StrummingPatternModal({
     setPreventFramerLayoutShift,
     playPreview,
     pauseAudio,
-  } = useTabStore(
-    (state) => ({
-      strummingPatterns: state.strummingPatterns,
-      setStrummingPatterns: state.setStrummingPatterns,
-      setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-      previewMetadata: state.previewMetadata,
-      audioMetadata: state.audioMetadata,
-      setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
-      playPreview: state.playPreview,
-      pauseAudio: state.pauseAudio,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    strummingPatterns: state.strummingPatterns,
+    setStrummingPatterns: state.setStrummingPatterns,
+    setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
+    getTabData: state.getTabData,
+    setTabData: state.setTabData,
+    previewMetadata: state.previewMetadata,
+    audioMetadata: state.audioMetadata,
+    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
+    playPreview: state.playPreview,
+    pauseAudio: state.pauseAudio,
+  }));
 
   useEffect(() => {
     setPreventFramerLayoutShift(true);

@@ -5,7 +5,6 @@ import {
   type SetStateAction,
 } from "react";
 import { BsPlus } from "react-icons/bs";
-import { shallow } from "zustand/shallow";
 import { useTabStore, type StrummingPattern } from "~/stores/TabStore";
 import { addOrRemoveStrummingPatternPalmMuteDashes } from "~/utils/palmMuteHelpers";
 import { Button } from "../ui/button";
@@ -43,12 +42,9 @@ function StrummingPatternPalmMuteNode({
 }: StrummingPatternPalmMuteNode) {
   const [hoveringOnPalmMuteNode, setHoveringOnPalmMuteNode] = useState(false);
 
-  const { setStrummingPatternBeingEdited } = useTabStore(
-    (state) => ({
-      setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
-    }),
-    shallow
-  );
+  const { setStrummingPatternBeingEdited } = useTabStore((state) => ({
+    setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
+  }));
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
     // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)

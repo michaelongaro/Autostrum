@@ -1,7 +1,6 @@
 import isEqual from "lodash.isequal";
 import { MdModeEditOutline } from "react-icons/md";
 import { FaTrashAlt } from "react-icons/fa";
-import { shallow } from "zustand/shallow";
 import { useState } from "react";
 import {
   Popover,
@@ -64,23 +63,20 @@ function StrummingPatterns() {
     previewMetadata,
     playPreview,
     pauseAudio,
-  } = useTabStore(
-    (state) => ({
-      id: state.id,
-      currentInstrument: state.currentInstrument,
-      strummingPatterns: state.strummingPatterns,
-      setStrummingPatterns: state.setStrummingPatterns,
-      setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
-      editing: state.editing,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-      audioMetadata: state.audioMetadata,
-      previewMetadata: state.previewMetadata,
-      playPreview: state.playPreview,
-      pauseAudio: state.pauseAudio,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    id: state.id,
+    currentInstrument: state.currentInstrument,
+    strummingPatterns: state.strummingPatterns,
+    setStrummingPatterns: state.setStrummingPatterns,
+    setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
+    editing: state.editing,
+    getTabData: state.getTabData,
+    setTabData: state.setTabData,
+    audioMetadata: state.audioMetadata,
+    previewMetadata: state.previewMetadata,
+    playPreview: state.playPreview,
+    pauseAudio: state.pauseAudio,
+  }));
 
   function handleDeleteStrummingPattern(
     index: number,

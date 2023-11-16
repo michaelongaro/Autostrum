@@ -14,7 +14,6 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { FaGuitar } from "react-icons/fa";
 import { IoTelescopeOutline } from "react-icons/io5";
-import { shallow } from "zustand/shallow";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
 
@@ -40,14 +39,11 @@ function MobileHeader() {
   const localStorageRedirectRoute = useLocalStorageValue("redirectRoute");
 
   const { getStringifiedTabData, mobileHeaderModal, setMobileHeaderModal } =
-    useTabStore(
-      (state) => ({
-        getStringifiedTabData: state.getStringifiedTabData,
-        mobileHeaderModal: state.mobileHeaderModal,
-        setMobileHeaderModal: state.setMobileHeaderModal,
-      }),
-      shallow
-    );
+    useTabStore((state) => ({
+      getStringifiedTabData: state.getStringifiedTabData,
+      mobileHeaderModal: state.mobileHeaderModal,
+      setMobileHeaderModal: state.setMobileHeaderModal,
+    }));
 
   useEffect(() => {
     if (!mobileHeaderModal.showing) {

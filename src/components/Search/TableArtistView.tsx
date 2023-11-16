@@ -3,7 +3,6 @@ import { useEffect, Fragment, type Dispatch, type SetStateAction } from "react";
 import { AiFillHeart } from "react-icons/ai";
 import { GiMusicalScore } from "react-icons/gi";
 import { useInView } from "react-intersection-observer";
-import { shallow } from "zustand/shallow";
 import {
   Table,
   TableBody,
@@ -35,12 +34,9 @@ function TableArtistView({
   additionalSortFilter,
   setResultsCountIsLoading,
 }: TableArtistView) {
-  const { setSearchResultsCount } = useTabStore(
-    (state) => ({
-      setSearchResultsCount: state.setSearchResultsCount,
-    }),
-    shallow
-  );
+  const { setSearchResultsCount } = useTabStore((state) => ({
+    setSearchResultsCount: state.setSearchResultsCount,
+  }));
 
   const {
     data: artistResults,

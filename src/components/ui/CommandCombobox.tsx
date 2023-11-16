@@ -18,7 +18,6 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
 import tunings, { parse, toString } from "~/utils/tunings";
 
 // currently hardcoding this component to work with tunings
@@ -36,8 +35,7 @@ export function CommandCombobox({ customTuning }: CommandCombobox) {
       tuning: state.tuning,
       setTuning: state.setTuning,
       setShowCustomTuningModal: state.setShowCustomTuningModal,
-    }),
-    shallow
+    })
   );
 
   function tuningIsCustom(tuning: string) {

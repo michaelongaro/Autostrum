@@ -2,7 +2,6 @@ import * as React from "react";
 import { useState, useEffect } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
 
 import { cn } from "~/utils/utils";
 
@@ -38,12 +37,9 @@ const AudioProgressSlider = React.forwardRef<
     }, 1000);
   }, []);
 
-  const { audioMetadata } = useTabStore(
-    (state) => ({
-      audioMetadata: state.audioMetadata,
-    }),
-    shallow
-  );
+  const { audioMetadata } = useTabStore((state) => ({
+    audioMetadata: state.audioMetadata,
+  }));
 
   useEffect(() => {
     if (!thumbElemNode || !trackElemNode) return;

@@ -18,7 +18,6 @@ import {
 } from "react";
 import { AiOutlineUser } from "react-icons/ai";
 import { TbPinned, TbPinnedFilled } from "react-icons/tb";
-import { shallow } from "zustand/shallow";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import type {
   MinimalTabRepresentation,
@@ -100,28 +99,25 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
       setFetchingFullTabData,
       showingAudioControls,
       setShowingAudioControls,
-    } = useTabStore(
-      (state) => ({
-        audioMetadata: state.audioMetadata,
-        currentInstrument: state.currentInstrument,
-        id: state.id,
-        setId: state.setId,
-        setTabData: state.setTabData,
-        setSectionProgression: state.setSectionProgression,
-        setHasRecordedAudio: state.setHasRecordedAudio,
-        setTuning: state.setTuning,
-        setBpm: state.setBpm,
-        setChords: state.setChords,
-        setCapo: state.setCapo,
-        recordedAudioBuffer: state.recordedAudioBuffer,
-        playTab: state.playTab,
-        pauseAudio: state.pauseAudio,
-        setFetchingFullTabData: state.setFetchingFullTabData,
-        showingAudioControls: state.showingAudioControls,
-        setShowingAudioControls: state.setShowingAudioControls,
-      }),
-      shallow
-    );
+    } = useTabStore((state) => ({
+      audioMetadata: state.audioMetadata,
+      currentInstrument: state.currentInstrument,
+      id: state.id,
+      setId: state.setId,
+      setTabData: state.setTabData,
+      setSectionProgression: state.setSectionProgression,
+      setHasRecordedAudio: state.setHasRecordedAudio,
+      setTuning: state.setTuning,
+      setBpm: state.setBpm,
+      setChords: state.setChords,
+      setCapo: state.setCapo,
+      recordedAudioBuffer: state.recordedAudioBuffer,
+      playTab: state.playTab,
+      pauseAudio: state.pauseAudio,
+      setFetchingFullTabData: state.setFetchingFullTabData,
+      showingAudioControls: state.showingAudioControls,
+      setShowingAudioControls: state.setShowingAudioControls,
+    }));
 
     const { data: currentArtist, refetch: refetchCurrentArtist } =
       api.artist.getByIdOrUsername.useQuery(

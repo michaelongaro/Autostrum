@@ -1,8 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect } from "react";
-import { shallow } from "zustand/shallow";
 import { useTabStore } from "~/stores/TabStore";
-
 import EffectGlossary from "../ui/EffectGlossary";
 
 const backdropVariants = {
@@ -15,12 +13,9 @@ const backdropVariants = {
 };
 
 function EffectGlossaryModal() {
-  const { setPreventFramerLayoutShift } = useTabStore(
-    (state) => ({
-      setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
-    }),
-    shallow
-  );
+  const { setPreventFramerLayoutShift } = useTabStore((state) => ({
+    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
+  }));
 
   useEffect(() => {
     setPreventFramerLayoutShift(true);

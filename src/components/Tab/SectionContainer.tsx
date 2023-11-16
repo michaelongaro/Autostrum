@@ -3,7 +3,6 @@ import isEqual from "lodash.isequal";
 import debounce from "lodash.debounce";
 import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
 import { v4 as uuid } from "uuid";
-import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -77,29 +76,26 @@ function SectionContainer({
     pauseAudio,
     countInTimer,
     setCountInTimer,
-  } = useTabStore(
-    (state) => ({
-      id: state.id,
-      bpm: state.bpm,
-      chords: state.chords,
-      strummingPatterns: state.strummingPatterns,
-      tabData: state.tabData,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-      tuning: state.tuning,
-      editing: state.editing,
-      sectionProgression: state.sectionProgression,
-      setSectionProgression: state.setSectionProgression,
-      audioMetadata: state.audioMetadata,
-      previewMetadata: state.previewMetadata,
-      currentInstrument: state.currentInstrument,
-      playTab: state.playTab,
-      pauseAudio: state.pauseAudio,
-      countInTimer: state.countInTimer,
-      setCountInTimer: state.setCountInTimer,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    id: state.id,
+    bpm: state.bpm,
+    chords: state.chords,
+    strummingPatterns: state.strummingPatterns,
+    tabData: state.tabData,
+    getTabData: state.getTabData,
+    setTabData: state.setTabData,
+    tuning: state.tuning,
+    editing: state.editing,
+    sectionProgression: state.sectionProgression,
+    setSectionProgression: state.setSectionProgression,
+    audioMetadata: state.audioMetadata,
+    previewMetadata: state.previewMetadata,
+    currentInstrument: state.currentInstrument,
+    playTab: state.playTab,
+    pauseAudio: state.pauseAudio,
+    countInTimer: state.countInTimer,
+    setCountInTimer: state.setCountInTimer,
+  }));
 
   useEffect(() => {
     setAccordionOpen("opened");

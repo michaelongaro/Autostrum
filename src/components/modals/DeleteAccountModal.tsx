@@ -6,7 +6,6 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { AiOutlineWarning } from "react-icons/ai";
 import { FaTrashAlt } from "react-icons/fa";
-import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { useTabStore } from "~/stores/TabStore";
@@ -33,14 +32,11 @@ function DeleteAccountModal() {
     isLoadingARoute,
     setShowDeleteAccountModal,
     setPreventFramerLayoutShift,
-  } = useTabStore(
-    (state) => ({
-      isLoadingARoute: state.isLoadingARoute,
-      setShowDeleteAccountModal: state.setShowDeleteAccountModal,
-      setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    isLoadingARoute: state.isLoadingARoute,
+    setShowDeleteAccountModal: state.setShowDeleteAccountModal,
+    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
+  }));
 
   useEffect(() => {
     setPreventFramerLayoutShift(true);

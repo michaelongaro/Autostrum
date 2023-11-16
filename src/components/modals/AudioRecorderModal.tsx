@@ -6,7 +6,6 @@ import { BsStopFill } from "react-icons/bs";
 import { FaMicrophoneAlt, FaTrashAlt } from "react-icons/fa";
 import { BiErrorCircle } from "react-icons/bi";
 import { HiOutlineInformationCircle } from "react-icons/hi";
-import { shallow } from "zustand/shallow";
 import {
   Popover,
   PopoverContent,
@@ -79,23 +78,20 @@ function AudioRecorderModal() {
     audioMetadata,
     setAudioMetadata,
     setCurrentChordIndex,
-  } = useTabStore(
-    (state) => ({
-      id: state.id,
-      setShowAudioRecorderModal: state.setShowAudioRecorderModal,
-      hasRecordedAudio: state.hasRecordedAudio,
-      setHasRecordedAudio: state.setHasRecordedAudio,
-      recordedAudioFile: state.recordedAudioFile,
-      setRecordedAudioFile: state.setRecordedAudioFile,
-      setShouldUpdateInS3: state.setShouldUpdateInS3,
-      setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
-      setRecordedAudioBuffer: state.setRecordedAudioBuffer,
-      audioMetadata: state.audioMetadata,
-      setAudioMetadata: state.setAudioMetadata,
-      setCurrentChordIndex: state.setCurrentChordIndex,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    id: state.id,
+    setShowAudioRecorderModal: state.setShowAudioRecorderModal,
+    hasRecordedAudio: state.hasRecordedAudio,
+    setHasRecordedAudio: state.setHasRecordedAudio,
+    recordedAudioFile: state.recordedAudioFile,
+    setRecordedAudioFile: state.setRecordedAudioFile,
+    setShouldUpdateInS3: state.setShouldUpdateInS3,
+    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
+    setRecordedAudioBuffer: state.setRecordedAudioBuffer,
+    audioMetadata: state.audioMetadata,
+    setAudioMetadata: state.setAudioMetadata,
+    setCurrentChordIndex: state.setCurrentChordIndex,
+  }));
 
   useEffect(() => {
     setPreventFramerLayoutShift(true);

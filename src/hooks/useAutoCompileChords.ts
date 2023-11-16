@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { shallow } from "zustand/shallow";
 import {
   compileFullTab,
   compileSpecificChordGrouping,
@@ -24,21 +23,18 @@ function useAutoCompileChords() {
     chords,
     strummingPatterns,
     atomicallyUpdateAudioMetadata,
-  } = useTabStore(
-    (state) => ({
-      setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
-      playbackSpeed: state.playbackSpeed,
-      audioMetadata: state.audioMetadata,
-      setAudioMetadata: state.setAudioMetadata,
-      bpm: state.bpm,
-      tabData: state.tabData,
-      sectionProgression: state.sectionProgression,
-      chords: state.chords,
-      strummingPatterns: state.strummingPatterns,
-      atomicallyUpdateAudioMetadata: state.atomicallyUpdateAudioMetadata,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
+    playbackSpeed: state.playbackSpeed,
+    audioMetadata: state.audioMetadata,
+    setAudioMetadata: state.setAudioMetadata,
+    bpm: state.bpm,
+    tabData: state.tabData,
+    sectionProgression: state.sectionProgression,
+    chords: state.chords,
+    strummingPatterns: state.strummingPatterns,
+    atomicallyUpdateAudioMetadata: state.atomicallyUpdateAudioMetadata,
+  }));
 
   useEffect(() => {
     if (audioMetadata.type === "Artist recording") return;

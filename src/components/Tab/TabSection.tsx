@@ -22,7 +22,6 @@ import { FaTrashAlt } from "react-icons/fa";
 import { HiOutlineInformationCircle } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
 import { v4 as uuid } from "uuid";
-import { shallow } from "zustand/shallow";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -131,21 +130,18 @@ function TabSection({
     currentChordIndex,
     playbackSpeed,
     audioMetadata,
-  } = useTabStore(
-    (state) => ({
-      bpm: state.bpm,
-      tuning: state.tuning,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-      editing: state.editing,
-      preventFramerLayoutShift: state.preventFramerLayoutShift,
-      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-      currentChordIndex: state.currentChordIndex,
-      playbackSpeed: state.playbackSpeed,
-      audioMetadata: state.audioMetadata,
-    }),
-    shallow
-  );
+  } = useTabStore((state) => ({
+    bpm: state.bpm,
+    tuning: state.tuning,
+    getTabData: state.getTabData,
+    setTabData: state.setTabData,
+    editing: state.editing,
+    preventFramerLayoutShift: state.preventFramerLayoutShift,
+    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+    currentChordIndex: state.currentChordIndex,
+    playbackSpeed: state.playbackSpeed,
+    audioMetadata: state.audioMetadata,
+  }));
 
   // should these functions below be in zustand?
 

@@ -1,5 +1,4 @@
 import { BsArrowRightShort } from "react-icons/bs";
-import { shallow } from "zustand/shallow";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
@@ -8,14 +7,11 @@ function SectionProgression() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const { editing, sectionProgression, setShowSectionProgressionModal } =
-    useTabStore(
-      (state) => ({
-        editing: state.editing,
-        sectionProgression: state.sectionProgression,
-        setShowSectionProgressionModal: state.setShowSectionProgressionModal,
-      }),
-      shallow
-    );
+    useTabStore((state) => ({
+      editing: state.editing,
+      sectionProgression: state.sectionProgression,
+      setShowSectionProgressionModal: state.setShowSectionProgressionModal,
+    }));
 
   return (
     <div

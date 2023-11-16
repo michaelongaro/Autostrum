@@ -1,17 +1,13 @@
 import { useEffect } from "react";
 import Router from "next/router";
 import { useTabStore } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
 
 function useDetectRouteChanges() {
   const { events } = Router;
 
-  const { setIsLoadingARoute } = useTabStore(
-    (state) => ({
-      setIsLoadingARoute: state.setIsLoadingARoute,
-    }),
-    shallow
-  );
+  const { setIsLoadingARoute } = useTabStore((state) => ({
+    setIsLoadingARoute: state.setIsLoadingARoute,
+  }));
 
   useEffect(() => {
     events.on("routeChangeStart", () => setIsLoadingARoute(true));
