@@ -51,9 +51,10 @@ function TabMeasureLine({
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const { editing, bpm, getTabData, setTabData } = useTabStore(
+  const { editing, audioMetadata, bpm, getTabData, setTabData } = useTabStore(
     (state) => ({
       editing: state.editing,
+      audioMetadata: state.audioMetadata,
       bpm: state.bpm,
       getTabData: state.getTabData,
       setTabData: state.setTabData,
@@ -409,6 +410,7 @@ function TabMeasureLine({
         <Button
           variant={"destructive"}
           size="sm"
+          disabled={audioMetadata.type === "Generated" && audioMetadata.playing}
           className="absolute bottom-4 left-1/2 right-1/2 z-50 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
           onClick={handleDeleteMeasureLine}
         >

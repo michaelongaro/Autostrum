@@ -767,7 +767,7 @@ function StrummingPattern({
                 // can do framer motion here if you want
                 <Button
                   variant={"destructive"}
-                  disabled={data.strums.length === 1}
+                  disabled={data.strums.length === 1 || previewMetadata.playing}
                   className=" h-6 w-6 p-0"
                   onClick={() => deleteStrum(strumIndex)}
                 >

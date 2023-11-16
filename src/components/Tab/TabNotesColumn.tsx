@@ -74,17 +74,24 @@ function TabNotesColumn({
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const { editing, chordPulse, setChordPulse, getTabData, setTabData } =
-    useTabStore(
-      (state) => ({
-        editing: state.editing,
-        chordPulse: state.chordPulse,
-        setChordPulse: state.setChordPulse,
-        getTabData: state.getTabData,
-        setTabData: state.setTabData,
-      }),
-      shallow
-    );
+  const {
+    editing,
+    audioMetadata,
+    chordPulse,
+    setChordPulse,
+    getTabData,
+    setTabData,
+  } = useTabStore(
+    (state) => ({
+      editing: state.editing,
+      audioMetadata: state.audioMetadata,
+      chordPulse: state.chordPulse,
+      setChordPulse: state.setChordPulse,
+      getTabData: state.getTabData,
+      setTabData: state.setTabData,
+    }),
+    shallow
+  );
 
   // ideally don't need this and can just use prop values passed in, but need to have
   // [0] index special case since when looping it would keep the [0] index at 100% width
@@ -144,7 +151,11 @@ function TabNotesColumn({
 
     const currentSection = getTabData()[sectionIndex]?.data[subSectionIndex];
 
-    if (currentSection === undefined) return true;
+    if (
+      currentSection === undefined ||
+      (audioMetadata.type === "Generated" && audioMetadata.playing)
+    )
+      return true;
 
     if (currentSection?.data.length === 1) {
       disabled = true;
