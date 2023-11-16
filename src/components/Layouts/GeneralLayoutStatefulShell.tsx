@@ -12,9 +12,13 @@ import { useTabStore } from "~/stores/TabStore";
 import AudioControls from "../AudioControls/AudioControls";
 import { Button } from "../ui/button";
 import useDetectRouteChanges from "~/hooks/useDetectRouteChanges";
-import MobileHeaderModal from "../modals/MobileHeaderModal";
 import DesktopHeader from "../Header/DesktopHeader";
 import MobileHeader from "../Header/MobileHeader";
+import dynamic from "next/dynamic";
+
+const MobileHeaderModal = dynamic(
+  () => import("~/components/modals/MobileHeaderModal")
+);
 
 const opacityAndScaleVariants = {
   expanded: {

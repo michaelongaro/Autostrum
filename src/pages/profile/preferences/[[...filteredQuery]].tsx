@@ -10,8 +10,6 @@ import { shallow } from "zustand/shallow";
 import TopProfileNavigationLayout from "~/components/Layouts/TopProfileNavigationLayout";
 import GridTabCard from "~/components/Search/GridTabCard";
 import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
-import DeleteAccountModal from "~/components/modals/DeleteAccountModal";
-import PinnedTabModal from "~/components/modals/PinnedTabModal";
 import { Button } from "~/components/ui/button";
 import {
   Popover,
@@ -24,6 +22,14 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
+import dynamic from "next/dynamic";
+
+const DeleteAccountModal = dynamic(
+  () => import("~/components/modals/DeleteAccountModal")
+);
+const PinnedTabModal = dynamic(
+  () => import("~/components/modals/PinnedTabModal")
+);
 
 function Preferences() {
   const { user } = useClerk();

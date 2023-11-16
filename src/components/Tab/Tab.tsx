@@ -11,8 +11,6 @@ import { v4 as uuid } from "uuid";
 import { shallow } from "zustand/shallow";
 import type { TabWithLikes } from "~/server/api/routers/tab";
 import { useTabStore } from "~/stores/TabStore";
-import EffectGlossaryModal from "../modals/EffectGlossaryModal";
-import SectionProgressionModal from "../modals/SectionProgressionModal";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import SectionProgression from "./SectionProgression";
@@ -24,13 +22,27 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { useLocalStorageValue } from "@react-hookz/web";
-import AudioRecorderModal from "../modals/AudioRecorderModal";
-import ChordModal from "../modals/ChordModal";
-import StrummingPatternModal from "../modals/StrummingPatternModal";
 import Chords from "./Chords";
 import SectionContainer from "./SectionContainer";
 import StrummingPatterns from "./StrummingPatterns";
-import CustomTuningModal from "../modals/CustomTuningModal";
+import dynamic from "next/dynamic";
+
+const EffectGlossaryModal = dynamic(
+  () => import("~/components/modals/EffectGlossaryModal")
+);
+const SectionProgressionModal = dynamic(
+  () => import("~/components/modals/SectionProgressionModal")
+);
+const AudioRecorderModal = dynamic(
+  () => import("~/components/modals/AudioRecorderModal")
+);
+const ChordModal = dynamic(() => import("~/components/modals/ChordModal"));
+const StrummingPatternModal = dynamic(
+  () => import("~/components/modals/StrummingPatternModal")
+);
+const CustomTuningModal = dynamic(
+  () => import("~/components/modals/CustomTuningModal")
+);
 
 export interface RefetchTab {
   refetchTab: <TPageData>(
