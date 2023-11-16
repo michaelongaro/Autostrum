@@ -740,6 +740,15 @@ function playNote({
     duration = 0.25;
   }
 
+  // not sure exactly why this is needed right now, but bends/arbitrary slides were
+  // way too loud when being plucked
+  if (
+    pluckBaseNote &&
+    (effects.includes("b") || tetheredMetadata?.effect === "arbitrarySlide")
+  ) {
+    gain *= 0.6;
+  }
+
   const note = currentInstrument?.play(
     `${tuning[stringIdx]! + fret}`,
     audioContext.currentTime + when,
