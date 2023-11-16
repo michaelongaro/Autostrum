@@ -401,19 +401,16 @@ function StrummingPattern({
 
   function highlightChord(chordIndex: number, forPreview = false) {
     // preview strumming pattern
-    if (
-      forPreview &&
-      (index === undefined ||
-        previewMetadata.type !== "strummingPattern" ||
-        previewMetadata.indexOfPattern !== index ||
-        previewMetadata.currentChordIndex !== chordIndex)
-    ) {
-      return false;
+    if (forPreview) {
+      return (
+        previewMetadata.type === "strummingPattern" &&
+        previewMetadata.indexOfPattern === index &&
+        previewMetadata.currentChordIndex === chordIndex
+      );
     }
 
     if (!currentlyPlayingMetadata) return false;
 
-    // want to do same split of logic between audioMetadata.editingLoopRange here
     if (audioMetadata.editingLoopRange) {
       const isInSectionBeingLooped = currentlyPlayingMetadata.some(
         (metadata) => {
@@ -444,15 +441,14 @@ function StrummingPattern({
 
     // regular strumming pattern
     if (
-      !forPreview &&
-      (currentlyPlayingMetadata[currentChordIndex]?.location.sectionIndex !==
+      currentlyPlayingMetadata[currentChordIndex]?.location.sectionIndex !==
         sectionIndex ||
-        currentlyPlayingMetadata[currentChordIndex]?.location
-          .subSectionIndex !== subSectionIndex ||
-        currentlyPlayingMetadata[currentChordIndex]?.location
-          .chordSequenceIndex !== chordSequenceIndex ||
-        (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ??
-          -1) !== chordIndex)
+      currentlyPlayingMetadata[currentChordIndex]?.location.subSectionIndex !==
+        subSectionIndex ||
+      currentlyPlayingMetadata[currentChordIndex]?.location
+        .chordSequenceIndex !== chordSequenceIndex ||
+      (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ??
+        -1) !== chordIndex
     ) {
       return false;
     }
@@ -743,6 +739,7 @@ function StrummingPattern({
               {/* beat indicator */}
               <p
                 style={{
+                  textShadow: "none",
                   height:
                     getBeatIndicator(data.noteLength, strumIndex) === ""
                       ? "1.25rem"
