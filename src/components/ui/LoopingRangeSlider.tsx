@@ -10,7 +10,7 @@ const LoopingRangeSlider = React.forwardRef<
   return (
     <SliderPrimitive.Root
       ref={ref}
-      minStepsBetweenThumbs={1}
+      minStepsBetweenThumbs={2}
       className={cn(
         "relative flex w-full touch-none select-none items-center shadow-sm disabled:cursor-not-allowed data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
         className
