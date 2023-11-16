@@ -1,6 +1,5 @@
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { Canvas, extend } from "@react-three/fiber";
-import { motion } from "framer-motion";
-import { IoTelescopeOutline } from "react-icons/io5";
 import {
   AmbientLight,
   DirectionalLight,
@@ -27,6 +26,8 @@ function NoResultsFoundBubbles({
   color,
   reverseBubblePositions,
 }: NoResultsFoundBubbles) {
+  const isAboveSmallViewportWidth = useViewportWidthBreakpoint(640);
+
   const bubblePositions = reverseBubblePositions
     ? [
         [15, -18, 0],
@@ -42,8 +43,8 @@ function NoResultsFoundBubbles({
   return (
     <Canvas
       style={{
-        width: "3rem",
-        height: "3rem",
+        width: isAboveSmallViewportWidth ? "3rem" : "2.5rem",
+        height: isAboveSmallViewportWidth ? "3rem" : "2.5rem",
         pointerEvents: "none",
         zIndex: 0,
       }}

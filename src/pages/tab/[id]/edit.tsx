@@ -43,12 +43,12 @@ function IndividualTabEdit({
     id: tabIdFromUrl,
   });
 
-  if (!userAllowedToEdit) {
-    return <UserNotAllowedToEdit tabId={tabExists ? tabIdFromUrl : -1} />;
-  }
-
   if (!tabExists) {
     return <TabNotFound />;
+  }
+
+  if (!userAllowedToEdit) {
+    return <UserNotAllowedToEdit tabId={tabExists ? tabIdFromUrl : -1} />;
   }
 
   return (
@@ -137,15 +137,15 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 function TabNotFound() {
   return (
     <div className="lightGlassmorphic baseVertFlex w-10/12 gap-4 rounded-md p-4 md:w-[500px]">
-      <div className="baseFlex gap-4">
+      <div className="baseFlex gap-3 sm:gap-4">
         <NoResultsFoundBubbles color={"#ec4899"} />
         <div className="baseFlex gap-2">
-          <BiErrorCircle className="h-8 w-8" />
-          <h1 className="text-2xl font-bold">Tab not found</h1>
+          <BiErrorCircle className="h-6 w-6 sm:h-8 sm:w-8" />
+          <h1 className="text-xl font-bold sm:text-2xl">Tab not found</h1>
         </div>
         <NoResultsFoundBubbles color={"#ec4899"} reverseBubblePositions />
       </div>
-      <p className="text-center text-lg">
+      <p className="text-center text-base sm:text-lg">
         The tab you are looking for does not exist. Please check the URL and try
         again.
       </p>
@@ -158,26 +158,25 @@ function UserNotAllowedToEdit({ tabId }: { tabId: number }) {
 
   return (
     <div className="lightGlassmorphic baseVertFlex w-10/12 gap-4 rounded-md p-4 md:w-[550px]">
-      <div className="baseFlex gap-4">
+      <div className="baseFlex gap-3 sm:gap-4">
         <NoResultsFoundBubbles color={"#ec4899"} />
         <div className="baseFlex gap-2">
-          <BiErrorCircle className="h-8 w-8" />
-          <h1 className="text-2xl font-bold">Access denied</h1>
+          <BiErrorCircle className="h-6 w-6 sm:h-8 sm:w-8" />
+          <h1 className="text-xl font-bold sm:text-2xl">Access denied</h1>
         </div>
         <NoResultsFoundBubbles color={"#ec4899"} reverseBubblePositions />
       </div>
-      <p className="text-center text-lg">
+      <p className="text-center text-base sm:text-lg">
         You must be logged in as the owner of the tab to edit it.
       </p>
-      {tabId !== -1 && (
-        <Button
-          onClick={() => void push(`/tab/${tabId}`)}
-          className="baseFlex gap-1 pr-6"
-        >
-          <BsArrowRightShort className="h-6 w-8 rotate-180 text-pink-50" />
-          Return to tab
-        </Button>
-      )}
+
+      <Button
+        onClick={() => void push(`/tab/${tabId}`)}
+        className="baseFlex gap-1 pr-6"
+      >
+        <BsArrowRightShort className="h-6 w-8 rotate-180 text-pink-50" />
+        Return to tab
+      </Button>
     </div>
   );
 }
