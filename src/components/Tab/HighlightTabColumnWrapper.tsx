@@ -71,7 +71,6 @@ function HighlightTabColumnWrapper({
     if (!currentlyPlayingMetadata || !location) return false;
 
     if (audioMetadata.editingLoopRange) {
-      console.log("Hit");
       const isInSectionBeingLooped = currentlyPlayingMetadata.some(
         (metadata) => {
           return (
