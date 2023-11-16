@@ -758,7 +758,6 @@ export const useTabStore = create<TabState>()(
 
     playPreview: async ({ data, index, type }: PlayPreview) => {
       const {
-        tuning: tuningNotes,
         capo,
         previewMetadata,
         currentInstrument,
@@ -774,7 +773,7 @@ export const useTabStore = create<TabState>()(
         | undefined
       )[] = [undefined, undefined, undefined, undefined, undefined, undefined];
 
-      const tuning = parse(tuningNotes);
+      const tuning = parse("e2 a2 d3 g3 b3 e4");
 
       const compiledChords =
         type === "chord"
