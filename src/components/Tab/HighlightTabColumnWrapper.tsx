@@ -1,5 +1,4 @@
-import isEqual from "lodash.isequal";
-import { Fragment, memo, useState, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore, type TabSection } from "~/stores/TabStore";
@@ -46,7 +45,12 @@ function HighlightTabColumnWrapper({
 
   function columnIsBeingPlayed(columnIndex: number) {
     const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
-    if (!currentlyPlayingMetadata || !location) return false;
+    if (
+      !currentlyPlayingMetadata ||
+      !location ||
+      audioMetadata.editingLoopRange
+    )
+      return false;
 
     const isSameSection =
       location.sectionIndex === sectionIndex &&
@@ -65,6 +69,33 @@ function HighlightTabColumnWrapper({
   function columnHasBeenPlayed(columnIndex: number) {
     const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
     if (!currentlyPlayingMetadata || !location) return false;
+
+    if (audioMetadata.editingLoopRange) {
+      console.log("Hit");
+      const isInSectionBeingLooped = currentlyPlayingMetadata.some(
+        (metadata) => {
+          return (
+            sectionIndex === metadata.location.sectionIndex &&
+            subSectionIndex === metadata.location.subSectionIndex &&
+            columnIndex === metadata.location.chordIndex
+          );
+        }
+      );
+
+      return isInSectionBeingLooped;
+    }
+
+    const correspondingChordIndex = currentlyPlayingMetadata.some(
+      (metadata) => {
+        return (
+          sectionIndex === metadata.location.sectionIndex &&
+          subSectionIndex === metadata.location.subSectionIndex &&
+          columnIndex === metadata.location.chordIndex
+        );
+      }
+    );
+
+    if (!correspondingChordIndex) return false;
 
     const isSameSection =
       location.sectionIndex === sectionIndex &&
@@ -146,26 +177,7 @@ function HighlightTabColumnWrapper({
   );
 }
 
-export default memo(HighlightTabColumnWrapper, (prevProps, nextProps) => {
-  const { subSectionData: prevSubSectionData, ...restPrev } = prevProps;
-  const { subSectionData: nextSubSectionDataData, ...restNext } = nextProps;
-
-  // Custom comparison for getTabData() related prop
-  if (!isEqual(prevSubSectionData, nextSubSectionDataData)) {
-    return false; // props are not equal, so component should re-render
-  }
-
-  // Default shallow comparison for other props using Object.is()
-  const allKeys = new Set([...Object.keys(restPrev), ...Object.keys(restNext)]);
-  for (const key of allKeys) {
-    // @ts-expect-error we know that these keys are in the objects
-    if (!Object.is(restPrev[key], restNext[key])) {
-      return false; // props are not equal, so component should re-render
-    }
-  }
-
-  return true;
-});
+export default HighlightTabColumnWrapper;
 
 interface HighlightTabNoteColumn {
   sectionIndex: number;

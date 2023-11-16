@@ -425,6 +425,7 @@ function SectionContainer({
                   {!editing &&
                   // chord sections seem harder to do the lightweight highlight...
                   ((subSection.type === "chord" &&
+                    !audioMetadata.editingLoopRange &&
                     (currentlyPlayingSectionIndex !== sectionIndex ||
                       currentlyPlayingSubSectionIndex !== index)) ||
                     subSection.type === "tab") ? (
@@ -439,6 +440,7 @@ function SectionContainer({
                         currentlyPlayingSubSectionIndex === index
                       }
                       chords={chords}
+                      editingLoopRange={audioMetadata.editingLoopRange}
                     />
                   ) : (
                     <AnimatePresence mode="wait">

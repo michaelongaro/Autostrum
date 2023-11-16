@@ -92,6 +92,7 @@ function StrummingPattern({
     currentlyPlayingMetadata,
     currentChordIndex,
     previewMetadata,
+    audioMetadata,
   } = useTabStore(
     (state) => ({
       chords: state.chords,
@@ -101,6 +102,7 @@ function StrummingPattern({
       currentlyPlayingMetadata: state.currentlyPlayingMetadata,
       currentChordIndex: state.currentChordIndex,
       previewMetadata: state.previewMetadata,
+      audioMetadata: state.audioMetadata,
     }),
     shallow
   );
@@ -409,13 +411,42 @@ function StrummingPattern({
       return false;
     }
 
+    if (!currentlyPlayingMetadata) return false;
+
+    // want to do same split of logic between audioMetadata.editingLoopRange here
+    if (audioMetadata.editingLoopRange) {
+      const isInSectionBeingLooped = currentlyPlayingMetadata.some(
+        (metadata) => {
+          return (
+            sectionIndex === metadata.location.sectionIndex &&
+            subSectionIndex === metadata.location.subSectionIndex &&
+            chordSequenceIndex === metadata.location?.chordSequenceIndex &&
+            chordIndex === metadata.location.chordIndex
+          );
+        }
+      );
+
+      return isInSectionBeingLooped;
+    }
+
+    const correspondingChordIndex = currentlyPlayingMetadata.some(
+      (metadata) => {
+        return (
+          sectionIndex === metadata.location.sectionIndex &&
+          subSectionIndex === metadata.location.subSectionIndex &&
+          chordSequenceIndex === metadata.location?.chordSequenceIndex &&
+          chordIndex === metadata.location.chordIndex
+        );
+      }
+    );
+
+    if (!correspondingChordIndex) return false;
+
     // regular strumming pattern
     if (
       !forPreview &&
-      (currentlyPlayingMetadata === null ||
-        !location ||
-        currentlyPlayingMetadata[currentChordIndex]?.location.sectionIndex !==
-          sectionIndex ||
+      (currentlyPlayingMetadata[currentChordIndex]?.location.sectionIndex !==
+        sectionIndex ||
         currentlyPlayingMetadata[currentChordIndex]?.location
           .subSectionIndex !== subSectionIndex ||
         currentlyPlayingMetadata[currentChordIndex]?.location

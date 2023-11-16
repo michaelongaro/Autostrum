@@ -161,6 +161,7 @@ interface PreviewSubSectionContainer {
   subSectionData: TabSection | ChordSection;
   currentSubSectionisPlaying?: boolean;
   chords: ChordType[];
+  editingLoopRange: boolean;
 }
 
 function PreviewSubSectionContainer({
@@ -171,6 +172,7 @@ function PreviewSubSectionContainer({
   subSectionData,
   currentSubSectionisPlaying,
   chords,
+  editingLoopRange,
 }: PreviewSubSectionContainer) {
   return (
     <>
@@ -191,7 +193,7 @@ function PreviewSubSectionContainer({
             sectionIndex={sectionIndex}
             baselineBpm={baselineBpm}
           >
-            {currentSubSectionisPlaying && (
+            {(currentSubSectionisPlaying || editingLoopRange) && (
               <HighlightTabColumnWrapper
                 sectionIndex={sectionIndex}
                 subSectionIndex={subSectionIndex}
@@ -210,7 +212,8 @@ export const MemoizedPreviewSubSectionContainer = memo(
   (prevProps, nextProps) => {
     return (
       prevProps.currentSubSectionisPlaying ===
-      nextProps.currentSubSectionisPlaying
+        nextProps.currentSubSectionisPlaying &&
+      prevProps.editingLoopRange === nextProps.editingLoopRange
     );
   }
 );

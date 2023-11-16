@@ -607,7 +607,12 @@ function TabSection({
 
   function columnIsBeingPlayed(columnIndex: number) {
     const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
-    if (!currentlyPlayingMetadata || !location) return false;
+    if (
+      !currentlyPlayingMetadata ||
+      !location ||
+      audioMetadata.editingLoopRange
+    )
+      return false;
 
     const isSameSection =
       location.sectionIndex === sectionIndex &&
@@ -626,6 +631,32 @@ function TabSection({
   function columnHasBeenPlayed(columnIndex: number) {
     const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
     if (!currentlyPlayingMetadata || !location) return false;
+
+    if (audioMetadata.editingLoopRange) {
+      const isInSectionBeingLooped = currentlyPlayingMetadata.some(
+        (metadata) => {
+          return (
+            sectionIndex === metadata.location.sectionIndex &&
+            subSectionIndex === metadata.location.subSectionIndex &&
+            columnIndex === metadata.location.chordIndex
+          );
+        }
+      );
+
+      return isInSectionBeingLooped;
+    }
+
+    const correspondingChordIndex = currentlyPlayingMetadata.some(
+      (metadata) => {
+        return (
+          sectionIndex === metadata.location.sectionIndex &&
+          subSectionIndex === metadata.location.subSectionIndex &&
+          columnIndex === metadata.location.chordIndex
+        );
+      }
+    );
+
+    if (!correspondingChordIndex) return false;
 
     const isSameSection =
       location.sectionIndex === sectionIndex &&

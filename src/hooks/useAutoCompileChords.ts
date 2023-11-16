@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 import {
   compileFullTab,
@@ -8,6 +8,11 @@ import {
 import { useTabStore } from "../stores/TabStore";
 
 function useAutoCompileChords() {
+  const [
+    prevFullCurrentlyPlayingMetadataLength,
+    setPrevFullCurrentlyPlayingMetadataLength,
+  ] = useState(-1);
+
   const {
     setCurrentlyPlayingMetadata,
     playbackSpeed,
@@ -18,6 +23,7 @@ function useAutoCompileChords() {
     sectionProgression,
     chords,
     strummingPatterns,
+    atomicallyUpdateAudioMetadata,
   } = useTabStore(
     (state) => ({
       setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
@@ -29,11 +35,14 @@ function useAutoCompileChords() {
       sectionProgression: state.sectionProgression,
       chords: state.chords,
       strummingPatterns: state.strummingPatterns,
+      atomicallyUpdateAudioMetadata: state.atomicallyUpdateAudioMetadata,
     }),
     shallow
   );
 
   useEffect(() => {
+    if (audioMetadata.type === "Artist recording") return;
+
     function wholeTabIsEmpty() {
       // I *think* this covers all of the edge cases
       if (tabData.length === 0 || tabData[0]?.data.length === 0) {
@@ -44,10 +53,14 @@ function useAutoCompileChords() {
 
     if (wholeTabIsEmpty()) {
       setAudioMetadata({
-        location: null,
+        type: "Generated",
         tabId: -1,
         playing: false,
-        type: "Generated",
+        location: null,
+        startLoopIndex: 0,
+        endLoopIndex: -1,
+        editingLoopRange: false, // maybe problematic to do this here, be careful
+        fullCurrentlyPlayingMetadataLength: -1,
       });
       setCurrentlyPlayingMetadata(null);
       return;
@@ -61,6 +74,9 @@ function useAutoCompileChords() {
         baselineBpm: bpm,
         playbackSpeed,
         setCurrentlyPlayingMetadata,
+        startLoopIndex: audioMetadata.startLoopIndex,
+        endLoopIndex: audioMetadata.endLoopIndex,
+        atomicallyUpdateAudioMetadata,
       });
     } else {
       const sanitizedSectionProgression =
@@ -75,18 +91,51 @@ function useAutoCompileChords() {
         baselineBpm: bpm,
         playbackSpeed,
         setCurrentlyPlayingMetadata,
+        startLoopIndex: audioMetadata.startLoopIndex,
+        endLoopIndex: audioMetadata.endLoopIndex,
+        atomicallyUpdateAudioMetadata,
       });
     }
   }, [
     bpm,
     tabData,
     playbackSpeed,
+    audioMetadata.endLoopIndex,
     audioMetadata.location,
+    audioMetadata.startLoopIndex,
+    audioMetadata.type,
     sectionProgression,
     chords,
     strummingPatterns,
     setAudioMetadata,
     setCurrentlyPlayingMetadata,
+    atomicallyUpdateAudioMetadata,
+  ]);
+
+  useEffect(() => {
+    if (
+      audioMetadata.fullCurrentlyPlayingMetadataLength ===
+      prevFullCurrentlyPlayingMetadataLength
+    )
+      return;
+
+    if (
+      audioMetadata.fullCurrentlyPlayingMetadataLength <
+      prevFullCurrentlyPlayingMetadataLength
+    ) {
+      atomicallyUpdateAudioMetadata({
+        startLoopIndex: 0,
+        endLoopIndex: -1,
+      });
+    }
+
+    setPrevFullCurrentlyPlayingMetadataLength(
+      audioMetadata.fullCurrentlyPlayingMetadataLength
+    );
+  }, [
+    audioMetadata.fullCurrentlyPlayingMetadataLength,
+    atomicallyUpdateAudioMetadata,
+    prevFullCurrentlyPlayingMetadataLength,
   ]);
 }
 

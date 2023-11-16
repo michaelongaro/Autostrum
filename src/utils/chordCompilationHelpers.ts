@@ -1,4 +1,5 @@
 import type {
+  AudioMetadata,
   Chord,
   ChordSection,
   ChordSequence,
@@ -77,6 +78,11 @@ interface CompileFullTab {
   setCurrentlyPlayingMetadata: (
     currentlyPlayingMetadata: Metadata[] | null
   ) => void;
+  startLoopIndex: number;
+  endLoopIndex: number;
+  atomicallyUpdateAudioMetadata?: (
+    updatedFields: Partial<AudioMetadata>
+  ) => void;
 }
 
 // try passing through playbackSpeed to all children functions and see if it changes
@@ -89,6 +95,9 @@ function compileFullTab({
   baselineBpm,
   playbackSpeed,
   setCurrentlyPlayingMetadata,
+  startLoopIndex,
+  endLoopIndex,
+  atomicallyUpdateAudioMetadata,
 }: CompileFullTab) {
   const compiledChords: string[][] = [];
   const metadata: Metadata[] = [];
@@ -128,26 +137,82 @@ function compileFullTab({
     }
   }
 
-  const lastActualChord = metadata.at(-1);
+  // hacky: but is used incase the slice returns an empty array, which we couldn't then access
+  // the last element in metadataMappedToLoopRange below for.
+  const backupFirstChordMetadata = metadata[startLoopIndex];
 
-  if (lastActualChord) {
-    // adding fake chord + metadata to align the audio controls slider with the visual progress indicator
-    metadata.push({
+  // +1 to account for ghost chord that's added below
+  if (atomicallyUpdateAudioMetadata) {
+    atomicallyUpdateAudioMetadata({
+      fullCurrentlyPlayingMetadataLength: metadata.length + 1,
+    });
+  }
+
+  const compiledChordsMappedToLoopRange = compiledChords.slice(
+    startLoopIndex,
+    endLoopIndex === -1 ? compiledChords.length : endLoopIndex
+  );
+
+  const metadataMappedToLoopRange = metadata.slice(
+    startLoopIndex,
+    endLoopIndex === -1 ? metadata.length : endLoopIndex
+  );
+
+  let ghostChordIndex = 0;
+
+  if (metadataMappedToLoopRange.length > 0) {
+    if (endLoopIndex === -1) {
+      ghostChordIndex =
+        metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1;
+    } else {
+      ghostChordIndex = metadataMappedToLoopRange.at(-1)!.location.chordIndex;
+      // ^ this is not perfect, somehow maybe want the chordIndex to be +1 more?
+    }
+  }
+
+  if (endLoopIndex !== -1) {
+    metadataMappedToLoopRange.pop();
+  }
+
+  const lastActualChord = metadataMappedToLoopRange.at(-1)!;
+
+  // conditionally adding fake chord + metadata to align the audio controls slider with the visual progress indicator
+  // really absolutely *hate* this solution, but technically it should work.
+  if (metadataMappedToLoopRange.length > 0 && lastActualChord) {
+    metadataMappedToLoopRange.push({
       location: {
         ...lastActualChord.location,
-        chordIndex: lastActualChord.location.chordIndex + 1,
+        chordIndex: ghostChordIndex,
       },
       bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
       noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
-      elapsedSeconds: Math.floor(elapsedSeconds.value),
+      elapsedSeconds: Math.ceil(
+        lastActualChord.elapsedSeconds +
+          60 /
+            ((Number(lastActualChord.bpm) /
+              Number(lastActualChord.noteLengthMultiplier)) *
+              playbackSpeed) +
+          1
+      ),
     });
 
-    compiledChords.push([]);
+    compiledChordsMappedToLoopRange.push([]);
   }
 
-  setCurrentlyPlayingMetadata(metadata);
+  if (metadataMappedToLoopRange.length === 0) {
+    metadataMappedToLoopRange.push(backupFirstChordMetadata!);
+  }
 
-  return compiledChords;
+  // scaling the elapsedSeconds to start at 0 no matter the startLoopIndex
+  const secondsToSubtract = metadataMappedToLoopRange[0]?.elapsedSeconds ?? 0;
+
+  for (let i = 0; i < metadataMappedToLoopRange.length; i++) {
+    metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
+  }
+
+  setCurrentlyPlayingMetadata(metadataMappedToLoopRange);
+
+  return compiledChordsMappedToLoopRange;
 }
 
 interface CompileSpecificChordGrouping {
@@ -163,6 +228,11 @@ interface CompileSpecificChordGrouping {
   setCurrentlyPlayingMetadata: (
     currentlyPlayingMetadata: Metadata[] | null
   ) => void;
+  startLoopIndex: number;
+  endLoopIndex: number;
+  atomicallyUpdateAudioMetadata?: (
+    updatedFields: Partial<AudioMetadata>
+  ) => void;
 }
 
 function compileSpecificChordGrouping({
@@ -172,6 +242,9 @@ function compileSpecificChordGrouping({
   baselineBpm,
   playbackSpeed,
   setCurrentlyPlayingMetadata,
+  startLoopIndex,
+  endLoopIndex,
+  atomicallyUpdateAudioMetadata,
 }: CompileSpecificChordGrouping) {
   const compiledChords: string[][] = [];
   const metadata: Metadata[] = [];
@@ -264,26 +337,82 @@ function compileSpecificChordGrouping({
     });
   }
 
-  const lastActualChord = metadata.at(-1)!;
+  // hacky: but is used incase the slice returns an empty array, which we couldn't then access
+  // the last element in metadataMappedToLoopRange below for.
+  const backupFirstChordMetadata = metadata[startLoopIndex];
 
-  // adding fake chord + metadata to align the audio controls slider with the visual progress indicator
-  if (lastActualChord) {
-    metadata.push({
+  // +1 to account for ghost chord that's added below
+  if (atomicallyUpdateAudioMetadata) {
+    atomicallyUpdateAudioMetadata({
+      fullCurrentlyPlayingMetadataLength: metadata.length + 1,
+    });
+  }
+
+  const compiledChordsMappedToLoopRange = compiledChords.slice(
+    startLoopIndex,
+    endLoopIndex === -1 ? compiledChords.length : endLoopIndex
+  );
+
+  const metadataMappedToLoopRange = metadata.slice(
+    startLoopIndex,
+    endLoopIndex === -1 ? metadata.length : endLoopIndex
+  );
+
+  let ghostChordIndex = 0;
+
+  if (metadataMappedToLoopRange.length > 0) {
+    if (endLoopIndex === -1) {
+      ghostChordIndex =
+        metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1;
+    } else {
+      ghostChordIndex = metadataMappedToLoopRange.at(-1)!.location.chordIndex;
+      // ^ this is not perfect, somehow maybe want the chordIndex to be +1 more?
+    }
+  }
+
+  if (endLoopIndex !== -1) {
+    metadataMappedToLoopRange.pop();
+  }
+
+  const lastActualChord = metadataMappedToLoopRange.at(-1)!;
+
+  // conditionally adding fake chord + metadata to align the audio controls slider with the visual progress indicator
+  // really absolutely *hate* this solution, but technically it should work.
+  if (metadataMappedToLoopRange.length > 0 && lastActualChord) {
+    metadataMappedToLoopRange.push({
       location: {
         ...lastActualChord.location,
-        chordIndex: lastActualChord.location.chordIndex + 1,
+        chordIndex: ghostChordIndex,
       },
       bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
       noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
-      elapsedSeconds: Math.floor(elapsedSeconds.value),
+      elapsedSeconds: Math.ceil(
+        lastActualChord.elapsedSeconds +
+          60 /
+            ((Number(lastActualChord.bpm) /
+              Number(lastActualChord.noteLengthMultiplier)) *
+              playbackSpeed) +
+          1
+      ),
     });
 
-    compiledChords.push([]);
+    compiledChordsMappedToLoopRange.push([]);
   }
 
-  setCurrentlyPlayingMetadata(metadata);
+  if (metadataMappedToLoopRange.length === 0) {
+    metadataMappedToLoopRange.push(backupFirstChordMetadata!);
+  }
 
-  return compiledChords;
+  // scaling the elapsedSeconds to start at 0 no matter the startLoopIndex
+  const secondsToSubtract = metadataMappedToLoopRange[0]?.elapsedSeconds ?? 0;
+
+  for (let i = 0; i < metadataMappedToLoopRange.length; i++) {
+    metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
+  }
+
+  setCurrentlyPlayingMetadata(metadataMappedToLoopRange);
+
+  return compiledChordsMappedToLoopRange;
 }
 
 interface CompileSection {

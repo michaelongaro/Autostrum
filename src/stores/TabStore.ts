@@ -117,6 +117,10 @@ export interface AudioMetadata {
     subSectionIndex?: number;
     chordSequenceIndex?: number;
   } | null;
+  startLoopIndex: number;
+  endLoopIndex: number;
+  editingLoopRange: boolean;
+  fullCurrentlyPlayingMetadataLength: number;
 }
 
 export interface PreviewMetadata {
@@ -197,6 +201,10 @@ const initialStoreState = {
     tabId: -1,
     playing: false,
     location: null,
+    startLoopIndex: 0,
+    endLoopIndex: -1,
+    editingLoopRange: false,
+    fullCurrentlyPlayingMetadataLength: -1,
   },
   previewMetadata: {
     indexOfPattern: -1,
@@ -264,6 +272,10 @@ interface TabState {
   getStringifiedTabData: () => string;
   resetAudioAndMetadataOnRouteChange: () => void;
   getTabData: () => Section[];
+  atomicallyUpdateAudioMetadata: (
+    updatedFields: Partial<AudioMetadata>
+  ) => void;
+
   preventFramerLayoutShift: boolean;
   setPreventFramerLayoutShift: (preventFramerLayoutShift: boolean) => void;
   fetchingFullTabData: boolean;
@@ -534,6 +546,16 @@ export const useTabStore = create<TabState>()(
     getTabData: () => {
       return structuredClone(get().tabData);
     },
+    atomicallyUpdateAudioMetadata: (newFields: Partial<AudioMetadata>) => {
+      const { audioMetadata } = get();
+
+      set({
+        audioMetadata: {
+          ...audioMetadata,
+          ...newFields,
+        },
+      });
+    },
 
     // related to sound generation/playing
     audioContext: null,
@@ -563,6 +585,10 @@ export const useTabStore = create<TabState>()(
       tabId: -1,
       playing: false,
       location: null,
+      startLoopIndex: 0,
+      endLoopIndex: -1,
+      editingLoopRange: false,
+      fullCurrentlyPlayingMetadataLength: -1,
     },
     setAudioMetadata: (audioMetadata) => set({ audioMetadata }),
     // @ts-expect-error fix this type later
@@ -597,6 +623,7 @@ export const useTabStore = create<TabState>()(
     // playing/pausing sound functions
     playTab: async ({ location, tabId }: PlayTab) => {
       const {
+        audioMetadata,
         tabData,
         sectionProgression: rawSectionProgression,
         tuning: tuningNotes,
@@ -621,6 +648,7 @@ export const useTabStore = create<TabState>()(
 
       set({
         audioMetadata: {
+          ...audioMetadata,
           tabId,
           location,
           playing: true,
@@ -642,6 +670,8 @@ export const useTabStore = create<TabState>()(
             baselineBpm,
             playbackSpeed,
             setCurrentlyPlayingMetadata,
+            startLoopIndex: audioMetadata.startLoopIndex,
+            endLoopIndex: audioMetadata.endLoopIndex,
           })
         : compileFullTab({
             tabData,
@@ -650,6 +680,8 @@ export const useTabStore = create<TabState>()(
             baselineBpm,
             playbackSpeed,
             setCurrentlyPlayingMetadata,
+            startLoopIndex: audioMetadata.startLoopIndex,
+            endLoopIndex: audioMetadata.endLoopIndex,
           });
 
       for (

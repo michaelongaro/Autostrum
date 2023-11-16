@@ -17,6 +17,7 @@ import { TiArrowLoop } from "react-icons/ti";
 import { Drawer } from "vaul";
 import { shallow } from "zustand/shallow";
 import { AudioProgressSlider } from "~/components/ui/AudioProgressSlider";
+import { CgArrowsShrinkH } from "react-icons/cg";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import {
@@ -50,6 +51,7 @@ import {
   returnTransitionToTabSlider,
 } from "~/utils/tabSliderHelpers";
 import scrollChordIntoView from "~/utils/scrollChordIntoView";
+import { LoopingRangeSlider } from "../ui/LoopingRangeSlider";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -367,13 +369,20 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       type: audioTypeBeingChangedTo,
       playing: false,
       location: null,
+      startLoopIndex: 0,
+      endLoopIndex: -1,
+      editingLoopRange: false,
+      fullCurrentlyPlayingMetadataLength: -1,
     });
 
     setTabProgressValue(0);
     setCurrentChordIndex(0);
   }
 
-  // fk need it to be global dangit
+  useEffect(() => {
+    setCurrentChordIndex(0);
+    setTabProgressValue(0);
+  }, [audioMetadata.editingLoopRange, setCurrentChordIndex]);
 
   function handlePlayButtonClick() {
     const isViewingTabPath =
@@ -450,7 +459,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     if (
       countInTimer.showing ||
       artificalPlayButtonTimeout ||
-      fetchingFullTabData
+      fetchingFullTabData ||
+      audioMetadata.editingLoopRange
     )
       return true;
 
@@ -474,6 +484,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
     fetchingFullTabData,
     audioMetadata.location,
     audioMetadata.type,
+    audioMetadata.editingLoopRange,
     currentInstrument,
     recordedAudioBuffer,
     tabData,
@@ -569,6 +580,9 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                             ...audioMetadata,
                             playing: false,
                             location: null,
+                            startLoopIndex: 0,
+                            endLoopIndex: -1,
+                            editingLoopRange: false,
                           });
                         }}
                         className="baseFlex h-[28px] !flex-nowrap gap-2 !py-0 px-1"
@@ -598,29 +612,45 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               )}
             </Button>
 
-            {/* audio slider */}
-            <div
-              className={`baseFlex col-span-5 w-full !flex-nowrap gap-2 md:w-1/2 md:justify-self-end ${
-                visibility === "minimized" ? "opacity-0" : "opacity-100"
-              } transition-opacity`}
-            >
-              {volume === 0 ? (
-                <FaVolumeMute className="h-5 w-5" />
-              ) : volume < 1 ? (
-                <FaVolumeDown className="h-5 w-5" />
-              ) : (
-                <FaVolumeUp className="h-5 w-5" />
-              )}
-              <Slider
-                value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
-                min={0}
-                max={100}
-                step={1}
-                onValueChange={(value) =>
-                  localStorageVolume.set(`${value[0]! / 50}`)
-                } // 100 felt too quiet/narrow of a volume range
-              ></Slider>
-            </div>
+            {audioMetadata.editingLoopRange ? (
+              <div className="baseFlex col-span-5 w-full !flex-nowrap">
+                <Button
+                  className="baseFlex !flex-nowrap gap-2 text-[0.6rem]"
+                  onClick={() => {
+                    setAudioMetadata({
+                      ...audioMetadata,
+                      editingLoopRange: false,
+                    });
+                  }}
+                >
+                  <CgArrowsShrinkH className="h-5 w-5" />
+                  Save looping range
+                </Button>
+              </div>
+            ) : (
+              <div
+                className={`baseFlex col-span-5 w-full !flex-nowrap gap-2 md:w-1/2 md:justify-self-end ${
+                  visibility === "minimized" ? "opacity-0" : "opacity-100"
+                } transition-opacity`}
+              >
+                {volume === 0 ? (
+                  <FaVolumeMute className="h-5 w-5" />
+                ) : volume < 1 ? (
+                  <FaVolumeDown className="h-5 w-5" />
+                ) : (
+                  <FaVolumeUp className="h-5 w-5" />
+                )}
+                <Slider
+                  value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
+                  min={0}
+                  max={100}
+                  step={1}
+                  onValueChange={(value) =>
+                    localStorageVolume.set(`${value[0]! / 50}`)
+                  } // 100 felt too quiet/narrow of a volume range
+                ></Slider>
+              </div>
+            )}
           </div>
         )}
 
@@ -633,7 +663,9 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                 <Label>Source</Label>
                 <Select
                   value={audioMetadata.type}
-                  disabled={countInTimer.showing}
+                  disabled={
+                    countInTimer.showing || audioMetadata.editingLoopRange
+                  }
                   onValueChange={(value) => {
                     if (value !== audioMetadata.type) {
                       resetAudioStateOnSourceChange(
@@ -667,7 +699,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                 <Select
                   disabled={
                     audioMetadata.type === "Artist recording" ||
-                    countInTimer.showing
+                    countInTimer.showing ||
+                    audioMetadata.editingLoopRange
                   }
                   value={currentInstrumentName}
                   onValueChange={(value) => {
@@ -714,7 +747,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                 <Select
                   disabled={
                     audioMetadata.type === "Artist recording" ||
-                    countInTimer.showing
+                    countInTimer.showing ||
+                    audioMetadata.editingLoopRange
                   }
                   value={`${playbackSpeed}x`}
                   onValueChange={(value) => {
@@ -787,6 +821,9 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                           ...audioMetadata,
                           playing: false,
                           location: null,
+                          startLoopIndex: 0,
+                          endLoopIndex: -1,
+                          editingLoopRange: false,
                         });
                       }}
                       className="baseFlex gap-2"
@@ -877,39 +914,86 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               )}
             </p>
 
-            <AudioProgressSlider
-              value={[tabProgressValue]}
-              min={0}
-              // radix-slider thumb protrudes from lefthand side of the
-              // track if max has a value of 0...
-              max={
-                audioMetadata.type === "Artist recording"
-                  ? recordedAudioBuffer
-                    ? Math.floor(recordedAudioBuffer?.duration)
-                    : 1
-                  : currentlyPlayingMetadata
-                  ? currentlyPlayingMetadata.at(-1)?.elapsedSeconds
-                  : 1
-              }
-              step={1}
-              disabled={disablePlayButton}
-              style={{
-                pointerEvents: disablePlayButton ? "none" : "auto",
-              }}
-              onPointerDown={() => {
-                setWasPlayingBeforeScrubbing(audioMetadata.playing);
-                if (audioMetadata.playing) pauseAudio();
-              }}
-              onPointerUp={() => {
-                if (!wasPlayingBeforeScrubbing) return;
+            {audioMetadata.editingLoopRange ? (
+              <LoopingRangeSlider
+                value={[
+                  audioMetadata.startLoopIndex,
+                  audioMetadata.endLoopIndex === -1
+                    ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1 // could be jank with total tab length of one or two..
+                    : audioMetadata.endLoopIndex,
+                ]}
+                min={0}
+                max={audioMetadata.fullCurrentlyPlayingMetadataLength - 1}
+                step={1}
+                onValueChange={(value) => {
+                  const tabLength =
+                    audioMetadata.fullCurrentlyPlayingMetadataLength - 1;
 
-                if (audioMetadata.type === "Generated") {
-                  // waiting; playTab() needs to have currentChordIndex
-                  // updated before it's called so it plays from the correct chord
-                  setTimeout(() => {
-                    void playTab({
-                      tabId: id,
-                      location: audioMetadata.location,
+                  const newStartLoopIndex = value[0]!;
+                  const newEndLoopIndex =
+                    value[1] === tabLength ? -1 : value[1]!;
+
+                  if (
+                    newStartLoopIndex !== audioMetadata.startLoopIndex ||
+                    newEndLoopIndex !== audioMetadata.endLoopIndex
+                  ) {
+                    setAudioMetadata({
+                      ...audioMetadata,
+                      startLoopIndex: newStartLoopIndex,
+                      endLoopIndex: newEndLoopIndex,
+                    });
+                  }
+                }}
+              />
+            ) : (
+              <AudioProgressSlider
+                value={[tabProgressValue]}
+                min={0}
+                // radix-slider thumb protrudes from lefthand side of the
+                // track if max has a value of 0...
+                max={
+                  audioMetadata.type === "Artist recording"
+                    ? recordedAudioBuffer
+                      ? Math.floor(recordedAudioBuffer?.duration)
+                      : 1
+                    : currentlyPlayingMetadata
+                    ? currentlyPlayingMetadata.at(-1)?.elapsedSeconds
+                    : 1
+                }
+                step={1}
+                disabled={disablePlayButton}
+                style={{
+                  pointerEvents: disablePlayButton ? "none" : "auto",
+                }}
+                onPointerDown={() => {
+                  setWasPlayingBeforeScrubbing(audioMetadata.playing);
+                  if (audioMetadata.playing) pauseAudio();
+                }}
+                onPointerUp={() => {
+                  if (!wasPlayingBeforeScrubbing) return;
+
+                  if (audioMetadata.type === "Generated") {
+                    // waiting; playTab() needs to have currentChordIndex
+                    // updated before it's called so it plays from the correct chord
+                    setTimeout(() => {
+                      void playTab({
+                        tabId: id,
+                        location: audioMetadata.location,
+                      });
+
+                      setArtificalPlayButtonTimeout(true);
+
+                      setTimeout(() => {
+                        setArtificalPlayButtonTimeout(false);
+                      }, 300);
+                    }, 50);
+                  } else if (
+                    audioMetadata.type === "Artist recording" &&
+                    recordedAudioBuffer
+                  ) {
+                    void playRecordedAudio({
+                      audioBuffer: recordedAudioBuffer,
+                      secondsElapsed: tabProgressValue,
                     });
 
                     setArtificalPlayButtonTimeout(true);
@@ -917,48 +1001,34 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                     setTimeout(() => {
                       setArtificalPlayButtonTimeout(false);
                     }, 300);
-                  }, 50);
-                } else if (
-                  audioMetadata.type === "Artist recording" &&
-                  recordedAudioBuffer
-                ) {
-                  void playRecordedAudio({
-                    audioBuffer: recordedAudioBuffer,
-                    secondsElapsed: tabProgressValue,
-                  });
-
-                  setArtificalPlayButtonTimeout(true);
-
-                  setTimeout(() => {
-                    setArtificalPlayButtonTimeout(false);
-                  }, 300);
-                }
-              }}
-              onValueChange={(value) => {
-                setTabProgressValue(value[0]!);
-
-                if (
-                  audioMetadata.type === "Artist recording" ||
-                  !currentlyPlayingMetadata
-                )
-                  return;
-
-                let newCurrentChordIndex = -1;
-
-                for (let i = 0; i < currentlyPlayingMetadata.length; i++) {
-                  const metadata = currentlyPlayingMetadata[i]!;
-
-                  if (metadata.elapsedSeconds === value[0]) {
-                    newCurrentChordIndex = i;
-                    break;
                   }
-                }
+                }}
+                onValueChange={(value) => {
+                  setTabProgressValue(value[0]!);
 
-                if (newCurrentChordIndex !== -1) {
-                  setCurrentChordIndex(newCurrentChordIndex);
-                }
-              }}
-            ></AudioProgressSlider>
+                  if (
+                    audioMetadata.type === "Artist recording" ||
+                    !currentlyPlayingMetadata
+                  )
+                    return;
+
+                  let newCurrentChordIndex = -1;
+
+                  for (let i = 0; i < currentlyPlayingMetadata.length; i++) {
+                    const metadata = currentlyPlayingMetadata[i]!;
+
+                    if (metadata.elapsedSeconds === value[0]) {
+                      newCurrentChordIndex = i;
+                      break;
+                    }
+                  }
+
+                  if (newCurrentChordIndex !== -1) {
+                    setCurrentChordIndex(newCurrentChordIndex);
+                  }
+                }}
+              />
+            )}
 
             <p>
               {formatSecondsToMinutes(
@@ -971,19 +1041,54 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
             </p>
           </div>
 
+          {/* conceptually: what should you do if user toggles looping while playing already... */}
+
           {aboveLargeViewportWidth ? (
             <>
+              {/* probably have a tooltip for this + loop so that it is clear what they do? */}
+              {(asPath.includes("/tab") || asPath.includes("/create")) && (
+                <Toggle
+                  variant={"outline"}
+                  aria-label="Edit looping range"
+                  disabled={
+                    !looping ||
+                    audioMetadata.type === "Artist recording" ||
+                    audioMetadata.playing ||
+                    countInTimer.showing
+                  }
+                  pressed={audioMetadata.editingLoopRange}
+                  className="h-8 w-8 p-1"
+                  onPressedChange={(value) =>
+                    setAudioMetadata({
+                      ...audioMetadata,
+                      editingLoopRange: value,
+                    })
+                  }
+                >
+                  <CgArrowsShrinkH className="h-6 w-6" />
+                </Toggle>
+              )}
+
               <Toggle
                 variant={"outline"}
                 aria-label="Loop toggle"
-                className="h-8 w-8 p-1"
+                disabled={audioMetadata.playing || countInTimer.showing}
                 pressed={looping}
-                onPressedChange={(value) =>
-                  localStorageLooping.set(String(value))
-                }
+                className="h-8 w-8 p-1"
+                onPressedChange={(value) => {
+                  setAudioMetadata({
+                    ...audioMetadata,
+                    startLoopIndex: 0,
+                    endLoopIndex: -1,
+                    editingLoopRange: false,
+                  });
+
+                  localStorageLooping.set(String(value));
+                }}
               >
                 <TiArrowLoop className="h-6 w-6" />
               </Toggle>
+
               <Button
                 variant={"ghost"}
                 className="h-8 w-8 p-0"
@@ -1014,7 +1119,12 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               dismissible={!drawerHandleDisabled}
             >
               <Drawer.Trigger asChild>
-                <Button size="sm" variant={"outline"} className="px-2 py-1">
+                <Button
+                  disabled={audioMetadata.editingLoopRange}
+                  size="sm"
+                  variant={"outline"}
+                  className="px-2 py-1"
+                >
                   <IoSettingsOutline className="h-5 w-5" />
                 </Button>
               </Drawer.Trigger>
@@ -1164,12 +1274,44 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                     <Label>Loop</Label>
                     <Switch
                       id="loop"
+                      disabled={audioMetadata.playing || countInTimer.showing}
                       checked={looping}
-                      onCheckedChange={(value) =>
-                        localStorageLooping.set(String(value))
-                      }
+                      onCheckedChange={(value) => {
+                        setAudioMetadata({
+                          ...audioMetadata,
+                          startLoopIndex: 0,
+                          endLoopIndex: -1,
+                          editingLoopRange: false,
+                        });
+
+                        localStorageLooping.set(String(value));
+                      }}
                     />
                   </div>
+
+                  {(asPath.includes("/tab") || asPath.includes("/create")) && (
+                    <div className="baseFlex w-full">
+                      <Button
+                        disabled={
+                          countInTimer.showing ||
+                          !looping ||
+                          audioMetadata.type === "Artist recording"
+                        }
+                        onClick={() => {
+                          setAudioMetadata({
+                            ...audioMetadata,
+                            editingLoopRange: true,
+                          });
+
+                          setDrawerOpen(false);
+                        }}
+                        className="baseFlex !flex-nowrap gap-2"
+                      >
+                        <CgArrowsShrinkH className="h-5 w-5" />
+                        Edit looping range
+                      </Button>
+                    </div>
+                  )}
                 </Drawer.Content>
               </Drawer.Portal>
             </Drawer.Root>
