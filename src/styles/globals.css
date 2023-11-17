@@ -171,7 +171,7 @@ body::before {
   bottom: 0;
   left: 0;
   z-index: -1;
-  background: linear-gradient(135deg, hsl(297, 100%, 80%), hsl(340, 100%, 67%), hsl(6, 100%, 56%)) center / cover;
+  background: linear-gradient(135deg, hsl(297, 100%, 77%), hsl(340, 100%, 67%), hsl(6, 100%, 58%)) center / cover;
   height: 100vh;
 }
 
