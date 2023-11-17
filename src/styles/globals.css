@@ -177,7 +177,7 @@ body::before {
 
 body {
   color: hsl(327, 73%, 97%);
-  text-shadow: 0 1px 2px hsla(336, 84%, 17%, 0.15);
+  text-shadow: 0 1px 2px hsla(336, 84%, 17%, 0.25);
   min-height: 100dvh;
 }
 

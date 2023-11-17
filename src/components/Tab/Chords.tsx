@@ -139,7 +139,14 @@ function Chords() {
       >
         <AccordionItem value="opened">
           <AccordionTrigger>
-            <p className="text-lg font-bold">Chords</p>
+            <p
+              style={{
+                textShadow: "0 1px 2px hsla(336, 84%, 17%, 0.25)",
+              }}
+              className="text-lg font-bold"
+            >
+              Chords
+            </p>
           </AccordionTrigger>
           <AccordionContent>
             <div className="baseFlex mt-4 !justify-start gap-4">

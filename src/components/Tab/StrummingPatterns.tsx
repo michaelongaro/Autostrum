@@ -160,7 +160,14 @@ function StrummingPatterns() {
       >
         <AccordionItem value="opened">
           <AccordionTrigger>
-            <p className="text-lg font-bold">Strumming patterns</p>
+            <p
+              style={{
+                textShadow: "0 1px 2px hsla(336, 84%, 17%, 0.25)",
+              }}
+              className="text-lg font-bold"
+            >
+              Strumming patterns
+            </p>
           </AccordionTrigger>
           <AccordionContent>
             <div
