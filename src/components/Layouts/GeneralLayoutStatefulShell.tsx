@@ -243,7 +243,7 @@ function GeneralLayoutStatefulShell() {
           >
             <Button
               variant="secondary"
-              className="rounded-full p-[0.4rem] md:p-2"
+              className="h-8 w-8 rounded-full p-[0.3rem] md:h-9 md:w-9 md:p-1"
             >
               <BsArrowUpShort className="h-5 w-5" />
             </Button>
