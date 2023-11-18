@@ -31,6 +31,8 @@ function useAutoscrollToCurrentChord({
 
   useEffect(() => {
     if (
+      // don't want to scroll to first chord when first loading tab
+      (previousChordYScrollValue === -1 && currentChordIndex === 0) ||
       (editing && !audioMetadata.playing) ||
       !currentlyPlayingMetadata ||
       !autoscrollEnabled
