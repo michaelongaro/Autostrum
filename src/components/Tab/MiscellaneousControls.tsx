@@ -337,6 +337,7 @@ function MiscellaneousControls({
         <Button
           variant="playPause"
           disabled={
+            audioMetadata.editingLoopRange ||
             bpm === -1 ||
             !currentInstrument ||
             audioMetadata.type === "Artist recording" ||

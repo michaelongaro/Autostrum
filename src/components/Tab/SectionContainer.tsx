@@ -319,6 +319,7 @@ function SectionContainer({
                   <Button
                     variant="playPause"
                     disabled={
+                      audioMetadata.editingLoopRange ||
                       countInTimer.showing ||
                       bpm === -1 ||
                       !currentInstrument ||
