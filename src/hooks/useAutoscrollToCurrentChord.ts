@@ -17,16 +17,21 @@ function useAutoscrollToCurrentChord({
   const [previousChordSectionIndex, setPreviousChordSectionIndex] =
     useState(-1);
 
-  const { currentlyPlayingMetadata, currentChordIndex, audioMetadata } =
-    useTabStore((state) => ({
-      currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-      currentChordIndex: state.currentChordIndex,
-      audioMetadata: state.audioMetadata,
-    }));
+  const {
+    editing,
+    currentlyPlayingMetadata,
+    currentChordIndex,
+    audioMetadata,
+  } = useTabStore((state) => ({
+    editing: state.editing,
+    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+    currentChordIndex: state.currentChordIndex,
+    audioMetadata: state.audioMetadata,
+  }));
 
   useEffect(() => {
     if (
-      !audioMetadata.playing ||
+      (editing && !audioMetadata.playing) ||
       !currentlyPlayingMetadata ||
       !autoscrollEnabled
     )
@@ -92,6 +97,7 @@ function useAutoscrollToCurrentChord({
       setPreviousChordSectionIndex(sectionIndex);
     }
   }, [
+    editing,
     currentlyPlayingMetadata,
     currentChordIndex,
     autoscrollEnabled,
