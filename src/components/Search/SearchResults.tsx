@@ -406,6 +406,7 @@ function SearchResults({
             <Drawer.Content
               style={{
                 zIndex: asPath.includes("/preferences") ? 60 : 50,
+                textShadow: "none",
               }}
               className="baseVertFlex fixed bottom-0 left-0 right-0 !items-start gap-4 bg-pink-50 p-4 pb-6 text-pink-950"
             >

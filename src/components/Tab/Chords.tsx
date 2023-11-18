@@ -161,6 +161,12 @@ function Chords() {
                 >
                   <p
                     style={{
+                      textShadow:
+                        previewMetadata.indexOfPattern === index &&
+                        previewMetadata.playing &&
+                        previewMetadata.type === "chord"
+                          ? "none"
+                          : "0 1px 2px hsla(336, 84%, 17%, 0.2)",
                       color:
                         previewMetadata.indexOfPattern === index &&
                         previewMetadata.playing &&

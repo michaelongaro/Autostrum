@@ -32,6 +32,9 @@ function Hero({
             <Image
               src="/logoWithTitle.svg"
               alt="Autostrum logo"
+              style={{
+                filter: "drop-shadow(-1px 1px 1px hsla(336, 84%, 17%, 0.1))",
+              }}
               width={isAboveMediumViewportWidth ? 300 : 200}
               height={isAboveMediumViewportWidth ? 100 : 75}
               priority
@@ -42,7 +45,7 @@ function Hero({
             Create and share your riffs{" "}
             <span
               style={{
-                textShadow: "0 1px 1px rgba(0,0,0,0.075)",
+                textShadow: "none",
               }}
               className="mx-[1px] italic text-pink-600 underline underline-offset-2"
             >

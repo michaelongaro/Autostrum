@@ -1125,10 +1125,18 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                 </Button>
               </Drawer.Trigger>
               <Drawer.Portal>
-                <Drawer.Content className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 bg-pink-50 p-4 pb-6 text-pink-950">
+                <Drawer.Content
+                  style={{
+                    textShadow: "none",
+                  }}
+                  className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 bg-pink-50 p-4 pb-6 text-pink-950"
+                >
                   <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
 
-                  <Label>Audio settings</Label>
+                  <Label className="baseFlex gap-2">
+                    Audio settings
+                    <IoSettingsOutline className="h-4 w-4" />
+                  </Label>
                   <Separator className="mb-2 w-full bg-pink-500" />
                   <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
                     <Label>Source</Label>
@@ -1289,6 +1297,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                     <div className="baseFlex w-full">
                       <Button
                         disabled={
+                          tabData.length === 0 ||
+                          tabData[0]?.data.length === 0 ||
                           countInTimer.showing ||
                           !looping ||
                           audioMetadata.type === "Artist recording"

@@ -579,6 +579,12 @@ function StrummingPattern({
                     >
                       <p
                         style={{
+                          textShadow: highlightChord(
+                            strumIndex,
+                            index !== undefined
+                          )
+                            ? "none"
+                            : "0 1px 2px hsla(336, 84%, 17%, 0.2)",
                           color: highlightChord(strumIndex)
                             ? "hsl(333, 71%, 51%)"
                             : "hsl(327, 73%, 97%)",

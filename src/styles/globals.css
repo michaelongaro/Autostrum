@@ -73,7 +73,7 @@
 
 @media(min-width: 768px) {
   .headerBackgroundGradient {
-    background: linear-gradient(315deg, hsl(353, 100%, 71%), hsl(331, 95%, 77%), hsl(298, 100%, 85%));
+    background: linear-gradient(315deg, hsl(353, 100%, 71%), hsl(331, 95%, 77%), hsl(298, 100%, 84%));
   }
 
   .footerBackgroundGradient {
@@ -171,13 +171,13 @@ body::before {
   bottom: 0;
   left: 0;
   z-index: -1;
-  background: linear-gradient(135deg, hsl(297, 100%, 77%), hsl(340, 100%, 67%), hsl(6, 100%, 58%)) center / cover;
+  background: linear-gradient(135deg, hsl(297, 100%, 79%), hsl(340, 100%, 67%), hsl(6, 100%, 58%)) center / cover;
   height: 100vh;
 }
 
 body {
   color: hsl(327, 73%, 97%);
-  text-shadow: 0 1px 2px hsla(336, 84%, 17%, 0.25);
+  text-shadow: 0 1px 2px hsla(336, 84%, 17%, 0.2);
   min-height: 100dvh;
 }
 
@@ -190,4 +190,8 @@ body {
 .cl-internal-uxtgvn {
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
     0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+}
+
+.cl-rootBox {
+  text-shadow: none;
 }
