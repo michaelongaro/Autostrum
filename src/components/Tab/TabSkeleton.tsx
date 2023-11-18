@@ -300,7 +300,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
           </div>
           <Separator className="w-[96%]" />
 
-          <div className="baseVertFlex w-full !items-start gap-4 p-6">
+          <div className="baseVertFlex w-full !items-start gap-4 p-6 pt-0">
             <div className="h-12 w-48 animate-pulse rounded-md bg-pink-300"></div>
             <div className="h-36 w-full animate-pulse rounded-md bg-pink-300 "></div>
             <div className="h-36 w-full animate-pulse rounded-md bg-pink-300 "></div>
