@@ -947,7 +947,7 @@ function TabMetadata({
                                 style={{
                                   backgroundColor: genre.color,
                                 }}
-                                className="h-3 w-3 rounded-full"
+                                className="h-3 w-3 rounded-full shadow-md"
                               ></div>
                               {genre.name}
                             </div>

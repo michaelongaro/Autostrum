@@ -38,6 +38,10 @@ module.exports = {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
         },
+        toggleOn: {
+          DEFAULT: "hsl(var(--toggle-on))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",

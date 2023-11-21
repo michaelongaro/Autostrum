@@ -15,11 +15,11 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/80 active:bg-destructive active:brightness-75",
         outline:
-          "border border-input hover:bg-accent hover:text-accent-foreground active:bg-accent/60", // newer version has bg-background hover:bg-accent hover:text-accent-foreground
+          "border border-input hover:bg-background hover:text-foreground active:bg-background/60",
         secondary:
           "lightGlassmorphic text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/60 border-2",
         ghost:
-          "hover:bg-accent hover:text-accent-foreground shadow-none active:bg-accent/60",
+          "hover:bg-toggleOn hover:text-toggleOn-foreground shadow-none active:bg-toggleOn/60",
         link: "underline-offset-4 hover:underline shadow-none",
         recording: "bg-blue-600 hover:bg-blue-700 active:bg-blue-800",
         toggledOn:
@@ -71,7 +71,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         style={{
           ...props.style,
           textShadow:
-            variant === "navigation" || variant === "secondary"
+            variant === "navigation" ||
+            variant === "secondary" ||
+            variant === "ghost"
               ? "none"
               : "0 1px 2px hsla(336, 84%, 17%, 0.15)",
         }}

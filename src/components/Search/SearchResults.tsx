@@ -416,7 +416,7 @@ function SearchResults({
                 Search filters
                 <LuFilter className="h-4 w-4" />
               </Label>
-              <Separator className="mb-2 w-full bg-pink-500" />
+              <Separator className="mb-2 w-full bg-pink-600" />
               {pathname.includes("/explore") && (
                 <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
                   <Label>Type</Label>
@@ -473,7 +473,7 @@ function SearchResults({
                                 style={{
                                   backgroundColor: genre.color,
                                 }}
-                                className="h-3 w-3 rounded-full"
+                                className="h-3 w-3 rounded-full shadow-md"
                               ></div>
                               {genre.name}
                             </div>

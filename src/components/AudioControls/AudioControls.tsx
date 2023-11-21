@@ -1137,7 +1137,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                     Audio settings
                     <IoSettingsOutline className="h-4 w-4" />
                   </Label>
-                  <Separator className="mb-2 w-full bg-pink-500" />
+                  <Separator className="mb-2 w-full bg-pink-600" />
                   <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
                     <Label>Source</Label>
                     <Select

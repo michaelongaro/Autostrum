@@ -73,7 +73,7 @@
 
 @media(min-width: 768px) {
   .headerBackgroundGradient {
-    background: linear-gradient(315deg, hsl(353, 100%, 71%), hsl(331, 95%, 77%), hsl(298, 100%, 84%));
+    background: linear-gradient(315deg, hsl(353, 100%, 71%), hsl(331, 95%, 77%), hsl(298, 100%, 83%));
   }
 
   .footerBackgroundGradient {
@@ -104,8 +104,9 @@
     --secondary: 327 87% 82%;
     --secondary-foreground: 336 69% 30%;
 
-    /* kind of want accent to be darker/higher contrast */
-    --accent: 326 78% 95%;
+    --toggle-on: 326 78% 95%;
+
+    --accent: 326 85% 90%;
     --accent-foreground: 336 84% 17%;
 
     --destructive: 0 90% 50%;
@@ -192,6 +193,7 @@ body {
     0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
 }
 
-.cl-rootBox {
+.cl-rootBox,
+.cl-userButtonPopoverCard {
   text-shadow: none;
 }

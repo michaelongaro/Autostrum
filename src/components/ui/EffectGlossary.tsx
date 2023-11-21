@@ -38,7 +38,7 @@ function EffectGlossary() {
         className="baseVertFlex w-64 !items-start gap-[0.35rem] bg-pink-50 text-pink-950"
       >
         <Label>Section effects</Label>
-        <Separator className="mb-2 w-full bg-pink-500" />
+        <Separator className="mb-2 w-full bg-pink-600" />
 
         <div className="grid w-full grid-cols-5 pl-1 text-sm ">
           <span className="col-span-1">PM</span>
@@ -46,7 +46,7 @@ function EffectGlossary() {
           <span className="col-span-3">Palm mute</span>
         </div>
         <Label className="mt-2">Note effects</Label>
-        <Separator className="mb-2 w-full bg-pink-500" />
+        <Separator className="mb-2 w-full bg-pink-600" />
 
         <div className="grid w-full grid-cols-5 pl-1 text-sm">
           <span className="col-span-1">h</span>
@@ -62,7 +62,7 @@ function EffectGlossary() {
                 className="baseVertFlex max-w-[300px] gap-1 md:max-w-none"
               >
                 <div className="font-semibold">Valid notation examples</div>
-                <Separator className="mb-2 w-full bg-pink-500" />
+                <Separator className="mb-2 w-full bg-pink-600" />
                 <div className="baseFlex gap-4">
                   <div className="baseVertFlex gap-2">
                     <p>Condensed</p>
@@ -111,7 +111,7 @@ function EffectGlossary() {
                 className="baseVertFlex max-w-[300px] gap-1 md:max-w-none"
               >
                 <div className="font-semibold">Valid notation examples</div>
-                <Separator className="mb-2 w-full bg-pink-500" />
+                <Separator className="mb-2 w-full bg-pink-600" />
                 <div className="baseFlex gap-4">
                   <div className="baseVertFlex gap-2">
                     <p>Condensed</p>
@@ -160,7 +160,7 @@ function EffectGlossary() {
                 className="baseVertFlex max-w-[300px] gap-1 md:max-w-none"
               >
                 <div className="font-semibold">Valid notation examples</div>
-                <Separator className="mb-2 w-full bg-pink-500" />
+                <Separator className="mb-2 w-full bg-pink-600" />
                 <div className="baseFlex gap-4">
                   <div className="baseVertFlex gap-2">
                     <p>Condensed</p>
@@ -209,7 +209,7 @@ function EffectGlossary() {
                 className="baseVertFlex max-w-[300px] gap-1 md:max-w-none"
               >
                 <div className="font-semibold">Valid notation examples</div>
-                <Separator className="mb-2 w-full bg-pink-500" />
+                <Separator className="mb-2 w-full bg-pink-600" />
                 <div className="baseFlex gap-4">
                   <div className="baseVertFlex gap-2">
                     <p>Condensed</p>
@@ -270,7 +270,7 @@ function EffectGlossary() {
           <span className="col-span-3">Muted note</span>
         </div>
         <Label className="mt-2">Chord effects</Label>
-        <Separator className="mb-2 w-full bg-pink-500" />
+        <Separator className="mb-2 w-full bg-pink-600" />
 
         <div className="grid w-full grid-cols-5 pl-1 text-sm">
           <span className="col-span-1">^</span>
@@ -298,7 +298,7 @@ function EffectGlossary() {
           <span className="col-span-3">Stacatto</span>
         </div>
         <Label className="mt-2">Miscellaneous</Label>
-        <Separator className="mb-2 w-full bg-pink-500" />
+        <Separator className="mb-2 w-full bg-pink-600" />
 
         <div className="grid w-full grid-cols-5 pl-1 text-sm">
           <span className="col-span-1">|</span>

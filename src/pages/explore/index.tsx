@@ -88,7 +88,7 @@ function Explore() {
           <p className="text-xl font-bold md:text-[1.35rem]">
             Weekly featured artist
           </p>
-          <Separator className="w-full bg-pink-500" />
+          <Separator className="w-full bg-pink-600" />
         </div>
         <div className="baseVertFlex w-full !flex-nowrap md:!flex-row md:!items-end md:gap-8">
           <div className="baseFlex h-[285px]">

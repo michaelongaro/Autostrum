@@ -151,7 +151,7 @@ function Preferences() {
               <div className="baseFlex w-full !justify-start gap-4 md:w-4/5">
                 <div className="baseVertFlex">
                   <p className="text-xl font-semibold">Pinned tab</p>
-                  <Separator className="w-full bg-pink-500" />
+                  <Separator className="w-full bg-pink-600" />
                 </div>
                 {artist?.pinnedTabId !== -1 && (
                   <Button
@@ -218,7 +218,7 @@ function Preferences() {
             <div className="baseVertFlex h-full w-full !flex-nowrap !items-start !justify-start gap-6">
               <div className="baseVertFlex ml-1 md:ml-4">
                 <p className="text-xl font-semibold ">Miscellaneous actions</p>
-                <Separator className="w-full bg-pink-500" />
+                <Separator className="w-full bg-pink-600" />
               </div>
               <div className="baseVertFlex my-8 h-full w-full gap-4 md:mt-0">
                 <Button asChild>
