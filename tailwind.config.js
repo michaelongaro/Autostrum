@@ -1,3 +1,4 @@
+const plugin = require("tailwindcss/plugin");
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   future: {
@@ -118,10 +119,24 @@ module.exports = {
         copyChordPulse: "copyChordPulse 0.35s ease-in-out forwards",
         pasteChordPulse: "pasteChordPulse 0.35s ease-in-out forwards",
       },
+      textShadow: {
+        none: "none",
+        DEFAULT: "0 1px 2px hsla(336, 84%, 17%, 0.2)",
+      },
     },
   },
   plugins: [
     require("tailwindcss-animate"),
     require("@tailwindcss/container-queries"),
+    plugin(function ({ matchUtilities, theme }) {
+      matchUtilities(
+        {
+          "text-shadow": (value) => ({
+            textShadow: value,
+          }),
+        },
+        { values: theme("textShadow") }
+      );
+    }),
   ],
 };

@@ -255,7 +255,7 @@ function TabNotesColumn({
         <div
           style={{
             marginTop:
-              reorderingColumns || showingDeleteColumnsButtons ? "4px" : "0",
+              reorderingColumns || showingDeleteColumnsButtons ? "8px" : "0",
             height: editing ? "276px" : "164px",
             transform:
               highlightChord || columnHasBeenPlayed ? "scaleX(1)" : "scaleX(0)",

@@ -624,12 +624,14 @@ function SearchResults({
                             value={genre.id.toString()}
                           >
                             <div className="baseFlex gap-2">
-                              <div
-                                style={{
-                                  backgroundColor: genre.color,
-                                }}
-                                className="h-3 w-3 rounded-full"
-                              ></div>
+                              {genre.name !== "All genres" && (
+                                <div
+                                  style={{
+                                    backgroundColor: genre.color,
+                                  }}
+                                  className="h-3 w-3 rounded-full shadow-md"
+                                ></div>
+                              )}
                               {genre.name}
                             </div>
                           </SelectItem>
