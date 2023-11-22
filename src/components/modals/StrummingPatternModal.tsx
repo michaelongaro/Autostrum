@@ -470,7 +470,7 @@ function StrummingPatternModal({
             </Button>
             <div className="baseFlex gap-4">
               <Button
-                variant={"secondary"}
+                variant={"ghost"}
                 onClick={() => {
                   if (audioMetadata.playing) pauseAudio();
                   setStrummingPatternBeingEdited(null);

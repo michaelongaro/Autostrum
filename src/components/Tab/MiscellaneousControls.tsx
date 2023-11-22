@@ -401,7 +401,7 @@ function MiscellaneousControls({
         <DropdownMenuTrigger asChild>
           <Button
             aria-label="Miscellaneous controls dropdown trigger"
-            variant={"secondary"}
+            variant={"ghost"}
             style={{
               marginRight:
                 subSectionIndex === undefined &&

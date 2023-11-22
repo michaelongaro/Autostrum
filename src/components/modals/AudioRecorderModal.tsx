@@ -361,7 +361,7 @@ function AudioRecorderModal() {
           {/* prob want to stop any recording if it's going when close/save is hit? */}
           <div className="baseFlex gap-4">
             <Button
-              variant={"secondary"}
+              variant={"outline"}
               onClick={() => {
                 if (isRecording) {
                   togglePauseResume();

@@ -153,7 +153,7 @@ function PinnedTabModal({
 
           <div className="baseFlex gap-4">
             <Button
-              variant={"secondary"}
+              variant={"ghost"}
               onClick={() => setShowPinnedTabModal(false)}
             >
               Close

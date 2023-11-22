@@ -283,7 +283,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
 
             <div className="baseFlex gap-4">
               <Button
-                variant={"secondary"}
+                variant={"ghost"}
                 onClick={() => {
                   if (audioMetadata.playing) pauseAudio();
                   setChordBeingEdited(null);

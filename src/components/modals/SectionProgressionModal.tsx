@@ -207,7 +207,7 @@ function SectionProgressionModal() {
 
             <div className="baseFlex gap-4">
               <Button
-                variant={"secondary"}
+                variant={"ghost"}
                 onClick={() => setShowSectionProgressionModal(false)}
               >
                 Close
