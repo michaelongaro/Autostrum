@@ -162,7 +162,7 @@ function applyBendOrReleaseEffect({
 
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
     sourceGain.gain.linearRampToValueAtTime(
-      1.3,
+      1.1,
       audioContext.currentTime + when + 0.1 // maybe still need to do arbitrary stuff here?
     );
     source.connect(sourceGain);
@@ -268,12 +268,12 @@ function playDeadNote({
   const gainNode = audioContext.createGain();
 
   // had to crank these values down by a ton since they were so prominent
-  let gainTarget = 0.0125;
+  let gainTarget = 0.00875;
 
-  if (accented) gainTarget = 0.0175;
-  if (palmMuted) gainTarget = 0.0075;
+  if (accented) gainTarget = 0.0125;
+  if (palmMuted) gainTarget = 0.005;
 
-  if (accented && palmMuted) gainTarget = 0.015;
+  if (accented && palmMuted) gainTarget = 0.01;
 
   // Dynamic Gain Compensation
   switch (stringIdx) {
@@ -299,7 +299,7 @@ function playDeadNote({
 
   gainNode.gain.setValueAtTime(gainTarget, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(
-    0.01,
+    0.0001,
     audioContext.currentTime + 0.1
   );
 
@@ -1076,6 +1076,16 @@ function playNoteColumn({
 
               baseFret = tempBaseFret;
             }
+          } else if (prevNote) {
+            let tempBaseFret = extractNumber(prevNote);
+
+            if (tempBaseFret >= 20) {
+              tempBaseFret = 22;
+            } else {
+              tempBaseFret += 2;
+            }
+
+            baseFret = tempBaseFret;
           }
         } else {
           baseFret = extractNumber(currNote);
