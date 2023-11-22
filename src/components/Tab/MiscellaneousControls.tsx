@@ -1,6 +1,6 @@
 import { arrayMove } from "@dnd-kit/sortable";
 import { useState } from "react";
-import { AiOutlineEllipsis } from "react-icons/ai";
+import { LiaEllipsisVSolid } from "react-icons/lia";
 import { BiDownArrowAlt, BiUpArrowAlt } from "react-icons/bi";
 import { FaTrashAlt } from "react-icons/fa";
 import { HiOutlineClipboardCopy } from "react-icons/hi";
@@ -409,9 +409,9 @@ function MiscellaneousControls({
                   ? "2rem"
                   : "0",
             }}
-            className="px-2"
+            className="px-0"
           >
-            <AiOutlineEllipsis className="h-8 w-8" />
+            <LiaEllipsisVSolid className="h-8 w-8" />
           </Button>
         </DropdownMenuTrigger>
 
