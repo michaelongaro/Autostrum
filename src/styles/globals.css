@@ -41,7 +41,7 @@
 .headerBackgroundGradient {
   /* need to do this instead of one-liner for safari compatability 
      with background-attachment: fixed */
-  background: linear-gradient(315deg, hsl(331, 95%, 75%), hsl(298, 100%, 82%));
+  background: linear-gradient(315deg, hsl(332, 96%, 75%), hsl(298, 100%, 82%));
   background-repeat: no-repeat;
   background-position: center;
 }
@@ -49,7 +49,7 @@
 .footerBackgroundGradient {
   /* need to do this instead of one-liner for safari compatability 
      with background-attachment: fixed */
-  background: linear-gradient(315deg, hsl(6, 100%, 65%), hsl(349, 100%, 75%));
+  background: linear-gradient(315deg, hsl(357, 82%, 68%), hsl(346, 90%, 73%));
   background-repeat: no-repeat;
   background-position: center;
   box-shadow: 0 -2px 8px 0 rgb(0 0 0 / 0.06);
@@ -73,11 +73,11 @@
 
 @media(min-width: 768px) {
   .headerBackgroundGradient {
-    background: linear-gradient(315deg, hsl(353, 100%, 71%), hsl(331, 95%, 77%), hsl(298, 100%, 82%));
+    background: linear-gradient(315deg, hsl(345, 95%, 68%), hsl(331, 95%, 77%), hsl(298, 100%, 82%));
   }
 
   .footerBackgroundGradient {
-    background: linear-gradient(315deg, hsl(6, 100%, 67%), hsl(349, 100%, 74%), hsl(328, 96%, 78%));
+    background: linear-gradient(315deg, hsl(359, 83%, 67%), hsl(349, 100%, 74%), hsl(333, 93%, 75%));
   }
 }
 
@@ -172,7 +172,7 @@ body::before {
   bottom: 0;
   left: 0;
   z-index: -1;
-  background: linear-gradient(150deg, hsl(297, 100%, 79%), hsl(340, 100%, 67%), hsl(6, 100%, 58%)) center / cover;
+  background: linear-gradient(145deg, hsl(297, 100%, 79%), hsl(340, 100%, 67%), hsl(0, 84%, 60%)) center / cover;
   height: 100vh;
 }
 

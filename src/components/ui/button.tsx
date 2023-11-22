@@ -19,7 +19,7 @@ const buttonVariants = cva(
         secondary:
           "lightGlassmorphic text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/60 border-2",
         ghost:
-          "hover:bg-toggleOn hover:text-toggleOn-foreground shadow-none active:bg-toggleOn/60",
+          "hover:bg-toggleOn hover:text-foreground shadow-none active:bg-toggleOn/60",
         link: "underline-offset-4 hover:underline shadow-none",
         recording: "bg-blue-600 hover:bg-blue-700 active:bg-blue-800",
         toggledOn:
