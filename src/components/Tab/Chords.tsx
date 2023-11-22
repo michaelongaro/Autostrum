@@ -166,7 +166,7 @@ function Chords() {
                         previewMetadata.playing &&
                         previewMetadata.type === "chord"
                           ? "none"
-                          : "0 1px 2px hsla(336, 84%, 17%, 0.2)",
+                          : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
                       color:
                         previewMetadata.indexOfPattern === index &&
                         previewMetadata.playing &&

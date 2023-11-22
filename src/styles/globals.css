@@ -24,7 +24,7 @@
 }
 
 .lightGlassmorphic {
-  @apply bg-pink-200 bg-opacity-[0.18] backdrop-blur-sm shadow-lightGlassmorphic;
+  @apply bg-pink-200 bg-opacity-[0.18] backdrop-blur-sm shadow-md;
 }
 
 .mobileNavbarGlassmorphic {
@@ -73,7 +73,7 @@
 
 @media(min-width: 768px) {
   .headerBackgroundGradient {
-    background: linear-gradient(315deg, hsl(345, 95%, 68%), hsl(331, 95%, 77%), hsl(298, 100%, 82%));
+    background: linear-gradient(315deg, hsl(345, 95%, 70%), hsl(331, 95%, 77%), hsl(298, 100%, 82%));
   }
 
   .footerBackgroundGradient {
@@ -178,7 +178,7 @@ body::before {
 
 body {
   color: hsl(327, 73%, 97%);
-  text-shadow: 0 1px 2px hsla(336, 84%, 17%, 0.2);
+  text-shadow: 0 1px 2px hsla(336, 84%, 17%, 0.25);
   min-height: 100dvh;
 }
 

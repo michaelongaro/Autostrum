@@ -176,14 +176,14 @@ function MobileHeader() {
         )}
       </AnimatePresence>
 
-      <nav className="headerBackgroundGradient sticky left-0 top-0 z-[49] grid h-16 w-full grid-cols-1 grid-rows-1 shadow-lightGlassmorphic">
+      <nav className="headerBackgroundGradient sticky left-0 top-0 z-[49] grid h-16 w-full grid-cols-1 grid-rows-1 shadow-md">
         <div className="absolute flex h-16 w-full items-start justify-between overflow-clip p-2 lg:hidden">
           <Link href={"/"} className="baseFlex h-12 pl-2">
             <Image
               src="/logoWithTitle.svg"
               alt="Autostrum header logo"
               style={{
-                filter: "drop-shadow(-1px 1px 1px hsla(336, 84%, 17%, 0.05))",
+                filter: "drop-shadow(0px 1px 1px hsla(336, 84%, 17%, 0.10))",
               }}
               width={150}
               height={50}

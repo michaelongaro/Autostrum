@@ -75,7 +75,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             variant === "secondary" ||
             variant === "ghost"
               ? "none"
-              : "0 1px 2px hsla(336, 84%, 17%, 0.15)",
+              : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
         }}
       />
     );

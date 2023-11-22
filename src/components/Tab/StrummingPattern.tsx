@@ -584,7 +584,7 @@ function StrummingPattern({
                             index !== undefined
                           )
                             ? "none"
-                            : "0 1px 2px hsla(336, 84%, 17%, 0.2)",
+                            : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
                           color: highlightChord(strumIndex)
                             ? "hsl(333, 71%, 51%)"
                             : "hsl(327, 73%, 97%)",
