@@ -31,7 +31,7 @@
   @apply bg-pink-200 bg-opacity-[0.20] backdrop-blur-sm shadow-md;
 }
 
-.mobileNavbarGlassmorphic {
+.autofillResultsGlassmorphic {
   @apply bg-gradient-to-br from-pink-400 to-pink-500 backdrop-blur-xl shadow-sm;
 }
 

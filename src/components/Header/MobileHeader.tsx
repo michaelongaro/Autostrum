@@ -62,7 +62,7 @@ function MobileHeader() {
             animate="expanded"
             exit="closed"
             transition={{ duration: 0.3 }}
-            className="mobileNavbarGlassmorphic fixed left-0 top-16 z-[49] h-48 w-full"
+            className="fixed left-0 top-16 z-[49] h-48 w-full bg-pink-400 shadow-lg"
           >
             <div className="baseVertFlex h-full items-center justify-center gap-4 shadow-md">
               <Button

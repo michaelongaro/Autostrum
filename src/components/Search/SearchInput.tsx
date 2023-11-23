@@ -190,7 +190,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
             }
           }}
           value={searchQuery}
-          className="searchInputBoxShadow h-10 w-80 !scroll-mt-24 border-2 pl-8 text-sm focus-within:shadow-lg md:h-12 md:w-[25rem] md:pl-10 md:text-lg"
+          className="searchInputBoxShadow z-0 h-10 w-80 !scroll-mt-24 border-2 pl-8 text-sm focus-within:shadow-lg md:h-12 md:w-[25rem] md:pl-10 md:text-lg"
         />
 
         {/* autofill */}
@@ -203,17 +203,24 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                 initial={{
                   opacity: 0,
                   top: isAboveMediumViewportWidth ? "3rem" : "2.15rem",
+                  scale: 0.97,
                 }}
                 animate={{
                   opacity: 1,
-                  top: isAboveMediumViewportWidth ? "3.5rem" : "2.75rem",
+                  top: isAboveMediumViewportWidth ? "3rem" : "2.5rem",
+                  scale: 1,
                 }}
                 exit={{
                   opacity: 0,
                   top: isAboveMediumViewportWidth ? "3rem" : "2.15rem",
+                  scale: 0.97,
                 }}
-                transition={{ duration: 0.25 }}
-                className="mobileNavbarGlassmorphic absolute z-10 w-full rounded-md !shadow-xl"
+                transition={{
+                  top: { duration: 0.15 },
+                  scale: { duration: 0.15 },
+                  opacity: { duration: 0.1 },
+                }}
+                className="autofillResultsGlassmorphic absolute z-50 w-full rounded-md rounded-t-none border-2 border-t-0 border-pink-200 !shadow-xl"
               >
                 {artificallyShowLoadingSpinner || isLoadingResults ? (
                   <div className="baseFlex w-full gap-4 py-4">
@@ -250,7 +257,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                               key={idx}
                               id={`autofillResult${idx}`}
                               tabIndex={-1}
-                              className="baseFlex w-full cursor-pointer !justify-start gap-2 rounded-md p-2 transition-all focus-within:bg-pink-700 hover:bg-pink-700"
+                              className="baseFlex z-50 w-full cursor-pointer !justify-start gap-2 p-2 transition-all first-of-type:rounded-t-sm last-of-type:rounded-b-sm focus-within:bg-pink-700 hover:bg-pink-700"
                               onFocus={() => {
                                 if (debouncedSearchQuery.length > 0) {
                                   setShowAutofillResults(true);
