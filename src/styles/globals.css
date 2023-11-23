@@ -35,6 +35,10 @@
   @apply backdrop-blur-sm bg-gradient-to-br from-pink-500/40 via-pink-500/60 to-pink-500/60;
 }
 
+.heroGlassmorphic {
+  @apply bg-pink-200 bg-opacity-[0.22] backdrop-blur-sm shadow-md;
+}
+
 /* below are same gradients as background, but up by ~7% on lightness value of hsl to match the
    glassmorphic effect. Couldn't use glassmorphic since light content bleeding through
    made for really bad contrast issues with nav links */

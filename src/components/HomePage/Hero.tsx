@@ -25,7 +25,7 @@ function Hero({
 
   return (
     <div className="baseVertFlex z-10 my-24 !flex-nowrap gap-16 md:gap-24">
-      <div className="lightGlassmorphic baseVertFlex w-5/6 items-start gap-2 rounded-xl p-4 shadow-sm sm:w-auto md:gap-4 md:p-8">
+      <div className="heroGlassmorphic baseVertFlex w-5/6 items-start gap-2 rounded-xl p-4 shadow-sm sm:w-auto md:gap-4 md:p-8">
         <div className="baseVertFlex gap-4">
           <h1 className="baseVertFlex gap-2 text-3xl font-bold md:text-5xl">
             Welcome to
@@ -79,7 +79,7 @@ function Hero({
         )}
       </div>
 
-      <div className="baseVertFlex lightGlassmorphic w-11/12 !flex-nowrap gap-8 rounded-xl p-4 shadow-sm sm:w-4/5 md:max-w-[550px] md:gap-4 md:p-8 xl:w-[950px] xl:max-w-[950px]">
+      <div className="baseVertFlex heroGlassmorphic w-11/12 !flex-nowrap gap-8 rounded-xl p-4 shadow-sm sm:w-4/5 md:max-w-[550px] md:gap-4 md:p-8 xl:w-[950px] xl:max-w-[950px]">
         <div className="baseVertFlex !flex-nowrap gap-8 xl:flex-row xl:gap-12">
           {/* ideally would try to be smarter about mobile vs desktop styles/org rather than repeat
               myself twice here */}
