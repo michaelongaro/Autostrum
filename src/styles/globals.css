@@ -28,7 +28,7 @@
 }
 
 .heroGlassmorphic {
-  @apply bg-pink-200 bg-opacity-[0.20] backdrop-blur-sm shadow-md;
+  @apply bg-pink-200 bg-opacity-[0.18] backdrop-blur-sm shadow-md;
 }
 
 .autofillResultsGlassmorphic {
@@ -87,19 +87,19 @@
 
 @layer base {
   :root {
-    --background: 327 73% 97%;
+    --background: 324 77% 95%;
     --foreground: 336 84% 17%;
 
     --muted: 333 71% 51%;
     --muted-foreground: 327 73% 90%;
 
-    --popover: 327 73% 97%;
+    --popover: 324 77% 95%;
     --popover-foreground: 336 84% 17%;
 
-    --card: 327 73% 97%;
+    --card: 324 77% 95%;
     --card-foreground: 336 84% 17%;
 
-    --border: 327 73% 97%;
+    --border: 324 77% 95%;
     --input: 214.3 31.8% 91.4%;
 
     --primary: 330 81% 60%;
@@ -111,10 +111,10 @@
     --toggle-on: 326 78% 95%;
 
     --accent: 330 81% 60%;
-    --accent-foreground: 327 73% 97%;
+    --accent-foreground: 324 77% 95%;
 
     --destructive: 0 90% 50%;
-    --destructive-foreground: 327 73% 97%;
+    --destructive-foreground: 324 77% 95%;
 
     --ring: 215 20.2% 65.1%;
 
@@ -181,7 +181,7 @@ body::before {
 }
 
 body {
-  color: hsl(327, 73%, 97%);
+  color: hsl(324, 77%, 95%);
   text-shadow: 0 1px 2px hsla(336, 84%, 17%, 0.25);
   min-height: 100dvh;
 }

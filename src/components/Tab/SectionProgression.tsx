@@ -30,7 +30,7 @@ function SectionProgression() {
       className="lightestGlassmorphic baseVertFlex w-1/2 max-w-[91.7%] !items-start
         gap-4 rounded-md p-2 !shadow-lighterGlassmorphic md:p-4"
     >
-      <p className="text-lg font-bold text-pink-50">
+      <p className="text-lg font-bold text-pink-100">
         {sectionProgression.length === 0
           ? "No section progression specified"
           : "Section progression"}
@@ -44,7 +44,7 @@ function SectionProgression() {
               {section.repetitions > 1 && <p>x{section.repetitions}</p>}
 
               {index !== sectionProgression.length - 1 && (
-                <BsArrowRightShort className="h-6 w-8 text-pink-50" />
+                <BsArrowRightShort className="h-6 w-8 text-pink-100" />
               )}
             </div>
           ))}

@@ -19,14 +19,14 @@ function MyApp({ Component, pageProps }: ComponentWithPageLayout) {
       appearance={{
         variables: {
           colorPrimary: "rgb(236, 72, 153)",
-          colorInputBackground: "rgb(253, 242, 248)",
+          colorInputBackground: "rgb(252, 232, 244)",
           colorTextSecondary: "rgb(219, 39, 119)",
           fontFamily: "'Noto Sans', sans-serif",
           borderRadius: "0.375rem",
           colorDanger: "rgb(220, 38, 38)",
           colorSuccess: "rgb(22, 163, 74)",
           colorInputText: "rgb(157, 23, 77)",
-          colorBackground: "rgb(253, 242, 248)",
+          colorBackground: "rgb(252, 232, 244)",
           colorText: "rgb(157, 23, 77)",
           colorAlphaShade: "rgb(131, 24, 67)",
         },

@@ -151,15 +151,15 @@ function TabMeasureLine({
             {/* top border and vert stub to normalize heights of middle indicies */}
             {(reorderingColumns || showingDeleteColumnsButtons) && (
               <div className="baseVertFlex w-full">
-                <div className="h-[2px] w-full bg-pink-50"></div>
-                <div className="h-[3px] w-[2px] bg-pink-50"></div>
+                <div className="h-[2px] w-full bg-pink-100"></div>
+                <div className="h-[3px] w-[2px] bg-pink-100"></div>
               </div>
             )}
 
             <div className="baseFlex w-full">
               {/* left dummy string */}
               {(reorderingColumns || showingDeleteColumnsButtons) && (
-                <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+                <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
               )}
 
               {/* measure line */}
@@ -167,12 +167,12 @@ function TabMeasureLine({
                 style={{
                   height: getHeightOfMeasureLineSubSection(index),
                 }}
-                className="w-[2px] bg-pink-50"
+                className="w-[2px] bg-pink-100"
               ></div>
 
               {/* right dummy string */}
               {(reorderingColumns || showingDeleteColumnsButtons) && (
-                <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+                <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
               )}
             </div>
           </div>
@@ -183,7 +183,7 @@ function TabMeasureLine({
             <div className="baseFlex w-full">
               {/* left dummy string */}
               {(reorderingColumns || showingDeleteColumnsButtons) && (
-                <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+                <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
               )}
 
               {/* measure line */}
@@ -191,19 +191,19 @@ function TabMeasureLine({
                 style={{
                   height: getHeightOfMeasureLineSubSection(index),
                 }}
-                className="w-[2px] bg-pink-50"
+                className="w-[2px] bg-pink-100"
               ></div>
 
               {/* right dummy string */}
               {(reorderingColumns || showingDeleteColumnsButtons) && (
-                <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+                <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
               )}
             </div>
             {/* bottom border and vert stub to normalize heights of middle indicies */}
             {(reorderingColumns || showingDeleteColumnsButtons) && (
               <div className="baseVertFlex w-full">
-                <div className="h-[3px] w-[2px] bg-pink-50"></div>
-                <div className="h-[2px] w-full bg-pink-50"></div>
+                <div className="h-[3px] w-[2px] bg-pink-100"></div>
+                <div className="h-[2px] w-full bg-pink-100"></div>
               </div>
             )}
           </div>
@@ -213,7 +213,7 @@ function TabMeasureLine({
           <div className="baseFlex w-full">
             {/* left dummy string */}
             {(reorderingColumns || showingDeleteColumnsButtons) && (
-              <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+              <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
             )}
 
             {/* measure line */}
@@ -221,12 +221,12 @@ function TabMeasureLine({
               style={{
                 height: getHeightOfMeasureLineSubSection(index),
               }}
-              className="w-[2px] bg-pink-50"
+              className="w-[2px] bg-pink-100"
             ></div>
 
             {/* right dummy string */}
             {(reorderingColumns || showingDeleteColumnsButtons) && (
-              <div className="h-[1px] flex-[1] bg-pink-50/50"></div>
+              <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
             )}
           </div>
         );
@@ -239,7 +239,7 @@ function TabMeasureLine({
         style={{
           height: getHeightOfMeasureLineSubSection(index),
         }}
-        className="w-[2px] bg-pink-50"
+        className="w-[2px] bg-pink-100"
       ></div>
     );
   }
@@ -296,7 +296,7 @@ function TabMeasureLine({
             <>
               {!editing && columnData[7] && columnData[7] !== "-1" && (
                 <div
-                  className={`baseFlex absolute !flex-nowrap gap-[0.125rem] text-pink-50 ${
+                  className={`baseFlex absolute !flex-nowrap gap-[0.125rem] text-pink-100 ${
                     note === "-" ? "top-[10px]" : "top-[27px]"
                   }`}
                 >
@@ -313,7 +313,7 @@ function TabMeasureLine({
                     style={{
                       top: editing ? "-26px" : "-18px",
                     }}
-                    className="relative h-[1px] w-full bg-pink-50"
+                    className="relative h-[1px] w-full bg-pink-100"
                   ></div>
                 )}
               </div>
@@ -332,7 +332,7 @@ function TabMeasureLine({
                 <PopoverTrigger asChild>
                   <Button
                     id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`}
-                    className="absolute bottom-9 z-50 h-5 w-5 rounded-full p-[0.125rem] text-pink-50"
+                    className="absolute bottom-9 z-50 h-5 w-5 rounded-full p-[0.125rem] text-pink-100"
                     onKeyDown={handleKeyDown}
                   >
                     <QuarterNote className="mr-[1px] h-[1rem]" />
@@ -382,7 +382,7 @@ function TabMeasureLine({
           className={`hover:box-shadow-md ${
             isDragging ? "cursor-grabbing" : "cursor-grab"
           } absolute bottom-4
-              z-50 cursor-grab rounded-md text-pink-50 active:cursor-grabbing`}
+              z-50 cursor-grab rounded-md text-pink-100 active:cursor-grabbing`}
           onMouseEnter={() => setHoveringOnHandle(true)}
           onMouseDown={() => setGrabbingHandle(true)}
           onMouseLeave={() => {

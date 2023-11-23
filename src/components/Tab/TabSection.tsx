@@ -903,7 +903,7 @@ function TabSection({
             gap: editing ? "1.35rem" : "0",
             marginBottom: editing ? "0" : "-1px",
           }}
-          className="baseVertFlex relative rounded-l-2xl border-2 border-pink-50 p-2"
+          className="baseVertFlex relative rounded-l-2xl border-2 border-pink-100 p-2"
         >
           {toString(parse(tuning), { pad: 1 })
             .split(" ")
@@ -962,7 +962,7 @@ function TabSection({
             height: editing ? "280px" : "168px",
             marginBottom: editing ? "0" : "-1px",
           }}
-          className="rounded-r-2xl border-2 border-pink-50 p-1"
+          className="rounded-r-2xl border-2 border-pink-100 p-1"
         ></div>
       </div>
 

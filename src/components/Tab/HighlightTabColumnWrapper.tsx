@@ -132,7 +132,7 @@ function HighlightTabColumnWrapper({
       className="baseVertFlex absolute left-0 top-0 h-full !justify-start rounded-md"
     >
       <div className="baseFlex relative w-full !items-start !justify-start pb-8 pt-4">
-        <div className="baseVertFlex relative mb-[-1px] h-[168px] rounded-l-2xl border-2 border-pink-50 p-2 opacity-0">
+        <div className="baseVertFlex relative mb-[-1px] h-[168px] rounded-l-2xl border-2 border-pink-100 p-2 opacity-0">
           {toString(parse(tuning), { pad: 1 })
             .split(" ")
             .reverse()
@@ -166,7 +166,7 @@ function HighlightTabColumnWrapper({
           </Fragment>
         ))}
 
-        <div className="mb-[-1px] h-[168px] rounded-r-2xl border-2 border-pink-50 p-1 opacity-0"></div>
+        <div className="mb-[-1px] h-[168px] rounded-r-2xl border-2 border-pink-100 p-1 opacity-0"></div>
       </div>
     </div>
   );

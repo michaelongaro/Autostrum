@@ -318,7 +318,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
             </Button>
 
             <div className="baseFlex !flex-nowrap gap-2">
-              <p className="text-sm text-pink-50/90">
+              <p className="text-sm text-pink-100/90">
                 {formatDate(minimalTab.updatedAt ?? minimalTab.createdAt)}
               </p>
 
@@ -418,7 +418,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                           </>
                         </div>
                       ) : (
-                        <span className="italic text-pink-50">Anonymous</span>
+                        <span className="italic text-pink-100">Anonymous</span>
                       )}
                     </Link>
                   </Button>

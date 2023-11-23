@@ -172,7 +172,7 @@ function Chords() {
                         previewMetadata.playing &&
                         previewMetadata.type === "chord"
                           ? "hsl(333, 71%, 51%)"
-                          : "hsl(327, 73%, 97%)",
+                          : "hsl(324, 77%, 95%)",
                     }}
                     className="px-3 font-semibold transition-colors"
                   >
@@ -216,7 +216,7 @@ function Chords() {
                           <PopoverTrigger className="baseFlex mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 active:hover:bg-white/10 ">
                             <HiOutlineInformationCircle className="h-5 w-5" />
                           </PopoverTrigger>
-                          <PopoverContent className="chordPreviewGlassmorphic w-40 border-2 p-0 text-pink-50">
+                          <PopoverContent className="chordPreviewGlassmorphic w-40 border-2 p-0 text-pink-100">
                             <Chord
                               chordBeingEdited={{
                                 index,

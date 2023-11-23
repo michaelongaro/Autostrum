@@ -380,7 +380,7 @@ const TableTabRow = forwardRef<HTMLTableRowElement, TableTabRow>(
                   </>
                 </div>
               ) : (
-                <span className="italic text-pink-50">Anonymous</span>
+                <span className="italic text-pink-100">Anonymous</span>
               )}
             </Link>
           </Button>

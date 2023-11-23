@@ -587,7 +587,7 @@ function StrummingPattern({
                             : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
                           color: highlightChord(strumIndex)
                             ? "hsl(333, 71%, 51%)"
-                            : "hsl(327, 73%, 97%)",
+                            : "hsl(324, 77%, 95%)",
                         }}
                         className="mx-0.5 h-6 text-base font-semibold transition-colors"
                       >
@@ -597,7 +597,7 @@ function StrummingPattern({
                   </PopoverTrigger>
                   <PopoverContent
                     side="bottom"
-                    className="chordPreviewGlassmorphic w-40 border-2 p-0 text-pink-50"
+                    className="chordPreviewGlassmorphic w-40 border-2 p-0 text-pink-100"
                   >
                     <Chord
                       chordBeingEdited={{
@@ -642,7 +642,7 @@ function StrummingPattern({
                       }`,
                       color: highlightChord(strumIndex, true)
                         ? "hsl(333, 71%, 51%)"
-                        : "hsl(327, 73%, 97%)",
+                        : "hsl(324, 77%, 95%)",
                     }}
                     className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm shadow-pink-600"
                     onFocus={(e) => {
@@ -672,7 +672,7 @@ function StrummingPattern({
                           ? "hsl(336, 84%, 17%)"
                           : highlightChord(strumIndex, index !== undefined)
                           ? "hsl(333, 71%, 51%)"
-                          : "hsl(327, 73%, 97%)",
+                          : "hsl(324, 77%, 95%)",
                     }}
                     className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
                   >
@@ -751,7 +751,7 @@ function StrummingPattern({
                       ? "hsl(336, 84%, 17%)"
                       : highlightChord(strumIndex, index !== undefined)
                       ? "hsl(333, 71%, 51%)"
-                      : "hsl(327, 73%, 97%)",
+                      : "hsl(324, 77%, 95%)",
                 }}
                 className="text-sm transition-colors"
               >

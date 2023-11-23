@@ -326,17 +326,17 @@ function PalmMuteNode({
         <>
           {value === "start" && (
             <div className="baseFlex w-full !flex-nowrap">
-              <div className="h-[14px] w-[1px] bg-pink-50"></div>
-              <div className="h-[1px] w-1 bg-pink-50"></div>
+              <div className="h-[14px] w-[1px] bg-pink-100"></div>
+              <div className="h-[1px] w-1 bg-pink-100"></div>
               <i className="mx-[0.125rem]">PM</i>
-              <div className="h-[1px] w-[3px] bg-pink-50"></div>
+              <div className="h-[1px] w-[3px] bg-pink-100"></div>
             </div>
           )}
 
           {value === "end" && (
             <div className="baseFlex w-full !flex-nowrap">
-              <div className="h-[1px] w-full bg-pink-50"></div>
-              <div className="h-[14px] w-[1px] bg-pink-50"></div>
+              <div className="h-[1px] w-full bg-pink-100"></div>
+              <div className="h-[14px] w-[1px] bg-pink-100"></div>
             </div>
           )}
         </>
@@ -353,7 +353,7 @@ function PalmMuteNode({
                 pointerEvents:
                   getButtonOpacity(value, columnIndex) === "1" ? "all" : "none",
                 boxShadow: hoveringOnPalmMuteNode
-                  ? "0 0 2px 2px hsl(327, 73%, 97%)"
+                  ? "0 0 2px 2px hsl(324, 77%, 95%)"
                   : "",
                 opacity: getButtonOpacity(value, columnIndex),
               }}
@@ -392,8 +392,8 @@ function PalmMuteNode({
             !editing ||
             !editingPalmMuteNodes ||
             getButtonOpacity(value, columnIndex) === "1"
-              ? "bg-pink-50"
-              : "bg-pink-50/50"
+              ? "bg-pink-100"
+              : "bg-pink-100/50"
           } `}
         ></div>
       )}

@@ -495,7 +495,7 @@ function TabMetadata({
   function renderSavePopoverContent() {
     if (publishErrorOccurred) {
       return (
-        <div className="baseVertFlex w-full !items-start gap-2 bg-pink-50 p-2 text-sm text-pink-950 md:text-base">
+        <div className="baseVertFlex w-full !items-start gap-2 bg-pink-100 p-2 text-sm text-pink-950 md:text-base">
           <div className="baseFlex gap-2">
             <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
             <p>Failed to publish tab. Please try again later.</p>
@@ -506,7 +506,7 @@ function TabMetadata({
 
     if (userId) {
       return (
-        <div className="baseVertFlex w-full !items-start gap-2 bg-pink-50 p-2 pr-4 text-sm text-pink-950 md:text-base">
+        <div className="baseVertFlex w-full !items-start gap-2 bg-pink-100 p-2 pr-4 text-sm text-pink-950 md:text-base">
           <div className="baseFlex gap-2">
             {title ? (
               <Check className="h-5 w-8 text-green-600" />
@@ -550,7 +550,7 @@ function TabMetadata({
     }
 
     return (
-      <div className="baseFlex w-full max-w-[350px] bg-pink-50 p-2 pt-1 text-sm text-pink-950 md:max-w-[400px] md:text-base">
+      <div className="baseFlex w-full max-w-[350px] bg-pink-100 p-2 pt-1 text-sm text-pink-950 md:max-w-[400px] md:text-base">
         <div className="baseFlex !flex-nowrap gap-2">
           <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
           <p>Only registered users can publish a tab.</p>
@@ -589,7 +589,7 @@ function TabMetadata({
                   className="baseFlex py-1 pl-1 pr-3 md:py-2"
                   onClick={() => void push(`/tab/${id}`)}
                 >
-                  <BsArrowRightShort className="h-6 w-8 rotate-180 text-pink-50" />
+                  <BsArrowRightShort className="h-6 w-8 rotate-180 text-pink-100" />
                   Return to tab
                 </Button>
               )}
@@ -661,7 +661,7 @@ function TabMetadata({
                         </AnimatePresence>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="baseVertFlex gap-4 bg-pink-50 p-2 text-sm text-pink-950 md:text-base">
+                    <PopoverContent className="baseVertFlex gap-4 bg-pink-100 p-2 text-sm text-pink-950 md:text-base">
                       <p className="w-auto text-center text-sm">
                         Are you sure you want to delete this tab?
                       </p>
@@ -735,7 +735,7 @@ function TabMetadata({
                       </div>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[325px] bg-pink-50 p-2 text-sm text-pink-950 md:w-[375px] md:text-base">
+                  <PopoverContent className="w-[325px] bg-pink-100 p-2 text-sm text-pink-950 md:w-[375px] md:text-base">
                     <div className="baseFlex !flex-nowrap gap-2 pr-2">
                       <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
                       <p> Only registered users can record a tab.</p>
@@ -1129,7 +1129,9 @@ function TabMetadata({
                             </>
                           </div>
                         ) : (
-                          <span className="italic text-pink-50">Anonymous</span>
+                          <span className="italic text-pink-100">
+                            Anonymous
+                          </span>
                         )}
                       </Link>
                     </Button>
@@ -1355,7 +1357,7 @@ function TabMetadata({
                   } baseVertFlex !items-start gap-2`}
                 >
                   <div className="font-semibold">Tuning</div>
-                  <div className="rounded-md border-2 border-pink-50 px-2 py-2.5 text-sm font-semibold md:px-4 md:py-2 md:text-base">
+                  <div className="rounded-md border-2 border-pink-100 px-2 py-2.5 text-sm font-semibold md:px-4 md:py-2 md:text-base">
                     {toString(parse(tuning), { pad: 2 })}
                   </div>
                 </div>

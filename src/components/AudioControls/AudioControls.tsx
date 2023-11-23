@@ -512,7 +512,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       exit="closed"
     >
       <div className="baseVertFlex audioControlsBoxShadow h-full w-[95vw] gap-2 rounded-xl bg-pink-600 p-2 transition-opacity lg:rounded-full lg:px-8 lg:py-2 xl:w-10/12 2xl:w-1/2">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="sync">
           {aboveLargeViewportWidth && visibility === "minimized" && (
             <motion.div
               key={"audioControlsTopLayer"}
@@ -1129,7 +1129,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   style={{
                     textShadow: "none",
                   }}
-                  className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 bg-pink-50 p-4 pb-6 text-pink-950"
+                  className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 bg-pink-100 p-4 pb-6 text-pink-950"
                 >
                   <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
 

@@ -442,7 +442,7 @@ function MiscellaneousControls({
             <BiDownArrowAlt className="h-5 w-5" />
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="baseFlex !justify-between gap-2 focus-within:!bg-[rgb(255,0,0)] focus-within:!text-pink-50"
+            className="baseFlex !justify-between gap-2 focus-within:!bg-[rgb(255,0,0)] focus-within:!text-pink-100"
             onClick={deleteSection}
           >
             Delete

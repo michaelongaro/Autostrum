@@ -91,9 +91,9 @@ module.exports = {
           "80%": { translate: "4px" },
         },
         colorOscillate: {
-          "0%": { color: "hsl(327, 73%, 97%)" },
-          "50%": { color: "hsla(327, 73%, 97%, 0.65)" },
-          "100%": { color: "hsl(327, 73%, 97%)" },
+          "0%": { color: "hsl(324, 77%, 95%)" },
+          "50%": { color: "hsla(324, 77%, 95%, 0.65)" },
+          "100%": { color: "hsl(324, 77%, 95%)" },
         },
         stableSpin: {
           from: { transform: "rotate(0deg)" },

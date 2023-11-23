@@ -35,7 +35,7 @@ function EffectGlossary() {
         showArrow={false}
         side={"bottom"}
         onClick={(e) => e.stopPropagation()}
-        className="baseVertFlex w-64 !items-start gap-[0.35rem] bg-pink-50 text-pink-950"
+        className="baseVertFlex w-64 !items-start gap-[0.35rem] bg-pink-100 text-pink-950"
       >
         <Label>Section effects</Label>
         <Separator className="mb-2 w-full bg-pink-600" />
@@ -67,11 +67,11 @@ function EffectGlossary() {
                   <div className="baseVertFlex gap-2">
                     <p>Condensed</p>
                     <div className="baseFlex lightestGlassmorphic rounded-md p-2">
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         3h
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-50"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="h-[1px] w-2 bg-pink-100"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         5
                       </div>
                     </div>
@@ -79,15 +79,15 @@ function EffectGlossary() {
                   <div className="baseVertFlex gap-2">
                     <p>Expanded</p>
                     <div className="baseFlex lightestGlassmorphic rounded-md p-2">
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         3
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-50"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="h-[1px] w-2 bg-pink-100"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         h
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-50"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="h-[1px] w-2 bg-pink-100"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         5
                       </div>
                     </div>
@@ -116,11 +116,11 @@ function EffectGlossary() {
                   <div className="baseVertFlex gap-2">
                     <p>Condensed</p>
                     <div className="baseFlex lightestGlassmorphic rounded-md p-2">
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         3p
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-50"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="h-[1px] w-2 bg-pink-100"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         5
                       </div>
                     </div>
@@ -128,15 +128,15 @@ function EffectGlossary() {
                   <div className="baseVertFlex gap-2">
                     <p>Expanded</p>
                     <div className="baseFlex lightestGlassmorphic rounded-md p-2">
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         3
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-50"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="h-[1px] w-2 bg-pink-100"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         p
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-50"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="h-[1px] w-2 bg-pink-100"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         5
                       </div>
                     </div>
@@ -165,11 +165,11 @@ function EffectGlossary() {
                   <div className="baseVertFlex gap-2">
                     <p>Condensed</p>
                     <div className="baseFlex lightestGlassmorphic rounded-md p-2">
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         3/
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-50"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="h-[1px] w-2 bg-pink-100"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         5
                       </div>
                     </div>
@@ -177,15 +177,15 @@ function EffectGlossary() {
                   <div className="baseVertFlex gap-2">
                     <p>Expanded</p>
                     <div className="baseFlex lightestGlassmorphic rounded-md p-2">
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         3
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-50"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="h-[1px] w-2 bg-pink-100"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         /
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-50"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="h-[1px] w-2 bg-pink-100"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         5
                       </div>
                     </div>
@@ -214,11 +214,11 @@ function EffectGlossary() {
                   <div className="baseVertFlex gap-2">
                     <p>Condensed</p>
                     <div className="baseFlex lightestGlassmorphic rounded-md p-2">
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         3\
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-50"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="h-[1px] w-2 bg-pink-100"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         5
                       </div>
                     </div>
@@ -226,15 +226,15 @@ function EffectGlossary() {
                   <div className="baseVertFlex gap-2">
                     <p>Expanded</p>
                     <div className="baseFlex lightestGlassmorphic rounded-md p-2">
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         3
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-50"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="h-[1px] w-2 bg-pink-100"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         \
                       </div>
-                      <div className="h-[1px] w-2 bg-pink-50"></div>
-                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-50 text-sm text-pink-50">
+                      <div className="h-[1px] w-2 bg-pink-100"></div>
+                      <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
                         5
                       </div>
                     </div>

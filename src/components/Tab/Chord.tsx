@@ -140,7 +140,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
           gap: editing ? "1.35rem" : "0.05rem",
           padding: editing ? "0.5rem" : "0.5rem 0.35rem",
         }}
-        className="baseVertFlex relative rounded-l-2xl border-2 border-pink-50"
+        className="baseVertFlex relative rounded-l-2xl border-2 border-pink-100"
       >
         {toString(parse(tuning), { pad: 1 })
           .split(" ")
@@ -175,7 +175,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
               style={{
                 margin: editing ? "0" : "0.75rem 0",
               }}
-              className="h-[1px] w-4 flex-[1] bg-pink-50/50"
+              className="h-[1px] w-4 flex-[1] bg-pink-100/50"
             ></div>
             {editing ? (
               <Input
@@ -191,7 +191,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
                   }`,
                   color: highlightChord
                     ? "hsl(333, 71%, 51%)"
-                    : "hsl(327, 73%, 97%)",
+                    : "hsl(324, 77%, 95%)",
                 }}
                 className="h-[37px] w-[37px] rounded-full p-0 text-center shadow-sm shadow-pink-600"
                 onFocus={(e) => {
@@ -220,7 +220,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
                     style={{
                       color: highlightChord
                         ? "hsl(333, 71%, 51%)"
-                        : "hsl(327, 73%, 97%)",
+                        : "hsl(324, 77%, 95%)",
                     }}
                     className="h-6 transition-colors"
                   >
@@ -231,7 +231,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
                     style={{
                       margin: editing ? "0" : "0.75rem 0",
                     }}
-                    className="h-[1px] w-2 flex-[1] bg-pink-50/50"
+                    className="h-[1px] w-2 flex-[1] bg-pink-100/50"
                   ></div>
                 )}
               </>
@@ -240,7 +240,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
               style={{
                 margin: editing ? "0" : "0.75rem 0",
               }}
-              className="h-[1px] w-4 flex-[1] bg-pink-50/50"
+              className="h-[1px] w-4 flex-[1] bg-pink-100/50"
             ></div>
           </div>
         ))}
@@ -250,7 +250,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
           height: editing ? "280px" : "168px",
           padding: editing ? "0.25rem" : "0.25rem 0.15rem",
         }}
-        className="rounded-r-2xl border-2 border-pink-50 p-1"
+        className="rounded-r-2xl border-2 border-pink-100 p-1"
       ></div>
     </div>
   );

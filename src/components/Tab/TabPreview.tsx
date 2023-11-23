@@ -331,7 +331,7 @@ function PreviewChordSequence({
   chordSequenceIndex,
 }: PreviewChordSequence) {
   return (
-    <div className="baseVertFlex relative w-auto !justify-start gap-8 rounded-md border-2 border-pink-50 p-1">
+    <div className="baseVertFlex relative w-auto !justify-start gap-8 rounded-md border-2 border-pink-100 p-1">
       <PreviewStrummingPattern
         chordSequenceData={chordSequenceData.data}
         data={chordSequenceData.strummingPattern}
@@ -482,7 +482,7 @@ function PreviewStrummingPattern({
                   >
                     <p
                       style={{
-                        color: "hsl(327, 73%, 97%)",
+                        color: "hsl(324, 77%, 95%)",
                       }}
                       className="mx-0.5  h-6 text-base font-semibold transition-colors"
                     >
@@ -492,7 +492,7 @@ function PreviewStrummingPattern({
                 </PopoverTrigger>
                 <PopoverContent
                   side="bottom"
-                  className="chordPreviewGlassmorphic w-40 border-2 p-0 text-pink-50"
+                  className="chordPreviewGlassmorphic w-40 border-2 p-0 text-pink-100"
                 >
                   <Chord
                     chordBeingEdited={{
@@ -521,7 +521,7 @@ function PreviewStrummingPattern({
 
                 <div
                   style={{
-                    color: "hsl(327, 73%, 97%)",
+                    color: "hsl(324, 77%, 95%)",
                   }}
                   className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
                 >
@@ -588,7 +588,7 @@ function PreviewStrummingPattern({
                     getBeatIndicator(data.noteLength, strumIndex) === ""
                       ? "1.25rem"
                       : "auto",
-                  color: "hsl(327, 73%, 97%)",
+                  color: "hsl(324, 77%, 95%)",
                 }}
                 className="text-sm transition-colors"
               >
@@ -695,7 +695,7 @@ function PreviewTabSection({
             marginBottom: "-1px",
             marginTop: "36px",
           }}
-          className="baseVertFlex relative rounded-l-2xl border-2 border-pink-50 p-2"
+          className="baseVertFlex relative rounded-l-2xl border-2 border-pink-100 p-2"
         >
           {toString(parse(tuning), { pad: 1 })
             .split(" ")
@@ -731,7 +731,7 @@ function PreviewTabSection({
             marginBottom: "-1px",
             marginTop: "36px",
           }}
-          className="rounded-r-2xl border-2 border-pink-50 p-1"
+          className="rounded-r-2xl border-2 border-pink-100 p-1"
         ></div>
       </div>
     </div>
@@ -798,7 +798,7 @@ export function PreviewTabMeasureLine({
               {((columnData[7] && columnData[7] !== "-1") ||
                 conditionalBaselineBpmToShow) && (
                 <div
-                  className={`baseFlex relative w-[2px] text-pink-50 ${
+                  className={`baseFlex relative w-[2px] text-pink-100 ${
                     note === "-" ? "top-[-23px]" : "top-[-7px]"
                   }`}
                 >
@@ -815,7 +815,7 @@ export function PreviewTabMeasureLine({
 
               <div className="baseFlex mb-0 h-0 w-full">
                 {note === "-" && (
-                  <div className="relative top-[-18.5px] h-[1px] w-full bg-pink-50"></div>
+                  <div className="relative top-[-18.5px] h-[1px] w-full bg-pink-100"></div>
                 )}
               </div>
             </>
@@ -823,7 +823,7 @@ export function PreviewTabMeasureLine({
 
           {index > 0 && index < 7 && (
             <div className="baseFlex w-full">
-              <div className="h-[28px] w-[2px] bg-pink-50"></div>
+              <div className="h-[28px] w-[2px] bg-pink-100"></div>
             </div>
           )}
         </Fragment>
@@ -917,7 +917,7 @@ function PreviewTabNotesColumn({
                     style={{
                       opacity: lineBeforeNoteOpacity(index) ? 1 : 0,
                     }}
-                    className="h-[1px] flex-[1] bg-pink-50/50"
+                    className="h-[1px] flex-[1] bg-pink-100/50"
                   ></div>
 
                   <PreviewTabNote note={note} />
@@ -926,7 +926,7 @@ function PreviewTabNotesColumn({
                     style={{
                       opacity: lineAfterNoteOpacity(index) ? 1 : 0,
                     }}
-                    className="h-[1px] flex-[1] bg-pink-50/50"
+                    className="h-[1px] flex-[1] bg-pink-100/50"
                   ></div>
                 </div>
               )}
@@ -972,23 +972,23 @@ function PreviewPalmMuteNode({ value }: PreviewPalmMuteNode) {
         <>
           {value === "start" && (
             <div className="baseFlex w-full !flex-nowrap">
-              <div className="h-[14px] w-[1px] bg-pink-50"></div>
-              <div className="h-[1px] w-1 bg-pink-50"></div>
+              <div className="h-[14px] w-[1px] bg-pink-100"></div>
+              <div className="h-[1px] w-1 bg-pink-100"></div>
               <i className="mx-[0.125rem]">PM</i>
-              <div className="h-[1px] w-[3px] bg-pink-50"></div>
+              <div className="h-[1px] w-[3px] bg-pink-100"></div>
             </div>
           )}
 
           {value === "end" && (
             <div className="baseFlex w-full !flex-nowrap">
-              <div className="h-[1px] w-full bg-pink-50"></div>
-              <div className="h-[14px] w-[1px] bg-pink-50"></div>
+              <div className="h-[1px] w-full bg-pink-100"></div>
+              <div className="h-[14px] w-[1px] bg-pink-100"></div>
             </div>
           )}
         </>
       )}
 
-      {value === "-" && <div className="h-[1px] w-full bg-pink-50"></div>}
+      {value === "-" && <div className="h-[1px] w-full bg-pink-100"></div>}
     </>
   );
 }
@@ -1000,10 +1000,10 @@ interface PreviewTabNote {
 function PreviewTabNote({ note }: PreviewTabNote) {
   return (
     <div className="baseFlex w-[35px]">
-      <div className="my-3 h-[1px] flex-[1] bg-pink-50/50"></div>
+      <div className="my-3 h-[1px] flex-[1] bg-pink-100/50"></div>
       {/* {formatNoteAndEffect(note)} */}
       <div>{note}</div>
-      <div className="my-3 h-[1px] flex-[1] bg-pink-50/50"></div>
+      <div className="my-3 h-[1px] flex-[1] bg-pink-100/50"></div>
     </div>
   );
 }

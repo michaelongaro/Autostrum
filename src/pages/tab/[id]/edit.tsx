@@ -174,7 +174,7 @@ function UserNotAllowedToEdit({ tabId }: { tabId: number }) {
         onClick={() => void push(`/tab/${tabId}`)}
         className="baseFlex gap-1 pr-6"
       >
-        <BsArrowRightShort className="h-6 w-8 rotate-180 text-pink-50" />
+        <BsArrowRightShort className="h-6 w-8 rotate-180 text-pink-100" />
         Return to tab
       </Button>
     </div>

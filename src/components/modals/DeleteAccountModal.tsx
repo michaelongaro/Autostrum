@@ -25,7 +25,7 @@ function DeleteAccountModal() {
   const ctx = api.useContext();
   const { userId } = useAuth();
 
-  const [deleteAllOfArtistsTabs, setDeleteAllOfArtistsTabs] = useState(false);
+  const [deleteAllOfArtistsTabs, setDeleteAllOfArtistsTabs] = useState(true);
   const [showDeleteCheckmark, setShowDeleteCheckmark] = useState(false);
 
   const {
@@ -107,7 +107,7 @@ function DeleteAccountModal() {
       >
         <div
           tabIndex={-1}
-          className="baseVertFlex w-[350px] gap-10 rounded-md bg-pink-400 p-2 shadow-sm sm:w-[675px] md:px-8 md:py-4"
+          className="baseVertFlex w-[350px] gap-10 rounded-md bg-pink-400 p-2 shadow-sm sm:w-[700px] md:px-8 md:py-4"
           onKeyDown={(e) => {
             if (e.key === "Escape") {
               setShowDeleteAccountModal(false);
@@ -120,7 +120,7 @@ function DeleteAccountModal() {
           </div>
 
           <div className="baseVertFlex gap-4">
-            <p className="text-center font-semibold">
+            <p className="text-center font-bold">
               Are you sure you want to delete your account? This action cannot
               be undone.
             </p>

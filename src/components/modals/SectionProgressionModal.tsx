@@ -367,7 +367,7 @@ function Section({
         </div>
 
         <Button variant={"destructive"} size={"sm"} onClick={deleteSection}>
-          <FaTrashAlt className="h-5 w-5 text-pink-50" />
+          <FaTrashAlt className="h-5 w-5 text-pink-100" />
         </Button>
       </div>
     </motion.div>

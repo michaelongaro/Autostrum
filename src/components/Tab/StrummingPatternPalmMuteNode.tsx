@@ -334,7 +334,7 @@ function StrummingPatternPalmMuteNode({
                 pointerEvents:
                   getButtonOpacity(value, beatIndex) === "1" ? "all" : "none",
                 boxShadow: hoveringOnPalmMuteNode
-                  ? "0 0 2px 2px hsl(327, 73%, 97%)"
+                  ? "0 0 2px 2px hsl(324, 77%, 95%)"
                   : "",
                 opacity: getButtonOpacity(value, beatIndex),
               }}

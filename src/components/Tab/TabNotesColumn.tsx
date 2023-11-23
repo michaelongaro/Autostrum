@@ -329,7 +329,7 @@ function TabNotesColumn({
                     style={{
                       opacity: lineBeforeNoteOpacity(index) ? 1 : 0,
                     }}
-                    className="h-[1px] flex-[1] bg-pink-50/50"
+                    className="h-[1px] flex-[1] bg-pink-100/50"
                   ></div>
 
                   <TabNote
@@ -344,7 +344,7 @@ function TabNotesColumn({
                     style={{
                       opacity: lineAfterNoteOpacity(index) ? 1 : 0,
                     }}
-                    className="h-[1px] flex-[1] bg-pink-50/50"
+                    className="h-[1px] flex-[1] bg-pink-100/50"
                   ></div>
                 </div>
               )}
@@ -399,7 +399,7 @@ function TabNotesColumn({
             ref={setActivatorNodeRef}
             {...attributes}
             {...listeners}
-            className={`hover:box-shadow-md absolute bottom-4 left-1/2 right-1/2 w-[1.5rem] -translate-x-1/2 cursor-grab rounded-md text-pink-50 ${
+            className={`hover:box-shadow-md absolute bottom-4 left-1/2 right-1/2 w-[1.5rem] -translate-x-1/2 cursor-grab rounded-md text-pink-100 ${
               isDragging ? "cursor-grabbing" : "cursor-grab"
             }`}
             onMouseEnter={() => setHoveringOnHandle(true)}
