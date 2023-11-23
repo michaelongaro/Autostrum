@@ -164,7 +164,7 @@ function SectionProgressionModal() {
           }}
         >
           <div className="baseVertFlex h-full max-h-[90vh] min-h-[20rem] w-full max-w-[90vw] !flex-nowrap !justify-between gap-8">
-            <div className="baseFlex lightGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
+            <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
               <p className="text-lg font-semibold">Section progression</p>
             </div>
 

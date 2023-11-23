@@ -10,7 +10,7 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
 import { genreList } from "~/utils/genreList";
 import { Badge } from "../ui/badge";
-
+import { isMobile } from "react-device-detect";
 interface SearchInput {
   initialSearchQueryFromUrl?: string;
 }
@@ -123,9 +123,11 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
           maxLength={30}
           placeholder={getPlaceholderTextBasedOnParams()}
           onFocus={() => {
-            searchInputRef.current?.scrollIntoView({
-              behavior: "smooth",
-            });
+            if (isMobile) {
+              searchInputRef.current?.scrollIntoView({
+                behavior: "smooth",
+              });
+            }
 
             if (debouncedSearchQuery.length > 0) {
               setShowAutofillResults(true);
@@ -248,7 +250,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                               key={idx}
                               id={`autofillResult${idx}`}
                               tabIndex={-1}
-                              className="baseFlex w-full cursor-pointer !justify-start gap-2 rounded-md p-2 transition-all focus-within:bg-pink-500 hover:bg-pink-500"
+                              className="baseFlex w-full cursor-pointer !justify-start gap-2 rounded-md p-2 transition-all focus-within:bg-pink-700 hover:bg-pink-700"
                               onFocus={() => {
                                 if (debouncedSearchQuery.length > 0) {
                                   setShowAutofillResults(true);
@@ -311,7 +313,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                                     backgroundColor:
                                       data.type === "title"
                                         ? genreList[data.value.genreId]?.color
-                                        : "hsl(142, 71%, 45%)",
+                                        : "#047857",
                                   }}
                                   className=""
                                 >

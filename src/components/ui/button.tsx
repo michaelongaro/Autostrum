@@ -73,7 +73,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           textShadow:
             variant === "navigation" ||
             variant === "secondary" ||
-            variant === "ghost"
+            variant === "ghost" ||
+            variant === "outline"
               ? "none"
               : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
         }}

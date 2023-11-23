@@ -114,7 +114,7 @@ function DeleteAccountModal() {
             }
           }}
         >
-          <div className="baseFlex lightGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
+          <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
             <AiOutlineWarning className="h-5 w-5" />
             <p className="text-lg font-semibold">Delete account</p>
           </div>

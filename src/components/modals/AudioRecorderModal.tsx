@@ -200,7 +200,7 @@ function AudioRecorderModal() {
             }
           }}
         >
-          <div className="baseFlex lightGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
+          <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
             <p className="text-lg font-semibold">Record tab</p>
             <FaMicrophoneAlt className="h-4 w-4" />
           </div>
@@ -361,7 +361,7 @@ function AudioRecorderModal() {
           {/* prob want to stop any recording if it's going when close/save is hit? */}
           <div className="baseFlex gap-4">
             <Button
-              variant={"outline"}
+              variant={"ghost"}
               onClick={() => {
                 if (isRecording) {
                   togglePauseResume();

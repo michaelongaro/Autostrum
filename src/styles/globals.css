@@ -28,7 +28,7 @@
 }
 
 .mobileNavbarGlassmorphic {
-  @apply bg-gradient-to-br from-pink-400 to-pink-400/90 backdrop-blur-xl shadow-sm;
+  @apply bg-gradient-to-br from-pink-400 to-pink-500 backdrop-blur-xl shadow-sm;
 }
 
 .chordPreviewGlassmorphic {
