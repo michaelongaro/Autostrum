@@ -24,11 +24,7 @@
 }
 
 .lightGlassmorphic {
-  @apply bg-pink-200 bg-opacity-[0.15] backdrop-blur-sm shadow-md;
-}
-
-.heroGlassmorphic {
-  @apply bg-pink-200 bg-opacity-[0.18] backdrop-blur-sm shadow-md;
+  @apply bg-gradient-to-br from-pink-200/10 to-pink-200/25 backdrop-blur-sm shadow-md;
 }
 
 .autofillResultsGlassmorphic {
