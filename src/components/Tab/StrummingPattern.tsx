@@ -48,6 +48,7 @@ interface StrummingPattern {
     | "viewing"
     | "viewingInSelectDropdown";
   index?: number; // index of strumming pattern in strummingPatterns array (used for editing pattern)
+  isBeingHighlightedInDropdown?: boolean;
 
   // location of strumming pattern in getTabData() array (used for editing chord sequence)
   sectionIndex?: number;
@@ -68,6 +69,7 @@ function StrummingPattern({
   chordSequenceData,
   mode,
   index,
+  isBeingHighlightedInDropdown,
   sectionIndex,
   subSectionIndex,
   chordSequenceIndex,
@@ -511,7 +513,10 @@ function StrummingPattern({
                   setEditingPalmMuteNodes={setEditingPalmMuteNodes!}
                   lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
                   setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
-                  darkMode={mode === "viewingInSelectDropdown"}
+                  darkMode={
+                    mode === "viewingInSelectDropdown" &&
+                    !isBeingHighlightedInDropdown
+                  }
                   viewingInSelectDropdown={mode === "viewingInSelectDropdown"}
                   editing={mode === "editingStrummingPattern"}
                 />
@@ -549,7 +554,7 @@ function StrummingPattern({
                           <SelectLabel>Chord</SelectLabel>
                           <SelectItem
                             value=""
-                            className="italic !text-gray-500"
+                            className="italic text-shadow-none hover:text-shadow"
                           >
                             No chord
                           </SelectItem>
@@ -669,7 +674,9 @@ function StrummingPattern({
                     style={{
                       color:
                         mode === "viewingInSelectDropdown"
-                          ? "hsl(336, 84%, 17%)"
+                          ? isBeingHighlightedInDropdown
+                            ? "hsl(324, 77%, 95%)"
+                            : "hsl(336, 84%, 17%)"
                           : highlightChord(strumIndex, index !== undefined)
                           ? "hsl(333, 71%, 51%)"
                           : "hsl(324, 77%, 95%)",
@@ -748,7 +755,9 @@ function StrummingPattern({
                       : "auto",
                   color:
                     mode === "viewingInSelectDropdown"
-                      ? "hsl(336, 84%, 17%)"
+                      ? isBeingHighlightedInDropdown
+                        ? "hsl(324, 77%, 95%)"
+                        : "hsl(336, 84%, 17%)"
                       : highlightChord(strumIndex, index !== undefined)
                       ? "hsl(333, 71%, 51%)"
                       : "hsl(324, 77%, 95%)",
@@ -759,7 +768,12 @@ function StrummingPattern({
               </p>
 
               {/* strumming guide */}
-              {renderStrummingGuide(data.noteLength, strumIndex, mode)}
+              {renderStrummingGuide(
+                data.noteLength,
+                strumIndex,
+                mode,
+                isBeingHighlightedInDropdown
+              )}
 
               {/* delete strum button */}
               {showingDeleteStrumsButtons && (

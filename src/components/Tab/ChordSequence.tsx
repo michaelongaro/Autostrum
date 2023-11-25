@@ -64,6 +64,10 @@ function ChordSequence({
     indexOfCurrentlySelectedStrummingPattern,
     setIndexOfCurrentlySelectedStrummingPattern,
   ] = useState(0);
+  const [
+    indexOfCurrentlyFocusedStrummingPattern,
+    setIndexOfCurrentlyFocusedStrummingPattern,
+  ] = useState(0);
 
   // this is hacky dummy state so that the <StrummingPattern /> can render the palm mute node
   // as expected without actually having access to that state. Works fine for this case because
@@ -324,10 +328,25 @@ function ChordSequence({
                         <SelectLabel>Strumming patterns</SelectLabel>
                         {strummingPatterns.map((pattern, index) => {
                           return (
-                            <SelectItem key={index} value={`${index}`}>
+                            <SelectItem
+                              key={index}
+                              value={`${index}`}
+                              onFocus={() => {
+                                setIndexOfCurrentlyFocusedStrummingPattern(
+                                  index
+                                );
+                              }}
+                              onBlur={() => {
+                                setIndexOfCurrentlyFocusedStrummingPattern(-1);
+                              }}
+                            >
                               <StrummingPattern
                                 data={pattern}
                                 mode={"viewingInSelectDropdown"}
+                                isBeingHighlightedInDropdown={
+                                  index ===
+                                  indexOfCurrentlyFocusedStrummingPattern
+                                }
                                 lastModifiedPalmMuteNode={
                                   lastModifiedPalmMuteNode
                                 }

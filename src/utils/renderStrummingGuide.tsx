@@ -6,7 +6,8 @@ function renderStrummingGuide(
     | "editingChordSequence"
     | "viewingWithChordNames"
     | "viewing"
-    | "viewingInSelectDropdown"
+    | "viewingInSelectDropdown",
+  isBeingHighlightedInDropdown?: boolean
 ) {
   let innermostDiv = <div></div>;
   let height = "7px";
@@ -17,7 +18,9 @@ function renderStrummingGuide(
         <div
           className={`h-full w-[1px] rounded-md ${
             mode === "viewingInSelectDropdown"
-              ? "bg-foreground"
+              ? isBeingHighlightedInDropdown
+                ? "bg-background"
+                : "bg-foreground"
               : "bg-background"
           }`}
         ></div>
@@ -31,7 +34,9 @@ function renderStrummingGuide(
           <div
             className={`h-full w-[1px] rounded-md ${
               mode === "viewingInSelectDropdown"
-                ? "bg-foreground"
+                ? isBeingHighlightedInDropdown
+                  ? "bg-background"
+                  : "bg-foreground"
                 : "bg-background"
             }`}
           ></div>
@@ -40,7 +45,9 @@ function renderStrummingGuide(
             <div
               className={`absolute bottom-0 right-0 h-[1px] w-1/2 ${
                 mode === "viewingInSelectDropdown"
-                  ? "bg-foreground"
+                  ? isBeingHighlightedInDropdown
+                    ? "bg-background"
+                    : "bg-foreground"
                   : "bg-background"
               }`}
             ></div>
@@ -48,7 +55,9 @@ function renderStrummingGuide(
             <div
               className={`absolute bottom-0 left-0 right-0 h-[1px] w-1/2 ${
                 mode === "viewingInSelectDropdown"
-                  ? "bg-foreground"
+                  ? isBeingHighlightedInDropdown
+                    ? "bg-background"
+                    : "bg-foreground"
                   : "bg-background"
               }`}
             ></div>
@@ -63,7 +72,9 @@ function renderStrummingGuide(
           <div
             className={`h-full w-[1px] rounded-md ${
               mode === "viewingInSelectDropdown"
-                ? "bg-foreground"
+                ? isBeingHighlightedInDropdown
+                  ? "bg-background"
+                  : "bg-foreground"
                 : "bg-background"
             }`}
           ></div>
@@ -73,14 +84,18 @@ function renderStrummingGuide(
               <div
                 className={`absolute bottom-[2px] right-0 h-[1px] w-1/2 ${
                   mode === "viewingInSelectDropdown"
-                    ? "bg-foreground"
+                    ? isBeingHighlightedInDropdown
+                      ? "bg-background"
+                      : "bg-foreground"
                     : "bg-background"
                 }`}
               ></div>
               <div
                 className={`absolute bottom-0 right-0 h-[1px] w-1/2 ${
                   mode === "viewingInSelectDropdown"
-                    ? "bg-foreground"
+                    ? isBeingHighlightedInDropdown
+                      ? "bg-background"
+                      : "bg-foreground"
                     : "bg-background"
                 }`}
               ></div>
@@ -90,14 +105,18 @@ function renderStrummingGuide(
               <div
                 className={`absolute bottom-[2px] left-0 right-0 h-[1px] w-1/2 ${
                   mode === "viewingInSelectDropdown"
-                    ? "bg-foreground"
+                    ? isBeingHighlightedInDropdown
+                      ? "bg-background"
+                      : "bg-foreground"
                     : "bg-background"
                 }`}
               ></div>
               <div
                 className={`absolute bottom-0 left-0 right-0 h-[1px] w-1/2 ${
                   mode === "viewingInSelectDropdown"
-                    ? "bg-foreground"
+                    ? isBeingHighlightedInDropdown
+                      ? "bg-background"
+                      : "bg-foreground"
                     : "bg-background"
                 }`}
               ></div>
@@ -114,7 +133,9 @@ function renderStrummingGuide(
           <div
             className={`h-[7px] w-[1px] rounded-md ${
               mode === "viewingInSelectDropdown"
-                ? "bg-foreground"
+                ? isBeingHighlightedInDropdown
+                  ? "bg-background"
+                  : "bg-foreground"
                 : "bg-background"
             }`}
           ></div>
@@ -122,7 +143,9 @@ function renderStrummingGuide(
             <p
               className={`mt-[3px] text-xs ${
                 mode === "viewingInSelectDropdown"
-                  ? "text-foreground"
+                  ? isBeingHighlightedInDropdown
+                    ? "text-background"
+                    : "text-foreground"
                   : "text-background"
               }`}
             >
@@ -141,7 +164,9 @@ function renderStrummingGuide(
           <div
             className={`h-[7px] w-[1px] rounded-md ${
               mode === "viewingInSelectDropdown"
-                ? "bg-foreground"
+                ? isBeingHighlightedInDropdown
+                  ? "bg-background"
+                  : "bg-foreground"
                 : "bg-background"
             }`}
           ></div>
@@ -150,7 +175,9 @@ function renderStrummingGuide(
               <div
                 className={`absolute right-0 top-[6px] h-[1px] w-1/2 ${
                   mode === "viewingInSelectDropdown"
-                    ? "bg-foreground"
+                    ? isBeingHighlightedInDropdown
+                      ? "bg-background"
+                      : "bg-foreground"
                     : "bg-background"
                 }`}
               ></div>
@@ -162,14 +189,18 @@ function renderStrummingGuide(
               <div
                 className={`absolute right-0 top-[6px] h-[1px] w-1/2 ${
                   mode === "viewingInSelectDropdown"
-                    ? "bg-foreground"
+                    ? isBeingHighlightedInDropdown
+                      ? "bg-background"
+                      : "bg-foreground"
                     : "bg-background"
                 }`}
               ></div>
               <div
                 className={`absolute left-0 top-[6px] h-[1px] w-1/2 ${
                   mode === "viewingInSelectDropdown"
-                    ? "bg-foreground"
+                    ? isBeingHighlightedInDropdown
+                      ? "bg-background"
+                      : "bg-foreground"
                     : "bg-background"
                 }`}
               ></div>
@@ -181,7 +212,9 @@ function renderStrummingGuide(
               <div
                 className={`absolute left-0 top-[6px] h-[1px] w-1/2 ${
                   mode === "viewingInSelectDropdown"
-                    ? "bg-foreground"
+                    ? isBeingHighlightedInDropdown
+                      ? "bg-background"
+                      : "bg-foreground"
                     : "bg-background"
                 }`}
               ></div>
@@ -192,7 +225,9 @@ function renderStrummingGuide(
             <p
               className={`mt-[3px] text-xs ${
                 mode === "viewingInSelectDropdown"
-                  ? "text-foreground"
+                  ? isBeingHighlightedInDropdown
+                    ? "text-background"
+                    : "text-foreground"
                   : "text-background"
               }`}
             >
@@ -209,7 +244,9 @@ function renderStrummingGuide(
           <div
             className={`h-[7px] w-[1px] rounded-md ${
               mode === "viewingInSelectDropdown"
-                ? "bg-foreground"
+                ? isBeingHighlightedInDropdown
+                  ? "bg-background"
+                  : "bg-foreground"
                 : "bg-background"
             }`}
           ></div>
@@ -218,14 +255,18 @@ function renderStrummingGuide(
               <div
                 className={`absolute right-0 top-[4px] h-[1px] w-1/2 ${
                   mode === "viewingInSelectDropdown"
-                    ? "bg-foreground"
+                    ? isBeingHighlightedInDropdown
+                      ? "bg-background"
+                      : "bg-foreground"
                     : "bg-background"
                 }`}
               ></div>
               <div
                 className={`absolute right-0 top-[6px] h-[1px] w-1/2 ${
                   mode === "viewingInSelectDropdown"
-                    ? "bg-foreground"
+                    ? isBeingHighlightedInDropdown
+                      ? "bg-background"
+                      : "bg-foreground"
                     : "bg-background"
                 }`}
               ></div>
@@ -237,28 +278,36 @@ function renderStrummingGuide(
               <div
                 className={`absolute right-0 top-[4px] h-[1px] w-1/2 ${
                   mode === "viewingInSelectDropdown"
-                    ? "bg-foreground"
+                    ? isBeingHighlightedInDropdown
+                      ? "bg-background"
+                      : "bg-foreground"
                     : "bg-background"
                 }`}
               ></div>
               <div
                 className={`absolute right-0 top-[6px] h-[1px] w-1/2 ${
                   mode === "viewingInSelectDropdown"
-                    ? "bg-foreground"
+                    ? isBeingHighlightedInDropdown
+                      ? "bg-background"
+                      : "bg-foreground"
                     : "bg-background"
                 }`}
               ></div>
               <div
                 className={`absolute left-0 top-[4px] h-[1px] w-1/2 ${
                   mode === "viewingInSelectDropdown"
-                    ? "bg-foreground"
+                    ? isBeingHighlightedInDropdown
+                      ? "bg-background"
+                      : "bg-foreground"
                     : "bg-background"
                 }`}
               ></div>
               <div
                 className={`absolute left-0 top-[6px] h-[1px] w-1/2 ${
                   mode === "viewingInSelectDropdown"
-                    ? "bg-foreground"
+                    ? isBeingHighlightedInDropdown
+                      ? "bg-background"
+                      : "bg-foreground"
                     : "bg-background"
                 }`}
               ></div>
@@ -270,14 +319,18 @@ function renderStrummingGuide(
               <div
                 className={`absolute left-0 top-[4px] h-[1px] w-1/2 ${
                   mode === "viewingInSelectDropdown"
-                    ? "bg-foreground"
+                    ? isBeingHighlightedInDropdown
+                      ? "bg-background"
+                      : "bg-foreground"
                     : "bg-background"
                 }`}
               ></div>
               <div
                 className={`absolute left-0 top-[6px] h-[1px] w-1/2 ${
                   mode === "viewingInSelectDropdown"
-                    ? "bg-foreground"
+                    ? isBeingHighlightedInDropdown
+                      ? "bg-background"
+                      : "bg-foreground"
                     : "bg-background"
                 }`}
               ></div>
@@ -288,7 +341,9 @@ function renderStrummingGuide(
             <p
               className={`mt-[3px] text-xs ${
                 mode === "viewingInSelectDropdown"
-                  ? "text-foreground"
+                  ? isBeingHighlightedInDropdown
+                    ? "text-background"
+                    : "text-foreground"
                   : "text-background"
               }`}
             >
