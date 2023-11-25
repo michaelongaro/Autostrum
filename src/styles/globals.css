@@ -20,7 +20,7 @@
 }
 
 .lightestGlassmorphic {
-  @apply backdrop-blur-sm shadow-lightestGlassmorphic bg-gradient-to-br from-pink-500/40 via-pink-500/60 to-pink-500/70;
+  @apply backdrop-blur-sm shadow-lightestGlassmorphic bg-gradient-to-br from-pink-500/40 via-pink-500/60 to-pink-500/80;
 }
 
 .lightGlassmorphic {
@@ -41,7 +41,7 @@
 .headerBackgroundGradient {
   /* need to do this instead of one-liner for safari compatability 
      with background-attachment: fixed */
-  background: linear-gradient(315deg, hsl(332, 96%, 75%), hsl(298, 100%, 82%));
+  background: linear-gradient(315deg, hsl(332, 96%, 76%), hsl(298, 100%, 83%));
   background-repeat: no-repeat;
   background-position: center;
 }
