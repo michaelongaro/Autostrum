@@ -416,7 +416,10 @@ interface TabState {
     audioBuffer,
     secondsElapsed,
   }: PlayRecordedAudio) => void;
-  pauseAudio: (resetToStart?: boolean) => void;
+  pauseAudio: (
+    resetToStart?: boolean,
+    resetCurrentlyPlayingMetadata?: boolean
+  ) => void;
 
   // related to search
   searchResultsCount: number;
@@ -910,7 +913,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         };
       },
 
-      pauseAudio: (resetToStart) => {
+      pauseAudio: (resetToStart, resetCurrentlyPlayingMetadata) => {
         const {
           audioMetadata,
           previewMetadata,
@@ -923,6 +926,12 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           !previewMetadata.playing &&
           resetToStart
         ) {
+          if (resetCurrentlyPlayingMetadata) {
+            set({
+              currentlyPlayingMetadata: null,
+            });
+          }
+
           resetTabSliderPosition();
           set({
             currentChordIndex: 0,
@@ -950,6 +959,12 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           audioMetadata.playing &&
           audioMetadata.type === "Generated"
         ) {
+          if (resetCurrentlyPlayingMetadata) {
+            set({
+              currentlyPlayingMetadata: null,
+            });
+          }
+
           set({
             audioMetadata: {
               ...audioMetadata,

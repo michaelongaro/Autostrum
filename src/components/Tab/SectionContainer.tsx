@@ -248,7 +248,7 @@ function SectionContainer({
         });
       }
 
-      if (!locationIsEqual || previewMetadata.playing) pauseAudio(true);
+      if (!locationIsEqual || previewMetadata.playing) pauseAudio(true, true);
       setTimeout(() => {
         setTimeout(() => {
           void playTab({ tabId: id, location: { sectionIndex } });
