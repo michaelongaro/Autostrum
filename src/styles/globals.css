@@ -27,6 +27,10 @@
   @apply bg-gradient-to-br from-pink-200/10 to-pink-200/25 backdrop-blur-sm shadow-md;
 }
 
+.homepageLightGlassmorphic {
+  @apply bg-gradient-to-br from-pink-200/[0.15] to-pink-200/25 backdrop-blur-sm shadow-md;
+}
+
 .autofillResultsGlassmorphic {
   @apply bg-gradient-to-br from-pink-400 to-pink-500 backdrop-blur-xl shadow-sm;
 }
