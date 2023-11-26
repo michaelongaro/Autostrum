@@ -45,7 +45,7 @@
 .headerBackgroundGradient {
   /* need to do this instead of one-liner for safari compatability 
      with background-attachment: fixed */
-  background: linear-gradient(315deg, hsl(332, 96%, 76%), hsl(298, 100%, 83%));
+  background: linear-gradient(315deg, hsl(332, 96%, 76%), hsl(298, 100%, 81%));
   background-repeat: no-repeat;
   background-position: center;
 }
@@ -77,7 +77,7 @@
 
 @media(min-width: 768px) {
   .headerBackgroundGradient {
-    background: linear-gradient(315deg, hsl(345, 95%, 70%), hsl(331, 95%, 77%), hsl(298, 100%, 82%));
+    background: linear-gradient(315deg, hsl(345, 95%, 70%), hsl(331, 95%, 77%), hsl(298, 100%, 80%));
   }
 
   .footerBackgroundGradient {
@@ -176,7 +176,7 @@ body::before {
   bottom: 0;
   left: 0;
   z-index: -1;
-  background: linear-gradient(145deg, hsl(297, 100%, 79%), hsl(340, 100%, 67%), hsl(0, 84%, 60%)) center / cover;
+  background: linear-gradient(145deg, hsl(297, 100%, 76%), hsl(340, 100%, 67%), hsl(0, 84%, 56%)) center / cover;
   height: 100vh;
 }
 

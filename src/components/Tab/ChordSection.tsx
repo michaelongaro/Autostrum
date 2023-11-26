@@ -311,7 +311,7 @@ function ChordSection({
       </AnimatePresence>
 
       {editing && (
-        <Button variant={"outline"} onClick={addAnotherChordSequence}>
+        <Button onClick={addAnotherChordSequence}>
           {`Add ${
             subSectionData.data.length === 0 ? "a" : "another"
           } chord progression`}

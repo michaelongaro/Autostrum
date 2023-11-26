@@ -969,7 +969,6 @@ function TabSection({
       {editing && (
         <Button
           id={`${sectionIndex}${subSectionIndex}ExtendTabButton`}
-          variant={"outline"}
           onKeyDown={handleExtendTabButtonKeyDown}
           onClick={addNewColumns}
         >
