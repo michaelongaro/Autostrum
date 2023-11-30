@@ -17,7 +17,7 @@ const buttonVariants = cva(
         outline:
           "border border-input hover:bg-background hover:text-foreground active:bg-background/60",
         secondary:
-          "lightGlassmorphic text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/60 border-2",
+          "bg-secondary/50 text-secondary-foreground shadow-lightestGlassmorphic hover:bg-secondary/80 active:bg-secondary/40 border-2",
         ghost:
           "hover:bg-toggleOn hover:text-foreground shadow-none active:bg-toggleOn/60",
         link: "underline-offset-4 hover:underline shadow-none",
@@ -27,9 +27,11 @@ const buttonVariants = cva(
         toggledOff:
           "text-primary-foreground hover:bg-secondary/20 active:bg-secondary/30 border-2",
         navigation:
-          "bg-pink-200 hover:bg-pink-700 text-pink-800 hover:text-pink-200 active:bg-pink-800 active:text-pink-200",
+          "bg-pink-200 hover:bg-pink-700 text-pink-800 !shadow-primaryButton hover:text-pink-200 active:bg-pink-800 active:text-pink-200",
         playPause:
           "bg-green-600 hover:bg-green-700 shadow-none active:bg-green-800 disabled:opacity-50 disabled:bg-gray-500",
+        scrollToTop:
+          "lightGlassmorphic text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/60 border-2",
       },
       size: {
         default: "h-10 px-4 py-2",

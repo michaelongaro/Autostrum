@@ -242,7 +242,7 @@ function GeneralLayoutStatefulShell() {
             className="baseFlex fixed right-1 z-[47] lg:right-4"
           >
             <Button
-              variant="secondary"
+              variant="scrollToTop"
               className="h-8 w-8 rounded-full p-[0.3rem] md:h-9 md:w-9 md:p-1"
             >
               <BsArrowUpShort className="h-5 w-5" />
