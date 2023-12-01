@@ -35,7 +35,7 @@ function DesktopHeader() {
             src="/logoWithTitle.svg"
             alt="Autostrum header logo"
             style={{
-              filter: "drop-shadow(0px 2px 1px hsla(336, 84%, 17%, 0.10))",
+              filter: "drop-shadow(0px 1px 1px hsla(336, 84%, 17%, 0.10))",
             }}
             width={175}
             height={100}
