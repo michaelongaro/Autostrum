@@ -183,7 +183,7 @@ function MobileHeader() {
               src="/logoWithTitle.svg"
               alt="Autostrum header logo"
               style={{
-                filter: "drop-shadow(0px 1px 1px hsla(336, 84%, 17%, 0.10))",
+                filter: "drop-shadow(0px 1px 0px hsla(336, 84%, 17%, 0.25))",
               }}
               width={150}
               height={50}
