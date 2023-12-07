@@ -186,7 +186,7 @@ function MobileHeader() {
         <div className="absolute flex h-16 w-full items-start justify-between overflow-clip p-2 lg:hidden">
           <Link
             href={"/"}
-            className="baseFlex h-12 pl-2 hover:brightness-[1.05] active:brightness-[0.95]"
+            className="baseFlex h-12 pl-2 transition-[filter] hover:brightness-[1.05] active:brightness-[0.95]"
           >
             <Image
               src="/logoWithTitle.svg"

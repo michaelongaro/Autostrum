@@ -25,7 +25,7 @@
 
 .logo {
   grid-area: logo;
-  transition: all 0.15s ease-in-out;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .logo:hover {
