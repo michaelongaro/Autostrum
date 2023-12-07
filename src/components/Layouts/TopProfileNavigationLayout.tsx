@@ -67,7 +67,7 @@ function TopProfileNavigationLayout({ children }: Layout) {
         }}
         className="baseVertFlex my-12 w-full md:my-24"
       >
-        <TabsList className="z-40 grid h-full w-11/12 grid-cols-3 gap-2 md:w-[450px]">
+        <TabsList className="z-40 grid h-full w-11/12 grid-cols-3 gap-2 md:w-[500px]">
           <TabsTrigger
             value="preferences"
             className="baseVertFlex w-full gap-2 md:!flex-row"
@@ -75,21 +75,21 @@ function TopProfileNavigationLayout({ children }: Layout) {
               void push(`/profile/preferences`);
             }}
           >
-            <IoSettingsOutline className="h-4 w-4" />
+            <IoSettingsOutline className="h-4 w-4 md:h-5 md:w-5" />
             Preferences
           </TabsTrigger>
           <TabsTrigger
             value="tabs"
             className="baseVertFlex w-full gap-2 md:!flex-row"
           >
-            <FaGuitar className="h-4 w-4" />
+            <FaGuitar className="h-4 w-4 md:h-5 md:w-5" />
             Tabs
           </TabsTrigger>
           <TabsTrigger
             value="likes"
             className="baseVertFlex w-full gap-2 md:!flex-row"
           >
-            <AiOutlineHeart className="h-4 w-4" />
+            <AiOutlineHeart className="h-4 w-4 md:h-5 md:w-5" />
             Likes
           </TabsTrigger>
         </TabsList>
