@@ -190,7 +190,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
                     fret.length > 0 && !isFocused[index] ? "2px" : "1px"
                   }`,
                   color: highlightChord
-                    ? "hsl(333, 71%, 51%)"
+                    ? "hsl(335, 78%, 42%)"
                     : "hsl(324, 77%, 95%)",
                 }}
                 className="h-[37px] w-[37px] rounded-full p-0 text-center shadow-sm shadow-pink-600"
@@ -219,7 +219,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
                   <div
                     style={{
                       color: highlightChord
-                        ? "hsl(333, 71%, 51%)"
+                        ? "hsl(335, 78%, 42%)"
                         : "hsl(324, 77%, 95%)",
                     }}
                     className="h-6 transition-colors"

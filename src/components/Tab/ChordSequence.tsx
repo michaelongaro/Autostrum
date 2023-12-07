@@ -207,9 +207,9 @@ function ChordSequence({
       key={chordSequenceData.id}
       {...(editing && !preventFramerLayoutShift && { layout: "position" })}
       variants={opacityAndScaleVariants}
-      // initial="closed"
-      // animate="expanded"
-      // exit="closed"
+      initial={editing ? "closed" : "expanded"}
+      animate={editing ? "expanded" : "expanded"}
+      exit={editing ? "closed" : "expanded"}
       transition={{
         layout: {
           type: "spring",

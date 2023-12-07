@@ -171,7 +171,7 @@ function Chords() {
                         previewMetadata.indexOfPattern === index &&
                         previewMetadata.playing &&
                         previewMetadata.type === "chord"
-                          ? "hsl(333, 71%, 51%)"
+                          ? "hsl(335, 78%, 42%)"
                           : "hsl(324, 77%, 95%)",
                     }}
                     className="px-3 font-semibold transition-colors"

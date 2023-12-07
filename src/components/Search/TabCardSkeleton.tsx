@@ -42,7 +42,7 @@ function TabCardSkeleton({
         className="animate-pulse rounded-t-sm bg-pink-300"
       ></div>
 
-      <Separator />
+      <Separator className="bg-pink-100" />
 
       <div
         className={`baseFlex w-full !items-end !justify-between ${

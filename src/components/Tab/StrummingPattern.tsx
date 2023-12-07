@@ -591,7 +591,7 @@ function StrummingPattern({
                             ? "none"
                             : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
                           color: highlightChord(strumIndex)
-                            ? "hsl(333, 71%, 51%)"
+                            ? "hsl(335, 78%, 42%)"
                             : "hsl(324, 77%, 95%)",
                         }}
                         className="mx-0.5 h-6 text-base font-semibold transition-colors"
@@ -646,7 +646,7 @@ function StrummingPattern({
                           : "1px"
                       }`,
                       color: highlightChord(strumIndex, true)
-                        ? "hsl(333, 71%, 51%)"
+                        ? "hsl(335, 78%, 42%)"
                         : "hsl(324, 77%, 95%)",
                     }}
                     className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm shadow-pink-600"
@@ -678,7 +678,7 @@ function StrummingPattern({
                             ? "hsl(324, 77%, 95%)"
                             : "hsl(336, 84%, 17%)"
                           : highlightChord(strumIndex, index !== undefined)
-                          ? "hsl(333, 71%, 51%)"
+                          ? "hsl(335, 78%, 42%)"
                           : "hsl(324, 77%, 95%)",
                     }}
                     className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
@@ -759,7 +759,7 @@ function StrummingPattern({
                         ? "hsl(324, 77%, 95%)"
                         : "hsl(336, 84%, 17%)"
                       : highlightChord(strumIndex, index !== undefined)
-                      ? "hsl(333, 71%, 51%)"
+                      ? "hsl(335, 78%, 42%)"
                       : "hsl(324, 77%, 95%)",
                 }}
                 className="text-sm transition-colors"

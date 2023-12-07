@@ -244,7 +244,7 @@ function HighlightTabNoteColumn({
             transitionTimingFunction: "linear",
             bottom: highlightPaddingBottom,
           }}
-          className="absolute left-0 z-[-1] h-[168px] w-full bg-pink-600"
+          className="absolute left-0 z-[-1] h-[168px] w-full bg-pink-700"
         ></div>
       </div>
     </div>

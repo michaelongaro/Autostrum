@@ -302,7 +302,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
           </div>
         </Link>
 
-        <Separator />
+        <Separator className="bg-pink-100" />
 
         <div className="baseVertFlex lightestGlassmorphic w-full !justify-between gap-2 rounded-b-md !shadow-none">
           {/* title and date + genre */}

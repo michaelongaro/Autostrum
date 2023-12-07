@@ -264,7 +264,7 @@ function TabNotesColumn({
             msTransitionProperty: "transform",
             transitionTimingFunction: "linear",
           }}
-          className="absolute left-0 w-full bg-pink-600"
+          className="absolute left-0 w-full bg-pink-700"
         ></div>
 
         <div
