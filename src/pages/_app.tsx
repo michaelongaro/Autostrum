@@ -20,7 +20,7 @@ function MyApp({ Component, pageProps }: ComponentWithPageLayout) {
         variables: {
           colorPrimary: "rgb(236, 72, 153)",
           colorInputBackground: "rgb(252, 232, 244)",
-          colorTextSecondary: "rgb(219, 39, 119)",
+          colorTextSecondary: "rgb(129, 24, 66)",
           fontFamily: "'Noto Sans', sans-serif",
           borderRadius: "0.375rem",
           colorDanger: "rgb(220, 38, 38)",
