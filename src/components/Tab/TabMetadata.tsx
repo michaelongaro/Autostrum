@@ -335,6 +335,7 @@ function TabMetadata({
       return;
     }
 
+    pauseAudio(true);
     setEditing(false);
   }
 
@@ -1154,9 +1155,13 @@ function TabMetadata({
                     disabled={isLoadingARoute}
                     className="baseFlex gap-2"
                     onClick={() => {
-                      if (asPath.includes("create") || asPath.includes("edit"))
+                      if (
+                        asPath.includes("create") ||
+                        asPath.includes("edit")
+                      ) {
+                        pauseAudio(true);
                         setEditing(true);
-                      else void push(`/tab/${id}/edit`);
+                      } else void push(`/tab/${id}/edit`);
                     }}
                   >
                     {asPath.includes("edit") || asPath.includes("create")
@@ -1282,9 +1287,10 @@ function TabMetadata({
                         if (
                           asPath.includes("create") ||
                           asPath.includes("edit")
-                        )
+                        ) {
+                          pauseAudio(true);
                           setEditing(true);
-                        else void push(`/tab/${id}/edit`);
+                        } else void push(`/tab/${id}/edit`);
                       }}
                     >
                       {asPath.includes("edit") || asPath.includes("create")
