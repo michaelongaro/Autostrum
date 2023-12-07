@@ -20,7 +20,7 @@
 }
 
 .lightestGlassmorphic {
-  @apply backdrop-blur-sm shadow-lightestGlassmorphic bg-gradient-to-br from-pink-500/50 to-pink-500/70;
+  @apply backdrop-blur-sm shadow-lightestGlassmorphic bg-gradient-to-br from-pink-500/60 to-pink-500/80;
 }
 
 .lightGlassmorphic {
@@ -76,10 +76,6 @@
 }
 
 @media(min-width: 768px) {
-  .homepageLightGlassmorphic {
-    @apply bg-gradient-to-br from-pink-200/[0.15] to-pink-200/25 backdrop-blur-sm shadow-md;
-  }
-
   .headerBackgroundGradient {
     background: linear-gradient(315deg, hsl(345, 95%, 69%), hsl(331, 95%, 74%), hsl(298, 100%, 79%));
   }
