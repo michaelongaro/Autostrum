@@ -12,6 +12,7 @@ import Tab from "~/components/Tab/Tab";
 import TabSkeleton from "~/components/Tab/TabSkeleton";
 import { Button } from "~/components/ui/button";
 import { api } from "~/utils/api";
+import { AnimatePresence } from "framer-motion";
 
 interface OpenGraphData {
   title: string;
@@ -73,11 +74,13 @@ function IndividualTabEdit({
         ></meta>
       </Head>
 
-      {fetchedTab ? (
-        <Tab tab={fetchedTab.data} />
-      ) : (
-        <TabSkeleton editing={true} />
-      )}
+      <AnimatePresence mode="wait">
+        {fetchedTab ? (
+          <Tab tab={fetchedTab.data} />
+        ) : (
+          <TabSkeleton editing={true} />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

@@ -3,9 +3,19 @@ import { AiOutlineHeart } from "react-icons/ai";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
+import { motion } from "framer-motion";
 
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import classes from "./TabMetadata.module.css";
+
+const opacityVariants = {
+  expanded: {
+    opacity: 1,
+  },
+  closed: {
+    opacity: 0,
+  },
+};
 
 interface TabSkeleton {
   editing: boolean;
@@ -16,7 +26,15 @@ function TabSkeleton({ editing }: TabSkeleton) {
   const { asPath } = useRouter();
 
   return (
-    <div className="baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-md shadow-md md:my-24 xl:w-8/12">
+    <motion.div
+      key={"tabSkeletonBeingViewed"}
+      variants={opacityVariants}
+      initial="closed"
+      animate="expanded"
+      exit="closed"
+      transition={{ duration: 0.5 }}
+      className="baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-md shadow-md md:my-24 xl:w-8/12"
+    >
       {editing && (
         <>
           <div className="baseVertFlex w-full gap-2">
@@ -308,7 +326,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
           </div>
         </>
       )}
-    </div>
+    </motion.div>
   );
 }
 

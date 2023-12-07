@@ -49,6 +49,15 @@ export interface RefetchTab {
     // @ts-expect-error asdf
   ) => Promise<QueryObserverResult<TData, TError>>;
 }
+
+const opacityVariants = {
+  expanded: {
+    opacity: 1,
+  },
+  closed: {
+    opacity: 0,
+  },
+};
 interface ITab extends Partial<RefetchTab> {
   tab: TabWithLikes | undefined | null;
 }
@@ -267,7 +276,15 @@ function Tab({ tab, refetchTab }: ITab) {
   }
 
   return (
-    <>
+    <motion.div
+      key={"fullTabBeingViewed"}
+      variants={opacityVariants}
+      initial="closed"
+      animate="expanded"
+      exit="closed"
+      transition={{ duration: 0.5 }}
+      className="baseVertFlex w-full"
+    >
       <div
         id={"mainTabComponent"}
         style={{
@@ -428,7 +445,7 @@ function Tab({ tab, refetchTab }: ITab) {
           />
         )}
       </AnimatePresence>
-    </>
+    </motion.div>
   );
 }
 

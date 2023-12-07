@@ -11,6 +11,7 @@ import Tab from "~/components/Tab/Tab";
 import TabSkeleton from "~/components/Tab/TabSkeleton";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
+import { AnimatePresence } from "framer-motion";
 
 interface OpenGraphData {
   title: string;
@@ -80,13 +81,13 @@ function IndividualTabView({
         ></meta>
       </Head>
 
-      <>
+      <AnimatePresence mode="wait">
         {fetchedTab ? (
           <Tab tab={fetchedTab} refetchTab={refetchTab} />
         ) : (
           <TabSkeleton editing={false} />
         )}
-      </>
+      </AnimatePresence>
     </motion.div>
   );
 }
