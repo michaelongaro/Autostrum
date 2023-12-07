@@ -81,7 +81,7 @@
   }
 
   .headerBackgroundGradient {
-    background: linear-gradient(315deg, hsl(345, 95%, 69%), hsl(331, 95%, 76%), hsl(298, 100%, 78%));
+    background: linear-gradient(315deg, hsl(345, 95%, 69%), hsl(331, 95%, 74%), hsl(298, 100%, 79%));
   }
 
   .footerBackgroundGradient {

@@ -9,6 +9,7 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
 import GridTabCard from "../Search/GridTabCard";
 import TabCardSkeleton from "../Search/TabCardSkeleton";
+import classes from "./Hero.module.css";
 
 function Hero({
   showSignUpAndSignInButtons,
@@ -44,10 +45,9 @@ function Hero({
           <p className="text-center text-base md:text-lg">
             Create and share your riffs{" "}
             <span
-              style={{
-                textShadow: "0px 0px 0px hsla(336, 84%, 17%, 0.35)",
-              }}
-              className="mx-[1px] italic text-pink-600 underline underline-offset-2"
+              className={`${
+                classes.exactlySpanShadow ?? ""
+              } mx-[1px] italic text-pink-600 underline underline-offset-2`}
             >
               exactly
             </span>{" "}
