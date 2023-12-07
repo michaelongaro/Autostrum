@@ -116,7 +116,7 @@ function useAutoscrollToCurrentChord({
       // TODO: technically I think you would want to abstract this whole function out to optionally do the
       // current chord or the next chord based on whether or not the audio is playing, since when scrolling
       // backwards through the tab I think it is off by one.
-      audioMetadata.playing ? durationOfCurrentChord * 0.85 : 0
+      audioMetadata.playing ? durationOfCurrentChord * 0.9 : 0
     );
   }, [
     editing,
