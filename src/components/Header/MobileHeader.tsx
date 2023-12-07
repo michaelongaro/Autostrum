@@ -76,7 +76,7 @@ function MobileHeader() {
                   color: asPath.includes("/explore") ? "#fbcfe8" : undefined,
                 }}
               >
-                <Link href={"/explore"} className="baseFlex gap-2 text-lg">
+                <Link href={"/explore"} className="baseFlex w-40 gap-2 text-lg">
                   <IoTelescopeOutline className="h-6 w-6" />
                   Explore
                 </Link>
@@ -93,7 +93,7 @@ function MobileHeader() {
                   color: asPath.includes("/create") ? "#fbcfe8" : undefined,
                 }}
               >
-                <Link href={"/create"} className="baseFlex gap-2 text-lg">
+                <Link href={"/create"} className="baseFlex w-40 gap-2 text-lg">
                   <FaGuitar className="h-6 w-6" />
                   Create
                 </Link>
@@ -178,7 +178,10 @@ function MobileHeader() {
 
       <nav className="headerBackgroundGradient sticky left-0 top-0 z-[49] grid h-16 w-full grid-cols-1 grid-rows-1 shadow-md">
         <div className="absolute flex h-16 w-full items-start justify-between overflow-clip p-2 lg:hidden">
-          <Link href={"/"} className="baseFlex h-12 pl-2">
+          <Link
+            href={"/"}
+            className="baseFlex h-12 pl-2 hover:brightness-[1.05] active:brightness-[0.95]"
+          >
             <Image
               src="/logoWithTitle.svg"
               alt="Autostrum header logo"

@@ -25,6 +25,15 @@
 
 .logo {
   grid-area: logo;
+  transition: all 0.15s ease-in-out;
+}
+
+.logo:hover {
+  filter: brightness(1.05);
+}
+
+.logo:active {
+  filter: brightness(0.95);
 }
 
 .explore {
