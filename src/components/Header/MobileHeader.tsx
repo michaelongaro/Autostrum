@@ -76,7 +76,10 @@ function MobileHeader() {
                   color: asPath.includes("/explore") ? "#fbcfe8" : undefined,
                 }}
               >
-                <Link href={"/explore"} className="baseFlex w-40 gap-2 text-lg">
+                <Link
+                  href={"/explore"}
+                  className="baseFlex w-[165px] gap-2 text-[1.13rem]"
+                >
                   <IoTelescopeOutline className="h-6 w-6" />
                   Explore
                 </Link>
@@ -93,7 +96,10 @@ function MobileHeader() {
                   color: asPath.includes("/create") ? "#fbcfe8" : undefined,
                 }}
               >
-                <Link href={"/create"} className="baseFlex w-40 gap-2 text-lg">
+                <Link
+                  href={"/create"}
+                  className="baseFlex w-[165px] gap-2 text-[1.13rem]"
+                >
                   <FaGuitar className="h-6 w-6" />
                   Create
                 </Link>
@@ -186,7 +192,7 @@ function MobileHeader() {
               src="/logoWithTitle.svg"
               alt="Autostrum header logo"
               style={{
-                filter: "drop-shadow(0px 1px 0px hsla(336, 84%, 17%, 0.25))",
+                filter: "drop-shadow(0px 1px 0.5px hsla(336, 84%, 17%, 0.25))",
               }}
               width={150}
               height={50}
