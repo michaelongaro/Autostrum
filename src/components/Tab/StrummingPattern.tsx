@@ -403,7 +403,7 @@ function StrummingPattern({
       return (
         previewMetadata.type === "strummingPattern" &&
         previewMetadata.indexOfPattern === index &&
-        previewMetadata.currentChordIndex === chordIndex
+        previewMetadata.currentChordIndex >= chordIndex
       );
     }
 
@@ -445,8 +445,8 @@ function StrummingPattern({
         subSectionIndex ||
       currentlyPlayingMetadata[currentChordIndex]?.location
         .chordSequenceIndex !== chordSequenceIndex ||
-      (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ??
-        -1) !== chordIndex
+      (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ?? -1) <
+        chordIndex
     ) {
       return false;
     }
