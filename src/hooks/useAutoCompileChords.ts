@@ -39,11 +39,19 @@ function useAutoCompileChords() {
   useEffect(() => {
     if (audioMetadata.type === "Artist recording") return;
 
+    // I *think* this covers all of the edge cases
     function wholeTabIsEmpty() {
-      // I *think* this covers all of the edge cases
       if (tabData.length === 0 || tabData[0]?.data.length === 0) {
         return true;
       }
+
+      if (
+        tabData[0]?.data?.[0]?.type === "chord" &&
+        tabData[0]?.data?.[0]?.data?.[0]?.data?.length === 0
+      ) {
+        return true;
+      }
+
       return false;
     }
 
