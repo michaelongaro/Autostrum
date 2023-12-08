@@ -1,4 +1,4 @@
-import { BiDownArrowAlt, BiUpArrowAlt } from "react-icons/bi";
+import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import { type StrummingPattern } from "~/stores/TabStore";
 
 interface StrummingPatternPreview {
@@ -23,14 +23,14 @@ function StrummingPatternPreview({ data }: StrummingPatternPreview) {
                 {/* only rendering v/^/s to keep preview from getting too large */}
                 <div className="baseVertFlex h-full text-lg text-background">
                   {strum.strum.includes("v") && (
-                    <BiDownArrowAlt className="h-5 w-5" />
+                    <BsArrowDown className="h-4 w-4" />
                   )}
                   {strum.strum.includes("^") && (
-                    <BiUpArrowAlt className="h-5 w-5" />
+                    <BsArrowUp className="h-4 w-4" />
                   )}
 
                   {strum.strum.includes("s") && (
-                    <div className="baseFlex h-5 leading-[0]">
+                    <div className="baseFlex mb-[5px] h-4 text-[17px] leading-[0]">
                       {strum.strum[0]}
                     </div>
                   )}

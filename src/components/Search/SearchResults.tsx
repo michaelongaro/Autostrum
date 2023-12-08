@@ -427,7 +427,7 @@ function SearchResults({
                       handleTypeChange(value as "tabs" | "artists")
                     }
                   >
-                    <SelectTrigger className="w-28">
+                    <SelectTrigger className="w-28 border-ring">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent
@@ -451,7 +451,7 @@ function SearchResults({
                   value={genreId.toString()}
                   onValueChange={(value) => handleGenreChange(value)}
                 >
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-[180px] border-ring">
                     <SelectValue placeholder="Select a genre" />
                   </SelectTrigger>
                   <SelectContent
@@ -493,7 +493,7 @@ function SearchResults({
                     handleViewChange(value as "grid" | "table")
                   }
                 >
-                  <SelectTrigger className="w-24">
+                  <SelectTrigger className="w-24 border-ring">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent
@@ -526,7 +526,7 @@ function SearchResults({
                     )
                   }
                 >
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-32 border-ring">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent

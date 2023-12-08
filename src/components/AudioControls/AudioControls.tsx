@@ -1152,7 +1152,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                         }
                       }}
                     >
-                      <SelectTrigger className="max-w-[10rem]">
+                      <SelectTrigger className="max-w-[10rem] border-ring">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1192,7 +1192,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                         );
                       }}
                     >
-                      <SelectTrigger className="max-w-[15rem]">
+                      <SelectTrigger className="max-w-[15rem] border-ring">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1247,7 +1247,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                         setPlaybackSpeed(newPlaybackSpeed);
                       }}
                     >
-                      <SelectTrigger className="w-24">
+                      <SelectTrigger className="w-24 border-ring">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
