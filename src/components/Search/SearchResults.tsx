@@ -472,8 +472,10 @@ function SearchResults({
                               <div
                                 style={{
                                   backgroundColor: genre.color,
+                                  boxShadow:
+                                    "0 1px 1px hsla(336, 84%, 17%, 0.9)",
                                 }}
-                                className="h-3 w-3 rounded-full shadow-md"
+                                className="h-3 w-3 rounded-full"
                               ></div>
                               {genre.name}
                             </div>
@@ -628,8 +630,10 @@ function SearchResults({
                                 <div
                                   style={{
                                     backgroundColor: genre.color,
+                                    boxShadow:
+                                      "0 1px 1px hsla(336, 84%, 17%, 0.9)",
                                   }}
-                                  className="h-3 w-3 rounded-full shadow-md"
+                                  className="h-3 w-3 rounded-full"
                                 ></div>
                               )}
                               {genre.name}
