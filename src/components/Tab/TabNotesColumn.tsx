@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { Element } from "react-scroll";
 import {
@@ -14,11 +14,26 @@ import {
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { useTabStore } from "~/stores/TabStore";
+import { v4 as uuid } from "uuid";
+import { BsPlus } from "react-icons/bs";
+import { HiEllipsisVertical } from "react-icons/hi2";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+} from "~/components/ui/dropdown-menu";
+import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 import { Button } from "../ui/button";
 import PalmMuteNode from "./PalmMuteNode";
 import TabNote from "./TabNote";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 
+const noteLengthDurations = ["1/4th", "1/8th", "1/16th"];
 interface TabNotesColumn {
   columnData: string[];
   sectionIndex: number;
@@ -37,6 +52,8 @@ interface TabNotesColumn {
   >;
   reorderingColumns: boolean;
   showingDeleteColumnsButtons: boolean;
+  columnIdxBeingHovered: number | null;
+  setColumnIdxBeingHovered: Dispatch<SetStateAction<number | null>>;
 }
 
 function TabNotesColumn({
@@ -55,10 +72,14 @@ function TabNotesColumn({
   setLastModifiedPalmMuteNode,
   reorderingColumns,
   showingDeleteColumnsButtons,
+  columnIdxBeingHovered,
+  setColumnIdxBeingHovered,
 }: TabNotesColumn) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
   const [highlightChord, setHighlightChord] = useState(false);
+  const [chordSettingDropdownIsOpen, setChordSettingDropdownIsOpen] =
+    useState(false);
 
   const {
     attributes,
@@ -232,6 +253,60 @@ function TabNotesColumn({
     setTabData(newTabData);
   }
 
+  function addNewColumn(after: boolean) {
+    const newTabData = getTabData();
+
+    const newColumnPalmMuteValue =
+      (columnData[0] === "start" && after) ||
+      (columnData[0] === "end" && !after) ||
+      columnData[0] === "-"
+        ? "-"
+        : "";
+
+    const newColumnData = [
+      newColumnPalmMuteValue,
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "note", // will be overwritten by note length if it's specified
+      uuid(),
+    ];
+
+    if (after) {
+      newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
+        columnIndex + 1,
+        0,
+        newColumnData
+      );
+    } else {
+      newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
+        columnIndex,
+        0,
+        newColumnData
+      );
+    }
+
+    setTabData(newTabData);
+  }
+
+  function handleNoteLengthChange(noteLength: "1/4th" | "1/8th" | "1/16th") {
+    const newTabData = getTabData();
+
+    columnData[8] = noteLength;
+
+    newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
+      columnIndex,
+      1,
+      columnData
+    );
+
+    setTabData(newTabData);
+  }
+
   return (
     <motion.div
       key={columnData[9]}
@@ -245,6 +320,8 @@ function TabNotesColumn({
         zIndex: isDragging ? 50 : "auto",
         height: editing ? "400px" : "271px",
       }}
+      onMouseEnter={() => setColumnIdxBeingHovered(columnIndex)}
+      onMouseLeave={() => setColumnIdxBeingHovered(null)}
       className="baseVertFlex cursor-default"
     >
       <Element
@@ -308,6 +385,76 @@ function TabNotesColumn({
                 </div>
               )}
 
+              <AnimatePresence mode="wait">
+                {index === 1 &&
+                  (columnIdxBeingHovered === columnIndex ||
+                    chordSettingDropdownIsOpen) && (
+                    <motion.div
+                      key={`${columnData[9]!}chordSettings`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute -right-1 top-16"
+                    >
+                      <DropdownMenu
+                        modal={true}
+                        open={chordSettingDropdownIsOpen}
+                        onOpenChange={(open) =>
+                          setChordSettingDropdownIsOpen(open)
+                        }
+                      >
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="z-50 h-4 w-4 !p-0">
+                            <HiEllipsisVertical className="z-50 h-4 w-4 text-pink-50 hover:text-pink-950" />
+                          </Button>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent side={"bottom"}>
+                          <DropdownMenuItem
+                            className="baseFlex !justify-between gap-2"
+                            onClick={() => addNewColumn(false)}
+                          >
+                            Add chord left
+                            <BsPlus className="h-4 w-4" />
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="baseFlex !justify-between gap-2"
+                            onClick={() => addNewColumn(true)}
+                          >
+                            Add chord right
+                            <BsPlus className="h-4 w-4" />
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-pink-600" />
+                          <div className="baseVertFlex w-full !flex-nowrap !items-start">
+                            <DropdownMenuLabel>Note length</DropdownMenuLabel>
+                            <DropdownMenuRadioGroup
+                              value={columnData[8]}
+                              onValueChange={(value) => {
+                                handleNoteLengthChange(
+                                  value as "1/4th" | "1/8th" | "1/16th"
+                                );
+                              }}
+                            >
+                              {noteLengthDurations.map((duration) => (
+                                <DropdownMenuRadioItem
+                                  key={duration}
+                                  value={duration}
+                                  className="baseFlex w-[138px] !justify-start gap-2"
+                                >
+                                  {getDynamicNoteLengthIcon(
+                                    duration as "1/4th" | "1/8th" | "1/16th"
+                                  )}
+                                  {duration}
+                                </DropdownMenuRadioItem>
+                              ))}
+                            </DropdownMenuRadioGroup>
+                          </div>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </motion.div>
+                  )}
+              </AnimatePresence>
+
               {index > 0 && index < 7 && (
                 <div
                   style={{
@@ -319,7 +466,7 @@ function TabNotesColumn({
                       index === 6 ? "2px solid rgb(253 242 248)" : "none"
                     }`,
                     paddingBottom: `${index === 6 ? "7px" : "0"}`,
-                    width: editing ? "50px" : "35px",
+                    width: editing ? "48px" : "35px",
                     transition: "width 0.15s ease-in-out",
                     // maybe also need "flex-basis: content" here if editing?
                   }}
@@ -363,6 +510,14 @@ function TabNotesColumn({
                         noteIndex={index}
                       />
                     </div>
+                  </div>
+                )}
+
+              {editing &&
+                index === 7 &&
+                (columnData[8] === "1/8th" || columnData[8] === "1/16th") && (
+                  <div className="baseVertFlex absolute -bottom-4 left-[53%] right-1/2 w-[1.5rem] -translate-x-1/2">
+                    {getDynamicNoteLengthIcon(columnData[8])}
                   </div>
                 )}
 

@@ -16,14 +16,19 @@ function getDynamicNoteLengthIcon(
     | "1/8th"
     | "1/8th triplet"
     | "1/16th"
-    | "1/16th triplet"
+    | "1/16th triplet",
+  forInlineTabViewing?: boolean
 ) {
   if (noteLength === "1/4th" || noteLength === "1/4th triplet") {
-    return <QuarterNote className="mr-[2px]" />;
+    return (
+      <QuarterNote className={`${forInlineTabViewing ? "" : "mr-[2px]"}`} />
+    );
   } else if (noteLength === "1/8th" || noteLength === "1/8th triplet") {
-    return <EigthNote className="mr-[2px]" />;
+    return <EigthNote className={`${forInlineTabViewing ? "" : "mr-[2px]"}`} />;
   } else if (noteLength === "1/16th" || noteLength === "1/16th triplet") {
-    return <SixteenthNote className="mr-[2px]" />;
+    return (
+      <SixteenthNote className={`${forInlineTabViewing ? "" : "mr-[2px]"}`} />
+    );
   }
 }
 
@@ -32,8 +37,8 @@ function QuarterNote(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      stroke="#fdf2f8"
-      fill="#fdf2f8"
+      stroke="currentColor"
+      fill="currentColor"
       strokeLinecap="square"
       strokeMiterlimit={10}
       colorInterpolation="auto"
@@ -57,8 +62,8 @@ function EigthNote(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      stroke="#fdf2f8"
-      fill="#fdf2f8"
+      stroke="currentColor"
+      fill="currentColor"
       strokeLinecap="square"
       strokeMiterlimit={10}
       colorInterpolation="auto"
@@ -82,17 +87,13 @@ function EigthNote(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-// prob opt to make the icons bigger than the text by a bit,
-//squishing them down looks pretty bad
-// ^^^^^^^^^^^
-
 function SixteenthNote(props: SVGProps<SVGSVGElement>) {
   // Unicode Character 'MUSICAL SYMBOL SIXTEENTH NOTE' (U+1D161)
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      stroke="#fdf2f8"
-      fill="#fdf2f8"
+      stroke="currentColor"
+      fill="currentColor"
       strokeLinecap="square"
       strokeMiterlimit={10}
       colorInterpolation="auto"

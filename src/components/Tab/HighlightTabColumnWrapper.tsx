@@ -109,19 +109,35 @@ function HighlightTabColumnWrapper({
     return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
   }
 
-  function getPaddingBottom(chordEffects: string) {
+  function getPaddingBottom(
+    chordEffects: string,
+    showingNoteLengthIcon?: boolean
+  ) {
+    let paddingBottom = 0;
+
     switch (chordEffects.length) {
       case 0:
-        return "0px";
+        paddingBottom = 0;
+        break;
       case 1:
-        return "18px";
+        paddingBottom = 18;
+        break;
       case 2:
-        return "32px";
+        paddingBottom = 32;
+        break;
       case 3:
-        return "46px";
+        paddingBottom = 46;
+        break;
       default:
-        return "0px";
+        paddingBottom = 0;
+        break;
     }
+
+    if (showingNoteLengthIcon) {
+      paddingBottom += 22;
+    }
+
+    return `${paddingBottom}px`;
   }
 
   return (
@@ -160,7 +176,10 @@ function HighlightTabColumnWrapper({
                 columnIsBeingPlayed={columnIsBeingPlayed(index)}
                 columnHasBeenPlayed={columnHasBeenPlayed(index)}
                 durationOfChord={getDurationOfCurrentChord()}
-                highlightPaddingBottom={getPaddingBottom(column[7]!)}
+                highlightPaddingBottom={getPaddingBottom(
+                  column[7]!,
+                  column[8] === "1/8th" || column[8] === "1/16th"
+                )}
               />
             )}
           </Fragment>

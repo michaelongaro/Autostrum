@@ -86,6 +86,9 @@ function TabSection({
   const [reorderingColumns, setReorderingColumns] = useState(false);
   const [showingDeleteColumnsButtons, setShowingDeleteColumnsButtons] =
     useState(false);
+  const [columnIdxBeingHovered, setColumnIdxBeingHovered] = useState<
+    number | null
+  >(null);
 
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
 
@@ -950,6 +953,8 @@ function TabSection({
                     setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
                     reorderingColumns={reorderingColumns}
                     showingDeleteColumnsButtons={showingDeleteColumnsButtons}
+                    columnIdxBeingHovered={columnIdxBeingHovered}
+                    setColumnIdxBeingHovered={setColumnIdxBeingHovered}
                   />
                 )}
               </Fragment>
@@ -971,6 +976,7 @@ function TabSection({
           id={`${sectionIndex}${subSectionIndex}ExtendTabButton`}
           onKeyDown={handleExtendTabButtonKeyDown}
           onClick={addNewColumns}
+          className="mt-4"
         >
           Extend tab
         </Button>

@@ -275,7 +275,7 @@ function TabMeasureLine({
         // need to have same width as chords for the drag and drop algorithms
         // to behave properly without the ui breaking
         width:
-          reorderingColumns || showingDeleteColumnsButtons ? "50px" : "2px",
+          reorderingColumns || showingDeleteColumnsButtons ? "48px" : "2px",
         transition: `${transition ?? ""}, width 0.15s ease-in-out`,
         zIndex: isDragging ? 50 : "auto",
         height: editing ? "400px" : "271px",

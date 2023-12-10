@@ -931,28 +931,34 @@ function PreviewTabNotesColumn({
                 </div>
               )}
 
-              {index === 7 && columnData[7] !== "" && (
-                <div className="relative w-full">
-                  <div
-                    style={{
-                      paddingTop: "0.25rem",
-                      lineHeight: "14px",
-                      fontSize: "14px",
-                    }}
-                    className="baseVertFlex relative"
-                  >
-                    {columnData[7]?.includes("^") && (
-                      <div className="relative top-1 rotate-180">v</div>
-                    )}
-                    {columnData[7]?.includes("v") && <div>v</div>}
-                    {columnData[7]?.includes("s") && <div>s</div>}
-                    {columnData[7]?.includes(">") && <div>{">"}</div>}
-                    {columnData[7]?.includes(".") && (
-                      <div className="relative bottom-2">.</div>
-                    )}
+              {index === 7 &&
+                (columnData[7] !== "" ||
+                  columnData[8] === "1/8th" ||
+                  columnData[8] === "1/16th") && (
+                  <div className="relative w-full">
+                    <div
+                      style={{
+                        paddingTop: "0.25rem",
+                        lineHeight: "14px",
+                        fontSize: "14px",
+                      }}
+                      className="baseVertFlex relative"
+                    >
+                      {(columnData[8] === "1/8th" ||
+                        columnData[8] === "1/16th") &&
+                        getDynamicNoteLengthIcon(columnData[8], true)}
+                      {columnData[7]?.includes("^") && (
+                        <div className="relative top-1 rotate-180">v</div>
+                      )}
+                      {columnData[7]?.includes("v") && <div>v</div>}
+                      {columnData[7]?.includes("s") && <div>s</div>}
+                      {columnData[7]?.includes(">") && <div>{">"}</div>}
+                      {columnData[7]?.includes(".") && (
+                        <div className="relative bottom-2">.</div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </Fragment>
           ))}
         </div>

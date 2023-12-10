@@ -519,8 +519,13 @@ function compileTabSection({
       continue;
     }
 
+    let noteLengthMultiplier = "1";
+
+    if (chord[8] === "1/8th") noteLengthMultiplier = "0.5";
+    else if (chord[8] === "1/16th") noteLengthMultiplier = "0.25";
+
     chord[8] = currentBpm;
-    chord[9] = "1";
+    chord[9] = noteLengthMultiplier;
 
     metadata.push({
       location: {
@@ -529,11 +534,13 @@ function compileTabSection({
         chordIndex: chordIdx,
       },
       bpm: Number(currentBpm),
-      noteLengthMultiplier: "1",
+      noteLengthMultiplier,
       elapsedSeconds: Math.floor(elapsedSeconds.value),
     });
 
-    elapsedSeconds.value += 60 / (Number(currentBpm) * playbackSpeed);
+    elapsedSeconds.value +=
+      60 /
+      ((Number(currentBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
 
     compiledChords.push(chord);
   }
