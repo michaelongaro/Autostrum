@@ -353,14 +353,7 @@ function SectionContainer({
             viewingSectionContainer={editing === false}
           ></AccordionTrigger>
 
-          <AccordionContent
-            animated={
-              // I tried to get animations to conditionally work, but
-              // wasn't successful w/o harsh side effects
-              false
-            }
-            className="pt-4"
-          >
+          <AccordionContent animated={true} className="pt-4">
             {/* map over tab/chord subSections */}
             <div
               id={`sectionIndex${sectionIndex}`}
@@ -463,7 +456,7 @@ function SectionContainer({
             </div>
 
             {editing && (
-              <div className="baseFlex my-4 gap-4">
+              <div className="baseFlex mb-4 mt-8 gap-4">
                 <Button
                   onClick={() => addNewBlock("tab")}
                   className="baseFlex pl-3"
