@@ -385,7 +385,7 @@ function TabNotesColumn({
                 </div>
               )}
 
-              <AnimatePresence mode="wait">
+              <AnimatePresence>
                 {index === 1 &&
                   (columnIdxBeingHovered === columnIndex ||
                     chordSettingDropdownIsOpen) && (
@@ -394,7 +394,8 @@ function TabNotesColumn({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="absolute -right-1 top-16"
+                      transition={{ duration: 0.1 }}
+                      className="absolute -right-0 top-[60px]"
                     >
                       <DropdownMenu
                         modal={true}
@@ -405,7 +406,7 @@ function TabNotesColumn({
                       >
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" className="z-50 h-4 w-4 !p-0">
-                            <HiEllipsisVertical className="z-50 h-4 w-4 text-pink-50 hover:text-pink-950" />
+                            <HiEllipsisVertical className="z-50 h-4 w-4 rotate-90 text-pink-50 hover:text-pink-950" />
                           </Button>
                         </DropdownMenuTrigger>
 
@@ -428,7 +429,11 @@ function TabNotesColumn({
                           <div className="baseVertFlex w-full !flex-nowrap !items-start">
                             <DropdownMenuLabel>Note length</DropdownMenuLabel>
                             <DropdownMenuRadioGroup
-                              value={columnData[8]}
+                              value={
+                                columnData[8] === "note"
+                                  ? "1/4th"
+                                  : columnData[8]
+                              }
                               onValueChange={(value) => {
                                 handleNoteLengthChange(
                                   value as "1/4th" | "1/8th" | "1/16th"
