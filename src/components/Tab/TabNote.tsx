@@ -442,8 +442,8 @@ function TabNote({
         <Input
           id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`}
           style={{
-            width: noteIndex !== 7 ? "35px" : "30px",
-            height: noteIndex !== 7 ? "35px" : "30px",
+            width: noteIndex !== 7 ? "35px" : "28px",
+            height: noteIndex !== 7 ? "35px" : "28px",
             borderWidth: note.length > 0 && !isFocused ? "2px" : "1px",
           }}
           className="my-[1px] rounded-full p-0 text-center shadow-sm shadow-pink-600"
