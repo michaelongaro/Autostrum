@@ -10,13 +10,13 @@ import {
   memo,
   type Dispatch,
   type SetStateAction,
+  type SVGProps,
 } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { useTabStore } from "~/stores/TabStore";
 import { v4 as uuid } from "uuid";
 import { BsPlus } from "react-icons/bs";
-import { HiEllipsisVertical } from "react-icons/hi2";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -395,7 +395,13 @@ function TabNotesColumn({
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.1 }}
-                      className="absolute -right-0 top-[60px]"
+                      style={{
+                        bottom:
+                          showingDeleteColumnsButtons || reorderingColumns
+                            ? "32px"
+                            : "40px",
+                      }}
+                      className="absolute right-4"
                     >
                       <DropdownMenu
                         modal={true}
@@ -405,8 +411,8 @@ function TabNotesColumn({
                         }
                       >
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="z-50 h-4 w-4 !p-0">
-                            <HiEllipsisVertical className="z-50 h-4 w-4 rotate-90 text-pink-50 hover:text-pink-950" />
+                          <Button variant="ghost" className="z-50 h-2 w-4 !p-0">
+                            <Ellipsis className="z-50 h-3 w-4 rotate-90" />
                           </Button>
                         </DropdownMenuTrigger>
 
@@ -415,14 +421,14 @@ function TabNotesColumn({
                             className="baseFlex !justify-between gap-2"
                             onClick={() => addNewColumn(false)}
                           >
-                            Add chord left
+                            Add chord before
                             <BsPlus className="h-4 w-4" />
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="baseFlex !justify-between gap-2"
                             onClick={() => addNewColumn(true)}
                           >
-                            Add chord right
+                            Add chord after
                             <BsPlus className="h-4 w-4" />
                           </DropdownMenuItem>
                           <DropdownMenuSeparator className="bg-pink-600" />
@@ -444,7 +450,7 @@ function TabNotesColumn({
                                 <DropdownMenuRadioItem
                                   key={duration}
                                   value={duration}
-                                  className="baseFlex w-[138px] !justify-start gap-2"
+                                  className="baseFlex w-[150px] !justify-start gap-2"
                                 >
                                   {getDynamicNoteLengthIcon(
                                     duration as "1/4th" | "1/8th" | "1/16th"
@@ -633,3 +639,25 @@ export default memo(TabNotesColumn, (prevProps, nextProps) => {
 
   return true;
 });
+
+function Ellipsis(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      stroke="currentColor"
+      strokeWidth={0}
+      aria-hidden="true"
+      className="z-50 h-2 w-4 rotate-90 text-pink-50 hover:text-pink-950"
+      viewBox="10.5 4.5 3 15"
+      {...props}
+    >
+      <path
+        fillRule="evenodd"
+        stroke="none"
+        d="M10.5 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
