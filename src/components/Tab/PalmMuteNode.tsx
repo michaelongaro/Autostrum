@@ -17,6 +17,7 @@ interface PalmMuteNode {
   sectionIndex: number;
   subSectionIndex: number;
   columnIndex: number;
+  opacity: string;
   editingPalmMuteNodes: boolean;
   setEditingPalmMuteNodes: Dispatch<SetStateAction<boolean>>;
   lastModifiedPalmMuteNode: LastModifiedPalmMuteNodeLocation | null;
@@ -30,6 +31,7 @@ function PalmMuteNode({
   sectionIndex,
   subSectionIndex,
   columnIndex,
+  opacity,
   editingPalmMuteNodes,
   setEditingPalmMuteNodes,
   lastModifiedPalmMuteNode,
@@ -46,6 +48,15 @@ function PalmMuteNode({
   useEffect(() => {
     setHoveringOnPalmMuteNode(false);
   }, [value]);
+
+  function getButtonOpacity() {
+    if (!editingPalmMuteNodes) {
+      if (value === "start" || value === "end") return "1";
+      return "0";
+    }
+
+    return opacity;
+  }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
     const currentPalmMuteNode = document.getElementById(
@@ -164,99 +175,6 @@ function PalmMuteNode({
     }
   }
 
-  const findColumnIndexOfNearestNode = useCallback(
-    (searchingFor?: "prevStart" | "prevEnd" | "nextStart" | "nextEnd") => {
-      let currentIndex = lastModifiedPalmMuteNode?.columnIndex;
-      const foundPairNodeColumnIndex = false;
-
-      // searchingFor being undefined means we are looking for the nearest "start" node
-
-      if (currentIndex === undefined) return 0;
-
-      while (!foundPairNodeColumnIndex) {
-        const currentNode =
-          getTabData()[sectionIndex]!.data[subSectionIndex].data[
-            currentIndex
-          ]?.[0];
-
-        // it's implied that there shouldn't be an "end" node since we just added the "start" node
-        if (lastModifiedPalmMuteNode?.prevValue === "") {
-          if (
-            currentNode === "start" &&
-            currentIndex !== lastModifiedPalmMuteNode?.columnIndex
-          )
-            return currentIndex;
-
-          currentIndex++;
-        } else if (lastModifiedPalmMuteNode?.prevValue === "start") {
-          if (currentNode === "end") return currentIndex;
-
-          if (searchingFor === "nextEnd") currentIndex++;
-          else if (searchingFor === "prevEnd") currentIndex--;
-        } else {
-          if (currentNode === "start") return currentIndex;
-
-          if (searchingFor === "nextStart") currentIndex++;
-          else if (searchingFor === "prevStart") currentIndex--;
-        }
-
-        if (currentIndex < 0) return -1; // or maybe 0
-
-        if (
-          currentIndex >
-          getTabData()[sectionIndex]!.data[subSectionIndex]!.data.length - 1
-        ) {
-          return getTabData()[sectionIndex]!.data[subSectionIndex]!.data.length;
-        }
-      }
-
-      return 0;
-    },
-    [sectionIndex, subSectionIndex, getTabData, lastModifiedPalmMuteNode]
-  );
-
-  const getButtonOpacity = useCallback(
-    (value: string, columnIndex: number) => {
-      const isNotEditing =
-        !editingPalmMuteNodes && value !== "start" && value !== "end";
-      const isPrevValueStart = lastModifiedPalmMuteNode?.prevValue === "start";
-      const isPrevValueEnd = lastModifiedPalmMuteNode?.prevValue === "end";
-
-      if (isNotEditing) return "0";
-
-      if (
-        lastModifiedPalmMuteNode?.prevValue === "" &&
-        (columnIndex < lastModifiedPalmMuteNode?.columnIndex ||
-          columnIndex >= findColumnIndexOfNearestNode())
-      ) {
-        return "0.25";
-      }
-
-      if (
-        isPrevValueStart &&
-        (columnIndex <= findColumnIndexOfNearestNode("prevEnd") ||
-          columnIndex > findColumnIndexOfNearestNode("nextEnd"))
-      ) {
-        return "0.25";
-      }
-
-      if (
-        isPrevValueEnd &&
-        (columnIndex < findColumnIndexOfNearestNode("prevStart") ||
-          columnIndex >= findColumnIndexOfNearestNode("nextStart"))
-      ) {
-        return "0.25";
-      }
-
-      return "1";
-    },
-    [
-      editingPalmMuteNodes,
-      lastModifiedPalmMuteNode,
-      findColumnIndexOfNearestNode,
-    ]
-  );
-
   function handlePalmMuteNodeClick() {
     // forces edit mode when editing placement of a palm mute node
     if (!editingPalmMuteNodes) setEditingPalmMuteNodes(true);
@@ -350,12 +268,11 @@ function PalmMuteNode({
             <Button
               id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-0`}
               style={{
-                pointerEvents:
-                  getButtonOpacity(value, columnIndex) === "1" ? "all" : "none",
+                pointerEvents: getButtonOpacity() === "1" ? "all" : "none",
                 boxShadow: hoveringOnPalmMuteNode
                   ? "0 0 2px 2px hsl(324, 77%, 95%)"
                   : "",
-                opacity: getButtonOpacity(value, columnIndex),
+                opacity: getButtonOpacity(),
               }}
               size={"sm"}
               className="min-w-[2.25rem] rounded-full px-1 py-0 transition-all"
@@ -389,9 +306,7 @@ function PalmMuteNode({
       {value === "-" && (
         <div
           className={`h-[1px] w-full ${
-            !editing ||
-            !editingPalmMuteNodes ||
-            getButtonOpacity(value, columnIndex) === "1"
+            !editing || !editingPalmMuteNodes || getButtonOpacity() === "1"
               ? "bg-pink-100"
               : "bg-pink-100/50"
           } `}

@@ -17,6 +17,7 @@ interface StrummingPatternPalmMuteNode {
     index: number;
     value: StrummingPattern;
   };
+  opacity: string;
   editingPalmMuteNodes: boolean;
   setEditingPalmMuteNodes: Dispatch<SetStateAction<boolean>>;
   lastModifiedPalmMuteNode: LastModifiedPalmMuteNodeLocation | null;
@@ -32,6 +33,7 @@ function StrummingPatternPalmMuteNode({
   value,
   beatIndex,
   strummingPatternBeingEdited,
+  opacity,
   editingPalmMuteNodes,
   setEditingPalmMuteNodes,
   lastModifiedPalmMuteNode,
@@ -45,6 +47,15 @@ function StrummingPatternPalmMuteNode({
   const { setStrummingPatternBeingEdited } = useTabStore((state) => ({
     setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
   }));
+
+  function getButtonOpacity() {
+    if (!editingPalmMuteNodes) {
+      if (value === "start" || value === "end") return "1";
+      return "0";
+    }
+
+    return opacity;
+  }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
     // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
@@ -125,92 +136,6 @@ function StrummingPatternPalmMuteNode({
       }
     }
   }
-
-  const findBeatIndexOfNearestNode = useCallback(
-    (searchingFor?: "prevStart" | "prevEnd" | "nextStart" | "nextEnd") => {
-      let currentIndex = lastModifiedPalmMuteNode?.columnIndex;
-      const foundPairNodeBeatIndex = false;
-
-      // searchingFor being undefined means we are looking for the nearest "start" node
-
-      if (currentIndex === undefined) return 0;
-
-      while (!foundPairNodeBeatIndex) {
-        const currentNode =
-          strummingPatternBeingEdited.value.strums[currentIndex]?.palmMute;
-
-        // it's implied that there shouldn't be an "end" node since we just added the "start" node
-        if (lastModifiedPalmMuteNode?.prevValue === "") {
-          if (
-            currentNode === "start" &&
-            currentIndex !== lastModifiedPalmMuteNode?.columnIndex
-          )
-            return currentIndex;
-
-          currentIndex++;
-        } else if (lastModifiedPalmMuteNode?.prevValue === "start") {
-          if (currentNode === "end") return currentIndex;
-
-          if (searchingFor === "nextEnd") currentIndex++;
-          else if (searchingFor === "prevEnd") currentIndex--;
-        } else {
-          if (currentNode === "start") return currentIndex;
-
-          if (searchingFor === "nextStart") currentIndex++;
-          else if (searchingFor === "prevStart") currentIndex--;
-        }
-
-        if (currentIndex < 0) return -1; // or maybe 0
-        if (
-          currentIndex >
-          strummingPatternBeingEdited.value.strums.length - 1
-        ) {
-          return strummingPatternBeingEdited.value.strums.length;
-        }
-      }
-
-      return 0;
-    },
-    [strummingPatternBeingEdited, lastModifiedPalmMuteNode]
-  );
-
-  const getButtonOpacity = useCallback(
-    (value: string, columnIndex: number) => {
-      const isNotEditing =
-        !editingPalmMuteNodes && value !== "start" && value !== "end";
-      const isPrevValueStart = lastModifiedPalmMuteNode?.prevValue === "start";
-      const isPrevValueEnd = lastModifiedPalmMuteNode?.prevValue === "end";
-
-      if (isNotEditing) return "0";
-
-      if (
-        lastModifiedPalmMuteNode?.prevValue === "" &&
-        (columnIndex < lastModifiedPalmMuteNode?.columnIndex ||
-          columnIndex >= findBeatIndexOfNearestNode())
-      ) {
-        return "0.25";
-      }
-
-      if (
-        isPrevValueStart &&
-        (columnIndex <= findBeatIndexOfNearestNode("prevEnd") ||
-          columnIndex > findBeatIndexOfNearestNode("nextEnd"))
-      ) {
-        return "0.25";
-      }
-
-      if (
-        isPrevValueEnd &&
-        (columnIndex < findBeatIndexOfNearestNode("prevStart") ||
-          columnIndex >= findBeatIndexOfNearestNode("nextStart"))
-      ) {
-        return "0.25";
-      }
-
-      return "1";
-    },
-    [editingPalmMuteNodes, lastModifiedPalmMuteNode, findBeatIndexOfNearestNode]
-  );
 
   function handlePalmMuteNodeClick() {
     // forces edit mode when editing placement of a palm mute node
@@ -331,12 +256,11 @@ function StrummingPatternPalmMuteNode({
             <Button
               id={`input-strummingPatternModal-${beatIndex}-0`}
               style={{
-                pointerEvents:
-                  getButtonOpacity(value, beatIndex) === "1" ? "all" : "none",
+                pointerEvents: getButtonOpacity() === "1" ? "all" : "none",
                 boxShadow: hoveringOnPalmMuteNode
                   ? "0 0 2px 2px hsl(324, 77%, 95%)"
                   : "",
-                opacity: getButtonOpacity(value, beatIndex),
+                opacity: getButtonOpacity(),
               }}
               size={"sm"}
               className="min-w-[2.25rem] rounded-full px-1 py-0 transition-all"
@@ -376,9 +300,7 @@ function StrummingPatternPalmMuteNode({
           className={`h-[1px] w-full ${
             darkMode
               ? "bg-foreground"
-              : !editing ||
-                !editingPalmMuteNodes ||
-                getButtonOpacity(value, beatIndex) === "1"
+              : !editing || !editingPalmMuteNodes || getButtonOpacity() === "1"
               ? "bg-background"
               : "bg-background/50"
           }`}

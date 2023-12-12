@@ -44,6 +44,7 @@ interface TabNotesColumn {
   columnHasBeenPlayed: boolean;
   durationOfChord: number;
 
+  pmNodeOpacity: string;
   editingPalmMuteNodes: boolean;
   setEditingPalmMuteNodes: Dispatch<SetStateAction<boolean>>;
   lastModifiedPalmMuteNode: LastModifiedPalmMuteNodeLocation | null;
@@ -66,6 +67,7 @@ function TabNotesColumn({
   columnHasBeenPlayed,
   durationOfChord,
 
+  pmNodeOpacity,
   editingPalmMuteNodes,
   setEditingPalmMuteNodes,
   lastModifiedPalmMuteNode,
@@ -377,6 +379,7 @@ function TabNotesColumn({
                     columnIndex={columnIndex}
                     sectionIndex={sectionIndex}
                     subSectionIndex={subSectionIndex}
+                    opacity={pmNodeOpacity}
                     editingPalmMuteNodes={editingPalmMuteNodes}
                     setEditingPalmMuteNodes={setEditingPalmMuteNodes}
                     lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}

@@ -16,7 +16,14 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { motion } from "framer-motion";
-import { useEffect, useMemo, useState, memo, Fragment } from "react";
+import {
+  useEffect,
+  useMemo,
+  useCallback,
+  useState,
+  memo,
+  Fragment,
+} from "react";
 import { BsKeyboard } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
 import { HiOutlineInformationCircle } from "react-icons/hi";
@@ -83,6 +90,8 @@ function TabSection({
   const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
+  const [pmNodeOpacities, setPMNodeOpacities] = useState<string[]>([]);
+
   const [reorderingColumns, setReorderingColumns] = useState(false);
   const [showingDeleteColumnsButtons, setShowingDeleteColumnsButtons] =
     useState(false);
@@ -145,6 +154,90 @@ function TabSection({
     playbackSpeed: state.playbackSpeed,
     audioMetadata: state.audioMetadata,
   }));
+
+  const getPMNodeOpacities = useCallback(() => {
+    if (lastModifiedPalmMuteNode === null) {
+      return new Array(subSectionData.data.length).fill("1") as string[];
+    }
+
+    const newOpacities = new Array(subSectionData.data.length).fill(
+      "0.25"
+    ) as string[];
+
+    // added new "PM Start" node
+    if (lastModifiedPalmMuteNode.prevValue === "") {
+      let nearestStartNodeIndex = lastModifiedPalmMuteNode.columnIndex + 1;
+      for (
+        let i = lastModifiedPalmMuteNode.columnIndex + 1;
+        i < subSectionData.data.length;
+        i++
+      ) {
+        if (subSectionData.data[i]?.[0] === "start") break;
+        nearestStartNodeIndex++;
+      }
+
+      newOpacities.fill(
+        "1",
+        lastModifiedPalmMuteNode.columnIndex,
+        nearestStartNodeIndex
+      );
+    }
+    // removed "PM Start" node
+    else if (lastModifiedPalmMuteNode.prevValue === "start") {
+      let pairEndNodeIndex = lastModifiedPalmMuteNode.columnIndex + 1;
+      for (
+        let i = lastModifiedPalmMuteNode.columnIndex + 1;
+        i < subSectionData.data.length;
+        i++
+      ) {
+        if (subSectionData.data[i]?.[0] === "end") break;
+        pairEndNodeIndex++;
+      }
+
+      let nearestPrevEndNodeIndex = lastModifiedPalmMuteNode.columnIndex - 1;
+      for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
+        if (subSectionData.data[i]?.[0] === "end") {
+          nearestPrevEndNodeIndex = i + 1;
+          break;
+        }
+        if (nearestPrevEndNodeIndex !== 0) nearestPrevEndNodeIndex--;
+      }
+
+      newOpacities.fill("1", nearestPrevEndNodeIndex, pairEndNodeIndex + 1);
+    }
+    // removed "PM End" node
+    else if (lastModifiedPalmMuteNode.prevValue === "end") {
+      let pairStartNodeIndex = lastModifiedPalmMuteNode.columnIndex - 1;
+      for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
+        if (subSectionData.data[i]?.[0] === "start") {
+          pairStartNodeIndex = i;
+          break;
+        }
+      }
+
+      let nearestNextStartNodeIndex = lastModifiedPalmMuteNode.columnIndex + 1;
+      for (
+        let i = lastModifiedPalmMuteNode.columnIndex + 1;
+        i < subSectionData.data.length;
+        i++
+      ) {
+        if (subSectionData.data[i]?.[0] === "start") {
+          nearestNextStartNodeIndex = i;
+          break;
+        }
+      }
+
+      newOpacities.fill("1", pairStartNodeIndex, nearestNextStartNodeIndex);
+    }
+
+    return newOpacities;
+  }, [subSectionData.data, lastModifiedPalmMuteNode]);
+
+  useEffect(() => {
+    if (editingPalmMuteNodes) {
+      setPMNodeOpacities(getPMNodeOpacities());
+    }
+  }, [editingPalmMuteNodes, lastModifiedPalmMuteNode, getPMNodeOpacities]);
 
   // should these functions below be in zustand?
 
@@ -947,6 +1040,7 @@ function TabSection({
                     columnIsBeingPlayed={columnIsBeingPlayed(index)}
                     columnHasBeenPlayed={columnHasBeenPlayed(index)}
                     durationOfChord={getDurationOfCurrentChord()}
+                    pmNodeOpacity={pmNodeOpacities[index] ?? "1"}
                     editingPalmMuteNodes={editingPalmMuteNodes}
                     setEditingPalmMuteNodes={setEditingPalmMuteNodes}
                     lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}

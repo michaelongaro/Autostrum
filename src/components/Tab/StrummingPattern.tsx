@@ -55,6 +55,7 @@ interface StrummingPattern {
   subSectionIndex?: number;
   chordSequenceIndex?: number;
 
+  pmNodeOpacities: string[];
   editingPalmMuteNodes?: boolean;
   setEditingPalmMuteNodes?: Dispatch<SetStateAction<boolean>>;
   showingDeleteStrumsButtons?: boolean;
@@ -73,6 +74,7 @@ function StrummingPattern({
   sectionIndex,
   subSectionIndex,
   chordSequenceIndex,
+  pmNodeOpacities,
   editingPalmMuteNodes,
   setEditingPalmMuteNodes,
   showingDeleteStrumsButtons,
@@ -509,6 +511,7 @@ function StrummingPattern({
                     index: index ?? 0,
                     value: data,
                   }}
+                  opacity={pmNodeOpacities[strumIndex] ?? "1"}
                   editingPalmMuteNodes={editingPalmMuteNodes!}
                   setEditingPalmMuteNodes={setEditingPalmMuteNodes!}
                   lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
