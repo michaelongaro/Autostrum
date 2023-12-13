@@ -134,7 +134,8 @@ function HighlightTabColumnWrapper({
     }
 
     if (showingNoteLengthIcon) {
-      paddingBottom += 22;
+      if (chordEffects.length === 0) paddingBottom += 26;
+      else paddingBottom += 22;
     }
 
     return `${paddingBottom}px`;
