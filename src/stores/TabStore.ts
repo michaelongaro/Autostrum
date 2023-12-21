@@ -773,6 +773,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       playPreview: async ({ data, index, type }: PlayPreview) => {
         const {
           capo,
+          tuning,
           previewMetadata,
           currentInstrument,
           audioContext,
@@ -794,8 +795,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           undefined,
           undefined,
         ];
-
-        const tuning = parse("e2 a2 d3 g3 b3 e4");
 
         const compiledChords =
           type === "chord"
@@ -834,7 +833,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             Number(currColumn[8]) * (1 / Number(currColumn[9]));
 
           await playNoteColumn({
-            tuning,
+            tuning: parse(type === "chord" ? tuning : "e2 a2 d3 g3 b3 e4"),
             capo: type === "chord" ? capo : 0,
             bpm: alteredBpm,
             secondPrevColumn,
