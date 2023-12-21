@@ -530,7 +530,15 @@ function TabNotesColumn({
               {editing &&
                 index === 7 &&
                 (columnData[8] === "1/8th" || columnData[8] === "1/16th") && (
-                  <div className="baseVertFlex absolute -bottom-4 left-[53%] right-1/2 w-[1.5rem] -translate-x-1/2">
+                  <div
+                    style={{
+                      bottom:
+                        showingDeleteColumnsButtons || reorderingColumns
+                          ? "-1.5rem"
+                          : "-1rem",
+                    }}
+                    className="baseVertFlex absolute left-[53%] right-1/2 w-[1.5rem] -translate-x-1/2"
+                  >
                     {getDynamicNoteLengthIcon(columnData[8])}
                   </div>
                 )}
