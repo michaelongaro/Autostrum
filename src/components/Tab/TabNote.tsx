@@ -205,7 +205,7 @@ function TabNote({
 
       const copiedChord = newTabData[sectionIndex]!.data[subSectionIndex].data[
         columnIndex
-      ]!.slice(1, 8);
+      ]!.slice(1, 9);
 
       setChordPulse({
         location: {
@@ -231,7 +231,6 @@ function TabNote({
       newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex] = [
         palmMuteNode ?? "",
         ...currentlyCopiedChord,
-        "note",
         id,
       ];
 
