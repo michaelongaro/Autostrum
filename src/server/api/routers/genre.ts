@@ -8,11 +8,18 @@ export interface GenreWithTotalTabNumbers extends Genre {
 
 export const genreRouter = createTRPCRouter({
   getAll: publicProcedure.query(({ ctx }) => {
-    return ctx.prisma.genre.findMany();
+    return ctx.prisma.genre.findMany({
+      orderBy: {
+        id: "asc",
+      },
+    });
   }),
 
   getAllWithTotalTabNumbers: publicProcedure.query(async ({ ctx }) => {
     const genres = await ctx.prisma.genre.findMany({
+      orderBy: {
+        id: "asc",
+      },
       include: {
         _count: {
           select: {
