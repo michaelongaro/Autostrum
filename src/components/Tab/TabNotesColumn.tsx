@@ -103,6 +103,8 @@ function TabNotesColumn({
     setChordPulse,
     getTabData,
     setTabData,
+    pauseAudio,
+    currentChordIndex,
   } = useTabStore((state) => ({
     editing: state.editing,
     audioMetadata: state.audioMetadata,
@@ -110,6 +112,8 @@ function TabNotesColumn({
     setChordPulse: state.setChordPulse,
     getTabData: state.getTabData,
     setTabData: state.setTabData,
+    pauseAudio: state.pauseAudio,
+    currentChordIndex: state.currentChordIndex,
   }));
 
   // ideally don't need this and can just use prop values passed in, but need to have
@@ -245,6 +249,10 @@ function TabNotesColumn({
   }
 
   function handleDeleteChord() {
+    if (audioMetadata.type === "Generated" && currentChordIndex !== 0) {
+      pauseAudio(true);
+    }
+
     const newTabData = handleDeletePalmMutedChord();
 
     newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
