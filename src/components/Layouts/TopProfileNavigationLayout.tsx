@@ -36,9 +36,11 @@ function TopProfileNavigationLayout({ children }: Layout) {
   }
 
   function getDynamicWidth() {
-    if (finalQueryOfUrl === "tabs") return "w-11/12 md:w-3/4";
-    if (finalQueryOfUrl === "likes") return "w-11/12 md:w-3/4";
-    if (finalQueryOfUrl === "preferences") return "w-11/12 lg:w-[975px]";
+    if (finalQueryOfUrl === "preferences") {
+      return "w-11/12 lg:w-[975px]";
+    }
+
+    return "w-11/12 md:w-3/4";
   }
 
   if (!isLoaded) {
@@ -67,7 +69,7 @@ function TopProfileNavigationLayout({ children }: Layout) {
         }}
         className="baseVertFlex my-12 w-full md:my-24"
       >
-        <TabsList className="z-40 grid h-full w-11/12 grid-cols-3 gap-2 md:w-[500px]">
+        <TabsList className="z-40 grid h-16 w-11/12 grid-cols-3 gap-2 md:h-10 md:w-[500px]">
           <TabsTrigger
             value="preferences"
             className="baseVertFlex w-full gap-2 md:!flex-row"
@@ -93,7 +95,7 @@ function TopProfileNavigationLayout({ children }: Layout) {
             Likes
           </TabsTrigger>
         </TabsList>
-        <div className={`min-h-[100dvh] ${getDynamicWidth()!}`}>
+        <div className={`min-h-[100dvh] ${getDynamicWidth()}`}>
           <AnimatePresence mode="wait">{children}</AnimatePresence>
         </div>
       </Tabs>
