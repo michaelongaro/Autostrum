@@ -10,6 +10,8 @@ const AudioProgressSlider = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
 >(({ className, ...props }, ref) => {
   const [isDragging, setIsDragging] = useState(false);
+  const thumbRef = React.useRef<HTMLSpanElement>(null);
+  const rangeRef = React.useRef<HTMLSpanElement>(null);
 
   // needed since radix-ui doesn't expose the wrapper that acutally moves the
   // thumb, so we need to get it ourselves to set the transition property
@@ -31,10 +33,76 @@ const AudioProgressSlider = React.forwardRef<
           Array.from(audioSliderNode.children).at(-1) as HTMLSpanElement
         );
         setTrackElemNode(
-          Array.from(audioSliderNode.children[0].children)[0] as HTMLSpanElement
+          Array.from(
+            audioSliderNode.children[0]!.children
+          )[0] as HTMLSpanElement
         );
       }
     }, 1000);
+  }, []);
+
+  // This effect attempts to fix safari's glitchy animation behavior with the thumb positioning
+  // while the audio is playing. Safari was calculating out the percentage to a much higher degree of
+  // acuraccy than chrome, and it's my only guess as to why the thumb was jumping around so much. Most
+  // likely an implementation bug in radix-ui as far as I can tell though.
+  useEffect(() => {
+    if (!thumbRef.current || !rangeRef.current) return;
+
+    const config: MutationObserverInit = {
+      attributes: true,
+      childList: false,
+      subtree: false,
+    };
+
+    const trackCallback: MutationCallback = (mutationsList) => {
+      for (const mutation of mutationsList) {
+        const range = rangeRef.current;
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "style" &&
+          range
+        ) {
+          // Extract the numeric value from the style property
+          const rightValue = parseFloat(range.style.right);
+
+          if (!isNaN(rightValue)) {
+            // Round the value to 2 decimal places and set it back to the style
+            range.style.right = `${rightValue.toFixed(2)}%`;
+          }
+        }
+      }
+    };
+
+    const rangeObserver = new MutationObserver(trackCallback);
+    rangeObserver.observe(rangeRef.current, config);
+
+    const thumbCallback: MutationCallback = (mutationsList) => {
+      for (const mutation of mutationsList) {
+        const thumb = thumbRef.current;
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "style" &&
+          thumb
+        ) {
+          // Extract the numeric value from the style property
+          const leftValue = parseFloat(thumb.style.left);
+
+          // Check if the value is a number
+          if (!isNaN(leftValue)) {
+            // Round the value to 2 decimal places and set it back to the style
+            thumb.style.left = `${leftValue.toFixed(2)}%`;
+          }
+        }
+      }
+    };
+
+    const thumbObserver = new MutationObserver(thumbCallback);
+    thumbObserver.observe(thumbRef.current, config);
+
+    return () => {
+      rangeObserver.disconnect();
+      thumbObserver.disconnect();
+    };
   }, []);
 
   const { audioMetadata } = useTabStore((state) => ({
@@ -72,17 +140,21 @@ const AudioProgressSlider = React.forwardRef<
         // ^ https://github.com/radix-ui/primitives/issues/1966
         className="relative h-[8px] w-full grow cursor-pointer overflow-hidden rounded-full bg-secondary"
       >
-        <SliderPrimitive.Range className="active absolute h-full bg-primary" />
+        <SliderPrimitive.Range
+          ref={rangeRef}
+          className="active absolute h-full bg-primary"
+        />
       </SliderPrimitive.Track>
 
       <SliderPrimitive.Thumb
+        ref={thumbRef}
         onFocus={() => setIsDragging(true)}
         onBlur={() => setIsDragging(false)}
         onPointerDown={() => setIsDragging(true)}
         onPointerUp={() => setIsDragging(false)}
         className="block h-5 w-5 cursor-grab rounded-full
 border-2 border-primary bg-background shadow-md ring-offset-background 
-hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 active:cursor-grabbing active:shadow-lg disabled:pointer-events-none disabled:opacity-50"
+transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 active:cursor-grabbing active:shadow-lg disabled:pointer-events-none disabled:opacity-50"
       />
     </SliderPrimitive.Root>
   );
