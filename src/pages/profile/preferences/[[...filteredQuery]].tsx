@@ -90,7 +90,7 @@ function Preferences() {
         <title>Preferences | Autostrum</title>
         <meta
           name="description"
-          content="Edit your acount preferences, change your pinned tab on your profile, and more."
+          content="Edit your account preferences, change your pinned tab on your profile, and more."
         />
         <meta property="og:title" content="Preferences | Autostrum"></meta>
         <meta
@@ -99,7 +99,7 @@ function Preferences() {
         />
         <meta
           property="og:description"
-          content="Edit your acount preferences, change your pinned tab on your profile, and more."
+          content="Edit your account preferences, change your pinned tab on your profile, and more."
         />
         <meta property="og:type" content="website" />
         <meta
