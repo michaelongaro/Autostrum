@@ -14,6 +14,7 @@ import useDetectRouteChanges from "~/hooks/useDetectRouteChanges";
 import DesktopHeader from "../Header/DesktopHeader";
 import MobileHeader from "../Header/MobileHeader";
 import dynamic from "next/dynamic";
+import { useInitializeAudioContext } from "~/hooks/useInitializeAudioContext";
 
 const MobileHeaderModal = dynamic(
   () => import("~/components/modals/MobileHeaderModal")
@@ -48,11 +49,9 @@ function GeneralLayoutStatefulShell() {
 
   // reflects any updates made to username/profileImageUrl in Clerk to the ArtistMetadata
   useKeepArtistMetadataUpdatedWithClerk();
-
+  useInitializeAudioContext();
   useFetchAndLoadSoundfonts();
-
   useAutoCompileChords();
-
   useDetectRouteChanges();
 
   const {
@@ -65,10 +64,6 @@ function GeneralLayoutStatefulShell() {
     resetAudioAndMetadataOnRouteChange,
     setCurrentlyPlayingMetadata,
     audioMetadata,
-    audioContext,
-    setAudioContext,
-    masterVolumeGainNode,
-    setMasterVolumeGainNode,
     recordedAudioBufferSourceNode,
     mobileHeaderModal,
     setMobileHeaderModal,
@@ -83,34 +78,12 @@ function GeneralLayoutStatefulShell() {
       state.resetAudioAndMetadataOnRouteChange,
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
     audioMetadata: state.audioMetadata,
-    audioContext: state.audioContext,
-    setAudioContext: state.setAudioContext,
-    masterVolumeGainNode: state.masterVolumeGainNode,
-    setMasterVolumeGainNode: state.setMasterVolumeGainNode,
     recordedAudioBufferSourceNode: state.recordedAudioBufferSourceNode,
     mobileHeaderModal: state.mobileHeaderModal,
     setMobileHeaderModal: state.setMobileHeaderModal,
   }));
 
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
-
-  useEffect(() => {
-    if (audioContext && masterVolumeGainNode) return;
-
-    const newAudioContext = new AudioContext();
-
-    const newMasterVolumeGainNode = newAudioContext.createGain();
-
-    newMasterVolumeGainNode.connect(newAudioContext.destination);
-
-    setAudioContext(newAudioContext);
-    setMasterVolumeGainNode(newMasterVolumeGainNode);
-  }, [
-    audioContext,
-    masterVolumeGainNode,
-    setAudioContext,
-    setMasterVolumeGainNode,
-  ]);
 
   // keeps looping local storage state in sync with store
   useEffect(() => {
