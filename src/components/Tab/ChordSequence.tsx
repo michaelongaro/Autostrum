@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { useEffect, useMemo, useState, memo } from "react";
 import { Button } from "~/components/ui/button";
 import isEqual from "lodash.isequal";
-import { v4 as uuid } from "uuid";
 import {
   Select,
   SelectContent,
@@ -174,7 +173,7 @@ function ChordSequence({
       setStrummingPatternBeingEdited({
         index: strummingPatterns.length,
         value: {
-          id: uuid(),
+          id: crypto.randomUUID(),
           noteLength: "1/8th",
           strums: Array.from({ length: 8 }, () => ({
             palmMute: "",
@@ -233,7 +232,7 @@ function ChordSequence({
               setStrummingPatternBeingEdited({
                 index: strummingPatterns.length,
                 value: {
-                  id: uuid(),
+                  id: crypto.randomUUID(),
                   noteLength: "1/8th",
                   strums: Array.from({ length: 8 }, () => ({
                     palmMute: "",
@@ -365,7 +364,7 @@ function ChordSequence({
                               setStrummingPatternBeingEdited({
                                 index: strummingPatterns.length,
                                 value: {
-                                  id: uuid(),
+                                  id: crypto.randomUUID(),
                                   noteLength: "1/8th",
                                   strums: Array.from({ length: 8 }, () => ({
                                     palmMute: "",

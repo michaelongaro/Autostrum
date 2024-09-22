@@ -2,7 +2,6 @@ import { AnimatePresence } from "framer-motion";
 import isEqual from "lodash.isequal";
 import debounce from "lodash.debounce";
 import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
-import { v4 as uuid } from "uuid";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -156,7 +155,7 @@ function SectionContainer({
           if (index === 8) {
             return "note";
           } else if (index === 9) {
-            return uuid();
+            return crypto.randomUUID();
           } else {
             return "";
           }
@@ -165,7 +164,7 @@ function SectionContainer({
     }
 
     return {
-      id: uuid(),
+      id: crypto.randomUUID(),
       type: "tab",
       bpm: -1,
       repetitions: 1,
@@ -176,13 +175,13 @@ function SectionContainer({
   function getDefaultStrummingPattern(): ChordSectionType {
     if (strummingPatterns.length > 0) {
       return {
-        id: uuid(),
+        id: crypto.randomUUID(),
         type: "chord",
         bpm: -1,
         repetitions: 1,
         data: [
           {
-            id: uuid(),
+            id: crypto.randomUUID(),
             bpm: -1,
             strummingPattern: strummingPatterns[0]!,
             repetitions: 1,
@@ -196,13 +195,13 @@ function SectionContainer({
 
     // "fake" value for when there are no strumming patterns that exist
     return {
-      id: uuid(),
+      id: crypto.randomUUID(),
       type: "chord",
       bpm: -1,
       repetitions: 1,
       data: [
         {
-          id: uuid(),
+          id: crypto.randomUUID(),
           bpm,
           strummingPattern: {} as StrummingPattern,
           repetitions: 1,

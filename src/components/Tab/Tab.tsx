@@ -7,7 +7,6 @@ import type {
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { FaBook } from "react-icons/fa";
-import { v4 as uuid } from "uuid";
 import type { TabWithLikes } from "~/server/api/routers/tab";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
@@ -201,7 +200,7 @@ function Tab({ tab, refetchTab }: ITab) {
     if (!tab && tabData.length === 0) {
       setTabData([
         {
-          id: uuid(),
+          id: crypto.randomUUID(),
           title: "Section 1",
           data: [],
         },
@@ -265,7 +264,7 @@ function Tab({ tab, refetchTab }: ITab) {
     const newTabData = getTabData();
 
     const newSectionData = {
-      id: uuid(),
+      id: crypto.randomUUID(),
       title: `Section ${tabData.length + 1}`,
       data: [],
     };

@@ -110,12 +110,12 @@ function MobileHeader() {
                 <div className="baseFlex gap-4">
                   <SignUpButton
                     mode="modal"
-                    afterSignUpUrl={`${
-                      process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                    }/postSignUpRegistration`}
-                    afterSignInUrl={`${
-                      process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                    }${asPath}`}
+                    // afterSignUpUrl={`${
+                    //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+                    // }/postSignUpRegistration`}
+                    // afterSignInUrl={`${
+                    //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+                    // }${asPath}`}
                   >
                     <Button
                       className="h-10 px-6"
@@ -134,12 +134,12 @@ function MobileHeader() {
                   </SignUpButton>
                   <SignInButton
                     mode="modal"
-                    afterSignUpUrl={`${
-                      process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                    }/postSignUpRegistration`}
-                    afterSignInUrl={`${
-                      process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                    }${asPath}`}
+                    // afterSignUpUrl={`${
+                    //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+                    // }/postSignUpRegistration`}
+                    // afterSignInUrl={`${
+                    //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+                    // }${asPath}`}
                   >
                     <Button
                       variant={"secondary"}
@@ -169,9 +169,9 @@ function MobileHeader() {
                     >
                       {user?.username}
                       <UserButton
-                        afterSignOutUrl={`${
-                          process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                        }/`}
+                      // afterSignOutUrl={`${
+                      //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+                      // }/`}
                       />
                     </Link>
                   </Button>

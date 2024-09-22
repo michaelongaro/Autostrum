@@ -2,11 +2,14 @@
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
  */
-await import("./src/env.mjs");
+await import("./src/env.js");
+
+// TODO: why do we need the "".cjs" on here still? Some other part of the overall
+// config is probably wrong
 
 /** @type {import("next").NextConfig} */
 const config = {
-  reactStrictMode: true,
+  reactStrictMode: false,
   images: {
     remotePatterns: [
       {
@@ -39,6 +42,6 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
-  transpilePackages: ["three"],
+  // transpilePackages: ["three"], // TODO: remove when removing three.js
 };
 export default config;

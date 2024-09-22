@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { Fragment, memo, useMemo } from "react";
-import { v4 as uuid } from "uuid";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -101,7 +100,7 @@ function ChordSection({
     const newTabData = getTabData();
 
     newTabData[sectionIndex]!.data[subSectionIndex]!.data.push({
-      id: uuid(),
+      id: crypto.randomUUID(),
       repetitions: 1,
       bpm: -1,
       // @ts-expect-error the correct strummingPattern will get set in <ChordSequence /> if it is available

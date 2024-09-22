@@ -15,7 +15,6 @@ import {
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { useTabStore } from "~/stores/TabStore";
-import { v4 as uuid } from "uuid";
 import { BsPlus } from "react-icons/bs";
 import {
   DropdownMenu,
@@ -283,7 +282,7 @@ function TabNotesColumn({
       "",
       "",
       "note", // will be overwritten by note length if it's specified
-      uuid(),
+      crypto.randomUUID(),
     ];
 
     if (after) {

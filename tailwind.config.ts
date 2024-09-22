@@ -1,4 +1,5 @@
 import { type Config } from "tailwindcss";
+import defaultTheme from "tailwindcss/defaultTheme";
 import plugin from "tailwindcss/plugin";
 
 module.exports = {
@@ -8,12 +9,17 @@ module.exports = {
   darkMode: ["class"],
   content: ["./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    container: {
+     container: {
       center: true,
       padding: "2rem",
       screens: {
-        "2xl": "1400px",
+        xs: "450px",
+        ...defaultTheme.screens,
       },
+    },
+    screens: {
+      xs: "450px",
+      ...defaultTheme.screens,
     },
     extend: {
       colors: {
@@ -129,6 +135,9 @@ module.exports = {
   plugins: [
     require("tailwindcss-animate"),
     require("@tailwindcss/container-queries"),
+
+    // TODO: probably remove this during UI refactor, since this was
+    // a bit of a hack
     plugin(function ({ matchUtilities, theme }) {
       matchUtilities(
         {

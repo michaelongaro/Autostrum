@@ -28,7 +28,6 @@ import { BsKeyboard } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
 import { HiOutlineInformationCircle } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
-import { v4 as uuid } from "uuid";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -250,7 +249,7 @@ function TabSection({
           if (index === 8) {
             return "note";
           } else if (index === 9) {
-            return uuid();
+            return crypto.randomUUID();
           } else {
             return "";
           }
@@ -679,7 +678,7 @@ function TabSection({
             if (index === 8) {
               return "note";
             } else if (index === 9) {
-              return uuid();
+              return crypto.randomUUID();
             } else {
               return "";
             }

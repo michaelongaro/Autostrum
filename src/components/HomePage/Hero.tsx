@@ -59,17 +59,17 @@ function Hero({
           <div className="baseFlex mt-4 gap-4">
             <SignUpButton
               mode="modal"
-              afterSignUpUrl={`${
-                process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-              }/postSignUpRegistration`}
+              // afterSignUpUrl={`${
+              //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+              // }/postSignUpRegistration`}
             >
               <Button className="h-10 px-6 md:h-11 md:px-8">Sign up</Button>
             </SignUpButton>
             <SignInButton
               mode="modal"
-              afterSignUpUrl={`${
-                process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-              }/postSignUpRegistration`}
+              // afterSignUpUrl={`${
+              //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+              // }/postSignUpRegistration`}
             >
               <Button variant={"secondary"} className="h-10 md:h-11">
                 Sign in

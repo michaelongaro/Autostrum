@@ -12,7 +12,7 @@ type ComponentWithPageLayout = AppProps & {
   };
 };
 
-function MyApp({ Component, pageProps }: ComponentWithPageLayout) {
+function App({ Component, pageProps }: ComponentWithPageLayout) {
   return (
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
@@ -53,4 +53,4 @@ function MyApp({ Component, pageProps }: ComponentWithPageLayout) {
   );
 }
 
-export default api.withTRPC(MyApp);
+export default api.withTRPC(App);

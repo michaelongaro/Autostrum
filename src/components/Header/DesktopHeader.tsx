@@ -89,12 +89,12 @@ function DesktopHeader() {
             {/* how to maybe get colors to match theme + also have an option to specify username? */}
             <SignUpButton
               mode="modal"
-              afterSignUpUrl={`${
-                process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-              }/postSignUpRegistration`}
-              afterSignInUrl={`${
-                process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-              }${asPath}`}
+              // afterSignUpUrl={`${
+              //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+              // }/postSignUpRegistration`}
+              // afterSignInUrl={`${
+              //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+              // }${asPath}`}
             >
               <Button
                 size={"lg"}
@@ -113,12 +113,12 @@ function DesktopHeader() {
             </SignUpButton>
             <SignInButton
               mode="modal"
-              afterSignUpUrl={`${
-                process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-              }/postSignUpRegistration`}
-              afterSignInUrl={`${
-                process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-              }${asPath}`}
+              // afterSignUpUrl={`${
+              //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+              // }/postSignUpRegistration`}
+              // afterSignInUrl={`${
+              //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+              // }${asPath}`}
             >
               <Button
                 variant={"secondary"}
@@ -144,15 +144,15 @@ function DesktopHeader() {
             <Button variant={"ghost"} asChild className="px-4 py-0">
               <Link
                 href={`/profile/preferences`}
-                className="baseFlex  gap-4  p-0 text-xl"
+                className="baseFlex gap-4 p-0 text-xl"
               >
                 <p className="max-w-[150px] truncate xl:max-w-[250px]">
                   {user?.username}
                 </p>
                 <UserButton
-                  afterSignOutUrl={`${
-                    process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                  }/`}
+                // afterSignOutUrl={`${
+                //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+                // }/`}
                 />
               </Link>
             </Button>

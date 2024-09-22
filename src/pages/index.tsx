@@ -43,13 +43,13 @@ function Home({
 
 export default Home;
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const { userId } = getAuth(ctx.req);
+// export const getServerSideProps: GetServerSideProps = (ctx) => {
+//   const { userId } = getAuth(ctx.req);
 
-  return {
-    props: {
-      showSignUpAndSignInButtons: userId === null,
-      ...buildClerkProps(ctx.req),
-    },
-  };
-};
+//   return {
+//     props: {
+//       showSignUpAndSignInButtons: userId === null,
+//       ...buildClerkProps(ctx.req),
+//     },
+//   };
+// };

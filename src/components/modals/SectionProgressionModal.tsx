@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 import { BsPlus } from "react-icons/bs";
 import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
-import { v4 as uuid } from "uuid";
 import { useTabStore, type SectionProgression } from "~/stores/TabStore";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -95,7 +94,7 @@ function SectionProgressionModal() {
   function addNewSectionToProgression() {
     const newSectionProgression = [...localSectionProgression];
     newSectionProgression.push({
-      id: uuid(),
+      id: crypto.randomUUID(),
       sectionId: "",
       title: "",
       repetitions: 1,

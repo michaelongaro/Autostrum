@@ -6,12 +6,13 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { Tab } from "@prisma/client";
 import { z } from "zod";
+import { env } from "~/env";
 
 const s3 = new S3Client({
   region: "us-east-2",
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    accessKeyId: env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
   },
 });
 

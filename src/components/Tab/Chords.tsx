@@ -12,7 +12,6 @@ import { HiOutlineInformationCircle } from "react-icons/hi";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 import Chord from "./Chord";
-import { v4 as uuid } from "uuid";
 import {
   Accordion,
   AccordionContent,
@@ -284,7 +283,7 @@ function Chords() {
                     setChordBeingEdited({
                       index: chords.length,
                       value: {
-                        id: uuid(),
+                        id: crypto.randomUUID(),
                         name: "",
                         frets: ["", "", "", "", "", ""],
                       },

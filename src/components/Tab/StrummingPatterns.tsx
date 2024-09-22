@@ -15,7 +15,6 @@ import {
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 import { Button } from "../ui/button";
 import StrummingPattern from "./StrummingPattern";
-import { v4 as uuid } from "uuid";
 import {
   Accordion,
   AccordionContent,
@@ -378,7 +377,7 @@ function StrummingPatterns() {
                     setStrummingPatternBeingEdited({
                       index: strummingPatterns.length,
                       value: {
-                        id: uuid(),
+                        id: crypto.randomUUID(),
                         noteLength: "1/8th",
                         strums: Array.from({ length: 8 }, () => ({
                           palmMute: "",

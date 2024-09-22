@@ -1,4 +1,3 @@
-import { v4 as uuid } from "uuid"; // Assuming you're using the 'uuid' library
 import {
   type ChordSequence,
   type ChordSection,
@@ -7,13 +6,13 @@ import {
 } from "~/stores/TabStore";
 
 function replaceIdInChordSequence(seq: ChordSequence): ChordSequence {
-  return { ...seq, id: uuid() };
+  return { ...seq, id: crypto.randomUUID() };
 }
 
 function replaceIdInChordSection(section: ChordSection): ChordSection {
   return {
     ...section,
-    id: uuid(),
+    id: crypto.randomUUID(),
     data: section.data.map(replaceIdInChordSequence),
   };
 }
@@ -24,7 +23,7 @@ function replaceIdInTabData(data: string[][]): string[][] {
       // Check if index 9 exists
       return [
         ...item.slice(0, 9), // Take elements from index 0 to 8
-        uuid(), // Replace 9th index with unique ID
+        crypto.randomUUID(), // Replace 9th index with unique ID
       ];
     }
     return item;
@@ -34,7 +33,7 @@ function replaceIdInTabData(data: string[][]): string[][] {
 function replaceIdInTabSection(section: TabSection): TabSection {
   return {
     ...section,
-    id: uuid(),
+    id: crypto.randomUUID(),
     data: replaceIdInTabData(section.data),
   };
 }
