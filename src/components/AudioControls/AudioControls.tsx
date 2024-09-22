@@ -708,6 +708,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                         | "acoustic_guitar_steel"
                         | "electric_guitar_clean"
                         | "electric_guitar_jazz"
+                        | "acoustic_grand_piano"
+                        | "electric_grand_piano"
                     );
                   }}
                 >
@@ -732,6 +734,14 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
 
                       <SelectItem value={"electric_guitar_jazz"}>
                         Electric guitar - Jazz
+                      </SelectItem>
+
+                      <SelectItem value={"acoustic_grand_piano"}>
+                        Acoustic grand piano
+                      </SelectItem>
+
+                      <SelectItem value={"electric_grand_piano"}>
+                        Electric grand piano
                       </SelectItem>
                     </SelectGroup>
                   </SelectContent>
@@ -1213,6 +1223,14 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
 
                           <SelectItem value={"electric_guitar_jazz"}>
                             Electric guitar - Jazz
+                          </SelectItem>
+
+                          <SelectItem value={"acoustic_grand_piano"}>
+                            Acoustic grand piano
+                          </SelectItem>
+
+                          <SelectItem value={"electric_grand_piano"}>
+                            Electric grand piano
                           </SelectItem>
                         </SelectGroup>
                       </SelectContent>

@@ -370,13 +370,17 @@ interface TabState {
     | "acoustic_guitar_nylon"
     | "acoustic_guitar_steel"
     | "electric_guitar_clean"
-    | "electric_guitar_jazz";
+    | "electric_guitar_jazz"
+    | "acoustic_grand_piano"
+    | "electric_grand_piano";
   setCurrentInstrumentName: (
     currentInstrumentName:
       | "acoustic_guitar_nylon"
       | "acoustic_guitar_steel"
       | "electric_guitar_clean"
       | "electric_guitar_jazz"
+      | "acoustic_grand_piano"
+      | "electric_grand_piano"
   ) => void;
   looping: boolean;
   setLooping: (looping: boolean) => void;
