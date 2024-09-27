@@ -64,7 +64,7 @@ function TabMetadata({
   const { userId } = useAuth();
 
   const { push, asPath } = useRouter();
-  const ctx = api.useContext();
+  const ctx = api.useUtils();
 
   const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
   const [takingScreenshot, setTakingScreenshot] = useState(false);

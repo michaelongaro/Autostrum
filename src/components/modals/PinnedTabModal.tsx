@@ -32,7 +32,7 @@ function PinnedTabModal({
   setPreventFramerLayoutShift,
 }: PinnedTabModal) {
   const { userId } = useAuth();
-  const ctx = api.useContext();
+  const ctx = api.useUtils();
 
   const [currentlySelectedPinnedTabId, setCurrentlySelectedPinnedTabId] =
     useState(pinnedTabIdFromDatabase);

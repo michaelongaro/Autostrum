@@ -22,7 +22,7 @@ const backdropVariants = {
 
 function DeleteAccountModal() {
   const { push, reload } = useRouter();
-  const ctx = api.useContext();
+  const ctx = api.useUtils();
   const { userId } = useAuth();
 
   const [deleteAllOfArtistsTabs, setDeleteAllOfArtistsTabs] = useState(true);

@@ -12,6 +12,7 @@ import {
 } from "~/utils/chordCompilationHelpers";
 import { resetTabSliderPosition } from "~/utils/tabSliderHelpers";
 import { parse } from "~/utils/tunings";
+import { expandFullTab, expandSpecificChordGrouping, type PlaybackSection } from "~/utils/experimentalChordCompilationHelpers";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
@@ -61,7 +62,7 @@ export interface ChordSequence {
   strummingPattern: StrummingPattern;
   bpm: number;
   repetitions: number;
-  data: string[];
+  data: string[]; // each string is a predefined chord name
 }
 
 export interface ChordSection {
@@ -307,6 +308,9 @@ interface TabState {
     showing: boolean;
     forSectionContainer: number | null;
   }) => void;
+
+  expandedTabData: PlaybackSection[] | null;
+  setExpandedTabData: (expandedTabData: PlaybackSection[] | null) => void;
 
   // modals
   showAudioRecorderModal: boolean;
@@ -645,6 +649,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           currentInstrument,
           audioContext,
           masterVolumeGainNode,
+          setExpandedTabData,
           setCurrentlyPlayingMetadata,
         } = get();
 
@@ -701,6 +706,25 @@ export const useTabStore = createWithEqualityFn<TabState>()(
               startLoopIndex: audioMetadata.startLoopIndex,
               endLoopIndex: audioMetadata.endLoopIndex,
             });
+
+
+
+        
+            const expandedTabData = location
+          ? expandSpecificChordGrouping({
+              tabData,
+              location,
+            })
+          : expandFullTab({
+              tabData,
+              sectionProgression,
+              
+            });
+
+        setExpandedTabData(expandedTabData);
+
+
+
 
         for (
           let chordIndex = currentChordIndex;
@@ -1002,6 +1026,12 @@ export const useTabStore = createWithEqualityFn<TabState>()(
 
         currentInstrument?.stop();
       },
+
+      // experimental
+      compiledTabData: null,
+      setCompiledTabData: (compiledTabData) => set({ compiledTabData }),
+      expandedTabData: null,
+      setExpandedTabData: (expandedTabData) => set({ expandedTabData }),
 
       // modals
       showAudioRecorderModal: false,

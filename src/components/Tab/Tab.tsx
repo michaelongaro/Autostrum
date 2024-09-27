@@ -5,7 +5,7 @@ import type {
   RefetchQueryFilters,
 } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { FaBook } from "react-icons/fa";
 import type { TabWithLikes } from "~/server/api/routers/tab";
 import { useTabStore } from "~/stores/TabStore";
@@ -24,6 +24,10 @@ import Chords from "./Chords";
 import SectionContainer from "./SectionContainer";
 import StrummingPatterns from "./StrummingPatterns";
 import dynamic from "next/dynamic";
+import TabMeasureLine from "~/components/Tab/TabMeasureLine";
+import TabNotesColumn from "~/components/Tab/TabNotesColumn";
+import { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
+import PlaybackDialog from "~/components/Tab/Playback/PlaybackDialog";
 
 const EffectGlossaryModal = dynamic(
   () => import("~/components/modals/EffectGlossaryModal")
@@ -107,6 +111,8 @@ function Tab({ tab, refetchTab }: ITab) {
     sectionProgression,
     chords,
     strummingPatterns,
+    compiledTabData,
+    playbackSpeed,
   } = useTabStore((state) => ({
     setId: state.setId,
     setCreatedById: state.setCreatedById,
@@ -143,7 +149,21 @@ function Tab({ tab, refetchTab }: ITab) {
     sectionProgression: state.sectionProgression,
     chords: state.chords,
     strummingPatterns: state.strummingPatterns,
+    compiledTabData: state.compiledTabData,
+    playbackSpeed: state.playbackSpeed
   }));
+
+    const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
+  const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
+    useState<LastModifiedPalmMuteNodeLocation | null>(null);
+  const [pmNodeOpacities, setPMNodeOpacities] = useState<string[]>([]);
+
+  const [reorderingColumns, setReorderingColumns] = useState(false);
+  const [showingDeleteColumnsButtons, setShowingDeleteColumnsButtons] =
+    useState(false);
+  const [columnIdxBeingHovered, setColumnIdxBeingHovered] = useState<
+    number | null
+  >(null);
 
   useEffect(() => {
     if (!tab) return;
@@ -165,13 +185,13 @@ function Tab({ tab, refetchTab }: ITab) {
     setHasRecordedAudio(tab.hasRecordedAudio);
     setNumberOfLikes(tab.numberOfLikes);
 
-    // @ts-expect-error can't specify type from prisma Json value, but we know it's correct
+    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setChords(tab.chords);
-    // @ts-expect-error can't specify type from prisma Json value, but we know it's correct
+    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setStrummingPatterns(tab.strummingPatterns);
-    // @ts-expect-error can't specify type from prisma Json value, but we know it's correct
+    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setTabData(tab.tabData);
-    // @ts-expect-error can't specify type from prisma Json value, but we know it's correct
+    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setSectionProgression(tab.sectionProgression ?? []);
   }, [
     tab,
@@ -226,7 +246,7 @@ function Tab({ tab, refetchTab }: ITab) {
       strummingPatterns,
       tabData: localStorageTabDataValue, // avoids name conflict with actual tabData
       sectionProgression,
-    } = JSON.parse(localStorageTabData.value as string);
+    } = JSON.parse(localStorageTabData.value as string) as Tab;
 
     setTitle(title);
     setDescription(description);
@@ -236,9 +256,13 @@ function Tab({ tab, refetchTab }: ITab) {
     setTimeSignature(timeSignature);
     setCapo(capo);
     setMusicalKey(musicalKey);
+    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setChords(chords);
+    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setStrummingPatterns(strummingPatterns);
+    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setTabData(localStorageTabDataValue);
+    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setSectionProgression(sectionProgression ?? []);
 
     localStorageTabData.remove();
@@ -272,6 +296,16 @@ function Tab({ tab, refetchTab }: ITab) {
 
     setTabData(newTabData);
     setForceCloseSectionAccordions(true);
+  }
+
+    function getDurationOfCurrentChord() {
+    const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
+    if (!currentlyPlayingMetadata || !location) return 0;
+
+    const { bpm, noteLengthMultiplier } =
+      currentlyPlayingMetadata[currentChordIndex]!;
+
+    return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
   }
 
   return (
@@ -317,6 +351,10 @@ function Tab({ tab, refetchTab }: ITab) {
             </div>
           )}
 
+
+            <PlaybackDialog />
+
+
         <Separator className="w-[96%]" />
 
         {(editing ||
@@ -339,6 +377,7 @@ function Tab({ tab, refetchTab }: ITab) {
               <FaBook className="h-4 w-4" />
             </Button>
 
+
             {editing && (
               <Popover>
                 <PopoverTrigger className="baseFlex absolute bottom-5 right-3 mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:bottom-3 sm:right-7 ">
@@ -360,6 +399,8 @@ function Tab({ tab, refetchTab }: ITab) {
                 </PopoverContent>
               </Popover>
             )}
+
+
             <Separator className="w-[96%]" />
           </div>
         )}
@@ -380,9 +421,15 @@ function Tab({ tab, refetchTab }: ITab) {
                 duration: 1,
               },
             }}
-            className="baseVertFlex w-full"
+            className="baseFlex w-full"
           >
-            <SectionContainer
+
+            {/* TODO: OBV change this, will need to actually compile & do setCompiledTabData(compiledChords); 
+                manually whenever opening up new dialog player*/}
+
+           
+
+             <SectionContainer
               sectionIndex={index}
               sectionData={section}
               currentlyPlayingSectionIndex={
@@ -398,6 +445,10 @@ function Tab({ tab, refetchTab }: ITab) {
               }
               setForceCloseSectionAccordions={setForceCloseSectionAccordions}
             />
+            
+
+
+
           </motion.div>
         ))}
 
