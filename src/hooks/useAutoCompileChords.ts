@@ -5,6 +5,10 @@ import {
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
 import { useTabStore } from "../stores/TabStore";
+import {
+  expandFullTab,
+  expandSpecificChordGrouping,
+} from "~/utils/experimentalChordCompilationHelpers";
 
 function useAutoCompileChords() {
   const [
@@ -23,6 +27,8 @@ function useAutoCompileChords() {
     chords,
     strummingPatterns,
     atomicallyUpdateAudioMetadata,
+    setExpandedTabData,
+    setFullCurrentlyPlayingMetadata,
   } = useTabStore((state) => ({
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
     playbackSpeed: state.playbackSpeed,
@@ -34,6 +40,8 @@ function useAutoCompileChords() {
     chords: state.chords,
     strummingPatterns: state.strummingPatterns,
     atomicallyUpdateAudioMetadata: state.atomicallyUpdateAudioMetadata,
+    setExpandedTabData: state.setExpandedTabData,
+    setFullCurrentlyPlayingMetadata: state.setFullCurrentlyPlayingMetadata,
   }));
 
   useEffect(() => {
@@ -82,6 +90,12 @@ function useAutoCompileChords() {
         endLoopIndex: audioMetadata.endLoopIndex,
         atomicallyUpdateAudioMetadata,
       });
+
+      const expandedTabData = expandSpecificChordGrouping({
+        tabData,
+        location: audioMetadata.location,
+      });
+      setExpandedTabData(expandedTabData);
     } else {
       const sanitizedSectionProgression =
         sectionProgression.length > 0
@@ -99,6 +113,14 @@ function useAutoCompileChords() {
         endLoopIndex: audioMetadata.endLoopIndex,
         atomicallyUpdateAudioMetadata,
       });
+
+      const expandedTabData = expandFullTab({
+        tabData,
+        sectionProgression,
+        setFullCurrentlyPlayingMetadata,
+      });
+
+      setExpandedTabData(expandedTabData);
     }
   }, [
     bpm,
@@ -114,6 +136,8 @@ function useAutoCompileChords() {
     setAudioMetadata,
     setCurrentlyPlayingMetadata,
     atomicallyUpdateAudioMetadata,
+    setExpandedTabData,
+    setFullCurrentlyPlayingMetadata,
   ]);
 
   useEffect(() => {
@@ -134,7 +158,7 @@ function useAutoCompileChords() {
     }
 
     setPrevFullCurrentlyPlayingMetadataLength(
-      audioMetadata.fullCurrentlyPlayingMetadataLength
+      audioMetadata.fullCurrentlyPlayingMetadataLength,
     );
   }, [
     audioMetadata.fullCurrentlyPlayingMetadataLength,

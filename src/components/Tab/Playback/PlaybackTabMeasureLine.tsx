@@ -1,18 +1,14 @@
 import { Fragment } from "react";
 import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
 
-
 interface PlaybackTabMeasureLine {
   columnData: string[];
 }
 
-function PlaybackTabMeasureLine(
-  { columnData }: PlaybackTabMeasureLine
-) {
-
+function PlaybackTabMeasureLine({ columnData }: PlaybackTabMeasureLine) {
   return (
-    <div className="baseVertFlex">
-        {columnData.map((note, index) => (
+    <div className="baseVertFlex h-[271px] w-[2px]">
+      {columnData.map((note, index) => (
         <Fragment key={index}>
           {index === 0 && (
             <>
@@ -43,21 +39,19 @@ function PlaybackTabMeasureLine(
           )}
 
           {index > 0 && index < 7 && (
-            <div className="baseFlex w-full"><div
-        style={{
-          height: "28px",
-        }}
-        className="w-[2px] bg-pink-100"
-      ></div></div>
+            <div className="baseFlex w-full">
+              <div
+                style={{
+                  height: "28px",
+                }}
+                className="w-[2px] bg-pink-100"
+              ></div>
+            </div>
           )}
-
-         
         </Fragment>
       ))}
     </div>
   );
-
-
 }
 
 export default PlaybackTabMeasureLine;

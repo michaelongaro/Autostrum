@@ -46,7 +46,7 @@ function useAutoscrollToCurrentChord({
       60 /
       ((currentlyPlayingMetadata[currentChordIndex]!.bpm /
         Number(
-          currentlyPlayingMetadata[currentChordIndex]!.noteLengthMultiplier
+          currentlyPlayingMetadata[currentChordIndex]!.noteLengthMultiplier,
         )) *
         playbackSpeed);
 
@@ -56,11 +56,11 @@ function useAutoscrollToCurrentChord({
 
     if (chordSequenceIndex !== undefined) {
       currentElement = document.getElementById(
-        `section${sectionIndex}-subSection${subSectionIndex}-chordSequence${chordSequenceIndex}-chord${chordIndex}`
+        `section${sectionIndex}-subSection${subSectionIndex}-chordSequence${chordSequenceIndex}-chord${chordIndex}`,
       );
     } else {
       currentElement = document.getElementById(
-        `section${sectionIndex}-subSection${subSectionIndex}-chord${chordIndex}`
+        `section${sectionIndex}-subSection${subSectionIndex}-chord${chordIndex}`,
       );
     }
 
@@ -116,7 +116,7 @@ function useAutoscrollToCurrentChord({
       // TODO: technically I think you would want to abstract this whole function out to optionally do the
       // current chord or the next chord based on whether or not the audio is playing, since when scrolling
       // backwards through the tab I think it is off by one.
-      audioMetadata.playing ? durationOfCurrentChord * 0.9 : 0
+      audioMetadata.playing ? durationOfCurrentChord * 0.9 : 0,
     );
   }, [
     editing,

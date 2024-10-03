@@ -1097,7 +1097,7 @@ function TabMetadata({
                                   width={75}
                                   height={75}
                                   quality={100}
-                                  onLoadingComplete={() => {
+                                  onLoad={() => {
                                     setProfileImageLoaded(true);
                                   }}
                                   style={{
@@ -1206,7 +1206,7 @@ function TabMetadata({
                                   width={75}
                                   height={75}
                                   quality={100}
-                                  onLoadingComplete={() => {
+                                  onLoad={() => {
                                     setProfileImageLoaded(true);
                                   }}
                                   style={{

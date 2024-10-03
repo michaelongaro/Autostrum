@@ -271,7 +271,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                     ? 146
                     : 124
                 }
-                onLoadingComplete={() => {
+                onLoad={() => {
                   setTabScreenshotLoaded(true);
                 }}
                 style={{
@@ -378,7 +378,7 @@ const GridTabCard = forwardRef<HTMLDivElement, GridTabCard>(
                                 width={75}
                                 height={75}
                                 quality={100}
-                                onLoadingComplete={() => {
+                                onLoad={() => {
                                   setProfileImageLoaded(true);
                                 }}
                                 style={{

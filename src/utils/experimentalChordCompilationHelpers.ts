@@ -1,3 +1,5 @@
+import { type Metadata } from "~/stores/TabStore";
+
 export interface PlaybackStrummingPattern {
   id: string;
   noteLength:
@@ -104,15 +106,24 @@ function getRepetitions(repetitions: number | undefined): number {
 function expandFullTab({
   tabData,
   sectionProgression,
+  setFullCurrentlyPlayingMetadata,
 }: {
   tabData: Section[];
   sectionProgression: SectionProgression[];
+  setFullCurrentlyPlayingMetadata: (
+    fullCurrentlyPlayingMetadata: Metadata[] | null,
+  ) => void;
 }): PlaybackSection[] {
   const expandedSections: PlaybackSection[] = [];
+  const fullCurrentlyPlayingMetadata: Metadata[] = [];
   let indexCounter = 0;
+  let elapsedSeconds = { value: 0 };
 
   for (const progressionItem of sectionProgression) {
-    const section = tabData.find((s) => s.id === progressionItem.sectionId);
+    const sectionIndex = tabData.findIndex(
+      (s) => s.id === progressionItem.sectionId,
+    );
+    const section = tabData[sectionIndex];
     if (!section) continue;
 
     const sectionRepetitions = getRepetitions(progressionItem.repetitions);
@@ -121,11 +132,48 @@ function expandFullTab({
       const { playbackSection, newIndexCounter } = expandSection({
         section,
         indexCounter,
+        sectionIndex,
+        elapsedSeconds,
+        fullCurrentlyPlayingMetadata,
       });
       indexCounter = newIndexCounter;
       expandedSections.push(playbackSection);
     }
   }
+
+  // Adjust elapsedSeconds to start from zero
+  const secondsToSubtract =
+    fullCurrentlyPlayingMetadata[0]?.elapsedSeconds ?? 0;
+
+  for (let i = 0; i < fullCurrentlyPlayingMetadata.length; i++) {
+    fullCurrentlyPlayingMetadata[i]!.elapsedSeconds -= secondsToSubtract;
+  }
+
+  // Optionally, add a ghost chord for alignment
+  if (fullCurrentlyPlayingMetadata.length > 0) {
+    const lastActualChord = fullCurrentlyPlayingMetadata.at(-1)!;
+    const ghostChordIndex = lastActualChord.location.chordIndex + 1;
+
+    fullCurrentlyPlayingMetadata.push({
+      location: {
+        ...lastActualChord.location,
+        chordIndex: ghostChordIndex,
+      },
+      bpm: lastActualChord.bpm,
+      noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
+      elapsedSeconds: Math.ceil(
+        lastActualChord.elapsedSeconds +
+          60 /
+            (lastActualChord.bpm /
+              Number(lastActualChord.noteLengthMultiplier)) +
+          1,
+      ),
+    });
+  }
+
+  setFullCurrentlyPlayingMetadata(fullCurrentlyPlayingMetadata);
+
+  // HOW is this "not a function"^ ?
 
   return expandedSections;
 }
@@ -133,9 +181,15 @@ function expandFullTab({
 function expandSection({
   section,
   indexCounter,
+  sectionIndex,
+  elapsedSeconds,
+  fullCurrentlyPlayingMetadata,
 }: {
   section: Section;
   indexCounter: number;
+  sectionIndex: number;
+  elapsedSeconds: { value: number };
+  fullCurrentlyPlayingMetadata: Metadata[];
 }): {
   playbackSection: PlaybackSection;
   newIndexCounter: number;
@@ -146,13 +200,25 @@ function expandSection({
     data: [],
   };
 
-  for (const subSection of section.data) {
+  for (
+    let subSectionIndex = 0;
+    subSectionIndex < section.data.length;
+    subSectionIndex++
+  ) {
+    const subSection = section.data[subSectionIndex];
+
+    if (!subSection) continue;
+
     const subSectionRepetitions = getRepetitions(subSection.repetitions);
 
     for (let i = 0; i < subSectionRepetitions; i++) {
       const { playbackSubSection, newIndexCounter } = expandSubSection({
         subSection,
         indexCounter,
+        sectionIndex,
+        subSectionIndex,
+        elapsedSeconds,
+        fullCurrentlyPlayingMetadata,
       });
       indexCounter = newIndexCounter;
       playbackSection.data.push(playbackSubSection);
@@ -165,26 +231,56 @@ function expandSection({
 function expandSubSection({
   subSection,
   indexCounter,
+  sectionIndex,
+  subSectionIndex,
+  elapsedSeconds,
+  fullCurrentlyPlayingMetadata,
 }: {
   subSection: TabSection | ChordSection;
   indexCounter: number;
+  sectionIndex: number;
+  subSectionIndex: number;
+  elapsedSeconds: { value: number };
+  fullCurrentlyPlayingMetadata: Metadata[];
 }): {
   playbackSubSection: PlaybackTabSection | PlaybackChordSection;
   newIndexCounter: number;
 } {
   if (subSection.type === "tab") {
-    return expandTabSection({ subSection, indexCounter });
+    return expandTabSection({
+      subSection,
+      indexCounter,
+      sectionIndex,
+      subSectionIndex,
+      elapsedSeconds,
+      fullCurrentlyPlayingMetadata,
+    });
   } else {
-    return expandChordSection({ subSection, indexCounter });
+    return expandChordSection({
+      subSection,
+      indexCounter,
+      sectionIndex,
+      subSectionIndex,
+      elapsedSeconds,
+      fullCurrentlyPlayingMetadata,
+    });
   }
 }
 
 function expandTabSection({
   subSection,
   indexCounter,
+  sectionIndex,
+  subSectionIndex,
+  elapsedSeconds,
+  fullCurrentlyPlayingMetadata,
 }: {
   subSection: TabSection;
   indexCounter: number;
+  sectionIndex: number;
+  subSectionIndex: number;
+  elapsedSeconds: { value: number };
+  fullCurrentlyPlayingMetadata: Metadata[];
 }): {
   playbackSubSection: PlaybackTabSection;
   newIndexCounter: number;
@@ -198,23 +294,74 @@ function expandTabSection({
     indices: [],
   };
 
-  for (const chord of subSection.data) {
+  let currentBpm = subSection.bpm;
+
+  for (let chordIdx = 0; chordIdx < subSection.data.length; chordIdx++) {
+    const chord = subSection.data[chordIdx];
+
+    if (!chord) continue;
+
     playbackTabSection.data.push(chord);
 
-    if (chord[8] !== "measureLine") {
-      playbackTabSection.indices.push(indexCounter++);
+    if (chord[8] === "measureLine") {
+      const specifiedBpmToUsePostMeasureLine = chord[7];
+      if (
+        specifiedBpmToUsePostMeasureLine &&
+        specifiedBpmToUsePostMeasureLine !== "-1"
+      ) {
+        currentBpm = Number(specifiedBpmToUsePostMeasureLine);
+      } else {
+        currentBpm = subSection.bpm;
+      }
     }
+
+    let noteLengthMultiplier = 1;
+    if (chord[8] === "1/8th") noteLengthMultiplier = 0.5;
+    else if (chord[8] === "1/16th") noteLengthMultiplier = 0.25;
+    else if (chord[8] === "measureLine") noteLengthMultiplier = 0;
+
+    fullCurrentlyPlayingMetadata.push({
+      location: {
+        sectionIndex,
+        subSectionIndex,
+        chordIndex: chordIdx,
+      },
+      bpm: currentBpm,
+      noteLengthMultiplier: noteLengthMultiplier.toString(),
+      elapsedSeconds: elapsedSeconds.value,
+    });
+
+    if (noteLengthMultiplier > 0) {
+      elapsedSeconds.value += 60 / (currentBpm / noteLengthMultiplier);
+    }
+
+    if (chord[8] !== "measureLine") {
+      playbackTabSection.indices.push(indexCounter);
+    }
+
+    indexCounter++;
   }
 
-  return { playbackSubSection: playbackTabSection, newIndexCounter: indexCounter };
+  return {
+    playbackSubSection: playbackTabSection,
+    newIndexCounter: indexCounter,
+  };
 }
 
 function expandChordSection({
   subSection,
   indexCounter,
+  sectionIndex,
+  subSectionIndex,
+  elapsedSeconds,
+  fullCurrentlyPlayingMetadata,
 }: {
   subSection: ChordSection;
   indexCounter: number;
+  sectionIndex: number;
+  subSectionIndex: number;
+  elapsedSeconds: { value: number };
+  fullCurrentlyPlayingMetadata: Metadata[];
 }): {
   playbackSubSection: PlaybackChordSection;
   newIndexCounter: number;
@@ -227,28 +374,57 @@ function expandChordSection({
     data: [],
   };
 
-  for (const chordSequence of subSection.data) {
+  for (
+    let chordSequenceIndex = 0;
+    chordSequenceIndex < subSection.data.length;
+    chordSequenceIndex++
+  ) {
+    const chordSequence = subSection.data[chordSequenceIndex];
+
+    if (!chordSequence) continue;
+
     const chordSequenceRepetitions = getRepetitions(chordSequence.repetitions);
 
     for (let i = 0; i < chordSequenceRepetitions; i++) {
       const { playbackChordSequence, newIndexCounter } = expandChordSequence({
         chordSequence,
         indexCounter,
+        sectionIndex,
+        subSectionIndex,
+        chordSequenceIndex,
+        elapsedSeconds,
+        fullCurrentlyPlayingMetadata,
+        subSectionBpm: subSection.bpm,
       });
       indexCounter = newIndexCounter;
       playbackChordSection.data.push(playbackChordSequence);
     }
   }
 
-  return { playbackSubSection: playbackChordSection, newIndexCounter: indexCounter };
+  return {
+    playbackSubSection: playbackChordSection,
+    newIndexCounter: indexCounter,
+  };
 }
 
 function expandChordSequence({
   chordSequence,
   indexCounter,
+  sectionIndex,
+  subSectionIndex,
+  chordSequenceIndex,
+  elapsedSeconds,
+  fullCurrentlyPlayingMetadata,
+  subSectionBpm,
 }: {
   chordSequence: ChordSequence;
   indexCounter: number;
+  sectionIndex: number;
+  subSectionIndex: number;
+  chordSequenceIndex: number;
+  elapsedSeconds: { value: number };
+  fullCurrentlyPlayingMetadata: Metadata[];
+  subSectionBpm: number;
 }): {
   playbackChordSequence: PlaybackChordSequence;
   newIndexCounter: number;
@@ -262,8 +438,45 @@ function expandChordSequence({
     indices: [],
   };
 
-  for (const chordName of chordSequence.data) {
-    playbackChordSequence.indices.push(indexCounter++);
+  for (let chordIdx = 0; chordIdx < chordSequence.data.length; chordIdx++) {
+    playbackChordSequence.indices.push(indexCounter);
+
+    let noteLengthMultiplier = 1;
+    switch (chordSequence.strummingPattern.noteLength) {
+      case "1/4th triplet":
+        noteLengthMultiplier = 0.6667;
+        break;
+      case "1/8th":
+        noteLengthMultiplier = 0.5;
+        break;
+      case "1/8th triplet":
+        noteLengthMultiplier = 0.3333;
+        break;
+      case "1/16th":
+        noteLengthMultiplier = 0.25;
+        break;
+      case "1/16th triplet":
+        noteLengthMultiplier = 0.1667;
+        break;
+    }
+
+    const chordBpm = chordSequence.bpm ?? subSectionBpm;
+    fullCurrentlyPlayingMetadata.push({
+      location: {
+        sectionIndex,
+        subSectionIndex,
+        chordSequenceIndex,
+        chordIndex: chordIdx,
+      },
+      bpm: chordBpm,
+      noteLengthMultiplier: noteLengthMultiplier.toString(),
+      elapsedSeconds: elapsedSeconds.value,
+    });
+
+    // Update elapsedSeconds
+    elapsedSeconds.value += 60 / (chordBpm / noteLengthMultiplier);
+
+    indexCounter++;
   }
 
   return { playbackChordSequence, newIndexCounter: indexCounter };
@@ -315,6 +528,12 @@ function expandSpecificChordGrouping({
       const { playbackChordSequence, newIndexCounter } = expandChordSequence({
         chordSequence,
         indexCounter,
+        sectionIndex: location.sectionIndex,
+        subSectionIndex: location.subSectionIndex,
+        chordSequenceIndex: location.chordSequenceIndex,
+        elapsedSeconds: { value: 0 },
+        fullCurrentlyPlayingMetadata: [],
+        subSectionBpm: subSection.bpm,
       });
       indexCounter = newIndexCounter;
       playbackChordSection.data.push(playbackChordSequence);
@@ -331,15 +550,24 @@ function expandSpecificChordGrouping({
       const { playbackSubSection, newIndexCounter } = expandSubSection({
         subSection,
         indexCounter,
+        sectionIndex: location.sectionIndex,
+        subSectionIndex: location.subSectionIndex,
+        elapsedSeconds: { value: 0 },
+        fullCurrentlyPlayingMetadata: [],
       });
       indexCounter = newIndexCounter;
       playbackSection.data.push(playbackSubSection);
     }
   } else {
-    const { playbackSection: expandedSection, newIndexCounter } = expandSection({
-      section,
-      indexCounter,
-    });
+    const { playbackSection: expandedSection, newIndexCounter } = expandSection(
+      {
+        section,
+        indexCounter,
+        sectionIndex: location.sectionIndex,
+        elapsedSeconds: { value: 0 },
+        fullCurrentlyPlayingMetadata: [],
+      },
+    );
     indexCounter = newIndexCounter;
     return [expandedSection];
   }
@@ -347,11 +575,4 @@ function expandSpecificChordGrouping({
   return [playbackSection];
 }
 
-// goal: create expanded version of tabData that respects all of the repeated
-// sections and order of the section progression. The output will be used for
-// the <PlaybackDialog /> component.
-
-export {
-  expandFullTab,
-  expandSpecificChordGrouping,
-};
+export { expandFullTab, expandSpecificChordGrouping };

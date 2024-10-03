@@ -328,7 +328,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
             void res.arrayBuffer().then((arrayBuffer) => {
               void convertAudioBuffer(arrayBuffer);
             });
-          }
+          },
         );
       }
     } else if (!recordedAudioBuffer) {
@@ -351,7 +351,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   }, [audioMetadata.type]);
 
   function resetAudioStateOnSourceChange(
-    audioTypeBeingChangedTo: "Generated" | "Artist recording"
+    audioTypeBeingChangedTo: "Generated" | "Artist recording",
   ) {
     if (oneSecondIntervalRef.current) {
       clearInterval(oneSecondIntervalRef.current);
@@ -597,7 +597,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               className="col-span-2 h-7 w-7 p-0"
               onClick={() =>
                 setVisibility(
-                  visibility === "minimized" ? "expanded" : "minimized"
+                  visibility === "minimized" ? "expanded" : "minimized",
                 )
               }
             >
@@ -665,7 +665,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   onValueChange={(value) => {
                     if (value !== audioMetadata.type) {
                       resetAudioStateOnSourceChange(
-                        value as "Generated" | "Artist recording"
+                        value as "Generated" | "Artist recording",
                       );
                     }
                   }}
@@ -709,7 +709,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                         | "electric_guitar_clean"
                         | "electric_guitar_jazz"
                         | "acoustic_grand_piano"
-                        | "electric_grand_piano"
+                        | "electric_grand_piano",
                     );
                   }}
                 >
@@ -761,7 +761,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                     pauseAudio();
 
                     const newPlaybackSpeed = Number(
-                      value.slice(0, value.length - 1)
+                      value.slice(0, value.length - 1),
                     ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
 
                     // Normalize the progress value to 1x speed
@@ -915,8 +915,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   ? tabProgressValue
                   : Math.min(
                       tabProgressValue,
-                      currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
-                    )
+                      currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0,
+                    ),
               )}
             </p>
 
@@ -963,8 +963,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                       ? Math.floor(recordedAudioBuffer?.duration)
                       : 1
                     : currentlyPlayingMetadata
-                    ? currentlyPlayingMetadata.at(-1)?.elapsedSeconds
-                    : 1
+                      ? currentlyPlayingMetadata.at(-1)?.elapsedSeconds
+                      : 1
                 }
                 step={1}
                 disabled={disablePlayButton}
@@ -1042,7 +1042,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   ? recordedAudioBuffer?.duration
                     ? Math.floor(recordedAudioBuffer.duration)
                     : 0
-                  : currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
+                  : (currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0),
               )}
             </p>
           </div>
@@ -1157,7 +1157,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                       onValueChange={(value) => {
                         if (value !== audioMetadata.type) {
                           resetAudioStateOnSourceChange(
-                            value as "Generated" | "Artist recording"
+                            value as "Generated" | "Artist recording",
                           );
                         }
                       }}
@@ -1198,7 +1198,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                             | "acoustic_guitar_nylon"
                             | "acoustic_guitar_steel"
                             | "electric_guitar_clean"
-                            | "electric_guitar_jazz"
+                            | "electric_guitar_jazz",
                         );
                       }}
                     >
@@ -1249,7 +1249,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                         pauseAudio();
 
                         const newPlaybackSpeed = Number(
-                          value.slice(0, value.length - 1)
+                          value.slice(0, value.length - 1),
                         ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
 
                         // Normalize the progress value to 1x speed

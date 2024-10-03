@@ -67,7 +67,7 @@ const GridArtistCard = forwardRef<HTMLDivElement, ArtistMetadata>(
               alt={`${artist.username ?? "Anonymous"}'s profile image`}
               width={250}
               height={250}
-              onLoadingComplete={() => {
+              onLoad={() => {
                 setProfileImageLoaded(true);
               }}
               style={{

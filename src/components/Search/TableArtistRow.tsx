@@ -28,7 +28,7 @@ const TableArtistRow = forwardRef<HTMLTableRowElement, ArtistMetadata>(
                   width={75}
                   height={75}
                   quality={100}
-                  onLoadingComplete={() => {
+                  onLoad={() => {
                     setProfileImageLoaded(true);
                   }}
                   style={{

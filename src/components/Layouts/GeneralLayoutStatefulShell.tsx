@@ -17,7 +17,7 @@ import dynamic from "next/dynamic";
 import { useInitializeAudioContext } from "~/hooks/useInitializeAudioContext";
 
 const MobileHeaderModal = dynamic(
-  () => import("~/components/modals/MobileHeaderModal")
+  () => import("~/components/modals/MobileHeaderModal"),
 );
 
 const opacityAndScaleVariants = {
@@ -110,7 +110,7 @@ function GeneralLayoutStatefulShell() {
       timerId = setTimeout(() => {
         window.requestAnimationFrame(() => {
           setScrollThresholdReached(
-            window.scrollY > Math.floor(0.35 * window.innerHeight)
+            window.scrollY > Math.floor(0.35 * window.innerHeight),
           );
           setScrollToTopTicking(false);
         });

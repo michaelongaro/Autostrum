@@ -110,7 +110,7 @@ function Explore() {
                             width={300}
                             height={300}
                             quality={100}
-                            onLoadingComplete={() => {
+                            onLoad={() => {
                               setProfileImageLoaded(true);
                             }}
                             onClick={() =>

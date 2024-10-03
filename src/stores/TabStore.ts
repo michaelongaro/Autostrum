@@ -12,7 +12,11 @@ import {
 } from "~/utils/chordCompilationHelpers";
 import { resetTabSliderPosition } from "~/utils/tabSliderHelpers";
 import { parse } from "~/utils/tunings";
-import { expandFullTab, expandSpecificChordGrouping, type PlaybackSection } from "~/utils/experimentalChordCompilationHelpers";
+import {
+  expandFullTab,
+  expandSpecificChordGrouping,
+  type PlaybackSection,
+} from "~/utils/experimentalChordCompilationHelpers";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
@@ -108,7 +112,9 @@ type InstrumentNames =
   | "acoustic_guitar_nylon"
   | "acoustic_guitar_steel"
   | "electric_guitar_clean"
-  | "electric_guitar_jazz";
+  | "electric_guitar_jazz"
+  | "acoustic_grand_piano"
+  | "electric_grand_piano";
 
 export interface AudioMetadata {
   type: "Generated" | "Artist recording";
@@ -275,7 +281,7 @@ interface TabState {
   resetAudioAndMetadataOnRouteChange: () => void;
   getTabData: () => Section[];
   atomicallyUpdateAudioMetadata: (
-    updatedFields: Partial<AudioMetadata>
+    updatedFields: Partial<AudioMetadata>,
   ) => void;
 
   preventFramerLayoutShift: boolean;
@@ -298,7 +304,7 @@ interface TabState {
         chordIndex: number;
       };
       type: "copy" | "paste";
-    } | null
+    } | null,
   ) => void;
   countInTimer: {
     showing: boolean;
@@ -312,12 +318,18 @@ interface TabState {
   expandedTabData: PlaybackSection[] | null;
   setExpandedTabData: (expandedTabData: PlaybackSection[] | null) => void;
 
+  // dislike this, but I think "needed" to align playback stuff
+  fullCurrentlyPlayingMetadata: Metadata[] | null;
+  setFullCurrentlyPlayingMetadata: (
+    fullCurrentlyPlayingMetadata: Metadata[] | null,
+  ) => void;
+
   // modals
   showAudioRecorderModal: boolean;
   setShowAudioRecorderModal: (showAudioRecorderModal: boolean) => void;
   showSectionProgressionModal: boolean;
   setShowSectionProgressionModal: (
-    showSectionProgressionModal: boolean
+    showSectionProgressionModal: boolean,
   ) => void;
   showEffectGlossaryModal: boolean;
   setShowEffectGlossaryModal: (showEffectGlossaryModal: boolean) => void;
@@ -343,7 +355,7 @@ interface TabState {
     chordBeingEdited: {
       index: number;
       value: Chord;
-    } | null
+    } | null,
   ) => void;
   strummingPatternBeingEdited: {
     index: number;
@@ -353,7 +365,7 @@ interface TabState {
     strummingPatternBeingEdited: {
       index: number;
       value: StrummingPattern;
-    } | null
+    } | null,
   ) => void;
 
   // related to sound generation/playing
@@ -368,7 +380,7 @@ interface TabState {
   // TODO: might be a good idea to add below as a prop under audioMetadata
   currentlyPlayingMetadata: Metadata[] | null;
   setCurrentlyPlayingMetadata: (
-    currentlyPlayingMetadata: Metadata[] | null
+    currentlyPlayingMetadata: Metadata[] | null,
   ) => void;
   currentInstrumentName:
     | "acoustic_guitar_nylon"
@@ -384,7 +396,7 @@ interface TabState {
       | "electric_guitar_clean"
       | "electric_guitar_jazz"
       | "acoustic_grand_piano"
-      | "electric_grand_piano"
+      | "electric_grand_piano",
   ) => void;
   looping: boolean;
   setLooping: (looping: boolean) => void;
@@ -414,7 +426,7 @@ interface TabState {
   setRecordedAudioBuffer: (recordedAudioBuffer: AudioBuffer | null) => void;
   recordedAudioBufferSourceNode: AudioBufferSourceNode | null;
   setRecordedAudioBufferSourceNode: (
-    recordedAudioBufferSourceNode: AudioBufferSourceNode | null
+    recordedAudioBufferSourceNode: AudioBufferSourceNode | null,
   ) => void;
 
   // playing/pausing sound functions
@@ -426,7 +438,7 @@ interface TabState {
   }: PlayRecordedAudio) => void;
   pauseAudio: (
     resetToStart?: boolean,
-    resetCurrentlyPlayingMetadata?: boolean
+    resetCurrentlyPlayingMetadata?: boolean,
   ) => void;
 
   // related to search
@@ -585,6 +597,12 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       currentlyPlayingMetadata: null,
       setCurrentlyPlayingMetadata: (currentlyPlayingMetadata) =>
         set({ currentlyPlayingMetadata }),
+
+      // dislike this, but I think "needed" to align playback stuff
+      fullCurrentlyPlayingMetadata: null,
+      setFullCurrentlyPlayingMetadata: (fullCurrentlyPlayingMetadata) =>
+        set({ fullCurrentlyPlayingMetadata }),
+
       currentInstrumentName: "acoustic_guitar_steel",
       setCurrentInstrumentName: (currentInstrumentName) =>
         set({ currentInstrumentName }),
@@ -651,6 +669,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           masterVolumeGainNode,
           setExpandedTabData,
           setCurrentlyPlayingMetadata,
+          setFullCurrentlyPlayingMetadata,
         } = get();
 
         if (!audioContext || !masterVolumeGainNode || !currentInstrument)
@@ -707,24 +726,19 @@ export const useTabStore = createWithEqualityFn<TabState>()(
               endLoopIndex: audioMetadata.endLoopIndex,
             });
 
-
-
-        
-            const expandedTabData = location
+        const expandedTabData = location
           ? expandSpecificChordGrouping({
               tabData,
               location,
+              // setFullCurrentlyPlayingMetadata,
             })
           : expandFullTab({
               tabData,
               sectionProgression,
-              
+              setFullCurrentlyPlayingMetadata,
             });
 
         setExpandedTabData(expandedTabData);
-
-
-
 
         for (
           let chordIndex = currentChordIndex;
@@ -1073,6 +1087,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       // reset (investigate what exactly the ts error is saying)
       resetStoreToInitValues: () => set(initialStoreState),
     }),
-    shallow
-  )
+    shallow,
+  ),
 );

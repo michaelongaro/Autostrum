@@ -6,38 +6,18 @@ import type { PlaybackStrummingPattern as StrummingPatternType } from "~/utils/e
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
 import { CarouselItem } from "~/components/ui/carousel";
 
-
 interface PlaybackStrummingPattern {
   indices: number[];
    data: StrummingPatternType;
   chordSequenceData?: string[];
+  currentChordIndex: number;
 
 }
 
 function PlaybackStrummingPattern(
-{ indices, data, chordSequenceData }: PlaybackStrummingPattern
+{ indices, data, chordSequenceData, currentChordIndex }: PlaybackStrummingPattern
 ) {
 
-
-  const {
-    chords,
-    getTabData,
-    setTabData,
-    setStrummingPatternBeingEdited,
-    currentlyPlayingMetadata,
-    currentChordIndex,
-    previewMetadata,
-    audioMetadata,
-  } = useTabStore((state) => ({
-    chords: state.chords,
-    getTabData: state.getTabData,
-    setTabData: state.setTabData,
-    setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
-    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-    currentChordIndex: state.currentChordIndex,
-    previewMetadata: state.previewMetadata,
-    audioMetadata: state.audioMetadata,
-  }));
 
 
   const patternHasPalmMuting = useCallback(() => {
@@ -82,82 +62,25 @@ function getBeatIndicator(noteLength: string, beatIndex: number) {
     return beat.toString();
   }
 
-
   function highlightChord(chordIndex: number) {
-
-    // TODO: probably will end up needing to reference indices[strumIndex] instead of strumIndex
-    
-
-    if (!currentlyPlayingMetadata) return false;
-
-    if (audioMetadata.editingLoopRange) {
-      const isInSectionBeingLooped = currentlyPlayingMetadata.some(
-        (metadata) => {
-          return (
-            // sectionIndex === metadata.location.sectionIndex &&
-            // subSectionIndex === metadata.location.subSectionIndex &&
-            // chordSequenceIndex === metadata.location?.chordSequenceIndex &&
-            // chordIndex === metadata.location.chordIndex
-            false
-
-            // TODO ^ 
-          );
-        }
-      );
-
-      return isInSectionBeingLooped;
-    }
-
-    const correspondingChordIndex = currentlyPlayingMetadata.some(
-      (metadata) => {
-        return (
-          // sectionIndex === metadata.location.sectionIndex &&
-          // subSectionIndex === metadata.location.subSectionIndex &&
-          // chordSequenceIndex === metadata.location?.chordSequenceIndex &&
-          // chordIndex === metadata.location.chordIndex
-
-          false
-          // TODO ^
-        );
-      }
-    );
-
-    if (!correspondingChordIndex) return false;
-
-    // regular strumming pattern
-    // if (
-    //   currentlyPlayingMetadata[currentChordIndex]?.location.sectionIndex !==
-    //     sectionIndex ||
-    //   currentlyPlayingMetadata[currentChordIndex]?.location.subSectionIndex !==
-    //     subSectionIndex ||
-    //   currentlyPlayingMetadata[currentChordIndex]?.location
-    //     .chordSequenceIndex !== chordSequenceIndex ||
-    //   (currentlyPlayingMetadata[currentChordIndex]?.location.chordIndex ?? -1) <
-    //     chordIndex
-    // ) {
-    //   return false;
-    // }
-
-    // return true;
-
-    return false;
-    // TODO ^ 
+    return currentChordIndex >= chordIndex;
   }
 
 
   return (
-    <CarouselItem className="baseFlex">
+    <div className="baseFlex px-4">
 
 {data?.strums?.map((strum, strumIndex) => (
           <div
             key={strumIndex}
+            
             // name={`section${sectionIndex ?? ""}-subSection${
             //   subSectionIndex ?? ""
             // }-chordSequence${chordSequenceIndex ?? ""}-chord${strumIndex}`}
             // id={`section${sectionIndex ?? ""}-subSection${
             //   subSectionIndex ?? ""
             // }-chordSequence${chordSequenceIndex ?? ""}-chord${strumIndex}`}
-            className="baseFlex"
+            className="baseFlex playbackChord"
           >
             <div
               style={{
@@ -165,7 +88,7 @@ function getBeatIndicator(noteLength: string, beatIndex: number) {
                   "0.25rem",
                
               }}
-              className="baseVertFlex relative"
+              className="baseVertFlex relative mt-1"
             >
               {strum.palmMute !== "" ? (
                 // <StrummingPatternPalmMuteNode
@@ -207,7 +130,7 @@ function getBeatIndicator(noteLength: string, beatIndex: number) {
                           )
                             ? "none"
                             : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
-                          color: highlightChord(strumIndex)
+                          color: highlightChord(indices[strumIndex]!)
                             ? "hsl(335, 78%, 42%)"
                             : "hsl(324, 77%, 95%)",
                         }}
@@ -230,7 +153,7 @@ function getBeatIndicator(noteLength: string, beatIndex: number) {
                   <div
                     style={{
                       color:
-                         highlightChord(strumIndex)
+                         highlightChord(indices[strumIndex]!)
                           ? "hsl(335, 78%, 42%)"
                           : "hsl(324, 77%, 95%)",
                     }}
@@ -307,7 +230,7 @@ function getBeatIndicator(noteLength: string, beatIndex: number) {
                       ? "1.25rem"
                       : "auto",
                   color:
-                    highlightChord(strumIndex)
+                    highlightChord(indices[strumIndex]!)
                       ? "hsl(335, 78%, 42%)"
                       : "hsl(324, 77%, 95%)",
                 }}
@@ -329,12 +252,7 @@ function getBeatIndicator(noteLength: string, beatIndex: number) {
 
           </div>
         ))}
-
-
-
-
-
-      </CarouselItem>
+      </div>
   )
 
 }

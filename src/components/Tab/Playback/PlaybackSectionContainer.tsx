@@ -1,40 +1,33 @@
+import { Fragment } from "react";
 import PlaybackChordSection from "~/components/Tab/Playback/PlaybackChordSection";
 import PlaybackTabSection from "~/components/Tab/Playback/PlaybackTabSection";
 import type { PlaybackSection } from "~/utils/experimentalChordCompilationHelpers";
 
-
 interface PlaybackSectionContainer {
-  sectionData: PlaybackSection
+  sectionData: PlaybackSection;
+  uniqueKey: number;
 }
 
-function PlaybackSectionContainer(
-  { sectionData }: PlaybackSectionContainer
-) {
-
+function PlaybackSectionContainer({
+  sectionData,
+  uniqueKey,
+}: PlaybackSectionContainer) {
   return (
-    <div className="baseFlex">
-        {sectionData.data.map((subSection, index) => (
-                <div
-                  key={subSection.id}
-                  className="baseFlex w-full"
-                >
-       {subSection.type === "chord" ? (
-                        <PlaybackChordSection
-                          
-                          subSectionData={subSection}
-                        />
-                      ) : (
-                        <PlaybackTabSection
-                          
-                          subSectionData={subSection}
-                        />
-                      )}
-                  </div>
-                ))}
-    </div>
+    <>
+      {sectionData.data.map((subSection, index) => (
+        <Fragment key={`${subSection.id}-${index}`}>
+          {subSection.type === "chord" ? (
+            <PlaybackChordSection subSectionData={subSection} />
+          ) : (
+            <PlaybackTabSection
+              subSectionData={subSection}
+              uniqueKey={uniqueKey}
+            />
+          )}
+        </Fragment>
+      ))}
+    </>
   );
-
-
 }
 
 export default PlaybackSectionContainer;

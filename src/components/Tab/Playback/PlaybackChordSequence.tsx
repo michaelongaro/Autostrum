@@ -4,23 +4,24 @@ import type { PlaybackChordSequence as PlaybackChordSequenceType } from "~/utils
 
 interface PlaybackChordSequence {
   chordSequenceData: PlaybackChordSequenceType;
+  currentChordIndex: number;
+
 }
 
 function PlaybackChordSequence({
-  chordSequenceData
+  chordSequenceData,
+  currentChordIndex
 }: PlaybackChordSequence) {
 
   return (
-    <div className="baseFlex">
 
     <PlaybackStrummingPattern
             
             indices={chordSequenceData.indices}
             data={chordSequenceData.strummingPattern}
             chordSequenceData={chordSequenceData.data}
-            
+              currentChordIndex={currentChordIndex}
             />
-            </div>
   )
 }
 

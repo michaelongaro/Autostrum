@@ -5,7 +5,7 @@ import type {
   RefetchQueryFilters,
 } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, Fragment, useRef } from "react";
 import { FaBook } from "react-icons/fa";
 import type { TabWithLikes } from "~/server/api/routers/tab";
 import { useTabStore } from "~/stores/TabStore";
@@ -28,27 +28,39 @@ import TabMeasureLine from "~/components/Tab/TabMeasureLine";
 import TabNotesColumn from "~/components/Tab/TabNotesColumn";
 import { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
 import PlaybackDialog from "~/components/Tab/Playback/PlaybackDialog";
+import { ViewportList } from "react-viewport-list";
+
+import { loremIpsum } from "lorem-ipsum";
+import PlaybackSectionContainer from "~/components/Tab/Playback/PlaybackSectionContainer";
+
+const items = new Array(100000).fill(null).map(() => ({
+  title: loremIpsum({
+    units: "paragraph",
+    paragraphLowerBound: 1,
+    paragraphUpperBound: 10,
+  }),
+}));
 
 const EffectGlossaryModal = dynamic(
-  () => import("~/components/modals/EffectGlossaryModal")
+  () => import("~/components/modals/EffectGlossaryModal"),
 );
 const SectionProgressionModal = dynamic(
-  () => import("~/components/modals/SectionProgressionModal")
+  () => import("~/components/modals/SectionProgressionModal"),
 );
 const AudioRecorderModal = dynamic(
-  () => import("~/components/modals/AudioRecorderModal")
+  () => import("~/components/modals/AudioRecorderModal"),
 );
 const ChordModal = dynamic(() => import("~/components/modals/ChordModal"));
 const StrummingPatternModal = dynamic(
-  () => import("~/components/modals/StrummingPatternModal")
+  () => import("~/components/modals/StrummingPatternModal"),
 );
 const CustomTuningModal = dynamic(
-  () => import("~/components/modals/CustomTuningModal")
+  () => import("~/components/modals/CustomTuningModal"),
 );
 
 export interface RefetchTab {
   refetchTab: <TPageData>(
-    options?: RefetchOptions & RefetchQueryFilters<TPageData>
+    options?: RefetchOptions & RefetchQueryFilters<TPageData>,
     // @ts-expect-error asdf
   ) => Promise<QueryObserverResult<TData, TError>>;
 }
@@ -111,8 +123,8 @@ function Tab({ tab, refetchTab }: ITab) {
     sectionProgression,
     chords,
     strummingPatterns,
-    compiledTabData,
     playbackSpeed,
+    expandedTabData,
   } = useTabStore((state) => ({
     setId: state.setId,
     setCreatedById: state.setCreatedById,
@@ -149,11 +161,11 @@ function Tab({ tab, refetchTab }: ITab) {
     sectionProgression: state.sectionProgression,
     chords: state.chords,
     strummingPatterns: state.strummingPatterns,
-    compiledTabData: state.compiledTabData,
-    playbackSpeed: state.playbackSpeed
+    playbackSpeed: state.playbackSpeed,
+    expandedTabData: state.expandedTabData,
   }));
 
-    const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
+  const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
   const [pmNodeOpacities, setPMNodeOpacities] = useState<string[]>([]);
@@ -164,6 +176,8 @@ function Tab({ tab, refetchTab }: ITab) {
   const [columnIdxBeingHovered, setColumnIdxBeingHovered] = useState<
     number | null
   >(null);
+
+  const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!tab) return;
@@ -298,7 +312,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setForceCloseSectionAccordions(true);
   }
 
-    function getDurationOfCurrentChord() {
+  function getDurationOfCurrentChord() {
     const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
     if (!currentlyPlayingMetadata || !location) return 0;
 
@@ -351,9 +365,7 @@ function Tab({ tab, refetchTab }: ITab) {
             </div>
           )}
 
-
-            <PlaybackDialog />
-
+        <PlaybackDialog />
 
         <Separator className="w-[96%]" />
 
@@ -377,11 +389,10 @@ function Tab({ tab, refetchTab }: ITab) {
               <FaBook className="h-4 w-4" />
             </Button>
 
-
             {editing && (
               <Popover>
-                <PopoverTrigger className="baseFlex absolute bottom-5 right-3 mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:bottom-3 sm:right-7 ">
-                  <HiOutlineLightBulb className="h-5 w-5 " />
+                <PopoverTrigger className="baseFlex absolute bottom-5 right-3 mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:bottom-3 sm:right-7">
+                  <HiOutlineLightBulb className="h-5 w-5" />
                 </PopoverTrigger>
                 <PopoverContent
                   side="left"
@@ -399,7 +410,6 @@ function Tab({ tab, refetchTab }: ITab) {
                 </PopoverContent>
               </Popover>
             )}
-
 
             <Separator className="w-[96%]" />
           </div>
@@ -423,13 +433,7 @@ function Tab({ tab, refetchTab }: ITab) {
             }}
             className="baseFlex w-full"
           >
-
-            {/* TODO: OBV change this, will need to actually compile & do setCompiledTabData(compiledChords); 
-                manually whenever opening up new dialog player*/}
-
-           
-
-             <SectionContainer
+            {/* <SectionContainer
               sectionIndex={index}
               sectionData={section}
               currentlyPlayingSectionIndex={
@@ -444,11 +448,7 @@ function Tab({ tab, refetchTab }: ITab) {
                 forceCloseSectionAccordions && index !== tabData.length - 1
               }
               setForceCloseSectionAccordions={setForceCloseSectionAccordions}
-            />
-            
-
-
-
+            /> */}
           </motion.div>
         ))}
 
@@ -490,7 +490,7 @@ function Tab({ tab, refetchTab }: ITab) {
         {strummingPatternBeingEdited && (
           <StrummingPatternModal
             strummingPatternBeingEdited={structuredClone(
-              strummingPatternBeingEdited
+              strummingPatternBeingEdited,
             )}
           />
         )}
