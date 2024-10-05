@@ -60,13 +60,14 @@ function PlaybackTabNotesColumn({
 
   return (
     <div className="baseVertFlex relative h-[271px] w-[35px]">
-      <div
+      {/* <div
         style={{
           height: "164px",
           transform:
             columnIsBeingPlayed || columnHasBeenPlayed
               ? "scaleX(1)"
               : "scaleX(0)",
+          // width: columnIsBeingPlayed || columnHasBeenPlayed ? "100%" : "0%",
           transformOrigin: "left center",
           transitionDuration:
             columnIsBeingPlayed || columnHasBeenPlayed
@@ -75,8 +76,8 @@ function PlaybackTabNotesColumn({
           msTransitionProperty: "transform",
           transitionTimingFunction: "linear",
         }}
-        className="absolute left-0 w-full bg-pink-700"
-      ></div>
+        className="absolute left-0 w-full bg-pink-700 will-change-transform"
+      ></div> */}
 
       {/* <div className="absolute left-0 top-0 text-xs">
         {durationOfChord.toFixed(0)}

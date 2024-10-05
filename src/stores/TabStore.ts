@@ -14,8 +14,8 @@ import { resetTabSliderPosition } from "~/utils/tabSliderHelpers";
 import { parse } from "~/utils/tunings";
 import {
   expandFullTab,
-  expandSpecificChordGrouping,
-  type PlaybackSection,
+  // expandSpecificChordGrouping,
+  // type PlaybackSection,
 } from "~/utils/experimentalChordCompilationHelpers";
 
 export interface SectionProgression {
@@ -101,6 +101,21 @@ export interface Metadata {
     sectionIndex: number;
     subSectionIndex: number;
     chordSequenceIndex?: number;
+    chordIndex: number;
+  };
+  bpm: number;
+  noteLengthMultiplier: string;
+  elapsedSeconds: number;
+}
+
+export interface FullMetadata {
+  location: {
+    sectionIndex: number;
+    sectionRepeatIndex: number;
+    subSectionIndex: number;
+    subSectionRepeatIndex: number;
+    chordSequenceIndex?: number;
+    chordSequenceRepeatIndex?: number;
     chordIndex: number;
   };
   bpm: number;
@@ -202,6 +217,7 @@ const initialStoreState = {
 
   // related to sound generation/playing
   currentlyPlayingMetadata: null,
+  fullCurrentlyPlayingMetadata: null,
   playbackSpeed: 1,
   currentChordIndex: 0,
   audioMetadata: {
@@ -315,14 +331,16 @@ interface TabState {
     forSectionContainer: number | null;
   }) => void;
 
-  expandedTabData: PlaybackSection[] | null;
-  setExpandedTabData: (expandedTabData: PlaybackSection[] | null) => void;
+  expandedTabData: string[][] | null;
+  setExpandedTabData: (expandedTabData: string[][] | null) => void;
 
-  // dislike this, but I think "needed" to align playback stuff
-  fullCurrentlyPlayingMetadata: Metadata[] | null;
+  // dislike these, but I think "needed" to align playback stuff
+  fullCurrentlyPlayingMetadata: FullMetadata[] | null;
   setFullCurrentlyPlayingMetadata: (
-    fullCurrentlyPlayingMetadata: Metadata[] | null,
+    fullCurrentlyPlayingMetadata: FullMetadata[] | null,
   ) => void;
+  playbackChordIndices: number[];
+  setPlaybackChordIndices: (playbackChordIndices: number[]) => void;
 
   // modals
   showAudioRecorderModal: boolean;
@@ -598,10 +616,13 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       setCurrentlyPlayingMetadata: (currentlyPlayingMetadata) =>
         set({ currentlyPlayingMetadata }),
 
-      // dislike this, but I think "needed" to align playback stuff
+      // dislike these, but I think "needed" to align playback stuff
       fullCurrentlyPlayingMetadata: null,
       setFullCurrentlyPlayingMetadata: (fullCurrentlyPlayingMetadata) =>
         set({ fullCurrentlyPlayingMetadata }),
+      playbackChordIndices: [],
+      setPlaybackChordIndices: (playbackChordIndices) =>
+        set({ playbackChordIndices }),
 
       currentInstrumentName: "acoustic_guitar_steel",
       setCurrentInstrumentName: (currentInstrumentName) =>
@@ -670,6 +691,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           setExpandedTabData,
           setCurrentlyPlayingMetadata,
           setFullCurrentlyPlayingMetadata,
+          setPlaybackChordIndices,
         } = get();
 
         if (!audioContext || !masterVolumeGainNode || !currentInstrument)
@@ -726,17 +748,31 @@ export const useTabStore = createWithEqualityFn<TabState>()(
               endLoopIndex: audioMetadata.endLoopIndex,
             });
 
-        const expandedTabData = location
-          ? expandSpecificChordGrouping({
-              tabData,
-              location,
-              // setFullCurrentlyPlayingMetadata,
-            })
-          : expandFullTab({
-              tabData,
-              sectionProgression,
-              setFullCurrentlyPlayingMetadata,
-            });
+        // const expandedTabData = location
+        //   ? expandSpecificChordGrouping({
+        //       tabData,
+        //       location,
+        //       // setFullCurrentlyPlayingMetadata,
+        //     })
+        //   : expandFullTab({
+        //       tabData,
+        //       sectionProgression,
+        //       setFullCurrentlyPlayingMetadata,
+        //     });
+
+        // setExpandedTabData(expandedTabData);
+
+        const expandedTabData = expandFullTab({
+          tabData,
+          sectionProgression,
+          chords,
+          baselineBpm,
+          playbackSpeed,
+          setFullCurrentlyPlayingMetadata,
+          setPlaybackChordIndices,
+          // startLoopIndex: audioMetadata.startLoopIndex,
+          // endLoopIndex: audioMetadata.endLoopIndex,
+        });
 
         setExpandedTabData(expandedTabData);
 
@@ -1041,9 +1077,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         currentInstrument?.stop();
       },
 
-      // experimental
-      compiledTabData: null,
-      setCompiledTabData: (compiledTabData) => set({ compiledTabData }),
       expandedTabData: null,
       setExpandedTabData: (expandedTabData) => set({ expandedTabData }),
 

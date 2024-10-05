@@ -7,7 +7,7 @@ import {
 import { useTabStore } from "../stores/TabStore";
 import {
   expandFullTab,
-  expandSpecificChordGrouping,
+  // expandSpecificChordGrouping,
 } from "~/utils/experimentalChordCompilationHelpers";
 
 function useAutoCompileChords() {
@@ -29,6 +29,7 @@ function useAutoCompileChords() {
     atomicallyUpdateAudioMetadata,
     setExpandedTabData,
     setFullCurrentlyPlayingMetadata,
+    setPlaybackChordIndices,
   } = useTabStore((state) => ({
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
     playbackSpeed: state.playbackSpeed,
@@ -42,6 +43,7 @@ function useAutoCompileChords() {
     atomicallyUpdateAudioMetadata: state.atomicallyUpdateAudioMetadata,
     setExpandedTabData: state.setExpandedTabData,
     setFullCurrentlyPlayingMetadata: state.setFullCurrentlyPlayingMetadata,
+    setPlaybackChordIndices: state.setPlaybackChordIndices,
   }));
 
   useEffect(() => {
@@ -91,11 +93,11 @@ function useAutoCompileChords() {
         atomicallyUpdateAudioMetadata,
       });
 
-      const expandedTabData = expandSpecificChordGrouping({
-        tabData,
-        location: audioMetadata.location,
-      });
-      setExpandedTabData(expandedTabData);
+      // const expandedTabData = expandSpecificChordGrouping({
+      //   tabData,
+      //   location: audioMetadata.location,
+      // });
+      // setExpandedTabData(expandedTabData);
     } else {
       const sanitizedSectionProgression =
         sectionProgression.length > 0
@@ -117,7 +119,13 @@ function useAutoCompileChords() {
       const expandedTabData = expandFullTab({
         tabData,
         sectionProgression,
+        chords,
+        baselineBpm: bpm,
+        playbackSpeed,
         setFullCurrentlyPlayingMetadata,
+        setPlaybackChordIndices,
+        // startLoopIndex: audioMetadata.startLoopIndex,
+        // endLoopIndex: audioMetadata.endLoopIndex,
       });
 
       setExpandedTabData(expandedTabData);
@@ -138,6 +146,7 @@ function useAutoCompileChords() {
     atomicallyUpdateAudioMetadata,
     setExpandedTabData,
     setFullCurrentlyPlayingMetadata,
+    setPlaybackChordIndices,
   ]);
 
   useEffect(() => {
