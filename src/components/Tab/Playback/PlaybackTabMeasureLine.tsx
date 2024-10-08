@@ -7,7 +7,7 @@ interface PlaybackTabMeasureLine {
 
 function PlaybackTabMeasureLine({ columnData }: PlaybackTabMeasureLine) {
   return (
-    <div className="baseVertFlex h-[271px] w-[2px]">
+    <div className="ornamental playbackElem baseVertFlex h-[271px] w-[2px]">
       {columnData.map((note, index) => (
         <Fragment key={index}>
           {index === 0 && (

@@ -171,6 +171,47 @@ interface PlayRecordedAudio {
   secondsElapsed: number;
 }
 
+export interface PlaybackTabChord {
+  type: "tab";
+  isFirstChord: boolean;
+  isLastChord: boolean;
+  data: string[];
+}
+
+export interface PlaybackStrummedChord {
+  type: "strum";
+  isFirstChord: boolean;
+  isLastChord: boolean;
+  data: PlaybackChord;
+}
+
+interface PlaybackChord {
+  strumIndex: number;
+  chordName: string;
+  palmMute: "" | "-" | "start" | "end";
+  strum:
+    | ""
+    | "v"
+    | "^"
+    | "s"
+    | "v>"
+    | "^>"
+    | "s>"
+    | "v.>"
+    | "^.>"
+    | "s.>"
+    | "v>."
+    | "u>."
+    | "s>.";
+  noteLength:
+    | "1/4th"
+    | "1/4th triplet"
+    | "1/8th"
+    | "1/8th triplet"
+    | "1/16th"
+    | "1/16th triplet";
+}
+
 const initialStoreState = {
   // tab data
   originalTabData: null,
@@ -331,8 +372,10 @@ interface TabState {
     forSectionContainer: number | null;
   }) => void;
 
-  expandedTabData: string[][] | null;
-  setExpandedTabData: (expandedTabData: string[][] | null) => void;
+  expandedTabData: (PlaybackTabChord | PlaybackStrummedChord)[] | null;
+  setExpandedTabData: (
+    expandedTabData: (PlaybackTabChord | PlaybackStrummedChord)[] | null,
+  ) => void;
 
   // dislike these, but I think "needed" to align playback stuff
   fullCurrentlyPlayingMetadata: FullMetadata[] | null;

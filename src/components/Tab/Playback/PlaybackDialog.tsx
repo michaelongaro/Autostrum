@@ -1,24 +1,15 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
-import { VariableSizeList as List } from "react-window";
-import PlaybackStrummingPattern from "~/components/Tab/Playback/PlaybackStrummingPattern";
+import { Fragment, useEffect, useRef, useState } from "react";
+import PlaybackStrummedChord from "~/components/Tab/Playback/PlaybackStrummedChord";
+import PlaybackTabEndcap from "~/components/Tab/Playback/PlaybackTabEndcap";
 import PlaybackTabMeasureLine from "~/components/Tab/Playback/PlaybackTabMeasureLine";
 import PlaybackTabNotesColumn from "~/components/Tab/Playback/PlaybackTabNotesColumn";
 import { Button } from "~/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "~/components/ui/dialog";
-import { useTabStore } from "~/stores/TabStore";
+  type PlaybackStrummedChord as PlaybackStrummedChordType,
+  PlaybackTabChord,
+  useTabStore,
+} from "~/stores/TabStore";
 // import type { PlaybackChordSequence } from "~/utils/experimentalChordCompilationHelpers";
 
 function PlaybackDialog() {
@@ -30,6 +21,7 @@ function PlaybackDialog() {
     setCurrentChordIndex,
     fullCurrentlyPlayingMetadata,
     playbackChordIndices,
+    tuning,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
@@ -38,10 +30,10 @@ function PlaybackDialog() {
     setCurrentChordIndex: state.setCurrentChordIndex,
     fullCurrentlyPlayingMetadata: state.fullCurrentlyPlayingMetadata,
     playbackChordIndices: state.playbackChordIndices,
+    tuning: state.tuning,
   }));
 
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const animationFrameId = useRef<number | null>(null);
 
   const [showingDialog, setShowingDialog] = useState(false);
 
@@ -60,10 +52,33 @@ function PlaybackDialog() {
     setChordDurations(durations);
   }, [fullCurrentlyPlayingMetadata, playbackSpeed]);
 
-  const [chords, setChords] = useState<string[][]>([]);
-  // const [chordIndices, setChordIndices] = useState<number[]>([]);
+  const [chords, setChords] = useState<
+    (PlaybackTabChord | PlaybackStrummedChordType)[]
+  >([]);
+
+  const [chordWidths, setChordWidths] = useState<number[]>([]);
   const [scrollPositions, setScrollPositions] = useState<number[]>([]);
+
+  const [fullChordWidths, setFullChordWidths] = useState<number[]>([]);
+  const [fullScrollPositions, setFullScrollPositions] = useState<number[]>([]);
+
+  const [realChordsToFullChordsMap, setRealChordsToFullChordsMap] = useState<{
+    [key: number]: number;
+  }>({});
+
+  const [scrollContainerWidth, setScrollContainerWidth] = useState(0);
   const [showPseudoChords, setShowPseudoChords] = useState(true);
+  const [visibleContainerWidth, setVisibleContainerWidth] = useState(0);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current === null) return;
+      setVisibleContainerWidth(containerRef.current.clientWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // TODO: eventually replace chords and all references below to directly use expandedTabData
   useEffect(() => {
@@ -74,25 +89,27 @@ function PlaybackDialog() {
     )
       return;
 
-    console.log(expandedTabData);
+    // console.log(expandedTabData);
 
-    // Determine the length of a chord (number of strings)
-    const chordLength = expandedTabData[0]?.length || 0;
+    // // Determine the length of a chord (number of strings)
+    // const chordLength = expandedTabData[0]?.length || 0;
 
-    // Create 6 dummy chords
-    const leadInChords = Array.from({ length: 16 }, () => {
-      // Create a chord filled with empty strings
-      const chord = new Array(chordLength).fill("");
+    // // Create 6 dummy chords
+    // const leadInChords = Array.from({ length: 16 }, () => {
+    //   // Create a chord filled with empty strings
+    //   const chord = new Array(chordLength).fill("");
 
-      // Copy over the 8th and 9th indices from expandedTabData[0]
-      chord[8] = expandedTabData[0]?.[8];
-      chord[9] = expandedTabData[0]?.[9];
+    //   // Copy over the 8th and 9th indices from expandedTabData[0]
+    //   chord[8] = expandedTabData[0]?.[8];
+    //   chord[9] = expandedTabData[0]?.[9];
 
-      return chord;
-    });
+    //   return chord;
+    // });
 
-    // Combine leadInChords and expandedTabData into a flat array
-    setChords([...leadInChords, ...expandedTabData]);
+    // // Combine leadInChords and expandedTabData into a flat array
+    // setChords([...leadInChords, ...expandedTabData]);
+
+    setChords(expandedTabData);
   }, [expandedTabData, chords.length]);
 
   useEffect(() => {
@@ -107,52 +124,92 @@ function PlaybackDialog() {
       return;
 
     setTimeout(() => {
-      const positions: number[] = [];
-      let initialOffset = 400;
       const arr = new Array(chords.length).fill(0);
+      const elements: HTMLCollectionOf<HTMLDivElement> =
+        document.getElementsByClassName(
+          "playbackElem",
+        ) as HTMLCollectionOf<HTMLDivElement>;
+
+      const scrollPositions: number[] = [];
+      const chordWidths: number[] = [];
+
+      const fullScrollPositions: number[] = [];
+      const fullChordWidths: number[] = [];
+
+      const realChordsToFullChordsMap: { [key: number]: number } = {};
+
+      let finalElementWidth = 0;
+
+      // increments every time an ornamental element is found
+      let domElementDifferentialCount = 0;
 
       arr.map((_, index) => {
-        const elem = document.getElementById(`${index}`);
-
-        // let width = 0;
-        // may need to add the +2 to the next chord if a measure line is found
-
-        // console.log(elem?.clientWidth, elem?.getBoundingClientRect().width);
+        const elem = elements[index];
 
         if (elem) {
-          // if (index < 6) {
-          //   // console.log(
-          //   //   index,
-          //   //   elem.clientWidth !== 2 ? "chord" : "measure line",
-          //   //   elem.offsetLeft,
-          //   //   initialOffset,
-          //   //   elem.offsetLeft - initialOffset,
-          //   // );
+          const offsetLeft = elem.offsetLeft;
+          const width = elem.getBoundingClientRect().width;
 
-          //   initialOffset += elem.clientWidth;
-          //   positions.push(0);
-          // } else {
-          // console.log(
-          //   index,
-          //   elem.clientWidth !== 2 ? "chord" : "measure line",
-          //   elem.offsetLeft,
-          //   initialOffset,
-          //   elem.offsetLeft - initialOffset,
-          // );
+          // exclude ornamental DOM nodes from scrollPositions and chordWidths,
+          // increment domElementDifferentialCount otherwise
+          if (elem?.classList.contains("ornamental")) {
+            domElementDifferentialCount++;
+          } else {
+            scrollPositions.push(offsetLeft);
+            chordWidths.push(width);
+          }
 
-          const elemScrollPosition = elem.offsetLeft;
-          //- initialOffset; //getBoundingClientRect().width;  maybe still want bounding client for better precision?
-          if (elem.clientWidth !== 2) positions.push(elemScrollPosition); // don't want to scroll to measure lines
-          // }
+          // include all DOM nodes in fullScrollPositions and fullChordWidths
+          fullScrollPositions.push(offsetLeft);
+          fullChordWidths.push(width);
+
+          realChordsToFullChordsMap[index] =
+            index - domElementDifferentialCount;
+
+          if (index === chords.length - 1) {
+            finalElementWidth = width;
+          }
         }
       });
 
-      setScrollPositions(positions);
+      const scrollContainerWidth =
+        (scrollPositions.at(-1) || 0) + finalElementWidth;
+
+      setScrollPositions(scrollPositions);
+      setChordWidths(chordWidths);
+
+      setFullScrollPositions(fullScrollPositions);
+      setFullChordWidths(fullChordWidths);
+
+      setRealChordsToFullChordsMap(realChordsToFullChordsMap);
+
+      setScrollContainerWidth(scrollContainerWidth);
       setShowPseudoChords(false);
     }, 5000);
   }, [scrollPositions, chords, showPseudoChords, showingDialog]);
 
-  // console.log(scrollPositions);
+  const fullVisibleChordIndices = getFullVisibleChordIndices({
+    fullScrollPositions,
+    realChordsToFullChordsMap,
+    currentChordIndex,
+    visibleContainerWidth,
+    fullChordWidths,
+    buffer: 1000,
+  });
+
+  // console.log(
+  //   scrollPositions,
+  //   fullScrollPositions,
+  //   chordWidths,
+  //   fullChordWidths,
+  //   fullVisibleChordIndices,
+  //   realChordsToFullChordsMap,
+  // );
+
+  console.log(chordDurations.length, scrollPositions.length);
+  console.log(fullChordWidths, fullScrollPositions, realChordsToFullChordsMap);
+
+  console.log(chords);
 
   // useEffect(() => {
   //   if (
@@ -187,238 +244,6 @@ function PlaybackDialog() {
   //   chordDurations,
   // ]);
 
-  // useEffect(() => {
-  //   if (
-  //     containerRef.current &&
-  //     currentChordIndex > 5 &&
-  //     currentChordIndex % 4 === 0
-  //     // &&
-  //     // currentChordIndex >= 0
-  //   ) {
-  //     // Trigger smoothScroll every four chords
-  //     const startIndex = currentChordIndex;
-  //     const endIndex = Math.min(
-  //       startIndex + 3,
-  //       playbackChordIndices.length - 1,
-  //     );
-
-  //     // Aggregate the durations for the next four chords
-  //     const totalDuration = playbackChordIndices
-  //       .slice(startIndex, endIndex + 1)
-  //       .reduce((sum, idx) => sum + (chordDurations[idx] || 0), 0);
-
-  //     // Use the scroll position of the last chord in the group
-  //     const targetPosition = scrollPositions[endIndex] || 0;
-
-  //     // console.log(
-  //     //   "baseDuration",
-  //     //   chordDurations[startIndex],
-  //     //   (chordDurations[startIndex] || 0) * 5,
-  //     //   totalDuration,
-  //     // );
-  //     smoothScroll({
-  //       container: containerRef.current,
-  //       targetPosition,
-  //       totalDuration,
-  //       animationFrameId,
-  //     });
-  //   }
-  // }, [
-  //   currentChordIndex,
-  //   playbackChordIndices,
-  //   scrollPositions,
-  //   chordDurations,
-  // ]);
-
-  // console.log(
-  //   "1st",
-  //   chords[currentChordIndex],
-  //   scrollPositions[currentChordIndex],
-  //   chordDurations[currentChordIndex],
-  // );
-  // console.log(
-  //   "2nd",
-  //   chords[playbackChordIndices[currentChordIndex]!],
-  //   scrollPositions[playbackChordIndices[currentChordIndex]!],
-  //   chordDurations[playbackChordIndices[currentChordIndex]!],
-  // );
-
-  function columnIsBeingPlayed(columnIndex: number) {
-    const measureLineAdjustedIndex =
-      playbackChordIndices[currentChordIndex] === undefined
-        ? 0
-        : playbackChordIndices[currentChordIndex];
-
-    if (
-      !fullCurrentlyPlayingMetadata ||
-      !fullCurrentlyPlayingMetadata[measureLineAdjustedIndex] ||
-      !fullCurrentlyPlayingMetadata[columnIndex]
-    )
-      return false;
-
-    const {
-      sectionIndex,
-      sectionRepeatIndex,
-      subSectionIndex,
-      subSectionRepeatIndex,
-      chordIndex,
-    } = fullCurrentlyPlayingMetadata[measureLineAdjustedIndex].location;
-
-    const {
-      sectionIndex: sectionIndex2,
-      sectionRepeatIndex: sectionRepeatIndex2,
-      subSectionIndex: subSectionIndex2,
-      subSectionRepeatIndex: subSectionRepeatIndex2,
-      chordIndex: chordIndex2,
-    } = fullCurrentlyPlayingMetadata[columnIndex].location;
-
-    // return (
-    //   audioMetadata.playing &&
-    //   audioMetadata.type === "Generated" &&
-    //   measureLineAdjustedIndex === columnIndex
-    // );
-
-    // return measureLineAdjustedIndex === columnIndex;
-
-    return (
-      sectionIndex === sectionIndex2 &&
-      sectionRepeatIndex === sectionRepeatIndex2 &&
-      subSectionIndex === subSectionIndex2 &&
-      subSectionRepeatIndex === subSectionRepeatIndex2 &&
-      chordIndex === chordIndex2
-    );
-  }
-
-  function columnHasBeenPlayed(columnIndex: number) {
-    const measureLineAdjustedIndex =
-      playbackChordIndices[currentChordIndex] === undefined
-        ? 0
-        : playbackChordIndices[currentChordIndex];
-
-    // if (audioMetadata.editingLoopRange) {
-    //   const isInSectionBeingLooped = currentlyPlayingMetadata.some(
-    //     (metadata) => {
-    //       return (
-    //         sectionIndex === metadata.location.sectionIndex &&
-    //         subSectionIndex === metadata.location.subSectionIndex &&
-    //         columnIndex === metadata.location.chordIndex
-    //       );
-    //     }
-    //   );
-    //   return isInSectionBeingLooped;
-    // }
-    //     const correspondingChordIndex = currentlyPlayingMetadata.some(
-    //   (metadata) => {
-    //     return (
-    //       sectionIndex === metadata.location.sectionIndex &&
-    //       subSectionIndex === metadata.location.subSectionIndex &&
-    //       columnIndex === metadata.location.chordIndex
-    //     );
-    //   }
-    // );
-    // if (!correspondingChordIndex) return false;
-    // return measureLineAdjustedIndex > columnIndex;
-    return measureLineAdjustedIndex > columnIndex;
-  }
-
-  // console.log(chordDurations, scrollPositions, chords);
-  // console.log("scrollPositions", scrollPositions);
-
-  const isCancelled = useRef(false);
-  const isStarted = useRef(false);
-
-  const startContinuousScroll = useCallback(
-    (index: number) => {
-      if (isCancelled.current) return;
-
-      if (index >= playbackChordIndices.length - 1) return;
-
-      isStarted.current = true;
-
-      const measureLineAdjustedIndex = playbackChordIndices[index];
-      const nextIndex = index + 1;
-      const nextMeasureLineAdjustedIndex = playbackChordIndices[nextIndex];
-
-      if (
-        !containerRef.current ||
-        measureLineAdjustedIndex === undefined ||
-        nextMeasureLineAdjustedIndex === undefined
-      )
-        return;
-
-      const startPosition =
-        scrollPositionsRef.current[measureLineAdjustedIndex] || 0;
-      const endPosition =
-        scrollPositionsRef.current[nextMeasureLineAdjustedIndex] || 0;
-      const duration = chordDurationsRef.current[measureLineAdjustedIndex] || 0;
-
-      smoothScroll({
-        container: containerRef.current,
-        startPosition,
-        endPosition,
-        duration,
-        isCancelled,
-        onComplete: () => {
-          startContinuousScroll(nextIndex);
-        },
-      });
-    },
-    [playbackChordIndices],
-  );
-
-  // useEffect(() => {
-  //   if (
-  //     // isStarted.current ||
-  //     !showingDialog ||
-  //     !containerRef.current
-  //     // ||
-  //     // scrollPositions.length === 0 ||
-  //     // chordDurations.length === 0
-  //   )
-  //     return;
-
-  //   isCancelled.current = false;
-
-  //   startContinuousScroll(currentChordIndex);
-  //   // isStarted.current = true;
-
-  //   return () => {
-  //     isCancelled.current = true;
-  //   };
-  // }, [
-  //   showingDialog,
-  //   // scrollPositions,
-  //   // chordDurations,
-  //   currentChordIndex,
-  //   // playbackChordIndices,
-  //   startContinuousScroll,
-  // ]);
-
-  useEffect(() => {
-    if (isStarted.current || !showingDialog || !containerRef.current) return;
-
-    isCancelled.current = false;
-
-    startContinuousScroll(currentChordIndex);
-    isStarted.current = true;
-
-    return () => {
-      isCancelled.current = true;
-      isStarted.current = false; // Reset isStarted when component unmounts
-    };
-  }, [showingDialog, startContinuousScroll]);
-
-  const scrollPositionsRef = useRef<number[]>([]);
-  const chordDurationsRef = useRef<number[]>([]);
-
-  useEffect(() => {
-    scrollPositionsRef.current = scrollPositions;
-  }, [scrollPositions]);
-
-  useEffect(() => {
-    chordDurationsRef.current = chordDurations;
-  }, [chordDurations]);
-
   if (expandedTabData === null) return;
 
   return (
@@ -439,121 +264,131 @@ function PlaybackDialog() {
           </DialogDescription>
         </VisuallyHidden> */}
 
-        <DialogHeader>
-          <DialogTitle>Edit profile</DialogTitle>
-          <DialogDescription>
-            Make changes to your profile here. Click save when you&apos;re done.
-          </DialogDescription>
-        </DialogHeader>
-        {/* <Button onClick={() => setCurrentChordIndex(currentChordIndex - 1)}>
-          Previous
-        </Button>
-        <p>{currentChordIndex}</p>
-        <Button
-          onClick={() => {
-            setCurrentChordIndex(currentChordIndex + 1);
-          }}
+        <div
+          ref={containerRef}
+          className="relative flex h-[271px] w-[800px] overflow-hidden"
         >
-          Next
-        </Button> */}
-
-        {chords.length !== 0 && (
-          <List
-            // ref={testRef}
-            outerRef={containerRef}
-            height={271}
-            // outerElementType={"div"}
-            itemCount={chords.length}
-            itemSize={(index) => {
-              if (
-                Array.isArray(chords[index]) &&
-                chords[index]?.includes("|")
-              ) {
-                return 2;
-              } else {
-                return 35;
-              }
-            }}
-            layout="horizontal"
-            width={800} // precompute I guess to be 100% of available width of dialog right?
-            itemData={{
-              chords,
-              columnIsBeingPlayed,
-              columnHasBeenPlayed,
-              chordDurations,
-              playbackChordIndices,
-            }}
-            className="!h-[300px] will-change-scroll"
-          >
-            {PlaybackSectionRenderer}
-          </List>
-        )}
-
-        {/* <div className="relative flex w-[800px] overflow-hidden">
           <div className="baseFlex absolute left-0 top-0 size-full">
             <div className="h-[165px] w-[2px] bg-pink-600"></div>
           </div>
 
-          {chords.map((chord, index) => {
-            return (
-              <div
-                key={index}
-                id={`${index}`}
-                style={{
-                  transform: `translateX(-${scrollPositions[currentChordIndex] || 0}px)`,
-                  transition: `transform ${
-                    chordDurations[
-                      playbackChordIndices[currentChordIndex] || 0
-                    ] || 0
-                  }ms linear`,
-                }}
-                // className="will-change-transform"
-              >
-                {Array.isArray(chord) ? (
-                  <>
-                    {chord.includes("|") ? (
-                      <PlaybackTabMeasureLine columnData={chord} />
-                    ) : (
-                      <PlaybackTabNotesColumn
-                        columnIndex={index}
-                        currentChordIndex={0}
-                        columnIsBeingPlayed={false}
-                        columnHasBeenPlayed={false}
-                        columnData={chord}
-                        durationOfChord={0}
-                        uniqueKey={index}
-                      />
-                    )}
-                  </>
-                ) : null}
-              </div>
-            );
-          })}
-        </div> */}
+          <div
+            style={{
+              width: `${scrollContainerWidth}px`,
+              transform: `translateX(-${scrollPositions[currentChordIndex] || 0}px)`,
+              transition: `transform ${
+                chordDurations[currentChordIndex] || 0
+              }ms linear`,
+              // ^^ 99% keep this the same no matter what, meaning you have to keep scrollPositions
+              // and chordDurations as is
 
-        {showPseudoChords && (
-          <div className="relative flex">
-            {chords.map((chord, index) => {
+              // need to bring back fullChordWidths and fullScrollPositions
+              // and make a map between "full" indicies and the regular indicies so that you can do
+              // fullScrollPositions[mappedIndicies[currentChordIndex]] to get the scroll position
+              // of the corresponding full index, since we will *NEVER* change currentChordIndex from being
+              // tied to a specific chord being played, never anything ornamental.
+
+              // very first "placeholder" chord to take up the first 50% of the screen will be added
+              // to start of chords in effect above. It will not have "ornamental" or "playbackElem" classes
+              // since
+            }}
+            className="relative flex items-center will-change-transform"
+          >
+            {fullVisibleChordIndices.map((index) => {
               return (
-                <div key={index} id={`${index}`} style={{}}>
-                  {Array.isArray(chord) ? (
+                <div
+                  key={index}
+                  style={{
+                    position: "absolute",
+                    width: `${fullChordWidths[index]}px`,
+                    left: `${fullScrollPositions[index]}px`,
+                  }}
+                >
+                  {chords[index]?.type === "tab" ? (
                     <>
-                      {chord.includes("|") ? (
-                        <PlaybackTabMeasureLine columnData={chord} />
+                      {chords[index]?.data.includes("|") ? (
+                        <PlaybackTabMeasureLine
+                          columnData={chords[index]?.data}
+                        />
                       ) : (
+                        // TODO: rename file to PlaybackTabChord
+                        // and delete current PlaybackTabChord v
+
                         <PlaybackTabNotesColumn
-                          columnIndex={index}
-                          currentChordIndex={0}
-                          columnIsBeingPlayed={false}
-                          columnHasBeenPlayed={false}
-                          columnData={chord}
-                          durationOfChord={0}
-                          uniqueKey={index}
+                          columnData={chords[index]?.data}
+                          isFirstChordInSection={
+                            index === 0 || chords[index - 1]?.type === "strum"
+                          }
+                          isLastChordInSection={
+                            index === chords.length - 1 ||
+                            chords[index + 1]?.type === "strum"
+
+                            // maybe you would only want to use the isLastChord prop
+                            // to render the closing vertical line to act as a built in measure line?
+                            // first chord leave as is?
+                          }
                         />
                       )}
                     </>
-                  ) : null}
+                  ) : (
+                    <PlaybackStrummedChord
+                      strumIndex={chords[index]?.data.strumIndex || 0}
+                      strum={chords[index]?.data.strum || ""}
+                      palmMute={chords[index]?.data.palmMute || ""}
+                      isFirstChordInSection={
+                        chords[index]?.isFirstChord || false
+                      }
+                      isLastChordInSection={chords[index]?.isLastChord || false}
+                      noteLength={chords[index]?.data.noteLength || "1/4th"}
+                      chordName={chords[index]?.data.chordName || ""}
+                      isHighlighted={false}
+                    />
+                  )}
                 </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {true && (
+          <div className="relative flex">
+            {chords.map((chord, index) => {
+              return (
+                <Fragment key={index}>
+                  {chords[index]?.type === "tab" ? (
+                    <>
+                      {chords[index]?.data.includes("|") ? (
+                        <PlaybackTabMeasureLine
+                          columnData={chords[index]?.data}
+                        />
+                      ) : (
+                        <PlaybackTabNotesColumn
+                          columnData={chords[index]?.data}
+                          isFirstChordInSection={
+                            index === 0 || chords[index - 1]?.type === "strum" // why not use the isFirstChord prop?
+                          }
+                          isLastChordInSection={
+                            index === chords.length - 1 ||
+                            chords[index + 1]?.type === "strum" // why not use the isLastChord prop?
+                          }
+                        />
+                      )}
+                    </>
+                  ) : (
+                    <PlaybackStrummedChord
+                      strumIndex={chords[index]?.data.strumIndex || 0}
+                      strum={chords[index]?.data.strum || ""}
+                      palmMute={chords[index]?.data.palmMute || ""}
+                      isFirstChordInSection={
+                        chords[index]?.isFirstChord || false
+                      }
+                      isLastChordInSection={chords[index]?.isLastChord || false}
+                      noteLength={chords[index]?.data.noteLength || "1/4th"}
+                      chordName={chords[index]?.data.chordName || ""}
+                      isHighlighted={false}
+                    />
+                  )}
+                </Fragment>
               );
             })}
           </div>
@@ -565,139 +400,134 @@ function PlaybackDialog() {
 
 export default PlaybackDialog;
 
-const PlaybackSectionRenderer = ({
-  index,
-  style,
-  data,
+const getFullVisibleChordIndices = ({
+  fullScrollPositions,
+  realChordsToFullChordsMap,
+  currentChordIndex,
+  visibleContainerWidth,
+  fullChordWidths,
+  buffer,
 }: {
-  index: number;
-  style: React.CSSProperties;
-  data: {
-    chords: string[][];
-    columnIsBeingPlayed: (columnIndex: number) => boolean;
-    columnHasBeenPlayed: (columnIndex: number) => boolean;
-    chordDurations: number[];
-    playbackChordIndices: number[];
-  };
+  fullScrollPositions: number[];
+  realChordsToFullChordsMap: { [key: number]: number };
+  currentChordIndex: number;
+  visibleContainerWidth: number;
+  fullChordWidths: number[];
+  buffer: number;
 }) => {
-  const {
-    chords,
-    columnIsBeingPlayed,
-    columnHasBeenPlayed,
-    chordDurations,
-    playbackChordIndices,
-  } = data;
-  const grouping = chords[index]; // Retrieve the data for the current index
-  return (
-    <div
-      // id={`${index}`}
-      style={style}
-    >
-      {Array.isArray(grouping) ? (
-        <>
-          {grouping.includes("|") ? (
-            <PlaybackTabMeasureLine columnData={grouping} />
-          ) : (
-            <PlaybackTabNotesColumn
-              columnIndex={index}
-              currentChordIndex={0}
-              columnIsBeingPlayed={columnIsBeingPlayed(index)}
-              columnHasBeenPlayed={columnHasBeenPlayed(index)}
-              columnData={grouping}
-              durationOfChord={chordDurations[index] || 0}
-              uniqueKey={index}
-            />
-          )}
-        </>
-      ) : // <PlaybackStrummingPattern
-      //   indices={chordSequenceData.indices}
-      //   data={chordSequenceData.strummingPattern}
-      //   chordSequenceData={chordSequenceData.data}
-      //   currentChordIndex={currentChordIndex}
-      // />
-      null}
-    </div>
-  );
-};
+  // feels like *whenever* using currentChordIndex you kinda need t put throuhg
+  // playbackChordIndices right?
 
-// function smoothScroll({
-//   container,
-//   targetPosition,
-//   totalDuration,
-//   animationFrameId,
-// }: {
-//   container: HTMLElement;
-//   targetPosition: number;
-//   totalDuration: number;
-//   animationFrameId: React.MutableRefObject<number | null>;
-// }) {
-//   const start = container.scrollLeft;
-//   const target = targetPosition;
-//   const duration = totalDuration;
+  const adjustedCurrentChordIndex =
+    realChordsToFullChordsMap[currentChordIndex];
 
-//   if (target === undefined || duration === undefined) return;
+  console.log(adjustedCurrentChordIndex);
 
-//   let startTime: number | null = null;
+  if (
+    adjustedCurrentChordIndex === undefined ||
+    fullScrollPositions[adjustedCurrentChordIndex] === undefined
+  )
+    return [];
 
-//   function step(timestamp: number) {
-//     if (startTime === null) startTime = timestamp;
-//     const progress = timestamp - startTime;
-//     const scrollDistance = target - start;
-//     const scrollProgress = Math.min(progress / duration, 1);
-//     const currentScroll = start + scrollDistance * scrollProgress;
+  const fullVisibleIndices = [];
 
-//     container.scrollLeft = currentScroll;
+  // TODO: this needs to be adjusted to account for the playback vertical line
+  // being in the middle of the screen, not at the start of the container
+  const rangeStart = fullScrollPositions[adjustedCurrentChordIndex] - buffer;
+  const rangeEnd =
+    fullScrollPositions[adjustedCurrentChordIndex] +
+    visibleContainerWidth +
+    buffer;
 
-//     if (progress < duration) {
-//       animationFrameId.current = window.requestAnimationFrame(step);
-//     }
-//   }
+  // can probably be optimized in some way since you know the fullScrollPositions are sorted
+  for (let i = 0; i < fullScrollPositions.length; i++) {
+    const itemStart = fullScrollPositions[i] || 0;
+    const chordWidth = fullChordWidths[i] || 0;
+    const itemEnd = itemStart + chordWidth;
 
-//   // Cancel any previous animation before starting a new one
-//   if (animationFrameId.current) {
-//     window.cancelAnimationFrame(animationFrameId.current);
-//   }
-
-//   animationFrameId.current = window.requestAnimationFrame(step);
-// }
-
-function smoothScroll({
-  container,
-  startPosition,
-  endPosition,
-  duration,
-  onComplete,
-  isCancelled,
-}: {
-  container: HTMLElement;
-  startPosition: number;
-  endPosition: number;
-  duration: number;
-  onComplete: () => void;
-  isCancelled: React.MutableRefObject<boolean>;
-}) {
-  let startTime: number | null = null;
-
-  console.count("smoothScroll");
-
-  function step(timestamp: number) {
-    if (isCancelled.current) return;
-
-    if (startTime === null) startTime = timestamp;
-    const progress = timestamp - startTime;
-    const scrollProgress = Math.min(progress / duration, 1);
-    const currentScroll =
-      startPosition + (endPosition - startPosition) * scrollProgress;
-
-    container.scrollLeft = currentScroll;
-
-    if (progress < duration) {
-      window.requestAnimationFrame(step);
-    } else {
-      // Call the onComplete callback when the animation finishes
-      if (onComplete) onComplete();
+    // If the item is within the visible range
+    if (itemEnd > rangeStart && itemStart < rangeEnd) {
+      fullVisibleIndices.push(i);
     }
   }
 
-  window.requestAnimationFrame(step);
-}
+  return fullVisibleIndices;
+};
+
+// function columnIsBeingPlayed(columnIndex: number) {
+//   const measureLineAdjustedIndex =
+//     playbackChordIndices[currentChordIndex] === undefined
+//       ? 0
+//       : playbackChordIndices[currentChordIndex];
+
+//   if (
+//     !fullCurrentlyPlayingMetadata ||
+//     !fullCurrentlyPlayingMetadata[measureLineAdjustedIndex] ||
+//     !fullCurrentlyPlayingMetadata[columnIndex]
+//   )
+//     return false;
+
+//   const {
+//     sectionIndex,
+//     sectionRepeatIndex,
+//     subSectionIndex,
+//     subSectionRepeatIndex,
+//     chordIndex,
+//   } = fullCurrentlyPlayingMetadata[measureLineAdjustedIndex].location;
+
+//   const {
+//     sectionIndex: sectionIndex2,
+//     sectionRepeatIndex: sectionRepeatIndex2,
+//     subSectionIndex: subSectionIndex2,
+//     subSectionRepeatIndex: subSectionRepeatIndex2,
+//     chordIndex: chordIndex2,
+//   } = fullCurrentlyPlayingMetadata[columnIndex].location;
+
+//   // return (
+//   //   audioMetadata.playing &&
+//   //   audioMetadata.type === "Generated" &&
+//   //   measureLineAdjustedIndex === columnIndex
+//   // );
+
+//   // return measureLineAdjustedIndex === columnIndex;
+
+//   return (
+//     sectionIndex === sectionIndex2 &&
+//     sectionRepeatIndex === sectionRepeatIndex2 &&
+//     subSectionIndex === subSectionIndex2 &&
+//     subSectionRepeatIndex === subSectionRepeatIndex2 &&
+//     chordIndex === chordIndex2
+//   );
+// }
+
+// function columnHasBeenPlayed(columnIndex: number) {
+//   const measureLineAdjustedIndex =
+//     playbackChordIndices[currentChordIndex] === undefined
+//       ? 0
+//       : playbackChordIndices[currentChordIndex];
+
+//   // if (audioMetadata.editingLoopRange) {
+//   //   const isInSectionBeingLooped = currentlyPlayingMetadata.some(
+//   //     (metadata) => {
+//   //       return (
+//   //         sectionIndex === metadata.location.sectionIndex &&
+//   //         subSectionIndex === metadata.location.subSectionIndex &&
+//   //         columnIndex === metadata.location.chordIndex
+//   //       );
+//   //     }
+//   //   );
+//   //   return isInSectionBeingLooped;
+//   // }
+//   //     const correspondingChordIndex = currentlyPlayingMetadata.some(
+//   //   (metadata) => {
+//   //     return (
+//   //       sectionIndex === metadata.location.sectionIndex &&
+//   //       subSectionIndex === metadata.location.subSectionIndex &&
+//   //       columnIndex === metadata.location.chordIndex
+//   //     );
+//   //   }
+//   // );
+//   // if (!correspondingChordIndex) return false;
+//   // return measureLineAdjustedIndex > columnIndex;
+//   return measureLineAdjustedIndex > columnIndex;
+// }

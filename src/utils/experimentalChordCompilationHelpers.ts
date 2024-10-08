@@ -8,6 +8,8 @@ import type {
   SectionProgression,
   StrummingPattern,
   TabSection,
+  PlaybackTabChord,
+  PlaybackStrummedChord,
 } from "../stores/TabStore";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
@@ -41,7 +43,7 @@ function expandFullTab({
   // endLoopIndex,
   // atomicallyUpdateAudioMetadata,
 }: ExpandFullTab) {
-  const compiledChords: string[][] = [];
+  const compiledChords: (PlaybackTabChord | PlaybackStrummedChord)[] = [];
   const metadata: FullMetadata[] = [];
   const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues
   const chordIndices: number[] = [];
@@ -172,7 +174,7 @@ interface CompileSection {
   sectionIndex: number;
   sectionRepeatIndex: number;
   baselineBpm: number;
-  compiledChords: string[][];
+  compiledChords: (PlaybackTabChord | PlaybackStrummedChord)[];
   metadata: FullMetadata[];
   chords: Chord[];
   elapsedSeconds: { value: number };
@@ -252,7 +254,7 @@ interface CompileTabSection {
   sectionIndex: number;
   sectionRepeatIndex: number;
   baselineBpm: number;
-  compiledChords: string[][];
+  compiledChords: (PlaybackTabChord | PlaybackStrummedChord)[];
   metadata: FullMetadata[];
   elapsedSeconds: { value: number };
   playbackSpeed: number;
@@ -277,7 +279,25 @@ function compileTabSection({
   const data = subSection.data;
   let currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
 
+  // if not the very first chord in the tab, and the last section type
+  // was a chord section, we need to add a spacer "chord"
+  if (compiledChords.length > 0 && compiledChords.at(-1)?.type === "strum") {
+    compiledChords.push({
+      type: "tab",
+      isFirstChord: false,
+      isLastChord: false,
+      data: ["-1", "", "", "", "", "", "", "", "", ""],
+    });
+  }
+
   for (let chordIdx = 0; chordIdx < data.length; chordIdx++) {
+    const chordData: PlaybackTabChord = {
+      type: "tab",
+      isFirstChord: chordIdx === 0,
+      isLastChord: chordIdx === data.length - 1,
+      data: data[chordIdx]!,
+    };
+
     const chord = [...data[chordIdx]!];
 
     if (chord[8] === "measureLine") {
@@ -290,6 +310,8 @@ function compileTabSection({
       } else {
         currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
       }
+
+      // continue;
     } else {
       chordIndices.push(chordIndexCounter.value);
     }
@@ -301,27 +323,37 @@ function compileTabSection({
     if (chord[8] === "1/8th") noteLengthMultiplier = "0.5";
     else if (chord[8] === "1/16th") noteLengthMultiplier = "0.25";
 
+    const isAMeasureLine = chord[8] === "measureLine";
+
     chord[8] = currentBpm;
     chord[9] = noteLengthMultiplier;
 
-    metadata.push({
-      location: {
-        sectionIndex,
-        sectionRepeatIndex,
-        subSectionIndex,
-        subSectionRepeatIndex,
-        chordIndex: chordIdx,
-      },
-      bpm: Number(currentBpm),
-      noteLengthMultiplier,
-      elapsedSeconds: Math.floor(elapsedSeconds.value),
-    });
+    // FYI: looks weird, but we need the measure lines in the overall expansion/compilation,
+    // however for metadata we don't want to include them because it would include an extra
+    // pre-processing step to remove them from the metadata array, since we already skip over them
+    // in the playback chord widths/positions arrays.
+    if (!isAMeasureLine) {
+      metadata.push({
+        location: {
+          sectionIndex,
+          sectionRepeatIndex,
+          subSectionIndex,
+          subSectionRepeatIndex,
+          chordIndex: chordIdx,
+        },
+        bpm: Number(currentBpm),
+        noteLengthMultiplier,
+        elapsedSeconds: Math.floor(elapsedSeconds.value),
+      });
 
-    elapsedSeconds.value +=
-      60 /
-      ((Number(currentBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
+      elapsedSeconds.value +=
+        60 /
+        ((Number(currentBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
+    }
 
-    compiledChords.push(chord);
+    chordData.data = chord; // refactor later to be less split up
+
+    compiledChords.push(chordData);
   }
 }
 
@@ -332,7 +364,7 @@ interface CompileChordSection {
   sectionIndex: number;
   sectionRepeatIndex: number;
   baselineBpm: number;
-  compiledChords: string[][];
+  compiledChords: (PlaybackTabChord | PlaybackStrummedChord)[];
   metadata: FullMetadata[];
   chords: Chord[];
   elapsedSeconds: { value: number };
@@ -395,7 +427,7 @@ interface CompileChordSequence {
   chordSequenceIndex: number;
   baselineBpm: number;
   subSectionBpm: number;
-  compiledChords: string[][];
+  compiledChords: (PlaybackTabChord | PlaybackStrummedChord)[];
   metadata: FullMetadata[];
   chords: Chord[];
   elapsedSeconds: { value: number };
@@ -429,21 +461,51 @@ function compileChordSequence({
     chordSequenceRepeatIdx++
   ) {
     let lastSpecifiedChordName: string | undefined = undefined;
-    for (let chordIdx = 0; chordIdx < chordSequence.data.length; chordIdx++) {
-      let chordName = chordSequence.data[chordIdx];
 
-      // only want to update lastSpecifiedChordName if current chord name is not empty
-      if (chordName !== "" && chordName !== lastSpecifiedChordName) {
-        lastSpecifiedChordName = chordName;
+    for (let chordIdx = 0; chordIdx < chordSequence.data.length; chordIdx++) {
+      // immediately add fake "spacer" strum if chordIdx === 0, excluding the first chord
+      // since we want the highlighted line to be right at the start of the first chord
+      if (compiledChords.length > 0 && chordIdx === 0) {
+        const playbackChordSequence: PlaybackStrummedChord = {
+          type: "strum",
+          isFirstChord: false,
+          isLastChord: false,
+          data: {
+            strumIndex: -1,
+            chordName: "",
+            palmMute: "",
+            strum: "",
+            noteLength: chordSequence.strummingPattern.noteLength,
+          },
+        };
+
+        compiledChords.push(playbackChordSequence);
       }
 
+      let chordName = chordSequence.data[chordIdx];
+      let chordNameToUse = ""; // This will be the chord name we assign
+
+      // Check if current chordName is not empty and not the same as the last specified chord
       if (
+        chordName !== "" &&
+        chordName !== undefined &&
+        chordName !== lastSpecifiedChordName
+      ) {
+        lastSpecifiedChordName = chordName;
+        chordNameToUse = chordName; // Assign the chord name because it changed
+      } else if (
         chordName === "" &&
         chordSequence.strummingPattern.strums[chordIdx]?.strum !== ""
       ) {
-        chordName = lastSpecifiedChordName;
+        // If chordName is empty but there's a strum, use last specified chordName internally
+        chordName = lastSpecifiedChordName || "";
+        chordNameToUse = ""; // Do not assign to avoid cluttering the UI
+      } else {
+        // ChordName is empty and there's no strum, assign empty string
+        chordNameToUse = "";
       }
 
+      // Proceed with the rest of your logic using chordNameToUse
       const chordBpm = getBpmForChord(
         chordSequence.bpm,
         baselineBpm,
@@ -485,65 +547,23 @@ function compileChordSequence({
       chordIndices.push(chordIndexCounter.value);
       chordIndexCounter.value++;
 
-      compiledChords.push(
-        compileChord({
-          chordName: chordName ?? "",
-          chordIdx,
-          strummingPattern: chordSequence.strummingPattern,
-          chords,
-          stringifiedBpm: chordBpm,
-          noteLengthMultiplier,
-        }),
-      );
+      const playbackChordSequence: PlaybackStrummedChord = {
+        type: "strum",
+        isFirstChord: chordIdx === 0,
+        isLastChord: chordIdx === chordSequence.data.length - 1,
+        data: {
+          strumIndex: chordIdx,
+          chordName: chordNameToUse,
+          palmMute:
+            chordSequence.strummingPattern.strums[chordIdx]?.palmMute ?? "",
+          strum: chordSequence.strummingPattern.strums[chordIdx]?.strum ?? "",
+          noteLength: chordSequence.strummingPattern.noteLength,
+        },
+      };
+
+      compiledChords.push(playbackChordSequence);
     }
   }
-}
-
-interface CompileChord {
-  chordName: string;
-  chordIdx: number;
-  strummingPattern: StrummingPattern;
-  chords: Chord[];
-  stringifiedBpm: string;
-  noteLengthMultiplier: string;
-}
-
-function compileChord({
-  chordName,
-  chordIdx,
-  strummingPattern,
-  chords,
-  stringifiedBpm,
-  noteLengthMultiplier,
-}: CompileChord) {
-  const chordFrets =
-    chords[chords.findIndex((chord) => chord.name === chordName)]?.frets;
-
-  if (chordName === "" || !chordFrets) {
-    return [
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      stringifiedBpm,
-      noteLengthMultiplier,
-    ];
-  }
-
-  let chordEffect = "";
-  chordEffect = strummingPattern.strums[chordIdx]!.strum;
-
-  return [
-    strummingPattern.strums[chordIdx]!.palmMute,
-    ...chordFrets,
-    chordEffect,
-    stringifiedBpm,
-    noteLengthMultiplier,
-  ];
 }
 
 function getSectionIndexFromId(tabData: Section[], sectionId: string) {
