@@ -12,14 +12,14 @@ function PlaybackDialog() {
     currentChordIndex,
     playbackSpeed,
     setCurrentChordIndex,
-    fullCurrentlyPlayingMetadata,
+    playbackMetadata,
     audioMetadata,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
     playbackSpeed: state.playbackSpeed,
     setCurrentChordIndex: state.setCurrentChordIndex,
-    fullCurrentlyPlayingMetadata: state.fullCurrentlyPlayingMetadata,
+    playbackMetadata: state.playbackMetadata,
     audioMetadata: state.audioMetadata,
   }));
 
@@ -38,6 +38,9 @@ function PlaybackDialog() {
   const [realChordsToFullChordsMap, setRealChordsToFullChordsMap] = useState<{
     [key: number]: number;
   }>({});
+  const [fullChordsToRealChordsMap, setFullChordsToRealChordsMap] = useState<{
+    [key: number]: number;
+  }>({});
 
   const [scrollContainerWidth, setScrollContainerWidth] = useState(0);
   const [showPseudoChords, setShowPseudoChords] = useState(true);
@@ -46,11 +49,17 @@ function PlaybackDialog() {
   useEffect(() => {
     const handleResize = () => {
       setTimeout(() => {
+        // most likely can't directly use containerRef.current here
+        // and need to calculate width based on window.innerWidth based on
+        // viewportLabel or something? Otherwise yea you can never precompute this value.
+
+        // Other solution would be to remove the setTimouts and just deal with a loading spinner
+        // but I don't quite like that, mutation observer maybe?
         if (expandedTabData === null || containerRef.current === null) return;
 
         setInitialPlaceholderWidth(containerRef.current.clientWidth / 2 - 5);
         setVisibleContainerWidth(containerRef.current.clientWidth);
-      }, 500);
+      }, 2000);
     };
 
     handleResize();
@@ -60,9 +69,9 @@ function PlaybackDialog() {
   }, [expandedTabData]);
 
   useEffect(() => {
-    if (!fullCurrentlyPlayingMetadata) return;
+    if (!playbackMetadata) return;
 
-    const durations = fullCurrentlyPlayingMetadata.map((metadata) => {
+    const durations = playbackMetadata.map((metadata) => {
       const { bpm, noteLengthMultiplier } = metadata;
       return (
         (60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed)) * 1000
@@ -70,11 +79,10 @@ function PlaybackDialog() {
     });
 
     setChordDurations(durations);
-  }, [fullCurrentlyPlayingMetadata, playbackSpeed]);
+  }, [playbackMetadata, playbackSpeed]);
 
   useEffect(() => {
     if (
-      !showingDialog ||
       !expandedTabData ||
       scrollPositions.length !== 0 ||
       expandedTabData.length === 0 ||
@@ -95,6 +103,7 @@ function PlaybackDialog() {
       const fullChordWidths: number[] = [];
 
       const realChordsToFullChordsMap: { [key: number]: number } = {};
+      const fullChordsToRealChordsMap: { [key: number]: number } = {};
 
       let finalElementWidth = 0;
 
@@ -114,14 +123,15 @@ function PlaybackDialog() {
             domElementDifferentialCount++;
           } else {
             scrollPositions.push(offsetLeft);
+            realChordsToFullChordsMap[index - domElementDifferentialCount] =
+              index;
+            fullChordsToRealChordsMap[index] =
+              index - domElementDifferentialCount;
           }
 
           // include all DOM nodes in fullScrollPositions and fullChordWidths
           fullScrollPositions.push(offsetLeft);
           fullChordWidths.push(width);
-
-          realChordsToFullChordsMap[index] =
-            index - domElementDifferentialCount;
 
           if (index === expandedTabData.length - 1) {
             finalElementWidth = width;
@@ -144,11 +154,12 @@ function PlaybackDialog() {
       setFullChordWidths(fullChordWidths);
 
       setRealChordsToFullChordsMap(realChordsToFullChordsMap);
+      setFullChordsToRealChordsMap(fullChordsToRealChordsMap);
 
       setScrollContainerWidth(scrollContainerWidth);
       setShowPseudoChords(false);
-    }, 5000);
-  }, [scrollPositions, expandedTabData, showPseudoChords, showingDialog]);
+    }, 2000);
+  }, [scrollPositions, expandedTabData, showPseudoChords]);
 
   const fullVisibleChordIndices = getFullVisibleChordIndices({
     fullScrollPositions,
@@ -156,7 +167,8 @@ function PlaybackDialog() {
     currentChordIndex,
     visibleContainerWidth,
     fullChordWidths,
-    buffer: 1000,
+    buffer: 100,
+    initialPlaceholderWidth,
   });
 
   function highlightChord(
@@ -169,9 +181,9 @@ function PlaybackDialog() {
     // the previous subsection. If you want to change this later you prob need a prop like this
 
     if (
-      !fullCurrentlyPlayingMetadata ||
-      !fullCurrentlyPlayingMetadata[currentChordIndex] ||
-      !fullCurrentlyPlayingMetadata[index]
+      !playbackMetadata ||
+      !playbackMetadata[currentChordIndex] ||
+      !playbackMetadata[index]
     )
       return false;
 
@@ -183,7 +195,7 @@ function PlaybackDialog() {
       chordSequenceIndex: currChordSequenceIndex,
       chordSequenceRepeatIndex: currChordSequenceRepeatIndex,
       chordIndex: currChordIndex,
-    } = fullCurrentlyPlayingMetadata[currentChordIndex].location;
+    } = playbackMetadata[currentChordIndex].location;
 
     const {
       sectionIndex: renderedSectionIndex,
@@ -193,7 +205,7 @@ function PlaybackDialog() {
       chordSequenceIndex: renderedChordSequenceIndex,
       chordSequenceRepeatIndex: renderedChordSequenceRepeatIndex,
       chordIndex: renderedChordIndex,
-    } = fullCurrentlyPlayingMetadata[index].location;
+    } = playbackMetadata[index].location;
 
     return (
       audioMetadata.type === "Generated" &&
@@ -208,6 +220,8 @@ function PlaybackDialog() {
         : currChordIndex > renderedChordIndex)
     );
   }
+
+  console.log(realChordsToFullChordsMap, fullChordsToRealChordsMap);
 
   if (expandedTabData === null) return;
 
@@ -321,11 +335,11 @@ function PlaybackDialog() {
                             isHighlighted={
                               (audioMetadata.playing &&
                                 highlightChord(
-                                  realChordsToFullChordsMap[index] || 0,
+                                  fullChordsToRealChordsMap[index] || 0,
                                   "isBeingPlayed",
                                 )) ||
                               highlightChord(
-                                realChordsToFullChordsMap[index] || 0,
+                                fullChordsToRealChordsMap[index] || 0,
                                 "hasBeenPlayed",
                               )
                             }
@@ -358,11 +372,11 @@ function PlaybackDialog() {
                         isHighlighted={
                           (audioMetadata.playing &&
                             highlightChord(
-                              realChordsToFullChordsMap[index] || 0,
+                              fullChordsToRealChordsMap[index] || 0,
                               "isBeingPlayed",
                             )) ||
                           highlightChord(
-                            realChordsToFullChordsMap[index] || 0,
+                            fullChordsToRealChordsMap[index] || 0,
                             "hasBeenPlayed",
                           )
                         }
@@ -447,6 +461,7 @@ const getFullVisibleChordIndices = ({
   visibleContainerWidth,
   fullChordWidths,
   buffer,
+  initialPlaceholderWidth,
 }: {
   fullScrollPositions: number[];
   realChordsToFullChordsMap: { [key: number]: number };
@@ -454,6 +469,7 @@ const getFullVisibleChordIndices = ({
   visibleContainerWidth: number;
   fullChordWidths: number[];
   buffer: number;
+  initialPlaceholderWidth: number;
 }) => {
   const adjustedCurrentChordIndex =
     realChordsToFullChordsMap[currentChordIndex];
@@ -466,29 +482,66 @@ const getFullVisibleChordIndices = ({
 
   const fullVisibleIndices = [];
 
-  // start and end points of the visible range
-  const rangeStart =
-    fullScrollPositions[adjustedCurrentChordIndex] -
-    visibleContainerWidth / 2 -
-    buffer;
-  const rangeEnd =
-    fullScrollPositions[adjustedCurrentChordIndex] +
-    visibleContainerWidth / 2 +
-    buffer;
+  const adjustedScrollPositions = fullScrollPositions.map(
+    (pos) => pos + initialPlaceholderWidth,
+  );
 
-  // can probably be optimized in some way since you know the fullScrollPositions are sorted
-  for (let i = 0; i < fullScrollPositions.length; i++) {
-    const itemStart = fullScrollPositions[i] || 0;
+  const adjustedCurrentPosition =
+    fullScrollPositions[adjustedCurrentChordIndex] + initialPlaceholderWidth;
+
+  // Start and end points of the visible range
+  const rangeStart =
+    adjustedCurrentPosition - visibleContainerWidth / 2 - buffer;
+  const rangeEnd = adjustedCurrentPosition + visibleContainerWidth / 2 + buffer;
+
+  const startIndex = binarySearchStart(adjustedScrollPositions, rangeStart);
+
+  const endIndex = binarySearchEnd(adjustedScrollPositions, rangeEnd);
+
+  for (let i = startIndex; i <= endIndex; i++) {
+    const itemStart = adjustedScrollPositions[i] || 0;
     const chordWidth = fullChordWidths[i] || 0;
     const itemEnd = itemStart + chordWidth;
 
-    // If the item is within the visible range
+    // Ensure the item is within the visible range
     if (itemEnd > rangeStart && itemStart < rangeEnd) {
       fullVisibleIndices.push(i);
     }
   }
 
   return fullVisibleIndices;
+};
+
+// Binary search helper to find the first element >= value
+const binarySearchStart = (arr: number[], value: number) => {
+  let low = 0;
+  let high = arr.length - 1;
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    const midValue = arr[mid];
+    if (midValue === undefined || midValue < value) {
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return low;
+};
+
+// Binary search helper to find the last element <= value
+const binarySearchEnd = (arr: number[], value: number) => {
+  let low = 0;
+  let high = arr.length - 1;
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    const midValue = arr[mid];
+    if (midValue === undefined || midValue > value) {
+      high = mid - 1;
+    } else {
+      low = mid + 1;
+    }
+  }
+  return high;
 };
 
 // saving for later, if choosing to get rid of the artificial gaps between strumming sections.

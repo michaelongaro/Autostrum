@@ -3,7 +3,7 @@ import type {
   Chord,
   ChordSection,
   ChordSequence,
-  FullMetadata,
+  PlaybackMetadata,
   Section,
   SectionProgression,
   StrummingPattern,
@@ -20,10 +20,7 @@ interface ExpandFullTab {
   chords: Chord[];
   baselineBpm: number;
   playbackSpeed: number;
-  setFullCurrentlyPlayingMetadata: (
-    fullCurrentlyPlayingMetadata: FullMetadata[] | null,
-  ) => void;
-  setPlaybackChordIndices: (chordIndices: number[]) => void;
+  setPlaybackMetadata: (playbackMetadata: PlaybackMetadata[] | null) => void;
   // startLoopIndex: number;
   // endLoopIndex: number;
   // atomicallyUpdateAudioMetadata?: (
@@ -37,17 +34,14 @@ function expandFullTab({
   chords,
   baselineBpm,
   playbackSpeed,
-  setFullCurrentlyPlayingMetadata,
-  setPlaybackChordIndices,
+  setPlaybackMetadata,
   // startLoopIndex,
   // endLoopIndex,
   // atomicallyUpdateAudioMetadata,
 }: ExpandFullTab) {
   const compiledChords: (PlaybackTabChord | PlaybackStrummedChord)[] = [];
-  const metadata: FullMetadata[] = [];
+  const metadata: PlaybackMetadata[] = [];
   const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues
-  const chordIndices: number[] = [];
-  let chordIndexCounter = { value: 0 }; // getting around pass by value/reference issues
 
   for (
     let sectionProgressionIndex = 0;
@@ -80,8 +74,6 @@ function expandFullTab({
         chords,
         elapsedSeconds,
         playbackSpeed,
-        chordIndices,
-        chordIndexCounter,
       });
     }
   }
@@ -163,8 +155,7 @@ function expandFullTab({
 
   // setCurrentlyPlayingMetadata(metadataMappedToLoopRange);
 
-  setFullCurrentlyPlayingMetadata(metadata);
-  setPlaybackChordIndices(chordIndices);
+  setPlaybackMetadata(metadata);
 
   return compiledChords;
 }
@@ -175,12 +166,10 @@ interface CompileSection {
   sectionRepeatIndex: number;
   baselineBpm: number;
   compiledChords: (PlaybackTabChord | PlaybackStrummedChord)[];
-  metadata: FullMetadata[];
+  metadata: PlaybackMetadata[];
   chords: Chord[];
   elapsedSeconds: { value: number };
   playbackSpeed: number;
-  chordIndices: number[];
-  chordIndexCounter: { value: number };
 }
 
 function compileSection({
@@ -193,8 +182,6 @@ function compileSection({
   chords,
   elapsedSeconds,
   playbackSpeed,
-  chordIndices,
-  chordIndexCounter,
 }: CompileSection) {
   for (
     let subSectionIndex = 0;
@@ -223,8 +210,6 @@ function compileSection({
           metadata,
           elapsedSeconds,
           playbackSpeed,
-          chordIndices,
-          chordIndexCounter,
         });
       } else {
         compileChordSection({
@@ -239,8 +224,6 @@ function compileSection({
           chords,
           elapsedSeconds,
           playbackSpeed,
-          chordIndices,
-          chordIndexCounter,
         });
       }
     }
@@ -255,11 +238,9 @@ interface CompileTabSection {
   sectionRepeatIndex: number;
   baselineBpm: number;
   compiledChords: (PlaybackTabChord | PlaybackStrummedChord)[];
-  metadata: FullMetadata[];
+  metadata: PlaybackMetadata[];
   elapsedSeconds: { value: number };
   playbackSpeed: number;
-  chordIndices: number[];
-  chordIndexCounter: { value: number };
 }
 
 function compileTabSection({
@@ -273,8 +254,6 @@ function compileTabSection({
   metadata,
   elapsedSeconds,
   playbackSpeed,
-  chordIndices,
-  chordIndexCounter,
 }: CompileTabSection) {
   const data = subSection.data;
   let currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
@@ -337,13 +316,7 @@ function compileTabSection({
       } else {
         currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
       }
-
-      // continue;
-    } else {
-      chordIndices.push(chordIndexCounter.value);
     }
-
-    chordIndexCounter.value++;
 
     let noteLengthMultiplier = "1";
 
@@ -392,12 +365,10 @@ interface CompileChordSection {
   sectionRepeatIndex: number;
   baselineBpm: number;
   compiledChords: (PlaybackTabChord | PlaybackStrummedChord)[];
-  metadata: FullMetadata[];
+  metadata: PlaybackMetadata[];
   chords: Chord[];
   elapsedSeconds: { value: number };
   playbackSpeed: number;
-  chordIndices: number[];
-  chordIndexCounter: { value: number };
 }
 
 function compileChordSection({
@@ -412,8 +383,6 @@ function compileChordSection({
   chords,
   elapsedSeconds,
   playbackSpeed,
-  chordIndices,
-  chordIndexCounter,
 }: CompileChordSection) {
   const chordSection = subSection.data;
 
@@ -439,8 +408,6 @@ function compileChordSection({
       chords,
       elapsedSeconds,
       playbackSpeed,
-      chordIndices,
-      chordIndexCounter,
     });
   }
 }
@@ -455,12 +422,10 @@ interface CompileChordSequence {
   baselineBpm: number;
   subSectionBpm: number;
   compiledChords: (PlaybackTabChord | PlaybackStrummedChord)[];
-  metadata: FullMetadata[];
+  metadata: PlaybackMetadata[];
   chords: Chord[];
   elapsedSeconds: { value: number };
   playbackSpeed: number;
-  chordIndices: number[];
-  chordIndexCounter: { value: number };
 }
 
 function compileChordSequence({
@@ -477,8 +442,6 @@ function compileChordSequence({
   chords,
   elapsedSeconds,
   playbackSpeed,
-  chordIndices,
-  chordIndexCounter,
 }: CompileChordSequence) {
   const chordSequenceRepetitions = getRepetitions(chordSequence?.repetitions);
 
@@ -575,9 +538,6 @@ function compileChordSequence({
         60 /
         ((Number(chordBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
 
-      chordIndices.push(chordIndexCounter.value);
-      chordIndexCounter.value++;
-
       const playbackChordSequence: PlaybackStrummedChord = {
         type: "strum",
         isFirstChord: chordIdx === 0,
@@ -621,7 +581,7 @@ function getSectionIndexFromId(tabData: Section[], sectionId: string) {
 //   baselineBpm: number;
 //   playbackSpeed: number;
 //   setCurrentlyPlayingMetadata: (
-//     currentlyPlayingMetadata: FullMetadata[] | null,
+//     currentlyPlayingMetadata: PlaybackMetadata[] | null,
 //   ) => void;
 //   startLoopIndex: number;
 //   endLoopIndex: number;
@@ -642,7 +602,7 @@ function getSectionIndexFromId(tabData: Section[], sectionId: string) {
 //   atomicallyUpdateAudioMetadata,
 // }: CompileSpecificChordGrouping) {
 //   const compiledChords: string[][] = [];
-//   const metadata: FullMetadata[] = [];
+//   const metadata: PlaybackMetadata[] = [];
 //   const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues, prob want to combine all three into one obj};
 
 //   // playing ONE chord sequence (for the repetition amount)

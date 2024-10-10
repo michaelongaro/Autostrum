@@ -28,8 +28,7 @@ function useAutoCompileChords() {
     strummingPatterns,
     atomicallyUpdateAudioMetadata,
     setExpandedTabData,
-    setFullCurrentlyPlayingMetadata,
-    setPlaybackChordIndices,
+    setPlaybackMetadata,
   } = useTabStore((state) => ({
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
     playbackSpeed: state.playbackSpeed,
@@ -42,8 +41,7 @@ function useAutoCompileChords() {
     strummingPatterns: state.strummingPatterns,
     atomicallyUpdateAudioMetadata: state.atomicallyUpdateAudioMetadata,
     setExpandedTabData: state.setExpandedTabData,
-    setFullCurrentlyPlayingMetadata: state.setFullCurrentlyPlayingMetadata,
-    setPlaybackChordIndices: state.setPlaybackChordIndices,
+    setPlaybackMetadata: state.setPlaybackMetadata,
   }));
 
   useEffect(() => {
@@ -118,12 +116,11 @@ function useAutoCompileChords() {
 
       const expandedTabData = expandFullTab({
         tabData,
-        sectionProgression,
+        sectionProgression: sanitizedSectionProgression,
         chords,
         baselineBpm: bpm,
         playbackSpeed,
-        setFullCurrentlyPlayingMetadata,
-        setPlaybackChordIndices,
+        setPlaybackMetadata,
         // startLoopIndex: audioMetadata.startLoopIndex,
         // endLoopIndex: audioMetadata.endLoopIndex,
       });
@@ -145,8 +142,7 @@ function useAutoCompileChords() {
     setCurrentlyPlayingMetadata,
     atomicallyUpdateAudioMetadata,
     setExpandedTabData,
-    setFullCurrentlyPlayingMetadata,
-    setPlaybackChordIndices,
+    setPlaybackMetadata,
   ]);
 
   useEffect(() => {

@@ -108,7 +108,7 @@ export interface Metadata {
   elapsedSeconds: number;
 }
 
-export interface FullMetadata {
+export interface PlaybackMetadata {
   location: {
     sectionIndex: number;
     sectionRepeatIndex: number;
@@ -264,7 +264,7 @@ const initialStoreState = {
 
   // related to sound generation/playing
   currentlyPlayingMetadata: null,
-  fullCurrentlyPlayingMetadata: null,
+  playbackMetadata: null,
   playbackSpeed: 1,
   currentChordIndex: 0,
   audioMetadata: {
@@ -383,13 +383,8 @@ interface TabState {
     expandedTabData: (PlaybackTabChord | PlaybackStrummedChord)[] | null,
   ) => void;
 
-  // dislike these, but I think "needed" to align playback stuff
-  fullCurrentlyPlayingMetadata: FullMetadata[] | null;
-  setFullCurrentlyPlayingMetadata: (
-    fullCurrentlyPlayingMetadata: FullMetadata[] | null,
-  ) => void;
-  playbackChordIndices: number[];
-  setPlaybackChordIndices: (playbackChordIndices: number[]) => void;
+  playbackMetadata: PlaybackMetadata[] | null;
+  setPlaybackMetadata: (playbackMetadata: PlaybackMetadata[] | null) => void;
 
   // modals
   showAudioRecorderModal: boolean;
@@ -665,13 +660,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       setCurrentlyPlayingMetadata: (currentlyPlayingMetadata) =>
         set({ currentlyPlayingMetadata }),
 
-      // dislike these, but I think "needed" to align playback stuff
-      fullCurrentlyPlayingMetadata: null,
-      setFullCurrentlyPlayingMetadata: (fullCurrentlyPlayingMetadata) =>
-        set({ fullCurrentlyPlayingMetadata }),
-      playbackChordIndices: [],
-      setPlaybackChordIndices: (playbackChordIndices) =>
-        set({ playbackChordIndices }),
+      playbackMetadata: null,
+      setPlaybackMetadata: (playbackMetadata) => set({ playbackMetadata }),
 
       currentInstrumentName: "acoustic_guitar_steel",
       setCurrentInstrumentName: (currentInstrumentName) =>
@@ -737,10 +727,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           currentInstrument,
           audioContext,
           masterVolumeGainNode,
-          setExpandedTabData,
           setCurrentlyPlayingMetadata,
-          setFullCurrentlyPlayingMetadata,
-          setPlaybackChordIndices,
         } = get();
 
         if (!audioContext || !masterVolumeGainNode || !currentInstrument)
@@ -796,34 +783,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
               startLoopIndex: audioMetadata.startLoopIndex,
               endLoopIndex: audioMetadata.endLoopIndex,
             });
-
-        // const expandedTabData = location
-        //   ? expandSpecificChordGrouping({
-        //       tabData,
-        //       location,
-        //       // setFullCurrentlyPlayingMetadata,
-        //     })
-        //   : expandFullTab({
-        //       tabData,
-        //       sectionProgression,
-        //       setFullCurrentlyPlayingMetadata,
-        //     });
-
-        // setExpandedTabData(expandedTabData);
-
-        const expandedTabData = expandFullTab({
-          tabData,
-          sectionProgression,
-          chords,
-          baselineBpm,
-          playbackSpeed,
-          setFullCurrentlyPlayingMetadata,
-          setPlaybackChordIndices,
-          // startLoopIndex: audioMetadata.startLoopIndex,
-          // endLoopIndex: audioMetadata.endLoopIndex,
-        });
-
-        setExpandedTabData(expandedTabData);
 
         for (
           let chordIndex = currentChordIndex;
