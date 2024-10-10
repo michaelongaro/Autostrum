@@ -1,37 +1,25 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import PlaybackStrummedChord from "~/components/Tab/Playback/PlaybackStrummedChord";
-import PlaybackTabEndcap from "~/components/Tab/Playback/PlaybackTabEndcap";
+import PlaybackTabChord from "~/components/Tab/Playback/PlaybackTabChord";
 import PlaybackTabMeasureLine from "~/components/Tab/Playback/PlaybackTabMeasureLine";
-import PlaybackTabNotesColumn from "~/components/Tab/Playback/PlaybackTabNotesColumn";
 import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
-import {
-  type PlaybackStrummedChord as PlaybackStrummedChordType,
-  PlaybackTabChord,
-  useTabStore,
-} from "~/stores/TabStore";
-// import type { PlaybackChordSequence } from "~/utils/experimentalChordCompilationHelpers";
+import { useTabStore } from "~/stores/TabStore";
 
 function PlaybackDialog() {
   const {
     expandedTabData,
     currentChordIndex,
-    currentlyPlayingMetadata,
     playbackSpeed,
     setCurrentChordIndex,
     fullCurrentlyPlayingMetadata,
-    playbackChordIndices,
-    tuning,
     audioMetadata,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
-    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     playbackSpeed: state.playbackSpeed,
     setCurrentChordIndex: state.setCurrentChordIndex,
     fullCurrentlyPlayingMetadata: state.fullCurrentlyPlayingMetadata,
-    playbackChordIndices: state.playbackChordIndices,
-    tuning: state.tuning,
     audioMetadata: state.audioMetadata,
   }));
 
@@ -171,10 +159,6 @@ function PlaybackDialog() {
     buffer: 1000,
   });
 
-  // change variable names to "curr"SectionIndex and "rendered"SectionIndex
-  // to be more clear than "sectionIndex" and "sectionIndex2"
-  // ^^^^^
-
   function highlightChord(
     index: number,
     type: "isBeingPlayed" | "hasBeenPlayed",
@@ -192,36 +176,36 @@ function PlaybackDialog() {
       return false;
 
     const {
-      sectionIndex,
-      sectionRepeatIndex,
-      subSectionIndex,
-      subSectionRepeatIndex,
-      chordSequenceIndex,
-      chordSequenceRepeatIndex,
-      chordIndex,
+      sectionIndex: currSectionIndex,
+      sectionRepeatIndex: currSectionRepeatIndex,
+      subSectionIndex: currSubSectionIndex,
+      subSectionRepeatIndex: currSubSectionRepeatIndex,
+      chordSequenceIndex: currChordSequenceIndex,
+      chordSequenceRepeatIndex: currChordSequenceRepeatIndex,
+      chordIndex: currChordIndex,
     } = fullCurrentlyPlayingMetadata[currentChordIndex].location;
 
     const {
-      sectionIndex: sectionIndex2,
-      sectionRepeatIndex: sectionRepeatIndex2,
-      subSectionIndex: subSectionIndex2,
-      subSectionRepeatIndex: subSectionRepeatIndex2,
-      chordSequenceIndex: chordSequenceIndex2,
-      chordSequenceRepeatIndex: chordSequenceRepeatIndex2,
-      chordIndex: chordIndex2,
+      sectionIndex: renderedSectionIndex,
+      sectionRepeatIndex: renderedSectionRepeatIndex,
+      subSectionIndex: renderedSubSectionIndex,
+      subSectionRepeatIndex: renderedSubSectionRepeatIndex,
+      chordSequenceIndex: renderedChordSequenceIndex,
+      chordSequenceRepeatIndex: renderedChordSequenceRepeatIndex,
+      chordIndex: renderedChordIndex,
     } = fullCurrentlyPlayingMetadata[index].location;
 
     return (
       audioMetadata.type === "Generated" &&
-      sectionIndex === sectionIndex2 &&
-      sectionRepeatIndex === sectionRepeatIndex2 &&
-      subSectionIndex === subSectionIndex2 &&
-      subSectionRepeatIndex === subSectionRepeatIndex2 &&
-      chordSequenceIndex === chordSequenceIndex2 &&
-      chordSequenceRepeatIndex === chordSequenceRepeatIndex2 &&
+      currSectionIndex === renderedSectionIndex &&
+      currSectionRepeatIndex === renderedSectionRepeatIndex &&
+      currSubSectionIndex === renderedSubSectionIndex &&
+      currSubSectionRepeatIndex === renderedSubSectionRepeatIndex &&
+      currChordSequenceIndex === renderedChordSequenceIndex &&
+      currChordSequenceRepeatIndex === renderedChordSequenceRepeatIndex &&
       (type === "isBeingPlayed"
-        ? chordIndex === chordIndex2
-        : chordIndex > chordIndex2)
+        ? currChordIndex === renderedChordIndex
+        : currChordIndex > renderedChordIndex)
     );
   }
 
@@ -321,10 +305,7 @@ function PlaybackDialog() {
                             columnData={expandedTabData[index]?.data.chordData}
                           />
                         ) : (
-                          // TODO: rename file to PlaybackTabChord
-                          // and delete current PlaybackTabChord v
-
-                          <PlaybackTabNotesColumn
+                          <PlaybackTabChord
                             columnData={expandedTabData[index]?.data.chordData}
                             isFirstChordInSection={
                               index === 0 ||
@@ -406,15 +387,18 @@ function PlaybackDialog() {
                           columnData={expandedTabData[index]?.data.chordData}
                         />
                       ) : (
-                        <PlaybackTabNotesColumn
+                        <PlaybackTabChord
                           columnData={expandedTabData[index]?.data.chordData}
                           isFirstChordInSection={
                             index === 0 ||
-                            expandedTabData[index - 1]?.type === "strum" // why not use the isFirstChord prop?
+                            (expandedTabData[index - 1]?.type === "tab" &&
+                              expandedTabData[index - 1]?.data
+                                .chordData?.[0] === "-1")
+                            // TODO: come back to why this type isn't narrowed
                           }
                           isLastChordInSection={
                             index === expandedTabData.length - 1 ||
-                            expandedTabData[index + 1]?.type === "strum" // why not use the isLastChord prop?
+                            expandedTabData[index + 1]?.type === "strum"
                           }
                           isHighlighted={false}
                         />
@@ -482,12 +466,14 @@ const getFullVisibleChordIndices = ({
 
   const fullVisibleIndices = [];
 
-  // TODO: this needs to be adjusted to account for the playback vertical line
-  // being in the middle of the screen, not at the start of the container
-  const rangeStart = fullScrollPositions[adjustedCurrentChordIndex] - buffer;
+  // start and end points of the visible range
+  const rangeStart =
+    fullScrollPositions[adjustedCurrentChordIndex] -
+    visibleContainerWidth / 2 -
+    buffer;
   const rangeEnd =
     fullScrollPositions[adjustedCurrentChordIndex] +
-    visibleContainerWidth +
+    visibleContainerWidth / 2 +
     buffer;
 
   // can probably be optimized in some way since you know the fullScrollPositions are sorted

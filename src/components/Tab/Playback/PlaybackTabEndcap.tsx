@@ -1,5 +1,8 @@
 import { parse, toString } from "~/utils/tunings";
 
+// most likely delete this component, but keeping it around for now
+// in case we need it
+
 interface PlaybackTabEndcap {
   type: "start" | "end";
   tuning?: string;

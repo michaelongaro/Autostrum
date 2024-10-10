@@ -1,4 +1,5 @@
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
+import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
 import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
@@ -99,8 +100,8 @@ function PlaybackStrummedChord({
             </div>
           )}
 
-          {palmMute !== "" ? (
-            <div></div>
+          {palmMute && palmMute !== "" ? (
+            <PlaybackPalmMuteNode value={palmMute} />
           ) : (
             <div
               style={{
@@ -236,7 +237,7 @@ const calculateFontSize = ({
       throw new Error("Canvas context is not available");
     }
 
-    context.font = `${fontSize}px Arial`; // Using a default font family
+    context.font = `${fontSize}px Arial`; // Using a default font family, not sure if this is the best approach
     return context.measureText(text).width;
   };
 

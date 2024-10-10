@@ -84,7 +84,7 @@ function StrummingPattern({
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
 
   const [isFocused, setIsFocused] = useState<boolean[]>(
-    data?.strums?.map(() => false)
+    data?.strums?.map(() => false),
   );
 
   const {
@@ -137,7 +137,7 @@ function StrummingPattern({
 
   function handleKeyDown(
     e: React.KeyboardEvent<HTMLInputElement>,
-    beatIndex: number
+    beatIndex: number,
   ) {
     const newStrummingPattern = structuredClone(data);
 
@@ -164,7 +164,7 @@ function StrummingPattern({
       e.preventDefault(); // prevent cursor from moving
 
       const newNoteToFocus = document.getElementById(
-        `input-strummingPatternModal-${beatIndex}-0`
+        `input-strummingPatternModal-${beatIndex}-0`,
       );
 
       newNoteToFocus?.focus();
@@ -172,7 +172,7 @@ function StrummingPattern({
       e.preventDefault(); // prevent cursor from moving
 
       const newNoteToFocus = document.getElementById(
-        `input-strummingPatternModal-${beatIndex - 1}-1`
+        `input-strummingPatternModal-${beatIndex - 1}-1`,
       );
 
       newNoteToFocus?.focus();
@@ -181,7 +181,7 @@ function StrummingPattern({
 
       if (beatIndex === data.strums.length - 1) {
         const newNoteToFocus = document.getElementById(
-          "strummingPatternExtendPatternButton"
+          "strummingPatternExtendPatternButton",
         );
 
         newNoteToFocus?.focus();
@@ -189,7 +189,7 @@ function StrummingPattern({
       }
 
       const newNoteToFocus = document.getElementById(
-        `input-strummingPatternModal-${beatIndex + 1}-1`
+        `input-strummingPatternModal-${beatIndex + 1}-1`,
       );
 
       newNoteToFocus?.focus();
@@ -202,7 +202,7 @@ function StrummingPattern({
   }
 
   function handleExtendPatternButtonKeyDown(
-    e: React.KeyboardEvent<HTMLButtonElement>
+    e: React.KeyboardEvent<HTMLButtonElement>,
   ) {
     if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
@@ -210,7 +210,7 @@ function StrummingPattern({
       const lastStrumIndex = data.strums.length - 1;
 
       const newNoteToFocus = document.getElementById(
-        `input-strummingPatternModal-${lastStrumIndex}-1`
+        `input-strummingPatternModal-${lastStrumIndex}-1`,
       );
 
       newNoteToFocus?.focus();
@@ -240,7 +240,7 @@ function StrummingPattern({
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement>,
-    beatIndex: number
+    beatIndex: number,
   ) {
     const value = e.target.value;
 
@@ -287,8 +287,8 @@ function StrummingPattern({
           beatIndex % 4 === 0
             ? beatIndex / 4 + 1
             : beatIndex % 2 === 0
-            ? "&"
-            : "";
+              ? "&"
+              : "";
         break;
       case "1/4th triplet":
         beat = beatIndex % 3 === 0 ? (beatIndex / 3) * 2 + 1 : "";
@@ -329,7 +329,7 @@ function StrummingPattern({
 
   function handleDeletePalmMutedStrum(
     newStrummingPattern: StrummingPatternType,
-    strumIndex: number
+    strumIndex: number,
   ) {
     // const newStrummingPattern = [...strummingPattern];
 
@@ -370,7 +370,7 @@ function StrummingPattern({
   function deleteStrum(beatIndex: number) {
     const newStrummingPattern = handleDeletePalmMutedStrum(
       structuredClone(data),
-      beatIndex
+      beatIndex,
     );
 
     newStrummingPattern.strums.splice(beatIndex, 1);
@@ -420,7 +420,7 @@ function StrummingPattern({
             chordSequenceIndex === metadata.location?.chordSequenceIndex &&
             chordIndex === metadata.location.chordIndex
           );
-        }
+        },
       );
 
       return isInSectionBeingLooped;
@@ -434,7 +434,7 @@ function StrummingPattern({
           chordSequenceIndex === metadata.location?.chordSequenceIndex &&
           chordIndex === metadata.location.chordIndex
         );
-      }
+      },
     );
 
     if (!correspondingChordIndex) return false;
@@ -589,7 +589,7 @@ function StrummingPattern({
                         style={{
                           textShadow: highlightChord(
                             strumIndex,
-                            index !== undefined
+                            index !== undefined,
                           )
                             ? "none"
                             : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
@@ -614,7 +614,7 @@ function StrummingPattern({
                           chords[
                             chords.findIndex(
                               (chord) =>
-                                chord.name === chordSequenceData?.[strumIndex]
+                                chord.name === chordSequenceData?.[strumIndex],
                             ) ?? 0
                           ],
                       }}
@@ -662,7 +662,7 @@ function StrummingPattern({
                       // focuses end of the input (better ux when navigating with arrow keys)
                       e.target.setSelectionRange(
                         e.target.value.length,
-                        e.target.value.length
+                        e.target.value.length,
                       );
                     }}
                     onBlur={() => {
@@ -681,8 +681,8 @@ function StrummingPattern({
                             ? "hsl(324, 77%, 95%)"
                             : "hsl(336, 84%, 17%)"
                           : highlightChord(strumIndex, index !== undefined)
-                          ? "hsl(335, 78%, 42%)"
-                          : "hsl(324, 77%, 95%)",
+                            ? "hsl(335, 78%, 42%)"
+                            : "hsl(324, 77%, 95%)",
                     }}
                     className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
                   >
@@ -762,8 +762,8 @@ function StrummingPattern({
                         ? "hsl(324, 77%, 95%)"
                         : "hsl(336, 84%, 17%)"
                       : highlightChord(strumIndex, index !== undefined)
-                      ? "hsl(335, 78%, 42%)"
-                      : "hsl(324, 77%, 95%)",
+                        ? "hsl(335, 78%, 42%)"
+                        : "hsl(324, 77%, 95%)",
                 }}
                 className="text-sm transition-colors"
               >
@@ -775,7 +775,7 @@ function StrummingPattern({
                 data.noteLength,
                 strumIndex,
                 mode,
-                isBeingHighlightedInDropdown
+                isBeingHighlightedInDropdown,
               )}
 
               {/* delete strum button */}
@@ -784,7 +784,7 @@ function StrummingPattern({
                 <Button
                   variant={"destructive"}
                   disabled={data.strums.length === 1 || previewMetadata.playing}
-                  className=" h-6 w-6 p-0"
+                  className="h-6 w-6 p-0"
                   onClick={() => deleteStrum(strumIndex)}
                 >
                   <IoClose className="h-4 w-4" />
