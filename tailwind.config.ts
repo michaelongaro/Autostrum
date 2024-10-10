@@ -9,7 +9,8 @@ module.exports = {
   darkMode: ["class"],
   content: ["./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-     container: {
+    // probably can remove container? not sure if it's needed
+    container: {
       center: true,
       padding: "2rem",
       screens: {
@@ -22,6 +23,11 @@ module.exports = {
       ...defaultTheme.screens,
     },
     extend: {
+      screens: {
+        mobileLarge: { raw: "(min-height: 667px)" },
+        tablet: { raw: "(min-height: 700px) and (min-width: 1000px)" },
+        desktop: { raw: "(min-height: 800px) and (min-width: 1500px)" },
+      },
       colors: {
         destructiveRed: "hsl(0, 90%, 50%)",
         border: "hsl(var(--border))",
@@ -145,7 +151,7 @@ module.exports = {
             textShadow: value,
           }),
         },
-        { values: theme("textShadow") }
+        { values: theme("textShadow") },
       );
     }),
   ],
