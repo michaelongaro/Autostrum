@@ -1,4 +1,5 @@
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
+import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
 
@@ -7,7 +8,14 @@ interface PlaybackStrummedChord {
   strum: string;
   palmMute?: string;
   chordName?: string;
-  noteLength: string;
+  noteLength:
+    | "1/4th"
+    | "1/4th triplet"
+    | "1/8th"
+    | "1/8th triplet"
+    | "1/16th"
+    | "1/16th triplet";
+  bpmToShow?: number;
   isFirstChordInSection: boolean;
   isLastChordInSection: boolean;
   isHighlighted?: boolean;
@@ -19,6 +27,7 @@ function PlaybackStrummedChord({
   palmMute,
   chordName = "",
   noteLength,
+  bpmToShow,
   isFirstChordInSection,
   isLastChordInSection,
   isHighlighted = false,
@@ -81,8 +90,15 @@ function PlaybackStrummedChord({
             borderTop: "2px solid rgb(253 242 248)",
             borderBottom: "2px solid rgb(253 242 248)",
           }}
-          className="baseVertFlex playbackElem relative mt-1 w-full pb-4"
+          className="baseVertFlex playbackElem relative h-[168px] w-[36px] pb-4"
         >
+          {bpmToShow && (
+            <div className="baseFlex absolute left-2 top-[5px] gap-1 text-nowrap">
+              {getDynamicNoteLengthIcon(noteLength, true)}
+              <span className="text-xs">{`${bpmToShow} BPM`}</span>
+            </div>
+          )}
+
           {palmMute !== "" ? (
             <div></div>
           ) : (
@@ -94,7 +110,7 @@ function PlaybackStrummedChord({
             ></div>
           )}
 
-          <p
+          <div
             style={{
               textShadow: isHighlighted
                 ? "none"
@@ -102,11 +118,19 @@ function PlaybackStrummedChord({
               color: isHighlighted
                 ? "hsl(335, 78%, 42%)"
                 : "hsl(324, 77%, 95%)",
+              fontSize: calculateFontSize({
+                chordName,
+                maxWidthPx: 20,
+                maxFontSizePx: 16,
+                minFontSizePx: 12,
+              }),
             }}
-            className="mx-0.5 h-6 text-base font-semibold transition-colors"
+            className="relative h-6 w-6 text-base font-semibold transition-colors"
           >
-            {chordName}
-          </p>
+            <div className="absolute left-1/2 top-0 -translate-x-1/2 transform">
+              {chordName}
+            </div>
+          </div>
 
           <div className="baseFlex !flex-nowrap">
             <div style={{ width: "0.25rem" }}></div>
@@ -191,3 +215,40 @@ function PlaybackStrummedChord({
 }
 
 export default PlaybackStrummedChord;
+
+const calculateFontSize = ({
+  chordName,
+  maxWidthPx,
+  maxFontSizePx = 24,
+  minFontSizePx = 12,
+}: {
+  chordName: string;
+  maxWidthPx: number;
+  maxFontSizePx?: number;
+  minFontSizePx?: number;
+}) => {
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+
+  // Function to get the width of the chord name in a given font size
+  const getTextWidth = (text: string, fontSize: number) => {
+    if (!context) {
+      throw new Error("Canvas context is not available");
+    }
+
+    context.font = `${fontSize}px Arial`; // Using a default font family
+    return context.measureText(text).width;
+  };
+
+  let fontSize = maxFontSizePx;
+
+  // Reduce font size until the chord fits within the max width or hits the minimum font size
+  while (
+    fontSize > minFontSizePx &&
+    getTextWidth(chordName, fontSize) > maxWidthPx
+  ) {
+    fontSize -= 1; // Reduce font size by 1px on each iteration
+  }
+
+  return fontSize;
+};

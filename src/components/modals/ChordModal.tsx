@@ -31,7 +31,7 @@ interface ChordModal {
 
 function ChordModal({ chordBeingEdited }: ChordModal) {
   const [accordionValue, setAccordionValue] = useState(
-    isMobile ? "" : "opened"
+    isMobile ? "" : "opened",
   );
 
   const {
@@ -72,7 +72,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
 
       setTimeout(() => {
         const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10)
+          parseInt(`${document.body.style.top || 0}`, 10),
         );
         document.body.classList.remove("noScroll");
         document.body.style.removeProperty("top");
@@ -84,7 +84,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
   function handleChordNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
 
-    if (value.length > 10) return;
+    if (value.length > 6) return;
 
     const modifiedChord = structuredClone(chordBeingEdited);
     modifiedChord.value.name = value;
@@ -96,7 +96,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
     const chordNameAlreadyExists = chords.some(
       (chord, index) =>
         chord.name === chordBeingEdited.value.name &&
-        index !== chordBeingEdited.index
+        index !== chordBeingEdited.index,
     );
 
     if (chordNameAlreadyExists) {
@@ -297,7 +297,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
                   chordBeingEdited.value.name === "" ||
                   isEqual(
                     chordBeingEdited.value,
-                    chords[chordBeingEdited.index]
+                    chords[chordBeingEdited.index],
                   )
                 }
                 onClick={handleSaveChord}

@@ -175,7 +175,12 @@ export interface PlaybackTabChord {
   type: "tab";
   isFirstChord: boolean;
   isLastChord: boolean;
-  data: string[];
+  // not my favorite approach below but it makes it easier to compare
+  // bpm between tab/strummed chords
+  data: {
+    chordData: string[];
+    bpm: number;
+  };
 }
 
 export interface PlaybackStrummedChord {
@@ -210,6 +215,7 @@ interface PlaybackChord {
     | "1/8th triplet"
     | "1/16th"
     | "1/16th triplet";
+  bpm: number;
 }
 
 const initialStoreState = {

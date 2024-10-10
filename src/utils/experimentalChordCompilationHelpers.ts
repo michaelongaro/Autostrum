@@ -286,7 +286,31 @@ function compileTabSection({
       type: "tab",
       isFirstChord: false,
       isLastChord: false,
-      data: ["-1", "", "", "", "", "", "", "", "", ""],
+      data: {
+        chordData: ["-1", "", "", "", "", "", "", "", "", ""],
+        bpm: Number(currentBpm),
+      },
+    });
+  }
+
+  // FYI: would like to be !== 0, however you would be rendering a measure line at
+  // the very start of the tab, which goes against your current tab making rules and
+  // visually wouldn't work out. maybe just need to live with the fact that the first
+  // chord won't show bpm, instead just showing it in top right (or wherever) of
+  // playback dialog.
+  if (
+    compiledChords.length > 0 &&
+    compiledChords.at(-1) !== undefined &&
+    compiledChords.at(-1)!.data.bpm !== Number(currentBpm)
+  ) {
+    compiledChords.push({
+      type: "tab",
+      isFirstChord: false,
+      isLastChord: false,
+      data: {
+        chordData: ["", "|", "|", "|", "|", "|", "|", currentBpm, "", "1"],
+        bpm: Number(currentBpm),
+      },
     });
   }
 
@@ -295,7 +319,10 @@ function compileTabSection({
       type: "tab",
       isFirstChord: chordIdx === 0,
       isLastChord: chordIdx === data.length - 1,
-      data: data[chordIdx]!,
+      data: {
+        chordData: data[chordIdx]!,
+        bpm: Number(currentBpm),
+      },
     };
 
     const chord = [...data[chordIdx]!];
@@ -351,7 +378,7 @@ function compileTabSection({
         ((Number(currentBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
     }
 
-    chordData.data = chord; // refactor later to be less split up
+    chordData.data.chordData = chord; // refactor later to be less split up
 
     compiledChords.push(chordData);
   }
@@ -462,25 +489,29 @@ function compileChordSequence({
   ) {
     let lastSpecifiedChordName: string | undefined = undefined;
 
+    if (compiledChords.length > 0) {
+      const playbackChordSequence: PlaybackStrummedChord = {
+        type: "strum",
+        isFirstChord: false,
+        isLastChord: false,
+        data: {
+          strumIndex: -1,
+          chordName: "",
+          palmMute: "",
+          strum: "",
+          noteLength: chordSequence.strummingPattern.noteLength,
+          bpm: Number(
+            getBpmForChord(chordSequence.bpm, baselineBpm, subSectionBpm),
+          ),
+        },
+      };
+
+      compiledChords.push(playbackChordSequence);
+    }
+
     for (let chordIdx = 0; chordIdx < chordSequence.data.length; chordIdx++) {
       // immediately add fake "spacer" strum if chordIdx === 0, excluding the first chord
       // since we want the highlighted line to be right at the start of the first chord
-      if (compiledChords.length > 0 && chordIdx === 0) {
-        const playbackChordSequence: PlaybackStrummedChord = {
-          type: "strum",
-          isFirstChord: false,
-          isLastChord: false,
-          data: {
-            strumIndex: -1,
-            chordName: "",
-            palmMute: "",
-            strum: "",
-            noteLength: chordSequence.strummingPattern.noteLength,
-          },
-        };
-
-        compiledChords.push(playbackChordSequence);
-      }
 
       let chordName = chordSequence.data[chordIdx];
       let chordNameToUse = ""; // This will be the chord name we assign
@@ -558,6 +589,9 @@ function compileChordSequence({
             chordSequence.strummingPattern.strums[chordIdx]?.palmMute ?? "",
           strum: chordSequence.strummingPattern.strums[chordIdx]?.strum ?? "",
           noteLength: chordSequence.strummingPattern.noteLength,
+          bpm: Number(
+            getBpmForChord(chordSequence.bpm, baselineBpm, subSectionBpm),
+          ),
         },
       };
 

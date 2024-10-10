@@ -433,7 +433,7 @@ function Tab({ tab, refetchTab }: ITab) {
             }}
             className="baseFlex w-full"
           >
-            {/* <SectionContainer
+            <SectionContainer
               sectionIndex={index}
               sectionData={section}
               currentlyPlayingSectionIndex={
@@ -448,7 +448,7 @@ function Tab({ tab, refetchTab }: ITab) {
                 forceCloseSectionAccordions && index !== tabData.length - 1
               }
               setForceCloseSectionAccordions={setForceCloseSectionAccordions}
-            /> */}
+            />
           </motion.div>
         ))}
 
