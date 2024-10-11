@@ -74,7 +74,7 @@ function SectionProgressionModal() {
 
       setTimeout(() => {
         const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10)
+          parseInt(`${document.body.style.top || 0}`, 10),
         );
         document.body.classList.remove("noScroll");
         document.body.style.removeProperty("top");
@@ -98,6 +98,7 @@ function SectionProgressionModal() {
       sectionId: "",
       title: "",
       repetitions: 1,
+      elapsedSecondsIntoTab: 0, // will be updated w/in useAutoCompileChords
     });
     setLocalSectionProgression(newSectionProgression);
 
@@ -327,7 +328,7 @@ function Section({
           <BiDownArrowAlt className="h-5 w-5"></BiDownArrowAlt>
         </Button>
       </div>
-      <div className="baseFlex lightestGlassmorphic w-full gap-4 rounded-md p-4 px-4 sm:px-4 ">
+      <div className="baseFlex lightestGlassmorphic w-full gap-4 rounded-md p-4 px-4 sm:px-4">
         <Select
           value={title === "" ? undefined : title}
           onValueChange={(value) => handleSectionChange(value)}

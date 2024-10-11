@@ -13,6 +13,7 @@ import type {
 } from "../stores/TabStore";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
+import isEqual from "lodash.isequal";
 
 interface ExpandFullTab {
   tabData: Section[];
@@ -52,6 +53,7 @@ function expandFullTab({
       tabData,
       sectionProgression[sectionProgressionIndex]!.sectionId,
     );
+
     const sectionRepetitions = getRepetitions(
       sectionProgression[sectionProgressionIndex]?.repetitions,
     );
@@ -570,271 +572,324 @@ function getSectionIndexFromId(tabData: Section[], sectionId: string) {
   return 0;
 }
 
-// interface CompileSpecificChordGrouping {
-//   tabData: Section[];
-//   location: {
-//     sectionIndex: number;
-//     subSectionIndex?: number;
-//     chordSequenceIndex?: number;
-//   };
-//   chords: Chord[];
-//   baselineBpm: number;
-//   playbackSpeed: number;
-//   setCurrentlyPlayingMetadata: (
-//     currentlyPlayingMetadata: PlaybackMetadata[] | null,
-//   ) => void;
-//   startLoopIndex: number;
-//   endLoopIndex: number;
-//   atomicallyUpdateAudioMetadata?: (
-//     updatedFields: Partial<AudioMetadata>,
-//   ) => void;
-// }
+interface ExpandSpecificSection {
+  tabData: Section[];
+  location: {
+    sectionIndex: number;
+    subSectionIndex?: number;
+    chordSequenceIndex?: number;
+  };
+  chords: Chord[];
+  baselineBpm: number;
+  playbackSpeed: number;
+  setPlaybackMetadata: (playbackMetadata: PlaybackMetadata[] | null) => void;
+  // startLoopIndex: number;
+  // endLoopIndex: number;
+  // atomicallyUpdateAudioMetadata?: (
+  //   updatedFields: Partial<AudioMetadata>,
+  // ) => void;
+}
 
-// function compileSpecificChordGrouping({
-//   tabData,
-//   location,
-//   chords,
-//   baselineBpm,
-//   playbackSpeed,
-//   setCurrentlyPlayingMetadata,
-//   startLoopIndex,
-//   endLoopIndex,
-//   atomicallyUpdateAudioMetadata,
-// }: CompileSpecificChordGrouping) {
-//   const compiledChords: string[][] = [];
-//   const metadata: PlaybackMetadata[] = [];
-//   const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues, prob want to combine all three into one obj};
+function expandSpecificSection({
+  tabData,
+  location,
+  chords,
+  baselineBpm,
+  playbackSpeed,
+  setPlaybackMetadata,
+  // startLoopIndex,
+  // endLoopIndex,
+  // atomicallyUpdateAudioMetadata,
+}: ExpandSpecificSection) {
+  const compiledChords: (PlaybackTabChord | PlaybackStrummedChord)[] = [];
+  const metadata: PlaybackMetadata[] = [];
+  const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues, prob want to combine all three into one obj};
 
-//   // playing ONE chord sequence (for the repetition amount)
-//   if (
-//     location.chordSequenceIndex !== undefined &&
-//     location.subSectionIndex !== undefined &&
-//     location.sectionIndex !== undefined
-//   ) {
-//     const subSectionBpm =
-//       tabData[location.sectionIndex]!.data[location.subSectionIndex]!.bpm;
-//     const chordSequence =
-//       tabData[location.sectionIndex]!.data[location.subSectionIndex]!.data[
-//         location.chordSequenceIndex
-//       ];
+  const section = tabData[location.sectionIndex]?.data;
+  const sectionIndex = location.sectionIndex;
 
-//     if (!chordSequence) return compiledChords;
+  if (!section) return [];
 
-//     compileChordSequence({
-//       chordSequence: chordSequence as ChordSequence,
-//       sectionIndex: location.sectionIndex,
-//       subSectionIndex: location.subSectionIndex,
-//       chordSequenceIndex: location.chordSequenceIndex,
-//       baselineBpm,
-//       subSectionBpm,
-//       compiledChords,
-//       metadata,
-//       chords,
-//       elapsedSeconds,
-//       playbackSpeed,
-//     });
-//   } else if (
-//     location.subSectionIndex !== undefined &&
-//     location.sectionIndex !== undefined
-//   ) {
-//     // playing ONE subsection (for the repetition amount)
-//     const subSection =
-//       tabData[location.sectionIndex]!.data[location.subSectionIndex];
+  compileSection({
+    section,
+    sectionIndex,
+    sectionRepeatIndex: 0,
+    baselineBpm,
+    compiledChords,
+    metadata,
+    chords,
+    elapsedSeconds,
+    playbackSpeed,
+  });
 
-//     const subSectionRepetitions = getRepetitions(subSection?.repetitions);
+  // // hacky: but is used incase the slice returns an empty array, which we couldn't then access
+  // // the last element in metadataMappedToLoopRange below for.
+  // const backupFirstChordMetadata = metadata[startLoopIndex];
 
-//     for (
-//       let subSectionRepeatIdx = 0;
-//       subSectionRepeatIdx < subSectionRepetitions;
-//       subSectionRepeatIdx++
-//     ) {
-//       if (!subSection) continue;
+  // // +1 to account for ghost chord that's added below
+  // if (atomicallyUpdateAudioMetadata) {
+  //   console.log("og here");
 
-//       if (subSection?.type === "tab") {
-//         compileTabSection({
-//           subSection,
-//           sectionIndex: location.sectionIndex,
-//           subSectionIndex: location.subSectionIndex,
-//           baselineBpm,
-//           compiledChords,
-//           metadata,
-//           elapsedSeconds,
-//           playbackSpeed,
-//         });
-//       } else {
-//         compileChordSection({
-//           subSection,
-//           sectionIndex: location.sectionIndex,
-//           subSectionIndex: location.subSectionIndex,
-//           baselineBpm,
-//           compiledChords,
-//           metadata,
-//           chords,
-//           elapsedSeconds,
-//           playbackSpeed,
-//         });
-//       }
-//     }
-//   } else if (location.sectionIndex !== undefined) {
-//     // playing ONE section (for the repetition amount)
-//     const section = tabData[location.sectionIndex]!.data;
-//     const sectionIndex = location.sectionIndex;
+  //   atomicallyUpdateAudioMetadata({
+  //     fullCurrentlyPlayingMetadataLength: metadata.length + 1,
+  //   });
+  // }
 
-//     compileSection({
-//       section,
-//       sectionIndex,
-//       baselineBpm,
-//       compiledChords,
-//       metadata,
-//       chords,
-//       elapsedSeconds,
-//       playbackSpeed,
-//     });
-//   }
+  // const compiledChordsMappedToLoopRange = compiledChords.slice(
+  //   startLoopIndex,
+  //   endLoopIndex === -1 ? compiledChords.length : endLoopIndex,
+  // );
 
-//   // hacky: but is used incase the slice returns an empty array, which we couldn't then access
-//   // the last element in metadataMappedToLoopRange below for.
-//   const backupFirstChordMetadata = metadata[startLoopIndex];
+  // const metadataMappedToLoopRange = metadata.slice(
+  //   startLoopIndex,
+  //   endLoopIndex === -1 ? metadata.length : endLoopIndex,
+  // );
 
-//   // +1 to account for ghost chord that's added below
-//   if (atomicallyUpdateAudioMetadata) {
-//     atomicallyUpdateAudioMetadata({
-//       fullCurrentlyPlayingMetadataLength: metadata.length + 1,
-//     });
-//   }
+  // let ghostChordIndex = 0;
 
-//   const compiledChordsMappedToLoopRange = compiledChords.slice(
-//     startLoopIndex,
-//     endLoopIndex === -1 ? compiledChords.length : endLoopIndex,
-//   );
+  // if (metadataMappedToLoopRange.length > 0) {
+  //   if (endLoopIndex === -1) {
+  //     ghostChordIndex =
+  //       metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1;
+  //   } else {
+  //     ghostChordIndex = metadataMappedToLoopRange.at(-1)!.location.chordIndex;
+  //     // ^ this is not perfect, somehow maybe want the chordIndex to be +1 more?
+  //   }
+  // }
 
-//   const metadataMappedToLoopRange = metadata.slice(
-//     startLoopIndex,
-//     endLoopIndex === -1 ? metadata.length : endLoopIndex,
-//   );
+  // if (endLoopIndex !== -1) {
+  //   metadataMappedToLoopRange.pop();
+  // }
 
-//   let ghostChordIndex = 0;
+  // const lastActualChord = metadataMappedToLoopRange.at(-1)!;
 
-//   if (metadataMappedToLoopRange.length > 0) {
-//     if (endLoopIndex === -1) {
-//       ghostChordIndex =
-//         metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1;
-//     } else {
-//       ghostChordIndex = metadataMappedToLoopRange.at(-1)!.location.chordIndex;
-//       // ^ this is not perfect, somehow maybe want the chordIndex to be +1 more?
-//     }
-//   }
+  // // conditionally adding fake chord + metadata to align the audio controls slider with the visual progress indicator
+  // // really absolutely *hate* this solution, but technically it should work.
+  // if (metadataMappedToLoopRange.length > 0 && lastActualChord) {
+  //   metadataMappedToLoopRange.push({
+  //     location: {
+  //       ...lastActualChord.location,
+  //       chordIndex: ghostChordIndex,
+  //     },
+  //     bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
+  //     noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
+  //     elapsedSeconds: Math.ceil(
+  //       lastActualChord.elapsedSeconds +
+  //         60 /
+  //           ((Number(lastActualChord.bpm) /
+  //             Number(lastActualChord.noteLengthMultiplier)) *
+  //             playbackSpeed) +
+  //         1,
+  //     ),
+  //   });
 
-//   if (endLoopIndex !== -1) {
-//     metadataMappedToLoopRange.pop();
-//   }
+  //   compiledChordsMappedToLoopRange.push([]);
+  // }
 
-//   const lastActualChord = metadataMappedToLoopRange.at(-1)!;
+  // if (metadataMappedToLoopRange.length === 0) {
+  //   metadataMappedToLoopRange.push(backupFirstChordMetadata!);
+  // }
 
-//   // conditionally adding fake chord + metadata to align the audio controls slider with the visual progress indicator
-//   // really absolutely *hate* this solution, but technically it should work.
-//   if (metadataMappedToLoopRange.length > 0 && lastActualChord) {
-//     metadataMappedToLoopRange.push({
-//       location: {
-//         ...lastActualChord.location,
-//         chordIndex: ghostChordIndex,
-//       },
-//       bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
-//       noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
-//       elapsedSeconds: Math.ceil(
-//         lastActualChord.elapsedSeconds +
-//           60 /
-//             ((Number(lastActualChord.bpm) /
-//               Number(lastActualChord.noteLengthMultiplier)) *
-//               playbackSpeed) +
-//           1,
-//       ),
-//     });
+  // // scaling the elapsedSeconds to start at 0 no matter the startLoopIndex
+  // const secondsToSubtract = metadataMappedToLoopRange[0]?.elapsedSeconds ?? 0;
 
-//     compiledChordsMappedToLoopRange.push([]);
-//   }
+  // for (let i = 0; i < metadataMappedToLoopRange.length; i++) {
+  //   metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
+  // }
 
-//   if (metadataMappedToLoopRange.length === 0) {
-//     metadataMappedToLoopRange.push(backupFirstChordMetadata!);
-//   }
+  // setCurrentlyPlayingMetadata(metadataMappedToLoopRange);
 
-//   // scaling the elapsedSeconds to start at 0 no matter the startLoopIndex
-//   const secondsToSubtract = metadataMappedToLoopRange[0]?.elapsedSeconds ?? 0;
+  setPlaybackMetadata(metadata);
 
-//   for (let i = 0; i < metadataMappedToLoopRange.length; i++) {
-//     metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
-//   }
+  return compiledChords;
+}
 
-//   setCurrentlyPlayingMetadata(metadataMappedToLoopRange);
+////////////////////////  validate this extracted logic below later  /////////////////////////////////////
+interface UpdateElasedSecondsInSectionProgression {
+  tabData: Section[];
+  sectionProgression: SectionProgression[];
+  baselineBpm: number;
+  playbackSpeed: number;
+  setSectionProgression: (sectionProgression: SectionProgression[]) => void;
+}
 
-//   return compiledChordsMappedToLoopRange;
-// }
+function updateElapsedSecondsInSectionProgression({
+  tabData,
+  sectionProgression,
+  baselineBpm,
+  playbackSpeed,
+  setSectionProgression,
+}: UpdateElasedSecondsInSectionProgression) {
+  const sectionProgressionWithElapsedSeconds: SectionProgression[] = [];
+  const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues
 
-// interface CompileStrummingPatternPreview {
-//   strummingPattern: StrummingPattern;
-// }
+  for (
+    let sectionProgressionIndex = 0;
+    sectionProgressionIndex < sectionProgression.length;
+    sectionProgressionIndex++
+  ) {
+    const sectionIndex = getSectionIndexFromId(
+      tabData,
+      sectionProgression[sectionProgressionIndex]!.sectionId,
+    );
 
-// function compileStrummingPatternPreview({
-//   strummingPattern,
-// }: CompileStrummingPatternPreview) {
-//   const compiledChords: string[][] = [];
+    // Add current section's elapsed seconds
+    sectionProgressionWithElapsedSeconds.push({
+      ...sectionProgression[sectionProgressionIndex]!,
+      elapsedSecondsIntoTab: Math.floor(elapsedSeconds.value),
+    });
 
-//   let noteLengthMultiplier = "1";
+    const sectionRepetitions = getRepetitions(
+      sectionProgression[sectionProgressionIndex]?.repetitions,
+    );
 
-//   if (strummingPattern.noteLength === "1/4th triplet")
-//     noteLengthMultiplier = "0.6667";
-//   else if (strummingPattern.noteLength === "1/8th")
-//     noteLengthMultiplier = "0.5";
-//   else if (strummingPattern.noteLength === "1/8th triplet")
-//     noteLengthMultiplier = "0.3333";
-//   else if (strummingPattern.noteLength === "1/16th")
-//     noteLengthMultiplier = "0.25";
-//   else if (strummingPattern.noteLength === "1/16th triplet")
-//     noteLengthMultiplier = "0.1667";
+    for (
+      let sectionRepeatIdx = 0;
+      sectionRepeatIdx < sectionRepetitions;
+      sectionRepeatIdx++
+    ) {
+      const section = tabData[sectionIndex]?.data;
+      if (!section) continue;
 
-//   for (let i = 0; i < strummingPattern.strums.length; i++) {
-//     const strumIsEmpty = strummingPattern.strums[i]?.strum === "";
+      updateElapsedTimeForSection({
+        section,
+        baselineBpm,
+        elapsedSeconds,
+        playbackSpeed,
+      });
+    }
+  }
 
-//     compiledChords.push(
-//       compileChord({
-//         chordName: strumIsEmpty ? "" : "C",
-//         chordIdx: i,
-//         strummingPattern,
-//         chords: [
-//           {
-//             id: "0", // no need for an actual id here
-//             name: "C",
-//             frets: ["0", "1", "0", "2", "3", ""],
-//           },
-//         ],
-//         stringifiedBpm: "75",
-//         noteLengthMultiplier,
-//       }),
-//     );
-//   }
+  // was causing infinite loop in useAutoCompileChords, so only update if they are different
+  if (!isEqual(sectionProgression, sectionProgressionWithElapsedSeconds)) {
+    setSectionProgression(sectionProgressionWithElapsedSeconds);
+  }
+}
 
-//   return compiledChords;
-// }
+function updateElapsedTimeForSection({
+  section,
+  baselineBpm,
+  elapsedSeconds,
+  playbackSpeed,
+}: {
+  section: (TabSection | ChordSection)[];
+  baselineBpm: number;
+  elapsedSeconds: { value: number };
+  playbackSpeed: number;
+}) {
+  for (
+    let subSectionIndex = 0;
+    subSectionIndex < section.length;
+    subSectionIndex++
+  ) {
+    const subSection = section[subSectionIndex];
 
-// function generateDefaultSectionProgression(tabData: Section[]) {
-//   const sectionProgression: SectionProgression[] = [];
+    if (!subSection) continue;
 
-//   for (let i = 0; i < tabData.length; i++) {
-//     sectionProgression.push({
-//       id: `${i}`,
-//       sectionId: tabData[i]?.id ?? "",
-//       title: tabData[i]?.title ?? "",
-//       repetitions: 1,
-//     });
-//   }
+    const subSectionRepetitions = getRepetitions(subSection.repetitions);
 
-//   return sectionProgression;
-// }
+    for (
+      let subSectionRepeatIdx = 0;
+      subSectionRepeatIdx < subSectionRepetitions;
+      subSectionRepeatIdx++
+    ) {
+      if (subSection.type === "tab") {
+        updateElapsedTimeForTabSection({
+          subSection,
+          baselineBpm,
+          elapsedSeconds,
+          playbackSpeed,
+        });
+      } else {
+        updateElapsedTimeForChordSection({
+          subSection,
+          baselineBpm,
+          elapsedSeconds,
+          playbackSpeed,
+        });
+      }
+    }
+  }
+}
+
+function updateElapsedTimeForTabSection({
+  subSection,
+  baselineBpm,
+  elapsedSeconds,
+  playbackSpeed,
+}: {
+  subSection: TabSection;
+  baselineBpm: number;
+  elapsedSeconds: { value: number };
+  playbackSpeed: number;
+}) {
+  let currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
+
+  for (let chordIdx = 0; chordIdx < subSection.data.length; chordIdx++) {
+    const chord = subSection.data[chordIdx];
+
+    if (!chord) continue;
+
+    // Check for measure line that can change BPM
+    if (chord[8] === "measureLine") {
+      const specifiedBpmToUsePostMeasureLine = chord[7];
+      if (
+        specifiedBpmToUsePostMeasureLine &&
+        specifiedBpmToUsePostMeasureLine !== "-1"
+      ) {
+        currentBpm = specifiedBpmToUsePostMeasureLine;
+      } else {
+        currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
+      }
+    }
+
+    let noteLengthMultiplier = "1";
+    if (chord[8] === "1/8th") noteLengthMultiplier = "0.5";
+    else if (chord[8] === "1/16th") noteLengthMultiplier = "0.25";
+
+    elapsedSeconds.value +=
+      60 /
+      ((Number(currentBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
+  }
+}
+
+function updateElapsedTimeForChordSection({
+  subSection,
+  baselineBpm,
+  elapsedSeconds,
+  playbackSpeed,
+}: {
+  subSection: ChordSection;
+  baselineBpm: number;
+  elapsedSeconds: { value: number };
+  playbackSpeed: number;
+}) {
+  const chordSection = subSection.data;
+
+  for (
+    let chordSequenceIndex = 0;
+    chordSequenceIndex < chordSection.length;
+    chordSequenceIndex++
+  ) {
+    const chordSequence = chordSection[chordSequenceIndex];
+
+    if (!chordSequence) continue;
+
+    let noteLengthMultiplier = "1";
+
+    if (chordSequence.strummingPattern.noteLength === "1/8th")
+      noteLengthMultiplier = "0.5";
+    else if (chordSequence.strummingPattern.noteLength === "1/16th")
+      noteLengthMultiplier = "0.25";
+
+    elapsedSeconds.value +=
+      60 /
+      ((Number(baselineBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
+  }
+}
 
 export {
   expandFullTab,
-  // compileChord,
-  // compileSpecificChordGrouping,
-  // compileStrummingPatternPreview,
-  // generateDefaultSectionProgression,
+  expandSpecificSection,
+  updateElapsedSecondsInSectionProgression,
 };

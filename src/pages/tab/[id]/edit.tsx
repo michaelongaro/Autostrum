@@ -13,6 +13,8 @@ import TabSkeleton from "~/components/Tab/TabSkeleton";
 import { Button } from "~/components/ui/button";
 import { api } from "~/utils/api";
 import { AnimatePresence } from "framer-motion";
+import AudioControls from "~/components/AudioControls/AudioControls";
+import { useTabStore } from "~/stores/TabStore";
 
 interface OpenGraphData {
   title: string;
@@ -21,7 +23,6 @@ interface OpenGraphData {
 }
 // not sure if this is correct file routing for slug
 
-// not sure if this is the best name for this component
 function IndividualTabEdit({
   userAllowedToEdit,
   tabExists,
@@ -32,6 +33,10 @@ function IndividualTabEdit({
   openGraphData: OpenGraphData;
 }) {
   const router = useRouter();
+
+  const { showingAudioControls } = useTabStore((state) => ({
+    showingAudioControls: state.showingAudioControls,
+  }));
 
   const tabIdFromUrl = useMemo(() => {
     if (typeof router.query.id === "string") {
@@ -80,6 +85,11 @@ function IndividualTabEdit({
         ) : (
           <TabSkeleton editing={true} />
         )}
+      </AnimatePresence>
+
+      {/* can probably drop the <AnimatePresence> since it can't ever be triggered, right?*/}
+      <AnimatePresence mode="wait">
+        {showingAudioControls && <AudioControls />}
       </AnimatePresence>
     </motion.div>
   );

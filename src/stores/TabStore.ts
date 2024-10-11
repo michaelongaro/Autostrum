@@ -16,13 +16,14 @@ import {
   expandFullTab,
   // expandSpecificChordGrouping,
   // type PlaybackSection,
-} from "~/utils/experimentalChordCompilationHelpers";
+} from "~/utils/playbackChordCompilationHelpers";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
   sectionId: string;
   title: string;
   repetitions: number;
+  elapsedSecondsIntoTab: number;
 }
 
 export interface Chord {
@@ -429,6 +430,8 @@ interface TabState {
       value: StrummingPattern;
     } | null,
   ) => void;
+  showPlaybackDialog: boolean;
+  setShowPlaybackDialog: (showPlaybackDialog: boolean) => void;
 
   // related to sound generation/playing
   audioContext: AudioContext | null;
@@ -509,6 +512,10 @@ interface TabState {
 
   isLoadingARoute: boolean;
   setIsLoadingARoute: (isLoadingARoute: boolean) => void;
+  viewportLabel: "mobile" | "mobileLarge" | "tablet" | "desktop";
+  setViewportLabel: (
+    viewportLabel: "mobile" | "mobileLarge" | "tablet" | "desktop",
+  ) => void;
 
   // reset
   resetStoreToInitValues: () => void;
@@ -1116,6 +1123,9 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       strummingPatternBeingEdited: null,
       setStrummingPatternBeingEdited: (strummingPatternBeingEdited) =>
         set({ strummingPatternBeingEdited }),
+      showPlaybackDialog: false,
+      setShowPlaybackDialog: (showPlaybackDialog) =>
+        set({ showPlaybackDialog }),
 
       // search
       searchResultsCount: 0,
@@ -1124,6 +1134,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
 
       isLoadingARoute: false,
       setIsLoadingARoute: (isLoadingARoute) => set({ isLoadingARoute }),
+      viewportLabel: "mobile",
+      setViewportLabel: (viewportLabel) => set({ viewportLabel }),
 
       // reset (investigate what exactly the ts error is saying)
       resetStoreToInitValues: () => set(initialStoreState),

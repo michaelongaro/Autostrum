@@ -159,7 +159,7 @@ function SectionContainer({
           } else {
             return "";
           }
-        })
+        }),
       );
     }
 
@@ -186,7 +186,7 @@ function SectionContainer({
             strummingPattern: strummingPatterns[0]!,
             repetitions: 1,
             data: new Array<string>(strummingPatterns[0]!.strums.length).fill(
-              ""
+              "",
             ),
           },
         ],
@@ -374,8 +374,8 @@ function SectionContainer({
                             {getDynamicNoteLengthIcon(
                               subSection.type === "tab"
                                 ? "1/4th"
-                                : subSection.data[0]?.strummingPattern
-                                    .noteLength ?? "1/4th"
+                                : (subSection.data[0]?.strummingPattern
+                                    .noteLength ?? "1/4th"),
                             )}
                             {subSection.bpm === -1 ? bpm : subSection.bpm} BPM
                           </div>
@@ -385,7 +385,7 @@ function SectionContainer({
                           <div className="baseFlex gap-3">
                             {(subSection.type === "tab" ||
                               chordSequencesAllHaveSameNoteLength(
-                                subSection
+                                subSection,
                               )) && (
                               <Separator
                                 className="h-4 w-[1px]"
@@ -401,8 +401,7 @@ function SectionContainer({
                                 currentlyPlayingSubSectionIndex === index
                                   ? "animate-colorOscillate"
                                   : ""
-                              }
-                    `}
+                              } `}
                             >
                               Repeat x{subSection.repetitions}
                             </p>

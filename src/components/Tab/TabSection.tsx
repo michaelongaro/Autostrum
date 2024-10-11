@@ -106,13 +106,13 @@ function TabSection({
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   useEffect(() => {
     if (inputIdToFocus) {
       const currentNote = document.getElementById(
-        `${sectionIndex}${subSectionIndex}ExtendTabButton`
+        `${sectionIndex}${subSectionIndex}ExtendTabButton`,
       );
       const newNoteToFocus = document.getElementById(inputIdToFocus);
       focusAndScrollIntoView(currentNote, newNoteToFocus);
@@ -160,7 +160,7 @@ function TabSection({
     }
 
     const newOpacities = new Array(subSectionData.data.length).fill(
-      "0.25"
+      "0.25",
     ) as string[];
 
     // added new "PM Start" node
@@ -178,7 +178,7 @@ function TabSection({
       newOpacities.fill(
         "1",
         lastModifiedPalmMuteNode.columnIndex,
-        nearestStartNodeIndex
+        nearestStartNodeIndex,
       );
     }
     // removed "PM Start" node
@@ -253,7 +253,7 @@ function TabSection({
           } else {
             return "";
           }
-        })
+        }),
       );
     }
 
@@ -654,7 +654,7 @@ function TabSection({
   }
 
   function handleExtendTabButtonKeyDown(
-    e: React.KeyboardEvent<HTMLButtonElement>
+    e: React.KeyboardEvent<HTMLButtonElement>,
   ) {
     if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
@@ -662,10 +662,10 @@ function TabSection({
       const firstNewColumnIndex = subSectionData.data.length - 1; // this will be the first of the 8 new strums added
 
       const currentNote = document.getElementById(
-        `${sectionIndex}${subSectionIndex}ExtendTabButton`
+        `${sectionIndex}${subSectionIndex}ExtendTabButton`,
       );
       const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${subSectionIndex}-${firstNewColumnIndex}-3`
+        `input-${sectionIndex}-${subSectionIndex}-${firstNewColumnIndex}-3`,
       );
 
       focusAndScrollIntoView(currentNote, newNoteToFocus);
@@ -682,7 +682,7 @@ function TabSection({
             } else {
               return "";
             }
-          })
+          }),
         );
       }
 
@@ -691,7 +691,7 @@ function TabSection({
       const firstNewColumnIndex = subSectionData.data.length;
 
       setInputIdToFocus(
-        `input-${sectionIndex}-${subSectionIndex}-${firstNewColumnIndex}-3`
+        `input-${sectionIndex}-${subSectionIndex}-${firstNewColumnIndex}-3`,
       );
     }
   }
@@ -731,7 +731,7 @@ function TabSection({
             subSectionIndex === metadata.location.subSectionIndex &&
             columnIndex === metadata.location.chordIndex
           );
-        }
+        },
       );
 
       return isInSectionBeingLooped;
@@ -744,7 +744,7 @@ function TabSection({
           subSectionIndex === metadata.location.subSectionIndex &&
           columnIndex === metadata.location.chordIndex
         );
-      }
+      },
     );
 
     if (!correspondingChordIndex) return false;
@@ -915,7 +915,7 @@ function TabSection({
                   className="baseFlex gap-2"
                   onClick={() => {
                     setShowingDeleteColumnsButtons(
-                      !showingDeleteColumnsButtons
+                      !showingDeleteColumnsButtons,
                     );
                     setReorderingColumns(false);
                   }}
@@ -930,7 +930,7 @@ function TabSection({
                     className="rounded-l-none rounded-r-md px-2 py-0"
                     onClick={() => {
                       setShowingDeleteColumnsButtons(
-                        !showingDeleteColumnsButtons
+                        !showingDeleteColumnsButtons,
                       );
                       setReorderingColumns(false);
                     }}
@@ -959,7 +959,7 @@ function TabSection({
               <div className="absolute left-1 top-6">
                 <Popover>
                   <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-white/20 active:hover:bg-white/10">
-                    <HiOutlineInformationCircle className="h-5 w-5 " />
+                    <HiOutlineInformationCircle className="h-5 w-5" />
                   </PopoverTrigger>
                   <PopoverContent
                     side={"right"}

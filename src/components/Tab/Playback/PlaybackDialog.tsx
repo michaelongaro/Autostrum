@@ -1,4 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
+import ProgressSlider from "~/components/AudioControls/ProgressSlider";
+import PlaybackAudioControls from "~/components/Tab/Playback/PlaybackAudio/PlaybackAudioControls";
 import PlaybackStrummedChord from "~/components/Tab/Playback/PlaybackStrummedChord";
 import PlaybackTabChord from "~/components/Tab/Playback/PlaybackTabChord";
 import PlaybackTabMeasureLine from "~/components/Tab/Playback/PlaybackTabMeasureLine";
@@ -14,6 +16,8 @@ function PlaybackDialog() {
     setCurrentChordIndex,
     playbackMetadata,
     audioMetadata,
+    showPlaybackDialog,
+    setShowPlaybackDialog,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
@@ -21,6 +25,8 @@ function PlaybackDialog() {
     setCurrentChordIndex: state.setCurrentChordIndex,
     playbackMetadata: state.playbackMetadata,
     audioMetadata: state.audioMetadata,
+    showPlaybackDialog: state.showPlaybackDialog,
+    setShowPlaybackDialog: state.setShowPlaybackDialog,
   }));
 
   const containerRef = (element: HTMLDivElement | null) => {
@@ -29,8 +35,6 @@ function PlaybackDialog() {
 
   const [containerElement, setContainerElement] =
     useState<HTMLDivElement | null>(null);
-
-  const [showingDialog, setShowingDialog] = useState(false);
 
   const [chordDurations, setChordDurations] = useState<number[]>([]);
   const [scrollPositions, setScrollPositions] = useState<number[]>([]);
@@ -63,7 +67,7 @@ function PlaybackDialog() {
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [expandedTabData, showingDialog, containerElement]);
+  }, [expandedTabData, showPlaybackDialog, containerElement]);
 
   useEffect(() => {
     if (!playbackMetadata) return;
@@ -226,13 +230,13 @@ function PlaybackDialog() {
 
   return (
     <Dialog
-      open={showingDialog}
-      onOpenChange={(open) => setShowingDialog(open)}
+      open={showPlaybackDialog}
+      onOpenChange={(open) => setShowPlaybackDialog(open)}
     >
       <DialogTrigger asChild>
         <Button variant="outline">Practice tab</Button>
       </DialogTrigger>
-      <DialogContent className="tablet:h-[650px] tablet:max-w-6xl h-dvh w-screen bg-black px-0">
+      <DialogContent className="tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg h-dvh w-screen max-w-none !rounded-none bg-black px-0">
         {/* <VisuallyHidden>
           <DialogTitle>
             Shuffling deck for round {gameData.currentRound}
@@ -463,6 +467,10 @@ function PlaybackDialog() {
             })}
           </div>
         )}
+
+        <div className="baseFlex w-full">
+          <PlaybackAudioControls />
+        </div>
       </DialogContent>
     </Dialog>
   );

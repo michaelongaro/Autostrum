@@ -104,8 +104,8 @@ function PreviewSectionContainer({
                     {getDynamicNoteLengthIcon(
                       subSection.type === "tab"
                         ? "1/4th"
-                        : subSection.data[0]?.strummingPattern.noteLength ??
-                            "1/4th"
+                        : (subSection.data[0]?.strummingPattern.noteLength ??
+                            "1/4th"),
                     )}
                     {subSection.bpm === -1 ? baselineBpm : subSection.bpm} BPM
                   </div>
@@ -215,7 +215,7 @@ export const MemoizedPreviewSubSectionContainer = memo(
         nextProps.currentSubSectionisPlaying &&
       prevProps.editingLoopRange === nextProps.editingLoopRange
     );
-  }
+  },
 );
 
 interface PreviewChordSection {
@@ -271,7 +271,7 @@ function PreviewChordSection({
                     {showBpm(chordSequence) && (
                       <div className="baseFlex gap-1">
                         {getDynamicNoteLengthIcon(
-                          chordSequence.strummingPattern.noteLength
+                          chordSequence.strummingPattern.noteLength,
                         )}
                         {chordSequence.bpm === -1
                           ? subSectionData.bpm === -1
@@ -399,8 +399,8 @@ function PreviewStrummingPattern({
           beatIndex % 4 === 0
             ? beatIndex / 4 + 1
             : beatIndex % 2 === 0
-            ? "&"
-            : "";
+              ? "&"
+              : "";
         break;
       case "1/4th triplet":
         beat = beatIndex % 3 === 0 ? (beatIndex / 3) * 2 + 1 : "";
@@ -443,7 +443,7 @@ function PreviewStrummingPattern({
             name={`section${sectionIndex}-subSection${subSectionIndex}-chordSequence${
               chordSequenceIndex ?? ""
             }-chord${strumIndex}`}
-            className="baseFlex "
+            className="baseFlex"
           >
             <div
               style={{
@@ -484,7 +484,7 @@ function PreviewStrummingPattern({
                       style={{
                         color: "hsl(324, 77%, 95%)",
                       }}
-                      className="mx-0.5  h-6 text-base font-semibold transition-colors"
+                      className="mx-0.5 h-6 text-base font-semibold transition-colors"
                     >
                       {chordSequenceData?.[strumIndex]}
                     </p>
@@ -501,7 +501,7 @@ function PreviewStrummingPattern({
                         chords[
                           chords.findIndex(
                             (chord) =>
-                              chord.name === chordSequenceData?.[strumIndex]
+                              chord.name === chordSequenceData?.[strumIndex],
                           ) ?? 0
                         ],
                     }}
@@ -688,7 +688,7 @@ function PreviewTabSection({
     >
       {children}
 
-      <div className="baseFlex relative w-full !items-start !justify-start pb-8 pt-4">
+      <div className="baseFlex relative w-full flex-wrap !items-start !justify-start pb-8 pt-4">
         <div
           style={{
             height: "168px",
@@ -881,7 +881,7 @@ function PreviewTabNotesColumn({
     <Element
       id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
       name={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
-      className="baseVertFlex "
+      className="baseVertFlex"
     >
       <div className="baseFlex relative">
         <div className="baseVertFlex">

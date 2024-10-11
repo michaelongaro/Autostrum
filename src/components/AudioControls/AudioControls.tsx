@@ -76,12 +76,7 @@ const widthAndHeightVariants = {
   },
 };
 
-interface AudioControls {
-  visibility: "expanded" | "minimized";
-  setVisibility: Dispatch<SetStateAction<"expanded" | "minimized">>;
-}
-
-function AudioControls({ visibility, setVisibility }: AudioControls) {
+function AudioControls() {
   const { query, asPath } = useRouter();
 
   const [tabProgressValue, setTabProgressValue] = useState(0);
@@ -93,6 +88,10 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
+
+  const [visibility, setVisibility] = useState<"expanded" | "minimized">(
+    "expanded",
+  );
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandleDisabled, setDrawerHandleDisabled] = useState(false);

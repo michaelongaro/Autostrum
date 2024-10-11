@@ -124,7 +124,7 @@ function Tab({ tab, refetchTab }: ITab) {
     chords,
     strummingPatterns,
     playbackSpeed,
-    expandedTabData,
+    showPlaybackDialog,
   } = useTabStore((state) => ({
     setId: state.setId,
     setCreatedById: state.setCreatedById,
@@ -162,22 +162,8 @@ function Tab({ tab, refetchTab }: ITab) {
     chords: state.chords,
     strummingPatterns: state.strummingPatterns,
     playbackSpeed: state.playbackSpeed,
-    expandedTabData: state.expandedTabData,
+    showPlaybackDialog: state.showPlaybackDialog,
   }));
-
-  const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
-  const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
-    useState<LastModifiedPalmMuteNodeLocation | null>(null);
-  const [pmNodeOpacities, setPMNodeOpacities] = useState<string[]>([]);
-
-  const [reorderingColumns, setReorderingColumns] = useState(false);
-  const [showingDeleteColumnsButtons, setShowingDeleteColumnsButtons] =
-    useState(false);
-  const [columnIdxBeingHovered, setColumnIdxBeingHovered] = useState<
-    number | null
-  >(null);
-
-  const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!tab) return;
@@ -312,16 +298,6 @@ function Tab({ tab, refetchTab }: ITab) {
     setForceCloseSectionAccordions(true);
   }
 
-  function getDurationOfCurrentChord() {
-    const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
-    if (!currentlyPlayingMetadata || !location) return 0;
-
-    const { bpm, noteLengthMultiplier } =
-      currentlyPlayingMetadata[currentChordIndex]!;
-
-    return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
-  }
-
   return (
     <motion.div
       key={"fullTabBeingViewed"}
@@ -415,42 +391,43 @@ function Tab({ tab, refetchTab }: ITab) {
           </div>
         )}
 
-        {tabData.map((section, index) => (
-          <motion.div
-            key={section.id}
-            // TODO: I don't know why the spring transition only occurs when
-            // the section has something in it (not empty)... doesn't seem like that
-            // should make a difference but it does for some reason
-            {...(editing &&
-              !preventFramerLayoutShift &&
-              !forceCloseSectionAccordions && { layout: "position" })}
-            transition={{
-              layout: {
-                type: "spring",
-                bounce: 0.15,
-                duration: 1,
-              },
-            }}
-            className="baseFlex w-full"
-          >
-            <SectionContainer
-              sectionIndex={index}
-              sectionData={section}
-              currentlyPlayingSectionIndex={
-                currentlyPlayingMetadata?.[currentChordIndex]?.location
-                  .sectionIndex ?? 0
-              }
-              currentlyPlayingSubSectionIndex={
-                currentlyPlayingMetadata?.[currentChordIndex]?.location
-                  .subSectionIndex ?? 0
-              }
-              forceCloseSectionAccordions={
-                forceCloseSectionAccordions && index !== tabData.length - 1
-              }
-              setForceCloseSectionAccordions={setForceCloseSectionAccordions}
-            />
-          </motion.div>
-        ))}
+        {!showPlaybackDialog &&
+          tabData.map((section, index) => (
+            <motion.div
+              key={section.id}
+              // TODO: I don't know why the spring transition only occurs when
+              // the section has something in it (not empty)... doesn't seem like that
+              // should make a difference but it does for some reason
+              {...(editing &&
+                !preventFramerLayoutShift &&
+                !forceCloseSectionAccordions && { layout: "position" })}
+              transition={{
+                layout: {
+                  type: "spring",
+                  bounce: 0.15,
+                  duration: 1,
+                },
+              }}
+              className="baseFlex w-full"
+            >
+              <SectionContainer
+                sectionIndex={index}
+                sectionData={section}
+                currentlyPlayingSectionIndex={
+                  currentlyPlayingMetadata?.[currentChordIndex]?.location
+                    .sectionIndex ?? 0
+                }
+                currentlyPlayingSubSectionIndex={
+                  currentlyPlayingMetadata?.[currentChordIndex]?.location
+                    .subSectionIndex ?? 0
+                }
+                forceCloseSectionAccordions={
+                  forceCloseSectionAccordions && index !== tabData.length - 1
+                }
+                setForceCloseSectionAccordions={setForceCloseSectionAccordions}
+              />
+            </motion.div>
+          ))}
 
         {editing && (
           <Button onClick={addNewSection} className="mb-12">

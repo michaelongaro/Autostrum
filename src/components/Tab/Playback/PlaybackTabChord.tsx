@@ -76,7 +76,7 @@ function PlaybackTabChord({
                       <div
                         style={{
                           color: isHighlighted
-                            ? "hsl(335, 78%, 42%)"
+                            ? "hsl(335, 78%, 55%)"
                             : "hsl(324, 77%, 95%)",
                         }}
                         className="transition-colors"
