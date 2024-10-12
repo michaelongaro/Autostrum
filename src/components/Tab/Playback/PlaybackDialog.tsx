@@ -236,7 +236,7 @@ function PlaybackDialog() {
       <DialogTrigger asChild>
         <Button variant="outline">Practice tab</Button>
       </DialogTrigger>
-      <DialogContent className="tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg h-dvh w-screen max-w-none !rounded-none bg-black px-0">
+      <DialogContent className="h-dvh w-screen max-w-none !rounded-none bg-black px-0 tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg">
         {/* <VisuallyHidden>
           <DialogTitle>
             Shuffling deck for round {gameData.currentRound}
@@ -246,7 +246,7 @@ function PlaybackDialog() {
           </DialogDescription>
         </VisuallyHidden> */}
 
-        <div className="baseFlex">
+        {/* <div className="baseFlex">
           <Button
             onClick={() => {
               setCurrentChordIndex(
@@ -267,7 +267,7 @@ function PlaybackDialog() {
           >
             +
           </Button>
-        </div>
+        </div> */}
 
         <div
           style={{
