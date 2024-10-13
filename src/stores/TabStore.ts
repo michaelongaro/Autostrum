@@ -12,11 +12,6 @@ import {
 } from "~/utils/chordCompilationHelpers";
 import { resetTabSliderPosition } from "~/utils/tabSliderHelpers";
 import { parse } from "~/utils/tunings";
-import {
-  expandFullTab,
-  // expandSpecificChordGrouping,
-  // type PlaybackSection,
-} from "~/utils/playbackChordCompilationHelpers";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
@@ -121,6 +116,13 @@ export interface PlaybackMetadata {
   };
   bpm: number;
   noteLengthMultiplier: string;
+  noteLength:
+    | "1/4th"
+    | "1/4th triplet"
+    | "1/8th"
+    | "1/8th triplet"
+    | "1/16th"
+    | "1/16th triplet";
   elapsedSeconds: number;
 }
 

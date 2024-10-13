@@ -4,6 +4,7 @@ import PlaybackAudioControls from "~/components/Tab/Playback/PlaybackAudio/Playb
 import PlaybackStrummedChord from "~/components/Tab/Playback/PlaybackStrummedChord";
 import PlaybackTabChord from "~/components/Tab/Playback/PlaybackTabChord";
 import PlaybackTabMeasureLine from "~/components/Tab/Playback/PlaybackTabMeasureLine";
+import PlaybackTopMetadata from "~/components/Tab/Playback/PlaybackTopMetadata";
 import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { useTabStore } from "~/stores/TabStore";
@@ -236,7 +237,7 @@ function PlaybackDialog() {
       <DialogTrigger asChild>
         <Button variant="outline">Practice tab</Button>
       </DialogTrigger>
-      <DialogContent className="h-dvh w-screen max-w-none !rounded-none bg-black px-0 tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg">
+      <DialogContent className="baseVertFlex h-dvh w-screen max-w-none !rounded-none bg-black px-0 pb-2 pt-4 tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg">
         {/* <VisuallyHidden>
           <DialogTitle>
             Shuffling deck for round {gameData.currentRound}
@@ -246,28 +247,9 @@ function PlaybackDialog() {
           </DialogDescription>
         </VisuallyHidden> */}
 
-        {/* <div className="baseFlex">
-          <Button
-            onClick={() => {
-              setCurrentChordIndex(
-                currentChordIndex === 0 ? 0 : currentChordIndex - 1,
-              );
-            }}
-          >
-            -
-          </Button>
-          <Button
-            onClick={() => {
-              setCurrentChordIndex(
-                currentChordIndex === expandedTabData!.length - 1
-                  ? expandedTabData!.length - 1
-                  : currentChordIndex + 1,
-              );
-            }}
-          >
-            +
-          </Button>
-        </div> */}
+        <PlaybackTopMetadata
+          realChordsToFullChordsMap={realChordsToFullChordsMap}
+        />
 
         <div
           style={{

@@ -321,6 +321,7 @@ function compileTabSection({
     }
 
     let noteLengthMultiplier = "1";
+    const noteLength = chord[8];
 
     if (chord[8] === "1/8th") noteLengthMultiplier = "0.5";
     else if (chord[8] === "1/16th") noteLengthMultiplier = "0.25";
@@ -345,6 +346,7 @@ function compileTabSection({
         },
         bpm: Number(currentBpm),
         noteLengthMultiplier,
+        noteLength: noteLength as StrummingPattern["noteLength"],
         elapsedSeconds: Math.floor(elapsedSeconds.value),
       });
 
@@ -533,6 +535,7 @@ function compileChordSequence({
         },
         bpm: Number(chordBpm),
         noteLengthMultiplier,
+        noteLength: chordSequence.strummingPattern.noteLength,
         elapsedSeconds: Math.floor(elapsedSeconds.value),
       });
 
