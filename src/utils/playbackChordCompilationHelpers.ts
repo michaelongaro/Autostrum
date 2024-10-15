@@ -878,16 +878,38 @@ function updateElapsedTimeForChordSection({
 
     if (!chordSequence) continue;
 
-    let noteLengthMultiplier = "1";
+    const chordSequenceRepetitions = getRepetitions(chordSequence?.repetitions);
 
-    if (chordSequence.strummingPattern.noteLength === "1/8th")
-      noteLengthMultiplier = "0.5";
-    else if (chordSequence.strummingPattern.noteLength === "1/16th")
-      noteLengthMultiplier = "0.25";
+    for (
+      let chordSequenceRepeatIdx = 0;
+      chordSequenceRepeatIdx < chordSequenceRepetitions;
+      chordSequenceRepeatIdx++
+    ) {
+      let noteLengthMultiplier = "1";
 
-    elapsedSeconds.value +=
-      60 /
-      ((Number(baselineBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
+      if (chordSequence.strummingPattern.noteLength === "1/4th triplet")
+        noteLengthMultiplier = "0.6667";
+      else if (chordSequence.strummingPattern.noteLength === "1/8th")
+        noteLengthMultiplier = "0.5";
+      else if (chordSequence.strummingPattern.noteLength === "1/8th triplet")
+        noteLengthMultiplier = "0.3333";
+      else if (chordSequence.strummingPattern.noteLength === "1/16th")
+        noteLengthMultiplier = "0.25";
+      else if (chordSequence.strummingPattern.noteLength === "1/16th triplet")
+        noteLengthMultiplier = "0.1667";
+
+      const chordBpm = getBpmForChord(
+        chordSequence.bpm,
+        baselineBpm,
+        subSection.bpm,
+      );
+
+      for (let chordIdx = 0; chordIdx < chordSequence.data.length; chordIdx++) {
+        elapsedSeconds.value +=
+          60 /
+          ((Number(chordBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
+      }
+    }
   }
 }
 
