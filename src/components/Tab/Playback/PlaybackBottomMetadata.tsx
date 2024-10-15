@@ -9,6 +9,7 @@ import StrummingPattern from "~/components/Tab/StrummingPattern";
 import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
 import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
+import TuningFork from "~/components/ui/icons/TuningFork";
 import { Label } from "~/components/ui/label";
 import {
   Popover,
@@ -28,6 +29,7 @@ import { Separator } from "~/components/ui/separator";
 import { useTabStore } from "~/stores/TabStore";
 import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
+import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { parse, toString } from "~/utils/tunings";
 
 interface PlaybackBottomMetadata {
@@ -42,6 +44,7 @@ function PlaybackBottomMetadata({
   const {
     tabData,
     title,
+    capo,
     tuning,
     sectionProgression,
     audioMetadata,
@@ -53,6 +56,7 @@ function PlaybackBottomMetadata({
   } = useTabStore((state) => ({
     tabData: state.tabData,
     title: state.title,
+    capo: state.capo,
     tuning: state.tuning,
     sectionProgression: state.sectionProgression,
     audioMetadata: state.audioMetadata,
@@ -76,65 +80,78 @@ function PlaybackBottomMetadata({
   return (
     <>
       {viewportLabel === "mobileLandscape" ? (
-        <div className="baseFlex w-full !justify-evenly gap-4 px-4 pb-2">
-          <div className="baseFlex gap-2">
-            <p className="text-sm font-medium">Tuning</p>
+        <div className="baseFlex w-full !justify-between gap-4 px-4 pb-2">
+          <div className="baseFlex gap-4">
+            <div className="baseVertFlex !items-start">
+              <p className="text-sm font-medium">Tuning</p>
+              <p>{toString(parse(tuning), { pad: 0 })}</p>
+            </div>
 
-            <p>{toString(parse(tuning), { pad: 0 })}</p>
+            <div className="baseVertFlex !items-start">
+              <p className="text-sm font-medium">Capo</p>
+              {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
+            </div>
 
-            <Button variant={"secondary"}>Y</Button>
+            <Button variant={"outline"} className="size-9 !p-0">
+              <TuningFork className="size-4 fill-white" />
+            </Button>
             <Button
-              variant={"secondary"}
+              variant={"outline"}
+              className="size-9 !p-0"
               onClick={() => setShowEffectGlossaryModal(true)}
             >
               <FaBook className="h-4 w-4" />
             </Button>
           </div>
 
-          <Separator className="h-8 w-[1px]" />
-
-          <div className="baseFlex gap-2">
-            <p className="text-sm font-medium">Section</p>
-            <Select
-              // this is jank, need to fix logic
-              value={title === "" ? undefined : title}
-              onValueChange={(value) => {
-                setAudioMetadata({
-                  ...audioMetadata,
-                  location: {
-                    sectionIndex: parseInt(value),
-                    // subSectionIndex: 0,
-                    // chordSequenceIndex: 0,
-                  },
-                });
-              }}
-            >
-              <SelectTrigger className="max-w-28 sm:max-w-none">
-                <SelectValue placeholder="Select a section">
-                  {sectionProgression[
-                    playbackMetadata[index]?.location.sectionIndex ?? 0
-                  ]?.title ?? ""}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup className="max-h-60 overflow-y-auto">
-                  <SelectLabel>Sections</SelectLabel>
-
-                  {sections.map((section, idx) => {
-                    return (
-                      <SelectItem key={`${section.id}`} value={`${idx}`}>
-                        {section.title}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Separator className="h-8 w-[1px]" />
-
           <div className="baseFlex gap-4">
+            <div className="baseFlex gap-2">
+              <p className="text-sm font-medium">Section</p>
+              <Select
+                // this is jank, need to fix logic
+                value={title === "" ? undefined : title}
+                onValueChange={(value) => {
+                  setAudioMetadata({
+                    ...audioMetadata,
+                    location:
+                      value === "fullSong"
+                        ? null
+                        : {
+                            sectionIndex: parseInt(value),
+                          },
+                  });
+                }}
+              >
+                <SelectTrigger className="!h-8 max-w-28 sm:max-w-none">
+                  <SelectValue placeholder="Select a section">
+                    {audioMetadata.location === null
+                      ? "Full song"
+                      : (sectionProgression[
+                          playbackMetadata[index]?.location.sectionIndex ?? 0
+                        ]?.title ?? "")}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup className="max-h-60 overflow-y-auto">
+                    <SelectLabel>Sections</SelectLabel>
+
+                    <>
+                      <SelectItem key={"fullSong"} value={`fullSong`}>
+                        Full song
+                      </SelectItem>
+                      {sections.map((section, idx) => {
+                        return (
+                          <SelectItem key={`${section.id}`} value={`${idx}`}>
+                            {section.title}
+                          </SelectItem>
+                        );
+                      })}
+                    </>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+
             <MobileLandscapeSettingsDialog />
             <MobileLandscapeMenuDialog />
           </div>

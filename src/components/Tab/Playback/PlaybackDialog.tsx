@@ -283,7 +283,9 @@ function PlaybackDialog() {
           >
             <div className="baseFlex absolute left-0 top-0 size-full">
               <div className="h-[165px] w-full"></div>
-              <div className="z-10 h-[164px] w-[2px] shrink-0 bg-pink-600"></div>
+              {/* currently this fixes the highlight line extending past rounded borders of
+              sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
+              <div className="z-0 h-[164px] w-[2px] shrink-0 bg-pink-600"></div>
               <div className="h-[165px] w-full"></div>
             </div>
 
