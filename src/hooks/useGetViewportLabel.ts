@@ -11,8 +11,16 @@ function useGetViewportLabel() {
 
   useIsomorphicLayoutEffect(() => {
     function handleResize() {
-      let viewportLabel: "mobile" | "mobileLarge" | "tablet" | "desktop" =
-        "mobile";
+      let viewportLabel:
+        | "mobile"
+        | "mobileLandscape"
+        | "mobileLarge"
+        | "tablet"
+        | "desktop" = "mobile";
+
+      if (window.innerHeight < 500) {
+        viewportLabel = "mobileLandscape";
+      }
 
       // TODO: experiment with this
       if (window.innerHeight >= 667) {

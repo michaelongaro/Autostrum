@@ -234,7 +234,7 @@ function TabMetadata({
       },
       {
         enabled: !!userId,
-      }
+      },
     );
 
   // owner of tab
@@ -248,7 +248,7 @@ function TabMetadata({
     },
     {
       enabled: !!createdById,
-    }
+    },
   );
 
   function handleGenreChange(stringifiedId: string) {
@@ -365,7 +365,7 @@ function TabMetadata({
         {
           ...tabData[1]!,
           data: [...tabData[1]!.data.slice(0, 1)],
-        }
+        },
       );
     }
     // only has one section w/ one subsection within, and uses that
@@ -620,8 +620,8 @@ function TabMetadata({
                         {showDeleteCheckmark && !isDeleting
                           ? "Deleted"
                           : isDeleting
-                          ? "Deleting"
-                          : "Delete"}
+                            ? "Deleting"
+                            : "Delete"}
                         <FaTrashAlt className="h-4 w-4" />
                         <AnimatePresence mode="wait">
                           {isDeleting && (
@@ -719,7 +719,7 @@ function TabMetadata({
                         setUnregisteredPopoverTimeoutId(
                           setTimeout(() => {
                             setShowUnregisteredRecordingPopover(false);
-                          }, 2000)
+                          }, 2000),
                         );
                       }
                     }}
@@ -793,8 +793,8 @@ function TabMetadata({
                             !takingScreenshot
                               ? "Published"
                               : isPosting || takingScreenshot
-                              ? "Publishing"
-                              : "Publish"
+                                ? "Publishing"
+                                : "Publish"
                           }`
                         : `${
                             showPublishCheckmark &&
@@ -802,8 +802,8 @@ function TabMetadata({
                             !takingScreenshot
                               ? "Saved"
                               : isPosting || takingScreenshot
-                              ? "Saving"
-                              : "Save"
+                                ? "Saving"
+                                : "Save"
                           }`}
 
                       <AnimatePresence mode="wait">
@@ -1113,9 +1113,7 @@ function TabMetadata({
                                   opacity: !profileImageLoaded ? 1 : 0,
                                   zIndex: !profileImageLoaded ? 1 : -1,
                                 }}
-                                className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 shadow-md transition-opacity
-                              ${!profileImageLoaded ? "animate-pulse" : ""}
-                            `}
+                                className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 shadow-md transition-opacity ${!profileImageLoaded ? "animate-pulse" : ""} `}
                               ></div>
                             </>
                           ) : (
@@ -1129,11 +1127,11 @@ function TabMetadata({
                           <div className="grid grid-cols-1 grid-rows-1">
                             <>
                               {tabCreator ? (
-                                <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate ">
+                                <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate">
                                   {tabCreator.username}
                                 </span>
                               ) : (
-                                <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-5 w-20 animate-pulse rounded-md bg-pink-300 "></div>
+                                <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-5 w-20 animate-pulse rounded-md bg-pink-300"></div>
                               )}
                             </>
                           </div>
@@ -1222,9 +1220,7 @@ function TabMetadata({
                                   opacity: !profileImageLoaded ? 1 : 0,
                                   zIndex: !profileImageLoaded ? 1 : -1,
                                 }}
-                                className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 shadow-md transition-opacity
-                              ${!profileImageLoaded ? "animate-pulse" : ""}
-                            `}
+                                className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 shadow-md transition-opacity ${!profileImageLoaded ? "animate-pulse" : ""} `}
                               ></div>
                             </>
                           ) : (
@@ -1238,11 +1234,11 @@ function TabMetadata({
                           <div className="grid grid-cols-1 grid-rows-1">
                             <>
                               {tabCreator ? (
-                                <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate ">
+                                <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate">
                                   {tabCreator.username}
                                 </span>
                               ) : (
-                                <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-5 w-20 animate-pulse rounded-md bg-pink-300 "></div>
+                                <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-5 w-20 animate-pulse rounded-md bg-pink-300"></div>
                               )}
                             </>
                           </div>
@@ -1438,7 +1434,7 @@ function TabMetadata({
               }}
               className="baseFlex h-[581px] w-[1245px] scale-75"
             >
-              <div className="h-[581px] w-[1245px] bg-pink-500 bg-opacity-30 ">
+              <div className="h-[581px] w-[1245px] bg-pink-500 bg-opacity-30">
                 <TabPreview
                   baselineBpm={bpm}
                   tuning={tuning}
@@ -1448,7 +1444,7 @@ function TabMetadata({
               </div>
             </div>
           </div>,
-          document.getElementById("mainTabComponent")!
+          document.getElementById("mainTabComponent")!,
         )}
     </>
   );

@@ -11,7 +11,7 @@ export const toString = (
   tuning: number[],
   options?: {
     pad: number;
-  }
+  },
 ) => {
   // parse("") returns [36] which is a C, and we instead just want to return "     "
   // so that the tab has empty notes instead of C's.
@@ -21,11 +21,11 @@ export const toString = (
     .map((midi) =>
       midiToNoteName(midi, { pitchClass: true, sharps: true }).padEnd(
         options?.pad ?? 0,
-        " "
-      )
+        " ",
+      ),
     )
     .reverse()
-    .join(" ");
+    .join("");
 };
 
 export const parse = (notes: string) => {

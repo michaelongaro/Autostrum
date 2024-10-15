@@ -123,7 +123,7 @@ function TabNote({
     e.stopPropagation();
 
     const currentNote = document.getElementById(
-      `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`
+      `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`,
     );
 
     // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
@@ -133,7 +133,7 @@ function TabNote({
       const newNoteToFocus = document.getElementById(
         `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${
           noteIndex + 1
-        }`
+        }`,
       );
 
       focusAndScrollIntoView(currentNote, newNoteToFocus);
@@ -144,7 +144,7 @@ function TabNote({
       const newNoteToFocus = document.getElementById(
         `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${
           noteIndex - 1
-        }`
+        }`,
       );
 
       focusAndScrollIntoView(currentNote, newNoteToFocus);
@@ -160,7 +160,7 @@ function TabNote({
           : columnIndex - 1;
 
       const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`
+        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`,
       );
 
       focusAndScrollIntoView(currentNote, newNoteToFocus);
@@ -173,7 +173,7 @@ function TabNote({
         getTabData()[sectionIndex]!.data[subSectionIndex]!.data.length - 1
       ) {
         const newNoteToFocus = document.getElementById(
-          `${sectionIndex}${subSectionIndex}ExtendTabButton`
+          `${sectionIndex}${subSectionIndex}ExtendTabButton`,
         );
 
         focusAndScrollIntoView(currentNote, newNoteToFocus);
@@ -188,7 +188,7 @@ function TabNote({
           : columnIndex + 1;
 
       const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`
+        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`,
       );
 
       focusAndScrollIntoView(currentNote, newNoteToFocus);
@@ -345,7 +345,7 @@ function TabNote({
             palmMuteNode ?? "",
             ...chordArray.reverse(),
             chordEffects ?? "",
-            "note",
+            "1/4th",
             id,
           ];
 
@@ -406,7 +406,7 @@ function TabNote({
         const newNoteToFocus = document.getElementById(
           `input-${sectionIndex}-${subSectionIndex}-${
             columnIndex + 1
-          }-${noteIndex}`
+          }-${noteIndex}`,
         );
 
         newNoteToFocus?.focus();
@@ -452,7 +452,7 @@ function TabNote({
             // focuses end of the input (better ux when navigating with arrow keys)
             e.target.setSelectionRange(
               e.target.value.length,
-              e.target.value.length
+              e.target.value.length,
             );
           }}
           onBlur={() => {

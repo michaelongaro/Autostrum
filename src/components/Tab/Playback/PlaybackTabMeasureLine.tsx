@@ -7,7 +7,7 @@ interface PlaybackTabMeasureLine {
 
 function PlaybackTabMeasureLine({ columnData }: PlaybackTabMeasureLine) {
   return (
-    <div className="ornamental playbackElem baseVertFlex h-[271px] w-[2px]">
+    <div className="ornamental playbackElem baseVertFlex h-[250px] w-[2px]">
       {columnData.map((note, index) => (
         <Fragment key={index}>
           {index === 0 && (
@@ -15,7 +15,7 @@ function PlaybackTabMeasureLine({ columnData }: PlaybackTabMeasureLine) {
               {columnData[7] && columnData[7] !== "-1" && (
                 <div
                   className={`baseFlex absolute !flex-nowrap gap-[0.125rem] text-pink-100 ${
-                    note === "-" ? "top-[10px]" : "top-[27px]"
+                    note === "-" ? "top-0" : "top-4"
                   }`}
                 >
                   <QuarterNote />

@@ -20,11 +20,11 @@ function PlaybackTabChord({
       {/* not my favorite, but PM value of "-1" indicates a physical spacer between tab and strumming
         sections */}
       {columnData[0] === "-1" && (
-        <div className="baseVertFlex ornamental playbackElem mb-[3.2rem] h-[271px] w-4"></div>
+        <div className="baseVertFlex ornamental playbackElem mb-[3.2rem] h-[250px] w-4"></div>
       )}
 
       {columnData[0] !== "-1" && (
-        <div className="playbackElem baseVertFlex relative h-[271px] w-[35px]">
+        <div className="playbackElem baseVertFlex relative h-[250px] w-[35px]">
           <div className="baseVertFlex mb-[3.2rem] mt-4">
             {columnData.map((note, index) => (
               <Fragment key={index}>

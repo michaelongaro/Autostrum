@@ -256,7 +256,7 @@ function TabNotesColumn({
 
     newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
       columnIndex,
-      1
+      1,
     );
 
     setTabData(newTabData);
@@ -281,7 +281,7 @@ function TabNotesColumn({
       "",
       "",
       "",
-      "note", // will be overwritten by note length if it's specified
+      "1/4th", // will be overwritten by note length if it's specified
       crypto.randomUUID(),
     ];
 
@@ -289,13 +289,13 @@ function TabNotesColumn({
       newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
         columnIndex + 1,
         0,
-        newColumnData
+        newColumnData,
       );
     } else {
       newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
         columnIndex,
         0,
-        newColumnData
+        newColumnData,
       );
     }
 
@@ -310,7 +310,7 @@ function TabNotesColumn({
     newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
       columnIndex,
       1,
-      columnData
+      columnData,
     );
 
     setTabData(newTabData);
@@ -323,7 +323,7 @@ function TabNotesColumn({
       ref={setNodeRef}
       style={{
         transform: CSS.Transform.toString(
-          transform && { ...transform, scaleY: 1, scaleX: 1 }
+          transform && { ...transform, scaleY: 1, scaleX: 1 },
         ),
         transition,
         zIndex: isDragging ? 50 : "auto",
@@ -367,8 +367,7 @@ function TabNotesColumn({
                 ? "animate-copyChordPulse"
                 : "animate-pasteChordPulse"
               : ""
-          }
-        } `}
+          } }`}
         ></div>
 
         <div
@@ -446,13 +445,11 @@ function TabNotesColumn({
                             <DropdownMenuLabel>Note length</DropdownMenuLabel>
                             <DropdownMenuRadioGroup
                               value={
-                                columnData[8] === "note"
-                                  ? "1/4th"
-                                  : columnData[8]
+                                columnData[8] as "1/4th" | "1/8th" | "1/16th"
                               }
                               onValueChange={(value) => {
                                 handleNoteLengthChange(
-                                  value as "1/4th" | "1/8th" | "1/16th"
+                                  value as "1/4th" | "1/8th" | "1/16th",
                                 );
                               }}
                             >
@@ -463,7 +460,7 @@ function TabNotesColumn({
                                   className="baseFlex w-[150px] !justify-start gap-2"
                                 >
                                   {getDynamicNoteLengthIcon(
-                                    duration as "1/4th" | "1/8th" | "1/16th"
+                                    duration as "1/4th" | "1/8th" | "1/16th",
                                   )}
                                   {duration}
                                 </DropdownMenuRadioItem>

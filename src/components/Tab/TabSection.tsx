@@ -247,7 +247,7 @@ function TabSection({
       newTabData[sectionIndex]!.data[subSectionIndex]?.data.push(
         Array.from({ length: 10 }, (_, index) => {
           if (index === 8) {
-            return "note";
+            return "1/4th";
           } else if (index === 9) {
             return crypto.randomUUID();
           } else {
@@ -676,7 +676,7 @@ function TabSection({
         newTabData[sectionIndex]!.data[subSectionIndex]?.data.push(
           Array.from({ length: 10 }, (_, index) => {
             if (index === 8) {
-              return "note";
+              return "1/4th";
             } else if (index === 9) {
               return crypto.randomUUID();
             } else {

@@ -469,7 +469,7 @@ function StrummingPattern({
       }}
       className="baseFlex"
     >
-      <div className="baseFlex relative mb-1 !justify-start">
+      <div className="baseFlex relative mb-1 flex-wrap !justify-start">
         {mode === "editingChordSequence" && (
           <Label
             style={{

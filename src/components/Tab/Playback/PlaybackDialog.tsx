@@ -1,13 +1,21 @@
 import { Fragment, useEffect, useState } from "react";
 import ProgressSlider from "~/components/AudioControls/ProgressSlider";
 import PlaybackAudioControls from "~/components/Tab/Playback/PlaybackAudio/PlaybackAudioControls";
+import PlaybackBottomMetadata from "~/components/Tab/Playback/PlaybackBottomMetadata";
 import PlaybackStrummedChord from "~/components/Tab/Playback/PlaybackStrummedChord";
 import PlaybackTabChord from "~/components/Tab/Playback/PlaybackTabChord";
 import PlaybackTabMeasureLine from "~/components/Tab/Playback/PlaybackTabMeasureLine";
 import PlaybackTopMetadata from "~/components/Tab/Playback/PlaybackTopMetadata";
 import { Button } from "~/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import { useTabStore } from "~/stores/TabStore";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 function PlaybackDialog() {
   const {
@@ -19,6 +27,8 @@ function PlaybackDialog() {
     audioMetadata,
     showPlaybackDialog,
     setShowPlaybackDialog,
+    title,
+    description,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
@@ -28,6 +38,8 @@ function PlaybackDialog() {
     audioMetadata: state.audioMetadata,
     showPlaybackDialog: state.showPlaybackDialog,
     setShowPlaybackDialog: state.setShowPlaybackDialog,
+    title: state.title,
+    description: state.description,
   }));
 
   const containerRef = (element: HTMLDivElement | null) => {
@@ -36,6 +48,7 @@ function PlaybackDialog() {
 
   const [containerElement, setContainerElement] =
     useState<HTMLDivElement | null>(null);
+  const [prevDimensions, setPrevDimensions] = useState<DOMRect | null>(null);
 
   const [chordDurations, setChordDurations] = useState<number[]>([]);
   const [scrollPositions, setScrollPositions] = useState<number[]>([]);
@@ -57,18 +70,29 @@ function PlaybackDialog() {
   const [visibleContainerWidth, setVisibleContainerWidth] = useState(0);
 
   useEffect(() => {
+    // this feels a bit like a bandaid fix
     function handleResize() {
-      if (expandedTabData === null || containerElement === null) return;
+      if (
+        expandedTabData === null ||
+        containerElement === null ||
+        containerElement.clientWidth === 0 ||
+        containerElement.clientHeight === 0 ||
+        (prevDimensions?.width === containerElement.clientWidth &&
+          prevDimensions?.height === containerElement.clientHeight)
+      ) {
+        return;
+      }
 
       setInitialPlaceholderWidth(containerElement.clientWidth / 2 - 5);
       setVisibleContainerWidth(containerElement.clientWidth);
+      setPrevDimensions(containerElement.getBoundingClientRect());
     }
 
     handleResize();
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [expandedTabData, showPlaybackDialog, containerElement]);
+  }, [expandedTabData, showPlaybackDialog, containerElement, prevDimensions]);
 
   useEffect(() => {
     if (!playbackMetadata) return;
@@ -237,15 +261,11 @@ function PlaybackDialog() {
       <DialogTrigger asChild>
         <Button variant="outline">Practice tab</Button>
       </DialogTrigger>
-      <DialogContent className="baseVertFlex h-dvh w-screen max-w-none !rounded-none bg-black px-0 pb-2 pt-4 tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg">
-        {/* <VisuallyHidden>
-          <DialogTitle>
-            Shuffling deck for round {gameData.currentRound}
-          </DialogTitle>
-          <DialogDescription>
-            The decks are being shuffled for the upcoming round
-          </DialogDescription>
-        </VisuallyHidden> */}
+      <DialogContent className="baseVertFlex h-dvh w-screen max-w-none !justify-between !rounded-none bg-black p-0 tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg">
+        <VisuallyHidden>
+          <DialogTitle>Practice tab for {title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </VisuallyHidden>
 
         <PlaybackTopMetadata
           realChordsToFullChordsMap={realChordsToFullChordsMap}
@@ -255,15 +275,15 @@ function PlaybackDialog() {
           style={{
             mask: "linear-gradient(90deg, transparent, white 5%, white 95%, transparent)",
           }}
-          className="size-full overflow-hidden"
+          className="w-full overflow-hidden"
         >
           <div
             ref={containerRef}
-            className="relative flex h-[271px] w-full overflow-hidden"
+            className="relative flex h-[250px] w-full overflow-hidden"
           >
             <div className="baseFlex absolute left-0 top-0 size-full">
               <div className="h-[165px] w-full"></div>
-              <div className="h-[165px] w-[2px] shrink-0 bg-pink-600"></div>
+              <div className="z-10 h-[164px] w-[2px] shrink-0 bg-pink-600"></div>
               <div className="h-[165px] w-full"></div>
             </div>
 
@@ -450,8 +470,11 @@ function PlaybackDialog() {
           </div>
         )}
 
-        <div className="baseFlex w-full">
+        <div className="baseVertFlex w-full gap-2">
           <PlaybackAudioControls />
+          <PlaybackBottomMetadata
+            realChordsToFullChordsMap={realChordsToFullChordsMap}
+          />
         </div>
       </DialogContent>
     </Dialog>

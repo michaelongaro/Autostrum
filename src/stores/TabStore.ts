@@ -514,9 +514,19 @@ interface TabState {
 
   isLoadingARoute: boolean;
   setIsLoadingARoute: (isLoadingARoute: boolean) => void;
-  viewportLabel: "mobile" | "mobileLarge" | "tablet" | "desktop";
+  viewportLabel:
+    | "mobile"
+    | "mobileLandscape"
+    | "mobileLarge"
+    | "tablet"
+    | "desktop";
   setViewportLabel: (
-    viewportLabel: "mobile" | "mobileLarge" | "tablet" | "desktop",
+    viewportLabel:
+      | "mobile"
+      | "mobileLandscape"
+      | "mobileLarge"
+      | "tablet"
+      | "desktop",
   ) => void;
 
   // reset

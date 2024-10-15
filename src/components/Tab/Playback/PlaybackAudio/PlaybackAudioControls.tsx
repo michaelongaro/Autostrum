@@ -1,9 +1,12 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { CgArrowsShrinkH } from "react-icons/cg";
+import { TiArrowLoop } from "react-icons/ti";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import ProgressSlider from "~/components/AudioControls/ProgressSlider";
 import { Button } from "~/components/ui/button";
+import { Toggle } from "~/components/ui/toggle";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
@@ -384,7 +387,7 @@ function PlaybackAudioControls() {
 
   return (
     <>
-      {viewportLabel === "mobile" && (
+      {viewportLabel === "mobileLandscape" && (
         <div className="baseFlex w-full gap-4 px-4">
           {/* audio source, instrument, speed selects*/}
 
@@ -394,6 +397,7 @@ function PlaybackAudioControls() {
             size={aboveLargeViewportWidth ? "default" : "sm"}
             disabled={disablePlayButton}
             onClick={handlePlayButtonClick}
+            className="size-8 shrink-0 rounded-full bg-transparent p-0"
           >
             <PlayButtonIcon
               uniqueLocationKey="audioControls"
@@ -404,6 +408,39 @@ function PlaybackAudioControls() {
               forceShowLoadingSpinner={fetchingFullTabData}
               showCountInTimer={countInTimer.showing}
             />
+          </Button>
+
+          {/* speed selector (rotates through 0.25x, 0.5x, 0.75x, 1x, 1.25x, 1.5x speeds) */}
+          <Button
+            variant="link"
+            onClick={() => {
+              pauseAudio();
+
+              let newPlaybackSpeed = playbackSpeed;
+
+              if (newPlaybackSpeed === 1.5) newPlaybackSpeed = 0.25;
+              else
+                newPlaybackSpeed = (playbackSpeed + 0.25) as
+                  | 0.25
+                  | 0.5
+                  | 0.75
+                  | 1
+                  | 1.25
+                  | 1.5;
+
+              // Normalize the progress value to 1x speed
+              const normalizedProgress = tabProgressValue * playbackSpeed;
+
+              // Adjust the progress value to the new playback speed
+              const adjustedProgress = normalizedProgress / newPlaybackSpeed;
+
+              // Set the new progress value
+              setTabProgressValue(adjustedProgress);
+              setPlaybackSpeed(newPlaybackSpeed);
+            }}
+            className="w-6"
+          >
+            {playbackSpeed}x
           </Button>
 
           <div className="baseFlex w-full !flex-nowrap gap-2">
@@ -437,11 +474,52 @@ function PlaybackAudioControls() {
               )}
             </p>
           </div>
+
+          <Toggle
+            variant={"outline"}
+            aria-label="Loop toggle"
+            disabled={audioMetadata.playing || countInTimer.showing}
+            pressed={looping}
+            className="h-8 w-8 p-1"
+            onPressedChange={(value) => {
+              setAudioMetadata({
+                ...audioMetadata,
+                startLoopIndex: 0,
+                endLoopIndex: -1,
+                editingLoopRange: false,
+              });
+
+              localStorageLooping.set(String(value));
+            }}
+          >
+            <TiArrowLoop className="h-6 w-6" />
+          </Toggle>
+
+          <Toggle
+            variant={"outline"}
+            aria-label="Edit looping range"
+            disabled={
+              !looping ||
+              audioMetadata.type === "Artist recording" ||
+              audioMetadata.playing ||
+              countInTimer.showing
+            }
+            pressed={audioMetadata.editingLoopRange}
+            className="h-8 w-8 p-1"
+            onPressedChange={(value) =>
+              setAudioMetadata({
+                ...audioMetadata,
+                editingLoopRange: value,
+              })
+            }
+          >
+            <CgArrowsShrinkH className="h-6 w-6" />
+          </Toggle>
         </div>
       )}
 
-      {viewportLabel !== "mobile" && (
-        <div className="baseFlex tablet:max-w-2xl w-full gap-4">
+      {viewportLabel !== "mobileLandscape" && (
+        <div className="baseFlex w-full gap-4 tablet:max-w-2xl">
           {/* audio source, instrument, speed selects*/}
 
           {/* play/pause button*/}
