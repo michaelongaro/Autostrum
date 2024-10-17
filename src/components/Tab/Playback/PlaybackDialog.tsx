@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { useTabStore } from "~/stores/TabStore";
+import { AudioMetadata, useTabStore } from "~/stores/TabStore";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 function PlaybackDialog() {
@@ -28,6 +28,7 @@ function PlaybackDialog() {
     showPlaybackDialog,
     setShowPlaybackDialog,
     title,
+    looping,
     description,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
@@ -39,24 +40,28 @@ function PlaybackDialog() {
     showPlaybackDialog: state.showPlaybackDialog,
     setShowPlaybackDialog: state.setShowPlaybackDialog,
     title: state.title,
+    looping: state.looping,
     description: state.description,
   }));
 
   const containerRef = (element: HTMLDivElement | null) => {
     if (element && !containerElement) setContainerElement(element);
   };
-
   const [containerElement, setContainerElement] =
     useState<HTMLDivElement | null>(null);
   const [prevDimensions, setPrevDimensions] = useState<DOMRect | null>(null);
 
+  const [prevCurrentChordIndex, setPrevCurrentChordIndex] = useState(0);
   const [chordDurations, setChordDurations] = useState<number[]>([]);
-  const [scrollPositions, setScrollPositions] = useState<number[]>([]);
-
   const [initialPlaceholderWidth, setInitialPlaceholderWidth] = useState(0);
 
   const [fullChordWidths, setFullChordWidths] = useState<number[]>([]);
-  const [fullScrollPositions, setFullScrollPositions] = useState<number[]>([]);
+  const [fullScrollPositions, setFullScrollPositions] = useState<
+    {
+      originalPosition: number;
+      currentPosition: number | null;
+    }[]
+  >([]);
 
   const [realChordsToFullChordsMap, setRealChordsToFullChordsMap] = useState<{
     [key: number]: number;
@@ -94,6 +99,52 @@ function PlaybackDialog() {
     return () => window.removeEventListener("resize", handleResize);
   }, [expandedTabData, showPlaybackDialog, containerElement, prevDimensions]);
 
+  // TODO: check over this logic
+  useEffect(() => {
+    if (
+      currentChordIndex === prevCurrentChordIndex ||
+      fullScrollPositions.every((position) => position.currentPosition === null)
+    )
+      return;
+
+    const prevFullChordIndex = realChordsToFullChordsMap[prevCurrentChordIndex];
+    const currentFullChordIndex = realChordsToFullChordsMap[currentChordIndex];
+
+    if (prevFullChordIndex === undefined || currentFullChordIndex === undefined)
+      return;
+
+    const prevScrollPosition =
+      fullScrollPositions[prevFullChordIndex]?.currentPosition ||
+      fullScrollPositions[prevFullChordIndex]?.originalPosition ||
+      0;
+    const currentScrollPosition =
+      fullScrollPositions[currentFullChordIndex]?.currentPosition ||
+      fullScrollPositions[currentFullChordIndex]?.originalPosition ||
+      0;
+
+    if (prevScrollPosition > currentScrollPosition) {
+      console.log("going left", prevScrollPosition, currentScrollPosition);
+
+      // asserting that it is safe/reasonably wanted to just clear all of the current positions
+      // whenever the user scrolls left through the tab. the current positions will be recalculated
+      // anyway, and it simplifies the logic within getFullVisibleChordIndices().
+
+      const newFullScrollPositions = [...fullScrollPositions];
+      newFullScrollPositions.forEach((position) => {
+        if (position) position.currentPosition = null;
+      });
+
+      setFullScrollPositions(newFullScrollPositions);
+    }
+
+    setPrevCurrentChordIndex(currentChordIndex);
+  }, [
+    prevCurrentChordIndex,
+    currentChordIndex,
+    fullScrollPositions,
+    realChordsToFullChordsMap,
+  ]);
+
   useEffect(() => {
     if (!playbackMetadata) return;
 
@@ -112,7 +163,6 @@ function PlaybackDialog() {
       !containerElement ||
       !expandedTabData ||
       visibleContainerWidth === 0 ||
-      scrollPositions.length !== 0 ||
       expandedTabData.length === 0 ||
       !showPseudoChords
     )
@@ -124,9 +174,10 @@ function PlaybackDialog() {
         "playbackElem",
       ) as HTMLCollectionOf<HTMLDivElement>;
 
-    const newScrollPositions: number[] = [];
-
-    const fullScrollPositions: number[] = [];
+    const fullScrollPositions: {
+      originalPosition: number;
+      currentPosition: number | null;
+    }[] = [];
     const fullChordWidths: number[] = [];
 
     const realChordsToFullChordsMap: { [key: number]: number } = {};
@@ -144,12 +195,10 @@ function PlaybackDialog() {
         const offsetLeft = elem.offsetLeft;
         const width = elem.getBoundingClientRect().width;
 
-        // exclude ornamental DOM nodes from newScrollPositions and chordWidths,
-        // increment domElementDifferentialCount otherwise
+        // exclude ornamental DOM nodes, instead increment domElementDifferentialCount
         if (elem?.classList.contains("ornamental")) {
           domElementDifferentialCount++;
         } else {
-          newScrollPositions.push(offsetLeft);
           realChordsToFullChordsMap[index - domElementDifferentialCount] =
             index;
           fullChordsToRealChordsMap[index] =
@@ -157,7 +206,10 @@ function PlaybackDialog() {
         }
 
         // include all DOM nodes in fullScrollPositions and fullChordWidths
-        fullScrollPositions.push(offsetLeft);
+        fullScrollPositions.push({
+          originalPosition: offsetLeft,
+          currentPosition: null,
+        });
         fullChordWidths.push(width);
 
         if (index === expandedTabData.length - 1) {
@@ -167,15 +219,19 @@ function PlaybackDialog() {
     });
 
     const scrollContainerWidth =
-      (newScrollPositions.at(-1) || 0) + finalElementWidth;
+      (fullScrollPositions.at(-1)?.originalPosition || 0) + finalElementWidth;
 
-    const lastScrollPosition = newScrollPositions.at(-1) || 0;
+    const lastScrollPosition =
+      fullScrollPositions.at(-1)?.originalPosition || 0;
 
-    // adding a "ghost" chord so that the last chord is scrolled past just
-    // like every other chord
-    newScrollPositions.push(lastScrollPosition + finalElementWidth);
-
-    setScrollPositions(newScrollPositions);
+    // if not looping, need to add a "ghost" chord so that the last chord is
+    // scrolled just like every other chord
+    if (!looping) {
+      fullScrollPositions.push({
+        originalPosition: lastScrollPosition + finalElementWidth,
+        currentPosition: null,
+      });
+    }
 
     setFullScrollPositions(fullScrollPositions);
     setFullChordWidths(fullChordWidths);
@@ -187,10 +243,10 @@ function PlaybackDialog() {
     setShowPseudoChords(false);
   }, [
     containerElement,
-    scrollPositions,
     visibleContainerWidth,
     expandedTabData,
     showPseudoChords,
+    looping,
   ]);
 
   const fullVisibleChordIndices = getFullVisibleChordIndices({
@@ -199,8 +255,9 @@ function PlaybackDialog() {
     currentChordIndex,
     visibleContainerWidth,
     fullChordWidths,
-    buffer: 100,
+    buffer: 100, // TODO: what value should buffer be?
     initialPlaceholderWidth,
+    setFullScrollPositions,
   });
 
   function highlightChord(
@@ -292,11 +349,12 @@ function PlaybackDialog() {
             <div
               style={{
                 width: `${scrollContainerWidth}px`,
-                transform: `translateX(${
-                  (scrollPositions[
-                    currentChordIndex + (audioMetadata.playing ? 1 : 0)
-                  ] || 0) * -1
-                }px)`,
+                transform: getScrollContainerTransform({
+                  fullScrollPositions,
+                  realChordsToFullChordsMap,
+                  currentChordIndex,
+                  audioMetadata,
+                }),
                 transition: `transform ${
                   chordDurations[currentChordIndex] || 0
                 }ms linear`,
@@ -322,7 +380,11 @@ function PlaybackDialog() {
                         style={{
                           position: "absolute",
                           width: `${fullChordWidths[index] || 0}px`,
-                          left: `${(fullScrollPositions[index] || 0) + initialPlaceholderWidth}px`,
+                          left: getChordLeftValue({
+                            index,
+                            fullScrollPositions,
+                            initialPlaceholderWidth,
+                          }),
                         }}
                       >
                         {expandedTabData[index]?.type === "tab" ? (
@@ -486,22 +548,39 @@ function PlaybackDialog() {
 export default PlaybackDialog;
 
 const getFullVisibleChordIndices = ({
-  fullScrollPositions,
+  fullScrollPositions: originalFullScrollPositions,
   realChordsToFullChordsMap,
   currentChordIndex,
   visibleContainerWidth,
   fullChordWidths,
   buffer,
   initialPlaceholderWidth,
+  setFullScrollPositions,
 }: {
-  fullScrollPositions: number[];
+  fullScrollPositions: {
+    originalPosition: number;
+    currentPosition: number | null;
+  }[];
   realChordsToFullChordsMap: { [key: number]: number };
   currentChordIndex: number;
   visibleContainerWidth: number;
   fullChordWidths: number[];
   buffer: number;
   initialPlaceholderWidth: number;
+  setFullScrollPositions: React.Dispatch<
+    React.SetStateAction<
+      {
+        originalPosition: number;
+        currentPosition: number | null;
+      }[]
+    >
+  >;
 }) => {
+  const fullScrollPositions = [...originalFullScrollPositions];
+
+  // consider: can maybe get by with two arrays for scroll positions (one original, one current)
+  // instead of object approach that you currently have
+
   const adjustedCurrentChordIndex =
     realChordsToFullChordsMap[currentChordIndex];
 
@@ -511,33 +590,96 @@ const getFullVisibleChordIndices = ({
   )
     return [];
 
-  const fullVisibleIndices = [];
+  let fullVisibleIndices = [];
 
   const adjustedScrollPositions = fullScrollPositions.map(
-    (pos) => pos + initialPlaceholderWidth,
+    (pos) =>
+      (pos?.currentPosition || pos.originalPosition) + initialPlaceholderWidth,
   );
 
   const adjustedCurrentPosition =
-    fullScrollPositions[adjustedCurrentChordIndex] + initialPlaceholderWidth;
+    (fullScrollPositions[adjustedCurrentChordIndex]?.currentPosition ||
+      fullScrollPositions[adjustedCurrentChordIndex].originalPosition) +
+    initialPlaceholderWidth;
 
   // Start and end points of the visible range
   const rangeStart =
     adjustedCurrentPosition - visibleContainerWidth / 2 - buffer;
   const rangeEnd = adjustedCurrentPosition + visibleContainerWidth / 2 + buffer;
 
-  const startIndex = binarySearchStart(adjustedScrollPositions, rangeStart);
+  // const startIndex = binarySearchStart(adjustedScrollPositions, rangeStart);
 
-  const endIndex = binarySearchEnd(adjustedScrollPositions, rangeEnd);
+  // const endIndex = binarySearchEnd(adjustedScrollPositions, rangeEnd);
 
-  for (let i = startIndex; i <= endIndex; i++) {
+  // for (let i = startIndex; i <= endIndex; i++) {
+
+  let offsetStartIndex = 0;
+  let lastScrollPosition = 0;
+
+  for (let i = 0; i < adjustedScrollPositions.length; i++) {
     const itemStart = adjustedScrollPositions[i] || 0;
     const chordWidth = fullChordWidths[i] || 0;
     const itemEnd = itemStart + chordWidth;
 
     // Ensure the item is within the visible range
     if (itemEnd > rangeStart && itemStart < rangeEnd) {
+      const currentPosition = fullScrollPositions[i]?.currentPosition;
+
+      // This is for the cases where you start off with indices 0-5 that
+      // are part of the "next" loop, and then come up to the last few indices of the
+      // current loop. You will then need to rearrange fullVisibleIndices to start off at
+      // the offsetStartIndex until the end of the array, and then push on the indices from
+      // the beginning of the array until the offsetStartIndex. so everything stays in order.
+      if (
+        typeof currentPosition === "number" &&
+        currentPosition < lastScrollPosition
+      ) {
+        offsetStartIndex = i;
+      }
+
       fullVisibleIndices.push(i);
     }
+  }
+
+  // modify fullVisibleIndices to account for the offsetStartIndex (if needed)
+  if (offsetStartIndex > 0) {
+    const firstHalf = fullVisibleIndices.slice(offsetStartIndex);
+    const secondHalf = fullVisibleIndices.slice(0, offsetStartIndex);
+
+    fullVisibleIndices = [...firstHalf, ...secondHalf];
+  }
+
+  let fullScrollPositionsWasUpdated = false;
+
+  // need to have baseline largest scroll position so we can add the chord width
+  // to get the current position in loop below
+  let largestScrollPosition = 0;
+
+  // getting largest scroll position (currentPosition if available, originalPosition otherwise)
+  for (let i = 0; i < adjustedScrollPositions.length; i++) {
+    const scrollPosition =
+      fullScrollPositions[i]?.currentPosition ||
+      fullScrollPositions[i]?.originalPosition ||
+      0;
+    if (scrollPosition > largestScrollPosition) {
+      largestScrollPosition = scrollPosition; // + initialPlaceholderWidth;
+    }
+  }
+
+  for (let i = 0; i < (fullVisibleIndices[0] || 0); i++) {
+    if (fullScrollPositions[i]?.currentPosition === null) {
+      const chordWidth = fullChordWidths[i] || 0;
+
+      fullScrollPositions[i]!.currentPosition =
+        largestScrollPosition + chordWidth;
+
+      largestScrollPosition += chordWidth;
+      fullScrollPositionsWasUpdated = true;
+    }
+  }
+
+  if (fullScrollPositionsWasUpdated) {
+    setFullScrollPositions(fullScrollPositions);
   }
 
   return fullVisibleIndices;
@@ -585,4 +727,56 @@ function getBpmToShow(
   }
 
   return currentBpm;
+}
+
+function getScrollContainerTransform({
+  fullScrollPositions,
+  realChordsToFullChordsMap,
+  currentChordIndex,
+  audioMetadata,
+}: {
+  fullScrollPositions: {
+    originalPosition: number;
+    currentPosition: number | null;
+  }[];
+  realChordsToFullChordsMap: { [key: number]: number };
+  currentChordIndex: number;
+  audioMetadata: AudioMetadata;
+}) {
+  const index =
+    realChordsToFullChordsMap[
+      currentChordIndex + (audioMetadata.playing ? 1 : 0)
+    ] || 0;
+
+  // needed to prevent index from going out of bounds when looping
+  const clampedIndex = Math.min(index, fullScrollPositions.length - 1);
+
+  if (fullScrollPositions[clampedIndex]?.currentPosition) {
+    return `translateX(${
+      fullScrollPositions[clampedIndex].currentPosition * -1
+    }px)`;
+  }
+
+  return `translateX(${
+    (fullScrollPositions[clampedIndex]?.originalPosition || 0) * -1
+  }px)`;
+}
+
+function getChordLeftValue({
+  index,
+  fullScrollPositions,
+  initialPlaceholderWidth,
+}: {
+  index: number;
+  fullScrollPositions: {
+    originalPosition: number;
+    currentPosition: number | null;
+  }[];
+  initialPlaceholderWidth: number;
+}) {
+  return `${
+    (fullScrollPositions[index]?.currentPosition ||
+      fullScrollPositions[index]?.originalPosition ||
+      0) + initialPlaceholderWidth
+  }px`;
 }
