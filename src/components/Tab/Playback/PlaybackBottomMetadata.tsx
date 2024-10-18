@@ -7,6 +7,7 @@ import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import Chord from "~/components/Tab/Chord";
 import StrummingPattern from "~/components/Tab/StrummingPattern";
 import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
+import AnimatedTabs from "~/components/ui/AnimatedTabs";
 import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import TuningFork from "~/components/ui/icons/TuningFork";
@@ -152,75 +153,20 @@ function PlaybackBottomMetadata({
               </Select>
             </div>
 
-            <MobileLandscapeSettingsDialog />
-            <MobileLandscapeMenuDialog />
+            <MobileSettingsDialog />
+            <MobileMenuDialog />
           </div>
         </div>
       ) : (
-        <div className="baseFlex h-24 w-full !justify-between px-4">
-          {/* title + auto tuner button */}
-          <div className="baseVertFlex !items-start gap-2">
-            <p className="text-xl font-bold text-white tablet:text-2xl">
-              {title}
-            </p>
-            <div className="baseFlex gap-2">
-              <Button variant={"secondary"}>
-                Y Tune to {toString(parse(tuning), { pad: 0 })}
-              </Button>
-              <Button
-                variant={"secondary"}
-                onClick={() => setShowEffectGlossaryModal(true)}
-              >
-                <FaBook className="h-4 w-4" />
-              </Button>
+        <div className="baseFlex w-full px-4 py-4">
+          {viewportLabel.includes("mobile") ? (
+            <div className="baseFlex gap-8">
+              <MobileSettingsDialog />
+              <MobileMenuDialog />
             </div>
-          </div>
-
-          {/* section <Select> + current bpm (+ repeats?) */}
-          <div className="baseFlex !justify-end gap-4">
-            <Select
-              // this is jank, need to fix logic
-              value={title === "" ? undefined : title}
-              onValueChange={(value) => {
-                setAudioMetadata({
-                  ...audioMetadata,
-                  location: {
-                    sectionIndex: parseInt(value),
-                    // subSectionIndex: 0,
-                    // chordSequenceIndex: 0,
-                  },
-                });
-              }}
-            >
-              <SelectTrigger className="max-w-28 sm:max-w-none">
-                <SelectValue placeholder="Select a section">
-                  {sectionProgression[
-                    playbackMetadata[index]?.location.sectionIndex ?? 0
-                  ]?.title ?? ""}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup className="max-h-60 overflow-y-auto">
-                  <SelectLabel>Sections</SelectLabel>
-
-                  {sections.map((section, idx) => {
-                    return (
-                      <SelectItem key={`${section.id}`} value={`${idx}`}>
-                        {section.title}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-
-            <div className="baseFlex gap-1 text-nowrap">
-              {getDynamicNoteLengthIcon(
-                playbackMetadata[index]?.noteLength ?? "1/4th",
-              )}
-              {playbackMetadata[index]?.bpm ?? "120"} BPM
-            </div>
-          </div>
+          ) : (
+            <div></div>
+          )}
         </div>
       )}
     </>
@@ -229,7 +175,7 @@ function PlaybackBottomMetadata({
 
 export default PlaybackBottomMetadata;
 
-function MobileLandscapeSettingsDialog() {
+function MobileSettingsDialog() {
   const {
     id,
     bpm,
@@ -320,6 +266,9 @@ function MobileLandscapeSettingsDialog() {
       <DialogTrigger asChild>
         <Button variant="outline">
           <IoSettingsOutline className="h-5 w-5" />
+          <span className="ml-3 mobileLandscape:ml-0 mobileLandscape:hidden">
+            Settings
+          </span>
         </Button>
       </DialogTrigger>
       <DialogContent className="baseVertFlex size-full bg-black">
@@ -460,7 +409,7 @@ function MobileLandscapeSettingsDialog() {
   );
 }
 
-function MobileLandscapeMenuDialog() {
+function MobileMenuDialog() {
   const {
     sectionProgression,
     id,
@@ -501,12 +450,18 @@ function MobileLandscapeMenuDialog() {
       <DialogTrigger asChild>
         <Button variant="outline">
           <FaListUl className="h-5 w-5" />
+          <span className="ml-3 mobileLandscape:ml-0 mobileLandscape:hidden">
+            Menu
+          </span>
         </Button>
       </DialogTrigger>
       <DialogContent className="baseVertFlex size-full max-h-dvh max-w-none !justify-start !rounded-none bg-black">
         <AnimatedTabs
           activeTabName={activeTabName}
-          setActiveTabName={setActiveTabName}
+          setActiveTabName={
+            setActiveTabName as Dispatch<SetStateAction<string>>
+          }
+          tabNames={["Section progression", "Chords", "Strumming patterns"]}
         />
 
         <AnimatePresence mode="popLayout">
@@ -549,99 +504,105 @@ function MobileLandscapeMenuDialog() {
               className="baseVertFlex w-full"
             >
               <div className="baseVertFlex max-h-[calc(100dvh-6rem)] !justify-start gap-4 overflow-y-auto">
-                {chords.map((chord, index) => (
-                  <div
-                    key={chord.id}
-                    className="baseFlex border-r-none h-10 shrink-0 overflow-hidden rounded-md border-2"
-                  >
-                    <p
-                      style={{
-                        textShadow:
-                          previewMetadata.indexOfPattern === index &&
-                          previewMetadata.playing &&
-                          previewMetadata.type === "chord"
-                            ? "none"
-                            : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
-                        color:
-                          previewMetadata.indexOfPattern === index &&
-                          previewMetadata.playing &&
-                          previewMetadata.type === "chord"
-                            ? "hsl(335, 78%, 42%)"
-                            : "hsl(324, 77%, 95%)",
-                      }}
-                      className="px-3 font-semibold transition-colors"
-                    >
-                      {chord.name}
-                    </p>
-
-                    {/* TODO: replace this with better dynamic visual representation of chord on
-                      fretboard */}
-                    <div className="baseFlex h-full w-full !justify-evenly">
-                      {/* preview button */}
-                      <Popover>
-                        <PopoverTrigger className="baseFlex mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 active:hover:bg-white/10">
-                          <HiOutlineInformationCircle className="h-5 w-5" />
-                        </PopoverTrigger>
-                        <PopoverContent className="chordPreviewGlassmorphic w-40 border-2 p-0 text-pink-100">
-                          <Chord
-                            chordBeingEdited={{
-                              index,
-                              value: chord,
-                            }}
-                            editing={false}
-                            highlightChord={
+                {chords.length > 0 ? (
+                  <>
+                    {chords.map((chord, index) => (
+                      <div
+                        key={chord.id}
+                        className="baseFlex border-r-none h-10 shrink-0 overflow-hidden rounded-md border-2"
+                      >
+                        <p
+                          style={{
+                            textShadow:
                               previewMetadata.indexOfPattern === index &&
                               previewMetadata.playing &&
                               previewMetadata.type === "chord"
-                            }
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      {/* preview chord button */}
-                      <Button
-                        variant={"playPause"}
-                        disabled={
-                          !currentInstrument ||
-                          (previewMetadata.indexOfPattern === index &&
-                            previewMetadata.playing &&
-                            previewMetadata.type === "chord")
-                        }
-                        size={"sm"}
-                        onClick={() => {
-                          if (
-                            audioMetadata.playing ||
-                            previewMetadata.playing
-                          ) {
-                            pauseAudio();
-                          }
+                                ? "none"
+                                : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
+                            color:
+                              previewMetadata.indexOfPattern === index &&
+                              previewMetadata.playing &&
+                              previewMetadata.type === "chord"
+                                ? "hsl(335, 78%, 42%)"
+                                : "hsl(324, 77%, 95%)",
+                          }}
+                          className="px-3 font-semibold transition-colors"
+                        >
+                          {chord.name}
+                        </p>
 
-                          setTimeout(
-                            () => {
-                              void playPreview({
-                                data: chord.frets,
-                                index,
-                                type: "chord",
-                              });
-                            },
-                            audioMetadata.playing || previewMetadata.playing
-                              ? 50
-                              : 0,
-                          );
-                        }}
-                        className="baseFlex h-full w-10 rounded-l-none border-l-2"
-                      >
-                        <PlayButtonIcon
-                          uniqueLocationKey={`chordPreview${index}`}
-                          tabId={id}
-                          currentInstrument={currentInstrument}
-                          previewMetadata={previewMetadata}
-                          indexOfPattern={index}
-                          previewType="chord"
-                        />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                        {/* TODO: replace this with better dynamic visual representation of chord on
+                      fretboard */}
+                        <div className="baseFlex h-full w-full !justify-evenly">
+                          {/* preview button */}
+                          <Popover>
+                            <PopoverTrigger className="baseFlex mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 active:hover:bg-white/10">
+                              <HiOutlineInformationCircle className="h-5 w-5" />
+                            </PopoverTrigger>
+                            <PopoverContent className="chordPreviewGlassmorphic w-40 border-2 p-0 text-pink-100">
+                              <Chord
+                                chordBeingEdited={{
+                                  index,
+                                  value: chord,
+                                }}
+                                editing={false}
+                                highlightChord={
+                                  previewMetadata.indexOfPattern === index &&
+                                  previewMetadata.playing &&
+                                  previewMetadata.type === "chord"
+                                }
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          {/* preview chord button */}
+                          <Button
+                            variant={"playPause"}
+                            disabled={
+                              !currentInstrument ||
+                              (previewMetadata.indexOfPattern === index &&
+                                previewMetadata.playing &&
+                                previewMetadata.type === "chord")
+                            }
+                            size={"sm"}
+                            onClick={() => {
+                              if (
+                                audioMetadata.playing ||
+                                previewMetadata.playing
+                              ) {
+                                pauseAudio();
+                              }
+
+                              setTimeout(
+                                () => {
+                                  void playPreview({
+                                    data: chord.frets,
+                                    index,
+                                    type: "chord",
+                                  });
+                                },
+                                audioMetadata.playing || previewMetadata.playing
+                                  ? 50
+                                  : 0,
+                              );
+                            }}
+                            className="baseFlex h-full w-10 rounded-l-none border-l-2"
+                          >
+                            <PlayButtonIcon
+                              uniqueLocationKey={`chordPreview${index}`}
+                              tabId={id}
+                              currentInstrument={currentInstrument}
+                              previewMetadata={previewMetadata}
+                              indexOfPattern={index}
+                              previewType="chord"
+                            />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <div>No chords were specified for this tab.</div>
+                )}
               </div>
             </motion.div>
           )}
@@ -653,135 +614,101 @@ function MobileLandscapeMenuDialog() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="baseVertFlex max-h-[calc(100dvh-6rem)] w-full !items-start !justify-start gap-10 overflow-y-auto"
+              className={`baseVertFlex max-h-[calc(100dvh-6rem)] w-full gap-10 overflow-y-auto ${strummingPatterns.length > 0 ? "!items-start !justify-start" : ""}`}
             >
-              {strummingPatterns.map((pattern, index) => (
-                <div key={pattern.id} className="shrink-0 overflow-hidden">
-                  <div className="baseFlex !items-start">
-                    <div className="baseFlex border-b-none rounded-md rounded-tr-none border-2">
-                      <StrummingPattern
-                        data={pattern}
-                        mode="viewing"
-                        index={index}
-                        lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
-                        setLastModifiedPalmMuteNode={
-                          setLastModifiedPalmMuteNode
-                        }
-                        pmNodeOpacities={[]}
-                      />
-                    </div>
+              {strummingPatterns.length > 0 ? (
+                <>
+                  {strummingPatterns.map((pattern, index) => (
+                    <div key={pattern.id} className="shrink-0 overflow-hidden">
+                      <div className="baseFlex !items-start">
+                        <div className="baseFlex border-b-none rounded-md rounded-tr-none border-2">
+                          <StrummingPattern
+                            data={pattern}
+                            mode="viewing"
+                            index={index}
+                            lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+                            setLastModifiedPalmMuteNode={
+                              setLastModifiedPalmMuteNode
+                            }
+                            pmNodeOpacities={[]}
+                          />
+                        </div>
 
-                    <Button
-                      variant={"playPause"}
-                      size={"sm"}
-                      disabled={
-                        !currentInstrument || artificalPlayButtonTimeout[index]
-                      }
-                      onClick={() => {
-                        if (
-                          previewMetadata.playing &&
-                          index === previewMetadata.indexOfPattern &&
-                          previewMetadata.type === "strummingPattern"
-                        ) {
-                          pauseAudio();
-                          setArtificalPlayButtonTimeout((prev) => {
-                            const prevArtificalPlayButtonTimeout = [...prev];
-                            prevArtificalPlayButtonTimeout[index] = true;
-                            return prevArtificalPlayButtonTimeout;
-                          });
-
-                          setTimeout(() => {
-                            setArtificalPlayButtonTimeout((prev) => {
-                              const prevArtificalPlayButtonTimeout = [...prev];
-                              prevArtificalPlayButtonTimeout[index] = false;
-                              return prevArtificalPlayButtonTimeout;
-                            });
-                          }, 300);
-                        } else {
-                          if (
-                            audioMetadata.playing ||
-                            previewMetadata.playing
-                          ) {
-                            pauseAudio();
+                        <Button
+                          variant={"playPause"}
+                          size={"sm"}
+                          disabled={
+                            !currentInstrument ||
+                            artificalPlayButtonTimeout[index]
                           }
-
-                          setTimeout(
-                            () => {
-                              void playPreview({
-                                data: pattern,
-                                index,
-                                type: "strummingPattern",
+                          onClick={() => {
+                            if (
+                              previewMetadata.playing &&
+                              index === previewMetadata.indexOfPattern &&
+                              previewMetadata.type === "strummingPattern"
+                            ) {
+                              pauseAudio();
+                              setArtificalPlayButtonTimeout((prev) => {
+                                const prevArtificalPlayButtonTimeout = [
+                                  ...prev,
+                                ];
+                                prevArtificalPlayButtonTimeout[index] = true;
+                                return prevArtificalPlayButtonTimeout;
                               });
-                            },
-                            audioMetadata.playing || previewMetadata.playing
-                              ? 50
-                              : 0,
-                          );
-                        }
-                      }}
-                      className="w-10 rounded-l-none rounded-r-sm border-2 border-l-0 p-3"
-                    >
-                      <PlayButtonIcon
-                        uniqueLocationKey={`strummingPatternPreview${index}`}
-                        tabId={id}
-                        currentInstrument={currentInstrument}
-                        previewMetadata={previewMetadata}
-                        indexOfPattern={index}
-                        previewType="strummingPattern"
-                      />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+
+                              setTimeout(() => {
+                                setArtificalPlayButtonTimeout((prev) => {
+                                  const prevArtificalPlayButtonTimeout = [
+                                    ...prev,
+                                  ];
+                                  prevArtificalPlayButtonTimeout[index] = false;
+                                  return prevArtificalPlayButtonTimeout;
+                                });
+                              }, 300);
+                            } else {
+                              if (
+                                audioMetadata.playing ||
+                                previewMetadata.playing
+                              ) {
+                                pauseAudio();
+                              }
+
+                              setTimeout(
+                                () => {
+                                  void playPreview({
+                                    data: pattern,
+                                    index,
+                                    type: "strummingPattern",
+                                  });
+                                },
+                                audioMetadata.playing || previewMetadata.playing
+                                  ? 50
+                                  : 0,
+                              );
+                            }
+                          }}
+                          className="w-10 rounded-l-none rounded-r-sm border-2 border-l-0 p-3"
+                        >
+                          <PlayButtonIcon
+                            uniqueLocationKey={`strummingPatternPreview${index}`}
+                            tabId={id}
+                            currentInstrument={currentInstrument}
+                            previewMetadata={previewMetadata}
+                            indexOfPattern={index}
+                            previewType="strummingPattern"
+                          />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <div>No strumming patterns were specified for this tab.</div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
       </DialogContent>
     </Dialog>
-  );
-}
-
-const tabNames = ["Section progression", "Chords", "Strumming patterns"];
-
-interface AnimatedTabs {
-  activeTabName: "Section progression" | "Chords" | "Strumming patterns";
-  setActiveTabName: Dispatch<
-    SetStateAction<"Section progression" | "Chords" | "Strumming patterns">
-  >;
-}
-
-function AnimatedTabs({ activeTabName, setActiveTabName }: AnimatedTabs) {
-  return (
-    <div className="flex space-x-1">
-      {tabNames.map((tabName) => (
-        <button
-          key={tabName}
-          onClick={() =>
-            setActiveTabName(
-              tabName as
-                | "Section progression"
-                | "Chords"
-                | "Strumming patterns",
-            )
-          }
-          className={`${
-            activeTabName === tabName ? "" : "hover:text-white/60"
-          } relative rounded-full px-3 py-1.5 text-sm font-medium text-white outline-sky-400 transition focus-visible:outline-2`}
-          style={{
-            WebkitTapHighlightColor: "transparent",
-          }}
-        >
-          {activeTabName === tabName && (
-            <motion.span
-              layoutId="bubble"
-              className="absolute inset-0 z-10 bg-white mix-blend-difference"
-              style={{ borderRadius: 9999 }}
-              transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-            />
-          )}
-          {tabName}
-        </button>
-      ))}
-    </div>
   );
 }

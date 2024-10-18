@@ -6,6 +6,7 @@ import PlaybackStrummedChord from "~/components/Tab/Playback/PlaybackStrummedCho
 import PlaybackTabChord from "~/components/Tab/Playback/PlaybackTabChord";
 import PlaybackTabMeasureLine from "~/components/Tab/Playback/PlaybackTabMeasureLine";
 import PlaybackTopMetadata from "~/components/Tab/Playback/PlaybackTopMetadata";
+import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -77,6 +78,10 @@ function PlaybackDialog() {
   const [showPseudoChords, setShowPseudoChords] = useState(true);
   const [visibleContainerWidth, setVisibleContainerWidth] = useState(0);
 
+  const [selectedTab, setSelectedTab] = useState<
+    "Practice" | "Section progression" | "Chords" | "Strumming patterns"
+  >("Practice");
+
   useEffect(() => {
     if (
       looping &&
@@ -129,7 +134,7 @@ function PlaybackDialog() {
       return;
 
     if (prevCurrentChordIndex > currentChordIndex && !audioMetadata.playing) {
-      console.log("going left", currentChordIndex, prevCurrentChordIndex);
+      // console.log("going left", currentChordIndex, prevCurrentChordIndex);
 
       // asserting that it is safe/reasonably wanted to just clear all of the current positions
       // whenever the user scrolls left through the tab. the current positions will be recalculated
@@ -266,13 +271,6 @@ function PlaybackDialog() {
     setFullScrollPositions,
   });
 
-  console.log(
-    expandedTabData?.length,
-    fullScrollPositions.length,
-    fullChordWidths.length,
-    fullVisibleChordIndices,
-  );
-
   function highlightChord(
     index: number,
     type: "isBeingPlayed" | "hasBeenPlayed",
@@ -303,7 +301,6 @@ function PlaybackDialog() {
       scrollPosition === undefined ||
       scrollPosition > startPositionOfEntireTabLoop
     ) {
-      console.log(scrollPosition, startPositionOfEntireTabLoop);
       return false;
     }
 
@@ -356,68 +353,181 @@ function PlaybackDialog() {
         </VisuallyHidden>
 
         <PlaybackTopMetadata
+          selectedTab={selectedTab}
+          setSelectedTab={setSelectedTab}
           realChordsToFullChordsMap={realChordsToFullChordsMap}
         />
 
-        <div
-          style={{
-            mask: "linear-gradient(90deg, transparent, white 5%, white 95%, transparent)",
-          }}
-          className="w-full overflow-hidden"
-        >
-          <div
-            ref={containerRef}
-            className="relative flex h-[250px] w-full overflow-hidden"
-          >
-            <div className="baseFlex absolute left-0 top-0 size-full">
-              <div className="h-[165px] w-full"></div>
-              {/* currently this fixes the highlight line extending past rounded borders of
-              sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
-              <div className="z-0 h-[164px] w-[2px] shrink-0 bg-pink-600"></div>
-              <div className="h-[165px] w-full"></div>
-            </div>
-
-            <div
-              style={{
-                width: `${scrollContainerWidth}px`,
-                transform: getScrollContainerTransform({
-                  fullScrollPositions,
-                  realChordsToFullChordsMap,
-                  currentChordIndex,
-                  audioMetadata,
-                }),
-                transition: `transform ${
-                  chordDurations[currentChordIndex] || 0
-                }ms linear`,
-              }}
-              className="relative flex items-center will-change-transform"
+        <AnimatePresence mode="popLayout">
+          {selectedTab === "Practice" && (
+            <motion.div
+              key="PracticeTab"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="baseVertFlex w-full"
             >
-              <>
+              <div
+                style={{
+                  mask: "linear-gradient(90deg, transparent, white 5%, white 95%, transparent)",
+                }}
+                className="w-full overflow-hidden"
+              >
                 <div
-                  style={{
-                    position: "absolute",
-                    zIndex: 2,
-                    backgroundColor: "black",
-                    left: 0,
-                    width: `${initialPlaceholderWidth}px`,
-                  }}
-                ></div>
+                  ref={containerRef}
+                  className="relative flex h-[250px] w-full overflow-hidden"
+                >
+                  <div className="baseFlex absolute left-0 top-0 size-full">
+                    <div className="h-[165px] w-full"></div>
+                    {/* currently this fixes the highlight line extending past rounded borders of
+              sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
+                    <div className="z-0 h-[164px] w-[2px] shrink-0 bg-pink-600"></div>
+                    <div className="h-[165px] w-full"></div>
+                  </div>
 
-                {expandedTabData &&
-                  fullVisibleChordIndices.map((index) => {
-                    return (
+                  <div
+                    style={{
+                      width: `${scrollContainerWidth}px`,
+                      transform: getScrollContainerTransform({
+                        fullScrollPositions,
+                        realChordsToFullChordsMap,
+                        currentChordIndex,
+                        audioMetadata,
+                      }),
+                      transition: `transform ${
+                        chordDurations[currentChordIndex] || 0
+                      }ms linear`,
+                    }}
+                    className="relative flex items-center will-change-transform"
+                  >
+                    <>
                       <div
-                        key={index}
                         style={{
                           position: "absolute",
-                          width: `${fullChordWidths[index] || 0}px`,
-                          left: getChordLeftValue({
-                            index,
-                            fullScrollPositions,
-                            initialPlaceholderWidth,
-                          }),
+                          zIndex: 2,
+                          backgroundColor: "black",
+                          left: 0,
+                          width: `${initialPlaceholderWidth}px`,
                         }}
-                      >
+                      ></div>
+
+                      {expandedTabData &&
+                        fullVisibleChordIndices.map((index) => {
+                          return (
+                            <div
+                              key={index}
+                              style={{
+                                position: "absolute",
+                                width: `${fullChordWidths[index] || 0}px`,
+                                left: getChordLeftValue({
+                                  index,
+                                  fullScrollPositions,
+                                  initialPlaceholderWidth,
+                                }),
+                              }}
+                            >
+                              {expandedTabData[index]?.type === "tab" ? (
+                                <>
+                                  {expandedTabData[
+                                    index
+                                  ]?.data.chordData.includes("|") ? (
+                                    <PlaybackTabMeasureLine
+                                      columnData={
+                                        expandedTabData[index]?.data.chordData
+                                      }
+                                    />
+                                  ) : (
+                                    <PlaybackTabChord
+                                      columnData={
+                                        expandedTabData[index]?.data.chordData
+                                      }
+                                      isFirstChordInSection={
+                                        index === 0 ||
+                                        (expandedTabData[index - 1]?.type ===
+                                          "tab" &&
+                                          expandedTabData[index - 1]?.data
+                                            .chordData?.[0] === "-1")
+                                        // TODO: come back to why this type isn't narrowed
+                                      }
+                                      isLastChordInSection={
+                                        index === expandedTabData.length - 1 ||
+                                        expandedTabData[index + 1]?.type ===
+                                          "strum"
+                                      }
+                                      isHighlighted={
+                                        (audioMetadata.playing &&
+                                          highlightChord(
+                                            fullChordsToRealChordsMap[index] ||
+                                              0,
+                                            "isBeingPlayed",
+                                          )) ||
+                                        highlightChord(
+                                          fullChordsToRealChordsMap[index] || 0,
+                                          "hasBeenPlayed",
+                                        )
+                                      }
+                                    />
+                                  )}
+                                </>
+                              ) : (
+                                <PlaybackStrummedChord
+                                  strumIndex={
+                                    expandedTabData[index]?.data.strumIndex || 0
+                                  }
+                                  strum={
+                                    expandedTabData[index]?.data.strum || ""
+                                  }
+                                  palmMute={
+                                    expandedTabData[index]?.data.palmMute || ""
+                                  }
+                                  isFirstChordInSection={
+                                    expandedTabData[index]?.isFirstChord ||
+                                    false
+                                  }
+                                  isLastChordInSection={
+                                    expandedTabData[index]?.isLastChord || false
+                                  }
+                                  noteLength={
+                                    expandedTabData[index]?.data.noteLength ||
+                                    "1/4th"
+                                  }
+                                  bpmToShow={
+                                    (expandedTabData[index]?.data.strumIndex ||
+                                      0) === 0 &&
+                                    expandedTabData[index]?.data.bpm
+                                      ? expandedTabData[index]?.data.bpm
+                                      : undefined
+                                  }
+                                  chordName={
+                                    expandedTabData[index]?.data.chordName || ""
+                                  }
+                                  isHighlighted={
+                                    (audioMetadata.playing &&
+                                      highlightChord(
+                                        fullChordsToRealChordsMap[index] || 0,
+                                        "isBeingPlayed",
+                                      )) ||
+                                    highlightChord(
+                                      fullChordsToRealChordsMap[index] || 0,
+                                      "hasBeenPlayed",
+                                    )
+                                  }
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+                    </>
+                  </div>
+                </div>
+              </div>
+
+              {expandedTabData && showPseudoChords && (
+                <div className="absolute left-0 top-0 flex opacity-0">
+                  {expandedTabData.map((chord, index) => {
+                    return (
+                      <Fragment key={index}>
                         {expandedTabData[index]?.type === "tab" ? (
                           <>
                             {expandedTabData[index]?.data.chordData.includes(
@@ -444,17 +554,7 @@ function PlaybackDialog() {
                                   index === expandedTabData.length - 1 ||
                                   expandedTabData[index + 1]?.type === "strum"
                                 }
-                                isHighlighted={
-                                  (audioMetadata.playing &&
-                                    highlightChord(
-                                      fullChordsToRealChordsMap[index] || 0,
-                                      "isBeingPlayed",
-                                    )) ||
-                                  highlightChord(
-                                    fullChordsToRealChordsMap[index] || 0,
-                                    "hasBeenPlayed",
-                                  )
-                                }
+                                isHighlighted={false}
                               />
                             )}
                           </>
@@ -485,85 +585,17 @@ function PlaybackDialog() {
                             chordName={
                               expandedTabData[index]?.data.chordName || ""
                             }
-                            isHighlighted={
-                              (audioMetadata.playing &&
-                                highlightChord(
-                                  fullChordsToRealChordsMap[index] || 0,
-                                  "isBeingPlayed",
-                                )) ||
-                              highlightChord(
-                                fullChordsToRealChordsMap[index] || 0,
-                                "hasBeenPlayed",
-                              )
-                            }
+                            isHighlighted={false}
                           />
                         )}
-                      </div>
+                      </Fragment>
                     );
                   })}
-              </>
-            </div>
-          </div>
-        </div>
-
-        {expandedTabData && showPseudoChords && (
-          <div className="absolute left-0 top-0 flex opacity-0">
-            {expandedTabData.map((chord, index) => {
-              return (
-                <Fragment key={index}>
-                  {expandedTabData[index]?.type === "tab" ? (
-                    <>
-                      {expandedTabData[index]?.data.chordData.includes("|") ? (
-                        <PlaybackTabMeasureLine
-                          columnData={expandedTabData[index]?.data.chordData}
-                        />
-                      ) : (
-                        <PlaybackTabChord
-                          columnData={expandedTabData[index]?.data.chordData}
-                          isFirstChordInSection={
-                            index === 0 ||
-                            (expandedTabData[index - 1]?.type === "tab" &&
-                              expandedTabData[index - 1]?.data
-                                .chordData?.[0] === "-1")
-                            // TODO: come back to why this type isn't narrowed
-                          }
-                          isLastChordInSection={
-                            index === expandedTabData.length - 1 ||
-                            expandedTabData[index + 1]?.type === "strum"
-                          }
-                          isHighlighted={false}
-                        />
-                      )}
-                    </>
-                  ) : (
-                    <PlaybackStrummedChord
-                      strumIndex={expandedTabData[index]?.data.strumIndex || 0}
-                      strum={expandedTabData[index]?.data.strum || ""}
-                      palmMute={expandedTabData[index]?.data.palmMute || ""}
-                      isFirstChordInSection={
-                        expandedTabData[index]?.isFirstChord || false
-                      }
-                      isLastChordInSection={
-                        expandedTabData[index]?.isLastChord || false
-                      }
-                      noteLength={
-                        expandedTabData[index]?.data.noteLength || "1/4th"
-                      }
-                      bpmToShow={
-                        (expandedTabData[index]?.data.strumIndex || 0) === 0 &&
-                        expandedTabData[index]?.data.bpm
-                          ? expandedTabData[index]?.data.bpm
-                          : undefined
-                      }
-                      chordName={expandedTabData[index]?.data.chordName || ""}
-                      isHighlighted={false}
-                    />
-                  )}
-                </Fragment>
-              );
-            })}
-          </div>
-        )}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="baseVertFlex w-full gap-2">
           <PlaybackAudioControls />

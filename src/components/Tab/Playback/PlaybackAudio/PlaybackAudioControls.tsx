@@ -519,29 +519,18 @@ function PlaybackAudioControls() {
       )}
 
       {viewportLabel !== "mobileLandscape" && (
-        <div className="baseFlex w-full gap-4 tablet:max-w-2xl">
-          {/* audio source, instrument, speed selects*/}
-
-          {/* play/pause button*/}
-          <Button
-            variant="playPause"
-            size={aboveLargeViewportWidth ? "default" : "sm"}
+        <div className="baseVertFlex w-full max-w-[90vw] gap-2 tablet:max-w-2xl">
+          <ProgressSlider
             disabled={disablePlayButton}
-            onClick={handlePlayButtonClick}
-          >
-            <PlayButtonIcon
-              uniqueLocationKey="audioControls"
-              tabId={id}
-              currentInstrument={currentInstrument}
-              audioMetadata={audioMetadata}
-              recordedAudioBuffer={recordedAudioBuffer}
-              forceShowLoadingSpinner={fetchingFullTabData}
-              showCountInTimer={countInTimer.showing}
-            />
-          </Button>
+            tabProgressValue={tabProgressValue}
+            setTabProgressValue={setTabProgressValue}
+            wasPlayingBeforeScrubbing={wasPlayingBeforeScrubbing}
+            setWasPlayingBeforeScrubbing={setWasPlayingBeforeScrubbing}
+            setArtificalPlayButtonTimeout={setArtificalPlayButtonTimeout}
+          />
 
-          <div className="baseFlex w-9/12 !flex-nowrap gap-2">
-            <p>
+          <div className="baseFlex w-full !justify-between">
+            <p className="self-start">
               {formatSecondsToMinutes(
                 audioMetadata.type === "Artist recording"
                   ? tabProgressValue
@@ -552,16 +541,49 @@ function PlaybackAudioControls() {
               )}
             </p>
 
-            <ProgressSlider
-              disabled={disablePlayButton}
-              tabProgressValue={tabProgressValue}
-              setTabProgressValue={setTabProgressValue}
-              wasPlayingBeforeScrubbing={wasPlayingBeforeScrubbing}
-              setWasPlayingBeforeScrubbing={setWasPlayingBeforeScrubbing}
-              setArtificalPlayButtonTimeout={setArtificalPlayButtonTimeout}
-            />
+            <div className="baseFlex gap-4">
+              <Button
+                variant="playPause"
+                size={aboveLargeViewportWidth ? "default" : "sm"}
+                disabled={disablePlayButton}
+                onClick={() => {
+                  // TODO
+                }}
+                className="size-4 shrink-0 rounded-full bg-transparent p-0"
+              >
+                -5s
+              </Button>
+              <Button
+                variant="playPause"
+                size={aboveLargeViewportWidth ? "default" : "sm"}
+                disabled={disablePlayButton}
+                onClick={handlePlayButtonClick}
+                className="size-8 shrink-0 rounded-full bg-transparent p-0"
+              >
+                <PlayButtonIcon
+                  uniqueLocationKey="audioControls"
+                  tabId={id}
+                  currentInstrument={currentInstrument}
+                  audioMetadata={audioMetadata}
+                  recordedAudioBuffer={recordedAudioBuffer}
+                  forceShowLoadingSpinner={fetchingFullTabData}
+                  showCountInTimer={countInTimer.showing}
+                />
+              </Button>
+              <Button
+                variant="playPause"
+                size={aboveLargeViewportWidth ? "default" : "sm"}
+                disabled={disablePlayButton}
+                onClick={() => {
+                  // TODO
+                }}
+                className="size-4 shrink-0 rounded-full bg-transparent p-0"
+              >
+                +5s
+              </Button>
+            </div>
 
-            <p>
+            <p className="self-start">
               {formatSecondsToMinutes(
                 audioMetadata.type === "Artist recording"
                   ? recordedAudioBuffer?.duration
