@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { AudioMetadata, useTabStore } from "~/stores/TabStore";
+import { type AudioMetadata, useTabStore } from "~/stores/TabStore";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 function PlaybackDialog() {
@@ -63,6 +63,9 @@ function PlaybackDialog() {
     }[]
   >([]);
 
+  // ideally don't need this state and compute directly in the getFullVisibleChordIndices function, but initial attempts didn't work out
+  const [loopIndex, setLoopIndex] = useState(1);
+
   const [realChordsToFullChordsMap, setRealChordsToFullChordsMap] = useState<{
     [key: number]: number;
   }>({});
@@ -73,6 +76,25 @@ function PlaybackDialog() {
   const [scrollContainerWidth, setScrollContainerWidth] = useState(0);
   const [showPseudoChords, setShowPseudoChords] = useState(true);
   const [visibleContainerWidth, setVisibleContainerWidth] = useState(0);
+
+  useEffect(() => {
+    if (
+      looping &&
+      audioMetadata.playing &&
+      prevCurrentChordIndex !== 0 &&
+      currentChordIndex === 0
+    ) {
+      setLoopIndex(loopIndex + 1);
+    }
+
+    // need logic to reset/decrement when going backward...
+  }, [
+    looping,
+    loopIndex,
+    currentChordIndex,
+    prevCurrentChordIndex,
+    audioMetadata.playing,
+  ]);
 
   useEffect(() => {
     // this feels a bit like a bandaid fix
@@ -99,7 +121,6 @@ function PlaybackDialog() {
     return () => window.removeEventListener("resize", handleResize);
   }, [expandedTabData, showPlaybackDialog, containerElement, prevDimensions]);
 
-  // TODO: check over this logic
   useEffect(() => {
     if (
       currentChordIndex === prevCurrentChordIndex ||
@@ -107,23 +128,8 @@ function PlaybackDialog() {
     )
       return;
 
-    const prevFullChordIndex = realChordsToFullChordsMap[prevCurrentChordIndex];
-    const currentFullChordIndex = realChordsToFullChordsMap[currentChordIndex];
-
-    if (prevFullChordIndex === undefined || currentFullChordIndex === undefined)
-      return;
-
-    const prevScrollPosition =
-      fullScrollPositions[prevFullChordIndex]?.currentPosition ||
-      fullScrollPositions[prevFullChordIndex]?.originalPosition ||
-      0;
-    const currentScrollPosition =
-      fullScrollPositions[currentFullChordIndex]?.currentPosition ||
-      fullScrollPositions[currentFullChordIndex]?.originalPosition ||
-      0;
-
-    if (prevScrollPosition > currentScrollPosition) {
-      console.log("going left", prevScrollPosition, currentScrollPosition);
+    if (prevCurrentChordIndex > currentChordIndex && !audioMetadata.playing) {
+      console.log("going left", currentChordIndex, prevCurrentChordIndex);
 
       // asserting that it is safe/reasonably wanted to just clear all of the current positions
       // whenever the user scrolls left through the tab. the current positions will be recalculated
@@ -142,7 +148,7 @@ function PlaybackDialog() {
     prevCurrentChordIndex,
     currentChordIndex,
     fullScrollPositions,
-    realChordsToFullChordsMap,
+    audioMetadata.playing,
   ]);
 
   useEffect(() => {
@@ -255,10 +261,17 @@ function PlaybackDialog() {
     currentChordIndex,
     visibleContainerWidth,
     fullChordWidths,
-    buffer: 100, // TODO: what value should buffer be?
+    buffer: audioMetadata.playing ? 100 : 10000, // gets rid of slight rendering delay when quickly scrubbing through tab
     initialPlaceholderWidth,
     setFullScrollPositions,
   });
+
+  console.log(
+    expandedTabData?.length,
+    fullScrollPositions.length,
+    fullChordWidths.length,
+    fullVisibleChordIndices,
+  );
 
   function highlightChord(
     index: number,
@@ -275,6 +288,24 @@ function PlaybackDialog() {
       !playbackMetadata[index]
     )
       return false;
+
+    // TODO: below logic is not correct, but I think that it is a decent starting point
+
+    const adjScrollPositionIndex = index; //realChordsToFullChordsMap[index] || 0; // prob adjust this later, feels jank
+
+    const scrollPosition =
+      fullScrollPositions[adjScrollPositionIndex]?.currentPosition ||
+      fullScrollPositions[adjScrollPositionIndex]?.originalPosition;
+    const startPositionOfEntireTabLoop =
+      scrollContainerWidth * (loopIndex > 1 ? 2 : 1);
+
+    if (
+      scrollPosition === undefined ||
+      scrollPosition > startPositionOfEntireTabLoop
+    ) {
+      console.log(scrollPosition, startPositionOfEntireTabLoop);
+      return false;
+    }
 
     const {
       sectionIndex: currSectionIndex,
