@@ -379,12 +379,6 @@ function PlaybackAudioControls() {
     currentlyPlayingMetadata,
   ]);
 
-  // probably need two entirely different jsx returns below,
-  // one for landscape mobile (horizontal layout)
-  // and one for everything else (stacked vertical layout)
-  // I believe this still just encompasses the play/pause button and the progress slider
-  // alongside the +/- 5s buttons for non-landscape mobile view
-
   return (
     <>
       {viewportLabel === "mobileLandscape" && (
@@ -519,7 +513,7 @@ function PlaybackAudioControls() {
       )}
 
       {viewportLabel !== "mobileLandscape" && (
-        <div className="baseVertFlex w-full max-w-[90vw] gap-2 tablet:max-w-2xl">
+        <div className="baseVertFlex w-full max-w-[90vw] gap-2 sm:max-w-xl">
           <ProgressSlider
             disabled={disablePlayButton}
             tabProgressValue={tabProgressValue}

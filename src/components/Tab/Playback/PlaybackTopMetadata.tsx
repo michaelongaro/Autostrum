@@ -108,94 +108,97 @@ function PlaybackTopMetadata({
           </div>
         </div>
       ) : (
-        <div className="baseVertFlex mt-4 w-full !items-start gap-2 px-4 sm:!flex-row sm:!items-end sm:!justify-between">
-          {/* title + auto tuner button */}
-          <div className="baseVertFlex !items-start gap-2">
-            <div className="baseFlex gap-4">
-              <p className="text-xl font-bold text-white tablet:text-2xl">
-                {title}
-              </p>
-
-              <Separator className="h-4 w-[1px]" />
-
-              <div className="baseFlex gap-1 text-nowrap">
-                {getDynamicNoteLengthIcon(
-                  playbackMetadata[currentChordIndex]?.noteLength ?? "1/4th",
-                )}
-                {playbackMetadata[currentChordIndex]?.bpm ?? "120"} BPM
-              </div>
-            </div>
-
-            <div className="baseFlex gap-4">
-              <div className="baseVertFlex !items-start">
-                <p className="text-sm font-medium">Tuning</p>
-                <p>{toString(parse(tuning), { pad: 0 })}</p>
+        <div className="baseFlex mt-4 w-full !items-end !justify-between gap-2 px-4">
+          <div className="baseVertFlex w-full !items-start gap-2">
+            {/* title + auto tuner button */}
+            <div className="baseVertFlex !items-start gap-2">
+              <div className="baseFlex gap-4">
+                <p className="text-xl font-bold text-white tablet:text-2xl">
+                  {title}
+                </p>
               </div>
 
-              <div className="baseVertFlex !items-start">
-                <p className="text-sm font-medium">Capo</p>
-                {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
-              </div>
+              <div className="baseFlex gap-4">
+                <div className="baseVertFlex !items-start">
+                  <p className="text-sm font-medium">Tempo</p>
+                  {getDynamicNoteLengthIcon(
+                    playbackMetadata[currentChordIndex]?.noteLength ?? "1/4th",
+                  )}
+                  {playbackMetadata[currentChordIndex]?.bpm ?? "120"} BPM
+                </div>
+                <div className="baseVertFlex !items-start">
+                  <p className="text-sm font-medium">Tuning</p>
+                  <p>{toString(parse(tuning), { pad: 0 })}</p>
+                </div>
 
-              <Button variant={"outline"} className="size-9 !p-0">
-                <TuningFork className="size-4 fill-white" />
-              </Button>
-              <Button
+                <div className="baseVertFlex !items-start">
+                  <p className="text-sm font-medium">Capo</p>
+                  {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
+                </div>
+
+                <Button
+                  variant={"outline"}
+                  className="baseFlex h-9 gap-2 !py-0"
+                >
+                  <TuningFork className="size-4 fill-white" />
+                  Tuner
+                </Button>
+                {/* <Button
                 variant={"outline"}
                 className="size-9 !p-0"
                 onClick={() => setShowEffectGlossaryModal(true)}
               >
                 <FaBook className="h-4 w-4" />
-              </Button>
+              </Button> */}
+              </div>
             </div>
-          </div>
 
-          {/* section <Select> + current bpm (+ repeats?) */}
-          <div className="baseFlex gap-2">
-            <p className="text-sm font-medium">Section</p>
-            <Select
-              // this is jank, need to fix logic
-              value={title === "" ? undefined : title}
-              onValueChange={(value) => {
-                setAudioMetadata({
-                  ...audioMetadata,
-                  location:
-                    value === "fullSong"
-                      ? null
-                      : {
-                          sectionIndex: parseInt(value),
-                        },
-                });
-              }}
-            >
-              <SelectTrigger className="!h-8 max-w-28 sm:max-w-none">
-                <SelectValue placeholder="Select a section">
-                  {audioMetadata.location === null
-                    ? "Full song"
-                    : (sectionProgression[
-                        playbackMetadata[index]?.location.sectionIndex ?? 0
-                      ]?.title ?? "")}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup className="max-h-60 overflow-y-auto">
-                  <SelectLabel>Sections</SelectLabel>
+            {/* <div className="baseFlex gap-2">
+              <p className="text-sm font-medium">Section</p>
+              <Select
+                // this is jank, need to fix logic
+                value={title === "" ? undefined : title}
+                onValueChange={(value) => {
+                  setAudioMetadata({
+                    ...audioMetadata,
+                    location:
+                      value === "fullSong"
+                        ? null
+                        : {
+                            sectionIndex: parseInt(value),
+                          },
+                  });
+                }}
+              >
+                <SelectTrigger className="!h-8 max-w-28 sm:max-w-none">
+                  <SelectValue placeholder="Select a section">
+                    {audioMetadata.location === null
+                      ? "Full song"
+                      : (sectionProgression[
+                          playbackMetadata[index]?.location.sectionIndex ?? 0
+                        ]?.title ?? "")}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup className="max-h-60 overflow-y-auto">
+                    <SelectLabel>Sections</SelectLabel>
 
-                  <>
-                    <SelectItem key={"fullSong"} value={`fullSong`}>
-                      Full song
-                    </SelectItem>
-                    {sections.map((section, idx) => {
-                      return (
-                        <SelectItem key={`${section.id}`} value={`${idx}`}>
-                          {section.title}
-                        </SelectItem>
-                      );
-                    })}
-                  </>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+                    <>
+                      <SelectItem key={"fullSong"} value={`fullSong`}>
+                        Full song
+                      </SelectItem>
+                      {sections.map((section, idx) => {
+                        return (
+                          <SelectItem key={`${section.id}`} value={`${idx}`}>
+                            {section.title}
+                          </SelectItem>
+                        );
+                      })}
+                    </>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div> */}
           </div>
 
           {!viewportLabel.includes("mobile") && (
@@ -255,11 +258,16 @@ function Menu({ selectedTab, setSelectedTab }: Menu) {
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
 
   return (
-    <div className="baseVertFlex size-full max-h-dvh max-w-none !justify-start !rounded-none bg-black">
+    <div className="baseVertFlex max-h-dvh w-full max-w-none !justify-start rounded-full border-[1px] border-stone-400 bg-black py-1">
       <AnimatedTabs
         activeTabName={selectedTab}
         setActiveTabName={setSelectedTab as Dispatch<SetStateAction<string>>}
-        tabNames={["Section progression", "Chords", "Strumming patterns"]}
+        tabNames={[
+          "Practice",
+          "Section progression",
+          "Chords",
+          "Strumming patterns",
+        ]}
       />
 
       <AnimatePresence mode="popLayout">

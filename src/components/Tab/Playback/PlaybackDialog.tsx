@@ -346,7 +346,7 @@ function PlaybackDialog() {
       <DialogTrigger asChild>
         <Button variant="outline">Practice tab</Button>
       </DialogTrigger>
-      <DialogContent className="baseVertFlex h-dvh w-screen max-w-none !justify-between !rounded-none bg-black p-0 tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg">
+      <DialogContent className="baseVertFlex h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none bg-black p-0 tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg">
         <VisuallyHidden>
           <DialogTitle>Practice tab for {title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

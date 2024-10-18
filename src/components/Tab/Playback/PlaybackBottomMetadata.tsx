@@ -1,8 +1,17 @@
+import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import { type Dispatch, type SetStateAction, useMemo, useState } from "react";
-import { FaBook, FaListUl } from "react-icons/fa";
+import { CgArrowsShrinkH } from "react-icons/cg";
+import {
+  FaBook,
+  FaListUl,
+  FaVolumeDown,
+  FaVolumeMute,
+  FaVolumeUp,
+} from "react-icons/fa";
 import { HiOutlineInformationCircle } from "react-icons/hi";
 import { IoSettingsOutline } from "react-icons/io5";
+import { TiArrowLoop } from "react-icons/ti";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import Chord from "~/components/Tab/Chord";
 import StrummingPattern from "~/components/Tab/StrummingPattern";
@@ -27,6 +36,9 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Separator } from "~/components/ui/separator";
+import { Toggle } from "~/components/ui/toggle";
+import { VerticalSlider } from "~/components/ui/verticalSlider";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useTabStore } from "~/stores/TabStore";
 import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
@@ -165,7 +177,9 @@ function PlaybackBottomMetadata({
               <MobileMenuDialog />
             </div>
           ) : (
-            <div></div>
+            <div className="baseFlex w-full">
+              <Settings />
+            </div>
           )}
         </div>
       )}
@@ -710,5 +724,328 @@ function MobileMenuDialog() {
         </AnimatePresence>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function Settings() {
+  const {
+    id,
+    bpm,
+    hasRecordedAudio,
+    currentInstrumentName,
+    setCurrentInstrumentName,
+    playbackSpeed,
+    setPlaybackSpeed,
+    masterVolumeGainNode,
+    currentChordIndex,
+    setCurrentChordIndex,
+    currentlyPlayingMetadata,
+    audioMetadata,
+    setAudioMetadata,
+    previewMetadata,
+    currentInstrument,
+    tabData,
+    recordedAudioFile,
+    recordedAudioBuffer,
+    setRecordedAudioBuffer,
+    playTab,
+    playRecordedAudio,
+    pauseAudio,
+    looping,
+    fetchingFullTabData,
+    audioContext,
+    countInTimer,
+    setCountInTimer,
+    mobileHeaderModal,
+    setMobileHeaderModal,
+  } = useTabStore((state) => ({
+    id: state.id,
+    bpm: state.bpm,
+    hasRecordedAudio: state.hasRecordedAudio,
+    currentInstrumentName: state.currentInstrumentName,
+    setCurrentInstrumentName: state.setCurrentInstrumentName,
+    playbackSpeed: state.playbackSpeed,
+    setPlaybackSpeed: state.setPlaybackSpeed,
+    masterVolumeGainNode: state.masterVolumeGainNode,
+    currentChordIndex: state.currentChordIndex,
+    setCurrentChordIndex: state.setCurrentChordIndex,
+    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
+    audioMetadata: state.audioMetadata,
+    setAudioMetadata: state.setAudioMetadata,
+    previewMetadata: state.previewMetadata,
+    currentInstrument: state.currentInstrument,
+    tabData: state.tabData,
+    recordedAudioFile: state.recordedAudioFile,
+    recordedAudioBuffer: state.recordedAudioBuffer,
+    setRecordedAudioBuffer: state.setRecordedAudioBuffer,
+    playTab: state.playTab,
+    playRecordedAudio: state.playRecordedAudio,
+    pauseAudio: state.pauseAudio,
+    looping: state.looping,
+    fetchingFullTabData: state.fetchingFullTabData,
+    audioContext: state.audioContext,
+    countInTimer: state.countInTimer,
+    setCountInTimer: state.setCountInTimer,
+    mobileHeaderModal: state.mobileHeaderModal,
+    setMobileHeaderModal: state.setMobileHeaderModal,
+  }));
+
+  // TODO: do we need to make this a zustand state or shared in some way?
+  const [tabProgressValue, setTabProgressValue] = useState(0);
+
+  const volume = useGetLocalStorageValues().volume;
+  const localStorageVolume = useLocalStorageValue("autostrumVolume");
+  const localStorageLooping = useLocalStorageValue("autostrumLooping");
+
+  return (
+    <div className="baseFlex w-full !items-end gap-4">
+      <div className="baseVertFlex !items-start gap-2">
+        <Label>Source</Label>
+        <Select
+          value={audioMetadata.type}
+          disabled={countInTimer.showing || audioMetadata.editingLoopRange}
+          onValueChange={(value) => {
+            if (value !== audioMetadata.type) {
+              //  resetAudioStateOnSourceChange(
+              //    value as "Generated" | "Artist recording",
+              //  );
+            }
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Audio source</SelectLabel>
+
+              <SelectItem value={"Generated"}>Generated</SelectItem>
+
+              <SelectItem
+                value={"Artist recording"}
+                disabled={!hasRecordedAudio}
+              >
+                Artist recording
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="baseVertFlex !items-start gap-2">
+        <Label>Instrument</Label>
+        <Select
+          disabled={
+            audioMetadata.type === "Artist recording" ||
+            countInTimer.showing ||
+            audioMetadata.editingLoopRange
+          }
+          value={currentInstrumentName}
+          onValueChange={(value) => {
+            pauseAudio();
+
+            setCurrentInstrumentName(
+              value as
+                | "acoustic_guitar_nylon"
+                | "acoustic_guitar_steel"
+                | "electric_guitar_clean"
+                | "electric_guitar_jazz"
+                | "acoustic_grand_piano"
+                | "electric_grand_piano",
+            );
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Instruments</SelectLabel>
+
+              <SelectItem value={"acoustic_guitar_nylon"}>
+                Acoustic guitar - Nylon
+              </SelectItem>
+
+              <SelectItem value={"acoustic_guitar_steel"}>
+                Acoustic guitar - Steel
+              </SelectItem>
+
+              <SelectItem value={"electric_guitar_clean"}>
+                Electric guitar - Clean
+              </SelectItem>
+
+              <SelectItem value={"electric_guitar_jazz"}>
+                Electric guitar - Jazz
+              </SelectItem>
+
+              <SelectItem value={"acoustic_grand_piano"}>
+                Acoustic grand piano
+              </SelectItem>
+
+              <SelectItem value={"electric_grand_piano"}>
+                Electric grand piano
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="baseVertFlex !items-start gap-2">
+        <Label>Speed</Label>
+        <Select
+          disabled={
+            audioMetadata.type === "Artist recording" ||
+            countInTimer.showing ||
+            audioMetadata.editingLoopRange
+          }
+          value={`${playbackSpeed}x`}
+          onValueChange={(value) => {
+            pauseAudio();
+
+            const newPlaybackSpeed = Number(
+              value.slice(0, value.length - 1),
+            ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
+
+            // Normalize the progress value to 1x speed
+            const normalizedProgress = tabProgressValue * playbackSpeed;
+
+            // Adjust the progress value to the new playback speed
+            const adjustedProgress = normalizedProgress / newPlaybackSpeed;
+
+            // Set the new progress value
+            setTabProgressValue(adjustedProgress);
+            setPlaybackSpeed(newPlaybackSpeed);
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Speed</SelectLabel>
+              <SelectItem value={"0.25x"}>0.25x</SelectItem>
+              <SelectItem value={"0.5x"}>0.5x</SelectItem>
+              <SelectItem value={"0.75x"}>0.75x</SelectItem>
+              <SelectItem value={"1x"}>1x</SelectItem>
+              <SelectItem value={"1.25x"}>1.25x</SelectItem>
+              <SelectItem value={"1.5x"}>1.5x</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="baseVertFlex !items-start gap-2">
+        <Label>Loop delay</Label>
+        <Select
+          disabled={
+            audioMetadata.type === "Artist recording" || countInTimer.showing
+          }
+          // onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
+          value={currentInstrumentName}
+          onValueChange={(value) => {
+            pauseAudio();
+
+            setCurrentInstrumentName(
+              value as
+                | "acoustic_guitar_nylon"
+                | "acoustic_guitar_steel"
+                | "electric_guitar_clean"
+                | "electric_guitar_jazz",
+            );
+          }}
+        >
+          <SelectTrigger className="max-w-[10rem] border-ring">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Loop delay</SelectLabel>
+
+              <SelectItem value={"0 seconds"}>0 seconds</SelectItem>
+
+              <SelectItem value={"1 second"}>1 second</SelectItem>
+
+              <SelectItem value={"2 seconds"}>2 seconds</SelectItem>
+
+              <SelectItem value={"3 seconds"}>3 seconds</SelectItem>
+
+              <SelectItem value={"4 seconds"}>4 seconds</SelectItem>
+
+              <SelectItem value={"5 seconds"}>5 seconds</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Toggle
+        variant={"outline"}
+        aria-label="Loop toggle"
+        disabled={audioMetadata.playing || countInTimer.showing}
+        pressed={looping}
+        className="size-9 p-1"
+        onPressedChange={(value) => {
+          setAudioMetadata({
+            ...audioMetadata,
+            startLoopIndex: 0,
+            endLoopIndex: -1,
+            editingLoopRange: false,
+          });
+
+          localStorageLooping.set(String(value));
+        }}
+      >
+        <TiArrowLoop className="h-6 w-6" />
+      </Toggle>
+
+      <Toggle
+        variant={"outline"}
+        aria-label="Edit looping range"
+        disabled={
+          !looping ||
+          audioMetadata.type === "Artist recording" ||
+          audioMetadata.playing ||
+          countInTimer.showing
+        }
+        pressed={audioMetadata.editingLoopRange}
+        className="size-9 p-1"
+        onPressedChange={(value) =>
+          setAudioMetadata({
+            ...audioMetadata,
+            editingLoopRange: value,
+          })
+        }
+      >
+        <CgArrowsShrinkH className="h-6 w-6" />
+      </Toggle>
+
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="size-9 !p-0">
+            {volume === 0 ? (
+              <FaVolumeMute className="h-5 w-5" />
+            ) : volume < 1 ? (
+              <FaVolumeDown className="h-5 w-5" />
+            ) : (
+              <FaVolumeUp className="h-5 w-5" />
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="baseVertFlex h-36 w-12 !flex-nowrap gap-2 p-2"
+          side="top"
+        >
+          <VerticalSlider
+            value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
+            min={0}
+            max={100}
+            step={1}
+            onValueChange={(value) =>
+              localStorageVolume.set(`${value[0]! / 50}`)
+            } // 100 felt too quiet/narrow of a volume range
+          ></VerticalSlider>
+          <p>{Math.floor(volume * 50)}%</p>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }
