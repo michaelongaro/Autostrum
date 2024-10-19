@@ -294,8 +294,7 @@ function PlaybackDialog() {
     const scrollPosition =
       fullScrollPositions[adjScrollPositionIndex]?.currentPosition ||
       fullScrollPositions[adjScrollPositionIndex]?.originalPosition;
-    const startPositionOfEntireTabLoop =
-      scrollContainerWidth * (loopIndex > 1 ? 2 : 1);
+    const startPositionOfEntireTabLoop = scrollContainerWidth * loopIndex;
 
     if (
       scrollPosition === undefined ||
@@ -675,9 +674,7 @@ const getFullVisibleChordIndices = ({
   // const endIndex = binarySearchEnd(adjustedScrollPositions, rangeEnd);
 
   // for (let i = startIndex; i <= endIndex; i++) {
-
-  let offsetStartIndex = 0;
-  let lastScrollPosition = 0;
+  const chordIndicesBeforeRangeStart = [];
 
   for (let i = 0; i < adjustedScrollPositions.length; i++) {
     const itemStart = adjustedScrollPositions[i] || 0;
@@ -686,30 +683,10 @@ const getFullVisibleChordIndices = ({
 
     // Ensure the item is within the visible range
     if (itemEnd > rangeStart && itemStart < rangeEnd) {
-      const currentPosition = fullScrollPositions[i]?.currentPosition;
-
-      // This is for the cases where you start off with indices 0-5 that
-      // are part of the "next" loop, and then come up to the last few indices of the
-      // current loop. You will then need to rearrange fullVisibleIndices to start off at
-      // the offsetStartIndex until the end of the array, and then push on the indices from
-      // the beginning of the array until the offsetStartIndex. so everything stays in order.
-      if (
-        typeof currentPosition === "number" &&
-        currentPosition < lastScrollPosition
-      ) {
-        offsetStartIndex = i;
-      }
-
       fullVisibleIndices.push(i);
+    } else if (itemEnd < rangeStart) {
+      chordIndicesBeforeRangeStart.push(i);
     }
-  }
-
-  // modify fullVisibleIndices to account for the offsetStartIndex (if needed)
-  if (offsetStartIndex > 0) {
-    const firstHalf = fullVisibleIndices.slice(offsetStartIndex);
-    const secondHalf = fullVisibleIndices.slice(0, offsetStartIndex);
-
-    fullVisibleIndices = [...firstHalf, ...secondHalf];
   }
 
   let fullScrollPositionsWasUpdated = false;
@@ -729,16 +706,15 @@ const getFullVisibleChordIndices = ({
     }
   }
 
-  for (let i = 0; i < (fullVisibleIndices[0] || 0); i++) {
-    if (fullScrollPositions[i]?.currentPosition === null) {
-      const chordWidth = fullChordWidths[i] || 0;
+  // adjusting currentPosition of chords that are before the visible range
+  for (const chordIndex of chordIndicesBeforeRangeStart) {
+    const chordWidth = fullChordWidths[chordIndex] || 0;
 
-      fullScrollPositions[i]!.currentPosition =
-        largestScrollPosition + chordWidth;
+    fullScrollPositions[chordIndex]!.currentPosition =
+      largestScrollPosition + chordWidth;
 
-      largestScrollPosition += chordWidth;
-      fullScrollPositionsWasUpdated = true;
-    }
+    largestScrollPosition += chordWidth;
+    fullScrollPositionsWasUpdated = true;
   }
 
   if (fullScrollPositionsWasUpdated) {
