@@ -104,9 +104,15 @@ function PlaybackTabChord({
                       }}
                       className="baseVertFlex absolute left-1/2 right-1/2 top-2 w-[1.5rem] -translate-x-1/2"
                     >
-                      {(columnData[8] === "1/8th" ||
-                        columnData[8] === "1/16th") &&
-                        getDynamicNoteLengthIcon(columnData[8], true)}
+                      {/* TODO: probably keep columnData[8] to be "1/4th", "1/8th", "1/16th" like regular
+                          tab data during compilation process instead of 1, 0.5, 0.25 for consistency */}
+                      {columnData[9] !== "1" && (
+                        <div>
+                          {getDynamicNoteLengthIcon(
+                            columnData[9] === "0.5" ? "1/8th" : "1/16th",
+                          )}
+                        </div>
+                      )}
                       {columnData[7]?.includes("^") && (
                         <div className="relative top-1 rotate-180">v</div>
                       )}
