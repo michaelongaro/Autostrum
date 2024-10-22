@@ -33,9 +33,10 @@ function useAutoscrollToCurrentChord({
 
   useEffect(() => {
     if (
+      // potential complications w/ short (aka repeated) tab data while in playback dialog
+      !editing ||
       // don't want to scroll to first chord when first loading tab
       (previousChordYScrollValue === -1 && currentChordIndex === 0) ||
-      (editing && !audioMetadata.playing) ||
       !currentlyPlayingMetadata ||
       !autoscrollEnabled ||
       currentChordIndex === currentlyPlayingMetadata.length - 1 // always are going to be scrolling to the next chord (for better ux)
