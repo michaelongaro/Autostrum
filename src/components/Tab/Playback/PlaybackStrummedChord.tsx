@@ -91,7 +91,7 @@ function PlaybackStrummedChord({
             borderTop: "2px solid rgb(253 242 248)",
             borderBottom: "2px solid rgb(253 242 248)",
           }}
-          className="baseVertFlex playbackElem relative h-[168px] w-[36px] pb-4"
+          className="baseVertFlex playbackElem relative h-[168px] w-[40px] pb-4"
         >
           {bpmToShow && (
             <div className="baseFlex absolute left-2 top-[5px] gap-1 text-nowrap">
