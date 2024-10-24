@@ -22,11 +22,8 @@ interface ExpandFullTab {
   baselineBpm: number;
   playbackSpeed: number;
   setPlaybackMetadata: (playbackMetadata: PlaybackMetadata[] | null) => void;
-  // startLoopIndex: number;
-  // endLoopIndex: number;
-  // atomicallyUpdateAudioMetadata?: (
-  //   updatedFields: Partial<AudioMetadata>,
-  // ) => void;
+  startLoopIndex: number;
+  endLoopIndex: number;
 }
 
 function expandFullTab({
@@ -36,13 +33,14 @@ function expandFullTab({
   baselineBpm,
   playbackSpeed,
   setPlaybackMetadata,
-  // startLoopIndex,
-  // endLoopIndex,
-  // atomicallyUpdateAudioMetadata,
+  startLoopIndex,
+  endLoopIndex,
 }: ExpandFullTab) {
   const compiledChords: (PlaybackTabChord | PlaybackStrummedChord)[] = [];
   const metadata: PlaybackMetadata[] = [];
   const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues
+
+  console.log("start", startLoopIndex, "end", endLoopIndex);
 
   for (
     let sectionProgressionIndex = 0;
@@ -80,28 +78,19 @@ function expandFullTab({
     }
   }
 
-  // // hacky: but is used incase the slice returns an empty array, which we couldn't then access
-  // // the last element in metadataMappedToLoopRange below for.
-  // const backupFirstChordMetadata = metadata[startLoopIndex];
+  // hacky: but is used incase the slice returns an empty array, which we couldn't then access
+  // the last element in metadataMappedToLoopRange below for.
+  const backupFirstChordMetadata = metadata[startLoopIndex];
 
-  // // +1 to account for ghost chord that's added below
-  // if (atomicallyUpdateAudioMetadata) {
-  //   console.log("og here");
+  const compiledChordsMappedToLoopRange = compiledChords.slice(
+    startLoopIndex,
+    endLoopIndex === -1 ? compiledChords.length : endLoopIndex,
+  );
 
-  //   atomicallyUpdateAudioMetadata({
-  //     fullCurrentlyPlayingMetadataLength: metadata.length + 1,
-  //   });
-  // }
-
-  // const compiledChordsMappedToLoopRange = compiledChords.slice(
-  //   startLoopIndex,
-  //   endLoopIndex === -1 ? compiledChords.length : endLoopIndex,
-  // );
-
-  // const metadataMappedToLoopRange = metadata.slice(
-  //   startLoopIndex,
-  //   endLoopIndex === -1 ? metadata.length : endLoopIndex,
-  // );
+  const metadataMappedToLoopRange = metadata.slice(
+    startLoopIndex,
+    endLoopIndex === -1 ? metadata.length : endLoopIndex,
+  );
 
   // let ghostChordIndex = 0;
 
@@ -121,8 +110,8 @@ function expandFullTab({
 
   // const lastActualChord = metadataMappedToLoopRange.at(-1)!;
 
-  // // conditionally adding fake chord + metadata to align the audio controls slider with the visual progress indicator
-  // // really absolutely *hate* this solution, but technically it should work.
+  // conditionally adding fake chord + metadata to align the audio controls slider with the visual
+  // progress indicator, really absolutely *hate* this solution, but technically it should work.
   // if (metadataMappedToLoopRange.length > 0 && lastActualChord) {
   //   metadataMappedToLoopRange.push({
   //     location: {
@@ -131,6 +120,7 @@ function expandFullTab({
   //     },
   //     bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
   //     noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
+  //     noteLength: lastActualChord.noteLength,
   //     elapsedSeconds: Math.ceil(
   //       lastActualChord.elapsedSeconds +
   //         60 /
@@ -144,22 +134,25 @@ function expandFullTab({
   //   compiledChordsMappedToLoopRange.push([]);
   // }
 
-  // if (metadataMappedToLoopRange.length === 0) {
-  //   metadataMappedToLoopRange.push(backupFirstChordMetadata!);
-  // }
+  if (metadataMappedToLoopRange.length === 0) {
+    metadataMappedToLoopRange.push(backupFirstChordMetadata!);
+  }
 
-  // // scaling the elapsedSeconds to start at 0 no matter the startLoopIndex
-  // const secondsToSubtract = metadataMappedToLoopRange[0]?.elapsedSeconds ?? 0;
+  // scaling the elapsedSeconds to start at 0 no matter the startLoopIndex
+  const secondsToSubtract = metadataMappedToLoopRange[0]?.elapsedSeconds ?? 0;
 
-  // for (let i = 0; i < metadataMappedToLoopRange.length; i++) {
-  //   metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
-  // }
+  for (let i = 0; i < metadataMappedToLoopRange.length; i++) {
+    metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
+  }
 
-  // setCurrentlyPlayingMetadata(metadataMappedToLoopRange);
+  console.log(
+    metadataMappedToLoopRange.length,
+    compiledChordsMappedToLoopRange.length,
+  );
 
-  setPlaybackMetadata(metadata);
+  setPlaybackMetadata(metadataMappedToLoopRange);
 
-  return compiledChords;
+  return compiledChordsMappedToLoopRange;
 }
 
 interface CompileSection {

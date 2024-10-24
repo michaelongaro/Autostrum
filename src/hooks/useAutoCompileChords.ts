@@ -137,8 +137,8 @@ function useAutoCompileChords() {
           baselineBpm: bpm,
           playbackSpeed,
           setPlaybackMetadata,
-          // startLoopIndex: audioMetadata.startLoopIndex,
-          // endLoopIndex: audioMetadata.endLoopIndex,
+          startLoopIndex: audioMetadata.startLoopIndex,
+          endLoopIndex: audioMetadata.endLoopIndex,
         });
 
         setExpandedTabData(expandedTabData);

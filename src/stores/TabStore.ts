@@ -746,6 +746,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           currentInstrument,
           audioContext,
           masterVolumeGainNode,
+          currentlyPlayingMetadata,
           setCurrentlyPlayingMetadata,
         } = get();
 
@@ -808,6 +809,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           chordIndex < compiledChords.length;
           chordIndex++
         ) {
+          console.log(compiledChords.length, currentlyPlayingMetadata.length);
+
           set({
             currentChordIndex: chordIndex,
           });
