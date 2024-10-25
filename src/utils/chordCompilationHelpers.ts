@@ -76,12 +76,12 @@ interface CompileFullTab {
   baselineBpm: number;
   playbackSpeed: number;
   setCurrentlyPlayingMetadata: (
-    currentlyPlayingMetadata: Metadata[] | null
+    currentlyPlayingMetadata: Metadata[] | null,
   ) => void;
   startLoopIndex: number;
   endLoopIndex: number;
   atomicallyUpdateAudioMetadata?: (
-    updatedFields: Partial<AudioMetadata>
+    updatedFields: Partial<AudioMetadata>,
   ) => void;
 }
 
@@ -110,10 +110,10 @@ function compileFullTab({
   ) {
     const sectionIndex = getSectionIndexFromId(
       tabData,
-      sectionProgression[sectionProgressionIndex]!.sectionId
+      sectionProgression[sectionProgressionIndex]!.sectionId,
     );
     const sectionRepetitions = getRepetitions(
-      sectionProgression[sectionProgressionIndex]?.repetitions
+      sectionProgression[sectionProgressionIndex]?.repetitions,
     );
 
     for (
@@ -143,8 +143,7 @@ function compileFullTab({
 
   // +1 to account for ghost chord that's added below
   if (atomicallyUpdateAudioMetadata) {
-
-    console.log("og here")
+    console.log("og here");
 
     atomicallyUpdateAudioMetadata({
       fullCurrentlyPlayingMetadataLength: metadata.length + 1,
@@ -153,12 +152,12 @@ function compileFullTab({
 
   const compiledChordsMappedToLoopRange = compiledChords.slice(
     startLoopIndex,
-    endLoopIndex === -1 ? compiledChords.length : endLoopIndex
+    endLoopIndex === -1 ? compiledChords.length : endLoopIndex,
   );
 
   const metadataMappedToLoopRange = metadata.slice(
     startLoopIndex,
-    endLoopIndex === -1 ? metadata.length : endLoopIndex
+    endLoopIndex === -1 ? metadata.length : endLoopIndex,
   );
 
   let ghostChordIndex = 0;
@@ -195,7 +194,7 @@ function compileFullTab({
             ((Number(lastActualChord.bpm) /
               Number(lastActualChord.noteLengthMultiplier)) *
               playbackSpeed) +
-          1
+          1,
       ),
     });
 
@@ -229,12 +228,12 @@ interface CompileSpecificChordGrouping {
   baselineBpm: number;
   playbackSpeed: number;
   setCurrentlyPlayingMetadata: (
-    currentlyPlayingMetadata: Metadata[] | null
+    currentlyPlayingMetadata: Metadata[] | null,
   ) => void;
   startLoopIndex: number;
   endLoopIndex: number;
   atomicallyUpdateAudioMetadata?: (
-    updatedFields: Partial<AudioMetadata>
+    updatedFields: Partial<AudioMetadata>,
   ) => void;
 }
 
@@ -353,12 +352,12 @@ function compileSpecificChordGrouping({
 
   const compiledChordsMappedToLoopRange = compiledChords.slice(
     startLoopIndex,
-    endLoopIndex === -1 ? compiledChords.length : endLoopIndex
+    endLoopIndex === -1 ? compiledChords.length : endLoopIndex,
   );
 
   const metadataMappedToLoopRange = metadata.slice(
     startLoopIndex,
-    endLoopIndex === -1 ? metadata.length : endLoopIndex
+    endLoopIndex === -1 ? metadata.length : endLoopIndex,
   );
 
   let ghostChordIndex = 0;
@@ -395,7 +394,7 @@ function compileSpecificChordGrouping({
             ((Number(lastActualChord.bpm) /
               Number(lastActualChord.noteLengthMultiplier)) *
               playbackSpeed) +
-          1
+          1,
       ),
     });
 
@@ -652,7 +651,7 @@ function compileChordSequence({
       const chordBpm = getBpmForChord(
         chordSequence.bpm,
         baselineBpm,
-        subSectionBpm
+        subSectionBpm,
       );
 
       let noteLengthMultiplier = "1";
@@ -692,7 +691,7 @@ function compileChordSequence({
           chords,
           stringifiedBpm: chordBpm,
           noteLengthMultiplier,
-        })
+        }),
       );
     }
   }
@@ -737,7 +736,7 @@ function compileStrummingPatternPreview({
         ],
         stringifiedBpm: "75",
         noteLengthMultiplier,
-      })
+      }),
     );
   }
 

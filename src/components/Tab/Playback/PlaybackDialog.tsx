@@ -38,6 +38,8 @@ function PlaybackDialog() {
     title,
     looping,
     description,
+    visiblePlaybackContainerWidth,
+    setVisiblePlaybackContainerWidth,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
@@ -52,11 +54,15 @@ function PlaybackDialog() {
     title: state.title,
     looping: state.looping,
     description: state.description,
+    visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
+    setVisiblePlaybackContainerWidth: state.setVisiblePlaybackContainerWidth,
   }));
 
   const containerRef = (element: HTMLDivElement | null) => {
     if (element && !containerElement) setContainerElement(element);
   };
+  const dialogContentRef = useRef<HTMLDivElement | null>(null);
+
   const [containerElement, setContainerElement] =
     useState<HTMLDivElement | null>(null);
   const [prevDimensions, setPrevDimensions] = useState<DOMRect | null>(null);
@@ -95,7 +101,6 @@ function PlaybackDialog() {
   }>({});
 
   const [scrollContainerWidth, setScrollContainerWidth] = useState(0);
-  const [visibleContainerWidth, setVisibleContainerWidth] = useState(0);
 
   // gates computation of chord widths + positions + duplication to only when
   // expandedTabData has changed or looping has changed
@@ -175,26 +180,32 @@ function PlaybackDialog() {
     // this feels a bit like a bandaid fix
     function handleResize() {
       if (
-        expandedTabData === null ||
-        containerElement === null ||
-        containerElement.clientWidth === 0 ||
-        containerElement.clientHeight === 0 ||
-        (prevDimensions?.width === containerElement.clientWidth &&
-          prevDimensions?.height === containerElement.clientHeight)
+        dialogContentRef.current === null ||
+        dialogContentRef.current.clientWidth === 0 ||
+        dialogContentRef.current.clientHeight === 0
+        // ||
+        // (prevDimensions?.width === dialogContentRef.current.clientWidth &&
+        //   prevDimensions?.height === dialogContentRef.current.clientHeight)
       ) {
         return;
       }
 
-      setInitialPlaceholderWidth(containerElement.clientWidth / 2 - 5);
-      setVisibleContainerWidth(containerElement.clientWidth);
-      setPrevDimensions(containerElement.getBoundingClientRect());
+      setInitialPlaceholderWidth(dialogContentRef.current.clientWidth / 2 - 5);
+      setVisiblePlaybackContainerWidth(dialogContentRef.current.clientWidth);
+      // setPrevDimensions(dialogContentRef.current.getBoundingClientRect());
     }
 
     handleResize();
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [expandedTabData, showPlaybackDialog, containerElement, prevDimensions]);
+  }, [
+    expandedTabData,
+    showPlaybackDialog,
+    containerElement,
+    // prevDimensions,
+    setVisiblePlaybackContainerWidth,
+  ]);
 
   // split this into separate effect to reduce scope
   useEffect(() => {
@@ -245,12 +256,10 @@ function PlaybackDialog() {
       !containerElement ||
       !expandedTabData ||
       !playbackMetadata ||
-      visibleContainerWidth === 0 ||
+      visiblePlaybackContainerWidth === 0 ||
       expandedTabData.length === 0
     )
       return;
-
-    console.log("running because", expandedTabDataHasChanged, "is true");
 
     const chordElems = new Array(expandedTabData.length).fill(0);
 
@@ -336,50 +345,6 @@ function PlaybackDialog() {
         originalPosition: lastScrollPosition + finalElementWidth,
         currentPosition: null,
       });
-    } else {
-      const originalChordDurations = [...durations];
-      const originalPlaybackMetadata = structuredClone(playbackMetadata); // can maybe just use the local one above
-
-      const originalScrollContainerWidth = scrollContainerWidth;
-      const originalRCtoFCMap = { ...realChordsToFullChordsMap };
-      // const originalFCtoRCMap = { ...fullChordsToRealChordsMap }; // necessary?
-
-      let loopIndex = 1;
-
-      while (scrollContainerWidth < visibleContainerWidth) {
-        chordElems.forEach((_, index) => {
-          const originalPosition =
-            scrollContainerWidth +
-            (fullScrollPositions[index]?.originalPosition || 0);
-
-          // Push new scroll position and chord widths
-          fullScrollPositions.push({ originalPosition, currentPosition: null });
-          newChords.push(expandedTabData[index]!);
-          fullChordWidths.push(fullChordWidths[index] || 0);
-
-          // Update maps
-          const newFullIndex = fullScrollPositions.length - 1;
-
-          // Offset by the loopIndex to ensure new chords/chords mappings are incremented correctly
-          if (originalRCtoFCMap.hasOwnProperty(index)) {
-            // If the original index exists in the map, calculate the new positions for the duplicated chords
-            const newRealChordIndex =
-              index +
-              loopIndex *
-                (expandedTabData.length - domElementDifferentialCount); // Offset by loopIndex
-
-            realChordsToFullChordsMap[newRealChordIndex] = newFullIndex;
-            fullChordsToRealChordsMap[newFullIndex] = newRealChordIndex;
-          }
-        });
-
-        // duplicating the chord durations and playbackMetadata to match the new chords
-        newChordDurations.push(...originalChordDurations);
-        newPlaybackMetadata.push(...originalPlaybackMetadata);
-
-        scrollContainerWidth += originalScrollContainerWidth;
-        loopIndex++;
-      }
     }
 
     setExpandedTabDataHasChanged(false);
@@ -396,7 +361,7 @@ function PlaybackDialog() {
     // in react 19/next 15 though
   }, [
     containerElement,
-    visibleContainerWidth,
+    visiblePlaybackContainerWidth,
     expandedTabData,
     expandedTabDataHasChanged,
     chordDurations,
@@ -409,7 +374,7 @@ function PlaybackDialog() {
     fullScrollPositions,
     realChordsToFullChordsMap,
     currentChordIndex,
-    visibleContainerWidth,
+    visiblePlaybackContainerWidth,
     fullChordWidths,
     buffer: audioMetadata.playing ? 100 : 10000, // gets rid of slight rendering delay when quickly scrubbing through tab
     initialPlaceholderWidth,
@@ -417,19 +382,6 @@ function PlaybackDialog() {
     baselineNumberOfChords, //currentlyPlayingMetadata?.length || 0,
     setFullScrollPositions,
   });
-
-  console.log(
-    realChordsToFullChordsMap,
-    fullChordsToRealChordsMap,
-    fullChordWidths,
-    fullScrollPositions,
-    chordDurations,
-    localPlaybackMetadata,
-    // chords?.length,
-    // playbackMetadata?.length,
-    // localPlaybackMetadata?.length,
-    // chordDurations?.length,
-  );
 
   function highlightChord({
     chordIndex,
@@ -506,7 +458,10 @@ function PlaybackDialog() {
       <DialogTrigger asChild>
         <Button variant="outline">Practice tab</Button>
       </DialogTrigger>
-      <DialogContent className="baseVertFlex h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none bg-black p-0 tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg">
+      <DialogContent
+        ref={dialogContentRef}
+        className="baseVertFlex h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none bg-black p-0 tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
+      >
         <VisuallyHidden>
           <DialogTitle>Practice tab for {title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -517,27 +472,6 @@ function PlaybackDialog() {
           setSelectedTab={setSelectedTab}
           realChordsToFullChordsMap={realChordsToFullChordsMap}
         />
-
-        <div className="baseFlex gap-2">
-          <div>{currentLoopCounter}</div>
-          <div>{currentChordIndex}</div>
-          <div>{baselineNumberOfChords}</div>
-          <div>
-            {currentChordIndex + currentLoopCounter * baselineNumberOfChords}
-          </div>
-          <div>
-            {getScrollContainerTransform({
-              fullScrollPositions,
-              realChordsToFullChordsMap,
-              currentChordIndex:
-                currentChordIndex + currentLoopCounter * baselineNumberOfChords,
-              // (currentlyPlayingMetadata?.length || 0),
-              audioMetadata,
-            })}
-          </div>
-        </div>
-
-        {/* where does the 0 come from. it is  */}
 
         <AnimatePresence mode="popLayout">
           {selectedTab === "Practice" && (
@@ -734,7 +668,7 @@ const getFullVisibleChordIndices = ({
   fullScrollPositions: originalFullScrollPositions,
   realChordsToFullChordsMap,
   currentChordIndex,
-  visibleContainerWidth,
+  visiblePlaybackContainerWidth,
   fullChordWidths,
   buffer,
   initialPlaceholderWidth,
@@ -748,7 +682,7 @@ const getFullVisibleChordIndices = ({
   }[];
   realChordsToFullChordsMap: { [key: number]: number };
   currentChordIndex: number;
-  visibleContainerWidth: number;
+  visiblePlaybackContainerWidth: number;
   fullChordWidths: number[];
   buffer: number;
   initialPlaceholderWidth: number;
@@ -773,13 +707,6 @@ const getFullVisibleChordIndices = ({
       currentChordIndex + currentLoopCounter * baselineNumberOfChords
     ];
 
-  console.log(
-    "current chord",
-    currentChordIndex,
-    adjustedCurrentChordIndex,
-    baselineNumberOfChords,
-  );
-
   if (
     adjustedCurrentChordIndex === undefined ||
     fullScrollPositions[adjustedCurrentChordIndex] === undefined
@@ -800,8 +727,9 @@ const getFullVisibleChordIndices = ({
 
   // Start and end points of the visible range
   const rangeStart =
-    adjustedCurrentPosition - visibleContainerWidth / 2 - buffer;
-  const rangeEnd = adjustedCurrentPosition + visibleContainerWidth / 2 + buffer;
+    adjustedCurrentPosition - visiblePlaybackContainerWidth / 2 - buffer;
+  const rangeEnd =
+    adjustedCurrentPosition + visiblePlaybackContainerWidth / 2 + buffer;
 
   const chordIndicesBeforeRangeStart = [];
 
@@ -923,19 +851,6 @@ function getScrollContainerTransform({
 
   // needed to prevent index from going out of bounds when looping
   const clampedIndex = Math.min(index, fullScrollPositions.length - 1);
-
-  console.log(
-    "clamped index",
-    clampedIndex,
-    currentChordIndex,
-    index,
-    fullScrollPositions.length - 1,
-    realChordsToFullChordsMap[
-      currentChordIndex + (audioMetadata.playing ? 1 : 0)
-    ],
-    Object.keys(realChordsToFullChordsMap),
-    currentChordIndex + (audioMetadata.playing ? 1 : 0),
-  );
 
   // where is gap coming from, realToFull map should always always always
   // have 0 - whatever value as keys, with values jumping whenever they do but the keys

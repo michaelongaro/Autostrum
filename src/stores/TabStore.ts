@@ -12,6 +12,7 @@ import {
 } from "~/utils/chordCompilationHelpers";
 import { resetTabSliderPosition } from "~/utils/tabSliderHelpers";
 import { parse } from "~/utils/tunings";
+import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
@@ -434,6 +435,10 @@ interface TabState {
   ) => void;
   showPlaybackDialog: boolean;
   setShowPlaybackDialog: (showPlaybackDialog: boolean) => void;
+  visiblePlaybackContainerWidth: number;
+  setVisiblePlaybackContainerWidth: (
+    visiblePlaybackContainerWidth: number,
+  ) => void;
 
   // related to sound generation/playing
   audioContext: AudioContext | null;
@@ -681,6 +686,9 @@ export const useTabStore = createWithEqualityFn<TabState>()(
 
       playbackMetadata: null,
       setPlaybackMetadata: (playbackMetadata) => set({ playbackMetadata }),
+      visiblePlaybackContainerWidth: 0,
+      setVisiblePlaybackContainerWidth: (visiblePlaybackContainerWidth) =>
+        set({ visiblePlaybackContainerWidth }),
 
       currentInstrumentName: "acoustic_guitar_steel",
       setCurrentInstrumentName: (currentInstrumentName) =>
@@ -748,6 +756,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           masterVolumeGainNode,
           currentlyPlayingMetadata,
           setCurrentlyPlayingMetadata,
+          visiblePlaybackContainerWidth,
+          setPlaybackMetadata,
         } = get();
 
         if (!audioContext || !masterVolumeGainNode || !currentInstrument)
@@ -804,22 +814,61 @@ export const useTabStore = createWithEqualityFn<TabState>()(
               endLoopIndex: audioMetadata.endLoopIndex,
             });
 
+        const sanitizedSectionProgression =
+          sectionProgression.length > 0
+            ? sectionProgression
+            : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
+
+        // TODO: add support for specific sections
+        const expandedTabData = expandFullTab({
+          tabData,
+          sectionProgression: sanitizedSectionProgression,
+          chords,
+          baselineBpm,
+          playbackSpeed,
+          setPlaybackMetadata,
+          startLoopIndex: audioMetadata.startLoopIndex,
+          endLoopIndex: audioMetadata.endLoopIndex,
+          visiblePlaybackContainerWidth,
+        });
+
+        const repeatCount = compiledChords.length * expandedTabData.loopCounter;
+
+        console.log(
+          "max chord index is",
+          compiledChords.length,
+          expandedTabData.loopCounter,
+          compiledChords.length * expandedTabData.loopCounter,
+          visiblePlaybackContainerWidth,
+          repeatCount,
+        );
+
+        // TODO: OKAY so the currentChordIndex is going farther than it should go from what I can tell,
+        // but the general concept is working without any extra duplication or maps
+
         for (
           let chordIndex = currentChordIndex;
-          chordIndex < compiledChords.length;
+          chordIndex < repeatCount;
           chordIndex++
         ) {
-          console.log(compiledChords.length, currentlyPlayingMetadata.length);
+          const adjustedChordIndex = chordIndex % (compiledChords.length - 1);
 
           set({
             currentChordIndex: chordIndex,
           });
 
-          const thirdPrevColumn = compiledChords[chordIndex - 3];
-          const secondPrevColumn = compiledChords[chordIndex - 2];
-          const prevColumn = compiledChords[chordIndex - 1];
-          const currColumn = compiledChords[chordIndex];
-          const nextColumn = compiledChords[chordIndex + 1];
+          const thirdPrevColumn = compiledChords[adjustedChordIndex - 3];
+          const secondPrevColumn = compiledChords[adjustedChordIndex - 2];
+          const prevColumn = compiledChords[adjustedChordIndex - 1];
+          const currColumn = compiledChords[adjustedChordIndex];
+          const nextColumn = compiledChords[adjustedChordIndex + 1];
+
+          console.log(
+            "adjusedIndex",
+            adjustedChordIndex,
+            "currColumn",
+            currColumn,
+          );
 
           if (currColumn === undefined) continue;
 
@@ -827,7 +876,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           const alteredBpm =
             Number(currColumn[8]) * (1 / Number(currColumn[9])) * playbackSpeed;
 
-          if (chordIndex !== compiledChords.length - 1) {
+          if (chordIndex !== repeatCount - 1) {
             await playNoteColumn({
               tuning,
               capo: capo ?? 0,
@@ -856,7 +905,10 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           }
 
           // not 100% on moving this back to the top, but trying it out right now
-          if (chordIndex === compiledChords.length - 1) {
+          if (
+            chordIndex ===
+            compiledChords.length * expandedTabData.loopCounter - 1
+          ) {
             // if looping, reset the chordIndex to -1 so loop will start over
             if (looping && audioMetadata.playing) {
               resetTabSliderPosition();

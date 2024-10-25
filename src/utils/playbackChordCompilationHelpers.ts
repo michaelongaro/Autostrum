@@ -24,6 +24,7 @@ interface ExpandFullTab {
   setPlaybackMetadata: (playbackMetadata: PlaybackMetadata[] | null) => void;
   startLoopIndex: number;
   endLoopIndex: number;
+  visiblePlaybackContainerWidth: number;
 }
 
 function expandFullTab({
@@ -35,6 +36,7 @@ function expandFullTab({
   setPlaybackMetadata,
   startLoopIndex,
   endLoopIndex,
+  visiblePlaybackContainerWidth,
 }: ExpandFullTab) {
   const compiledChords: (PlaybackTabChord | PlaybackStrummedChord)[] = [];
   const metadata: PlaybackMetadata[] = [];
@@ -145,14 +147,52 @@ function expandFullTab({
     metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
   }
 
-  console.log(
-    metadataMappedToLoopRange.length,
-    compiledChordsMappedToLoopRange.length,
+  // getting overall width of the chords
+  const baselineTotalChordsWidth = compiledChordsMappedToLoopRange.reduce(
+    (acc, curr) => {
+      if (curr.type === "tab") {
+        if (curr.data.chordData.includes("|")) {
+          // measure line
+          return acc + 2;
+        } else if (curr.data.chordData[0] === "-1") {
+          // spacer chord
+          return acc + 16;
+        }
+
+        // regular chord
+        return acc + 35;
+      } else {
+        if (curr.data.strumIndex === -1) {
+          // spacer chord
+          return acc + 16;
+        }
+
+        // regular chord
+        return acc + 40;
+      }
+    },
+    0,
   );
+
+  let totalChordsWidth = baselineTotalChordsWidth;
+  const baselineCompiledChords = structuredClone(
+    compiledChordsMappedToLoopRange,
+  );
+  const baselineMetadata = structuredClone(metadataMappedToLoopRange);
+  let loopCounter = 1;
+
+  // duplicate the entire chords + metadata as many times as needed to fill up the visiblePlaybackContainerWidth
+  while (totalChordsWidth < visiblePlaybackContainerWidth) {
+    compiledChordsMappedToLoopRange.push(...baselineCompiledChords);
+    metadataMappedToLoopRange.push(...baselineMetadata);
+
+    totalChordsWidth += baselineTotalChordsWidth;
+    loopCounter++;
+  }
 
   setPlaybackMetadata(metadataMappedToLoopRange);
 
-  return compiledChordsMappedToLoopRange;
+  return { chords: compiledChordsMappedToLoopRange, loopCounter };
 }
 
 interface CompileSection {
