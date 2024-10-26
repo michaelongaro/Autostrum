@@ -507,17 +507,18 @@ function PlaybackDialog() {
                       transform: getScrollContainerTransform({
                         fullScrollPositions,
                         realChordsToFullChordsMap,
-                        currentChordIndex:
-                          currentChordIndex +
-                          currentLoopCounter * baselineNumberOfChords,
+                        currentChordIndex: currentChordIndex,
+                        // +
+                        // currentLoopCounter * baselineNumberOfChords,
                         // (currentlyPlayingMetadata?.length || 0),
                         audioMetadata,
                       }),
                       transition: `transform ${
                         audioMetadata.playing
                           ? chordDurations[
-                              currentChordIndex +
-                                currentLoopCounter * baselineNumberOfChords
+                              currentChordIndex
+                              // +
+                              // currentLoopCounter * baselineNumberOfChords
                               // (currentlyPlayingMetadata?.length || 0)
                             ] || 0
                           : !looping &&
@@ -704,14 +705,16 @@ const getFullVisibleChordIndices = ({
 
   const adjustedCurrentChordIndex =
     realChordsToFullChordsMap[
-      currentChordIndex + currentLoopCounter * baselineNumberOfChords
+      currentChordIndex
+      //  + currentLoopCounter * baselineNumberOfChords
     ];
 
   if (
     adjustedCurrentChordIndex === undefined ||
     fullScrollPositions[adjustedCurrentChordIndex] === undefined
-  )
+  ) {
     return [];
+  }
 
   let fullVisibleIndices = [];
 

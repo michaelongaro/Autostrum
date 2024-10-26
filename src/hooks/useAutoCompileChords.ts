@@ -52,8 +52,6 @@ function useAutoCompileChords() {
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
   }));
 
-  console.log(visiblePlaybackContainerWidth);
-
   useEffect(() => {
     if (audioMetadata.type === "Artist recording") return;
 

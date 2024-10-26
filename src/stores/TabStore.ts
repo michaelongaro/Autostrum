@@ -832,26 +832,16 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           visiblePlaybackContainerWidth,
         });
 
-        const repeatCount = compiledChords.length * expandedTabData.loopCounter;
-
-        console.log(
-          "max chord index is",
-          compiledChords.length,
-          expandedTabData.loopCounter,
-          compiledChords.length * expandedTabData.loopCounter,
-          visiblePlaybackContainerWidth,
-          repeatCount,
-        );
-
-        // TODO: OKAY so the currentChordIndex is going farther than it should go from what I can tell,
-        // but the general concept is working without any extra duplication or maps
+        const repeatCount =
+          (compiledChords.length - expandedTabData.ornamentalChordCount) *
+          expandedTabData.loopCounter;
 
         for (
           let chordIndex = currentChordIndex;
           chordIndex < repeatCount;
           chordIndex++
         ) {
-          const adjustedChordIndex = chordIndex % (compiledChords.length - 1);
+          const adjustedChordIndex = chordIndex % compiledChords.length;
 
           set({
             currentChordIndex: chordIndex,
@@ -862,13 +852,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           const prevColumn = compiledChords[adjustedChordIndex - 1];
           const currColumn = compiledChords[adjustedChordIndex];
           const nextColumn = compiledChords[adjustedChordIndex + 1];
-
-          console.log(
-            "adjusedIndex",
-            adjustedChordIndex,
-            "currColumn",
-            currColumn,
-          );
 
           if (currColumn === undefined) continue;
 
@@ -905,10 +888,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           }
 
           // not 100% on moving this back to the top, but trying it out right now
-          if (
-            chordIndex ===
-            compiledChords.length * expandedTabData.loopCounter - 1
-          ) {
+          if (chordIndex === repeatCount - 1) {
             // if looping, reset the chordIndex to -1 so loop will start over
             if (looping && audioMetadata.playing) {
               resetTabSliderPosition();

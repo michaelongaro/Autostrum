@@ -42,8 +42,6 @@ function expandFullTab({
   const metadata: PlaybackMetadata[] = [];
   const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues
 
-  console.log("start", startLoopIndex, "end", endLoopIndex);
-
   for (
     let sectionProgressionIndex = 0;
     sectionProgressionIndex < sectionProgression.length;
@@ -147,14 +145,19 @@ function expandFullTab({
     metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
   }
 
+  let ornamentalChordCount = 0;
+
   // getting overall width of the chords
   const baselineTotalChordsWidth = compiledChordsMappedToLoopRange.reduce(
     (acc, curr) => {
       if (curr.type === "tab") {
         if (curr.data.chordData.includes("|")) {
+          ornamentalChordCount++;
           // measure line
           return acc + 2;
         } else if (curr.data.chordData[0] === "-1") {
+          ornamentalChordCount++;
+
           // spacer chord
           return acc + 16;
         }
@@ -163,6 +166,8 @@ function expandFullTab({
         return acc + 35;
       } else {
         if (curr.data.strumIndex === -1) {
+          ornamentalChordCount++;
+
           // spacer chord
           return acc + 16;
         }
@@ -192,7 +197,11 @@ function expandFullTab({
 
   setPlaybackMetadata(metadataMappedToLoopRange);
 
-  return { chords: compiledChordsMappedToLoopRange, loopCounter };
+  return {
+    chords: compiledChordsMappedToLoopRange,
+    loopCounter,
+    ornamentalChordCount,
+  };
 }
 
 interface CompileSection {

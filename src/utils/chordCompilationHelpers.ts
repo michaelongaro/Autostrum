@@ -180,26 +180,26 @@ function compileFullTab({
 
   // conditionally adding fake chord + metadata to align the audio controls slider with the visual progress indicator
   // really absolutely *hate* this solution, but technically it should work.
-  if (metadataMappedToLoopRange.length > 0 && lastActualChord) {
-    metadataMappedToLoopRange.push({
-      location: {
-        ...lastActualChord.location,
-        chordIndex: ghostChordIndex,
-      },
-      bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
-      noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
-      elapsedSeconds: Math.ceil(
-        lastActualChord.elapsedSeconds +
-          60 /
-            ((Number(lastActualChord.bpm) /
-              Number(lastActualChord.noteLengthMultiplier)) *
-              playbackSpeed) +
-          1,
-      ),
-    });
+  // if (metadataMappedToLoopRange.length > 0 && lastActualChord) {
+  //   metadataMappedToLoopRange.push({
+  //     location: {
+  //       ...lastActualChord.location,
+  //       chordIndex: ghostChordIndex,
+  //     },
+  //     bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
+  //     noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
+  //     elapsedSeconds: Math.ceil(
+  //       lastActualChord.elapsedSeconds +
+  //         60 /
+  //           ((Number(lastActualChord.bpm) /
+  //             Number(lastActualChord.noteLengthMultiplier)) *
+  //             playbackSpeed) +
+  //         1,
+  //     ),
+  //   });
 
-    compiledChordsMappedToLoopRange.push([]);
-  }
+  //   compiledChordsMappedToLoopRange.push([]);
+  // }
 
   if (metadataMappedToLoopRange.length === 0) {
     metadataMappedToLoopRange.push(backupFirstChordMetadata!);
