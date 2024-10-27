@@ -758,6 +758,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           setCurrentlyPlayingMetadata,
           visiblePlaybackContainerWidth,
           setPlaybackMetadata,
+          looping,
         } = get();
 
         if (!audioContext || !masterVolumeGainNode || !currentInstrument)
@@ -829,6 +830,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           setPlaybackMetadata,
           startLoopIndex: audioMetadata.startLoopIndex,
           endLoopIndex: audioMetadata.endLoopIndex,
+          looping,
           visiblePlaybackContainerWidth,
         });
 
@@ -859,7 +861,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           const alteredBpm =
             Number(currColumn[8]) * (1 / Number(currColumn[9])) * playbackSpeed;
 
-          if (chordIndex !== repeatCount - 1) {
+          if (chordIndex !== repeatCount - 1 || currColumn.length === 0) {
             await playNoteColumn({
               tuning,
               capo: capo ?? 0,

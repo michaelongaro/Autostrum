@@ -24,6 +24,7 @@ interface ExpandFullTab {
   setPlaybackMetadata: (playbackMetadata: PlaybackMetadata[] | null) => void;
   startLoopIndex: number;
   endLoopIndex: number;
+  looping: boolean;
   visiblePlaybackContainerWidth: number;
 }
 
@@ -36,6 +37,7 @@ function expandFullTab({
   setPlaybackMetadata,
   startLoopIndex,
   endLoopIndex,
+  looping,
   visiblePlaybackContainerWidth,
 }: ExpandFullTab) {
   const compiledChords: (PlaybackTabChord | PlaybackStrummedChord)[] = [];
@@ -146,53 +148,60 @@ function expandFullTab({
   }
 
   let ornamentalChordCount = 0;
-
-  // getting overall width of the chords
-  const baselineTotalChordsWidth = compiledChordsMappedToLoopRange.reduce(
-    (acc, curr) => {
-      if (curr.type === "tab") {
-        if (curr.data.chordData.includes("|")) {
-          ornamentalChordCount++;
-          // measure line
-          return acc + 2;
-        } else if (curr.data.chordData[0] === "-1") {
-          ornamentalChordCount++;
-
-          // spacer chord
-          return acc + 16;
-        }
-
-        // regular chord
-        return acc + 35;
-      } else {
-        if (curr.data.strumIndex === -1) {
-          ornamentalChordCount++;
-
-          // spacer chord
-          return acc + 16;
-        }
-
-        // regular chord
-        return acc + 40;
-      }
-    },
-    0,
-  );
-
-  let totalChordsWidth = baselineTotalChordsWidth;
-  const baselineCompiledChords = structuredClone(
-    compiledChordsMappedToLoopRange,
-  );
-  const baselineMetadata = structuredClone(metadataMappedToLoopRange);
   let loopCounter = 1;
 
-  // duplicate the entire chords + metadata as many times as needed to fill up the visiblePlaybackContainerWidth
-  while (totalChordsWidth < visiblePlaybackContainerWidth) {
-    compiledChordsMappedToLoopRange.push(...baselineCompiledChords);
-    metadataMappedToLoopRange.push(...baselineMetadata);
+  if (looping) {
+    // getting overall width of the chords
+    const baselineTotalChordsWidth = compiledChordsMappedToLoopRange.reduce(
+      (acc, curr) => {
+        if (curr.type === "tab") {
+          if (curr.data.chordData.includes("|")) {
+            ornamentalChordCount++;
+            // measure line
+            return acc + 2;
+          } else if (curr.data.chordData[0] === "-1") {
+            ornamentalChordCount++;
 
-    totalChordsWidth += baselineTotalChordsWidth;
-    loopCounter++;
+            // spacer chord
+            return acc + 16;
+          }
+
+          // regular chord
+          return acc + 35;
+        } else {
+          if (curr.data.strumIndex === -1) {
+            ornamentalChordCount++;
+
+            // spacer chord
+            return acc + 16;
+          }
+
+          // regular chord
+          return acc + 40;
+        }
+      },
+      0,
+    );
+
+    let totalChordsWidth = baselineTotalChordsWidth;
+    const baselineCompiledChords = structuredClone(
+      compiledChordsMappedToLoopRange,
+    );
+    const baselineMetadata = structuredClone(metadataMappedToLoopRange);
+
+    // duplicate the entire chords + metadata as many times as needed to fill up the visiblePlaybackContainerWidth
+    while (totalChordsWidth < visiblePlaybackContainerWidth) {
+      compiledChordsMappedToLoopRange.push(...baselineCompiledChords);
+      metadataMappedToLoopRange.push(...baselineMetadata);
+
+      totalChordsWidth += baselineTotalChordsWidth;
+      loopCounter++;
+    }
+
+    // ornamentalChordCount is only desired if there were any duplications of the chords
+    if (loopCounter === 1) {
+      ornamentalChordCount = 0;
+    }
   }
 
   setPlaybackMetadata(metadataMappedToLoopRange);

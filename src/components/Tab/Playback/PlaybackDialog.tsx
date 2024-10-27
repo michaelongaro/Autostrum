@@ -507,20 +507,12 @@ function PlaybackDialog() {
                       transform: getScrollContainerTransform({
                         fullScrollPositions,
                         realChordsToFullChordsMap,
-                        currentChordIndex: currentChordIndex,
-                        // +
-                        // currentLoopCounter * baselineNumberOfChords,
-                        // (currentlyPlayingMetadata?.length || 0),
+                        currentChordIndex,
                         audioMetadata,
                       }),
                       transition: `transform ${
                         audioMetadata.playing
-                          ? chordDurations[
-                              currentChordIndex
-                              // +
-                              // currentLoopCounter * baselineNumberOfChords
-                              // (currentlyPlayingMetadata?.length || 0)
-                            ] || 0
+                          ? chordDurations[currentChordIndex] || 0
                           : !looping &&
                               prevCurrentChordIndex > 0 &&
                               currentChordIndex === 0 // instantly resetting scroll position when going from last chord to first chord, and not looping
