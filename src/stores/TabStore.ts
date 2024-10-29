@@ -834,9 +834,12 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           visiblePlaybackContainerWidth,
         });
 
-        const repeatCount =
-          (compiledChords.length - expandedTabData.ornamentalChordCount) *
-          expandedTabData.loopCounter;
+        console.log(compiledChords, expandedTabData);
+
+        // note: technically you could have similar duplication logic in regular compilationHelper
+        // function, however I think it's cleaner to just augement the loop range with the % operator
+        // to achieve the same effect
+        const repeatCount = compiledChords.length * expandedTabData.loopCounter;
 
         for (
           let chordIndex = currentChordIndex;
@@ -844,6 +847,12 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           chordIndex++
         ) {
           const adjustedChordIndex = chordIndex % compiledChords.length;
+          const currColumn = compiledChords[adjustedChordIndex];
+
+          // have reached an ornamental chord, skipping immediately
+          if (currColumn !== undefined && currColumn.length === 0) {
+            continue;
+          }
 
           set({
             currentChordIndex: chordIndex,
@@ -852,31 +861,28 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           const thirdPrevColumn = compiledChords[adjustedChordIndex - 3];
           const secondPrevColumn = compiledChords[adjustedChordIndex - 2];
           const prevColumn = compiledChords[adjustedChordIndex - 1];
-          const currColumn = compiledChords[adjustedChordIndex];
           const nextColumn = compiledChords[adjustedChordIndex + 1];
 
           if (currColumn === undefined) continue;
 
-          // alteredBpm = bpm for chord * (1 / noteLengthMultiplier) * playbackSpeedMultiplier
+          // alteredBpm formula is: bpm for chord * (1 / noteLengthMultiplier) * playbackSpeedMultiplier
           const alteredBpm =
             Number(currColumn[8]) * (1 / Number(currColumn[9])) * playbackSpeed;
 
-          if (chordIndex !== repeatCount - 1 || currColumn.length === 0) {
-            await playNoteColumn({
-              tuning,
-              capo: capo ?? 0,
-              bpm: alteredBpm,
-              thirdPrevColumn,
-              secondPrevColumn,
-              prevColumn,
-              currColumn,
-              nextColumn,
-              audioContext,
-              masterVolumeGainNode,
-              currentInstrument,
-              currentlyPlayingStrings,
-            });
-          }
+          await playNoteColumn({
+            tuning,
+            capo: capo ?? 0,
+            bpm: alteredBpm,
+            thirdPrevColumn,
+            secondPrevColumn,
+            prevColumn,
+            currColumn,
+            nextColumn,
+            audioContext,
+            masterVolumeGainNode,
+            currentInstrument,
+            currentlyPlayingStrings,
+          });
 
           // need to get up to date values within loop here since they may have changed
           // since the loop started/last iteration
@@ -889,23 +895,21 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             return;
           }
 
-          // not 100% on moving this back to the top, but trying it out right now
           if (chordIndex === repeatCount - 1) {
-            // if looping, reset the chordIndex to -1 so loop will start over
+            set({
+              currentChordIndex: 0,
+            });
+
+            // if looping, reset the chordIndex to -1 so loop will start over after chordIndex++
             if (looping && audioMetadata.playing) {
               resetTabSliderPosition();
-
               chordIndex = -1;
-              set({
-                currentChordIndex: 0,
-              });
             } else {
               set({
                 audioMetadata: {
                   ...audioMetadata,
                   playing: false,
                 },
-                currentChordIndex: 0,
               });
             }
           }

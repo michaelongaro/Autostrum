@@ -42,15 +42,11 @@ interface PlaybackTopMetadata {
       "Practice" | "Section progression" | "Chords" | "Strumming patterns"
     >
   >;
-  realChordsToFullChordsMap: {
-    [key: number]: number;
-  };
 }
 
 function PlaybackTopMetadata({
   selectedTab,
   setSelectedTab,
-  realChordsToFullChordsMap,
 }: PlaybackTopMetadata) {
   const {
     tabData,
@@ -83,9 +79,9 @@ function PlaybackTopMetadata({
     return tabData.map((section) => ({ id: section.id, title: section.title }));
   }, [tabData]);
 
-  const index = realChordsToFullChordsMap[currentChordIndex];
+  // const index = realChordsToFullChordsMap[currentChordIndex];
 
-  if (playbackMetadata === null || index === undefined) return;
+  if (playbackMetadata === null) return;
 
   // TODO: decide later how you want to conditionally render landscape mobile vs the rest
   return (

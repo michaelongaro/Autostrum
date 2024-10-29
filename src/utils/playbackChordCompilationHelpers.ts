@@ -94,23 +94,23 @@ function expandFullTab({
     endLoopIndex === -1 ? metadata.length : endLoopIndex,
   );
 
-  // let ghostChordIndex = 0;
+  let ghostChordIndex = 0;
 
-  // if (metadataMappedToLoopRange.length > 0) {
-  //   if (endLoopIndex === -1) {
-  //     ghostChordIndex =
-  //       metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1;
-  //   } else {
-  //     ghostChordIndex = metadataMappedToLoopRange.at(-1)!.location.chordIndex;
-  //     // ^ this is not perfect, somehow maybe want the chordIndex to be +1 more?
-  //   }
-  // }
+  if (metadataMappedToLoopRange.length > 0) {
+    if (endLoopIndex === -1) {
+      ghostChordIndex =
+        metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1;
+    } else {
+      ghostChordIndex = metadataMappedToLoopRange.at(-1)!.location.chordIndex;
+      // ^ this is not perfect, somehow maybe want the chordIndex to be +1 more?
+    }
+  }
 
-  // if (endLoopIndex !== -1) {
-  //   metadataMappedToLoopRange.pop();
-  // }
+  if (endLoopIndex !== -1) {
+    metadataMappedToLoopRange.pop();
+  }
 
-  // const lastActualChord = metadataMappedToLoopRange.at(-1)!;
+  const lastActualChord = metadataMappedToLoopRange.at(-1)!;
 
   // conditionally adding fake chord + metadata to align the audio controls slider with the visual
   // progress indicator, really absolutely *hate* this solution, but technically it should work.
@@ -133,7 +133,16 @@ function expandFullTab({
   //     ),
   //   });
 
-  //   compiledChordsMappedToLoopRange.push([]);
+  //   // TODO: idk if this is correct
+  //   compiledChordsMappedToLoopRange.push({
+  //     type: "tab",
+  //     isFirstChord: false,
+  //     isLastChord: false,
+  //     data: {
+  //       chordData: ["-1", "", "", "", "", "", "", "", "", ""],
+  //       bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
+  //     },
+  //   });
   // }
 
   if (metadataMappedToLoopRange.length === 0) {
@@ -151,6 +160,8 @@ function expandFullTab({
   let loopCounter = 1;
 
   if (looping) {
+    console.log(compiledChordsMappedToLoopRange);
+
     // getting overall width of the chords
     const baselineTotalChordsWidth = compiledChordsMappedToLoopRange.reduce(
       (acc, curr) => {
@@ -209,7 +220,7 @@ function expandFullTab({
   return {
     chords: compiledChordsMappedToLoopRange,
     loopCounter,
-    ornamentalChordCount,
+    // ornamentalChordCount,
   };
 }
 
@@ -377,34 +388,26 @@ function compileTabSection({
     if (chord[8] === "1/8th") noteLengthMultiplier = "0.5";
     else if (chord[8] === "1/16th") noteLengthMultiplier = "0.25";
 
-    const isAMeasureLine = chord[8] === "measureLine";
-
     chord[8] = currentBpm;
     chord[9] = noteLengthMultiplier;
 
-    // FYI: looks weird, but we need the measure lines in the overall expansion/compilation,
-    // however for metadata we don't want to include them because it would include an extra
-    // pre-processing step to remove them from the metadata array, since we already skip over them
-    // in the playback chord widths/positions arrays.
-    if (!isAMeasureLine) {
-      metadata.push({
-        location: {
-          sectionIndex,
-          sectionRepeatIndex,
-          subSectionIndex,
-          subSectionRepeatIndex,
-          chordIndex: chordIdx,
-        },
-        bpm: Number(currentBpm),
-        noteLengthMultiplier,
-        noteLength: noteLength as StrummingPattern["noteLength"],
-        elapsedSeconds: Math.floor(elapsedSeconds.value),
-      });
+    metadata.push({
+      location: {
+        sectionIndex,
+        sectionRepeatIndex,
+        subSectionIndex,
+        subSectionRepeatIndex,
+        chordIndex: chordIdx,
+      },
+      bpm: Number(currentBpm),
+      noteLengthMultiplier,
+      noteLength: noteLength as StrummingPattern["noteLength"],
+      elapsedSeconds: Math.floor(elapsedSeconds.value),
+    });
 
-      elapsedSeconds.value +=
-        60 /
-        ((Number(currentBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
-    }
+    elapsedSeconds.value +=
+      60 /
+      ((Number(currentBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
 
     chordData.data.chordData = chord; // refactor later to be less split up
 

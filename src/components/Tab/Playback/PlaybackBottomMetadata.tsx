@@ -45,15 +45,7 @@ import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { parse, toString } from "~/utils/tunings";
 
-interface PlaybackBottomMetadata {
-  realChordsToFullChordsMap: {
-    [key: number]: number;
-  };
-}
-
-function PlaybackBottomMetadata({
-  realChordsToFullChordsMap,
-}: PlaybackBottomMetadata) {
+function PlaybackBottomMetadata() {
   const {
     tabData,
     title,
@@ -85,9 +77,9 @@ function PlaybackBottomMetadata({
     return tabData.map((section) => ({ id: section.id, title: section.title }));
   }, [tabData]);
 
-  const index = realChordsToFullChordsMap[currentChordIndex];
+  // const index = realChordsToFullChordsMap[currentChordIndex];
 
-  if (playbackMetadata === null || index === undefined) return;
+  if (playbackMetadata === null) return;
 
   // TODO: decide later how you want to conditionally render landscape mobile vs the rest
   return (

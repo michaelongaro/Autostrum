@@ -180,26 +180,28 @@ function compileFullTab({
 
   // conditionally adding fake chord + metadata to align the audio controls slider
   // with the visual progress indicator
-  if (metadataMappedToLoopRange.length > 0 && lastActualChord) {
-    metadataMappedToLoopRange.push({
-      location: {
-        ...lastActualChord.location,
-        chordIndex: ghostChordIndex,
-      },
-      bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
-      noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
-      elapsedSeconds: Math.ceil(
-        lastActualChord.elapsedSeconds +
-          60 /
-            ((Number(lastActualChord.bpm) /
-              Number(lastActualChord.noteLengthMultiplier)) *
-              playbackSpeed) +
-          1,
-      ),
-    });
+  // if (metadataMappedToLoopRange.length > 0 && lastActualChord) {
+  //   metadataMappedToLoopRange.push({
+  //     location: {
+  //       ...lastActualChord.location,
+  //       chordIndex: ghostChordIndex,
+  //     },
+  //     bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
+  //     noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
+  //     elapsedSeconds: Math.ceil(
+  //       lastActualChord.elapsedSeconds +
+  //         60 /
+  //           ((Number(lastActualChord.bpm) /
+  //             Number(lastActualChord.noteLengthMultiplier)) *
+  //             playbackSpeed) +
+  //         1,
+  //     ),
+  //   });
 
-    compiledChordsMappedToLoopRange.push([]);
-  }
+  //   // will be handled specially in playTab() to not play this, but instead signal
+  //   // that the tab has ended and (if looping) needs to start over
+  //   compiledChordsMappedToLoopRange.push(["ghostChord"]);
+  // }
 
   if (metadataMappedToLoopRange.length === 0) {
     metadataMappedToLoopRange.push(backupFirstChordMetadata!);
@@ -307,6 +309,9 @@ function compileSpecificChordGrouping({
           metadata,
           elapsedSeconds,
           playbackSpeed,
+          prevSectionWasStrumming:
+            tabData[location.sectionIndex]!.data[location.subSectionIndex - 1]
+              ?.type === "chord",
         });
       } else {
         compileChordSection({
@@ -463,6 +468,10 @@ function compileSection({
           metadata,
           elapsedSeconds,
           playbackSpeed,
+          prevSectionWasStrumming:
+            section[subSectionIndex] !== undefined
+              ? section[subSectionIndex]?.type === "chord"
+              : false,
         });
       } else {
         compileChordSection({
@@ -490,6 +499,7 @@ interface CompileTabSection {
   metadata: Metadata[];
   elapsedSeconds: { value: number };
   playbackSpeed: number;
+  prevSectionWasStrumming: boolean;
 }
 
 function compileTabSection({
@@ -501,9 +511,29 @@ function compileTabSection({
   metadata,
   elapsedSeconds,
   playbackSpeed,
+  prevSectionWasStrumming,
 }: CompileTabSection) {
   const data = subSection.data;
   let currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
+
+  // if not the very first chord in the tab, and the last section type
+  // was a chord section, we need to add a spacer "chord"
+  if (compiledChords.length > 0 && prevSectionWasStrumming) {
+    compiledChords.push([]);
+  }
+
+  // FYI: would like to be !== 0, however you would be rendering a measure line at
+  // the very start of the tab, which goes against your current tab making rules and
+  // visually wouldn't work out. maybe just need to live with the fact that the first
+  // chord won't show bpm, instead just showing it in top right (or wherever) of
+  // playback dialog.
+  if (
+    compiledChords.length > 0 &&
+    compiledChords.at(-1) !== undefined &&
+    compiledChords.at(-1)![8] !== currentBpm
+  ) {
+    compiledChords.push([]);
+  }
 
   for (let chordIdx = 0; chordIdx < data.length; chordIdx++) {
     const chord = [...data[chordIdx]!];
@@ -518,6 +548,18 @@ function compileTabSection({
       } else {
         currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
       }
+
+      compiledChords.push([]);
+      metadata.push({
+        location: {
+          sectionIndex,
+          subSectionIndex,
+          chordIndex: chordIdx,
+        },
+        bpm: Number(currentBpm),
+        noteLengthMultiplier: "1",
+        elapsedSeconds: Math.floor(elapsedSeconds.value),
+      });
       continue;
     }
 
@@ -632,6 +674,12 @@ function compileChordSequence({
     chordSequenceRepeatIdx < chordSequenceRepetitions;
     chordSequenceRepeatIdx++
   ) {
+    // immediately add fake "spacer" strum if chordIdx === 0, excluding the first chord
+    // since we want the highlighted line to be right at the start of the first chord
+    if (compiledChords.length > 0) {
+      compiledChords.push([]);
+    }
+
     let lastSpecifiedChordName: string | undefined = undefined;
     for (let chordIdx = 0; chordIdx < chordSequence.data.length; chordIdx++) {
       let chordName = chordSequence.data[chordIdx];
@@ -752,6 +800,7 @@ function generateDefaultSectionProgression(tabData: Section[]) {
       sectionId: tabData[i]?.id ?? "",
       title: tabData[i]?.title ?? "",
       repetitions: 1,
+      elapsedSecondsIntoTab: 0, // TODO: I think this is fine, since useAutoCompileChords should handle this
     });
   }
 
