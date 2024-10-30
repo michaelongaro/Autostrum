@@ -84,12 +84,9 @@ function PlaybackDialog() {
     }[]
   >([]);
 
-  // ideally don't need this state and compute directly in the getFullVisibleChordIndices
-  // function, but initial attempts didn't work out
-  const [completedLoops, setCompletedLoops] = useState(0);
-  const [currentLoopCounter, setCurrentLoopCounter] = useState(0);
-
   const [scrollContainerWidth, setScrollContainerWidth] = useState(0);
+  const prevChordIndexRef = useRef<number | null>(null);
+  const [loopCount, setLoopCount] = useState(0);
 
   // gates computation of chord widths + positions + duplication to only when
   // expandedTabData has changed or looping has changed
@@ -100,62 +97,9 @@ function PlaybackDialog() {
     "Practice" | "Section progression" | "Chords" | "Strumming patterns"
   >("Practice");
 
-  // not happy about this, but seems necessary to keep useLayoutEffect
-  // from infinitely rerendering upon completion of a loop
-  const preventRerenderAfterLoopCompletion = useRef(false);
-
   useEffect(() => {
-    preventRerenderAfterLoopCompletion.current = false;
-  }, [currentLoopCounter]);
-
-  useLayoutEffect(() => {
-    if (preventRerenderAfterLoopCompletion.current) return;
-
-    if (
-      looping &&
-      audioMetadata.playing &&
-      expandedTabData?.length &&
-      prevCurrentChordIndex !== 0 &&
-      currentChordIndex === 0
-    ) {
-      // trying to increment the loop index, and checking if this incremented value
-      // causes the effective currentChordIndex (which is adjusted for any duplications
-      // of the tab that are present due to the tab being too short to fill the viewport)
-
-      const adjustedCurrentChordIndex =
-        currentChordIndex + (currentLoopCounter + 1) * expandedTabData.length;
-
-      // there are no more further chords to index to, so we need to reset the loop counter
-      if (adjustedCurrentChordIndex >= expandedTabData.length) {
-        setCurrentLoopCounter(0);
-      } else {
-        setCurrentLoopCounter((prev) => prev + 1);
-      }
-
-      preventRerenderAfterLoopCompletion.current = true;
-
-      setCompletedLoops((prev) => prev + 1);
-    }
-
-    // need logic to reset/decrement when going backward, should this just be handled in
-    // scrubbing left effect below?
-    // ^ temporarily doing this, idk if best approach
-  }, [
-    looping,
-    completedLoops,
-    currentChordIndex,
-    prevCurrentChordIndex,
-    audioMetadata.playing,
-    currentLoopCounter,
-    expandedTabData?.length,
-  ]);
-
-  useEffect(() => {
-    setCurrentLoopCounter(0);
-    setCompletedLoops(0);
+    setLoopCount(0);
   }, [showPlaybackDialog]);
-
-  console.log("completedLoops", completedLoops);
 
   useEffect(() => {
     // this feels a bit like a bandaid fix
@@ -201,34 +145,39 @@ function PlaybackDialog() {
   }, [currentChordIndex, prevCurrentChordIndex]);
 
   useEffect(() => {
+    if (!expandedTabData || expandedTabData.length === 0) return;
+
+    const lastChordIndex = expandedTabData.length - 1;
+
     if (
-      // is this even necessary?
-      currentChordIndex === prevCurrentChordIndex ||
-      fullScrollPositions.every((position) => position.currentPosition === null)
-    )
-      return;
-
-    if (prevCurrentChordIndex > currentChordIndex && !audioMetadata.playing) {
-      // asserting that it is safe/reasonably wanted to just clear all of the current positions
-      // whenever the user scrolls left through the tab. the current positions will be recalculated
-      // anyway, and it simplifies the logic within getFullVisibleChordIndices().
-
-      console.log("going backwords");
-
-      const newFullScrollPositions = [...fullScrollPositions];
-      newFullScrollPositions.forEach((position) => {
-        if (position) position.currentPosition = null;
-      });
-
-      setFullScrollPositions(newFullScrollPositions);
-      setCompletedLoops(0);
+      looping &&
+      prevChordIndexRef.current === lastChordIndex &&
+      currentChordIndex === 0
+    ) {
+      setLoopCount((prev) => prev + 1);
+      // console.log(`Loop completed: ${loopCount + 1}`);
+      // Perform additional actions here if needed
     }
-  }, [
-    prevCurrentChordIndex,
-    currentChordIndex,
-    fullScrollPositions,
-    audioMetadata.playing,
-  ]);
+
+    // TODO: probably want something similar to this right?
+    //   if (prevCurrentChordIndex > currentChordIndex && !audioMetadata.playing) {
+    //     // asserting that it is safe/reasonably wanted to just clear all of the current positions
+    //     // whenever the user scrolls left through the tab. the current positions will be recalculated
+    //     // anyway, and it simplifies the logic within getFullVisibleChordIndices().
+
+    //     console.log("going backwords");
+
+    //     const newFullScrollPositions = [...fullScrollPositions];
+    //     newFullScrollPositions.forEach((position) => {
+    //       if (position) position.currentPosition = null;
+    //     });
+
+    //     setFullScrollPositions(newFullScrollPositions);
+    //     setCompletedLoops(0);
+
+    // Update the ref after loop detection
+    prevChordIndexRef.current = currentChordIndex;
+  }, [currentChordIndex, looping, expandedTabData]);
 
   useEffect(() => {
     setExpandedTabDataHasChanged(true);
@@ -346,78 +295,21 @@ function PlaybackDialog() {
     chordIndex: number;
     type: "isBeingPlayed" | "hasBeenPlayed";
   }) {
-    // chordType: "tab" | "strum",
-    // ^ currently you are combining tab subsections visually to be one subsection,
-    // so when going from one to the next, the subsectionIndex changes, which de-highlights
-    // the previous subsection. If you want to change this later you prob need a prop like this
-
-    if (
-      !playbackMetadata ||
-      !playbackMetadata[currentChordIndex] ||
-      !playbackMetadata[chordIndex]
-    ) {
-      // console.log('returning false")');
-      return false;
-    }
-
     const scrollPosition =
       fullScrollPositions[chordIndex]?.currentPosition ||
       fullScrollPositions[chordIndex]?.originalPosition;
-    const startPositionOfCurrentLoop =
-      scrollContainerWidth * (completedLoops + 1);
+    const startPositionOfCurrentLoop = scrollContainerWidth * (loopCount + 1);
 
     if (
       scrollPosition === undefined ||
-      scrollPosition > startPositionOfCurrentLoop
+      scrollPosition >= startPositionOfCurrentLoop
     ) {
-      // console.log('returning false2222")', completedLoops + 1);
-
       return false;
     }
 
-    const {
-      sectionIndex: currSectionIndex,
-      sectionRepeatIndex: currSectionRepeatIndex,
-      subSectionIndex: currSubSectionIndex,
-      subSectionRepeatIndex: currSubSectionRepeatIndex,
-      chordSequenceIndex: currChordSequenceIndex,
-      chordSequenceRepeatIndex: currChordSequenceRepeatIndex,
-      chordIndex: currChordIndex,
-    } = playbackMetadata[currentChordIndex].location;
-
-    const {
-      sectionIndex: renderedSectionIndex,
-      sectionRepeatIndex: renderedSectionRepeatIndex,
-      subSectionIndex: renderedSubSectionIndex,
-      subSectionRepeatIndex: renderedSubSectionRepeatIndex,
-      chordSequenceIndex: renderedChordSequenceIndex,
-      chordSequenceRepeatIndex: renderedChordSequenceRepeatIndex,
-      chordIndex: renderedChordIndex,
-    } = playbackMetadata[chordIndex].location;
-
-    // TODO: chords still aren't highlighting like you want them to, aka
-    // no matter what staying highlighted if they have already been played (are
-    // farther left than currently played chord).
-    // hmm could you even do just a direct index comparison then with the current chord index?
-    // I feel like this could maybe work
-
-    const adjCurrSeqIndex = currChordSequenceIndex ?? 0;
-    const adjCurrSeqRepeatIndex = currChordSequenceRepeatIndex ?? 0;
-    const adjRenderedSeqIndex = renderedChordSequenceIndex ?? 0;
-    const adjRenderedSeqRepeatIndex = renderedChordSequenceRepeatIndex ?? 0;
-
-    return (
-      audioMetadata.type === "Generated" &&
-      currSectionIndex >= renderedSectionIndex &&
-      currSectionRepeatIndex >= renderedSectionRepeatIndex &&
-      currSubSectionIndex >= renderedSubSectionIndex &&
-      currSubSectionRepeatIndex >= renderedSubSectionRepeatIndex &&
-      adjCurrSeqIndex >= adjRenderedSeqIndex &&
-      adjCurrSeqRepeatIndex >= adjRenderedSeqRepeatIndex &&
-      (type === "isBeingPlayed"
-        ? currChordIndex === renderedChordIndex
-        : currChordIndex > renderedChordIndex)
-    );
+    return type === "isBeingPlayed"
+      ? currentChordIndex === chordIndex
+      : currentChordIndex >= chordIndex + 1;
   }
 
   return (
@@ -441,8 +333,6 @@ function PlaybackDialog() {
           selectedTab={selectedTab}
           setSelectedTab={setSelectedTab}
         />
-
-        {/* <div>{`${prevCurrentChordIndex} | ${currentChordIndex}`}</div> */}
 
         <AnimatePresence mode="popLayout">
           {selectedTab === "Practice" && (
@@ -481,6 +371,7 @@ function PlaybackDialog() {
                         audioMetadata,
                         numberOfChords: playbackMetadata?.length || 0,
                         looping,
+                        isPlaying: audioMetadata.playing,
                       }),
                       transition: `transform ${
                         audioMetadata.playing
@@ -510,7 +401,6 @@ function PlaybackDialog() {
                           return (
                             <div
                               key={fullVisibleIndex}
-                              id={fullVisibleIndex.toString()}
                               style={{
                                 position: "absolute",
                                 width: `${fullChordWidths[fullVisibleIndex] || 0}px`,
@@ -537,19 +427,11 @@ function PlaybackDialog() {
                                         chords[fullVisibleIndex]?.data.chordData
                                       }
                                       isFirstChordInSection={
-                                        fullVisibleIndex === 0 ||
-                                        (chords[fullVisibleIndex - 1]?.type ===
-                                          "tab" &&
-                                          chords[fullVisibleIndex - 1]?.data
-                                            .chordData?.[0] === "-1")
-                                        // TODO: come back to why this type isn't narrowed
+                                        fullVisibleIndex === 0 &&
+                                        fullScrollPositions[0]
+                                          ?.currentPosition === null
                                       }
-                                      isLastChordInSection={
-                                        fullVisibleIndex ===
-                                          chords.length - 1 ||
-                                        chords[fullVisibleIndex + 1]?.type ===
-                                          "strum"
-                                      }
+                                      isLastChordInSection={false}
                                       isHighlighted={
                                         (audioMetadata.playing &&
                                           highlightChord({
@@ -578,13 +460,11 @@ function PlaybackDialog() {
                                     ""
                                   }
                                   isFirstChordInSection={
-                                    chords[fullVisibleIndex]?.isFirstChord ||
-                                    false
+                                    fullVisibleIndex === 0 &&
+                                    fullScrollPositions[0]?.currentPosition ===
+                                      null
                                   }
-                                  isLastChordInSection={
-                                    chords[fullVisibleIndex]?.isLastChord ||
-                                    false
-                                  }
+                                  isLastChordInSection={false}
                                   noteLength={
                                     chords[fullVisibleIndex]?.data.noteLength ||
                                     "1/4th"
@@ -668,7 +548,7 @@ const getFullVisibleChordIndices = ({
     return [];
   }
 
-  let fullVisibleIndices = [];
+  let fullVisibleChordIndices = [];
 
   const adjustedScrollPositions = fullScrollPositions.map(
     (pos) =>
@@ -700,7 +580,7 @@ const getFullVisibleChordIndices = ({
 
     // Ensure the item is within the visible range
     if (itemEnd > rangeStart && itemStart < rangeEnd) {
-      fullVisibleIndices.push(i);
+      fullVisibleChordIndices.push(i);
     } else if (itemEnd < rangeStart) {
       chordIndicesBeforeRangeStart.push(i);
     }
@@ -739,7 +619,7 @@ const getFullVisibleChordIndices = ({
     setFullScrollPositions(fullScrollPositions);
   }
 
-  return fullVisibleIndices;
+  return fullVisibleChordIndices;
 };
 
 // Binary search helper to find the first element >= value
@@ -792,6 +672,7 @@ function getScrollContainerTransform({
   audioMetadata,
   numberOfChords,
   looping,
+  isPlaying,
 }: {
   fullScrollPositions: {
     originalPosition: number;
@@ -801,11 +682,12 @@ function getScrollContainerTransform({
   audioMetadata: AudioMetadata;
   numberOfChords: number;
   looping: boolean;
+  isPlaying: boolean;
 }) {
   // when looping, you want to go back to the first chord position, since it
   // will already be translated to the right side of last chord position in main tab
   const index =
-    looping && currentChordIndex === numberOfChords - 1
+    isPlaying && looping && currentChordIndex === numberOfChords - 1
       ? 0
       : currentChordIndex + (audioMetadata.playing ? 1 : 0);
 

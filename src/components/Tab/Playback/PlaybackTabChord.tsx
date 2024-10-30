@@ -52,11 +52,7 @@ function PlaybackTabChord({
                           ? "10px 0 0 0" // top left
                           : isFirstChordInSection && index === 6
                             ? "0 0 0 10px" // bottom left
-                            : isLastChordInSection && index === 1
-                              ? "0 10px 0 0" // bottom right
-                              : isLastChordInSection && index === 6
-                                ? "0 0 10px 0" // top right
-                                : "none",
+                            : "none",
                       borderBottom: `${
                         index === 6 ? "2px solid rgb(253 242 248)" : "none"
                       }`,

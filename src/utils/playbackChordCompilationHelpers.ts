@@ -322,20 +322,6 @@ function compileTabSection({
   const data = subSection.data;
   let currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
 
-  // if not the very first chord in the tab, and the last section type
-  // was a chord section, we need to add a spacer "chord"
-  if (compiledChords.length > 0 && compiledChords.at(-1)?.type === "strum") {
-    compiledChords.push({
-      type: "tab",
-      isFirstChord: false,
-      isLastChord: false,
-      data: {
-        chordData: ["-1", "", "", "", "", "", "", "", "", ""],
-        bpm: Number(currentBpm),
-      },
-    });
-  }
-
   // FYI: would like to be !== 0, however you would be rendering a measure line at
   // the very start of the tab, which goes against your current tab making rules and
   // visually wouldn't work out. maybe just need to live with the fact that the first
@@ -509,26 +495,6 @@ function compileChordSequence({
     chordSequenceRepeatIdx++
   ) {
     let lastSpecifiedChordName: string | undefined = undefined;
-
-    if (compiledChords.length > 0) {
-      const playbackChordSequence: PlaybackStrummedChord = {
-        type: "strum",
-        isFirstChord: false,
-        isLastChord: false,
-        data: {
-          strumIndex: -1,
-          chordName: "",
-          palmMute: "",
-          strum: "",
-          noteLength: chordSequence.strummingPattern.noteLength,
-          bpm: Number(
-            getBpmForChord(chordSequence.bpm, baselineBpm, subSectionBpm),
-          ),
-        },
-      };
-
-      compiledChords.push(playbackChordSequence);
-    }
 
     for (let chordIdx = 0; chordIdx < chordSequence.data.length; chordIdx++) {
       // immediately add fake "spacer" strum if chordIdx === 0, excluding the first chord
