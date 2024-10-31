@@ -172,9 +172,9 @@ function compileFullTab({
     }
   }
 
-  if (endLoopIndex !== -1) {
-    metadataMappedToLoopRange.pop();
-  }
+  // if (endLoopIndex !== -1) {
+  //   metadataMappedToLoopRange.pop();
+  // }
 
   const lastActualChord = metadataMappedToLoopRange.at(-1)!;
 
@@ -380,27 +380,46 @@ function compileSpecificChordGrouping({
 
   const lastActualChord = metadataMappedToLoopRange.at(-1)!;
 
+  // TODO: keep an eye on this, not sure how ghost chords should be handled in current setup
   // conditionally adding fake chord + metadata to align the audio controls slider with the visual progress indicator
   // really absolutely *hate* this solution, but technically it should work.
-  if (metadataMappedToLoopRange.length > 0 && lastActualChord) {
+  // if (metadataMappedToLoopRange.length > 0 && lastActualChord) {
+  //   metadataMappedToLoopRange.push({
+  //     location: {
+  //       ...lastActualChord.location,
+  //       chordIndex: ghostChordIndex,
+  //     },
+  //     bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
+  //     noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
+  //     elapsedSeconds: Math.ceil(
+  //       lastActualChord.elapsedSeconds +
+  //         60 /
+  //           ((Number(lastActualChord.bpm) /
+  //             Number(lastActualChord.noteLengthMultiplier)) *
+  //             playbackSpeed) +
+  //         1,
+  //     ),
+  //     type: "tab"
+  //   });
+
+  //   compiledChordsMappedToLoopRange.push([]);
+  // }
+
+  // right before duplication step, need to add a spacer chord if the first chord and last
+  // chord are different types (tab vs strum)
+  if (metadata[0]?.type !== metadata.at(-1)?.type) {
+    compiledChordsMappedToLoopRange.push([]);
+
     metadataMappedToLoopRange.push({
       location: {
-        ...lastActualChord.location,
-        chordIndex: ghostChordIndex,
+        ...metadataMappedToLoopRange.at(-1)!.location,
+        chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
       },
-      bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
-      noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
-      elapsedSeconds: Math.ceil(
-        lastActualChord.elapsedSeconds +
-          60 /
-            ((Number(lastActualChord.bpm) /
-              Number(lastActualChord.noteLengthMultiplier)) *
-              playbackSpeed) +
-          1,
-      ),
+      bpm: metadataMappedToLoopRange.at(-1)!.bpm,
+      noteLengthMultiplier: "1",
+      elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
+      type: "tab",
     });
-
-    compiledChordsMappedToLoopRange.push([]);
   }
 
   if (metadataMappedToLoopRange.length === 0) {
@@ -507,6 +526,23 @@ function compileTabSection({
   const data = subSection.data;
   let currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
 
+  // if not the very first chord in the tab, and the last section type
+  // was a chord section, we need to add a spacer "chord"
+  if (compiledChords.length > 0 && metadata.at(-1)?.type === "strum") {
+    compiledChords.push([]);
+    metadata.push({
+      location: {
+        sectionIndex,
+        subSectionIndex,
+        chordIndex: -1,
+      },
+      bpm: Number(currentBpm),
+      noteLengthMultiplier: "1",
+      elapsedSeconds: Math.floor(elapsedSeconds.value),
+      type: "tab",
+    });
+  }
+
   // FYI: would like to be !== 0, however you would be rendering a measure line at
   // the very start of the tab, which goes against your current tab making rules and
   // visually wouldn't work out. maybe just need to live with the fact that the first
@@ -544,6 +580,7 @@ function compileTabSection({
         bpm: Number(currentBpm),
         noteLengthMultiplier: "1",
         elapsedSeconds: Math.floor(elapsedSeconds.value),
+        type: "tab",
       });
       continue;
     }
@@ -565,6 +602,7 @@ function compileTabSection({
       bpm: Number(currentBpm),
       noteLengthMultiplier,
       elapsedSeconds: Math.floor(elapsedSeconds.value),
+      type: "tab",
     });
 
     elapsedSeconds.value +=
@@ -599,6 +637,22 @@ function compileChordSection({
   playbackSpeed,
 }: CompileChordSection) {
   const chordSection = subSection.data;
+
+  // if last section was a tab section, need to add a spacer "chord"
+  if (compiledChords.length > 0 && metadata.at(-1)?.type === "tab") {
+    compiledChords.push([]);
+    metadata.push({
+      location: {
+        sectionIndex,
+        subSectionIndex,
+        chordIndex: -1,
+      },
+      bpm: Number(subSection.bpm),
+      noteLengthMultiplier: "1",
+      elapsedSeconds: Math.floor(elapsedSeconds.value),
+      type: "tab",
+    });
+  }
 
   for (
     let chordSequenceIndex = 0;
@@ -704,6 +758,7 @@ function compileChordSequence({
         bpm: Number(chordBpm),
         noteLengthMultiplier,
         elapsedSeconds: Math.floor(elapsedSeconds.value),
+        type: "strum",
       });
 
       elapsedSeconds.value +=

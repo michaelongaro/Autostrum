@@ -37,6 +37,7 @@ function PlaybackDialog() {
     setShowPlaybackDialog,
     title,
     looping,
+    setLooping,
     description,
     visiblePlaybackContainerWidth,
     setVisiblePlaybackContainerWidth,
@@ -53,6 +54,7 @@ function PlaybackDialog() {
     setShowPlaybackDialog: state.setShowPlaybackDialog,
     title: state.title,
     looping: state.looping,
+    setLooping: state.setLooping,
     description: state.description,
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
     setVisiblePlaybackContainerWidth: state.setVisiblePlaybackContainerWidth,
@@ -67,7 +69,7 @@ function PlaybackDialog() {
     useState<HTMLDivElement | null>(null);
   const [prevDimensions, setPrevDimensions] = useState<DOMRect | null>(null);
 
-  const [prevCurrentChordIndex, setPrevCurrentChordIndex] = useState(0); // should this start at -1?
+  // const [prevCurrentChordIndex, setPrevCurrentChordIndex] = useState(0); // should this start at -1?
 
   const [chordDurations, setChordDurations] = useState<number[]>([]);
   const [initialPlaceholderWidth, setInitialPlaceholderWidth] = useState(0);
@@ -99,7 +101,8 @@ function PlaybackDialog() {
 
   useEffect(() => {
     setLoopCount(0);
-  }, [showPlaybackDialog]);
+    if (!looping) setLooping(true);
+  }, [showPlaybackDialog, looping, setLooping]);
 
   useEffect(() => {
     // this feels a bit like a bandaid fix
@@ -132,17 +135,17 @@ function PlaybackDialog() {
     setVisiblePlaybackContainerWidth,
   ]);
 
-  // split this into separate effect to reduce scope
-  useEffect(() => {
-    if (
-      // is this even necessary?
-      currentChordIndex === 0 &&
-      prevCurrentChordIndex > 0
-    )
-      return;
+  // // split this into separate effect to reduce scope
+  // useEffect(() => {
+  //   if (
+  //     // is this even necessary?
+  //     currentChordIndex === 0 &&
+  //     prevCurrentChordIndex > 0
+  //   )
+  //     return;
 
-    setPrevCurrentChordIndex(currentChordIndex - 1);
-  }, [currentChordIndex, prevCurrentChordIndex]);
+  //   setPrevCurrentChordIndex(currentChordIndex - 1);
+  // }, [currentChordIndex, prevCurrentChordIndex]);
 
   useEffect(() => {
     if (!expandedTabData || expandedTabData.length === 0) return;
@@ -150,7 +153,6 @@ function PlaybackDialog() {
     const lastChordIndex = expandedTabData.length - 1;
 
     if (
-      looping &&
       prevChordIndexRef.current === lastChordIndex &&
       currentChordIndex === 0
     ) {
@@ -159,29 +161,39 @@ function PlaybackDialog() {
       // Perform additional actions here if needed
     }
 
-    // TODO: probably want something similar to this right?
-    //   if (prevCurrentChordIndex > currentChordIndex && !audioMetadata.playing) {
-    //     // asserting that it is safe/reasonably wanted to just clear all of the current positions
-    //     // whenever the user scrolls left through the tab. the current positions will be recalculated
-    //     // anyway, and it simplifies the logic within getFullVisibleChordIndices().
+    if (
+      prevChordIndexRef.current !== null && // Ensure it's not the initial render
+      prevChordIndexRef.current > currentChordIndex && // User scrolled backward
+      !audioMetadata.playing // Playback is not active
+    ) {
+      console.log(
+        "Scrolling backward. Resetting scroll positions and loop count.",
+      );
 
-    //     console.log("going backwords");
+      // Reset all currentPosition to null
+      const newFullScrollPositions = fullScrollPositions.map((position) => ({
+        ...position,
+        currentPosition: null,
+      }));
 
-    //     const newFullScrollPositions = [...fullScrollPositions];
-    //     newFullScrollPositions.forEach((position) => {
-    //       if (position) position.currentPosition = null;
-    //     });
+      setFullScrollPositions(newFullScrollPositions);
 
-    //     setFullScrollPositions(newFullScrollPositions);
-    //     setCompletedLoops(0);
+      // Reset loop count
+      setLoopCount(0);
+    }
 
     // Update the ref after loop detection
     prevChordIndexRef.current = currentChordIndex;
-  }, [currentChordIndex, looping, expandedTabData]);
+  }, [
+    currentChordIndex,
+    expandedTabData,
+    audioMetadata.playing,
+    fullScrollPositions,
+  ]);
 
   useEffect(() => {
     setExpandedTabDataHasChanged(true);
-  }, [expandedTabData, looping]);
+  }, [expandedTabData]);
 
   useEffect(() => {
     if (
@@ -243,20 +255,11 @@ function PlaybackDialog() {
     let scrollContainerWidth =
       (fullScrollPositions.at(-1)?.originalPosition || 0) + finalElementWidth;
 
-    const lastScrollPosition =
-      fullScrollPositions.at(-1)?.originalPosition || 0;
+    // const lastScrollPosition =
+    //   fullScrollPositions.at(-1)?.originalPosition || 0;
 
     const newChords = [...expandedTabData];
     const newChordDurations = [...durations];
-
-    // if not looping, need to add a "ghost" chord so that the last chord is
-    // scrolled just like every other chord
-    if (!looping) {
-      fullScrollPositions.push({
-        originalPosition: lastScrollPosition + finalElementWidth,
-        currentPosition: null,
-      });
-    }
 
     setExpandedTabDataHasChanged(false);
     setTimeout(() => {
@@ -273,7 +276,6 @@ function PlaybackDialog() {
     expandedTabData,
     expandedTabDataHasChanged,
     chordDurations,
-    looping,
     playbackMetadata,
     playbackSpeed,
   ]);
@@ -370,17 +372,12 @@ function PlaybackDialog() {
                         currentChordIndex,
                         audioMetadata,
                         numberOfChords: playbackMetadata?.length || 0,
-                        looping,
                         isPlaying: audioMetadata.playing,
                       }),
                       transition: `transform ${
                         audioMetadata.playing
                           ? chordDurations[currentChordIndex] || 0
-                          : !looping &&
-                              prevCurrentChordIndex > 0 &&
-                              currentChordIndex === 0 // instantly resetting scroll position when going from last chord to first chord, and not looping
-                            ? 0
-                            : 0.2
+                          : 0.2
                       }s linear`,
                     }}
                     className="relative flex items-center will-change-transform"
@@ -490,6 +487,10 @@ function PlaybackDialog() {
                                       chordIndex: fullVisibleIndex,
                                       type: "hasBeenPlayed",
                                     })
+                                  }
+                                  isRaised={
+                                    chords[fullVisibleIndex]?.data.isRaised ||
+                                    false
                                   }
                                 />
                               )}
@@ -671,7 +672,6 @@ function getScrollContainerTransform({
   currentChordIndex,
   audioMetadata,
   numberOfChords,
-  looping,
   isPlaying,
 }: {
   fullScrollPositions: {
@@ -681,13 +681,12 @@ function getScrollContainerTransform({
   currentChordIndex: number;
   audioMetadata: AudioMetadata;
   numberOfChords: number;
-  looping: boolean;
   isPlaying: boolean;
 }) {
   // when looping, you want to go back to the first chord position, since it
   // will already be translated to the right side of last chord position in main tab
   const index =
-    isPlaying && looping && currentChordIndex === numberOfChords - 1
+    isPlaying && currentChordIndex === numberOfChords - 1
       ? 0
       : currentChordIndex + (audioMetadata.playing ? 1 : 0);
 

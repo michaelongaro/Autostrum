@@ -106,9 +106,9 @@ function expandFullTab({
     }
   }
 
-  if (endLoopIndex !== -1) {
-    metadataMappedToLoopRange.pop();
-  }
+  // if (endLoopIndex !== -1) {
+  //   metadataMappedToLoopRange.pop();
+  // }
 
   const lastActualChord = metadataMappedToLoopRange.at(-1)!;
 
@@ -156,63 +156,85 @@ function expandFullTab({
     metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
   }
 
-  let ornamentalChordCount = 0;
+  // right before duplication step, need to add a spacer chord if the first chord and last
+  // chord are different types (tab vs strum)
+  if (
+    compiledChordsMappedToLoopRange[0]?.type !==
+    compiledChordsMappedToLoopRange.at(-1)?.type
+  ) {
+    compiledChordsMappedToLoopRange.push({
+      type: "strum",
+      isFirstChord: false,
+      isLastChord: false,
+      data: {
+        strumIndex: -1,
+        chordName: "",
+        palmMute: "",
+        strum: "",
+        noteLength: "1/4th",
+        bpm: compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
+        isRaised: true,
+      },
+    });
+
+    metadataMappedToLoopRange.push({
+      location: {
+        ...metadataMappedToLoopRange.at(-1)!.location,
+        chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
+      },
+      bpm: Number(
+        getBpmForChord(
+          compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
+          baselineBpm,
+        ),
+      ),
+      noteLengthMultiplier: "1",
+      noteLength: "1/4th",
+      elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
+    });
+  }
+
   let loopCounter = 1;
 
-  if (looping) {
-    console.log(compiledChordsMappedToLoopRange);
-
-    // getting overall width of the chords
-    const baselineTotalChordsWidth = compiledChordsMappedToLoopRange.reduce(
-      (acc, curr) => {
-        if (curr.type === "tab") {
-          if (curr.data.chordData.includes("|")) {
-            ornamentalChordCount++;
-            // measure line
-            return acc + 2;
-          } else if (curr.data.chordData[0] === "-1") {
-            ornamentalChordCount++;
-
-            // spacer chord
-            return acc + 16;
-          }
-
-          // regular chord
-          return acc + 35;
-        } else {
-          if (curr.data.strumIndex === -1) {
-            ornamentalChordCount++;
-
-            // spacer chord
-            return acc + 16;
-          }
-
-          // regular chord
-          return acc + 40;
+  // getting overall width of the chords
+  const baselineTotalChordsWidth = compiledChordsMappedToLoopRange.reduce(
+    (acc, curr) => {
+      if (curr.type === "tab") {
+        if (curr.data.chordData.includes("|")) {
+          // measure line
+          return acc + 2;
+        } else if (curr.data.chordData[0] === "-1") {
+          // spacer chord
+          return acc + 16;
         }
-      },
-      0,
-    );
+        // regular chord
+        return acc + 35;
+      } else {
+        if (curr.data.strumIndex === -1) {
+          // spacer chord
+          return acc + 16;
+        }
 
-    let totalChordsWidth = baselineTotalChordsWidth;
-    const baselineCompiledChords = structuredClone(
-      compiledChordsMappedToLoopRange,
-    );
-    const baselineMetadata = structuredClone(metadataMappedToLoopRange);
+        // regular chord
+        return acc + 40;
+      }
+    },
+    0,
+  );
 
-    // duplicate the entire chords + metadata as many times as needed to fill up the visiblePlaybackContainerWidth
-    while (totalChordsWidth < visiblePlaybackContainerWidth) {
-      compiledChordsMappedToLoopRange.push(...baselineCompiledChords);
-      metadataMappedToLoopRange.push(...baselineMetadata);
+  let totalChordsWidth = baselineTotalChordsWidth;
+  const baselineCompiledChords = structuredClone(
+    compiledChordsMappedToLoopRange,
+  );
+  const baselineMetadata = structuredClone(metadataMappedToLoopRange);
 
-      totalChordsWidth += baselineTotalChordsWidth;
-      loopCounter++;
-    }
+  // duplicate the entire chords + metadata as many times as needed to fill up the visiblePlaybackContainerWidth
+  while (totalChordsWidth < visiblePlaybackContainerWidth) {
+    compiledChordsMappedToLoopRange.push(...baselineCompiledChords);
+    metadataMappedToLoopRange.push(...baselineMetadata);
 
-    // ornamentalChordCount is only desired if there were any duplications of the chords
-    if (loopCounter === 1) {
-      ornamentalChordCount = 0;
-    }
+    totalChordsWidth += baselineTotalChordsWidth;
+    loopCounter++;
   }
 
   setPlaybackMetadata(metadataMappedToLoopRange);
@@ -220,7 +242,6 @@ function expandFullTab({
   return {
     chords: compiledChordsMappedToLoopRange,
     loopCounter,
-    // ornamentalChordCount,
   };
 }
 
@@ -322,6 +343,35 @@ function compileTabSection({
   const data = subSection.data;
   let currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
 
+  // if not the very first chord in the tab, and the last section type
+  // was a chord section, we need to add a spacer "chord"
+  // TODO: not sure if we can make this a "strum" type, might cause more issues and is kinda
+  // fine to leave as it is I think.
+  if (compiledChords.length > 0 && compiledChords.at(-1)?.type === "strum") {
+    compiledChords.push({
+      type: "tab",
+      isFirstChord: false,
+      isLastChord: false,
+      data: {
+        chordData: ["-1", "", "", "", "", "", "", "", "", ""],
+        bpm: Number(currentBpm),
+      },
+    });
+    metadata.push({
+      location: {
+        sectionIndex,
+        sectionRepeatIndex,
+        subSectionIndex,
+        subSectionRepeatIndex,
+        chordIndex: compiledChords.length - 1,
+      },
+      bpm: Number(currentBpm),
+      noteLengthMultiplier: "1",
+      noteLength: "1/4th",
+      elapsedSeconds: Math.floor(elapsedSeconds.value),
+    });
+  }
+
   // FYI: would like to be !== 0, however you would be rendering a measure line at
   // the very start of the tab, which goes against your current tab making rules and
   // visually wouldn't work out. maybe just need to live with the fact that the first
@@ -340,6 +390,19 @@ function compileTabSection({
         chordData: ["", "|", "|", "|", "|", "|", "|", currentBpm, "", "1"],
         bpm: Number(currentBpm),
       },
+    });
+    metadata.push({
+      location: {
+        sectionIndex,
+        sectionRepeatIndex,
+        subSectionIndex,
+        subSectionRepeatIndex,
+        chordIndex: compiledChords.length - 1,
+      },
+      bpm: Number(currentBpm),
+      noteLengthMultiplier: "1",
+      noteLength: "1/4th",
+      elapsedSeconds: Math.floor(elapsedSeconds.value),
     });
   }
 
@@ -429,6 +492,38 @@ function compileChordSection({
   playbackSpeed,
 }: CompileChordSection) {
   const chordSection = subSection.data;
+
+  if (compiledChords.length > 0 && compiledChords.at(-1)?.type === "tab") {
+    compiledChords.push({
+      type: "strum",
+      isFirstChord: false,
+      isLastChord: false,
+      data: {
+        strumIndex: -1,
+        chordName: "",
+        palmMute: "",
+        strum: "",
+        noteLength: "1/4th",
+        bpm: baselineBpm,
+        isRaised: false,
+      },
+    });
+    metadata.push({
+      location: {
+        sectionIndex,
+        sectionRepeatIndex,
+        subSectionIndex,
+        subSectionRepeatIndex,
+        chordSequenceIndex: 0,
+        chordSequenceRepeatIndex: 0,
+        chordIndex: -1,
+      },
+      bpm: baselineBpm,
+      noteLengthMultiplier: "1",
+      noteLength: "1/4th",
+      elapsedSeconds: Math.floor(elapsedSeconds.value),
+    });
+  }
 
   for (
     let chordSequenceIndex = 0;
@@ -563,6 +658,14 @@ function compileChordSequence({
         60 /
         ((Number(chordBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
 
+      const previousChordName = chordSequence.data[chordIdx - 1] ?? "";
+      const currentChordName = chordSequence.data[chordIdx] ?? "";
+
+      const isRaised =
+        chordIdx === 0
+          ? false
+          : previousChordName.length > 5 && currentChordName.length > 5;
+
       const playbackChordSequence: PlaybackStrummedChord = {
         type: "strum",
         isFirstChord: chordIdx === 0,
@@ -577,6 +680,7 @@ function compileChordSequence({
           bpm: Number(
             getBpmForChord(chordSequence.bpm, baselineBpm, subSectionBpm),
           ),
+          isRaised,
         },
       };
 

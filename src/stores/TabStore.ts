@@ -103,6 +103,7 @@ export interface Metadata {
   bpm: number;
   noteLengthMultiplier: string;
   elapsedSeconds: number;
+  type: "tab" | "strum";
 }
 
 export interface PlaybackMetadata {
@@ -220,6 +221,7 @@ interface PlaybackChord {
     | "1/16th"
     | "1/16th triplet";
   bpm: number;
+  isRaised: boolean; // only true if this chord and strummed chord to the left are both > 5 characters. Allowing entire chord names to render w/o overlap
 }
 
 const initialStoreState = {
@@ -834,7 +836,12 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           visiblePlaybackContainerWidth,
         });
 
-        console.log(compiledChords, expandedTabData);
+        // console.log(compiledChords, expandedTabData);
+        // console.log(
+        //   compiledChords.length,
+        //   currentlyPlayingMetadata?.length,
+        //   expandedTabData.chords?.length,
+        // );
 
         // note: technically you could have similar duplication logic in regular compilationHelper
         // function, however I think it's cleaner to just augement the loop range with the % operator
@@ -849,45 +856,45 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           const adjustedChordIndex = chordIndex % compiledChords.length;
           const currColumn = compiledChords[adjustedChordIndex];
 
-          // have reached an ornamental chord, skipping immediately
-          if (currColumn !== undefined && currColumn.length === 0) {
-            continue;
+          // Proceed only if the current column is defined and not ornamental (has length > 0)
+          if (currColumn && currColumn.length > 0) {
+            // Update the current chord index in the state
+            set({
+              currentChordIndex: chordIndex,
+            });
+
+            const thirdPrevColumn = compiledChords[adjustedChordIndex - 3];
+            const secondPrevColumn = compiledChords[adjustedChordIndex - 2];
+            const prevColumn = compiledChords[adjustedChordIndex - 1];
+            const nextColumn = compiledChords[adjustedChordIndex + 1];
+
+            // Calculate the altered BPM using the provided formula
+            const baseBpm = Number(currColumn[8]);
+            const noteLengthMultiplier = Number(currColumn[9]);
+            const alteredBpm =
+              baseBpm * (1 / noteLengthMultiplier) * playbackSpeed;
+
+            // Play the current chord
+            await playNoteColumn({
+              tuning,
+              capo: capo ?? 0,
+              bpm: alteredBpm,
+              thirdPrevColumn,
+              secondPrevColumn,
+              prevColumn,
+              currColumn,
+              nextColumn,
+              audioContext,
+              masterVolumeGainNode,
+              currentInstrument,
+              currentlyPlayingStrings,
+            });
           }
 
-          set({
-            currentChordIndex: chordIndex,
-          });
-
-          const thirdPrevColumn = compiledChords[adjustedChordIndex - 3];
-          const secondPrevColumn = compiledChords[adjustedChordIndex - 2];
-          const prevColumn = compiledChords[adjustedChordIndex - 1];
-          const nextColumn = compiledChords[adjustedChordIndex + 1];
-
-          if (currColumn === undefined) continue;
-
-          // alteredBpm formula is: bpm for chord * (1 / noteLengthMultiplier) * playbackSpeedMultiplier
-          const alteredBpm =
-            Number(currColumn[8]) * (1 / Number(currColumn[9])) * playbackSpeed;
-
-          await playNoteColumn({
-            tuning,
-            capo: capo ?? 0,
-            bpm: alteredBpm,
-            thirdPrevColumn,
-            secondPrevColumn,
-            prevColumn,
-            currColumn,
-            nextColumn,
-            audioContext,
-            masterVolumeGainNode,
-            currentInstrument,
-            currentlyPlayingStrings,
-          });
-
-          // need to get up to date values within loop here since they may have changed
-          // since the loop started/last iteration
+          // Retrieve the latest state values within the loop
           const { audioMetadata, breakOnNextChord, looping } = get();
 
+          // Handle the condition to break the loop early
           if (breakOnNextChord) {
             set({
               breakOnNextChord: false,
@@ -895,23 +902,37 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             return;
           }
 
-          if (chordIndex === repeatCount - 1) {
+          // If the current chord is the last in the compiledChords sequence
+          if (
+            adjustedChordIndex === compiledChords.length - 1 &&
+            looping &&
+            audioMetadata.playing
+          ) {
+            // Reset the slider position for UI consistency
+            resetTabSliderPosition();
+          }
+
+          // Handle the end of the entire repeat sequence
+          if (
+            chordIndex === repeatCount - 1 &&
+            looping &&
+            audioMetadata.playing
+          ) {
+            // Reset the current chord index to 0 to start over
             set({
               currentChordIndex: 0,
             });
 
-            // if looping, reset the chordIndex to -1 so loop will start over after chordIndex++
-            if (looping && audioMetadata.playing) {
-              resetTabSliderPosition();
-              chordIndex = -1;
-            } else {
-              set({
-                audioMetadata: {
-                  ...audioMetadata,
-                  playing: false,
-                },
-              });
-            }
+            // Reset chordIndex to -1 so that after the loop's increment, it becomes 0
+            chordIndex = -1;
+          } else if (chordIndex === repeatCount - 1) {
+            // If not looping, stop the playback
+            set({
+              audioMetadata: {
+                ...audioMetadata,
+                playing: false,
+              },
+            });
           }
         }
       },

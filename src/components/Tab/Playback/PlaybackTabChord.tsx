@@ -20,7 +20,7 @@ function PlaybackTabChord({
       {/* not my favorite, but PM value of "-1" indicates a physical spacer between tab and strumming
         sections */}
       {columnData[0] === "-1" && (
-        <div className="baseVertFlex ornamental playbackElem mb-[3.2rem] h-[250px] w-4"></div>
+        <div className="baseVertFlex ornamental playbackElem mb-[3.2rem] h-[250px] w-4 border-y-2 border-white"></div>
       )}
 
       {columnData[0] !== "-1" && (

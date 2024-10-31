@@ -132,7 +132,8 @@ function PlaybackBottomMetadata() {
                     {audioMetadata.location === null
                       ? "Full song"
                       : (sectionProgression[
-                          playbackMetadata[index]?.location.sectionIndex ?? 0
+                          playbackMetadata[currentChordIndex]?.location
+                            .sectionIndex ?? 0
                         ]?.title ?? "")}
                   </SelectValue>
                 </SelectTrigger>

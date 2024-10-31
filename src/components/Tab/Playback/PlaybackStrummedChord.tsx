@@ -20,6 +20,7 @@ interface PlaybackStrummedChord {
   isFirstChordInSection: boolean;
   isLastChordInSection: boolean;
   isHighlighted?: boolean;
+  isRaised: boolean;
 }
 
 function PlaybackStrummedChord({
@@ -32,6 +33,7 @@ function PlaybackStrummedChord({
   isFirstChordInSection,
   isLastChordInSection,
   isHighlighted = false,
+  isRaised,
 }: PlaybackStrummedChord) {
   const heightOfStrummingPatternFiller = "1.5rem";
 
@@ -75,7 +77,7 @@ function PlaybackStrummedChord({
       {/* not my favorite, but strumIndex of -1 indicates a physical spacer between strumming
         patterns and/or tab sections */}
       {strumIndex === -1 && (
-        <div className="baseVertFlex ornamental playbackElem h-0 w-4 shrink-0"></div>
+        <div className="baseVertFlex ornamental playbackElem h-[168px] w-4 shrink-0 border-y-2 border-white"></div>
       )}
 
       {strumIndex !== -1 && (
@@ -119,16 +121,21 @@ function PlaybackStrummedChord({
               color: isHighlighted
                 ? "hsl(335, 78%, 42%)"
                 : "hsl(324, 77%, 95%)",
-              fontSize: calculateFontSize({
-                chordName,
-                maxWidthPx: 20,
-                maxFontSizePx: 16,
-                minFontSizePx: 12,
-              }),
+              // fontSize: calculateFontSize({
+              //   chordName,
+              //   maxWidthPx: 20,
+              //   maxFontSizePx: 16,
+              //   minFontSizePx: 12,
+              // }),
             }}
-            className="relative h-6 w-6 text-base font-semibold transition-colors"
+            className="relative mb-2 h-6 w-6 text-sm font-semibold transition-colors"
           >
-            <div className="absolute left-1/2 top-0 -translate-x-1/2 transform">
+            <div
+              // TODO: not sure if this will ever be possible given how it interacts with
+              // palm mutes... but the idea is not bad I think.
+              // ${isRaised ? "top-[-1rem]" : ""}
+              className={`absolute left-1/2 top-0 -translate-x-1/2 transform`}
+            >
               {chordName}
             </div>
           </div>
