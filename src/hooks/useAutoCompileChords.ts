@@ -101,8 +101,13 @@ function useAutoCompileChords() {
         baselineBpm: bpm,
         playbackSpeed,
         setCurrentlyPlayingMetadata,
-        startLoopIndex: audioMetadata.startLoopIndex,
-        endLoopIndex: audioMetadata.endLoopIndex,
+        // want to show entire tab while editing loop range
+        startLoopIndex: audioMetadata.editingLoopRange
+          ? 0
+          : audioMetadata.startLoopIndex,
+        endLoopIndex: audioMetadata.editingLoopRange
+          ? -1
+          : audioMetadata.endLoopIndex,
         atomicallyUpdateAudioMetadata,
       });
 
@@ -141,8 +146,13 @@ function useAutoCompileChords() {
           baselineBpm: bpm,
           playbackSpeed,
           setPlaybackMetadata,
-          startLoopIndex: audioMetadata.startLoopIndex,
-          endLoopIndex: audioMetadata.endLoopIndex,
+          // want to show entire tab while editing loop range
+          startLoopIndex: audioMetadata.editingLoopRange
+            ? 0
+            : audioMetadata.startLoopIndex,
+          endLoopIndex: audioMetadata.editingLoopRange
+            ? -1
+            : audioMetadata.endLoopIndex,
           visiblePlaybackContainerWidth,
           looping,
         });
@@ -167,6 +177,7 @@ function useAutoCompileChords() {
     audioMetadata.endLoopIndex,
     audioMetadata.location,
     audioMetadata.startLoopIndex,
+    audioMetadata.editingLoopRange,
     audioMetadata.type,
     sectionProgression,
     chords,

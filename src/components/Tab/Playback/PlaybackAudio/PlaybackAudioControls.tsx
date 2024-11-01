@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import { TiArrowLoop } from "react-icons/ti";
+import { getTrackBackground, Range } from "react-range";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import ProgressSlider from "~/components/AudioControls/ProgressSlider";
 import { Button } from "~/components/ui/button";
@@ -17,7 +18,11 @@ import {
   returnTransitionToTabSlider,
 } from "~/utils/tabSliderHelpers";
 
-function PlaybackAudioControls() {
+interface PlaybackAudioControls {
+  chordDurations: number[];
+}
+
+function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
   const { query, asPath } = useRouter();
 
   const {
@@ -118,15 +123,6 @@ function PlaybackAudioControls() {
     masterVolumeGainNode.gain.value = volume;
   }, [volume, masterVolumeGainNode]);
 
-  useEffect(() => {
-    if (currentChordIndex === 0) {
-      setPreviousChordIndex(0);
-      setTabProgressValue(0);
-    } else {
-      setPreviousChordIndex(currentChordIndex - 1);
-    }
-  }, [currentChordIndex]);
-
   // didn't want to clutter up below effect with more conditions, this just covers
   // resetting the tab progress value when the tab that is playing changes
   useEffect(() => {
@@ -141,6 +137,15 @@ function PlaybackAudioControls() {
       setTabProgressValue(0);
     }
   }, [audioMetadata.tabId, previousTabId]);
+
+  useEffect(() => {
+    if (currentChordIndex === 0) {
+      setPreviousChordIndex(0);
+      setTabProgressValue(0);
+    } else {
+      setPreviousChordIndex(currentChordIndex - 1);
+    }
+  }, [currentChordIndex]);
 
   useEffect(() => {
     if (audioMetadata.type === "Generated" || !recordedAudioBuffer) return;
@@ -182,11 +187,10 @@ function PlaybackAudioControls() {
       console.log("returnTransitionToTabSlider");
       returnTransitionToTabSlider();
 
-      // feels hacky, but need to have it moving towards one *as soon*
+      // feels hacky, but need to have it moving towards the next chord *as soon*
       // as the play button is pressed, otherwise it will wait a full second
       // before starting to increment.
-      if (tabProgressValue === 0) setTabProgressValue(1);
-      else setTabProgressValue(tabProgressValue + 1);
+      setTabProgressValue(tabProgressValue + 1);
 
       oneSecondIntervalRef.current = setInterval(() => {
         setTabProgressValue((prev) => prev + 1);
@@ -379,6 +383,12 @@ function PlaybackAudioControls() {
     currentlyPlayingMetadata,
   ]);
 
+  // console.log(
+  //   currentlyPlayingMetadata,
+  //   currentChordIndex,
+  //   currentlyPlayingMetadata?.[currentChordIndex]?.elapsedSeconds,
+  // );
+
   return (
     <>
       {viewportLabel === "mobileLandscape" && (
@@ -456,6 +466,7 @@ function PlaybackAudioControls() {
               wasPlayingBeforeScrubbing={wasPlayingBeforeScrubbing}
               setWasPlayingBeforeScrubbing={setWasPlayingBeforeScrubbing}
               setArtificalPlayButtonTimeout={setArtificalPlayButtonTimeout}
+              chordDurations={chordDurations}
             />
 
             <p>
@@ -521,6 +532,7 @@ function PlaybackAudioControls() {
             wasPlayingBeforeScrubbing={wasPlayingBeforeScrubbing}
             setWasPlayingBeforeScrubbing={setWasPlayingBeforeScrubbing}
             setArtificalPlayButtonTimeout={setArtificalPlayButtonTimeout}
+            chordDurations={chordDurations}
           />
 
           <div className="baseFlex w-full !justify-between">
@@ -528,10 +540,8 @@ function PlaybackAudioControls() {
               {formatSecondsToMinutes(
                 audioMetadata.type === "Artist recording"
                   ? tabProgressValue
-                  : Math.min(
-                      tabProgressValue,
-                      currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0,
-                    ),
+                  : (currentlyPlayingMetadata?.[currentChordIndex]
+                      ?.elapsedSeconds ?? 0),
               )}
             </p>
 

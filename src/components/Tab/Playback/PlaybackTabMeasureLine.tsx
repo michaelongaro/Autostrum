@@ -3,11 +3,21 @@ import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
 
 interface PlaybackTabMeasureLine {
   columnData: string[];
+  isDimmed: boolean;
 }
 
-function PlaybackTabMeasureLine({ columnData }: PlaybackTabMeasureLine) {
+function PlaybackTabMeasureLine({
+  columnData,
+  isDimmed,
+}: PlaybackTabMeasureLine) {
   return (
-    <div className="ornamental playbackElem baseVertFlex h-[250px] w-[2px]">
+    <div
+      style={{
+        opacity: isDimmed ? 0.5 : 1,
+        transition: "opacity 0.5s",
+      }}
+      className="ornamental playbackElem baseVertFlex h-[250px] w-[2px]"
+    >
       {columnData.map((note, index) => (
         <Fragment key={index}>
           {index === 0 && (

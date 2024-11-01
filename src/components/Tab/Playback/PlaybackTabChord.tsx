@@ -7,6 +7,7 @@ interface PlaybackTabChord {
   isFirstChordInSection: boolean;
   isLastChordInSection: boolean;
   isHighlighted: boolean;
+  isDimmed: boolean;
 }
 
 function PlaybackTabChord({
@@ -14,17 +15,30 @@ function PlaybackTabChord({
   isFirstChordInSection,
   isLastChordInSection,
   isHighlighted,
+  isDimmed,
 }: PlaybackTabChord) {
   return (
     <>
       {/* not my favorite, but PM value of "-1" indicates a physical spacer between tab and strumming
         sections */}
       {columnData[0] === "-1" && (
-        <div className="baseVertFlex ornamental playbackElem mb-[3.2rem] h-[250px] w-4 border-y-2 border-white"></div>
+        <div
+          style={{
+            opacity: isDimmed ? 0.5 : 1,
+            transition: "opacity 0.5s",
+          }}
+          className="baseVertFlex ornamental playbackElem mb-[3.2rem] h-[250px] w-4 border-y-2 border-white"
+        ></div>
       )}
 
       {columnData[0] !== "-1" && (
-        <div className="playbackElem baseVertFlex relative h-[250px] w-[35px]">
+        <div
+          style={{
+            opacity: isDimmed ? 0.5 : 1,
+            transition: "opacity 0.5s",
+          }}
+          className="playbackElem baseVertFlex relative h-[250px] w-[35px]"
+        >
           <div className="baseVertFlex mb-[3.2rem] mt-4">
             {columnData.map((note, index) => (
               <Fragment key={index}>

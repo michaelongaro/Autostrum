@@ -20,6 +20,7 @@ interface PlaybackStrummedChord {
   isFirstChordInSection: boolean;
   isLastChordInSection: boolean;
   isHighlighted?: boolean;
+  isDimmed: boolean;
   isRaised: boolean;
 }
 
@@ -33,6 +34,7 @@ function PlaybackStrummedChord({
   isFirstChordInSection,
   isLastChordInSection,
   isHighlighted = false,
+  isDimmed,
   isRaised,
 }: PlaybackStrummedChord) {
   const heightOfStrummingPatternFiller = "1.5rem";
@@ -77,7 +79,13 @@ function PlaybackStrummedChord({
       {/* not my favorite, but strumIndex of -1 indicates a physical spacer between strumming
         patterns and/or tab sections */}
       {strumIndex === -1 && (
-        <div className="baseVertFlex ornamental playbackElem h-[168px] w-4 shrink-0 border-y-2 border-white"></div>
+        <div
+          style={{
+            opacity: isDimmed ? 0.5 : 1,
+            transition: "opacity 0.5s",
+          }}
+          className="baseVertFlex ornamental playbackElem h-[168px] w-4 shrink-0 border-y-2 border-white"
+        ></div>
       )}
 
       {strumIndex !== -1 && (
@@ -92,6 +100,8 @@ function PlaybackStrummedChord({
                 : "none",
             borderTop: "2px solid rgb(253 242 248)",
             borderBottom: "2px solid rgb(253 242 248)",
+            opacity: isDimmed ? 0.5 : 1,
+            transition: "opacity 0.5s",
           }}
           className="baseVertFlex playbackElem relative h-[168px] w-[40px] pb-4"
         >

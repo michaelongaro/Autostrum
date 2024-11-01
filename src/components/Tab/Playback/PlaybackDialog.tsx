@@ -8,6 +8,7 @@ import PlaybackTabMeasureLine from "~/components/Tab/Playback/PlaybackTabMeasure
 import PlaybackTopMetadata from "~/components/Tab/Playback/PlaybackTopMetadata";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "~/components/ui/button";
+import { getTrackBackground, Range } from "react-range";
 import {
   Dialog,
   DialogContent,
@@ -59,6 +60,8 @@ function PlaybackDialog() {
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
     setVisiblePlaybackContainerWidth: state.setVisiblePlaybackContainerWidth,
   }));
+
+  const [values, setValues] = useState([currentChordIndex]);
 
   const containerRef = (element: HTMLDivElement | null) => {
     if (element && !containerElement) setContainerElement(element);
@@ -164,7 +167,8 @@ function PlaybackDialog() {
     if (
       prevChordIndexRef.current !== null && // Ensure it's not the initial render
       prevChordIndexRef.current > currentChordIndex && // User scrolled backward
-      !audioMetadata.playing // Playback is not active
+      !audioMetadata.playing && // Playback is not active
+      fullScrollPositions.some((position) => position.currentPosition !== null) // At least one currentPosition value isn't null
     ) {
       console.log(
         "Scrolling backward. Resetting scroll positions and loop count.",
@@ -330,7 +334,6 @@ function PlaybackDialog() {
           <DialogTitle>Practice tab for {title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </VisuallyHidden>
-
         <PlaybackTopMetadata
           selectedTab={selectedTab}
           setSelectedTab={setSelectedTab}
@@ -417,6 +420,14 @@ function PlaybackDialog() {
                                       columnData={
                                         chords[fullVisibleIndex]?.data.chordData
                                       }
+                                      isDimmed={
+                                        audioMetadata.editingLoopRange &&
+                                        (fullVisibleIndex <
+                                          audioMetadata.startLoopIndex ||
+                                          (audioMetadata.endLoopIndex !== -1 &&
+                                            fullVisibleIndex >
+                                              audioMetadata.endLoopIndex))
+                                      }
                                     />
                                   ) : (
                                     <PlaybackTabChord
@@ -430,15 +441,24 @@ function PlaybackDialog() {
                                       }
                                       isLastChordInSection={false}
                                       isHighlighted={
-                                        (audioMetadata.playing &&
+                                        !audioMetadata.editingLoopRange &&
+                                        ((audioMetadata.playing &&
                                           highlightChord({
                                             chordIndex: fullVisibleIndex,
                                             type: "isBeingPlayed",
                                           })) ||
-                                        highlightChord({
-                                          chordIndex: fullVisibleIndex,
-                                          type: "hasBeenPlayed",
-                                        })
+                                          highlightChord({
+                                            chordIndex: fullVisibleIndex,
+                                            type: "hasBeenPlayed",
+                                          }))
+                                      }
+                                      isDimmed={
+                                        audioMetadata.editingLoopRange &&
+                                        (fullVisibleIndex <
+                                          audioMetadata.startLoopIndex ||
+                                          (audioMetadata.endLoopIndex !== -1 &&
+                                            fullVisibleIndex >
+                                              audioMetadata.endLoopIndex))
                                       }
                                     />
                                   )}
@@ -488,6 +508,14 @@ function PlaybackDialog() {
                                       type: "hasBeenPlayed",
                                     })
                                   }
+                                  isDimmed={
+                                    audioMetadata.editingLoopRange &&
+                                    (fullVisibleIndex <
+                                      audioMetadata.startLoopIndex ||
+                                      (audioMetadata.endLoopIndex !== -1 &&
+                                        fullVisibleIndex >
+                                          audioMetadata.endLoopIndex))
+                                  }
                                   isRaised={
                                     chords[fullVisibleIndex]?.data.isRaised ||
                                     false
@@ -504,9 +532,8 @@ function PlaybackDialog() {
             </motion.div>
           )}
         </AnimatePresence>
-
         <div className="baseVertFlex w-full gap-2">
-          <PlaybackAudioControls />
+          <PlaybackAudioControls chordDurations={chordDurations} />
           <PlaybackBottomMetadata />
         </div>
       </DialogContent>

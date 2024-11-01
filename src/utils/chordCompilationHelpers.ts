@@ -141,6 +141,7 @@ function compileFullTab({
   // the last element in metadataMappedToLoopRange below for.
   const backupFirstChordMetadata = metadata[startLoopIndex];
 
+  // TODO: probably remove +1 since we aren't using ghost chord right now
   // +1 to account for ghost chord that's added below
   if (atomicallyUpdateAudioMetadata) {
     console.log("og here");
@@ -345,6 +346,7 @@ function compileSpecificChordGrouping({
   // the last element in metadataMappedToLoopRange below for.
   const backupFirstChordMetadata = metadata[startLoopIndex];
 
+  // TODO: probably remove +1 since we aren't using ghost chord right now
   // +1 to account for ghost chord that's added below
   if (atomicallyUpdateAudioMetadata) {
     atomicallyUpdateAudioMetadata({

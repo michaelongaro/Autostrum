@@ -795,6 +795,14 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
         const tuning = parse(tuningNotes);
 
+        // want to show entire tab while editing loop range
+        const adjStartLoopIndex = audioMetadata.editingLoopRange
+          ? 0
+          : audioMetadata.startLoopIndex;
+        const adjEndLoopIndex = audioMetadata.editingLoopRange
+          ? -1
+          : audioMetadata.endLoopIndex;
+
         const compiledChords = location
           ? compileSpecificChordGrouping({
               tabData,
@@ -803,8 +811,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
               baselineBpm,
               playbackSpeed,
               setCurrentlyPlayingMetadata,
-              startLoopIndex: audioMetadata.startLoopIndex,
-              endLoopIndex: audioMetadata.endLoopIndex,
+              startLoopIndex: adjStartLoopIndex,
+              endLoopIndex: adjEndLoopIndex,
             })
           : compileFullTab({
               tabData,
@@ -813,8 +821,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
               baselineBpm,
               playbackSpeed,
               setCurrentlyPlayingMetadata,
-              startLoopIndex: audioMetadata.startLoopIndex,
-              endLoopIndex: audioMetadata.endLoopIndex,
+              startLoopIndex: adjStartLoopIndex,
+              endLoopIndex: adjEndLoopIndex,
             });
 
         const sanitizedSectionProgression =
@@ -830,8 +838,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           baselineBpm,
           playbackSpeed,
           setPlaybackMetadata,
-          startLoopIndex: audioMetadata.startLoopIndex,
-          endLoopIndex: audioMetadata.endLoopIndex,
+          startLoopIndex: adjStartLoopIndex,
+          endLoopIndex: adjEndLoopIndex,
           looping,
           visiblePlaybackContainerWidth,
         });
