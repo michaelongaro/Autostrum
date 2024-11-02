@@ -173,6 +173,7 @@ function expandFullTab({
         strum: "",
         noteLength: "1/4th",
         bpm: compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
+        showBpm: false,
         isRaised: true,
       },
     });
@@ -505,6 +506,7 @@ function compileChordSection({
         strum: "",
         noteLength: "1/4th",
         bpm: baselineBpm,
+        showBpm: false,
         isRaised: false,
       },
     });
@@ -583,6 +585,8 @@ function compileChordSequence({
   playbackSpeed,
 }: CompileChordSequence) {
   const chordSequenceRepetitions = getRepetitions(chordSequence?.repetitions);
+
+  const prevChord = compiledChords?.at(-1);
 
   for (
     let chordSequenceRepeatIdx = 0;
@@ -679,6 +683,20 @@ function compileChordSequence({
           noteLength: chordSequence.strummingPattern.noteLength,
           bpm: Number(
             getBpmForChord(chordSequence.bpm, baselineBpm, subSectionBpm),
+          ),
+          // TODO: check this logic, might be flaky
+          showBpm: Boolean(
+            compiledChords.length === 0 ||
+              (chordIdx === 0 &&
+                prevChord &&
+                prevChord?.data.bpm !==
+                  Number(
+                    getBpmForChord(
+                      chordSequence.bpm,
+                      baselineBpm,
+                      subSectionBpm,
+                    ),
+                  )),
           ),
           isRaised,
         },

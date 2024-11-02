@@ -143,8 +143,16 @@ function ProgressSlider({
             //   currentlyPlayingMetadata?.length,
             // );
 
+            // console.log(
+            //   "prev values",
+            //   audioMetadata.startLoopIndex,
+            //   audioMetadata.endLoopIndex,
+            // );
+
             const newStartLoopIndex = values[0]!;
             const newEndLoopIndex = values[1] === tabLength ? -1 : values[1]!;
+
+            // console.log("new values", newStartLoopIndex, newEndLoopIndex);
 
             if (
               newStartLoopIndex !== audioMetadata.startLoopIndex ||
@@ -195,7 +203,7 @@ function ProgressSlider({
                   borderRadius: "4px",
                   background: getTrackBackground({
                     values: [currentChordIndex],
-                    colors: ["#548BF4", "#ccc"],
+                    colors: ["#ccc", "#548BF4", "#ccc"],
                     min: 0,
                     max: currentlyPlayingMetadata?.length || 0,
                   }),
@@ -248,6 +256,7 @@ function ProgressSlider({
                 ...props.style,
                 display: "flex",
                 width: "100%",
+                marginLeft: "0.5rem",
               }}
             >
               <div

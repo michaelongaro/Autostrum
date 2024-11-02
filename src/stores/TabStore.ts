@@ -221,6 +221,8 @@ interface PlaybackChord {
     | "1/16th"
     | "1/16th triplet";
   bpm: number;
+  showBpm: boolean; // only want to show bpm on first strummed chord of a strumming pattern and
+  // only if it's different from the previous chord
   isRaised: boolean; // only true if this chord and strummed chord to the left are both > 5 characters. Allowing entire chord names to render w/o overlap
 }
 

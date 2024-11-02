@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
 import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 
@@ -27,7 +28,7 @@ function PlaybackTabChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex ornamental playbackElem mb-[3.2rem] h-[250px] w-4 border-y-2 border-white"
+          className="baseVertFlex ornamental playbackElem mb-[3.2rem] h-[240px] w-4 border-y-2 border-white"
         ></div>
       )}
 
@@ -37,13 +38,13 @@ function PlaybackTabChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="playbackElem baseVertFlex relative h-[250px] w-[35px]"
+          className="playbackElem baseVertFlex relative h-[240px] w-[35px]"
         >
           <div className="baseVertFlex mb-[3.2rem] mt-4">
             {columnData.map((note, index) => (
               <Fragment key={index}>
                 {index === 0 && (
-                  <div style={{}} className="baseFlex h-9 w-full">
+                  <div style={{}} className="baseFlex h-7 w-full">
                     <PlaybackPalmMuteNode value={note} />
                   </div>
                 )}
@@ -116,14 +117,8 @@ function PlaybackTabChord({
                     >
                       {/* TODO: probably keep columnData[8] to be "1/4th", "1/8th", "1/16th" like regular
                           tab data during compilation process instead of 1, 0.5, 0.25 for consistency */}
-                      {columnData[9] !== "1" && (
-                        <div>
-                          {getDynamicNoteLengthIcon(
-                            columnData[9] === "0.5" ? "1/8th" : "1/16th",
-                          )}
-                        </div>
-                      )}
-                      {columnData[7]?.includes("^") && (
+
+                      {/* {columnData[7]?.includes("^") && (
                         <div className="relative top-1 rotate-180">v</div>
                       )}
                       {columnData[7]?.includes("v") && <div>v</div>}
@@ -131,7 +126,64 @@ function PlaybackTabChord({
                       {columnData[7]?.includes(">") && <div>{">"}</div>}
                       {columnData[7]?.includes(".") && (
                         <div className="relative bottom-2">.</div>
+                      )} */}
+
+                      <div className="baseFlex">
+                        {columnData[7]?.includes("v") && (
+                          <BsArrowDown
+                            style={{
+                              width: "15px",
+                              height: "15px",
+                            }}
+                            strokeWidth={
+                              columnData[7]?.includes(">") ? "1.25px" : "0px"
+                            }
+                          />
+                        )}
+                        {columnData[7]?.includes("^") && (
+                          <BsArrowUp
+                            style={{
+                              width: "15px",
+                              height: "15px",
+                            }}
+                            strokeWidth={
+                              columnData[7]?.includes(">") ? "1.25px" : "0px"
+                            }
+                          />
+                        )}
+
+                        {columnData[7]?.includes("s") && (
+                          <div
+                            style={{ fontSize: "20px" }}
+                            className={`baseFlex mb-1 h-5 leading-[0] ${columnData[7]?.includes(">") ? "font-semibold" : "font-normal"}`}
+                          >
+                            {columnData[7]?.[0]}
+                          </div>
+                        )}
+
+                        {columnData[7]?.includes(".") && (
+                          <div
+                            style={{
+                              fontSize: "30px",
+                              position: "relative",
+                              bottom: "15px",
+                              width: columnData[7] === "." ? "10px" : "0px",
+                            }}
+                          >
+                            .
+                          </div>
+                        )}
+                      </div>
+
+                      {columnData[9] !== "1" && (
+                        <div>
+                          {getDynamicNoteLengthIcon(
+                            columnData[9] === "0.5" ? "1/8th" : "1/16th",
+                          )}
+                        </div>
                       )}
+
+                      {columnData[7] === "" && <div className="h-5 w-4"></div>}
                     </div>
                   </div>
                 )}

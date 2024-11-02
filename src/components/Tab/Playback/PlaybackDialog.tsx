@@ -104,8 +104,10 @@ function PlaybackDialog() {
 
   useEffect(() => {
     setLoopCount(0);
-    if (!looping) setLooping(true);
-  }, [showPlaybackDialog, looping, setLooping]);
+    if (showPlaybackDialog) {
+      setLooping(true);
+    }
+  }, [showPlaybackDialog, setLooping]);
 
   useEffect(() => {
     // this feels a bit like a bandaid fix
@@ -357,13 +359,13 @@ function PlaybackDialog() {
               >
                 <div
                   ref={containerRef}
-                  className="relative flex h-[250px] w-full overflow-hidden"
+                  className="relative flex h-[240px] w-full overflow-hidden"
                 >
                   <div className="baseFlex absolute left-0 top-0 size-full">
                     <div className="h-[165px] w-full"></div>
                     {/* currently this fixes the highlight line extending past rounded borders of
               sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
-                    <div className="z-0 h-[164px] w-[2px] shrink-0 bg-pink-600"></div>
+                    <div className="z-0 mb-2 h-[164px] w-[2px] shrink-0 bg-pink-600"></div>
                     <div className="h-[165px] w-full"></div>
                   </div>
 
@@ -487,9 +489,7 @@ function PlaybackDialog() {
                                     "1/4th"
                                   }
                                   bpmToShow={
-                                    (chords[fullVisibleIndex]?.data
-                                      .strumIndex || 0) === 0 &&
-                                    chords[fullVisibleIndex]?.data.bpm
+                                    chords[fullVisibleIndex]?.data.showBpm
                                       ? chords[fullVisibleIndex]?.data.bpm
                                       : undefined
                                   }

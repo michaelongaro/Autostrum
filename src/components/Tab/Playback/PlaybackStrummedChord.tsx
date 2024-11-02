@@ -84,7 +84,7 @@ function PlaybackStrummedChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex ornamental playbackElem h-[168px] w-4 shrink-0 border-y-2 border-white"
+          className="baseVertFlex ornamental playbackElem mb-[9px] h-[168px] w-4 shrink-0 border-y-2 border-white"
         ></div>
       )}
 
@@ -103,7 +103,7 @@ function PlaybackStrummedChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex playbackElem relative h-[168px] w-[40px] pb-4"
+          className="baseVertFlex playbackElem relative mb-[9px] h-[168px] w-[40px] pb-4"
         >
           {bpmToShow && (
             <div className="baseFlex absolute left-2 top-[5px] gap-1 text-nowrap">
@@ -161,42 +161,45 @@ function PlaybackStrummedChord({
               }}
               className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
             >
-              {strum.includes("v") && (
-                <BsArrowDown
-                  style={{
-                    width: strum.includes(">") ? "18.5px" : "20px",
-                    height: strum.includes(">") ? "18.5px" : "20px",
-                  }}
-                  strokeWidth={strum.includes(">") ? "1.25px" : "0px"}
-                />
-              )}
-              {strum.includes("^") && (
-                <BsArrowUp
-                  style={{
-                    width: strum.includes(">") ? "18.5px" : "20px",
-                    height: strum.includes(">") ? "18.5px" : "20px",
-                  }}
-                  strokeWidth={strum.includes(">") ? "1.25px" : "0px"}
-                />
-              )}
+              <div className="baseFlex">
+                {strum.includes("v") && (
+                  <BsArrowDown
+                    style={{
+                      width: strum.includes(">") ? "18.5px" : "20px",
+                      height: strum.includes(">") ? "18.5px" : "20px",
+                    }}
+                    strokeWidth={strum.includes(">") ? "1.25px" : "0px"}
+                  />
+                )}
+                {strum.includes("^") && (
+                  <BsArrowUp
+                    style={{
+                      width: strum.includes(">") ? "18.5px" : "20px",
+                      height: strum.includes(">") ? "18.5px" : "20px",
+                    }}
+                    strokeWidth={strum.includes(">") ? "1.25px" : "0px"}
+                  />
+                )}
 
-              {strum.includes("s") && (
-                <div
-                  style={{ fontSize: "20px" }}
-                  className={`baseFlex mb-1 h-5 leading-[0] ${strum.includes(">") ? "font-semibold" : "font-normal"}`}
-                >
-                  {strum[0]}
-                </div>
-              )}
+                {strum.includes("s") && (
+                  <div
+                    style={{ fontSize: "20px" }}
+                    className={`baseFlex mb-1 h-5 leading-[0] ${strum.includes(">") ? "font-semibold" : "font-normal"}`}
+                  >
+                    {strum[0]}
+                  </div>
+                )}
 
-              {strum.includes(".") && (
-                <div
-                  style={{ fontSize: "30px" }}
-                  className="absolute bottom-[-9px]"
-                >
-                  .
-                </div>
-              )}
+                {strum.includes(".") && (
+                  <div
+                    style={{ fontSize: "30px" }}
+                    // className="absolute bottom-[-9px]"
+                    className="relative bottom-0 right-1 w-0"
+                  >
+                    .
+                  </div>
+                )}
+              </div>
 
               {strum === "" && <div className="h-5 w-4"></div>}
             </div>

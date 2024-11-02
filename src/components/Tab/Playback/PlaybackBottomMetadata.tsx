@@ -58,6 +58,8 @@ function PlaybackBottomMetadata() {
     viewportLabel,
     setShowEffectGlossaryModal,
     setAudioMetadata,
+    looping,
+    countInTimer,
   } = useTabStore((state) => ({
     tabData: state.tabData,
     title: state.title,
@@ -70,6 +72,8 @@ function PlaybackBottomMetadata() {
     viewportLabel: state.viewportLabel,
     setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
     setAudioMetadata: state.setAudioMetadata,
+    looping: state.looping,
+    countInTimer: state.countInTimer,
   }));
 
   // idk if best approach, but need unique section titles, not the whole progression
@@ -165,8 +169,31 @@ function PlaybackBottomMetadata() {
       ) : (
         <div className="baseFlex w-full px-4 py-4">
           {viewportLabel.includes("mobile") ? (
-            <div className="baseFlex gap-8">
+            <div className="baseFlex gap-4">
               <MobileSettingsDialog />
+
+              <Toggle
+                variant={"outline"}
+                aria-label="Edit looping range"
+                disabled={
+                  !looping ||
+                  audioMetadata.type === "Artist recording" ||
+                  audioMetadata.playing ||
+                  countInTimer.showing
+                }
+                pressed={audioMetadata.editingLoopRange}
+                className="baseFlex h-9 gap-2 p-2"
+                onPressedChange={(value) =>
+                  setAudioMetadata({
+                    ...audioMetadata,
+                    editingLoopRange: value,
+                  })
+                }
+              >
+                <CgArrowsShrinkH className="h-6 w-6" />
+                Range
+              </Toggle>
+
               <MobileMenuDialog />
             </div>
           ) : (
@@ -969,26 +996,6 @@ function Settings() {
           </SelectContent>
         </Select>
       </div>
-
-      <Toggle
-        variant={"outline"}
-        aria-label="Loop toggle"
-        disabled={audioMetadata.playing || countInTimer.showing}
-        pressed={looping}
-        className="size-9 p-1"
-        onPressedChange={(value) => {
-          setAudioMetadata({
-            ...audioMetadata,
-            startLoopIndex: 0,
-            endLoopIndex: -1,
-            editingLoopRange: false,
-          });
-
-          localStorageLooping.set(String(value));
-        }}
-      >
-        <TiArrowLoop className="h-6 w-6" />
-      </Toggle>
 
       <Toggle
         variant={"outline"}

@@ -55,6 +55,7 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
     mobileHeaderModal,
     setMobileHeaderModal,
     viewportLabel,
+    looping,
   } = useTabStore((state) => ({
     id: state.id,
     bpm: state.bpm,
@@ -85,6 +86,7 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
     mobileHeaderModal: state.mobileHeaderModal,
     setMobileHeaderModal: state.setMobileHeaderModal,
     viewportLabel: state.viewportLabel,
+    looping: state.looping,
   }));
 
   const [tabProgressValue, setTabProgressValue] = useState(0);
@@ -107,7 +109,7 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
 
   const volume = useGetLocalStorageValues().volume;
   const autoscrollEnabled = useGetLocalStorageValues().autoscroll;
-  const looping = useGetLocalStorageValues().looping;
+  // const looping = useGetLocalStorageValues().looping;
 
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
 
@@ -178,51 +180,6 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
     currentChordIndex,
     previousChordIndex,
     tabProgressValue,
-  ]);
-
-  useEffect(() => {
-    if (audioMetadata.type === "Artist recording") return;
-
-    if (audioMetadata.playing && !oneSecondIntervalRef.current) {
-      console.log("returnTransitionToTabSlider");
-      returnTransitionToTabSlider();
-
-      // feels hacky, but need to have it moving towards the next chord *as soon*
-      // as the play button is pressed, otherwise it will wait a full second
-      // before starting to increment.
-      setTabProgressValue(tabProgressValue + 1);
-
-      oneSecondIntervalRef.current = setInterval(() => {
-        setTabProgressValue((prev) => prev + 1);
-      }, 1000);
-    } else if (
-      (!audioMetadata.playing ||
-        (currentChordIndex === 0 && previousChordIndex !== 0)) &&
-      oneSecondIntervalRef.current
-    ) {
-      clearInterval(oneSecondIntervalRef.current);
-      oneSecondIntervalRef.current = null;
-
-      if (currentChordIndex === 0) {
-        setTabProgressValue(0);
-      } else {
-        const currentElapsedSeconds =
-          currentlyPlayingMetadata?.[currentChordIndex]?.elapsedSeconds ?? 0;
-
-        if (currentElapsedSeconds === 0) {
-          setTabProgressValue(0);
-          setCurrentChordIndex(0);
-        }
-      }
-    }
-  }, [
-    currentlyPlayingMetadata,
-    audioMetadata.playing,
-    audioMetadata.type,
-    currentChordIndex,
-    previousChordIndex,
-    tabProgressValue,
-    setCurrentChordIndex,
   ]);
 
   const idOfAssociatedTab = useMemo(() => {
@@ -479,26 +436,6 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
               )}
             </p>
           </div>
-
-          <Toggle
-            variant={"outline"}
-            aria-label="Loop toggle"
-            disabled={audioMetadata.playing || countInTimer.showing}
-            pressed={looping}
-            className="h-8 w-8 p-1"
-            onPressedChange={(value) => {
-              setAudioMetadata({
-                ...audioMetadata,
-                startLoopIndex: 0,
-                endLoopIndex: -1,
-                editingLoopRange: false,
-              });
-
-              localStorageLooping.set(String(value));
-            }}
-          >
-            <TiArrowLoop className="h-6 w-6" />
-          </Toggle>
 
           <Toggle
             variant={"outline"}
