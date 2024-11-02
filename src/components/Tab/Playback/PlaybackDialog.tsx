@@ -498,15 +498,16 @@ function PlaybackDialog() {
                                     ""
                                   }
                                   isHighlighted={
-                                    (audioMetadata.playing &&
+                                    !audioMetadata.editingLoopRange &&
+                                    ((audioMetadata.playing &&
                                       highlightChord({
                                         chordIndex: fullVisibleIndex,
                                         type: "isBeingPlayed",
                                       })) ||
-                                    highlightChord({
-                                      chordIndex: fullVisibleIndex,
-                                      type: "hasBeenPlayed",
-                                    })
+                                      highlightChord({
+                                        chordIndex: fullVisibleIndex,
+                                        type: "hasBeenPlayed",
+                                      }))
                                   }
                                   isDimmed={
                                     audioMetadata.editingLoopRange &&
