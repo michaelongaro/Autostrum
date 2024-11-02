@@ -25,7 +25,7 @@ function PlaybackTabMeasureLine({
               {columnData[7] && columnData[7] !== "-1" && (
                 <div
                   className={`baseFlex absolute !flex-nowrap gap-[0.125rem] text-pink-100 ${
-                    note === "-" ? "top-0" : "top-4"
+                    note === "-" ? "top-0" : "top-2"
                   }`}
                 >
                   <QuarterNote />

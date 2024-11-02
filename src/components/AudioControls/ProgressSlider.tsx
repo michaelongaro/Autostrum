@@ -89,36 +89,6 @@ function ProgressSlider({
   return (
     <>
       {audioMetadata.editingLoopRange ? (
-        // <LoopingRangeSlider
-        //   value={[
-        //     audioMetadata.startLoopIndex,
-        //     audioMetadata.endLoopIndex === -1
-        //       ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1 // could be jank with total tab length of one or two..
-        //       : audioMetadata.endLoopIndex,
-        //   ]}
-        //   min={0}
-        //   max={audioMetadata.fullCurrentlyPlayingMetadataLength - 1}
-        //   step={1}
-        //   onValueChange={(value) => {
-        //     const tabLength =
-        //       audioMetadata.fullCurrentlyPlayingMetadataLength - 1;
-
-        //     const newStartLoopIndex = value[0]!;
-        //     const newEndLoopIndex = value[1] === tabLength ? -1 : value[1]!;
-
-        //     if (
-        //       newStartLoopIndex !== audioMetadata.startLoopIndex ||
-        //       newEndLoopIndex !== audioMetadata.endLoopIndex
-        //     ) {
-        //       setAudioMetadata({
-        //         ...audioMetadata,
-        //         startLoopIndex: newStartLoopIndex,
-        //         endLoopIndex: newEndLoopIndex,
-        //       });
-        //     }
-        //   }}
-        // />
-
         <Range
           label="Range to loop within tab"
           step={1} // 0.1
@@ -129,13 +99,12 @@ function ProgressSlider({
           values={[
             audioMetadata.startLoopIndex,
             audioMetadata.endLoopIndex === -1
-              ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1 // could be jank with total tab length of one or two..
+              ? audioMetadata.fullCurrentlyPlayingMetadataLength
               : audioMetadata.endLoopIndex,
           ]}
           // any use for onFinalChange?
           onChange={(values) => {
-            const tabLength =
-              audioMetadata.fullCurrentlyPlayingMetadataLength - 1;
+            const tabLength = audioMetadata.fullCurrentlyPlayingMetadataLength;
 
             // console.log(
             //   values,
@@ -147,6 +116,8 @@ function ProgressSlider({
             //   "prev values",
             //   audioMetadata.startLoopIndex,
             //   audioMetadata.endLoopIndex,
+            //   values[0],
+            //   values[1] === tabLength,
             // );
 
             const newStartLoopIndex = values[0]!;
@@ -168,7 +139,9 @@ function ProgressSlider({
                   setCurrentChordIndex(newStartLoopIndex);
                 }
                 if (newEndLoopIndex !== prevEndLoopIndex) {
-                  setCurrentChordIndex(newEndLoopIndex);
+                  setCurrentChordIndex(
+                    newEndLoopIndex === -1 ? tabLength : newEndLoopIndex,
+                  );
                 }
               }
 
@@ -228,7 +201,7 @@ function ProgressSlider({
                     : 0
                 }s linear`,
               }}
-              className="size-4 rounded-full will-change-transform"
+              className="z-10 size-4 rounded-full will-change-transform"
             />
           )}
         />
@@ -237,7 +210,9 @@ function ProgressSlider({
           label="Progress within tab"
           step={1} // 0.1
           min={0}
-          max={currentlyPlayingMetadata?.length || 0} // -1 on here or add a ghost chord locally somehow?
+          max={
+            currentlyPlayingMetadata ? currentlyPlayingMetadata.length - 1 : 0
+          }
           values={[currentChordIndex + (audioMetadata.playing ? 1 : 0)]}
           // any use for onFinalChange?
           onChange={(values) => {
@@ -294,7 +269,7 @@ function ProgressSlider({
                       : 0
                 }s linear`,
               }}
-              className="size-4 rounded-full will-change-transform"
+              className="z-10 size-4 rounded-full will-change-transform"
             />
           )}
         />

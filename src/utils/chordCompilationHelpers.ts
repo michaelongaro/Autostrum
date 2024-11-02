@@ -147,7 +147,7 @@ function compileFullTab({
     console.log("og here");
 
     atomicallyUpdateAudioMetadata({
-      fullCurrentlyPlayingMetadataLength: metadata.length + 1,
+      fullCurrentlyPlayingMetadataLength: metadata.length - 1, // + 1,
     });
   }
 
@@ -350,7 +350,7 @@ function compileSpecificChordGrouping({
   // +1 to account for ghost chord that's added below
   if (atomicallyUpdateAudioMetadata) {
     atomicallyUpdateAudioMetadata({
-      fullCurrentlyPlayingMetadataLength: metadata.length + 1,
+      fullCurrentlyPlayingMetadataLength: metadata.length - 1, //+ 1,
     });
   }
 
