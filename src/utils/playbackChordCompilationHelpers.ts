@@ -158,25 +158,38 @@ function expandFullTab({
 
   // right before duplication step, need to add a spacer chord if the first chord and last
   // chord are different types (tab vs strum)
-  if (
-    compiledChordsMappedToLoopRange[0]?.type !==
-    compiledChordsMappedToLoopRange.at(-1)?.type
-  ) {
-    compiledChordsMappedToLoopRange.push({
-      type: "strum",
-      isFirstChord: false,
-      isLastChord: false,
-      data: {
-        strumIndex: -1,
-        chordName: "",
-        palmMute: "",
-        strum: "",
-        noteLength: "1/4th",
-        bpm: compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
-        showBpm: false,
-        isRaised: true,
-      },
-    });
+  const firstChordType = compiledChordsMappedToLoopRange[0]?.type ?? "tab";
+  const lastChordType = compiledChordsMappedToLoopRange.at(-1)?.type ?? "tab";
+
+  if (firstChordType !== lastChordType) {
+    compiledChordsMappedToLoopRange.push(
+      firstChordType === "tab"
+        ? {
+            type: "tab",
+            isFirstChord: false,
+            isLastChord: false,
+            data: {
+              chordData: ["-1", "", "", "", "", "", "", "", "", ""],
+              bpm: compiledChordsMappedToLoopRange[0]?.data.bpm ?? baselineBpm,
+            },
+          }
+        : {
+            type: "strum",
+            isFirstChord: false,
+            isLastChord: false,
+            data: {
+              strumIndex: -1,
+              chordName: "",
+              palmMute: "",
+              strum: "",
+              noteLength: "1/4th",
+              bpm:
+                compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
+              showBpm: false,
+              isRaised: true,
+            },
+          },
+    );
 
     metadataMappedToLoopRange.push({
       location: {
@@ -346,8 +359,6 @@ function compileTabSection({
 
   // if not the very first chord in the tab, and the last section type
   // was a chord section, we need to add a spacer "chord"
-  // TODO: not sure if we can make this a "strum" type, might cause more issues and is kinda
-  // fine to leave as it is I think.
   if (compiledChords.length > 0 && compiledChords.at(-1)?.type === "strum") {
     compiledChords.push({
       type: "tab",
@@ -494,6 +505,8 @@ function compileChordSection({
 }: CompileChordSection) {
   const chordSection = subSection.data;
 
+  // if not the very first chord in the tab, and the last section type
+  // was a chord section, we need to add a spacer "chord"
   if (compiledChords.length > 0 && compiledChords.at(-1)?.type === "tab") {
     compiledChords.push({
       type: "strum",

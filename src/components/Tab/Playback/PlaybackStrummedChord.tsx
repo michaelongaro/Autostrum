@@ -85,7 +85,15 @@ function PlaybackStrummedChord({
             transition: "opacity 0.5s",
           }}
           className="baseVertFlex ornamental playbackElem mb-[9px] h-[168px] w-4 shrink-0 border-y-2 border-white"
-        ></div>
+        >
+          {/* spacer to ease transition from strum -> tab */}
+          <div className="my-3 h-[1px] w-1/2 self-start bg-gradient-to-r from-pink-100/50 to-transparent"></div>
+          <div className="my-3 h-[1px] w-1/2 self-start bg-gradient-to-r from-pink-100/50 to-transparent"></div>
+          <div className="my-3 h-[1px] w-1/2 self-start bg-gradient-to-r from-pink-100/50 to-transparent"></div>
+          <div className="my-3 h-[1px] w-1/2 self-start bg-gradient-to-r from-pink-100/50 to-transparent"></div>
+          <div className="my-3 h-[1px] w-1/2 self-start bg-gradient-to-r from-pink-100/50 to-transparent"></div>
+          <div className="my-3 h-[1px] w-1/2 self-start bg-gradient-to-r from-pink-100/50 to-transparent"></div>
+        </div>
       )}
 
       {strumIndex !== -1 && (

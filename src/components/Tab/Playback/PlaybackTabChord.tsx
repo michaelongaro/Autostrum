@@ -28,8 +28,16 @@ function PlaybackTabChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex ornamental playbackElem mb-[3.2rem] h-[240px] w-4 border-y-2 border-white"
-        ></div>
+          className="baseVertFlex ornamental playbackElem mb-[9px] h-[168px] w-4 border-y-2 border-white"
+        >
+          {/* spacer to ease transition from tab -> strum */}
+          <div className="my-3 h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50"></div>
+          <div className="my-3 h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50"></div>
+          <div className="my-3 h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50"></div>
+          <div className="my-3 h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50"></div>
+          <div className="my-3 h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50"></div>
+          <div className="my-3 h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50"></div>
+        </div>
       )}
 
       {columnData[0] !== "-1" && (
@@ -44,7 +52,7 @@ function PlaybackTabChord({
             {columnData.map((note, index) => (
               <Fragment key={index}>
                 {index === 0 && (
-                  <div style={{}} className="baseFlex h-7 w-full">
+                  <div className="baseFlex h-7 w-full">
                     <PlaybackPalmMuteNode value={note} />
                   </div>
                 )}
