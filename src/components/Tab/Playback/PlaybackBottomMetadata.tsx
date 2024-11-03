@@ -171,30 +171,14 @@ function PlaybackBottomMetadata() {
           {viewportLabel.includes("mobile") ? (
             <div className="baseFlex gap-4">
               <MobileSettingsDialog />
-
-              <Toggle
-                variant={"outline"}
-                aria-label="Edit looping range"
-                disabled={
-                  !looping ||
-                  audioMetadata.type === "Artist recording" ||
-                  audioMetadata.playing ||
-                  countInTimer.showing
-                }
-                pressed={audioMetadata.editingLoopRange}
-                className="baseFlex h-9 gap-2 p-2"
-                onPressedChange={(value) =>
-                  setAudioMetadata({
-                    ...audioMetadata,
-                    editingLoopRange: value,
-                  })
-                }
-              >
-                <CgArrowsShrinkH className="h-6 w-6" />
-                Range
-              </Toggle>
-
               <MobileMenuDialog />
+              <Button
+                variant={"outline"}
+                className="size-9 !p-0"
+                onClick={() => setShowEffectGlossaryModal(true)}
+              >
+                <FaBook className="h-4 w-4" />
+              </Button>
             </div>
           ) : (
             <div className="baseFlex w-full">

@@ -23,6 +23,7 @@ import {
   useTabStore,
 } from "~/stores/TabStore";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import PlaybackMenuContent from "~/components/Tab/Playback/PlaybackMenuContent";
 
 function PlaybackDialog() {
   const {
@@ -42,6 +43,8 @@ function PlaybackDialog() {
     description,
     visiblePlaybackContainerWidth,
     setVisiblePlaybackContainerWidth,
+    playbackDialogViewingState,
+    viewportLabel,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
@@ -59,6 +62,8 @@ function PlaybackDialog() {
     description: state.description,
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
     setVisiblePlaybackContainerWidth: state.setVisiblePlaybackContainerWidth,
+    playbackDialogViewingState: state.playbackDialogViewingState,
+    viewportLabel: state.viewportLabel,
   }));
 
   const [values, setValues] = useState([currentChordIndex]);
@@ -77,10 +82,6 @@ function PlaybackDialog() {
   const [chordDurations, setChordDurations] = useState<number[]>([]);
   const [initialPlaceholderWidth, setInitialPlaceholderWidth] = useState(0);
 
-  const [chords, setChords] = useState<
-    (PlaybackTabChordType | PlaybackStrummedChordType)[] | null
-  >(null);
-
   const [fullChordWidths, setFullChordWidths] = useState<number[]>([]);
   const [fullScrollPositions, setFullScrollPositions] = useState<
     {
@@ -97,10 +98,6 @@ function PlaybackDialog() {
   // expandedTabData has changed or looping has changed
   const [expandedTabDataHasChanged, setExpandedTabDataHasChanged] =
     useState(true);
-
-  const [selectedTab, setSelectedTab] = useState<
-    "Practice" | "Section progression" | "Chords" | "Strumming patterns"
-  >("Practice");
 
   useEffect(() => {
     setLoopCount(0);
@@ -264,7 +261,7 @@ function PlaybackDialog() {
     // const lastScrollPosition =
     //   fullScrollPositions.at(-1)?.originalPosition || 0;
 
-    const newChords = [...expandedTabData];
+    // const newChords = [...expandedTabData];
     const newChordDurations = [...durations];
 
     setExpandedTabDataHasChanged(false);
@@ -273,7 +270,6 @@ function PlaybackDialog() {
       setFullChordWidths(fullChordWidths);
       setScrollContainerWidth(scrollContainerWidth);
       setChordDurations(newChordDurations);
-      setChords(newChords);
     }, 1000); // bandaid fix: this looks to be a syncing issue with zustand state updates, should be fixed
     // in react 19/next 15 though
   }, [
@@ -336,13 +332,10 @@ function PlaybackDialog() {
           <DialogTitle>Practice tab for {title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </VisuallyHidden>
-        <PlaybackTopMetadata
-          selectedTab={selectedTab}
-          setSelectedTab={setSelectedTab}
-        />
+        <PlaybackTopMetadata />
 
         <AnimatePresence mode="popLayout">
-          {selectedTab === "Practice" && (
+          {playbackDialogViewingState === "Practice" && (
             <motion.div
               key="PracticeTab"
               initial={{ opacity: 0 }}
@@ -398,7 +391,7 @@ function PlaybackDialog() {
                         }}
                       ></div>
 
-                      {chords &&
+                      {expandedTabData &&
                         fullVisibleChordIndices.map((fullVisibleIndex) => {
                           return (
                             <div
@@ -413,14 +406,16 @@ function PlaybackDialog() {
                                 }),
                               }}
                             >
-                              {chords[fullVisibleIndex]?.type === "tab" ? (
+                              {expandedTabData[fullVisibleIndex]?.type ===
+                              "tab" ? (
                                 <>
-                                  {chords[
+                                  {expandedTabData[
                                     fullVisibleIndex
                                   ]?.data.chordData.includes("|") ? (
                                     <PlaybackTabMeasureLine
                                       columnData={
-                                        chords[fullVisibleIndex]?.data.chordData
+                                        expandedTabData[fullVisibleIndex]?.data
+                                          .chordData
                                       }
                                       isDimmed={
                                         audioMetadata.editingLoopRange &&
@@ -434,7 +429,8 @@ function PlaybackDialog() {
                                   ) : (
                                     <PlaybackTabChord
                                       columnData={
-                                        chords[fullVisibleIndex]?.data.chordData
+                                        expandedTabData[fullVisibleIndex]?.data
+                                          .chordData
                                       }
                                       isFirstChordInSection={
                                         fullVisibleIndex === 0 &&
@@ -468,15 +464,16 @@ function PlaybackDialog() {
                               ) : (
                                 <PlaybackStrummedChord
                                   strumIndex={
-                                    chords[fullVisibleIndex]?.data.strumIndex ||
-                                    0
+                                    expandedTabData[fullVisibleIndex]?.data
+                                      .strumIndex || 0
                                   }
                                   strum={
-                                    chords[fullVisibleIndex]?.data.strum || ""
+                                    expandedTabData[fullVisibleIndex]?.data
+                                      .strum || ""
                                   }
                                   palmMute={
-                                    chords[fullVisibleIndex]?.data.palmMute ||
-                                    ""
+                                    expandedTabData[fullVisibleIndex]?.data
+                                      .palmMute || ""
                                   }
                                   isFirstChordInSection={
                                     fullVisibleIndex === 0 &&
@@ -485,17 +482,19 @@ function PlaybackDialog() {
                                   }
                                   isLastChordInSection={false}
                                   noteLength={
-                                    chords[fullVisibleIndex]?.data.noteLength ||
-                                    "1/4th"
+                                    expandedTabData[fullVisibleIndex]?.data
+                                      .noteLength || "1/4th"
                                   }
                                   bpmToShow={
-                                    chords[fullVisibleIndex]?.data.showBpm
-                                      ? chords[fullVisibleIndex]?.data.bpm
+                                    expandedTabData[fullVisibleIndex]?.data
+                                      .showBpm
+                                      ? expandedTabData[fullVisibleIndex]?.data
+                                          .bpm
                                       : undefined
                                   }
                                   chordName={
-                                    chords[fullVisibleIndex]?.data.chordName ||
-                                    ""
+                                    expandedTabData[fullVisibleIndex]?.data
+                                      .chordName || ""
                                   }
                                   isHighlighted={
                                     !audioMetadata.editingLoopRange &&
@@ -518,8 +517,8 @@ function PlaybackDialog() {
                                           audioMetadata.endLoopIndex))
                                   }
                                   isRaised={
-                                    chords[fullVisibleIndex]?.data.isRaised ||
-                                    false
+                                    expandedTabData[fullVisibleIndex]?.data
+                                      .isRaised || false
                                   }
                                 />
                               )}
@@ -532,6 +531,8 @@ function PlaybackDialog() {
               </div>
             </motion.div>
           )}
+
+          {!viewportLabel.includes("mobile") && <PlaybackMenuContent />}
         </AnimatePresence>
         <div className="baseVertFlex w-full gap-2">
           <PlaybackAudioControls chordDurations={chordDurations} />
@@ -634,7 +635,7 @@ const getFullVisibleChordIndices = ({
     }
   }
 
-  // increasing currentPosition of chords that are farther left than start of visible range
+  // increasing currentPosition of expandedTabData that are farther left than start of visible range
   for (const chordIndex of chordIndicesBeforeRangeStart) {
     const chordWidth = fullChordWidths[chordIndex] || 0;
 

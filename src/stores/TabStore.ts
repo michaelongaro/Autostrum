@@ -443,6 +443,18 @@ interface TabState {
   setVisiblePlaybackContainerWidth: (
     visiblePlaybackContainerWidth: number,
   ) => void;
+  playbackDialogViewingState:
+    | "Practice"
+    | "Section progression"
+    | "Chords"
+    | "Strumming patterns";
+  setPlaybackDialogViewingState: (
+    playbackDialogViewingState:
+      | "Practice"
+      | "Section progression"
+      | "Chords"
+      | "Strumming patterns",
+  ) => void;
 
   // related to sound generation/playing
   audioContext: AudioContext | null;
@@ -1210,6 +1222,9 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       showPlaybackDialog: false,
       setShowPlaybackDialog: (showPlaybackDialog) =>
         set({ showPlaybackDialog }),
+      playbackDialogViewingState: "Practice",
+      setPlaybackDialogViewingState: (playbackDialogViewingState) =>
+        set({ playbackDialogViewingState }),
 
       // search
       searchResultsCount: 0,

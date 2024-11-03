@@ -27,6 +27,7 @@ interface PlayButtonIcon {
   showCountInTimer?: boolean;
   previewType?: "strummingPattern" | "chord";
   forceShowLoadingSpinner?: boolean;
+  size?: string;
 }
 
 function PlayButtonIcon({
@@ -43,6 +44,7 @@ function PlayButtonIcon({
   showCountInTimer,
   previewType,
   forceShowLoadingSpinner,
+  size = "1.25rem",
 }: PlayButtonIcon) {
   type ShouldShowPauseIcon = Omit<
     PlayButtonIcon,
@@ -99,7 +101,7 @@ function PlayButtonIcon({
         isPreviewPlayingWithPatternAndType
       );
     },
-    []
+    [],
   );
 
   const renderPlayButtonIcon = useMemo(() => {
@@ -111,7 +113,7 @@ function PlayButtonIcon({
           initial="closed"
           animate="expanded"
           transition={{ duration: 0.15 }}
-          className=" h-5 w-5 text-[18px]"
+          className="h-5 w-5 text-[18px]"
         >
           {countInNumber}
         </motion.p>
@@ -173,9 +175,19 @@ function PlayButtonIcon({
         >
           {previewType === "strummingPattern" &&
           previewMetadata?.indexOfPattern === indexOfPattern ? (
-            <BsStopFill className="h-5 w-5" />
+            <BsStopFill
+              style={{
+                width: size,
+                height: size,
+              }}
+            />
           ) : (
-            <BsFillPauseFill className="h-5 w-5" />
+            <BsFillPauseFill
+              style={{
+                width: size,
+                height: size,
+              }}
+            />
           )}
         </motion.div>
       );
@@ -189,7 +201,12 @@ function PlayButtonIcon({
         animate="expanded"
         transition={{ duration: 0.15 }}
       >
-        <BsFillPlayFill className="h-5 w-5" />
+        <BsFillPlayFill
+          style={{
+            width: size,
+            height: size,
+          }}
+        />
       </motion.div>
     );
   }, [
@@ -208,6 +225,7 @@ function PlayButtonIcon({
     forceShowLoadingSpinner,
     countInNumber,
     showCountInTimer,
+    size,
   ]);
 
   return renderPlayButtonIcon;

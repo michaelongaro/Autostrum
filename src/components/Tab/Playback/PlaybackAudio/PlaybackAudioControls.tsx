@@ -483,23 +483,59 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
             </p>
 
             <div className="baseFlex gap-4">
-              <Button
-                variant="playPause"
-                size={aboveLargeViewportWidth ? "default" : "sm"}
-                disabled={disablePlayButton}
-                onClick={() => {
-                  // TODO
-                }}
-                className="size-4 shrink-0 rounded-full bg-transparent p-0"
-              >
-                -5s
-              </Button>
+              {viewportLabel.includes("mobile") ? (
+                <Button
+                  variant="link"
+                  onClick={() => {
+                    pauseAudio();
+
+                    let newPlaybackSpeed = playbackSpeed;
+
+                    if (newPlaybackSpeed === 1.5) newPlaybackSpeed = 0.25;
+                    else
+                      newPlaybackSpeed = (playbackSpeed + 0.25) as
+                        | 0.25
+                        | 0.5
+                        | 0.75
+                        | 1
+                        | 1.25
+                        | 1.5;
+
+                    // Normalize the progress value to 1x speed
+                    const normalizedProgress = tabProgressValue * playbackSpeed;
+
+                    // Adjust the progress value to the new playback speed
+                    const adjustedProgress =
+                      normalizedProgress / newPlaybackSpeed;
+
+                    // Set the new progress value
+                    setTabProgressValue(adjustedProgress);
+                    setPlaybackSpeed(newPlaybackSpeed);
+                  }}
+                  className="w-6"
+                >
+                  {playbackSpeed}x
+                </Button>
+              ) : (
+                <Button
+                  variant="playPause"
+                  size={aboveLargeViewportWidth ? "default" : "sm"}
+                  disabled={disablePlayButton}
+                  onClick={() => {
+                    // TODO
+                  }}
+                  className="size-4 shrink-0 rounded-full bg-transparent p-0"
+                >
+                  -5s
+                </Button>
+              )}
+
               <Button
                 variant="playPause"
                 size={aboveLargeViewportWidth ? "default" : "sm"}
                 disabled={disablePlayButton}
                 onClick={handlePlayButtonClick}
-                className="size-8 shrink-0 rounded-full bg-transparent p-0"
+                className="size-10 shrink-0 rounded-full bg-transparent p-0"
               >
                 <PlayButtonIcon
                   uniqueLocationKey="audioControls"
@@ -509,19 +545,44 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
                   recordedAudioBuffer={recordedAudioBuffer}
                   forceShowLoadingSpinner={fetchingFullTabData}
                   showCountInTimer={countInTimer.showing}
+                  size={"1.5rem"}
                 />
               </Button>
-              <Button
-                variant="playPause"
-                size={aboveLargeViewportWidth ? "default" : "sm"}
-                disabled={disablePlayButton}
-                onClick={() => {
-                  // TODO
-                }}
-                className="size-4 shrink-0 rounded-full bg-transparent p-0"
-              >
-                +5s
-              </Button>
+
+              {viewportLabel.includes("mobile") ? (
+                <Toggle
+                  variant={"default"}
+                  aria-label="Edit looping range"
+                  disabled={
+                    !looping ||
+                    audioMetadata.type === "Artist recording" ||
+                    audioMetadata.playing ||
+                    countInTimer.showing
+                  }
+                  pressed={audioMetadata.editingLoopRange}
+                  className="h-8 w-8 p-1"
+                  onPressedChange={(value) =>
+                    setAudioMetadata({
+                      ...audioMetadata,
+                      editingLoopRange: value,
+                    })
+                  }
+                >
+                  <CgArrowsShrinkH className="h-6 w-6" />
+                </Toggle>
+              ) : (
+                <Button
+                  variant="playPause"
+                  size={aboveLargeViewportWidth ? "default" : "sm"}
+                  disabled={disablePlayButton}
+                  onClick={() => {
+                    // TODO
+                  }}
+                  className="size-4 shrink-0 rounded-full bg-transparent p-0"
+                >
+                  +5s
+                </Button>
+              )}
             </div>
 
             <p className="self-start">

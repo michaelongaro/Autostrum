@@ -1,4 +1,4 @@
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { getTrackBackground, Range } from "react-range";
 import { AudioProgressSlider } from "~/components/ui/AudioProgressSlider";
 import { LoopingRangeSlider } from "~/components/ui/LoopingRangeSlider";
@@ -86,6 +86,32 @@ function ProgressSlider({
   const [prevStartLoopIndex, setPrevStartLoopIndex] = useState(0);
   const [prevEndLoopIndex, setPrevEndLoopIndex] = useState(0);
 
+  // just for now
+  const [values, setValues] = useState([
+    audioMetadata.startLoopIndex,
+    audioMetadata.endLoopIndex === -1
+      ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1
+      : audioMetadata.endLoopIndex,
+  ]);
+
+  useEffect(() => {
+    if (
+      values[0] !== audioMetadata.startLoopIndex ||
+      values[1] !== audioMetadata.endLoopIndex
+    ) {
+      setAudioMetadata({
+        ...audioMetadata,
+        startLoopIndex: values[0] || 0,
+        endLoopIndex: values[1] || 0,
+      });
+
+      // setCurrentChordIndex() ...
+    }
+  }, [values, audioMetadata, setAudioMetadata]);
+
+  // ahh how is this still messed up...
+  // I still think this decoupled way is the way to go
+
   return (
     <>
       {audioMetadata.editingLoopRange ? (
@@ -95,68 +121,68 @@ function ProgressSlider({
           min={0}
           max={audioMetadata.fullCurrentlyPlayingMetadataLength - 1}
           // allowOverlap={true}
-          draggableTrack // start back here
-          values={[
-            audioMetadata.startLoopIndex,
-            audioMetadata.endLoopIndex === -1
-              ? audioMetadata.fullCurrentlyPlayingMetadataLength
-              : audioMetadata.endLoopIndex,
-          ]}
+          // draggableTrack // start back here
+          values={values}
           // any use for onFinalChange?
           onChange={(values) => {
-            const tabLength = audioMetadata.fullCurrentlyPlayingMetadataLength;
+            setValues(values);
 
-            // console.log(
-            //   values,
-            //   audioMetadata.fullCurrentlyPlayingMetadataLength,
-            //   currentlyPlayingMetadata?.length,
-            // );
+            // const tabLength = audioMetadata.fullCurrentlyPlayingMetadataLength;
 
-            // console.log(
-            //   "prev values",
-            //   audioMetadata.startLoopIndex,
-            //   audioMetadata.endLoopIndex,
-            //   values[0],
-            //   values[1] === tabLength,
-            // );
+            // // console.log(
+            // //   values,
+            // //   audioMetadata.fullCurrentlyPlayingMetadataLength,
+            // //   currentlyPlayingMetadata?.length,
+            // // );
 
-            const newStartLoopIndex = values[0]!;
-            const newEndLoopIndex = values[1] === tabLength ? -1 : values[1]!;
+            // // console.log(
+            // //   "prev values",
+            // //   audioMetadata.startLoopIndex,
+            // //   audioMetadata.endLoopIndex,
+            // //   values[0],
+            // //   values[1] === tabLength,
+            // // );
 
-            // console.log("new values", newStartLoopIndex, newEndLoopIndex);
+            // const newStartLoopIndex = values[0]!;
+            // const newEndLoopIndex = values[1] === tabLength ? -1 : values[1]!;
 
-            if (
-              newStartLoopIndex !== audioMetadata.startLoopIndex ||
-              newEndLoopIndex !== audioMetadata.endLoopIndex
-            ) {
-              if (
-                newStartLoopIndex !== prevStartLoopIndex &&
-                newEndLoopIndex !== prevEndLoopIndex
-              ) {
-                setCurrentChordIndex(newStartLoopIndex);
-              } else {
-                if (newStartLoopIndex !== prevStartLoopIndex) {
-                  setCurrentChordIndex(newStartLoopIndex);
-                }
-                if (newEndLoopIndex !== prevEndLoopIndex) {
-                  setCurrentChordIndex(
-                    newEndLoopIndex === -1 ? tabLength : newEndLoopIndex,
-                  );
-                }
-              }
+            // // console.log("new values", newStartLoopIndex, newEndLoopIndex);
 
-              setAudioMetadata({
-                ...audioMetadata,
-                startLoopIndex: newStartLoopIndex,
-                endLoopIndex: newEndLoopIndex,
-              });
-            }
+            // if (
+            //   newStartLoopIndex !== audioMetadata.startLoopIndex ||
+            //   newEndLoopIndex !== audioMetadata.endLoopIndex
+            // ) {
+            //   setAudioMetadata({
+            //     ...audioMetadata,
+            //     startLoopIndex: newStartLoopIndex,
+            //     endLoopIndex: newEndLoopIndex,
+            //   });
+            // }
 
-            if (newStartLoopIndex !== prevStartLoopIndex) {
-              setPrevStartLoopIndex(newStartLoopIndex);
-            } else if (newEndLoopIndex !== prevEndLoopIndex) {
-              setPrevEndLoopIndex(newEndLoopIndex);
-            }
+            // if (newStartLoopIndex !== prevStartLoopIndex) {
+            //   setPrevStartLoopIndex(newStartLoopIndex);
+            // } else if (newEndLoopIndex !== prevEndLoopIndex) {
+            //   setPrevEndLoopIndex(newEndLoopIndex);
+            // }
+
+            // -------------------------------
+
+            // const tabLength =
+            //   audioMetadata.fullCurrentlyPlayingMetadataLength - 1;
+
+            // const newStartLoopIndex = values[0]!;
+            // const newEndLoopIndex = values[1] === tabLength ? -1 : values[1]!;
+
+            // if (
+            //   newStartLoopIndex !== audioMetadata.startLoopIndex ||
+            //   newEndLoopIndex !== audioMetadata.endLoopIndex
+            // ) {
+            //   setAudioMetadata({
+            //     ...audioMetadata,
+            //     startLoopIndex: newStartLoopIndex,
+            //     endLoopIndex: newEndLoopIndex,
+            //   });
+            // }
           }}
           renderTrack={({ props, children }) => (
             <div
