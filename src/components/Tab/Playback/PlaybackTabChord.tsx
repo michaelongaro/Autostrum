@@ -123,19 +123,6 @@ function PlaybackTabChord({
                       }}
                       className="baseVertFlex absolute left-1/2 right-1/2 top-2 w-[1.5rem] -translate-x-1/2"
                     >
-                      {/* TODO: probably keep columnData[8] to be "1/4th", "1/8th", "1/16th" like regular
-                          tab data during compilation process instead of 1, 0.5, 0.25 for consistency */}
-
-                      {/* {columnData[7]?.includes("^") && (
-                        <div className="relative top-1 rotate-180">v</div>
-                      )}
-                      {columnData[7]?.includes("v") && <div>v</div>}
-                      {columnData[7]?.includes("s") && <div>s</div>}
-                      {columnData[7]?.includes(">") && <div>{">"}</div>}
-                      {columnData[7]?.includes(".") && (
-                        <div className="relative bottom-2">.</div>
-                      )} */}
-
                       <div className="baseFlex">
                         {columnData[7]?.includes("v") && (
                           <BsArrowDown
@@ -162,8 +149,8 @@ function PlaybackTabChord({
 
                         {columnData[7]?.includes("s") && (
                           <div
-                            style={{ fontSize: "20px" }}
-                            className={`baseFlex mb-1 h-5 leading-[0] ${columnData[7]?.includes(">") ? "font-semibold" : "font-normal"}`}
+                            style={{ fontSize: "18px" }}
+                            className={`baseFlex mb-1 leading-[0] ${columnData[7]?.includes(">") ? "font-semibold" : "font-normal"}`}
                           >
                             {columnData[7]?.[0]}
                           </div>
@@ -175,6 +162,9 @@ function PlaybackTabChord({
                               fontSize: "30px",
                               position: "relative",
                               bottom: "15px",
+                              right: columnData[7]?.includes("s")
+                                ? "0px"
+                                : "3px",
                               width: columnData[7] === "." ? "10px" : "0px",
                             }}
                           >
