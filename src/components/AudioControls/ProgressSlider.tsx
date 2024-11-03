@@ -1,4 +1,10 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { getTrackBackground, Range } from "react-range";
 import { AudioProgressSlider } from "~/components/ui/AudioProgressSlider";
 import { LoopingRangeSlider } from "~/components/ui/LoopingRangeSlider";
@@ -83,34 +89,40 @@ function ProgressSlider({
     setMobileHeaderModal: state.setMobileHeaderModal,
   }));
 
-  const [prevStartLoopIndex, setPrevStartLoopIndex] = useState(0);
-  const [prevEndLoopIndex, setPrevEndLoopIndex] = useState(0);
+  // really not sure about this one,
+  // it's clear its a rerendering issue regarding useState, maybe a useEffect + gating
+  // state hook could work?
+  const test = useRef(false);
 
-  // just for now
-  const [values, setValues] = useState([
-    audioMetadata.startLoopIndex,
-    audioMetadata.endLoopIndex === -1
-      ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1
-      : audioMetadata.endLoopIndex,
-  ]);
-
-  useEffect(() => {
-    if (
-      values[0] !== audioMetadata.startLoopIndex ||
-      values[1] !== audioMetadata.endLoopIndex
-    ) {
-      setAudioMetadata({
-        ...audioMetadata,
-        startLoopIndex: values[0] || 0,
-        endLoopIndex: values[1] || 0,
-      });
-
-      // setCurrentChordIndex() ...
+  const [values, setValues] = useState(() => {
+    if (test.current === false) {
+      test.current = [
+        audioMetadata.startLoopIndex,
+        audioMetadata.endLoopIndex === -1
+          ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1
+          : audioMetadata.endLoopIndex,
+      ];
     }
-  }, [values, audioMetadata, setAudioMetadata]);
 
-  // ahh how is this still messed up...
-  // I still think this decoupled way is the way to go
+    return test.current;
+  });
+
+  // useEffect(() => {
+  //   if (
+  //     values[0] !== audioMetadata.startLoopIndex ||
+  //     values[1] !== audioMetadata.endLoopIndex
+  //   ) {
+  //     setAudioMetadata({
+  //       ...audioMetadata,
+  //       startLoopIndex: values[0] || 0,
+  //       endLoopIndex: values[1] || 0,
+  //     });
+
+  //     // setCurrentChordIndex() ...
+  //   }
+  // }, [values, audioMetadata, setAudioMetadata]);
+
+  // might want to do something dynamic with isDragged prop for thumbs
 
   return (
     <>
@@ -126,63 +138,6 @@ function ProgressSlider({
           // any use for onFinalChange?
           onChange={(values) => {
             setValues(values);
-
-            // const tabLength = audioMetadata.fullCurrentlyPlayingMetadataLength;
-
-            // // console.log(
-            // //   values,
-            // //   audioMetadata.fullCurrentlyPlayingMetadataLength,
-            // //   currentlyPlayingMetadata?.length,
-            // // );
-
-            // // console.log(
-            // //   "prev values",
-            // //   audioMetadata.startLoopIndex,
-            // //   audioMetadata.endLoopIndex,
-            // //   values[0],
-            // //   values[1] === tabLength,
-            // // );
-
-            // const newStartLoopIndex = values[0]!;
-            // const newEndLoopIndex = values[1] === tabLength ? -1 : values[1]!;
-
-            // // console.log("new values", newStartLoopIndex, newEndLoopIndex);
-
-            // if (
-            //   newStartLoopIndex !== audioMetadata.startLoopIndex ||
-            //   newEndLoopIndex !== audioMetadata.endLoopIndex
-            // ) {
-            //   setAudioMetadata({
-            //     ...audioMetadata,
-            //     startLoopIndex: newStartLoopIndex,
-            //     endLoopIndex: newEndLoopIndex,
-            //   });
-            // }
-
-            // if (newStartLoopIndex !== prevStartLoopIndex) {
-            //   setPrevStartLoopIndex(newStartLoopIndex);
-            // } else if (newEndLoopIndex !== prevEndLoopIndex) {
-            //   setPrevEndLoopIndex(newEndLoopIndex);
-            // }
-
-            // -------------------------------
-
-            // const tabLength =
-            //   audioMetadata.fullCurrentlyPlayingMetadataLength - 1;
-
-            // const newStartLoopIndex = values[0]!;
-            // const newEndLoopIndex = values[1] === tabLength ? -1 : values[1]!;
-
-            // if (
-            //   newStartLoopIndex !== audioMetadata.startLoopIndex ||
-            //   newEndLoopIndex !== audioMetadata.endLoopIndex
-            // ) {
-            //   setAudioMetadata({
-            //     ...audioMetadata,
-            //     startLoopIndex: newStartLoopIndex,
-            //     endLoopIndex: newEndLoopIndex,
-            //   });
-            // }
           }}
           renderTrack={({ props, children }) => (
             <div
@@ -201,10 +156,10 @@ function ProgressSlider({
                   width: "100%",
                   borderRadius: "4px",
                   background: getTrackBackground({
-                    values: [currentChordIndex],
+                    values: values,
                     colors: ["#ccc", "#548BF4", "#ccc"],
                     min: 0,
-                    max: currentlyPlayingMetadata?.length || 0,
+                    max: audioMetadata.fullCurrentlyPlayingMetadataLength - 1,
                   }),
                   alignSelf: "center",
                 }}
@@ -213,22 +168,41 @@ function ProgressSlider({
               </div>
             </div>
           )}
-          renderThumb={({ props }) => (
+          // renderThumb={({ props }) => (
+          //   <div
+          //     {...props}
+          //     key={props.key}
+          //     style={{
+          //       ...props.style,
+          //       backgroundColor: "#999",
+          //     }}
+          //     className="z-10 size-4 rounded-full will-change-transform"
+          //   />
+          // )}
+          renderThumb={({ index, props, isDragged }) => (
             <div
               {...props}
-              key={props.key}
+              key={index}
               style={{
                 ...props.style,
-
-                backgroundColor: "#999",
-                transition: `transform ${
-                  audioMetadata.playing
-                    ? chordDurations[currentChordIndex] || 0
-                    : 0
-                }s linear`,
+                height: "42px",
+                width: "42px",
+                borderRadius: "4px",
+                backgroundColor: "#FFF",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                boxShadow: "0px 2px 6px #AAA",
               }}
-              className="z-10 size-4 rounded-full will-change-transform"
-            />
+            >
+              <div
+                style={{
+                  height: "16px",
+                  width: "5px",
+                  backgroundColor: isDragged ? "#548BF4" : "#CCC",
+                }}
+              />
+            </div>
           )}
         />
       ) : (
@@ -242,7 +216,13 @@ function ProgressSlider({
           values={[currentChordIndex + (audioMetadata.playing ? 1 : 0)]}
           // any use for onFinalChange?
           onChange={(values) => {
+            if (audioMetadata.playing) {
+              pauseAudio();
+            }
+
             setCurrentChordIndex(values[0] || 0);
+
+            // TODO: add logic for scrubbing through audio playback instead of tab playback
           }}
           renderTrack={({ props, children }) => (
             <div
@@ -285,7 +265,6 @@ function ProgressSlider({
               key={props.key}
               style={{
                 ...props.style,
-
                 backgroundColor: "#999",
                 transition: `transform ${
                   currentChordIndex === 0
