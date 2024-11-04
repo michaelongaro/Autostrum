@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { getTrackBackground, Range } from "react-range";
 import { AudioProgressSlider } from "~/components/ui/AudioProgressSlider";
 import { LoopingRangeSlider } from "~/components/ui/LoopingRangeSlider";
@@ -89,55 +83,50 @@ function ProgressSlider({
     setMobileHeaderModal: state.setMobileHeaderModal,
   }));
 
-  // really not sure about this one,
-  // it's clear its a rerendering issue regarding useState, maybe a useEffect + gating
-  // state hook could work?
-  const test = useRef(false);
+  const [loopRange, setLoopRange] = useState([
+    audioMetadata.startLoopIndex,
+    audioMetadata.endLoopIndex === -1
+      ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1
+      : audioMetadata.endLoopIndex,
+  ]);
 
-  const [values, setValues] = useState(() => {
-    if (test.current === false) {
-      test.current = [
-        audioMetadata.startLoopIndex,
-        audioMetadata.endLoopIndex === -1
-          ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1
-          : audioMetadata.endLoopIndex,
-      ];
+  useEffect(() => {
+    if (
+      loopRange[0] !== audioMetadata.startLoopIndex ||
+      loopRange[1] !== audioMetadata.endLoopIndex
+    ) {
+      setAudioMetadata({
+        ...audioMetadata,
+        startLoopIndex: loopRange[0] || 0,
+        endLoopIndex: loopRange[1] || 0,
+      });
+
+      // prefer the first thumb's value if it changed, otherwise fall back to the second thumb's value
+      const newCurrentChordIndex =
+        loopRange[0] !== audioMetadata.startLoopIndex
+          ? loopRange[0]
+          : loopRange[1];
+      setCurrentChordIndex(newCurrentChordIndex ?? 0);
     }
+  }, [loopRange, audioMetadata, setAudioMetadata, setCurrentChordIndex]);
 
-    return test.current;
-  });
-
-  // useEffect(() => {
-  //   if (
-  //     values[0] !== audioMetadata.startLoopIndex ||
-  //     values[1] !== audioMetadata.endLoopIndex
-  //   ) {
-  //     setAudioMetadata({
-  //       ...audioMetadata,
-  //       startLoopIndex: values[0] || 0,
-  //       endLoopIndex: values[1] || 0,
-  //     });
-
-  //     // setCurrentChordIndex() ...
-  //   }
-  // }, [values, audioMetadata, setAudioMetadata]);
-
-  // might want to do something dynamic with isDragged prop for thumbs
+  // might want to do something dynamic visually  with isDragged prop for thumbs
 
   return (
     <>
       {audioMetadata.editingLoopRange ? (
         <Range
+          key={"rangeTwoThumbs"} // needed so thumb(s) are properly initialized
           label="Range to loop within tab"
           step={1} // 0.1
           min={0}
           max={audioMetadata.fullCurrentlyPlayingMetadataLength - 1}
           // allowOverlap={true}
-          // draggableTrack // start back here
-          values={values}
+          draggableTrack
+          values={loopRange}
           // any use for onFinalChange?
-          onChange={(values) => {
-            setValues(values);
+          onChange={(newLoopRange) => {
+            setLoopRange(newLoopRange);
           }}
           renderTrack={({ props, children }) => (
             <div
@@ -156,7 +145,7 @@ function ProgressSlider({
                   width: "100%",
                   borderRadius: "4px",
                   background: getTrackBackground({
-                    values: values,
+                    values: loopRange,
                     colors: ["#ccc", "#548BF4", "#ccc"],
                     min: 0,
                     max: audioMetadata.fullCurrentlyPlayingMetadataLength - 1,
@@ -168,52 +157,34 @@ function ProgressSlider({
               </div>
             </div>
           )}
-          // renderThumb={({ props }) => (
-          //   <div
-          //     {...props}
-          //     key={props.key}
-          //     style={{
-          //       ...props.style,
-          //       backgroundColor: "#999",
-          //     }}
-          //     className="z-10 size-4 rounded-full will-change-transform"
-          //   />
-          // )}
-          renderThumb={({ index, props, isDragged }) => (
+          renderThumb={({ props, index }) => (
             <div
               {...props}
-              key={index}
+              key={`${props.key}-${index}-toggle`}
               style={{
                 ...props.style,
-                height: "42px",
-                width: "42px",
-                borderRadius: "4px",
-                backgroundColor: "#FFF",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                boxShadow: "0px 2px 6px #AAA",
+                backgroundColor: "#999",
               }}
-            >
-              <div
-                style={{
-                  height: "16px",
-                  width: "5px",
-                  backgroundColor: isDragged ? "#548BF4" : "#CCC",
-                }}
-              />
-            </div>
+              className="z-10 size-4 rounded-full will-change-transform"
+            />
           )}
         />
       ) : (
         <Range
+          key={"rangeOneThumb"} // needed so thumb(s) are properly initialized
           label="Progress within tab"
           step={1} // 0.1
           min={0}
           max={
             currentlyPlayingMetadata ? currentlyPlayingMetadata.length - 1 : 0
           }
-          values={[currentChordIndex + (audioMetadata.playing ? 1 : 0)]}
+          values={[
+            // bounding the value to the range of the tab
+            Math.min(
+              currentChordIndex + (audioMetadata.playing ? 1 : 0),
+              currentlyPlayingMetadata!.length - 1,
+            ),
+          ]}
           // any use for onFinalChange?
           onChange={(values) => {
             if (audioMetadata.playing) {
@@ -259,10 +230,10 @@ function ProgressSlider({
               </div>
             </div>
           )}
-          renderThumb={({ props }) => (
+          renderThumb={({ props, index }) => (
             <div
               {...props}
-              key={props.key}
+              key={`${props.key}-${index}`}
               style={{
                 ...props.style,
                 backgroundColor: "#999",

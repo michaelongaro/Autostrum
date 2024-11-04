@@ -992,12 +992,16 @@ function Settings() {
         }
         pressed={audioMetadata.editingLoopRange}
         className="size-9 p-1"
-        onPressedChange={(value) =>
+        onPressedChange={(value) => {
+          // set to beginning of loop if moving to editing loop range, otherwise
+          // reset to beginning of tab
+          setCurrentChordIndex(value ? audioMetadata.startLoopIndex : 0);
+
           setAudioMetadata({
             ...audioMetadata,
             editingLoopRange: value,
-          })
-        }
+          });
+        }}
       >
         <CgArrowsShrinkH className="h-6 w-6" />
       </Toggle>
