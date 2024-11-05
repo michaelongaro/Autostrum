@@ -326,7 +326,7 @@ function PlaybackDialog() {
       </DialogTrigger>
       <DialogContent
         ref={dialogContentRef}
-        className="baseVertFlex h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none bg-black p-0 tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
+        className="baseVertFlex h-dvh w-screen max-w-none !justify-end gap-0 !rounded-none bg-black p-0 mobileLandscape:!justify-between tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
       >
         <VisuallyHidden>
           <DialogTitle>Practice tab for {title}</DialogTitle>

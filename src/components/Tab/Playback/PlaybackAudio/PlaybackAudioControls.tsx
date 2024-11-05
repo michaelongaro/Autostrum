@@ -348,7 +348,7 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
 
   return (
     <>
-      {viewportLabel === "mobileLandscape" && (
+      {viewportLabel.includes("Landscape") && (
         <div className="baseFlex w-full gap-4 px-4">
           {/* audio source, instrument, speed selects*/}
 
@@ -464,7 +464,7 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
         </div>
       )}
 
-      {viewportLabel !== "mobileLandscape" && (
+      {!viewportLabel.includes("Landscape") && (
         <div className="baseVertFlex w-full max-w-[90vw] gap-2 sm:max-w-xl">
           <ProgressSlider
             disabled={disablePlayButton}

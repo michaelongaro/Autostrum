@@ -88,7 +88,7 @@ function PlaybackBottomMetadata() {
   // TODO: decide later how you want to conditionally render landscape mobile vs the rest
   return (
     <>
-      {viewportLabel === "mobileLandscape" ? (
+      {viewportLabel.includes("Landscape") ? (
         <div className="baseFlex w-full !justify-between gap-4 px-4 pb-2">
           <div className="baseFlex gap-4">
             <div className="baseVertFlex !items-start">

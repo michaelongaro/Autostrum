@@ -13,12 +13,17 @@ function useGetViewportLabel() {
     function handleResize() {
       let viewportLabel:
         | "mobile"
+        | "narrowMobileLandscape"
         | "mobileLandscape"
         | "mobileLarge"
         | "tablet"
         | "desktop" = "mobile";
 
-      if (window.innerHeight < 500) {
+      if (window.innerHeight < 370) {
+        viewportLabel = "narrowMobileLandscape";
+      }
+
+      if (window.innerHeight >= 370 && window.innerHeight < 500) {
         viewportLabel = "mobileLandscape";
       }
 

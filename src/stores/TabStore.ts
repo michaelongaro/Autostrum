@@ -537,6 +537,7 @@ interface TabState {
   setIsLoadingARoute: (isLoadingARoute: boolean) => void;
   viewportLabel:
     | "mobile"
+    | "narrowMobileLandscape"
     | "mobileLandscape"
     | "mobileLarge"
     | "tablet"
@@ -544,6 +545,7 @@ interface TabState {
   setViewportLabel: (
     viewportLabel:
       | "mobile"
+      | "narrowMobileLandscape"
       | "mobileLandscape"
       | "mobileLarge"
       | "tablet"

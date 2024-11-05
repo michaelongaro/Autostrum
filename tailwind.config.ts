@@ -24,8 +24,10 @@ module.exports = {
     },
     extend: {
       screens: {
+        // tab title + bpm will be hidden below this threshold to free up extra space
+        narrowMobileLandscape: { raw: "(max-height: 370px)" },
         // TODO: tweak this threshold
-        mobileLandscape: { raw: "(max-height: 500px)" },
+        mobileLandscape: { raw: "(min-height: 370px) and (max-height: 500px)" },
         mobileLarge: { raw: "(min-height: 667px)" },
         tablet: { raw: "(min-height: 700px) and (min-width: 1024px)" },
         desktop: { raw: "(min-height: 800px) and (min-width: 1500px)" },

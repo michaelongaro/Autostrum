@@ -52,7 +52,10 @@ function PlaybackTopMetadata() {
 
   // const index = realChordsToFullChordsMap[currentChordIndex];
 
-  if (playbackMetadata === null) return;
+  console.log("viewportLabel", viewportLabel);
+
+  if (playbackMetadata === null || viewportLabel === "narrowMobileLandscape")
+    return;
 
   return (
     <>
