@@ -16,7 +16,7 @@ function PlaybackTabMeasureLine({
         opacity: isDimmed ? 0.5 : 1,
         transition: "opacity 0.5s",
       }}
-      className="ornamental playbackElem baseVertFlex mb-[9px] h-[240px] w-[2px]"
+      className="ornamental playbackElem baseVertFlex mb-2 h-[240px] w-[2px]"
     >
       {columnData.map((note, index) => (
         <Fragment key={index}>
@@ -41,7 +41,7 @@ function PlaybackTabMeasureLine({
                     style={{
                       top: "-13px",
                     }}
-                    className="relative h-[1px] w-full bg-pink-100"
+                    className="relative h-[1px] w-full bg-white"
                   ></div>
                 )}
               </div>
@@ -54,7 +54,7 @@ function PlaybackTabMeasureLine({
                 style={{
                   height: "28px",
                 }}
-                className="w-[2px] bg-pink-100"
+                className="w-[2px] bg-white"
               ></div>
             </div>
           )}
