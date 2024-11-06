@@ -114,7 +114,7 @@ function PlaybackStrummedChord({
           className="baseVertFlex playbackElem relative mb-[9px] h-[168px] w-[40px] pb-4"
         >
           {bpmToShow && (
-            <div className="baseFlex absolute left-2 top-[5px] gap-1 text-nowrap">
+            <div className="baseFlex absolute -top-7 left-2 gap-1 text-nowrap">
               {getDynamicNoteLengthIcon(noteLength, true)}
               <span className="text-xs">{`${bpmToShow} BPM`}</span>
             </div>

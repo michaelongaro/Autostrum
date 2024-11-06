@@ -161,6 +161,9 @@ function expandFullTab({
   const firstChordType = compiledChordsMappedToLoopRange[0]?.type ?? "tab";
   const lastChordType = compiledChordsMappedToLoopRange.at(-1)?.type ?? "tab";
 
+  const firstChordBpm = `${compiledChordsMappedToLoopRange[0]?.data.bpm ?? baselineBpm}`;
+  const lastChordBpm = `${compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm}`;
+
   if (firstChordType !== lastChordType) {
     compiledChordsMappedToLoopRange.push(
       firstChordType === "tab"
@@ -169,7 +172,18 @@ function expandFullTab({
             isFirstChord: false,
             isLastChord: false,
             data: {
-              chordData: ["-1", "", "", "", "", "", "", "", "", ""],
+              chordData: [
+                "-1",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                firstChordBpm !== lastChordBpm ? firstChordBpm : "",
+                "",
+              ],
               bpm: compiledChordsMappedToLoopRange[0]?.data.bpm ?? baselineBpm,
             },
           }
@@ -183,8 +197,7 @@ function expandFullTab({
               palmMute: "",
               strum: "",
               noteLength: "1/4th",
-              bpm:
-                compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
+              bpm: compiledChordsMappedToLoopRange[0]?.data.bpm ?? baselineBpm,
               showBpm: false,
               isRaised: true,
             },
@@ -365,7 +378,20 @@ function compileTabSection({
       isFirstChord: false,
       isLastChord: false,
       data: {
-        chordData: ["-1", "", "", "", "", "", "", "", "", ""],
+        chordData: [
+          "-1",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          compiledChords.at(-1)!.data.bpm !== Number(currentBpm)
+            ? currentBpm
+            : "",
+          "",
+        ],
         bpm: Number(currentBpm),
       },
     });

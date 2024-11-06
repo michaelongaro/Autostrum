@@ -1,7 +1,10 @@
 import { Fragment } from "react";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
-import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
+import {
+  getDynamicNoteLengthIcon,
+  QuarterNote,
+} from "~/utils/bpmIconRenderingHelpers";
 
 interface PlaybackTabChord {
   columnData: string[];
@@ -20,16 +23,25 @@ function PlaybackTabChord({
 }: PlaybackTabChord) {
   return (
     <>
-      {/* not my favorite, but PM value of "-1" indicates a physical spacer between tab and strumming
-        sections */}
+      {/* is a spacer chord, potentially with a new bpm to specify*/}
       {columnData[0] === "-1" && (
         <div
           style={{
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex ornamental playbackElem mb-[9px] h-[168px] w-4 border-y-2 border-white"
+          className="baseVertFlex ornamental playbackElem relative mb-[9px] h-[168px] w-4 border-y-2 border-white"
         >
+          {/* show new current bpm */}
+          {columnData[8] !== "" && (
+            <div
+              className={`baseFlex absolute -top-7 !flex-nowrap gap-[0.125rem] text-pink-100`}
+            >
+              <QuarterNote />
+              <p className="text-center text-xs">{columnData[8]}</p>
+            </div>
+          )}
+
           {/* spacer to ease transition from tab -> strum */}
           <div className="my-3 h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50"></div>
           <div className="my-3 h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50"></div>
@@ -40,6 +52,7 @@ function PlaybackTabChord({
         </div>
       )}
 
+      {/* is a regular chord, don't really like this jsx though */}
       {columnData[0] !== "-1" && (
         <div
           style={{
@@ -83,12 +96,7 @@ function PlaybackTabChord({
                     }}
                     className="baseFlex relative w-[35px] basis-[content]"
                   >
-                    <div
-                      // style={{
-                      //   opacity: lineBeforeNoteOpacity(index) ? 1 : 0,
-                      // }}
-                      className="h-[1px] flex-[1] bg-pink-100/50"
-                    ></div>
+                    <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
 
                     <div className="baseFlex w-[35px]">
                       <div className="my-3 h-[1px] flex-[1] bg-pink-100/50"></div>
@@ -105,12 +113,7 @@ function PlaybackTabChord({
                       <div className="my-3 h-[1px] flex-[1] bg-pink-100/50"></div>
                     </div>
 
-                    <div
-                      // style={{
-                      //   opacity: lineAfterNoteOpacity(index) ? 1 : 0,
-                      // }}
-                      className="h-[1px] flex-[1] bg-pink-100/50"
-                    ></div>
+                    <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
                   </div>
                 )}
 
