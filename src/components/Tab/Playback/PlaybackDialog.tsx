@@ -150,12 +150,8 @@ function PlaybackDialog() {
   // }, [currentChordIndex, prevCurrentChordIndex]);
 
   useEffect(() => {
-    if (!expandedTabData || expandedTabData.length === 0) return;
-
-    const lastChordIndex = expandedTabData.length - 1;
-
     if (
-      prevChordIndexRef.current === lastChordIndex &&
+      prevChordIndexRef.current !== currentChordIndex &&
       currentChordIndex === 0
     ) {
       setLoopCount((prev) => prev + 1);
@@ -187,12 +183,7 @@ function PlaybackDialog() {
 
     // Update the ref after loop detection
     prevChordIndexRef.current = currentChordIndex;
-  }, [
-    currentChordIndex,
-    expandedTabData,
-    audioMetadata.playing,
-    fullScrollPositions,
-  ]);
+  }, [currentChordIndex, audioMetadata.playing, fullScrollPositions]);
 
   useEffect(() => {
     setExpandedTabDataHasChanged(true);
