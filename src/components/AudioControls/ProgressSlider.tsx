@@ -52,6 +52,7 @@ function ProgressSlider({
     setCountInTimer,
     mobileHeaderModal,
     setMobileHeaderModal,
+    playbackMetadata,
   } = useTabStore((state) => ({
     id: state.id,
     bpm: state.bpm,
@@ -81,6 +82,7 @@ function ProgressSlider({
     setCountInTimer: state.setCountInTimer,
     mobileHeaderModal: state.mobileHeaderModal,
     setMobileHeaderModal: state.setMobileHeaderModal,
+    playbackMetadata: state.playbackMetadata,
   }));
 
   const [loopRange, setLoopRange] = useState([
@@ -92,23 +94,53 @@ function ProgressSlider({
 
   useEffect(() => {
     if (
+      playbackMetadata?.[loopRange[0] || 0]?.type === "ornamental" ||
+      playbackMetadata?.[loopRange[1] || 0]?.type === "ornamental"
+    ) {
+      return;
+    }
+
+    if (
       loopRange[0] !== audioMetadata.startLoopIndex ||
       loopRange[1] !== audioMetadata.endLoopIndex
     ) {
+      if (
+        audioMetadata.endLoopIndex === -1 &&
+        loopRange[1] === audioMetadata.fullCurrentlyPlayingMetadataLength - 1
+      ) {
+        return;
+      }
+
+      let adjustedStartIndex = loopRange[0] || 0;
+      let adjustedEndIndex =
+        loopRange[1] === audioMetadata.fullCurrentlyPlayingMetadataLength - 1
+          ? -1
+          : loopRange[1] || 0;
+
       setAudioMetadata({
         ...audioMetadata,
-        startLoopIndex: loopRange[0] || 0,
-        endLoopIndex: loopRange[1] || 0,
+        startLoopIndex: adjustedStartIndex,
+        endLoopIndex: adjustedEndIndex,
       });
 
-      // prefer the first thumb's value if it changed, otherwise fall back to the second thumb's value
       const newCurrentChordIndex =
-        loopRange[0] !== audioMetadata.startLoopIndex
-          ? loopRange[0]
-          : loopRange[1];
+        adjustedStartIndex !== audioMetadata.startLoopIndex
+          ? adjustedStartIndex
+          : adjustedEndIndex;
       setCurrentChordIndex(newCurrentChordIndex ?? 0);
+    } else {
+      // always want to scroll to the start of the loop range
+      setCurrentChordIndex(
+        audioMetadata.editingLoopRange ? loopRange[0] || 0 : 0,
+      );
     }
-  }, [loopRange, audioMetadata, setAudioMetadata, setCurrentChordIndex]);
+  }, [
+    loopRange,
+    audioMetadata,
+    setAudioMetadata,
+    setCurrentChordIndex,
+    playbackMetadata,
+  ]);
 
   // might want to do something dynamic visually  with isDragged prop for thumbs
 

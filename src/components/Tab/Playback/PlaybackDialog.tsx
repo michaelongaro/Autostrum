@@ -317,7 +317,7 @@ function PlaybackDialog() {
       </DialogTrigger>
       <DialogContent
         ref={dialogContentRef}
-        className="baseVertFlex narrowMobileLandscape:!justify-end h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none bg-black p-0 tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
+        className="baseVertFlex h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none bg-black p-0 narrowMobileLandscape:!justify-end tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
       >
         <VisuallyHidden>
           <DialogTitle>Practice tab for {title}</DialogTitle>
@@ -598,6 +598,8 @@ const getFullVisibleChordIndices = ({
     const itemStart = adjustedScrollPositions[i] || 0;
     const chordWidth = fullChordWidths[i] || 0;
     const itemEnd = itemStart + chordWidth;
+
+    // console.log(itemStart, itemEnd, rangeStart, rangeEnd);
 
     // Ensure the item is within the visible range
     if (itemEnd > rangeStart && itemStart < rangeEnd) {

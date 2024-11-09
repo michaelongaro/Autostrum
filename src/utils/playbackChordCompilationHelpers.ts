@@ -218,6 +218,38 @@ function expandFullTab({
       noteLengthMultiplier: "1",
       noteLength: "1/4th",
       elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
+      type: "ornamental",
+    });
+  } else if (
+    firstChordType === "tab" &&
+    lastChordType === "tab" &&
+    firstChordBpm !== lastChordBpm
+  ) {
+    // add a measure line w/ the new bpm
+    compiledChordsMappedToLoopRange.push({
+      type: "tab",
+      isFirstChord: false,
+      isLastChord: false,
+      data: {
+        chordData: ["", "|", "|", "|", "|", "|", "|", firstChordBpm, "", "1"],
+        bpm: Number(firstChordBpm),
+      },
+    });
+    metadataMappedToLoopRange.push({
+      location: {
+        ...metadataMappedToLoopRange.at(-1)!.location,
+        chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
+      },
+      bpm: Number(
+        getBpmForChord(
+          compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
+          baselineBpm,
+        ),
+      ),
+      noteLengthMultiplier: "1",
+      noteLength: "1/4th",
+      elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
+      type: "ornamental",
     });
   }
 
@@ -407,6 +439,7 @@ function compileTabSection({
       noteLengthMultiplier: "1",
       noteLength: "1/4th",
       elapsedSeconds: Math.floor(elapsedSeconds.value),
+      type: "ornamental",
     });
   }
 
@@ -441,6 +474,7 @@ function compileTabSection({
       noteLengthMultiplier: "1",
       noteLength: "1/4th",
       elapsedSeconds: Math.floor(elapsedSeconds.value),
+      type: "ornamental",
     });
   }
 
@@ -456,6 +490,8 @@ function compileTabSection({
     };
 
     const chord = [...data[chordIdx]!];
+
+    const isAMeasureLine = chord[8] === "measureLine";
 
     if (chord[8] === "measureLine") {
       const specifiedBpmToUsePostMeasureLine = chord?.[7];
@@ -490,6 +526,7 @@ function compileTabSection({
       noteLengthMultiplier,
       noteLength: noteLength as StrummingPattern["noteLength"],
       elapsedSeconds: Math.floor(elapsedSeconds.value),
+      type: isAMeasureLine ? "ornamental" : "tab",
     });
 
     elapsedSeconds.value +=
@@ -563,6 +600,7 @@ function compileChordSection({
       noteLengthMultiplier: "1",
       noteLength: "1/4th",
       elapsedSeconds: Math.floor(elapsedSeconds.value),
+      type: "ornamental",
     });
   }
 
@@ -695,6 +733,7 @@ function compileChordSequence({
         noteLengthMultiplier,
         noteLength: chordSequence.strummingPattern.noteLength,
         elapsedSeconds: Math.floor(elapsedSeconds.value),
+        type: "strum",
       });
 
       elapsedSeconds.value +=
@@ -726,8 +765,7 @@ function compileChordSequence({
           // TODO: check this logic, might be flaky
           showBpm: Boolean(
             compiledChords.length === 0 ||
-              (chordIdx === 0 &&
-                prevChord &&
+              (prevChord &&
                 prevChord?.data.bpm !==
                   Number(
                     getBpmForChord(

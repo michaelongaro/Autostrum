@@ -126,6 +126,7 @@ export interface PlaybackMetadata {
     | "1/16th"
     | "1/16th triplet";
   elapsedSeconds: number;
+  type: "tab" | "strum" | "ornamental";
 }
 
 type InstrumentNames =
