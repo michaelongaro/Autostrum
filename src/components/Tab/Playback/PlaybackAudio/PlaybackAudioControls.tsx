@@ -486,7 +486,7 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
               )}
             </p>
 
-            <div className="baseFlex gap-4">
+            <div className="baseFlex gap-6">
               {viewportLabel.includes("mobile") ? (
                 <Button
                   variant="link"

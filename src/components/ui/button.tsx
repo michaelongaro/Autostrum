@@ -44,7 +44,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 export interface ButtonProps
@@ -66,7 +66,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             variant,
             size: size ?? (aboveMediumViewportWidth ? "default" : "sm"),
             className,
-          })
+          }),
         )}
         ref={ref}
         {...props}
@@ -82,7 +82,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         }}
       />
     );
-  }
+  },
 );
 Button.displayName = "Button";
 

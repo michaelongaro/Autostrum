@@ -131,7 +131,7 @@ function PlaybackBottomMetadata() {
                   });
                 }}
               >
-                <SelectTrigger className="!h-8 max-w-28 sm:max-w-none">
+                <SelectTrigger className="!h-9 max-w-28 sm:max-w-none md:!h-10">
                   <SelectValue placeholder="Select a section">
                     {audioMetadata.location === null
                       ? "Full song"

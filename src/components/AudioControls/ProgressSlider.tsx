@@ -173,7 +173,7 @@ function ProgressSlider({
               <div
                 ref={props.ref}
                 style={{
-                  height: "7px",
+                  height: "8px",
                   width: "100%",
                   borderRadius: "4px",
                   background: getTrackBackground({
@@ -197,7 +197,7 @@ function ProgressSlider({
                 ...props.style,
                 backgroundColor: "#999",
               }}
-              className="z-10 size-4 rounded-full will-change-transform"
+              className="z-10 size-[18px] rounded-full will-change-transform"
             />
           )}
         />
@@ -246,7 +246,7 @@ function ProgressSlider({
               <div
                 ref={props.ref}
                 style={{
-                  height: "7px",
+                  height: "8px",
                   width: "100%",
                   borderRadius: "4px",
                   background: getTrackBackground({
@@ -277,7 +277,7 @@ function ProgressSlider({
                       : 0
                 }s linear`,
               }}
-              className="z-10 size-4 rounded-full will-change-transform"
+              className="z-10 size-[18px] rounded-full will-change-transform"
             />
           )}
         />
