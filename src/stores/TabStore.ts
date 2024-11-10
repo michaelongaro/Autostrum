@@ -103,7 +103,7 @@ export interface Metadata {
   bpm: number;
   noteLengthMultiplier: string;
   elapsedSeconds: number;
-  type: "tab" | "strum";
+  type: "tab" | "strum" | "ornamental";
 }
 
 export interface PlaybackMetadata {

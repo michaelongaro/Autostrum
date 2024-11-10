@@ -94,57 +94,6 @@ function expandFullTab({
     endLoopIndex === -1 ? metadata.length : endLoopIndex,
   );
 
-  let ghostChordIndex = 0;
-
-  if (metadataMappedToLoopRange.length > 0) {
-    if (endLoopIndex === -1) {
-      ghostChordIndex =
-        metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1;
-    } else {
-      ghostChordIndex = metadataMappedToLoopRange.at(-1)!.location.chordIndex;
-      // ^ this is not perfect, somehow maybe want the chordIndex to be +1 more?
-    }
-  }
-
-  // if (endLoopIndex !== -1) {
-  //   metadataMappedToLoopRange.pop();
-  // }
-
-  const lastActualChord = metadataMappedToLoopRange.at(-1)!;
-
-  // conditionally adding fake chord + metadata to align the audio controls slider with the visual
-  // progress indicator, really absolutely *hate* this solution, but technically it should work.
-  // if (metadataMappedToLoopRange.length > 0 && lastActualChord) {
-  //   metadataMappedToLoopRange.push({
-  //     location: {
-  //       ...lastActualChord.location,
-  //       chordIndex: ghostChordIndex,
-  //     },
-  //     bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
-  //     noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
-  //     noteLength: lastActualChord.noteLength,
-  //     elapsedSeconds: Math.ceil(
-  //       lastActualChord.elapsedSeconds +
-  //         60 /
-  //           ((Number(lastActualChord.bpm) /
-  //             Number(lastActualChord.noteLengthMultiplier)) *
-  //             playbackSpeed) +
-  //         1,
-  //     ),
-  //   });
-
-  //   // TODO: idk if this is correct
-  //   compiledChordsMappedToLoopRange.push({
-  //     type: "tab",
-  //     isFirstChord: false,
-  //     isLastChord: false,
-  //     data: {
-  //       chordData: ["-1", "", "", "", "", "", "", "", "", ""],
-  //       bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
-  //     },
-  //   });
-  // }
-
   if (metadataMappedToLoopRange.length === 0) {
     metadataMappedToLoopRange.push(backupFirstChordMetadata!);
   }
@@ -252,6 +201,9 @@ function expandFullTab({
       type: "ornamental",
     });
   }
+
+  // FYI: don't need a spacer chord if the first + last chords are strums, since if the very first
+  // chord is a strum, it already automatically shows its bpm anyways, and no "spacer" chord is needed
 
   let loopCounter = 1;
 
@@ -663,8 +615,6 @@ function compileChordSequence({
 }: CompileChordSequence) {
   const chordSequenceRepetitions = getRepetitions(chordSequence?.repetitions);
 
-  const prevChord = compiledChords?.at(-1);
-
   for (
     let chordSequenceRepeatIdx = 0;
     chordSequenceRepeatIdx < chordSequenceRepetitions;
@@ -747,6 +697,8 @@ function compileChordSequence({
         chordIdx === 0
           ? false
           : previousChordName.length > 5 && currentChordName.length > 5;
+
+      const prevChord = compiledChords?.at(-1);
 
       const playbackChordSequence: PlaybackStrummedChord = {
         type: "strum",

@@ -100,17 +100,16 @@ function ProgressSlider({
       return;
     }
 
+    // don't think this works, just want to only enter this block if the loop range is actually
+    // different from the start/end loop indices, handling the case where the end loop index is
+    // the last chord in the tab
     if (
       loopRange[0] !== audioMetadata.startLoopIndex ||
-      loopRange[1] !== audioMetadata.endLoopIndex
+      (loopRange[1] !== audioMetadata.endLoopIndex &&
+        loopRange[1] !== audioMetadata.fullCurrentlyPlayingMetadataLength - 1 &&
+        audioMetadata.endLoopIndex !== -1)
     ) {
-      if (
-        audioMetadata.endLoopIndex === -1 &&
-        loopRange[1] === audioMetadata.fullCurrentlyPlayingMetadataLength - 1
-      ) {
-        return;
-      }
-
+      console.log("H");
       let adjustedStartIndex = loopRange[0] || 0;
       let adjustedEndIndex =
         loopRange[1] === audioMetadata.fullCurrentlyPlayingMetadataLength - 1
@@ -129,7 +128,7 @@ function ProgressSlider({
           : adjustedEndIndex;
       setCurrentChordIndex(newCurrentChordIndex ?? 0);
     } else {
-      // always want to scroll to the start of the loop range
+      // always want to scroll to the start of the loop range, regardless of whether it's being edited
       setCurrentChordIndex(
         audioMetadata.editingLoopRange ? loopRange[0] || 0 : 0,
       );

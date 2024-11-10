@@ -161,49 +161,6 @@ function compileFullTab({
     endLoopIndex === -1 ? metadata.length : endLoopIndex,
   );
 
-  let ghostChordIndex = 0;
-
-  if (metadataMappedToLoopRange.length > 0) {
-    if (endLoopIndex === -1) {
-      ghostChordIndex =
-        metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1;
-    } else {
-      ghostChordIndex = metadataMappedToLoopRange.at(-1)!.location.chordIndex;
-      // ^ this is not perfect, somehow maybe want the chordIndex to be +1 more?
-    }
-  }
-
-  // if (endLoopIndex !== -1) {
-  //   metadataMappedToLoopRange.pop();
-  // }
-
-  const lastActualChord = metadataMappedToLoopRange.at(-1)!;
-
-  // conditionally adding fake chord + metadata to align the audio controls slider
-  // with the visual progress indicator
-  // if (metadataMappedToLoopRange.length > 0 && lastActualChord) {
-  //   metadataMappedToLoopRange.push({
-  //     location: {
-  //       ...lastActualChord.location,
-  //       chordIndex: ghostChordIndex,
-  //     },
-  //     bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
-  //     noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
-  //     elapsedSeconds: Math.ceil(
-  //       lastActualChord.elapsedSeconds +
-  //         60 /
-  //           ((Number(lastActualChord.bpm) /
-  //             Number(lastActualChord.noteLengthMultiplier)) *
-  //             playbackSpeed) +
-  //         1,
-  //     ),
-  //   });
-
-  //   // will be handled specially in playTab() to not play this, but instead signal
-  //   // that the tab has ended and (if looping) needs to start over
-  //   compiledChordsMappedToLoopRange.push(["ghostChord"]);
-  // }
-
   if (metadataMappedToLoopRange.length === 0) {
     metadataMappedToLoopRange.push(backupFirstChordMetadata!);
   }
@@ -214,6 +171,60 @@ function compileFullTab({
   for (let i = 0; i < metadataMappedToLoopRange.length; i++) {
     metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
   }
+
+  // TODO: come back to this part in the morning
+  // fyi: perfectly fine for these to be duplicated, since they are in playback helpers as well!
+  // was there any reason we didn't include this before? feels like a decent sized oversight if so...
+  const firstChordType = metadataMappedToLoopRange[0]?.type ?? "tab";
+  const lastChordType = metadataMappedToLoopRange.at(-1)?.type ?? "tab";
+
+  const firstChordBpm = `${metadataMappedToLoopRange[0]?.bpm ?? baselineBpm}`;
+  const lastChordBpm = `${metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm}`;
+
+  if (firstChordType !== lastChordType) {
+    compiledChordsMappedToLoopRange.push([]);
+
+    metadataMappedToLoopRange.push({
+      location: {
+        ...metadataMappedToLoopRange.at(-1)!.location,
+        chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
+      },
+      bpm: Number(
+        getBpmForChord(
+          metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm,
+          baselineBpm,
+        ),
+      ),
+      noteLengthMultiplier: "1",
+      elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
+      type: "ornamental",
+    });
+  } else if (
+    firstChordType === "tab" &&
+    lastChordType === "tab" &&
+    firstChordBpm !== lastChordBpm
+  ) {
+    // add a measure line w/ the new bpm
+    compiledChordsMappedToLoopRange.push([]);
+    metadataMappedToLoopRange.push({
+      location: {
+        ...metadataMappedToLoopRange.at(-1)!.location,
+        chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
+      },
+      bpm: Number(
+        getBpmForChord(
+          metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm,
+          baselineBpm,
+        ),
+      ),
+      noteLengthMultiplier: "1",
+      elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
+      type: "ornamental",
+    });
+  }
+
+  // FYI: don't need a spacer chord if the first + last chords are strums, since if the very first
+  // chord is a strum, it already automatically shows its bpm anyways, and no "spacer" chord is needed
 
   setCurrentlyPlayingMetadata(metadataMappedToLoopRange);
 
@@ -541,7 +552,7 @@ function compileTabSection({
       bpm: Number(currentBpm),
       noteLengthMultiplier: "1",
       elapsedSeconds: Math.floor(elapsedSeconds.value),
-      type: "tab",
+      type: "ornamental",
     });
   }
 
@@ -582,7 +593,7 @@ function compileTabSection({
         bpm: Number(currentBpm),
         noteLengthMultiplier: "1",
         elapsedSeconds: Math.floor(elapsedSeconds.value),
-        type: "tab",
+        type: "ornamental",
       });
       continue;
     }
@@ -652,7 +663,7 @@ function compileChordSection({
       bpm: Number(subSection.bpm),
       noteLengthMultiplier: "1",
       elapsedSeconds: Math.floor(elapsedSeconds.value),
-      type: "tab",
+      type: "ornamental",
     });
   }
 
