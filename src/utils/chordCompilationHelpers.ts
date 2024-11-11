@@ -563,10 +563,21 @@ function compileTabSection({
   // playback dialog.
   if (
     compiledChords.length > 0 &&
-    compiledChords.at(-1) !== undefined &&
-    compiledChords.at(-1)![8] !== currentBpm
+    metadata.at(-1) !== undefined &&
+    metadata.at(-1)!.bpm !== Number(currentBpm)
   ) {
     compiledChords.push([]);
+    metadata.push({
+      location: {
+        sectionIndex,
+        subSectionIndex,
+        chordIndex: -1,
+      },
+      bpm: Number(currentBpm),
+      noteLengthMultiplier: "1",
+      elapsedSeconds: Math.floor(elapsedSeconds.value),
+      type: "ornamental",
+    });
   }
 
   for (let chordIdx = 0; chordIdx < data.length; chordIdx++) {
