@@ -1,4 +1,10 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { getTrackBackground, Range } from "react-range";
 import { AudioProgressSlider } from "~/components/ui/AudioProgressSlider";
 import { LoopingRangeSlider } from "~/components/ui/LoopingRangeSlider";
@@ -92,6 +98,8 @@ function ProgressSlider({
       : audioMetadata.endLoopIndex,
   ]);
 
+  const prevEditingLoopRangeState = useRef(audioMetadata.editingLoopRange);
+
   useEffect(() => {
     if (
       playbackMetadata?.[loopRange[0] || 0]?.type === "ornamental" ||
@@ -105,16 +113,32 @@ function ProgressSlider({
     // the last chord in the tab
     if (
       loopRange[0] !== audioMetadata.startLoopIndex ||
-      (loopRange[1] !== audioMetadata.endLoopIndex &&
-        loopRange[1] !== audioMetadata.fullCurrentlyPlayingMetadataLength - 1 &&
-        audioMetadata.endLoopIndex !== -1)
+      loopRange[1] !== audioMetadata.endLoopIndex
     ) {
-      console.log("H");
+      if (
+        loopRange[0] === audioMetadata.startLoopIndex &&
+        loopRange[1] === audioMetadata.fullCurrentlyPlayingMetadataLength - 1 &&
+        audioMetadata.endLoopIndex === -1
+      ) {
+        return;
+      }
+
       let adjustedStartIndex = loopRange[0] || 0;
       let adjustedEndIndex =
         loopRange[1] === audioMetadata.fullCurrentlyPlayingMetadataLength - 1
           ? -1
           : loopRange[1] || 0;
+
+      const newCurrentChordIndex =
+        adjustedStartIndex !== audioMetadata.startLoopIndex
+          ? adjustedStartIndex
+          : adjustedEndIndex;
+
+      setCurrentChordIndex(
+        newCurrentChordIndex === -1
+          ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1
+          : (newCurrentChordIndex ?? 0),
+      );
 
       setAudioMetadata({
         ...audioMetadata,
@@ -122,16 +146,7 @@ function ProgressSlider({
         endLoopIndex: adjustedEndIndex,
       });
 
-      const newCurrentChordIndex =
-        adjustedStartIndex !== audioMetadata.startLoopIndex
-          ? adjustedStartIndex
-          : adjustedEndIndex;
-      setCurrentChordIndex(newCurrentChordIndex ?? 0);
-    } else {
-      // always want to scroll to the start of the loop range, regardless of whether it's being edited
-      setCurrentChordIndex(
-        audioMetadata.editingLoopRange ? loopRange[0] || 0 : 0,
-      );
+      return;
     }
   }, [
     loopRange,
@@ -140,6 +155,18 @@ function ProgressSlider({
     setCurrentChordIndex,
     playbackMetadata,
   ]);
+
+  useEffect(() => {
+    // Check if the value has changed from true to false or false to true
+    if (prevEditingLoopRangeState.current !== audioMetadata.editingLoopRange) {
+      setCurrentChordIndex(
+        audioMetadata.editingLoopRange ? loopRange[0] || 0 : 0,
+      );
+    }
+
+    // Update ref to the current value for the next render
+    prevEditingLoopRangeState.current = audioMetadata.editingLoopRange;
+  }, [audioMetadata.editingLoopRange, loopRange, setCurrentChordIndex]); // Dependency array contains the boolean value
 
   // might want to do something dynamic visually  with isDragged prop for thumbs
 
