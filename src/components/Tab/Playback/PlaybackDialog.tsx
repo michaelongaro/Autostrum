@@ -45,6 +45,7 @@ function PlaybackDialog() {
     setVisiblePlaybackContainerWidth,
     playbackDialogViewingState,
     viewportLabel,
+    setAudioMetadata,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
@@ -64,6 +65,7 @@ function PlaybackDialog() {
     setVisiblePlaybackContainerWidth: state.setVisiblePlaybackContainerWidth,
     playbackDialogViewingState: state.playbackDialogViewingState,
     viewportLabel: state.viewportLabel,
+    setAudioMetadata: state.setAudioMetadata,
   }));
 
   const [values, setValues] = useState([currentChordIndex]);
@@ -103,8 +105,13 @@ function PlaybackDialog() {
     setLoopCount(0);
     if (showPlaybackDialog) {
       setLooping(true);
+    } else if (audioMetadata.editingLoopRange) {
+      setAudioMetadata({
+        ...audioMetadata,
+        editingLoopRange: false,
+      });
     }
-  }, [showPlaybackDialog, setLooping]);
+  }, [showPlaybackDialog, setLooping, audioMetadata, setAudioMetadata]);
 
   useEffect(() => {
     // this feels a bit like a bandaid fix
