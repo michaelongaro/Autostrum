@@ -247,11 +247,6 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
     setTabProgressValue(0);
   }, [audioMetadata.type]);
 
-  useEffect(() => {
-    setCurrentChordIndex(0);
-    setTabProgressValue(0);
-  }, [audioMetadata.editingLoopRange, setCurrentChordIndex]);
-
   function handlePlayButtonClick() {
     const isViewingTabPath =
       asPath.includes("/tab") && !asPath.includes("edit");
