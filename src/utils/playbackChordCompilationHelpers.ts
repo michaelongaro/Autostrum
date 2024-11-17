@@ -879,7 +879,7 @@ function expandSpecificSection({
 }
 
 ////////////////////////  validate this extracted logic below later  /////////////////////////////////////
-interface UpdateElasedSecondsInSectionProgression {
+interface UpdateElapsedSecondsInSectionProgression {
   tabData: Section[];
   sectionProgression: SectionProgression[];
   baselineBpm: number;
@@ -893,48 +893,59 @@ function updateElapsedSecondsInSectionProgression({
   baselineBpm,
   playbackSpeed,
   setSectionProgression,
-}: UpdateElasedSecondsInSectionProgression) {
+}: UpdateElapsedSecondsInSectionProgression) {
   const sectionProgressionWithElapsedSeconds: SectionProgression[] = [];
-  const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues
+  const elapsedSeconds = { value: 0 }; // Using an object to pass by reference
 
   for (
     let sectionProgressionIndex = 0;
     sectionProgressionIndex < sectionProgression.length;
     sectionProgressionIndex++
   ) {
+    const currentSectionProgression =
+      sectionProgression[sectionProgressionIndex];
+    if (!currentSectionProgression) continue;
+
+    // Record the start time before processing the section
+    const startSeconds = Math.floor(elapsedSeconds.value);
+
     const sectionIndex = getSectionIndexFromId(
       tabData,
-      sectionProgression[sectionProgressionIndex]!.sectionId,
+      currentSectionProgression.sectionId,
     );
-
-    // Add current section's elapsed seconds
-    sectionProgressionWithElapsedSeconds.push({
-      ...sectionProgression[sectionProgressionIndex]!,
-      elapsedSecondsIntoTab: Math.floor(elapsedSeconds.value),
-    });
-
     const sectionRepetitions = getRepetitions(
-      sectionProgression[sectionProgressionIndex]?.repetitions,
+      currentSectionProgression.repetitions,
     );
 
-    for (
-      let sectionRepeatIdx = 0;
-      sectionRepeatIdx < sectionRepetitions;
-      sectionRepeatIdx++
-    ) {
-      const section = tabData[sectionIndex]?.data;
-      if (!section) continue;
-
-      updateElapsedTimeForSection({
-        section,
-        baselineBpm,
-        elapsedSeconds,
-        playbackSpeed,
-      });
+    // Process the section to update elapsedSeconds
+    const section = tabData[sectionIndex]?.data;
+    if (section) {
+      for (
+        let sectionRepeatIdx = 0;
+        sectionRepeatIdx < sectionRepetitions;
+        sectionRepeatIdx++
+      ) {
+        updateElapsedTimeForSection({
+          section,
+          baselineBpm,
+          elapsedSeconds,
+          playbackSpeed,
+        });
+      }
     }
+
+    // Record the end time after processing the section
+    const endSeconds = Math.floor(elapsedSeconds.value);
+
+    // Push the updated SectionProgression with startSeconds and endSeconds
+    sectionProgressionWithElapsedSeconds.push({
+      ...currentSectionProgression,
+      startSeconds,
+      endSeconds,
+    });
   }
 
-  // was causing infinite loop in useAutoCompileChords, so only update if they are different
+  // Update the state only if there's a change to prevent infinite loops
   if (!isEqual(sectionProgression, sectionProgressionWithElapsedSeconds)) {
     setSectionProgression(sectionProgressionWithElapsedSeconds);
   }
@@ -957,7 +968,6 @@ function updateElapsedTimeForSection({
     subSectionIndex++
   ) {
     const subSection = section[subSectionIndex];
-
     if (!subSection) continue;
 
     const subSectionRepetitions = getRepetitions(subSection.repetitions);
@@ -1001,7 +1011,6 @@ function updateElapsedTimeForTabSection({
 
   for (let chordIdx = 0; chordIdx < subSection.data.length; chordIdx++) {
     const chord = subSection.data[chordIdx];
-
     if (!chord) continue;
 
     // Check for measure line that can change BPM
@@ -1017,13 +1026,15 @@ function updateElapsedTimeForTabSection({
       }
     }
 
-    let noteLengthMultiplier = "1";
-    if (chord[8] === "1/8th") noteLengthMultiplier = "0.5";
-    else if (chord[8] === "1/16th") noteLengthMultiplier = "0.25";
+    let noteLengthMultiplier = 1;
+    if (chord[8] === "1/8th") noteLengthMultiplier = 0.5;
+    else if (chord[8] === "1/16th") noteLengthMultiplier = 0.25;
 
-    elapsedSeconds.value +=
+    // Calculate the duration of the chord and update elapsedSeconds
+    const chordDuration =
       60 /
       ((Number(currentBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
+    elapsedSeconds.value += chordDuration;
   }
 }
 
@@ -1046,7 +1057,6 @@ function updateElapsedTimeForChordSection({
     chordSequenceIndex++
   ) {
     const chordSequence = chordSection[chordSequenceIndex];
-
     if (!chordSequence) continue;
 
     const chordSequenceRepetitions = getRepetitions(chordSequence?.repetitions);
@@ -1056,18 +1066,27 @@ function updateElapsedTimeForChordSection({
       chordSequenceRepeatIdx < chordSequenceRepetitions;
       chordSequenceRepeatIdx++
     ) {
-      let noteLengthMultiplier = "1";
+      let noteLengthMultiplier = 1;
 
-      if (chordSequence.strummingPattern.noteLength === "1/4th triplet")
-        noteLengthMultiplier = "0.6667";
-      else if (chordSequence.strummingPattern.noteLength === "1/8th")
-        noteLengthMultiplier = "0.5";
-      else if (chordSequence.strummingPattern.noteLength === "1/8th triplet")
-        noteLengthMultiplier = "0.3333";
-      else if (chordSequence.strummingPattern.noteLength === "1/16th")
-        noteLengthMultiplier = "0.25";
-      else if (chordSequence.strummingPattern.noteLength === "1/16th triplet")
-        noteLengthMultiplier = "0.1667";
+      switch (chordSequence.strummingPattern.noteLength) {
+        case "1/4th triplet":
+          noteLengthMultiplier = 0.6667;
+          break;
+        case "1/8th":
+          noteLengthMultiplier = 0.5;
+          break;
+        case "1/8th triplet":
+          noteLengthMultiplier = 0.3333;
+          break;
+        case "1/16th":
+          noteLengthMultiplier = 0.25;
+          break;
+        case "1/16th triplet":
+          noteLengthMultiplier = 0.1667;
+          break;
+        default:
+          noteLengthMultiplier = 1;
+      }
 
       const chordBpm = getBpmForChord(
         chordSequence.bpm,
@@ -1075,10 +1094,12 @@ function updateElapsedTimeForChordSection({
         subSection.bpm,
       );
 
+      // Calculate the duration of each chord in the sequence
       for (let chordIdx = 0; chordIdx < chordSequence.data.length; chordIdx++) {
-        elapsedSeconds.value +=
+        const chordDuration =
           60 /
           ((Number(chordBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
+        elapsedSeconds.value += chordDuration;
       }
     }
   }

@@ -36,7 +36,7 @@ const opacityVariants = {
 function StrummingPatterns() {
   const [accordionValue, setAccordionValue] = useState("closed");
   const [showingDeletePopover, setShowingDeletePopover] = useState<boolean[]>(
-    []
+    [],
   );
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] = useState<
     boolean[]
@@ -79,7 +79,7 @@ function StrummingPatterns() {
 
   function handleDeleteStrummingPattern(
     index: number,
-    strummingPattern: StrummingPatternType
+    strummingPattern: StrummingPatternType,
   ) {
     const newTabData = getTabData();
 
@@ -138,8 +138,8 @@ function StrummingPatterns() {
         display: editing
           ? "flex"
           : strummingPatterns.length === 0
-          ? "none"
-          : "flex",
+            ? "none"
+            : "flex",
         minWidth: aboveMediumViewportWidth
           ? strummingPatterns.length === 0
             ? "450px"
@@ -155,7 +155,7 @@ function StrummingPatterns() {
         onValueChange={(value) => {
           setAccordionValue(value);
         }}
-        className="baseVertFlex w-full !items-start gap-2 rounded-md "
+        className="baseVertFlex w-full !items-start gap-2 rounded-md"
       >
         <AccordionItem value="opened">
           <AccordionTrigger>
@@ -176,7 +176,7 @@ function StrummingPatterns() {
                 strummingPatterns.length > 0 ? "gap-4" : "gap-0"
               }`}
             >
-              <div className="baseFlex !items-start !justify-start gap-4">
+              <div className="baseFlex !flex-wrap !items-start !justify-start gap-4">
                 {strummingPatterns.map((pattern, index) => (
                   <motion.div
                     key={pattern.id}
@@ -274,7 +274,7 @@ function StrummingPatterns() {
                                       });
                                       handleDeleteStrummingPattern(
                                         index,
-                                        pattern
+                                        pattern,
                                       );
                                     }}
                                   >
@@ -290,7 +290,7 @@ function StrummingPatterns() {
 
                     {!editing && (
                       <div className="baseFlex !flex-nowrap !items-start">
-                        <div className="baseFlex border-b-none !flex-nowrap  rounded-md rounded-tr-none border-2 ">
+                        <div className="baseFlex border-b-none !flex-nowrap rounded-md rounded-tr-none border-2">
                           <StrummingPattern
                             data={pattern}
                             mode="viewing"
@@ -351,7 +351,7 @@ function StrummingPatterns() {
                                 },
                                 audioMetadata.playing || previewMetadata.playing
                                   ? 50
-                                  : 0
+                                  : 0,
                               );
                             }
                           }}

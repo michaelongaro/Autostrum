@@ -14,6 +14,7 @@ import { IoSettingsOutline } from "react-icons/io5";
 import { TiArrowLoop } from "react-icons/ti";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import Chord from "~/components/Tab/Chord";
+import ChordDiagram from "~/components/Tab/Playback/ChordDiagram";
 import StrummingPattern from "~/components/Tab/StrummingPattern";
 import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
 import AnimatedTabs from "~/components/ui/AnimatedTabs";
@@ -490,21 +491,37 @@ function MobileMenuDialog() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="baseVertFlex max-h-[calc(100dvh-rem)] w-full gap-2 overflow-y-auto"
+              className="baseVertFlex h-full max-h-[calc(100dvh-rem)] w-full gap-2 overflow-y-auto"
             >
               {sectionProgression.length === 0 ? (
                 <p className="text-lg font-semibold text-white">
                   No section progression found.
                 </p>
               ) : (
-                <div className="baseVertFlex !justify-start gap-2">
+                <div className="w-48 gap-2">
                   {sectionProgression.map((section) => (
-                    <div key={section.id} className="baseFlex gap-2">
-                      <p className="text-stone-400">
-                        {formatSecondsToMinutes(section.elapsedSecondsIntoTab)}
-                      </p>
-                      <p className="font-semibold">{section.title}</p>
-                      {section.repetitions > 1 && <p>x{section.repetitions}</p>}
+                    <div
+                      key={section.id}
+                      className="grid w-full grid-cols-2 !place-items-start"
+                    >
+                      <div className="baseFlex gap-2">
+                        <p className="text-stone-400">
+                          {formatSecondsToMinutes(section.startSeconds)}
+                        </p>
+                        <span className="text-stone-400">-</span>
+                        <p className="text-stone-400">
+                          {formatSecondsToMinutes(section.endSeconds)}
+                        </p>
+                      </div>
+
+                      <div className="baseFlex gap-2">
+                        <p className="text-nowrap font-semibold">
+                          {section.title}
+                        </p>
+                        {section.repetitions > 1 && (
+                          <p>x{section.repetitions}</p>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -519,109 +536,92 @@ function MobileMenuDialog() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="baseVertFlex w-full"
+              className="baseVertFlex size-full overflow-x-hidden py-4"
             >
-              <div className="baseVertFlex max-h-[calc(100dvh-6rem)] !justify-start gap-4 overflow-y-auto">
-                {chords.length > 0 ? (
+              {chords.length > 0 ? (
+                <div className="baseFlex max-h-[calc(100dvh-6rem)] w-full !justify-start gap-4 overflow-x-scroll px-8">
                   <>
                     {chords.map((chord, index) => (
                       <div
                         key={chord.id}
-                        className="baseFlex border-r-none h-10 shrink-0 overflow-hidden rounded-md border-2"
+                        className="baseFlex border-r-none w-fit rounded-md border-2"
                       >
-                        <p
-                          style={{
-                            textShadow:
-                              previewMetadata.indexOfPattern === index &&
-                              previewMetadata.playing &&
-                              previewMetadata.type === "chord"
-                                ? "none"
-                                : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
-                            color:
-                              previewMetadata.indexOfPattern === index &&
-                              previewMetadata.playing &&
-                              previewMetadata.type === "chord"
-                                ? "hsl(335, 78%, 42%)"
-                                : "hsl(324, 77%, 95%)",
-                          }}
-                          className="px-3 font-semibold transition-colors"
-                        >
-                          {chord.name}
-                        </p>
-
-                        {/* TODO: replace this with better dynamic visual representation of chord on
-                      fretboard */}
-                        <div className="baseFlex h-full w-full !justify-evenly">
-                          {/* preview button */}
-                          <Popover>
-                            <PopoverTrigger className="baseFlex mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 active:hover:bg-white/10">
-                              <HiOutlineInformationCircle className="h-5 w-5" />
-                            </PopoverTrigger>
-                            <PopoverContent className="chordPreviewGlassmorphic w-40 border-2 p-0 text-pink-100">
-                              <Chord
-                                chordBeingEdited={{
-                                  index,
-                                  value: chord,
-                                }}
-                                editing={false}
-                                highlightChord={
+                        <div className="baseVertFlex gap-3">
+                          <div className="baseFlex w-full !justify-between border-b py-2">
+                            <p
+                              style={{
+                                textShadow:
                                   previewMetadata.indexOfPattern === index &&
                                   previewMetadata.playing &&
                                   previewMetadata.type === "chord"
-                                }
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          {/* preview chord button */}
-                          <Button
-                            variant={"playPause"}
-                            disabled={
-                              !currentInstrument ||
-                              (previewMetadata.indexOfPattern === index &&
-                                previewMetadata.playing &&
-                                previewMetadata.type === "chord")
-                            }
-                            size={"sm"}
-                            onClick={() => {
-                              if (
-                                audioMetadata.playing ||
-                                previewMetadata.playing
-                              ) {
-                                pauseAudio();
-                              }
+                                    ? "none"
+                                    : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
+                                color:
+                                  previewMetadata.indexOfPattern === index &&
+                                  previewMetadata.playing &&
+                                  previewMetadata.type === "chord"
+                                    ? "hsl(335, 78%, 42%)"
+                                    : "hsl(324, 77%, 95%)",
+                              }}
+                              className="px-3 font-semibold transition-colors"
+                            >
+                              {chord.name}
+                            </p>
 
-                              setTimeout(
-                                () => {
-                                  void playPreview({
-                                    data: chord.frets,
-                                    index,
-                                    type: "chord",
-                                  });
-                                },
-                                audioMetadata.playing || previewMetadata.playing
-                                  ? 50
-                                  : 0,
-                              );
-                            }}
-                            className="baseFlex h-full w-10 rounded-l-none border-l-2"
-                          >
-                            <PlayButtonIcon
-                              uniqueLocationKey={`chordPreview${index}`}
-                              tabId={id}
-                              currentInstrument={currentInstrument}
-                              previewMetadata={previewMetadata}
-                              indexOfPattern={index}
-                              previewType="chord"
-                            />
-                          </Button>
+                            {/* preview chord button */}
+                            <Button
+                              variant={"playPause"}
+                              disabled={
+                                !currentInstrument ||
+                                (previewMetadata.indexOfPattern === index &&
+                                  previewMetadata.playing &&
+                                  previewMetadata.type === "chord")
+                              }
+                              size={"sm"}
+                              onClick={() => {
+                                if (
+                                  audioMetadata.playing ||
+                                  previewMetadata.playing
+                                ) {
+                                  pauseAudio();
+                                }
+
+                                setTimeout(
+                                  () => {
+                                    void playPreview({
+                                      data: chord.frets,
+                                      index,
+                                      type: "chord",
+                                    });
+                                  },
+                                  audioMetadata.playing ||
+                                    previewMetadata.playing
+                                    ? 50
+                                    : 0,
+                                );
+                              }}
+                              className="baseFlex mr-3 h-6 w-10 rounded-sm"
+                            >
+                              <PlayButtonIcon
+                                uniqueLocationKey={`chordPreview${index}`}
+                                tabId={id}
+                                currentInstrument={currentInstrument}
+                                previewMetadata={previewMetadata}
+                                indexOfPattern={index}
+                                previewType="chord"
+                              />
+                            </Button>
+                          </div>
+
+                          <ChordDiagram frets={chord.frets} />
                         </div>
                       </div>
                     ))}
                   </>
-                ) : (
-                  <div>No chords were specified for this tab.</div>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div>No chords were specified for this tab.</div>
+              )}
             </motion.div>
           )}
 
@@ -632,7 +632,7 @@ function MobileMenuDialog() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className={`baseVertFlex max-h-[calc(100dvh-6rem)] w-full gap-10 overflow-y-auto ${strummingPatterns.length > 0 ? "!items-start !justify-start" : ""}`}
+              className={`baseVertFlex max-h-[calc(100dvh-6rem)] w-full gap-10 overflow-y-auto ${strummingPatterns.length > 0 ? "mt-8 !justify-start" : ""}`}
             >
               {strummingPatterns.length > 0 ? (
                 <>

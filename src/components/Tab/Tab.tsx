@@ -5,7 +5,7 @@ import type {
   RefetchQueryFilters,
 } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useEffect, Fragment, useRef } from "react";
+import { useState, useEffect } from "react";
 import { FaBook } from "react-icons/fa";
 import type { TabWithLikes } from "~/server/api/routers/tab";
 import { useTabStore } from "~/stores/TabStore";
@@ -23,23 +23,8 @@ import { useLocalStorageValue } from "@react-hookz/web";
 import Chords from "./Chords";
 import SectionContainer from "./SectionContainer";
 import StrummingPatterns from "./StrummingPatterns";
-import dynamic from "next/dynamic";
-import TabMeasureLine from "~/components/Tab/TabMeasureLine";
-import TabNotesColumn from "~/components/Tab/TabNotesColumn";
-import { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
 import PlaybackDialog from "~/components/Tab/Playback/PlaybackDialog";
-import { ViewportList } from "react-viewport-list";
-
-import { loremIpsum } from "lorem-ipsum";
-import PlaybackSectionContainer from "~/components/Tab/Playback/PlaybackSectionContainer";
-
-const items = new Array(100000).fill(null).map(() => ({
-  title: loremIpsum({
-    units: "paragraph",
-    paragraphLowerBound: 1,
-    paragraphUpperBound: 10,
-  }),
-}));
+import dynamic from "next/dynamic";
 
 const EffectGlossaryModal = dynamic(
   () => import("~/components/modals/EffectGlossaryModal"),
@@ -351,9 +336,7 @@ function Tab({ tab, refetchTab }: ITab) {
           strummingPatterns.length > 0) && (
           <div className="baseVertFlex relative w-full gap-4">
             <SectionProgression />
-
             <Chords />
-
             <StrummingPatterns />
 
             <Button

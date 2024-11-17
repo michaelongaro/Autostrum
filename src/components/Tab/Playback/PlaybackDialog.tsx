@@ -46,6 +46,8 @@ function PlaybackDialog() {
     playbackDialogViewingState,
     viewportLabel,
     setAudioMetadata,
+    setPlaybackDialogViewingState,
+    pauseAudio,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
@@ -66,6 +68,8 @@ function PlaybackDialog() {
     playbackDialogViewingState: state.playbackDialogViewingState,
     viewportLabel: state.viewportLabel,
     setAudioMetadata: state.setAudioMetadata,
+    setPlaybackDialogViewingState: state.setPlaybackDialogViewingState,
+    pauseAudio: state.pauseAudio,
   }));
 
   const [values, setValues] = useState([currentChordIndex]);
@@ -100,18 +104,6 @@ function PlaybackDialog() {
   // expandedTabData has changed or looping has changed
   const [expandedTabDataHasChanged, setExpandedTabDataHasChanged] =
     useState(true);
-
-  useEffect(() => {
-    setLoopCount(0);
-    if (showPlaybackDialog) {
-      setLooping(true);
-    } else if (audioMetadata.editingLoopRange) {
-      setAudioMetadata({
-        ...audioMetadata,
-        editingLoopRange: false,
-      });
-    }
-  }, [showPlaybackDialog, setLooping, audioMetadata, setAudioMetadata]);
 
   useEffect(() => {
     // this feels a bit like a bandaid fix
@@ -280,6 +272,12 @@ function PlaybackDialog() {
     playbackSpeed,
   ]);
 
+  useEffect(() => {
+    if (viewportLabel.includes("mobile")) {
+      setPlaybackDialogViewingState("Practice");
+    }
+  }, [viewportLabel, setPlaybackDialogViewingState]);
+
   const fullVisibleChordIndices = getFullVisibleChordIndices({
     fullScrollPositions,
     currentChordIndex,
@@ -317,7 +315,24 @@ function PlaybackDialog() {
   return (
     <Dialog
       open={showPlaybackDialog}
-      onOpenChange={(open) => setShowPlaybackDialog(open)}
+      onOpenChange={(open) => {
+        setShowPlaybackDialog(open);
+
+        setLoopCount(0);
+        if (open) {
+          setLooping(true);
+        } else {
+          pauseAudio(true);
+          setPlaybackDialogViewingState("Practice");
+        }
+
+        if (!open && audioMetadata.editingLoopRange) {
+          setAudioMetadata({
+            ...audioMetadata,
+            editingLoopRange: false,
+          });
+        }
+      }}
     >
       <DialogTrigger asChild>
         <Button variant="outline">Practice tab</Button>
@@ -330,6 +345,7 @@ function PlaybackDialog() {
           <DialogTitle>Practice tab for {title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </VisuallyHidden>
+
         <PlaybackTopMetadata />
 
         <AnimatePresence mode="popLayout">
@@ -532,10 +548,12 @@ function PlaybackDialog() {
 
           {!viewportLabel.includes("mobile") && <PlaybackMenuContent />}
         </AnimatePresence>
-        <div className="baseVertFlex w-full gap-2">
-          <PlaybackAudioControls chordDurations={chordDurations} />
-          <PlaybackBottomMetadata />
-        </div>
+        {playbackDialogViewingState === "Practice" && (
+          <div className="baseVertFlex w-full gap-2">
+            <PlaybackAudioControls chordDurations={chordDurations} />
+            <PlaybackBottomMetadata />
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

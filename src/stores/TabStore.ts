@@ -19,7 +19,8 @@ export interface SectionProgression {
   sectionId: string;
   title: string;
   repetitions: number;
-  elapsedSecondsIntoTab: number;
+  startSeconds: number;
+  endSeconds: number;
 }
 
 export interface Chord {
@@ -861,13 +862,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           visiblePlaybackContainerWidth,
         });
 
-        // console.log(compiledChords, expandedTabData);
-        // console.log(
-        //   compiledChords.length,
-        //   currentlyPlayingMetadata?.length,
-        //   expandedTabData.chords?.length,
-        // );
-
         // note: technically you could have similar duplication logic in regular compilationHelper
         // function, however I think it's cleaner to just augement the loop range with the % operator
         // to achieve the same effect
@@ -1048,12 +1042,16 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           }
 
           if (chordIndex === compiledChords.length - 1) {
+            if (type === "strummingPattern") {
+              chordIndex = -1;
+            }
+
             set({
               previewMetadata: {
                 ...previewMetadata,
                 indexOfPattern: -1,
                 currentChordIndex: 0,
-                playing: false,
+                playing: type === "strummingPattern",
               },
             });
           }

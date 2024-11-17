@@ -19,6 +19,7 @@ import {
   AccordionTrigger,
 } from "~/components/ui/accordion";
 import { motion } from "framer-motion";
+import ChordDiagram from "~/components/Tab/Playback/ChordDiagram";
 
 const opacityVariants = {
   closed: {
@@ -148,39 +149,39 @@ function Chords() {
             </p>
           </AccordionTrigger>
           <AccordionContent>
-            <div className="baseFlex mt-4 !justify-start gap-4">
-              {chords.map((chord, index) => (
-                <motion.div
-                  key={chord.id}
-                  variants={opacityVariants}
-                  initial="closed"
-                  animate="open"
-                  exit="closed"
-                  className="baseFlex border-r-none h-10 !flex-nowrap overflow-hidden rounded-md border-2"
-                >
-                  <p
-                    style={{
-                      textShadow:
-                        previewMetadata.indexOfPattern === index &&
-                        previewMetadata.playing &&
-                        previewMetadata.type === "chord"
-                          ? "none"
-                          : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
-                      color:
-                        previewMetadata.indexOfPattern === index &&
-                        previewMetadata.playing &&
-                        previewMetadata.type === "chord"
-                          ? "hsl(335, 78%, 42%)"
-                          : "hsl(324, 77%, 95%)",
-                    }}
-                    className="px-3 font-semibold transition-colors"
-                  >
-                    {chord.name}
-                  </p>
+            <>
+              {editing ? (
+                <div className="baseFlex mt-4 !justify-start gap-4">
+                  {chords.map((chord, index) => (
+                    <motion.div
+                      key={chord.id}
+                      variants={opacityVariants}
+                      initial="closed"
+                      animate="open"
+                      exit="closed"
+                      className="baseFlex border-r-none h-10 !flex-nowrap overflow-hidden rounded-md border-2"
+                    >
+                      <p
+                        style={{
+                          textShadow:
+                            previewMetadata.indexOfPattern === index &&
+                            previewMetadata.playing &&
+                            previewMetadata.type === "chord"
+                              ? "none"
+                              : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
+                          color:
+                            previewMetadata.indexOfPattern === index &&
+                            previewMetadata.playing &&
+                            previewMetadata.type === "chord"
+                              ? "hsl(335, 78%, 42%)"
+                              : "hsl(324, 77%, 95%)",
+                        }}
+                        className="px-3 font-semibold transition-colors"
+                      >
+                        {chord.name}
+                      </p>
 
-                  <div className="baseFlex h-full w-full !justify-evenly">
-                    {editing ? (
-                      <>
+                      <div className="baseFlex h-full w-full !justify-evenly">
                         {/* edit button */}
                         <Button
                           variant={"ghost"}
@@ -207,93 +208,107 @@ function Chords() {
                           {/* add the tooltip below for "Delete" */}
                           <FaTrashAlt className="h-4 w-4" />
                         </Button>
-                      </>
-                    ) : (
-                      <>
-                        {/* preview button */}
-                        <Popover>
-                          <PopoverTrigger className="baseFlex mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 active:hover:bg-white/10 ">
-                            <HiOutlineInformationCircle className="h-5 w-5" />
-                          </PopoverTrigger>
-                          <PopoverContent className="chordPreviewGlassmorphic w-40 border-2 p-0 text-pink-100">
-                            <Chord
-                              chordBeingEdited={{
-                                index,
-                                value: chord,
+                      </div>
+                    </motion.div>
+                  ))}
+                  <Button
+                    onClick={() => {
+                      setChordBeingEdited({
+                        index: chords.length,
+                        value: {
+                          id: crypto.randomUUID(),
+                          name: "",
+                          frets: ["", "", "", "", "", ""],
+                        },
+                      });
+                    }}
+                  >
+                    Add chord
+                  </Button>
+                </div>
+              ) : (
+                <div className="mt-2 grid max-h-[calc(100dvh-6rem)] auto-rows-auto grid-cols-1 gap-4 overflow-y-auto px-8 xs:grid-cols-2 md:grid-cols-3">
+                  <>
+                    {chords.map((chord, index) => (
+                      <div
+                        key={chord.id}
+                        className="baseFlex border-r-none w-fit rounded-md border-2"
+                      >
+                        <div className="baseVertFlex gap-3">
+                          <div className="baseFlex w-full !justify-between border-b py-2">
+                            <p
+                              style={{
+                                textShadow:
+                                  previewMetadata.indexOfPattern === index &&
+                                  previewMetadata.playing &&
+                                  previewMetadata.type === "chord"
+                                    ? "none"
+                                    : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
+                                color:
+                                  previewMetadata.indexOfPattern === index &&
+                                  previewMetadata.playing &&
+                                  previewMetadata.type === "chord"
+                                    ? "hsl(335, 78%, 42%)"
+                                    : "hsl(324, 77%, 95%)",
                               }}
-                              editing={false}
-                              highlightChord={
-                                previewMetadata.indexOfPattern === index &&
-                                previewMetadata.playing &&
-                                previewMetadata.type === "chord"
-                              }
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        {/* preview chord button */}
-                        <Button
-                          variant={"playPause"}
-                          disabled={
-                            !currentInstrument ||
-                            (previewMetadata.indexOfPattern === index &&
-                              previewMetadata.playing &&
-                              previewMetadata.type === "chord")
-                          }
-                          size={"sm"}
-                          onClick={() => {
-                            if (
-                              audioMetadata.playing ||
-                              previewMetadata.playing
-                            ) {
-                              pauseAudio();
-                            }
+                              className="px-3 font-semibold transition-colors"
+                            >
+                              {chord.name}
+                            </p>
 
-                            setTimeout(
-                              () => {
-                                void playPreview({
-                                  data: chord.frets,
-                                  index,
-                                  type: "chord",
-                                });
-                              },
-                              audioMetadata.playing || previewMetadata.playing
-                                ? 50
-                                : 0
-                            );
-                          }}
-                          className="baseFlex h-full w-10 rounded-l-none border-l-2"
-                        >
-                          <PlayButtonIcon
-                            uniqueLocationKey={`chordPreview${index}`}
-                            tabId={id}
-                            currentInstrument={currentInstrument}
-                            previewMetadata={previewMetadata}
-                            indexOfPattern={index}
-                            previewType="chord"
-                          />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
-              {editing && (
-                <Button
-                  onClick={() => {
-                    setChordBeingEdited({
-                      index: chords.length,
-                      value: {
-                        id: crypto.randomUUID(),
-                        name: "",
-                        frets: ["", "", "", "", "", ""],
-                      },
-                    });
-                  }}
-                >
-                  Add chord
-                </Button>
+                            {/* preview chord button */}
+                            <Button
+                              variant={"playPause"}
+                              disabled={
+                                !currentInstrument ||
+                                (previewMetadata.indexOfPattern === index &&
+                                  previewMetadata.playing &&
+                                  previewMetadata.type === "chord")
+                              }
+                              size={"sm"}
+                              onClick={() => {
+                                if (
+                                  audioMetadata.playing ||
+                                  previewMetadata.playing
+                                ) {
+                                  pauseAudio();
+                                }
+
+                                setTimeout(
+                                  () => {
+                                    void playPreview({
+                                      data: chord.frets,
+                                      index,
+                                      type: "chord",
+                                    });
+                                  },
+                                  audioMetadata.playing ||
+                                    previewMetadata.playing
+                                    ? 50
+                                    : 0,
+                                );
+                              }}
+                              className="baseFlex mr-3 h-6 w-10 rounded-sm"
+                            >
+                              <PlayButtonIcon
+                                uniqueLocationKey={`chordPreview${index}`}
+                                tabId={id}
+                                currentInstrument={currentInstrument}
+                                previewMetadata={previewMetadata}
+                                indexOfPattern={index}
+                                previewType="chord"
+                              />
+                            </Button>
+                          </div>
+
+                          <ChordDiagram frets={chord.frets} />
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                </div>
               )}
-            </div>
+            </>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
