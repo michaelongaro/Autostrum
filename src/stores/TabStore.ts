@@ -1015,8 +1015,10 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           if (currColumn === undefined) continue;
 
           // alteredBpm = bpm for chord * (1 / noteLengthMultiplier)
-          const alteredBpm =
-            Number(currColumn[8]) * (1 / Number(currColumn[9]));
+          // Calculate the altered BPM using the provided formula
+          const baseBpm = Number(currColumn[8]);
+          const noteLengthMultiplier = Number(currColumn[9]);
+          const alteredBpm = baseBpm * (1 / noteLengthMultiplier);
 
           await playNoteColumn({
             tuning: parse(type === "chord" ? tuning : "e2 a2 d3 g3 b3 e4"),
