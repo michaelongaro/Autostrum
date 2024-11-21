@@ -102,13 +102,10 @@ function PlaybackMenuContent() {
           className="baseVertFlex size-full overflow-y-hidden py-8"
         >
           {chords.length > 0 ? (
-            <div className="grid max-h-[calc(100dvh-6rem)] auto-rows-auto grid-cols-5 gap-4 overflow-y-auto px-8">
+            <div className="grid max-h-[calc(100dvh-6rem)] w-full auto-rows-auto grid-cols-6 place-items-center gap-4 overflow-y-auto px-8">
               <>
                 {chords.map((chord, index) => (
-                  <div
-                    key={chord.id}
-                    className="baseFlex border-r-none w-fit rounded-md border-2"
-                  >
+                  <div key={chord.id} className="baseFlex">
                     <div className="baseVertFlex gap-3">
                       <div className="baseFlex w-full !justify-between border-b py-2">
                         <p
@@ -175,7 +172,9 @@ function PlaybackMenuContent() {
                         </Button>
                       </div>
 
-                      <ChordDiagram frets={chord.frets} />
+                      <div className="h-48">
+                        <ChordDiagram originalFrets={chord.frets} />
+                      </div>
                     </div>
                   </div>
                 ))}

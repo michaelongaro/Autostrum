@@ -1,15 +1,22 @@
+import { useMemo } from "react";
+
 // Constants for the number of strings
 const STRING_COUNT = 6;
 
+// FYI: The reversal of the frets is purely due to the compiler expecting the frets in reverse order.
+// can be refactored in the future but it's not a huge issue imo.
+
 interface ChordDiagram {
-  frets: string[]; // Array of 6 strings representing fret positions ('x', '0', '1', '2', etc.)
+  originalFrets: string[]; // Array of 6 strings representing fret positions ('x', '0', '1', '2', etc.)
 }
 
 /**
  * GuitarChordDiagram Component
  * Renders a guitar chord diagram based on the provided frets array.
  */
-function ChordDiagram({ frets }: ChordDiagram) {
+function ChordDiagram({ originalFrets }: ChordDiagram) {
+  const frets = useMemo(() => [...originalFrets].reverse(), [originalFrets]);
+
   // Validate the frets array
   if (!Array.isArray(frets) || frets.length !== STRING_COUNT) {
     console.error(`Expected an array of ${STRING_COUNT} fret values.`);
@@ -147,8 +154,10 @@ function ChordDiagram({ frets }: ChordDiagram) {
   return (
     <svg
       viewBox={`10 0 150 ${svgHeight}`}
-      width="150"
-      height={svgHeight}
+      // width="125"
+      // height={150}
+      width="100%"
+      height="100%"
       role="img"
       aria-label={`Guitar chord diagram for frets: ${frets.join(", ")}`}
     >

@@ -474,7 +474,7 @@ function MobileMenuDialog() {
           </span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="baseVertFlex size-full max-h-dvh max-w-none !justify-start !rounded-none bg-black">
+      <DialogContent className="baseVertFlex size-full max-h-dvh max-w-none !justify-start !rounded-none bg-black pb-0">
         <AnimatedTabs
           activeTabName={activeTabName}
           setActiveTabName={
@@ -491,7 +491,7 @@ function MobileMenuDialog() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="baseVertFlex h-full max-h-[calc(100dvh-rem)] w-full gap-2 overflow-y-auto"
+              className="baseVertFlex h-full max-h-[calc(100dvh-6rem)] w-full gap-2 overflow-y-auto"
             >
               {sectionProgression.length === 0 ? (
                 <p className="text-lg font-semibold text-white">
@@ -536,16 +536,13 @@ function MobileMenuDialog() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="baseVertFlex size-full overflow-x-hidden py-4"
+              className="baseVertFlex size-full overflow-y-hidden py-0"
             >
               {chords.length > 0 ? (
-                <div className="baseFlex max-h-[calc(100dvh-6rem)] w-full !justify-start gap-4 overflow-x-scroll px-8">
+                <div className="my-4 grid max-h-[calc(100dvh-6rem)] w-full grid-cols-1 !justify-start gap-8 overflow-y-scroll px-8 xs:grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
                   <>
                     {chords.map((chord, index) => (
-                      <div
-                        key={chord.id}
-                        className="baseFlex border-r-none w-fit rounded-md border-2"
-                      >
+                      <div key={chord.id} className="baseFlex w-full">
                         <div className="baseVertFlex gap-3">
                           <div className="baseFlex w-full !justify-between border-b py-2">
                             <p
@@ -613,7 +610,9 @@ function MobileMenuDialog() {
                             </Button>
                           </div>
 
-                          <ChordDiagram frets={chord.frets} />
+                          <div className="narrowMobileLandscape:h-36 mobileLandscape:h-48">
+                            <ChordDiagram originalFrets={chord.frets} />
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -632,26 +631,13 @@ function MobileMenuDialog() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className={`baseVertFlex max-h-[calc(100dvh-6rem)] w-full gap-10 overflow-y-auto ${strummingPatterns.length > 0 ? "mt-8 !justify-start" : ""}`}
+              className={`baseVertFlex h-full max-h-[calc(100dvh-6rem)] w-full gap-10 overflow-y-auto ${strummingPatterns.length > 0 ? "!justify-start pb-8 pt-4" : ""}`}
             >
               {strummingPatterns.length > 0 ? (
                 <>
                   {strummingPatterns.map((pattern, index) => (
                     <div key={pattern.id} className="shrink-0 overflow-hidden">
-                      <div className="baseFlex !items-start">
-                        <div className="baseFlex border-b-none rounded-md rounded-tr-none border-2">
-                          <StrummingPattern
-                            data={pattern}
-                            mode="viewing"
-                            index={index}
-                            lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
-                            setLastModifiedPalmMuteNode={
-                              setLastModifiedPalmMuteNode
-                            }
-                            pmNodeOpacities={[]}
-                          />
-                        </div>
-
+                      <div className="baseVertFlex !items-start">
                         <Button
                           variant={"playPause"}
                           size={"sm"}
@@ -705,8 +691,15 @@ function MobileMenuDialog() {
                               );
                             }
                           }}
-                          className="w-10 rounded-l-none rounded-r-sm border-2 border-l-0 p-3"
+                          className="baseFlex ml-2 h-6 w-20 gap-2 rounded-b-none"
                         >
+                          <p>
+                            {previewMetadata.playing &&
+                            index === previewMetadata.indexOfPattern &&
+                            previewMetadata.type === "strummingPattern"
+                              ? "Stop"
+                              : "Play"}
+                          </p>
                           <PlayButtonIcon
                             uniqueLocationKey={`strummingPatternPreview${index}`}
                             tabId={id}
@@ -716,6 +709,17 @@ function MobileMenuDialog() {
                             previewType="strummingPattern"
                           />
                         </Button>
+                        <div className="baseFlex border-b-none !flex-nowrap rounded-md border-2">
+                          <StrummingPattern
+                            data={pattern}
+                            mode="viewing"
+                            index={index}
+                            lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+                            setLastModifiedPalmMuteNode={
+                              setLastModifiedPalmMuteNode
+                            }
+                          />
+                        </div>
                       </div>
                     </div>
                   ))}

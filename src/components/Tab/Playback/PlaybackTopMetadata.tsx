@@ -254,7 +254,7 @@ function Menu() {
     }));
 
   return (
-    <div className="baseVertFlex max-h-dvh w-full max-w-none !justify-start rounded-full border-[1px] border-stone-400 bg-black py-1">
+    <div className="baseVertFlex max-h-dvh w-full max-w-none !justify-start bg-black">
       <AnimatedTabs
         activeTabName={playbackDialogViewingState}
         setActiveTabName={

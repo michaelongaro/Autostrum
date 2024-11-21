@@ -289,19 +289,7 @@ function StrummingPatterns() {
                     )}
 
                     {!editing && (
-                      <div className="baseFlex !flex-nowrap !items-start">
-                        <div className="baseFlex border-b-none !flex-nowrap rounded-md rounded-tr-none border-2">
-                          <StrummingPattern
-                            data={pattern}
-                            mode="viewing"
-                            index={index}
-                            lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
-                            setLastModifiedPalmMuteNode={
-                              setLastModifiedPalmMuteNode
-                            }
-                          />
-                        </div>
-
+                      <div className="baseVertFlex !items-start">
                         <Button
                           variant={"playPause"}
                           size={"sm"}
@@ -355,8 +343,15 @@ function StrummingPatterns() {
                               );
                             }
                           }}
-                          className="w-10 rounded-l-none rounded-r-sm border-2 border-l-0 p-3"
+                          className="baseFlex ml-2 h-6 w-20 gap-2 rounded-b-none"
                         >
+                          <p>
+                            {previewMetadata.playing &&
+                            index === previewMetadata.indexOfPattern &&
+                            previewMetadata.type === "strummingPattern"
+                              ? "Stop"
+                              : "Play"}
+                          </p>
                           <PlayButtonIcon
                             uniqueLocationKey={`strummingPatternPreview${index}`}
                             tabId={id}
@@ -366,6 +361,17 @@ function StrummingPatterns() {
                             previewType="strummingPattern"
                           />
                         </Button>
+                        <div className="baseFlex border-b-none !flex-nowrap rounded-md border-2">
+                          <StrummingPattern
+                            data={pattern}
+                            mode="viewing"
+                            index={index}
+                            lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+                            setLastModifiedPalmMuteNode={
+                              setLastModifiedPalmMuteNode
+                            }
+                          />
+                        </div>
                       </div>
                     )}
                   </motion.div>

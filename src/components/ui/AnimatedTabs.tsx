@@ -13,7 +13,7 @@ function AnimatedTabs({
   tabNames,
 }: AnimatedTabs) {
   return (
-    <div className="flex space-x-1">
+    <div className="flex space-x-4 rounded-full border p-1">
       {tabNames.map((tabName) => (
         <button
           key={tabName}

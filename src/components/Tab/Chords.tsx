@@ -137,7 +137,7 @@ function Chords() {
         }}
         className="baseVertFlex w-full !items-start gap-2 rounded-md"
       >
-        <AccordionItem value="opened">
+        <AccordionItem value="opened" className="w-full">
           <AccordionTrigger>
             <p
               style={{
@@ -148,10 +148,10 @@ function Chords() {
               Chords
             </p>
           </AccordionTrigger>
-          <AccordionContent>
+          <AccordionContent className="w-full">
             <>
               {editing ? (
-                <div className="baseFlex mt-4 !justify-start gap-4">
+                <div className="baseFlex mt-4 flex-wrap !justify-start gap-4">
                   {chords.map((chord, index) => (
                     <motion.div
                       key={chord.id}
@@ -227,12 +227,16 @@ function Chords() {
                   </Button>
                 </div>
               ) : (
-                <div className="mt-2 grid max-h-[calc(100dvh-6rem)] auto-rows-auto grid-cols-1 gap-4 overflow-y-auto px-8 xs:grid-cols-2 md:grid-cols-3">
+                <div className="mt-2 grid max-h-[calc(100dvh-6rem)] w-full auto-rows-auto grid-cols-1 place-items-center gap-4 overflow-y-auto px-8 xs:grid-cols-2 md:grid-cols-3">
                   <>
                     {chords.map((chord, index) => (
-                      <div
+                      <motion.div
                         key={chord.id}
-                        className="baseFlex border-r-none w-fit rounded-md border-2"
+                        variants={opacityVariants}
+                        initial="closed"
+                        animate="open"
+                        exit="closed"
+                        className="baseFlex"
                       >
                         <div className="baseVertFlex gap-3">
                           <div className="baseFlex w-full !justify-between border-b py-2">
@@ -301,9 +305,11 @@ function Chords() {
                             </Button>
                           </div>
 
-                          <ChordDiagram frets={chord.frets} />
+                          <div className="h-48">
+                            <ChordDiagram originalFrets={chord.frets} />
+                          </div>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </>
                 </div>
