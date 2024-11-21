@@ -1,4 +1,5 @@
 import { useLocalStorageValue } from "@react-hookz/web";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
@@ -367,37 +368,48 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
           </Button>
 
           {/* speed selector (rotates through 0.25x, 0.5x, 0.75x, 1x, 1.25x, 1.5x speeds) */}
-          <Button
-            variant="link"
-            onClick={() => {
-              pauseAudio();
+          <AnimatePresence mode={"popLayout"} initial={false}>
+            <motion.div
+              key={playbackSpeed}
+              initial={{ x: 20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -20, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+            >
+              <Button
+                variant="link"
+                onClick={() => {
+                  pauseAudio();
 
-              let newPlaybackSpeed = playbackSpeed;
+                  let newPlaybackSpeed = playbackSpeed;
 
-              if (newPlaybackSpeed === 1.5) newPlaybackSpeed = 0.25;
-              else
-                newPlaybackSpeed = (playbackSpeed + 0.25) as
-                  | 0.25
-                  | 0.5
-                  | 0.75
-                  | 1
-                  | 1.25
-                  | 1.5;
+                  if (newPlaybackSpeed === 1.5) newPlaybackSpeed = 0.25;
+                  else
+                    newPlaybackSpeed = (playbackSpeed + 0.25) as
+                      | 0.25
+                      | 0.5
+                      | 0.75
+                      | 1
+                      | 1.25
+                      | 1.5;
 
-              // Normalize the progress value to 1x speed
-              const normalizedProgress = tabProgressValue * playbackSpeed;
+                  // Normalize the progress value to 1x speed
+                  const normalizedProgress = tabProgressValue * playbackSpeed;
 
-              // Adjust the progress value to the new playback speed
-              const adjustedProgress = normalizedProgress / newPlaybackSpeed;
+                  // Adjust the progress value to the new playback speed
+                  const adjustedProgress =
+                    normalizedProgress / newPlaybackSpeed;
 
-              // Set the new progress value
-              setTabProgressValue(adjustedProgress);
-              setPlaybackSpeed(newPlaybackSpeed);
-            }}
-            className="w-6"
-          >
-            {playbackSpeed}x
-          </Button>
+                  // Set the new progress value
+                  setTabProgressValue(adjustedProgress);
+                  setPlaybackSpeed(newPlaybackSpeed);
+                }}
+                className="w-6"
+              >
+                {playbackSpeed}x
+              </Button>
+            </motion.div>
+          </AnimatePresence>
 
           <div className="baseFlex w-full !flex-nowrap gap-2">
             <p>
@@ -483,38 +495,49 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
 
             <div className="baseFlex gap-6">
               {viewportLabel.includes("mobile") ? (
-                <Button
-                  variant="link"
-                  onClick={() => {
-                    pauseAudio();
+                <AnimatePresence mode={"popLayout"} initial={false}>
+                  <motion.div
+                    key={playbackSpeed}
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: -20, opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    <Button
+                      variant="link"
+                      onClick={() => {
+                        pauseAudio();
 
-                    let newPlaybackSpeed = playbackSpeed;
+                        let newPlaybackSpeed = playbackSpeed;
 
-                    if (newPlaybackSpeed === 1.5) newPlaybackSpeed = 0.25;
-                    else
-                      newPlaybackSpeed = (playbackSpeed + 0.25) as
-                        | 0.25
-                        | 0.5
-                        | 0.75
-                        | 1
-                        | 1.25
-                        | 1.5;
+                        if (newPlaybackSpeed === 1.5) newPlaybackSpeed = 0.25;
+                        else
+                          newPlaybackSpeed = (playbackSpeed + 0.25) as
+                            | 0.25
+                            | 0.5
+                            | 0.75
+                            | 1
+                            | 1.25
+                            | 1.5;
 
-                    // Normalize the progress value to 1x speed
-                    const normalizedProgress = tabProgressValue * playbackSpeed;
+                        // Normalize the progress value to 1x speed
+                        const normalizedProgress =
+                          tabProgressValue * playbackSpeed;
 
-                    // Adjust the progress value to the new playback speed
-                    const adjustedProgress =
-                      normalizedProgress / newPlaybackSpeed;
+                        // Adjust the progress value to the new playback speed
+                        const adjustedProgress =
+                          normalizedProgress / newPlaybackSpeed;
 
-                    // Set the new progress value
-                    setTabProgressValue(adjustedProgress);
-                    setPlaybackSpeed(newPlaybackSpeed);
-                  }}
-                  className="w-6"
-                >
-                  {playbackSpeed}x
-                </Button>
+                        // Set the new progress value
+                        setTabProgressValue(adjustedProgress);
+                        setPlaybackSpeed(newPlaybackSpeed);
+                      }}
+                      className="w-6"
+                    >
+                      {playbackSpeed}x
+                    </Button>
+                  </motion.div>
+                </AnimatePresence>
               ) : (
                 <Button
                   variant="playPause"
