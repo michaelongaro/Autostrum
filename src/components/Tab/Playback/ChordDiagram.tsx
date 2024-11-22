@@ -6,6 +6,10 @@ const STRING_COUNT = 6;
 // FYI: The reversal of the frets is purely due to the compiler expecting the frets in reverse order.
 // can be refactored in the future but it's not a huge issue imo.
 
+// -1 = muted string
+// -2 = not fretted at all
+// 0+ = fret number
+
 interface ChordDiagram {
   originalFrets: string[]; // Array of 6 strings representing fret positions ('x', '0', '1', '2', etc.)
 }
@@ -30,7 +34,7 @@ function ChordDiagram({ originalFrets }: ChordDiagram) {
   const parsedFrets: number[] = frets.map((fret) => {
     if (fret.toLowerCase() === "x") return -1;
     const num = parseInt(fret, 10);
-    return isNaN(num) ? 0 : num;
+    return isNaN(num) ? -2 : num;
   });
 
   // Determine the minimum and maximum frets to display
@@ -154,8 +158,6 @@ function ChordDiagram({ originalFrets }: ChordDiagram) {
   return (
     <svg
       viewBox={`10 0 150 ${svgHeight}`}
-      // width="125"
-      // height={150}
       width="100%"
       height="100%"
       role="img"
