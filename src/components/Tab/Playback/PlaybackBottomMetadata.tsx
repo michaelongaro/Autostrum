@@ -45,8 +45,21 @@ import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { parse, toString } from "~/utils/tunings";
+import PlaybackGranularLoopRangeEditor from "~/components/Tab/Playback/PlaybackGranularLoopRangeEditor";
 
-function PlaybackBottomMetadata() {
+interface PlaybackBottomMetadata {
+  loopRange: [number, number];
+  setLoopRange: Dispatch<SetStateAction<[number, number]>>;
+  tabProgressValue: number;
+  setTabProgressValue: Dispatch<SetStateAction<number>>;
+}
+
+function PlaybackBottomMetadata({
+  loopRange,
+  setLoopRange,
+  tabProgressValue,
+  setTabProgressValue,
+}: PlaybackBottomMetadata) {
   const {
     tabData,
     title,
@@ -61,6 +74,7 @@ function PlaybackBottomMetadata() {
     setAudioMetadata,
     looping,
     countInTimer,
+    setCurrentChordIndex,
   } = useTabStore((state) => ({
     tabData: state.tabData,
     title: state.title,
@@ -75,6 +89,7 @@ function PlaybackBottomMetadata() {
     setAudioMetadata: state.setAudioMetadata,
     looping: state.looping,
     countInTimer: state.countInTimer,
+    setCurrentChordIndex: state.setCurrentChordIndex,
   }));
 
   // idk if best approach, but need unique section titles, not the whole progression
@@ -90,89 +105,130 @@ function PlaybackBottomMetadata() {
   return (
     <>
       {viewportLabel.includes("Landscape") ? (
-        <div className="baseFlex w-full !justify-between gap-4 px-4 pb-2">
-          <div className="baseFlex gap-4">
-            <div className="baseVertFlex !items-start">
-              <p className="text-sm font-medium">Tuning</p>
-              <p>{toString(parse(tuning), { pad: 0 })}</p>
-            </div>
+        <>
+          {audioMetadata.editingLoopRange ? (
+            <PlaybackGranularLoopRangeEditor
+              loopRange={loopRange}
+              setLoopRange={setLoopRange}
+            />
+          ) : (
+            <div className="baseFlex w-full !justify-between gap-4 px-4 pb-2">
+              <div className="baseFlex gap-4">
+                <div className="baseVertFlex !items-start">
+                  <p className="text-sm font-medium">Tuning</p>
+                  <p>{toString(parse(tuning), { pad: 0 })}</p>
+                </div>
 
-            <div className="baseVertFlex !items-start">
-              <p className="text-sm font-medium">Capo</p>
-              {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
-            </div>
+                <div className="baseVertFlex !items-start">
+                  <p className="text-sm font-medium">Capo</p>
+                  {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
+                </div>
 
-            <Button variant={"outline"} className="size-9 !p-0">
-              <TuningFork className="size-4 fill-white" />
-            </Button>
-            <Button
-              variant={"outline"}
-              className="size-9 !p-0"
-              onClick={() => setShowEffectGlossaryModal(true)}
-            >
-              <FaBook className="h-4 w-4" />
-            </Button>
-          </div>
+                <Button variant={"outline"} className="size-9 !p-0">
+                  <TuningFork className="size-4 fill-white" />
+                </Button>
+                <Button
+                  variant={"outline"}
+                  className="size-9 !p-0"
+                  onClick={() => setShowEffectGlossaryModal(true)}
+                >
+                  <FaBook className="h-4 w-4" />
+                </Button>
+              </div>
 
-          <div className="baseFlex gap-4">
-            <div className="baseFlex gap-2">
-              <p className="text-sm font-medium">Section</p>
-              <Select
-                // this is jank, need to fix logic
-                value={title === "" ? undefined : title}
-                onValueChange={(value) => {
-                  setAudioMetadata({
-                    ...audioMetadata,
-                    location:
-                      value === "fullSong"
-                        ? null
-                        : {
-                            sectionIndex: parseInt(value),
-                          },
-                  });
-                }}
-              >
-                <SelectTrigger className="!h-9 max-w-28 sm:max-w-none md:!h-10">
-                  <SelectValue placeholder="Select a section">
-                    {audioMetadata.location === null
-                      ? "Full song"
-                      : (sectionProgression[
-                          playbackMetadata[currentChordIndex]?.location
-                            .sectionIndex ?? 0
-                        ]?.title ?? "")}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup className="max-h-60 overflow-y-auto">
-                    <SelectLabel>Sections</SelectLabel>
+              <div className="baseFlex gap-4">
+                <div className="baseFlex gap-2">
+                  <p className="text-sm font-medium">Section</p>
+                  <Select
+                    // this is jank, need to fix logic
+                    value={title === "" ? undefined : title}
+                    onValueChange={(value) => {
+                      setAudioMetadata({
+                        ...audioMetadata,
+                        location:
+                          value === "fullSong"
+                            ? null
+                            : {
+                                sectionIndex: parseInt(value),
+                              },
+                      });
+                    }}
+                  >
+                    <SelectTrigger className="!h-9 max-w-28 sm:max-w-none md:!h-10">
+                      <SelectValue placeholder="Select a section">
+                        {audioMetadata.location === null
+                          ? "Full song"
+                          : (sectionProgression[
+                              playbackMetadata[currentChordIndex]?.location
+                                .sectionIndex ?? 0
+                            ]?.title ?? "")}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup className="max-h-60 overflow-y-auto">
+                        <SelectLabel>Sections</SelectLabel>
 
-                    <>
-                      <SelectItem key={"fullSong"} value={`fullSong`}>
-                        Full song
-                      </SelectItem>
-                      {sections.map((section, idx) => {
-                        return (
-                          <SelectItem key={`${section.id}`} value={`${idx}`}>
-                            {section.title}
+                        <>
+                          <SelectItem key={"fullSong"} value={`fullSong`}>
+                            Full song
                           </SelectItem>
-                        );
-                      })}
-                    </>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
+                          {sections.map((section, idx) => {
+                            return (
+                              <SelectItem
+                                key={`${section.id}`}
+                                value={`${idx}`}
+                              >
+                                {section.title}
+                              </SelectItem>
+                            );
+                          })}
+                        </>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <MobileSettingsDialog />
-            <MobileMenuDialog />
-          </div>
-        </div>
+                <MobileSettingsDialog />
+                <MobileMenuDialog />
+              </div>
+            </div>
+          )}
+        </>
       ) : (
         <div className="baseFlex w-full px-4 py-4">
           {viewportLabel.includes("mobile") ? (
             <div className="baseFlex gap-4">
               <MobileSettingsDialog />
+
               <MobileMenuDialog />
+
+              <Toggle
+                variant={"outline"}
+                aria-label="Edit looping range"
+                disabled={
+                  !looping ||
+                  audioMetadata.type === "Artist recording" ||
+                  audioMetadata.playing ||
+                  countInTimer.showing
+                }
+                pressed={audioMetadata.editingLoopRange}
+                className="size-9 p-1"
+                onPressedChange={(value) => {
+                  // set to beginning of loop if moving to editing loop range, otherwise
+                  // reset to beginning of tab
+                  setCurrentChordIndex(
+                    value ? audioMetadata.startLoopIndex : 0,
+                  );
+
+                  setAudioMetadata({
+                    ...audioMetadata,
+                    editingLoopRange: value,
+                  });
+                }}
+              >
+                <CgArrowsShrinkH className="h-6 w-6" />
+              </Toggle>
+
               <Button
                 variant={"outline"}
                 className="size-9 !p-0"
@@ -183,7 +239,10 @@ function PlaybackBottomMetadata() {
             </div>
           ) : (
             <div className="baseFlex w-full">
-              <Settings />
+              <Settings
+                tabProgressValue={tabProgressValue}
+                setTabProgressValue={setTabProgressValue}
+              />
             </div>
           )}
         </div>
@@ -619,7 +678,9 @@ function MobileMenuDialog() {
                   </>
                 </div>
               ) : (
-                <div>No chords were specified for this tab.</div>
+                <div className="text-center">
+                  No chords were specified for this tab.
+                </div>
               )}
             </motion.div>
           )}
@@ -718,6 +779,7 @@ function MobileMenuDialog() {
                             setLastModifiedPalmMuteNode={
                               setLastModifiedPalmMuteNode
                             }
+                            pmNodeOpacities={[]} //
                           />
                         </div>
                       </div>
@@ -725,7 +787,9 @@ function MobileMenuDialog() {
                   ))}
                 </>
               ) : (
-                <div>No strumming patterns were specified for this tab.</div>
+                <div className="text-center">
+                  No strumming patterns were specified for this tab.
+                </div>
               )}
             </motion.div>
           )}
@@ -735,7 +799,12 @@ function MobileMenuDialog() {
   );
 }
 
-function Settings() {
+interface Settings {
+  tabProgressValue: number;
+  setTabProgressValue: Dispatch<SetStateAction<number>>;
+}
+
+function Settings({ tabProgressValue, setTabProgressValue }: Settings) {
   const {
     id,
     bpm,
@@ -797,9 +866,6 @@ function Settings() {
     mobileHeaderModal: state.mobileHeaderModal,
     setMobileHeaderModal: state.setMobileHeaderModal,
   }));
-
-  // TODO: do we need to make this a zustand state or shared in some way?
-  const [tabProgressValue, setTabProgressValue] = useState(0);
 
   const volume = useGetLocalStorageValues().volume;
   const localStorageVolume = useLocalStorageValue("autostrumVolume");

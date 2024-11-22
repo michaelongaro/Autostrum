@@ -1,12 +1,20 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import { TiArrowLoop } from "react-icons/ti";
 import { getTrackBackground, Range } from "react-range";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import ProgressSlider from "~/components/AudioControls/ProgressSlider";
+import PlaybackGranularLoopRangeEditor from "~/components/Tab/Playback/PlaybackGranularLoopRangeEditor";
 import { Button } from "~/components/ui/button";
 import { Toggle } from "~/components/ui/toggle";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
@@ -21,9 +29,19 @@ import {
 
 interface PlaybackAudioControls {
   chordDurations: number[];
+  loopRange: [number, number];
+  setLoopRange: Dispatch<SetStateAction<[number, number]>>;
+  tabProgressValue: number;
+  setTabProgressValue: Dispatch<SetStateAction<number>>;
 }
 
-function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
+function PlaybackAudioControls({
+  chordDurations,
+  loopRange,
+  setLoopRange,
+  tabProgressValue,
+  setTabProgressValue,
+}: PlaybackAudioControls) {
   const { query, asPath } = useRouter();
 
   const {
@@ -90,7 +108,6 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
     looping: state.looping,
   }));
 
-  const [tabProgressValue, setTabProgressValue] = useState(0);
   const [wasPlayingBeforeScrubbing, setWasPlayingBeforeScrubbing] =
     useState(false);
 
@@ -431,6 +448,8 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
               setWasPlayingBeforeScrubbing={setWasPlayingBeforeScrubbing}
               setArtificalPlayButtonTimeout={setArtificalPlayButtonTimeout}
               chordDurations={chordDurations}
+              loopRange={loopRange}
+              setLoopRange={setLoopRange}
             />
 
             <p>
@@ -481,6 +500,8 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
             setWasPlayingBeforeScrubbing={setWasPlayingBeforeScrubbing}
             setArtificalPlayButtonTimeout={setArtificalPlayButtonTimeout}
             chordDurations={chordDurations}
+            loopRange={loopRange}
+            setLoopRange={setLoopRange}
           />
 
           <div className="baseFlex w-full !justify-between">
@@ -493,52 +514,16 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
               )}
             </p>
 
-            <div className="baseFlex gap-6">
-              {viewportLabel.includes("mobile") ? (
-                <AnimatePresence mode={"popLayout"} initial={false}>
-                  <motion.div
-                    key={playbackSpeed}
-                    initial={{ x: 20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    exit={{ x: -20, opacity: 0 }}
-                    transition={{ duration: 0.25 }}
-                  >
-                    <Button
-                      variant="link"
-                      onClick={() => {
-                        pauseAudio();
+            {/* editing loop range - granular loop range component
+                not editing loop range - regular audio controls based on viewport */}
 
-                        let newPlaybackSpeed = playbackSpeed;
-
-                        if (newPlaybackSpeed === 1.5) newPlaybackSpeed = 0.25;
-                        else
-                          newPlaybackSpeed = (playbackSpeed + 0.25) as
-                            | 0.25
-                            | 0.5
-                            | 0.75
-                            | 1
-                            | 1.25
-                            | 1.5;
-
-                        // Normalize the progress value to 1x speed
-                        const normalizedProgress =
-                          tabProgressValue * playbackSpeed;
-
-                        // Adjust the progress value to the new playback speed
-                        const adjustedProgress =
-                          normalizedProgress / newPlaybackSpeed;
-
-                        // Set the new progress value
-                        setTabProgressValue(adjustedProgress);
-                        setPlaybackSpeed(newPlaybackSpeed);
-                      }}
-                      className="w-6"
-                    >
-                      {playbackSpeed}x
-                    </Button>
-                  </motion.div>
-                </AnimatePresence>
-              ) : (
+            {audioMetadata.editingLoopRange ? (
+              <PlaybackGranularLoopRangeEditor
+                loopRange={loopRange}
+                setLoopRange={setLoopRange}
+              />
+            ) : (
+              <div className="baseFlex gap-6">
                 <Button
                   variant="playPause"
                   size={aboveLargeViewportWidth ? "default" : "sm"}
@@ -550,55 +535,26 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
                 >
                   -5s
                 </Button>
-              )}
 
-              <Button
-                variant="playPause"
-                size={aboveLargeViewportWidth ? "default" : "sm"}
-                disabled={disablePlayButton}
-                onClick={handlePlayButtonClick}
-                className="size-10 shrink-0 rounded-full bg-transparent p-0"
-              >
-                <PlayButtonIcon
-                  uniqueLocationKey="audioControls"
-                  tabId={id}
-                  currentInstrument={currentInstrument}
-                  audioMetadata={audioMetadata}
-                  recordedAudioBuffer={recordedAudioBuffer}
-                  forceShowLoadingSpinner={fetchingFullTabData}
-                  showCountInTimer={countInTimer.showing}
-                  size={"1.5rem"}
-                />
-              </Button>
-
-              {viewportLabel.includes("mobile") ? (
-                <Toggle
-                  variant={"default"}
-                  aria-label="Edit looping range"
-                  disabled={
-                    !looping ||
-                    audioMetadata.type === "Artist recording" ||
-                    audioMetadata.playing ||
-                    countInTimer.showing
-                  }
-                  pressed={audioMetadata.editingLoopRange}
-                  className="h-8 w-8 p-1"
-                  onPressedChange={(value) => {
-                    // set to beginning of loop if moving to editing loop range, otherwise
-                    // reset to beginning of tab
-                    setCurrentChordIndex(
-                      value ? audioMetadata.startLoopIndex : 0,
-                    );
-
-                    setAudioMetadata({
-                      ...audioMetadata,
-                      editingLoopRange: value,
-                    });
-                  }}
+                <Button
+                  variant="playPause"
+                  size={aboveLargeViewportWidth ? "default" : "sm"}
+                  disabled={disablePlayButton}
+                  onClick={handlePlayButtonClick}
+                  className="size-10 shrink-0 rounded-full bg-transparent p-0"
                 >
-                  <CgArrowsShrinkH className="h-6 w-6" />
-                </Toggle>
-              ) : (
+                  <PlayButtonIcon
+                    uniqueLocationKey="audioControls"
+                    tabId={id}
+                    currentInstrument={currentInstrument}
+                    audioMetadata={audioMetadata}
+                    recordedAudioBuffer={recordedAudioBuffer}
+                    forceShowLoadingSpinner={fetchingFullTabData}
+                    showCountInTimer={countInTimer.showing}
+                    size={"1.5rem"}
+                  />
+                </Button>
+
                 <Button
                   variant="playPause"
                   size={aboveLargeViewportWidth ? "default" : "sm"}
@@ -610,8 +566,8 @@ function PlaybackAudioControls({ chordDurations }: PlaybackAudioControls) {
                 >
                   +5s
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
 
             <p className="self-start">
               {formatSecondsToMinutes(

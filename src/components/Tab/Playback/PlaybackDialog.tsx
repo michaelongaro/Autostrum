@@ -100,6 +100,15 @@ function PlaybackDialog() {
   const prevChordIndexRef = useRef<number | null>(null);
   const [loopCount, setLoopCount] = useState(0);
 
+  // below two are just here to avoid polluting the store with these extra semi-local values
+  const [loopRange, setLoopRange] = useState<[number, number]>([
+    audioMetadata.startLoopIndex,
+    audioMetadata.endLoopIndex === -1
+      ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1
+      : audioMetadata.endLoopIndex,
+  ]);
+  const [tabProgressValue, setTabProgressValue] = useState(0); // TODO: maybe need to reset this on open/close of dialog?
+
   // gates computation of chord widths + positions + duplication to only when
   // expandedTabData has changed or looping has changed
   const [expandedTabDataHasChanged, setExpandedTabDataHasChanged] =
@@ -346,7 +355,10 @@ function PlaybackDialog() {
           <DialogDescription>{description}</DialogDescription>
         </VisuallyHidden>
 
-        <PlaybackTopMetadata />
+        <PlaybackTopMetadata
+          tabProgressValue={tabProgressValue}
+          setTabProgressValue={setTabProgressValue}
+        />
 
         <AnimatePresence mode="popLayout">
           {playbackDialogViewingState === "Practice" && (
@@ -550,8 +562,19 @@ function PlaybackDialog() {
         </AnimatePresence>
         {playbackDialogViewingState === "Practice" && (
           <div className="baseVertFlex w-full gap-2">
-            <PlaybackAudioControls chordDurations={chordDurations} />
-            <PlaybackBottomMetadata />
+            <PlaybackAudioControls
+              chordDurations={chordDurations}
+              loopRange={loopRange}
+              setLoopRange={setLoopRange}
+              tabProgressValue={tabProgressValue}
+              setTabProgressValue={setTabProgressValue}
+            />
+            <PlaybackBottomMetadata
+              loopRange={loopRange}
+              setLoopRange={setLoopRange}
+              tabProgressValue={tabProgressValue}
+              setTabProgressValue={setTabProgressValue}
+            />
           </div>
         )}
       </DialogContent>

@@ -18,6 +18,8 @@ interface ProgressSlider {
   disabled: boolean;
   setArtificalPlayButtonTimeout: Dispatch<SetStateAction<boolean>>;
   chordDurations: number[];
+  loopRange: [number, number];
+  setLoopRange: Dispatch<SetStateAction<[number, number]>>;
 }
 
 function ProgressSlider({
@@ -28,6 +30,8 @@ function ProgressSlider({
   disabled,
   setArtificalPlayButtonTimeout,
   chordDurations,
+  loopRange,
+  setLoopRange,
 }: ProgressSlider) {
   const {
     id,
@@ -91,13 +95,6 @@ function ProgressSlider({
     playbackMetadata: state.playbackMetadata,
   }));
 
-  const [loopRange, setLoopRange] = useState([
-    audioMetadata.startLoopIndex,
-    audioMetadata.endLoopIndex === -1
-      ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1
-      : audioMetadata.endLoopIndex,
-  ]);
-
   const prevEditingLoopRangeState = useRef(audioMetadata.editingLoopRange);
 
   useEffect(() => {
@@ -139,6 +136,8 @@ function ProgressSlider({
           ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1
           : (newCurrentChordIndex ?? 0),
       );
+
+      console.log("setting", adjustedStartIndex, adjustedEndIndex);
 
       setAudioMetadata({
         ...audioMetadata,
@@ -184,7 +183,7 @@ function ProgressSlider({
           values={loopRange}
           // any use for onFinalChange?
           onChange={(newLoopRange) => {
-            setLoopRange(newLoopRange);
+            setLoopRange(newLoopRange as [number, number]);
           }}
           renderTrack={({ props, children }) => (
             <div

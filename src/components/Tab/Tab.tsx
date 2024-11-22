@@ -108,7 +108,7 @@ function Tab({ tab, refetchTab }: ITab) {
     sectionProgression,
     chords,
     strummingPatterns,
-    playbackSpeed,
+    audioMetadata,
     showPlaybackDialog,
   } = useTabStore((state) => ({
     setId: state.setId,
@@ -146,7 +146,7 @@ function Tab({ tab, refetchTab }: ITab) {
     sectionProgression: state.sectionProgression,
     chords: state.chords,
     strummingPatterns: state.strummingPatterns,
-    playbackSpeed: state.playbackSpeed,
+    audioMetadata: state.audioMetadata,
     showPlaybackDialog: state.showPlaybackDialog,
   }));
 
@@ -326,7 +326,9 @@ function Tab({ tab, refetchTab }: ITab) {
             </div>
           )}
 
-        <PlaybackDialog />
+        {audioMetadata.fullCurrentlyPlayingMetadataLength > 0 && (
+          <PlaybackDialog />
+        )}
 
         <Separator className="w-[96%]" />
 

@@ -3,6 +3,7 @@ import { FaBook } from "react-icons/fa";
 import AnimatedTabs from "~/components/ui/AnimatedTabs";
 import { Button } from "~/components/ui/button";
 import TuningFork from "~/components/ui/icons/TuningFork";
+import { Label } from "~/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -18,7 +19,15 @@ import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { parse, toString } from "~/utils/tunings";
 
-function PlaybackTopMetadata() {
+interface PlaybackTopMetadata {
+  tabProgressValue: number;
+  setTabProgressValue: Dispatch<SetStateAction<number>>;
+}
+
+function PlaybackTopMetadata({
+  tabProgressValue,
+  setTabProgressValue,
+}: PlaybackTopMetadata) {
   const {
     tabData,
     title,
@@ -29,6 +38,10 @@ function PlaybackTopMetadata() {
     playbackMetadata,
     currentChordIndex,
     viewportLabel,
+    countInTimer,
+    playbackSpeed,
+    pauseAudio,
+    setPlaybackSpeed,
     setShowEffectGlossaryModal,
     setAudioMetadata,
   } = useTabStore((state) => ({
@@ -41,6 +54,10 @@ function PlaybackTopMetadata() {
     playbackMetadata: state.playbackMetadata,
     currentChordIndex: state.currentChordIndex,
     viewportLabel: state.viewportLabel,
+    countInTimer: state.countInTimer,
+    playbackSpeed: state.playbackSpeed,
+    pauseAudio: state.pauseAudio,
+    setPlaybackSpeed: state.setPlaybackSpeed,
     setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
     setAudioMetadata: state.setAudioMetadata,
   }));
@@ -183,55 +200,103 @@ function PlaybackTopMetadata() {
               </div>
 
               {viewportLabel.includes("mobile") && (
-                <div className="baseFlex mt-1.5 gap-2">
-                  <p className="text-sm font-medium">Section</p>
-                  <Select
-                    // this is jank, need to fix logic
-                    value={title === "" ? undefined : title}
-                    onValueChange={(value) => {
-                      setAudioMetadata({
-                        ...audioMetadata,
-                        location:
-                          value === "fullSong"
-                            ? null
-                            : {
-                                sectionIndex: parseInt(value),
-                              },
-                      });
-                    }}
-                  >
-                    <SelectTrigger className="!h-8 max-w-28 sm:max-w-none">
-                      <SelectValue placeholder="Select a section">
-                        {audioMetadata.location === null
-                          ? "Full song"
-                          : (sectionProgression[
-                              playbackMetadata[currentChordIndex]?.location
-                                .sectionIndex ?? 0
-                            ]?.title ?? "")}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup className="max-h-60 overflow-y-auto">
-                        <SelectLabel>Sections</SelectLabel>
+                <div className="baseFlex mt-1.5 w-full !justify-start gap-4">
+                  <div className="baseFlex gap-2">
+                    <Label>Speed</Label>
+                    <Select
+                      disabled={
+                        audioMetadata.type === "Artist recording" ||
+                        countInTimer.showing ||
+                        audioMetadata.editingLoopRange
+                      }
+                      value={`${playbackSpeed}x`}
+                      onValueChange={(value) => {
+                        pauseAudio();
 
-                        <>
-                          <SelectItem key={"fullSong"} value={`fullSong`}>
-                            Full song
-                          </SelectItem>
-                          {sections.map((section, idx) => {
-                            return (
-                              <SelectItem
-                                key={`${section.id}`}
-                                value={`${idx}`}
-                              >
-                                {section.title}
-                              </SelectItem>
-                            );
-                          })}
-                        </>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                        const newPlaybackSpeed = Number(
+                          value.slice(0, value.length - 1),
+                        ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
+
+                        // Normalize the progress value to 1x speed
+                        const normalizedProgress =
+                          tabProgressValue * playbackSpeed;
+
+                        // Adjust the progress value to the new playback speed
+                        const adjustedProgress =
+                          normalizedProgress / newPlaybackSpeed;
+
+                        // Set the new progress value
+                        setTabProgressValue(adjustedProgress);
+                        setPlaybackSpeed(newPlaybackSpeed);
+                      }}
+                    >
+                      <SelectTrigger className="h-8 w-20">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Speed</SelectLabel>
+                          <SelectItem value={"0.25x"}>0.25x</SelectItem>
+                          <SelectItem value={"0.5x"}>0.5x</SelectItem>
+                          <SelectItem value={"0.75x"}>0.75x</SelectItem>
+                          <SelectItem value={"1x"}>1x</SelectItem>
+                          <SelectItem value={"1.25x"}>1.25x</SelectItem>
+                          <SelectItem value={"1.5x"}>1.5x</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="baseFlex gap-2">
+                    <p className="text-sm font-medium">Section</p>
+                    <Select
+                      // this is jank, need to fix logic
+                      value={title === "" ? undefined : title}
+                      onValueChange={(value) => {
+                        setAudioMetadata({
+                          ...audioMetadata,
+                          location:
+                            value === "fullSong"
+                              ? null
+                              : {
+                                  sectionIndex: parseInt(value),
+                                },
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="!h-8 max-w-28 sm:max-w-none">
+                        <SelectValue placeholder="Select a section">
+                          {audioMetadata.location === null
+                            ? "Full song"
+                            : (sectionProgression[
+                                playbackMetadata[currentChordIndex]?.location
+                                  .sectionIndex ?? 0
+                              ]?.title ?? "")}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup className="max-h-60 overflow-y-auto">
+                          <SelectLabel>Sections</SelectLabel>
+
+                          <>
+                            <SelectItem key={"fullSong"} value={`fullSong`}>
+                              Full song
+                            </SelectItem>
+                            {sections.map((section, idx) => {
+                              return (
+                                <SelectItem
+                                  key={`${section.id}`}
+                                  value={`${idx}`}
+                                >
+                                  {section.title}
+                                </SelectItem>
+                              );
+                            })}
+                          </>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               )}
             </div>
