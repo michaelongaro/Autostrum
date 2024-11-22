@@ -197,7 +197,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       >
         <div
           tabIndex={-1}
-          className="baseVertFlex min-w-[300px] max-w-[90vw] gap-8 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 xl:max-w-[50vw]"
+          className="baseVertFlex min-w-[300px] max-w-[90vw] gap-4 rounded-md bg-pink-400 p-2 py-4 shadow-sm md:p-4 xl:max-w-[50vw] tablet:gap-8"
           onKeyDown={(e) => {
             if (e.key === "Escape") {
               if (audioMetadata.playing) pauseAudio();
@@ -233,17 +233,25 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
                 </div>
               </AccordionTrigger>
               <AccordionContent extraPaddingBottom>
-                <div className="baseFlex mt-2 gap-2 sm:gap-6">
-                  <div className="baseFlex gap-2">
-                    <span className="font-semibold">A-G</span>
-                    <span>-</span>
-                    <span>Major chords</span>
+                <div className="baseVertFlex gap-2">
+                  <div className="baseFlex mt-2 gap-2 sm:gap-6">
+                    <div className="baseFlex gap-2">
+                      <span className="font-semibold">A-G</span>
+                      <span>-</span>
+                      <span>Major chords</span>
+                    </div>
+
+                    <div className="baseFlex gap-2">
+                      <span className="font-semibold">a-g</span>
+                      <span>-</span>
+                      <span>Minor chords</span>
+                    </div>
                   </div>
 
                   <div className="baseFlex gap-2">
-                    <span className="font-semibold">a-g</span>
+                    <span className="font-semibold">x</span>
                     <span>-</span>
-                    <span>Minor chords</span>
+                    <span>Muted string</span>
                   </div>
                 </div>
               </AccordionContent>
@@ -260,7 +268,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
             }
           />
 
-          <div className="baseVertFlex gap-8">
+          <div className="baseVertFlex gap-4 tablet:gap-8">
             <Button
               disabled={
                 (previewMetadata.indexOfPattern === chordBeingEdited.index &&
