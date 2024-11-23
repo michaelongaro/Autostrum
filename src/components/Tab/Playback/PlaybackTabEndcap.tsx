@@ -22,7 +22,7 @@ function PlaybackTabEndcap({ type, tuning }: PlaybackTabEndcap) {
           className="baseVertFlex relative w-full rounded-l-2xl border-2 border-pink-100 p-2"
         >
           {toString(parse(tuning), { pad: 1 })
-            .split(" ")
+            .split("")
             .reverse()
             .map((note, index) => (
               <div key={index}>{note}</div>

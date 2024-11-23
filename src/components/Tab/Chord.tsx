@@ -26,13 +26,13 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
 
   function handleKeyDown(
     e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) {
     if (e.key === "ArrowDown") {
       e.preventDefault(); // prevent cursor from moving
 
       const newNoteToFocus = document.getElementById(
-        `input-chordModal-chordModal-${index + 1}`
+        `input-chordModal-chordModal-${index + 1}`,
       );
 
       newNoteToFocus?.focus();
@@ -40,7 +40,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
       e.preventDefault(); // prevent cursor from moving
 
       const newNoteToFocus = document.getElementById(
-        `input-chordModal-chordModal-${index - 1}`
+        `input-chordModal-chordModal-${index - 1}`,
       );
 
       newNoteToFocus?.focus();
@@ -143,7 +143,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
         className="baseVertFlex relative rounded-l-2xl border-2 border-pink-100"
       >
         {toString(parse(tuning), { pad: 1 })
-          .split(" ")
+          .split("")
           .reverse()
           .map((note, index) => (
             <div key={index}>{note}</div>
@@ -203,7 +203,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
                   // focuses end of the input (better ux when navigating with arrow keys)
                   e.target.setSelectionRange(
                     e.target.value.length,
-                    e.target.value.length
+                    e.target.value.length,
                   );
                 }}
                 onBlur={() => {

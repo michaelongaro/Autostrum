@@ -74,7 +74,7 @@ function HighlightTabColumnWrapper({
             subSectionIndex === metadata.location.subSectionIndex &&
             columnIndex === metadata.location.chordIndex
           );
-        }
+        },
       );
 
       return isInSectionBeingLooped;
@@ -87,7 +87,7 @@ function HighlightTabColumnWrapper({
           subSectionIndex === metadata.location.subSectionIndex &&
           columnIndex === metadata.location.chordIndex
         );
-      }
+      },
     );
 
     if (!correspondingChordIndex) return false;
@@ -111,7 +111,7 @@ function HighlightTabColumnWrapper({
 
   function getPaddingBottom(
     chordEffects: string,
-    showingNoteLengthIcon?: boolean
+    showingNoteLengthIcon?: boolean,
   ) {
     let paddingBottom = 0;
 
@@ -151,7 +151,7 @@ function HighlightTabColumnWrapper({
       <div className="baseFlex relative w-full !items-start !justify-start pb-8 pt-4">
         <div className="baseVertFlex relative mb-[-1px] h-[168px] rounded-l-2xl border-2 border-pink-100 p-2 opacity-0">
           {toString(parse(tuning), { pad: 1 })
-            .split(" ")
+            .split("")
             .reverse()
             .map((note, index) => (
               <div key={index}>{note}</div>
@@ -179,7 +179,7 @@ function HighlightTabColumnWrapper({
                 durationOfChord={getDurationOfCurrentChord()}
                 highlightPaddingBottom={getPaddingBottom(
                   column[7]!,
-                  column[8] === "1/8th" || column[8] === "1/16th"
+                  column[8] === "1/8th" || column[8] === "1/16th",
                 )}
               />
             )}
@@ -218,7 +218,7 @@ function HighlightTabNoteColumn({
 
   useEffect(() => {
     const actualColumnElement = document.getElementById(
-      `section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`
+      `section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`,
     );
 
     if (actualColumnElement) {
