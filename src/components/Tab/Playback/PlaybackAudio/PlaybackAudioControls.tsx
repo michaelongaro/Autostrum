@@ -353,12 +353,6 @@ function PlaybackAudioControls({
     currentlyPlayingMetadata,
   ]);
 
-  // console.log(
-  //   currentlyPlayingMetadata,
-  //   currentChordIndex,
-  //   currentlyPlayingMetadata?.[currentChordIndex]?.elapsedSeconds,
-  // );
-
   return (
     <>
       {viewportLabel.includes("Landscape") && (
@@ -529,7 +523,40 @@ function PlaybackAudioControls({
                   size={aboveLargeViewportWidth ? "default" : "sm"}
                   disabled={disablePlayButton}
                   onClick={() => {
-                    // TODO
+                    pauseAudio();
+
+                    let i = currentChordIndex;
+
+                    const currentTime =
+                      currentlyPlayingMetadata?.[currentChordIndex]
+                        ?.elapsedSeconds;
+
+                    if (currentTime === undefined) return;
+
+                    const targetTime = currentTime - 5;
+
+                    // Loop to find the first chord that matches the -5 seconds condition
+                    while (i > 0) {
+                      if (
+                        currentlyPlayingMetadata?.[i]?.elapsedSeconds &&
+                        currentlyPlayingMetadata[i]!.elapsedSeconds <=
+                          targetTime
+                      ) {
+                        break;
+                      }
+                      i--;
+                    }
+
+                    // Continue looping backward to ensure it is the _very first_ chord at that time
+                    while (
+                      i > 0 &&
+                      currentlyPlayingMetadata?.[i - 1]?.elapsedSeconds ===
+                        targetTime
+                    ) {
+                      i--;
+                    }
+
+                    setCurrentChordIndex(i);
                   }}
                   className="size-4 shrink-0 rounded-full bg-transparent p-0"
                 >
@@ -560,7 +587,40 @@ function PlaybackAudioControls({
                   size={aboveLargeViewportWidth ? "default" : "sm"}
                   disabled={disablePlayButton}
                   onClick={() => {
-                    // TODO
+                    if (currentlyPlayingMetadata === null) return;
+
+                    pauseAudio();
+
+                    let i = currentChordIndex;
+
+                    const currentTime =
+                      currentlyPlayingMetadata?.[currentChordIndex]
+                        ?.elapsedSeconds;
+
+                    if (currentTime === undefined) return;
+
+                    const targetTime = currentTime + 5;
+
+                    // Loop to find the first chord that matches the +5 seconds condition
+                    while (
+                      i < currentlyPlayingMetadata?.length - 1 &&
+                      currentlyPlayingMetadata?.[i]?.elapsedSeconds !==
+                        undefined &&
+                      currentlyPlayingMetadata[i]!.elapsedSeconds <= targetTime
+                    ) {
+                      i++;
+                    }
+
+                    // Continue looping forward to ensure it is the _very first_ chord at that time
+                    while (
+                      i < currentlyPlayingMetadata?.length - 1 &&
+                      currentlyPlayingMetadata?.[i + 1]?.elapsedSeconds ===
+                        targetTime
+                    ) {
+                      i++;
+                    }
+
+                    setCurrentChordIndex(i);
                   }}
                   className="size-4 shrink-0 rounded-full bg-transparent p-0"
                 >
