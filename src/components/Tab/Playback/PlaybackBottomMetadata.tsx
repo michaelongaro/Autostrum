@@ -127,6 +127,64 @@ function PlaybackBottomMetadata({
                 <Button variant={"outline"} className="size-9 !p-0">
                   <TuningFork className="size-4 fill-white" />
                 </Button>
+              </div>
+
+              <div className="baseFlex gap-4">
+                {sectionProgression.length > 1 && (
+                  <div className="baseFlex gap-2">
+                    <p className="text-sm font-medium">Section</p>
+                    <Select
+                      // this is jank, need to fix logic
+                      value={title === "" ? undefined : title}
+                      onValueChange={(value) => {
+                        setAudioMetadata({
+                          ...audioMetadata,
+                          location:
+                            value === "fullTab"
+                              ? null
+                              : {
+                                  sectionIndex: parseInt(value),
+                                },
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="!h-9 max-w-28 sm:max-w-none md:!h-10">
+                        <SelectValue placeholder="Select a section">
+                          {audioMetadata.location === null
+                            ? "Full tab"
+                            : (sectionProgression[
+                                playbackMetadata[currentChordIndex]?.location
+                                  .sectionIndex ?? 0
+                              ]?.title ?? "")}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup className="max-h-60 overflow-y-auto">
+                          <SelectLabel>Sections</SelectLabel>
+
+                          <>
+                            <SelectItem key={"fullTab"} value={`fullTab`}>
+                              Full tab
+                            </SelectItem>
+                            {sections.map((section, idx) => {
+                              return (
+                                <SelectItem
+                                  key={`${section.id}`}
+                                  value={`${idx}`}
+                                >
+                                  {section.title}
+                                </SelectItem>
+                              );
+                            })}
+                          </>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                <MobileSettingsDialog />
+                <MobileMenuDialog />
                 <Button
                   variant={"outline"}
                   className="size-9 !p-0"
@@ -134,62 +192,6 @@ function PlaybackBottomMetadata({
                 >
                   <FaBook className="h-4 w-4" />
                 </Button>
-              </div>
-
-              <div className="baseFlex gap-4">
-                <div className="baseFlex gap-2">
-                  <p className="text-sm font-medium">Section</p>
-                  <Select
-                    // this is jank, need to fix logic
-                    value={title === "" ? undefined : title}
-                    onValueChange={(value) => {
-                      setAudioMetadata({
-                        ...audioMetadata,
-                        location:
-                          value === "fullSong"
-                            ? null
-                            : {
-                                sectionIndex: parseInt(value),
-                              },
-                      });
-                    }}
-                  >
-                    <SelectTrigger className="!h-9 max-w-28 sm:max-w-none md:!h-10">
-                      <SelectValue placeholder="Select a section">
-                        {audioMetadata.location === null
-                          ? "Full song"
-                          : (sectionProgression[
-                              playbackMetadata[currentChordIndex]?.location
-                                .sectionIndex ?? 0
-                            ]?.title ?? "")}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup className="max-h-60 overflow-y-auto">
-                        <SelectLabel>Sections</SelectLabel>
-
-                        <>
-                          <SelectItem key={"fullSong"} value={`fullSong`}>
-                            Full song
-                          </SelectItem>
-                          {sections.map((section, idx) => {
-                            return (
-                              <SelectItem
-                                key={`${section.id}`}
-                                value={`${idx}`}
-                              >
-                                {section.title}
-                              </SelectItem>
-                            );
-                          })}
-                        </>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <MobileSettingsDialog />
-                <MobileMenuDialog />
               </div>
             </div>
           )}
