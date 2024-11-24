@@ -65,7 +65,7 @@ function PlaybackMenuContent() {
               No section progression found.
             </p>
           ) : (
-            <div className="w-48 gap-2">
+            <div className="baseVertFlex w-48 gap-2">
               {sectionProgression.map((section) => (
                 <div
                   key={section.id}
