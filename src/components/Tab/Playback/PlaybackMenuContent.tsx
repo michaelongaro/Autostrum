@@ -193,26 +193,13 @@ function PlaybackMenuContent() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className={`baseVertFlex h-full max-h-[calc(100dvh-6rem)] w-full gap-10 overflow-y-auto ${strummingPatterns.length > 0 ? "mt-8 !justify-start" : ""}`}
+          className={`baseVertFlex h-full max-h-[calc(100dvh-6rem)] w-full overflow-y-auto ${strummingPatterns.length > 0 ? "mt-8 !justify-start" : ""}`}
         >
           {strummingPatterns.length > 0 ? (
-            <>
+            <div className="baseVertFlex !items-start gap-10">
               {strummingPatterns.map((pattern, index) => (
                 <div key={pattern.id} className="shrink-0 overflow-hidden">
-                  <div className="baseFlex !items-start">
-                    <div className="baseFlex border-b-none rounded-md rounded-tr-none border-2">
-                      <StrummingPattern
-                        data={pattern}
-                        mode="viewing"
-                        index={index}
-                        lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
-                        setLastModifiedPalmMuteNode={
-                          setLastModifiedPalmMuteNode
-                        }
-                        pmNodeOpacities={[]}
-                      />
-                    </div>
-
+                  <div className="baseVertFlex !items-start">
                     <Button
                       variant={"playPause"}
                       size={"sm"}
@@ -261,8 +248,15 @@ function PlaybackMenuContent() {
                           );
                         }
                       }}
-                      className="w-10 rounded-l-none rounded-r-sm border-2 border-l-0 p-3"
+                      className="baseFlex ml-2 h-6 w-20 gap-2 rounded-b-none"
                     >
+                      <p>
+                        {previewMetadata.playing &&
+                        index === previewMetadata.indexOfPattern &&
+                        previewMetadata.type === "strummingPattern"
+                          ? "Stop"
+                          : "Play"}
+                      </p>
                       <PlayButtonIcon
                         uniqueLocationKey={`strummingPatternPreview${index}`}
                         tabId={id}
@@ -272,10 +266,22 @@ function PlaybackMenuContent() {
                         previewType="strummingPattern"
                       />
                     </Button>
+                    <div className="baseFlex border-b-none !flex-nowrap rounded-md border-2">
+                      <StrummingPattern
+                        data={pattern}
+                        mode="viewing"
+                        index={index}
+                        lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+                        setLastModifiedPalmMuteNode={
+                          setLastModifiedPalmMuteNode
+                        }
+                        pmNodeOpacities={[]} //
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
-            </>
+            </div>
           ) : (
             <div>No strumming patterns were specified for this tab.</div>
           )}
