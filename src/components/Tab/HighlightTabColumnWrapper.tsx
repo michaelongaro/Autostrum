@@ -2,7 +2,7 @@ import { Fragment, useState, useEffect } from "react";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore, type TabSection } from "~/stores/TabStore";
 import { parse, toString } from "~/utils/tunings";
-import { PreviewTabMeasureLine } from "./TabPreview";
+import { PreviewTabMeasureLine } from "./TabScreenshotPreview";
 
 export interface LastModifiedPalmMuteNodeLocation {
   columnIndex: number;

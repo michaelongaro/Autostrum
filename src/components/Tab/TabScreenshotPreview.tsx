@@ -27,21 +27,21 @@ import {
   getDynamicNoteLengthIcon,
 } from "~/utils/bpmIconRenderingHelpers";
 
-// ---WARNING---: I really didn't want to have to do this approach, but this is the only way
-// I could avoid the horrendous performance/rerender issues that would happen when many
-// TabPreviews were being rendered at once. This just has a all the tab related component's
-// jsx "guts" in one file, without any extra store logic/extra functions. There are most likely
-// weird styling syntax choices since I just quickly copied over the jsx from the other files
-// and edited out the parts that didn't seem necessary.
+// Relatively minimalistic rendition of <Tab> that is used for the screenshot preview that is uploaded to s3 on creation/when the tab is updated. It was made pretty haphazardly so odd decisions/choices are to be expected.
 
-interface TabPreview {
+interface TabScreenshotPreview {
   tabData: Section[];
   baselineBpm: number;
   tuning: string;
   chords: ChordType[];
 }
 
-function TabPreview({ tabData, baselineBpm, tuning, chords }: TabPreview) {
+function TabScreenshotPreview({
+  tabData,
+  baselineBpm,
+  tuning,
+  chords,
+}: TabScreenshotPreview) {
   return (
     <div className="mt-4 w-full">
       {tabData.map((section, index) => (
@@ -1022,4 +1022,4 @@ function PreviewTabNote({ note }: PreviewTabNote) {
   );
 }
 
-export default TabPreview;
+export default TabScreenshotPreview;

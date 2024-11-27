@@ -49,8 +49,8 @@ import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
 import type { RefetchTab } from "./Tab";
 import classes from "./TabMetadata.module.css";
-import TabPreview from "./TabPreview";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
+import TabScreenshotPreview from "./TabScreenshotPreview";
 
 type TabMetadata = {
   customTuning: string;
@@ -1421,7 +1421,7 @@ function TabMetadata({
               className="baseFlex h-[581px] w-[1245px] scale-75"
             >
               <div className="h-[581px] w-[1245px] bg-pink-500 bg-opacity-30">
-                <TabPreview
+                <TabScreenshotPreview
                   baselineBpm={bpm}
                   tuning={tuning}
                   tabData={minifiedTabData}

@@ -25,7 +25,7 @@ import { Separator } from "../ui/separator";
 import ChordSection from "./ChordSection";
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabSection from "./TabSection";
-import { MemoizedPreviewSubSectionContainer } from "./TabPreview";
+import { MemoizedPreviewSubSectionContainer } from "./TabScreenshotPreview";
 import { useRouter } from "next/router";
 import {
   chordSequencesAllHaveSameNoteLength,
