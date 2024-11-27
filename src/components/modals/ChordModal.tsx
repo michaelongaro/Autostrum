@@ -228,7 +228,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
               }}
             >
               <BsFillPlayFill className="h-6 w-6" />
-              Preview chord
+              Preview
             </Button>
           </div>
 
@@ -252,21 +252,25 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
                     Hotkeys
                   </div>
 
-                  <div className="grid grid-cols-1 grid-rows-3 gap-2">
+                  <div className="baseVertFlex w-full gap-2">
                     <div className="baseFlex gap-2">
-                      <span className="text-nowrap font-semibold">A-G</span>
+                      <span className="w-8 text-nowrap font-semibold">
+                        A - G
+                      </span>
                       <span>-</span>
                       <span>Major chords</span>
                     </div>
 
                     <div className="baseFlex gap-2">
-                      <span className="text-nowrap font-semibold">a-g</span>
+                      <span className="w-8 text-nowrap font-semibold">
+                        a - g
+                      </span>
                       <span>-</span>
                       <span>Minor chords</span>
                     </div>
 
                     <div className="baseFlex gap-2">
-                      <span className="font-semibold">x</span>
+                      <span className="w-8 font-semibold">x</span>
                       <span>-</span>
                       <span>Muted string</span>
                     </div>
