@@ -35,7 +35,7 @@ import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import Chord from "./Chord";
+import ChordDiagram from "~/components/Tab/Playback/ChordDiagram";
 
 interface StrummingPattern {
   data: StrummingPatternType;
@@ -605,21 +605,17 @@ function StrummingPattern({
                   </PopoverTrigger>
                   <PopoverContent
                     side="bottom"
-                    className="chordPreviewGlassmorphic w-40 border-2 p-0 text-pink-100"
+                    className="chordPreviewGlassmorphic h-48 w-48 border-2 p-0 pt-3 text-pink-100"
                   >
-                    <Chord
-                      chordBeingEdited={{
-                        index: -1,
-                        value:
-                          chords[
-                            chords.findIndex(
-                              (chord) =>
-                                chord.name === chordSequenceData?.[strumIndex],
-                            ) ?? 0
-                          ],
-                      }}
-                      editing={false}
-                      highlightChord={false}
+                    <ChordDiagram
+                      originalFrets={
+                        chords[
+                          chords.findIndex(
+                            (chord) =>
+                              chord.name === chordSequenceData?.[strumIndex],
+                          ) ?? 0
+                        ]?.frets ?? []
+                      }
                     />
                   </PopoverContent>
                 </Popover>
