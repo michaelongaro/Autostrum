@@ -365,7 +365,7 @@ function MobileSettingsDialog() {
               }
             }}
           >
-            <SelectTrigger className="max-w-[10rem] border-ring">
+            <SelectTrigger className="max-w-[10rem]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -376,7 +376,7 @@ function MobileSettingsDialog() {
 
                 <SelectItem
                   value={"Artist recording"}
-                  // disabled={!hasRecordedAudio}
+                  disabled={!hasRecordedAudio}
                 >
                   Artist recording
                 </SelectItem>
@@ -384,6 +384,7 @@ function MobileSettingsDialog() {
             </SelectContent>
           </Select>
         </div>
+
         <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
           <Label>Instrument</Label>
           <Select
@@ -404,7 +405,7 @@ function MobileSettingsDialog() {
               );
             }}
           >
-            <SelectTrigger className="max-w-[15rem] border-ring">
+            <SelectTrigger className="max-w-[12rem]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -462,7 +463,7 @@ function MobileSettingsDialog() {
               );
             }}
           >
-            <SelectTrigger className="max-w-[10rem] border-ring">
+            <SelectTrigger className="w-[10rem]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -931,7 +932,7 @@ function Settings({ tabProgressValue, setTabProgressValue }: Settings) {
             );
           }}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-[12rem]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -1030,7 +1031,8 @@ function Settings({ tabProgressValue, setTabProgressValue }: Settings) {
             );
           }}
         >
-          <SelectTrigger className="max-w-[10rem] border-ring">
+          <SelectTrigger className="w-[5rem]">
+            {/* TODO: have the rendered trigger value be 0s, 1s, 2s, etc to save space */}
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
