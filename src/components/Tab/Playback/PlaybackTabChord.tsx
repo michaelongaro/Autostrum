@@ -105,6 +105,10 @@ function PlaybackTabChord({
                           color: isHighlighted
                             ? "hsl(335, 78%, 55%)"
                             : "hsl(324, 77%, 95%)",
+
+                          // "x" wasn't as centered as regular numbers were, manual adjustment below
+                          marginTop: note === "x" ? "-2px" : "0",
+                          marginBottom: note === "x" ? "2px" : "0",
                         }}
                         className="transition-colors"
                       >
