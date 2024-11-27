@@ -157,8 +157,8 @@ function StrummingPatterns() {
         }}
         className="baseVertFlex w-full !items-start gap-2 rounded-md"
       >
-        <AccordionItem value="opened">
-          <AccordionTrigger>
+        <AccordionItem value="opened" className="w-full">
+          <AccordionTrigger className="w-full">
             <p
               style={{
                 textShadow: "0 1px 2px hsla(336, 84%, 17%, 0.25)",

@@ -65,13 +65,13 @@ function PlaybackMenuContent() {
               No section progression found.
             </p>
           ) : (
-            <div className="baseVertFlex w-48 gap-2">
+            <div className="baseVertFlex gap-2">
               {sectionProgression.map((section) => (
                 <div
                   key={section.id}
-                  className="grid w-full grid-cols-2 !place-items-start"
+                  className="baseFlex w-full !justify-start gap-2"
                 >
-                  <div className="baseFlex gap-2">
+                  <div className="baseFlex w-24 gap-2">
                     <p className="text-stone-400">
                       {formatSecondsToMinutes(section.startSeconds)}
                     </p>

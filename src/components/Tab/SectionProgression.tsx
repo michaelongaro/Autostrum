@@ -56,8 +56,8 @@ function SectionProgression() {
         }}
         className="baseVertFlex w-full !items-start gap-2 rounded-md"
       >
-        <AccordionItem value="opened">
-          <AccordionTrigger>
+        <AccordionItem value="opened" className="w-full">
+          <AccordionTrigger className="w-full">
             <p
               style={{
                 textShadow: "0 1px 2px hsla(336, 84%, 17%, 0.25)",
@@ -67,7 +67,7 @@ function SectionProgression() {
               Section progression
             </p>
           </AccordionTrigger>
-          <AccordionContent className="baseVertFlex w-full !items-start">
+          <AccordionContent>
             {editing ? (
               <motion.div
                 variants={opacityVariants}
@@ -112,25 +112,23 @@ function SectionProgression() {
                 </Button>
               </motion.div>
             ) : (
-              <motion.div
-                variants={opacityVariants}
-                initial="closed"
-                animate="open"
-                exit="closed"
-                className="baseFlex w-full"
-              >
+              <div className="baseFlex w-full !justify-start">
                 {sectionProgression.length === 0 ? (
                   <p className="text-stone-400">
                     No section progression specified
                   </p>
                 ) : (
-                  <div className="baseVertFlex w-48 gap-2">
+                  <div className="baseVertFlex gap-2">
                     {sectionProgression.map((section) => (
-                      <div
+                      <motion.div
                         key={section.id}
-                        className="grid w-full grid-cols-2 !place-items-start"
+                        variants={opacityVariants}
+                        initial="closed"
+                        animate="open"
+                        exit="closed"
+                        className="baseFlex w-full !justify-start gap-2"
                       >
-                        <div className="baseFlex gap-2">
+                        <div className="baseFlex w-24 gap-2">
                           <p className="text-stone-400">
                             {formatSecondsToMinutes(section.startSeconds)}
                           </p>
@@ -148,11 +146,11 @@ function SectionProgression() {
                             <p>x{section.repetitions}</p>
                           )}
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 )}
-              </motion.div>
+              </div>
             )}
           </AccordionContent>
         </AccordionItem>
