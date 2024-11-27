@@ -499,14 +499,14 @@ function PlaybackAudioControls({
           />
 
           <div className="baseFlex w-full !justify-between">
-            <p className="self-start">
+            <div className="baseFlex w-9 !justify-start self-start">
               {formatSecondsToMinutes(
                 audioMetadata.type === "Artist recording"
                   ? tabProgressValue
                   : (currentlyPlayingMetadata?.[currentChordIndex]
                       ?.elapsedSeconds ?? 0),
               )}
-            </p>
+            </div>
 
             {/* editing loop range - granular loop range component
                 not editing loop range - regular audio controls based on viewport */}
@@ -629,7 +629,7 @@ function PlaybackAudioControls({
               </div>
             )}
 
-            <p className="self-start">
+            <div className="baseFlex w-9 !justify-end self-start">
               {formatSecondsToMinutes(
                 audioMetadata.type === "Artist recording"
                   ? recordedAudioBuffer?.duration
@@ -637,7 +637,7 @@ function PlaybackAudioControls({
                     : 0
                   : (currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0),
               )}
-            </p>
+            </div>
           </div>
         </div>
       )}

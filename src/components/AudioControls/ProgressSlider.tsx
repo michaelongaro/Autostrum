@@ -265,7 +265,6 @@ function ProgressSlider({
                 ...props.style,
                 display: "flex",
                 width: "100%",
-                marginLeft: "0.5rem",
               }}
             >
               <div
