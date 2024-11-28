@@ -975,12 +975,12 @@ function TabSection({
                           You can navigate through inputs with your arrow keys.
                         </li>
                         <li>
-                          Press <span className="font-semibold">A-G </span>
-                          for respective major chords.
+                          Enter <span className="font-semibold">A-G </span>
+                          for the respective major chord.
                         </li>
                         <li>
-                          Press <span className="font-semibold">a-g </span>
-                          for respective minor chords.
+                          Enter <span className="font-semibold">a-g </span>
+                          for the respective minor chord.
                         </li>
                         <li>Copying & pasting chords work as expected.</li>
                       </ul>
