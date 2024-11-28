@@ -53,7 +53,7 @@ import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import TabScreenshotPreview from "./TabScreenshotPreview";
 
 type TabMetadata = {
-  customTuning: string;
+  customTuning: string | null;
   setIsPostingOrSaving: Dispatch<SetStateAction<boolean>>;
 } & Partial<RefetchTab>;
 

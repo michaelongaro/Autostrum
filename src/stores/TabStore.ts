@@ -172,6 +172,8 @@ interface PlayPreview {
   data: string[] | StrummingPattern;
   index: number; // technically only necessary for strumming pattern, not chord preview
   type: "chord" | "strummingPattern";
+  customTuning?: string;
+  customBpm?: number;
 }
 interface PlayRecordedAudio {
   audioBuffer: AudioBuffer;
@@ -956,7 +958,13 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         }
       },
 
-      playPreview: async ({ data, index, type }: PlayPreview) => {
+      playPreview: async ({
+        data,
+        index,
+        type,
+        customTuning,
+        customBpm,
+      }: PlayPreview) => {
         const {
           capo,
           tuning,
@@ -1021,9 +1029,11 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           const alteredBpm = baseBpm * (1 / noteLengthMultiplier);
 
           await playNoteColumn({
-            tuning: parse(type === "chord" ? tuning : "e2 a2 d3 g3 b3 e4"),
+            tuning: parse(
+              type === "chord" ? (customTuning ?? tuning) : "e2 a2 d3 g3 b3 e4",
+            ),
             capo: type === "chord" ? capo : 0,
-            bpm: alteredBpm,
+            bpm: customBpm ?? alteredBpm,
             secondPrevColumn,
             prevColumn,
             currColumn,

@@ -63,7 +63,7 @@ interface ITab extends Partial<RefetchTab> {
 }
 
 function Tab({ tab, refetchTab }: ITab) {
-  const [customTuning, setCustomTuning] = useState("");
+  const [customTuning, setCustomTuning] = useState<string | null>(null);
   const [isPostingOrSaving, setIsPostingOrSaving] = useState(false);
 
   // true when creating new section, results in way less cpu/ram usage for arguably worse ux

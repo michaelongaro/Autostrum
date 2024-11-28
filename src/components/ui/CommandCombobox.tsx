@@ -24,7 +24,7 @@ import tunings, { parse, toString } from "~/utils/tunings";
 // but may need to be more generic in the future
 
 interface CommandCombobox {
-  customTuning: string;
+  customTuning: string | null;
 }
 
 export function CommandCombobox({ customTuning }: CommandCombobox) {
@@ -35,14 +35,14 @@ export function CommandCombobox({ customTuning }: CommandCombobox) {
       tuning: state.tuning,
       setTuning: state.setTuning,
       setShowCustomTuningModal: state.setShowCustomTuningModal,
-    })
+    }),
   );
 
   function tuningIsCustom(tuning: string) {
     return (
       tuning &&
       tunings.every(
-        (tuningObj) => tuningObj.notes.toLowerCase() !== tuning.toLowerCase()
+        (tuningObj) => tuningObj.notes.toLowerCase() !== tuning.toLowerCase(),
       )
     );
   }
@@ -61,7 +61,7 @@ export function CommandCombobox({ customTuning }: CommandCombobox) {
               ? toString(parse(tuning), { pad: 2 })
               : tunings.find(
                   (tuningObj) =>
-                    tuningObj.notes.toLowerCase() === tuning.toLowerCase()
+                    tuningObj.notes.toLowerCase() === tuning.toLowerCase(),
                 )?.simpleNotes
             : "Select tuning..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -93,7 +93,7 @@ export function CommandCombobox({ customTuning }: CommandCombobox) {
                     "mr-2 h-4 w-4",
                     tuning.toLowerCase() === customTuning.toLowerCase()
                       ? "opacity-100"
-                      : "opacity-0"
+                      : "opacity-0",
                   )}
                 />
                 <div className="baseFlex w-full !justify-between gap-3 px-2">
@@ -113,15 +113,17 @@ export function CommandCombobox({ customTuning }: CommandCombobox) {
                 </div>
               </CommandItem>
             ) : (
-              <Button
-                size="sm"
-                onClick={() => {
-                  setShowCustomTuningModal(true);
-                  setOpen(false);
-                }}
-              >
-                Create custom tuning
-              </Button>
+              <div className="baseFlex w-full !justify-between">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setShowCustomTuningModal(true);
+                    setOpen(false);
+                  }}
+                >
+                  Create a custom tuning
+                </Button>
+              </div>
             )}
           </CommandGroup>
 
@@ -143,7 +145,7 @@ export function CommandCombobox({ customTuning }: CommandCombobox) {
                     "mr-2 h-4 w-4",
                     tuning.toLowerCase() === tuningObj.notes.toLowerCase()
                       ? "opacity-100"
-                      : "opacity-0"
+                      : "opacity-0",
                   )}
                 />
                 <div className="baseFlex w-full !justify-between">
