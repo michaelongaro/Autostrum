@@ -17,15 +17,23 @@ export const toString = (
   // so that the tab has empty notes instead of C's.
   if (tuning.length === 1 && tuning[0] === 36) return "     ";
 
-  return tuning
-    .map((midi) =>
-      midiToNoteName(midi, { pitchClass: true, sharps: true }).padEnd(
+  let equidistantTuning = "";
+
+  const baseTunings = tuning
+    .map((midi) => {
+      console.log(midiToNoteName(midi, { pitchClass: true, sharps: true }));
+      return midiToNoteName(midi, { pitchClass: true, sharps: true }).padEnd(
         options?.pad ?? 0,
         " ",
-      ),
-    )
-    .reverse()
-    .join("");
+      );
+    })
+    .reverse();
+
+  for (const note of baseTunings) {
+    equidistantTuning += note.length === 1 ? `${note}  ` : `${note} `;
+  }
+
+  return equidistantTuning;
 };
 
 export const parse = (notes: string) => {
