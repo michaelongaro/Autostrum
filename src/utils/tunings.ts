@@ -20,13 +20,12 @@ export const toString = (
   let equidistantTuning = "";
 
   const baseTunings = tuning
-    .map((midi) => {
-      console.log(midiToNoteName(midi, { pitchClass: true, sharps: true }));
-      return midiToNoteName(midi, { pitchClass: true, sharps: true }).padEnd(
+    .map((midi) =>
+      midiToNoteName(midi, { pitchClass: true, sharps: true }).padEnd(
         options?.pad ?? 0,
         " ",
-      );
-    })
+      ),
+    )
     .reverse();
 
   for (const note of baseTunings) {
