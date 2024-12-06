@@ -326,10 +326,6 @@ function Tab({ tab, refetchTab }: ITab) {
             </div>
           )}
 
-        {audioMetadata.fullCurrentlyPlayingMetadataLength > 0 && (
-          <PlaybackDialog />
-        )}
-
         <Separator className="w-[96%]" />
 
         {(editing ||
@@ -376,49 +372,57 @@ function Tab({ tab, refetchTab }: ITab) {
           </div>
         )}
 
-        {!showPlaybackDialog &&
-          tabData.map((section, index) => (
-            <motion.div
-              key={section.id}
-              // TODO: I don't know why the spring transition only occurs when
-              // the section has something in it (not empty)... doesn't seem like that
-              // should make a difference but it does for some reason
-              {...(editing &&
-                !preventFramerLayoutShift &&
-                !forceCloseSectionAccordions && { layout: "position" })}
-              transition={{
-                layout: {
-                  type: "spring",
-                  bounce: 0.15,
-                  duration: 1,
-                },
-              }}
-              className="baseFlex w-full"
-            >
-              <SectionContainer
-                sectionIndex={index}
-                sectionData={section}
-                currentlyPlayingSectionIndex={
-                  currentlyPlayingMetadata?.[currentChordIndex]?.location
-                    .sectionIndex ?? 0
-                }
-                currentlyPlayingSubSectionIndex={
-                  currentlyPlayingMetadata?.[currentChordIndex]?.location
-                    .subSectionIndex ?? 0
-                }
-                forceCloseSectionAccordions={
-                  forceCloseSectionAccordions && index !== tabData.length - 1
-                }
-                setForceCloseSectionAccordions={setForceCloseSectionAccordions}
-              />
-            </motion.div>
-          ))}
+        <div className="baseVertFlex relative size-full gap-4">
+          {!showPlaybackDialog &&
+            tabData.map((section, index) => (
+              <motion.div
+                key={section.id}
+                // TODO: I don't know why the spring transition only occurs when
+                // the section has something in it (not empty)... doesn't seem like that
+                // should make a difference but it does for some reason
+                {...(editing &&
+                  !preventFramerLayoutShift &&
+                  !forceCloseSectionAccordions && { layout: "position" })}
+                transition={{
+                  layout: {
+                    type: "spring",
+                    bounce: 0.15,
+                    duration: 1,
+                  },
+                }}
+                className="baseFlex w-full"
+              >
+                <SectionContainer
+                  sectionIndex={index}
+                  sectionData={section}
+                  currentlyPlayingSectionIndex={
+                    currentlyPlayingMetadata?.[currentChordIndex]?.location
+                      .sectionIndex ?? 0
+                  }
+                  currentlyPlayingSubSectionIndex={
+                    currentlyPlayingMetadata?.[currentChordIndex]?.location
+                      .subSectionIndex ?? 0
+                  }
+                  forceCloseSectionAccordions={
+                    forceCloseSectionAccordions && index !== tabData.length - 1
+                  }
+                  setForceCloseSectionAccordions={
+                    setForceCloseSectionAccordions
+                  }
+                />
+              </motion.div>
+            ))}
 
-        {editing && (
-          <Button onClick={addNewSection} className="mb-12">
-            Add another section
-          </Button>
-        )}
+          {editing && (
+            <Button onClick={addNewSection} className="mb-12">
+              Add another section
+            </Button>
+          )}
+
+          {audioMetadata.fullCurrentlyPlayingMetadataLength > 0 && (
+            <PlaybackDialog />
+          )}
+        </div>
       </div>
 
       <AnimatePresence mode="wait">

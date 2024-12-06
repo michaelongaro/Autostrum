@@ -25,6 +25,7 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import PlaybackMenuContent from "~/components/Tab/Playback/PlaybackMenuContent";
 import PlaybackScrollingContainer from "~/components/Tab/Playback/PlaybackScrollingContainer";
+import { FaGuitar } from "react-icons/fa";
 
 function PlaybackDialog() {
   const {
@@ -406,7 +407,13 @@ function PlaybackDialog() {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline">Practice tab</Button>
+        <Button
+          variant="playPause"
+          className="baseFlex sticky bottom-4 right-4 mb-4 gap-4 !rounded-full px-8 py-6 text-xl shadow-lg tablet:bottom-6 tablet:px-10"
+        >
+          <FaGuitar className="size-7 tablet:size-8" />
+          Practice tab
+        </Button>
       </DialogTrigger>
       <DialogContent
         ref={dialogContentRef}
