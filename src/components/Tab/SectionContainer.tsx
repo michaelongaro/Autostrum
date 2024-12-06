@@ -276,8 +276,9 @@ function SectionContainer({
         onValueChange={(value) => {
           setAccordionOpen(value === "opened" ? value : "closed");
         }}
+        className="w-full"
       >
-        <AccordionItem value="opened">
+        <AccordionItem value="opened" className="baseVertFlex w-full">
           <>
             {editing && (
               <div className="baseFlex w-full">
@@ -315,33 +316,35 @@ function SectionContainer({
                     {sectionData.title}
                   </p>
 
-                  <Button
-                    variant="playPause"
-                    disabled={
-                      audioMetadata.editingLoopRange ||
-                      countInTimer.showing ||
-                      bpm === -1 ||
-                      !currentInstrument ||
-                      audioMetadata.type === "Artist recording" ||
-                      // currentlyPlayingMetadata?.length === 0 || be careful on this one, need to test if fine to leave commented out
-                      sectionIsEffectivelyEmpty(tabData, sectionIndex) ||
-                      artificialPlayButtonTimeout
-                    }
-                    onClick={handlePlayButtonClick}
-                    className="h-8 md:h-9"
-                  >
-                    <PlayButtonIcon
-                      uniqueLocationKey={`sectionContainer${sectionIndex}`}
-                      tabId={id}
-                      currentInstrument={currentInstrument}
-                      audioMetadata={audioMetadata}
-                      sectionIndex={sectionIndex}
-                      showCountInTimer={
-                        countInTimer.showing &&
-                        countInTimer.forSectionContainer === sectionIndex
+                  {editing && (
+                    <Button
+                      variant="playPause"
+                      disabled={
+                        audioMetadata.editingLoopRange ||
+                        countInTimer.showing ||
+                        bpm === -1 ||
+                        !currentInstrument ||
+                        audioMetadata.type === "Artist recording" ||
+                        // currentlyPlayingMetadata?.length === 0 || be careful on this one, need to test if fine to leave commented out
+                        sectionIsEffectivelyEmpty(tabData, sectionIndex) ||
+                        artificialPlayButtonTimeout
                       }
-                    />
-                  </Button>
+                      onClick={handlePlayButtonClick}
+                      className="h-8 md:h-9"
+                    >
+                      <PlayButtonIcon
+                        uniqueLocationKey={`sectionContainer${sectionIndex}`}
+                        tabId={id}
+                        currentInstrument={currentInstrument}
+                        audioMetadata={audioMetadata}
+                        sectionIndex={sectionIndex}
+                        showCountInTimer={
+                          countInTimer.showing &&
+                          countInTimer.forSectionContainer === sectionIndex
+                        }
+                      />
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
@@ -350,6 +353,7 @@ function SectionContainer({
             showUnderline={false}
             editingSectionContainer={editing}
             viewingSectionContainer={editing === false}
+            className="w-full"
           ></AccordionTrigger>
 
           <AccordionContent animated={true} className="pt-4">
