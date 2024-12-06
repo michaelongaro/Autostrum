@@ -4,6 +4,7 @@ import {
   type SetStateAction,
   useRef,
 } from "react";
+import { useTabStore } from "~/stores/TabStore";
 
 interface PlaybackScrollingContainer {
   children: React.ReactNode;
@@ -18,6 +19,11 @@ function PlaybackScrollingContainer({
   setTranslateX,
   setIsManuallyScrolling,
 }: PlaybackScrollingContainer) {
+  const { playing, pauseAudio } = useTabStore((state) => ({
+    playing: state.audioMetadata.playing,
+    pauseAudio: state.pauseAudio,
+  }));
+
   // Refs to store mutable variables without causing re-renders
   const containerRef = useRef<HTMLDivElement | null>(null);
   const startXRef = useRef(0);
@@ -25,6 +31,8 @@ function PlaybackScrollingContainer({
   const isTouchingRef = useRef(false);
 
   function handlePointerStart(e: PointerEvent<HTMLDivElement>) {
+    if (playing) pauseAudio();
+
     isTouchingRef.current = true;
 
     setIsManuallyScrolling(true);
