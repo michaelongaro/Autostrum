@@ -171,8 +171,6 @@ function PlaybackDialog() {
       fullScrollPositions[currentChordIndex]?.originalPosition ||
       0;
 
-    console.log("setting translateX to", currentPosition);
-
     setTranslateX(currentPosition);
   }, [currentChordIndex, fullScrollPositions, isManuallyScrolling]);
 
