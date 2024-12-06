@@ -24,6 +24,7 @@ import {
 } from "~/stores/TabStore";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import PlaybackMenuContent from "~/components/Tab/Playback/PlaybackMenuContent";
+import PlaybackScrollingContainer from "~/components/Tab/Playback/PlaybackScrollingContainer";
 
 function PlaybackDialog() {
   const {
@@ -74,6 +75,9 @@ function PlaybackDialog() {
 
   const [values, setValues] = useState([currentChordIndex]);
 
+  const [translateX, setTranslateX] = useState(0);
+  const [isManuallyScrolling, setIsManuallyScrolling] = useState(false);
+
   const containerRef = (element: HTMLDivElement | null) => {
     if (element && !containerElement) setContainerElement(element);
   };
@@ -113,6 +117,63 @@ function PlaybackDialog() {
   // expandedTabData has changed or looping has changed
   const [expandedTabDataHasChanged, setExpandedTabDataHasChanged] =
     useState(true);
+
+  // manually scrolling: need to update currentChordIndex to match
+  // the translateX value relative to fullScrollPositions
+  useEffect(() => {
+    if (!isManuallyScrolling) return;
+
+    let index = 0;
+    while (index < fullScrollPositions.length) {
+      const currentPosition =
+        fullScrollPositions[index]?.currentPosition ||
+        fullScrollPositions[index]?.originalPosition ||
+        0;
+
+      const nextPosition =
+        fullScrollPositions[index + 1]?.currentPosition ||
+        fullScrollPositions[index + 1]?.originalPosition ||
+        0;
+
+      // not correct below: but on the right track maybe for finnicky nature of 1st/2nd chord highlighting
+      // if (index === 1 && translateX < nextPosition) {
+      //   setCurrentChordIndex(0);
+      //   break;
+      // }
+
+      if (currentPosition === 0 && translateX < nextPosition) {
+        setCurrentChordIndex(0);
+        break;
+      }
+
+      if (currentPosition <= translateX && nextPosition > translateX) {
+        setCurrentChordIndex(index + (currentPosition === translateX ? 0 : 1));
+        break;
+      }
+
+      index++;
+    }
+  }, [
+    fullScrollPositions,
+    setCurrentChordIndex,
+    translateX,
+    isManuallyScrolling,
+  ]);
+
+  // not manually scrolling: need to update translateX value to match
+  // the currentChordIndex relative to fullScrollPositions
+  useEffect(() => {
+    if (isManuallyScrolling) return;
+
+    const currentPosition =
+      fullScrollPositions[currentChordIndex]?.currentPosition ||
+      fullScrollPositions[currentChordIndex]?.originalPosition ||
+      0;
+
+    console.log("setting translateX to", currentPosition);
+
+    setTranslateX(currentPosition);
+  }, [currentChordIndex, fullScrollPositions, isManuallyScrolling]);
 
   useEffect(() => {
     // this feels a bit like a bandaid fix
@@ -295,6 +356,7 @@ function PlaybackDialog() {
     buffer: audioMetadata.playing ? 100 : 10000, // gets rid of slight rendering delay when quickly scrubbing through tab
     initialPlaceholderWidth,
     setFullScrollPositions,
+    translateX,
   });
 
   function highlightChord({
@@ -368,7 +430,7 @@ function PlaybackDialog() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="baseVertFlex w-full"
+              className="baseVertFlex relative w-full select-none"
             >
               <div
                 style={{
@@ -376,184 +438,195 @@ function PlaybackDialog() {
                 }}
                 className="w-full overflow-hidden"
               >
-                <div
-                  ref={containerRef}
-                  className="relative flex h-[240px] w-full overflow-hidden"
+                <PlaybackScrollingContainer
+                  translateX={translateX}
+                  setTranslateX={setTranslateX}
+                  setIsManuallyScrolling={setIsManuallyScrolling}
                 >
-                  <div className="baseFlex absolute left-0 top-0 size-full">
-                    <div className="h-[165px] w-full"></div>
-                    {/* currently this fixes the highlight line extending past rounded borders of
-              sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
-                    <div className="z-0 mb-2 h-[164px] w-[2px] shrink-0 bg-pink-600"></div>
-                    <div className="h-[165px] w-full"></div>
-                  </div>
-
                   <div
-                    style={{
-                      width: `${scrollContainerWidth}px`,
-                      transform: getScrollContainerTransform({
-                        fullScrollPositions,
-                        currentChordIndex,
-                        audioMetadata,
-                        numberOfChords: playbackMetadata?.length || 0,
-                        isPlaying: audioMetadata.playing,
-                      }),
-                      transition: `transform ${
-                        audioMetadata.playing
-                          ? chordDurations[currentChordIndex] || 0
-                          : 0.2
-                      }s linear`,
-                    }}
-                    className="relative flex items-center will-change-transform"
+                    ref={containerRef}
+                    className="relative flex h-[240px] w-full overflow-hidden"
                   >
-                    <>
-                      <div
-                        style={{
-                          position: "absolute",
-                          zIndex: 2,
-                          backgroundColor: "black",
-                          left: 0,
-                          width: `${initialPlaceholderWidth}px`,
-                        }}
-                      ></div>
+                    <div className="baseFlex absolute left-0 top-0 size-full">
+                      <div className="h-[165px] w-full"></div>
+                      {/* currently this fixes the highlight line extending past rounded borders of
+              sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
+                      <div className="z-0 mb-2 h-[164px] w-[2px] shrink-0 bg-pink-600"></div>
+                      <div className="h-[165px] w-full"></div>
+                    </div>
 
-                      {expandedTabData &&
-                        fullVisibleChordIndices.map((fullVisibleIndex) => {
-                          return (
-                            <div
-                              key={fullVisibleIndex}
-                              style={{
-                                position: "absolute",
-                                width: `${fullChordWidths[fullVisibleIndex] || 0}px`,
-                                left: getChordLeftValue({
-                                  index: fullVisibleIndex,
-                                  fullScrollPositions,
-                                  initialPlaceholderWidth,
-                                }),
-                              }}
-                            >
-                              {expandedTabData[fullVisibleIndex]?.type ===
-                              "tab" ? (
-                                <>
-                                  {expandedTabData[
-                                    fullVisibleIndex
-                                  ]?.data.chordData.includes("|") ? (
-                                    <PlaybackTabMeasureLine
-                                      columnData={
-                                        expandedTabData[fullVisibleIndex]?.data
-                                          .chordData
-                                      }
-                                      isDimmed={
-                                        audioMetadata.editingLoopRange &&
-                                        (fullVisibleIndex <
-                                          audioMetadata.startLoopIndex ||
-                                          (audioMetadata.endLoopIndex !== -1 &&
-                                            fullVisibleIndex >
-                                              audioMetadata.endLoopIndex))
-                                      }
-                                    />
-                                  ) : (
-                                    <PlaybackTabChord
-                                      columnData={
-                                        expandedTabData[fullVisibleIndex]?.data
-                                          .chordData
-                                      }
-                                      isFirstChordInSection={
-                                        fullVisibleIndex === 0 &&
-                                        fullScrollPositions[0]
-                                          ?.currentPosition === null
-                                      }
-                                      isLastChordInSection={false}
-                                      isHighlighted={
-                                        !audioMetadata.editingLoopRange &&
-                                        ((audioMetadata.playing &&
-                                          highlightChord({
-                                            chordIndex: fullVisibleIndex,
-                                            type: "isBeingPlayed",
-                                          })) ||
-                                          highlightChord({
-                                            chordIndex: fullVisibleIndex,
-                                            type: "hasBeenPlayed",
-                                          }))
-                                      }
-                                      isDimmed={
-                                        audioMetadata.editingLoopRange &&
-                                        (fullVisibleIndex <
-                                          audioMetadata.startLoopIndex ||
-                                          (audioMetadata.endLoopIndex !== -1 &&
-                                            fullVisibleIndex >
-                                              audioMetadata.endLoopIndex))
-                                      }
-                                    />
-                                  )}
-                                </>
-                              ) : (
-                                <PlaybackStrummedChord
-                                  strumIndex={
-                                    expandedTabData[fullVisibleIndex]?.data
-                                      .strumIndex || 0
-                                  }
-                                  strum={
-                                    expandedTabData[fullVisibleIndex]?.data
-                                      .strum || ""
-                                  }
-                                  palmMute={
-                                    expandedTabData[fullVisibleIndex]?.data
-                                      .palmMute || ""
-                                  }
-                                  isFirstChordInSection={
-                                    fullVisibleIndex === 0 &&
-                                    fullScrollPositions[0]?.currentPosition ===
-                                      null
-                                  }
-                                  isLastChordInSection={false}
-                                  noteLength={
-                                    expandedTabData[fullVisibleIndex]?.data
-                                      .noteLength || "1/4th"
-                                  }
-                                  bpmToShow={
-                                    expandedTabData[fullVisibleIndex]?.data
-                                      .showBpm
-                                      ? expandedTabData[fullVisibleIndex]?.data
-                                          .bpm
-                                      : undefined
-                                  }
-                                  chordName={
-                                    expandedTabData[fullVisibleIndex]?.data
-                                      .chordName || ""
-                                  }
-                                  isHighlighted={
-                                    !audioMetadata.editingLoopRange &&
-                                    ((audioMetadata.playing &&
-                                      highlightChord({
-                                        chordIndex: fullVisibleIndex,
-                                        type: "isBeingPlayed",
-                                      })) ||
-                                      highlightChord({
-                                        chordIndex: fullVisibleIndex,
-                                        type: "hasBeenPlayed",
-                                      }))
-                                  }
-                                  isDimmed={
-                                    audioMetadata.editingLoopRange &&
-                                    (fullVisibleIndex <
-                                      audioMetadata.startLoopIndex ||
-                                      (audioMetadata.endLoopIndex !== -1 &&
-                                        fullVisibleIndex >
-                                          audioMetadata.endLoopIndex))
-                                  }
-                                  isRaised={
-                                    expandedTabData[fullVisibleIndex]?.data
-                                      .isRaised || false
-                                  }
-                                />
-                              )}
-                            </div>
-                          );
-                        })}
-                    </>
+                    <div
+                      style={{
+                        width: `${scrollContainerWidth}px`,
+                        transform: isManuallyScrolling
+                          ? `translateX(-${translateX}px)`
+                          : getScrollContainerTransform({
+                              fullScrollPositions,
+                              currentChordIndex,
+                              audioMetadata,
+                              numberOfChords: playbackMetadata?.length || 0,
+                            }),
+                        transition: `transform ${
+                          audioMetadata.playing
+                            ? chordDurations[currentChordIndex] || 0
+                            : isManuallyScrolling
+                              ? "none"
+                              : 0.2
+                        }s linear`,
+                      }}
+                      className="relative flex items-center will-change-transform"
+                    >
+                      <>
+                        <div
+                          style={{
+                            position: "absolute",
+                            zIndex: 2,
+                            backgroundColor: "black",
+                            left: 0,
+                            width: `${initialPlaceholderWidth}px`,
+                          }}
+                        ></div>
+
+                        {expandedTabData &&
+                          fullVisibleChordIndices.map((fullVisibleIndex) => {
+                            return (
+                              <div
+                                key={fullVisibleIndex}
+                                style={{
+                                  position: "absolute",
+                                  width: `${fullChordWidths[fullVisibleIndex] || 0}px`,
+                                  left: getChordLeftValue({
+                                    index: fullVisibleIndex,
+                                    fullScrollPositions,
+                                    initialPlaceholderWidth,
+                                  }),
+                                }}
+                              >
+                                {expandedTabData[fullVisibleIndex]?.type ===
+                                "tab" ? (
+                                  <>
+                                    {expandedTabData[
+                                      fullVisibleIndex
+                                    ]?.data.chordData.includes("|") ? (
+                                      <PlaybackTabMeasureLine
+                                        columnData={
+                                          expandedTabData[fullVisibleIndex]
+                                            ?.data.chordData
+                                        }
+                                        isDimmed={
+                                          audioMetadata.editingLoopRange &&
+                                          (fullVisibleIndex <
+                                            audioMetadata.startLoopIndex ||
+                                            (audioMetadata.endLoopIndex !==
+                                              -1 &&
+                                              fullVisibleIndex >
+                                                audioMetadata.endLoopIndex))
+                                        }
+                                      />
+                                    ) : (
+                                      <PlaybackTabChord
+                                        columnData={
+                                          expandedTabData[fullVisibleIndex]
+                                            ?.data.chordData
+                                        }
+                                        isFirstChordInSection={
+                                          fullVisibleIndex === 0 &&
+                                          fullScrollPositions[0]
+                                            ?.currentPosition === null
+                                        }
+                                        isLastChordInSection={false}
+                                        isHighlighted={
+                                          !audioMetadata.editingLoopRange &&
+                                          ((audioMetadata.playing &&
+                                            highlightChord({
+                                              chordIndex: fullVisibleIndex,
+                                              type: "isBeingPlayed",
+                                            })) ||
+                                            highlightChord({
+                                              chordIndex: fullVisibleIndex,
+                                              type: "hasBeenPlayed",
+                                            }))
+                                        }
+                                        isDimmed={
+                                          audioMetadata.editingLoopRange &&
+                                          (fullVisibleIndex <
+                                            audioMetadata.startLoopIndex ||
+                                            (audioMetadata.endLoopIndex !==
+                                              -1 &&
+                                              fullVisibleIndex >
+                                                audioMetadata.endLoopIndex))
+                                        }
+                                      />
+                                    )}
+                                  </>
+                                ) : (
+                                  <PlaybackStrummedChord
+                                    strumIndex={
+                                      expandedTabData[fullVisibleIndex]?.data
+                                        .strumIndex || 0
+                                    }
+                                    strum={
+                                      expandedTabData[fullVisibleIndex]?.data
+                                        .strum || ""
+                                    }
+                                    palmMute={
+                                      expandedTabData[fullVisibleIndex]?.data
+                                        .palmMute || ""
+                                    }
+                                    isFirstChordInSection={
+                                      fullVisibleIndex === 0 &&
+                                      fullScrollPositions[0]
+                                        ?.currentPosition === null
+                                    }
+                                    isLastChordInSection={false}
+                                    noteLength={
+                                      expandedTabData[fullVisibleIndex]?.data
+                                        .noteLength || "1/4th"
+                                    }
+                                    bpmToShow={
+                                      expandedTabData[fullVisibleIndex]?.data
+                                        .showBpm
+                                        ? expandedTabData[fullVisibleIndex]
+                                            ?.data.bpm
+                                        : undefined
+                                    }
+                                    chordName={
+                                      expandedTabData[fullVisibleIndex]?.data
+                                        .chordName || ""
+                                    }
+                                    isHighlighted={
+                                      !audioMetadata.editingLoopRange &&
+                                      ((audioMetadata.playing &&
+                                        highlightChord({
+                                          chordIndex: fullVisibleIndex,
+                                          type: "isBeingPlayed",
+                                        })) ||
+                                        highlightChord({
+                                          chordIndex: fullVisibleIndex,
+                                          type: "hasBeenPlayed",
+                                        }))
+                                    }
+                                    isDimmed={
+                                      audioMetadata.editingLoopRange &&
+                                      (fullVisibleIndex <
+                                        audioMetadata.startLoopIndex ||
+                                        (audioMetadata.endLoopIndex !== -1 &&
+                                          fullVisibleIndex >
+                                            audioMetadata.endLoopIndex))
+                                    }
+                                    isRaised={
+                                      expandedTabData[fullVisibleIndex]?.data
+                                        .isRaised || false
+                                    }
+                                  />
+                                )}
+                              </div>
+                            );
+                          })}
+                      </>
+                    </div>
                   </div>
-                </div>
+                </PlaybackScrollingContainer>
               </div>
             </motion.div>
           )}
@@ -592,6 +665,7 @@ const getFullVisibleChordIndices = ({
   buffer,
   initialPlaceholderWidth,
   setFullScrollPositions,
+  translateX,
 }: {
   fullScrollPositions: {
     originalPosition: number;
@@ -610,6 +684,7 @@ const getFullVisibleChordIndices = ({
       }[]
     >
   >;
+  translateX: number;
 }) => {
   const fullScrollPositions = [...originalFullScrollPositions];
 
@@ -625,9 +700,9 @@ const getFullVisibleChordIndices = ({
   );
 
   const adjustedCurrentPosition =
-    (fullScrollPositions[currentChordIndex]?.currentPosition ||
-      fullScrollPositions[currentChordIndex].originalPosition) +
-    initialPlaceholderWidth;
+    // (fullScrollPositions[currentChordIndex]?.currentPosition ||
+    //   fullScrollPositions[currentChordIndex].originalPosition)
+    translateX + initialPlaceholderWidth;
 
   // Start and end points of the visible range
   const rangeStart =
@@ -742,7 +817,6 @@ function getScrollContainerTransform({
   currentChordIndex,
   audioMetadata,
   numberOfChords,
-  isPlaying,
 }: {
   fullScrollPositions: {
     originalPosition: number;
@@ -751,12 +825,11 @@ function getScrollContainerTransform({
   currentChordIndex: number;
   audioMetadata: AudioMetadata;
   numberOfChords: number;
-  isPlaying: boolean;
 }) {
   // when looping, you want to go back to the first chord position, since it
   // will already be translated to the right side of last chord position in main tab
   const index =
-    isPlaying && currentChordIndex === numberOfChords - 1
+    audioMetadata.playing && currentChordIndex === numberOfChords - 1
       ? 0
       : currentChordIndex + (audioMetadata.playing ? 1 : 0);
 
