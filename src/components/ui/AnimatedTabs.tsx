@@ -1,5 +1,6 @@
-import type { Dispatch, SetStateAction } from "react";
+import { type Dispatch, type SetStateAction } from "react";
 import { motion } from "framer-motion";
+import { useTabStore } from "~/stores/TabStore";
 
 interface AnimatedTabs {
   activeTabName: string;
@@ -12,12 +13,21 @@ function AnimatedTabs({
   setActiveTabName,
   tabNames,
 }: AnimatedTabs) {
+  const { playing, pauseAudio } = useTabStore((state) => ({
+    playing: state.audioMetadata.playing,
+    pauseAudio: state.pauseAudio,
+  }));
+
   return (
     <div className="flex space-x-4 rounded-full border p-1">
       {tabNames.map((tabName) => (
         <button
           key={tabName}
-          onClick={() => setActiveTabName(tabName)}
+          onClick={() => {
+            setActiveTabName(tabName);
+
+            if (playing && tabName !== "Practice") pauseAudio();
+          }}
           className={`${
             activeTabName === tabName ? "" : "hover:text-white/60"
           } relative rounded-full px-3 py-1.5 text-sm font-medium text-white outline-sky-400 transition focus-visible:outline-2`}

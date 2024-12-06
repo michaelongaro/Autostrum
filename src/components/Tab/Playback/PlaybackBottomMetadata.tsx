@@ -344,7 +344,14 @@ function MobileSettingsDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button
+          variant="outline"
+          onClick={() => {
+            if (audioMetadata.playing) {
+              pauseAudio();
+            }
+          }}
+        >
           <IoSettingsOutline className="h-5 w-5" />
           <span className="ml-3 mobileLandscape:ml-0 mobileLandscape:hidden">
             Settings
