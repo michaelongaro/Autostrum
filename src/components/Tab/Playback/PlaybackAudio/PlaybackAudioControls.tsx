@@ -519,7 +519,7 @@ function PlaybackAudioControls({
             ) : (
               <div className="baseFlex gap-6">
                 <Button
-                  variant="playPause"
+                  variant="text"
                   size={aboveLargeViewportWidth ? "default" : "sm"}
                   disabled={disablePlayButton}
                   onClick={() => {
@@ -583,7 +583,7 @@ function PlaybackAudioControls({
                 </Button>
 
                 <Button
-                  variant="playPause"
+                  variant="text"
                   size={aboveLargeViewportWidth ? "default" : "sm"}
                   disabled={disablePlayButton}
                   onClick={() => {
