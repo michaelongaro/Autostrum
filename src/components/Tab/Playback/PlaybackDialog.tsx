@@ -411,8 +411,8 @@ function PlaybackDialog() {
           variant="playPause"
           className="baseFlex sticky bottom-4 right-4 mb-4 gap-4 !rounded-full px-8 py-6 text-xl shadow-lg tablet:bottom-6 tablet:px-10"
         >
-          <FaGuitar className="size-7 tablet:size-8" />
-          Practice tab
+          <FaGuitar className="tablet:size-7.5 size-7" />
+          Practice
         </Button>
       </DialogTrigger>
       <DialogContent
