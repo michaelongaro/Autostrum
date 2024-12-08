@@ -285,6 +285,8 @@ function MobileSettingsDialog() {
     setCountInTimer,
     mobileHeaderModal,
     setMobileHeaderModal,
+    loopDelay,
+    setLoopDelay,
   } = useTabStore((state) => ({
     id: state.id,
     bpm: state.bpm,
@@ -314,6 +316,8 @@ function MobileSettingsDialog() {
     setCountInTimer: state.setCountInTimer,
     mobileHeaderModal: state.mobileHeaderModal,
     setMobileHeaderModal: state.setMobileHeaderModal,
+    loopDelay: state.loopDelay,
+    setLoopDelay: state.setLoopDelay,
   }));
 
   // function resetAudioStateOnSourceChange(
@@ -456,38 +460,23 @@ function MobileSettingsDialog() {
             disabled={
               audioMetadata.type === "Artist recording" || countInTimer.showing
             }
-            // onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
-            value={currentInstrumentName}
+            value={`${loopDelay}s`}
             onValueChange={(value) => {
               pauseAudio();
 
-              setCurrentInstrumentName(
-                value as
-                  | "acoustic_guitar_nylon"
-                  | "acoustic_guitar_steel"
-                  | "electric_guitar_clean"
-                  | "electric_guitar_jazz",
-              );
+              setLoopDelay(Number(value[0]));
             }}
           >
-            <SelectTrigger className="w-[10rem]">
-              <SelectValue />
+            <SelectTrigger className="w-16">
+              <SelectValue>{`${loopDelay}s`}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Loop delay</SelectLabel>
-
-                <SelectItem value={"0 seconds"}>0 seconds</SelectItem>
-
-                <SelectItem value={"1 second"}>1 second</SelectItem>
-
-                <SelectItem value={"2 seconds"}>2 seconds</SelectItem>
-
-                <SelectItem value={"3 seconds"}>3 seconds</SelectItem>
-
-                <SelectItem value={"4 seconds"}>4 seconds</SelectItem>
-
-                <SelectItem value={"5 seconds"}>5 seconds</SelectItem>
+                <SelectItem value={"0s"}>0 seconds</SelectItem>
+                <SelectItem value={"1s"}>1 second</SelectItem>
+                <SelectItem value={"2s"}>2 seconds</SelectItem>
+                <SelectItem value={"3s"}>3 seconds</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
@@ -845,6 +834,8 @@ function Settings({ tabProgressValue, setTabProgressValue }: Settings) {
     setCountInTimer,
     mobileHeaderModal,
     setMobileHeaderModal,
+    loopDelay,
+    setLoopDelay,
   } = useTabStore((state) => ({
     id: state.id,
     bpm: state.bpm,
@@ -875,11 +866,12 @@ function Settings({ tabProgressValue, setTabProgressValue }: Settings) {
     setCountInTimer: state.setCountInTimer,
     mobileHeaderModal: state.mobileHeaderModal,
     setMobileHeaderModal: state.setMobileHeaderModal,
+    loopDelay: state.loopDelay,
+    setLoopDelay: state.setLoopDelay,
   }));
 
   const volume = useGetLocalStorageValues().volume;
   const localStorageVolume = useLocalStorageValue("autostrumVolume");
-  const localStorageLooping = useLocalStorageValue("autostrumLooping");
 
   return (
     <div className="baseFlex w-full !items-end gap-4">
@@ -1001,7 +993,7 @@ function Settings({ tabProgressValue, setTabProgressValue }: Settings) {
             setPlaybackSpeed(newPlaybackSpeed);
           }}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-20">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -1024,39 +1016,23 @@ function Settings({ tabProgressValue, setTabProgressValue }: Settings) {
           disabled={
             audioMetadata.type === "Artist recording" || countInTimer.showing
           }
-          // onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
-          value={currentInstrumentName}
+          value={`${loopDelay}s`}
           onValueChange={(value) => {
             pauseAudio();
 
-            setCurrentInstrumentName(
-              value as
-                | "acoustic_guitar_nylon"
-                | "acoustic_guitar_steel"
-                | "electric_guitar_clean"
-                | "electric_guitar_jazz",
-            );
+            setLoopDelay(Number(value[0]));
           }}
         >
-          <SelectTrigger className="w-[5rem]">
-            {/* TODO: have the rendered trigger value be 0s, 1s, 2s, etc to save space */}
-            <SelectValue />
+          <SelectTrigger className="w-16">
+            <SelectValue>{`${loopDelay}s`}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Loop delay</SelectLabel>
-
-              <SelectItem value={"0 seconds"}>0 seconds</SelectItem>
-
-              <SelectItem value={"1 second"}>1 second</SelectItem>
-
-              <SelectItem value={"2 seconds"}>2 seconds</SelectItem>
-
-              <SelectItem value={"3 seconds"}>3 seconds</SelectItem>
-
-              <SelectItem value={"4 seconds"}>4 seconds</SelectItem>
-
-              <SelectItem value={"5 seconds"}>5 seconds</SelectItem>
+              <SelectItem value={"0s"}>0 seconds</SelectItem>
+              <SelectItem value={"1s"}>1 second</SelectItem>
+              <SelectItem value={"2s"}>2 seconds</SelectItem>
+              <SelectItem value={"3s"}>3 seconds</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>

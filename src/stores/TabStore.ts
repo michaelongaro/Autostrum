@@ -278,6 +278,7 @@ const initialStoreState = {
   currentlyPlayingMetadata: null,
   playbackMetadata: null,
   playbackSpeed: 1,
+  loopDelay: 0,
   currentChordIndex: 0,
   audioMetadata: {
     type: "Generated",
@@ -492,6 +493,8 @@ interface TabState {
   ) => void;
   looping: boolean;
   setLooping: (looping: boolean) => void;
+  loopDelay: number;
+  setLoopDelay: (loopDelay: number) => void;
   playbackSpeed: 1 | 0.25 | 0.5 | 0.75 | 1.25 | 1.5;
   setPlaybackSpeed: (speed: 1 | 0.25 | 0.5 | 0.75 | 1.25 | 1.5) => void;
   currentChordIndex: number;
@@ -717,6 +720,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         set({ currentInstrumentName }),
       looping: false,
       setLooping: (looping) => set({ looping }),
+      loopDelay: 0,
+      setLoopDelay: (loopDelay) => set({ loopDelay }),
       playbackSpeed: 1,
       setPlaybackSpeed: (playbackSpeed) => set({ playbackSpeed }),
       currentChordIndex: 0,
