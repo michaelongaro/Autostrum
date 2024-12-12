@@ -7,7 +7,7 @@ function renderStrummingGuide(
     | "viewingWithChordNames"
     | "viewing"
     | "viewingInSelectDropdown",
-  isBeingHighlightedInDropdown?: boolean
+  isBeingHighlightedInDropdown?: boolean,
 ) {
   let innermostDiv = <div></div>;
   let height = "7px";

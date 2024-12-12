@@ -950,7 +950,7 @@ function TabSection({
         </div>
       )}
 
-      <div className="baseFlex relative w-full !justify-start">
+      <div className="baseFlex relative w-full flex-wrap !justify-start">
         {editing && (
           <>
             {editingPalmMuteNodes ? (

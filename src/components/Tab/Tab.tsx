@@ -25,6 +25,7 @@ import SectionContainer from "./SectionContainer";
 import StrummingPatterns from "./StrummingPatterns";
 import PlaybackDialog from "~/components/Tab/Playback/PlaybackDialog";
 import dynamic from "next/dynamic";
+import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
 
 const EffectGlossaryModal = dynamic(
   () => import("~/components/modals/EffectGlossaryModal"),
@@ -392,24 +393,32 @@ function Tab({ tab, refetchTab }: ITab) {
                 }}
                 className="baseFlex w-full"
               >
-                <SectionContainer
-                  sectionIndex={index}
-                  sectionData={section}
-                  currentlyPlayingSectionIndex={
-                    currentlyPlayingMetadata?.[currentChordIndex]?.location
-                      .sectionIndex ?? 0
-                  }
-                  currentlyPlayingSubSectionIndex={
-                    currentlyPlayingMetadata?.[currentChordIndex]?.location
-                      .subSectionIndex ?? 0
-                  }
-                  forceCloseSectionAccordions={
-                    forceCloseSectionAccordions && index !== tabData.length - 1
-                  }
-                  setForceCloseSectionAccordions={
-                    setForceCloseSectionAccordions
-                  }
-                />
+                {editing ? (
+                  <SectionContainer
+                    sectionIndex={index}
+                    sectionData={section}
+                    currentlyPlayingSectionIndex={
+                      currentlyPlayingMetadata?.[currentChordIndex]?.location
+                        .sectionIndex ?? 0
+                    }
+                    currentlyPlayingSubSectionIndex={
+                      currentlyPlayingMetadata?.[currentChordIndex]?.location
+                        .subSectionIndex ?? 0
+                    }
+                    forceCloseSectionAccordions={
+                      forceCloseSectionAccordions &&
+                      index !== tabData.length - 1
+                    }
+                    setForceCloseSectionAccordions={
+                      setForceCloseSectionAccordions
+                    }
+                  />
+                ) : (
+                  <StaticSectionContainer
+                    sectionIndex={index}
+                    sectionData={section}
+                  />
+                )}
               </motion.div>
             ))}
 

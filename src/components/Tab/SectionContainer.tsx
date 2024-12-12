@@ -356,7 +356,7 @@ function SectionContainer({
             className="w-full"
           ></AccordionTrigger>
 
-          <AccordionContent animated={true} className="pt-4">
+          <AccordionContent animated={true} className="w-full pt-4">
             {/* map over tab/chord subSections */}
             <div
               id={`sectionIndex${sectionIndex}`}
