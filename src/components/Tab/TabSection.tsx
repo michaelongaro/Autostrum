@@ -940,7 +940,7 @@ function TabSection({
                       Enter <span className="font-semibold">a-g </span>
                       for the respective minor chord.
                     </li>
-                    <li>Copying & pasting chords work as expected.</li>
+                    <li>Copying & pasting chords works as expected.</li>
                   </ul>
                 </div>
               </PopoverContent>
