@@ -39,7 +39,10 @@ function StaticChordSequence({ chordSequenceData }: StaticChordSequence) {
       className="baseFlex"
     >
       <div className="baseVertFlex relative !justify-start gap-4 rounded-md border-2 border-pink-100 p-1 shadow-sm">
-        <StaticStrummingPattern data={chordSequenceData.strummingPattern} />
+        <StaticStrummingPattern
+          data={chordSequenceData.strummingPattern}
+          chordSequenceData={chordSequenceData.data}
+        />
       </div>
     </motion.div>
   );

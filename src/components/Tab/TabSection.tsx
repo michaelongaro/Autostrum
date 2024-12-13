@@ -16,14 +16,7 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { motion } from "framer-motion";
-import {
-  useEffect,
-  useMemo,
-  useCallback,
-  useState,
-  memo,
-  Fragment,
-} from "react";
+import { useEffect, useCallback, useState, memo, Fragment } from "react";
 import { BsKeyboard } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
 import { HiOutlineInformationCircle } from "react-icons/hi";
@@ -135,7 +128,6 @@ function TabSection({
     tuning,
     getTabData,
     setTabData,
-    editing,
     preventFramerLayoutShift,
     currentlyPlayingMetadata,
     currentChordIndex,
@@ -146,7 +138,6 @@ function TabSection({
     tuning: state.tuning,
     getTabData: state.getTabData,
     setTabData: state.setTabData,
-    editing: state.editing,
     preventFramerLayoutShift: state.preventFramerLayoutShift,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     currentChordIndex: state.currentChordIndex,
@@ -766,30 +757,10 @@ function TabSection({
     return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
   }
 
-  const sectionPadding = useMemo(() => {
-    let padding = "0 1rem";
-
-    if (aboveMediumViewportWidth) {
-      if (editing) {
-        padding = "2rem";
-      } else {
-        padding = "0 2rem";
-      }
-    } else {
-      if (editing) {
-        padding = "1rem 0.5rem 1rem 0.5rem";
-      } else {
-        padding = "0 1rem";
-      }
-    }
-
-    return padding;
-  }, [editing, aboveMediumViewportWidth]);
-
   return (
     <motion.div
       key={subSectionData.id}
-      {...(editing && !preventFramerLayoutShift && { layout: "position" })}
+      {...(!preventFramerLayoutShift && { layout: "position" })}
       variants={opacityAndScaleVariants}
       // initial="closed"
       // animate="expanded"
@@ -802,117 +773,125 @@ function TabSection({
         },
       }}
       style={{
-        gap: editing ? "1rem" : "0",
-        padding: sectionPadding,
-        width: editing ? "100%" : "auto",
-        borderTopLeftRadius:
-          !editing && subSectionData.repetitions > 1 ? 0 : "0.375rem",
+        padding: aboveMediumViewportWidth ? "2rem" : "1rem 0.5rem 1rem 0.5rem",
       }}
-      className="baseVertFlex lightestGlassmorphic relative h-full !justify-start rounded-md"
+      className="baseVertFlex lightestGlassmorphic relative h-full w-full !justify-start gap-4 rounded-md rounded-tl-md"
     >
-      {editing && (
-        <div className="baseFlex w-full !items-start">
-          <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
-            <div className="baseFlex gap-2">
-              <Label>Repetitions</Label>
-              <Input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
-                placeholder="1"
-                value={
-                  subSectionData.repetitions === -1
-                    ? ""
-                    : subSectionData.repetitions.toString()
-                }
-                onChange={handleRepetitionsChange}
-              />
-            </div>
+      <div className="baseFlex w-full !items-start">
+        <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
+          <div className="baseFlex gap-2">
+            <Label>Repetitions</Label>
+            <Input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
+              placeholder="1"
+              value={
+                subSectionData.repetitions === -1
+                  ? ""
+                  : subSectionData.repetitions.toString()
+              }
+              onChange={handleRepetitionsChange}
+            />
+          </div>
 
-            <div className="baseFlex gap-2">
-              <Label>BPM</Label>
-              <Input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
-                placeholder={bpm === -1 ? "" : bpm.toString()}
-                value={
-                  subSectionData.bpm === -1 ? "" : subSectionData.bpm.toString()
-                }
-                onChange={handleBpmChange}
-              />
-            </div>
+          <div className="baseFlex gap-2">
+            <Label>BPM</Label>
+            <Input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
+              placeholder={bpm === -1 ? "" : bpm.toString()}
+              value={
+                subSectionData.bpm === -1 ? "" : subSectionData.bpm.toString()
+              }
+              onChange={handleBpmChange}
+            />
+          </div>
 
-            <div className="baseVertFlex !items-start gap-2 lg:!flex-row">
-              <div className="baseFlex">
+          <div className="baseVertFlex !items-start gap-2 lg:!flex-row">
+            <div className="baseFlex">
+              <Button
+                disabled={editingPalmMuteNodes}
+                style={{
+                  borderRadius: editingPalmMuteNodes
+                    ? "0.375rem 0 0 0.375rem"
+                    : "0.375rem",
+                }}
+                // should you just manually add these styles to the button component?
+                // not sure of good usecases for having anything but small sized buttons at these viewports..
+
+                // className="transition-colors transition-opacity"
+                onClick={toggleEditingPalmMuteNodes}
+              >
+                Edit PM sections
+              </Button>
+
+              {editingPalmMuteNodes && (
                 <Button
-                  disabled={editingPalmMuteNodes}
-                  style={{
-                    borderRadius: editingPalmMuteNodes
-                      ? "0.375rem 0 0 0.375rem"
-                      : "0.375rem",
-                  }}
-                  // should you just manually add these styles to the button component?
-                  // not sure of good usecases for having anything but small sized buttons at these viewports..
-
-                  // className="transition-colors transition-opacity"
+                  className="rounded-l-none rounded-r-md px-2 py-0"
                   onClick={toggleEditingPalmMuteNodes}
                 >
-                  Edit PM sections
+                  <IoClose className="h-6 w-6" />
                 </Button>
+              )}
+            </div>
 
-                {editingPalmMuteNodes && (
-                  <Button
-                    className="rounded-l-none rounded-r-md px-2 py-0"
-                    onClick={toggleEditingPalmMuteNodes}
-                  >
-                    <IoClose className="h-6 w-6" />
-                  </Button>
-                )}
-              </div>
+            <div className="baseFlex">
+              <Button
+                disabled={reorderingColumns}
+                style={{
+                  borderRadius: reorderingColumns
+                    ? "0.375rem 0 0 0.375rem"
+                    : "0.375rem",
+                }}
+                // className="transition-colors transition-opacity"
+                onClick={() => {
+                  setReorderingColumns(!reorderingColumns);
+                  setShowingDeleteColumnsButtons(false);
+                }}
+              >
+                Reorder chords
+              </Button>
 
-              <div className="baseFlex">
+              {reorderingColumns && (
                 <Button
-                  disabled={reorderingColumns}
-                  style={{
-                    borderRadius: reorderingColumns
-                      ? "0.375rem 0 0 0.375rem"
-                      : "0.375rem",
-                  }}
-                  // className="transition-colors transition-opacity"
+                  className="rounded-l-none rounded-r-md px-2 py-0"
                   onClick={() => {
                     setReorderingColumns(!reorderingColumns);
                     setShowingDeleteColumnsButtons(false);
                   }}
                 >
-                  Reorder chords
+                  <IoClose className="h-6 w-6" />
                 </Button>
+              )}
+            </div>
 
-                {reorderingColumns && (
-                  <Button
-                    className="rounded-l-none rounded-r-md px-2 py-0"
-                    onClick={() => {
-                      setReorderingColumns(!reorderingColumns);
-                      setShowingDeleteColumnsButtons(false);
-                    }}
-                  >
-                    <IoClose className="h-6 w-6" />
-                  </Button>
-                )}
-              </div>
+            <div className="baseFlex">
+              <Button
+                variant={"destructive"}
+                disabled={showingDeleteColumnsButtons}
+                style={{
+                  borderRadius: showingDeleteColumnsButtons
+                    ? "0.375rem 0 0 0.375rem"
+                    : "0.375rem",
+                }}
+                className="baseFlex gap-2"
+                onClick={() => {
+                  setShowingDeleteColumnsButtons(!showingDeleteColumnsButtons);
+                  setReorderingColumns(false);
+                }}
+              >
+                Delete chords
+                <FaTrashAlt className="h-4 w-4" />
+              </Button>
 
-              <div className="baseFlex">
+              {showingDeleteColumnsButtons && (
                 <Button
                   variant={"destructive"}
-                  disabled={showingDeleteColumnsButtons}
-                  style={{
-                    borderRadius: showingDeleteColumnsButtons
-                      ? "0.375rem 0 0 0.375rem"
-                      : "0.375rem",
-                  }}
-                  className="baseFlex gap-2"
+                  className="rounded-l-none rounded-r-md px-2 py-0"
                   onClick={() => {
                     setShowingDeleteColumnsButtons(
                       !showingDeleteColumnsButtons,
@@ -920,86 +899,56 @@ function TabSection({
                     setReorderingColumns(false);
                   }}
                 >
-                  Delete chords
-                  <FaTrashAlt className="h-4 w-4" />
+                  <IoClose className="h-6 w-6" />
                 </Button>
-
-                {showingDeleteColumnsButtons && (
-                  <Button
-                    variant={"destructive"}
-                    className="rounded-l-none rounded-r-md px-2 py-0"
-                    onClick={() => {
-                      setShowingDeleteColumnsButtons(
-                        !showingDeleteColumnsButtons,
-                      );
-                      setReorderingColumns(false);
-                    }}
-                  >
-                    <IoClose className="h-6 w-6" />
-                  </Button>
-                )}
-              </div>
+              )}
             </div>
           </div>
-          <MiscellaneousControls
-            type={"tab"}
-            sectionId={sectionId}
-            sectionIndex={sectionIndex}
-            subSectionIndex={subSectionIndex}
-          />
         </div>
-      )}
+        <MiscellaneousControls
+          type={"tab"}
+          sectionId={sectionId}
+          sectionIndex={sectionIndex}
+          subSectionIndex={subSectionIndex}
+        />
+      </div>
 
       <div className="baseFlex relative w-full flex-wrap !justify-start">
-        {editing && (
-          <>
-            {editingPalmMuteNodes ? (
-              <p className="absolute left-[0.4rem] top-6 text-sm italic">PM</p>
-            ) : (
-              <div className="absolute left-1 top-6">
-                <Popover>
-                  <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-white/20 active:hover:bg-white/10">
-                    <HiOutlineInformationCircle className="h-5 w-5" />
-                  </PopoverTrigger>
-                  <PopoverContent
-                    side={"right"}
-                    className="w-[300px] md:w-full"
-                  >
-                    <div className="baseVertFlex gap-1">
-                      <p className="baseFlex gap-2 text-sm font-semibold md:text-base">
-                        <BsKeyboard className="h-5 w-5 sm:h-6 sm:w-6" />
-                        Hotkeys
-                      </p>
-                      <ul className="list-disc pl-4 text-sm md:text-base">
-                        <li>
-                          You can navigate through inputs with your arrow keys.
-                        </li>
-                        <li>
-                          Enter <span className="font-semibold">A-G </span>
-                          for the respective major chord.
-                        </li>
-                        <li>
-                          Enter <span className="font-semibold">a-g </span>
-                          for the respective minor chord.
-                        </li>
-                        <li>Copying & pasting chords work as expected.</li>
-                      </ul>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            )}
-          </>
+        {editingPalmMuteNodes ? (
+          <p className="absolute left-[0.4rem] top-6 text-sm italic">PM</p>
+        ) : (
+          <div className="absolute left-1 top-6">
+            <Popover>
+              <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-white/20 active:hover:bg-white/10">
+                <HiOutlineInformationCircle className="h-5 w-5" />
+              </PopoverTrigger>
+              <PopoverContent side={"right"} className="w-[300px] md:w-full">
+                <div className="baseVertFlex gap-1">
+                  <p className="baseFlex gap-2 text-sm font-semibold md:text-base">
+                    <BsKeyboard className="h-5 w-5 sm:h-6 sm:w-6" />
+                    Hotkeys
+                  </p>
+                  <ul className="list-disc pl-4 text-sm md:text-base">
+                    <li>
+                      You can navigate through inputs with your arrow keys.
+                    </li>
+                    <li>
+                      Enter <span className="font-semibold">A-G </span>
+                      for the respective major chord.
+                    </li>
+                    <li>
+                      Enter <span className="font-semibold">a-g </span>
+                      for the respective minor chord.
+                    </li>
+                    <li>Copying & pasting chords work as expected.</li>
+                  </ul>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
         )}
 
-        <div
-          style={{
-            height: editing ? "280px" : "168px",
-            gap: editing ? "1.35rem" : "0",
-            marginBottom: editing ? "0" : "-1px",
-          }}
-          className="baseVertFlex relative rounded-l-2xl border-2 border-pink-100 p-2"
-        >
+        <div className="baseVertFlex relative h-[280px] gap-[1.35rem] rounded-l-2xl border-2 border-pink-100 p-2">
           {toString(parse(tuning), { pad: 1 })
             .split("")
             .reverse()
@@ -1055,25 +1004,17 @@ function TabSection({
           </SortableContext>
         </DndContext>
 
-        <div
-          style={{
-            height: editing ? "280px" : "168px",
-            marginBottom: editing ? "0" : "-1px",
-          }}
-          className="rounded-r-2xl border-2 border-pink-100 p-1"
-        ></div>
+        <div className="h-[280px] rounded-r-2xl border-2 border-pink-100 p-1"></div>
       </div>
 
-      {editing && (
-        <Button
-          id={`${sectionIndex}${subSectionIndex}ExtendTabButton`}
-          onKeyDown={handleExtendTabButtonKeyDown}
-          onClick={addNewColumns}
-          className="mt-4"
-        >
-          Extend tab
-        </Button>
-      )}
+      <Button
+        id={`${sectionIndex}${subSectionIndex}ExtendTabButton`}
+        onKeyDown={handleExtendTabButtonKeyDown}
+        onClick={addNewColumns}
+        className="mt-4"
+      >
+        Extend tab
+      </Button>
     </motion.div>
   );
 }

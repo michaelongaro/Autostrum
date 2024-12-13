@@ -19,14 +19,12 @@ function TabNote({
   noteIndex,
 }: TabNote) {
   const {
-    editing,
     getTabData,
     setTabData,
     currentlyCopiedChord,
     setCurrentlyCopiedChord,
     setChordPulse,
   } = useTabStore((state) => ({
-    editing: state.editing,
     getTabData: state.getTabData,
     setTabData: state.setTabData,
     currentlyCopiedChord: state.currentlyCopiedChord,
@@ -436,51 +434,32 @@ function TabNote({
   }
 
   return (
-    <>
-      {editing ? (
-        <Input
-          id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`}
-          style={{
-            width: noteIndex !== 7 ? "35px" : "28px",
-            height: noteIndex !== 7 ? "35px" : "28px",
-            borderWidth: note.length > 0 && !isFocused ? "2px" : "1px",
-          }}
-          className="my-[1px] rounded-full p-0 text-center shadow-sm shadow-pink-600"
-          onFocus={(e) => {
-            setIsFocused(true);
+    <Input
+      id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`}
+      style={{
+        width: noteIndex !== 7 ? "35px" : "28px",
+        height: noteIndex !== 7 ? "35px" : "28px",
+        borderWidth: note.length > 0 && !isFocused ? "2px" : "1px",
+      }}
+      className="my-[1px] rounded-full p-0 text-center shadow-sm shadow-pink-600"
+      onFocus={(e) => {
+        setIsFocused(true);
 
-            // focuses end of the input (better ux when navigating with arrow keys)
-            e.target.setSelectionRange(
-              e.target.value.length,
-              e.target.value.length,
-            );
-          }}
-          onBlur={() => {
-            setIsFocused(false);
-          }}
-          type="text"
-          autoComplete="off"
-          value={note}
-          onKeyDown={handleKeyDown}
-          onChange={handleChange}
-        />
-      ) : (
-        <div className="baseFlex w-[35px]">
-          <div className="my-3 h-[1px] flex-[1] bg-pink-100/50"></div>
-          {/* {formatNoteAndEffect(note)} */}
-          <div
-            // "x" wasn't as centered as regular numbers were, manual adjustment below
-            style={{
-              marginTop: note === "x" ? "-2px" : "0px",
-              marginBottom: note === "x" ? "2px" : "0px",
-            }}
-          >
-            {note}
-          </div>
-          <div className="my-3 h-[1px] flex-[1] bg-pink-100/50"></div>
-        </div>
-      )}
-    </>
+        // focuses end of the input (better ux when navigating with arrow keys)
+        e.target.setSelectionRange(
+          e.target.value.length,
+          e.target.value.length,
+        );
+      }}
+      onBlur={() => {
+        setIsFocused(false);
+      }}
+      type="text"
+      autoComplete="off"
+      value={note}
+      onKeyDown={handleKeyDown}
+      onChange={handleChange}
+    />
   );
 }
 

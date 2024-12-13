@@ -5,9 +5,45 @@ import StaticTabNote from "~/components/Tab/Static/StaticTabNote";
 
 interface StaticTabNotesColumn {
   columnData: string[];
+  columnIndex: number;
 }
 
-function StaticTabNotesColumn({ columnData }: StaticTabNotesColumn) {
+function StaticTabNotesColumn({
+  columnData,
+  columnIndex,
+}: StaticTabNotesColumn) {
+  function relativelyGetColumn(indexRelativeToCurrentCombo: number): string[] {
+    return (columnData[columnIndex + indexRelativeToCurrentCombo] ??
+      []) as string[];
+  }
+
+  function lineBeforeNoteOpacity(index: number): boolean {
+    const colMinus1 = relativelyGetColumn(-1);
+    const colMinus2 = relativelyGetColumn(-2);
+    const col0 = relativelyGetColumn(0);
+
+    return (
+      colMinus1[index] === "" ||
+      (colMinus1[index] === "|" &&
+        (colMinus2[index] === "" || col0[index] === "")) ||
+      colMinus1[index] === "~" ||
+      colMinus1[index] === undefined
+    );
+  }
+
+  function lineAfterNoteOpacity(index: number): boolean {
+    const col0 = relativelyGetColumn(0);
+    const col1 = relativelyGetColumn(1);
+    const col2 = relativelyGetColumn(2);
+
+    return (
+      col1[index] === "" ||
+      (col1[index] === "|" && (col2[index] === "" || col0[index] === "")) ||
+      col1[index] === "~" ||
+      col1[index] === undefined
+    );
+  }
+
   return (
     <motion.div
       key={columnData[9]}
@@ -39,11 +75,21 @@ function StaticTabNotesColumn({ columnData }: StaticTabNotesColumn) {
                 }}
                 className="baseFlex relative w-[35px] basis-[content]"
               >
-                <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
+                <div
+                  style={{
+                    opacity: lineBeforeNoteOpacity(index) ? 1 : 0,
+                  }}
+                  className="h-[1px] flex-[1] bg-pink-100/50"
+                ></div>
 
                 <StaticTabNote note={note} />
 
-                <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
+                <div
+                  style={{
+                    opacity: lineAfterNoteOpacity(index) ? 1 : 0,
+                  }}
+                  className="h-[1px] flex-[1] bg-pink-100/50"
+                ></div>
               </div>
             )}
 

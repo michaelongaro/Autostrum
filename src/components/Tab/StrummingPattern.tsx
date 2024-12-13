@@ -573,54 +573,6 @@ function StrummingPattern({
                 </>
               )}
 
-              {/* chord viewer */}
-              {mode === "viewingWithChordNames" && (
-                <Popover>
-                  <PopoverTrigger
-                    asChild
-                    disabled={chordSequenceData?.[strumIndex] === ""}
-                    className="baseFlex rounded-md transition-all hover:bg-white/20 active:hover:bg-white/10"
-                  >
-                    <Button
-                      variant={"ghost"}
-                      className="baseFlex mb-1 h-6 px-1 py-0"
-                    >
-                      <p
-                        style={{
-                          textShadow: highlightChord(
-                            strumIndex,
-                            index !== undefined,
-                          )
-                            ? "none"
-                            : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
-                          color: highlightChord(strumIndex)
-                            ? "hsl(335, 78%, 42%)"
-                            : "hsl(324, 77%, 95%)",
-                        }}
-                        className="mx-0.5 h-6 text-base font-semibold transition-colors"
-                      >
-                        {chordSequenceData?.[strumIndex]}
-                      </p>
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    side="bottom"
-                    className="chordPreviewGlassmorphic h-48 w-48 border-2 p-0 pt-3 text-pink-100"
-                  >
-                    <ChordDiagram
-                      originalFrets={
-                        chords[
-                          chords.findIndex(
-                            (chord) =>
-                              chord.name === chordSequenceData?.[strumIndex],
-                          ) ?? 0
-                        ]?.frets ?? []
-                      }
-                    />
-                  </PopoverContent>
-                </Popover>
-              )}
-
               <div className="baseFlex !flex-nowrap">
                 <div
                   style={{

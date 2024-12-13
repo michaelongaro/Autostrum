@@ -67,34 +67,15 @@ function StaticStrummingPattern({
   }, [data]);
 
   const heightOfStrummingPatternFiller = useMemo(() => {
-    return patternHasPalmMuting() ? "2.2rem" : "1.5rem";
+    return patternHasPalmMuting() ? "2.2rem" : "0rem";
   }, [patternHasPalmMuting]);
 
   return (
-    <div className="baseFlex !justify-start gap-1">
+    <div className="baseFlex w-full flex-wrap !justify-start gap-1">
       <div className="baseFlex relative mb-1 flex-wrap !justify-start">
         {data?.strums?.map((strum, strumIndex) => (
           <div key={strumIndex} className="baseVertFlex relative mt-1">
             {strum.palmMute !== "" ? (
-              // <StrummingPatternPalmMuteNode
-              //   value={strum.palmMute}
-              //   beatIndex={strumIndex}
-              //   strummingPatternBeingEdited={{
-              //     index: index ?? 0,
-              //     value: data,
-              //   }}
-              //   opacity={pmNodeOpacities[strumIndex] ?? "1"}
-              //   editingPalmMuteNodes={editingPalmMuteNodes!}
-              //   setEditingPalmMuteNodes={setEditingPalmMuteNodes!}
-              //   lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
-              //   setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
-              //   darkMode={
-              //     mode === "viewingInSelectDropdown" &&
-              //     !isBeingHighlightedInDropdown
-              //   }
-              //   viewingInSelectDropdown={mode === "viewingInSelectDropdown"}
-              //   editing={mode === "editingStrummingPattern"}
-              // />
               <StaticPalmMuteNode value={strum.palmMute} />
             ) : (
               <div

@@ -13,6 +13,7 @@ import {
 } from "~/utils/bpmIconRenderingHelpers";
 import { Separator } from "../../ui/separator";
 import ChordSection from ".././ChordSection";
+import StaticChordSection from "~/components/Tab/Static/StaticChordSection";
 
 interface StaticSectionContainer {
   sectionData: Section;
@@ -112,12 +113,7 @@ function StaticSectionContainer({
                   )}
 
                   {subSection.type === "chord" ? (
-                    <ChordSection
-                      sectionId={sectionData.id}
-                      sectionIndex={sectionIndex}
-                      subSectionIndex={index}
-                      subSectionData={subSection}
-                    />
+                    <StaticChordSection subSectionData={subSection} />
                   ) : (
                     <StaticTabSection subSectionData={subSection} />
                   )}

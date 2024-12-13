@@ -75,7 +75,6 @@ function ChordSequence({
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
 
   const {
-    editing,
     bpm,
     strummingPatterns,
     preventFramerLayoutShift,
@@ -83,7 +82,6 @@ function ChordSequence({
     setTabData,
     setStrummingPatternBeingEdited,
   } = useTabStore((state) => ({
-    editing: state.editing,
     bpm: state.bpm,
     strummingPatterns: state.strummingPatterns,
     preventFramerLayoutShift: state.preventFramerLayoutShift,
@@ -110,7 +108,7 @@ function ChordSequence({
         strummingPattern: strummingPatterns[0]!,
         data: Array.from(
           { length: strummingPatterns[0]!.strums.length },
-          () => ""
+          () => "",
         ),
       };
 
@@ -204,11 +202,11 @@ function ChordSequence({
   return (
     <motion.div
       key={chordSequenceData.id}
-      {...(editing && !preventFramerLayoutShift && { layout: "position" })}
+      {...(!preventFramerLayoutShift && { layout: "position" })}
       variants={opacityAndScaleVariants}
-      initial={editing ? "closed" : "expanded"}
-      animate={editing ? "expanded" : "expanded"}
-      exit={editing ? "closed" : "expanded"}
+      initial={"closed"}
+      animate={"expanded"}
+      exit={"closed"}
       transition={{
         layout: {
           type: "spring",
@@ -216,13 +214,9 @@ function ChordSequence({
           duration: 1,
         },
       }}
-      style={{
-        width: editing ? "100%" : "auto",
-      }}
-      className="baseFlex"
+      className="baseFlex w-full"
     >
-      {editing &&
-      Object.keys(chordSequenceData.strummingPattern).length === 0 ? (
+      {Object.keys(chordSequenceData.strummingPattern).length === 0 ? (
         <div className="baseVertFlex relative h-full w-full gap-2 rounded-md border-2 border-pink-100 bg-black/25 p-4 shadow-sm">
           <p className="mt-8 text-lg font-semibold sm:mt-0">
             No strumming patterns exist
@@ -258,145 +252,135 @@ function ChordSequence({
           </div>
         </div>
       ) : (
-        <div
-          style={{
-            padding: editing ? "1rem" : "0.25rem",
-            width: editing ? "100%" : "auto",
-          }}
-          className="baseVertFlex relative !justify-start gap-4 rounded-md border-2 border-pink-100 p-4 shadow-sm"
-        >
-          {editing && (
-            <div className="baseFlex w-full !items-start">
-              <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
-                <div className="baseFlex gap-2">
-                  <Label>Repetitions</Label>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    className="w-12"
-                    placeholder="1"
-                    value={
-                      chordSequenceData.repetitions === -1
-                        ? ""
-                        : chordSequenceData.repetitions.toString()
-                    }
-                    onChange={handleRepetitionsChange}
-                  />
-                </div>
-
-                <div className="baseFlex gap-2">
-                  <Label>BPM</Label>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
-                    placeholder={placeholderBpm}
-                    value={
-                      chordSequenceData.bpm === -1
-                        ? ""
-                        : chordSequenceData.bpm.toString()
-                    }
-                    onChange={handleBpmChange}
-                  />
-                </div>
-
-                <div className="baseFlex !justify-start gap-2">
-                  <Label>Strumming pattern</Label>
-
-                  <Select
-                    open={selectIsOpen}
-                    onOpenChange={setSelectIsOpen}
-                    onValueChange={handleStrummingPatternChange}
-                    value={`${indexOfCurrentlySelectedStrummingPattern}`}
-                  >
-                    <SelectTrigger className="w-auto">
-                      <SelectValue>
-                        <StrummingPatternPreview
-                          data={
-                            strummingPatterns[
-                              indexOfCurrentlySelectedStrummingPattern
-                            ]
-                          }
-                        />
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup className="max-h-60 overflow-y-auto">
-                        <SelectLabel>Strumming patterns</SelectLabel>
-                        {strummingPatterns.map((pattern, index) => {
-                          return (
-                            <SelectItem
-                              key={index}
-                              value={`${index}`}
-                              onFocus={() => {
-                                setIndexOfCurrentlyFocusedStrummingPattern(
-                                  index
-                                );
-                              }}
-                              onBlur={() => {
-                                setIndexOfCurrentlyFocusedStrummingPattern(-1);
-                              }}
-                            >
-                              <StrummingPattern
-                                data={pattern}
-                                mode={"viewingInSelectDropdown"}
-                                isBeingHighlightedInDropdown={
-                                  index ===
-                                  indexOfCurrentlyFocusedStrummingPattern
-                                }
-                                lastModifiedPalmMuteNode={
-                                  lastModifiedPalmMuteNode
-                                }
-                                setLastModifiedPalmMuteNode={
-                                  setLastModifiedPalmMuteNode
-                                }
-                              />
-                            </SelectItem>
-                          );
-                        })}
-                        <div className="baseFlex my-2 w-full">
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setSelectIsOpen(false);
-                              setStrummingPatternBeingEdited({
-                                index: strummingPatterns.length,
-                                value: {
-                                  id: crypto.randomUUID(),
-                                  noteLength: "1/8th",
-                                  strums: Array.from({ length: 8 }, () => ({
-                                    palmMute: "",
-                                    strum: "",
-                                  })),
-                                },
-                              });
-                            }}
-                          >
-                            Add new pattern
-                          </Button>
-                        </div>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
+        <div className="baseVertFlex relative w-full !justify-start gap-4 rounded-md border-2 border-pink-100 p-4 shadow-sm">
+          <div className="baseFlex w-full !items-start">
+            <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
+              <div className="baseFlex gap-2">
+                <Label>Repetitions</Label>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="w-12"
+                  placeholder="1"
+                  value={
+                    chordSequenceData.repetitions === -1
+                      ? ""
+                      : chordSequenceData.repetitions.toString()
+                  }
+                  onChange={handleRepetitionsChange}
+                />
               </div>
 
-              <MiscellaneousControls
-                type={"chordSequence"}
-                sectionId={sectionId}
-                sectionIndex={sectionIndex}
-                subSectionIndex={subSectionIndex}
-                chordSequenceIndex={chordSequenceIndex}
-              />
+              <div className="baseFlex gap-2">
+                <Label>BPM</Label>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
+                  placeholder={placeholderBpm}
+                  value={
+                    chordSequenceData.bpm === -1
+                      ? ""
+                      : chordSequenceData.bpm.toString()
+                  }
+                  onChange={handleBpmChange}
+                />
+              </div>
+
+              <div className="baseFlex !justify-start gap-2">
+                <Label>Strumming pattern</Label>
+
+                <Select
+                  open={selectIsOpen}
+                  onOpenChange={setSelectIsOpen}
+                  onValueChange={handleStrummingPatternChange}
+                  value={`${indexOfCurrentlySelectedStrummingPattern}`}
+                >
+                  <SelectTrigger className="w-auto">
+                    <SelectValue>
+                      <StrummingPatternPreview
+                        data={
+                          strummingPatterns[
+                            indexOfCurrentlySelectedStrummingPattern
+                          ]
+                        }
+                      />
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup className="max-h-60 overflow-y-auto">
+                      <SelectLabel>Strumming patterns</SelectLabel>
+                      {strummingPatterns.map((pattern, index) => {
+                        return (
+                          <SelectItem
+                            key={index}
+                            value={`${index}`}
+                            onFocus={() => {
+                              setIndexOfCurrentlyFocusedStrummingPattern(index);
+                            }}
+                            onBlur={() => {
+                              setIndexOfCurrentlyFocusedStrummingPattern(-1);
+                            }}
+                          >
+                            <StrummingPattern
+                              data={pattern}
+                              mode={"viewingInSelectDropdown"}
+                              isBeingHighlightedInDropdown={
+                                index ===
+                                indexOfCurrentlyFocusedStrummingPattern
+                              }
+                              lastModifiedPalmMuteNode={
+                                lastModifiedPalmMuteNode
+                              }
+                              setLastModifiedPalmMuteNode={
+                                setLastModifiedPalmMuteNode
+                              }
+                            />
+                          </SelectItem>
+                        );
+                      })}
+                      <div className="baseFlex my-2 w-full">
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setSelectIsOpen(false);
+                            setStrummingPatternBeingEdited({
+                              index: strummingPatterns.length,
+                              value: {
+                                id: crypto.randomUUID(),
+                                noteLength: "1/8th",
+                                strums: Array.from({ length: 8 }, () => ({
+                                  palmMute: "",
+                                  strum: "",
+                                })),
+                              },
+                            });
+                          }}
+                        >
+                          Add new pattern
+                        </Button>
+                      </div>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          )}
+
+            <MiscellaneousControls
+              type={"chordSequence"}
+              sectionId={sectionId}
+              sectionIndex={sectionIndex}
+              subSectionIndex={subSectionIndex}
+              chordSequenceIndex={chordSequenceIndex}
+            />
+          </div>
 
           <StrummingPattern
             data={chordSequenceData.strummingPattern}
             chordSequenceData={chordSequenceData.data}
-            mode={editing ? "editingChordSequence" : "viewingWithChordNames"}
+            mode={"editingChordSequence"}
             sectionIndex={sectionIndex}
             subSectionIndex={subSectionIndex}
             chordSequenceIndex={chordSequenceIndex}

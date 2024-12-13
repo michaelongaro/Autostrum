@@ -69,7 +69,7 @@ function StaticChordSection({ subSectionData }: StaticChordSection) {
               duration: 1,
             },
           }}
-          className="baseFlex !items-end !justify-start gap-8"
+          className="baseFlex flex-wrap !items-start !justify-start gap-8"
         >
           {subSectionData.data.map((chordSequence, index) => (
             <Fragment key={`${chordSequence.id}wrapper`}>
