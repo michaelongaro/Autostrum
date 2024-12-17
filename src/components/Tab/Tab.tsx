@@ -428,7 +428,7 @@ function Tab({ tab, refetchTab }: ITab) {
             </Button>
           )}
 
-          {audioMetadata.fullCurrentlyPlayingMetadataLength > 0 && (
+          {!editing && audioMetadata.fullCurrentlyPlayingMetadataLength > 0 && (
             <PlaybackDialog />
           )}
         </div>
