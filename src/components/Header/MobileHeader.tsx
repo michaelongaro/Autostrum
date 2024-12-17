@@ -12,7 +12,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { FaGuitar } from "react-icons/fa";
+import { GiMusicalScore } from "react-icons/gi";
 import { IoTelescopeOutline } from "react-icons/io5";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
@@ -100,7 +100,7 @@ function MobileHeader() {
                   href={"/create"}
                   className="baseFlex w-[165px] gap-2 text-[1.13rem]"
                 >
-                  <FaGuitar className="h-6 w-6" />
+                  <GiMusicalScore className="h-6 w-6" />
                   Create
                 </Link>
               </Button>
