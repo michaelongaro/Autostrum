@@ -47,6 +47,7 @@ function PlaybackDialog() {
     setVisiblePlaybackContainerWidth,
     playbackDialogViewingState,
     viewportLabel,
+    loopDelay,
     setAudioMetadata,
     setPlaybackDialogViewingState,
     pauseAudio,
@@ -69,12 +70,11 @@ function PlaybackDialog() {
     setVisiblePlaybackContainerWidth: state.setVisiblePlaybackContainerWidth,
     playbackDialogViewingState: state.playbackDialogViewingState,
     viewportLabel: state.viewportLabel,
+    loopDelay: state.loopDelay,
     setAudioMetadata: state.setAudioMetadata,
     setPlaybackDialogViewingState: state.setPlaybackDialogViewingState,
     pauseAudio: state.pauseAudio,
   }));
-
-  const [values, setValues] = useState([currentChordIndex]);
 
   const [translateX, setTranslateX] = useState(0);
   const [isManuallyScrolling, setIsManuallyScrolling] = useState(false);
@@ -86,9 +86,6 @@ function PlaybackDialog() {
 
   const [containerElement, setContainerElement] =
     useState<HTMLDivElement | null>(null);
-  const [prevDimensions, setPrevDimensions] = useState<DOMRect | null>(null);
-
-  // const [prevCurrentChordIndex, setPrevCurrentChordIndex] = useState(0); // should this start at -1?
 
   const [chordDurations, setChordDurations] = useState<number[]>([]);
   const [initialPlaceholderWidth, setInitialPlaceholderWidth] = useState(0);
@@ -507,124 +504,33 @@ function PlaybackDialog() {
                                   }),
                                 }}
                               >
-                                {expandedTabData[fullVisibleIndex]?.type ===
-                                "tab" ? (
-                                  <>
-                                    {expandedTabData[
-                                      fullVisibleIndex
-                                    ]?.data.chordData.includes("|") ? (
-                                      <PlaybackTabMeasureLine
-                                        columnData={
-                                          expandedTabData[fullVisibleIndex]
-                                            ?.data.chordData
-                                        }
-                                        isDimmed={
-                                          audioMetadata.editingLoopRange &&
-                                          (fullVisibleIndex <
-                                            audioMetadata.startLoopIndex ||
-                                            (audioMetadata.endLoopIndex !==
-                                              -1 &&
-                                              fullVisibleIndex >
-                                                audioMetadata.endLoopIndex))
-                                        }
-                                      />
-                                    ) : (
-                                      <PlaybackTabChord
-                                        columnData={
-                                          expandedTabData[fullVisibleIndex]
-                                            ?.data.chordData
-                                        }
-                                        isFirstChordInSection={
-                                          fullVisibleIndex === 0 &&
-                                          fullScrollPositions[0]
-                                            ?.currentPosition === null
-                                        }
-                                        isLastChordInSection={false}
-                                        isHighlighted={
-                                          !audioMetadata.editingLoopRange &&
-                                          ((audioMetadata.playing &&
-                                            highlightChord({
-                                              chordIndex: fullVisibleIndex,
-                                              type: "isBeingPlayed",
-                                            })) ||
-                                            highlightChord({
-                                              chordIndex: fullVisibleIndex,
-                                              type: "hasBeenPlayed",
-                                            }))
-                                        }
-                                        isDimmed={
-                                          audioMetadata.editingLoopRange &&
-                                          (fullVisibleIndex <
-                                            audioMetadata.startLoopIndex ||
-                                            (audioMetadata.endLoopIndex !==
-                                              -1 &&
-                                              fullVisibleIndex >
-                                                audioMetadata.endLoopIndex))
-                                        }
-                                      />
-                                    )}
-                                  </>
-                                ) : (
-                                  <PlaybackStrummedChord
-                                    strumIndex={
-                                      expandedTabData[fullVisibleIndex]?.data
-                                        .strumIndex || 0
-                                    }
-                                    strum={
-                                      expandedTabData[fullVisibleIndex]?.data
-                                        .strum || ""
-                                    }
-                                    palmMute={
-                                      expandedTabData[fullVisibleIndex]?.data
-                                        .palmMute || ""
-                                    }
-                                    isFirstChordInSection={
-                                      fullVisibleIndex === 0 &&
-                                      fullScrollPositions[0]
-                                        ?.currentPosition === null
-                                    }
-                                    isLastChordInSection={false}
-                                    noteLength={
-                                      expandedTabData[fullVisibleIndex]?.data
-                                        .noteLength || "1/4th"
-                                    }
-                                    bpmToShow={
-                                      expandedTabData[fullVisibleIndex]?.data
-                                        .showBpm
-                                        ? expandedTabData[fullVisibleIndex]
-                                            ?.data.bpm
-                                        : undefined
-                                    }
-                                    chordName={
-                                      expandedTabData[fullVisibleIndex]?.data
-                                        .chordName || ""
-                                    }
-                                    isHighlighted={
-                                      !audioMetadata.editingLoopRange &&
-                                      ((audioMetadata.playing &&
-                                        highlightChord({
-                                          chordIndex: fullVisibleIndex,
-                                          type: "isBeingPlayed",
-                                        })) ||
-                                        highlightChord({
-                                          chordIndex: fullVisibleIndex,
-                                          type: "hasBeenPlayed",
-                                        }))
-                                    }
-                                    isDimmed={
-                                      audioMetadata.editingLoopRange &&
-                                      (fullVisibleIndex <
-                                        audioMetadata.startLoopIndex ||
-                                        (audioMetadata.endLoopIndex !== -1 &&
-                                          fullVisibleIndex >
-                                            audioMetadata.endLoopIndex))
-                                    }
-                                    isRaised={
-                                      expandedTabData[fullVisibleIndex]?.data
-                                        .isRaised || false
-                                    }
-                                  />
-                                )}
+                                {/* TODO: probably should make measureLine have its own interface
+                                so that we can just directly use the type field rather than logic below */}
+                                <RenderChordByType
+                                  type={
+                                    expandedTabData[fullVisibleIndex]?.type ===
+                                    "strum"
+                                      ? "strum"
+                                      : expandedTabData[fullVisibleIndex]
+                                            ?.type === "tab"
+                                        ? expandedTabData[
+                                            fullVisibleIndex
+                                          ]?.data.chordData.includes("|")
+                                          ? "measureLine"
+                                          : "tab"
+                                        : "loopDelaySpacer"
+                                  }
+                                  fullVisibleIndex={fullVisibleIndex}
+                                  expandedTabData={
+                                    expandedTabData as
+                                      | PlaybackTabChordType[]
+                                      | PlaybackStrummedChordType[]
+                                  }
+                                  fullScrollPositions={fullScrollPositions}
+                                  audioMetadata={audioMetadata}
+                                  loopDelay={loopDelay}
+                                  highlightChord={highlightChord}
+                                />
                               </div>
                             );
                           })}
@@ -872,4 +778,139 @@ function getChordLeftValue({
       fullScrollPositions[index]?.originalPosition ||
       0) + initialPlaceholderWidth
   }px`;
+}
+
+interface RenderChordByType {
+  type: "tab" | "measureLine" | "strum" | "loopDelaySpacer";
+  fullVisibleIndex: number;
+  expandedTabData: PlaybackTabChordType[] | PlaybackStrummedChordType[];
+  fullScrollPositions: {
+    originalPosition: number;
+    currentPosition: number | null;
+  }[];
+  audioMetadata: AudioMetadata;
+  loopDelay: number;
+  highlightChord: (args: {
+    chordIndex: number;
+    type: "isBeingPlayed" | "hasBeenPlayed";
+  }) => boolean;
+}
+
+function RenderChordByType({
+  type,
+  fullVisibleIndex,
+  expandedTabData,
+  fullScrollPositions,
+  audioMetadata,
+  loopDelay,
+  highlightChord,
+}: RenderChordByType) {
+  if (type === "tab" && expandedTabData[fullVisibleIndex]?.type === "tab") {
+    return (
+      <PlaybackTabChord
+        columnData={expandedTabData[fullVisibleIndex]?.data.chordData}
+        isFirstChordInSection={
+          fullVisibleIndex === 0 &&
+          (loopDelay !== 0 || fullScrollPositions[0]?.currentPosition === null)
+        }
+        isLastChordInSection={
+          expandedTabData[fullVisibleIndex]?.isLastChord && loopDelay !== 0
+        }
+        isHighlighted={
+          !audioMetadata.editingLoopRange &&
+          ((audioMetadata.playing &&
+            highlightChord({
+              chordIndex: fullVisibleIndex,
+              type: "isBeingPlayed",
+            })) ||
+            highlightChord({
+              chordIndex: fullVisibleIndex,
+              type: "hasBeenPlayed",
+            }))
+        }
+        isDimmed={
+          audioMetadata.editingLoopRange &&
+          (fullVisibleIndex < audioMetadata.startLoopIndex ||
+            (audioMetadata.endLoopIndex !== -1 &&
+              fullVisibleIndex > audioMetadata.endLoopIndex))
+        }
+      />
+    );
+  }
+
+  if (
+    type === "measureLine" &&
+    expandedTabData[fullVisibleIndex]?.type === "tab"
+  ) {
+    return (
+      <PlaybackTabMeasureLine
+        columnData={expandedTabData[fullVisibleIndex]!.data.chordData}
+        isDimmed={
+          audioMetadata.editingLoopRange &&
+          (fullVisibleIndex < audioMetadata.startLoopIndex ||
+            (audioMetadata.endLoopIndex !== -1 &&
+              fullVisibleIndex > audioMetadata.endLoopIndex))
+        }
+      />
+    );
+  }
+
+  if (type === "strum" && expandedTabData[fullVisibleIndex]?.type === "strum") {
+    return (
+      <PlaybackStrummedChord
+        strumIndex={expandedTabData[fullVisibleIndex]?.data.strumIndex || 0}
+        strum={expandedTabData[fullVisibleIndex]?.data.strum || ""}
+        palmMute={expandedTabData[fullVisibleIndex]?.data.palmMute || ""}
+        isFirstChordInSection={
+          fullVisibleIndex === 0 &&
+          (loopDelay !== 0 || fullScrollPositions[0]?.currentPosition === null)
+        }
+        isLastChordInSection={
+          expandedTabData[fullVisibleIndex]?.isLastChord && loopDelay !== 0
+        }
+        noteLength={
+          expandedTabData[fullVisibleIndex]?.data.noteLength || "1/4th"
+        }
+        bpmToShow={
+          expandedTabData[fullVisibleIndex]?.data.showBpm
+            ? expandedTabData[fullVisibleIndex]?.data.bpm
+            : undefined
+        }
+        chordName={expandedTabData[fullVisibleIndex]?.data.chordName || ""}
+        isHighlighted={
+          !audioMetadata.editingLoopRange &&
+          ((audioMetadata.playing &&
+            highlightChord({
+              chordIndex: fullVisibleIndex,
+              type: "isBeingPlayed",
+            })) ||
+            highlightChord({
+              chordIndex: fullVisibleIndex,
+              type: "hasBeenPlayed",
+            }))
+        }
+        isDimmed={
+          audioMetadata.editingLoopRange &&
+          (fullVisibleIndex < audioMetadata.startLoopIndex ||
+            (audioMetadata.endLoopIndex !== -1 &&
+              fullVisibleIndex > audioMetadata.endLoopIndex))
+        }
+        isRaised={expandedTabData[fullVisibleIndex]?.data.isRaised || false}
+      />
+    );
+  }
+
+  if (type === "loopDelaySpacer") {
+    return (
+      <div
+        style={{
+          position: "absolute",
+          width: "35px",
+          height: "100%",
+          backgroundColor: "black",
+          left: 0,
+        }}
+      ></div>
+    );
+  }
 }

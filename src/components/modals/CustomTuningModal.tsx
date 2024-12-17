@@ -124,8 +124,6 @@ function CustomTuningModal({
     setShowCustomTuningModal(false);
   }
 
-  console.log(previewMetadata.currentChordIndex);
-
   return (
     <motion.div
       key={"CustomTuningModalBackdrop"}

@@ -104,7 +104,7 @@ export interface Metadata {
   bpm: number;
   noteLengthMultiplier: string;
   elapsedSeconds: number;
-  type: "tab" | "strum" | "ornamental";
+  type: "tab" | "strum" | "ornamental" | "loopDelaySpacer";
 }
 
 export interface PlaybackMetadata {
@@ -127,7 +127,7 @@ export interface PlaybackMetadata {
     | "1/16th"
     | "1/16th triplet";
   elapsedSeconds: number;
-  type: "tab" | "strum" | "ornamental";
+  type: "tab" | "strum" | "ornamental" | "loopDelaySpacer";
 }
 
 type InstrumentNames =
@@ -197,6 +197,13 @@ export interface PlaybackStrummedChord {
   isFirstChord: boolean;
   isLastChord: boolean;
   data: PlaybackChord;
+}
+
+export interface PlaybackLoopDelaySpacerChord {
+  type: "loopDelaySpacer";
+  data: {
+    bpm: number;
+  };
 }
 
 interface PlaybackChord {
@@ -391,9 +398,21 @@ interface TabState {
     forSectionContainer: number | null;
   }) => void;
 
-  expandedTabData: (PlaybackTabChord | PlaybackStrummedChord)[] | null;
+  expandedTabData:
+    | (
+        | PlaybackTabChord
+        | PlaybackStrummedChord
+        | PlaybackLoopDelaySpacerChord
+      )[]
+    | null;
   setExpandedTabData: (
-    expandedTabData: (PlaybackTabChord | PlaybackStrummedChord)[] | null,
+    expandedTabData:
+      | (
+          | PlaybackTabChord
+          | PlaybackStrummedChord
+          | PlaybackLoopDelaySpacerChord
+        )[]
+      | null,
   ) => void;
 
   playbackMetadata: PlaybackMetadata[] | null;
@@ -785,7 +804,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           setCurrentlyPlayingMetadata,
           visiblePlaybackContainerWidth,
           setPlaybackMetadata,
-          looping,
+          loopDelay,
         } = get();
 
         if (!audioContext || !masterVolumeGainNode || !currentInstrument)
@@ -848,6 +867,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
               setCurrentlyPlayingMetadata,
               startLoopIndex: adjStartLoopIndex,
               endLoopIndex: adjEndLoopIndex,
+              loopDelay,
             });
 
         const sanitizedSectionProgression =
@@ -865,12 +885,12 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           setPlaybackMetadata,
           startLoopIndex: adjStartLoopIndex,
           endLoopIndex: adjEndLoopIndex,
-          looping,
+          loopDelay,
           visiblePlaybackContainerWidth,
         });
 
         // note: technically you could have similar duplication logic in regular compilationHelper
-        // function, however I think it's cleaner to just augement the loop range with the % operator
+        // function, however I think it's cleaner to just augment the loop range with the % operator
         // to achieve the same effect
         const repeatCount = compiledChords.length * expandedTabData.loopCounter;
 
@@ -927,6 +947,9 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             });
             return;
           }
+
+          // TODO: probably want to have reset of slider to beginning at the very first
+          // loop delay spacer chord (if there is one).
 
           // If the current chord is the last in the compiledChords sequence
           if (

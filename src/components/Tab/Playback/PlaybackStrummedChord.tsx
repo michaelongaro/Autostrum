@@ -98,6 +98,7 @@ function PlaybackStrummedChord({
 
       {strumIndex !== -1 && (
         <div
+          key={`${strumIndex}-${isFirstChordInSection}-${isLastChordInSection}`}
           style={{
             borderLeft: isFirstChordInSection ? "2px solid white" : "none",
             borderRight: isLastChordInSection ? "2px solid white" : "none",

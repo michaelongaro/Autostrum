@@ -35,6 +35,7 @@ function useAutoCompileChords() {
     setSectionProgression,
     visiblePlaybackContainerWidth,
     looping,
+    loopDelay,
   } = useTabStore((state) => ({
     editing: state.editing,
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
@@ -52,6 +53,7 @@ function useAutoCompileChords() {
     setSectionProgression: state.setSectionProgression,
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
     looping: state.looping,
+    loopDelay: state.loopDelay,
   }));
 
   useEffect(() => {
@@ -136,6 +138,7 @@ function useAutoCompileChords() {
         startLoopIndex: audioMetadata.startLoopIndex,
         endLoopIndex: audioMetadata.endLoopIndex,
         atomicallyUpdateAudioMetadata,
+        loopDelay,
       });
 
       if (!editing) {
@@ -154,7 +157,7 @@ function useAutoCompileChords() {
             ? -1
             : audioMetadata.endLoopIndex,
           visiblePlaybackContainerWidth,
-          looping,
+          loopDelay,
         });
 
         setExpandedTabData(expandedTabData.chords);
@@ -190,6 +193,7 @@ function useAutoCompileChords() {
     setSectionProgression,
     visiblePlaybackContainerWidth,
     looping,
+    loopDelay,
   ]);
 
   // only applies while editing obv, but if you delete some chords, the loop range should be reset

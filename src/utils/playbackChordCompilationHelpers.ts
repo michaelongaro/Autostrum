@@ -10,6 +10,7 @@ import type {
   TabSection,
   PlaybackTabChord,
   PlaybackStrummedChord,
+  PlaybackLoopDelaySpacerChord,
 } from "../stores/TabStore";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
@@ -24,7 +25,7 @@ interface ExpandFullTab {
   setPlaybackMetadata: (playbackMetadata: PlaybackMetadata[] | null) => void;
   startLoopIndex: number;
   endLoopIndex: number;
-  looping: boolean;
+  loopDelay: number;
   visiblePlaybackContainerWidth: number;
 }
 
@@ -37,10 +38,19 @@ function expandFullTab({
   setPlaybackMetadata,
   startLoopIndex,
   endLoopIndex,
-  looping,
+  loopDelay,
   visiblePlaybackContainerWidth,
 }: ExpandFullTab) {
-  const compiledChords: (PlaybackTabChord | PlaybackStrummedChord)[] = [];
+  // currently kind of leaning towards making a separate type for loopDelay spacer chords
+  // and adding them to compiledChords, since I don't like the idea of just lumping them together
+  // with tab/strum chord types. Again they should simply just be empty 35px wide divs with a bpm
+  // so that they smoothly transition from the end of the tab to the start of the tab again.
+
+  const compiledChords: (
+    | PlaybackTabChord
+    | PlaybackStrummedChord
+    | PlaybackLoopDelaySpacerChord
+  )[] = [];
   const metadata: PlaybackMetadata[] = [];
   const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues
 
@@ -71,7 +81,10 @@ function expandFullTab({
         sectionIndex,
         sectionRepeatIndex: sectionRepeatIdx,
         baselineBpm,
-        compiledChords,
+        compiledChords: compiledChords as (
+          | PlaybackTabChord
+          | PlaybackStrummedChord
+        )[],
         metadata,
         chords,
         elapsedSeconds,
@@ -105,14 +118,14 @@ function expandFullTab({
     metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
   }
 
-  // right before duplication step, need to add a spacer chord if the first chord and last
-  // chord are different types (tab vs strum)
   const firstChordType = compiledChordsMappedToLoopRange[0]?.type ?? "tab";
   const lastChordType = compiledChordsMappedToLoopRange.at(-1)?.type ?? "tab";
 
   const firstChordBpm = `${compiledChordsMappedToLoopRange[0]?.data.bpm ?? baselineBpm}`;
   const lastChordBpm = `${compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm}`;
 
+  // right before duplication step, need to add a spacer chord if the first chord and last
+  // chord are different types (tab vs strum)
   if (firstChordType !== lastChordType) {
     compiledChordsMappedToLoopRange.push(
       firstChordType === "tab"
@@ -221,7 +234,7 @@ function expandFullTab({
         // regular chord
         return acc + 35;
       } else {
-        if (curr.data.strumIndex === -1) {
+        if (curr.type === "strum" && curr.data.strumIndex === -1) {
           // spacer chord
           return acc + 16;
         }
@@ -239,8 +252,102 @@ function expandFullTab({
   );
   const baselineMetadata = structuredClone(metadataMappedToLoopRange);
 
-  // duplicate the entire chords + metadata as many times as needed to fill up the visiblePlaybackContainerWidth
-  while (totalChordsWidth < visiblePlaybackContainerWidth) {
+  // adding loopDelay in one-off fasion since do-while loop approach caused some clunky issues.
+  if (loopDelay > 0 && totalChordsWidth >= visiblePlaybackContainerWidth) {
+    // add as many spacer chords as needed to fill up the loopDelay
+    // (according to the bpm of the very last chord in the loop).
+    // The loopDelay value is the number of seconds to delay the repeat of the loop by.
+    if (loopDelay > 0) {
+      // make sure that last chord has "isLastChord" set to true, so that it has the rounded right border
+
+      // @ts-expect-error asdf
+      compiledChordsMappedToLoopRange.at(-1)!.isLastChord = true;
+
+      const numSpacerChordsToAdd = Math.floor(
+        loopDelay / ((60 / Number(lastChordBpm)) * playbackSpeed),
+      );
+
+      const lastChordMultiplier =
+        metadataMappedToLoopRange.at(-1)?.noteLengthMultiplier ?? "1";
+      const lastChordNoteLength =
+        metadataMappedToLoopRange.at(-1)?.noteLength ?? "1/4th";
+
+      for (let i = 0; i < numSpacerChordsToAdd; i++) {
+        compiledChordsMappedToLoopRange.push({
+          type: "loopDelaySpacer",
+          data: {
+            bpm: Number(lastChordBpm),
+          },
+        });
+
+        metadataMappedToLoopRange.push({
+          location: {
+            ...metadataMappedToLoopRange.at(-1)!.location,
+            chordIndex:
+              metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
+          },
+          bpm: Number(
+            getBpmForChord(
+              compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
+              baselineBpm,
+            ),
+          ),
+          noteLengthMultiplier: lastChordMultiplier,
+          noteLength: lastChordNoteLength,
+          elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
+          type: "ornamental",
+        });
+      }
+    }
+  }
+
+  // non-zero check because this was running before visiblePlaybackContainerWidth was set,
+  // probably want to gate entire function even being called beforehand?
+  while (
+    visiblePlaybackContainerWidth > 0 &&
+    totalChordsWidth < visiblePlaybackContainerWidth
+  ) {
+    // adding the loopDelay spacer chords to the very end of the compiledChords
+    // make sure that last chord has "isLastChord" set to true, so that it has the rounded right border
+
+    // @ts-expect-error asdf
+    compiledChordsMappedToLoopRange.at(-1)!.isLastChord = true;
+
+    const numSpacerChordsToAdd = Math.floor(
+      loopDelay / ((60 / Number(lastChordBpm)) * playbackSpeed),
+    );
+
+    const lastChordMultiplier =
+      metadataMappedToLoopRange.at(-1)?.noteLengthMultiplier ?? "1";
+    const lastChordNoteLength =
+      metadataMappedToLoopRange.at(-1)?.noteLength ?? "1/4th";
+
+    for (let i = 0; i < numSpacerChordsToAdd; i++) {
+      compiledChordsMappedToLoopRange.push({
+        type: "loopDelaySpacer",
+        data: {
+          bpm: Number(lastChordBpm),
+        },
+      });
+
+      metadataMappedToLoopRange.push({
+        location: {
+          ...metadataMappedToLoopRange.at(-1)!.location,
+          chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
+        },
+        bpm: Number(
+          getBpmForChord(
+            compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
+            baselineBpm,
+          ),
+        ),
+        noteLengthMultiplier: lastChordMultiplier,
+        noteLength: lastChordNoteLength,
+        elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
+        type: "ornamental",
+      });
+    }
+
     compiledChordsMappedToLoopRange.push(...baselineCompiledChords);
     metadataMappedToLoopRange.push(...baselineMetadata);
 

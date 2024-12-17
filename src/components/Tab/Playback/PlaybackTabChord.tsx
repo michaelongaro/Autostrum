@@ -63,7 +63,9 @@ function PlaybackTabChord({
         >
           <div className="baseVertFlex mb-[3.2rem] mt-4">
             {columnData.map((note, index) => (
-              <Fragment key={index}>
+              <Fragment
+                key={`${index}-${isFirstChordInSection}-${isLastChordInSection}`}
+              >
                 {index === 0 && (
                   <div className="baseFlex h-7 w-full">
                     <PlaybackPalmMuteNode value={note} />
@@ -88,7 +90,11 @@ function PlaybackTabChord({
                           ? "10px 0 0 0" // top left
                           : isFirstChordInSection && index === 6
                             ? "0 0 0 10px" // bottom left
-                            : "none",
+                            : isLastChordInSection && index === 1
+                              ? "0 10px 0 0" // top right
+                              : isLastChordInSection && index === 6
+                                ? "0 0 10px 0" // bottom right
+                                : "none",
                       borderBottom: `${
                         index === 6 ? "2px solid rgb(253 242 248)" : "none"
                       }`,
@@ -99,7 +105,7 @@ function PlaybackTabChord({
                     <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
 
                     <div className="baseFlex w-[35px]">
-                      <div className="my-3 h-[1px] flex-[1] bg-pink-100/50"></div>
+                      <div className="my-3 h-[1px] flex-[1] bg-stone-600"></div>
                       <div
                         style={{
                           color: isHighlighted
@@ -114,7 +120,7 @@ function PlaybackTabChord({
                       >
                         {note}
                       </div>
-                      <div className="my-3 h-[1px] flex-[1] bg-pink-100/50"></div>
+                      <div className="my-3 h-[1px] flex-[1] bg-stone-600"></div>
                     </div>
 
                     <div className="h-[1px] flex-[1] bg-pink-100/50"></div>

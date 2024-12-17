@@ -137,8 +137,6 @@ function ProgressSlider({
           : (newCurrentChordIndex ?? 0),
       );
 
-      console.log("setting", adjustedStartIndex, adjustedEndIndex);
-
       setAudioMetadata({
         ...audioMetadata,
         startLoopIndex: adjustedStartIndex,
