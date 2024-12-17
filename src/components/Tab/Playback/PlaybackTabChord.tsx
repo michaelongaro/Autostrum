@@ -105,7 +105,7 @@ function PlaybackTabChord({
                     <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
 
                     <div className="baseFlex w-[35px]">
-                      <div className="my-3 h-[1px] flex-[1] bg-stone-600"></div>
+                      <div className="my-3 h-[1px] flex-[1] bg-pink-100/50"></div>
                       <div
                         style={{
                           color: isHighlighted
@@ -120,7 +120,7 @@ function PlaybackTabChord({
                       >
                         {note}
                       </div>
-                      <div className="my-3 h-[1px] flex-[1] bg-stone-600"></div>
+                      <div className="my-3 h-[1px] flex-[1] bg-pink-100/50"></div>
                     </div>
 
                     <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
