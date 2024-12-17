@@ -61,7 +61,7 @@ function StrummingPatternModal({
     useState(false);
 
   const [accordionValue, setAccordionValue] = useState(
-    isMobile ? "" : "opened"
+    isMobile ? "" : "opened",
   );
 
   const {
@@ -91,12 +91,12 @@ function StrummingPatternModal({
   const getPMNodeOpacities = useCallback(() => {
     if (lastModifiedPalmMuteNode === null) {
       return new Array(strummingPatternBeingEdited.value.strums.length).fill(
-        "1"
+        "1",
       ) as string[];
     }
 
     const newOpacities = new Array(
-      strummingPatternBeingEdited.value.strums.length
+      strummingPatternBeingEdited.value.strums.length,
     ).fill("0.25") as string[];
 
     // added new "PM Start" node
@@ -115,7 +115,7 @@ function StrummingPatternModal({
       newOpacities.fill(
         "1",
         lastModifiedPalmMuteNode.columnIndex,
-        nearestStartNodeIndex
+        nearestStartNodeIndex,
       );
     }
     // removed "PM Start" node
@@ -190,7 +190,7 @@ function StrummingPatternModal({
 
       setTimeout(() => {
         const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10)
+          parseInt(`${document.body.style.top || 0}`, 10),
         );
         document.body.classList.remove("noScroll");
         document.body.style.removeProperty("top");
@@ -206,7 +206,7 @@ function StrummingPatternModal({
       | "1/8th"
       | "1/8th triplet"
       | "1/16th"
-      | "1/16th triplet"
+      | "1/16th triplet",
   ) {
     const newStrummingPattern = structuredClone(strummingPatternBeingEdited);
 
@@ -224,7 +224,7 @@ function StrummingPatternModal({
       // start node to being empty
       if (lastModifiedPalmMuteNode.prevValue === "") {
         const newStrummingPattern = structuredClone(
-          strummingPatternBeingEdited
+          strummingPatternBeingEdited,
         );
 
         newStrummingPattern.value.strums[
@@ -289,7 +289,7 @@ function StrummingPatternModal({
                 !strummingPattern ||
                 !isEqual(
                   strummingPattern,
-                  strummingPatterns[strummingPatternBeingEdited.index]
+                  strummingPatterns[strummingPatternBeingEdited.index],
                 )
               )
                 continue;
@@ -410,7 +410,7 @@ function StrummingPatternModal({
                 // className="transition-colors transition-opacity"
                 onClick={toggleEditingPalmMuteNodes}
               >
-                Edit PM sections
+                PM Editor
               </Button>
 
               {editingPalmMuteNodes && (
@@ -523,7 +523,7 @@ function StrummingPatternModal({
               disabled={
                 artificalPlayButtonTimeout ||
                 strummingPatternBeingEdited.value.strums.every(
-                  (strum) => strum.strum === ""
+                  (strum) => strum.strum === "",
                 )
               }
               className="baseFlex gap-4"
@@ -574,11 +574,11 @@ function StrummingPatternModal({
               <Button
                 disabled={
                   strummingPatternBeingEdited.value.strums.every(
-                    (strum) => strum.strum === ""
+                    (strum) => strum.strum === "",
                   ) ||
                   isEqual(
                     strummingPatternBeingEdited.value,
-                    strummingPatterns[strummingPatternBeingEdited.index]
+                    strummingPatterns[strummingPatternBeingEdited.index],
                   )
                 }
                 onClick={handleSaveStrummingPattern}
