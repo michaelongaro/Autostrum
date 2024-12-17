@@ -1,5 +1,4 @@
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
-import ProgressSlider from "~/components/AudioControls/ProgressSlider";
+import { useEffect, useRef, useState } from "react";
 import PlaybackAudioControls from "~/components/Tab/Playback/PlaybackAudio/PlaybackAudioControls";
 import PlaybackBottomMetadata from "~/components/Tab/Playback/PlaybackBottomMetadata";
 import PlaybackStrummedChord from "~/components/Tab/Playback/PlaybackStrummedChord";
@@ -8,7 +7,6 @@ import PlaybackTabMeasureLine from "~/components/Tab/Playback/PlaybackTabMeasure
 import PlaybackTopMetadata from "~/components/Tab/Playback/PlaybackTopMetadata";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "~/components/ui/button";
-import { getTrackBackground, Range } from "react-range";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +23,7 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import PlaybackMenuContent from "~/components/Tab/Playback/PlaybackMenuContent";
 import PlaybackScrollingContainer from "~/components/Tab/Playback/PlaybackScrollingContainer";
-import { FaGuitar } from "react-icons/fa";
+import Logo from "~/components/ui/icons/Logo";
 
 function PlaybackDialog() {
   const {
@@ -33,14 +31,11 @@ function PlaybackDialog() {
     currentChordIndex,
     playbackSpeed,
     setCurrentChordIndex,
-    currentlyPlayingMetadata,
     playbackMetadata,
-    setPlaybackMetadata,
     audioMetadata,
     showPlaybackDialog,
     setShowPlaybackDialog,
     title,
-    looping,
     setLooping,
     description,
     visiblePlaybackContainerWidth,
@@ -56,14 +51,11 @@ function PlaybackDialog() {
     expandedTabData: state.expandedTabData,
     playbackSpeed: state.playbackSpeed,
     setCurrentChordIndex: state.setCurrentChordIndex,
-    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     playbackMetadata: state.playbackMetadata,
-    setPlaybackMetadata: state.setPlaybackMetadata,
     audioMetadata: state.audioMetadata,
     showPlaybackDialog: state.showPlaybackDialog,
     setShowPlaybackDialog: state.setShowPlaybackDialog,
     title: state.title,
-    looping: state.looping,
     setLooping: state.setLooping,
     description: state.description,
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
@@ -404,9 +396,9 @@ function PlaybackDialog() {
       <DialogTrigger asChild>
         <Button
           variant="playPause"
-          className="baseFlex sticky bottom-4 right-4 mb-4 gap-4 !rounded-full px-8 py-6 text-xl shadow-lg tablet:bottom-6 tablet:px-10"
+          className="baseFlex sticky bottom-4 right-4 mb-4 gap-3 !rounded-full px-8 py-6 text-xl shadow-lg tablet:bottom-6 tablet:px-10"
         >
-          <FaGuitar className="tablet:size-7.5 size-7" />
+          <Logo className="size-5 fill-pink-50 tablet:size-5" />
           Practice
         </Button>
       </DialogTrigger>
