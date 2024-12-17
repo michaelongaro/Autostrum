@@ -12,24 +12,6 @@ import {
 } from "~/utils/bpmIconRenderingHelpers";
 import StaticChordSequence from "~/components/Tab/Static/StaticChordSequence";
 
-const opacityAndScaleVariants = {
-  expanded: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      ease: "easeInOut",
-      duration: 0.25,
-    },
-  },
-  closed: {
-    opacity: 0,
-    scale: 0.5,
-    transition: {
-      ease: "easeInOut",
-      duration: 0.25,
-    },
-  },
-};
 export interface StaticChordSection {
   subSectionData: ChordSectionType;
 }
@@ -48,27 +30,11 @@ function StaticChordSection({ subSectionData }: StaticChordSection) {
   return (
     <motion.div
       key={subSectionData.id}
-      variants={opacityAndScaleVariants}
-      transition={{
-        layout: {
-          type: "spring",
-          bounce: 0.15,
-          duration: 1,
-        },
-      }}
       className="baseVertFlex lightestGlassmorphic relative h-full !justify-start rounded-md p-4 md:p-8"
     >
       <AnimatePresence mode="wait">
         <motion.div
           key={`${subSectionData.id}ChordSectionWrapper`}
-          variants={opacityAndScaleVariants}
-          transition={{
-            layout: {
-              type: "spring",
-              bounce: 0.15,
-              duration: 1,
-            },
-          }}
           className="baseFlex flex-wrap !items-start !justify-start gap-8"
         >
           {subSectionData.data.map((chordSequence, index) => (
