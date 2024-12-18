@@ -15,6 +15,7 @@ export function useInitializeAudioContext() {
     currentInstrumentName,
     setInstruments,
     currentInstrument,
+    setCountInBuffer,
   } = useTabStore((state) => ({
     audioContext: state.audioContext,
     setAudioContext: state.setAudioContext,
@@ -25,6 +26,7 @@ export function useInitializeAudioContext() {
     currentInstrumentName: state.currentInstrumentName,
     setInstruments: state.setInstruments,
     currentInstrument: state.currentInstrument,
+    setCountInBuffer: state.setCountInBuffer,
   }));
 
   // TODO: this is maybe slightly redundant w/ useFetchAndLoadSoundfonts.ts
@@ -33,7 +35,7 @@ export function useInitializeAudioContext() {
   useEffect(() => {
     if (audioContext && masterVolumeGainNode) return;
 
-    const handleUserInteraction = () => {
+    function handleUserInteraction() {
       if (audioContext && masterVolumeGainNode) return;
 
       const newAudioContext = new AudioContext();
@@ -73,9 +75,19 @@ export function useInitializeAudioContext() {
         currentInstrument ? 0 : 3000, // want to reduce inital fetching of instrument when app loads
       );
 
+      async function fetchAudioFile(path: string) {
+        const response = await fetch(path);
+        const arrayBuffer = await response.arrayBuffer();
+        return await newAudioContext.decodeAudioData(arrayBuffer);
+      }
+
+      fetchAudioFile("/sounds/countIn.wav").then((audioBuffer) => {
+        setCountInBuffer(audioBuffer);
+      });
+
       window.removeEventListener("click", handleUserInteraction);
       window.removeEventListener("keydown", handleUserInteraction);
-    };
+    }
 
     window.addEventListener("click", handleUserInteraction);
     window.addEventListener("keydown", handleUserInteraction);
@@ -94,5 +106,6 @@ export function useInitializeAudioContext() {
     currentInstrumentName,
     setInstruments,
     currentInstrument,
+    setCountInBuffer,
   ]);
 }

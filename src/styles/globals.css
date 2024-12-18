@@ -20,23 +20,23 @@
 }
 
 .lightestGlassmorphic {
-  @apply backdrop-blur-sm shadow-lightestGlassmorphic bg-gradient-to-br from-pink-500/50 to-pink-500/90;
+  @apply bg-gradient-to-br from-pink-500/50 to-pink-500/90 shadow-lightestGlassmorphic backdrop-blur-sm;
 }
 
 .lightGlassmorphic {
-  @apply bg-gradient-to-br from-pink-200/[0.15] to-pink-200/30 backdrop-blur-sm shadow-md;
+  @apply bg-gradient-to-br from-pink-200/[0.15] to-pink-200/30 shadow-md backdrop-blur-sm;
 }
 
 .homepageLightGlassmorphic {
-  @apply bg-gradient-to-br from-pink-200/20 to-pink-200/25 backdrop-blur-sm shadow-md;
+  @apply bg-gradient-to-br from-pink-200/20 to-pink-200/25 shadow-md backdrop-blur-sm;
 }
 
 .autofillResultsGlassmorphic {
-  @apply bg-gradient-to-br from-pink-400 to-pink-500 backdrop-blur-xl shadow-sm;
+  @apply bg-gradient-to-br from-pink-400 to-pink-500 shadow-sm backdrop-blur-xl;
 }
 
 .chordPreviewGlassmorphic {
-  @apply backdrop-blur-sm bg-gradient-to-br from-pink-500/40 via-pink-500/60 to-pink-500/60;
+  @apply bg-gradient-to-br from-pink-500/40 via-pink-500/60 to-pink-500/60 backdrop-blur-sm;
 }
 
 /* below are same gradients as background, but up by ~7% on lightness value of hsl to match the
@@ -61,7 +61,9 @@
 
 /* shadow-md was too harsh for my liking, this is a scaled back version, in-between sm and md */
 .searchInputBoxShadow {
-  box-shadow: 0 3px 4px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  box-shadow:
+    0 3px 4px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 /* basically just shadow-2xl but with less opacity on background color and slighly less blur  */
@@ -75,13 +77,23 @@
   }
 }
 
-@media(min-width: 768px) {
+@media (min-width: 768px) {
   .headerBackgroundGradient {
-    background: linear-gradient(315deg, hsl(345, 95%, 69%), hsl(331, 95%, 74%), hsl(298, 100%, 79%));
+    background: linear-gradient(
+      315deg,
+      hsl(345, 95%, 69%),
+      hsl(331, 95%, 74%),
+      hsl(298, 100%, 79%)
+    );
   }
 
   .footerBackgroundGradient {
-    background: linear-gradient(315deg, hsl(359, 83%, 66%), hsl(349, 100%, 73%), hsl(333, 93%, 73%));
+    background: linear-gradient(
+      315deg,
+      hsl(359, 83%, 66%),
+      hsl(349, 100%, 73%),
+      hsl(333, 93%, 73%)
+    );
   }
 }
 
@@ -162,7 +174,9 @@
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
   }
 }
 
@@ -176,7 +190,13 @@ body::before {
   bottom: 0;
   left: 0;
   z-index: -1;
-  background: linear-gradient(145deg, hsl(297, 100%, 73%), hsl(340, 100%, 66%), hsl(0, 84%, 53%)) center / cover;
+  background: linear-gradient(
+      145deg,
+      hsl(297, 100%, 73%),
+      hsl(340, 100%, 66%),
+      hsl(0, 84%, 53%)
+    )
+    center / cover;
   height: 100vh;
 }
 
@@ -193,11 +213,34 @@ body {
 }
 
 .cl-internal-uxtgvn {
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
     0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
 }
 
 .cl-rootBox,
 .cl-userButtonPopoverCard {
   text-shadow: none;
+}
+
+@keyframes countInAnimation {
+  0% {
+    transform: translateY(-30px);
+    opacity: 0 !important;
+  }
+
+  50% {
+    transform: translateY(0px);
+    opacity: 1 !important;
+  }
+
+  100% {
+    transform: translateY(30px);
+    opacity: 0 !important;
+  }
+}
+
+.countIn {
+  /* TODO: change this later to be closer to framer-motion spring easing */
+  animation: countInAnimation 1s ease-in-out;
 }

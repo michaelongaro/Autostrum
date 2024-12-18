@@ -397,6 +397,8 @@ interface TabState {
     showing: boolean;
     forSectionContainer: number | null;
   }) => void;
+  countInBuffer: AudioBuffer | null;
+  setCountInBuffer: (countInBuffer: AudioBuffer | null) => void;
 
   expandedTabData:
     | (
@@ -648,6 +650,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         forSectionContainer: null,
       },
       setCountInTimer: (countInTimer) => set({ countInTimer }),
+      countInBuffer: null,
+      setCountInBuffer: (countInBuffer) => set({ countInBuffer }),
 
       getStringifiedTabData: () => {
         const {

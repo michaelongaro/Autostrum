@@ -1,8 +1,12 @@
 import { motion } from "framer-motion";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { BsFillPauseFill, BsFillPlayFill, BsStopFill } from "react-icons/bs";
 import type Soundfont from "soundfont-player";
-import type { AudioMetadata, PreviewMetadata } from "~/stores/TabStore";
+import {
+  useTabStore,
+  type AudioMetadata,
+  type PreviewMetadata,
+} from "~/stores/TabStore";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -13,6 +17,10 @@ const opacityAndScaleVariants = {
   },
 };
 
+type ShouldShowPauseIcon = Omit<
+  PlayButtonIcon,
+  "currentInstrument" | "recordedAudioBuffer"
+>;
 interface PlayButtonIcon {
   uniqueLocationKey: string;
   currentInstrument: Soundfont.Player | null;
@@ -46,77 +54,107 @@ function PlayButtonIcon({
   forceShowLoadingSpinner,
   size = "1.25rem",
 }: PlayButtonIcon) {
-  type ShouldShowPauseIcon = Omit<
-    PlayButtonIcon,
-    "currentInstrument" | "recordedAudioBuffer"
-  >;
+  const { audioContext, masterVolumeGainNode, countInBuffer } = useTabStore(
+    (state) => ({
+      audioContext: state.audioContext,
+      masterVolumeGainNode: state.masterVolumeGainNode,
+      countInBuffer: state.countInBuffer,
+    }),
+  );
 
-  const [countInNumber, setCountInNumber] = useState(3);
+  const [countInNumber, setCountInNumber] = useState(4);
+  const [hideCountInTimer, setHideCountInTimer] = useState(false);
 
   useEffect(() => {
-    if (!showCountInTimer) return;
+    if (
+      !showCountInTimer ||
+      !audioContext ||
+      !masterVolumeGainNode ||
+      !countInBuffer
+    )
+      return;
+
+    setCountInNumber(3);
+
+    function playCountInSound(index: number) {
+      const source = audioContext!.createBufferSource();
+      source.buffer = countInBuffer;
+
+      const gainNode = audioContext!.createGain();
+      gainNode.gain.value = 0.25;
+
+      source.detune.value = index === 3 ? 0 : index === 2 ? -50 : 0;
+
+      source.connect(gainNode);
+
+      gainNode.connect(masterVolumeGainNode!);
+      setTimeout(() => source.start(), 190);
+    }
+
+    playCountInSound(3);
 
     setTimeout(() => {
       setCountInNumber(2);
+      playCountInSound(2);
       setTimeout(() => {
         setCountInNumber(1);
+        playCountInSound(1);
+
         setTimeout(() => {
-          setCountInNumber(3);
+          setHideCountInTimer(true);
+          setCountInNumber(4);
+
+          setTimeout(() => {
+            setHideCountInTimer(false);
+          }, 1000);
         }, 1000);
       }, 1000);
     }, 1000);
-  }, [showCountInTimer]);
+  }, [showCountInTimer, audioContext, countInBuffer, masterVolumeGainNode]);
 
-  const shouldShowPauseIcon = useCallback(
-    ({
-      uniqueLocationKey,
-      audioMetadata,
-      tabId,
-      sectionIndex,
-      subSectionIndex,
-      chordSequenceIndex,
-      previewMetadata,
-      indexOfPattern,
-      previewType,
-    }: ShouldShowPauseIcon) => {
-      const isAudioPlayingOnCurrentTab =
-        audioMetadata &&
-        audioMetadata?.playing &&
-        (audioMetadata?.tabId === tabId || tabId === -1);
+  function shouldShowPauseIcon({
+    uniqueLocationKey,
+    audioMetadata,
+    tabId,
+    sectionIndex,
+    subSectionIndex,
+    chordSequenceIndex,
+    previewMetadata,
+    indexOfPattern,
+    previewType,
+  }: ShouldShowPauseIcon) {
+    const isAudioPlayingOnCurrentTab =
+      audioMetadata &&
+      audioMetadata?.playing &&
+      (audioMetadata?.tabId === tabId || tabId === -1);
 
-      const isAudioPlayingOnCurrentLocation =
-        uniqueLocationKey === "audioControls" ||
-        (audioMetadata &&
-          audioMetadata.location?.sectionIndex === sectionIndex &&
-          audioMetadata.location?.subSectionIndex === subSectionIndex &&
-          audioMetadata.location?.chordSequenceIndex === chordSequenceIndex);
+    const isAudioPlayingOnCurrentLocation =
+      uniqueLocationKey === "audioControls" ||
+      (audioMetadata &&
+        audioMetadata.location?.sectionIndex === sectionIndex &&
+        audioMetadata.location?.subSectionIndex === subSectionIndex &&
+        audioMetadata.location?.chordSequenceIndex === chordSequenceIndex);
 
-      const isPreviewPlayingWithPatternAndType =
-        previewMetadata?.playing &&
-        previewMetadata?.indexOfPattern === indexOfPattern &&
-        previewMetadata?.type === previewType;
+    const isPreviewPlayingWithPatternAndType =
+      previewMetadata?.playing &&
+      previewMetadata?.indexOfPattern === indexOfPattern &&
+      previewMetadata?.type === previewType;
 
+    return (
+      (isAudioPlayingOnCurrentTab && isAudioPlayingOnCurrentLocation) ||
+      isPreviewPlayingWithPatternAndType
+    );
+  }
+
+  // is hideCountInTimer necessary?
+  function renderPlayButtonIcon() {
+    if (showCountInTimer && !hideCountInTimer) {
       return (
-        (isAudioPlayingOnCurrentTab && isAudioPlayingOnCurrentLocation) ||
-        isPreviewPlayingWithPatternAndType
-      );
-    },
-    [],
-  );
-
-  const renderPlayButtonIcon = useMemo(() => {
-    if (showCountInTimer) {
-      return (
-        <motion.p
-          key={`${uniqueLocationKey}CountInTimer${countInNumber}`}
-          variants={opacityAndScaleVariants}
-          initial="closed"
-          animate="expanded"
-          transition={{ duration: 0.15 }}
-          className="h-5 w-5 text-[18px]"
-        >
-          {countInNumber}
-        </motion.p>
+        <div className="baseFlex size-10 overflow-hidden">
+          <div key={countInNumber} className="countIn text-lg">
+            {countInNumber}
+          </div>
+        </div>
       );
     }
 
@@ -133,8 +171,8 @@ function PlayButtonIcon({
           variants={opacityAndScaleVariants}
           initial="closed"
           animate="expanded"
-          transition={{ duration: 0.15 }}
-          className="h-5 w-5 animate-stableSpin rounded-full bg-inherit fill-none"
+          transition={{ duration: 0.3 }}
+          className="size-5 animate-stableSpin rounded-full bg-inherit fill-none"
           viewBox="0 0 24 24"
         >
           <circle
@@ -171,7 +209,7 @@ function PlayButtonIcon({
           variants={opacityAndScaleVariants}
           initial="closed"
           animate="expanded"
-          transition={{ duration: 0.15 }}
+          transition={{ duration: 0.3 }}
         >
           {previewType === "strummingPattern" &&
           previewMetadata?.indexOfPattern === indexOfPattern ? (
@@ -199,7 +237,8 @@ function PlayButtonIcon({
         variants={opacityAndScaleVariants}
         initial="closed"
         animate="expanded"
-        transition={{ duration: 0.15 }}
+        transition={{ duration: 0.3 }}
+        className="z-10"
       >
         <BsFillPlayFill
           style={{
@@ -209,26 +248,9 @@ function PlayButtonIcon({
         />
       </motion.div>
     );
-  }, [
-    audioMetadata,
-    tabId,
-    sectionIndex,
-    subSectionIndex,
-    chordSequenceIndex,
-    previewMetadata,
-    indexOfPattern,
-    previewType,
-    currentInstrument,
-    recordedAudioBuffer,
-    shouldShowPauseIcon,
-    uniqueLocationKey,
-    forceShowLoadingSpinner,
-    countInNumber,
-    showCountInTimer,
-    size,
-  ]);
+  }
 
-  return renderPlayButtonIcon;
+  return renderPlayButtonIcon();
 }
 
 export default PlayButtonIcon;
