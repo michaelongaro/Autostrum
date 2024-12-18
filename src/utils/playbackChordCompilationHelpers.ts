@@ -990,7 +990,6 @@ interface UpdateElapsedSecondsInSectionProgression {
   tabData: Section[];
   sectionProgression: SectionProgression[];
   baselineBpm: number;
-  playbackSpeed: number;
   setSectionProgression: (sectionProgression: SectionProgression[]) => void;
 }
 
@@ -998,7 +997,6 @@ function updateElapsedSecondsInSectionProgression({
   tabData,
   sectionProgression,
   baselineBpm,
-  playbackSpeed,
   setSectionProgression,
 }: UpdateElapsedSecondsInSectionProgression) {
   const sectionProgressionWithElapsedSeconds: SectionProgression[] = [];
@@ -1036,7 +1034,6 @@ function updateElapsedSecondsInSectionProgression({
           section,
           baselineBpm,
           elapsedSeconds,
-          playbackSpeed,
         });
       }
     }
@@ -1062,12 +1059,10 @@ function updateElapsedTimeForSection({
   section,
   baselineBpm,
   elapsedSeconds,
-  playbackSpeed,
 }: {
   section: (TabSection | ChordSection)[];
   baselineBpm: number;
   elapsedSeconds: { value: number };
-  playbackSpeed: number;
 }) {
   for (
     let subSectionIndex = 0;
@@ -1089,14 +1084,12 @@ function updateElapsedTimeForSection({
           subSection,
           baselineBpm,
           elapsedSeconds,
-          playbackSpeed,
         });
       } else {
         updateElapsedTimeForChordSection({
           subSection,
           baselineBpm,
           elapsedSeconds,
-          playbackSpeed,
         });
       }
     }
@@ -1107,12 +1100,10 @@ function updateElapsedTimeForTabSection({
   subSection,
   baselineBpm,
   elapsedSeconds,
-  playbackSpeed,
 }: {
   subSection: TabSection;
   baselineBpm: number;
   elapsedSeconds: { value: number };
-  playbackSpeed: number;
 }) {
   let currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
 
@@ -1139,8 +1130,7 @@ function updateElapsedTimeForTabSection({
 
     // Calculate the duration of the chord and update elapsedSeconds
     const chordDuration =
-      60 /
-      ((Number(currentBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
+      60 / (Number(currentBpm) / Number(noteLengthMultiplier));
     elapsedSeconds.value += chordDuration;
   }
 }
@@ -1149,12 +1139,10 @@ function updateElapsedTimeForChordSection({
   subSection,
   baselineBpm,
   elapsedSeconds,
-  playbackSpeed,
 }: {
   subSection: ChordSection;
   baselineBpm: number;
   elapsedSeconds: { value: number };
-  playbackSpeed: number;
 }) {
   const chordSection = subSection.data;
 
@@ -1204,8 +1192,7 @@ function updateElapsedTimeForChordSection({
       // Calculate the duration of each chord in the sequence
       for (let chordIdx = 0; chordIdx < chordSequence.data.length; chordIdx++) {
         const chordDuration =
-          60 /
-          ((Number(chordBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
+          60 / (Number(chordBpm) / Number(noteLengthMultiplier));
         elapsedSeconds.value += chordDuration;
       }
     }

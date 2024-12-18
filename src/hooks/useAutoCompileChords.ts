@@ -169,7 +169,6 @@ function useAutoCompileChords() {
       tabData,
       sectionProgression: sanitizedSectionProgression,
       baselineBpm: bpm,
-      playbackSpeed,
       setSectionProgression,
     });
   }, [
