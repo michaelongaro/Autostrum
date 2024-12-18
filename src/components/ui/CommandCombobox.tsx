@@ -7,10 +7,11 @@ import { cn } from "~/utils/utils";
 import { Button } from "~/components/ui/button";
 import {
   Command,
+  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandSeparator,
+  CommandList,
 } from "~/components/ui/command";
 import {
   Popover,
@@ -18,7 +19,8 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { useTabStore } from "~/stores/TabStore";
-import tunings, { parse, toString } from "~/utils/tunings";
+import { tunings } from "~/utils/tunings";
+import { PrettyTuning } from "~/components/ui/PrettyTuning";
 
 // currently hardcoding this component to work with tunings
 // but may need to be more generic in the future
@@ -38,15 +40,6 @@ export function CommandCombobox({ customTuning }: CommandCombobox) {
     }),
   );
 
-  function tuningIsCustom(tuning: string) {
-    return (
-      tuning &&
-      tunings.every(
-        (tuningObj) => tuningObj.notes.toLowerCase() !== tuning.toLowerCase(),
-      )
-    );
-  }
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -56,14 +49,11 @@ export function CommandCombobox({ customTuning }: CommandCombobox) {
           aria-expanded={open}
           className="w-[200px] justify-between"
         >
-          {tuning
-            ? tuningIsCustom(tuning)
-              ? toString(parse(tuning), { pad: 2 })
-              : tunings.find(
-                  (tuningObj) =>
-                    tuningObj.notes.toLowerCase() === tuning.toLowerCase(),
-                )?.simpleNotes
-            : "Select tuning..."}
+          {tuning ? (
+            <PrettyTuning tuning={tuning} displayWithFlex={true} />
+          ) : (
+            "Select tuning..."
+          )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -76,85 +66,87 @@ export function CommandCombobox({ customTuning }: CommandCombobox) {
         <Command>
           <CommandInput placeholder="Search tunings..." />
 
-          <CommandSeparator />
+          <div className="h-[1px] w-full bg-pink-800"></div>
 
-          <CommandGroup className="baseFlex my-2 w-full">
-            {customTuning ? (
-              <CommandItem
-                className="w-full"
-                value={customTuning}
-                onSelect={(currentValue) => {
-                  setTuning(currentValue);
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    tuning.toLowerCase() === customTuning.toLowerCase()
-                      ? "opacity-100"
-                      : "opacity-0",
-                  )}
-                />
-                <div className="baseFlex w-full !justify-between gap-3 px-2">
-                  <Button
-                    size="sm"
-                    className="baseFlex gap-2"
-                    onClick={() => {
-                      setShowCustomTuningModal(true);
-                      setOpen(false);
-                    }}
-                  >
-                    Edit
-                    <MdModeEditOutline className="h-4 w-4" />
-                  </Button>
+          <CommandList>
+            <CommandEmpty>No tunings found.</CommandEmpty>
 
-                  <pre>{toString(parse(customTuning), { pad: 2 })}</pre>
-                </div>
-              </CommandItem>
-            ) : (
-              <div className="baseFlex w-full !justify-between">
+            <CommandGroup className="max-h-60 overflow-y-auto">
+              {/* named tuningObj instead of tuning to avoid name conflict w/ tuning from store */}
+              {tunings.map((tuningObj) => (
+                <CommandItem
+                  key={tuningObj.simpleNotes}
+                  value={tuningObj.notes}
+                  onSelect={(currentValue) => {
+                    setTuning(currentValue);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      tuning.toLowerCase() === tuningObj.notes.toLowerCase()
+                        ? "opacity-100"
+                        : "opacity-0",
+                    )}
+                  />
+                  <div className="baseFlex w-full !justify-between">
+                    <div className="font-medium">{tuningObj.name}</div>
+                    <PrettyTuning tuning={tuningObj.simpleNotes} width="w-36" />
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+
+          <div className="h-[1px] w-full bg-pink-800"></div>
+
+          {customTuning ? (
+            <CommandItem
+              className="m-1"
+              value={customTuning}
+              onSelect={(currentValue) => {
+                setTuning(currentValue);
+                setOpen(false);
+              }}
+            >
+              <Check
+                className={cn(
+                  "mr-2 h-4 w-4 shrink-0",
+                  tuning.toLowerCase() === customTuning.toLowerCase()
+                    ? "opacity-100"
+                    : "opacity-0",
+                )}
+              />
+              <div className="baseFlex w-full !justify-between gap-3 px-2">
                 <Button
                   size="sm"
+                  className="baseFlex gap-2"
                   onClick={() => {
                     setShowCustomTuningModal(true);
                     setOpen(false);
                   }}
                 >
-                  Create a custom tuning
+                  Edit
+                  <MdModeEditOutline className="h-4 w-4" />
                 </Button>
+
+                <PrettyTuning tuning={customTuning} width="w-36" />
               </div>
-            )}
-          </CommandGroup>
-
-          <CommandSeparator />
-
-          <CommandGroup className="max-h-60 overflow-y-auto">
-            {/* named tuningObj instead of tuning to avoid name conflict w/ tuning from store */}
-            {tunings.map((tuningObj) => (
-              <CommandItem
-                key={tuningObj.simpleNotes}
-                value={tuningObj.notes}
-                onSelect={(currentValue) => {
-                  setTuning(currentValue);
+            </CommandItem>
+          ) : (
+            <div className="baseFlex w-full !justify-between">
+              <Button
+                size="sm"
+                onClick={() => {
+                  setShowCustomTuningModal(true);
                   setOpen(false);
                 }}
               >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    tuning.toLowerCase() === tuningObj.notes.toLowerCase()
-                      ? "opacity-100"
-                      : "opacity-0",
-                  )}
-                />
-                <div className="baseFlex w-full !justify-between">
-                  <div className="font-medium">{tuningObj.name}</div>
-                  <pre>{tuningObj.simpleNotes}</pre>
-                </div>
-              </CommandItem>
-            ))}
-          </CommandGroup>
+                Create a custom tuning
+              </Button>
+            </div>
+          )}
         </Command>
       </PopoverContent>
     </Popover>

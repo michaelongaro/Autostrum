@@ -30,7 +30,7 @@ import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
 import { genreList } from "~/utils/genreList";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
-import { parse, toString } from "~/utils/tunings";
+import { tuningNotesToName } from "~/utils/tunings";
 import { CommandCombobox } from "../ui/CommandCombobox";
 import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
 import { Button } from "../ui/button";
@@ -51,6 +51,7 @@ import type { RefetchTab } from "./Tab";
 import classes from "./TabMetadata.module.css";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import TabScreenshotPreview from "./TabScreenshotPreview";
+import { PrettyTuning } from "~/components/ui/PrettyTuning";
 
 type TabMetadata = {
   customTuning: string | null;
@@ -1353,9 +1354,11 @@ function TabMetadata({
                   } baseVertFlex !items-start gap-2`}
                 >
                   <div className="font-semibold">Tuning</div>
-                  <div className="rounded-md border-2 border-pink-100 px-2 py-2.5 text-sm font-semibold md:px-4 md:py-2 md:text-base">
-                    {toString(parse(tuning), { pad: 2 })}
-                  </div>
+                  <p>
+                    {tuningNotesToName[
+                      tuning as keyof typeof tuningNotesToName
+                    ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
+                  </p>
                 </div>
               </div>
 

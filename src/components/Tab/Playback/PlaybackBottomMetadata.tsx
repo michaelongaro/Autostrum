@@ -9,12 +9,10 @@ import {
   FaVolumeMute,
   FaVolumeUp,
 } from "react-icons/fa";
-import { HiOutlineInformationCircle } from "react-icons/hi";
 import { IoSettingsOutline } from "react-icons/io5";
-import { TiArrowLoop } from "react-icons/ti";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
-import Chord from "~/components/Tab/Chord";
 import ChordDiagram from "~/components/Tab/Playback/ChordDiagram";
+import PlaybackGranularLoopRangeEditor from "~/components/Tab/Playback/PlaybackGranularLoopRangeEditor";
 import StrummingPattern from "~/components/Tab/StrummingPattern";
 import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
 import AnimatedTabs from "~/components/ui/AnimatedTabs";
@@ -27,6 +25,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import {
   Select,
   SelectContent,
@@ -36,16 +35,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { Separator } from "~/components/ui/separator";
 import { Toggle } from "~/components/ui/toggle";
 import { VerticalSlider } from "~/components/ui/verticalSlider";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useTabStore } from "~/stores/TabStore";
-import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
-import { parse, toString } from "~/utils/tunings";
-import PlaybackGranularLoopRangeEditor from "~/components/Tab/Playback/PlaybackGranularLoopRangeEditor";
+import { tuningNotesToName } from "~/utils/tunings";
 
 interface PlaybackBottomMetadata {
   loopRange: [number, number];
@@ -116,7 +112,11 @@ function PlaybackBottomMetadata({
               <div className="baseFlex gap-4">
                 <div className="baseVertFlex !items-start">
                   <p className="text-sm font-medium">Tuning</p>
-                  <p>{toString(parse(tuning), { pad: 0 })}</p>
+                  <p>
+                    {tuningNotesToName[
+                      tuning as keyof typeof tuningNotesToName
+                    ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
+                  </p>
                 </div>
 
                 <div className="baseVertFlex !items-start">

@@ -4,6 +4,7 @@ import AnimatedTabs from "~/components/ui/AnimatedTabs";
 import { Button } from "~/components/ui/button";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import { Label } from "~/components/ui/label";
+import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import {
   Select,
   SelectContent,
@@ -17,7 +18,7 @@ import { Separator } from "~/components/ui/separator";
 import { useTabStore } from "~/stores/TabStore";
 import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
-import { parse, toString } from "~/utils/tunings";
+import { parse, toString, tuningNotesToName } from "~/utils/tunings";
 
 interface PlaybackTopMetadata {
   tabProgressValue: number;
@@ -173,7 +174,11 @@ function PlaybackTopMetadata({
                 </div>
                 <div className="baseVertFlex !items-start">
                   <p className="text-sm font-medium">Tuning</p>
-                  <p>{toString(parse(tuning), { pad: 0 })}</p>
+                  <p>
+                    {tuningNotesToName[
+                      tuning as keyof typeof tuningNotesToName
+                    ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
+                  </p>
                 </div>
 
                 <div className="baseVertFlex !items-start">
@@ -183,10 +188,10 @@ function PlaybackTopMetadata({
 
                 <Button
                   variant={"outline"}
-                  className="baseFlex h-9 gap-2 !py-0"
+                  className="baseFlex h-9 gap-2 !px-2.5 !py-0 sm:!px-4"
                 >
                   <TuningFork className="size-4 fill-white" />
-                  Tuner
+                  <p className="hidden sm:block">Tuner</p>
                 </Button>
 
                 {!viewportLabel.includes("mobile") && (

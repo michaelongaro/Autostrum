@@ -33,13 +33,13 @@ import {
   useTabStore,
   type TabSection as TabSectionType,
 } from "~/stores/TabStore";
-import { parse, toString } from "~/utils/tunings";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { traverseToRemoveHangingPairNode } from "~/utils/palmMuteHelpers";
 import MiscellaneousControls from "./MiscellaneousControls";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import TabMeasureLine from "./TabMeasureLine";
 import TabNotesColumn from "./TabNotesColumn";
+import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -949,12 +949,7 @@ function TabSection({
         )}
 
         <div className="baseVertFlex relative h-[280px] gap-[1.35rem] rounded-l-2xl border-2 border-pink-100 p-2">
-          {toString(parse(tuning), { pad: 1 })
-            .split("")
-            .reverse()
-            .map((note, index) => (
-              <div key={index}>{note}</div>
-            ))}
+          <PrettyVerticalTuning tuning={tuning} />
         </div>
 
         <DndContext

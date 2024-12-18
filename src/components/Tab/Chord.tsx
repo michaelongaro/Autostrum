@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import { parse, toString } from "~/utils/tunings";
 import { Input } from "../ui/input";
+import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
 
 interface Chord {
   chordBeingEdited: { index: number; value: ChordType };
@@ -142,12 +143,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
         }}
         className="baseVertFlex relative rounded-l-2xl border-2 border-pink-100"
       >
-        {toString(parse(tuning), { pad: 1 })
-          .split("")
-          .reverse()
-          .map((note, index) => (
-            <div key={index}>{note}</div>
-          ))}
+        <PrettyVerticalTuning tuning={tuning} />
       </div>
 
       <div
