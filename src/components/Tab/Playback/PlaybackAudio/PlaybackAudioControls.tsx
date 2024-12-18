@@ -18,6 +18,7 @@ import PlaybackGranularLoopRangeEditor from "~/components/Tab/Playback/PlaybackG
 import { Button } from "~/components/ui/button";
 import { Toggle } from "~/components/ui/toggle";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
@@ -130,6 +131,8 @@ function PlaybackAudioControls({
   // const looping = useGetLocalStorageValues().looping;
 
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
+
+  useSpacebarAudioControl({ tabProgressValue });
 
   useEffect(() => {
     if (!mobileHeaderModal.showing) {
@@ -280,14 +283,6 @@ function PlaybackAudioControls({
       if (audioMetadata.type === "Generated") setPlayButtonTimeout();
     } else {
       if (isViewingTabPath) {
-        if (
-          currentlyPlayingMetadata?.[currentChordIndex] &&
-          autoscrollEnabled
-        ) {
-          // scrollChordIntoView({
-          //   location: currentlyPlayingMetadata[currentChordIndex]!.location,
-          // });
-        }
         setCountInTimer({
           ...countInTimer,
           showing: true,
