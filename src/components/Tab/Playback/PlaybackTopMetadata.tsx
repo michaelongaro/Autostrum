@@ -18,7 +18,7 @@ import { Separator } from "~/components/ui/separator";
 import { useTabStore } from "~/stores/TabStore";
 import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
-import { parse, toString, tuningNotesToName } from "~/utils/tunings";
+import { tuningNotesToName } from "~/utils/tunings";
 
 interface PlaybackTopMetadata {
   tabProgressValue: number;
@@ -110,8 +110,13 @@ function PlaybackTopMetadata({
                       <div className="baseFlex gap-2">
                         <p className="text-sm font-medium">Section</p>
                         <Select
-                          // this is jank, need to fix logic
-                          value={title === "" ? undefined : title}
+                          value={
+                            audioMetadata.location === null
+                              ? "fullTab"
+                              : tabData[
+                                  audioMetadata.location?.sectionIndex ?? 0
+                                ]?.id
+                          }
                           onValueChange={(value) => {
                             setAudioMetadata({
                               ...audioMetadata,
@@ -119,7 +124,11 @@ function PlaybackTopMetadata({
                                 value === "fullTab"
                                   ? null
                                   : {
-                                      sectionIndex: parseInt(value),
+                                      sectionIndex: sections.findIndex(
+                                        (elem) => {
+                                          return elem.id === value;
+                                        },
+                                      ),
                                     },
                             });
                           }}
@@ -128,10 +137,17 @@ function PlaybackTopMetadata({
                             <SelectValue placeholder="Select a section">
                               {audioMetadata.location === null
                                 ? "Full tab"
-                                : (sectionProgression[
-                                    playbackMetadata[currentChordIndex]
-                                      ?.location.sectionIndex ?? 0
-                                  ]?.title ?? "")}
+                                : tabData[
+                                    sections.findIndex((elem) => {
+                                      return (
+                                        elem.id ===
+                                        tabData[
+                                          audioMetadata.location
+                                            ?.sectionIndex ?? 0
+                                        ]?.id
+                                      );
+                                    })
+                                  ]?.title}
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
@@ -139,19 +155,21 @@ function PlaybackTopMetadata({
                               <SelectLabel>Sections</SelectLabel>
 
                               <>
-                                <SelectItem key={"fullTab"} value={`fullTab`}>
-                                  Full tab
-                                </SelectItem>
-                                {sections.map((section, idx) => {
+                                {sections.map((section) => {
                                   return (
                                     <SelectItem
-                                      key={`${section.id}`}
-                                      value={`${idx}`}
+                                      key={section.id}
+                                      value={section.id}
                                     >
                                       {section.title}
                                     </SelectItem>
                                   );
                                 })}
+
+                                <div className="my-1 h-[1px] w-full bg-pink-800"></div>
+                                <SelectItem key={"fullTab"} value={`fullTab`}>
+                                  Full tab
+                                </SelectItem>
                               </>
                             </SelectGroup>
                           </SelectContent>
@@ -257,8 +275,12 @@ function PlaybackTopMetadata({
                     <div className="baseFlex gap-2">
                       <p className="text-sm font-medium">Section</p>
                       <Select
-                        // this is jank, need to fix logic
-                        value={title === "" ? undefined : title}
+                        value={
+                          audioMetadata.location === null
+                            ? "fullTab"
+                            : tabData[audioMetadata.location?.sectionIndex ?? 0]
+                                ?.id
+                        }
                         onValueChange={(value) => {
                           setAudioMetadata({
                             ...audioMetadata,
@@ -266,7 +288,9 @@ function PlaybackTopMetadata({
                               value === "fullTab"
                                 ? null
                                 : {
-                                    sectionIndex: parseInt(value),
+                                    sectionIndex: sections.findIndex((elem) => {
+                                      return elem.id === value;
+                                    }),
                                   },
                           });
                         }}
@@ -275,10 +299,17 @@ function PlaybackTopMetadata({
                           <SelectValue placeholder="Select a section">
                             {audioMetadata.location === null
                               ? "Full tab"
-                              : (sectionProgression[
-                                  playbackMetadata[currentChordIndex]?.location
-                                    .sectionIndex ?? 0
-                                ]?.title ?? "")}
+                              : tabData[
+                                  sections.findIndex((elem) => {
+                                    return (
+                                      elem.id ===
+                                      tabData[
+                                        audioMetadata.location?.sectionIndex ??
+                                          0
+                                      ]?.id
+                                    );
+                                  })
+                                ]?.title}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
@@ -286,19 +317,21 @@ function PlaybackTopMetadata({
                             <SelectLabel>Sections</SelectLabel>
 
                             <>
-                              <SelectItem key={"fullTab"} value={`fullTab`}>
-                                Full tab
-                              </SelectItem>
-                              {sections.map((section, idx) => {
+                              {sections.map((section) => {
                                 return (
                                   <SelectItem
-                                    key={`${section.id}`}
-                                    value={`${idx}`}
+                                    key={section.id}
+                                    value={section.id}
                                   >
                                     {section.title}
                                   </SelectItem>
                                 );
                               })}
+
+                              <div className="my-1 h-[1px] w-full bg-pink-800"></div>
+                              <SelectItem key={"fullTab"} value={`fullTab`}>
+                                Full tab
+                              </SelectItem>
                             </>
                           </SelectGroup>
                         </SelectContent>

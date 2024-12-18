@@ -134,8 +134,12 @@ function PlaybackBottomMetadata({
                   <div className="baseFlex gap-2">
                     <p className="text-sm font-medium">Section</p>
                     <Select
-                      // this is jank, need to fix logic
-                      value={title === "" ? undefined : title}
+                      value={
+                        audioMetadata.location === null
+                          ? "fullTab"
+                          : tabData[audioMetadata.location?.sectionIndex ?? 0]
+                              ?.id
+                      }
                       onValueChange={(value) => {
                         setAudioMetadata({
                           ...audioMetadata,
@@ -143,7 +147,9 @@ function PlaybackBottomMetadata({
                             value === "fullTab"
                               ? null
                               : {
-                                  sectionIndex: parseInt(value),
+                                  sectionIndex: sections.findIndex((elem) => {
+                                    return elem.id === value;
+                                  }),
                                 },
                         });
                       }}
@@ -152,10 +158,16 @@ function PlaybackBottomMetadata({
                         <SelectValue placeholder="Select a section">
                           {audioMetadata.location === null
                             ? "Full tab"
-                            : (sectionProgression[
-                                playbackMetadata[currentChordIndex]?.location
-                                  .sectionIndex ?? 0
-                              ]?.title ?? "")}
+                            : tabData[
+                                sections.findIndex((elem) => {
+                                  return (
+                                    elem.id ===
+                                    tabData[
+                                      audioMetadata.location?.sectionIndex ?? 0
+                                    ]?.id
+                                  );
+                                })
+                              ]?.title}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
@@ -163,19 +175,18 @@ function PlaybackBottomMetadata({
                           <SelectLabel>Sections</SelectLabel>
 
                           <>
-                            <SelectItem key={"fullTab"} value={`fullTab`}>
-                              Full tab
-                            </SelectItem>
-                            {sections.map((section, idx) => {
+                            {sections.map((section) => {
                               return (
-                                <SelectItem
-                                  key={`${section.id}`}
-                                  value={`${idx}`}
-                                >
+                                <SelectItem key={section.id} value={section.id}>
                                   {section.title}
                                 </SelectItem>
                               );
                             })}
+
+                            <div className="my-1 h-[1px] w-full bg-pink-800"></div>
+                            <SelectItem key={"fullTab"} value={`fullTab`}>
+                              Full tab
+                            </SelectItem>
                           </>
                         </SelectGroup>
                       </SelectContent>
@@ -694,12 +705,15 @@ function MobileMenuDialog() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className={`baseVertFlex h-full max-h-[calc(100dvh-6rem)] w-full gap-10 overflow-y-auto ${strummingPatterns.length > 0 ? "!justify-start pb-8 pt-4" : ""}`}
+              className={`baseVertFlex h-full max-h-[calc(100dvh-6rem)] gap-10 overflow-y-auto ${strummingPatterns.length > 0 ? "!justify-start pb-8 pt-4" : ""}`}
             >
               {strummingPatterns.length > 0 ? (
                 <>
                   {strummingPatterns.map((pattern, index) => (
-                    <div key={pattern.id} className="shrink-0 overflow-hidden">
+                    <div
+                      key={pattern.id}
+                      className="shrink-0 self-start overflow-hidden"
+                    >
                       <div className="baseVertFlex !items-start">
                         <Button
                           variant={"playPause"}
