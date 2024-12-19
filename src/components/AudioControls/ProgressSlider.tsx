@@ -177,13 +177,14 @@ function ProgressSlider({
           min={0}
           max={audioMetadata.fullCurrentlyPlayingMetadataLength - 1}
           // allowOverlap={true}
+          disabled={disabled}
           draggableTrack
           values={loopRange}
           // any use for onFinalChange?
           onChange={(newLoopRange) => {
             setLoopRange(newLoopRange as [number, number]);
           }}
-          renderTrack={({ props, children }) => (
+          renderTrack={({ props, children, disabled }) => (
             <div
               onMouseDown={props.onMouseDown}
               onTouchStart={props.onTouchStart}
@@ -201,7 +202,7 @@ function ProgressSlider({
                   borderRadius: "4px",
                   background: getTrackBackground({
                     values: loopRange,
-                    colors: ["#ccc", "#548BF4", "#ccc"],
+                    colors: [disabled ? "#666" : "#ccc", "#548BF4", "#ccc"],
                     min: 0,
                     max: audioMetadata.fullCurrentlyPlayingMetadataLength - 1,
                   }),
@@ -240,6 +241,7 @@ function ProgressSlider({
               currentlyPlayingMetadata!.length - 1,
             ),
           ]}
+          disabled={disabled}
           // any use for onFinalChange?
           onChange={(values) => {
             if (audioMetadata.playing) {
@@ -250,7 +252,7 @@ function ProgressSlider({
 
             // TODO: add logic for scrubbing through audio playback instead of tab playback
           }}
-          renderTrack={({ props, children }) => (
+          renderTrack={({ props, children, disabled }) => (
             <div
               onMouseDown={props.onMouseDown}
               onTouchStart={props.onTouchStart}
@@ -273,7 +275,7 @@ function ProgressSlider({
                   borderRadius: "4px",
                   background: getTrackBackground({
                     values: [currentChordIndex],
-                    colors: ["#548BF4", "#ccc"],
+                    colors: [disabled ? "#666" : "#548BF4", "#ccc"],
                     min: 0,
                     max: currentlyPlayingMetadata?.length || 0,
                   }),
