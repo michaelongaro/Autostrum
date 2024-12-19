@@ -1004,6 +1004,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           currentInstrument,
           audioContext,
           masterVolumeGainNode,
+          instruments,
         } = get();
 
         if (!audioContext || !masterVolumeGainNode || !currentInstrument)
@@ -1074,6 +1075,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             masterVolumeGainNode,
             currentInstrument,
             currentlyPlayingStrings,
+            acousticSteelOverrideForPreview:
+              instruments["acoustic_guitar_steel"] ?? undefined,
           });
 
           const { breakOnNextPreviewChord } = get();
