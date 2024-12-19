@@ -51,7 +51,7 @@ function PrettyVerticalTuning({ tuning }: { tuning: string }) {
 
   return (
     <div
-      className={`baseVertFlex mb-[-1px] h-[250px] !items-start !justify-between ${notes.toString().includes("#") ? "w-4" : "w-3"}`}
+      className={`baseVertFlex mb-[-1px] !items-start !justify-between ${notes.toString().includes("#") ? "w-4" : "w-3"}`}
     >
       {notes.map((note, index) => (
         <PrettyNote key={`${tuning}-${index}`} note={note.toUpperCase()} />

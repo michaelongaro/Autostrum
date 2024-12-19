@@ -396,9 +396,9 @@ function PlaybackDialog() {
       <DialogTrigger asChild>
         <Button
           variant="playPause"
-          className="baseFlex sticky bottom-4 right-4 mb-4 gap-3 !rounded-full px-8 py-6 text-xl shadow-lg tablet:bottom-6 tablet:px-10"
+          className="baseFlex sticky bottom-4 right-4 mb-4 gap-3 !rounded-full px-8 py-6 text-lg shadow-lg tablet:bottom-6 tablet:px-10 tablet:text-xl"
         >
-          <Logo className="size-5 fill-pink-50 tablet:size-5" />
+          <Logo className="size-[18px] fill-pink-50 tablet:size-5" />
           Practice
         </Button>
       </DialogTrigger>
