@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import Soundfont from "soundfont-player";
 import { useTabStore } from "~/stores/TabStore";
-import { isIOS, isSafari } from "react-device-detect";
+import { isIOS, isSafari, isMobileOnly } from "react-device-detect";
 
 // An AudioContext is not allowed to be created before a user gesture
 export function useInitializeAudioContext() {
@@ -41,6 +41,12 @@ export function useInitializeAudioContext() {
       const newAudioContext = new AudioContext();
 
       const newMasterVolumeGainNode = newAudioContext.createGain();
+
+      if (isMobileOnly) {
+        // mobile doesn't get access to a volume slider (users expect to use device's volume directly) so initializing at full volume.
+        newMasterVolumeGainNode.gain.value = 2;
+        localStorage.setItem("autostrumVolume", "2");
+      }
 
       newMasterVolumeGainNode.connect(newAudioContext.destination);
 

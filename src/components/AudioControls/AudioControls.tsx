@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { isMobileOnly } from "react-device-detect";
 import { Separator } from "~/components/ui/separator";
 import { Slider } from "~/components/ui/slider";
 import { Switch } from "~/components/ui/switch";
@@ -623,28 +624,32 @@ function AudioControls() {
                 </Button>
               </div>
             ) : (
-              <div
-                className={`baseFlex col-span-5 w-full !flex-nowrap gap-2 md:w-1/2 md:justify-self-end ${
-                  visibility === "minimized" ? "opacity-0" : "opacity-100"
-                } transition-opacity`}
-              >
-                {volume === 0 ? (
-                  <FaVolumeMute className="h-5 w-5" />
-                ) : volume < 1 ? (
-                  <FaVolumeDown className="h-5 w-5" />
-                ) : (
-                  <FaVolumeUp className="h-5 w-5" />
+              <>
+                {!isMobileOnly && (
+                  <div
+                    className={`baseFlex col-span-5 w-full !flex-nowrap gap-2 md:w-1/2 md:justify-self-end ${
+                      visibility === "minimized" ? "opacity-0" : "opacity-100"
+                    } transition-opacity`}
+                  >
+                    {volume === 0 ? (
+                      <FaVolumeMute className="h-5 w-5" />
+                    ) : volume < 1 ? (
+                      <FaVolumeDown className="h-5 w-5" />
+                    ) : (
+                      <FaVolumeUp className="h-5 w-5" />
+                    )}
+                    <Slider
+                      value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
+                      min={0}
+                      max={100}
+                      step={1}
+                      onValueChange={(value) =>
+                        localStorageVolume.set(`${value[0]! / 50}`)
+                      } // 100 felt too quiet/narrow of a volume range
+                    ></Slider>
+                  </div>
                 )}
-                <Slider
-                  value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
-                  min={0}
-                  max={100}
-                  step={1}
-                  onValueChange={(value) =>
-                    localStorageVolume.set(`${value[0]! / 50}`)
-                  } // 100 felt too quiet/narrow of a volume range
-                ></Slider>
-              </div>
+              </>
             )}
           </div>
         )}

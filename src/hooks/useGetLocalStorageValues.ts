@@ -18,8 +18,8 @@ function useGetLocalStorageValues() {
 
   return {
     volume: localStorageVolume.value ? Number(localStorageVolume.value) : 1,
-    autoscroll: localStorageAutoscroll.value === "true" ?? false,
-    looping: localStorageLooping.value === "true" ?? false,
+    autoscroll: localStorageAutoscroll.value === "true",
+    looping: localStorageLooping.value === "true",
   };
 }
 

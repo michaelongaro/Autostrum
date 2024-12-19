@@ -10,6 +10,7 @@ import {
   FaVolumeUp,
 } from "react-icons/fa";
 import { IoSettingsOutline } from "react-icons/io5";
+import { isMobileOnly } from "react-device-detect";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import ChordDiagram from "~/components/Tab/Playback/ChordDiagram";
 import PlaybackGranularLoopRangeEditor from "~/components/Tab/Playback/PlaybackGranularLoopRangeEditor";
@@ -42,6 +43,7 @@ import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { tuningNotesToName } from "~/utils/tunings";
+import { Slider } from "~/components/ui/slider";
 
 interface PlaybackBottomMetadata {
   loopRange: [number, number];
@@ -195,7 +197,9 @@ function PlaybackBottomMetadata({
                 )}
 
                 <MobileSettingsDialog />
+
                 <MobileMenuDialog />
+
                 <Button
                   variant={"outline"}
                   className="size-9 !p-0"
@@ -252,7 +256,7 @@ function PlaybackBottomMetadata({
             </div>
           ) : (
             <div className="baseFlex w-full">
-              <Settings
+              <DesktopSettings
                 tabProgressValue={tabProgressValue}
                 setTabProgressValue={setTabProgressValue}
               />
@@ -330,6 +334,9 @@ function MobileSettingsDialog() {
     loopDelay: state.loopDelay,
     setLoopDelay: state.setLoopDelay,
   }));
+
+  const volume = useGetLocalStorageValues().volume;
+  const localStorageVolume = useLocalStorageValue("autostrumVolume");
 
   // function resetAudioStateOnSourceChange(
   //   audioTypeBeingChangedTo: "Generated" | "Artist recording",
@@ -490,6 +497,31 @@ function MobileSettingsDialog() {
             </SelectContent>
           </Select>
         </div>
+
+        {/* gives tablet users ability to still control volume */}
+        {!isMobileOnly && (
+          <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+            <Label>Volume</Label>
+            <div className="baseFlex w-full max-w-64 !flex-nowrap gap-2 md:justify-self-end">
+              {volume === 0 ? (
+                <FaVolumeMute className="h-5 w-5" />
+              ) : volume < 1 ? (
+                <FaVolumeDown className="h-5 w-5" />
+              ) : (
+                <FaVolumeUp className="h-5 w-5" />
+              )}
+              <Slider
+                value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
+                min={0}
+                max={100}
+                step={1}
+                onValueChange={(value) =>
+                  localStorageVolume.set(`${value[0]! / 50}`)
+                } // 100 felt too quiet/narrow of a volume range
+              ></Slider>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -815,12 +847,15 @@ function MobileMenuDialog() {
   );
 }
 
-interface Settings {
+interface DesktopSettings {
   tabProgressValue: number;
   setTabProgressValue: Dispatch<SetStateAction<number>>;
 }
 
-function Settings({ tabProgressValue, setTabProgressValue }: Settings) {
+function DesktopSettings({
+  tabProgressValue,
+  setTabProgressValue,
+}: DesktopSettings) {
   const {
     id,
     bpm,
@@ -1092,10 +1127,7 @@ function Settings({ tabProgressValue, setTabProgressValue }: Settings) {
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent
-          className="baseVertFlex h-36 w-12 !flex-nowrap gap-2 p-2"
-          side="top"
-        >
+        <PopoverContent className="baseVertFlex h-36 w-12 gap-2 p-2" side="top">
           <VerticalSlider
             value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
             min={0}
