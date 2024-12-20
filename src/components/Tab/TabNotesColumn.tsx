@@ -416,9 +416,12 @@ function TabNotesColumn({
                                   value={duration}
                                   className="baseFlex w-[150px] !justify-start gap-2"
                                 >
-                                  {getDynamicNoteLengthIcon(
-                                    duration as "1/4th" | "1/8th" | "1/16th",
-                                  )}
+                                  {getDynamicNoteLengthIcon({
+                                    noteLength: duration as
+                                      | "1/4th"
+                                      | "1/8th"
+                                      | "1/16th",
+                                  })}
                                   {duration}
                                 </DropdownMenuRadioItem>
                               ))}
@@ -487,7 +490,12 @@ function TabNotesColumn({
                     }}
                     className="baseVertFlex absolute left-[53%] right-1/2 w-[1.5rem] -translate-x-1/2"
                   >
-                    {getDynamicNoteLengthIcon(columnData[8])}
+                    {getDynamicNoteLengthIcon({
+                      noteLength: columnData[8],
+                      isARestNote: columnData
+                        .slice(1, 7)
+                        .every((note) => note === ""),
+                    })}
                   </div>
                 )}
             </Fragment>

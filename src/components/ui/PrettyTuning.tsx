@@ -46,12 +46,19 @@ function PrettyTuning({
 }
 
 // used to render tuning on tab sections
-function PrettyVerticalTuning({ tuning }: { tuning: string }) {
+function PrettyVerticalTuning({
+  tuning,
+  height,
+}: {
+  tuning: string;
+  height: string;
+}) {
   const notes = tuning.trim().split(/\s+/);
 
   return (
     <div
-      className={`baseVertFlex mb-[-1px] !items-start !justify-between ${notes.toString().includes("#") ? "w-4" : "w-3"}`}
+      style={{ height }}
+      className={`baseVertFlex !items-start !justify-between ${notes.toString().includes("#") ? "w-4" : "w-3"}`}
     >
       {notes.map((note, index) => (
         <PrettyNote key={`${tuning}-${index}`} note={note.toUpperCase()} />

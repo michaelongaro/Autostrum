@@ -138,12 +138,14 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
       <div
         style={{
           height: editing ? "280px" : "168px",
-          gap: editing ? "1.35rem" : "0.05rem",
           padding: editing ? "0.5rem" : "0.5rem 0.35rem",
         }}
         className="baseVertFlex relative rounded-l-2xl border-2 border-pink-100"
       >
-        <PrettyVerticalTuning tuning={tuning} />
+        <PrettyVerticalTuning
+          tuning={tuning}
+          height={editing ? "250px" : "168px"}
+        />
       </div>
 
       <div

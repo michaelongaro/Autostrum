@@ -101,12 +101,13 @@ function PreviewSectionContainer({
                 {(subSection.type === "tab" ||
                   chordSequencesAllHaveSameNoteLength(subSection)) && (
                   <div className="baseFlex gap-1">
-                    {getDynamicNoteLengthIcon(
-                      subSection.type === "tab"
-                        ? "1/4th"
-                        : (subSection.data[0]?.strummingPattern.noteLength ??
+                    {getDynamicNoteLengthIcon({
+                      noteLength:
+                        subSection.type === "tab"
+                          ? "1/4th"
+                          : (subSection.data[0]?.strummingPattern.noteLength ??
                             "1/4th"),
-                    )}
+                    })}
                     {subSection.bpm === -1 ? baselineBpm : subSection.bpm} BPM
                   </div>
                 )}
@@ -270,9 +271,9 @@ function PreviewChordSection({
                   <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
                     {showBpm(chordSequence) && (
                       <div className="baseFlex gap-1">
-                        {getDynamicNoteLengthIcon(
-                          chordSequence.strummingPattern.noteLength,
-                        )}
+                        {getDynamicNoteLengthIcon({
+                          noteLength: chordSequence.strummingPattern.noteLength,
+                        })}
                         {chordSequence.bpm === -1
                           ? subSectionData.bpm === -1
                             ? baselineBpm
@@ -946,7 +947,10 @@ function PreviewTabNotesColumn({
                     >
                       {(columnData[8] === "1/8th" ||
                         columnData[8] === "1/16th") &&
-                        getDynamicNoteLengthIcon(columnData[8], true)}
+                        getDynamicNoteLengthIcon({
+                          noteLength: columnData[8],
+                          forInlineTabViewing: true,
+                        })}
                       {columnData[7]?.includes("^") && (
                         <div className="relative top-1 rotate-180">v</div>
                       )}

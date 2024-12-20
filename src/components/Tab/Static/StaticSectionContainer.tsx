@@ -84,12 +84,13 @@ function StaticSectionContainer({
                       {(subSection.type === "tab" ||
                         chordSequencesAllHaveSameNoteLength(subSection)) && (
                         <div className="baseFlex gap-1">
-                          {getDynamicNoteLengthIcon(
-                            subSection.type === "tab"
-                              ? "1/4th"
-                              : (subSection.data[0]?.strummingPattern
-                                  .noteLength ?? "1/4th"),
-                          )}
+                          {getDynamicNoteLengthIcon({
+                            noteLength:
+                              subSection.type === "tab"
+                                ? "1/4th"
+                                : (subSection.data[0]?.strummingPattern
+                                    .noteLength ?? "1/4th"),
+                          })}
                           {subSection.bpm === -1 ? bpm : subSection.bpm} BPM
                         </div>
                       )}

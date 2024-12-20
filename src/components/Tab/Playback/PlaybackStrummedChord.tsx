@@ -116,7 +116,10 @@ function PlaybackStrummedChord({
         >
           {bpmToShow && (
             <div className="baseFlex absolute -top-7 left-2 gap-1 text-nowrap">
-              {getDynamicNoteLengthIcon(noteLength, true)}
+              {getDynamicNoteLengthIcon({
+                noteLength,
+                forInlineTabViewing: true,
+              })}
               <span className="text-xs">{`${bpmToShow} BPM`}</span>
             </div>
           )}

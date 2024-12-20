@@ -31,7 +31,7 @@ function StaticTabMeasureLine({ columnData }: StaticTabMeasureLine) {
 
               <div className="baseFlex mb-0 h-0 w-full">
                 {note === "-" && (
-                  <div className="relative top-[-18px] h-[1px] w-full bg-pink-100"></div>
+                  <div className="relative top-[-17px] h-[1px] w-full bg-pink-100"></div>
                 )}
               </div>
             </>

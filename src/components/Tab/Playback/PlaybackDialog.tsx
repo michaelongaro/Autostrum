@@ -439,7 +439,7 @@ function PlaybackDialog() {
                 >
                   <div
                     ref={containerRef}
-                    className="relative flex h-[240px] w-full overflow-hidden"
+                    className="relative flex h-[255px] w-full overflow-hidden"
                   >
                     <div className="baseFlex absolute left-0 top-0 size-full">
                       <div className="h-[165px] w-full"></div>

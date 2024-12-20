@@ -5,20 +5,37 @@ function chordSequencesAllHaveSameNoteLength(chordSection: ChordSection) {
   const noteLength = chordSection.data[0]?.strummingPattern.noteLength;
 
   return chordSection.data.every(
-    (chordSequence) => chordSequence.strummingPattern.noteLength === noteLength
+    (chordSequence) => chordSequence.strummingPattern.noteLength === noteLength,
   );
 }
 
-function getDynamicNoteLengthIcon(
+function getDynamicNoteLengthIcon({
+  noteLength,
+  isARestNote,
+  forInlineTabViewing,
+}: {
   noteLength:
     | "1/4th"
     | "1/4th triplet"
     | "1/8th"
     | "1/8th triplet"
     | "1/16th"
-    | "1/16th triplet",
-  forInlineTabViewing?: boolean
-) {
+    | "1/16th triplet";
+  isARestNote?: boolean;
+  forInlineTabViewing?: boolean;
+}) {
+  if (isARestNote) {
+    if (noteLength === "1/8th") {
+      return (
+        <EighthRest className={`${forInlineTabViewing ? "" : "mr-[2px]"}`} />
+      );
+    } else if (noteLength === "1/16th") {
+      return (
+        <SixteenthRest className={`${forInlineTabViewing ? "" : "mr-[2px]"}`} />
+      );
+    }
+  }
+
   if (noteLength === "1/4th" || noteLength === "1/4th triplet") {
     return (
       <QuarterNote className={`${forInlineTabViewing ? "" : "mr-[2px]"}`} />
@@ -112,6 +129,69 @@ function SixteenthNote(props: SVGProps<SVGSVGElement>) {
             stroke="none"
           />
         </g>
+      </g>
+    </svg>
+  );
+}
+
+function EighthRest(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={22}
+      height={22}
+      viewBox="10 10 24 24"
+      stroke="currentColor"
+      fill="currentColor"
+      colorInterpolation="auto"
+      {...props}
+    >
+      <g
+        style={{
+          fillRule: "evenodd",
+          strokeWidth: 0,
+          strokeLinecap: "butt",
+          strokeLinejoin: "round",
+          strokeMiterlimit: 10,
+        }}
+      >
+        <path
+          d="M531.098 74.847c-.52.098-.918.457-1.098.953-.039.16-.039.199-.039.418 0 .301.019.461.16.699.199.399.617.719 1.094.836.5.141 1.336.02 2.293-.297l.238-.082-1.176 3.25-1.156 3.246s.039.02.102.063a.95.95 0 0 0 .457.137c.238 0 .539-.137.578-.258 0-.039.558-1.934 1.234-4.184l1.195-4.125-.039-.058c-.097-.121-.296-.16-.418-.063a1.4 1.4 0 0 0-.14.18c-.18.301-.637.836-.875 1.035-.219.18-.34.199-.539.121-.18-.098-.239-.199-.36-.738-.117-.535-.257-.778-.558-.977a1.23 1.23 0 0 0-.953-.156z"
+          transform="matrix(1.8 0 0 1.8 -936.447 -121.34)"
+        />
+      </g>
+    </svg>
+  );
+}
+
+function SixteenthRest(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={22}
+      height={17}
+      viewBox="10 13 24 21"
+      stroke="currentColor"
+      fill="currentColor"
+      colorInterpolation="auto"
+      style={{
+        marginBottom: "3px",
+      }}
+      {...props}
+    >
+      <g
+        style={{
+          fillRule: "evenodd",
+          strokeWidth: 0,
+          strokeLinecap: "butt",
+          strokeLinejoin: "round",
+          strokeMiterlimit: 10,
+        }}
+      >
+        <path
+          d="M544.191 74.847a1.43 1.43 0 0 0-1.093.953c-.043.16-.043.199-.043.418 0 .301.019.461.16.699.199.399.617.719 1.098.836.496.141 1.292.039 2.25-.277.14-.059.257-.102.257-.082 0 .023-.894 2.93-.933 3.031-.102.258-.442.735-.739 1.035-.277.278-.418.34-.636.239-.18-.098-.239-.2-.36-.739-.101-.398-.179-.617-.339-.773-.418-.461-1.137-.52-1.692-.16a1.64 1.64 0 0 0-.578.758c-.043.156-.043.199-.043.417 0 .297.023.458.16.696.199.398.617.719 1.098.836.219.062.777.062 1.156 0a9 9 0 0 0 1.074-.278c.16-.058.301-.097.301-.078 0 0-1.953 6.356-1.992 6.453 0 .02.156.141.316.18q.24.094.481 0c.156-.039.316-.137.316-.199.02-.02.817-3.027 1.793-6.676l1.774-6.633-.039-.058c-.079-.121-.239-.141-.379-.082-.079.039-.079.039-.317.398-.199.32-.48.656-.64.816-.219.18-.336.219-.536.141-.179-.098-.242-.199-.359-.738-.121-.535-.262-.778-.559-.977a1.23 1.23 0 0 0-.957-.156z"
+          transform="matrix(1.8 0 0 1.8 -958.53 -120.789)"
+        />
       </g>
     </svg>
   );

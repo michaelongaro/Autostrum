@@ -135,7 +135,7 @@ export function CommandCombobox({ customTuning }: CommandCombobox) {
               </div>
             </CommandItem>
           ) : (
-            <div className="baseFlex w-full !justify-between">
+            <div className="baseFlex my-2 w-full">
               <Button
                 size="sm"
                 onClick={() => {

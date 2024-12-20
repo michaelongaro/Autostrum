@@ -30,7 +30,7 @@ function PlaybackTabChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex ornamental playbackElem relative mb-[9px] h-[168px] w-4 border-y-2 border-white"
+          className="baseVertFlex ornamental playbackElem relative mb-[9px] h-[170px] w-4 border-y-2 border-white"
         >
           {/* show new current bpm */}
           {columnData[8] !== "" && (
@@ -59,7 +59,7 @@ function PlaybackTabChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="playbackElem baseVertFlex relative h-[240px] w-[35px]"
+          className="playbackElem baseVertFlex relative w-[35px]"
         >
           <div className="baseVertFlex mb-[3.2rem] mt-4">
             {columnData.map((note, index) => (
@@ -137,60 +137,73 @@ function PlaybackTabChord({
                       className="baseVertFlex absolute left-1/2 right-1/2 top-2 w-[1.5rem] -translate-x-1/2"
                     >
                       <div className="baseFlex">
-                        {columnData[7]?.includes("v") && (
-                          <BsArrowDown
-                            style={{
-                              width: "15px",
-                              height: "15px",
-                            }}
-                            strokeWidth={
-                              columnData[7]?.includes(">") ? "1.25px" : "0px"
-                            }
-                          />
-                        )}
-                        {columnData[7]?.includes("^") && (
-                          <BsArrowUp
-                            style={{
-                              width: "15px",
-                              height: "15px",
-                            }}
-                            strokeWidth={
-                              columnData[7]?.includes(">") ? "1.25px" : "0px"
-                            }
-                          />
-                        )}
+                        {chordHasAtLeastOneNote(columnData) &&
+                          columnData[7]?.includes("v") && (
+                            <BsArrowDown
+                              style={{
+                                width: "19px",
+                                height: "19px",
+                              }}
+                              strokeWidth={
+                                columnData[7]?.includes(">") ? "1.25px" : "0px"
+                              }
+                            />
+                          )}
+                        {chordHasAtLeastOneNote(columnData) &&
+                          columnData[7]?.includes("^") && (
+                            <BsArrowUp
+                              style={{
+                                width: "19px",
+                                height: "19px",
+                              }}
+                              strokeWidth={
+                                columnData[7]?.includes(">") ? "1.25px" : "0px"
+                              }
+                            />
+                          )}
 
                         {columnData[7]?.includes("s") && (
                           <div
                             style={{ fontSize: "18px" }}
-                            className={`baseFlex mb-1 leading-[0] ${columnData[7]?.includes(">") ? "font-semibold" : "font-normal"}`}
+                            className={`baseFlex mt-1.5 leading-[0] ${columnData[7]?.includes(">") ? "font-semibold" : "font-normal"}`}
                           >
-                            {columnData[7]?.[0]}
+                            s
                           </div>
                         )}
 
-                        {columnData[7]?.includes(".") && (
-                          <div
-                            style={{
-                              fontSize: "30px",
-                              position: "relative",
-                              bottom: "15px",
-                              right: columnData[7]?.includes("s")
-                                ? "0px"
-                                : "3px",
-                              width: columnData[7] === "." ? "10px" : "0px",
-                            }}
-                          >
-                            .
-                          </div>
-                        )}
+                        {chordHasAtLeastOneNote(columnData) &&
+                          columnData[7]?.includes(".") && (
+                            <div
+                              style={{
+                                fontSize: "30px",
+                                position: "absolute",
+                                top: "-13px",
+                                right: "7px",
+                                width: columnData[7] === "." ? "10px" : "0px",
+                              }}
+                            >
+                              .
+                            </div>
+                          )}
                       </div>
 
                       {columnData[9] !== "1" && (
-                        <div>
-                          {getDynamicNoteLengthIcon(
-                            columnData[9] === "0.5" ? "1/8th" : "1/16th",
-                          )}
+                        <div
+                          style={{
+                            marginTop:
+                              chordHasAtLeastOneNote(columnData) &&
+                              columnData[7] !== ""
+                                ? "5px"
+                                : "0",
+                          }}
+                        >
+                          {getDynamicNoteLengthIcon({
+                            noteLength:
+                              columnData[9] === "0.5" ? "1/8th" : "1/16th",
+                            isARestNote: columnData
+                              .slice(1, 7)
+                              .every((note) => note === ""),
+                          })}
                         </div>
                       )}
 
@@ -205,6 +218,10 @@ function PlaybackTabChord({
       )}
     </>
   );
+}
+
+function chordHasAtLeastOneNote(chordData: string[]): boolean {
+  return chordData.slice(1, 7).some((note) => note !== "");
 }
 
 export default PlaybackTabChord;

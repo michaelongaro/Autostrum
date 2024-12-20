@@ -39,7 +39,7 @@ function PlaybackTabMeasureLine({
                 {note === "-" && (
                   <div
                     style={{
-                      top: "-13px",
+                      top: "-14px",
                     }}
                     className="relative h-[1px] w-full bg-white"
                   ></div>

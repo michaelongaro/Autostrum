@@ -948,8 +948,8 @@ function TabSection({
           </div>
         )}
 
-        <div className="baseVertFlex relative h-[280px] gap-[1.35rem] rounded-l-2xl border-2 border-pink-100 p-2">
-          <PrettyVerticalTuning tuning={tuning} />
+        <div className="baseVertFlex relative h-[280px] rounded-l-2xl border-2 border-pink-100 p-2">
+          <PrettyVerticalTuning tuning={tuning} height={"280px"} />
         </div>
 
         <DndContext
