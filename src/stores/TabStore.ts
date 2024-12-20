@@ -270,7 +270,7 @@ const initialStoreState = {
   // modals
   showAudioRecorderModal: false,
   showSectionProgressionModal: false,
-  showEffectGlossaryModal: false,
+  showEffectGlossaryDialog: false,
   chordBeingEdited: null,
   strummingPatternBeingEdited: null,
   showingEffectGlossary: false,
@@ -427,8 +427,8 @@ interface TabState {
   setShowSectionProgressionModal: (
     showSectionProgressionModal: boolean,
   ) => void;
-  showEffectGlossaryModal: boolean;
-  setShowEffectGlossaryModal: (showEffectGlossaryModal: boolean) => void;
+  showEffectGlossaryDialog: boolean;
+  setShowEffectGlossaryDialog: (showEffectGlossaryDialog: boolean) => void;
   showDeleteAccountModal: boolean;
   setShowDeleteAccountModal: (showDeleteAccountModal: boolean) => void;
   showCustomTuningModal: boolean;
@@ -1246,9 +1246,9 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       showSectionProgressionModal: false,
       setShowSectionProgressionModal: (showSectionProgressionModal) =>
         set({ showSectionProgressionModal }),
-      showEffectGlossaryModal: false,
-      setShowEffectGlossaryModal: (showEffectGlossaryModal) =>
-        set({ showEffectGlossaryModal }),
+      showEffectGlossaryDialog: false,
+      setShowEffectGlossaryDialog: (showEffectGlossaryDialog) =>
+        set({ showEffectGlossaryDialog }),
       showDeleteAccountModal: false,
       setShowDeleteAccountModal: (showDeleteAccountModal) =>
         set({ showDeleteAccountModal }),

@@ -43,7 +43,7 @@ function PlaybackTopMetadata({
     playbackSpeed,
     pauseAudio,
     setPlaybackSpeed,
-    setShowEffectGlossaryModal,
+    setShowEffectGlossaryDialog,
     setAudioMetadata,
   } = useTabStore((state) => ({
     tabData: state.tabData,
@@ -59,7 +59,7 @@ function PlaybackTopMetadata({
     playbackSpeed: state.playbackSpeed,
     pauseAudio: state.pauseAudio,
     setPlaybackSpeed: state.setPlaybackSpeed,
-    setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
+    setShowEffectGlossaryDialog: state.setShowEffectGlossaryDialog,
     setAudioMetadata: state.setAudioMetadata,
   }));
 
@@ -218,7 +218,7 @@ function PlaybackTopMetadata({
                   <Button
                     variant={"outline"}
                     className="size-9 !p-0"
-                    onClick={() => setShowEffectGlossaryModal(true)}
+                    onClick={() => setShowEffectGlossaryDialog(true)}
                   >
                     <FaBook className="h-4 w-4" />
                   </Button>

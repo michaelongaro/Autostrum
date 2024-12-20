@@ -26,10 +26,8 @@ import StrummingPatterns from "./StrummingPatterns";
 import PlaybackDialog from "~/components/Tab/Playback/PlaybackDialog";
 import dynamic from "next/dynamic";
 import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
+import EffectGlossaryDialog from "~/components/Dialogs/EffectGlossaryDialog";
 
-const EffectGlossaryModal = dynamic(
-  () => import("~/components/modals/EffectGlossaryModal"),
-);
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
 );
@@ -98,8 +96,8 @@ function Tab({ tab, refetchTab }: ITab) {
     setOriginalTabData,
     showAudioRecorderModal,
     showSectionProgressionModal,
-    showEffectGlossaryModal,
-    setShowEffectGlossaryModal,
+    showEffectGlossaryDialog,
+    setShowEffectGlossaryDialog,
     chordBeingEdited,
     strummingPatternBeingEdited,
     showCustomTuningModal,
@@ -136,8 +134,8 @@ function Tab({ tab, refetchTab }: ITab) {
     setOriginalTabData: state.setOriginalTabData,
     showAudioRecorderModal: state.showAudioRecorderModal,
     showSectionProgressionModal: state.showSectionProgressionModal,
-    showEffectGlossaryModal: state.showEffectGlossaryModal,
-    setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
+    showEffectGlossaryDialog: state.showEffectGlossaryDialog,
+    setShowEffectGlossaryDialog: state.setShowEffectGlossaryDialog,
     chordBeingEdited: state.chordBeingEdited,
     strummingPatternBeingEdited: state.strummingPatternBeingEdited,
     showCustomTuningModal: state.showCustomTuningModal,
@@ -319,7 +317,7 @@ function Tab({ tab, refetchTab }: ITab) {
               <Button
                 variant={"secondary"}
                 className="baseFlex !flex-nowrap gap-2 lg:absolute lg:right-7 lg:top-0"
-                onClick={() => setShowEffectGlossaryModal(true)}
+                onClick={() => setShowEffectGlossaryDialog(true)}
               >
                 Effect glossary
                 <FaBook className="h-4 w-4" />
@@ -341,7 +339,7 @@ function Tab({ tab, refetchTab }: ITab) {
             <Button
               variant={"secondary"}
               className="baseFlex !flex-nowrap gap-2 lg:absolute lg:right-7 lg:top-0"
-              onClick={() => setShowEffectGlossaryModal(true)}
+              onClick={() => setShowEffectGlossaryDialog(true)}
             >
               Effect glossary
               <FaBook className="h-4 w-4" />
@@ -451,9 +449,7 @@ function Tab({ tab, refetchTab }: ITab) {
         {showSectionProgressionModal && <SectionProgressionModal />}
       </AnimatePresence>
 
-      <AnimatePresence mode="wait">
-        {showEffectGlossaryModal && <EffectGlossaryModal />}
-      </AnimatePresence>
+      <EffectGlossaryDialog />
 
       <AnimatePresence mode="wait">
         {chordBeingEdited && (

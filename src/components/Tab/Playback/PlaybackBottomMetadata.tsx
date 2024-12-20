@@ -68,7 +68,7 @@ function PlaybackBottomMetadata({
     playbackMetadata,
     currentChordIndex,
     viewportLabel,
-    setShowEffectGlossaryModal,
+    setShowEffectGlossaryDialog,
     setAudioMetadata,
     looping,
     countInTimer,
@@ -83,7 +83,7 @@ function PlaybackBottomMetadata({
     playbackMetadata: state.playbackMetadata,
     currentChordIndex: state.currentChordIndex,
     viewportLabel: state.viewportLabel,
-    setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
+    setShowEffectGlossaryDialog: state.setShowEffectGlossaryDialog,
     setAudioMetadata: state.setAudioMetadata,
     looping: state.looping,
     countInTimer: state.countInTimer,
@@ -203,7 +203,7 @@ function PlaybackBottomMetadata({
                 <Button
                   variant={"outline"}
                   className="size-9 !p-0"
-                  onClick={() => setShowEffectGlossaryModal(true)}
+                  onClick={() => setShowEffectGlossaryDialog(true)}
                 >
                   <FaBook className="h-4 w-4" />
                 </Button>
@@ -249,7 +249,7 @@ function PlaybackBottomMetadata({
               <Button
                 variant={"outline"}
                 className="size-9 !p-0"
-                onClick={() => setShowEffectGlossaryModal(true)}
+                onClick={() => setShowEffectGlossaryDialog(true)}
               >
                 <FaBook className="h-4 w-4" />
               </Button>
