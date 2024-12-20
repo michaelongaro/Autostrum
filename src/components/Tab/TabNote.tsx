@@ -3,6 +3,23 @@ import { useTabStore } from "~/stores/TabStore";
 import { Input } from "../ui/input";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 
+const chordMappings = {
+  A: ["", "0", "2", "2", "2", "0"],
+  a: ["", "0", "2", "2", "1", "0"],
+  B: ["", "2", "4", "4", "4", "2"],
+  b: ["", "2", "4", "4", "3", "2"],
+  C: ["", "3", "2", "0", "1", "0"],
+  c: ["", "3", "5", "5", "4", "3"],
+  D: ["", "", "0", "2", "3", "2"],
+  d: ["", "", "0", "2", "3", "1"],
+  E: ["0", "2", "2", "1", "0", "0"],
+  e: ["0", "2", "2", "0", "0", "0"],
+  F: ["1", "3", "3", "2", "1", "1"],
+  f: ["1", "3", "3", "1", "1", "1"],
+  G: ["3", "2", "0", "0", "0", "3"],
+  g: ["3", "5", "5", "3", "3", "3"],
+};
+
 interface TabNote {
   note: string;
   sectionIndex: number;
@@ -288,68 +305,36 @@ function TabNote({
         }
       }
       if (valueHasAChordLetter) {
-        let ableToOverwrite = true;
+        const chordArray: string[] =
+          chordMappings[chordLetter as keyof typeof chordMappings];
 
-        let chordArray: string[] = [];
+        const newTabData = getTabData();
 
-        if (chordLetter === "A") {
-          chordArray = ["", "0", "2", "2", "2", "0"];
-        } else if (chordLetter === "a") {
-          chordArray = ["", "0", "2", "2", "1", "0"];
-        } else if (chordLetter === "B" && value === "B") {
-          chordArray = ["", "2", "4", "4", "4", "2"];
-        } else if (chordLetter === "b" && value === "b") {
-          chordArray = ["", "2", "4", "4", "3", "2"];
-        } else if (chordLetter === "C") {
-          chordArray = ["", "3", "2", "0", "1", "0"];
-        } else if (chordLetter === "c") {
-          chordArray = ["", "3", "5", "5", "4", "3"];
-        } else if (chordLetter === "D") {
-          chordArray = ["", "", "0", "2", "3", "2"];
-        } else if (chordLetter === "d") {
-          chordArray = ["", "", "0", "2", "3", "1"];
-        } else if (chordLetter === "E") {
-          chordArray = ["0", "2", "2", "1", "0", "0"];
-        } else if (chordLetter === "e") {
-          chordArray = ["0", "2", "2", "0", "0", "0"];
-        } else if (chordLetter === "F") {
-          chordArray = ["1", "3", "3", "2", "1", "1"];
-        } else if (chordLetter === "f") {
-          chordArray = ["1", "3", "3", "1", "1", "1"];
-        } else if (chordLetter === "G") {
-          chordArray = ["3", "2", "0", "0", "0", "3"];
-        } else if (chordLetter === "g") {
-          chordArray = ["3", "5", "5", "3", "3", "3"];
-        } else {
-          ableToOverwrite = false;
-        }
+        const palmMuteNode =
+          newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+            columnIndex
+          ]![0];
+        const chordEffects =
+          newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+            columnIndex
+          ]![7];
+        const noteLengthModifier =
+          newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+            columnIndex
+          ]![8];
+        const id =
+          newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex]![9];
 
-        if (ableToOverwrite) {
-          const newTabData = getTabData();
-          const palmMuteNode =
-            newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-              columnIndex
-            ]![0];
-          const chordEffects =
-            newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-              columnIndex
-            ]![7];
-          const id =
-            newTabData[sectionIndex]!.data[subSectionIndex].data[
-              columnIndex
-            ]![9];
+        newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex] = [
+          palmMuteNode ?? "",
+          ...chordArray.reverse(),
+          chordEffects ?? "",
+          noteLengthModifier ?? "1/4th",
+          id,
+        ];
 
-          newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex] = [
-            palmMuteNode ?? "",
-            ...chordArray.reverse(),
-            chordEffects ?? "",
-            "1/4th",
-            id,
-          ];
-
-          setTabData(newTabData);
-          return;
-        }
+        setTabData(newTabData);
+        return;
       }
 
       // need to do this after checking for chord letters so that
