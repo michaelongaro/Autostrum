@@ -196,7 +196,7 @@ function PlaybackTopMetadata({
                   <p className="text-sm font-medium">Tuning</p>
                   <p>
                     {tuningNotesToName[
-                      tuning as keyof typeof tuningNotesToName
+                      tuning.toLowerCase() as keyof typeof tuningNotesToName
                     ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
                   </p>
                 </div>

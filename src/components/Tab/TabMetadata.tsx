@@ -1356,7 +1356,7 @@ function TabMetadata({
                   <div className="font-semibold">Tuning</div>
                   <p>
                     {tuningNotesToName[
-                      tuning as keyof typeof tuningNotesToName
+                      tuning.toLowerCase() as keyof typeof tuningNotesToName
                     ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
                   </p>
                 </div>
