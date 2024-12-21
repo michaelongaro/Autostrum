@@ -56,7 +56,7 @@ function StaticTabSection({ subSectionData }: StaticTabSection) {
         <div
           style={{
             height: "168px",
-            marginBottom: "-1px",
+            marginBottom: "-1px", // necessary anymore?
           }}
           className="baseVertFlex relative rounded-l-2xl border-2 border-pink-100 p-2"
         >
