@@ -91,14 +91,15 @@ function PlayButtonIcon({
       setTimeout(() => source.start(), 190);
     }
 
-    playCountInSound(3);
+    setTimeout(() => playCountInSound(3), 115);
 
     setTimeout(() => {
       setCountInNumber(2);
-      playCountInSound(2);
+      setTimeout(() => playCountInSound(2), 115);
+
       setTimeout(() => {
         setCountInNumber(1);
-        playCountInSound(1);
+        setTimeout(() => playCountInSound(1), 115);
 
         setTimeout(() => {
           setHideCountInTimer(true);
