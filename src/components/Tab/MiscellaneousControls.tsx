@@ -124,7 +124,7 @@ function MiscellaneousControls({
       newChordSequence = arrayMove(
         newChordSequence,
         chordSequenceIndex,
-        chordSequenceIndex - 1
+        chordSequenceIndex - 1,
       );
 
       newTabData[sectionIndex]!.data[subSectionIndex]!.data = newChordSequence;
@@ -137,7 +137,7 @@ function MiscellaneousControls({
       newSubSection = arrayMove(
         newSubSection,
         subSectionIndex,
-        subSectionIndex - 1
+        subSectionIndex - 1,
       );
 
       newTabData[sectionIndex]!.data = newSubSection;
@@ -162,7 +162,7 @@ function MiscellaneousControls({
       newChordSequence = arrayMove(
         newChordSequence,
         chordSequenceIndex,
-        chordSequenceIndex + 1
+        chordSequenceIndex + 1,
       );
 
       newTabData[sectionIndex]!.data[subSectionIndex]!.data = newChordSequence;
@@ -175,7 +175,7 @@ function MiscellaneousControls({
       newSubSection = arrayMove(
         newSubSection,
         subSectionIndex,
-        subSectionIndex + 1
+        subSectionIndex + 1,
       );
 
       newTabData[sectionIndex]!.data = newSubSection;
@@ -239,7 +239,7 @@ function MiscellaneousControls({
       const newChordSequence = structuredClone(
         getTabData()[sectionIndex]?.data[subSectionIndex]?.data[
           chordSequenceIndex
-        ] as ChordSequence
+        ] as ChordSequence,
       );
 
       setCurrentlyCopiedData({
@@ -249,7 +249,7 @@ function MiscellaneousControls({
     } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
       if (type === "chord") {
         const newSubSection = structuredClone(
-          getTabData()[sectionIndex]?.data[subSectionIndex] as ChordSection
+          getTabData()[sectionIndex]?.data[subSectionIndex] as ChordSection,
         );
 
         setCurrentlyCopiedData({
@@ -259,8 +259,8 @@ function MiscellaneousControls({
       } else if (type === "tab") {
         const newSubSection = replaceIdInTabSection(
           structuredClone(
-            getTabData()[sectionIndex]?.data[subSectionIndex] as TabSection
-          )
+            getTabData()[sectionIndex]?.data[subSectionIndex] as TabSection,
+          ),
         );
 
         setCurrentlyCopiedData({
@@ -301,7 +301,7 @@ function MiscellaneousControls({
       subSectionIndex !== undefined
     ) {
       newTabData[sectionIndex]!.data[subSectionIndex] = replaceIdInChordSection(
-        currentlyCopiedData.data as ChordSection
+        currentlyCopiedData.data as ChordSection,
       );
     } else if (
       currentlyCopiedData.type === "tab" &&
@@ -309,7 +309,7 @@ function MiscellaneousControls({
       subSectionIndex !== undefined
     ) {
       newTabData[sectionIndex]!.data[subSectionIndex] = replaceIdInTabSection(
-        currentlyCopiedData.data as TabSection
+        currentlyCopiedData.data as TabSection,
       );
     } else if (
       currentlyCopiedData.type === "section" &&
@@ -345,7 +345,7 @@ function MiscellaneousControls({
             sectionIsEffectivelyEmpty(
               getTabData(),
               sectionIndex,
-              subSectionIndex
+              subSectionIndex,
             )
           }
           onClick={() => {
@@ -378,7 +378,7 @@ function MiscellaneousControls({
                     },
                   });
                 },
-                !locationIsEqual ? 50 : 0
+                !locationIsEqual ? 50 : 0,
               );
             }
           }}
@@ -441,14 +441,9 @@ function MiscellaneousControls({
             Move down
             <BiDownArrowAlt className="h-5 w-5" />
           </DropdownMenuItem>
-          <DropdownMenuItem
-            className="baseFlex !justify-between gap-2 focus-within:!bg-[rgb(255,0,0)] focus-within:!text-pink-100"
-            onClick={deleteSection}
-          >
-            Delete
-            <FaTrashAlt className="h-4 w-5" />
-          </DropdownMenuItem>
+
           <DropdownMenuSeparator />
+
           <DropdownMenuItem
             className="baseFlex !justify-between gap-2"
             onClick={copySection}
@@ -463,6 +458,16 @@ function MiscellaneousControls({
           >
             Paste
             <LuClipboardPaste className="h-5 w-5" />
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem
+            className="baseFlex !justify-between gap-2 focus-within:!bg-[rgb(255,0,0)] focus-within:!text-pink-100 active:!bg-[rgb(255,0,0)] active:!text-pink-100"
+            onClick={deleteSection}
+          >
+            Delete
+            <FaTrashAlt className="h-4 w-5" />
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
