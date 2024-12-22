@@ -60,7 +60,7 @@ function StaticTabSection({ subSectionData }: StaticTabSection) {
           }}
           className="baseVertFlex relative rounded-l-2xl border-2 border-pink-100 p-2"
         >
-          <PrettyVerticalTuning tuning={tuning} height={"168px"} />
+          <PrettyVerticalTuning tuning={tuning} height={"150px"} />
         </div>
 
         {subSectionData.data.map((column, index) => (
