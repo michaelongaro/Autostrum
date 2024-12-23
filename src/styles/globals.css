@@ -244,3 +244,29 @@ body {
   /* TODO: change this later to be closer to framer-motion spring easing */
   animation: countInAnimation 1s ease-in-out;
 }
+
+@keyframes copyAndPasteAnimation {
+  0% {
+    opacity: 0;
+    scale: 0;
+  }
+
+  50% {
+    opacity: 1;
+    scale: 1;
+  }
+
+  100% {
+    opacity: 0;
+    scale: 1;
+  }
+}
+
+.copyAndPaste::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 9999px;
+  animation: copyAndPasteAnimation 0.35s ease-in-out;
+}

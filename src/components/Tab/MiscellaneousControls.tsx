@@ -29,6 +29,7 @@ import {
 import isEqual from "lodash.isequal";
 import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
+import { Check } from "lucide-react";
 
 interface MiscellaneousControls {
   type: "section" | "tab" | "chord" | "chordSequence";
@@ -49,9 +50,6 @@ function MiscellaneousControls({
   hidePlayPauseButton,
   forSectionContainer,
 }: MiscellaneousControls) {
-  const [artificalPlayButtonTimeout, setArtificialPlayButtonTimeout] =
-    useState(false);
-
   const {
     id,
     bpm,
@@ -81,6 +79,11 @@ function MiscellaneousControls({
     playTab: state.playTab,
     pauseAudio: state.pauseAudio,
   }));
+
+  const [artificalPlayButtonTimeout, setArtificialPlayButtonTimeout] =
+    useState(false);
+  const [showCopyCheckmark, setShowCopyCheckmark] = useState(false);
+  const [showPasteCheckmark, setShowPasteCheckmark] = useState(false);
 
   function disableMoveDown() {
     if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
@@ -186,51 +189,9 @@ function MiscellaneousControls({
     setTabData(newTabData);
   }
 
-  function deleteSection() {
-    pauseAudio(true);
-    setAudioMetadata({
-      ...audioMetadata,
-      playing: false, // should get set to false by pauseAudio, but isn't hurting anything
-      location: null,
-    });
-
-    const newTabData = getTabData();
-
-    if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
-      const newChordSequence = newTabData[sectionIndex]?.data[subSectionIndex]
-        ?.data as ChordSequence[];
-
-      newChordSequence.splice(chordSequenceIndex, 1);
-
-      newTabData[sectionIndex]!.data[subSectionIndex]!.data = newChordSequence;
-    } else if (subSectionIndex !== undefined) {
-      const newSubSection = newTabData[sectionIndex]?.data as (
-        | TabSection
-        | ChordSection
-      )[];
-
-      newSubSection.splice(subSectionIndex, 1);
-
-      newTabData[sectionIndex]!.data = newSubSection;
-    } else {
-      const newSectionProgression = [...sectionProgression];
-
-      for (let i = newSectionProgression.length - 1; i >= 0; i--) {
-        if (
-          newSectionProgression[i]?.sectionId === newTabData[sectionIndex]?.id
-        ) {
-          newSectionProgression.splice(i, 1);
-        }
-      }
-
-      newTabData.splice(sectionIndex, 1);
-      setSectionProgression(newSectionProgression);
-    }
-
-    setTabData(newTabData);
-  }
-
   function copySection() {
+    setShowCopyCheckmark(true);
+
     if (
       chordSequenceIndex !== undefined &&
       subSectionIndex !== undefined &&
@@ -284,6 +245,9 @@ function MiscellaneousControls({
 
   function pasteSection() {
     if (!currentlyCopiedData) return;
+
+    setShowPasteCheckmark(true);
+
     const newTabData = getTabData();
 
     if (
@@ -319,6 +283,50 @@ function MiscellaneousControls({
         ...getTabData()[sectionIndex],
         data: replaceIdInSection(currentlyCopiedData.data as Section),
       } as Section;
+    }
+
+    setTabData(newTabData);
+  }
+
+  function deleteSection() {
+    pauseAudio(true);
+    setAudioMetadata({
+      ...audioMetadata,
+      playing: false, // should get set to false by pauseAudio, but isn't hurting anything
+      location: null,
+    });
+
+    const newTabData = getTabData();
+
+    if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
+      const newChordSequence = newTabData[sectionIndex]?.data[subSectionIndex]
+        ?.data as ChordSequence[];
+
+      newChordSequence.splice(chordSequenceIndex, 1);
+
+      newTabData[sectionIndex]!.data[subSectionIndex]!.data = newChordSequence;
+    } else if (subSectionIndex !== undefined) {
+      const newSubSection = newTabData[sectionIndex]?.data as (
+        | TabSection
+        | ChordSection
+      )[];
+
+      newSubSection.splice(subSectionIndex, 1);
+
+      newTabData[sectionIndex]!.data = newSubSection;
+    } else {
+      const newSectionProgression = [...sectionProgression];
+
+      for (let i = newSectionProgression.length - 1; i >= 0; i--) {
+        if (
+          newSectionProgression[i]?.sectionId === newTabData[sectionIndex]?.id
+        ) {
+          newSectionProgression.splice(i, 1);
+        }
+      }
+
+      newTabData.splice(sectionIndex, 1);
+      setSectionProgression(newSectionProgression);
     }
 
     setTabData(newTabData);
@@ -418,6 +426,9 @@ function MiscellaneousControls({
         <DropdownMenuContent
           side={"bottom"}
           onCloseAutoFocus={(event) => {
+            setShowCopyCheckmark(false);
+            setShowPasteCheckmark(false);
+
             event.preventDefault();
             event.stopPropagation();
             // not sure if this does a perfect job of preventing scrolling while
@@ -431,7 +442,7 @@ function MiscellaneousControls({
             onClick={moveUp}
           >
             Move up
-            <BiUpArrowAlt className="h-5 w-5" />
+            <BiUpArrowAlt className="size-5" />
           </DropdownMenuItem>
           <DropdownMenuItem
             className="baseFlex !justify-between gap-2"
@@ -439,7 +450,7 @@ function MiscellaneousControls({
             onClick={moveDown}
           >
             Move down
-            <BiDownArrowAlt className="h-5 w-5" />
+            <BiDownArrowAlt className="size-5" />
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
@@ -449,7 +460,11 @@ function MiscellaneousControls({
             onClick={copySection}
           >
             Copy
-            <HiOutlineClipboardCopy className="h-5 w-5" />
+            {showCopyCheckmark ? (
+              <Check className="size-5" />
+            ) : (
+              <HiOutlineClipboardCopy className="size-5" />
+            )}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="baseFlex !justify-between gap-2"
@@ -457,7 +472,11 @@ function MiscellaneousControls({
             onClick={pasteSection}
           >
             Paste
-            <LuClipboardPaste className="h-5 w-5" />
+            {showPasteCheckmark ? (
+              <Check className="size-5" />
+            ) : (
+              <LuClipboardPaste className="size-5" />
+            )}
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />

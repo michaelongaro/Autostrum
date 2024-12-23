@@ -115,16 +115,6 @@ module.exports = {
           from: { transform: "rotate(0deg)" },
           to: { transform: "rotate(360deg)" },
         },
-        copyChordPulse: {
-          "0%": { transform: "scale(0.75)", opacity: "0" },
-          "50%": { transform: "scale(1)", opacity: "0.5" },
-          "100%": { transform: "scale(1)", opacity: "0" },
-        },
-        pasteChordPulse: {
-          "0%": { transform: "scale(0.75)", opacity: "0" },
-          "50%": { transform: "scale(1)", opacity: "0.5" },
-          "100%": { transform: "scale(0.85)", opacity: "0" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -133,8 +123,6 @@ module.exports = {
         smallErrorShake: "smallErrorShake 0.5s ease-in-out forwards",
         colorOscillate: "colorOscillate 1.75s ease-in-out infinite",
         stableSpin: "stableSpin 1s linear infinite",
-        copyChordPulse: "copyChordPulse 0.35s ease-in-out forwards",
-        pasteChordPulse: "pasteChordPulse 0.35s ease-in-out forwards",
       },
       textShadow: {
         none: "none",

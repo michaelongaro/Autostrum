@@ -97,16 +97,12 @@ function TabNotesColumn({
 
   const {
     audioMetadata,
-    chordPulse,
-    setChordPulse,
     getTabData,
     setTabData,
     pauseAudio,
     currentChordIndex,
   } = useTabStore((state) => ({
     audioMetadata: state.audioMetadata,
-    chordPulse: state.chordPulse,
-    setChordPulse: state.setChordPulse,
     getTabData: state.getTabData,
     setTabData: state.setTabData,
     pauseAudio: state.pauseAudio,
@@ -313,23 +309,6 @@ function TabNotesColumn({
             transitionTimingFunction: "linear",
           }}
           className="absolute left-0 h-[276px] w-full bg-pink-700"
-        ></div>
-
-        <div
-          onAnimationEnd={() => {
-            setChordPulse(null);
-          }}
-          className={`absolute h-[270px] w-[95%] rounded-full bg-pink-300 opacity-0 ${
-            isEqual(chordPulse?.location, {
-              sectionIndex,
-              subSectionIndex,
-              chordIndex: columnIndex,
-            })
-              ? chordPulse!.type === "copy"
-                ? "animate-copyChordPulse"
-                : "animate-pasteChordPulse"
-              : ""
-          } }`}
         ></div>
 
         <div className="baseVertFlex mb-[3.2rem] mt-4 gap-2">

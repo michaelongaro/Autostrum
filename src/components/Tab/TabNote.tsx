@@ -40,12 +40,14 @@ function TabNote({
     setTabData,
     currentlyCopiedChord,
     setCurrentlyCopiedChord,
+    chordPulse,
     setChordPulse,
   } = useTabStore((state) => ({
     getTabData: state.getTabData,
     setTabData: state.setTabData,
     currentlyCopiedChord: state.currentlyCopiedChord,
     setCurrentlyCopiedChord: state.setCurrentlyCopiedChord,
+    chordPulse: state.chordPulse,
     setChordPulse: state.setChordPulse,
   }));
 
@@ -419,32 +421,44 @@ function TabNote({
   }
 
   return (
-    <Input
-      id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`}
-      style={{
-        width: noteIndex !== 7 ? "35px" : "28px",
-        height: noteIndex !== 7 ? "35px" : "28px",
-        borderWidth: note.length > 0 && !isFocused ? "2px" : "1px",
-      }}
-      className="my-[1px] rounded-full p-0 text-center shadow-sm shadow-pink-600"
-      onFocus={(e) => {
-        setIsFocused(true);
+    <div
+      className={`relative ${
+        chordPulse &&
+        chordPulse.location.sectionIndex === sectionIndex &&
+        chordPulse.location.subSectionIndex === subSectionIndex &&
+        chordPulse.location.chordIndex === columnIndex
+          ? "copyAndPaste"
+          : ""
+      }`}
+      onAnimationEnd={() => setChordPulse(null)}
+    >
+      <Input
+        id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`}
+        style={{
+          width: noteIndex !== 7 ? "35px" : "28px",
+          height: noteIndex !== 7 ? "35px" : "28px",
+          borderWidth: note.length > 0 && !isFocused ? "2px" : "1px",
+        }}
+        className="relative my-[1px] rounded-full p-0 text-center shadow-sm shadow-pink-600"
+        onFocus={(e) => {
+          setIsFocused(true);
 
-        // focuses end of the input (better ux when navigating with arrow keys)
-        e.target.setSelectionRange(
-          e.target.value.length,
-          e.target.value.length,
-        );
-      }}
-      onBlur={() => {
-        setIsFocused(false);
-      }}
-      type="text"
-      autoComplete="off"
-      value={note}
-      onKeyDown={handleKeyDown}
-      onChange={handleChange}
-    />
+          // focuses end of the input (better ux when navigating with arrow keys)
+          e.target.setSelectionRange(
+            e.target.value.length,
+            e.target.value.length,
+          );
+        }}
+        onBlur={() => {
+          setIsFocused(false);
+        }}
+        type="text"
+        autoComplete="off"
+        value={note}
+        onKeyDown={handleKeyDown}
+        onChange={handleChange}
+      />
+    </div>
   );
 }
 
