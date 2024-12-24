@@ -23,13 +23,6 @@ import { traverseToRemoveHangingStrummingPatternPairNode } from "~/utils/palmMut
 import StrummingPattern from "../Tab/StrummingPattern";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "../ui/button";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "~/components/ui/accordion";
-import { isMobile, isDesktop } from "react-device-detect";
 
 const backdropVariants = {
   expanded: {
@@ -59,10 +52,6 @@ function StrummingPatternModal({
     useState(false);
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
-
-  const [accordionValue, setAccordionValue] = useState(
-    isMobile ? "" : "opened",
-  );
 
   const {
     strummingPatterns,
@@ -354,12 +343,6 @@ function StrummingPatternModal({
       initial="closed"
       animate="expanded"
       exit="closed"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && isDesktop) {
-          if (audioMetadata.playing) pauseAudio();
-          setStrummingPatternBeingEdited(null);
-        }
-      }}
     >
       <FocusTrap
         focusTrapOptions={{
@@ -455,53 +438,40 @@ function StrummingPatternModal({
             </div>
           </div>
 
-          <Accordion
-            type="single"
-            collapsible
-            value={accordionValue}
-            onValueChange={(value) => {
-              setAccordionValue(value);
-            }}
-            className="baseVertFlex lightestGlassmorphic w-[300px] gap-2 rounded-md px-2 py-0 text-sm sm:w-[650px]"
-          >
-            <AccordionItem value="opened">
-              <AccordionTrigger extraPadding className="w-full">
-                <div className="baseFlex w-full gap-2 font-semibold">
-                  <BsKeyboard className="h-6 w-6" />
-                  Hotkeys
-                </div>
-              </AccordionTrigger>
-              <AccordionContent extraPaddingBottom>
-                <div className="baseFlex mt-2 gap-4 sm:w-full sm:gap-6">
-                  <div className="baseFlex gap-2">
-                    <span className="font-semibold">v / d</span>
-                    <p>-</p>
-                    <p>Downstrum</p>
-                  </div>
-                  <div className="baseFlex gap-2">
-                    <span className="font-semibold">^ / u</span>
-                    <p>-</p>
-                    <p>Upstrum</p>
-                  </div>
-                  <div className="baseFlex gap-2">
-                    <p className="font-semibold">s</p>
-                    <p>-</p>
-                    <p>Slap</p>
-                  </div>
-                  <div className="baseFlex gap-2">
-                    <p className="font-semibold">&gt;</p>
-                    <p>-</p>
-                    <p>Accented</p>
-                  </div>
-                  <div className="baseFlex gap-2">
-                    <p className="font-semibold">.</p>
-                    <p>-</p>
-                    <p>Staccato</p>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          <div className="baseVertFlex lightestGlassmorphic w-[300px] gap-2 rounded-md px-2 py-3 text-sm sm:w-[600px]">
+            <div className="baseFlex w-full gap-2 font-semibold">
+              <BsKeyboard className="h-6 w-6" />
+              Hotkeys
+            </div>
+
+            <div className="baseFlex mt-2 flex-wrap gap-4 sm:w-full sm:gap-6">
+              <div className="baseFlex gap-2">
+                <span className="font-semibold">v / d</span>
+                <p>-</p>
+                <p>Downstrum</p>
+              </div>
+              <div className="baseFlex gap-2">
+                <span className="font-semibold">^ / u</span>
+                <p>-</p>
+                <p>Upstrum</p>
+              </div>
+              <div className="baseFlex gap-2">
+                <p className="font-semibold">s</p>
+                <p>-</p>
+                <p>Slap</p>
+              </div>
+              <div className="baseFlex gap-2">
+                <p className="font-semibold">&gt;</p>
+                <p>-</p>
+                <p>Accented</p>
+              </div>
+              <div className="baseFlex gap-2">
+                <p className="font-semibold">.</p>
+                <p>-</p>
+                <p>Staccato</p>
+              </div>
+            </div>
+          </div>
 
           <div className="baseFlex overflow-y-auto">
             {/* editing inputs of strumming pattern */}
@@ -518,7 +488,7 @@ function StrummingPatternModal({
             />
           </div>
 
-          <div className="baseVertFlex gap-8">
+          <div className="baseFlex w-full !justify-between gap-8">
             <Button
               disabled={
                 artificalPlayButtonTimeout ||
@@ -556,7 +526,7 @@ function StrummingPatternModal({
                 ) : (
                   <BsFillPlayFill className="h-6 w-6" />
                 )}
-                Preview strumming pattern
+                Preview
               </>
             </Button>
             <div className="baseFlex gap-4">

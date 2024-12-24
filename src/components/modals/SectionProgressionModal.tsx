@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { isDesktop } from "react-device-detect";
 
 const backdropVariants = {
   expanded: {
@@ -39,7 +38,7 @@ const sectionVariants = {
   },
 };
 
-function SectionProgressionModal() {
+function SectionProgressionDialog() {
   const [localSectionProgression, setLocalSectionProgression] = useState<
     SectionProgression[]
   >([]);
@@ -98,7 +97,8 @@ function SectionProgressionModal() {
       sectionId: "",
       title: "",
       repetitions: 1,
-      elapsedSecondsIntoTab: 0, // will be updated w/in useAutoCompileChords
+      startSeconds: 0, // will be overwritten by useAutoCompileChords
+      endSeconds: 0, // will be overwritten by useAutoCompileChords
     });
     setLocalSectionProgression(newSectionProgression);
 
@@ -142,11 +142,6 @@ function SectionProgressionModal() {
       initial="closed"
       animate="expanded"
       exit="closed"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && isDesktop) {
-          setShowSectionProgressionModal(false);
-        }
-      }}
     >
       <FocusTrap
         focusTrapOptions={{
@@ -163,14 +158,14 @@ function SectionProgressionModal() {
             }
           }}
         >
-          <div className="baseVertFlex h-full max-h-[90vh] min-h-[20rem] w-full max-w-[90vw] !flex-nowrap !justify-between gap-8">
+          <div className="baseVertFlex h-full max-h-[90vh] min-h-[20rem] w-full max-w-[90vw] !justify-between gap-8">
             <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
               <p className="text-lg font-semibold">Section progression</p>
             </div>
 
             <div
               ref={scrollableSectionsRef}
-              className="baseVertFlex max-h-[70vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[70vh] md:w-8/12"
+              className="baseVertFlex max-h-[70vh] w-full !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 px-12 md:max-h-[70vh]"
             >
               {localSectionProgression.length > 0 ? (
                 <AnimatePresence mode="wait">
@@ -178,8 +173,9 @@ function SectionProgressionModal() {
                     {localSectionProgression.map((section, index) => (
                       <Section
                         key={section.id}
-                        id={section.id}
                         index={index}
+                        id={section.id}
+                        sectionId={section.sectionId}
                         title={section.title}
                         repetitions={section.repetitions}
                         sections={sections}
@@ -214,7 +210,11 @@ function SectionProgressionModal() {
               </Button>
 
               <Button
-                disabled={isEqual(localSectionProgression, sectionProgression)}
+                disabled={
+                  localSectionProgression.every(
+                    (section) => section.title === "",
+                  ) || isEqual(localSectionProgression, sectionProgression)
+                }
                 onClick={closeModal}
               >
                 Save
@@ -227,7 +227,7 @@ function SectionProgressionModal() {
   );
 }
 
-export default SectionProgressionModal;
+export default SectionProgressionDialog;
 
 interface Section {
   id: string;
@@ -235,6 +235,7 @@ interface Section {
     id: string;
     title: string;
   }[];
+  sectionId: string;
   title: string;
   repetitions: number;
   index: number;
@@ -246,6 +247,7 @@ interface Section {
 
 function Section({
   id,
+  sectionId,
   title,
   repetitions,
   index,
@@ -253,12 +255,14 @@ function Section({
   localSectionProgression,
   setLocalSectionProgression,
 }: Section) {
-  function handleSectionChange(stringifiedIndex: string) {
-    const newIndex = parseInt(stringifiedIndex);
+  function handleSectionChange(sectionId: string) {
+    const indexOfSection = sections.findIndex(
+      (section) => section.id === sectionId,
+    );
     const newSectionProgression = [...localSectionProgression];
 
-    newSectionProgression[index]!.sectionId = sections[newIndex]!.id;
-    newSectionProgression[index]!.title = sections[newIndex]!.title;
+    newSectionProgression[index]!.sectionId = sectionId;
+    newSectionProgression[index]!.title = sections[indexOfSection]!.title;
     setLocalSectionProgression(newSectionProgression);
   }
 
@@ -306,7 +310,7 @@ function Section({
       animate="expanded"
       exit="closed"
       variants={sectionVariants}
-      className="baseFlex relative w-full !flex-nowrap gap-2"
+      className="baseFlex relative w-full gap-2"
     >
       <div className="baseVertFlex gap-2">
         <Button
@@ -328,23 +332,23 @@ function Section({
           <BiDownArrowAlt className="h-5 w-5"></BiDownArrowAlt>
         </Button>
       </div>
-      <div className="baseFlex lightestGlassmorphic w-full gap-4 rounded-md p-4 px-4 sm:px-4">
+      <div className="baseVertFlex lightestGlassmorphic w-full gap-4 rounded-md p-4 px-4 xs:!flex-row sm:px-4">
         <Select
-          value={title === "" ? undefined : title}
-          onValueChange={(value) => handleSectionChange(value)}
+          value={sectionId === "" ? undefined : sectionId}
+          onValueChange={(id) => handleSectionChange(id)}
         >
-          <SelectTrigger className="min-w-[225px]">
+          <SelectTrigger className="w-full xs:w-[175px]">
             <SelectValue placeholder="Select a section">
-              {title === "" ? "Select a section" : title}
+              {title || "Select a section"}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectGroup className="max-h-60 overflow-y-auto">
               <SelectLabel>Sections</SelectLabel>
 
-              {sections.map((section, idx) => {
+              {sections.map((section) => {
                 return (
-                  <SelectItem key={`${section.id}`} value={`${idx}`}>
+                  <SelectItem key={section.id} value={section.id}>
                     {section.title}
                   </SelectItem>
                 );
@@ -353,22 +357,27 @@ function Section({
           </SelectContent>
         </Select>
 
-        <div className="baseFlex gap-2">
-          <span className="mr-1">Repeat</span>
-          x
-          <Input
-            className="max-w-[2.6rem]"
-            type="text"
-            autoComplete="off"
-            placeholder="1"
-            value={repetitions === -1 ? "" : repetitions}
-            onChange={handleRepetitionChange}
-          />
-        </div>
+        <div className="baseFlex gap-2 xs:!flex-row xs:!items-center">
+          <div className="baseFlex gap-2">
+            <span>Repeat</span>
 
-        <Button variant={"destructive"} size={"sm"} onClick={deleteSection}>
-          <FaTrashAlt className="h-5 w-5 text-pink-100" />
-        </Button>
+            <div className="relative w-12">
+              <span className="absolute bottom-[9px] left-2 text-sm">x</span>
+              <Input
+                className="w-12 pl-4"
+                type="text"
+                autoComplete="off"
+                placeholder="1"
+                value={repetitions === -1 ? "" : repetitions}
+                onChange={handleRepetitionChange}
+              />
+            </div>
+          </div>
+
+          <Button variant={"destructive"} onClick={deleteSection}>
+            <FaTrashAlt className="size-4 text-pink-100" />
+          </Button>
+        </div>
       </div>
     </motion.div>
   );

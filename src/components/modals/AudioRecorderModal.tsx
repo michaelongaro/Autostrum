@@ -62,7 +62,7 @@ function AudioRecorderModal() {
     () => {
       // called when getUserMedia promise is rejected
       setMicrophoneAccessHasBeenDenied(true);
-    }
+    },
   );
 
   const {
@@ -107,7 +107,7 @@ function AudioRecorderModal() {
 
       setTimeout(() => {
         const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10)
+          parseInt(`${document.body.style.top || 0}`, 10),
         );
         document.body.classList.remove("noScroll");
         document.body.style.removeProperty("top");
@@ -173,14 +173,6 @@ function AudioRecorderModal() {
       initial="closed"
       animate="expanded"
       exit="closed"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && isDesktop) {
-          if (isRecording) {
-            togglePauseResume();
-          }
-          setShowAudioRecorderModal(false);
-        }
-      }}
     >
       <FocusTrap
         focusTrapOptions={{
@@ -232,21 +224,18 @@ function AudioRecorderModal() {
           {/* current progress visualizer  */}
           <div className="baseFlex w-full gap-2 px-4 text-lg">
             <div
-              className={`relative mr-1 h-4 w-4 rounded-full transition-colors
-                            ${
-                              isRecording && !showPostRecordingOptions
-                                ? "bg-red-600"
-                                : "bg-red-600/50"
-                            }`}
+              className={`relative mr-1 h-4 w-4 rounded-full transition-colors ${
+                isRecording && !showPostRecordingOptions
+                  ? "bg-red-600"
+                  : "bg-red-600/50"
+              }`}
             >
               <div
-                className={`absolute left-0 top-0 h-4 w-4 rounded-full bg-red-600 transition-colors
-                            ${
-                              isRecording && !showPostRecordingOptions
-                                ? "animate-ping "
-                                : "bg-transparent"
-                            }
-                          `}
+                className={`absolute left-0 top-0 h-4 w-4 rounded-full bg-red-600 transition-colors ${
+                  isRecording && !showPostRecordingOptions
+                    ? "animate-ping"
+                    : "bg-transparent"
+                } `}
               ></div>
             </div>
             <p>{formatSecondsToMinutes(recordingTime)}</p>

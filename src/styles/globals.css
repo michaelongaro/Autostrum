@@ -79,21 +79,17 @@
 
 @media (min-width: 768px) {
   .headerBackgroundGradient {
-    background: linear-gradient(
-      315deg,
-      hsl(345, 95%, 69%),
-      hsl(331, 95%, 74%),
-      hsl(298, 100%, 79%)
-    );
+    background: linear-gradient(315deg,
+        hsl(345, 95%, 69%),
+        hsl(331, 95%, 74%),
+        hsl(298, 100%, 79%));
   }
 
   .footerBackgroundGradient {
-    background: linear-gradient(
-      315deg,
-      hsl(359, 83%, 66%),
-      hsl(349, 100%, 73%),
-      hsl(333, 93%, 73%)
-    );
+    background: linear-gradient(315deg,
+        hsl(359, 83%, 66%),
+        hsl(349, 100%, 73%),
+        hsl(333, 93%, 73%));
   }
 }
 
@@ -190,13 +186,10 @@ body::before {
   bottom: 0;
   left: 0;
   z-index: -1;
-  background: linear-gradient(
-      145deg,
+  background: linear-gradient(145deg,
       hsl(297, 100%, 73%),
       hsl(340, 100%, 66%),
-      hsl(0, 84%, 53%)
-    )
-    center / cover;
+      hsl(0, 84%, 53%)) center / cover;
   height: 100vh;
 }
 
@@ -210,6 +203,13 @@ body {
   position: fixed;
   overflow-y: scroll;
   inline-size: 100%;
+}
+
+/* used to override radix-ui's "feature"/bug of auto-removing scrollbar
+   on opening of a <Select> */
+html body[data-scroll-locked] {
+  overflow: visible !important;
+  margin-right: 0 !important;
 }
 
 .cl-internal-uxtgvn {

@@ -355,10 +355,10 @@ function PlaybackTopMetadata({
 export default PlaybackTopMetadata;
 
 function Menu() {
-  const { playbackDialogViewingState, setPlaybackDialogViewingState } =
+  const { playbackDialogViewingState, setPlaybackModalViewingState } =
     useTabStore((state) => ({
       playbackDialogViewingState: state.playbackDialogViewingState,
-      setPlaybackDialogViewingState: state.setPlaybackDialogViewingState,
+      setPlaybackModalViewingState: state.setPlaybackModalViewingState,
     }));
 
   return (
@@ -366,7 +366,7 @@ function Menu() {
       <AnimatedTabs
         activeTabName={playbackDialogViewingState}
         setActiveTabName={
-          setPlaybackDialogViewingState as Dispatch<SetStateAction<string>>
+          setPlaybackModalViewingState as Dispatch<SetStateAction<string>>
         }
         tabNames={[
           "Practice",

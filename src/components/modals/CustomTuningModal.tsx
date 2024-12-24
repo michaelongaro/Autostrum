@@ -2,7 +2,6 @@ import FocusTrap from "focus-trap-react";
 import { motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { useEffect, useState } from "react";
-import { isDesktop } from "react-device-detect";
 import { HiOutlineInformationCircle } from "react-icons/hi";
 import { HiOutlineWrench } from "react-icons/hi2";
 import {
@@ -132,11 +131,6 @@ function CustomTuningModal({
       initial="closed"
       animate="expanded"
       exit="closed"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && isDesktop) {
-          setShowCustomTuningModal(false);
-        }
-      }}
     >
       <FocusTrap
         focusTrapOptions={{
@@ -281,7 +275,7 @@ function CustomTuningModal({
 
             <div className="baseFlex gap-4">
               <Button
-                variant={"secondary"}
+                variant={"ghost"}
                 onClick={() => {
                   setShowCustomTuningModal(false);
                 }}

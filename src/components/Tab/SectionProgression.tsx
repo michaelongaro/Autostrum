@@ -106,6 +106,7 @@ function SectionProgression() {
 
                 <Button
                   size={"sm"}
+                  className={`${sectionProgression.length > 0 ? "mt-4" : ""}`}
                   onClick={() => setShowSectionProgressionModal(true)}
                 >
                   {sectionProgression.length === 0 ? "Add one" : "Edit"}

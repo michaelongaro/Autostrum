@@ -1,14 +1,13 @@
 import FocusTrap from "focus-trap-react";
 import { motion } from "framer-motion";
 import isEqual from "lodash.isequal";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { BsFillPlayFill, BsKeyboard } from "react-icons/bs";
 import { Label } from "~/components/ui/label";
 import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import Chord from "../Tab/Chord";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { isDesktop, isMobile } from "react-device-detect";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 
 const backdropVariants = {
@@ -175,12 +174,6 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       initial="closed"
       animate="expanded"
       exit="closed"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && isDesktop) {
-          if (audioMetadata.playing) pauseAudio();
-          setChordBeingEdited(null);
-        }
-      }}
     >
       <FocusTrap
         focusTrapOptions={{

@@ -6,26 +6,28 @@ import PlaybackTabChord from "~/components/Tab/Playback/PlaybackTabChord";
 import PlaybackTabMeasureLine from "~/components/Tab/Playback/PlaybackTabMeasureLine";
 import PlaybackTopMetadata from "~/components/Tab/Playback/PlaybackTopMetadata";
 import { AnimatePresence, motion } from "framer-motion";
-import { Button } from "~/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-  DialogTrigger,
-} from "~/components/ui/dialog";
+import FocusTrap from "focus-trap-react";
 import {
   type AudioMetadata,
   type PlaybackTabChord as PlaybackTabChordType,
   type PlaybackStrummedChord as PlaybackStrummedChordType,
   useTabStore,
 } from "~/stores/TabStore";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import PlaybackMenuContent from "~/components/Tab/Playback/PlaybackMenuContent";
 import PlaybackScrollingContainer from "~/components/Tab/Playback/PlaybackScrollingContainer";
-import Logo from "~/components/ui/icons/Logo";
+import { X } from "lucide-react";
+import { Button } from "~/components/ui/button";
 
-function PlaybackDialog() {
+const backdropVariants = {
+  expanded: {
+    opacity: 1,
+  },
+  closed: {
+    opacity: 0,
+  },
+};
+
+function PlaybackModal() {
   const {
     expandedTabData,
     currentChordIndex,
@@ -33,8 +35,8 @@ function PlaybackDialog() {
     setCurrentChordIndex,
     playbackMetadata,
     audioMetadata,
-    showPlaybackDialog,
-    setShowPlaybackDialog,
+    showPlaybackModal,
+    setShowPlaybackModal,
     title,
     setLooping,
     description,
@@ -44,7 +46,7 @@ function PlaybackDialog() {
     viewportLabel,
     loopDelay,
     setAudioMetadata,
-    setPlaybackDialogViewingState,
+    setPlaybackModalViewingState,
     pauseAudio,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
@@ -53,8 +55,8 @@ function PlaybackDialog() {
     setCurrentChordIndex: state.setCurrentChordIndex,
     playbackMetadata: state.playbackMetadata,
     audioMetadata: state.audioMetadata,
-    showPlaybackDialog: state.showPlaybackDialog,
-    setShowPlaybackDialog: state.setShowPlaybackDialog,
+    showPlaybackModal: state.showPlaybackModal,
+    setShowPlaybackModal: state.setShowPlaybackModal,
     title: state.title,
     setLooping: state.setLooping,
     description: state.description,
@@ -64,7 +66,7 @@ function PlaybackDialog() {
     viewportLabel: state.viewportLabel,
     loopDelay: state.loopDelay,
     setAudioMetadata: state.setAudioMetadata,
-    setPlaybackDialogViewingState: state.setPlaybackDialogViewingState,
+    setPlaybackModalViewingState: state.setPlaybackModalViewingState,
     pauseAudio: state.pauseAudio,
   }));
 
@@ -188,7 +190,7 @@ function PlaybackDialog() {
     return () => window.removeEventListener("resize", handleResize);
   }, [
     expandedTabData,
-    showPlaybackDialog,
+    showPlaybackModal,
     containerElement,
     // prevDimensions,
     setVisiblePlaybackContainerWidth,
@@ -332,9 +334,9 @@ function PlaybackDialog() {
 
   useEffect(() => {
     if (viewportLabel.includes("mobile")) {
-      setPlaybackDialogViewingState("Practice");
+      setPlaybackModalViewingState("Practice");
     }
-  }, [viewportLabel, setPlaybackDialogViewingState]);
+  }, [viewportLabel, setPlaybackModalViewingState]);
 
   const fullVisibleChordIndices = getFullVisibleChordIndices({
     fullScrollPositions,
@@ -371,194 +373,216 @@ function PlaybackDialog() {
       : currentChordIndex >= chordIndex + 1;
   }
 
+  // on close:
+  // pauseAudio(true);
+  //   setPlaybackModalViewingState("Practice");
+  //  if (audioMetadata.editingLoopRange) {
+  //    setAudioMetadata({
+  //      ...audioMetadata,
+  //      editingLoopRange: false,
+  //    });
+  //  }
   return (
-    <Dialog
-      open={showPlaybackDialog}
-      onOpenChange={(open) => {
-        setShowPlaybackDialog(open);
-
-        setLoopCount(0);
-        if (open) {
-          setLooping(true);
-        } else {
-          pauseAudio(true);
-          setPlaybackDialogViewingState("Practice");
-        }
-
-        if (!open && audioMetadata.editingLoopRange) {
-          setAudioMetadata({
-            ...audioMetadata,
-            editingLoopRange: false,
-          });
-        }
-      }}
+    <motion.div
+      key={"PlaybackModalBackdrop"}
+      className="baseFlex fixed left-0 top-0 z-50 h-[100dvh] w-[100vw] bg-black/50"
+      variants={backdropVariants}
+      initial="closed"
+      animate="expanded"
+      exit="closed"
     >
-      <DialogTrigger asChild>
-        <Button
-          variant="playPause"
-          className="baseFlex sticky bottom-4 right-4 mb-4 gap-3 !rounded-full px-8 py-6 text-lg shadow-lg tablet:bottom-6 tablet:px-10 tablet:text-xl"
-        >
-          <Logo className="size-[18px] fill-pink-50 tablet:size-5" />
-          Practice
-        </Button>
-      </DialogTrigger>
-      <DialogContent
-        ref={dialogContentRef}
-        className="baseVertFlex h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none bg-black p-0 narrowMobileLandscape:!justify-end tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
+      <FocusTrap
+        focusTrapOptions={{
+          allowOutsideClick: true,
+          initialFocus: false,
+        }}
       >
-        <VisuallyHidden>
-          <DialogTitle>Practice tab for {title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </VisuallyHidden>
+        <div
+          ref={dialogContentRef}
+          tabIndex={-1}
+          className="baseVertFlex relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none bg-black p-0 narrowMobileLandscape:!justify-end tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setShowPlaybackModal(false);
+              pauseAudio(true);
+              setPlaybackModalViewingState("Practice");
+              if (audioMetadata.editingLoopRange) {
+                setAudioMetadata({
+                  ...audioMetadata,
+                  editingLoopRange: false,
+                });
+              }
+            }
+          }}
+        >
+          <Button
+            variant={"text"}
+            className="baseFlex absolute right-2 top-2 size-8 rounded-sm !p-0 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+            onClick={() => {
+              setShowPlaybackModal(false);
+              pauseAudio(true);
+              setPlaybackModalViewingState("Practice");
+              if (audioMetadata.editingLoopRange) {
+                setAudioMetadata({
+                  ...audioMetadata,
+                  editingLoopRange: false,
+                });
+              }
+            }}
+          >
+            <X className="size-4" />
+            <span className="sr-only">Close</span>
+          </Button>
 
-        <PlaybackTopMetadata
-          tabProgressValue={tabProgressValue}
-          setTabProgressValue={setTabProgressValue}
-        />
+          <PlaybackTopMetadata
+            tabProgressValue={tabProgressValue}
+            setTabProgressValue={setTabProgressValue}
+          />
 
-        <AnimatePresence mode="popLayout">
-          {playbackDialogViewingState === "Practice" && (
-            <motion.div
-              key="PracticeTab"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="baseVertFlex relative w-full select-none"
-            >
-              <div
-                style={{
-                  mask: "linear-gradient(90deg, transparent, white 5%, white 95%, transparent)",
-                }}
-                className="w-full overflow-hidden"
+          <AnimatePresence mode="popLayout">
+            {playbackDialogViewingState === "Practice" && (
+              <motion.div
+                key="PracticeTab"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="baseVertFlex relative w-full select-none"
               >
-                <PlaybackScrollingContainer
-                  translateX={translateX}
-                  setTranslateX={setTranslateX}
-                  setIsManuallyScrolling={setIsManuallyScrolling}
+                <div
+                  style={{
+                    mask: "linear-gradient(90deg, transparent, white 5%, white 95%, transparent)",
+                  }}
+                  className="w-full overflow-hidden"
                 >
-                  <div
-                    ref={containerRef}
-                    className="relative flex h-[255px] w-full overflow-hidden"
+                  <PlaybackScrollingContainer
+                    translateX={translateX}
+                    setTranslateX={setTranslateX}
+                    setIsManuallyScrolling={setIsManuallyScrolling}
                   >
-                    <div className="baseFlex absolute left-0 top-0 size-full">
-                      <div className="h-[165px] w-full"></div>
-                      {/* currently this fixes the highlight line extending past rounded borders of
-              sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
-                      <div className="z-0 mb-2 h-[164px] w-[2px] shrink-0 bg-pink-600"></div>
-                      <div className="h-[165px] w-full"></div>
-                    </div>
-
                     <div
-                      style={{
-                        width: `${scrollContainerWidth}px`,
-                        transform: isManuallyScrolling
-                          ? `translateX(-${translateX}px)`
-                          : getScrollContainerTransform({
-                              fullScrollPositions,
-                              currentChordIndex,
-                              audioMetadata,
-                              numberOfChords: playbackMetadata?.length || 0,
-                            }),
-                        transition: `transform ${
-                          audioMetadata.playing
-                            ? chordDurations[currentChordIndex] || 0
-                            : isManuallyScrolling
-                              ? "none"
-                              : 0.2
-                        }s linear`,
-                      }}
-                      className="relative flex items-center will-change-transform"
+                      ref={containerRef}
+                      className="relative flex h-[255px] w-full overflow-hidden"
                     >
-                      <>
-                        <div
-                          style={{
-                            position: "absolute",
-                            zIndex: 2,
-                            backgroundColor: "black",
-                            left: 0,
-                            width: `${initialPlaceholderWidth}px`,
-                          }}
-                        ></div>
+                      <div className="baseFlex absolute left-0 top-0 size-full">
+                        <div className="h-[165px] w-full"></div>
+                        {/* currently this fixes the highlight line extending past rounded borders of
+              sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
+                        <div className="z-0 mb-2 h-[164px] w-[2px] shrink-0 bg-pink-600"></div>
+                        <div className="h-[165px] w-full"></div>
+                      </div>
 
-                        {expandedTabData &&
-                          fullVisibleChordIndices.map((fullVisibleIndex) => {
-                            return (
-                              <div
-                                key={fullVisibleIndex}
-                                style={{
-                                  position: "absolute",
-                                  width: `${fullChordWidths[fullVisibleIndex] || 0}px`,
-                                  left: getChordLeftValue({
-                                    index: fullVisibleIndex,
-                                    fullScrollPositions,
-                                    initialPlaceholderWidth,
-                                  }),
-                                }}
-                              >
-                                {/* TODO: probably should make measureLine have its own interface
+                      <div
+                        style={{
+                          width: `${scrollContainerWidth}px`,
+                          transform: isManuallyScrolling
+                            ? `translateX(-${translateX}px)`
+                            : getScrollContainerTransform({
+                                fullScrollPositions,
+                                currentChordIndex,
+                                audioMetadata,
+                                numberOfChords: playbackMetadata?.length || 0,
+                              }),
+                          transition: `transform ${
+                            audioMetadata.playing
+                              ? chordDurations[currentChordIndex] || 0
+                              : isManuallyScrolling
+                                ? "none"
+                                : 0.2
+                          }s linear`,
+                        }}
+                        className="relative flex items-center will-change-transform"
+                      >
+                        <>
+                          <div
+                            style={{
+                              position: "absolute",
+                              zIndex: 2,
+                              backgroundColor: "black",
+                              left: 0,
+                              width: `${initialPlaceholderWidth}px`,
+                            }}
+                          ></div>
+
+                          {expandedTabData &&
+                            fullVisibleChordIndices.map((fullVisibleIndex) => {
+                              return (
+                                <div
+                                  key={fullVisibleIndex}
+                                  style={{
+                                    position: "absolute",
+                                    width: `${fullChordWidths[fullVisibleIndex] || 0}px`,
+                                    left: getChordLeftValue({
+                                      index: fullVisibleIndex,
+                                      fullScrollPositions,
+                                      initialPlaceholderWidth,
+                                    }),
+                                  }}
+                                >
+                                  {/* TODO: probably should make measureLine have its own interface
                                 so that we can just directly use the type field rather than logic below */}
-                                <RenderChordByType
-                                  type={
-                                    expandedTabData[fullVisibleIndex]?.type ===
-                                    "strum"
-                                      ? "strum"
-                                      : expandedTabData[fullVisibleIndex]
-                                            ?.type === "tab"
-                                        ? expandedTabData[
-                                            fullVisibleIndex
-                                          ]?.data.chordData.includes("|")
-                                          ? "measureLine"
-                                          : "tab"
-                                        : "loopDelaySpacer"
-                                  }
-                                  fullVisibleIndex={fullVisibleIndex}
-                                  expandedTabData={
-                                    expandedTabData as
-                                      | PlaybackTabChordType[]
-                                      | PlaybackStrummedChordType[]
-                                  }
-                                  fullScrollPositions={fullScrollPositions}
-                                  audioMetadata={audioMetadata}
-                                  loopDelay={loopDelay}
-                                  highlightChord={highlightChord}
-                                />
-                              </div>
-                            );
-                          })}
-                      </>
+                                  <RenderChordByType
+                                    type={
+                                      expandedTabData[fullVisibleIndex]
+                                        ?.type === "strum"
+                                        ? "strum"
+                                        : expandedTabData[fullVisibleIndex]
+                                              ?.type === "tab"
+                                          ? expandedTabData[
+                                              fullVisibleIndex
+                                            ]?.data.chordData.includes("|")
+                                            ? "measureLine"
+                                            : "tab"
+                                          : "loopDelaySpacer"
+                                    }
+                                    fullVisibleIndex={fullVisibleIndex}
+                                    expandedTabData={
+                                      expandedTabData as
+                                        | PlaybackTabChordType[]
+                                        | PlaybackStrummedChordType[]
+                                    }
+                                    fullScrollPositions={fullScrollPositions}
+                                    audioMetadata={audioMetadata}
+                                    loopDelay={loopDelay}
+                                    highlightChord={highlightChord}
+                                  />
+                                </div>
+                              );
+                            })}
+                        </>
+                      </div>
                     </div>
-                  </div>
-                </PlaybackScrollingContainer>
-              </div>
-            </motion.div>
-          )}
+                  </PlaybackScrollingContainer>
+                </div>
+              </motion.div>
+            )}
 
-          {!viewportLabel.includes("mobile") && <PlaybackMenuContent />}
-        </AnimatePresence>
-        {playbackDialogViewingState === "Practice" && (
-          <div className="baseVertFlex w-full gap-2">
-            <PlaybackAudioControls
-              chordDurations={chordDurations}
-              loopRange={loopRange}
-              setLoopRange={setLoopRange}
-              tabProgressValue={tabProgressValue}
-              setTabProgressValue={setTabProgressValue}
-            />
-            <PlaybackBottomMetadata
-              loopRange={loopRange}
-              setLoopRange={setLoopRange}
-              tabProgressValue={tabProgressValue}
-              setTabProgressValue={setTabProgressValue}
-            />
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+            {!viewportLabel.includes("mobile") && <PlaybackMenuContent />}
+          </AnimatePresence>
+          {playbackDialogViewingState === "Practice" && (
+            <div className="baseVertFlex w-full gap-2">
+              <PlaybackAudioControls
+                chordDurations={chordDurations}
+                loopRange={loopRange}
+                setLoopRange={setLoopRange}
+                tabProgressValue={tabProgressValue}
+                setTabProgressValue={setTabProgressValue}
+              />
+              <PlaybackBottomMetadata
+                loopRange={loopRange}
+                setLoopRange={setLoopRange}
+                tabProgressValue={tabProgressValue}
+                setTabProgressValue={setTabProgressValue}
+              />
+            </div>
+          )}
+        </div>
+      </FocusTrap>
+    </motion.div>
   );
 }
 
-export default PlaybackDialog;
+export default PlaybackModal;
 
 const getFullVisibleChordIndices = ({
   fullScrollPositions: originalFullScrollPositions,

@@ -227,7 +227,7 @@ function compileFullTab({
   // FYI: don't need a spacer chord if the first + last chords are strums, since if the very first
   // chord is a strum, it already automatically shows its bpm anyways, and no "spacer" chord is needed
 
-  // TODO: TEMPORARILY doing this always, but should only do if being played from <PlaybackDialog />
+  // TODO: TEMPORARILY doing this always, but should only do if being played from <PlaybackModal />
   if (loopDelay > 0) {
     const numSpacerChordsToAdd = Math.floor(
       loopDelay / ((60 / Number(lastChordBpm)) * playbackSpeed),
@@ -895,7 +895,8 @@ function generateDefaultSectionProgression(tabData: Section[]) {
       sectionId: tabData[i]?.id ?? "",
       title: tabData[i]?.title ?? "",
       repetitions: 1,
-      elapsedSecondsIntoTab: 0, // TODO: I think this is fine, since useAutoCompileChords should handle this
+      startSeconds: 0, // will be overwritten by useAutoCompileChords
+      endSeconds: 0, // will be overwritten by useAutoCompileChords
     });
   }
 

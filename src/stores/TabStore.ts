@@ -463,8 +463,8 @@ interface TabState {
       value: StrummingPattern;
     } | null,
   ) => void;
-  showPlaybackDialog: boolean;
-  setShowPlaybackDialog: (showPlaybackDialog: boolean) => void;
+  showPlaybackModal: boolean;
+  setShowPlaybackModal: (showPlaybackModal: boolean) => void;
   visiblePlaybackContainerWidth: number;
   setVisiblePlaybackContainerWidth: (
     visiblePlaybackContainerWidth: number,
@@ -474,7 +474,7 @@ interface TabState {
     | "Section progression"
     | "Chords"
     | "Strumming patterns";
-  setPlaybackDialogViewingState: (
+  setPlaybackModalViewingState: (
     playbackDialogViewingState:
       | "Practice"
       | "Section progression"
@@ -1267,11 +1267,10 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       strummingPatternBeingEdited: null,
       setStrummingPatternBeingEdited: (strummingPatternBeingEdited) =>
         set({ strummingPatternBeingEdited }),
-      showPlaybackDialog: false,
-      setShowPlaybackDialog: (showPlaybackDialog) =>
-        set({ showPlaybackDialog }),
+      showPlaybackModal: false,
+      setShowPlaybackModal: (showPlaybackModal) => set({ showPlaybackModal }),
       playbackDialogViewingState: "Practice",
-      setPlaybackDialogViewingState: (playbackDialogViewingState) =>
+      setPlaybackModalViewingState: (playbackDialogViewingState) =>
         set({ playbackDialogViewingState }),
 
       // search

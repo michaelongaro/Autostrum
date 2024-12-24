@@ -23,10 +23,10 @@ import { useLocalStorageValue } from "@react-hookz/web";
 import Chords from "./Chords";
 import SectionContainer from "./SectionContainer";
 import StrummingPatterns from "./StrummingPatterns";
-import PlaybackDialog from "~/components/Tab/Playback/PlaybackDialog";
 import dynamic from "next/dynamic";
 import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
 import EffectGlossaryDialog from "~/components/Dialogs/EffectGlossaryDialog";
+import Logo from "~/components/ui/icons/Logo";
 
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
@@ -40,6 +40,9 @@ const StrummingPatternModal = dynamic(
 );
 const CustomTuningModal = dynamic(
   () => import("~/components/modals/CustomTuningModal"),
+);
+const PlaybackModal = dynamic(
+  () => import("~/components/Tab/Playback/PlaybackModal"),
 );
 
 export interface RefetchTab {
@@ -108,7 +111,9 @@ function Tab({ tab, refetchTab }: ITab) {
     chords,
     strummingPatterns,
     audioMetadata,
-    showPlaybackDialog,
+    showPlaybackModal,
+    setShowPlaybackModal,
+    setLooping,
   } = useTabStore((state) => ({
     setId: state.setId,
     setCreatedById: state.setCreatedById,
@@ -146,7 +151,9 @@ function Tab({ tab, refetchTab }: ITab) {
     chords: state.chords,
     strummingPatterns: state.strummingPatterns,
     audioMetadata: state.audioMetadata,
-    showPlaybackDialog: state.showPlaybackDialog,
+    showPlaybackModal: state.showPlaybackModal,
+    setShowPlaybackModal: state.setShowPlaybackModal,
+    setLooping: state.setLooping,
   }));
 
   useEffect(() => {
@@ -372,7 +379,7 @@ function Tab({ tab, refetchTab }: ITab) {
         )}
 
         <div className="baseVertFlex relative size-full gap-4">
-          {!showPlaybackDialog &&
+          {!showPlaybackModal &&
             tabData.map((section, index) => (
               <motion.div
                 key={section.id}
@@ -427,7 +434,17 @@ function Tab({ tab, refetchTab }: ITab) {
           )}
 
           {!editing && audioMetadata.fullCurrentlyPlayingMetadataLength > 0 && (
-            <PlaybackDialog />
+            <Button
+              variant="playPause"
+              className="baseFlex sticky bottom-4 right-4 mb-4 gap-3 !rounded-full px-8 py-6 text-lg shadow-lg tablet:bottom-6 tablet:px-10 tablet:text-xl"
+              onClick={() => {
+                setShowPlaybackModal(true);
+                setLooping(true);
+              }}
+            >
+              <Logo className="size-[18px] fill-pink-50 tablet:size-5" />
+              Practice
+            </Button>
           )}
         </div>
       </div>
@@ -465,6 +482,10 @@ function Tab({ tab, refetchTab }: ITab) {
             )}
           />
         )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        {showPlaybackModal && <PlaybackModal />}
       </AnimatePresence>
     </motion.div>
   );

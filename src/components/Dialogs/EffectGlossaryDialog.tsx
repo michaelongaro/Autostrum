@@ -25,8 +25,6 @@ function EffectGlossaryDialog() {
       setShowEffectGlossaryDialog: state.setShowEffectGlossaryDialog,
     }));
 
-  console.log(showEffectGlossaryDialog);
-
   return (
     <Dialog
       onOpenChange={(open) => {
