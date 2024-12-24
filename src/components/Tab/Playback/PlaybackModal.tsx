@@ -48,6 +48,7 @@ function PlaybackModal() {
     setAudioMetadata,
     setPlaybackModalViewingState,
     pauseAudio,
+    setPreventFramerLayoutShift,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
@@ -68,6 +69,7 @@ function PlaybackModal() {
     setAudioMetadata: state.setAudioMetadata,
     setPlaybackModalViewingState: state.setPlaybackModalViewingState,
     pauseAudio: state.pauseAudio,
+    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
   }));
 
   const [translateX, setTranslateX] = useState(0);
@@ -109,6 +111,29 @@ function PlaybackModal() {
   // expandedTabData has changed or looping has changed
   const [expandedTabDataHasChanged, setExpandedTabDataHasChanged] =
     useState(true);
+
+  useEffect(() => {
+    setPreventFramerLayoutShift(true);
+
+    setTimeout(() => {
+      const offsetY = window.scrollY;
+      document.body.style.top = `${-offsetY}px`;
+      document.body.classList.add("noScroll");
+    }, 50);
+
+    return () => {
+      setPreventFramerLayoutShift(false);
+
+      setTimeout(() => {
+        const offsetY = Math.abs(
+          parseInt(`${document.body.style.top || 0}`, 10),
+        );
+        document.body.classList.remove("noScroll");
+        document.body.style.removeProperty("top");
+        window.scrollTo(0, offsetY || 0);
+      }, 50);
+    };
+  }, [setPreventFramerLayoutShift]);
 
   // manually scrolling: need to update currentChordIndex to match
   // the translateX value relative to fullScrollPositions
@@ -390,6 +415,20 @@ function PlaybackModal() {
       initial="closed"
       animate="expanded"
       exit="closed"
+      tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          setShowPlaybackModal(false);
+          pauseAudio(true);
+          setPlaybackModalViewingState("Practice");
+          if (audioMetadata.editingLoopRange) {
+            setAudioMetadata({
+              ...audioMetadata,
+              editingLoopRange: false,
+            });
+          }
+        }
+      }}
     >
       <FocusTrap
         focusTrapOptions={{
@@ -399,21 +438,7 @@ function PlaybackModal() {
       >
         <div
           ref={dialogContentRef}
-          tabIndex={-1}
           className="baseVertFlex relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none bg-black p-0 narrowMobileLandscape:!justify-end tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setShowPlaybackModal(false);
-              pauseAudio(true);
-              setPlaybackModalViewingState("Practice");
-              if (audioMetadata.editingLoopRange) {
-                setAudioMetadata({
-                  ...audioMetadata,
-                  editingLoopRange: false,
-                });
-              }
-            }
-          }}
         >
           <PlaybackTopMetadata
             tabProgressValue={tabProgressValue}

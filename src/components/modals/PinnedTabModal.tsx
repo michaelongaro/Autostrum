@@ -52,7 +52,7 @@ function PinnedTabModal({
 
       setTimeout(() => {
         const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10)
+          parseInt(`${document.body.style.top || 0}`, 10),
         );
         document.body.classList.remove("noScroll");
         document.body.style.removeProperty("top");
@@ -111,8 +111,14 @@ function PinnedTabModal({
       initial="closed"
       animate="expanded"
       exit="closed"
+      tabIndex={-1}
       onClick={(e) => {
         if (e.target === e.currentTarget && isDesktop) {
+          setShowPinnedTabModal(false);
+        }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
           setShowPinnedTabModal(false);
         }
       }}
@@ -123,15 +129,7 @@ function PinnedTabModal({
           initialFocus: false,
         }}
       >
-        <div
-          tabIndex={-1}
-          className="baseVertFlex max-h-[95vh] w-11/12 !flex-nowrap gap-4 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 lg:gap-8 xl:w-9/12"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setShowPinnedTabModal(false);
-            }
-          }}
-        >
+        <div className="baseVertFlex max-h-[95vh] w-11/12 !flex-nowrap gap-4 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 lg:gap-8 xl:w-9/12">
           {/* chord title */}
           <div className="baseFlex lightGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
             <TbPinned className="h-5 w-5" />
@@ -170,8 +168,8 @@ function PinnedTabModal({
               {showSaveCheckmark && !isSaving
                 ? "Saved"
                 : isSaving
-                ? "Saving"
-                : "Save"}
+                  ? "Saving"
+                  : "Save"}
 
               <AnimatePresence mode="wait">
                 {/* will need to also include condition for while recording is being

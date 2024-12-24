@@ -142,6 +142,12 @@ function SectionProgressionDialog() {
       initial="closed"
       animate="expanded"
       exit="closed"
+      tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          setShowSectionProgressionModal(false);
+        }
+      }}
     >
       <FocusTrap
         focusTrapOptions={{
@@ -149,15 +155,7 @@ function SectionProgressionDialog() {
           initialFocus: false,
         }}
       >
-        <div
-          tabIndex={-1}
-          className="min-h-[20rem] min-w-[70vw] rounded-md bg-pink-400 p-2 shadow-sm md:min-w-[25rem] md:p-4"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setShowSectionProgressionModal(false);
-            }
-          }}
-        >
+        <div className="min-h-[20rem] min-w-[70vw] rounded-md bg-pink-400 p-2 shadow-sm md:min-w-[25rem] md:p-4">
           <div className="baseVertFlex h-full max-h-[90vh] min-h-[20rem] w-full max-w-[90vw] !justify-between gap-8">
             <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
               <p className="text-lg font-semibold">Section progression</p>

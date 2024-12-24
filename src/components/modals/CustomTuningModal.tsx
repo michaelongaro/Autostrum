@@ -131,6 +131,12 @@ function CustomTuningModal({
       initial="closed"
       animate="expanded"
       exit="closed"
+      tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          setShowCustomTuningModal(false);
+        }
+      }}
     >
       <FocusTrap
         focusTrapOptions={{
@@ -138,15 +144,7 @@ function CustomTuningModal({
           initialFocus: false,
         }}
       >
-        <div
-          tabIndex={-1}
-          className="baseVertFlex min-w-[300px] max-w-[91vw] gap-8 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 xl:max-w-[50vw]"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setShowCustomTuningModal(false);
-            }
-          }}
-        >
+        <div className="baseVertFlex min-w-[300px] max-w-[91vw] gap-8 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 xl:max-w-[50vw]">
           <div className="baseFlex lightGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
             <HiOutlineWrench className="h-5 w-5" />
             <p className="text-lg font-semibold">Custom tuning editor</p>

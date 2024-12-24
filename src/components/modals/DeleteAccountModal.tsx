@@ -52,7 +52,7 @@ function DeleteAccountModal() {
 
       setTimeout(() => {
         const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10)
+          parseInt(`${document.body.style.top || 0}`, 10),
         );
         document.body.classList.remove("noScroll");
         document.body.style.removeProperty("top");
@@ -97,23 +97,19 @@ function DeleteAccountModal() {
       initial="closed"
       animate="expanded"
       exit="closed"
-      // choosing to not allow click outside to close modal
-      // as a way to emphasize the importance of this action
+      tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          setShowDeleteAccountModal(false);
+        }
+      }}
     >
       <FocusTrap
         focusTrapOptions={{
           initialFocus: false,
         }}
       >
-        <div
-          tabIndex={-1}
-          className="baseVertFlex w-[350px] gap-10 rounded-md bg-pink-400 p-2 shadow-sm sm:w-[700px] md:px-8 md:py-4"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setShowDeleteAccountModal(false);
-            }
-          }}
-        >
+        <div className="baseVertFlex w-[350px] gap-10 rounded-md bg-pink-400 p-2 shadow-sm sm:w-[700px] md:px-8 md:py-4">
           <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
             <AiOutlineWarning className="h-5 w-5" />
             <p className="text-lg font-semibold">Delete account</p>
@@ -131,7 +127,7 @@ function DeleteAccountModal() {
                 checked={deleteAllOfArtistsTabs}
                 onCheckedChange={(value) =>
                   setDeleteAllOfArtistsTabs(
-                    value === "indeterminate" ? false : value
+                    value === "indeterminate" ? false : value,
                   )
                 }
                 className="mt-1 h-5 w-5"
@@ -174,8 +170,8 @@ function DeleteAccountModal() {
               {showDeleteCheckmark && !isDeleting
                 ? "Deleted account"
                 : isDeleting
-                ? "Deleting account"
-                : "Delete account"}
+                  ? "Deleting account"
+                  : "Delete account"}
               <FaTrashAlt className="h-4 w-4" />
 
               <AnimatePresence mode="wait">

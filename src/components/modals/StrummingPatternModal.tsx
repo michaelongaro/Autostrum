@@ -343,6 +343,13 @@ function StrummingPatternModal({
       initial="closed"
       animate="expanded"
       exit="closed"
+      tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          if (audioMetadata.playing) pauseAudio();
+          setStrummingPatternBeingEdited(null);
+        }
+      }}
     >
       <FocusTrap
         focusTrapOptions={{
@@ -350,16 +357,7 @@ function StrummingPatternModal({
           initialFocus: false,
         }}
       >
-        <div
-          tabIndex={-1}
-          className="baseVertFlex max-h-[90vh] min-w-[300px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all md:max-h-[90vh] md:gap-12 md:p-8 xl:max-w-[50vw]"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              if (audioMetadata.playing) pauseAudio();
-              setStrummingPatternBeingEdited(null);
-            }
-          }}
-        >
+        <div className="baseVertFlex max-h-[90vh] min-w-[300px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all md:max-h-[90vh] md:gap-12 md:p-8 xl:max-w-[50vw]">
           {/* controls */}
           <div className="baseFlex w-full !justify-start gap-2">
             <Label>Note length</Label>

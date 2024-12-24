@@ -119,7 +119,7 @@ function SectionProgression() {
                     No section progression specified
                   </p>
                 ) : (
-                  <div className="baseVertFlex gap-2">
+                  <div className="baseVertFlex mt-4 gap-2">
                     {sectionProgression.map((section) => (
                       <motion.div
                         key={section.id}
