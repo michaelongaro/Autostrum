@@ -415,25 +415,6 @@ function PlaybackModal() {
             }
           }}
         >
-          <Button
-            variant={"text"}
-            className="baseFlex absolute right-2 top-2 size-8 rounded-sm !p-0 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-            onClick={() => {
-              setShowPlaybackModal(false);
-              pauseAudio(true);
-              setPlaybackModalViewingState("Practice");
-              if (audioMetadata.editingLoopRange) {
-                setAudioMetadata({
-                  ...audioMetadata,
-                  editingLoopRange: false,
-                });
-              }
-            }}
-          >
-            <X className="size-4" />
-            <span className="sr-only">Close</span>
-          </Button>
-
           <PlaybackTopMetadata
             tabProgressValue={tabProgressValue}
             setTabProgressValue={setTabProgressValue}
@@ -559,6 +540,7 @@ function PlaybackModal() {
 
             {!viewportLabel.includes("mobile") && <PlaybackMenuContent />}
           </AnimatePresence>
+
           {playbackDialogViewingState === "Practice" && (
             <div className="baseVertFlex w-full gap-2">
               <PlaybackAudioControls
@@ -576,6 +558,25 @@ function PlaybackModal() {
               />
             </div>
           )}
+
+          <Button
+            variant={"text"}
+            className="baseFlex absolute right-2 top-2 size-8 rounded-sm !p-0 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+            onClick={() => {
+              setShowPlaybackModal(false);
+              pauseAudio(true);
+              setPlaybackModalViewingState("Practice");
+              if (audioMetadata.editingLoopRange) {
+                setAudioMetadata({
+                  ...audioMetadata,
+                  editingLoopRange: false,
+                });
+              }
+            }}
+          >
+            <X className="size-4" />
+            <span className="sr-only">Close</span>
+          </Button>
         </div>
       </FocusTrap>
     </motion.div>
