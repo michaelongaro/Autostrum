@@ -83,7 +83,21 @@ function StaticTabNotesColumn({
                   className="h-[1px] flex-[1] bg-pink-100/50"
                 ></div>
 
-                <StaticTabNote note={note} />
+                <StaticTabNote
+                  note={
+                    note.includes(">")
+                      ? note.slice(0, note.length - 1)
+                      : note.includes(".")
+                        ? note.slice(0, note.length - 1)
+                        : note
+                  }
+                  isAccented={
+                    note.includes(">") || columnData[7]?.includes(">")
+                  }
+                  isStaccato={
+                    note.includes(".") && !columnData[7]?.includes(".") // felt distracting to see the staccato on every note w/in the chord
+                  }
+                />
 
                 <div
                   style={{

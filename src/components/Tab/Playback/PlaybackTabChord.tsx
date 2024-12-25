@@ -104,24 +104,20 @@ function PlaybackTabChord({
                   >
                     <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
 
-                    <div className="baseFlex w-[35px]">
-                      <div className="my-[10px] h-[1px] flex-[1] bg-pink-100/50 mobilePortrait:my-3"></div>
-                      <div
-                        style={{
-                          color: isHighlighted
-                            ? "hsl(335, 78%, 55%)"
-                            : "hsl(324, 77%, 95%)",
-
-                          // "x" wasn't as centered as regular numbers were, manual adjustment below
-                          marginTop: note === "x" ? "-2px" : "0",
-                          marginBottom: note === "x" ? "2px" : "0",
-                        }}
-                        className="baseFlex h-[20px] transition-colors"
-                      >
-                        {note}
-                      </div>
-                      <div className="my-[10px] h-[1px] flex-[1] bg-pink-100/50 mobilePortrait:my-3"></div>
-                    </div>
+                    <PlaybackTabNote
+                      note={
+                        note.includes(">")
+                          ? note.slice(0, note.length - 1)
+                          : note
+                      }
+                      isHighlighted={isHighlighted}
+                      isAccented={
+                        note.includes(">") || columnData[7]?.includes(">")
+                      }
+                      isStaccato={
+                        note.includes(".") && !columnData[7]?.includes(".") // felt distracting to see the staccato on every note w/in the chord
+                      }
+                    />
 
                     <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
                   </div>
@@ -225,3 +221,43 @@ function chordHasAtLeastOneNote(chordData: string[]): boolean {
 }
 
 export default PlaybackTabChord;
+
+interface PlaybackTabNote {
+  note: string;
+  isHighlighted: boolean;
+  isAccented?: boolean;
+  isStaccato?: boolean;
+}
+
+function PlaybackTabNote({
+  note,
+  isHighlighted,
+  isAccented,
+  isStaccato,
+}: PlaybackTabNote) {
+  return (
+    <div className="baseFlex w-[35px]">
+      <div className="my-[10px] h-[1px] flex-[1] bg-pink-100/50 mobilePortrait:my-3"></div>
+      <div
+        style={{
+          color: isHighlighted ? "hsl(335, 78%, 55%)" : "hsl(324, 77%, 95%)",
+
+          // "x" wasn't as centered as regular numbers were, manual adjustment below
+          marginTop: note === "x" ? "-2px" : "0",
+          marginBottom: note === "x" ? "2px" : "0",
+        }}
+        className={`baseFlex relative h-[20px] transition-colors ${isAccented ? "font-bold" : ""}`}
+      >
+        {note}
+        {isStaccato && (
+          <div
+            className={`absolute -top-2 ${note.length === 1 ? "left-3" : "left-5"}`}
+          >
+            .
+          </div>
+        )}
+      </div>
+      <div className="my-[10px] h-[1px] flex-[1] bg-pink-100/50 mobilePortrait:my-3"></div>
+    </div>
+  );
+}
