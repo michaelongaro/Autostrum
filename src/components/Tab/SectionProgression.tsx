@@ -39,11 +39,7 @@ function SectionProgression() {
           : sectionProgression.length === 0
             ? "none"
             : "flex",
-        minWidth: aboveMediumViewportWidth
-          ? sectionProgression.length === 0
-            ? "450px"
-            : "500px"
-          : "300px",
+        minWidth: aboveMediumViewportWidth ? "500px" : "300px",
       }}
       className="lightestGlassmorphic baseVertFlex w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 !shadow-lighterGlassmorphic md:p-4"
     >
