@@ -30,7 +30,7 @@ function PlaybackTabChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex ornamental playbackElem relative mb-[9px] h-[170px] w-4 border-y-2 border-white"
+          className="baseVertFlex ornamental playbackElem relative mb-[24px] h-[144px] w-4 border-y-2 border-white mobilePortrait:h-[168px]"
         >
           {/* show new current bpm */}
           {columnData[8] !== "" && (
@@ -43,12 +43,12 @@ function PlaybackTabChord({
           )}
 
           {/* spacer to ease transition from tab -> strum */}
-          <div className="my-3 h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50"></div>
-          <div className="my-3 h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50"></div>
-          <div className="my-3 h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50"></div>
-          <div className="my-3 h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50"></div>
-          <div className="my-3 h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50"></div>
-          <div className="my-3 h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50 mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50 mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50 mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50 mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50 mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50 mobilePortrait:my-3"></div>
         </div>
       )}
 
@@ -61,7 +61,7 @@ function PlaybackTabChord({
           }}
           className="playbackElem baseVertFlex relative w-[35px]"
         >
-          <div className="baseVertFlex mb-[3.2rem] mt-4">
+          <div className="baseVertFlex mb-[3.2rem]">
             {columnData.map((note, index) => (
               <Fragment
                 key={`${index}-${isFirstChordInSection}-${isLastChordInSection}`}
@@ -105,7 +105,7 @@ function PlaybackTabChord({
                     <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
 
                     <div className="baseFlex w-[35px]">
-                      <div className="my-3 h-[1px] flex-[1] bg-pink-100/50"></div>
+                      <div className="my-[10px] h-[1px] flex-[1] bg-pink-100/50 mobilePortrait:my-3"></div>
                       <div
                         style={{
                           color: isHighlighted
@@ -116,11 +116,11 @@ function PlaybackTabChord({
                           marginTop: note === "x" ? "-2px" : "0",
                           marginBottom: note === "x" ? "2px" : "0",
                         }}
-                        className="transition-colors"
+                        className="baseFlex h-[20px] transition-colors"
                       >
                         {note}
                       </div>
-                      <div className="my-3 h-[1px] flex-[1] bg-pink-100/50"></div>
+                      <div className="my-[10px] h-[1px] flex-[1] bg-pink-100/50 mobilePortrait:my-3"></div>
                     </div>
 
                     <div className="h-[1px] flex-[1] bg-pink-100/50"></div>

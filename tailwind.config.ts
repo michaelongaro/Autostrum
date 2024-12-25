@@ -28,6 +28,8 @@ module.exports = {
         narrowMobileLandscape: { raw: "(max-height: 370px)" },
         // TODO: tweak this threshold
         mobileLandscape: { raw: "(min-height: 370px) and (max-height: 500px)" },
+        // threshold to render regular height tab components on playback modal
+        mobilePortrait: { raw: "(min-height: 500px)" },
         mobileLarge: { raw: "(min-height: 667px)" },
         tablet: { raw: "(min-height: 700px) and (min-width: 1024px)" },
         desktop: { raw: "(min-height: 800px) and (min-width: 1500px)" },

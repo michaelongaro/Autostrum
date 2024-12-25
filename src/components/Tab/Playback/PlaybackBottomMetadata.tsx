@@ -373,7 +373,7 @@ function MobileSettingsDialog() {
           }}
         >
           <IoSettingsOutline className="h-5 w-5" />
-          <span className="ml-3 mobileLandscape:ml-0 mobileLandscape:hidden">
+          <span className="ml-0 hidden mobilePortrait:ml-3 mobilePortrait:block">
             Settings
           </span>
         </Button>
@@ -573,7 +573,7 @@ function MobileMenuDialog() {
           }}
         >
           <FaListUl className="h-5 w-5" />
-          <span className="ml-3 mobileLandscape:ml-0 mobileLandscape:hidden">
+          <span className="ml-0 hidden mobilePortrait:ml-3 mobilePortrait:block">
             Menu
           </span>
         </Button>

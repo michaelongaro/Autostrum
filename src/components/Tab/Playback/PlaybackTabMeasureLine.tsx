@@ -16,7 +16,7 @@ function PlaybackTabMeasureLine({
         opacity: isDimmed ? 0.5 : 1,
         transition: "opacity 0.5s",
       }}
-      className="ornamental playbackElem baseVertFlex mb-2 h-[240px] w-[2px]"
+      className="ornamental playbackElem baseVertFlex mb-6 h-[220px] w-[2px] mobilePortrait:h-[240px]"
     >
       {columnData.map((note, index) => (
         <Fragment key={index}>
@@ -25,7 +25,7 @@ function PlaybackTabMeasureLine({
               {columnData[7] && columnData[7] !== "-1" && (
                 <div
                   className={`baseFlex absolute !flex-nowrap gap-[0.125rem] text-pink-100 ${
-                    note === "-" ? "top-0" : "top-2"
+                    note === "-" ? "-top-1" : "top-3"
                   }`}
                 >
                   <QuarterNote />
@@ -50,12 +50,7 @@ function PlaybackTabMeasureLine({
 
           {index > 0 && index < 7 && (
             <div className="baseFlex w-full">
-              <div
-                style={{
-                  height: "28px",
-                }}
-                className="w-[2px] bg-white"
-              ></div>
+              <div className="h-[24px] w-[2px] bg-white mobilePortrait:h-[28px]"></div>
             </div>
           )}
         </Fragment>

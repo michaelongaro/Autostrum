@@ -438,7 +438,7 @@ function PlaybackModal() {
       >
         <div
           ref={dialogContentRef}
-          className="baseVertFlex relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none bg-black p-0 narrowMobileLandscape:!justify-end tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
+          className="baseVertFlex relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none bg-black p-0 narrowMobileLandscape:!justify-center tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
         >
           <PlaybackTopMetadata
             tabProgressValue={tabProgressValue}
@@ -453,7 +453,7 @@ function PlaybackModal() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="baseVertFlex relative w-full select-none"
+                className="baseVertFlex relative size-full select-none"
               >
                 <div
                   style={{
@@ -468,14 +468,14 @@ function PlaybackModal() {
                   >
                     <div
                       ref={containerRef}
-                      className="relative flex h-[255px] w-full overflow-hidden"
+                      className="relative flex h-[247px] w-full overflow-hidden mobilePortrait:h-[267px]"
                     >
                       <div className="baseFlex absolute left-0 top-0 size-full">
-                        <div className="h-[165px] w-full"></div>
+                        <div className="mb-6 h-[140px] w-full mobilePortrait:h-[165px]"></div>
                         {/* currently this fixes the highlight line extending past rounded borders of
-              sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
-                        <div className="z-0 mb-2 h-[164px] w-[2px] shrink-0 bg-pink-600"></div>
-                        <div className="h-[165px] w-full"></div>
+                        sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
+                        <div className="z-0 mb-6 h-[140px] w-[2px] shrink-0 bg-pink-600 mobilePortrait:h-[164px]"></div>
+                        <div className="mb-6 h-[140px] w-full mobilePortrait:h-[165px]"></div>
                       </div>
 
                       <div
@@ -567,7 +567,7 @@ function PlaybackModal() {
           </AnimatePresence>
 
           {playbackDialogViewingState === "Practice" && (
-            <div className="baseVertFlex w-full gap-2">
+            <div className="baseVertFlex w-full gap-1 lg:gap-2">
               <PlaybackAudioControls
                 chordDurations={chordDurations}
                 loopRange={loopRange}

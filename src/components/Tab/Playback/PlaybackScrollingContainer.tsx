@@ -65,7 +65,7 @@ function PlaybackScrollingContainer({
   return (
     <div
       ref={containerRef}
-      className="relative h-[255px] w-full cursor-grab touch-none overflow-hidden active:cursor-grabbing"
+      className="relative h-[230px] w-full cursor-grab touch-none overflow-hidden active:cursor-grabbing mobilePortrait:h-[255px]"
       onPointerDown={handlePointerStart}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerEnd}
