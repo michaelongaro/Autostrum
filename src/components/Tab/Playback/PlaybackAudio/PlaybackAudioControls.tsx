@@ -360,7 +360,7 @@ function PlaybackAudioControls({
             size={aboveLargeViewportWidth ? "default" : "sm"}
             disabled={disablePlayButton}
             onClick={handlePlayButtonClick}
-            className="size-8 shrink-0 rounded-full bg-transparent p-0"
+            className="size-8 shrink-0 overflow-hidden rounded-full bg-transparent p-0"
           >
             <PlayButtonIcon
               uniqueLocationKey="audioControls"
@@ -377,9 +377,9 @@ function PlaybackAudioControls({
           <AnimatePresence mode={"popLayout"} initial={false}>
             <motion.div
               key={playbackSpeed}
-              initial={{ x: 20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -20, opacity: 0 }}
+              initial={{ scale: 0.5, x: 30, opacity: 0 }}
+              animate={{ scale: 1, x: 0, opacity: 1 }}
+              exit={{ scale: 0.5, x: -30, opacity: 0 }}
               transition={{ duration: 0.25 }}
             >
               <Button
