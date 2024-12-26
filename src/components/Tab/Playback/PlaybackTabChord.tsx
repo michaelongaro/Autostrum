@@ -161,7 +161,7 @@ function PlaybackTabChord({
                         {columnData[7]?.includes("s") && (
                           <div
                             style={{ fontSize: "18px" }}
-                            className={`baseFlex mt-1.5 leading-[0] ${columnData[7]?.includes(">") ? "font-semibold" : "font-normal"}`}
+                            className={`baseFlex leading-[19px] ${columnData[7]?.includes(">") ? "font-semibold" : "font-normal"}`}
                           >
                             s
                           </div>
@@ -184,10 +184,12 @@ function PlaybackTabChord({
                       </div>
 
                       {columnData[9] !== "1" && (
+                        // slaps are treated as regular chords in regards to note length icons
                         <div
                           style={{
                             marginTop:
-                              chordHasAtLeastOneNote(columnData) &&
+                              (columnData[7]?.includes("s") ||
+                                chordHasAtLeastOneNote(columnData)) &&
                               columnData[7] !== ""
                                 ? "5px"
                                 : "0",
@@ -196,9 +198,11 @@ function PlaybackTabChord({
                           {getDynamicNoteLengthIcon({
                             noteLength:
                               columnData[9] === "0.5" ? "1/8th" : "1/16th",
-                            isARestNote: columnData
-                              .slice(1, 7)
-                              .every((note) => note === ""),
+                            isARestNote:
+                              !columnData[7]?.includes("s") &&
+                              columnData
+                                .slice(1, 7)
+                                .every((note) => note === ""),
                           })}
                         </div>
                       )}
