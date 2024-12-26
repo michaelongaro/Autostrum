@@ -357,121 +357,128 @@ function StrummingPatternModal({
           initialFocus: false,
         }}
       >
-        <div className="baseVertFlex max-h-[90vh] min-w-[300px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all md:max-h-[90vh] md:gap-12 md:p-8 xl:max-w-[50vw]">
-          {/* controls */}
-          <div className="baseFlex w-full !justify-start gap-2">
-            <Label>Note length</Label>
-            <Select
-              onValueChange={handleNoteLengthChange}
-              value={strummingPatternBeingEdited.value.noteLength}
-            >
-              <SelectTrigger className="w-[135px]">
-                <SelectValue placeholder="Select a length" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Note length</SelectLabel>
-                  <SelectItem value="1/4th">1/4th</SelectItem>
-                  <SelectItem value="1/4th triplet">1/4th triplet</SelectItem>
-                  <SelectItem value="1/8th">1/8th</SelectItem>
-                  <SelectItem value="1/8th triplet">1/8th triplet</SelectItem>
-                  <SelectItem value="1/16th">1/16th</SelectItem>
-                  <SelectItem value="1/16th triplet">1/16th triplet</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <div className="baseFlex">
-              <Button
-                disabled={editingPalmMuteNodes}
-                style={{
-                  borderRadius: editingPalmMuteNodes
-                    ? "0.375rem 0 0 0.375rem"
-                    : "0.375rem",
-                }}
-                // className="transition-colors transition-opacity"
-                onClick={toggleEditingPalmMuteNodes}
+        <div className="baseVertFlex max-h-[90vh] min-w-[300px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all sm:max-w-[95vw] md:max-h-[90vh] md:gap-12 md:p-8 xl:max-w-[50vw]">
+          <div className="baseFlex !items-start gap-8 sm:!flex-col sm:gap-4">
+            <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center sm:!justify-start">
+              <Label>Note length</Label>
+              <Select
+                onValueChange={handleNoteLengthChange}
+                value={strummingPatternBeingEdited.value.noteLength}
               >
-                PM Editor
-              </Button>
-
-              {editingPalmMuteNodes && (
+                <SelectTrigger className="w-[135px]">
+                  <SelectValue placeholder="Select a length" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Note length</SelectLabel>
+                    <SelectItem value="1/4th">1/4th</SelectItem>
+                    <SelectItem value="1/4th triplet">1/4th triplet</SelectItem>
+                    <SelectItem value="1/8th">1/8th</SelectItem>
+                    <SelectItem value="1/8th triplet">1/8th triplet</SelectItem>
+                    <SelectItem value="1/16th">1/16th</SelectItem>
+                    <SelectItem value="1/16th triplet">
+                      1/16th triplet
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <div className="baseFlex">
                 <Button
-                  className="rounded-l-none rounded-r-md px-2 py-0"
+                  disabled={editingPalmMuteNodes}
+                  style={{
+                    borderRadius: editingPalmMuteNodes
+                      ? "0.375rem 0 0 0.375rem"
+                      : "0.375rem",
+                  }}
+                  // className="transition-colors transition-opacity"
                   onClick={toggleEditingPalmMuteNodes}
                 >
-                  <IoClose className="h-6 w-6" />
+                  PM Editor
                 </Button>
-              )}
-            </div>
-            {/* toggle delete strums */}
-            <div className="baseFlex">
-              <Button
-                variant={"destructive"}
-                disabled={showingDeleteStrumsButtons}
-                style={{
-                  borderRadius: showingDeleteStrumsButtons
-                    ? "0.375rem 0 0 0.375rem"
-                    : "0.375rem",
-                }}
-                className="baseFlex gap-2"
-                onClick={() =>
-                  setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
-                }
-              >
-                Delete strums
-                <FaTrashAlt className="h-4 w-4" />
-              </Button>
 
-              {showingDeleteStrumsButtons && (
+                {editingPalmMuteNodes && (
+                  <Button
+                    className="rounded-l-none rounded-r-md px-2 py-0"
+                    onClick={toggleEditingPalmMuteNodes}
+                  >
+                    <IoClose className="h-6 w-6" />
+                  </Button>
+                )}
+              </div>
+              {/* toggle delete strums */}
+              <div className="baseFlex">
                 <Button
                   variant={"destructive"}
-                  className="rounded-l-none rounded-r-md px-2 py-0"
+                  disabled={showingDeleteStrumsButtons}
+                  style={{
+                    borderRadius: showingDeleteStrumsButtons
+                      ? "0.375rem 0 0 0.375rem"
+                      : "0.375rem",
+                  }}
+                  className="baseFlex gap-2"
                   onClick={() =>
                     setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
                   }
                 >
-                  <IoClose className="h-6 w-6" />
+                  Delete strums
+                  <FaTrashAlt className="hidden h-4 w-4 sm:block" />
                 </Button>
-              )}
+
+                {showingDeleteStrumsButtons && (
+                  <Button
+                    variant={"destructive"}
+                    className="rounded-l-none rounded-r-md px-2 py-0"
+                    onClick={() =>
+                      setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
+                    }
+                  >
+                    <IoClose className="h-6 w-6" />
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="baseVertFlex lightestGlassmorphic w-full gap-2 rounded-md px-2 py-3 text-sm md:px-4">
+              <div className="baseFlex w-full gap-2 font-semibold">
+                <BsKeyboard className="h-6 w-6" />
+                Hotkeys
+              </div>
+
+              <div className="baseFlex mt-2 flex-wrap gap-4 sm:w-full sm:gap-6">
+                <div className="baseFlex gap-2">
+                  <span className="whitespace-nowrap text-nowrap font-semibold">
+                    v / d
+                  </span>
+                  <p>-</p>
+                  <p>Downstrum</p>
+                </div>
+                <div className="baseFlex gap-2">
+                  <span className="whitespace-nowrap text-nowrap font-semibold">
+                    ^ / u
+                  </span>
+                  <p>-</p>
+                  <p>Upstrum</p>
+                </div>
+                <div className="baseFlex gap-2">
+                  <p className="font-semibold">s</p>
+                  <p>-</p>
+                  <p>Slap</p>
+                </div>
+                <div className="baseFlex gap-2">
+                  <p className="font-semibold">&gt;</p>
+                  <p>-</p>
+                  <p>Accented</p>
+                </div>
+                <div className="baseFlex gap-2">
+                  <p className="font-semibold">.</p>
+                  <p>-</p>
+                  <p>Staccato</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="baseVertFlex lightestGlassmorphic w-[300px] gap-2 rounded-md px-2 py-3 text-sm sm:w-[600px]">
-            <div className="baseFlex w-full gap-2 font-semibold">
-              <BsKeyboard className="h-6 w-6" />
-              Hotkeys
-            </div>
-
-            <div className="baseFlex mt-2 flex-wrap gap-4 sm:w-full sm:gap-6">
-              <div className="baseFlex gap-2">
-                <span className="font-semibold">v / d</span>
-                <p>-</p>
-                <p>Downstrum</p>
-              </div>
-              <div className="baseFlex gap-2">
-                <span className="font-semibold">^ / u</span>
-                <p>-</p>
-                <p>Upstrum</p>
-              </div>
-              <div className="baseFlex gap-2">
-                <p className="font-semibold">s</p>
-                <p>-</p>
-                <p>Slap</p>
-              </div>
-              <div className="baseFlex gap-2">
-                <p className="font-semibold">&gt;</p>
-                <p>-</p>
-                <p>Accented</p>
-              </div>
-              <div className="baseFlex gap-2">
-                <p className="font-semibold">.</p>
-                <p>-</p>
-                <p>Staccato</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="baseFlex overflow-y-auto">
+          <div className="baseFlex !items-start overflow-y-auto">
             {/* editing inputs of strumming pattern */}
             <StrummingPattern
               data={strummingPatternBeingEdited.value}
