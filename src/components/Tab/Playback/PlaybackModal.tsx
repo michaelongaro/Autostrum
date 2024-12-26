@@ -37,9 +37,6 @@ function PlaybackModal() {
     audioMetadata,
     showPlaybackModal,
     setShowPlaybackModal,
-    title,
-    setLooping,
-    description,
     visiblePlaybackContainerWidth,
     setVisiblePlaybackContainerWidth,
     playbackDialogViewingState,
@@ -58,9 +55,6 @@ function PlaybackModal() {
     audioMetadata: state.audioMetadata,
     showPlaybackModal: state.showPlaybackModal,
     setShowPlaybackModal: state.setShowPlaybackModal,
-    title: state.title,
-    setLooping: state.setLooping,
-    description: state.description,
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
     setVisiblePlaybackContainerWidth: state.setVisiblePlaybackContainerWidth,
     playbackDialogViewingState: state.playbackDialogViewingState,
@@ -221,18 +215,6 @@ function PlaybackModal() {
     setVisiblePlaybackContainerWidth,
   ]);
 
-  // // split this into separate effect to reduce scope
-  // useEffect(() => {
-  //   if (
-  //     // is this even necessary?
-  //     currentChordIndex === 0 &&
-  //     prevCurrentChordIndex > 0
-  //   )
-  //     return;
-
-  //   setPrevCurrentChordIndex(currentChordIndex - 1);
-  // }, [currentChordIndex, prevCurrentChordIndex]);
-
   useEffect(() => {
     if (
       prevChordIndexRef.current !== currentChordIndex &&
@@ -333,10 +315,6 @@ function PlaybackModal() {
     let scrollContainerWidth =
       (fullScrollPositions.at(-1)?.originalPosition || 0) + finalElementWidth;
 
-    // const lastScrollPosition =
-    //   fullScrollPositions.at(-1)?.originalPosition || 0;
-
-    // const newChords = [...expandedTabData];
     const newChordDurations = [...durations];
 
     setExpandedTabDataHasChanged(false);
@@ -345,8 +323,7 @@ function PlaybackModal() {
       setFullChordWidths(fullChordWidths);
       setScrollContainerWidth(scrollContainerWidth);
       setChordDurations(newChordDurations);
-    }, 1000); // bandaid fix: this looks to be a syncing issue with zustand state updates, should be fixed
-    // in react 19/next 15 though
+    }, 1000); // TODO: this is a bandaid fix. this looks to be a syncing issue with zustand state updates, should be fixed in react 19/next 15 though
   }, [
     containerElement,
     visiblePlaybackContainerWidth,
@@ -357,6 +334,8 @@ function PlaybackModal() {
     playbackSpeed,
   ]);
 
+  // TODO: 99% sure this is useless/should be refactored into different effect, maybe not even
+  // in this component
   useEffect(() => {
     if (viewportLabel.includes("mobile")) {
       setPlaybackModalViewingState("Practice");
@@ -368,7 +347,7 @@ function PlaybackModal() {
     currentChordIndex,
     visiblePlaybackContainerWidth,
     fullChordWidths,
-    buffer: audioMetadata.playing ? 100 : 10000, // gets rid of slight rendering delay when quickly scrubbing through tab
+    buffer: 100,
     initialPlaceholderWidth,
     setFullScrollPositions,
     translateX,
@@ -398,15 +377,6 @@ function PlaybackModal() {
       : currentChordIndex >= chordIndex + 1;
   }
 
-  // on close:
-  // pauseAudio(true);
-  //   setPlaybackModalViewingState("Practice");
-  //  if (audioMetadata.editingLoopRange) {
-  //    setAudioMetadata({
-  //      ...audioMetadata,
-  //      editingLoopRange: false,
-  //    });
-  //  }
   return (
     <motion.div
       key={"PlaybackModalBackdrop"}
