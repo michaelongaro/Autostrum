@@ -132,38 +132,47 @@ function PlaybackModal() {
   // manually scrolling: need to update currentChordIndex to match
   // the translateX value relative to fullScrollPositions
   useEffect(() => {
-    if (!isManuallyScrolling) return;
+    // setTimeout of 0 to avoid blocking the main thread while scrolling
+    const handler = setTimeout(() => {
+      if (!isManuallyScrolling) return;
 
-    let index = 0;
-    while (index < fullScrollPositions.length) {
-      const currentPosition =
-        fullScrollPositions[index]?.currentPosition ||
-        fullScrollPositions[index]?.originalPosition ||
-        0;
+      let index = 0;
+      while (index < fullScrollPositions.length) {
+        const currentPosition =
+          fullScrollPositions[index]?.currentPosition ||
+          fullScrollPositions[index]?.originalPosition ||
+          0;
 
-      const nextPosition =
-        fullScrollPositions[index + 1]?.currentPosition ||
-        fullScrollPositions[index + 1]?.originalPosition ||
-        0;
+        const nextPosition =
+          fullScrollPositions[index + 1]?.currentPosition ||
+          fullScrollPositions[index + 1]?.originalPosition ||
+          0;
 
-      // not correct below: but on the right track maybe for finnicky nature of 1st/2nd chord highlighting
-      // if (index === 1 && translateX < nextPosition) {
-      //   setCurrentChordIndex(0);
-      //   break;
-      // }
+        // not correct below: but on the right track maybe for finnicky nature of 1st/2nd chord highlighting
+        // if (index === 1 && translateX < nextPosition) {
+        //   setCurrentChordIndex(0);
+        //   break;
+        // }
 
-      if (currentPosition === 0 && translateX < nextPosition) {
-        setCurrentChordIndex(0);
-        break;
+        if (currentPosition === 0 && translateX < nextPosition) {
+          setCurrentChordIndex(0);
+          return;
+        }
+
+        if (currentPosition <= translateX && nextPosition > translateX) {
+          setCurrentChordIndex(
+            index + (currentPosition === translateX ? 0 : 1),
+          );
+          return;
+        }
+
+        index++;
       }
+    }, 0);
 
-      if (currentPosition <= translateX && nextPosition > translateX) {
-        setCurrentChordIndex(index + (currentPosition === translateX ? 0 : 1));
-        break;
-      }
-
-      index++;
-    }
+    return () => {
+      clearTimeout(handler);
+    };
   }, [
     fullScrollPositions,
     setCurrentChordIndex,
