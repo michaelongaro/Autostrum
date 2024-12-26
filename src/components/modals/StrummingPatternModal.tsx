@@ -357,8 +357,8 @@ function StrummingPatternModal({
           initialFocus: false,
         }}
       >
-        <div className="baseVertFlex max-h-[90vh] min-w-[300px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all sm:max-w-[95vw] md:max-h-[90vh] md:gap-12 md:p-8 xl:max-w-[50vw]">
-          <div className="baseFlex !items-start gap-8 sm:!flex-col sm:gap-4">
+        <div className="baseVertFlex max-h-[90vh] min-w-[300px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all sm:max-h-[90vh] sm:max-w-[620px] sm:p-8">
+          <div className="baseFlex w-full !items-start gap-8 sm:!flex-col sm:gap-8">
             <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center sm:!justify-start">
               <Label>Note length</Label>
               <Select
@@ -438,13 +438,13 @@ function StrummingPatternModal({
               </div>
             </div>
 
-            <div className="baseVertFlex lightestGlassmorphic w-full gap-2 rounded-md px-2 py-3 text-sm md:px-4">
+            <div className="baseVertFlex lightestGlassmorphic w-full gap-1 rounded-md px-2 py-3 text-sm sm:w-auto sm:gap-2 sm:self-center md:px-4">
               <div className="baseFlex w-full gap-2 font-semibold">
                 <BsKeyboard className="h-6 w-6" />
                 Hotkeys
               </div>
 
-              <div className="baseFlex mt-2 flex-wrap gap-4 sm:w-full sm:gap-6">
+              <div className="baseFlex mt-2 flex-wrap gap-2 sm:w-full sm:gap-4">
                 <div className="baseFlex gap-2">
                   <span className="whitespace-nowrap text-nowrap font-semibold">
                     v / d
@@ -493,7 +493,7 @@ function StrummingPatternModal({
             />
           </div>
 
-          <div className="baseFlex w-full !justify-between gap-8">
+          <div className="baseFlex mt-4 w-full !justify-between gap-8">
             <Button
               disabled={
                 artificalPlayButtonTimeout ||
