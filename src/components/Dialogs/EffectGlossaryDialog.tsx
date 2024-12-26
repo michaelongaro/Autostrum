@@ -47,7 +47,9 @@ function EffectGlossaryDialog() {
         </p>
 
         <div className="baseVertFlex !items-start gap-4 xs:!flex-row xs:gap-8">
-          <div className="baseVertFlex w-full min-w-[190px] gap-2">
+          <div
+            className={`baseVertFlex gap-2 ${editing ? "min-w-[190px]" : "min-w-[150px]"}`}
+          >
             <Label className="mt-2">Note effects</Label>
             <Separator className="mb-2 w-full bg-pink-600" />
 
