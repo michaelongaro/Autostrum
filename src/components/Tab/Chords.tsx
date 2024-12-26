@@ -141,7 +141,9 @@ function Chords() {
             <>
               {editing ? (
                 <div className="baseVertFlex w-full !items-start gap-4">
-                  <div className="baseFlex mt-4 flex-wrap !justify-start gap-4">
+                  <div
+                    className={`baseFlex flex-wrap !justify-start gap-4 ${chords.length > 0 ? "mt-4" : ""}`}
+                  >
                     {chords.map((chord, index) => (
                       <motion.div
                         key={chord.id}

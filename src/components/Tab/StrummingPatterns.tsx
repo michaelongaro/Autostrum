@@ -166,10 +166,10 @@ function StrummingPatterns() {
           </AccordionTrigger>
           <AccordionContent>
             <div
-              className={`baseFlex mt-4 !justify-start ${
+              className={`baseFlex !justify-start ${
                 // just to get around inherent flexbox space that is taken up by children
                 // even when there is no dimensions to them
-                strummingPatterns.length > 0 ? "gap-4" : "gap-0"
+                strummingPatterns.length > 0 ? "mt-4 gap-4" : "gap-0"
               }`}
             >
               <div className="baseVertFlex w-full !items-start gap-4">
