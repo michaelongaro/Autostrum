@@ -3,17 +3,15 @@
   min-height: 500px;
   padding: 1rem;
   display: grid;
-  grid-template-rows: 1fr minmax(2fr, 500px) 1fr 1fr 1fr;
+  grid-template-rows: 1fr minmax(2fr, 500px) 1fr 1fr;
   grid-template-columns: 1fr 1fr;
   grid-template-areas:
     "title title"
     "description description"
     "genre bpm"
-    "tuning capo"
-    "timingSignature musicalKey";
+    "tuning capo";
   gap: 1rem;
 }
-
 
 @media (min-width: 525px) {
   .editingMetadataContainer {
@@ -24,48 +22,30 @@
       "title title title title"
       "description description description description"
       "genre genre tuning tuning"
-      "bpm capo timingSignature musicalKey";
+      "bpm . capo .";
   }
 }
 
-@media (min-width: 900px) {
+@media (min-width: 950px) {
   .editingMetadataContainer {
-    min-height: 350px;
+    min-height: 320px;
     grid-template-rows: 1fr minmax(2fr, 500px);
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
     grid-template-areas:
       "title title title title genre genre tuning tuning"
-      "description description description description bpm capo timingSignature musicalKey";
+      "description description description description bpm bpm capo capo";
     place-items: start;
   }
 }
 
-@media (min-width: 1450px) {
-  .editingMetadataContainer {
-    min-height: 300px;
-    width: 85%;
-    gap: 2rem;
-  }
-}
-
-.headerInfo,
-.metadataContainer {
+.headerInfo {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
   padding: 1rem 1.5rem;
-  gap: .5rem;
+  gap: 0.5rem;
 }
-
-.metadataContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-}
-
 
 @media (min-width: 640px) {
   .headerInfo {
@@ -75,18 +55,8 @@
   }
 }
 
-@media (min-width: 1024px) {
-  .metadataContainer {
-    flex-direction: row;
-    align-items: flex-start;
-    width: 100%;
-  }
-}
-
-
 .title {
   grid-area: title;
-
 }
 
 .usernameAndDate {
@@ -111,12 +81,4 @@
 
 .capo {
   grid-area: capo;
-}
-
-.timingSignature {
-  grid-area: timingSignature;
-}
-
-.musicalKey {
-  grid-area: musicalKey;
 }

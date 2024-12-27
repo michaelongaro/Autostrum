@@ -85,8 +85,6 @@ function Tab({ tab, refetchTab }: ITab) {
     setTuning,
     setBpm,
     setCapo,
-    setTimeSignature,
-    setMusicalKey,
     setHasRecordedAudio,
     setChords,
     setStrummingPatterns,
@@ -125,8 +123,6 @@ function Tab({ tab, refetchTab }: ITab) {
     setTuning: state.setTuning,
     setBpm: state.setBpm,
     setCapo: state.setCapo,
-    setTimeSignature: state.setTimeSignature,
-    setMusicalKey: state.setMusicalKey,
     setHasRecordedAudio: state.setHasRecordedAudio,
     setChords: state.setChords,
     setStrummingPatterns: state.setStrummingPatterns,
@@ -171,8 +167,6 @@ function Tab({ tab, refetchTab }: ITab) {
     setTuning(tab.tuning);
     setBpm(tab.bpm);
     setCapo(tab.capo);
-    setTimeSignature(tab.timeSignature);
-    setMusicalKey(tab.musicalKey);
     setHasRecordedAudio(tab.hasRecordedAudio);
     setNumberOfLikes(tab.numberOfLikes);
 
@@ -198,8 +192,6 @@ function Tab({ tab, refetchTab }: ITab) {
     setHasRecordedAudio,
     setStrummingPatterns,
     setTabData,
-    setTimeSignature,
-    setMusicalKey,
     setTitle,
     setOriginalTabData,
     setTuning,
@@ -230,9 +222,7 @@ function Tab({ tab, refetchTab }: ITab) {
       genreId,
       tuning,
       bpm,
-      timeSignature,
       capo,
-      musicalKey,
       chords,
       strummingPatterns,
       tabData: localStorageTabDataValue, // avoids name conflict with actual tabData
@@ -244,9 +234,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setGenreId(genreId);
     setTuning(tuning);
     setBpm(bpm);
-    setTimeSignature(timeSignature);
     setCapo(capo);
-    setMusicalKey(musicalKey);
     // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setChords(chords);
     // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
@@ -267,8 +255,6 @@ function Tab({ tab, refetchTab }: ITab) {
     setChords,
     setStrummingPatterns,
     setTabData,
-    setTimeSignature,
-    setMusicalKey,
     setTitle,
     setOriginalTabData,
     setTuning,
