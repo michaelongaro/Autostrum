@@ -511,23 +511,21 @@ function AudioControls() {
       animate="expanded"
       exit="closed"
     >
-      <div className="baseVertFlex audioControlsBoxShadow h-full w-[95vw] gap-2 rounded-xl bg-pink-600 p-2 transition-opacity lg:rounded-full lg:px-8 lg:py-2 xl:w-10/12 2xl:w-1/2">
+      <div className="baseVertFlex audioControlsBoxShadow h-full w-[95vw] rounded-xl bg-pink-600 p-2 transition-opacity lg:rounded-full lg:px-8 lg:py-2 xl:w-10/12 2xl:w-1/2">
         <AnimatePresence mode="sync">
           {aboveLargeViewportWidth && visibility === "minimized" && (
             <motion.div
               key={"audioControlsTopLayer"}
+              style={{ overflow: "hidden" }}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 30, opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.35 }}
               className="baseFlex"
-              variants={widthAndHeightVariants}
-              initial="closed"
-              animate="expanded"
-              exit="closed"
-              transition={{
-                duration: 0.15,
-              }}
             >
               <Button
                 variant="ghost"
-                className="h-5 w-8 p-0"
+                className="mb-2 h-5 w-8 p-0"
                 onClick={() => setVisibility("expanded")}
               >
                 <GoChevronUp className="h-5 w-5" />
@@ -891,7 +889,7 @@ function AudioControls() {
         )}
 
         {/* bottom layer: play/pause, loop, slider*/}
-        <div className="baseFlex w-full !flex-nowrap gap-4">
+        <div className="baseFlex mt-2 w-full !flex-nowrap gap-4">
           {/* audio source, instrument, speed selects*/}
 
           {/* play/pause button*/}
