@@ -177,7 +177,6 @@ function ProgressSlider({
           min={0}
           max={audioMetadata.fullCurrentlyPlayingMetadataLength - 1}
           // allowOverlap={true}
-          disabled={disabled}
           draggableTrack
           values={loopRange}
           // any use for onFinalChange?
