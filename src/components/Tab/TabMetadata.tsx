@@ -670,7 +670,7 @@ function TabMetadata({
                         }
                       }}
                     >
-                      <div className="baseFlex gap-2">
+                      <div className="baseFlex gap-2 whitespace-nowrap text-nowrap">
                         {hasRecordedAudio ? "Edit recording" : "Record tab"}
                         <FaMicrophoneAlt className="h-4 w-4" />
                       </div>
