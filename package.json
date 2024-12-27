@@ -9,7 +9,9 @@
     "preinstall": "npx force-resolutions",
     "postinstall": "prisma generate && patch-package",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.654.0",
@@ -19,7 +21,7 @@
     "@dnd-kit/modifiers": "^7.0.0",
     "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "@prisma/client": "^5.19.1",
+    "@prisma/client": "^6.1.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-checkbox": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.1",
@@ -98,7 +100,7 @@
     "postcss": "^8.4.47",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.6",
-    "prisma": "^5.19.1",
+    "prisma": "^6.1.0",
     "tailwindcss": "^3.4.12",
     "typescript": "^5.6.2"
   },
