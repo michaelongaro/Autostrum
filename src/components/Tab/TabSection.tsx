@@ -780,35 +780,40 @@ function TabSection({
       <div className="baseFlex w-full !items-start">
         <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
           <div className="baseFlex gap-2">
-            <Label>Repetitions</Label>
-            <Input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
-              placeholder="1"
-              value={
-                subSectionData.repetitions === -1
-                  ? ""
-                  : subSectionData.repetitions.toString()
-              }
-              onChange={handleRepetitionsChange}
-            />
-          </div>
+            <div className="baseFlex gap-2">
+              <Label>Repetitions</Label>
+              <div className="relative w-12">
+                <span className="absolute bottom-[9px] left-2 text-sm">x</span>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="w-[45px] px-2 pl-4"
+                  placeholder="1"
+                  value={
+                    subSectionData.repetitions === -1
+                      ? ""
+                      : subSectionData.repetitions.toString()
+                  }
+                  onChange={handleRepetitionsChange}
+                />
+              </div>
+            </div>
 
-          <div className="baseFlex gap-2">
-            <Label>BPM</Label>
-            <Input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
-              placeholder={bpm === -1 ? "" : bpm.toString()}
-              value={
-                subSectionData.bpm === -1 ? "" : subSectionData.bpm.toString()
-              }
-              onChange={handleBpmChange}
-            />
+            <div className="baseFlex gap-2">
+              <Label>BPM</Label>
+              <Input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                className="w-[52px] px-2.5"
+                placeholder={bpm === -1 ? "" : bpm.toString()}
+                value={
+                  subSectionData.bpm === -1 ? "" : subSectionData.bpm.toString()
+                }
+                onChange={handleBpmChange}
+              />
+            </div>
           </div>
 
           <div className="baseVertFlex !items-start gap-2 lg:!flex-row">
