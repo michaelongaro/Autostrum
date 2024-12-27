@@ -588,9 +588,11 @@ function compileTabSection({
       type: isAMeasureLine ? "ornamental" : "tab",
     });
 
-    elapsedSeconds.value +=
-      60 /
-      ((Number(currentBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
+    if (!isAMeasureLine) {
+      elapsedSeconds.value +=
+        60 /
+        ((Number(currentBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
+    }
 
     chordData.data.chordData = chord; // refactor later to be less split up
 

@@ -76,6 +76,7 @@ function PlaybackAudioControls({
     setMobileHeaderModal,
     viewportLabel,
     looping,
+    playbackMetadata,
   } = useTabStore((state) => ({
     id: state.id,
     bpm: state.bpm,
@@ -107,6 +108,7 @@ function PlaybackAudioControls({
     setMobileHeaderModal: state.setMobileHeaderModal,
     viewportLabel: state.viewportLabel,
     looping: state.looping,
+    playbackMetadata: state.playbackMetadata,
   }));
 
   const [wasPlayingBeforeScrubbing, setWasPlayingBeforeScrubbing] =
@@ -498,8 +500,11 @@ function PlaybackAudioControls({
               {formatSecondsToMinutes(
                 audioMetadata.type === "Artist recording"
                   ? tabProgressValue
-                  : (currentlyPlayingMetadata?.[currentChordIndex]
-                      ?.elapsedSeconds ?? 0),
+                  : (playbackMetadata?.[
+                      audioMetadata.editingLoopRange
+                        ? loopRange[0]
+                        : currentChordIndex
+                    ]?.elapsedSeconds ?? 0),
               )}
             </div>
 
@@ -630,7 +635,11 @@ function PlaybackAudioControls({
                   ? recordedAudioBuffer?.duration
                     ? Math.floor(recordedAudioBuffer.duration)
                     : 0
-                  : (currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0),
+                  : (playbackMetadata?.[
+                      audioMetadata.editingLoopRange
+                        ? loopRange[1]
+                        : playbackMetadata?.length - 1
+                    ]?.elapsedSeconds ?? 0),
               )}
             </div>
           </div>
