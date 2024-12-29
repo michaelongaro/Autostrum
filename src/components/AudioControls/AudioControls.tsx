@@ -1204,7 +1204,7 @@ function AudioControls() {
                         );
                       }}
                     >
-                      <SelectTrigger className="max-w-[15rem] border-ring">
+                      <SelectTrigger className="w-48 border-ring">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1267,7 +1267,7 @@ function AudioControls() {
                         setPlaybackSpeed(newPlaybackSpeed);
                       }}
                     >
-                      <SelectTrigger className="w-24 border-ring">
+                      <SelectTrigger className="w-[85px] border-ring">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
