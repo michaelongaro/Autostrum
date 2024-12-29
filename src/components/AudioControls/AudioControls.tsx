@@ -1,22 +1,20 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { isMobileOnly } from "react-device-detect";
 import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
-import { FaVolumeDown, FaVolumeMute, FaVolumeUp } from "react-icons/fa";
+  BsFillVolumeDownFill,
+  BsFillVolumeMuteFill,
+  BsFillVolumeUpFill,
+} from "react-icons/bs";
+import { CgArrowsShrinkH } from "react-icons/cg";
 import { GoChevronDown, GoChevronUp } from "react-icons/go";
 import { IoSettingsOutline } from "react-icons/io5";
 import { RiArrowGoBackFill } from "react-icons/ri";
 import { TiArrowLoop } from "react-icons/ti";
 import { Drawer } from "vaul";
 import { AudioProgressSlider } from "~/components/ui/AudioProgressSlider";
-import { CgArrowsShrinkH } from "react-icons/cg";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import {
@@ -33,7 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { isMobileOnly } from "react-device-detect";
 import { Separator } from "~/components/ui/separator";
 import { Slider } from "~/components/ui/slider";
 import { Switch } from "~/components/ui/switch";
@@ -44,14 +41,14 @@ import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
+import scrollChordIntoView from "~/utils/scrollChordIntoView";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
-import PlayButtonIcon from "./PlayButtonIcon";
 import {
   resetTabSliderPosition,
   returnTransitionToTabSlider,
 } from "~/utils/tabSliderHelpers";
-import scrollChordIntoView from "~/utils/scrollChordIntoView";
 import { LoopingRangeSlider } from "../ui/LoopingRangeSlider";
+import PlayButtonIcon from "./PlayButtonIcon";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -629,13 +626,51 @@ function AudioControls() {
                       visibility === "minimized" ? "opacity-0" : "opacity-100"
                     } transition-opacity`}
                   >
-                    {volume === 0 ? (
-                      <FaVolumeMute className="h-5 w-5" />
-                    ) : volume < 1 ? (
-                      <FaVolumeDown className="h-5 w-5" />
-                    ) : (
-                      <FaVolumeUp className="h-5 w-5" />
-                    )}
+                    <AnimatePresence mode="popLayout">
+                      {volume === 0 && (
+                        <motion.div
+                          key="muteIcon"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="baseFlex"
+                        >
+                          <BsFillVolumeMuteFill
+                            size={"1.5rem"}
+                            className="shrink-0"
+                          />
+                        </motion.div>
+                      )}
+                      {volume > 0 && volume < 1 ? (
+                        <motion.div
+                          key="lowVolumeIcon"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="baseFlex"
+                        >
+                          <BsFillVolumeDownFill
+                            size={"1.5rem"}
+                            className="shrink-0"
+                          />
+                        </motion.div>
+                      ) : null}
+                      {volume >= 1 ? (
+                        <motion.div
+                          key="highVolumeIcon"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="baseFlex"
+                        >
+                          <BsFillVolumeUpFill
+                            size={"1.5rem"}
+                            className="shrink-0"
+                          />
+                        </motion.div>
+                      ) : null}
+                    </AnimatePresence>
+
                     <Slider
                       value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
                       min={0}
@@ -859,13 +894,50 @@ function AudioControls() {
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="p-2">
-                    {volume === 0 ? (
-                      <FaVolumeMute className="h-5 w-5" />
-                    ) : volume < 1 ? (
-                      <FaVolumeDown className="h-5 w-5" />
-                    ) : (
-                      <FaVolumeUp className="h-5 w-5" />
-                    )}
+                    <AnimatePresence mode="popLayout">
+                      {volume === 0 && (
+                        <motion.div
+                          key="muteIcon"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="baseFlex"
+                        >
+                          <BsFillVolumeMuteFill
+                            size={"1.5rem"}
+                            className="shrink-0"
+                          />
+                        </motion.div>
+                      )}
+                      {volume > 0 && volume < 1 ? (
+                        <motion.div
+                          key="lowVolumeIcon"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="baseFlex"
+                        >
+                          <BsFillVolumeDownFill
+                            size={"1.5rem"}
+                            className="shrink-0"
+                          />
+                        </motion.div>
+                      ) : null}
+                      {volume >= 1 ? (
+                        <motion.div
+                          key="highVolumeIcon"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="baseFlex"
+                        >
+                          <BsFillVolumeUpFill
+                            size={"1.5rem"}
+                            className="shrink-0"
+                          />
+                        </motion.div>
+                      ) : null}
+                    </AnimatePresence>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
