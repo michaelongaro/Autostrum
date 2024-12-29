@@ -1,30 +1,26 @@
+import isEqual from "lodash.isequal";
 import {
+  memo,
   useCallback,
   useEffect,
   useMemo,
   useState,
-  memo,
   type Dispatch,
   type SetStateAction,
 } from "react";
-import isEqual from "lodash.isequal";
-import { Element } from "react-scroll";
 import { BsArrowDown, BsArrowUp, BsPlus } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
+import { Element } from "react-scroll";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
   SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
 import {
   useTabStore,
   type StrummingPattern as StrummingPatternType,
@@ -35,7 +31,6 @@ import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import ChordDiagram from "~/components/Tab/Playback/ChordDiagram";
 
 interface StrummingPattern {
   data: StrummingPatternType;
@@ -388,7 +383,9 @@ function StrummingPattern({
     if (chordSection && chordSection.type === "chord") {
       const newChordSection = { ...chordSection };
 
-      newChordSection.data[chordSequenceIndex ?? 0]!.data[beatIndex] = value;
+      const newChord = value === "noChord" ? "" : value;
+
+      newChordSection.data[chordSequenceIndex ?? 0]!.data[beatIndex] = newChord;
 
       const newTabData = getTabData();
 
@@ -544,28 +541,33 @@ function StrummingPattern({
                       }
                       value={
                         chordSequenceData?.[strumIndex] === ""
-                          ? "blues" // TODO: currently have no clue why this (any) random value is needed. I would imagine that
-                          : // I could pass "" and the value would be "" but that doesn't work
-                            chordSequenceData?.[strumIndex]
+                          ? "noChord"
+                          : chordSequenceData?.[strumIndex]
                       }
                     >
                       <SelectTrigger className="w-fit">
-                        <SelectValue />
+                        <SelectValue>
+                          {chordSequenceData?.[strumIndex]}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectGroup className="max-h-60 overflow-y-auto">
-                          <SelectLabel>Chord</SelectLabel>
-                          <SelectItem
-                            value=""
-                            className="italic text-shadow-none hover:text-shadow"
-                          >
-                            No chord
-                          </SelectItem>
+                        <SelectGroup className="max-h-60 overflow-y-auto overflow-x-hidden">
+                          <SelectLabel>Chords</SelectLabel>
+
                           {chords.map((chord) => (
                             <SelectItem key={chord.name} value={chord.name}>
                               {chord.name}
                             </SelectItem>
                           ))}
+
+                          <SelectSeparator />
+
+                          <SelectItem
+                            value="noChord"
+                            className="italic text-shadow-none hover:text-shadow"
+                          >
+                            No chord
+                          </SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>

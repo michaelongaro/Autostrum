@@ -8,6 +8,7 @@ import {
   SelectGroup,
   SelectItem,
   SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
@@ -257,19 +258,24 @@ function ChordSequence({
             <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
               <div className="baseFlex gap-2">
                 <Label>Repetitions</Label>
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  className="w-12"
-                  placeholder="1"
-                  value={
-                    chordSequenceData.repetitions === -1
-                      ? ""
-                      : chordSequenceData.repetitions.toString()
-                  }
-                  onChange={handleRepetitionsChange}
-                />
+                <div className="relative w-12">
+                  <span className="absolute bottom-[9px] left-2 text-sm">
+                    x
+                  </span>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="w-[45px] pl-4"
+                    placeholder="1"
+                    value={
+                      chordSequenceData.repetitions === -1
+                        ? ""
+                        : chordSequenceData.repetitions.toString()
+                    }
+                    onChange={handleRepetitionsChange}
+                  />
+                </div>
               </div>
 
               <div className="baseFlex gap-2">
@@ -310,7 +316,7 @@ function ChordSequence({
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectGroup className="max-h-60 overflow-y-auto">
+                    <SelectGroup className="max-h-60 overflow-y-auto overflow-x-hidden">
                       <SelectLabel>Strumming patterns</SelectLabel>
                       {strummingPatterns.map((pattern, index) => {
                         return (
@@ -341,6 +347,9 @@ function ChordSequence({
                           </SelectItem>
                         );
                       })}
+
+                      <SelectSeparator />
+
                       <div className="baseFlex my-2 w-full">
                         <Button
                           size="sm"
