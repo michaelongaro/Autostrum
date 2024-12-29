@@ -189,7 +189,7 @@ function AudioRecorderModal() {
           initialFocus: false,
         }}
       >
-        <div className="baseVertFlex min-h-[350px] w-[350px] gap-10 rounded-md bg-pink-400 p-2 shadow-sm sm:w-[400px] md:p-4">
+        <div className="baseVertFlex min-h-[350px] w-[350px] gap-10 rounded-md bg-pink-400 p-4 shadow-sm sm:w-[400px]">
           <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
             <p className="text-lg font-semibold">Record tab</p>
             <FaMicrophoneAlt className="h-4 w-4" />

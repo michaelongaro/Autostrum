@@ -155,7 +155,7 @@ function SectionProgressionDialog() {
           initialFocus: false,
         }}
       >
-        <div className="min-h-[20rem] min-w-[70vw] rounded-md bg-pink-400 p-2 shadow-sm md:min-w-[25rem] md:p-4">
+        <div className="min-h-[20rem] min-w-[70vw] rounded-md bg-pink-400 p-4 shadow-sm md:min-w-[25rem]">
           <div className="baseVertFlex h-full max-h-[90vh] min-h-[20rem] w-full max-w-[90vw] !justify-between gap-8">
             <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
               <p className="text-lg font-semibold">Section progression</p>
@@ -330,7 +330,7 @@ function Section({
           <BiDownArrowAlt className="h-5 w-5"></BiDownArrowAlt>
         </Button>
       </div>
-      <div className="baseVertFlex lightestGlassmorphic w-full gap-4 rounded-md p-4 px-4 xs:!flex-row sm:px-4">
+      <div className="baseVertFlex lightestGlassmorphic w-full gap-4 rounded-md px-8 py-4 xs:!flex-row sm:px-4">
         <Select
           value={sectionId === "" ? undefined : sectionId}
           onValueChange={(id) => handleSectionChange(id)}
@@ -355,7 +355,7 @@ function Section({
           </SelectContent>
         </Select>
 
-        <div className="baseFlex gap-2 xs:!flex-row xs:!items-center">
+        <div className="baseFlex gap-4 xs:!flex-row xs:!items-center">
           <div className="baseFlex gap-2">
             <span>Repeat</span>
 

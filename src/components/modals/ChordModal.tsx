@@ -188,7 +188,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
           initialFocus: false,
         }}
       >
-        <div className="baseVertFlex relative min-w-[300px] max-w-[90vw] gap-4 rounded-md bg-pink-400 p-2 py-4 shadow-sm xs:max-w-[380px] xs:gap-8 xs:p-4">
+        <div className="baseVertFlex relative min-w-[300px] max-w-[90vw] gap-4 rounded-md bg-pink-400 p-4 shadow-sm xs:max-w-[380px] xs:gap-8">
           {/* chord title */}
           <div className="baseFlex w-full !items-end !justify-between">
             <div className="baseVertFlex !items-start gap-2">
