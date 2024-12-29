@@ -290,7 +290,7 @@ function Tab({ tab, refetchTab }: ITab) {
         style={{
           transition: "filter 0.5s ease-in-out",
         }}
-        className={`baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-md md:my-24 xl:w-8/12 ${
+        className={`baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-md md:my-24 2xl:w-8/12 ${
           isPostingOrSaving
             ? "pointer-events-none brightness-90"
             : "brightness-100"
