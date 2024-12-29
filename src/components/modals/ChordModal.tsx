@@ -269,10 +269,13 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
                 </div>
 
                 {capo > 0 && (
-                  <p className="text-sm text-stone-300">
-                    Fret values should be relative to capo on{" "}
-                    {getOrdinalSuffix(capo)} fret.
-                  </p>
+                  <div className="baseVertFlex !items-start text-sm">
+                    <p className="font-medium underline">Reminder</p>
+                    <p>
+                      Fret values should be relative to capo on{" "}
+                      {getOrdinalSuffix(capo)} fret.
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
