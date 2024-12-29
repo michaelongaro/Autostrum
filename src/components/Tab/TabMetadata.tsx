@@ -1219,9 +1219,9 @@ function TabMetadata({
             )}
           </div>
 
-          <div className="baseVertFlex w-full gap-4 px-6 py-4 lg:!flex-row lg:!items-start lg:gap-8">
-            <div className="baseVertFlex h-full w-full !items-start gap-4 sm:!flex-row sm:!justify-start sm:gap-8 lg:w-[50%]">
-              <div className="baseFlex !items-start !justify-start gap-8">
+          <div className="baseVertFlex w-full gap-4 p-4 xl:!flex-row xl:!items-start xl:gap-6">
+            <div className="baseVertFlex h-full w-full !items-start gap-4 sm:!flex-row sm:!justify-start sm:gap-6 xl:w-[50%]">
+              <div className="baseFlex !items-start !justify-start gap-6">
                 <div className="baseVertFlex !items-start gap-2">
                   <div className="font-semibold">Genre</div>
                   {genreList[genreId] && (
@@ -1229,7 +1229,7 @@ function TabMetadata({
                       style={{
                         backgroundColor: genreList[genreId]?.color,
                       }}
-                      className="baseFlex w-[140px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
+                      className="baseFlex w-[145px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
                     >
                       {genreList[genreId]?.name}
                       <Image
@@ -1249,7 +1249,7 @@ function TabMetadata({
 
                 <div className="baseVertFlex !items-start gap-2">
                   <div className="font-semibold">Tuning</div>
-                  <p>
+                  <p className="baseFlex h-[44px] w-[145px] rounded-md border-2 font-medium">
                     {tuningNotesToName[
                       tuning.toLowerCase() as keyof typeof tuningNotesToName
                     ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
@@ -1259,7 +1259,7 @@ function TabMetadata({
 
               {/* BPM -> TEMPO for editing, include icon + BPM */}
 
-              <div className="baseFlex !items-start !justify-start gap-8">
+              <div className="baseFlex !items-start !justify-start gap-6">
                 <div className="baseVertFlex !items-start gap-2">
                   <div className="font-semibold">Tempo</div>
                   <div className="baseFlex">
@@ -1280,10 +1280,10 @@ function TabMetadata({
 
             <Separator
               orientation="vertical"
-              className="hidden h-32 w-[1px] lg:block"
+              className="hidden h-32 w-[1px] xl:block"
             />
 
-            <div className="baseVertFlex !items-start gap-2 !self-start lg:w-[50%]">
+            <div className="baseVertFlex !items-start gap-2 !self-start xl:w-[50%]">
               <div className="font-semibold">Description</div>
 
               <div className="baseVertFlex !items-start gap-2 text-wrap break-words text-sm md:text-base">
