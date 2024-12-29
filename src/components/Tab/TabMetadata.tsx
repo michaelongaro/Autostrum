@@ -924,6 +924,7 @@ function TabMetadata({
                 placeholder="0"
                 inputMode="numeric"
                 pattern="[0-9]*"
+                className="w-12"
                 value={capo === -1 ? "" : capo}
                 onChange={handleCapoChange}
               />

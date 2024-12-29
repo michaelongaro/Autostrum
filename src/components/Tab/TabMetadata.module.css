@@ -1,6 +1,6 @@
 .editingMetadataContainer {
   width: 100%;
-  min-height: 500px;
+  min-height: 400px;
   padding: 1rem;
   display: grid;
   grid-template-rows: 1fr minmax(2fr, 500px) 1fr 1fr;
@@ -28,7 +28,7 @@
 
 @media (min-width: 950px) {
   .editingMetadataContainer {
-    min-height: 320px;
+    min-height: 250px;
     grid-template-rows: 1fr minmax(2fr, 500px);
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
     grid-template-areas:
