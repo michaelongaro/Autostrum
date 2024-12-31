@@ -2,13 +2,12 @@ import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import { type Dispatch, type SetStateAction, useMemo, useState } from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
+import { FaBook, FaListUl } from "react-icons/fa";
 import {
-  FaBook,
-  FaListUl,
-  FaVolumeDown,
-  FaVolumeMute,
-  FaVolumeUp,
-} from "react-icons/fa";
+  BsFillVolumeDownFill,
+  BsFillVolumeMuteFill,
+  BsFillVolumeUpFill,
+} from "react-icons/bs";
 import { IoSettingsOutline } from "react-icons/io5";
 import { isMobileOnly } from "react-device-detect";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
@@ -1118,13 +1117,41 @@ function DesktopSettings({
       <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline" className="size-9 !p-0">
-            {volume === 0 ? (
-              <FaVolumeMute className="h-5 w-5" />
-            ) : volume < 1 ? (
-              <FaVolumeDown className="h-5 w-5" />
-            ) : (
-              <FaVolumeUp className="h-5 w-5" />
-            )}
+            <AnimatePresence mode="popLayout">
+              {volume === 0 && (
+                <motion.div
+                  key="muteIcon"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  className="baseFlex"
+                >
+                  <BsFillVolumeMuteFill size={"1.5rem"} className="shrink-0" />
+                </motion.div>
+              )}
+              {volume > 0 && volume < 1 ? (
+                <motion.div
+                  key="lowVolumeIcon"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  className="baseFlex"
+                >
+                  <BsFillVolumeDownFill size={"1.5rem"} className="shrink-0" />
+                </motion.div>
+              ) : null}
+              {volume >= 1 ? (
+                <motion.div
+                  key="highVolumeIcon"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  className="baseFlex"
+                >
+                  <BsFillVolumeUpFill size={"1.5rem"} className="shrink-0" />
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
           </Button>
         </PopoverTrigger>
         <PopoverContent className="baseVertFlex h-36 w-12 gap-2 p-2" side="top">
