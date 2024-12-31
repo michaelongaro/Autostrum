@@ -1,16 +1,19 @@
 import {
   type Dispatch,
+  type MutableRefObject,
   type PointerEvent,
+  type ReactNode,
   type SetStateAction,
   useRef,
 } from "react";
 import { useTabStore } from "~/stores/TabStore";
 
 interface PlaybackScrollingContainer {
-  children: React.ReactNode;
+  children: ReactNode;
   translateX: number;
   setTranslateX: Dispatch<SetStateAction<number>>;
   setIsManuallyScrolling: Dispatch<SetStateAction<boolean>>;
+  overrideNewTranslateXRef: MutableRefObject<number | null>;
 }
 
 function PlaybackScrollingContainer({
@@ -18,6 +21,7 @@ function PlaybackScrollingContainer({
   translateX,
   setTranslateX,
   setIsManuallyScrolling,
+  overrideNewTranslateXRef,
 }: PlaybackScrollingContainer) {
   const { playing, pauseAudio } = useTabStore((state) => ({
     playing: state.audioMetadata.playing,
@@ -45,6 +49,12 @@ function PlaybackScrollingContainer({
     if (!isTouchingRef.current) return;
 
     e.preventDefault();
+
+    if (overrideNewTranslateXRef.current !== null) {
+      startXRef.current = e.clientX;
+      startTranslateXRef.current = overrideNewTranslateXRef.current;
+      overrideNewTranslateXRef.current = null;
+    }
 
     const currentX = e.clientX;
     const scrollScalingFactor = 1.5; // Easier to scroll farther distances

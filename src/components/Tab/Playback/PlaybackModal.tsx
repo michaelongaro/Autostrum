@@ -89,8 +89,9 @@ function PlaybackModal() {
   >([]);
 
   const [scrollContainerWidth, setScrollContainerWidth] = useState(0);
-  const prevChordIndexRef = useRef<number | null>(null);
   const [loopCount, setLoopCount] = useState(0);
+  const prevCurrentChordIndexRef = useRef<number | null>(null);
+  const overrideNewTranslateXRef = useRef<number | null>(null);
 
   // below two are just here to avoid polluting the store with these extra semi-local values
   const [loopRange, setLoopRange] = useState<[number, number]>([
@@ -148,18 +149,12 @@ function PlaybackModal() {
           fullScrollPositions[index + 1]?.originalPosition ||
           0;
 
-        // not correct below: but on the right track maybe for finnicky nature of 1st/2nd chord highlighting
-        // if (index === 1 && translateX < nextPosition) {
-        //   setCurrentChordIndex(0);
-        //   break;
-        // }
-
-        if (currentPosition === 0 && translateX < nextPosition) {
-          setCurrentChordIndex(0);
-          return;
-        }
-
         if (currentPosition <= translateX && nextPosition > translateX) {
+          if (scrollContainerWidth % currentPosition === 0) {
+            setCurrentChordIndex(0);
+            return;
+          }
+
           setCurrentChordIndex(
             index + (currentPosition === translateX ? 0 : 1),
           );
@@ -178,6 +173,7 @@ function PlaybackModal() {
     setCurrentChordIndex,
     translateX,
     isManuallyScrolling,
+    scrollContainerWidth,
   ]);
 
   // not manually scrolling: need to update translateX value to match
@@ -225,40 +221,59 @@ function PlaybackModal() {
   ]);
 
   useEffect(() => {
+    const currentScrollPosition =
+      fullScrollPositions[currentChordIndex]?.currentPosition ||
+      fullScrollPositions[currentChordIndex]?.originalPosition ||
+      0;
+
+    const prevScrollPosition =
+      prevCurrentChordIndexRef.current !== null
+        ? fullScrollPositions[prevCurrentChordIndexRef.current]
+            ?.currentPosition ||
+          fullScrollPositions[prevCurrentChordIndexRef.current]
+            ?.originalPosition ||
+          0
+        : null;
+
     if (
-      prevChordIndexRef.current !== currentChordIndex &&
-      currentChordIndex === 0
+      prevCurrentChordIndexRef.current !== null &&
+      prevScrollPosition !== null &&
+      prevCurrentChordIndexRef.current > currentChordIndex &&
+      prevScrollPosition < currentScrollPosition
     ) {
       setLoopCount((prev) => prev + 1);
-      // console.log(`Loop completed: ${loopCount + 1}`);
-      // Perform additional actions here if needed
-    }
-
-    if (
-      prevChordIndexRef.current !== null && // Ensure it's not the initial render
-      prevChordIndexRef.current > currentChordIndex && // User scrolled backward
-      !audioMetadata.playing && // Playback is not active
-      fullScrollPositions.some((position) => position.currentPosition !== null) // At least one currentPosition value isn't null
+    } else if (
+      prevCurrentChordIndexRef.current !== null && // Ensure it's not the initial render
+      prevCurrentChordIndexRef.current > currentChordIndex && // User scrolled backward
+      !audioMetadata.playing // Playback is not active
     ) {
-      console.log(
-        "Scrolling backward. Resetting scroll positions and loop count.",
-      );
-
       // Reset all currentPosition to null
       const newFullScrollPositions = fullScrollPositions.map((position) => ({
         ...position,
         currentPosition: null,
       }));
 
+      const currentPosition =
+        fullScrollPositions[currentChordIndex]?.originalPosition || 0;
+
       setFullScrollPositions(newFullScrollPositions);
 
-      // Reset loop count
-      setLoopCount(0);
+      if (loopCount > 0) {
+        overrideNewTranslateXRef.current = currentPosition;
+        setTranslateX(currentPosition);
+        setLoopCount(0);
+      }
     }
 
-    // Update the ref after loop detection
-    prevChordIndexRef.current = currentChordIndex;
-  }, [currentChordIndex, audioMetadata.playing, fullScrollPositions]);
+    // Update previous value refs
+    prevCurrentChordIndexRef.current = currentChordIndex;
+  }, [
+    currentChordIndex,
+    translateX,
+    audioMetadata.playing,
+    fullScrollPositions,
+    loopCount,
+  ]);
 
   useEffect(() => {
     setExpandedTabDataHasChanged(true);
@@ -359,7 +374,6 @@ function PlaybackModal() {
     buffer: 100,
     initialPlaceholderWidth,
     setFullScrollPositions,
-    translateX,
   });
 
   function highlightChord({
@@ -444,6 +458,7 @@ function PlaybackModal() {
                     translateX={translateX}
                     setTranslateX={setTranslateX}
                     setIsManuallyScrolling={setIsManuallyScrolling}
+                    overrideNewTranslateXRef={overrideNewTranslateXRef}
                   >
                     <div
                       ref={containerRef}
@@ -597,7 +612,6 @@ const getFullVisibleChordIndices = ({
   buffer,
   initialPlaceholderWidth,
   setFullScrollPositions,
-  translateX,
 }: {
   fullScrollPositions: {
     originalPosition: number;
@@ -616,7 +630,6 @@ const getFullVisibleChordIndices = ({
       }[]
     >
   >;
-  translateX: number;
 }) => {
   const fullScrollPositions = [...originalFullScrollPositions];
 
@@ -626,15 +639,10 @@ const getFullVisibleChordIndices = ({
 
   let fullVisibleChordIndices = [];
 
-  const adjustedScrollPositions = fullScrollPositions.map(
-    (pos) =>
-      (pos?.currentPosition || pos.originalPosition) + initialPlaceholderWidth,
-  );
-
   const adjustedCurrentPosition =
-    // (fullScrollPositions[currentChordIndex]?.currentPosition ||
-    //   fullScrollPositions[currentChordIndex].originalPosition)
-    translateX + initialPlaceholderWidth;
+    (fullScrollPositions[currentChordIndex]?.currentPosition ||
+      fullScrollPositions[currentChordIndex].originalPosition) +
+    initialPlaceholderWidth;
 
   // Start and end points of the visible range
   const rangeStart =
@@ -645,12 +653,17 @@ const getFullVisibleChordIndices = ({
   const chordIndicesBeforeRangeStart = [];
 
   // FYI: if possible reimplement this with binary search, but it's not a top priority
+  // ^ "adjustedScrollPositions" was just regular fullScrollPositions + initialPlaceholderWidth btw.
   // const startIndex = binarySearchStart(adjustedScrollPositions, rangeStart);
   // const endIndex = binarySearchEnd(adjustedScrollPositions, rangeEnd);
   // for (let i = startIndex; i <= endIndex; i++) {
 
-  for (let i = 0; i < adjustedScrollPositions.length; i++) {
-    const itemStart = adjustedScrollPositions[i] || 0;
+  for (let i = 0; i < fullScrollPositions.length; i++) {
+    const pos =
+      fullScrollPositions[i]?.currentPosition ||
+      fullScrollPositions[i]?.originalPosition ||
+      0;
+    const itemStart = pos + initialPlaceholderWidth;
     const chordWidth = fullChordWidths[i] || 0;
     const itemEnd = itemStart + chordWidth;
 
@@ -671,7 +684,7 @@ const getFullVisibleChordIndices = ({
   let largestScrollPosition = 0;
 
   // getting largest chord scroll position
-  for (let i = 0; i < adjustedScrollPositions.length; i++) {
+  for (let i = 0; i < fullScrollPositions.length; i++) {
     const scrollPosition =
       fullScrollPositions[i]?.currentPosition ||
       fullScrollPositions[i]?.originalPosition ||
