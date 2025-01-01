@@ -150,7 +150,7 @@ function PlaybackStrummedChord({
               //   minFontSizePx: 12,
               // }),
             }}
-            className="relative mb-2 h-6 w-6 text-sm font-semibold transition-colors"
+            className="relative mb-2 h-6 w-6 text-sm font-semibold"
           >
             <div
               // TODO: not sure if this will ever be possible given how it interacts with
@@ -171,7 +171,7 @@ function PlaybackStrummedChord({
                   ? "hsl(335, 78%, 42%)"
                   : "hsl(324, 77%, 95%)",
               }}
-              className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
+              className="baseVertFlex relative mb-2 h-[20px] text-lg"
             >
               <div className="baseFlex">
                 {strum.includes("v") && (
@@ -230,7 +230,7 @@ function PlaybackStrummedChord({
                 ? "hsl(335, 78%, 42%)"
                 : "hsl(324, 77%, 95%)",
             }}
-            className="text-sm transition-colors"
+            className="text-sm"
           >
             {getBeatIndicator(noteLength, strumIndex)}
           </p>

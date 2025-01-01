@@ -250,7 +250,7 @@ function PlaybackTabNote({
           marginTop: note === "x" ? "-2px" : "0",
           marginBottom: note === "x" ? "2px" : "0",
         }}
-        className={`baseFlex relative h-[20px] transition-colors ${isAccented ? "font-bold" : ""}`}
+        className={`baseFlex relative h-[20px] ${isAccented ? "font-bold" : ""}`}
       >
         {note}
         {isStaccato && (
