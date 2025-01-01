@@ -5,7 +5,8 @@ import Tab from "~/components/Tab/Tab";
 import { useTabStore } from "~/stores/TabStore";
 
 function Create() {
-  const { showingAudioControls } = useTabStore((state) => ({
+  const { editing, showingAudioControls } = useTabStore((state) => ({
+    editing: state.editing,
     showingAudioControls: state.showingAudioControls,
   }));
 
@@ -41,7 +42,7 @@ function Create() {
 
       {/* can probably drop the <AnimatePresence> since it can't ever be triggered, right?*/}
       <AnimatePresence mode="wait">
-        {showingAudioControls && <AudioControls />}
+        {editing && showingAudioControls && <AudioControls />}
       </AnimatePresence>
     </motion.div>
   );
