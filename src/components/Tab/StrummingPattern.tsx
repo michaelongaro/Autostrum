@@ -748,7 +748,7 @@ function StrummingPattern({
               data.strums.length < 32 && (
                 <Button
                   id={"strummingPatternExtendPatternButton"}
-                  className="ml-2 mr-1 rounded-full px-[0.4rem] py-0 md:px-2"
+                  className="ml-2 mr-1 rounded-full px-2 py-0"
                   onKeyDown={handleExtendPatternButtonKeyDown}
                   onClick={addStrumsToPattern}
                 >
