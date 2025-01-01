@@ -1,5 +1,5 @@
 import { useAuth } from "@clerk/nextjs";
-import FocusTrap from "focus-trap-react";
+import { FocusTrap } from "focus-trap-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { TbPinned } from "react-icons/tb";

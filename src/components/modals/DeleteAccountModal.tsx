@@ -1,5 +1,5 @@
 import { useAuth } from "@clerk/nextjs";
-import FocusTrap from "focus-trap-react";
+import { FocusTrap } from "focus-trap-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { useRouter } from "next/router";

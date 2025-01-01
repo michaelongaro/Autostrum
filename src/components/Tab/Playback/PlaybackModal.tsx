@@ -6,7 +6,7 @@ import PlaybackTabChord from "~/components/Tab/Playback/PlaybackTabChord";
 import PlaybackTabMeasureLine from "~/components/Tab/Playback/PlaybackTabMeasureLine";
 import PlaybackTopMetadata from "~/components/Tab/Playback/PlaybackTopMetadata";
 import { AnimatePresence, motion } from "framer-motion";
-import FocusTrap from "focus-trap-react";
+import { FocusTrap } from "focus-trap-react";
 import {
   type AudioMetadata,
   type PlaybackTabChord as PlaybackTabChordType,
@@ -468,7 +468,7 @@ function PlaybackModal() {
                         <div className="mb-6 h-[140px] w-full mobilePortrait:h-[165px]"></div>
                         {/* currently this fixes the highlight line extending past rounded borders of
                         sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
-                        <div className="z-0 mb-6 h-[140px] w-[2px] shrink-0 bg-pink-600 mobilePortrait:h-[164px]"></div>
+                        <div className="z-0 mb-6 ml-2 h-[140px] w-[2px] shrink-0 bg-pink-600 mobilePortrait:h-[164px]"></div>
                         <div className="mb-6 h-[140px] w-full mobilePortrait:h-[165px]"></div>
                       </div>
 
