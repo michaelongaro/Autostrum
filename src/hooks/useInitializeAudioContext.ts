@@ -90,9 +90,6 @@ export function useInitializeAudioContext() {
       fetchAudioFile("/sounds/countIn.wav").then((audioBuffer) => {
         setCountInBuffer(audioBuffer);
       });
-
-      window.removeEventListener("click", handleUserInteraction);
-      window.removeEventListener("keydown", handleUserInteraction);
     }
 
     window.addEventListener("click", handleUserInteraction);
