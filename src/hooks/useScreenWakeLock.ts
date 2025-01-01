@@ -14,7 +14,6 @@ function useScreenWakeLock() {
     async function requestWakeLock() {
       try {
         wakeLockRef.current = await navigator.wakeLock.request("screen");
-        console.log("hit");
       } catch (err) {
         console.error(`The Wake Lock request has failed: ${err}`);
       }
