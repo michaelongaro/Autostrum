@@ -11,7 +11,7 @@ interface PlaybackTabEndcap {
 function PlaybackTabEndcap({ type, tuning }: PlaybackTabEndcap) {
   return (
     <div
-      className={`baseVertFlex ornamental playbackElem mb-[3.2rem] h-[271px] ${type === "start" ? "ml-4" : ""}`}
+      className={`baseVertFlex mb-[3.2rem] h-[271px] ${type === "start" ? "ml-4" : ""}`}
     >
       {type === "start" && tuning ? (
         <div

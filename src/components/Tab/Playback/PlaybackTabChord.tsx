@@ -30,7 +30,7 @@ function PlaybackTabChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex ornamental playbackElem relative mb-[24px] h-[144px] w-4 border-y-2 border-white mobilePortrait:h-[168px]"
+          className="baseVertFlex relative mb-[24px] h-[144px] w-4 border-y-2 border-white mobilePortrait:h-[168px]"
         >
           {/* show new current bpm */}
           {columnData[8] !== "" && (
@@ -59,7 +59,7 @@ function PlaybackTabChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="playbackElem baseVertFlex relative w-[35px]"
+          className="baseVertFlex relative w-[35px]"
         >
           <div className="baseVertFlex mb-[3.2rem]">
             {columnData.map((note, index) => (
