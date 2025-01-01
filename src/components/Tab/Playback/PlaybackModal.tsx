@@ -593,7 +593,7 @@ function PlaybackModal() {
               }
             }}
           >
-            <X className="size-4" />
+            <X className="size-5" />
             <span className="sr-only">Close</span>
           </Button>
         </div>
