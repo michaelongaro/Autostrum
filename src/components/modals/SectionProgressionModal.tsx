@@ -156,14 +156,14 @@ function SectionProgressionDialog() {
         }}
       >
         <div className="min-h-[20rem] min-w-[70vw] rounded-md bg-pink-400 p-4 shadow-sm md:min-w-[25rem]">
-          <div className="baseVertFlex h-full max-h-[90vh] min-h-[20rem] w-full max-w-[90vw] !justify-between gap-8">
+          <div className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full max-w-[90vw] !justify-between">
             <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
               <p className="text-lg font-semibold">Section progression</p>
             </div>
 
             <div
               ref={scrollableSectionsRef}
-              className="baseVertFlex max-h-[70vh] w-full !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 px-12 md:max-h-[70vh]"
+              className="baseVertFlex mt-8 max-h-[70vh] w-full !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 px-12 md:max-h-[70vh]"
             >
               {localSectionProgression.length > 0 ? (
                 <AnimatePresence mode="wait">
@@ -192,14 +192,14 @@ function SectionProgressionDialog() {
 
             {localSectionProgression.length > 0 && (
               <Button
-                className="rounded-full !py-5 px-2 md:py-0"
+                className="mt-5 rounded-full !py-5 px-2 md:py-0"
                 onClick={addNewSectionToProgression}
               >
                 <BsPlus className="h-6 w-6 p-0" />
               </Button>
             )}
 
-            <div className="baseFlex gap-4">
+            <div className="baseFlex mt-5 gap-4">
               <Button
                 variant={"ghost"}
                 onClick={() => setShowSectionProgressionModal(false)}
