@@ -13,6 +13,7 @@ import { useTabStore } from "~/stores/TabStore";
 import DesktopHeader from "../Header/DesktopHeader";
 import MobileHeader from "../Header/MobileHeader";
 import useGetViewportLabel from "~/hooks/useGetViewportLabel";
+import useScreenWakeLock from "~/hooks/useScreenWakeLock";
 
 const MobileHeaderModal = dynamic(
   () => import("~/components/modals/MobileHeaderModal"),
@@ -34,6 +35,7 @@ function GeneralLayoutStatefulShell() {
   useAutoCompileChords();
   useDetectRouteChanges();
   useGetViewportLabel();
+  useScreenWakeLock();
 
   const {
     setLooping,
