@@ -817,33 +817,13 @@ function calculateRelativeChordDelayMultiplier(
   bpm: number,
   strumChordQuickly: boolean,
 ) {
-  const BASE_DELAY = 0.01;
-  let delay = 0;
-  const accentedMultiplier = strumChordQuickly ? 0.75 : 1;
+  // Clamp BPM to [0, 400]
+  const clampedBpm = Math.max(0, Math.min(400, bpm));
 
-  // would love to somehow convey this split in logic in the UI but I really
-  // have no clue the best way to be transparent with it..
+  // Linearly map 0 → 0.05 and 400 → 0.01
+  const mappedValue = 0.05 + (clampedBpm / 400) * (0.01 - 0.05);
 
-  if (bpm <= 60) {
-    const distance = 61 - bpm;
-    delay = Math.min(distance / 60, 0.35); // idk prob needs to be fine tuned
-  } else {
-    const distance = (bpm > 400 ? 400 : 400) - bpm;
-    delay = Math.min(distance / 361, 1) * 0.02;
-  }
-
-  return (BASE_DELAY + delay) * accentedMultiplier;
-}
-
-function getIndexOfFirstNonEmptyString(column: string[], isAnUpstrum: boolean) {
-  for (let index = 1; index < 7; index++) {
-    const i = isAnUpstrum ? index : 7 - index;
-    if (column[i] !== "") {
-      return i;
-    }
-  }
-
-  return 1;
+  return strumChordQuickly ? mappedValue * 0.75 : mappedValue;
 }
 
 interface TetheredMetadata {
@@ -914,6 +894,7 @@ function playNoteColumn({
       return;
     }
 
+    let notesPlayedSoFar = 0;
     let chordDelayMultiplier = 0;
 
     // TODO: allow just > and or . to be present + provide handling for these cases
@@ -923,11 +904,6 @@ function playNoteColumn({
         currColumn[7]?.includes(">") || currColumn[7]?.includes("."),
       );
     }
-
-    const indexOfFirstNonEmptyString = getIndexOfFirstNonEmptyString(
-      currColumn,
-      currColumn[7]?.includes("^") || false,
-    );
 
     const allInlineEffects = /[hp\/\\\\br~>.x]/g;
     const tetherEffects = /^[hp\/\\\\]$/;
@@ -1214,12 +1190,9 @@ function playNoteColumn({
         stringIdx: adjustedStringIdx,
         fret,
         bpm,
-        // ^ want raw index instead of adjusted index since we only care about
-        // how "far" into the chord the note is, also want to start multiplier
-        // based on first non-empty string for the timing to be as accurate as possible
-        when:
-          chordDelayMultiplier *
-          Math.abs(indexOfFirstNonEmptyString - stringIdx),
+        when: chordDelayMultiplier * notesPlayedSoFar,
+        // ^ makes sure that the proper delay is applied to each note in a chord
+        // regardless of the number/spacing of notes in the chord
         effects,
         tetheredMetadata,
         pluckBaseNote,
@@ -1229,6 +1202,8 @@ function playNoteColumn({
         currentlyPlayingStrings,
         acousticSteelOverrideForPreview,
       });
+
+      notesPlayedSoFar++;
     }
   });
 }
