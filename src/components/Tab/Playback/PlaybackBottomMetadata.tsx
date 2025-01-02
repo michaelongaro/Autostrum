@@ -502,13 +502,48 @@ function MobileSettingsDialog() {
           <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
             <Label>Volume</Label>
             <div className="baseFlex w-full max-w-64 !flex-nowrap gap-2 md:justify-self-end">
-              {volume === 0 ? (
-                <FaVolumeMute className="h-5 w-5" />
-              ) : volume < 1 ? (
-                <FaVolumeDown className="h-5 w-5" />
-              ) : (
-                <FaVolumeUp className="h-5 w-5" />
-              )}
+              <AnimatePresence mode="popLayout">
+                {volume === 0 && (
+                  <motion.div
+                    key="muteIcon"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    className="baseFlex"
+                  >
+                    <BsFillVolumeMuteFill
+                      size={"1.5rem"}
+                      className="shrink-0"
+                    />
+                  </motion.div>
+                )}
+                {volume > 0 && volume < 1 ? (
+                  <motion.div
+                    key="lowVolumeIcon"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    className="baseFlex"
+                  >
+                    <BsFillVolumeDownFill
+                      size={"1.5rem"}
+                      className="shrink-0"
+                    />
+                  </motion.div>
+                ) : null}
+                {volume >= 1 ? (
+                  <motion.div
+                    key="highVolumeIcon"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    className="baseFlex"
+                  >
+                    <BsFillVolumeUpFill size={"1.5rem"} className="shrink-0" />
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+
               <Slider
                 value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
                 min={0}
