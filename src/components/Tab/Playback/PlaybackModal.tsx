@@ -842,6 +842,7 @@ function RenderChordByType({
   if (type === "tab" && expandedTabData[fullVisibleIndex]?.type === "tab") {
     return (
       <PlaybackTabChord
+        id={expandedTabData[fullVisibleIndex]?.id}
         columnData={expandedTabData[fullVisibleIndex]?.data.chordData}
         isFirstChordInSection={
           fullVisibleIndex === 0 &&
@@ -878,6 +879,7 @@ function RenderChordByType({
   ) {
     return (
       <PlaybackTabMeasureLine
+        id={expandedTabData[fullVisibleIndex]?.id}
         columnData={expandedTabData[fullVisibleIndex]!.data.chordData}
         isDimmed={
           audioMetadata.editingLoopRange &&
@@ -892,6 +894,7 @@ function RenderChordByType({
   if (type === "strum" && expandedTabData[fullVisibleIndex]?.type === "strum") {
     return (
       <PlaybackStrummedChord
+        id={expandedTabData[fullVisibleIndex]?.id}
         strumIndex={expandedTabData[fullVisibleIndex]?.data.strumIndex || 0}
         strum={expandedTabData[fullVisibleIndex]?.data.strum || ""}
         palmMute={expandedTabData[fullVisibleIndex]?.data.palmMute || ""}

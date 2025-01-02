@@ -2,16 +2,19 @@ import { Fragment } from "react";
 import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
 
 interface PlaybackTabMeasureLine {
+  id: string;
   columnData: string[];
   isDimmed: boolean;
 }
 
 function PlaybackTabMeasureLine({
+  id,
   columnData,
   isDimmed,
 }: PlaybackTabMeasureLine) {
   return (
     <div
+      key={id}
       style={{
         opacity: isDimmed ? 0.5 : 1,
         transition: "opacity 0.5s",

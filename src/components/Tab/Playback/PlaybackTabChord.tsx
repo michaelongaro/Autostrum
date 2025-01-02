@@ -7,6 +7,7 @@ import {
 } from "~/utils/bpmIconRenderingHelpers";
 
 interface PlaybackTabChord {
+  id: string;
   columnData: string[];
   isFirstChordInSection: boolean;
   isLastChordInSection: boolean;
@@ -15,6 +16,7 @@ interface PlaybackTabChord {
 }
 
 function PlaybackTabChord({
+  id,
   columnData,
   isFirstChordInSection,
   isLastChordInSection,
@@ -26,6 +28,7 @@ function PlaybackTabChord({
       {/* is a spacer chord, potentially with a new bpm to specify*/}
       {columnData[0] === "-1" && (
         <div
+          key={`${id}-${isFirstChordInSection}-${isLastChordInSection}`}
           style={{
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
@@ -64,7 +67,7 @@ function PlaybackTabChord({
           <div className="baseVertFlex mb-[3.2rem]">
             {columnData.map((note, index) => (
               <Fragment
-                key={`${index}-${isFirstChordInSection}-${isLastChordInSection}`}
+                key={`${id}-${index}-${isFirstChordInSection}-${isLastChordInSection}`}
               >
                 {index === 0 && (
                   <div className="baseFlex h-7 w-full">

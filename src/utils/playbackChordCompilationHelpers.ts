@@ -1,5 +1,5 @@
+import { v4 as randomUUID } from "uuid"; // FYI: crypto randomUUID() wasn't working for whatever reason
 import type {
-  AudioMetadata,
   Chord,
   ChordSection,
   ChordSequence,
@@ -130,6 +130,7 @@ function expandFullTab({
     compiledChordsMappedToLoopRange.push(
       firstChordType === "tab"
         ? {
+            id: randomUUID(),
             type: "tab",
             isFirstChord: false,
             isLastChord: false,
@@ -150,6 +151,7 @@ function expandFullTab({
             },
           }
         : {
+            id: randomUUID(),
             type: "strum",
             isFirstChord: false,
             isLastChord: false,
@@ -189,6 +191,7 @@ function expandFullTab({
   ) {
     // add a measure line w/ the new bpm
     compiledChordsMappedToLoopRange.push({
+      id: randomUUID(),
       type: "tab",
       isFirstChord: false,
       isLastChord: false,
@@ -274,6 +277,7 @@ function expandFullTab({
 
       for (let i = 0; i < numSpacerChordsToAdd; i++) {
         compiledChordsMappedToLoopRange.push({
+          id: randomUUID(),
           type: "loopDelaySpacer",
           data: {
             bpm: Number(lastChordBpm),
@@ -324,6 +328,7 @@ function expandFullTab({
 
     for (let i = 0; i < numSpacerChordsToAdd; i++) {
       compiledChordsMappedToLoopRange.push({
+        id: randomUUID(),
         type: "loopDelaySpacer",
         data: {
           bpm: Number(lastChordBpm),
@@ -465,6 +470,7 @@ function compileTabSection({
   // was a chord section, we need to add a spacer "chord"
   if (compiledChords.length > 0 && compiledChords.at(-1)?.type === "strum") {
     compiledChords.push({
+      id: randomUUID(),
       type: "tab",
       isFirstChord: false,
       isLastChord: false,
@@ -513,6 +519,7 @@ function compileTabSection({
     compiledChords.at(-1)!.data.bpm !== Number(currentBpm)
   ) {
     compiledChords.push({
+      id: randomUUID(),
       type: "tab",
       isFirstChord: false,
       isLastChord: false,
@@ -539,6 +546,7 @@ function compileTabSection({
 
   for (let chordIdx = 0; chordIdx < data.length; chordIdx++) {
     const chordData: PlaybackTabChord = {
+      id: randomUUID(),
       type: "tab",
       isFirstChord: chordIdx === 0,
       isLastChord: chordIdx === data.length - 1,
@@ -633,6 +641,7 @@ function compileChordSection({
   // was a chord section, we need to add a spacer "chord"
   if (compiledChords.length > 0 && compiledChords.at(-1)?.type === "tab") {
     compiledChords.push({
+      id: randomUUID(),
       type: "strum",
       isFirstChord: false,
       isLastChord: false,
@@ -810,6 +819,7 @@ function compileChordSequence({
       const prevChord = compiledChords?.at(-1);
 
       const playbackChordSequence: PlaybackStrummedChord = {
+        id: randomUUID(),
         type: "strum",
         isFirstChord: chordIdx === 0,
         isLastChord: chordIdx === chordSequence.data.length - 1,

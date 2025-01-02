@@ -4,7 +4,43 @@ import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
 
+function getBeatIndicator(noteLength: string, beatIndex: number) {
+  let beat: number | string = "";
+  switch (noteLength) {
+    case "1/4th":
+      beat = beatIndex + 1;
+      break;
+    case "1/8th":
+      beat = beatIndex % 2 === 0 ? beatIndex / 2 + 1 : "&";
+      break;
+    case "1/16th":
+      beat =
+        beatIndex % 4 === 0
+          ? beatIndex / 4 + 1
+          : beatIndex % 2 === 0
+            ? "&"
+            : "";
+      break;
+    case "1/4th triplet":
+      beat = beatIndex % 3 === 0 ? (beatIndex / 3) * 2 + 1 : "";
+      break;
+    case "1/8th triplet":
+      beat = beatIndex % 3 === 0 ? beatIndex / 3 + 1 : "";
+      break;
+    case "1/16th triplet":
+      beat =
+        beatIndex % 3 === 0
+          ? (beatIndex / 3) % 2 === 0
+            ? beatIndex / 3 / 2 + 1
+            : "&"
+          : "";
+      break;
+  }
+  return beat.toString();
+}
+
 interface PlaybackStrummedChord {
+  id: string;
   strumIndex: number;
   strum: string;
   palmMute?: string;
@@ -25,6 +61,7 @@ interface PlaybackStrummedChord {
 }
 
 function PlaybackStrummedChord({
+  id,
   strumIndex,
   strum,
   palmMute,
@@ -39,47 +76,13 @@ function PlaybackStrummedChord({
 }: PlaybackStrummedChord) {
   const heightOfStrummingPatternFiller = "1.5rem";
 
-  function getBeatIndicator(noteLength: string, beatIndex: number) {
-    let beat: number | string = "";
-    switch (noteLength) {
-      case "1/4th":
-        beat = beatIndex + 1;
-        break;
-      case "1/8th":
-        beat = beatIndex % 2 === 0 ? beatIndex / 2 + 1 : "&";
-        break;
-      case "1/16th":
-        beat =
-          beatIndex % 4 === 0
-            ? beatIndex / 4 + 1
-            : beatIndex % 2 === 0
-              ? "&"
-              : "";
-        break;
-      case "1/4th triplet":
-        beat = beatIndex % 3 === 0 ? (beatIndex / 3) * 2 + 1 : "";
-        break;
-      case "1/8th triplet":
-        beat = beatIndex % 3 === 0 ? beatIndex / 3 + 1 : "";
-        break;
-      case "1/16th triplet":
-        beat =
-          beatIndex % 3 === 0
-            ? (beatIndex / 3) % 2 === 0
-              ? beatIndex / 3 / 2 + 1
-              : "&"
-            : "";
-        break;
-    }
-    return beat.toString();
-  }
-
   return (
     <>
       {/* not my favorite, but strumIndex of -1 indicates a physical spacer between strumming
         patterns and/or tab sections */}
       {strumIndex === -1 && (
         <div
+          key={`${id}-${isFirstChordInSection}-${isLastChordInSection}`}
           style={{
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
@@ -98,7 +101,7 @@ function PlaybackStrummedChord({
 
       {strumIndex !== -1 && (
         <div
-          key={`${strumIndex}-${isFirstChordInSection}-${isLastChordInSection}`}
+          key={`${id}-${isFirstChordInSection}-${isLastChordInSection}`}
           style={{
             borderLeft: isFirstChordInSection ? "2px solid white" : "none",
             borderRight: isLastChordInSection ? "2px solid white" : "none",
