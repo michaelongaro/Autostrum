@@ -84,11 +84,14 @@ function PlaybackTopMetadata({
 
             <Separator className="h-4 w-[1px]" />
 
-            <div className="baseFlex gap-1 text-nowrap">
+            <div className="baseFlex w-[79px] flex-nowrap !justify-start gap-1.5 text-nowrap">
+              <div className="w-2">
               {getDynamicNoteLengthIcon({
                 noteLength:
                   playbackMetadata[currentChordIndex]?.noteLength ?? "1/4th",
+                  forInlineTabViewing: true,
               })}
+              </div>
               {playbackMetadata[currentChordIndex]?.bpm ?? "120"} BPM
             </div>
           </div>
@@ -183,12 +186,15 @@ function PlaybackTopMetadata({
               <div className="baseFlex gap-4">
                 <div className="baseVertFlex !items-start text-nowrap">
                   <p className="text-sm font-medium">Tempo</p>
-                  <div className="baseFlex gap-1">
+                  <div className="baseFlex w-[79px] !justify-start gap-1.5">
+                    <div className="w-2">
                     {getDynamicNoteLengthIcon({
                       noteLength:
                         playbackMetadata[currentChordIndex]?.noteLength ??
                         "1/4th",
+                        forInlineTabViewing: true,
                     })}
+                    </div>
                     {playbackMetadata[currentChordIndex]?.bpm ?? "120"} BPM
                   </div>
                 </div>
