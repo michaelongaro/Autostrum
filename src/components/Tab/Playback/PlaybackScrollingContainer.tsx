@@ -10,18 +10,12 @@ import { useTabStore } from "~/stores/TabStore";
 
 interface PlaybackScrollingContainer {
   children: ReactNode;
-  translateX: number;
-  setTranslateX: Dispatch<SetStateAction<number>>;
   setIsManuallyScrolling: Dispatch<SetStateAction<boolean>>;
-  overrideNewTranslateXRef: MutableRefObject<number | null>;
 }
 
 function PlaybackScrollingContainer({
   children,
-  translateX,
-  setTranslateX,
   setIsManuallyScrolling,
-  overrideNewTranslateXRef,
 }: PlaybackScrollingContainer) {
   const { playing, pauseAudio } = useTabStore((state) => ({
     playing: state.audioMetadata.playing,

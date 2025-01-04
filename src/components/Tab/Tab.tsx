@@ -365,51 +365,53 @@ function Tab({ tab, refetchTab }: ITab) {
         )}
 
         <div className="baseVertFlex relative size-full gap-4">
-          {tabData.map((section, index) => (
-            <motion.div
-              key={section.id}
-              // TODO: I don't know why the spring transition only occurs when
-              // the section has something in it (not empty)... doesn't seem like that
-              // should make a difference but it does for some reason
-              {...(editing &&
-                !preventFramerLayoutShift &&
-                !forceCloseSectionAccordions && { layout: "position" })}
-              transition={{
-                layout: {
-                  type: "spring",
-                  bounce: 0.15,
-                  duration: 1,
-                },
-              }}
-              className="baseFlex w-full"
-            >
-              {editing ? (
-                <SectionContainer
-                  sectionIndex={index}
-                  sectionData={section}
-                  currentlyPlayingSectionIndex={
-                    currentlyPlayingMetadata?.[currentChordIndex]?.location
-                      .sectionIndex ?? 0
-                  }
-                  currentlyPlayingSubSectionIndex={
-                    currentlyPlayingMetadata?.[currentChordIndex]?.location
-                      .subSectionIndex ?? 0
-                  }
-                  forceCloseSectionAccordions={
-                    forceCloseSectionAccordions && index !== tabData.length - 1
-                  }
-                  setForceCloseSectionAccordions={
-                    setForceCloseSectionAccordions
-                  }
-                />
-              ) : (
-                <StaticSectionContainer
-                  sectionIndex={index}
-                  sectionData={section}
-                />
-              )}
-            </motion.div>
-          ))}
+          {!showPlaybackModal &&
+            tabData.map((section, index) => (
+              <motion.div
+                key={section.id}
+                // TODO: I don't know why the spring transition only occurs when
+                // the section has something in it (not empty)... doesn't seem like that
+                // should make a difference but it does for some reason
+                {...(editing &&
+                  !preventFramerLayoutShift &&
+                  !forceCloseSectionAccordions && { layout: "position" })}
+                transition={{
+                  layout: {
+                    type: "spring",
+                    bounce: 0.15,
+                    duration: 1,
+                  },
+                }}
+                className="baseFlex w-full"
+              >
+                {editing ? (
+                  <SectionContainer
+                    sectionIndex={index}
+                    sectionData={section}
+                    currentlyPlayingSectionIndex={
+                      currentlyPlayingMetadata?.[currentChordIndex]?.location
+                        .sectionIndex ?? 0
+                    }
+                    currentlyPlayingSubSectionIndex={
+                      currentlyPlayingMetadata?.[currentChordIndex]?.location
+                        .subSectionIndex ?? 0
+                    }
+                    forceCloseSectionAccordions={
+                      forceCloseSectionAccordions &&
+                      index !== tabData.length - 1
+                    }
+                    setForceCloseSectionAccordions={
+                      setForceCloseSectionAccordions
+                    }
+                  />
+                ) : (
+                  <StaticSectionContainer
+                    sectionIndex={index}
+                    sectionData={section}
+                  />
+                )}
+              </motion.div>
+            ))}
 
           {editing && (
             <Button onClick={addNewSection} className="mb-12">
