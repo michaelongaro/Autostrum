@@ -820,8 +820,8 @@ function calculateRelativeChordDelayMultiplier(
   // Clamp BPM to [0, 400]
   const clampedBpm = Math.max(0, Math.min(400, bpm));
 
-  // Linearly map 0 → 0.05 and 400 → 0.01
-  const mappedValue = 0.05 + (clampedBpm / 400) * (0.01 - 0.05);
+  // Linearly map 0 → 0.05 and 400 → 0.0075
+  const mappedValue = 0.05 + (clampedBpm / 400) * (0.0075 - 0.05);
 
   return strumChordQuickly ? mappedValue * 0.75 : mappedValue;
 }
