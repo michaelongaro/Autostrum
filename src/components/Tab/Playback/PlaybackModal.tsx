@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import PlaybackAudioControls from "~/components/Tab/Playback/PlaybackAudio/PlaybackAudioControls";
 import PlaybackBottomMetadata from "~/components/Tab/Playback/PlaybackBottomMetadata";
 import PlaybackStrummedChord from "~/components/Tab/Playback/PlaybackStrummedChord";
@@ -75,8 +75,6 @@ function PlaybackModal() {
     setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
   }));
 
-  const [isManuallyScrolling, setIsManuallyScrolling] = useState(false);
-
   const containerRef = (element: HTMLDivElement | null) => {
     if (element && !containerElement) setContainerElement(element);
   };
@@ -93,6 +91,7 @@ function PlaybackModal() {
   // into the effect to get new currentPosition values
   const [scrollPositions, setScrollPositions] =
     useState<ScrollPositions | null>(null);
+  const scrollPositionsRef = useRef<ScrollPositions | null>(null);
 
   const earliestVisibleChordIndexRef = useRef<number>(0);
 
@@ -107,7 +106,7 @@ function PlaybackModal() {
       ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1
       : audioMetadata.endLoopIndex,
   ]);
-  const [tabProgressValue, setTabProgressValue] = useState(0); // TODO: maybe need to reset this on open/close of dialog?
+  const [tabProgressValue, setTabProgressValue] = useState(0);
 
   // gates computation of chord widths + positions + duplication to only when
   // expandedTabData has changed or looping has changed
@@ -234,8 +233,6 @@ function PlaybackModal() {
     // Update previous value refs
     prevCurrentChordIndexRef.current = currentChordIndex;
   }, [currentChordIndex, audioMetadata.playing, scrollPositions, loopCount]);
-
-  const scrollPositionsRef = useRef<ScrollPositions | null>(null);
 
   useEffect(() => {
     scrollPositionsRef.current = scrollPositions;
@@ -499,9 +496,7 @@ function PlaybackModal() {
                   }}
                   className="w-full overflow-hidden"
                 >
-                  <PlaybackScrollingContainer
-                    setIsManuallyScrolling={setIsManuallyScrolling}
-                  >
+                  <PlaybackScrollingContainer loopCount={loopCount}>
                     <div
                       ref={containerRef}
                       className="relative flex h-[247px] w-full overflow-hidden mobilePortrait:h-[267px]"
@@ -527,9 +522,7 @@ function PlaybackModal() {
                             transition: `transform ${
                               audioMetadata.playing
                                 ? chordDurations[currentChordIndex] || 0
-                                : isManuallyScrolling
-                                  ? "none"
-                                  : 0.2
+                                : 0.2
                             }s linear`,
                           }}
                           className="relative flex items-center will-change-transform"
@@ -545,10 +538,9 @@ function PlaybackModal() {
                           ></div>
 
                           {expandedTabData.map((chord, index) => (
-                            <>
+                            <Fragment key={chord.id}>
                               {chordIsVisible(index) && (
                                 <div
-                                  key={chord.id}
                                   style={{
                                     position: "absolute",
                                     width: `${chordWidths[index] || 0}px`,
@@ -587,7 +579,7 @@ function PlaybackModal() {
                                   />
                                 </div>
                               )}
-                            </>
+                            </Fragment>
                           ))}
                         </div>
                       )}
