@@ -283,6 +283,9 @@ const initialStoreState = {
     zIndex: 48,
   },
 
+  // playback
+  playbackModalViewingState: "Practice",
+
   // related to sound generation/playing
   currentlyPlayingMetadata: null,
   playbackMetadata: null,
@@ -467,13 +470,13 @@ interface TabState {
   setVisiblePlaybackContainerWidth: (
     visiblePlaybackContainerWidth: number,
   ) => void;
-  playbackDialogViewingState:
+  playbackModalViewingState:
     | "Practice"
     | "Section progression"
     | "Chords"
     | "Strumming patterns";
   setPlaybackModalViewingState: (
-    playbackDialogViewingState:
+    playbackModalViewingState:
       | "Practice"
       | "Section progression"
       | "Chords"
@@ -1259,9 +1262,9 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         set({ strummingPatternBeingEdited }),
       showPlaybackModal: false,
       setShowPlaybackModal: (showPlaybackModal) => set({ showPlaybackModal }),
-      playbackDialogViewingState: "Practice",
-      setPlaybackModalViewingState: (playbackDialogViewingState) =>
-        set({ playbackDialogViewingState }),
+      playbackModalViewingState: "Practice",
+      setPlaybackModalViewingState: (playbackModalViewingState) =>
+        set({ playbackModalViewingState }),
 
       // search
       searchResultsCount: 0,

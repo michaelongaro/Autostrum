@@ -45,6 +45,7 @@ function PlaybackTopMetadata({
     setPlaybackSpeed,
     setShowEffectGlossaryDialog,
     setAudioMetadata,
+    setCurrentChordIndex,
   } = useTabStore((state) => ({
     tabData: state.tabData,
     title: state.title,
@@ -361,16 +362,16 @@ function PlaybackTopMetadata({
 export default PlaybackTopMetadata;
 
 function Menu() {
-  const { playbackDialogViewingState, setPlaybackModalViewingState } =
+  const { playbackModalViewingState, setPlaybackModalViewingState } =
     useTabStore((state) => ({
-      playbackDialogViewingState: state.playbackDialogViewingState,
+      playbackModalViewingState: state.playbackModalViewingState,
       setPlaybackModalViewingState: state.setPlaybackModalViewingState,
     }));
 
   return (
     <div className="baseVertFlex max-h-dvh w-full max-w-none !justify-start bg-black">
       <AnimatedTabs
-        activeTabName={playbackDialogViewingState}
+        activeTabName={playbackModalViewingState}
         setActiveTabName={
           setPlaybackModalViewingState as Dispatch<SetStateAction<string>>
         }

@@ -49,7 +49,7 @@ function PlaybackModal() {
     setShowPlaybackModal,
     visiblePlaybackContainerWidth,
     setVisiblePlaybackContainerWidth,
-    playbackDialogViewingState,
+    playbackModalViewingState,
     viewportLabel,
     loopDelay,
     setAudioMetadata,
@@ -66,7 +66,7 @@ function PlaybackModal() {
     setShowPlaybackModal: state.setShowPlaybackModal,
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
     setVisiblePlaybackContainerWidth: state.setVisiblePlaybackContainerWidth,
-    playbackDialogViewingState: state.playbackDialogViewingState,
+    playbackModalViewingState: state.playbackModalViewingState,
     viewportLabel: state.viewportLabel,
     loopDelay: state.loopDelay,
     setAudioMetadata: state.setAudioMetadata,
@@ -484,7 +484,7 @@ function PlaybackModal() {
           />
 
           <AnimatePresence mode="popLayout">
-            {playbackDialogViewingState === "Practice" && (
+            {playbackModalViewingState === "Practice" && (
               <motion.div
                 key="PracticeTab"
                 initial={{ opacity: 0 }}
@@ -600,7 +600,7 @@ function PlaybackModal() {
             {!viewportLabel.includes("mobile") && <PlaybackMenuContent />}
           </AnimatePresence>
 
-          {playbackDialogViewingState === "Practice" && (
+          {playbackModalViewingState === "Practice" && (
             <div className="baseVertFlex w-full gap-1 lg:gap-2">
               <PlaybackAudioControls
                 chordDurations={chordDurations}

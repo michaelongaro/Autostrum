@@ -26,7 +26,7 @@ function PlaybackMenuContent() {
     previewMetadata,
     playPreview,
     pauseAudio,
-    playbackDialogViewingState,
+    playbackModalViewingState,
   } = useTabStore((state) => ({
     sectionProgression: state.sectionProgression,
     id: state.id,
@@ -37,7 +37,7 @@ function PlaybackMenuContent() {
     previewMetadata: state.previewMetadata,
     playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
-    playbackDialogViewingState: state.playbackDialogViewingState,
+    playbackModalViewingState: state.playbackModalViewingState,
   }));
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] = useState<
@@ -51,7 +51,7 @@ function PlaybackMenuContent() {
 
   return (
     <>
-      {playbackDialogViewingState === "Section progression" && (
+      {playbackModalViewingState === "Section progression" && (
         <motion.div
           key="Section progression"
           initial={{ opacity: 0 }}
@@ -92,7 +92,7 @@ function PlaybackMenuContent() {
         </motion.div>
       )}
 
-      {playbackDialogViewingState === "Chords" && (
+      {playbackModalViewingState === "Chords" && (
         <motion.div
           key="Chords"
           initial={{ opacity: 0 }}
@@ -186,7 +186,7 @@ function PlaybackMenuContent() {
         </motion.div>
       )}
 
-      {playbackDialogViewingState === "Strumming patterns" && (
+      {playbackModalViewingState === "Strumming patterns" && (
         <motion.div
           key="Strumming patterns"
           initial={{ opacity: 0 }}
