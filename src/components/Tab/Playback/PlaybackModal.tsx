@@ -244,8 +244,6 @@ function PlaybackModal() {
   useEffect(() => {
     if (scrollPositionsRef.current === null) return;
 
-    let foundNewEarliestVisibleChordIndex = false;
-
     // value is the new scrollPosition to update currentPosition to
     const updates: { [itemId: string]: number } = {};
 
@@ -260,7 +258,7 @@ function PlaybackModal() {
 
     let localIndex = earliestVisibleChordIndexRef.current;
 
-    while (!foundNewEarliestVisibleChordIndex) {
+    while (true) {
       const position =
         getScrollPosition({
           scrollPositions: scrollPositionsRef.current,
@@ -275,7 +273,7 @@ function PlaybackModal() {
           scrollContainerWidth +
           finalChordWidth;
       } else {
-        foundNewEarliestVisibleChordIndex = true;
+        break;
       }
 
       if (localIndex + 1 >= scrollPositionsRef.current.allIds.length) {
