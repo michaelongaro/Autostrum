@@ -1020,7 +1020,7 @@ function DesktopSettings({
             );
           }}
         >
-          <SelectTrigger className="w-[12rem]">
+          <SelectTrigger className="w-[200px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
