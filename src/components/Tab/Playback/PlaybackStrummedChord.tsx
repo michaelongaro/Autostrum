@@ -40,7 +40,6 @@ function getBeatIndicator(noteLength: string, beatIndex: number) {
 }
 
 interface PlaybackStrummedChord {
-  id: string;
   strumIndex: number;
   strum: string;
   palmMute?: string;
@@ -57,11 +56,9 @@ interface PlaybackStrummedChord {
   isLastChordInSection: boolean;
   isHighlighted?: boolean;
   isDimmed: boolean;
-  isRaised: boolean;
 }
 
 function PlaybackStrummedChord({
-  id,
   strumIndex,
   strum,
   palmMute,
@@ -72,7 +69,6 @@ function PlaybackStrummedChord({
   isLastChordInSection,
   isHighlighted = false,
   isDimmed,
-  isRaised,
 }: PlaybackStrummedChord) {
   const heightOfStrummingPatternFiller = "1.5rem";
 
@@ -82,7 +78,6 @@ function PlaybackStrummedChord({
         patterns and/or tab sections */}
       {strumIndex === -1 && (
         <div
-          key={`${id}-${isFirstChordInSection}-${isLastChordInSection}`}
           style={{
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
@@ -101,7 +96,6 @@ function PlaybackStrummedChord({
 
       {strumIndex !== -1 && (
         <div
-          key={`${id}-${isFirstChordInSection}-${isLastChordInSection}`}
           style={{
             borderLeft: isFirstChordInSection ? "2px solid white" : "none",
             borderRight: isLastChordInSection ? "2px solid white" : "none",

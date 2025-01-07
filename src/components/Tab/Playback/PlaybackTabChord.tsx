@@ -7,7 +7,6 @@ import {
 } from "~/utils/bpmIconRenderingHelpers";
 
 interface PlaybackTabChord {
-  id: string;
   columnData: string[];
   isFirstChordInSection: boolean;
   isLastChordInSection: boolean;
@@ -16,7 +15,6 @@ interface PlaybackTabChord {
 }
 
 function PlaybackTabChord({
-  id,
   columnData,
   isFirstChordInSection,
   isLastChordInSection,
@@ -28,7 +26,6 @@ function PlaybackTabChord({
       {/* is a spacer chord, potentially with a new bpm to specify*/}
       {columnData[0] === "-1" && (
         <div
-          key={`${id}-${isFirstChordInSection}-${isLastChordInSection}`}
           style={{
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
@@ -58,7 +55,6 @@ function PlaybackTabChord({
       {/* is a regular chord, don't really like this jsx though */}
       {columnData[0] !== "-1" && (
         <div
-          key={`${id}-${isFirstChordInSection}-${isLastChordInSection}`}
           style={{
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
@@ -67,7 +63,7 @@ function PlaybackTabChord({
         >
           <div className="baseVertFlex mb-[3.2rem]">
             {columnData.map((note, index) => (
-              <Fragment key={`${index}`}>
+              <Fragment key={index}>
                 {index === 0 && (
                   <div className="baseFlex h-7 w-full">
                     <PlaybackPalmMuteNode value={note} />
@@ -107,8 +103,6 @@ function PlaybackTabChord({
                     <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
 
                     <PlaybackTabNote
-                      key={`${id}-${index}-${isFirstChordInSection}-${isLastChordInSection}`}
-                      keyValue={`${id}-${index}-${isFirstChordInSection}-${isLastChordInSection}`}
                       note={
                         note.includes(">")
                           ? note.slice(0, note.length - 1)
@@ -233,7 +227,6 @@ function chordHasAtLeastOneNote(chordData: string[]): boolean {
 export default PlaybackTabChord;
 
 interface PlaybackTabNote {
-  keyValue: string;
   note: string;
   isHighlighted: boolean;
   isAccented?: boolean;
@@ -241,7 +234,6 @@ interface PlaybackTabNote {
 }
 
 function PlaybackTabNote({
-  keyValue,
   note,
   isHighlighted,
   isAccented,
@@ -251,7 +243,6 @@ function PlaybackTabNote({
     <div className="baseFlex w-[35px]">
       <div className="my-[10px] h-[1px] flex-[1] bg-pink-100/50 mobilePortrait:my-3"></div>
       <div
-        key={keyValue}
         style={{
           color: isHighlighted ? "hsl(335, 78%, 55%)" : "hsl(324, 77%, 95%)",
 

@@ -11,6 +11,7 @@ import {
   type AudioMetadata,
   type PlaybackTabChord as PlaybackTabChordType,
   type PlaybackStrummedChord as PlaybackStrummedChordType,
+  type PlaybackLoopDelaySpacerChord,
   useTabStore,
 } from "~/stores/TabStore";
 import PlaybackMenuContent from "~/components/Tab/Playback/PlaybackMenuContent";
@@ -538,7 +539,7 @@ function PlaybackModal() {
                           ></div>
 
                           {expandedTabData.map((chord, index) => (
-                            <Fragment key={chord.id}>
+                            <Fragment key={index}>
                               {chordIsVisible(index) && (
                                 <div
                                   style={{
@@ -556,22 +557,16 @@ function PlaybackModal() {
                                 so that we can just directly use the type field rather than logic below */}
                                   <RenderChordByType
                                     type={
-                                      expandedTabData[index]?.type === "strum"
+                                      chord.type === "strum"
                                         ? "strum"
-                                        : expandedTabData[index]?.type === "tab"
-                                          ? expandedTabData[
-                                              index
-                                            ]?.data.chordData.includes("|")
+                                        : chord.type === "tab"
+                                          ? chord.data.chordData.includes("|")
                                             ? "measureLine"
                                             : "tab"
                                           : "loopDelaySpacer"
                                     }
                                     index={index}
-                                    expandedTabData={
-                                      expandedTabData as
-                                        | PlaybackTabChordType[]
-                                        | PlaybackStrummedChordType[]
-                                    }
+                                    chord={chord}
                                     scrollPositions={scrollPositions}
                                     audioMetadata={audioMetadata}
                                     loopDelay={loopDelay}
@@ -680,7 +675,10 @@ function getScrollContainerTransform({
 interface RenderChordByType {
   type: "tab" | "measureLine" | "strum" | "loopDelaySpacer";
   index: number;
-  expandedTabData: PlaybackTabChordType[] | PlaybackStrummedChordType[];
+  chord:
+    | PlaybackTabChordType
+    | PlaybackStrummedChordType
+    | PlaybackLoopDelaySpacerChord;
   scrollPositions: ScrollPositions;
   audioMetadata: AudioMetadata;
   loopDelay: number;
@@ -693,26 +691,24 @@ interface RenderChordByType {
 function RenderChordByType({
   type,
   index,
-  expandedTabData,
+  chord,
   scrollPositions,
   audioMetadata,
   loopDelay,
   highlightChord,
 }: RenderChordByType) {
-  if (type === "tab" && expandedTabData[index]?.type === "tab") {
+  if (type === "tab" && chord?.type === "tab") {
     return (
       <PlaybackTabChord
-        id={expandedTabData[index]?.id}
-        columnData={expandedTabData[index]?.data.chordData}
+        // id={chord?.id}
+        columnData={chord?.data.chordData}
         isFirstChordInSection={
           index === 0 &&
           (loopDelay !== 0 ||
             scrollPositions.byId[scrollPositions.allIds[0] || 0]
               ?.currentPosition === null)
         }
-        isLastChordInSection={
-          expandedTabData[index]?.isLastChord && loopDelay !== 0
-        }
+        isLastChordInSection={chord?.isLastChord && loopDelay !== 0}
         isHighlighted={
           !audioMetadata.editingLoopRange &&
           ((audioMetadata.playing &&
@@ -735,11 +731,11 @@ function RenderChordByType({
     );
   }
 
-  if (type === "measureLine" && expandedTabData[index]?.type === "tab") {
+  if (type === "measureLine" && chord?.type === "tab") {
     return (
       <PlaybackTabMeasureLine
-        id={expandedTabData[index]?.id}
-        columnData={expandedTabData[index]!.data.chordData}
+        // id={chord?.id}
+        columnData={chord!.data.chordData}
         isDimmed={
           audioMetadata.editingLoopRange &&
           (index < audioMetadata.startLoopIndex ||
@@ -750,29 +746,23 @@ function RenderChordByType({
     );
   }
 
-  if (type === "strum" && expandedTabData[index]?.type === "strum") {
+  if (type === "strum" && chord?.type === "strum") {
     return (
       <PlaybackStrummedChord
-        id={expandedTabData[index]?.id}
-        strumIndex={expandedTabData[index]?.data.strumIndex || 0}
-        strum={expandedTabData[index]?.data.strum || ""}
-        palmMute={expandedTabData[index]?.data.palmMute || ""}
+        // id={chord?.id}
+        strumIndex={chord?.data.strumIndex || 0}
+        strum={chord?.data.strum || ""}
+        palmMute={chord?.data.palmMute || ""}
         isFirstChordInSection={
           index === 0 &&
           (loopDelay !== 0 ||
             scrollPositions.byId[scrollPositions.allIds[0] || 0]
               ?.currentPosition === null)
         }
-        isLastChordInSection={
-          expandedTabData[index]?.isLastChord && loopDelay !== 0
-        }
-        noteLength={expandedTabData[index]?.data.noteLength || "1/4th"}
-        bpmToShow={
-          expandedTabData[index]?.data.showBpm
-            ? expandedTabData[index]?.data.bpm
-            : undefined
-        }
-        chordName={expandedTabData[index]?.data.chordName || ""}
+        isLastChordInSection={chord?.isLastChord && loopDelay !== 0}
+        noteLength={chord?.data.noteLength || "1/4th"}
+        bpmToShow={chord?.data.showBpm ? chord?.data.bpm : undefined}
+        chordName={chord?.data.chordName || ""}
         isHighlighted={
           !audioMetadata.editingLoopRange &&
           ((audioMetadata.playing &&
@@ -791,7 +781,7 @@ function RenderChordByType({
             (audioMetadata.endLoopIndex !== -1 &&
               index > audioMetadata.endLoopIndex))
         }
-        isRaised={expandedTabData[index]?.data.isRaised || false}
+        isRaised={chord?.data.isRaised || false}
       />
     );
   }

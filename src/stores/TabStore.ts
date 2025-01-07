@@ -181,7 +181,6 @@ interface PlayRecordedAudio {
 }
 
 export interface PlaybackTabChord {
-  id: string;
   type: "tab";
   isFirstChord: boolean;
   isLastChord: boolean;
@@ -194,7 +193,6 @@ export interface PlaybackTabChord {
 }
 
 export interface PlaybackStrummedChord {
-  id: string;
   type: "strum";
   isFirstChord: boolean;
   isLastChord: boolean;
@@ -202,7 +200,6 @@ export interface PlaybackStrummedChord {
 }
 
 export interface PlaybackLoopDelaySpacerChord {
-  id: string;
   type: "loopDelaySpacer";
   data: {
     bpm: number;
@@ -875,6 +872,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         // TODO: add support for specific sections
         const expandedTabData = expandFullTab({
           tabData,
+          location: audioMetadata.location,
           sectionProgression: sanitizedSectionProgression,
           chords,
           baselineBpm,

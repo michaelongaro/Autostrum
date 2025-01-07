@@ -1,4 +1,3 @@
-import { v4 as randomUUID } from "uuid"; // FYI: crypto randomUUID() wasn't working for whatever reason
 import type {
   Chord,
   ChordSection,
@@ -18,6 +17,11 @@ import isEqual from "lodash.isequal";
 
 interface ExpandFullTab {
   tabData: Section[];
+  location: {
+    sectionIndex: number;
+    subSectionIndex?: number;
+    chordSequenceIndex?: number;
+  } | null;
   sectionProgression: SectionProgression[];
   chords: Chord[];
   baselineBpm: number;
@@ -31,6 +35,7 @@ interface ExpandFullTab {
 
 function expandFullTab({
   tabData,
+  location,
   sectionProgression,
   chords,
   baselineBpm,
@@ -41,11 +46,6 @@ function expandFullTab({
   loopDelay,
   visiblePlaybackContainerWidth,
 }: ExpandFullTab) {
-  // currently kind of leaning towards making a separate type for loopDelay spacer chords
-  // and adding them to compiledChords, since I don't like the idea of just lumping them together
-  // with tab/strum chord types. Again they should simply just be empty 35px wide divs with a bpm
-  // so that they smoothly transition from the end of the tab to the start of the tab again.
-
   const compiledChords: (
     | PlaybackTabChord
     | PlaybackStrummedChord
@@ -54,18 +54,32 @@ function expandFullTab({
   const metadata: PlaybackMetadata[] = [];
   const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues
 
+  const modifiedSectionProg =
+    location?.sectionIndex === undefined
+      ? sectionProgression
+      : [
+          {
+            id: "",
+            sectionId: tabData[location.sectionIndex]?.id ?? "",
+            title: "",
+            repetitions: 1,
+            startSeconds: 0,
+            endSeconds: 0,
+          },
+        ];
+
   for (
     let sectionProgressionIndex = 0;
-    sectionProgressionIndex < sectionProgression.length;
+    sectionProgressionIndex < modifiedSectionProg.length;
     sectionProgressionIndex++
   ) {
     const sectionIndex = getSectionIndexFromId(
       tabData,
-      sectionProgression[sectionProgressionIndex]!.sectionId,
+      modifiedSectionProg[sectionProgressionIndex]!.sectionId,
     );
 
     const sectionRepetitions = getRepetitions(
-      sectionProgression[sectionProgressionIndex]?.repetitions,
+      modifiedSectionProg[sectionProgressionIndex]?.repetitions,
     );
 
     for (
@@ -76,7 +90,7 @@ function expandFullTab({
       const section = tabData[sectionIndex]?.data;
       if (!section) continue;
 
-      compileSection({
+      expandSection({
         section,
         sectionIndex,
         sectionRepeatIndex: sectionRepeatIdx,
@@ -130,7 +144,6 @@ function expandFullTab({
     compiledChordsMappedToLoopRange.push(
       firstChordType === "tab"
         ? {
-            id: randomUUID(),
             type: "tab",
             isFirstChord: false,
             isLastChord: false,
@@ -151,7 +164,6 @@ function expandFullTab({
             },
           }
         : {
-            id: randomUUID(),
             type: "strum",
             isFirstChord: false,
             isLastChord: false,
@@ -191,7 +203,6 @@ function expandFullTab({
   ) {
     // add a measure line w/ the new bpm
     compiledChordsMappedToLoopRange.push({
-      id: randomUUID(),
       type: "tab",
       isFirstChord: false,
       isLastChord: false,
@@ -277,7 +288,6 @@ function expandFullTab({
 
       for (let i = 0; i < numSpacerChordsToAdd; i++) {
         compiledChordsMappedToLoopRange.push({
-          id: randomUUID(),
           type: "loopDelaySpacer",
           data: {
             bpm: Number(lastChordBpm),
@@ -328,7 +338,6 @@ function expandFullTab({
 
     for (let i = 0; i < numSpacerChordsToAdd; i++) {
       compiledChordsMappedToLoopRange.push({
-        id: randomUUID(),
         type: "loopDelaySpacer",
         data: {
           bpm: Number(lastChordBpm),
@@ -368,7 +377,7 @@ function expandFullTab({
   };
 }
 
-interface CompileSection {
+interface ExpandSection {
   section: (TabSection | ChordSection)[];
   sectionIndex: number;
   sectionRepeatIndex: number;
@@ -380,7 +389,7 @@ interface CompileSection {
   playbackSpeed: number;
 }
 
-function compileSection({
+function expandSection({
   section,
   sectionIndex,
   sectionRepeatIndex,
@@ -390,7 +399,7 @@ function compileSection({
   chords,
   elapsedSeconds,
   playbackSpeed,
-}: CompileSection) {
+}: ExpandSection) {
   for (
     let subSectionIndex = 0;
     subSectionIndex < section.length;
@@ -407,7 +416,7 @@ function compileSection({
       subSectionRepeatIdx++
     ) {
       if (subSection?.type === "tab") {
-        compileTabSection({
+        expandTabSection({
           subSection,
           subSectionRepeatIndex: subSectionRepeatIdx,
           sectionIndex,
@@ -420,7 +429,7 @@ function compileSection({
           playbackSpeed,
         });
       } else {
-        compileChordSection({
+        expandChordSection({
           subSection,
           subSectionRepeatIndex: subSectionRepeatIdx,
           sectionIndex,
@@ -438,7 +447,7 @@ function compileSection({
   }
 }
 
-interface CompileTabSection {
+interface ExpandTabSection {
   subSection: TabSection;
   subSectionIndex: number;
   subSectionRepeatIndex: number;
@@ -451,7 +460,7 @@ interface CompileTabSection {
   playbackSpeed: number;
 }
 
-function compileTabSection({
+function expandTabSection({
   subSection,
   subSectionIndex,
   subSectionRepeatIndex,
@@ -462,7 +471,7 @@ function compileTabSection({
   metadata,
   elapsedSeconds,
   playbackSpeed,
-}: CompileTabSection) {
+}: ExpandTabSection) {
   const data = subSection.data;
   let currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
 
@@ -470,7 +479,6 @@ function compileTabSection({
   // was a chord section, we need to add a spacer "chord"
   if (compiledChords.length > 0 && compiledChords.at(-1)?.type === "strum") {
     compiledChords.push({
-      id: randomUUID(),
       type: "tab",
       isFirstChord: false,
       isLastChord: false,
@@ -519,7 +527,6 @@ function compileTabSection({
     compiledChords.at(-1)!.data.bpm !== Number(currentBpm)
   ) {
     compiledChords.push({
-      id: randomUUID(),
       type: "tab",
       isFirstChord: false,
       isLastChord: false,
@@ -546,7 +553,6 @@ function compileTabSection({
 
   for (let chordIdx = 0; chordIdx < data.length; chordIdx++) {
     const chordData: PlaybackTabChord = {
-      id: randomUUID(),
       type: "tab",
       isFirstChord: chordIdx === 0,
       isLastChord: chordIdx === data.length - 1,
@@ -560,13 +566,10 @@ function compileTabSection({
 
     const isAMeasureLine = chord[8] === "measureLine";
 
-    if (chord[8] === "measureLine") {
-      const specifiedBpmToUsePostMeasureLine = chord?.[7];
-      if (
-        specifiedBpmToUsePostMeasureLine &&
-        specifiedBpmToUsePostMeasureLine !== "-1"
-      ) {
-        currentBpm = specifiedBpmToUsePostMeasureLine;
+    if (isAMeasureLine) {
+      const newBpmPostMeasureLine = chord?.[7];
+      if (newBpmPostMeasureLine && newBpmPostMeasureLine !== "-1") {
+        currentBpm = newBpmPostMeasureLine;
       } else {
         currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
       }
@@ -608,7 +611,7 @@ function compileTabSection({
   }
 }
 
-interface CompileChordSection {
+interface ExpandChordSection {
   subSection: ChordSection;
   subSectionIndex: number;
   subSectionRepeatIndex: number;
@@ -622,7 +625,7 @@ interface CompileChordSection {
   playbackSpeed: number;
 }
 
-function compileChordSection({
+function expandChordSection({
   subSection,
   subSectionIndex,
   subSectionRepeatIndex,
@@ -634,14 +637,13 @@ function compileChordSection({
   chords,
   elapsedSeconds,
   playbackSpeed,
-}: CompileChordSection) {
+}: ExpandChordSection) {
   const chordSection = subSection.data;
 
   // if not the very first chord in the tab, and the last section type
   // was a chord section, we need to add a spacer "chord"
   if (compiledChords.length > 0 && compiledChords.at(-1)?.type === "tab") {
     compiledChords.push({
-      id: randomUUID(),
       type: "strum",
       isFirstChord: false,
       isLastChord: false,
@@ -682,7 +684,7 @@ function compileChordSection({
     const chordSequence = chordSection[chordSequenceIndex];
 
     if (!chordSequence) continue;
-    compileChordSequence({
+    expandChordSequence({
       chordSequence,
       subSectionIndex,
       subSectionRepeatIndex,
@@ -700,7 +702,7 @@ function compileChordSection({
   }
 }
 
-interface CompileChordSequence {
+interface ExpandChordSequence {
   chordSequence: ChordSequence;
   subSectionIndex: number;
   subSectionRepeatIndex: number;
@@ -716,7 +718,7 @@ interface CompileChordSequence {
   playbackSpeed: number;
 }
 
-function compileChordSequence({
+function expandChordSequence({
   chordSequence,
   subSectionIndex,
   subSectionRepeatIndex,
@@ -730,7 +732,7 @@ function compileChordSequence({
   chords,
   elapsedSeconds,
   playbackSpeed,
-}: CompileChordSequence) {
+}: ExpandChordSequence) {
   const chordSequenceRepetitions = getRepetitions(chordSequence?.repetitions);
 
   for (
@@ -819,7 +821,6 @@ function compileChordSequence({
       const prevChord = compiledChords?.at(-1);
 
       const playbackChordSequence: PlaybackStrummedChord = {
-        id: randomUUID(),
         type: "strum",
         isFirstChord: chordIdx === 0,
         isLastChord: chordIdx === chordSequence.data.length - 1,
@@ -903,7 +904,7 @@ function expandSpecificSection({
 
   if (!section) return [];
 
-  compileSection({
+  expandSection({
     section,
     sectionIndex,
     sectionRepeatIndex: 0,
@@ -997,7 +998,7 @@ function expandSpecificSection({
   return compiledChords;
 }
 
-////////////////////////  validate this extracted logic below later  /////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 interface UpdateElapsedSecondsInSectionProgression {
   tabData: Section[];
   sectionProgression: SectionProgression[];
@@ -1125,12 +1126,9 @@ function updateElapsedTimeForTabSection({
 
     // Check for measure line that can change BPM
     if (chord[8] === "measureLine") {
-      const specifiedBpmToUsePostMeasureLine = chord[7];
-      if (
-        specifiedBpmToUsePostMeasureLine &&
-        specifiedBpmToUsePostMeasureLine !== "-1"
-      ) {
-        currentBpm = specifiedBpmToUsePostMeasureLine;
+      const newBpmPostMeasureLine = chord[7];
+      if (newBpmPostMeasureLine && newBpmPostMeasureLine !== "-1") {
+        currentBpm = newBpmPostMeasureLine;
       } else {
         currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
       }

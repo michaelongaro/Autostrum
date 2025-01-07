@@ -114,18 +114,26 @@ function useAutoCompileChords() {
       });
 
       if (!editing) {
-        const expandedTabData = expandSpecificSection({
+        const expandedTabData = expandFullTab({
           tabData,
           location: audioMetadata.location,
+          sectionProgression: sanitizedSectionProgression,
           chords,
           baselineBpm: bpm,
           playbackSpeed,
           setPlaybackMetadata,
-          // startLoopIndex: audioMetadata.startLoopIndex,
-          // endLoopIndex: audioMetadata.endLoopIndex,
+          // want to show entire tab while editing loop range
+          startLoopIndex: audioMetadata.editingLoopRange
+            ? 0
+            : audioMetadata.startLoopIndex,
+          endLoopIndex: audioMetadata.editingLoopRange
+            ? -1
+            : audioMetadata.endLoopIndex,
+          visiblePlaybackContainerWidth,
+          loopDelay,
         });
 
-        setExpandedTabData(expandedTabData);
+        setExpandedTabData(expandedTabData.chords);
       }
     } else {
       compileFullTab({
@@ -144,6 +152,7 @@ function useAutoCompileChords() {
       if (!editing) {
         const expandedTabData = expandFullTab({
           tabData,
+          location: audioMetadata.location,
           sectionProgression: sanitizedSectionProgression,
           chords,
           baselineBpm: bpm,
