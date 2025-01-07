@@ -230,7 +230,7 @@ function Chords() {
                         initial="closed"
                         animate="open"
                         exit="closed"
-                        className="baseFlex"
+                        className="baseFlex max-w-[175px]"
                       >
                         <div className="baseVertFlex gap-3">
                           <div className="baseFlex w-full !justify-between border-b py-2">

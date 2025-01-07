@@ -677,10 +677,13 @@ function MobileMenuDialog() {
               className="baseVertFlex size-full overflow-y-hidden py-0"
             >
               {chords.length > 0 ? (
-                <div className="my-4 grid max-h-[calc(100dvh-6rem)] w-full grid-cols-1 !justify-start gap-8 overflow-y-scroll px-8 xs:grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
+                <div className="my-4 grid max-h-[calc(100dvh-6rem)] w-full grid-cols-1 !place-items-center gap-8 overflow-y-scroll px-8 xs:grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
                   <>
                     {chords.map((chord, index) => (
-                      <div key={chord.id} className="baseFlex w-full">
+                      <div
+                        key={chord.id}
+                        className="baseFlex w-full max-w-[175px]"
+                      >
                         <div className="baseVertFlex gap-3">
                           <div className="baseFlex w-full !justify-between border-b py-2">
                             <p
