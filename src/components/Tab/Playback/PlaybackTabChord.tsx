@@ -112,7 +112,9 @@ function PlaybackTabChord({
                       note={
                         note.includes(">")
                           ? note.slice(0, note.length - 1)
-                          : note
+                          : note.includes(".")
+                            ? note.slice(0, note.length - 1)
+                            : note
                       }
                       isHighlighted={isHighlighted}
                       isAccented={
@@ -260,13 +262,7 @@ function PlaybackTabNote({
         className={`baseFlex relative h-[20px] ${isAccented ? "font-bold" : ""}`}
       >
         {note}
-        {isStaccato && (
-          <div
-            className={`absolute -top-2 ${note.length === 1 ? "left-3" : "left-5"}`}
-          >
-            .
-          </div>
-        )}
+        {isStaccato && <div className="relative -top-2">.</div>}
       </div>
       <div className="my-[10px] h-[1px] flex-[1] bg-pink-100/50 mobilePortrait:my-3"></div>
     </div>
