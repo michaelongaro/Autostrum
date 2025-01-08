@@ -297,16 +297,10 @@ function TabNote({
     if (noteIndex !== 7 || value === "|") {
       // wanted to always allow a-g in regular note even if there was a number
       // present for easy placement of major chords
-      let valueHasAChordLetter = false;
-      let chordLetter = "";
-      for (let i = 0; i < value.length; i++) {
-        if ("abcdefgABCDEFG".includes(value.charAt(i))) {
-          valueHasAChordLetter = true;
-          chordLetter = value.charAt(i);
-          break;
-        }
-      }
-      if (valueHasAChordLetter) {
+      const chordLetter =
+        [...value].find((char) => /[A-Ga-g]/.test(char)) ?? "";
+
+      if (chordLetter !== "") {
         const chordArray: string[] =
           chordMappings[chordLetter as keyof typeof chordMappings];
 
@@ -329,7 +323,7 @@ function TabNote({
 
         newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex] = [
           palmMuteNode ?? "",
-          ...chordArray.reverse(),
+          ...chordArray.toReversed(),
           chordEffects ?? "",
           noteLengthModifier ?? "1/4th",
           id,
