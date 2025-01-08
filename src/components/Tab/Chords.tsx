@@ -40,6 +40,8 @@ function Chords() {
     previewMetadata,
     playPreview,
     pauseAudio,
+    currentlyCopiedData,
+    setCurrentlyCopiedData,
   } = useTabStore((state) => ({
     id: state.id,
     currentInstrument: state.currentInstrument,
@@ -53,10 +55,19 @@ function Chords() {
     previewMetadata: state.previewMetadata,
     playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
+    currentlyCopiedData: state.currentlyCopiedData,
+    setCurrentlyCopiedData: state.setCurrentlyCopiedData,
   }));
 
   function handleDeleteChord(index: number, chordNameToBeDeleted: string) {
     const newTabData = getTabData();
+
+    // fyi: this is lazy, but only a copied type of a tab subsection is guaranteed
+    // to not need to be modified/removed from currentlyCopiedData. Just resetting
+    // to null otherwise
+    if (currentlyCopiedData?.type !== "tab") {
+      setCurrentlyCopiedData(null);
+    }
 
     for (
       let sectionIndex = 0;

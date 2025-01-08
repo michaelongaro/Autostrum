@@ -62,6 +62,8 @@ function StrummingPatterns() {
     previewMetadata,
     playPreview,
     pauseAudio,
+    currentlyCopiedData,
+    setCurrentlyCopiedData,
   } = useTabStore((state) => ({
     id: state.id,
     currentInstrument: state.currentInstrument,
@@ -75,6 +77,8 @@ function StrummingPatterns() {
     previewMetadata: state.previewMetadata,
     playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
+    currentlyCopiedData: state.currentlyCopiedData,
+    setCurrentlyCopiedData: state.setCurrentlyCopiedData,
   }));
 
   function handleDeleteStrummingPattern(
@@ -82,6 +86,13 @@ function StrummingPatterns() {
     strummingPattern: StrummingPatternType,
   ) {
     const newTabData = getTabData();
+
+    // fyi: this is lazy, but only a copied type of a tab subsection is guaranteed
+    // to not need to be modified/removed from currentlyCopiedData. Just resetting
+    // to null otherwise
+    if (currentlyCopiedData?.type !== "tab") {
+      setCurrentlyCopiedData(null);
+    }
 
     for (
       let sectionIndex = newTabData.length - 1;
@@ -239,8 +250,8 @@ function StrummingPatterns() {
                               <PopoverContent>
                                 <div className="baseVertFlex gap-4">
                                   <p className="w-auto text-center text-sm">
-                                    Any chord progressions below that use this
-                                    pattern will be modified.
+                                    Any subsections below that use this pattern
+                                    will be modified.
                                   </p>
 
                                   <div className="baseFlex gap-4">
