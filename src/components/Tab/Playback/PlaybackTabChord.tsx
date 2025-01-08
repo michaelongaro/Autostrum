@@ -243,6 +243,9 @@ function PlaybackTabNote({
     <div className="baseFlex w-[35px]">
       <div className="my-[10px] h-[1px] flex-[1] bg-pink-100/50 mobilePortrait:my-3"></div>
       <div
+        // key is "necessary" here because mobile safari did not consistently re-render this
+        // component purely based on prop changes...
+        key={isHighlighted ? "highlighted" : "notHighlighted"}
         style={{
           color: isHighlighted ? "hsl(335, 78%, 55%)" : "hsl(324, 77%, 95%)",
 

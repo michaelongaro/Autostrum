@@ -570,7 +570,18 @@ function PlaybackModal() {
                                     scrollPositions={scrollPositions}
                                     audioMetadata={audioMetadata}
                                     loopDelay={loopDelay}
-                                    highlightChord={highlightChord}
+                                    isHighlighted={
+                                      !audioMetadata.editingLoopRange &&
+                                      ((audioMetadata.playing &&
+                                        highlightChord({
+                                          chordIndex: index,
+                                          type: "isBeingPlayed",
+                                        })) ||
+                                        highlightChord({
+                                          chordIndex: index,
+                                          type: "hasBeenPlayed",
+                                        }))
+                                    }
                                   />
                                 </div>
                               )}
@@ -682,10 +693,7 @@ interface RenderChordByType {
   scrollPositions: ScrollPositions;
   audioMetadata: AudioMetadata;
   loopDelay: number;
-  highlightChord: (args: {
-    chordIndex: number;
-    type: "isBeingPlayed" | "hasBeenPlayed";
-  }) => boolean;
+  isHighlighted: boolean;
 }
 
 function RenderChordByType({
@@ -695,12 +703,11 @@ function RenderChordByType({
   scrollPositions,
   audioMetadata,
   loopDelay,
-  highlightChord,
+  isHighlighted,
 }: RenderChordByType) {
   if (type === "tab" && chord?.type === "tab") {
     return (
       <PlaybackTabChord
-        // id={chord?.id}
         columnData={chord?.data.chordData}
         isFirstChordInSection={
           index === 0 &&
@@ -709,18 +716,7 @@ function RenderChordByType({
               ?.currentPosition === null)
         }
         isLastChordInSection={chord?.isLastChord && loopDelay !== 0}
-        isHighlighted={
-          !audioMetadata.editingLoopRange &&
-          ((audioMetadata.playing &&
-            highlightChord({
-              chordIndex: index,
-              type: "isBeingPlayed",
-            })) ||
-            highlightChord({
-              chordIndex: index,
-              type: "hasBeenPlayed",
-            }))
-        }
+        isHighlighted={isHighlighted}
         isDimmed={
           audioMetadata.editingLoopRange &&
           (index < audioMetadata.startLoopIndex ||
@@ -734,7 +730,6 @@ function RenderChordByType({
   if (type === "measureLine" && chord?.type === "tab") {
     return (
       <PlaybackTabMeasureLine
-        // id={chord?.id}
         columnData={chord!.data.chordData}
         isDimmed={
           audioMetadata.editingLoopRange &&
@@ -749,7 +744,6 @@ function RenderChordByType({
   if (type === "strum" && chord?.type === "strum") {
     return (
       <PlaybackStrummedChord
-        // id={chord?.id}
         strumIndex={chord?.data.strumIndex || 0}
         strum={chord?.data.strum || ""}
         palmMute={chord?.data.palmMute || ""}
@@ -763,25 +757,13 @@ function RenderChordByType({
         noteLength={chord?.data.noteLength || "1/4th"}
         bpmToShow={chord?.data.showBpm ? chord?.data.bpm : undefined}
         chordName={chord?.data.chordName || ""}
-        isHighlighted={
-          !audioMetadata.editingLoopRange &&
-          ((audioMetadata.playing &&
-            highlightChord({
-              chordIndex: index,
-              type: "isBeingPlayed",
-            })) ||
-            highlightChord({
-              chordIndex: index,
-              type: "hasBeenPlayed",
-            }))
-        }
+        isHighlighted={isHighlighted}
         isDimmed={
           audioMetadata.editingLoopRange &&
           (index < audioMetadata.startLoopIndex ||
             (audioMetadata.endLoopIndex !== -1 &&
               index > audioMetadata.endLoopIndex))
         }
-        isRaised={chord?.data.isRaised || false}
       />
     );
   }

@@ -96,6 +96,9 @@ function PlaybackStrummedChord({
 
       {strumIndex !== -1 && (
         <div
+          // key is "necessary" here because mobile safari did not consistently re-render this
+          // component purely based on prop changes...
+          key={isHighlighted ? "highlighted" : "notHighlighted"}
           style={{
             borderLeft: isFirstChordInSection ? "2px solid white" : "none",
             borderRight: isLastChordInSection ? "2px solid white" : "none",
