@@ -79,17 +79,21 @@
 
 @media (min-width: 768px) {
   .headerBackgroundGradient {
-    background: linear-gradient(315deg,
-        hsl(345, 95%, 69%),
-        hsl(331, 95%, 74%),
-        hsl(298, 100%, 79%));
+    background: linear-gradient(
+      315deg,
+      hsl(345, 95%, 69%),
+      hsl(331, 95%, 74%),
+      hsl(298, 100%, 79%)
+    );
   }
 
   .footerBackgroundGradient {
-    background: linear-gradient(315deg,
-        hsl(359, 83%, 66%),
-        hsl(349, 100%, 73%),
-        hsl(333, 93%, 73%));
+    background: linear-gradient(
+      315deg,
+      hsl(359, 83%, 66%),
+      hsl(349, 100%, 73%),
+      hsl(333, 93%, 73%)
+    );
   }
 }
 
@@ -186,10 +190,13 @@ body::before {
   bottom: 0;
   left: 0;
   z-index: -1;
-  background: linear-gradient(145deg,
+  background: linear-gradient(
+      145deg,
       hsl(297, 100%, 73%),
       hsl(340, 100%, 66%),
-      hsl(0, 84%, 53%)) center / cover;
+      hsl(0, 84%, 53%)
+    )
+    center / cover;
   height: 100vh;
 }
 
@@ -269,4 +276,20 @@ html body[data-scroll-locked] {
   background: rgba(255, 255, 255, 0.25);
   border-radius: 9999px;
   animation: copyAndPasteAnimation 0.35s ease-in-out;
+}
+
+kbd {
+  background-color: #eee;
+  border-radius: 3px;
+  border: 1px solid #b4b4b4;
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.2),
+    0 2px 0 0 rgba(255, 255, 255, 0.7) inset;
+  color: #333;
+  display: inline-block;
+  font-size: 0.85em;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 4px;
+  white-space: nowrap;
 }

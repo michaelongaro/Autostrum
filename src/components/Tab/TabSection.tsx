@@ -938,14 +938,21 @@ function TabSection({
                       You can navigate through inputs with your arrow keys.
                     </li>
                     <li>
-                      Enter <span className="font-semibold">A-G </span>
+                      Enter
+                      <kbd className="ml-1.5">A</kbd> -{" "}
+                      <kbd className="mr-1.5">G</kbd>
                       for the respective major chord.
                     </li>
                     <li>
-                      Enter <span className="font-semibold">a-g </span>
+                      Enter
+                      <kbd className="ml-1.5">a</kbd> -{" "}
+                      <kbd className="mr-1.5">g</kbd>
                       for the respective minor chord.
                     </li>
-                    <li>Copying & pasting chords works as expected.</li>
+                    <li>
+                      Copying ( <kbd>Ctrl</kbd> + <kbd>C</kbd> ) & pasting ({" "}
+                      <kbd>Ctrl</kbd> + <kbd>V</kbd> ) chords works as expected.
+                    </li>
                   </ul>
                 </div>
               </PopoverContent>
