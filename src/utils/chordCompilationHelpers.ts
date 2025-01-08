@@ -146,8 +146,6 @@ function compileFullTab({
   // TODO: probably remove +1 since we aren't using ghost chord right now
   // +1 to account for ghost chord that's added below
   if (atomicallyUpdateAudioMetadata) {
-    console.log("og here");
-
     atomicallyUpdateAudioMetadata({
       fullCurrentlyPlayingMetadataLength: metadata.length - 1, // + 1,
     });

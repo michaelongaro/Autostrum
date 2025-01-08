@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   compileFullTab,
   compileSpecificChordGrouping,
@@ -7,17 +7,11 @@ import {
 import { useTabStore } from "../stores/TabStore";
 import {
   expandFullTab,
-  expandSpecificSection,
   updateElapsedSecondsInSectionProgression,
-  // expandSpecificChordGrouping,
 } from "~/utils/playbackChordCompilationHelpers";
+import debounce from "lodash.debounce";
 
 function useAutoCompileChords() {
-  const [
-    prevFullCurrentlyPlayingMetadataLength,
-    setPrevFullCurrentlyPlayingMetadataLength,
-  ] = useState(-1);
-
   const {
     editing,
     setCurrentlyPlayingMetadata,
@@ -28,13 +22,11 @@ function useAutoCompileChords() {
     tabData,
     sectionProgression,
     chords,
-    strummingPatterns,
     atomicallyUpdateAudioMetadata,
     setExpandedTabData,
     setPlaybackMetadata,
     setSectionProgression,
     visiblePlaybackContainerWidth,
-    looping,
     loopDelay,
   } = useTabStore((state) => ({
     editing: state.editing,
@@ -46,20 +38,22 @@ function useAutoCompileChords() {
     tabData: state.tabData,
     sectionProgression: state.sectionProgression,
     chords: state.chords,
-    strummingPatterns: state.strummingPatterns,
     atomicallyUpdateAudioMetadata: state.atomicallyUpdateAudioMetadata,
     setExpandedTabData: state.setExpandedTabData,
     setPlaybackMetadata: state.setPlaybackMetadata,
     setSectionProgression: state.setSectionProgression,
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
-    looping: state.looping,
     loopDelay: state.loopDelay,
   }));
 
-  useEffect(() => {
+  const [
+    prevFullCurrentlyPlayingMetadataLength,
+    setPrevFullCurrentlyPlayingMetadataLength,
+  ] = useState(-1);
+
+  const handleTabLogic = useCallback(() => {
     if (audioMetadata.type === "Artist recording") return;
 
-    // I *think* this covers all of the edge cases
     function wholeTabIsEmpty() {
       if (tabData.length === 0 || tabData[0]?.data.length === 0) {
         return true;
@@ -83,7 +77,7 @@ function useAutoCompileChords() {
         location: null,
         startLoopIndex: 0,
         endLoopIndex: -1,
-        editingLoopRange: false, // maybe problematic to do this here, be careful
+        editingLoopRange: false,
         fullCurrentlyPlayingMetadataLength: -1,
       });
       setCurrentlyPlayingMetadata(null);
@@ -93,7 +87,7 @@ function useAutoCompileChords() {
     const sanitizedSectionProgression =
       sectionProgression.length > 0
         ? sectionProgression
-        : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
+        : generateDefaultSectionProgression(tabData);
 
     if (audioMetadata.location) {
       compileSpecificChordGrouping({
@@ -103,7 +97,6 @@ function useAutoCompileChords() {
         baselineBpm: bpm,
         playbackSpeed,
         setCurrentlyPlayingMetadata,
-        // want to show entire tab while editing loop range
         startLoopIndex: audioMetadata.editingLoopRange
           ? 0
           : audioMetadata.startLoopIndex,
@@ -112,29 +105,6 @@ function useAutoCompileChords() {
           : audioMetadata.endLoopIndex,
         atomicallyUpdateAudioMetadata,
       });
-
-      if (!editing) {
-        const expandedTabData = expandFullTab({
-          tabData,
-          location: audioMetadata.location,
-          sectionProgression: sanitizedSectionProgression,
-          chords,
-          baselineBpm: bpm,
-          playbackSpeed,
-          setPlaybackMetadata,
-          // want to show entire tab while editing loop range
-          startLoopIndex: audioMetadata.editingLoopRange
-            ? 0
-            : audioMetadata.startLoopIndex,
-          endLoopIndex: audioMetadata.editingLoopRange
-            ? -1
-            : audioMetadata.endLoopIndex,
-          visiblePlaybackContainerWidth,
-          loopDelay,
-        });
-
-        setExpandedTabData(expandedTabData.chords);
-      }
     } else {
       compileFullTab({
         tabData,
@@ -148,32 +118,30 @@ function useAutoCompileChords() {
         atomicallyUpdateAudioMetadata,
         loopDelay,
       });
-
-      if (!editing) {
-        const expandedTabData = expandFullTab({
-          tabData,
-          location: audioMetadata.location,
-          sectionProgression: sanitizedSectionProgression,
-          chords,
-          baselineBpm: bpm,
-          playbackSpeed,
-          setPlaybackMetadata,
-          // want to show entire tab while editing loop range
-          startLoopIndex: audioMetadata.editingLoopRange
-            ? 0
-            : audioMetadata.startLoopIndex,
-          endLoopIndex: audioMetadata.editingLoopRange
-            ? -1
-            : audioMetadata.endLoopIndex,
-          visiblePlaybackContainerWidth,
-          loopDelay,
-        });
-
-        setExpandedTabData(expandedTabData.chords);
-      }
     }
 
-    // recompute the elapsed seconds within section progression
+    if (!editing) {
+      const expandedTabData = expandFullTab({
+        tabData,
+        location: audioMetadata.location,
+        sectionProgression: sanitizedSectionProgression,
+        chords,
+        baselineBpm: bpm,
+        playbackSpeed,
+        setPlaybackMetadata,
+        startLoopIndex: audioMetadata.editingLoopRange
+          ? 0
+          : audioMetadata.startLoopIndex,
+        endLoopIndex: audioMetadata.editingLoopRange
+          ? -1
+          : audioMetadata.endLoopIndex,
+        visiblePlaybackContainerWidth,
+        loopDelay,
+      });
+
+      setExpandedTabData(expandedTabData.chords);
+    }
+
     updateElapsedSecondsInSectionProgression({
       tabData,
       sectionProgression: sanitizedSectionProgression,
@@ -192,7 +160,6 @@ function useAutoCompileChords() {
     audioMetadata.type,
     sectionProgression,
     chords,
-    strummingPatterns,
     setAudioMetadata,
     setCurrentlyPlayingMetadata,
     atomicallyUpdateAudioMetadata,
@@ -200,12 +167,23 @@ function useAutoCompileChords() {
     setPlaybackMetadata,
     setSectionProgression,
     visiblePlaybackContainerWidth,
-    looping,
     loopDelay,
   ]);
 
-  // only applies while editing obv, but if you delete some chords, the loop range should be reset
-  // to prevent potential playing of chords that no longer exist
+  // runs at most every 2 seconds when editing
+  const debouncedHandleTabLogic = useMemo(
+    () => debounce(handleTabLogic, editing ? 2000 : 0),
+    [handleTabLogic, editing],
+  );
+
+  useEffect(() => {
+    debouncedHandleTabLogic();
+
+    return () => {
+      debouncedHandleTabLogic.cancel();
+    };
+  }, [debouncedHandleTabLogic]);
+
   useEffect(() => {
     if (
       audioMetadata.fullCurrentlyPlayingMetadataLength ===
