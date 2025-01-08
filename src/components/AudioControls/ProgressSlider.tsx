@@ -97,8 +97,24 @@ function ProgressSlider({
 
   const prevEditingLoopRangeState = useRef(audioMetadata.editingLoopRange);
 
+  // keeps loopRange in sync when changing selected section
   useEffect(() => {
     if (
+      audioMetadata.startLoopIndex === 0 &&
+      audioMetadata.endLoopIndex === -1
+    ) {
+      setLoopRange([0, audioMetadata.fullCurrentlyPlayingMetadataLength - 1]);
+    }
+  }, [
+    audioMetadata.startLoopIndex,
+    audioMetadata.endLoopIndex,
+    audioMetadata.fullCurrentlyPlayingMetadataLength,
+    setLoopRange,
+  ]);
+
+  useEffect(() => {
+    if (
+      !audioMetadata.editingLoopRange ||
       playbackMetadata?.[loopRange[0] || 0]?.type === "ornamental" ||
       playbackMetadata?.[loopRange[1] || 0]?.type === "ornamental"
     ) {

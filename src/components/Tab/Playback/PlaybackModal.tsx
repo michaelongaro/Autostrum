@@ -114,20 +114,6 @@ function PlaybackModal() {
   const [expandedTabDataHasChanged, setExpandedTabDataHasChanged] =
     useState(true);
 
-  // keeps loopRange in sync when changing selected section
-  // useEffect(() => {
-  //   if (
-  //     audioMetadata.startLoopIndex === 0 &&
-  //     audioMetadata.endLoopIndex === -1
-  //   ) {
-  //     setLoopRange([0, audioMetadata.fullCurrentlyPlayingMetadataLength - 1]);
-  //   }
-  // }, [
-  //   audioMetadata.startLoopIndex,
-  //   audioMetadata.endLoopIndex,
-  //   audioMetadata.fullCurrentlyPlayingMetadataLength,
-  // ]);
-
   useEffect(() => {
     setPreventFramerLayoutShift(true);
 
