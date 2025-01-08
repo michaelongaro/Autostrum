@@ -20,6 +20,71 @@ const chordMappings = {
   g: ["3", "5", "5", "3", "3", "3"],
 };
 
+function validNoteInput(input: string) {
+  // standalone effects
+  if (
+    input === "|" ||
+    input === "x" ||
+    input === "h" ||
+    input === "p" ||
+    input === "r"
+  ) {
+    return true;
+  }
+
+  // Regex pattern to match a fret number between 0 and 22
+  const numberPattern = /^(?:[0-9]|1[0-9]|2[0-2])$/;
+
+  // Regex pattern to match any *one* inline effect of:
+  // "h", "p", "/", "\", "~", ">", ".", "b", "x"
+  const characterPattern = /^[hp\/\\\\~>.br]$/;
+
+  if (input[0] === "/" || input[0] === "\\") {
+    if (input.length === 1) return true;
+    // Check for "/" and "\" at the start (just one digit number after)
+    else if (input.length === 2) {
+      return numberPattern.test(input[1] || "");
+    }
+
+    // Check for "/" and "\" at the start (two digit number after)
+    else if (input.length === 3) {
+      return numberPattern.test(input.substring(1, 3));
+    }
+  }
+
+  // If input is a single digit or two digits between 10 to 22
+  if (input.length === 1 && numberPattern.test(input)) {
+    return true;
+  }
+
+  // If input starts with a number between 0 and 22 followed by
+  // exactly one of the characters "h", "p", "/", "\", or "~"
+  if (input.length === 2 || input.length === 3) {
+    const numberPart =
+      input[0]! +
+      (parseInt(input[1]!) >= 0 && parseInt(input[1]!) <= 9 ? input[1]! : "");
+    const characterPart =
+      parseInt(input[1]!) >= 0 && parseInt(input[1]!) <= 9
+        ? input[2]
+        : input[1];
+
+    if (characterPart === undefined) {
+      return numberPattern.test(numberPart);
+    } else if (input.length === 2) {
+      return (
+        numberPattern.test(numberPart) && characterPattern.test(characterPart)
+      );
+    } else if (input.length === 3 && numberPart.length === 2) {
+      return (
+        numberPattern.test(numberPart) && characterPattern.test(characterPart)
+      );
+    }
+  }
+
+  // In all other cases, the input is invalid
+  return false;
+}
+
 interface TabNote {
   note: string;
   sectionIndex: number;
@@ -52,89 +117,6 @@ function TabNote({
   }));
 
   const [isFocused, setIsFocused] = useState(false);
-
-  function validNoteInput(input: string) {
-    // standalone effects
-    if (
-      input === "|" ||
-      input === "x" ||
-      input === "h" ||
-      input === "p" ||
-      input === "r"
-    ) {
-      return true;
-    }
-
-    // Regex pattern to match a fret number between 0 and 22
-    const numberPattern = /^(?:[0-9]|1[0-9]|2[0-2])$/;
-
-    // Regex pattern to match any *one* inline effect of:
-    // "h", "p", "/", "\", "~", ">", ".", "b", "x"
-    const characterPattern = /^[hp\/\\\\~>.br]$/;
-
-    if (input[0] === "/" || input[0] === "\\") {
-      if (input.length === 1) return true;
-      // Check for "/" and "\" at the start (just one digit number after)
-      else if (input.length === 2) {
-        return numberPattern.test(input[1] || "");
-      }
-
-      // Check for "/" and "\" at the start (two digit number after)
-      else if (input.length === 3) {
-        return numberPattern.test(input.substring(1, 3));
-      }
-    }
-
-    // If input is a single digit or two digits between 10 to 22
-    if (input.length === 1 && numberPattern.test(input)) {
-      return true;
-    }
-
-    // If input starts with a number between 0 and 22 followed by
-    // exactly one of the characters "h", "p", "/", "\", or "~"
-    if (input.length === 2 || input.length === 3) {
-      const numberPart =
-        input[0]! +
-        (parseInt(input[1]!) >= 0 && parseInt(input[1]!) <= 9 ? input[1]! : "");
-      const characterPart =
-        parseInt(input[1]!) >= 0 && parseInt(input[1]!) <= 9
-          ? input[2]
-          : input[1];
-
-      if (characterPart === undefined) {
-        return numberPattern.test(numberPart);
-      } else if (input.length === 2) {
-        return (
-          numberPattern.test(numberPart) && characterPattern.test(characterPart)
-        );
-      } else if (input.length === 3 && numberPart.length === 2) {
-        return (
-          numberPattern.test(numberPart) && characterPattern.test(characterPart)
-        );
-      }
-    }
-
-    // In all other cases, the input is invalid
-    return false;
-  }
-
-  // there's a chance you can make this spacing work, but as you know it comes with a lot of headaches..
-  // function formatNoteAndEffect(value: string) {
-  //   const characterPattern = /^[hp\/\\\\~]$/;
-
-  //   if (value.includes("~")) {
-  //     return <div>{note}</div>;
-  //   } else if (value.length > 0 && characterPattern.test(value.at(-1)!)) {
-  //     return (
-  //       <div className="baseFlex gap-2">
-  //         {note.substring(0, note.length - 1)}
-  //         <div>{value.at(-1)}</div>
-  //       </div>
-  //     );
-  //   }
-
-  //   return <div>{note}</div>;
-  // }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     e.stopPropagation();
