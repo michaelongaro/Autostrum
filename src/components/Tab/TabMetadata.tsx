@@ -522,7 +522,7 @@ function TabMetadata({
     <>
       {editing && (
         <div className="baseVertFlex w-full gap-2">
-          <div className="baseFlex w-full !items-start !justify-between p-4 md:!items-center">
+          <div className="baseVertFlex w-full !items-start !justify-between gap-2 p-4 sm:!flex-row md:!items-center">
             <div className="baseFlex">
               {!asPath.includes("create") && (
                 <Button
@@ -536,7 +536,7 @@ function TabMetadata({
               )}
             </div>
 
-            <div className="baseFlex gap-2">
+            <div className="baseFlex flex-wrap !justify-end gap-2">
               <>
                 {!asPath.includes("create") && (
                   <Popover
@@ -794,6 +794,7 @@ function TabMetadata({
               </>
             </div>
           </div>
+
           <div className={classes.editingMetadataContainer}>
             <div
               className={`${
@@ -1257,8 +1258,6 @@ function TabMetadata({
                   </p>
                 </div>
               </div>
-
-              {/* BPM -> TEMPO for editing, include icon + BPM */}
 
               <div className="baseFlex !items-start !justify-start gap-6">
                 <div className="baseVertFlex !items-start gap-2">

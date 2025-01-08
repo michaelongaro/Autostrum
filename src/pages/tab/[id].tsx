@@ -52,7 +52,7 @@ function IndividualTabView({
     },
     {
       enabled: tabIdFromUrl !== -1,
-    }
+    },
   );
 
   if (!tabExists) {
