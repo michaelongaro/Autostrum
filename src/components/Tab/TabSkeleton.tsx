@@ -237,12 +237,12 @@ function TabSkeleton({ editing }: TabSkeleton) {
                     <div className="font-semibold">Tempo</div>
                     <div className="baseFlex">
                       <QuarterNote className="-ml-1 size-5" />
-                      <div className="h-8 w-16 animate-pulse rounded-md bg-pink-300"></div>
+                      <div className="h-8 w-12 animate-pulse rounded-md bg-pink-300"></div>
                       <span className="ml-1">BPM</span>
                     </div>
                   </div>
 
-                  <div className="baseVertFlex ml-[58px] !items-start gap-2 sm:ml-0">
+                  <div className="baseVertFlex ml-[41px] !items-start gap-2 sm:ml-0">
                     <p className="font-semibold">Capo</p>
                     <div className="h-8 w-16 animate-pulse rounded-md bg-pink-300"></div>
                   </div>
