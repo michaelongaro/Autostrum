@@ -78,14 +78,12 @@ function ChordSequence({
   const {
     bpm,
     strummingPatterns,
-    preventFramerLayoutShift,
     getTabData,
     setTabData,
     setStrummingPatternBeingEdited,
   } = useTabStore((state) => ({
     bpm: state.bpm,
     strummingPatterns: state.strummingPatterns,
-    preventFramerLayoutShift: state.preventFramerLayoutShift,
     getTabData: state.getTabData,
     setTabData: state.setTabData,
     setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
@@ -203,7 +201,7 @@ function ChordSequence({
   return (
     <motion.div
       key={chordSequenceData.id}
-      {...(!preventFramerLayoutShift && { layout: "position" })}
+      layout={"position"}
       variants={opacityAndScaleVariants}
       initial={"closed"}
       animate={"expanded"}

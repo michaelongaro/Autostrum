@@ -365,8 +365,6 @@ interface TabState {
     updatedFields: Partial<AudioMetadata>,
   ) => void;
 
-  preventFramerLayoutShift: boolean;
-  setPreventFramerLayoutShift: (preventFramerLayoutShift: boolean) => void;
   fetchingFullTabData: boolean;
   setFetchingFullTabData: (fetchingFullTabData: boolean) => void;
   chordPulse: {
@@ -775,9 +773,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       recordedAudioBufferSourceNode: null,
       setRecordedAudioBufferSourceNode: (recordedAudioBufferSourceNode) =>
         set({ recordedAudioBufferSourceNode }),
-      preventFramerLayoutShift: false,
-      setPreventFramerLayoutShift: (preventFramerLayoutShift) =>
-        set({ preventFramerLayoutShift }),
 
       // playing/pausing sound functions
       playTab: async ({ location, tabId }: PlayTab) => {

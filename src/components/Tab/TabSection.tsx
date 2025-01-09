@@ -128,7 +128,6 @@ function TabSection({
     tuning,
     getTabData,
     setTabData,
-    preventFramerLayoutShift,
     currentlyPlayingMetadata,
     currentChordIndex,
     playbackSpeed,
@@ -138,7 +137,6 @@ function TabSection({
     tuning: state.tuning,
     getTabData: state.getTabData,
     setTabData: state.setTabData,
-    preventFramerLayoutShift: state.preventFramerLayoutShift,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     currentChordIndex: state.currentChordIndex,
     playbackSpeed: state.playbackSpeed,
@@ -760,7 +758,7 @@ function TabSection({
   return (
     <motion.div
       key={subSectionData.id}
-      {...(!preventFramerLayoutShift && { layout: "position" })}
+      layout={"position"}
       variants={opacityAndScaleVariants}
       // initial="closed"
       // animate="expanded"

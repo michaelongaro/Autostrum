@@ -45,14 +45,11 @@ function ChordSection({
   subSectionIndex,
   subSectionData,
 }: ChordSection) {
-  const { bpm, getTabData, setTabData, preventFramerLayoutShift } = useTabStore(
-    (state) => ({
-      bpm: state.bpm,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-      preventFramerLayoutShift: state.preventFramerLayoutShift,
-    }),
-  );
+  const { bpm, getTabData, setTabData } = useTabStore((state) => ({
+    bpm: state.bpm,
+    getTabData: state.getTabData,
+    setTabData: state.setTabData,
+  }));
 
   function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newRepetitions =
@@ -97,7 +94,7 @@ function ChordSection({
   return (
     <motion.div
       key={subSectionData.id}
-      {...(!preventFramerLayoutShift && { layout: "position" })}
+      layout={"position"}
       variants={opacityAndScaleVariants}
       initial={"closed"}
       animate={"expanded"}
@@ -167,7 +164,7 @@ function ChordSection({
       <AnimatePresence mode="wait">
         <motion.div
           key={`${subSectionData.id}ChordSectionWrapper`}
-          {...(!preventFramerLayoutShift && { layout: "position" })}
+          layout={"position"}
           variants={opacityAndScaleVariants}
           initial={"closed"}
           animate={"expanded"}

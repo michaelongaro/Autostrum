@@ -102,7 +102,6 @@ function Tab({ tab, refetchTab }: ITab) {
     chordBeingEdited,
     strummingPatternBeingEdited,
     showCustomTuningModal,
-    preventFramerLayoutShift,
     currentlyPlayingMetadata,
     currentChordIndex,
     sectionProgression,
@@ -140,7 +139,6 @@ function Tab({ tab, refetchTab }: ITab) {
     chordBeingEdited: state.chordBeingEdited,
     strummingPatternBeingEdited: state.strummingPatternBeingEdited,
     showCustomTuningModal: state.showCustomTuningModal,
-    preventFramerLayoutShift: state.preventFramerLayoutShift,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     currentChordIndex: state.currentChordIndex,
     sectionProgression: state.sectionProgression,
@@ -369,12 +367,7 @@ function Tab({ tab, refetchTab }: ITab) {
             tabData.map((section, index) => (
               <motion.div
                 key={section.id}
-                // TODO: I don't know why the spring transition only occurs when
-                // the section has something in it (not empty)... doesn't seem like that
-                // should make a difference but it does for some reason
-                {...(editing &&
-                  !preventFramerLayoutShift &&
-                  !forceCloseSectionAccordions && { layout: "position" })}
+                layout={"position"}
                 transition={{
                   layout: {
                     type: "spring",
