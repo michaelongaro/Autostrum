@@ -209,6 +209,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
                 chordBeingEdited.value.frets.every((fret) => fret === "")
               }
               variant={"playPause"}
+              size={"default"}
               className="baseFlex gap-4"
               onClick={() => {
                 void playPreview({

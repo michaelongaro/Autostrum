@@ -192,7 +192,7 @@ function SectionProgressionDialog() {
 
             {localSectionProgression.length > 0 && (
               <Button
-                className="mt-5 rounded-full px-2"
+                className="mt-5 rounded-full !py-5 px-2"
                 onClick={addNewSectionToProgression}
               >
                 <BsPlus className="h-6 w-6 p-0" />
