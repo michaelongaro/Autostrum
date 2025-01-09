@@ -23,6 +23,7 @@ import { traverseToRemoveHangingStrummingPatternPairNode } from "~/utils/palmMut
 import StrummingPattern from "../Tab/StrummingPattern";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "../ui/button";
+import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 
 const backdropVariants = {
   expanded: {
@@ -61,7 +62,6 @@ function StrummingPatternModal({
     setTabData,
     previewMetadata,
     audioMetadata,
-    setPreventFramerLayoutShift,
     playPreview,
     pauseAudio,
   } = useTabStore((state) => ({
@@ -72,7 +72,6 @@ function StrummingPatternModal({
     setTabData: state.setTabData,
     previewMetadata: state.previewMetadata,
     audioMetadata: state.audioMetadata,
-    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
     playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
   }));
@@ -165,28 +164,7 @@ function StrummingPatternModal({
     }
   }, [editingPalmMuteNodes, lastModifiedPalmMuteNode, getPMNodeOpacities]);
 
-  useEffect(() => {
-    setPreventFramerLayoutShift(true);
-
-    setTimeout(() => {
-      const offsetY = window.scrollY;
-      document.body.style.top = `${-offsetY}px`;
-      document.body.classList.add("noScroll");
-    }, 50);
-
-    return () => {
-      setPreventFramerLayoutShift(false);
-
-      setTimeout(() => {
-        const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10),
-        );
-        document.body.classList.remove("noScroll");
-        document.body.style.removeProperty("top");
-        window.scrollTo(0, offsetY || 0);
-      }, 50);
-    };
-  }, [setPreventFramerLayoutShift]);
+  useModalScrollbarHandling();
 
   function handleNoteLengthChange(
     value:

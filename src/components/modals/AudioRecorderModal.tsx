@@ -16,6 +16,7 @@ import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 import { isDesktop } from "react-device-detect";
+import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 
 const backdropVariants = {
   expanded: {
@@ -73,7 +74,6 @@ function AudioRecorderModal() {
     recordedAudioFile,
     setRecordedAudioFile,
     setShouldUpdateInS3,
-    setPreventFramerLayoutShift,
     setRecordedAudioBuffer,
     audioMetadata,
     setAudioMetadata,
@@ -86,35 +86,13 @@ function AudioRecorderModal() {
     recordedAudioFile: state.recordedAudioFile,
     setRecordedAudioFile: state.setRecordedAudioFile,
     setShouldUpdateInS3: state.setShouldUpdateInS3,
-    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
     setRecordedAudioBuffer: state.setRecordedAudioBuffer,
     audioMetadata: state.audioMetadata,
     setAudioMetadata: state.setAudioMetadata,
     setCurrentChordIndex: state.setCurrentChordIndex,
   }));
 
-  useEffect(() => {
-    setPreventFramerLayoutShift(true);
-
-    setTimeout(() => {
-      const offsetY = window.scrollY;
-      document.body.style.top = `${-offsetY}px`;
-      document.body.classList.add("noScroll");
-    }, 50);
-
-    return () => {
-      setPreventFramerLayoutShift(false);
-
-      setTimeout(() => {
-        const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10),
-        );
-        document.body.classList.remove("noScroll");
-        document.body.style.removeProperty("top");
-        window.scrollTo(0, offsetY || 0);
-      }, 50);
-    };
-  }, [setPreventFramerLayoutShift]);
+  useModalScrollbarHandling();
 
   useEffect(() => {
     if (hasInitializedWithStoreValues) return;

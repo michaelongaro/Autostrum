@@ -1,7 +1,7 @@
 import { FocusTrap } from "focus-trap-react";
 import { motion } from "framer-motion";
 import isEqual from "lodash.isequal";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { HiOutlineInformationCircle } from "react-icons/hi";
 import { HiOutlineWrench } from "react-icons/hi2";
 import {
@@ -14,6 +14,7 @@ import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { BsFillPlayFill } from "react-icons/bs";
+import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 
 const backdropVariants = {
   expanded: {
@@ -54,42 +55,15 @@ function CustomTuningModal({
 
   const placeholderNotes = ["E2", "A2", "D3", "G3", "B3", "E4"];
 
-  const {
-    previewMetadata,
-    playPreview,
-    setTuning,
-    setPreventFramerLayoutShift,
-    setShowCustomTuningModal,
-  } = useTabStore((state) => ({
-    previewMetadata: state.previewMetadata,
-    playPreview: state.playPreview,
-    setTuning: state.setTuning,
-    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
-    setShowCustomTuningModal: state.setShowCustomTuningModal,
-  }));
+  const { previewMetadata, playPreview, setTuning, setShowCustomTuningModal } =
+    useTabStore((state) => ({
+      previewMetadata: state.previewMetadata,
+      playPreview: state.playPreview,
+      setTuning: state.setTuning,
+      setShowCustomTuningModal: state.setShowCustomTuningModal,
+    }));
 
-  useEffect(() => {
-    setPreventFramerLayoutShift(true);
-
-    setTimeout(() => {
-      const offsetY = window.scrollY;
-      document.body.style.top = `${-offsetY}px`;
-      document.body.classList.add("noScroll");
-    }, 50);
-
-    return () => {
-      setPreventFramerLayoutShift(false);
-
-      setTimeout(() => {
-        const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10),
-        );
-        document.body.classList.remove("noScroll");
-        document.body.style.removeProperty("top");
-        window.scrollTo(0, offsetY || 0);
-      }, 50);
-    };
-  }, [setPreventFramerLayoutShift]);
+  useModalScrollbarHandling();
 
   function getInvalidInputIndicies() {
     const invalidInputs: boolean[] = [];

@@ -1,7 +1,6 @@
 import { FocusTrap } from "focus-trap-react";
 import { motion } from "framer-motion";
 import isEqual from "lodash.isequal";
-import { useEffect } from "react";
 import { BsFillPlayFill, BsKeyboard } from "react-icons/bs";
 import { Label } from "~/components/ui/label";
 import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
@@ -9,6 +8,7 @@ import Chord from "../Tab/Chord";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
+import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 
 const backdropVariants = {
   expanded: {
@@ -35,7 +35,6 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
     capo,
     playPreview,
     pauseAudio,
-    setPreventFramerLayoutShift,
   } = useTabStore((state) => ({
     chords: state.chords,
     setChords: state.setChords,
@@ -47,31 +46,9 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
     capo: state.capo,
     playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
-    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
   }));
 
-  useEffect(() => {
-    setPreventFramerLayoutShift(true);
-
-    setTimeout(() => {
-      const offsetY = window.scrollY;
-      document.body.style.top = `${-offsetY}px`;
-      document.body.classList.add("noScroll");
-    }, 50);
-
-    return () => {
-      setPreventFramerLayoutShift(false);
-
-      setTimeout(() => {
-        const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10),
-        );
-        document.body.classList.remove("noScroll");
-        document.body.style.removeProperty("top");
-        window.scrollTo(0, offsetY || 0);
-      }, 50);
-    };
-  }, [setPreventFramerLayoutShift]);
+  useModalScrollbarHandling();
 
   function handleChordNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;

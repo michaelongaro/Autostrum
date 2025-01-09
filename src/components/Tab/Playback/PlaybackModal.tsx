@@ -19,6 +19,7 @@ import PlaybackScrollingContainer from "~/components/Tab/Playback/PlaybackScroll
 import { X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { v4 as randomUUID } from "uuid"; // FYI: crypto randomUUID() wasn't working for whatever reason
+import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 
 const backdropVariants = {
   expanded: {
@@ -56,7 +57,6 @@ function PlaybackModal() {
     setAudioMetadata,
     setPlaybackModalViewingState,
     pauseAudio,
-    setPreventFramerLayoutShift,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
@@ -73,7 +73,6 @@ function PlaybackModal() {
     setAudioMetadata: state.setAudioMetadata,
     setPlaybackModalViewingState: state.setPlaybackModalViewingState,
     pauseAudio: state.pauseAudio,
-    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
   }));
 
   const containerRef = (element: HTMLDivElement | null) => {
@@ -114,28 +113,7 @@ function PlaybackModal() {
   const [expandedTabDataHasChanged, setExpandedTabDataHasChanged] =
     useState(true);
 
-  useEffect(() => {
-    setPreventFramerLayoutShift(true);
-
-    setTimeout(() => {
-      const offsetY = window.scrollY;
-      document.body.style.top = `${-offsetY}px`;
-      document.body.classList.add("noScroll");
-    }, 50);
-
-    return () => {
-      setPreventFramerLayoutShift(false);
-
-      setTimeout(() => {
-        const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10),
-        );
-        document.body.classList.remove("noScroll");
-        document.body.style.removeProperty("top");
-        window.scrollTo(0, offsetY || 0);
-      }, 50);
-    };
-  }, [setPreventFramerLayoutShift]);
+  useModalScrollbarHandling();
 
   useEffect(() => {
     // this feels a bit like a bandaid fix

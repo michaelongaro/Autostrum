@@ -10,6 +10,7 @@ import SearchInput from "../Search/SearchInput";
 import SearchResults from "../Search/SearchResults";
 import { Button } from "../ui/button";
 import { isDesktop } from "react-device-detect";
+import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 
 const backdropVariants = {
   expanded: {
@@ -23,13 +24,11 @@ const backdropVariants = {
 interface PinnedTabModal {
   pinnedTabIdFromDatabase: number;
   setShowPinnedTabModal: Dispatch<SetStateAction<boolean>>;
-  setPreventFramerLayoutShift: (preventFramerLayoutShift: boolean) => void;
 }
 
 function PinnedTabModal({
   pinnedTabIdFromDatabase,
   setShowPinnedTabModal,
-  setPreventFramerLayoutShift,
 }: PinnedTabModal) {
   const { userId } = useAuth();
   const ctx = api.useUtils();
@@ -38,28 +37,7 @@ function PinnedTabModal({
     useState(pinnedTabIdFromDatabase);
   const [showSaveCheckmark, setShowSaveCheckmark] = useState(false);
 
-  useEffect(() => {
-    setPreventFramerLayoutShift(true);
-
-    setTimeout(() => {
-      const offsetY = window.scrollY;
-      document.body.style.top = `${-offsetY}px`;
-      document.body.classList.add("noScroll");
-    }, 50);
-
-    return () => {
-      setPreventFramerLayoutShift(false);
-
-      setTimeout(() => {
-        const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10),
-        );
-        document.body.classList.remove("noScroll");
-        document.body.style.removeProperty("top");
-        window.scrollTo(0, offsetY || 0);
-      }, 50);
-    };
-  }, [setPreventFramerLayoutShift]);
+  useModalScrollbarHandling();
 
   const { mutate: updateArtist, isLoading: isSaving } =
     api.artist.updateArtist.useMutation({

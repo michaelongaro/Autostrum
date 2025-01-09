@@ -3,11 +3,12 @@ import { FocusTrap } from "focus-trap-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AiOutlineWarning } from "react-icons/ai";
 import { FaTrashAlt } from "react-icons/fa";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
+import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 
@@ -28,38 +29,14 @@ function DeleteAccountModal() {
   const [deleteAllOfArtistsTabs, setDeleteAllOfArtistsTabs] = useState(true);
   const [showDeleteCheckmark, setShowDeleteCheckmark] = useState(false);
 
-  const {
-    isLoadingARoute,
-    setShowDeleteAccountModal,
-    setPreventFramerLayoutShift,
-  } = useTabStore((state) => ({
-    isLoadingARoute: state.isLoadingARoute,
-    setShowDeleteAccountModal: state.setShowDeleteAccountModal,
-    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
-  }));
+  const { isLoadingARoute, setShowDeleteAccountModal } = useTabStore(
+    (state) => ({
+      isLoadingARoute: state.isLoadingARoute,
+      setShowDeleteAccountModal: state.setShowDeleteAccountModal,
+    }),
+  );
 
-  useEffect(() => {
-    setPreventFramerLayoutShift(true);
-
-    setTimeout(() => {
-      const offsetY = window.scrollY;
-      document.body.style.top = `${-offsetY}px`;
-      document.body.classList.add("noScroll");
-    }, 50);
-
-    return () => {
-      setPreventFramerLayoutShift(false);
-
-      setTimeout(() => {
-        const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10),
-        );
-        document.body.classList.remove("noScroll");
-        document.body.style.removeProperty("top");
-        window.scrollTo(0, offsetY || 0);
-      }, 50);
-    };
-  }, [setPreventFramerLayoutShift]);
+  useModalScrollbarHandling();
 
   const { mutate: deleteAccount, isLoading: isDeleting } =
     api.artist.deleteArtist.useMutation({
