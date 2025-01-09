@@ -31,13 +31,13 @@ function TabCardSkeleton({
           width: largeVariant
             ? 396
             : isAboveExtraSmallViewportWidth
-            ? 313
-            : 266,
+              ? 313
+              : 266,
           height: largeVariant
             ? 185
             : isAboveExtraSmallViewportWidth
-            ? 146
-            : 124,
+              ? 146
+              : 124,
         }}
         className="animate-pulse rounded-t-sm bg-pink-300"
       ></div>
@@ -45,7 +45,7 @@ function TabCardSkeleton({
       <Separator className="bg-pink-100" />
 
       <div
-        className={`baseFlex w-full !items-end !justify-between ${
+        className={`baseVertFlex w-full !items-start !justify-between ${
           hideArtist ? "" : "gap-2"
         }`}
       >
@@ -79,11 +79,11 @@ function TabCardSkeleton({
           {!hideLikesAndPlayButtons ? (
             <div className="baseFlex w-1/2 !flex-nowrap !justify-evenly rounded-tl-md border-l-2 border-t-2">
               {/* likes button */}
-              <div className="h-8 w-full animate-pulse rounded-r-none rounded-bl-none rounded-tl-sm  bg-pink-300"></div>
+              <div className="h-8 w-full animate-pulse rounded-r-none rounded-bl-none rounded-tl-sm bg-pink-300"></div>
               <Separator className="h-8 w-[1px]" />
 
               {/* play/pause button*/}
-              <div className="h-8 w-full animate-pulse rounded-l-none rounded-br-sm rounded-tr-none  bg-pink-300"></div>
+              <div className="h-8 w-full animate-pulse rounded-l-none rounded-br-sm rounded-tr-none bg-pink-300"></div>
             </div>
           ) : (
             <div className="mb-1 mr-2 h-9 w-20 animate-pulse rounded-md bg-pink-300"></div>
