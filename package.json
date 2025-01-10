@@ -85,7 +85,6 @@
     "@types/lodash.debounce": "^4.0.9",
     "@types/lodash.isequal": "^4.5.8",
     "@types/node": "^22.10.5",
-    "@types/prettier": "^3.0.0",
     "@types/react": "^19.0.4",
     "@types/react-dom": "^19.0.2",
     "@types/react-scroll": "^1.8.10",
