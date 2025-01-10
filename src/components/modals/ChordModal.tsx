@@ -216,33 +216,27 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
               {/* ml here seems hacky */}
               <div className="baseVertFlex ml-0 h-full w-48 gap-4 xs:ml-[30px]">
                 <div className="baseVertFlex lightestGlassmorphic w-full !items-start gap-2 rounded-md p-2 text-sm">
-                  <div className="baseFlex w-[150px] gap-2 font-semibold">
+                  <div className="baseFlex w-[160px] gap-2 font-semibold">
                     <BsKeyboard className="h-6 w-6" />
                     Hotkeys
                   </div>
 
-                  <div className="baseVertFlex w-full gap-2">
-                    <div className="baseFlex gap-2">
-                      <span className="w-8 text-nowrap font-semibold">
-                        A - G
-                      </span>
-                      <span>-</span>
-                      <span>Major chords</span>
+                  <div className="grid w-full grid-cols-[45px_5px_90px] gap-2">
+                    <div className="baseFlex gap-1">
+                      <kbd>A</kbd> - <kbd>G</kbd>
                     </div>
+                    <span>-</span>
+                    <span>Major chords</span>
 
-                    <div className="baseFlex gap-2">
-                      <span className="w-8 text-nowrap font-semibold">
-                        a - g
-                      </span>
-                      <span>-</span>
-                      <span>Minor chords</span>
+                    <div className="baseFlex gap-1">
+                      <kbd>a</kbd> - <kbd>g</kbd>
                     </div>
+                    <span>-</span>
+                    <span>Minor chords</span>
 
-                    <div className="baseFlex gap-2">
-                      <span className="w-8 font-semibold">x</span>
-                      <span>-</span>
-                      <span>Muted string</span>
-                    </div>
+                    <kbd className="h-min w-min">x</kbd>
+                    <span>-</span>
+                    <span>Muted string</span>
                   </div>
                 </div>
 

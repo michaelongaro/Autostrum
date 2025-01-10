@@ -335,8 +335,8 @@ function StrummingPatternModal({
           initialFocus: false,
         }}
       >
-        <div className="baseVertFlex max-h-[90vh] min-w-[300px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all sm:max-h-[90vh] sm:max-w-[620px] sm:p-8">
-          <div className="baseFlex w-full !items-start gap-8 sm:!flex-col sm:gap-8">
+        <div className="baseVertFlex max-h-[90vh] min-w-[370px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all sm:max-h-[90vh] sm:max-w-[700px] sm:p-8">
+          <div className="baseFlex w-full !items-start !justify-between gap-8 sm:!flex-col sm:gap-8">
             <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center sm:!justify-start">
               <Label>Note length</Label>
               <Select
@@ -416,42 +416,38 @@ function StrummingPatternModal({
               </div>
             </div>
 
-            <div className="baseVertFlex lightestGlassmorphic w-full gap-1 rounded-md px-2 py-3 text-sm sm:w-auto sm:gap-2 sm:self-center md:px-4">
-              <div className="baseFlex w-full gap-2 font-semibold">
+            <div className="baseVertFlex lightestGlassmorphic gap-1 rounded-md px-4 py-3 text-sm xs:px-8 sm:w-auto sm:gap-2 sm:self-center md:px-4">
+              <div className="baseFlex w-auto gap-2 font-semibold">
                 <BsKeyboard className="h-6 w-6" />
                 Hotkeys
               </div>
 
-              <div className="baseFlex mt-2 flex-wrap gap-2 sm:w-full sm:gap-4">
-                <div className="baseFlex gap-2">
-                  <span className="whitespace-nowrap text-nowrap font-semibold">
-                    v / d
-                  </span>
-                  <p>-</p>
-                  <p>Downstrum</p>
+              <div className="mt-2 grid grid-cols-[45px_5px_70px] !place-items-start gap-2 md:flex md:w-full md:gap-2">
+                <div className="baseFlex gap-1">
+                  <kbd>v</kbd> / <kbd>d</kbd>
                 </div>
-                <div className="baseFlex gap-2">
-                  <span className="whitespace-nowrap text-nowrap font-semibold">
-                    ^ / u
-                  </span>
-                  <p>-</p>
-                  <p>Upstrum</p>
+                <p>-</p>
+                <p className="md:mr-4">Downstrum</p>
+                <div className="baseFlex gap-1">
+                  <kbd>^</kbd> / <kbd>u</kbd>
                 </div>
-                <div className="baseFlex gap-2">
-                  <p className="font-semibold">s</p>
-                  <p>-</p>
-                  <p>Slap</p>
+                <p>-</p>
+                <p className="md:mr-4">Upstrum</p>
+                <div className="baseFlex gap-1">
+                  <kbd>s</kbd>
                 </div>
-                <div className="baseFlex gap-2">
-                  <p className="font-semibold">&gt;</p>
-                  <p>-</p>
-                  <p>Accented</p>
+                <p>-</p>
+                <p className="md:mr-4">Slap</p>
+                <div className="baseFlex gap-1">
+                  <kbd>&gt;</kbd>
                 </div>
-                <div className="baseFlex gap-2">
-                  <p className="font-semibold">.</p>
-                  <p>-</p>
-                  <p>Staccato</p>
+                <p>-</p>
+                <p className="md:mr-4">Accented</p>
+                <div className="baseFlex gap-1">
+                  <kbd>.</kbd>
                 </div>
+                <p>-</p>
+                <p>Staccato</p>
               </div>
             </div>
           </div>
