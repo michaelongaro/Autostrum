@@ -371,7 +371,7 @@ function EffectGlossaryDialog() {
 
             <div className="grid w-full grid-cols-5 pl-1 text-sm">
               <span className="col-span-1">PM</span>
-              <span className="col-span-1">-</span>
+              <span className="col-span-1 ml-1">-</span>
               <span className="col-span-3">Palm mute</span>
             </div>
 
