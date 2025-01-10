@@ -24,10 +24,10 @@ import formatDate from "~/utils/formatDate";
 import dynamic from "next/dynamic";
 
 const DeleteAccountModal = dynamic(
-  () => import("~/components/modals/DeleteAccountModal")
+  () => import("~/components/modals/DeleteAccountModal"),
 );
 const PinnedTabModal = dynamic(
-  () => import("~/components/modals/PinnedTabModal")
+  () => import("~/components/modals/PinnedTabModal"),
 );
 
 function Preferences() {
@@ -41,15 +41,12 @@ function Preferences() {
 
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
-  const {
-    showDeleteAccountModal,
-    setShowDeleteAccountModal,
-    setPreventFramerLayoutShift,
-  } = useTabStore((state) => ({
-    showDeleteAccountModal: state.showDeleteAccountModal,
-    setShowDeleteAccountModal: state.setShowDeleteAccountModal,
-    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
-  }));
+  const { showDeleteAccountModal, setShowDeleteAccountModal } = useTabStore(
+    (state) => ({
+      showDeleteAccountModal: state.showDeleteAccountModal,
+      setShowDeleteAccountModal: state.setShowDeleteAccountModal,
+    }),
+  );
 
   useEffect(() => {
     setTimeout(() => {
@@ -63,7 +60,7 @@ function Preferences() {
     },
     {
       enabled: !!user,
-    }
+    },
   );
 
   const { data: fetchedTab, refetch: refetchTab } =
@@ -73,7 +70,7 @@ function Preferences() {
       },
       {
         enabled: artist?.pinnedTabId !== -1,
-      }
+      },
     );
 
   return (
@@ -217,7 +214,7 @@ function Preferences() {
 
             <div className="baseVertFlex h-full w-full !flex-nowrap !items-start !justify-start gap-6">
               <div className="baseVertFlex ml-1 md:ml-4">
-                <p className="text-xl font-semibold ">Miscellaneous actions</p>
+                <p className="text-xl font-semibold">Miscellaneous actions</p>
                 <Separator className="w-full bg-pink-600" />
               </div>
               <div className="baseVertFlex my-8 h-full w-full gap-4 md:mt-0">
@@ -242,7 +239,7 @@ function Preferences() {
                 </Button>
                 {artist && (
                   <div className="text-sm italic text-pink-200">{`Joined on ${formatDate(
-                    artist.createdAt
+                    artist.createdAt,
                   )}`}</div>
                 )}
               </div>
@@ -255,7 +252,6 @@ function Preferences() {
             <PinnedTabModal
               pinnedTabIdFromDatabase={artist.pinnedTabId}
               setShowPinnedTabModal={setShowPinnedTabModal}
-              setPreventFramerLayoutShift={setPreventFramerLayoutShift}
             />
           )}
         </AnimatePresence>

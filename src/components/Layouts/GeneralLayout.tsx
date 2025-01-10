@@ -16,11 +16,8 @@ interface GeneralLayout {
 }
 
 function GeneralLayout({ children }: GeneralLayout) {
-  const ref = useRef<HTMLDivElement>(null);
-
   return (
     <main
-      ref={ref}
       className={`${notoSans.className} baseVertFlex relative min-h-[100dvh] !justify-between`}
     >
       <GeneralLayoutStatefulShell />

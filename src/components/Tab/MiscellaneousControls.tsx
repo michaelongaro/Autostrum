@@ -29,6 +29,7 @@ import {
 import isEqual from "lodash.isequal";
 import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
+import { Check } from "lucide-react";
 
 interface MiscellaneousControls {
   type: "section" | "tab" | "chord" | "chordSequence";
@@ -49,9 +50,6 @@ function MiscellaneousControls({
   hidePlayPauseButton,
   forSectionContainer,
 }: MiscellaneousControls) {
-  const [artificalPlayButtonTimeout, setArtificialPlayButtonTimeout] =
-    useState(false);
-
   const {
     id,
     bpm,
@@ -81,6 +79,11 @@ function MiscellaneousControls({
     playTab: state.playTab,
     pauseAudio: state.pauseAudio,
   }));
+
+  const [artificalPlayButtonTimeout, setArtificialPlayButtonTimeout] =
+    useState(false);
+  const [showCopyCheckmark, setShowCopyCheckmark] = useState(false);
+  const [showPasteCheckmark, setShowPasteCheckmark] = useState(false);
 
   function disableMoveDown() {
     if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
@@ -124,7 +127,7 @@ function MiscellaneousControls({
       newChordSequence = arrayMove(
         newChordSequence,
         chordSequenceIndex,
-        chordSequenceIndex - 1
+        chordSequenceIndex - 1,
       );
 
       newTabData[sectionIndex]!.data[subSectionIndex]!.data = newChordSequence;
@@ -137,7 +140,7 @@ function MiscellaneousControls({
       newSubSection = arrayMove(
         newSubSection,
         subSectionIndex,
-        subSectionIndex - 1
+        subSectionIndex - 1,
       );
 
       newTabData[sectionIndex]!.data = newSubSection;
@@ -162,7 +165,7 @@ function MiscellaneousControls({
       newChordSequence = arrayMove(
         newChordSequence,
         chordSequenceIndex,
-        chordSequenceIndex + 1
+        chordSequenceIndex + 1,
       );
 
       newTabData[sectionIndex]!.data[subSectionIndex]!.data = newChordSequence;
@@ -175,12 +178,111 @@ function MiscellaneousControls({
       newSubSection = arrayMove(
         newSubSection,
         subSectionIndex,
-        subSectionIndex + 1
+        subSectionIndex + 1,
       );
 
       newTabData[sectionIndex]!.data = newSubSection;
     } else if (sectionIndex !== undefined) {
       newTabData = arrayMove(newTabData, sectionIndex, sectionIndex + 1);
+    }
+
+    setTabData(newTabData);
+  }
+
+  function copySection() {
+    setShowCopyCheckmark(true);
+
+    if (
+      chordSequenceIndex !== undefined &&
+      subSectionIndex !== undefined &&
+      sectionIndex !== undefined
+    ) {
+      const newChordSequence = structuredClone(
+        getTabData()[sectionIndex]?.data[subSectionIndex]?.data[
+          chordSequenceIndex
+        ] as ChordSequence,
+      );
+
+      setCurrentlyCopiedData({
+        type: "chordSequence",
+        data: newChordSequence,
+      });
+    } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
+      if (type === "chord") {
+        const newSubSection = structuredClone(
+          getTabData()[sectionIndex]?.data[subSectionIndex] as ChordSection,
+        );
+
+        setCurrentlyCopiedData({
+          type: "chord",
+          data: newSubSection,
+        });
+      } else if (type === "tab") {
+        const newSubSection = replaceIdInTabSection(
+          structuredClone(
+            getTabData()[sectionIndex]?.data[subSectionIndex] as TabSection,
+          ),
+        );
+
+        setCurrentlyCopiedData({
+          type: "tab",
+          data: newSubSection,
+        });
+      }
+    } else if (sectionIndex !== undefined) {
+      setCurrentlyCopiedData({
+        type: "section",
+        data: structuredClone(getTabData()[sectionIndex]!),
+      });
+    }
+  }
+
+  // need to make paste button disabled if either there isn't any data copied
+  // or if the data copied is of a different type
+  function disablePaste() {
+    return !currentlyCopiedData || currentlyCopiedData.type !== type;
+  }
+
+  function pasteSection() {
+    if (!currentlyCopiedData) return;
+
+    setShowPasteCheckmark(true);
+
+    const newTabData = getTabData();
+
+    if (
+      currentlyCopiedData.type === "chordSequence" &&
+      sectionIndex !== undefined &&
+      subSectionIndex !== undefined &&
+      chordSequenceIndex !== undefined
+    ) {
+      newTabData[sectionIndex]!.data[subSectionIndex]!.data[
+        chordSequenceIndex
+      ] = replaceIdInChordSequence(currentlyCopiedData.data as ChordSequence);
+    } else if (
+      currentlyCopiedData.type === "chord" &&
+      sectionIndex !== undefined &&
+      subSectionIndex !== undefined
+    ) {
+      newTabData[sectionIndex]!.data[subSectionIndex] = replaceIdInChordSection(
+        currentlyCopiedData.data as ChordSection,
+      );
+    } else if (
+      currentlyCopiedData.type === "tab" &&
+      sectionIndex !== undefined &&
+      subSectionIndex !== undefined
+    ) {
+      newTabData[sectionIndex]!.data[subSectionIndex] = replaceIdInTabSection(
+        currentlyCopiedData.data as TabSection,
+      );
+    } else if (
+      currentlyCopiedData.type === "section" &&
+      sectionIndex !== undefined
+    ) {
+      newTabData[sectionIndex] = {
+        ...getTabData()[sectionIndex],
+        data: replaceIdInSection(currentlyCopiedData.data as Section),
+      } as Section;
     }
 
     setTabData(newTabData);
@@ -230,100 +332,6 @@ function MiscellaneousControls({
     setTabData(newTabData);
   }
 
-  function copySection() {
-    if (
-      chordSequenceIndex !== undefined &&
-      subSectionIndex !== undefined &&
-      sectionIndex !== undefined
-    ) {
-      const newChordSequence = structuredClone(
-        getTabData()[sectionIndex]?.data[subSectionIndex]?.data[
-          chordSequenceIndex
-        ] as ChordSequence
-      );
-
-      setCurrentlyCopiedData({
-        type: "chordSequence",
-        data: newChordSequence,
-      });
-    } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
-      if (type === "chord") {
-        const newSubSection = structuredClone(
-          getTabData()[sectionIndex]?.data[subSectionIndex] as ChordSection
-        );
-
-        setCurrentlyCopiedData({
-          type: "chord",
-          data: newSubSection,
-        });
-      } else if (type === "tab") {
-        const newSubSection = replaceIdInTabSection(
-          structuredClone(
-            getTabData()[sectionIndex]?.data[subSectionIndex] as TabSection
-          )
-        );
-
-        setCurrentlyCopiedData({
-          type: "tab",
-          data: newSubSection,
-        });
-      }
-    } else if (sectionIndex !== undefined) {
-      setCurrentlyCopiedData({
-        type: "section",
-        data: structuredClone(getTabData()[sectionIndex]!),
-      });
-    }
-  }
-
-  // need to make paste button disabled if either there isn't any data copied
-  // or if the data copied is of a different type
-  function disablePaste() {
-    return !currentlyCopiedData || currentlyCopiedData.type !== type;
-  }
-
-  function pasteSection() {
-    if (!currentlyCopiedData) return;
-    const newTabData = getTabData();
-
-    if (
-      currentlyCopiedData.type === "chordSequence" &&
-      sectionIndex !== undefined &&
-      subSectionIndex !== undefined &&
-      chordSequenceIndex !== undefined
-    ) {
-      newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-        chordSequenceIndex
-      ] = replaceIdInChordSequence(currentlyCopiedData.data as ChordSequence);
-    } else if (
-      currentlyCopiedData.type === "chord" &&
-      sectionIndex !== undefined &&
-      subSectionIndex !== undefined
-    ) {
-      newTabData[sectionIndex]!.data[subSectionIndex] = replaceIdInChordSection(
-        currentlyCopiedData.data as ChordSection
-      );
-    } else if (
-      currentlyCopiedData.type === "tab" &&
-      sectionIndex !== undefined &&
-      subSectionIndex !== undefined
-    ) {
-      newTabData[sectionIndex]!.data[subSectionIndex] = replaceIdInTabSection(
-        currentlyCopiedData.data as TabSection
-      );
-    } else if (
-      currentlyCopiedData.type === "section" &&
-      sectionIndex !== undefined
-    ) {
-      newTabData[sectionIndex] = {
-        ...getTabData()[sectionIndex],
-        data: replaceIdInSection(currentlyCopiedData.data as Section),
-      } as Section;
-    }
-
-    setTabData(newTabData);
-  }
-
   return (
     <div
       className={`baseFlex !items-end gap-2 ${
@@ -345,7 +353,7 @@ function MiscellaneousControls({
             sectionIsEffectivelyEmpty(
               getTabData(),
               sectionIndex,
-              subSectionIndex
+              subSectionIndex,
             )
           }
           onClick={() => {
@@ -378,7 +386,7 @@ function MiscellaneousControls({
                     },
                   });
                 },
-                !locationIsEqual ? 50 : 0
+                !locationIsEqual ? 50 : 0,
               );
             }
           }}
@@ -418,6 +426,9 @@ function MiscellaneousControls({
         <DropdownMenuContent
           side={"bottom"}
           onCloseAutoFocus={(event) => {
+            setShowCopyCheckmark(false);
+            setShowPasteCheckmark(false);
+
             event.preventDefault();
             event.stopPropagation();
             // not sure if this does a perfect job of preventing scrolling while
@@ -431,7 +442,7 @@ function MiscellaneousControls({
             onClick={moveUp}
           >
             Move up
-            <BiUpArrowAlt className="h-5 w-5" />
+            <BiUpArrowAlt className="size-5" />
           </DropdownMenuItem>
           <DropdownMenuItem
             className="baseFlex !justify-between gap-2"
@@ -439,22 +450,21 @@ function MiscellaneousControls({
             onClick={moveDown}
           >
             Move down
-            <BiDownArrowAlt className="h-5 w-5" />
+            <BiDownArrowAlt className="size-5" />
           </DropdownMenuItem>
-          <DropdownMenuItem
-            className="baseFlex !justify-between gap-2 focus-within:!bg-[rgb(255,0,0)] focus-within:!text-pink-100"
-            onClick={deleteSection}
-          >
-            Delete
-            <FaTrashAlt className="h-4 w-5" />
-          </DropdownMenuItem>
+
           <DropdownMenuSeparator />
+
           <DropdownMenuItem
             className="baseFlex !justify-between gap-2"
             onClick={copySection}
           >
             Copy
-            <HiOutlineClipboardCopy className="h-5 w-5" />
+            {showCopyCheckmark ? (
+              <Check className="size-5" />
+            ) : (
+              <HiOutlineClipboardCopy className="size-5" />
+            )}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="baseFlex !justify-between gap-2"
@@ -462,7 +472,21 @@ function MiscellaneousControls({
             onClick={pasteSection}
           >
             Paste
-            <LuClipboardPaste className="h-5 w-5" />
+            {showPasteCheckmark ? (
+              <Check className="size-5" />
+            ) : (
+              <LuClipboardPaste className="size-5" />
+            )}
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem
+            className="baseFlex !justify-between gap-2 focus-within:!bg-[rgb(255,0,0)] focus-within:!text-pink-100 active:!bg-[rgb(255,0,0)] active:!text-pink-100"
+            onClick={deleteSection}
+          >
+            Delete
+            <FaTrashAlt className="h-4 w-5" />
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

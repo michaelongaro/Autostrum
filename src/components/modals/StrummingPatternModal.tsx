@@ -1,4 +1,4 @@
-import FocusTrap from "focus-trap-react";
+import { FocusTrap } from "focus-trap-react";
 import { motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { useEffect, useState, useCallback } from "react";
@@ -23,13 +23,7 @@ import { traverseToRemoveHangingStrummingPatternPairNode } from "~/utils/palmMut
 import StrummingPattern from "../Tab/StrummingPattern";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "../ui/button";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "~/components/ui/accordion";
-import { isMobile, isDesktop } from "react-device-detect";
+import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 
 const backdropVariants = {
   expanded: {
@@ -60,10 +54,6 @@ function StrummingPatternModal({
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
 
-  const [accordionValue, setAccordionValue] = useState(
-    isMobile ? "" : "opened"
-  );
-
   const {
     strummingPatterns,
     setStrummingPatterns,
@@ -72,7 +62,6 @@ function StrummingPatternModal({
     setTabData,
     previewMetadata,
     audioMetadata,
-    setPreventFramerLayoutShift,
     playPreview,
     pauseAudio,
   } = useTabStore((state) => ({
@@ -83,7 +72,6 @@ function StrummingPatternModal({
     setTabData: state.setTabData,
     previewMetadata: state.previewMetadata,
     audioMetadata: state.audioMetadata,
-    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
     playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
   }));
@@ -91,12 +79,12 @@ function StrummingPatternModal({
   const getPMNodeOpacities = useCallback(() => {
     if (lastModifiedPalmMuteNode === null) {
       return new Array(strummingPatternBeingEdited.value.strums.length).fill(
-        "1"
+        "1",
       ) as string[];
     }
 
     const newOpacities = new Array(
-      strummingPatternBeingEdited.value.strums.length
+      strummingPatternBeingEdited.value.strums.length,
     ).fill("0.25") as string[];
 
     // added new "PM Start" node
@@ -115,7 +103,7 @@ function StrummingPatternModal({
       newOpacities.fill(
         "1",
         lastModifiedPalmMuteNode.columnIndex,
-        nearestStartNodeIndex
+        nearestStartNodeIndex,
       );
     }
     // removed "PM Start" node
@@ -176,28 +164,7 @@ function StrummingPatternModal({
     }
   }, [editingPalmMuteNodes, lastModifiedPalmMuteNode, getPMNodeOpacities]);
 
-  useEffect(() => {
-    setPreventFramerLayoutShift(true);
-
-    setTimeout(() => {
-      const offsetY = window.scrollY;
-      document.body.style.top = `${-offsetY}px`;
-      document.body.classList.add("noScroll");
-    }, 50);
-
-    return () => {
-      setPreventFramerLayoutShift(false);
-
-      setTimeout(() => {
-        const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10)
-        );
-        document.body.classList.remove("noScroll");
-        document.body.style.removeProperty("top");
-        window.scrollTo(0, offsetY || 0);
-      }, 50);
-    };
-  }, [setPreventFramerLayoutShift]);
+  useModalScrollbarHandling();
 
   function handleNoteLengthChange(
     value:
@@ -206,7 +173,7 @@ function StrummingPatternModal({
       | "1/8th"
       | "1/8th triplet"
       | "1/16th"
-      | "1/16th triplet"
+      | "1/16th triplet",
   ) {
     const newStrummingPattern = structuredClone(strummingPatternBeingEdited);
 
@@ -224,7 +191,7 @@ function StrummingPatternModal({
       // start node to being empty
       if (lastModifiedPalmMuteNode.prevValue === "") {
         const newStrummingPattern = structuredClone(
-          strummingPatternBeingEdited
+          strummingPatternBeingEdited,
         );
 
         newStrummingPattern.value.strums[
@@ -289,7 +256,7 @@ function StrummingPatternModal({
                 !strummingPattern ||
                 !isEqual(
                   strummingPattern,
-                  strummingPatterns[strummingPatternBeingEdited.index]
+                  strummingPatterns[strummingPatternBeingEdited.index],
                 )
               )
                 continue;
@@ -354,8 +321,9 @@ function StrummingPatternModal({
       initial="closed"
       animate="expanded"
       exit="closed"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && isDesktop) {
+      tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
           if (audioMetadata.playing) pauseAudio();
           setStrummingPatternBeingEdited(null);
         }
@@ -367,143 +335,124 @@ function StrummingPatternModal({
           initialFocus: false,
         }}
       >
-        <div
-          tabIndex={-1}
-          className="baseVertFlex max-h-[90vh] min-w-[300px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all md:max-h-[90vh] md:gap-12 md:p-8 xl:max-w-[50vw]"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              if (audioMetadata.playing) pauseAudio();
-              setStrummingPatternBeingEdited(null);
-            }
-          }}
-        >
-          {/* controls */}
-          <div className="baseFlex w-full !justify-start gap-2">
-            <Label>Note length</Label>
-            <Select
-              onValueChange={handleNoteLengthChange}
-              value={strummingPatternBeingEdited.value.noteLength}
-            >
-              <SelectTrigger className="w-[135px]">
-                <SelectValue placeholder="Select a length" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Note length</SelectLabel>
-                  <SelectItem value="1/4th">1/4th</SelectItem>
-                  <SelectItem value="1/4th triplet">1/4th triplet</SelectItem>
-                  <SelectItem value="1/8th">1/8th</SelectItem>
-                  <SelectItem value="1/8th triplet">1/8th triplet</SelectItem>
-                  <SelectItem value="1/16th">1/16th</SelectItem>
-                  <SelectItem value="1/16th triplet">1/16th triplet</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <div className="baseFlex">
-              <Button
-                disabled={editingPalmMuteNodes}
-                style={{
-                  borderRadius: editingPalmMuteNodes
-                    ? "0.375rem 0 0 0.375rem"
-                    : "0.375rem",
-                }}
-                // className="transition-colors transition-opacity"
-                onClick={toggleEditingPalmMuteNodes}
+        <div className="baseVertFlex max-h-[90vh] min-w-[370px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all sm:max-h-[90vh] sm:max-w-[700px] sm:p-8">
+          <div className="baseFlex w-full !items-start !justify-between gap-8 sm:!flex-col sm:gap-8">
+            <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center sm:!justify-start">
+              <Label>Note length</Label>
+              <Select
+                onValueChange={handleNoteLengthChange}
+                value={strummingPatternBeingEdited.value.noteLength}
               >
-                Edit PM sections
-              </Button>
-
-              {editingPalmMuteNodes && (
+                <SelectTrigger className="w-[135px]">
+                  <SelectValue placeholder="Select a length" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Note length</SelectLabel>
+                    <SelectItem value="1/4th">1/4th</SelectItem>
+                    <SelectItem value="1/4th triplet">1/4th triplet</SelectItem>
+                    <SelectItem value="1/8th">1/8th</SelectItem>
+                    <SelectItem value="1/8th triplet">1/8th triplet</SelectItem>
+                    <SelectItem value="1/16th">1/16th</SelectItem>
+                    <SelectItem value="1/16th triplet">
+                      1/16th triplet
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <div className="baseFlex">
                 <Button
-                  className="rounded-l-none rounded-r-md px-2 py-0"
+                  disabled={editingPalmMuteNodes}
+                  style={{
+                    borderRadius: editingPalmMuteNodes
+                      ? "0.375rem 0 0 0.375rem"
+                      : "0.375rem",
+                  }}
+                  // className="transition-colors transition-opacity"
                   onClick={toggleEditingPalmMuteNodes}
                 >
-                  <IoClose className="h-6 w-6" />
+                  PM Editor
                 </Button>
-              )}
-            </div>
-            {/* toggle delete strums */}
-            <div className="baseFlex">
-              <Button
-                variant={"destructive"}
-                disabled={showingDeleteStrumsButtons}
-                style={{
-                  borderRadius: showingDeleteStrumsButtons
-                    ? "0.375rem 0 0 0.375rem"
-                    : "0.375rem",
-                }}
-                className="baseFlex gap-2"
-                onClick={() =>
-                  setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
-                }
-              >
-                Delete strums
-                <FaTrashAlt className="h-4 w-4" />
-              </Button>
 
-              {showingDeleteStrumsButtons && (
+                {editingPalmMuteNodes && (
+                  <Button
+                    className="rounded-l-none rounded-r-md px-2 py-0"
+                    onClick={toggleEditingPalmMuteNodes}
+                  >
+                    <IoClose className="h-6 w-6" />
+                  </Button>
+                )}
+              </div>
+              {/* toggle delete strums */}
+              <div className="baseFlex">
                 <Button
                   variant={"destructive"}
-                  className="rounded-l-none rounded-r-md px-2 py-0"
+                  disabled={showingDeleteStrumsButtons}
+                  style={{
+                    borderRadius: showingDeleteStrumsButtons
+                      ? "0.375rem 0 0 0.375rem"
+                      : "0.375rem",
+                  }}
+                  className="baseFlex gap-2"
                   onClick={() =>
                     setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
                   }
                 >
-                  <IoClose className="h-6 w-6" />
+                  Delete strums
+                  <FaTrashAlt className="hidden h-4 w-4 sm:block" />
                 </Button>
-              )}
+
+                {showingDeleteStrumsButtons && (
+                  <Button
+                    variant={"destructive"}
+                    className="rounded-l-none rounded-r-md px-2 py-0"
+                    onClick={() =>
+                      setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
+                    }
+                  >
+                    <IoClose className="h-6 w-6" />
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="baseVertFlex lightestGlassmorphic gap-1 rounded-md px-4 py-3 text-sm xs:px-8 sm:w-auto sm:gap-2 sm:self-center md:px-4">
+              <div className="baseFlex w-auto gap-2 font-semibold">
+                <BsKeyboard className="h-6 w-6" />
+                Hotkeys
+              </div>
+
+              <div className="mt-2 grid grid-cols-[45px_5px_70px] !place-items-start gap-2 md:flex md:w-full md:gap-2">
+                <div className="baseFlex gap-1">
+                  <kbd>v</kbd> / <kbd>d</kbd>
+                </div>
+                <p>-</p>
+                <p className="md:mr-4">Downstrum</p>
+                <div className="baseFlex gap-1">
+                  <kbd>^</kbd> / <kbd>u</kbd>
+                </div>
+                <p>-</p>
+                <p className="md:mr-4">Upstrum</p>
+                <div className="baseFlex gap-1">
+                  <kbd>s</kbd>
+                </div>
+                <p>-</p>
+                <p className="md:mr-4">Slap</p>
+                <div className="baseFlex gap-1">
+                  <kbd>&gt;</kbd>
+                </div>
+                <p>-</p>
+                <p className="md:mr-4">Accented</p>
+                <div className="baseFlex gap-1">
+                  <kbd>.</kbd>
+                </div>
+                <p>-</p>
+                <p>Staccato</p>
+              </div>
             </div>
           </div>
 
-          <Accordion
-            type="single"
-            collapsible
-            value={accordionValue}
-            onValueChange={(value) => {
-              setAccordionValue(value);
-            }}
-            className="baseVertFlex lightestGlassmorphic w-[300px] gap-2 rounded-md px-2 py-0 text-sm sm:w-[650px]"
-          >
-            <AccordionItem value="opened">
-              <AccordionTrigger extraPadding className="w-full">
-                <div className="baseFlex w-full gap-2 font-semibold">
-                  <BsKeyboard className="h-6 w-6" />
-                  Hotkeys
-                </div>
-              </AccordionTrigger>
-              <AccordionContent extraPaddingBottom>
-                <div className="baseFlex mt-2 gap-4 sm:w-full sm:gap-6">
-                  <div className="baseFlex gap-2">
-                    <span className="font-semibold">v / d</span>
-                    <p>-</p>
-                    <p>Downstrum</p>
-                  </div>
-                  <div className="baseFlex gap-2">
-                    <span className="font-semibold">^ / u</span>
-                    <p>-</p>
-                    <p>Upstrum</p>
-                  </div>
-                  <div className="baseFlex gap-2">
-                    <p className="font-semibold">s</p>
-                    <p>-</p>
-                    <p>Slap</p>
-                  </div>
-                  <div className="baseFlex gap-2">
-                    <p className="font-semibold">&gt;</p>
-                    <p>-</p>
-                    <p>Accented</p>
-                  </div>
-                  <div className="baseFlex gap-2">
-                    <p className="font-semibold">.</p>
-                    <p>-</p>
-                    <p>Staccato</p>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-
-          <div className="baseFlex overflow-y-auto">
+          <div className="baseFlex !items-start overflow-y-auto">
             {/* editing inputs of strumming pattern */}
             <StrummingPattern
               data={strummingPatternBeingEdited.value}
@@ -518,12 +467,12 @@ function StrummingPatternModal({
             />
           </div>
 
-          <div className="baseVertFlex gap-8">
+          <div className="baseFlex mt-4 w-full !justify-between gap-8">
             <Button
               disabled={
                 artificalPlayButtonTimeout ||
                 strummingPatternBeingEdited.value.strums.every(
-                  (strum) => strum.strum === ""
+                  (strum) => strum.strum === "",
                 )
               }
               className="baseFlex gap-4"
@@ -556,7 +505,7 @@ function StrummingPatternModal({
                 ) : (
                   <BsFillPlayFill className="h-6 w-6" />
                 )}
-                Preview strumming pattern
+                Preview
               </>
             </Button>
             <div className="baseFlex gap-4">
@@ -574,11 +523,11 @@ function StrummingPatternModal({
               <Button
                 disabled={
                   strummingPatternBeingEdited.value.strums.every(
-                    (strum) => strum.strum === ""
+                    (strum) => strum.strum === "",
                   ) ||
                   isEqual(
                     strummingPatternBeingEdited.value,
-                    strummingPatterns[strummingPatternBeingEdited.index]
+                    strummingPatterns[strummingPatternBeingEdited.index],
                   )
                 }
                 onClick={handleSaveStrummingPattern}

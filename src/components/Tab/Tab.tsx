@@ -24,27 +24,30 @@ import Chords from "./Chords";
 import SectionContainer from "./SectionContainer";
 import StrummingPatterns from "./StrummingPatterns";
 import dynamic from "next/dynamic";
+import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
+import EffectGlossaryDialog from "~/components/Dialogs/EffectGlossaryDialog";
+import Logo from "~/components/ui/icons/Logo";
 
-const EffectGlossaryModal = dynamic(
-  () => import("~/components/modals/EffectGlossaryModal")
-);
 const SectionProgressionModal = dynamic(
-  () => import("~/components/modals/SectionProgressionModal")
+  () => import("~/components/modals/SectionProgressionModal"),
 );
-const AudioRecorderModal = dynamic(
-  () => import("~/components/modals/AudioRecorderModal")
-);
+// const AudioRecorderModal = dynamic(
+//   () => import("~/components/modals/AudioRecorderModal"),
+// );
 const ChordModal = dynamic(() => import("~/components/modals/ChordModal"));
 const StrummingPatternModal = dynamic(
-  () => import("~/components/modals/StrummingPatternModal")
+  () => import("~/components/modals/StrummingPatternModal"),
 );
 const CustomTuningModal = dynamic(
-  () => import("~/components/modals/CustomTuningModal")
+  () => import("~/components/modals/CustomTuningModal"),
+);
+const PlaybackModal = dynamic(
+  () => import("~/components/Tab/Playback/PlaybackModal"),
 );
 
 export interface RefetchTab {
   refetchTab: <TPageData>(
-    options?: RefetchOptions & RefetchQueryFilters<TPageData>
+    options?: RefetchOptions & RefetchQueryFilters<TPageData>,
     // @ts-expect-error asdf
   ) => Promise<QueryObserverResult<TData, TError>>;
 }
@@ -62,7 +65,7 @@ interface ITab extends Partial<RefetchTab> {
 }
 
 function Tab({ tab, refetchTab }: ITab) {
-  const [customTuning, setCustomTuning] = useState("");
+  const [customTuning, setCustomTuning] = useState<string | null>(null);
   const [isPostingOrSaving, setIsPostingOrSaving] = useState(false);
 
   // true when creating new section, results in way less cpu/ram usage for arguably worse ux
@@ -82,8 +85,6 @@ function Tab({ tab, refetchTab }: ITab) {
     setTuning,
     setBpm,
     setCapo,
-    setTimeSignature,
-    setMusicalKey,
     setHasRecordedAudio,
     setChords,
     setStrummingPatterns,
@@ -96,17 +97,20 @@ function Tab({ tab, refetchTab }: ITab) {
     setOriginalTabData,
     showAudioRecorderModal,
     showSectionProgressionModal,
-    showEffectGlossaryModal,
-    setShowEffectGlossaryModal,
+    showEffectGlossaryDialog,
+    setShowEffectGlossaryDialog,
     chordBeingEdited,
     strummingPatternBeingEdited,
     showCustomTuningModal,
-    preventFramerLayoutShift,
     currentlyPlayingMetadata,
     currentChordIndex,
     sectionProgression,
     chords,
     strummingPatterns,
+    audioMetadata,
+    showPlaybackModal,
+    setShowPlaybackModal,
+    setLooping,
   } = useTabStore((state) => ({
     setId: state.setId,
     setCreatedById: state.setCreatedById,
@@ -118,8 +122,6 @@ function Tab({ tab, refetchTab }: ITab) {
     setTuning: state.setTuning,
     setBpm: state.setBpm,
     setCapo: state.setCapo,
-    setTimeSignature: state.setTimeSignature,
-    setMusicalKey: state.setMusicalKey,
     setHasRecordedAudio: state.setHasRecordedAudio,
     setChords: state.setChords,
     setStrummingPatterns: state.setStrummingPatterns,
@@ -132,17 +134,20 @@ function Tab({ tab, refetchTab }: ITab) {
     setOriginalTabData: state.setOriginalTabData,
     showAudioRecorderModal: state.showAudioRecorderModal,
     showSectionProgressionModal: state.showSectionProgressionModal,
-    showEffectGlossaryModal: state.showEffectGlossaryModal,
-    setShowEffectGlossaryModal: state.setShowEffectGlossaryModal,
+    showEffectGlossaryDialog: state.showEffectGlossaryDialog,
+    setShowEffectGlossaryDialog: state.setShowEffectGlossaryDialog,
     chordBeingEdited: state.chordBeingEdited,
     strummingPatternBeingEdited: state.strummingPatternBeingEdited,
     showCustomTuningModal: state.showCustomTuningModal,
-    preventFramerLayoutShift: state.preventFramerLayoutShift,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     currentChordIndex: state.currentChordIndex,
     sectionProgression: state.sectionProgression,
     chords: state.chords,
     strummingPatterns: state.strummingPatterns,
+    audioMetadata: state.audioMetadata,
+    showPlaybackModal: state.showPlaybackModal,
+    setShowPlaybackModal: state.setShowPlaybackModal,
+    setLooping: state.setLooping,
   }));
 
   useEffect(() => {
@@ -160,18 +165,16 @@ function Tab({ tab, refetchTab }: ITab) {
     setTuning(tab.tuning);
     setBpm(tab.bpm);
     setCapo(tab.capo);
-    setTimeSignature(tab.timeSignature);
-    setMusicalKey(tab.musicalKey);
     setHasRecordedAudio(tab.hasRecordedAudio);
     setNumberOfLikes(tab.numberOfLikes);
 
-    // @ts-expect-error can't specify type from prisma Json value, but we know it's correct
+    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setChords(tab.chords);
-    // @ts-expect-error can't specify type from prisma Json value, but we know it's correct
+    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setStrummingPatterns(tab.strummingPatterns);
-    // @ts-expect-error can't specify type from prisma Json value, but we know it's correct
+    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setTabData(tab.tabData);
-    // @ts-expect-error can't specify type from prisma Json value, but we know it's correct
+    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setSectionProgression(tab.sectionProgression ?? []);
   }, [
     tab,
@@ -187,8 +190,6 @@ function Tab({ tab, refetchTab }: ITab) {
     setHasRecordedAudio,
     setStrummingPatterns,
     setTabData,
-    setTimeSignature,
-    setMusicalKey,
     setTitle,
     setOriginalTabData,
     setTuning,
@@ -219,26 +220,26 @@ function Tab({ tab, refetchTab }: ITab) {
       genreId,
       tuning,
       bpm,
-      timeSignature,
       capo,
-      musicalKey,
       chords,
       strummingPatterns,
       tabData: localStorageTabDataValue, // avoids name conflict with actual tabData
       sectionProgression,
-    } = JSON.parse(localStorageTabData.value as string);
+    } = JSON.parse(localStorageTabData.value as string) as Tab;
 
     setTitle(title);
     setDescription(description);
     setGenreId(genreId);
     setTuning(tuning);
     setBpm(bpm);
-    setTimeSignature(timeSignature);
     setCapo(capo);
-    setMusicalKey(musicalKey);
+    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setChords(chords);
+    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setStrummingPatterns(strummingPatterns);
+    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setTabData(localStorageTabDataValue);
+    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setSectionProgression(sectionProgression ?? []);
 
     localStorageTabData.remove();
@@ -252,8 +253,6 @@ function Tab({ tab, refetchTab }: ITab) {
     setChords,
     setStrummingPatterns,
     setTabData,
-    setTimeSignature,
-    setMusicalKey,
     setTitle,
     setOriginalTabData,
     setTuning,
@@ -289,7 +288,7 @@ function Tab({ tab, refetchTab }: ITab) {
         style={{
           transition: "filter 0.5s ease-in-out",
         }}
-        className={`baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-md md:my-24 xl:w-8/12 ${
+        className={`baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-md md:my-24 2xl:w-8/12 ${
           isPostingOrSaving
             ? "pointer-events-none brightness-90"
             : "brightness-100"
@@ -309,7 +308,7 @@ function Tab({ tab, refetchTab }: ITab) {
               <Button
                 variant={"secondary"}
                 className="baseFlex !flex-nowrap gap-2 lg:absolute lg:right-7 lg:top-0"
-                onClick={() => setShowEffectGlossaryModal(true)}
+                onClick={() => setShowEffectGlossaryDialog(true)}
               >
                 Effect glossary
                 <FaBook className="h-4 w-4" />
@@ -325,15 +324,13 @@ function Tab({ tab, refetchTab }: ITab) {
           strummingPatterns.length > 0) && (
           <div className="baseVertFlex relative w-full gap-4">
             <SectionProgression />
-
             <Chords />
-
             <StrummingPatterns />
 
             <Button
               variant={"secondary"}
               className="baseFlex !flex-nowrap gap-2 lg:absolute lg:right-7 lg:top-0"
-              onClick={() => setShowEffectGlossaryModal(true)}
+              onClick={() => setShowEffectGlossaryDialog(true)}
             >
               Effect glossary
               <FaBook className="h-4 w-4" />
@@ -341,8 +338,8 @@ function Tab({ tab, refetchTab }: ITab) {
 
             {editing && (
               <Popover>
-                <PopoverTrigger className="baseFlex absolute bottom-5 right-3 mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:bottom-3 sm:right-7 ">
-                  <HiOutlineLightBulb className="h-5 w-5 " />
+                <PopoverTrigger className="baseFlex absolute bottom-5 right-3 mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:bottom-3 sm:right-7">
+                  <HiOutlineLightBulb className="h-5 w-5" />
                 </PopoverTrigger>
                 <PopoverContent
                   side="left"
@@ -360,57 +357,81 @@ function Tab({ tab, refetchTab }: ITab) {
                 </PopoverContent>
               </Popover>
             )}
+
             <Separator className="w-[96%]" />
           </div>
         )}
 
-        {tabData.map((section, index) => (
-          <motion.div
-            key={section.id}
-            // TODO: I don't know why the spring transition only occurs when
-            // the section has something in it (not empty)... doesn't seem like that
-            // should make a difference but it does for some reason
-            {...(editing &&
-              !preventFramerLayoutShift &&
-              !forceCloseSectionAccordions && { layout: "position" })}
-            transition={{
-              layout: {
-                type: "spring",
-                bounce: 0.15,
-                duration: 1,
-              },
-            }}
-            className="baseVertFlex w-full"
-          >
-            <SectionContainer
-              sectionIndex={index}
-              sectionData={section}
-              currentlyPlayingSectionIndex={
-                currentlyPlayingMetadata?.[currentChordIndex]?.location
-                  .sectionIndex ?? 0
-              }
-              currentlyPlayingSubSectionIndex={
-                currentlyPlayingMetadata?.[currentChordIndex]?.location
-                  .subSectionIndex ?? 0
-              }
-              forceCloseSectionAccordions={
-                forceCloseSectionAccordions && index !== tabData.length - 1
-              }
-              setForceCloseSectionAccordions={setForceCloseSectionAccordions}
-            />
-          </motion.div>
-        ))}
+        <div className="baseVertFlex relative size-full gap-4">
+          {!showPlaybackModal &&
+            tabData.map((section, index) => (
+              <motion.div
+                key={section.id}
+                layout={"position"}
+                transition={{
+                  layout: {
+                    type: "spring",
+                    bounce: 0.15,
+                    duration: 1,
+                  },
+                }}
+                className="baseFlex w-full"
+              >
+                {editing ? (
+                  <SectionContainer
+                    sectionIndex={index}
+                    sectionData={section}
+                    currentlyPlayingSectionIndex={
+                      currentlyPlayingMetadata?.[currentChordIndex]?.location
+                        .sectionIndex ?? 0
+                    }
+                    currentlyPlayingSubSectionIndex={
+                      currentlyPlayingMetadata?.[currentChordIndex]?.location
+                        .subSectionIndex ?? 0
+                    }
+                    forceCloseSectionAccordions={
+                      forceCloseSectionAccordions &&
+                      index !== tabData.length - 1
+                    }
+                    setForceCloseSectionAccordions={
+                      setForceCloseSectionAccordions
+                    }
+                  />
+                ) : (
+                  <StaticSectionContainer
+                    sectionIndex={index}
+                    sectionData={section}
+                  />
+                )}
+              </motion.div>
+            ))}
 
-        {editing && (
-          <Button onClick={addNewSection} className="mb-12">
-            Add another section
-          </Button>
-        )}
+          {editing && (
+            <Button onClick={addNewSection} className="mb-12">
+              Add another section
+            </Button>
+          )}
+
+          {!editing && audioMetadata.fullCurrentlyPlayingMetadataLength > 0 && (
+            <Button
+              variant="playPause"
+              className="baseFlex sticky bottom-4 right-4 mb-4 gap-3 !rounded-full px-8 py-6 text-lg shadow-lg tablet:bottom-6 tablet:px-10 tablet:text-xl"
+              onClick={() => {
+                setShowPlaybackModal(true);
+                setLooping(true);
+              }}
+            >
+              <Logo className="size-[18px] fill-pink-50 tablet:size-5" />
+              Practice
+            </Button>
+          )}
+        </div>
       </div>
 
-      <AnimatePresence mode="wait">
+      {/* TODO: re-enable this when you find a react 19 compatible workaround */}
+      {/* <AnimatePresence mode="wait">
         {showAudioRecorderModal && <AudioRecorderModal />}
-      </AnimatePresence>
+      </AnimatePresence> */}
 
       <AnimatePresence mode="wait">
         {showCustomTuningModal && (
@@ -425,9 +446,7 @@ function Tab({ tab, refetchTab }: ITab) {
         {showSectionProgressionModal && <SectionProgressionModal />}
       </AnimatePresence>
 
-      <AnimatePresence mode="wait">
-        {showEffectGlossaryModal && <EffectGlossaryModal />}
-      </AnimatePresence>
+      <EffectGlossaryDialog />
 
       <AnimatePresence mode="wait">
         {chordBeingEdited && (
@@ -439,10 +458,14 @@ function Tab({ tab, refetchTab }: ITab) {
         {strummingPatternBeingEdited && (
           <StrummingPatternModal
             strummingPatternBeingEdited={structuredClone(
-              strummingPatternBeingEdited
+              strummingPatternBeingEdited,
             )}
           />
         )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        {showPlaybackModal && <PlaybackModal />}
       </AnimatePresence>
     </motion.div>
   );

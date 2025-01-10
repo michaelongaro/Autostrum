@@ -163,7 +163,7 @@ function applyBendOrReleaseEffect({
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
     sourceGain.gain.linearRampToValueAtTime(
       1.1,
-      audioContext.currentTime + when + 0.1 // maybe still need to do arbitrary stuff here?
+      audioContext.currentTime + when + 0.1, // maybe still need to do arbitrary stuff here?
     );
     source.connect(sourceGain);
   }
@@ -175,7 +175,7 @@ function applyBendOrReleaseEffect({
       detuneValue,
       audioContext.currentTime +
         when +
-        (60 / bpm) * (isArbitrarySlide ? 0.25 : 0.5)
+        (60 / bpm) * (isArbitrarySlide ? 0.25 : 0.5),
     );
     return sourceGain;
   } else if (note) {
@@ -183,7 +183,7 @@ function applyBendOrReleaseEffect({
       detuneValue,
       audioContext.currentTime +
         when +
-        (60 / bpm) * (isArbitrarySlide ? 0.25 : 0.5)
+        (60 / bpm) * (isArbitrarySlide ? 0.25 : 0.5),
     );
     return note;
   } else if (copiedNote) {
@@ -191,7 +191,7 @@ function applyBendOrReleaseEffect({
       detuneValue,
       audioContext.currentTime +
         when +
-        (60 / bpm) * (isArbitrarySlide ? 0.25 : 0.5)
+        (60 / bpm) * (isArbitrarySlide ? 0.25 : 0.5),
     );
     // increasing gain to match level set in applyTetheredEffect()
     const copiedNoteGain = audioContext.createGain();
@@ -203,7 +203,7 @@ function applyBendOrReleaseEffect({
 
 function mapStringAndFretToOscillatorFrequency(
   stringIndex: number,
-  fretIndex: number
+  fretIndex: number,
 ) {
   // The difference between the maximum and minimum frequency defines the range.
   const frequencyRange = 200 - 50;
@@ -256,7 +256,7 @@ function playDeadNote({
 
   const frequency = mapStringAndFretToOscillatorFrequency(
     stringIdx,
-    fret === 0 ? 1 : fret
+    fret === 0 ? 1 : fret,
   );
 
   // Create an OscillatorNode to simulate the slap sound
@@ -300,7 +300,7 @@ function playDeadNote({
   gainNode.gain.setValueAtTime(gainTarget, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(
     0.0001,
-    audioContext.currentTime + 0.1
+    audioContext.currentTime + 0.1,
   );
 
   // Create a BiquadFilterNode for a low-pass filter
@@ -370,7 +370,7 @@ function playSlapSound({
   const noiseBuffer = audioContext.createBuffer(
     1,
     audioContext.sampleRate * 0.2,
-    audioContext.sampleRate
+    audioContext.sampleRate,
   );
   const output = noiseBuffer.getChannelData(0);
   for (let i = 0; i < output.length; i++) {
@@ -401,7 +401,7 @@ function playSlapSound({
   gainNode.gain.setValueAtTime(gainTarget, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(
     0.01,
-    audioContext.currentTime + duration
+    audioContext.currentTime + duration,
   );
 
   // Create a BiquadFilterNode for a low-pass filter
@@ -421,7 +421,7 @@ function playSlapSound({
   noiseGain.gain.setValueAtTime(0.2, audioContext.currentTime);
   noiseGain.gain.exponentialRampToValueAtTime(
     0.01,
-    audioContext.currentTime + duration
+    audioContext.currentTime + duration,
   );
 
   // Connect the oscillator and noise to the gainNode
@@ -546,18 +546,18 @@ function applyTetheredEffect({
   // immediately start detune at the value of the tetheredFret
   source.detune.setValueAtTime(
     (tetheredFret - currentFret) * 100,
-    audioContext.currentTime + when
+    audioContext.currentTime + when,
   );
   source.start(
     audioContext.currentTime + when,
     tetheredEffect === "p" ? 0 : tetheredEffect === "h" ? 0.1 : 0.2,
-    isPalmMuted ? 0.45 : undefined
+    isPalmMuted ? 0.45 : undefined,
   );
 
   sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
   sourceGain.gain.linearRampToValueAtTime(
     tetheredEffect === "p" ? 1 : tetheredEffect === "h" ? 1.1 : 1.3,
-    audioContext.currentTime + when + 0.05
+    audioContext.currentTime + when + 0.05,
   );
   source.connect(sourceGain);
 
@@ -569,7 +569,7 @@ function applyTetheredEffect({
   // immediately ramping from tetheredFret to currentFret with a duration defined by durationOfTransition
   source.detune.linearRampToValueAtTime(
     0.001, // smallest viable value
-    audioContext.currentTime + when + durationOfTransition
+    audioContext.currentTime + when + durationOfTransition,
   );
 
   // if there is a currentEffect, we need to apply it to the note after the last ramp is finished
@@ -647,7 +647,7 @@ function applyVibratoEffect({
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
     sourceGain.gain.exponentialRampToValueAtTime(
       1.3,
-      audioContext.currentTime + when + 0.1
+      audioContext.currentTime + when + 0.1,
     );
     source.connect(sourceGain);
   }
@@ -700,6 +700,7 @@ interface PlayNote {
     | AudioBufferSourceNode
     | undefined
   )[];
+  acousticSteelOverrideForPreview?: Soundfont.Player;
 }
 
 function playNote({
@@ -715,6 +716,7 @@ function playNote({
   currentInstrument,
   masterVolumeGainNode,
   currentlyPlayingStrings,
+  acousticSteelOverrideForPreview,
 }: PlayNote) {
   let duration = 3;
   let gain = 1;
@@ -749,7 +751,9 @@ function playNote({
     gain *= 0.6;
   }
 
-  const note = currentInstrument?.play(
+  const instrumentToUse = acousticSteelOverrideForPreview || currentInstrument;
+
+  const note = instrumentToUse?.play(
     `${tuning[stringIdx]! + fret}`,
     audioContext.currentTime + when,
     {
@@ -759,7 +763,7 @@ function playNote({
       //    -can maybe also use this for tetherd effects too, didn't realize it actually works!
       attack: effects.includes("v") || effects.includes("^") ? 0.0125 : 0.01,
       // TODO: might be fun/more accurate to change sustain value instead of duration for some effects
-    }
+    },
   );
 
   if (note && (tetheredMetadata || effects.length > 0)) {
@@ -811,35 +815,15 @@ function calculateRelativeVibratoFrequency(bpm: number) {
 
 function calculateRelativeChordDelayMultiplier(
   bpm: number,
-  strumChordQuickly: boolean
+  strumChordQuickly: boolean,
 ) {
-  const BASE_DELAY = 0.01;
-  let delay = 0;
-  const accentedMultiplier = strumChordQuickly ? 0.75 : 1;
+  // Clamp BPM to [0, 400]
+  const clampedBpm = Math.max(0, Math.min(400, bpm));
 
-  // would love to somehow convey this split in logic in the UI but I really
-  // have no clue the best way to be transparent with it..
+  // Linearly map 0 → 0.05 and 400 → 0.0075
+  const mappedValue = 0.05 + (clampedBpm / 400) * (0.0075 - 0.05);
 
-  if (bpm <= 60) {
-    const distance = 61 - bpm;
-    delay = Math.min(distance / 60, 0.35); // idk prob needs to be fine tuned
-  } else {
-    const distance = (bpm > 400 ? 400 : 400) - bpm;
-    delay = Math.min(distance / 361, 1) * 0.02;
-  }
-
-  return (BASE_DELAY + delay) * accentedMultiplier;
-}
-
-function getIndexOfFirstNonEmptyString(column: string[], isAnUpstrum: boolean) {
-  for (let index = 1; index < 7; index++) {
-    const i = isAnUpstrum ? index : 7 - index;
-    if (column[i] !== "") {
-      return i;
-    }
-  }
-
-  return 1;
+  return strumChordQuickly ? mappedValue * 0.75 : mappedValue;
 }
 
 interface TetheredMetadata {
@@ -866,6 +850,7 @@ interface PlayNoteColumn {
     | AudioBufferSourceNode
     | undefined
   )[];
+  acousticSteelOverrideForPreview?: Soundfont.Player;
 }
 
 function playNoteColumn({
@@ -881,11 +866,15 @@ function playNoteColumn({
   masterVolumeGainNode,
   currentInstrument,
   currentlyPlayingStrings,
+  acousticSteelOverrideForPreview,
 }: PlayNoteColumn) {
   return new Promise<void>((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, (60 / bpm) * 1000);
+    setTimeout(
+      () => {
+        resolve();
+      },
+      (60 / bpm) * 1000,
+    );
 
     // thinking it's better to group "s" in main if statement here
     // because I don't think you want to be super aggresive on deleting the prev
@@ -905,20 +894,16 @@ function playNoteColumn({
       return;
     }
 
+    let notesPlayedSoFar = 0;
     let chordDelayMultiplier = 0;
 
     // TODO: allow just > and or . to be present + provide handling for these cases
     if (currColumn[7]?.includes("v") || currColumn[7]?.includes("^")) {
       chordDelayMultiplier = calculateRelativeChordDelayMultiplier(
         bpm,
-        currColumn[7]?.includes(">") || currColumn[7]?.includes(".")
+        currColumn[7]?.includes(">") || currColumn[7]?.includes("."),
       );
     }
-
-    const indexOfFirstNonEmptyString = getIndexOfFirstNonEmptyString(
-      currColumn,
-      currColumn[7]?.includes("^") || false
-    );
 
     const allInlineEffects = /[hp\/\\\\br~>.x]/g;
     const tetherEffects = /^[hp\/\\\\]$/;
@@ -1001,7 +986,7 @@ function playNoteColumn({
         // need to find our baseFret of the release, which is the targetFret of the bend.
         if (currNote === "r") {
           baseFret = extractNumber(
-            prevNote?.includes("b") ? prevNote : secondPrevNote!
+            prevNote?.includes("b") ? prevNote : secondPrevNote!,
           );
         } else {
           baseFret = extractNumber(currNote);
@@ -1205,12 +1190,9 @@ function playNoteColumn({
         stringIdx: adjustedStringIdx,
         fret,
         bpm,
-        // ^ want raw index instead of adjusted index since we only care about
-        // how "far" into the chord the note is, also want to start multiplier
-        // based on first non-empty string for the timing to be as accurate as possible
-        when:
-          chordDelayMultiplier *
-          Math.abs(indexOfFirstNonEmptyString - stringIdx),
+        when: chordDelayMultiplier * notesPlayedSoFar,
+        // ^ makes sure that the proper delay is applied to each note in a chord
+        // regardless of the number/spacing of notes in the chord
         effects,
         tetheredMetadata,
         pluckBaseNote,
@@ -1218,7 +1200,10 @@ function playNoteColumn({
         currentInstrument,
         masterVolumeGainNode,
         currentlyPlayingStrings,
+        acousticSteelOverrideForPreview,
       });
+
+      notesPlayedSoFar++;
     }
   });
 }

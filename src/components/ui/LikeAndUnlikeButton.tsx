@@ -54,7 +54,7 @@ function LikeAndUnlikeButton({
     useState<NodeJS.Timeout | null>(null);
 
   const { asPath } = useRouter();
-  const ctx = api.useContext();
+  const ctx = api.useUtils();
 
   const { mutate: likeTab, isLoading: isLiking } =
     api.like.createLike.useMutation({

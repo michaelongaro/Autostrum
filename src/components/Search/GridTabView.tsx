@@ -45,7 +45,7 @@ function GridTabView({
       },
       {
         enabled: !!query.username,
-      }
+      },
     );
 
   const { setSearchResultsCount } = useTabStore((state) => ({
@@ -63,8 +63,8 @@ function GridTabView({
         (asPath.includes("/tabs") || asPath.includes("/preferences")) && userId
           ? userId
           : artistProfileBeingViewed
-          ? artistProfileBeingViewed.userId
-          : undefined,
+            ? artistProfileBeingViewed.userId
+            : undefined,
     };
   }
 
@@ -81,7 +81,7 @@ function GridTabView({
       onSuccess: (data) => {
         setSearchResultsCount(data?.pages?.[0]?.count ?? 0);
       },
-    }
+    },
   );
 
   useEffect(() => {
@@ -134,7 +134,7 @@ function GridTabView({
                   />
                 )}
               </AnimatePresence>
-            ))
+            )),
           )}
 
           {isFetching &&

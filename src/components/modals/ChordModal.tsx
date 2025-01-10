@@ -1,20 +1,14 @@
-import FocusTrap from "focus-trap-react";
+import { FocusTrap } from "focus-trap-react";
 import { motion } from "framer-motion";
 import isEqual from "lodash.isequal";
-import { useState, useEffect } from "react";
 import { BsFillPlayFill, BsKeyboard } from "react-icons/bs";
 import { Label } from "~/components/ui/label";
 import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import Chord from "../Tab/Chord";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "~/components/ui/accordion";
-import { isDesktop, isMobile } from "react-device-detect";
+import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
+import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 
 const backdropVariants = {
   expanded: {
@@ -30,10 +24,6 @@ interface ChordModal {
 }
 
 function ChordModal({ chordBeingEdited }: ChordModal) {
-  const [accordionValue, setAccordionValue] = useState(
-    isMobile ? "" : "opened"
-  );
-
   const {
     chords,
     setChords,
@@ -42,9 +32,9 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
     setTabData,
     audioMetadata,
     previewMetadata,
+    capo,
     playPreview,
     pauseAudio,
-    setPreventFramerLayoutShift,
   } = useTabStore((state) => ({
     chords: state.chords,
     setChords: state.setChords,
@@ -53,38 +43,17 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
     setTabData: state.setTabData,
     audioMetadata: state.audioMetadata,
     previewMetadata: state.previewMetadata,
+    capo: state.capo,
     playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
-    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
   }));
 
-  useEffect(() => {
-    setPreventFramerLayoutShift(true);
-
-    setTimeout(() => {
-      const offsetY = window.scrollY;
-      document.body.style.top = `${-offsetY}px`;
-      document.body.classList.add("noScroll");
-    }, 50);
-
-    return () => {
-      setPreventFramerLayoutShift(false);
-
-      setTimeout(() => {
-        const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10)
-        );
-        document.body.classList.remove("noScroll");
-        document.body.style.removeProperty("top");
-        window.scrollTo(0, offsetY || 0);
-      }, 50);
-    };
-  }, [setPreventFramerLayoutShift]);
+  useModalScrollbarHandling();
 
   function handleChordNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
 
-    if (value.length > 10) return;
+    if (value.length > 6) return;
 
     const modifiedChord = structuredClone(chordBeingEdited);
     modifiedChord.value.name = value;
@@ -96,7 +65,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
     const chordNameAlreadyExists = chords.some(
       (chord, index) =>
         chord.name === chordBeingEdited.value.name &&
-        index !== chordBeingEdited.index
+        index !== chordBeingEdited.index,
     );
 
     if (chordNameAlreadyExists) {
@@ -182,8 +151,9 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       initial="closed"
       animate="expanded"
       exit="closed"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && isDesktop) {
+      tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
           if (audioMetadata.playing) pauseAudio();
           setChordBeingEdited(null);
         }
@@ -195,72 +165,19 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
           initialFocus: false,
         }}
       >
-        <div
-          tabIndex={-1}
-          className="baseVertFlex min-w-[300px] max-w-[90vw] gap-8 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 xl:max-w-[50vw]"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              if (audioMetadata.playing) pauseAudio();
-              setChordBeingEdited(null);
-            }
-          }}
-        >
+        <div className="baseVertFlex relative min-w-[300px] max-w-[90vw] gap-4 rounded-md bg-pink-400 p-4 shadow-sm xs:max-w-[380px] xs:gap-8">
           {/* chord title */}
-          <div className="baseVertFlex !items-start gap-2">
-            <Label>Chord name</Label>
-            <Input
-              placeholder="Chord name (e.g. Cmaj7)"
-              value={chordBeingEdited?.value?.name}
-              onChange={handleChordNameChange}
-              className="w-[200px]"
-            />
-          </div>
+          <div className="baseFlex w-full !items-end !justify-between">
+            <div className="baseVertFlex !items-start gap-2">
+              <Label>Chord name</Label>
+              <Input
+                placeholder="(e.g. Em, Cmaj7)"
+                value={chordBeingEdited?.value?.name}
+                onChange={handleChordNameChange}
+                className="w-[150px]"
+              />
+            </div>
 
-          <Accordion
-            type="single"
-            collapsible
-            value={accordionValue}
-            onValueChange={(value) => {
-              setAccordionValue(value);
-            }}
-            className="baseVertFlex lightestGlassmorphic w-full gap-2 rounded-md px-2 py-0 text-sm"
-          >
-            <AccordionItem value="opened">
-              <AccordionTrigger extraPadding className="w-[300px]">
-                <div className="baseFlex w-full gap-2 font-semibold">
-                  <BsKeyboard className="h-6 w-6" />
-                  Hotkeys
-                </div>
-              </AccordionTrigger>
-              <AccordionContent extraPaddingBottom>
-                <div className="baseFlex mt-2 gap-2 sm:gap-6">
-                  <div className="baseFlex gap-2">
-                    <span className="font-semibold">A-G</span>
-                    <span>-</span>
-                    <span>Major chords</span>
-                  </div>
-
-                  <div className="baseFlex gap-2">
-                    <span className="font-semibold">a-g</span>
-                    <span>-</span>
-                    <span>Minor chords</span>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-
-          <Chord
-            chordBeingEdited={chordBeingEdited}
-            editing={true}
-            highlightChord={
-              previewMetadata.indexOfPattern === chordBeingEdited.index &&
-              previewMetadata.playing &&
-              previewMetadata.type === "chord"
-            }
-          />
-
-          <div className="baseVertFlex gap-8">
             <Button
               disabled={
                 (previewMetadata.indexOfPattern === chordBeingEdited.index &&
@@ -268,6 +185,8 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
                   previewMetadata.type === "chord") ||
                 chordBeingEdited.value.frets.every((fret) => fret === "")
               }
+              variant={"playPause"}
+              size={"default"}
               className="baseFlex gap-4"
               onClick={() => {
                 void playPreview({
@@ -278,33 +197,83 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
               }}
             >
               <BsFillPlayFill className="h-6 w-6" />
-              Preview chord
+              Preview
             </Button>
+          </div>
 
-            <div className="baseFlex gap-4">
-              <Button
-                variant={"ghost"}
-                onClick={() => {
-                  if (audioMetadata.playing) pauseAudio();
-                  setChordBeingEdited(null);
-                }}
-              >
-                Close
-              </Button>
-              <Button
-                disabled={
-                  chordBeingEdited.value.frets.every((fret) => fret === "") ||
-                  chordBeingEdited.value.name === "" ||
-                  isEqual(
-                    chordBeingEdited.value,
-                    chords[chordBeingEdited.index]
-                  )
+          <div className="baseVertFlex gap-2">
+            <div className="baseFlex !items-start gap-2">
+              <Chord
+                chordBeingEdited={chordBeingEdited}
+                editing={true}
+                highlightChord={
+                  previewMetadata.indexOfPattern === chordBeingEdited.index &&
+                  previewMetadata.playing &&
+                  previewMetadata.type === "chord"
                 }
-                onClick={handleSaveChord}
-              >
-                Save
-              </Button>
+              />
+
+              {/* ml here seems hacky */}
+              <div className="baseVertFlex ml-0 h-full w-48 gap-4 xs:ml-[30px]">
+                <div className="baseVertFlex lightestGlassmorphic w-full !items-start gap-2 rounded-md p-2 text-sm">
+                  <div className="baseFlex w-[160px] gap-2 font-semibold">
+                    <BsKeyboard className="h-6 w-6" />
+                    Hotkeys
+                  </div>
+
+                  <div className="grid w-full grid-cols-[45px_5px_90px] gap-2">
+                    <div className="baseFlex gap-1">
+                      <kbd>A</kbd> - <kbd>G</kbd>
+                    </div>
+                    <span>-</span>
+                    <span>Major chords</span>
+
+                    <div className="baseFlex gap-1">
+                      <kbd>a</kbd> - <kbd>g</kbd>
+                    </div>
+                    <span>-</span>
+                    <span>Minor chords</span>
+
+                    <kbd className="h-min w-min">x</kbd>
+                    <span>-</span>
+                    <span>Muted string</span>
+                  </div>
+                </div>
+
+                {capo > 0 && (
+                  <div className="baseVertFlex !items-start text-sm">
+                    <p className="font-medium underline">Reminder</p>
+                    <p>
+                      Fret values should be relative to capo on{" "}
+                      {getOrdinalSuffix(capo)} fret.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
+          </div>
+
+          {/* a bit janky to have absolute positioning on this  */}
+          <div className="baseFlex absolute bottom-4 right-9 gap-4">
+            <Button
+              variant={"ghost"}
+              onClick={() => {
+                if (audioMetadata.playing) pauseAudio();
+                setChordBeingEdited(null);
+              }}
+            >
+              Close
+            </Button>
+            <Button
+              disabled={
+                chordBeingEdited.value.frets.every((fret) => fret === "") ||
+                chordBeingEdited.value.name === "" ||
+                isEqual(chordBeingEdited.value, chords[chordBeingEdited.index])
+              }
+              onClick={handleSaveChord}
+            >
+              Save
+            </Button>
           </div>
         </div>
       </FocusTrap>

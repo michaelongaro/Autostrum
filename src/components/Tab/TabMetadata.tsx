@@ -30,7 +30,7 @@ import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
 import { genreList } from "~/utils/genreList";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
-import { parse, toString } from "~/utils/tunings";
+import { tuningNotesToName } from "~/utils/tunings";
 import { CommandCombobox } from "../ui/CommandCombobox";
 import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
 import { Button } from "../ui/button";
@@ -49,10 +49,13 @@ import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
 import type { RefetchTab } from "./Tab";
 import classes from "./TabMetadata.module.css";
-import TabPreview from "./TabPreview";
+import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
+import TabScreenshotPreview from "./TabScreenshotPreview";
+import { PrettyTuning } from "~/components/ui/PrettyTuning";
+import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
 
 type TabMetadata = {
-  customTuning: string;
+  customTuning: string | null;
   setIsPostingOrSaving: Dispatch<SetStateAction<boolean>>;
 } & Partial<RefetchTab>;
 
@@ -64,7 +67,7 @@ function TabMetadata({
   const { userId } = useAuth();
 
   const { push, asPath } = useRouter();
-  const ctx = api.useContext();
+  const ctx = api.useUtils();
 
   const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
   const [takingScreenshot, setTakingScreenshot] = useState(false);
@@ -106,10 +109,6 @@ function TabMetadata({
     sectionProgression,
     bpm,
     setBpm,
-    timeSignature,
-    setTimeSignature,
-    musicalKey,
-    setMusicalKey,
     numberOfLikes,
     capo,
     setCapo,
@@ -145,10 +144,6 @@ function TabMetadata({
     strummingPatterns: state.strummingPatterns,
     tabData: state.tabData,
     sectionProgression: state.sectionProgression,
-    timeSignature: state.timeSignature,
-    setTimeSignature: state.setTimeSignature,
-    musicalKey: state.musicalKey,
-    setMusicalKey: state.setMusicalKey,
     capo: state.capo,
     setCapo: state.setCapo,
     hasRecordedAudio: state.hasRecordedAudio,
@@ -234,7 +229,7 @@ function TabMetadata({
       },
       {
         enabled: !!userId,
-      }
+      },
     );
 
   // owner of tab
@@ -248,7 +243,7 @@ function TabMetadata({
     },
     {
       enabled: !!createdById,
-    }
+    },
   );
 
   function handleGenreChange(stringifiedId: string) {
@@ -267,46 +262,6 @@ function TabMetadata({
       (Number(inputValue) >= 1 && Number(inputValue) <= 500)
     ) {
       setBpm(Number(inputValue) === 0 ? -1 : Number(inputValue));
-    }
-  }
-
-  function handleTimeSignatureChange(e: ChangeEvent<HTMLInputElement>) {
-    const newValue = e.target.value;
-    const parts = newValue.split("/");
-
-    // Prevent '/' from being the first or only character
-    if (newValue === "/" || newValue.endsWith("//")) return;
-
-    // Only allow one '/'
-    if (parts.length > 2) return;
-
-    for (const part of parts) {
-      if (part !== "") {
-        // Disallow more than two digits in either part
-        if (part.length > 2) return;
-
-        const num = parseInt(part, 10);
-
-        // Adjust validation to allow for ongoing inputs like '4/1'
-        if (isNaN(num) || num < 1 || (part.length === 2 && num > 20)) return;
-      }
-    }
-
-    // Check if newValue is purely numeric or contains a slash
-    const regex = /^[0-9/]*$/;
-    if (!regex.test(newValue)) return;
-
-    setTimeSignature(newValue);
-  }
-
-  function handleMuscialKeyChange(e: ChangeEvent<HTMLInputElement>) {
-    const newValue = e.target.value;
-
-    // Only allow valid musical key notations for guitar
-    // E.g., "C", "C#", "Db", "A", "Am", "F#m", etc.
-    const regex = /^(C|C#|Db|D|D#|Eb|E|F|F#|Gb|G|G#|Ab|A|A#|Bb|B)(m?)$/;
-    if (regex.test(newValue) || newValue === "") {
-      setMusicalKey(newValue);
     }
   }
 
@@ -365,7 +320,7 @@ function TabMetadata({
         {
           ...tabData[1]!,
           data: [...tabData[1]!.data.slice(0, 1)],
-        }
+        },
       );
     }
     // only has one section w/ one subsection within, and uses that
@@ -441,11 +396,9 @@ function TabMetadata({
             hasRecordedAudio,
             tuning,
             bpm,
-            timeSignature,
             capo,
             base64RecordedAudioFile,
             shouldUpdateInS3,
-            musicalKey,
             base64TabScreenshot: base64Screenshot,
             type: asPath.includes("create") ? "create" : "update",
           });
@@ -469,13 +422,11 @@ function TabMetadata({
       tuning: originalTabData.tuning,
       bpm: originalTabData.bpm,
       sectionProgression: originalTabData.sectionProgression,
-      timeSignature: originalTabData.timeSignature,
       capo: originalTabData.capo,
       createdById: originalTabData.createdById,
       hasRecordedAudio: originalTabData.hasRecordedAudio,
       chords: originalTabData.chords,
       strummingPatterns: originalTabData.strummingPatterns,
-      musicalKey: originalTabData.musicalKey,
     };
 
     const sanitizedCurrentTabData = {
@@ -487,13 +438,11 @@ function TabMetadata({
       tuning,
       bpm,
       sectionProgression,
-      timeSignature,
       capo,
       createdById,
       hasRecordedAudio,
       chords,
       strummingPatterns,
-      musicalKey,
     };
 
     return isEqual(originalData, sanitizedCurrentTabData) && !shouldUpdateInS3;
@@ -557,7 +506,7 @@ function TabMetadata({
     }
 
     return (
-      <div className="baseFlex w-full max-w-[350px] bg-pink-100 p-2 pt-1 text-sm text-pink-950 md:max-w-[400px] md:text-base">
+      <div className="baseVertFlex w-full max-w-[350px] bg-pink-100 p-2 pt-1 text-sm text-pink-950 md:max-w-[400px] md:text-base">
         <div className="baseFlex !flex-nowrap gap-2">
           <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
           <p>Only registered users can publish a tab.</p>
@@ -569,26 +518,11 @@ function TabMetadata({
     );
   }
 
-  function getOrdinalSuffix(num: number) {
-    const j = num % 10,
-      k = num % 100;
-    if (j === 1 && k !== 11) {
-      return `${num}st`;
-    }
-    if (j === 2 && k !== 12) {
-      return `${num}nd`;
-    }
-    if (j === 3 && k !== 13) {
-      return `${num}rd`;
-    }
-    return `${num}th`;
-  }
-
   return (
     <>
       {editing && (
         <div className="baseVertFlex w-full gap-2">
-          <div className="baseFlex w-full !items-start !justify-between p-4 md:!items-center">
+          <div className="baseVertFlex w-full !items-start !justify-between gap-2 p-4 sm:!flex-row md:!items-center">
             <div className="baseFlex">
               {!asPath.includes("create") && (
                 <Button
@@ -602,7 +536,7 @@ function TabMetadata({
               )}
             </div>
 
-            <div className="baseFlex !flex-col-reverse !items-end gap-2 md:!flex-row md:!items-center">
+            <div className="baseFlex flex-wrap !justify-end gap-2">
               <>
                 {!asPath.includes("create") && (
                   <Popover
@@ -620,8 +554,8 @@ function TabMetadata({
                         {showDeleteCheckmark && !isDeleting
                           ? "Deleted"
                           : isDeleting
-                          ? "Deleting"
-                          : "Delete"}
+                            ? "Deleting"
+                            : "Delete"}
                         <FaTrashAlt className="h-4 w-4" />
                         <AnimatePresence mode="wait">
                           {isDeleting && (
@@ -719,7 +653,7 @@ function TabMetadata({
                         setUnregisteredPopoverTimeoutId(
                           setTimeout(() => {
                             setShowUnregisteredRecordingPopover(false);
-                          }, 2000)
+                          }, 2000),
                         );
                       }
                     }}
@@ -736,7 +670,7 @@ function TabMetadata({
                         }
                       }}
                     >
-                      <div className="baseFlex gap-2">
+                      <div className="baseFlex gap-2 whitespace-nowrap text-nowrap">
                         {hasRecordedAudio ? "Edit recording" : "Record tab"}
                         <FaMicrophoneAlt className="h-4 w-4" />
                       </div>
@@ -793,8 +727,8 @@ function TabMetadata({
                             !takingScreenshot
                               ? "Published"
                               : isPosting || takingScreenshot
-                              ? "Publishing"
-                              : "Publish"
+                                ? "Publishing"
+                                : "Publish"
                           }`
                         : `${
                             showPublishCheckmark &&
@@ -802,8 +736,8 @@ function TabMetadata({
                             !takingScreenshot
                               ? "Saved"
                               : isPosting || takingScreenshot
-                              ? "Saving"
-                              : "Save"
+                                ? "Saving"
+                                : "Save"
                           }`}
 
                       <AnimatePresence mode="wait">
@@ -860,6 +794,7 @@ function TabMetadata({
               </>
             </div>
           </div>
+
           <div className={classes.editingMetadataContainer}>
             <div
               className={`${
@@ -875,7 +810,7 @@ function TabMetadata({
                 placeholder="My new tab"
                 value={title}
                 showingErrorShakeAnimation={showPulsingError && !title}
-                className="w-full md:w-72"
+                className="w-full max-w-72"
                 onChange={(e) => {
                   if (e.target.value.length > 30) return;
                   setTitle(e.target.value);
@@ -990,6 +925,7 @@ function TabMetadata({
                 placeholder="0"
                 inputMode="numeric"
                 pattern="[0-9]*"
+                className="w-12"
                 value={capo === -1 ? "" : capo}
                 onChange={handleCapoChange}
               />
@@ -1001,45 +937,22 @@ function TabMetadata({
               } baseVertFlex relative w-16 max-w-sm !items-start gap-1.5`}
             >
               <Label htmlFor="bpm">
-                BPM <span className="text-destructiveRed">*</span>
+                Tempo <span className="text-destructiveRed">*</span>
               </Label>
-              <Input
-                type="text"
-                placeholder="75"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={bpm === -1 ? "" : bpm}
-                showingErrorShakeAnimation={showPulsingError && bpm === -1}
-                onChange={handleBpmChange}
-              />
-            </div>
-
-            <div
-              className={`${
-                classes.timingSignature ?? ""
-              } baseVertFlex w-16 max-w-sm !items-start gap-1.5`}
-            >
-              <Label htmlFor="timing">Timing</Label>
-              <Input
-                type="text"
-                placeholder="4/4"
-                value={timeSignature ?? ""}
-                onChange={handleTimeSignatureChange}
-              />
-            </div>
-
-            <div
-              className={`${
-                classes.musicalKey ?? ""
-              } baseVertFlex w-16 max-w-sm !items-start gap-1.5`}
-            >
-              <Label htmlFor="musicalKey">Key</Label>
-              <Input
-                type="text"
-                placeholder="E"
-                value={musicalKey ?? ""}
-                onChange={handleMuscialKeyChange}
-              />
+              <div className="baseFlex">
+                <QuarterNote className="-ml-1 size-5" />
+                <Input
+                  type="text"
+                  placeholder="75"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="w-[50px]"
+                  value={bpm === -1 ? "" : bpm}
+                  showingErrorShakeAnimation={showPulsingError && bpm === -1}
+                  onChange={handleBpmChange}
+                />
+                <span className="ml-1">BPM</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1097,7 +1010,7 @@ function TabMetadata({
                                   width={75}
                                   height={75}
                                   quality={100}
-                                  onLoadingComplete={() => {
+                                  onLoad={() => {
                                     setProfileImageLoaded(true);
                                   }}
                                   style={{
@@ -1113,9 +1026,7 @@ function TabMetadata({
                                   opacity: !profileImageLoaded ? 1 : 0,
                                   zIndex: !profileImageLoaded ? 1 : -1,
                                 }}
-                                className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 shadow-md transition-opacity
-                              ${!profileImageLoaded ? "animate-pulse" : ""}
-                            `}
+                                className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 shadow-md transition-opacity ${!profileImageLoaded ? "animate-pulse" : ""} `}
                               ></div>
                             </>
                           ) : (
@@ -1129,11 +1040,11 @@ function TabMetadata({
                           <div className="grid grid-cols-1 grid-rows-1">
                             <>
                               {tabCreator ? (
-                                <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate ">
+                                <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate">
                                   {tabCreator.username}
                                 </span>
                               ) : (
-                                <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-5 w-20 animate-pulse rounded-md bg-pink-300 "></div>
+                                <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-5 w-20 animate-pulse rounded-md bg-pink-300"></div>
                               )}
                             </>
                           </div>
@@ -1161,7 +1072,7 @@ function TabMetadata({
                   asPath.includes("create")) && (
                   <Button
                     disabled={isLoadingARoute}
-                    className="baseFlex gap-2"
+                    className="baseFlex gap-2 whitespace-nowrap text-nowrap"
                     onClick={() => {
                       if (
                         asPath.includes("create") ||
@@ -1188,7 +1099,7 @@ function TabMetadata({
                     <Button
                       disabled={!tabCreator}
                       variant={"ghost"}
-                      className="px-3 py-1"
+                      className="px-0 py-1"
                     >
                       <Link
                         href={`/artist/${tabCreator?.username ?? ""}`}
@@ -1206,7 +1117,7 @@ function TabMetadata({
                                   width={75}
                                   height={75}
                                   quality={100}
-                                  onLoadingComplete={() => {
+                                  onLoad={() => {
                                     setProfileImageLoaded(true);
                                   }}
                                   style={{
@@ -1222,9 +1133,7 @@ function TabMetadata({
                                   opacity: !profileImageLoaded ? 1 : 0,
                                   zIndex: !profileImageLoaded ? 1 : -1,
                                 }}
-                                className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 shadow-md transition-opacity
-                              ${!profileImageLoaded ? "animate-pulse" : ""}
-                            `}
+                                className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 shadow-md transition-opacity ${!profileImageLoaded ? "animate-pulse" : ""} `}
                               ></div>
                             </>
                           ) : (
@@ -1238,11 +1147,11 @@ function TabMetadata({
                           <div className="grid grid-cols-1 grid-rows-1">
                             <>
                               {tabCreator ? (
-                                <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate ">
+                                <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate">
                                   {tabCreator.username}
                                 </span>
                               ) : (
-                                <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-5 w-20 animate-pulse rounded-md bg-pink-300 "></div>
+                                <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-5 w-20 animate-pulse rounded-md bg-pink-300"></div>
                               )}
                             </>
                           </div>
@@ -1254,7 +1163,7 @@ function TabMetadata({
                       </Link>
                     </Button>
 
-                    <p className="ml-2 text-sm text-pink-200">
+                    <p className="text-sm text-pink-200">
                       {updatedAt && updatedAt.getTime() !== createdAt?.getTime()
                         ? `Updated on ${formatDate(updatedAt)}`
                         : `Created on ${formatDate(createdAt ?? new Date())}`}
@@ -1312,43 +1221,17 @@ function TabMetadata({
             )}
           </div>
 
-          <div className={classes.metadataContainer}>
-            <div
-              className={`${
-                classes.description ?? ""
-              } baseVertFlex w-full !items-start gap-2 lg:w-[90%]`}
-            >
-              <div className="font-semibold">Description</div>
-
-              <div className="baseVertFlex !items-start gap-2 text-sm md:text-base">
-                {description.length > 0 ? (
-                  description
-                    .split("\n")
-                    .map((paragraph, index) => <p key={index}>{paragraph}</p>)
-                ) : (
-                  <p className="italic text-pink-200">
-                    No description provided.
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="baseVertFlex w-full gap-4 md:flex-row md:items-start md:gap-8">
-              <div className="baseFlex w-full !items-start !justify-evenly gap-4 md:w-auto md:flex-row md:gap-8">
-                <div
-                  className={`${
-                    classes.genre ?? ""
-                  } baseVertFlex !items-start gap-2`}
-                >
+          <div className="baseVertFlex w-full gap-4 p-4 xl:!flex-row xl:!items-start xl:gap-6">
+            <div className="baseVertFlex h-full w-full !items-start gap-4 sm:!flex-row sm:!justify-start sm:gap-6 xl:w-[50%]">
+              <div className="baseFlex !items-start !justify-start gap-6">
+                <div className="baseVertFlex !items-start gap-2">
                   <div className="font-semibold">Genre</div>
                   {genreList[genreId] && (
                     <div
                       style={{
                         backgroundColor: genreList[genreId]?.color,
                       }}
-                      className={`${
-                        classes.genre ?? ""
-                      } baseFlex w-[140px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]`}
+                      className="baseFlex w-[145px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
                     >
                       {genreList[genreId]?.name}
                       <Image
@@ -1365,61 +1248,55 @@ function TabMetadata({
                     </div>
                   )}
                 </div>
-                <div
-                  className={`${
-                    classes.tuning ?? ""
-                  } baseVertFlex !items-start gap-2`}
-                >
+
+                <div className="baseVertFlex !items-start gap-2">
                   <div className="font-semibold">Tuning</div>
-                  <div className="rounded-md border-2 border-pink-100 px-2 py-2.5 text-sm font-semibold md:px-4 md:py-2 md:text-base">
-                    {toString(parse(tuning), { pad: 2 })}
-                  </div>
+                  <p className="baseFlex h-[44px] w-[145px] rounded-md border-2 font-medium">
+                    {tuningNotesToName[
+                      tuning.toLowerCase() as keyof typeof tuningNotesToName
+                    ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
+                  </p>
                 </div>
               </div>
 
-              <div className="baseFlex w-full !items-start !justify-evenly md:w-auto md:flex-row md:gap-8">
-                <div
-                  className={`${
-                    classes.bpm ?? ""
-                  } baseVertFlex !items-start gap-2`}
-                >
-                  <div className="font-semibold">BPM</div>
-                  <div>{bpm === -1 ? "" : bpm}</div>
+              <div className="baseFlex !items-start !justify-start gap-6">
+                <div className="baseVertFlex !items-start gap-2">
+                  <div className="font-semibold">Tempo</div>
+                  <div className="baseFlex">
+                    <QuarterNote className="-ml-1 size-5" />
+                    <span>{bpm === -1 ? "" : bpm}</span>
+                    <span className="ml-1">BPM</span>
+                  </div>
                 </div>
 
-                {timeSignature && (
-                  <div
-                    className={`${
-                      classes.timingSignature ?? ""
-                    } baseVertFlex !items-start gap-2`}
-                  >
-                    <div className="font-semibold">Timing</div>
-                    <div>{timeSignature}</div>
-                  </div>
-                )}
-
-                {/* feels a bit weird with "none" option, but felt weird leaving so
-                    much extra space */}
-                <div
-                  className={`${
-                    classes.capo ?? ""
-                  } baseVertFlex !items-start gap-2`}
-                >
+                <div className="baseVertFlex ml-[58px] !items-start gap-2 sm:ml-0">
                   <p className="font-semibold">Capo</p>
-                  <p>
+                  <p className="whitespace-nowrap text-nowrap">
                     {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
                   </p>
                 </div>
+              </div>
+            </div>
 
-                {musicalKey && (
-                  <div
-                    className={`${
-                      classes.musicalKey ?? ""
-                    } baseVertFlex !items-start gap-2`}
-                  >
-                    <div className="font-semibold">Key</div>
-                    <div>{musicalKey}</div>
-                  </div>
+            <Separator
+              orientation="vertical"
+              className="hidden h-32 w-[1px] xl:block"
+            />
+
+            <div className="baseVertFlex !items-start gap-2 !self-start xl:w-[50%]">
+              <div className="font-semibold">Description</div>
+
+              <div className="baseVertFlex !items-start gap-2 text-wrap break-words text-sm md:text-base">
+                {description.length > 0 ? (
+                  description.split("\n").map((paragraph, index) => (
+                    <p key={index} className="text-wrap break-words">
+                      {paragraph}
+                    </p>
+                  ))
+                ) : (
+                  <p className="italic text-pink-200">
+                    No description provided.
+                  </p>
                 )}
               </div>
             </div>
@@ -1438,8 +1315,8 @@ function TabMetadata({
               }}
               className="baseFlex h-[581px] w-[1245px] scale-75"
             >
-              <div className="h-[581px] w-[1245px] bg-pink-500 bg-opacity-30 ">
-                <TabPreview
+              <div className="h-[581px] w-[1245px] bg-pink-500 bg-opacity-30">
+                <TabScreenshotPreview
                   baselineBpm={bpm}
                   tuning={tuning}
                   tabData={minifiedTabData}
@@ -1448,7 +1325,7 @@ function TabMetadata({
               </div>
             </div>
           </div>,
-          document.getElementById("mainTabComponent")!
+          document.getElementById("mainTabComponent")!,
         )}
     </>
   );

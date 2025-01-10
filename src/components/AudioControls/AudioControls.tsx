@@ -1,22 +1,20 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { isMobileOnly } from "react-device-detect";
 import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
-import { FaVolumeDown, FaVolumeMute, FaVolumeUp } from "react-icons/fa";
+  BsFillVolumeDownFill,
+  BsFillVolumeMuteFill,
+  BsFillVolumeUpFill,
+} from "react-icons/bs";
+import { CgArrowsShrinkH } from "react-icons/cg";
 import { GoChevronDown, GoChevronUp } from "react-icons/go";
 import { IoSettingsOutline } from "react-icons/io5";
 import { RiArrowGoBackFill } from "react-icons/ri";
 import { TiArrowLoop } from "react-icons/ti";
 import { Drawer } from "vaul";
 import { AudioProgressSlider } from "~/components/ui/AudioProgressSlider";
-import { CgArrowsShrinkH } from "react-icons/cg";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import {
@@ -43,14 +41,14 @@ import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
+import scrollChordIntoView from "~/utils/scrollChordIntoView";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
-import PlayButtonIcon from "./PlayButtonIcon";
 import {
   resetTabSliderPosition,
   returnTransitionToTabSlider,
 } from "~/utils/tabSliderHelpers";
-import scrollChordIntoView from "~/utils/scrollChordIntoView";
 import { LoopingRangeSlider } from "../ui/LoopingRangeSlider";
+import PlayButtonIcon from "./PlayButtonIcon";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -76,12 +74,7 @@ const widthAndHeightVariants = {
   },
 };
 
-interface AudioControls {
-  visibility: "expanded" | "minimized";
-  setVisibility: Dispatch<SetStateAction<"expanded" | "minimized">>;
-}
-
-function AudioControls({ visibility, setVisibility }: AudioControls) {
+function AudioControls() {
   const { query, asPath } = useRouter();
 
   const [tabProgressValue, setTabProgressValue] = useState(0);
@@ -93,6 +86,10 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
+
+  const [visibility, setVisibility] = useState<"expanded" | "minimized">(
+    "expanded",
+  );
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandleDisabled, setDrawerHandleDisabled] = useState(false);
@@ -328,7 +325,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
             void res.arrayBuffer().then((arrayBuffer) => {
               void convertAudioBuffer(arrayBuffer);
             });
-          }
+          },
         );
       }
     } else if (!recordedAudioBuffer) {
@@ -351,7 +348,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
   }, [audioMetadata.type]);
 
   function resetAudioStateOnSourceChange(
-    audioTypeBeingChangedTo: "Generated" | "Artist recording"
+    audioTypeBeingChangedTo: "Generated" | "Artist recording",
   ) {
     if (oneSecondIntervalRef.current) {
       clearInterval(oneSecondIntervalRef.current);
@@ -511,23 +508,21 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
       animate="expanded"
       exit="closed"
     >
-      <div className="baseVertFlex audioControlsBoxShadow h-full w-[95vw] gap-2 rounded-xl bg-pink-600 p-2 transition-opacity lg:rounded-full lg:px-8 lg:py-2 xl:w-10/12 2xl:w-1/2">
+      <div className="baseVertFlex audioControlsBoxShadow h-full w-[95vw] rounded-xl bg-pink-600 p-2 transition-opacity lg:rounded-full lg:px-8 lg:py-2 xl:w-10/12 2xl:w-1/2">
         <AnimatePresence mode="sync">
           {aboveLargeViewportWidth && visibility === "minimized" && (
             <motion.div
               key={"audioControlsTopLayer"}
+              style={{ overflow: "hidden" }}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 30, opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.35 }}
               className="baseFlex"
-              variants={widthAndHeightVariants}
-              initial="closed"
-              animate="expanded"
-              exit="closed"
-              transition={{
-                duration: 0.15,
-              }}
             >
               <Button
                 variant="ghost"
-                className="h-5 w-8 p-0"
+                className="mb-2 h-5 w-8 p-0"
                 onClick={() => setVisibility("expanded")}
               >
                 <GoChevronUp className="h-5 w-5" />
@@ -597,7 +592,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               className="col-span-2 h-7 w-7 p-0"
               onClick={() =>
                 setVisibility(
-                  visibility === "minimized" ? "expanded" : "minimized"
+                  visibility === "minimized" ? "expanded" : "minimized",
                 )
               }
             >
@@ -624,28 +619,70 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                 </Button>
               </div>
             ) : (
-              <div
-                className={`baseFlex col-span-5 w-full !flex-nowrap gap-2 md:w-1/2 md:justify-self-end ${
-                  visibility === "minimized" ? "opacity-0" : "opacity-100"
-                } transition-opacity`}
-              >
-                {volume === 0 ? (
-                  <FaVolumeMute className="h-5 w-5" />
-                ) : volume < 1 ? (
-                  <FaVolumeDown className="h-5 w-5" />
-                ) : (
-                  <FaVolumeUp className="h-5 w-5" />
+              <>
+                {!isMobileOnly && (
+                  <div
+                    className={`baseFlex col-span-5 w-full !flex-nowrap gap-2 md:w-1/2 md:justify-self-end ${
+                      visibility === "minimized" ? "opacity-0" : "opacity-100"
+                    } transition-opacity`}
+                  >
+                    <AnimatePresence mode="popLayout">
+                      {volume === 0 && (
+                        <motion.div
+                          key="muteIcon"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="baseFlex"
+                        >
+                          <BsFillVolumeMuteFill
+                            size={"1.5rem"}
+                            className="shrink-0"
+                          />
+                        </motion.div>
+                      )}
+                      {volume > 0 && volume < 1 ? (
+                        <motion.div
+                          key="lowVolumeIcon"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="baseFlex"
+                        >
+                          <BsFillVolumeDownFill
+                            size={"1.5rem"}
+                            className="shrink-0"
+                          />
+                        </motion.div>
+                      ) : null}
+                      {volume >= 1 ? (
+                        <motion.div
+                          key="highVolumeIcon"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="baseFlex"
+                        >
+                          <BsFillVolumeUpFill
+                            size={"1.5rem"}
+                            className="shrink-0"
+                          />
+                        </motion.div>
+                      ) : null}
+                    </AnimatePresence>
+
+                    <Slider
+                      value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
+                      min={0}
+                      max={100}
+                      step={1}
+                      onValueChange={(value) =>
+                        localStorageVolume.set(`${value[0]! / 50}`)
+                      } // 100 felt too quiet/narrow of a volume range
+                    ></Slider>
+                  </div>
                 )}
-                <Slider
-                  value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
-                  min={0}
-                  max={100}
-                  step={1}
-                  onValueChange={(value) =>
-                    localStorageVolume.set(`${value[0]! / 50}`)
-                  } // 100 felt too quiet/narrow of a volume range
-                ></Slider>
-              </div>
+              </>
             )}
           </div>
         )}
@@ -665,7 +702,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   onValueChange={(value) => {
                     if (value !== audioMetadata.type) {
                       resetAudioStateOnSourceChange(
-                        value as "Generated" | "Artist recording"
+                        value as "Generated" | "Artist recording",
                       );
                     }
                   }}
@@ -709,7 +746,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                         | "electric_guitar_clean"
                         | "electric_guitar_jazz"
                         | "acoustic_grand_piano"
-                        | "electric_grand_piano"
+                        | "electric_grand_piano",
                     );
                   }}
                 >
@@ -761,7 +798,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                     pauseAudio();
 
                     const newPlaybackSpeed = Number(
-                      value.slice(0, value.length - 1)
+                      value.slice(0, value.length - 1),
                     ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
 
                     // Normalize the progress value to 1x speed
@@ -857,13 +894,50 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="p-2">
-                    {volume === 0 ? (
-                      <FaVolumeMute className="h-5 w-5" />
-                    ) : volume < 1 ? (
-                      <FaVolumeDown className="h-5 w-5" />
-                    ) : (
-                      <FaVolumeUp className="h-5 w-5" />
-                    )}
+                    <AnimatePresence mode="popLayout">
+                      {volume === 0 && (
+                        <motion.div
+                          key="muteIcon"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="baseFlex"
+                        >
+                          <BsFillVolumeMuteFill
+                            size={"1.5rem"}
+                            className="shrink-0"
+                          />
+                        </motion.div>
+                      )}
+                      {volume > 0 && volume < 1 ? (
+                        <motion.div
+                          key="lowVolumeIcon"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="baseFlex"
+                        >
+                          <BsFillVolumeDownFill
+                            size={"1.5rem"}
+                            className="shrink-0"
+                          />
+                        </motion.div>
+                      ) : null}
+                      {volume >= 1 ? (
+                        <motion.div
+                          key="highVolumeIcon"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="baseFlex"
+                        >
+                          <BsFillVolumeUpFill
+                            size={"1.5rem"}
+                            className="shrink-0"
+                          />
+                        </motion.div>
+                      ) : null}
+                    </AnimatePresence>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
@@ -887,7 +961,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
         )}
 
         {/* bottom layer: play/pause, loop, slider*/}
-        <div className="baseFlex w-full !flex-nowrap gap-4">
+        <div className="baseFlex mt-2 w-full !flex-nowrap gap-4">
           {/* audio source, instrument, speed selects*/}
 
           {/* play/pause button*/}
@@ -915,8 +989,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   ? tabProgressValue
                   : Math.min(
                       tabProgressValue,
-                      currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
-                    )
+                      currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0,
+                    ),
               )}
             </p>
 
@@ -963,8 +1037,8 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                       ? Math.floor(recordedAudioBuffer?.duration)
                       : 1
                     : currentlyPlayingMetadata
-                    ? currentlyPlayingMetadata.at(-1)?.elapsedSeconds
-                    : 1
+                      ? currentlyPlayingMetadata.at(-1)?.elapsedSeconds
+                      : 1
                 }
                 step={1}
                 disabled={disablePlayButton}
@@ -1042,7 +1116,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                   ? recordedAudioBuffer?.duration
                     ? Math.floor(recordedAudioBuffer.duration)
                     : 0
-                  : currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0
+                  : (currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0),
               )}
             </p>
           </div>
@@ -1157,7 +1231,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                       onValueChange={(value) => {
                         if (value !== audioMetadata.type) {
                           resetAudioStateOnSourceChange(
-                            value as "Generated" | "Artist recording"
+                            value as "Generated" | "Artist recording",
                           );
                         }
                       }}
@@ -1198,11 +1272,11 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                             | "acoustic_guitar_nylon"
                             | "acoustic_guitar_steel"
                             | "electric_guitar_clean"
-                            | "electric_guitar_jazz"
+                            | "electric_guitar_jazz",
                         );
                       }}
                     >
-                      <SelectTrigger className="max-w-[15rem] border-ring">
+                      <SelectTrigger className="w-48 border-ring">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1249,7 +1323,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                         pauseAudio();
 
                         const newPlaybackSpeed = Number(
-                          value.slice(0, value.length - 1)
+                          value.slice(0, value.length - 1),
                         ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
 
                         // Normalize the progress value to 1x speed
@@ -1265,7 +1339,7 @@ function AudioControls({ visibility, setVisibility }: AudioControls) {
                         setPlaybackSpeed(newPlaybackSpeed);
                       }}
                     >
-                      <SelectTrigger className="w-24 border-ring">
+                      <SelectTrigger className="w-[85px] border-ring">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>

@@ -27,21 +27,21 @@ import {
   getDynamicNoteLengthIcon,
 } from "~/utils/bpmIconRenderingHelpers";
 
-// ---WARNING---: I really didn't want to have to do this approach, but this is the only way
-// I could avoid the horrendous performance/rerender issues that would happen when many
-// TabPreviews were being rendered at once. This just has a all the tab related component's
-// jsx "guts" in one file, without any extra store logic/extra functions. There are most likely
-// weird styling syntax choices since I just quickly copied over the jsx from the other files
-// and edited out the parts that didn't seem necessary.
+// Relatively minimalistic rendition of <Tab> that is used for the screenshot preview that is uploaded to s3 on creation/when the tab is updated. It was made pretty haphazardly so odd decisions/choices are to be expected.
 
-interface TabPreview {
+interface TabScreenshotPreview {
   tabData: Section[];
   baselineBpm: number;
   tuning: string;
   chords: ChordType[];
 }
 
-function TabPreview({ tabData, baselineBpm, tuning, chords }: TabPreview) {
+function TabScreenshotPreview({
+  tabData,
+  baselineBpm,
+  tuning,
+  chords,
+}: TabScreenshotPreview) {
   return (
     <div className="mt-4 w-full">
       {tabData.map((section, index) => (
@@ -101,12 +101,13 @@ function PreviewSectionContainer({
                 {(subSection.type === "tab" ||
                   chordSequencesAllHaveSameNoteLength(subSection)) && (
                   <div className="baseFlex gap-1">
-                    {getDynamicNoteLengthIcon(
-                      subSection.type === "tab"
-                        ? "1/4th"
-                        : subSection.data[0]?.strummingPattern.noteLength ??
-                            "1/4th"
-                    )}
+                    {getDynamicNoteLengthIcon({
+                      noteLength:
+                        subSection.type === "tab"
+                          ? "1/4th"
+                          : (subSection.data[0]?.strummingPattern.noteLength ??
+                            "1/4th"),
+                    })}
                     {subSection.bpm === -1 ? baselineBpm : subSection.bpm} BPM
                   </div>
                 )}
@@ -215,7 +216,7 @@ export const MemoizedPreviewSubSectionContainer = memo(
         nextProps.currentSubSectionisPlaying &&
       prevProps.editingLoopRange === nextProps.editingLoopRange
     );
-  }
+  },
 );
 
 interface PreviewChordSection {
@@ -270,9 +271,9 @@ function PreviewChordSection({
                   <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
                     {showBpm(chordSequence) && (
                       <div className="baseFlex gap-1">
-                        {getDynamicNoteLengthIcon(
-                          chordSequence.strummingPattern.noteLength
-                        )}
+                        {getDynamicNoteLengthIcon({
+                          noteLength: chordSequence.strummingPattern.noteLength,
+                        })}
                         {chordSequence.bpm === -1
                           ? subSectionData.bpm === -1
                             ? baselineBpm
@@ -399,8 +400,8 @@ function PreviewStrummingPattern({
           beatIndex % 4 === 0
             ? beatIndex / 4 + 1
             : beatIndex % 2 === 0
-            ? "&"
-            : "";
+              ? "&"
+              : "";
         break;
       case "1/4th triplet":
         beat = beatIndex % 3 === 0 ? (beatIndex / 3) * 2 + 1 : "";
@@ -443,7 +444,7 @@ function PreviewStrummingPattern({
             name={`section${sectionIndex}-subSection${subSectionIndex}-chordSequence${
               chordSequenceIndex ?? ""
             }-chord${strumIndex}`}
-            className="baseFlex "
+            className="baseFlex"
           >
             <div
               style={{
@@ -484,7 +485,7 @@ function PreviewStrummingPattern({
                       style={{
                         color: "hsl(324, 77%, 95%)",
                       }}
-                      className="mx-0.5  h-6 text-base font-semibold transition-colors"
+                      className="mx-0.5 h-6 text-base font-semibold transition-colors"
                     >
                       {chordSequenceData?.[strumIndex]}
                     </p>
@@ -501,7 +502,7 @@ function PreviewStrummingPattern({
                         chords[
                           chords.findIndex(
                             (chord) =>
-                              chord.name === chordSequenceData?.[strumIndex]
+                              chord.name === chordSequenceData?.[strumIndex],
                           ) ?? 0
                         ],
                     }}
@@ -688,7 +689,7 @@ function PreviewTabSection({
     >
       {children}
 
-      <div className="baseFlex relative w-full !items-start !justify-start pb-8 pt-4">
+      <div className="baseFlex relative w-full flex-wrap !items-start !justify-start pb-8 pt-4">
         <div
           style={{
             height: "168px",
@@ -698,7 +699,7 @@ function PreviewTabSection({
           className="baseVertFlex relative rounded-l-2xl border-2 border-pink-100 p-2"
         >
           {toString(parse(tuning), { pad: 1 })
-            .split(" ")
+            .split("")
             .reverse()
             .map((note, index) => (
               <div key={index}>{note}</div>
@@ -881,7 +882,7 @@ function PreviewTabNotesColumn({
     <Element
       id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
       name={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
-      className="baseVertFlex "
+      className="baseVertFlex"
     >
       <div className="baseFlex relative">
         <div className="baseVertFlex">
@@ -946,7 +947,10 @@ function PreviewTabNotesColumn({
                     >
                       {(columnData[8] === "1/8th" ||
                         columnData[8] === "1/16th") &&
-                        getDynamicNoteLengthIcon(columnData[8], true)}
+                        getDynamicNoteLengthIcon({
+                          noteLength: columnData[8],
+                          forInlineTabViewing: true,
+                        })}
                       {columnData[7]?.includes("^") && (
                         <div className="relative top-1 rotate-180">v</div>
                       )}
@@ -1008,10 +1012,18 @@ function PreviewTabNote({ note }: PreviewTabNote) {
     <div className="baseFlex w-[35px]">
       <div className="my-3 h-[1px] flex-[1] bg-pink-100/50"></div>
       {/* {formatNoteAndEffect(note)} */}
-      <div>{note}</div>
+      <div
+        // "x" wasn't as centered as regular numbers were, manual adjustment below
+        style={{
+          marginTop: note === "x" ? "-2px" : "0px",
+          marginBottom: note === "x" ? "2px" : "0px",
+        }}
+      >
+        {note}
+      </div>
       <div className="my-3 h-[1px] flex-[1] bg-pink-100/50"></div>
     </div>
   );
 }
 
-export default TabPreview;
+export default TabScreenshotPreview;

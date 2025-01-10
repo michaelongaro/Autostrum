@@ -1,13 +1,14 @@
 import { useAuth } from "@clerk/nextjs";
-import FocusTrap from "focus-trap-react";
+import { FocusTrap } from "focus-trap-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AiOutlineWarning } from "react-icons/ai";
 import { FaTrashAlt } from "react-icons/fa";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
+import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 
@@ -22,44 +23,20 @@ const backdropVariants = {
 
 function DeleteAccountModal() {
   const { push, reload } = useRouter();
-  const ctx = api.useContext();
+  const ctx = api.useUtils();
   const { userId } = useAuth();
 
   const [deleteAllOfArtistsTabs, setDeleteAllOfArtistsTabs] = useState(true);
   const [showDeleteCheckmark, setShowDeleteCheckmark] = useState(false);
 
-  const {
-    isLoadingARoute,
-    setShowDeleteAccountModal,
-    setPreventFramerLayoutShift,
-  } = useTabStore((state) => ({
-    isLoadingARoute: state.isLoadingARoute,
-    setShowDeleteAccountModal: state.setShowDeleteAccountModal,
-    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
-  }));
+  const { isLoadingARoute, setShowDeleteAccountModal } = useTabStore(
+    (state) => ({
+      isLoadingARoute: state.isLoadingARoute,
+      setShowDeleteAccountModal: state.setShowDeleteAccountModal,
+    }),
+  );
 
-  useEffect(() => {
-    setPreventFramerLayoutShift(true);
-
-    setTimeout(() => {
-      const offsetY = window.scrollY;
-      document.body.style.top = `${-offsetY}px`;
-      document.body.classList.add("noScroll");
-    }, 50);
-
-    return () => {
-      setPreventFramerLayoutShift(false);
-
-      setTimeout(() => {
-        const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10)
-        );
-        document.body.classList.remove("noScroll");
-        document.body.style.removeProperty("top");
-        window.scrollTo(0, offsetY || 0);
-      }, 50);
-    };
-  }, [setPreventFramerLayoutShift]);
+  useModalScrollbarHandling();
 
   const { mutate: deleteAccount, isLoading: isDeleting } =
     api.artist.deleteArtist.useMutation({
@@ -97,23 +74,19 @@ function DeleteAccountModal() {
       initial="closed"
       animate="expanded"
       exit="closed"
-      // choosing to not allow click outside to close modal
-      // as a way to emphasize the importance of this action
+      tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          setShowDeleteAccountModal(false);
+        }
+      }}
     >
       <FocusTrap
         focusTrapOptions={{
           initialFocus: false,
         }}
       >
-        <div
-          tabIndex={-1}
-          className="baseVertFlex w-[350px] gap-10 rounded-md bg-pink-400 p-2 shadow-sm sm:w-[700px] md:px-8 md:py-4"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setShowDeleteAccountModal(false);
-            }
-          }}
-        >
+        <div className="baseVertFlex w-[350px] gap-10 rounded-md bg-pink-400 p-2 shadow-sm sm:w-[700px] md:px-8 md:py-4">
           <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
             <AiOutlineWarning className="h-5 w-5" />
             <p className="text-lg font-semibold">Delete account</p>
@@ -131,7 +104,7 @@ function DeleteAccountModal() {
                 checked={deleteAllOfArtistsTabs}
                 onCheckedChange={(value) =>
                   setDeleteAllOfArtistsTabs(
-                    value === "indeterminate" ? false : value
+                    value === "indeterminate" ? false : value,
                   )
                 }
                 className="mt-1 h-5 w-5"
@@ -174,8 +147,8 @@ function DeleteAccountModal() {
               {showDeleteCheckmark && !isDeleting
                 ? "Deleted account"
                 : isDeleting
-                ? "Deleting account"
-                : "Delete account"}
+                  ? "Deleting account"
+                  : "Delete account"}
               <FaTrashAlt className="h-4 w-4" />
 
               <AnimatePresence mode="wait">

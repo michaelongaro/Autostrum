@@ -1,4 +1,4 @@
-import FocusTrap from "focus-trap-react";
+import { FocusTrap } from "focus-trap-react";
 import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { isDesktop } from "react-device-detect";
+import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 
 const backdropVariants = {
   expanded: {
@@ -39,7 +39,7 @@ const sectionVariants = {
   },
 };
 
-function SectionProgressionModal() {
+function SectionProgressionDialog() {
   const [localSectionProgression, setLocalSectionProgression] = useState<
     SectionProgression[]
   >([]);
@@ -51,37 +51,14 @@ function SectionProgressionModal() {
     sectionProgression,
     setSectionProgression,
     setShowSectionProgressionModal,
-    setPreventFramerLayoutShift,
   } = useTabStore((state) => ({
     tabData: state.tabData,
     sectionProgression: state.sectionProgression,
     setSectionProgression: state.setSectionProgression,
     setShowSectionProgressionModal: state.setShowSectionProgressionModal,
-    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
   }));
 
-  useEffect(() => {
-    setPreventFramerLayoutShift(true);
-
-    setTimeout(() => {
-      const offsetY = window.scrollY;
-      document.body.style.top = `${-offsetY}px`;
-      document.body.classList.add("noScroll");
-    }, 50);
-
-    return () => {
-      setPreventFramerLayoutShift(false);
-
-      setTimeout(() => {
-        const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10)
-        );
-        document.body.classList.remove("noScroll");
-        document.body.style.removeProperty("top");
-        window.scrollTo(0, offsetY || 0);
-      }, 50);
-    };
-  }, [setPreventFramerLayoutShift]);
+  useModalScrollbarHandling();
 
   useEffect(() => {
     setLocalSectionProgression(structuredClone(sectionProgression));
@@ -98,6 +75,8 @@ function SectionProgressionModal() {
       sectionId: "",
       title: "",
       repetitions: 1,
+      startSeconds: 0, // will be overwritten by useAutoCompileChords
+      endSeconds: 0, // will be overwritten by useAutoCompileChords
     });
     setLocalSectionProgression(newSectionProgression);
 
@@ -141,8 +120,9 @@ function SectionProgressionModal() {
       initial="closed"
       animate="expanded"
       exit="closed"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && isDesktop) {
+      tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
           setShowSectionProgressionModal(false);
         }
       }}
@@ -153,23 +133,15 @@ function SectionProgressionModal() {
           initialFocus: false,
         }}
       >
-        <div
-          tabIndex={-1}
-          className="min-h-[20rem] min-w-[70vw] rounded-md bg-pink-400 p-2 shadow-sm md:min-w-[25rem] md:p-4"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setShowSectionProgressionModal(false);
-            }
-          }}
-        >
-          <div className="baseVertFlex h-full max-h-[90vh] min-h-[20rem] w-full max-w-[90vw] !flex-nowrap !justify-between gap-8">
+        <div className="min-h-[20rem] min-w-[70vw] rounded-md bg-pink-400 p-4 shadow-sm md:min-w-[25rem]">
+          <div className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full max-w-[90vw] !justify-between">
             <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
               <p className="text-lg font-semibold">Section progression</p>
             </div>
 
             <div
               ref={scrollableSectionsRef}
-              className="baseVertFlex max-h-[70vh] w-full !flex-nowrap !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 md:max-h-[70vh] md:w-8/12"
+              className="baseVertFlex mt-8 max-h-[70vh] w-full !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 px-12 md:max-h-[70vh]"
             >
               {localSectionProgression.length > 0 ? (
                 <AnimatePresence mode="wait">
@@ -177,8 +149,9 @@ function SectionProgressionModal() {
                     {localSectionProgression.map((section, index) => (
                       <Section
                         key={section.id}
-                        id={section.id}
                         index={index}
+                        id={section.id}
+                        sectionId={section.sectionId}
                         title={section.title}
                         repetitions={section.repetitions}
                         sections={sections}
@@ -197,14 +170,14 @@ function SectionProgressionModal() {
 
             {localSectionProgression.length > 0 && (
               <Button
-                className="rounded-full !py-5 px-2 md:py-0"
+                className="mt-5 rounded-full !py-5 px-2"
                 onClick={addNewSectionToProgression}
               >
                 <BsPlus className="h-6 w-6 p-0" />
               </Button>
             )}
 
-            <div className="baseFlex gap-4">
+            <div className="baseFlex mt-5 gap-4">
               <Button
                 variant={"ghost"}
                 onClick={() => setShowSectionProgressionModal(false)}
@@ -213,7 +186,11 @@ function SectionProgressionModal() {
               </Button>
 
               <Button
-                disabled={isEqual(localSectionProgression, sectionProgression)}
+                disabled={
+                  localSectionProgression.every(
+                    (section) => section.title === "",
+                  ) || isEqual(localSectionProgression, sectionProgression)
+                }
                 onClick={closeModal}
               >
                 Save
@@ -226,7 +203,7 @@ function SectionProgressionModal() {
   );
 }
 
-export default SectionProgressionModal;
+export default SectionProgressionDialog;
 
 interface Section {
   id: string;
@@ -234,6 +211,7 @@ interface Section {
     id: string;
     title: string;
   }[];
+  sectionId: string;
   title: string;
   repetitions: number;
   index: number;
@@ -245,6 +223,7 @@ interface Section {
 
 function Section({
   id,
+  sectionId,
   title,
   repetitions,
   index,
@@ -252,12 +231,14 @@ function Section({
   localSectionProgression,
   setLocalSectionProgression,
 }: Section) {
-  function handleSectionChange(stringifiedIndex: string) {
-    const newIndex = parseInt(stringifiedIndex);
+  function handleSectionChange(sectionId: string) {
+    const indexOfSection = sections.findIndex(
+      (section) => section.id === sectionId,
+    );
     const newSectionProgression = [...localSectionProgression];
 
-    newSectionProgression[index]!.sectionId = sections[newIndex]!.id;
-    newSectionProgression[index]!.title = sections[newIndex]!.title;
+    newSectionProgression[index]!.sectionId = sectionId;
+    newSectionProgression[index]!.title = sections[indexOfSection]!.title;
     setLocalSectionProgression(newSectionProgression);
   }
 
@@ -305,7 +286,7 @@ function Section({
       animate="expanded"
       exit="closed"
       variants={sectionVariants}
-      className="baseFlex relative w-full !flex-nowrap gap-2"
+      className="baseFlex relative w-full gap-2"
     >
       <div className="baseVertFlex gap-2">
         <Button
@@ -327,23 +308,23 @@ function Section({
           <BiDownArrowAlt className="h-5 w-5"></BiDownArrowAlt>
         </Button>
       </div>
-      <div className="baseFlex lightestGlassmorphic w-full gap-4 rounded-md p-4 px-4 sm:px-4 ">
+      <div className="baseVertFlex lightestGlassmorphic w-full gap-4 rounded-md px-8 py-4 xs:!flex-row sm:px-4">
         <Select
-          value={title === "" ? undefined : title}
-          onValueChange={(value) => handleSectionChange(value)}
+          value={sectionId === "" ? undefined : sectionId}
+          onValueChange={(id) => handleSectionChange(id)}
         >
-          <SelectTrigger className="min-w-[225px]">
+          <SelectTrigger className="w-full xs:w-[175px]">
             <SelectValue placeholder="Select a section">
-              {title === "" ? "Select a section" : title}
+              {title || "Select a section"}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectGroup className="max-h-60 overflow-y-auto">
               <SelectLabel>Sections</SelectLabel>
 
-              {sections.map((section, idx) => {
+              {sections.map((section) => {
                 return (
-                  <SelectItem key={`${section.id}`} value={`${idx}`}>
+                  <SelectItem key={section.id} value={section.id}>
                     {section.title}
                   </SelectItem>
                 );
@@ -352,22 +333,27 @@ function Section({
           </SelectContent>
         </Select>
 
-        <div className="baseFlex gap-2">
-          <span className="mr-1">Repeat</span>
-          x
-          <Input
-            className="max-w-[2.6rem]"
-            type="text"
-            autoComplete="off"
-            placeholder="1"
-            value={repetitions === -1 ? "" : repetitions}
-            onChange={handleRepetitionChange}
-          />
-        </div>
+        <div className="baseFlex gap-4 xs:!flex-row xs:!items-center">
+          <div className="baseFlex gap-2">
+            <span>Repeat</span>
 
-        <Button variant={"destructive"} size={"sm"} onClick={deleteSection}>
-          <FaTrashAlt className="h-5 w-5 text-pink-100" />
-        </Button>
+            <div className="relative w-12">
+              <span className="absolute bottom-[9px] left-2 text-sm">x</span>
+              <Input
+                className="w-12 pl-4"
+                type="text"
+                autoComplete="off"
+                placeholder="1"
+                value={repetitions === -1 ? "" : repetitions}
+                onChange={handleRepetitionChange}
+              />
+            </div>
+          </div>
+
+          <Button variant={"destructive"} onClick={deleteSection}>
+            <FaTrashAlt className="size-4 text-pink-100" />
+          </Button>
+        </div>
       </div>
     </motion.div>
   );

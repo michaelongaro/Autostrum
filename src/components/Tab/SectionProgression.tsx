@@ -1,9 +1,27 @@
-import { BsArrowRightShort } from "react-icons/bs";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
+import { motion } from "framer-motion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "~/components/ui/accordion";
+import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
+import { useState } from "react";
+
+const opacityVariants = {
+  closed: {
+    opacity: 0,
+  },
+  open: {
+    opacity: 1,
+  },
+};
 
 function SectionProgression() {
+  const [accordionValue, setAccordionValue] = useState("closed");
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const { editing, sectionProgression, setShowSectionProgressionModal } =
@@ -19,57 +37,121 @@ function SectionProgression() {
         display: editing
           ? "flex"
           : sectionProgression.length === 0
-          ? "none"
-          : "flex",
-        minWidth: aboveMediumViewportWidth
-          ? sectionProgression.length === 0
-            ? "450px"
-            : "500px"
-          : "300px",
+            ? "none"
+            : "flex",
+        minWidth: aboveMediumViewportWidth ? "500px" : "300px",
       }}
-      className="lightestGlassmorphic baseVertFlex w-1/2 max-w-[91.7%] !items-start
-        gap-4 rounded-md p-2 !shadow-lighterGlassmorphic md:p-4"
+      className="lightestGlassmorphic baseVertFlex w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 !shadow-lighterGlassmorphic md:p-4"
     >
-      <p className="text-lg font-bold text-pink-100">
-        {sectionProgression.length === 0
-          ? "No section progression specified"
-          : "Section progression"}
-      </p>
+      <Accordion
+        type="single"
+        collapsible
+        value={accordionValue}
+        onValueChange={(value) => {
+          setAccordionValue(value);
+        }}
+        className="baseVertFlex w-full !items-start gap-2 rounded-md"
+      >
+        <AccordionItem value="opened" className="w-full">
+          <AccordionTrigger className="w-full">
+            <p
+              style={{
+                textShadow: "0 1px 2px hsla(336, 84%, 17%, 0.25)",
+              }}
+              className="text-lg font-bold"
+            >
+              Section progression
+            </p>
+          </AccordionTrigger>
+          <AccordionContent>
+            {editing ? (
+              <motion.div
+                variants={opacityVariants}
+                initial="closed"
+                animate="open"
+                exit="closed"
+                className="baseVertFlex w-full !items-start"
+              >
+                <div className="mt-4 w-auto gap-2">
+                  {sectionProgression.map((section) => (
+                    <div
+                      key={section.id}
+                      className="grid w-full grid-cols-2 !place-items-start gap-2"
+                    >
+                      <div className="baseFlex gap-2">
+                        <p className="text-stone-400">
+                          {formatSecondsToMinutes(section.startSeconds)}
+                        </p>
+                        <span className="text-stone-400">-</span>
+                        <p className="text-stone-400">
+                          {formatSecondsToMinutes(section.endSeconds)}
+                        </p>
+                      </div>
 
-      {sectionProgression.length > 0 && (
-        <div className="baseVertFlex !items-start !justify-start gap-2 md:flex-row">
-          {sectionProgression.map((section, index) => (
-            <div key={section.id} className="baseFlex gap-2">
-              <p className="font-semibold">{section.title}</p>
-              {section.repetitions > 1 && <p>x{section.repetitions}</p>}
+                      <div className="baseFlex gap-2">
+                        <p className="text-nowrap font-semibold">
+                          {section.title}
+                        </p>
+                        {section.repetitions > 1 && (
+                          <p>x{section.repetitions}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-              {index !== sectionProgression.length - 1 && (
-                <BsArrowRightShort className="h-6 w-8 text-pink-100" />
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+                <Button
+                  size={"sm"}
+                  className={`${sectionProgression.length > 0 ? "mt-4" : ""}`}
+                  onClick={() => setShowSectionProgressionModal(true)}
+                >
+                  {sectionProgression.length === 0 ? "Add one" : "Edit"}
+                </Button>
+              </motion.div>
+            ) : (
+              <div className="baseFlex w-full !justify-start">
+                {sectionProgression.length === 0 ? (
+                  <p className="text-stone-400">
+                    No section progression specified
+                  </p>
+                ) : (
+                  <div className="baseVertFlex mt-4 gap-2">
+                    {sectionProgression.map((section) => (
+                      <motion.div
+                        key={section.id}
+                        variants={opacityVariants}
+                        initial="closed"
+                        animate="open"
+                        exit="closed"
+                        className="baseFlex w-full !justify-start gap-2"
+                      >
+                        <div className="baseFlex w-24 gap-2">
+                          <p className="text-stone-400">
+                            {formatSecondsToMinutes(section.startSeconds)}
+                          </p>
+                          <span className="text-stone-400">-</span>
+                          <p className="text-stone-400">
+                            {formatSecondsToMinutes(section.endSeconds)}
+                          </p>
+                        </div>
 
-      {editing && (
-        <Button
-          size={"sm"}
-          className="block md:hidden"
-          onClick={() => setShowSectionProgressionModal(true)}
-        >
-          {sectionProgression.length === 0 ? "Add one" : "Edit"}
-        </Button>
-      )}
-
-      {editing && (
-        <Button
-          size={"sm"}
-          className="absolute right-3 top-3 hidden md:block"
-          onClick={() => setShowSectionProgressionModal(true)}
-        >
-          {sectionProgression.length === 0 ? "Add one" : "Edit"}
-        </Button>
-      )}
+                        <div className="baseFlex gap-2">
+                          <p className="text-nowrap font-semibold">
+                            {section.title}
+                          </p>
+                          {section.repetitions > 1 && (
+                            <p>x{section.repetitions}</p>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 }

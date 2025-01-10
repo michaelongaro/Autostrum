@@ -1,5 +1,5 @@
 import { useAuth } from "@clerk/nextjs";
-import FocusTrap from "focus-trap-react";
+import { FocusTrap } from "focus-trap-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { TbPinned } from "react-icons/tb";
@@ -10,6 +10,7 @@ import SearchInput from "../Search/SearchInput";
 import SearchResults from "../Search/SearchResults";
 import { Button } from "../ui/button";
 import { isDesktop } from "react-device-detect";
+import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 
 const backdropVariants = {
   expanded: {
@@ -23,43 +24,20 @@ const backdropVariants = {
 interface PinnedTabModal {
   pinnedTabIdFromDatabase: number;
   setShowPinnedTabModal: Dispatch<SetStateAction<boolean>>;
-  setPreventFramerLayoutShift: (preventFramerLayoutShift: boolean) => void;
 }
 
 function PinnedTabModal({
   pinnedTabIdFromDatabase,
   setShowPinnedTabModal,
-  setPreventFramerLayoutShift,
 }: PinnedTabModal) {
   const { userId } = useAuth();
-  const ctx = api.useContext();
+  const ctx = api.useUtils();
 
   const [currentlySelectedPinnedTabId, setCurrentlySelectedPinnedTabId] =
     useState(pinnedTabIdFromDatabase);
   const [showSaveCheckmark, setShowSaveCheckmark] = useState(false);
 
-  useEffect(() => {
-    setPreventFramerLayoutShift(true);
-
-    setTimeout(() => {
-      const offsetY = window.scrollY;
-      document.body.style.top = `${-offsetY}px`;
-      document.body.classList.add("noScroll");
-    }, 50);
-
-    return () => {
-      setPreventFramerLayoutShift(false);
-
-      setTimeout(() => {
-        const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10)
-        );
-        document.body.classList.remove("noScroll");
-        document.body.style.removeProperty("top");
-        window.scrollTo(0, offsetY || 0);
-      }, 50);
-    };
-  }, [setPreventFramerLayoutShift]);
+  useModalScrollbarHandling();
 
   const { mutate: updateArtist, isLoading: isSaving } =
     api.artist.updateArtist.useMutation({
@@ -111,8 +89,14 @@ function PinnedTabModal({
       initial="closed"
       animate="expanded"
       exit="closed"
+      tabIndex={-1}
       onClick={(e) => {
         if (e.target === e.currentTarget && isDesktop) {
+          setShowPinnedTabModal(false);
+        }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
           setShowPinnedTabModal(false);
         }
       }}
@@ -123,15 +107,7 @@ function PinnedTabModal({
           initialFocus: false,
         }}
       >
-        <div
-          tabIndex={-1}
-          className="baseVertFlex max-h-[95vh] w-11/12 !flex-nowrap gap-4 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 lg:gap-8 xl:w-9/12"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setShowPinnedTabModal(false);
-            }
-          }}
-        >
+        <div className="baseVertFlex max-h-[95vh] w-11/12 !flex-nowrap gap-4 rounded-md bg-pink-400 p-2 shadow-sm md:p-4 lg:gap-8 xl:w-9/12">
           {/* chord title */}
           <div className="baseFlex lightGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
             <TbPinned className="h-5 w-5" />
@@ -170,8 +146,8 @@ function PinnedTabModal({
               {showSaveCheckmark && !isSaving
                 ? "Saved"
                 : isSaving
-                ? "Saving"
-                : "Save"}
+                  ? "Saving"
+                  : "Save"}
 
               <AnimatePresence mode="wait">
                 {/* will need to also include condition for while recording is being

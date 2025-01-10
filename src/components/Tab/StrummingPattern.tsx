@@ -1,30 +1,26 @@
+import isEqual from "lodash.isequal";
 import {
+  memo,
   useCallback,
   useEffect,
   useMemo,
   useState,
-  memo,
   type Dispatch,
   type SetStateAction,
 } from "react";
-import isEqual from "lodash.isequal";
-import { Element } from "react-scroll";
 import { BsArrowDown, BsArrowUp, BsPlus } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
+import { Element } from "react-scroll";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
   SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
 import {
   useTabStore,
   type StrummingPattern as StrummingPatternType,
@@ -35,7 +31,6 @@ import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import Chord from "./Chord";
 
 interface StrummingPattern {
   data: StrummingPatternType;
@@ -84,7 +79,7 @@ function StrummingPattern({
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
 
   const [isFocused, setIsFocused] = useState<boolean[]>(
-    data?.strums?.map(() => false)
+    data?.strums?.map(() => false),
   );
 
   const {
@@ -137,7 +132,7 @@ function StrummingPattern({
 
   function handleKeyDown(
     e: React.KeyboardEvent<HTMLInputElement>,
-    beatIndex: number
+    beatIndex: number,
   ) {
     const newStrummingPattern = structuredClone(data);
 
@@ -164,7 +159,7 @@ function StrummingPattern({
       e.preventDefault(); // prevent cursor from moving
 
       const newNoteToFocus = document.getElementById(
-        `input-strummingPatternModal-${beatIndex}-0`
+        `input-strummingPatternModal-${beatIndex}-0`,
       );
 
       newNoteToFocus?.focus();
@@ -172,7 +167,7 @@ function StrummingPattern({
       e.preventDefault(); // prevent cursor from moving
 
       const newNoteToFocus = document.getElementById(
-        `input-strummingPatternModal-${beatIndex - 1}-1`
+        `input-strummingPatternModal-${beatIndex - 1}-1`,
       );
 
       newNoteToFocus?.focus();
@@ -181,7 +176,7 @@ function StrummingPattern({
 
       if (beatIndex === data.strums.length - 1) {
         const newNoteToFocus = document.getElementById(
-          "strummingPatternExtendPatternButton"
+          "strummingPatternExtendPatternButton",
         );
 
         newNoteToFocus?.focus();
@@ -189,7 +184,7 @@ function StrummingPattern({
       }
 
       const newNoteToFocus = document.getElementById(
-        `input-strummingPatternModal-${beatIndex + 1}-1`
+        `input-strummingPatternModal-${beatIndex + 1}-1`,
       );
 
       newNoteToFocus?.focus();
@@ -202,7 +197,7 @@ function StrummingPattern({
   }
 
   function handleExtendPatternButtonKeyDown(
-    e: React.KeyboardEvent<HTMLButtonElement>
+    e: React.KeyboardEvent<HTMLButtonElement>,
   ) {
     if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
@@ -210,7 +205,7 @@ function StrummingPattern({
       const lastStrumIndex = data.strums.length - 1;
 
       const newNoteToFocus = document.getElementById(
-        `input-strummingPatternModal-${lastStrumIndex}-1`
+        `input-strummingPatternModal-${lastStrumIndex}-1`,
       );
 
       newNoteToFocus?.focus();
@@ -240,7 +235,7 @@ function StrummingPattern({
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement>,
-    beatIndex: number
+    beatIndex: number,
   ) {
     const value = e.target.value;
 
@@ -287,8 +282,8 @@ function StrummingPattern({
           beatIndex % 4 === 0
             ? beatIndex / 4 + 1
             : beatIndex % 2 === 0
-            ? "&"
-            : "";
+              ? "&"
+              : "";
         break;
       case "1/4th triplet":
         beat = beatIndex % 3 === 0 ? (beatIndex / 3) * 2 + 1 : "";
@@ -329,7 +324,7 @@ function StrummingPattern({
 
   function handleDeletePalmMutedStrum(
     newStrummingPattern: StrummingPatternType,
-    strumIndex: number
+    strumIndex: number,
   ) {
     // const newStrummingPattern = [...strummingPattern];
 
@@ -370,7 +365,7 @@ function StrummingPattern({
   function deleteStrum(beatIndex: number) {
     const newStrummingPattern = handleDeletePalmMutedStrum(
       structuredClone(data),
-      beatIndex
+      beatIndex,
     );
 
     newStrummingPattern.strums.splice(beatIndex, 1);
@@ -388,7 +383,9 @@ function StrummingPattern({
     if (chordSection && chordSection.type === "chord") {
       const newChordSection = { ...chordSection };
 
-      newChordSection.data[chordSequenceIndex ?? 0]!.data[beatIndex] = value;
+      const newChord = value === "noChord" ? "" : value;
+
+      newChordSection.data[chordSequenceIndex ?? 0]!.data[beatIndex] = newChord;
 
       const newTabData = getTabData();
 
@@ -420,7 +417,7 @@ function StrummingPattern({
             chordSequenceIndex === metadata.location?.chordSequenceIndex &&
             chordIndex === metadata.location.chordIndex
           );
-        }
+        },
       );
 
       return isInSectionBeingLooped;
@@ -434,7 +431,7 @@ function StrummingPattern({
           chordSequenceIndex === metadata.location?.chordSequenceIndex &&
           chordIndex === metadata.location.chordIndex
         );
-      }
+      },
     );
 
     if (!correspondingChordIndex) return false;
@@ -469,7 +466,7 @@ function StrummingPattern({
       }}
       className="baseFlex"
     >
-      <div className="baseFlex relative mb-1 !justify-start">
+      <div className="baseFlex relative mb-1 flex-wrap !justify-start">
         {mode === "editingChordSequence" && (
           <Label
             style={{
@@ -544,85 +541,38 @@ function StrummingPattern({
                       }
                       value={
                         chordSequenceData?.[strumIndex] === ""
-                          ? "blues" // TODO: currently have no clue why this (any) random value is needed. I would imagine that
-                          : // I could pass "" and the value would be "" but that doesn't work
-                            chordSequenceData?.[strumIndex]
+                          ? "noChord"
+                          : chordSequenceData?.[strumIndex]
                       }
                     >
                       <SelectTrigger className="w-fit">
-                        <SelectValue />
+                        <SelectValue>
+                          {chordSequenceData?.[strumIndex]}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectGroup className="max-h-60 overflow-y-auto">
-                          <SelectLabel>Chord</SelectLabel>
-                          <SelectItem
-                            value=""
-                            className="italic text-shadow-none hover:text-shadow"
-                          >
-                            No chord
-                          </SelectItem>
+                        <SelectGroup className="max-h-60 overflow-y-auto overflow-x-hidden">
+                          <SelectLabel>Chords</SelectLabel>
+
                           {chords.map((chord) => (
                             <SelectItem key={chord.name} value={chord.name}>
                               {chord.name}
                             </SelectItem>
                           ))}
+
+                          <SelectSeparator />
+
+                          <SelectItem
+                            value="noChord"
+                            className="italic text-shadow-none hover:text-shadow"
+                          >
+                            No chord
+                          </SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>
                   )}
                 </>
-              )}
-
-              {/* chord viewer */}
-              {mode === "viewingWithChordNames" && (
-                <Popover>
-                  <PopoverTrigger
-                    asChild
-                    disabled={chordSequenceData?.[strumIndex] === ""}
-                    className="baseFlex rounded-md transition-all hover:bg-white/20 active:hover:bg-white/10"
-                  >
-                    <Button
-                      variant={"ghost"}
-                      className="baseFlex mb-1 h-6 px-1 py-0"
-                    >
-                      <p
-                        style={{
-                          textShadow: highlightChord(
-                            strumIndex,
-                            index !== undefined
-                          )
-                            ? "none"
-                            : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
-                          color: highlightChord(strumIndex)
-                            ? "hsl(335, 78%, 42%)"
-                            : "hsl(324, 77%, 95%)",
-                        }}
-                        className="mx-0.5 h-6 text-base font-semibold transition-colors"
-                      >
-                        {chordSequenceData?.[strumIndex]}
-                      </p>
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    side="bottom"
-                    className="chordPreviewGlassmorphic w-40 border-2 p-0 text-pink-100"
-                  >
-                    <Chord
-                      chordBeingEdited={{
-                        index: -1,
-                        value:
-                          chords[
-                            chords.findIndex(
-                              (chord) =>
-                                chord.name === chordSequenceData?.[strumIndex]
-                            ) ?? 0
-                          ],
-                      }}
-                      editing={false}
-                      highlightChord={false}
-                    />
-                  </PopoverContent>
-                </Popover>
               )}
 
               <div className="baseFlex !flex-nowrap">
@@ -662,7 +612,7 @@ function StrummingPattern({
                       // focuses end of the input (better ux when navigating with arrow keys)
                       e.target.setSelectionRange(
                         e.target.value.length,
-                        e.target.value.length
+                        e.target.value.length,
                       );
                     }}
                     onBlur={() => {
@@ -681,8 +631,8 @@ function StrummingPattern({
                             ? "hsl(324, 77%, 95%)"
                             : "hsl(336, 84%, 17%)"
                           : highlightChord(strumIndex, index !== undefined)
-                          ? "hsl(335, 78%, 42%)"
-                          : "hsl(324, 77%, 95%)",
+                            ? "hsl(335, 78%, 42%)"
+                            : "hsl(324, 77%, 95%)",
                     }}
                     className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
                   >
@@ -762,8 +712,8 @@ function StrummingPattern({
                         ? "hsl(324, 77%, 95%)"
                         : "hsl(336, 84%, 17%)"
                       : highlightChord(strumIndex, index !== undefined)
-                      ? "hsl(335, 78%, 42%)"
-                      : "hsl(324, 77%, 95%)",
+                        ? "hsl(335, 78%, 42%)"
+                        : "hsl(324, 77%, 95%)",
                 }}
                 className="text-sm transition-colors"
               >
@@ -775,7 +725,7 @@ function StrummingPattern({
                 data.noteLength,
                 strumIndex,
                 mode,
-                isBeingHighlightedInDropdown
+                isBeingHighlightedInDropdown,
               )}
 
               {/* delete strum button */}
@@ -784,7 +734,7 @@ function StrummingPattern({
                 <Button
                   variant={"destructive"}
                   disabled={data.strums.length === 1 || previewMetadata.playing}
-                  className=" h-6 w-6 p-0"
+                  className="h-6 w-6 p-0"
                   onClick={() => deleteStrum(strumIndex)}
                 >
                   <IoClose className="h-4 w-4" />
@@ -798,7 +748,7 @@ function StrummingPattern({
               data.strums.length < 32 && (
                 <Button
                   id={"strummingPatternExtendPatternButton"}
-                  className="ml-2 mr-1 rounded-full px-[0.4rem] py-0 md:px-2"
+                  className="ml-2 mr-1 rounded-full px-[6px] py-0 md:px-2"
                   onKeyDown={handleExtendPatternButtonKeyDown}
                   onClick={addStrumsToPattern}
                 >

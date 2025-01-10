@@ -46,22 +46,22 @@ const AccordionTrigger = React.forwardRef<
       children,
       ...props
     },
-    ref
+    ref,
   ) => (
     <AccordionPrimitive.Header
-      className={`${
+      className={`w-full ${
         editingSectionContainer || viewingSectionContainer ? "relative" : ""
       } flex`}
     >
       <AccordionPrimitive.Trigger
         ref={ref}
         className={cn(
-          `flex flex-1 items-center justify-between ${
+          `flex w-full flex-1 items-center justify-between ${
             extraPadding ? "py-2" : "py-0"
           } ${
             showUnderline ? "hover:underline" : ""
           } font-medium transition-all [&[data-state=open]>svg]:rotate-180`,
-          className
+          className,
         )}
         {...props}
       >
@@ -71,13 +71,13 @@ const AccordionTrigger = React.forwardRef<
             viewingSectionContainer
               ? "bottom-4 right-1"
               : editingSectionContainer
-              ? "bottom-3 right-1"
-              : "right-4"
-          } h-4 w-4 shrink-0 rounded-md transition-all duration-200 hover:bg-white/20 active:hover:bg-white/10 `}
+                ? "bottom-3 right-1"
+                : "right-4"
+          } h-4 w-4 shrink-0 rounded-md transition-all duration-200 hover:bg-white/20 active:hover:bg-white/10`}
         />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
-  )
+  ),
 );
 AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName;
 
@@ -93,25 +93,23 @@ const AccordionContent = React.forwardRef<
 >(
   (
     { extraPaddingBottom, animated = true, className, children, ...props },
-    ref
+    ref,
   ) => (
     <AccordionPrimitive.Content
       ref={ref}
       className={cn(
-        `overflow-hidden
-      ${
-        animated
-          ? "pb-1 transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
-          : ""
-      }
-      `,
-        className
+        `overflow-hidden ${
+          animated
+            ? "pb-1 transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+            : ""
+        } `,
+        className,
       )}
       {...props}
     >
       <div className={`${extraPaddingBottom ? "pb-4" : ""}`}>{children}</div>
     </AccordionPrimitive.Content>
-  )
+  ),
 );
 AccordionContent.displayName = AccordionPrimitive.Content.displayName;
 

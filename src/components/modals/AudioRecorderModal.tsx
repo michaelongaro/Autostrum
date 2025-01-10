@@ -1,4 +1,4 @@
-import FocusTrap from "focus-trap-react";
+import { FocusTrap } from "focus-trap-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useAudioRecorder } from "react-audio-voice-recorder";
@@ -16,6 +16,7 @@ import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 import { isDesktop } from "react-device-detect";
+import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 
 const backdropVariants = {
   expanded: {
@@ -62,7 +63,7 @@ function AudioRecorderModal() {
     () => {
       // called when getUserMedia promise is rejected
       setMicrophoneAccessHasBeenDenied(true);
-    }
+    },
   );
 
   const {
@@ -73,7 +74,6 @@ function AudioRecorderModal() {
     recordedAudioFile,
     setRecordedAudioFile,
     setShouldUpdateInS3,
-    setPreventFramerLayoutShift,
     setRecordedAudioBuffer,
     audioMetadata,
     setAudioMetadata,
@@ -86,35 +86,13 @@ function AudioRecorderModal() {
     recordedAudioFile: state.recordedAudioFile,
     setRecordedAudioFile: state.setRecordedAudioFile,
     setShouldUpdateInS3: state.setShouldUpdateInS3,
-    setPreventFramerLayoutShift: state.setPreventFramerLayoutShift,
     setRecordedAudioBuffer: state.setRecordedAudioBuffer,
     audioMetadata: state.audioMetadata,
     setAudioMetadata: state.setAudioMetadata,
     setCurrentChordIndex: state.setCurrentChordIndex,
   }));
 
-  useEffect(() => {
-    setPreventFramerLayoutShift(true);
-
-    setTimeout(() => {
-      const offsetY = window.scrollY;
-      document.body.style.top = `${-offsetY}px`;
-      document.body.classList.add("noScroll");
-    }, 50);
-
-    return () => {
-      setPreventFramerLayoutShift(false);
-
-      setTimeout(() => {
-        const offsetY = Math.abs(
-          parseInt(`${document.body.style.top || 0}`, 10)
-        );
-        document.body.classList.remove("noScroll");
-        document.body.style.removeProperty("top");
-        window.scrollTo(0, offsetY || 0);
-      }, 50);
-    };
-  }, [setPreventFramerLayoutShift]);
+  useModalScrollbarHandling();
 
   useEffect(() => {
     if (hasInitializedWithStoreValues) return;
@@ -173,8 +151,9 @@ function AudioRecorderModal() {
       initial="closed"
       animate="expanded"
       exit="closed"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && isDesktop) {
+      tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
           if (isRecording) {
             togglePauseResume();
           }
@@ -188,18 +167,7 @@ function AudioRecorderModal() {
           initialFocus: false,
         }}
       >
-        <div
-          tabIndex={-1}
-          className="baseVertFlex min-h-[350px] w-[350px] gap-10 rounded-md bg-pink-400 p-2 shadow-sm sm:w-[400px] md:p-4"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              if (isRecording) {
-                togglePauseResume();
-              }
-              setShowAudioRecorderModal(false);
-            }
-          }}
-        >
+        <div className="baseVertFlex min-h-[350px] w-[350px] gap-10 rounded-md bg-pink-400 p-4 shadow-sm sm:w-[400px]">
           <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
             <p className="text-lg font-semibold">Record tab</p>
             <FaMicrophoneAlt className="h-4 w-4" />
@@ -232,21 +200,18 @@ function AudioRecorderModal() {
           {/* current progress visualizer  */}
           <div className="baseFlex w-full gap-2 px-4 text-lg">
             <div
-              className={`relative mr-1 h-4 w-4 rounded-full transition-colors
-                            ${
-                              isRecording && !showPostRecordingOptions
-                                ? "bg-red-600"
-                                : "bg-red-600/50"
-                            }`}
+              className={`relative mr-1 h-4 w-4 rounded-full transition-colors ${
+                isRecording && !showPostRecordingOptions
+                  ? "bg-red-600"
+                  : "bg-red-600/50"
+              }`}
             >
               <div
-                className={`absolute left-0 top-0 h-4 w-4 rounded-full bg-red-600 transition-colors
-                            ${
-                              isRecording && !showPostRecordingOptions
-                                ? "animate-ping "
-                                : "bg-transparent"
-                            }
-                          `}
+                className={`absolute left-0 top-0 h-4 w-4 rounded-full bg-red-600 transition-colors ${
+                  isRecording && !showPostRecordingOptions
+                    ? "animate-ping"
+                    : "bg-transparent"
+                } `}
               ></div>
             </div>
             <p>{formatSecondsToMinutes(recordingTime)}</p>

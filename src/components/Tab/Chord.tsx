@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import { parse, toString } from "~/utils/tunings";
 import { Input } from "../ui/input";
+import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
 
 interface Chord {
   chordBeingEdited: { index: number; value: ChordType };
@@ -26,13 +27,13 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
 
   function handleKeyDown(
     e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) {
     if (e.key === "ArrowDown") {
       e.preventDefault(); // prevent cursor from moving
 
       const newNoteToFocus = document.getElementById(
-        `input-chordModal-chordModal-${index + 1}`
+        `input-chordModal-chordModal-${index + 1}`,
       );
 
       newNoteToFocus?.focus();
@@ -40,7 +41,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
       e.preventDefault(); // prevent cursor from moving
 
       const newNoteToFocus = document.getElementById(
-        `input-chordModal-chordModal-${index - 1}`
+        `input-chordModal-chordModal-${index - 1}`,
       );
 
       newNoteToFocus?.focus();
@@ -137,17 +138,14 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
       <div
         style={{
           height: editing ? "280px" : "168px",
-          gap: editing ? "1.35rem" : "0.05rem",
           padding: editing ? "0.5rem" : "0.5rem 0.35rem",
         }}
         className="baseVertFlex relative rounded-l-2xl border-2 border-pink-100"
       >
-        {toString(parse(tuning), { pad: 1 })
-          .split(" ")
-          .reverse()
-          .map((note, index) => (
-            <div key={index}>{note}</div>
-          ))}
+        <PrettyVerticalTuning
+          tuning={tuning}
+          height={editing ? "250px" : "168px"}
+        />
       </div>
 
       <div
@@ -203,7 +201,7 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
                   // focuses end of the input (better ux when navigating with arrow keys)
                   e.target.setSelectionRange(
                     e.target.value.length,
-                    e.target.value.length
+                    e.target.value.length,
                   );
                 }}
                 onBlur={() => {

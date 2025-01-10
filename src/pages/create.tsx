@@ -1,8 +1,15 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Head from "next/head";
+import AudioControls from "~/components/AudioControls/AudioControls";
 import Tab from "~/components/Tab/Tab";
+import { useTabStore } from "~/stores/TabStore";
 
 function Create() {
+  const { editing, showingAudioControls } = useTabStore((state) => ({
+    editing: state.editing,
+    showingAudioControls: state.showingAudioControls,
+  }));
+
   return (
     <motion.div
       key={"create"}
@@ -30,7 +37,13 @@ function Create() {
           content="https://www.autostrum.com/opengraphScreenshots/editingTab.png"
         ></meta>
       </Head>
+
       <Tab tab={undefined} />
+
+      {/* can probably drop the <AnimatePresence> since it can't ever be triggered, right?*/}
+      <AnimatePresence mode="wait">
+        {editing && showingAudioControls && <AudioControls />}
+      </AnimatePresence>
     </motion.div>
   );
 }

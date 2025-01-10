@@ -1,18 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   compileFullTab,
   compileSpecificChordGrouping,
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
 import { useTabStore } from "../stores/TabStore";
+import {
+  expandFullTab,
+  updateElapsedSecondsInSectionProgression,
+} from "~/utils/playbackChordCompilationHelpers";
+import debounce from "lodash.debounce";
 
 function useAutoCompileChords() {
-  const [
-    prevFullCurrentlyPlayingMetadataLength,
-    setPrevFullCurrentlyPlayingMetadataLength,
-  ] = useState(-1);
-
   const {
+    editing,
     setCurrentlyPlayingMetadata,
     playbackSpeed,
     audioMetadata,
@@ -21,9 +22,14 @@ function useAutoCompileChords() {
     tabData,
     sectionProgression,
     chords,
-    strummingPatterns,
     atomicallyUpdateAudioMetadata,
+    setExpandedTabData,
+    setPlaybackMetadata,
+    setSectionProgression,
+    visiblePlaybackContainerWidth,
+    loopDelay,
   } = useTabStore((state) => ({
+    editing: state.editing,
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
     playbackSpeed: state.playbackSpeed,
     audioMetadata: state.audioMetadata,
@@ -32,14 +38,22 @@ function useAutoCompileChords() {
     tabData: state.tabData,
     sectionProgression: state.sectionProgression,
     chords: state.chords,
-    strummingPatterns: state.strummingPatterns,
     atomicallyUpdateAudioMetadata: state.atomicallyUpdateAudioMetadata,
+    setExpandedTabData: state.setExpandedTabData,
+    setPlaybackMetadata: state.setPlaybackMetadata,
+    setSectionProgression: state.setSectionProgression,
+    visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
+    loopDelay: state.loopDelay,
   }));
 
-  useEffect(() => {
+  const [
+    prevFullCurrentlyPlayingMetadataLength,
+    setPrevFullCurrentlyPlayingMetadataLength,
+  ] = useState(-1);
+
+  const handleTabLogic = useCallback(() => {
     if (audioMetadata.type === "Artist recording") return;
 
-    // I *think* this covers all of the edge cases
     function wholeTabIsEmpty() {
       if (tabData.length === 0 || tabData[0]?.data.length === 0) {
         return true;
@@ -63,12 +77,17 @@ function useAutoCompileChords() {
         location: null,
         startLoopIndex: 0,
         endLoopIndex: -1,
-        editingLoopRange: false, // maybe problematic to do this here, be careful
+        editingLoopRange: false,
         fullCurrentlyPlayingMetadataLength: -1,
       });
       setCurrentlyPlayingMetadata(null);
       return;
     }
+
+    const sanitizedSectionProgression =
+      sectionProgression.length > 0
+        ? sectionProgression
+        : generateDefaultSectionProgression(tabData);
 
     if (audioMetadata.location) {
       compileSpecificChordGrouping({
@@ -78,16 +97,15 @@ function useAutoCompileChords() {
         baselineBpm: bpm,
         playbackSpeed,
         setCurrentlyPlayingMetadata,
-        startLoopIndex: audioMetadata.startLoopIndex,
-        endLoopIndex: audioMetadata.endLoopIndex,
+        startLoopIndex: audioMetadata.editingLoopRange
+          ? 0
+          : audioMetadata.startLoopIndex,
+        endLoopIndex: audioMetadata.editingLoopRange
+          ? -1
+          : audioMetadata.endLoopIndex,
         atomicallyUpdateAudioMetadata,
       });
     } else {
-      const sanitizedSectionProgression =
-        sectionProgression.length > 0
-          ? sectionProgression
-          : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
-
       compileFullTab({
         tabData,
         sectionProgression: sanitizedSectionProgression,
@@ -98,23 +116,73 @@ function useAutoCompileChords() {
         startLoopIndex: audioMetadata.startLoopIndex,
         endLoopIndex: audioMetadata.endLoopIndex,
         atomicallyUpdateAudioMetadata,
+        loopDelay,
       });
     }
+
+    if (!editing) {
+      const expandedTabData = expandFullTab({
+        tabData,
+        location: audioMetadata.location,
+        sectionProgression: sanitizedSectionProgression,
+        chords,
+        baselineBpm: bpm,
+        playbackSpeed,
+        setPlaybackMetadata,
+        startLoopIndex: audioMetadata.editingLoopRange
+          ? 0
+          : audioMetadata.startLoopIndex,
+        endLoopIndex: audioMetadata.editingLoopRange
+          ? -1
+          : audioMetadata.endLoopIndex,
+        visiblePlaybackContainerWidth,
+        loopDelay,
+      });
+
+      setExpandedTabData(expandedTabData.chords);
+    }
+
+    updateElapsedSecondsInSectionProgression({
+      tabData,
+      sectionProgression: sanitizedSectionProgression,
+      baselineBpm: bpm,
+      setSectionProgression,
+    });
   }, [
+    editing,
     bpm,
     tabData,
     playbackSpeed,
     audioMetadata.endLoopIndex,
     audioMetadata.location,
     audioMetadata.startLoopIndex,
+    audioMetadata.editingLoopRange,
     audioMetadata.type,
     sectionProgression,
     chords,
-    strummingPatterns,
     setAudioMetadata,
     setCurrentlyPlayingMetadata,
     atomicallyUpdateAudioMetadata,
+    setExpandedTabData,
+    setPlaybackMetadata,
+    setSectionProgression,
+    visiblePlaybackContainerWidth,
+    loopDelay,
   ]);
+
+  // runs at most every 2 seconds when editing
+  const debouncedHandleTabLogic = useMemo(
+    () => debounce(handleTabLogic, editing ? 2000 : 0),
+    [handleTabLogic, editing],
+  );
+
+  useEffect(() => {
+    debouncedHandleTabLogic();
+
+    return () => {
+      debouncedHandleTabLogic.cancel();
+    };
+  }, [debouncedHandleTabLogic]);
 
   useEffect(() => {
     if (
@@ -134,7 +202,7 @@ function useAutoCompileChords() {
     }
 
     setPrevFullCurrentlyPlayingMetadataLength(
-      audioMetadata.fullCurrentlyPlayingMetadataLength
+      audioMetadata.fullCurrentlyPlayingMetadataLength,
     );
   }, [
     audioMetadata.fullCurrentlyPlayingMetadataLength,

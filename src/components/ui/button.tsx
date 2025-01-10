@@ -32,6 +32,7 @@ const buttonVariants = cva(
           "bg-green-600 hover:bg-green-700 shadow-none active:bg-green-800 disabled:opacity-50 disabled:bg-gray-500",
         scrollToTop:
           "lightGlassmorphic text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/60 border-2",
+        text: "text-primary-foreground hover:text-primary/80 active:text-primary/60",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -44,7 +45,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 export interface ButtonProps
@@ -66,7 +67,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             variant,
             size: size ?? (aboveMediumViewportWidth ? "default" : "sm"),
             className,
-          })
+          }),
         )}
         ref={ref}
         {...props}
@@ -76,13 +77,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             variant === "navigation" ||
             variant === "secondary" ||
             variant === "ghost" ||
-            variant === "outline"
+            variant === "outline" ||
+            variant === "text"
               ? "none"
               : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
         }}
       />
     );
-  }
+  },
 );
 Button.displayName = "Button";
 

@@ -12,12 +12,15 @@ import {
 } from "~/utils/chordCompilationHelpers";
 import { resetTabSliderPosition } from "~/utils/tabSliderHelpers";
 import { parse } from "~/utils/tunings";
+import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
   sectionId: string;
   title: string;
   repetitions: number;
+  startSeconds: number;
+  endSeconds: number;
 }
 
 export interface Chord {
@@ -61,7 +64,7 @@ export interface ChordSequence {
   strummingPattern: StrummingPattern;
   bpm: number;
   repetitions: number;
-  data: string[];
+  data: string[]; // each string is a predefined chord name
 }
 
 export interface ChordSection {
@@ -101,13 +104,39 @@ export interface Metadata {
   bpm: number;
   noteLengthMultiplier: string;
   elapsedSeconds: number;
+  type: "tab" | "strum" | "ornamental" | "loopDelaySpacer";
+}
+
+export interface PlaybackMetadata {
+  location: {
+    sectionIndex: number;
+    sectionRepeatIndex: number;
+    subSectionIndex: number;
+    subSectionRepeatIndex: number;
+    chordSequenceIndex?: number;
+    chordSequenceRepeatIndex?: number;
+    chordIndex: number;
+  };
+  bpm: number;
+  noteLengthMultiplier: string;
+  noteLength:
+    | "1/4th"
+    | "1/4th triplet"
+    | "1/8th"
+    | "1/8th triplet"
+    | "1/16th"
+    | "1/16th triplet";
+  elapsedSeconds: number;
+  type: "tab" | "strum" | "ornamental" | "loopDelaySpacer";
 }
 
 type InstrumentNames =
   | "acoustic_guitar_nylon"
   | "acoustic_guitar_steel"
   | "electric_guitar_clean"
-  | "electric_guitar_jazz";
+  | "electric_guitar_jazz"
+  | "acoustic_grand_piano"
+  | "electric_grand_piano";
 
 export interface AudioMetadata {
   type: "Generated" | "Artist recording";
@@ -143,10 +172,69 @@ interface PlayPreview {
   data: string[] | StrummingPattern;
   index: number; // technically only necessary for strumming pattern, not chord preview
   type: "chord" | "strummingPattern";
+  customTuning?: string;
+  customBpm?: number;
 }
 interface PlayRecordedAudio {
   audioBuffer: AudioBuffer;
   secondsElapsed: number;
+}
+
+export interface PlaybackTabChord {
+  type: "tab";
+  isFirstChord: boolean;
+  isLastChord: boolean;
+  // not my favorite approach below but it makes it easier to compare
+  // bpm between tab/strummed chords
+  data: {
+    chordData: string[];
+    bpm: number;
+  };
+}
+
+export interface PlaybackStrummedChord {
+  type: "strum";
+  isFirstChord: boolean;
+  isLastChord: boolean;
+  data: PlaybackChord;
+}
+
+export interface PlaybackLoopDelaySpacerChord {
+  type: "loopDelaySpacer";
+  data: {
+    bpm: number;
+  };
+}
+
+interface PlaybackChord {
+  strumIndex: number;
+  chordName: string;
+  palmMute: "" | "-" | "start" | "end";
+  strum:
+    | ""
+    | "v"
+    | "^"
+    | "s"
+    | "v>"
+    | "^>"
+    | "s>"
+    | "v.>"
+    | "^.>"
+    | "s.>"
+    | "v>."
+    | "u>."
+    | "s>.";
+  noteLength:
+    | "1/4th"
+    | "1/4th triplet"
+    | "1/8th"
+    | "1/8th triplet"
+    | "1/16th"
+    | "1/16th triplet";
+  bpm: number;
+  showBpm: boolean; // only want to show bpm on first strummed chord of a strumming pattern and
+  // only if it's different from the previous chord
+  isRaised: boolean; // only true if this chord and strummed chord to the left are both > 5 characters. Allowing entire chord names to render w/o overlap
 }
 
 const initialStoreState = {
@@ -162,7 +250,6 @@ const initialStoreState = {
   tuning: "e2 a2 d3 g3 b3 e4",
   bpm: 75,
   capo: 0,
-  musicalKey: "",
   hasRecordedAudio: false,
   chords: [],
   strummingPatterns: [],
@@ -182,7 +269,7 @@ const initialStoreState = {
   // modals
   showAudioRecorderModal: false,
   showSectionProgressionModal: false,
-  showEffectGlossaryModal: false,
+  showEffectGlossaryDialog: false,
   chordBeingEdited: null,
   strummingPatternBeingEdited: null,
   showingEffectGlossary: false,
@@ -193,9 +280,14 @@ const initialStoreState = {
     zIndex: 48,
   },
 
+  // playback
+  playbackModalViewingState: "Practice",
+
   // related to sound generation/playing
   currentlyPlayingMetadata: null,
+  playbackMetadata: null,
   playbackSpeed: 1,
+  loopDelay: 0,
   currentChordIndex: 0,
   audioMetadata: {
     type: "Generated",
@@ -246,12 +338,8 @@ interface TabState {
   setTuning: (tuning: string) => void;
   bpm: number;
   setBpm: (bpm: number) => void;
-  timeSignature: string;
-  setTimeSignature: (timeSignature: string) => void;
   capo: number;
   setCapo: (capo: number) => void;
-  musicalKey: string;
-  setMusicalKey: (musicalKey: string) => void;
   hasRecordedAudio: boolean;
   setHasRecordedAudio: (hasRecordedAudio: boolean) => void;
   chords: Chord[];
@@ -274,11 +362,9 @@ interface TabState {
   resetAudioAndMetadataOnRouteChange: () => void;
   getTabData: () => Section[];
   atomicallyUpdateAudioMetadata: (
-    updatedFields: Partial<AudioMetadata>
+    updatedFields: Partial<AudioMetadata>,
   ) => void;
 
-  preventFramerLayoutShift: boolean;
-  setPreventFramerLayoutShift: (preventFramerLayoutShift: boolean) => void;
   fetchingFullTabData: boolean;
   setFetchingFullTabData: (fetchingFullTabData: boolean) => void;
   chordPulse: {
@@ -297,7 +383,7 @@ interface TabState {
         chordIndex: number;
       };
       type: "copy" | "paste";
-    } | null
+    } | null,
   ) => void;
   countInTimer: {
     showing: boolean;
@@ -307,16 +393,38 @@ interface TabState {
     showing: boolean;
     forSectionContainer: number | null;
   }) => void;
+  countInBuffer: AudioBuffer | null;
+  setCountInBuffer: (countInBuffer: AudioBuffer | null) => void;
+
+  expandedTabData:
+    | (
+        | PlaybackTabChord
+        | PlaybackStrummedChord
+        | PlaybackLoopDelaySpacerChord
+      )[]
+    | null;
+  setExpandedTabData: (
+    expandedTabData:
+      | (
+          | PlaybackTabChord
+          | PlaybackStrummedChord
+          | PlaybackLoopDelaySpacerChord
+        )[]
+      | null,
+  ) => void;
+
+  playbackMetadata: PlaybackMetadata[] | null;
+  setPlaybackMetadata: (playbackMetadata: PlaybackMetadata[] | null) => void;
 
   // modals
   showAudioRecorderModal: boolean;
   setShowAudioRecorderModal: (showAudioRecorderModal: boolean) => void;
   showSectionProgressionModal: boolean;
   setShowSectionProgressionModal: (
-    showSectionProgressionModal: boolean
+    showSectionProgressionModal: boolean,
   ) => void;
-  showEffectGlossaryModal: boolean;
-  setShowEffectGlossaryModal: (showEffectGlossaryModal: boolean) => void;
+  showEffectGlossaryDialog: boolean;
+  setShowEffectGlossaryDialog: (showEffectGlossaryDialog: boolean) => void;
   showDeleteAccountModal: boolean;
   setShowDeleteAccountModal: (showDeleteAccountModal: boolean) => void;
   showCustomTuningModal: boolean;
@@ -339,7 +447,7 @@ interface TabState {
     chordBeingEdited: {
       index: number;
       value: Chord;
-    } | null
+    } | null,
   ) => void;
   strummingPatternBeingEdited: {
     index: number;
@@ -349,7 +457,25 @@ interface TabState {
     strummingPatternBeingEdited: {
       index: number;
       value: StrummingPattern;
-    } | null
+    } | null,
+  ) => void;
+  showPlaybackModal: boolean;
+  setShowPlaybackModal: (showPlaybackModal: boolean) => void;
+  visiblePlaybackContainerWidth: number;
+  setVisiblePlaybackContainerWidth: (
+    visiblePlaybackContainerWidth: number,
+  ) => void;
+  playbackModalViewingState:
+    | "Practice"
+    | "Section progression"
+    | "Chords"
+    | "Strumming patterns";
+  setPlaybackModalViewingState: (
+    playbackModalViewingState:
+      | "Practice"
+      | "Section progression"
+      | "Chords"
+      | "Strumming patterns",
   ) => void;
 
   // related to sound generation/playing
@@ -364,7 +490,7 @@ interface TabState {
   // TODO: might be a good idea to add below as a prop under audioMetadata
   currentlyPlayingMetadata: Metadata[] | null;
   setCurrentlyPlayingMetadata: (
-    currentlyPlayingMetadata: Metadata[] | null
+    currentlyPlayingMetadata: Metadata[] | null,
   ) => void;
   currentInstrumentName:
     | "acoustic_guitar_nylon"
@@ -380,10 +506,12 @@ interface TabState {
       | "electric_guitar_clean"
       | "electric_guitar_jazz"
       | "acoustic_grand_piano"
-      | "electric_grand_piano"
+      | "electric_grand_piano",
   ) => void;
   looping: boolean;
   setLooping: (looping: boolean) => void;
+  loopDelay: number;
+  setLoopDelay: (loopDelay: number) => void;
   playbackSpeed: 1 | 0.25 | 0.5 | 0.75 | 1.25 | 1.5;
   setPlaybackSpeed: (speed: 1 | 0.25 | 0.5 | 0.75 | 1.25 | 1.5) => void;
   currentChordIndex: number;
@@ -410,7 +538,7 @@ interface TabState {
   setRecordedAudioBuffer: (recordedAudioBuffer: AudioBuffer | null) => void;
   recordedAudioBufferSourceNode: AudioBufferSourceNode | null;
   setRecordedAudioBufferSourceNode: (
-    recordedAudioBufferSourceNode: AudioBufferSourceNode | null
+    recordedAudioBufferSourceNode: AudioBufferSourceNode | null,
   ) => void;
 
   // playing/pausing sound functions
@@ -422,7 +550,7 @@ interface TabState {
   }: PlayRecordedAudio) => void;
   pauseAudio: (
     resetToStart?: boolean,
-    resetCurrentlyPlayingMetadata?: boolean
+    resetCurrentlyPlayingMetadata?: boolean,
   ) => void;
 
   // related to search
@@ -431,6 +559,22 @@ interface TabState {
 
   isLoadingARoute: boolean;
   setIsLoadingARoute: (isLoadingARoute: boolean) => void;
+  viewportLabel:
+    | "mobile"
+    | "narrowMobileLandscape"
+    | "mobileLandscape"
+    | "mobileLarge"
+    | "tablet"
+    | "desktop";
+  setViewportLabel: (
+    viewportLabel:
+      | "mobile"
+      | "narrowMobileLandscape"
+      | "mobileLandscape"
+      | "mobileLarge"
+      | "tablet"
+      | "desktop",
+  ) => void;
 
   // reset
   resetStoreToInitValues: () => void;
@@ -465,12 +609,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       setTuning: (tuning) => set({ tuning }),
       bpm: 75,
       setBpm: (bpm) => set({ bpm }),
-      timeSignature: "",
-      setTimeSignature: (timeSignature) => set({ timeSignature }),
       capo: 0,
       setCapo: (capo) => set({ capo }),
-      musicalKey: "",
-      setMusicalKey: (musicalKey) => set({ musicalKey }),
       hasRecordedAudio: false,
       setHasRecordedAudio: (hasRecordedAudio) => set({ hasRecordedAudio }),
       chords: [],
@@ -502,6 +642,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         forSectionContainer: null,
       },
       setCountInTimer: (countInTimer) => set({ countInTimer }),
+      countInBuffer: null,
+      setCountInBuffer: (countInBuffer) => set({ countInBuffer }),
 
       getStringifiedTabData: () => {
         const {
@@ -510,9 +652,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           genreId,
           tuning,
           bpm,
-          timeSignature,
           capo,
-          musicalKey,
           chords,
           strummingPatterns,
           tabData,
@@ -524,9 +664,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           genreId,
           tuning,
           bpm,
-          timeSignature,
           capo,
-          musicalKey,
           chords,
           strummingPatterns,
           tabData,
@@ -581,11 +719,20 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       currentlyPlayingMetadata: null,
       setCurrentlyPlayingMetadata: (currentlyPlayingMetadata) =>
         set({ currentlyPlayingMetadata }),
+
+      playbackMetadata: null,
+      setPlaybackMetadata: (playbackMetadata) => set({ playbackMetadata }),
+      visiblePlaybackContainerWidth: 0,
+      setVisiblePlaybackContainerWidth: (visiblePlaybackContainerWidth) =>
+        set({ visiblePlaybackContainerWidth }),
+
       currentInstrumentName: "acoustic_guitar_steel",
       setCurrentInstrumentName: (currentInstrumentName) =>
         set({ currentInstrumentName }),
       looping: false,
       setLooping: (looping) => set({ looping }),
+      loopDelay: 0,
+      setLoopDelay: (loopDelay) => set({ loopDelay }),
       playbackSpeed: 1,
       setPlaybackSpeed: (playbackSpeed) => set({ playbackSpeed }),
       currentChordIndex: 0,
@@ -626,9 +773,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       recordedAudioBufferSourceNode: null,
       setRecordedAudioBufferSourceNode: (recordedAudioBufferSourceNode) =>
         set({ recordedAudioBufferSourceNode }),
-      preventFramerLayoutShift: false,
-      setPreventFramerLayoutShift: (preventFramerLayoutShift) =>
-        set({ preventFramerLayoutShift }),
 
       // playing/pausing sound functions
       playTab: async ({ location, tabId }: PlayTab) => {
@@ -645,7 +789,11 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           currentInstrument,
           audioContext,
           masterVolumeGainNode,
+          currentlyPlayingMetadata,
           setCurrentlyPlayingMetadata,
+          visiblePlaybackContainerWidth,
+          setPlaybackMetadata,
+          loopDelay,
         } = get();
 
         if (!audioContext || !masterVolumeGainNode || !currentInstrument)
@@ -680,6 +828,14 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
         const tuning = parse(tuningNotes);
 
+        // want to show entire tab while editing loop range
+        const adjStartLoopIndex = audioMetadata.editingLoopRange
+          ? 0
+          : audioMetadata.startLoopIndex;
+        const adjEndLoopIndex = audioMetadata.editingLoopRange
+          ? -1
+          : audioMetadata.endLoopIndex;
+
         const compiledChords = location
           ? compileSpecificChordGrouping({
               tabData,
@@ -688,8 +844,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
               baselineBpm,
               playbackSpeed,
               setCurrentlyPlayingMetadata,
-              startLoopIndex: audioMetadata.startLoopIndex,
-              endLoopIndex: audioMetadata.endLoopIndex,
+              startLoopIndex: adjStartLoopIndex,
+              endLoopIndex: adjEndLoopIndex,
             })
           : compileFullTab({
               tabData,
@@ -698,32 +854,63 @@ export const useTabStore = createWithEqualityFn<TabState>()(
               baselineBpm,
               playbackSpeed,
               setCurrentlyPlayingMetadata,
-              startLoopIndex: audioMetadata.startLoopIndex,
-              endLoopIndex: audioMetadata.endLoopIndex,
+              startLoopIndex: adjStartLoopIndex,
+              endLoopIndex: adjEndLoopIndex,
+              loopDelay,
             });
+
+        const sanitizedSectionProgression =
+          sectionProgression.length > 0
+            ? sectionProgression
+            : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
+
+        // TODO: add support for specific sections
+        const expandedTabData = expandFullTab({
+          tabData,
+          location: audioMetadata.location,
+          sectionProgression: sanitizedSectionProgression,
+          chords,
+          baselineBpm,
+          playbackSpeed,
+          setPlaybackMetadata,
+          startLoopIndex: adjStartLoopIndex,
+          endLoopIndex: adjEndLoopIndex,
+          loopDelay,
+          visiblePlaybackContainerWidth,
+        });
+
+        // note: technically you could have similar duplication logic in regular compilationHelper
+        // function, however I think it's cleaner to just augment the loop range with the % operator
+        // to achieve the same effect
+        const repeatCount = compiledChords.length * expandedTabData.loopCounter;
 
         for (
           let chordIndex = currentChordIndex;
-          chordIndex < compiledChords.length;
+          chordIndex < repeatCount;
           chordIndex++
         ) {
-          set({
-            currentChordIndex: chordIndex,
-          });
+          const adjustedChordIndex = chordIndex % compiledChords.length;
+          const currColumn = compiledChords[adjustedChordIndex];
 
-          const thirdPrevColumn = compiledChords[chordIndex - 3];
-          const secondPrevColumn = compiledChords[chordIndex - 2];
-          const prevColumn = compiledChords[chordIndex - 1];
-          const currColumn = compiledChords[chordIndex];
-          const nextColumn = compiledChords[chordIndex + 1];
+          // Proceed only if the current column is defined and not ornamental (has length > 0)
+          if (currColumn && currColumn.length > 0) {
+            // Update the current chord index in the state
+            set({
+              currentChordIndex: chordIndex,
+            });
 
-          if (currColumn === undefined) continue;
+            const thirdPrevColumn = compiledChords[adjustedChordIndex - 3];
+            const secondPrevColumn = compiledChords[adjustedChordIndex - 2];
+            const prevColumn = compiledChords[adjustedChordIndex - 1];
+            const nextColumn = compiledChords[adjustedChordIndex + 1];
 
-          // alteredBpm = bpm for chord * (1 / noteLengthMultiplier) * playbackSpeedMultiplier
-          const alteredBpm =
-            Number(currColumn[8]) * (1 / Number(currColumn[9])) * playbackSpeed;
+            // Calculate the altered BPM using the provided formula
+            const baseBpm = Number(currColumn[8]);
+            const noteLengthMultiplier = Number(currColumn[9]);
+            const alteredBpm =
+              baseBpm * (1 / noteLengthMultiplier) * playbackSpeed;
 
-          if (chordIndex !== compiledChords.length - 1) {
+            // Play the current chord
             await playNoteColumn({
               tuning,
               capo: capo ?? 0,
@@ -740,10 +927,10 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             });
           }
 
-          // need to get up to date values within loop here since they may have changed
-          // since the loop started/last iteration
+          // Retrieve the latest state values within the loop
           const { audioMetadata, breakOnNextChord, looping } = get();
 
+          // Handle the condition to break the loop early
           if (breakOnNextChord) {
             set({
               breakOnNextChord: false,
@@ -751,30 +938,51 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             return;
           }
 
-          // not 100% on moving this back to the top, but trying it out right now
-          if (chordIndex === compiledChords.length - 1) {
-            // if looping, reset the chordIndex to -1 so loop will start over
-            if (looping && audioMetadata.playing) {
-              resetTabSliderPosition();
+          // TODO: probably want to have reset of slider to beginning at the very first
+          // loop delay spacer chord (if there is one).
 
-              chordIndex = -1;
-              set({
-                currentChordIndex: 0,
-              });
-            } else {
-              set({
-                audioMetadata: {
-                  ...audioMetadata,
-                  playing: false,
-                },
-                currentChordIndex: 0,
-              });
-            }
+          // If the current chord is the last in the compiledChords sequence
+          if (
+            adjustedChordIndex === compiledChords.length - 1 &&
+            looping &&
+            audioMetadata.playing
+          ) {
+            // Reset the slider position for UI consistency
+            resetTabSliderPosition();
+          }
+
+          // Handle the end of the entire repeat sequence
+          if (
+            chordIndex === repeatCount - 1 &&
+            looping &&
+            audioMetadata.playing
+          ) {
+            // Reset the current chord index to 0 to start over
+            set({
+              currentChordIndex: 0,
+            });
+
+            // Reset chordIndex to -1 so that after the loop's increment, it becomes 0
+            chordIndex = -1;
+          } else if (chordIndex === repeatCount - 1) {
+            // If not looping, stop the playback
+            set({
+              audioMetadata: {
+                ...audioMetadata,
+                playing: false,
+              },
+            });
           }
         }
       },
 
-      playPreview: async ({ data, index, type }: PlayPreview) => {
+      playPreview: async ({
+        data,
+        index,
+        type,
+        customTuning,
+        customBpm,
+      }: PlayPreview) => {
         const {
           capo,
           tuning,
@@ -782,6 +990,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           currentInstrument,
           audioContext,
           masterVolumeGainNode,
+          instruments,
         } = get();
 
         if (!audioContext || !masterVolumeGainNode || !currentInstrument)
@@ -833,13 +1042,17 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           if (currColumn === undefined) continue;
 
           // alteredBpm = bpm for chord * (1 / noteLengthMultiplier)
-          const alteredBpm =
-            Number(currColumn[8]) * (1 / Number(currColumn[9]));
+          // Calculate the altered BPM using the provided formula
+          const baseBpm = Number(currColumn[8]);
+          const noteLengthMultiplier = Number(currColumn[9]);
+          const alteredBpm = baseBpm * (1 / noteLengthMultiplier);
 
           await playNoteColumn({
-            tuning: parse(type === "chord" ? tuning : "e2 a2 d3 g3 b3 e4"),
+            tuning: parse(
+              type === "chord" ? (customTuning ?? tuning) : "e2 a2 d3 g3 b3 e4",
+            ),
             capo: type === "chord" ? capo : 0,
-            bpm: alteredBpm,
+            bpm: customBpm ?? alteredBpm,
             secondPrevColumn,
             prevColumn,
             currColumn,
@@ -848,6 +1061,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             masterVolumeGainNode,
             currentInstrument,
             currentlyPlayingStrings,
+            acousticSteelOverrideForPreview:
+              instruments["acoustic_guitar_steel"] ?? undefined,
           });
 
           const { breakOnNextPreviewChord } = get();
@@ -860,12 +1075,16 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           }
 
           if (chordIndex === compiledChords.length - 1) {
+            if (type === "strummingPattern") {
+              chordIndex = -1;
+            }
+
             set({
               previewMetadata: {
                 ...previewMetadata,
                 indexOfPattern: -1,
                 currentChordIndex: 0,
-                playing: false,
+                playing: type === "strummingPattern",
               },
             });
           }
@@ -1003,6 +1222,9 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         currentInstrument?.stop();
       },
 
+      expandedTabData: null,
+      setExpandedTabData: (expandedTabData) => set({ expandedTabData }),
+
       // modals
       showAudioRecorderModal: false,
       setShowAudioRecorderModal: (showAudioRecorderModal) =>
@@ -1010,9 +1232,9 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       showSectionProgressionModal: false,
       setShowSectionProgressionModal: (showSectionProgressionModal) =>
         set({ showSectionProgressionModal }),
-      showEffectGlossaryModal: false,
-      setShowEffectGlossaryModal: (showEffectGlossaryModal) =>
-        set({ showEffectGlossaryModal }),
+      showEffectGlossaryDialog: false,
+      setShowEffectGlossaryDialog: (showEffectGlossaryDialog) =>
+        set({ showEffectGlossaryDialog }),
       showDeleteAccountModal: false,
       setShowDeleteAccountModal: (showDeleteAccountModal) =>
         set({ showDeleteAccountModal }),
@@ -1031,6 +1253,11 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       strummingPatternBeingEdited: null,
       setStrummingPatternBeingEdited: (strummingPatternBeingEdited) =>
         set({ strummingPatternBeingEdited }),
+      showPlaybackModal: false,
+      setShowPlaybackModal: (showPlaybackModal) => set({ showPlaybackModal }),
+      playbackModalViewingState: "Practice",
+      setPlaybackModalViewingState: (playbackModalViewingState) =>
+        set({ playbackModalViewingState }),
 
       // search
       searchResultsCount: 0,
@@ -1039,10 +1266,12 @@ export const useTabStore = createWithEqualityFn<TabState>()(
 
       isLoadingARoute: false,
       setIsLoadingARoute: (isLoadingARoute) => set({ isLoadingARoute }),
+      viewportLabel: "mobile",
+      setViewportLabel: (viewportLabel) => set({ viewportLabel }),
 
       // reset (investigate what exactly the ts error is saying)
       resetStoreToInitValues: () => set(initialStoreState),
     }),
-    shallow
-  )
+    shallow,
+  ),
 );

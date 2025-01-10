@@ -9,9 +9,9 @@ import { useLocalStorageValue } from "@react-hookz/web";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { FaGuitar } from "react-icons/fa";
 import { IoTelescopeOutline } from "react-icons/io5";
 import { useTabStore } from "~/stores/TabStore";
+import { GiMusicalScore } from "react-icons/gi";
 import { Button } from "../ui/button";
 import classes from "./DesktopHeader.module.css";
 
@@ -78,7 +78,7 @@ function DesktopHeader() {
             href={"/create"}
             className="baseFlex w-fit !flex-nowrap gap-4 text-xl"
           >
-            <FaGuitar className="h-8 w-8" />
+            <GiMusicalScore className="h-8 w-8" />
             Create
           </Link>
         </Button>

@@ -5,6 +5,7 @@ import NextProgress from "next-progress";
 import GeneralLayout from "~/components/Layouts/GeneralLayout";
 import "~/styles/globals.css";
 
+
 // might in some way mess with t3 bootstrapping, be wary
 type ComponentWithPageLayout = AppProps & {
   Component: AppProps["Component"] & {
@@ -18,7 +19,7 @@ function App({ Component, pageProps }: ComponentWithPageLayout) {
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       appearance={{
         variables: {
-          colorPrimary: "rgb(236, 72, 153)",
+        colorPrimary: "rgb(236, 72, 153)",
           colorInputBackground: "rgb(252, 232, 244)",
           colorTextSecondary: "rgb(129, 24, 66)",
           fontFamily: "'Noto Sans', sans-serif",

@@ -4,7 +4,7 @@ import { api } from "~/utils/api";
 
 function useKeepArtistMetadataUpdatedWithClerk() {
   const { user } = useClerk();
-  const ctx = api.useContext();
+  const ctx = api.useUtils();
 
   const { data: artist } = api.artist.getByIdOrUsername.useQuery(
     {

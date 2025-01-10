@@ -50,14 +50,13 @@ function TabMeasureLine({
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const { editing, audioMetadata, bpm, getTabData, setTabData } = useTabStore(
+  const { audioMetadata, bpm, getTabData, setTabData } = useTabStore(
     (state) => ({
-      editing: state.editing,
       audioMetadata: state.audioMetadata,
       bpm: state.bpm,
       getTabData: state.getTabData,
       setTabData: state.setTabData,
-    })
+    }),
   );
 
   function handleDeleteMeasureLine() {
@@ -65,7 +64,7 @@ function TabMeasureLine({
 
     newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
       columnIndex,
-      1
+      1,
     );
 
     setTabData(newTabData);
@@ -77,9 +76,8 @@ function TabMeasureLine({
 
     const newTabData = getTabData();
 
-    newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-      columnIndex
-    ][7] = `${newBpm}`;
+    newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex][7] =
+      `${newBpm}`;
 
     setTabData(newTabData);
   }
@@ -88,7 +86,7 @@ function TabMeasureLine({
     e.stopPropagation();
 
     const currentNote = document.getElementById(
-      `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`
+      `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`,
     );
 
     // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
@@ -103,7 +101,7 @@ function TabMeasureLine({
           : columnIndex - 1;
 
       const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-7`
+        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-7`,
       );
 
       focusAndScrollIntoView(currentNote, newNoteToFocus);
@@ -116,7 +114,7 @@ function TabMeasureLine({
         getTabData()[sectionIndex]!.data[subSectionIndex]!.data.length - 1
       ) {
         const newNoteToFocus = document.getElementById(
-          `${sectionIndex}${subSectionIndex}ExtendTabButton`
+          `${sectionIndex}${subSectionIndex}ExtendTabButton`,
         );
 
         focusAndScrollIntoView(currentNote, newNoteToFocus);
@@ -131,7 +129,7 @@ function TabMeasureLine({
           : columnIndex + 1;
 
       const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-7`
+        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-7`,
       );
 
       focusAndScrollIntoView(currentNote, newNoteToFocus);
@@ -144,72 +142,17 @@ function TabMeasureLine({
   }
 
   function renderMeasureLine(index: number) {
-    if (editing) {
-      if (index === 1) {
-        return (
-          <div className="baseVertFlex w-full !flex-nowrap">
-            {/* top border and vert stub to normalize heights of middle indicies */}
-            {(reorderingColumns || showingDeleteColumnsButtons) && (
-              <div className="baseVertFlex w-full">
-                <div className="h-[2px] w-full bg-pink-100"></div>
-                <div className="h-[3px] w-[2px] bg-pink-100"></div>
-              </div>
-            )}
-
-            <div className="baseFlex w-full">
-              {/* left dummy string */}
-              {(reorderingColumns || showingDeleteColumnsButtons) && (
-                <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
-              )}
-
-              {/* measure line */}
-              <div
-                style={{
-                  height: getHeightOfMeasureLineSubSection(index),
-                }}
-                className="w-[2px] bg-pink-100"
-              ></div>
-
-              {/* right dummy string */}
-              {(reorderingColumns || showingDeleteColumnsButtons) && (
-                <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
-              )}
+    if (index === 1) {
+      return (
+        <div className="baseVertFlex w-full !flex-nowrap">
+          {/* top border and vert stub to normalize heights of middle indicies */}
+          {(reorderingColumns || showingDeleteColumnsButtons) && (
+            <div className="baseVertFlex w-full">
+              <div className="h-[2px] w-full bg-pink-100"></div>
+              <div className="h-[3px] w-[2px] bg-pink-100"></div>
             </div>
-          </div>
-        );
-      } else if (index === 6) {
-        return (
-          <div className="baseVertFlex w-full !flex-nowrap">
-            <div className="baseFlex w-full">
-              {/* left dummy string */}
-              {(reorderingColumns || showingDeleteColumnsButtons) && (
-                <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
-              )}
+          )}
 
-              {/* measure line */}
-              <div
-                style={{
-                  height: getHeightOfMeasureLineSubSection(index),
-                }}
-                className="w-[2px] bg-pink-100"
-              ></div>
-
-              {/* right dummy string */}
-              {(reorderingColumns || showingDeleteColumnsButtons) && (
-                <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
-              )}
-            </div>
-            {/* bottom border and vert stub to normalize heights of middle indicies */}
-            {(reorderingColumns || showingDeleteColumnsButtons) && (
-              <div className="baseVertFlex w-full">
-                <div className="h-[3px] w-[2px] bg-pink-100"></div>
-                <div className="h-[2px] w-full bg-pink-100"></div>
-              </div>
-            )}
-          </div>
-        );
-      } else {
-        return (
           <div className="baseFlex w-full">
             {/* left dummy string */}
             {(reorderingColumns || showingDeleteColumnsButtons) && (
@@ -229,36 +172,75 @@ function TabMeasureLine({
               <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
             )}
           </div>
-        );
-      }
-    }
+        </div>
+      );
+    } else if (index === 6) {
+      return (
+        <div className="baseVertFlex w-full !flex-nowrap">
+          <div className="baseFlex w-full">
+            {/* left dummy string */}
+            {(reorderingColumns || showingDeleteColumnsButtons) && (
+              <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
+            )}
 
-    // else:
-    return (
-      <div
-        style={{
-          height: getHeightOfMeasureLineSubSection(index),
-        }}
-        className="w-[2px] bg-pink-100"
-      ></div>
-    );
+            {/* measure line */}
+            <div
+              style={{
+                height: getHeightOfMeasureLineSubSection(index),
+              }}
+              className="w-[2px] bg-pink-100"
+            ></div>
+
+            {/* right dummy string */}
+            {(reorderingColumns || showingDeleteColumnsButtons) && (
+              <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
+            )}
+          </div>
+          {/* bottom border and vert stub to normalize heights of middle indicies */}
+          {(reorderingColumns || showingDeleteColumnsButtons) && (
+            <div className="baseVertFlex w-full">
+              <div className="h-[3px] w-[2px] bg-pink-100"></div>
+              <div className="h-[2px] w-full bg-pink-100"></div>
+            </div>
+          )}
+        </div>
+      );
+    } else {
+      return (
+        <div className="baseFlex w-full">
+          {/* left dummy string */}
+          {(reorderingColumns || showingDeleteColumnsButtons) && (
+            <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
+          )}
+
+          {/* measure line */}
+          <div
+            style={{
+              height: getHeightOfMeasureLineSubSection(index),
+            }}
+            className="w-[2px] bg-pink-100"
+          ></div>
+
+          {/* right dummy string */}
+          {(reorderingColumns || showingDeleteColumnsButtons) && (
+            <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
+          )}
+        </div>
+      );
+    }
   }
 
   function getHeightOfMeasureLineSubSection(index: number) {
     let height = "0px";
 
-    if (editing) {
-      if (reorderingColumns || showingDeleteColumnsButtons) {
-        height = "45px";
-      } else {
-        if (index === 1 || index === 6) {
-          height = "47px";
-        } else {
-          height = "46.5px"; // hacky "magic" number to get everything to line up correctly
-        }
-      }
+    if (reorderingColumns || showingDeleteColumnsButtons) {
+      height = "45px";
     } else {
-      height = "28px";
+      if (index === 1 || index === 6) {
+        height = "47px";
+      } else {
+        height = "46.5px"; // hacky "magic" number to get everything to line up correctly
+      }
     }
 
     return height;
@@ -270,7 +252,7 @@ function TabMeasureLine({
       ref={setNodeRef}
       style={{
         transform: CSS.Transform.toString(
-          transform && { ...transform, scaleY: 1, scaleX: 1 }
+          transform && { ...transform, scaleY: 1, scaleX: 1 },
         ),
         // need to have same width as chords for the drag and drop algorithms
         // to behave properly without the ui breaking
@@ -278,11 +260,10 @@ function TabMeasureLine({
           reorderingColumns || showingDeleteColumnsButtons ? "48px" : "2px",
         transition: `${transition ?? ""}, width 0.15s ease-in-out`,
         zIndex: isDragging ? 50 : "auto",
-        height: editing ? "400px" : "271px",
       }}
-      className="baseVertFlex relative"
+      className="baseVertFlex relative h-[400px]"
     >
-      {editing && (reorderingColumns || showingDeleteColumnsButtons) && (
+      {(reorderingColumns || showingDeleteColumnsButtons) && (
         <div
           style={{
             width: columnHasBeenPlayed ? "100%" : "0%",
@@ -293,31 +274,11 @@ function TabMeasureLine({
       {columnData.map((note, index) => (
         <Fragment key={index}>
           {index === 0 && (
-            <>
-              {!editing && columnData[7] && columnData[7] !== "-1" && (
-                <div
-                  className={`baseFlex absolute !flex-nowrap gap-[0.125rem] text-pink-100 ${
-                    note === "-" ? "top-[10px]" : "top-[27px]"
-                  }`}
-                >
-                  <QuarterNote />
-                  <p className="text-center text-xs">
-                    {columnData[7].toString()}
-                  </p>
-                </div>
+            <div className="baseFlex mb-0 h-0 w-full">
+              {note === "-" && (
+                <div className="relative top-[-26px] h-[1px] w-full bg-pink-100"></div>
               )}
-
-              <div className="baseFlex mb-0 h-0 w-full">
-                {note === "-" && (
-                  <div
-                    style={{
-                      top: editing ? "-26px" : "-18px",
-                    }}
-                    className="relative h-[1px] w-full bg-pink-100"
-                  ></div>
-                )}
-              </div>
-            </>
+            </div>
           )}
 
           {index > 0 && index < 7 && (
@@ -325,7 +286,6 @@ function TabMeasureLine({
           )}
 
           {index === 8 &&
-            editing &&
             !reorderingColumns &&
             !showingDeleteColumnsButtons && (
               <Popover>
@@ -361,7 +321,7 @@ function TabMeasureLine({
                           ? ""
                           : bpm.toString()
                         : getTabData()[sectionIndex]?.data[subSectionIndex]?.bpm
-                      ).toString()}
+                      )?.toString()}
                       value={
                         columnData[7] === "-1" ? "" : columnData[7]!.toString()
                       }
@@ -381,8 +341,7 @@ function TabMeasureLine({
           {...listeners}
           className={`hover:box-shadow-md ${
             isDragging ? "cursor-grabbing" : "cursor-grab"
-          } absolute bottom-4
-              z-50 cursor-grab rounded-md text-pink-100 active:cursor-grabbing`}
+          } absolute bottom-4 z-50 cursor-grab rounded-md text-pink-100 active:cursor-grabbing`}
           onMouseEnter={() => setHoveringOnHandle(true)}
           onMouseDown={() => setGrabbingHandle(true)}
           onMouseLeave={() => {

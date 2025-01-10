@@ -96,19 +96,13 @@ function TabNotesColumn({
   });
 
   const {
-    editing,
     audioMetadata,
-    chordPulse,
-    setChordPulse,
     getTabData,
     setTabData,
     pauseAudio,
     currentChordIndex,
   } = useTabStore((state) => ({
-    editing: state.editing,
     audioMetadata: state.audioMetadata,
-    chordPulse: state.chordPulse,
-    setChordPulse: state.setChordPulse,
     getTabData: state.getTabData,
     setTabData: state.setTabData,
     pauseAudio: state.pauseAudio,
@@ -133,40 +127,6 @@ function TabNotesColumn({
       setHighlightChord(columnIsBeingPlayed);
     }
   }, [columnIndex, columnIsBeingPlayed]);
-
-  function relativelyGetColumn(indexRelativeToCurrentCombo: number): string[] {
-    return (columnData[columnIndex + indexRelativeToCurrentCombo] ??
-      []) as string[];
-  }
-
-  function lineBeforeNoteOpacity(index: number): boolean {
-    const colMinus1 = relativelyGetColumn(-1);
-    const colMinus2 = relativelyGetColumn(-2);
-    const col0 = relativelyGetColumn(0);
-
-    return (
-      editing ||
-      colMinus1[index] === "" ||
-      (colMinus1[index] === "|" &&
-        (colMinus2[index] === "" || col0[index] === "")) ||
-      colMinus1[index] === "~" ||
-      colMinus1[index] === undefined
-    );
-  }
-
-  function lineAfterNoteOpacity(index: number): boolean {
-    const col0 = relativelyGetColumn(0);
-    const col1 = relativelyGetColumn(1);
-    const col2 = relativelyGetColumn(2);
-
-    return (
-      editing ||
-      col1[index] === "" ||
-      (col1[index] === "|" && (col2[index] === "" || col0[index] === "")) ||
-      col1[index] === "~" ||
-      col1[index] === undefined
-    );
-  }
 
   function deleteColumnButtonDisabled() {
     let disabled = false;
@@ -256,7 +216,7 @@ function TabNotesColumn({
 
     newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
       columnIndex,
-      1
+      1,
     );
 
     setTabData(newTabData);
@@ -281,7 +241,7 @@ function TabNotesColumn({
       "",
       "",
       "",
-      "note", // will be overwritten by note length if it's specified
+      "1/4th", // will be overwritten by note length if it's specified
       crypto.randomUUID(),
     ];
 
@@ -289,13 +249,13 @@ function TabNotesColumn({
       newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
         columnIndex + 1,
         0,
-        newColumnData
+        newColumnData,
       );
     } else {
       newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
         columnIndex,
         0,
-        newColumnData
+        newColumnData,
       );
     }
 
@@ -310,7 +270,7 @@ function TabNotesColumn({
     newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
       columnIndex,
       1,
-      columnData
+      columnData,
     );
 
     setTabData(newTabData);
@@ -323,15 +283,14 @@ function TabNotesColumn({
       ref={setNodeRef}
       style={{
         transform: CSS.Transform.toString(
-          transform && { ...transform, scaleY: 1, scaleX: 1 }
+          transform && { ...transform, scaleY: 1, scaleX: 1 },
         ),
         transition,
         zIndex: isDragging ? 50 : "auto",
-        height: editing ? "400px" : "271px",
       }}
       onMouseEnter={() => setColumnIdxBeingHovered(columnIndex)}
       onMouseLeave={() => setColumnIdxBeingHovered(null)}
-      className="baseVertFlex cursor-default"
+      className="baseVertFlex h-[400px] cursor-default"
     >
       <Element
         name={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
@@ -342,7 +301,6 @@ function TabNotesColumn({
           style={{
             marginTop:
               reorderingColumns || showingDeleteColumnsButtons ? "8px" : "0",
-            height: editing ? "276px" : "164px",
             transform:
               highlightChord || columnHasBeenPlayed ? "scaleX(1)" : "scaleX(0)",
             transformOrigin: "left center",
@@ -350,33 +308,10 @@ function TabNotesColumn({
             msTransitionProperty: "transform",
             transitionTimingFunction: "linear",
           }}
-          className="absolute left-0 w-full bg-pink-700"
+          className="absolute left-0 h-[276px] w-full bg-pink-700"
         ></div>
 
-        <div
-          onAnimationEnd={() => {
-            setChordPulse(null);
-          }}
-          className={`absolute h-[270px] w-[95%] rounded-full bg-pink-300 opacity-0 ${
-            isEqual(chordPulse?.location, {
-              sectionIndex,
-              subSectionIndex,
-              chordIndex: columnIndex,
-            })
-              ? chordPulse!.type === "copy"
-                ? "animate-copyChordPulse"
-                : "animate-pasteChordPulse"
-              : ""
-          }
-        } `}
-        ></div>
-
-        <div
-          style={{
-            gap: editing ? "0.5rem" : "0",
-          }}
-          className="baseVertFlex mb-[3.2rem] mt-4"
-        >
+        <div className="baseVertFlex mb-[3.2rem] mt-4 gap-2">
           {columnData.map((note, index) => (
             <Fragment key={index}>
               {index === 0 && (
@@ -446,13 +381,11 @@ function TabNotesColumn({
                             <DropdownMenuLabel>Note length</DropdownMenuLabel>
                             <DropdownMenuRadioGroup
                               value={
-                                columnData[8] === "note"
-                                  ? "1/4th"
-                                  : columnData[8]
+                                columnData[8] as "1/4th" | "1/8th" | "1/16th"
                               }
                               onValueChange={(value) => {
                                 handleNoteLengthChange(
-                                  value as "1/4th" | "1/8th" | "1/16th"
+                                  value as "1/4th" | "1/8th" | "1/16th",
                                 );
                               }}
                             >
@@ -462,9 +395,12 @@ function TabNotesColumn({
                                   value={duration}
                                   className="baseFlex w-[150px] !justify-start gap-2"
                                 >
-                                  {getDynamicNoteLengthIcon(
-                                    duration as "1/4th" | "1/8th" | "1/16th"
-                                  )}
+                                  {getDynamicNoteLengthIcon({
+                                    noteLength: duration as
+                                      | "1/4th"
+                                      | "1/8th"
+                                      | "1/16th",
+                                  })}
                                   {duration}
                                 </DropdownMenuRadioItem>
                               ))}
@@ -487,18 +423,12 @@ function TabNotesColumn({
                       index === 6 ? "2px solid rgb(253 242 248)" : "none"
                     }`,
                     paddingBottom: `${index === 6 ? "7px" : "0"}`,
-                    width: editing ? "48px" : "35px",
                     transition: "width 0.15s ease-in-out",
                     // maybe also need "flex-basis: content" here if editing?
                   }}
-                  className="baseFlex relative basis-[content]"
+                  className="baseFlex relative w-12 basis-[content]"
                 >
-                  <div
-                    style={{
-                      opacity: lineBeforeNoteOpacity(index) ? 1 : 0,
-                    }}
-                    className="h-[1px] flex-[1] bg-pink-100/50"
-                  ></div>
+                  <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
 
                   <TabNote
                     note={note}
@@ -508,17 +438,11 @@ function TabNotesColumn({
                     noteIndex={index}
                   />
 
-                  <div
-                    style={{
-                      opacity: lineAfterNoteOpacity(index) ? 1 : 0,
-                    }}
-                    className="h-[1px] flex-[1] bg-pink-100/50"
-                  ></div>
+                  <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
                 </div>
               )}
 
-              {editing &&
-                index === 7 &&
+              {index === 7 &&
                 !reorderingColumns &&
                 !showingDeleteColumnsButtons && (
                   <div className="relative h-0 w-full">
@@ -534,8 +458,7 @@ function TabNotesColumn({
                   </div>
                 )}
 
-              {editing &&
-                index === 7 &&
+              {index === 7 &&
                 (columnData[8] === "1/8th" || columnData[8] === "1/16th") && (
                   <div
                     style={{
@@ -546,31 +469,14 @@ function TabNotesColumn({
                     }}
                     className="baseVertFlex absolute left-[53%] right-1/2 w-[1.5rem] -translate-x-1/2"
                   >
-                    {getDynamicNoteLengthIcon(columnData[8])}
+                    {getDynamicNoteLengthIcon({
+                      noteLength: columnData[8],
+                      isARestNote: columnData
+                        .slice(1, 7)
+                        .every((note) => note === ""),
+                    })}
                   </div>
                 )}
-
-              {!editing && index === 7 && (
-                <div className="relative h-0 w-full">
-                  <div
-                    style={{
-                      top: editing ? "0.5rem" : "0.25rem",
-                      lineHeight: editing ? "24px" : "16px",
-                    }}
-                    className="baseVertFlex absolute left-1/2 right-1/2 top-2 w-[1.5rem] -translate-x-1/2"
-                  >
-                    {columnData.includes("^") && (
-                      <div className="relative top-1 rotate-180">v</div>
-                    )}
-                    {columnData.includes("v") && <div>v</div>}
-                    {columnData.includes("s") && <div>s</div>}
-                    {columnData.includes(">") && <div>{">"}</div>}
-                    {columnData.includes(".") && (
-                      <div className="relative bottom-2">.</div>
-                    )}
-                  </div>
-                </div>
-              )}
             </Fragment>
           ))}
         </div>

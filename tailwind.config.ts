@@ -9,7 +9,8 @@ module.exports = {
   darkMode: ["class"],
   content: ["./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-     container: {
+    // probably can remove container? not sure if it's needed
+    container: {
       center: true,
       padding: "2rem",
       screens: {
@@ -22,6 +23,17 @@ module.exports = {
       ...defaultTheme.screens,
     },
     extend: {
+      screens: {
+        // tab title + bpm will be hidden below this threshold to free up extra space
+        narrowMobileLandscape: { raw: "(max-height: 370px)" },
+        // TODO: tweak this threshold
+        mobileLandscape: { raw: "(min-height: 370px) and (max-height: 500px)" },
+        // threshold to render regular height tab components on playback modal
+        mobilePortrait: { raw: "(min-height: 500px)" },
+        mobileLarge: { raw: "(min-height: 667px)" },
+        tablet: { raw: "(min-height: 700px) and (min-width: 1024px)" },
+        desktop: { raw: "(min-height: 800px) and (min-width: 1500px)" },
+      },
       colors: {
         destructiveRed: "hsl(0, 90%, 50%)",
         border: "hsl(var(--border))",
@@ -105,16 +117,6 @@ module.exports = {
           from: { transform: "rotate(0deg)" },
           to: { transform: "rotate(360deg)" },
         },
-        copyChordPulse: {
-          "0%": { transform: "scale(0.75)", opacity: "0" },
-          "50%": { transform: "scale(1)", opacity: "0.5" },
-          "100%": { transform: "scale(1)", opacity: "0" },
-        },
-        pasteChordPulse: {
-          "0%": { transform: "scale(0.75)", opacity: "0" },
-          "50%": { transform: "scale(1)", opacity: "0.5" },
-          "100%": { transform: "scale(0.85)", opacity: "0" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -123,8 +125,6 @@ module.exports = {
         smallErrorShake: "smallErrorShake 0.5s ease-in-out forwards",
         colorOscillate: "colorOscillate 1.75s ease-in-out infinite",
         stableSpin: "stableSpin 1s linear infinite",
-        copyChordPulse: "copyChordPulse 0.35s ease-in-out forwards",
-        pasteChordPulse: "pasteChordPulse 0.35s ease-in-out forwards",
       },
       textShadow: {
         none: "none",
@@ -145,7 +145,7 @@ module.exports = {
             textShadow: value,
           }),
         },
-        { values: theme("textShadow") }
+        { values: theme("textShadow") },
       );
     }),
   ],

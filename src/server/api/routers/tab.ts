@@ -110,7 +110,7 @@ export const tabRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.number(),
-      })
+      }),
     )
     .query(async ({ input, ctx }) => {
       const tab = await ctx.prisma.tab.findUnique({
@@ -201,7 +201,7 @@ export const tabRouter = createTRPCRouter({
         includeUsernames: z.boolean().optional(),
         userIdToSelectFrom: z.string().optional(),
         likedByUserId: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ input, ctx }) => {
       const { query, includeUsernames, userIdToSelectFrom, likedByUserId } =
@@ -273,7 +273,7 @@ export const tabRouter = createTRPCRouter({
         likedByUserId: z.string().optional(),
         // limit: z.number(), fine to hardcode I think, maybe end up scaling down from 25 on smaller screens?
         cursor: z.number().nullish(), // <-- "cursor" needs to exist, but can be any type
-      })
+      }),
     )
     .query(async ({ input, ctx }) => {
       const {
@@ -465,7 +465,6 @@ export const tabRouter = createTRPCRouter({
         genreId: z.number(),
         tuning: z.string(),
         bpm: z.number(),
-        timeSignature: z.string(),
         capo: z.number(),
         chords: z.array(chordSchema),
         hasRecordedAudio: z.boolean(),
@@ -474,10 +473,9 @@ export const tabRouter = createTRPCRouter({
         sectionProgression: z.array(sectionProgressionSchema),
         base64RecordedAudioFile: z.string().nullable(),
         shouldUpdateInS3: z.boolean(),
-        musicalKey: z.string().nullable(),
         base64TabScreenshot: z.string(),
         type: z.enum(["create", "update"]),
-      })
+      }),
     )
     .mutation(async ({ input, ctx }) => {
       // can we destructure input into it's fields here or does prisma not like that?
@@ -496,7 +494,6 @@ export const tabRouter = createTRPCRouter({
             sectionProgression: input.sectionProgression,
             hasRecordedAudio: input.hasRecordedAudio,
             bpm: input.bpm,
-            timeSignature: input.timeSignature,
             capo: input.capo,
             chords: input.chords,
             strummingPatterns: input.strummingPatterns,
@@ -612,7 +609,6 @@ export const tabRouter = createTRPCRouter({
             sectionProgression: input.sectionProgression,
             hasRecordedAudio: input.hasRecordedAudio,
             bpm: input.bpm,
-            timeSignature: input.timeSignature,
             capo: input.capo,
             chords: input.chords,
             strummingPatterns: input.strummingPatterns,

@@ -12,10 +12,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { FaGuitar } from "react-icons/fa";
+import { GiMusicalScore } from "react-icons/gi";
 import { IoTelescopeOutline } from "react-icons/io5";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
+import { Separator } from "~/components/ui/separator";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -64,46 +65,50 @@ function MobileHeader() {
             transition={{ duration: 0.3 }}
             className="fixed left-0 top-16 z-[49] h-48 w-full bg-pink-400 shadow-lg"
           >
-            <div className="baseVertFlex h-full items-center justify-center gap-4 shadow-md">
-              <Button
-                variant={"navigation"}
-                size={"lg"}
-                asChild
-                style={{
-                  backgroundColor: asPath.includes("/explore")
-                    ? "#be185d"
-                    : undefined,
-                  color: asPath.includes("/explore") ? "#fbcfe8" : undefined,
-                }}
-              >
-                <Link
-                  href={"/explore"}
-                  className="baseFlex w-[165px] gap-2 text-[1.13rem]"
+            <div className="baseVertFlex h-full gap-8 shadow-md">
+              <div className="baseFlex w-full gap-4">
+                <Button
+                  variant={"navigation"}
+                  size={"lg"}
+                  asChild
+                  style={{
+                    backgroundColor: asPath.includes("/explore")
+                      ? "#be185d"
+                      : undefined,
+                    color: asPath.includes("/explore") ? "#fbcfe8" : undefined,
+                  }}
                 >
-                  <IoTelescopeOutline className="h-6 w-6" />
-                  Explore
-                </Link>
-              </Button>
+                  <Link
+                    href={"/explore"}
+                    className="baseFlex w-[165px] gap-2 text-[1.13rem]"
+                  >
+                    <IoTelescopeOutline className="h-6 w-6" />
+                    Explore
+                  </Link>
+                </Button>
 
-              <Button
-                variant={"navigation"}
-                size={"lg"}
-                asChild
-                style={{
-                  backgroundColor: asPath.includes("/create")
-                    ? "#be185d"
-                    : undefined,
-                  color: asPath.includes("/create") ? "#fbcfe8" : undefined,
-                }}
-              >
-                <Link
-                  href={"/create"}
-                  className="baseFlex w-[165px] gap-2 text-[1.13rem]"
+                <Button
+                  variant={"navigation"}
+                  size={"lg"}
+                  asChild
+                  style={{
+                    backgroundColor: asPath.includes("/create")
+                      ? "#be185d"
+                      : undefined,
+                    color: asPath.includes("/create") ? "#fbcfe8" : undefined,
+                  }}
                 >
-                  <FaGuitar className="h-6 w-6" />
-                  Create
-                </Link>
-              </Button>
+                  <Link
+                    href={"/create"}
+                    className="baseFlex w-[165px] gap-2 text-[1.13rem]"
+                  >
+                    <GiMusicalScore className="h-6 w-6" />
+                    Create
+                  </Link>
+                </Button>
+              </div>
+
+              <Separator className="h-[1px] w-[90%]" />
 
               {/* opting for double "&&" instead of ternary for better readability */}
               {!isSignedIn && (
