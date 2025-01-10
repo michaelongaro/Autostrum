@@ -30,6 +30,8 @@ const backdropVariants = {
   },
 };
 
+const virtualizationBuffer = 100;
+
 interface ScrollPositions {
   byId: {
     [id: string]: {
@@ -167,9 +169,9 @@ function PlaybackModal() {
     } else if (
       prevCurrentChordIndexRef.current !== null && // Ensure it's not the initial render
       prevCurrentChordIndexRef.current > currentChordIndex && // User scrolled backward
-      !audioMetadata.playing // Playback is not active
+      !audioMetadata.playing
     ) {
-      // Reset all currentPosition to null
+      // Reset all currentPosition values to null
       setScrollPositions((prev) => {
         if (prev === null) return null;
 
@@ -204,6 +206,14 @@ function PlaybackModal() {
   }, [scrollPositions]);
 
   useEffect(() => {
+    earliestVisibleChordIndexRef.current = 0;
+    // need to reset this value when either of these deps change
+    // since expandedTabData will be recomputed, but the currentChordIndex
+    // won't be changed to trigger below effect
+  }, [audioMetadata.editingLoopRange, loopDelay]);
+
+  // chord virtualization effect
+  useEffect(() => {
     if (scrollPositionsRef.current === null) return;
 
     // value is the new scrollPosition to update currentPosition to
@@ -216,7 +226,7 @@ function PlaybackModal() {
       }) +
       initialPlaceholderWidth -
       visiblePlaybackContainerWidth * 0.5 -
-      100; // 100 is buffer value
+      virtualizationBuffer;
 
     let localIndex = earliestVisibleChordIndexRef.current;
 
@@ -239,6 +249,7 @@ function PlaybackModal() {
       }
 
       if (localIndex + 1 >= scrollPositionsRef.current.allIds.length) {
+        // wraps back around to beginning of scrollPositions
         localIndex = 0;
       } else {
         localIndex++;
@@ -369,9 +380,13 @@ function PlaybackModal() {
     });
 
     const minVisiblePosition =
-      currentPosition - visiblePlaybackContainerWidth / 2 - 100;
+      currentPosition -
+      visiblePlaybackContainerWidth / 2 -
+      virtualizationBuffer;
     const maxVisiblePosition =
-      currentPosition + visiblePlaybackContainerWidth / 2 + 100;
+      currentPosition +
+      visiblePlaybackContainerWidth / 2 +
+      virtualizationBuffer;
 
     return (
       chordPosition >= minVisiblePosition && chordPosition <= maxVisiblePosition
@@ -731,16 +746,6 @@ function RenderChordByType({
   }
 
   if (type === "loopDelaySpacer") {
-    return (
-      <div
-        style={{
-          position: "absolute",
-          width: "35px",
-          height: "100%",
-          backgroundColor: "black",
-          left: 0,
-        }}
-      ></div>
-    );
+    return <div className="absolute left-0 h-full w-[35px] bg-black"></div>;
   }
 }
