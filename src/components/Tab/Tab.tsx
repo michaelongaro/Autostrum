@@ -31,9 +31,9 @@ import Logo from "~/components/ui/icons/Logo";
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
 );
-const AudioRecorderModal = dynamic(
-  () => import("~/components/modals/AudioRecorderModal"),
-);
+// const AudioRecorderModal = dynamic(
+//   () => import("~/components/modals/AudioRecorderModal"),
+// );
 const ChordModal = dynamic(() => import("~/components/modals/ChordModal"));
 const StrummingPatternModal = dynamic(
   () => import("~/components/modals/StrummingPatternModal"),
@@ -428,9 +428,10 @@ function Tab({ tab, refetchTab }: ITab) {
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
+      {/* TODO: re-enable this when you find a react 19 compatible workaround */}
+      {/* <AnimatePresence mode="wait">
         {showAudioRecorderModal && <AudioRecorderModal />}
-      </AnimatePresence>
+      </AnimatePresence> */}
 
       <AnimatePresence mode="wait">
         {showCustomTuningModal && (

@@ -1,29 +1,11 @@
-import { Canvas, extend, useFrame } from "@react-three/fiber";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { isMobile } from "react-device-detect";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import type { Mesh } from "three";
-import {
-  AmbientLight,
-  DirectionalLight,
-  MeshPhysicalMaterial,
-  MeshStandardMaterial,
-  PointLight,
-  SphereGeometry,
-} from "three";
 import type { GenreWithTotalTabNumbers } from "~/server/api/routers/genre";
 import { formatNumber } from "~/utils/formatNumber";
-extend({
-  AmbientLight,
-  PointLight,
-  SphereGeometry,
-  MeshStandardMaterial,
-  MeshPhysicalMaterial,
-  DirectionalLight,
-});
 
 const opacityVariants = {
   expanded: {
@@ -169,11 +151,12 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
             pointerEvents: "none",
             userSelect: "none",
           }}
-          className="absolute -right-4 top-10 h-28 w-32 scale-[0.60] sm:right-4 sm:top-4 sm:scale-100 md:w-36 "
+          className="absolute -right-4 top-10 h-28 w-32 scale-[0.60] sm:right-4 sm:top-4 sm:scale-100 md:w-36"
         />
       ) : (
-        <div className="absolute -right-8 top-12 h-28 w-32 scale-75 sm:right-4 sm:top-4 sm:scale-100 md:w-36 ">
-          <Canvas
+        <div className="absolute -right-8 top-12 h-28 w-32 scale-75 sm:right-4 sm:top-4 sm:scale-100 md:w-36">
+          {/* FYI: didn't work well with React 19, will be removed in future merge */}
+          {/* <Canvas
             style={{
               width: "100%",
               height: "100%",
@@ -182,7 +165,7 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
             }}
             camera={{ position: [0, 0, 60] }}
           >
-            <ambientLight intensity={1.5} />
+            <AmbientLight intensity={1.5} />
             <directionalLight color={"white"} intensity={0.5} />
 
             {positions.map((position, index) => (
@@ -195,7 +178,7 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
                 color={genre.color}
               />
             ))}
-          </Canvas>
+          </Canvas> */}
         </div>
       )}
     </motion.div>
@@ -203,54 +186,3 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
 }
 
 export default GenreBubble;
-
-interface ConditionallyFloatingBubble {
-  delay: number;
-  floating: boolean;
-  radius: number;
-  position: [number, number, number];
-  color: string;
-}
-
-function ConditionallyFloatingBubble({
-  delay,
-  floating,
-  radius,
-  position,
-  color,
-}: ConditionallyFloatingBubble) {
-  const meshRef = useRef<Mesh>(null!);
-
-  const amplitudeY = 4; // Max vertical displacement
-  const amplitudeX = 2.5; // Max horizontal displacement
-  const frequency = 12 / radius; // Speed of oscillation 1.5
-
-  useFrame((state, delta) => {
-    if (meshRef.current && floating) {
-      const time = state.clock.getElapsedTime();
-
-      setTimeout(() => {
-        if (meshRef.current) {
-          meshRef.current.position.x +=
-            amplitudeX * Math.cos(frequency * time) * 0.001;
-          meshRef.current.position.y +=
-            amplitudeY * Math.sin(frequency * time) * 0.01;
-        }
-      }, delay * 100);
-    }
-  });
-
-  return (
-    <mesh ref={meshRef} position={position}>
-      <sphereGeometry args={[radius, 32, 16]} />
-      <meshPhysicalMaterial
-        roughness={0}
-        metalness={0.5}
-        reflectivity={1}
-        clearcoatRoughness={0.5}
-        clearcoat={0.8}
-        color={color}
-      />
-    </mesh>
-  );
-}

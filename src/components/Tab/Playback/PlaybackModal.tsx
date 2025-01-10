@@ -344,13 +344,11 @@ function PlaybackModal() {
       0 + finalElementWidth;
 
     setExpandedTabDataHasChanged(false);
-    setTimeout(() => {
-      setScrollPositions(localScrollPositions);
-      setChordWidths(chordWidths);
-      setScrollContainerWidth(scrollContainerWidth);
-      setChordDurations(durations);
-      setFinalChordWidth(finalElementWidth);
-    }, 1000); // TODO: this is a bandaid fix. this looks to be a syncing issue with zustand state updates, should be fixed in react 19/next 15 though
+    setScrollPositions(localScrollPositions);
+    setChordWidths(chordWidths);
+    setScrollContainerWidth(scrollContainerWidth);
+    setChordDurations(durations);
+    setFinalChordWidth(finalElementWidth);
   }, [
     containerElement,
     visiblePlaybackContainerWidth,
