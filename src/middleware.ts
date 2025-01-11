@@ -2,10 +2,10 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isProfileRoute = createRouteMatcher(["/profile(.*)"]);
 
-export default clerkMiddleware((auth, req) => {
+export default clerkMiddleware(async (auth, req) => {
   // Restrict profile routes to signed in users
   if (isProfileRoute(req)) {
-    auth().protect();
+    await auth.protect();
   }
 });
 
