@@ -4,7 +4,7 @@ import * as React from "react";
 import { cn } from "~/utils/utils";
 
 const LoopingRangeSlider = React.forwardRef<
-  React.ElementRef<typeof SliderPrimitive.Root>,
+  React.ComponentRef<typeof SliderPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
 >(({ className, ...props }, ref) => {
   return (
@@ -13,7 +13,7 @@ const LoopingRangeSlider = React.forwardRef<
       minStepsBetweenThumbs={2}
       className={cn(
         "relative flex w-full touch-none select-none items-center shadow-sm disabled:cursor-not-allowed data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
-        className
+        className,
       )}
       {...props}
     >
@@ -26,16 +26,8 @@ const LoopingRangeSlider = React.forwardRef<
         <SliderPrimitive.Range className="active absolute h-full bg-primary" />
       </SliderPrimitive.Track>
 
-      <SliderPrimitive.Thumb
-        className="block h-5 w-5 cursor-grab rounded-full
-border-2 border-primary bg-background shadow-md ring-offset-background 
-hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 active:cursor-grabbing active:shadow-lg disabled:pointer-events-none disabled:opacity-50"
-      />
-      <SliderPrimitive.Thumb
-        className="block h-5 w-5 cursor-grab rounded-full
-border-2 border-primary bg-background shadow-md ring-offset-background 
-hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 active:cursor-grabbing active:shadow-lg disabled:pointer-events-none disabled:opacity-50"
-      />
+      <SliderPrimitive.Thumb className="block h-5 w-5 cursor-grab rounded-full border-2 border-primary bg-background shadow-md ring-offset-background hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 active:cursor-grabbing active:shadow-lg disabled:pointer-events-none disabled:opacity-50" />
+      <SliderPrimitive.Thumb className="block h-5 w-5 cursor-grab rounded-full border-2 border-primary bg-background shadow-md ring-offset-background hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 active:cursor-grabbing active:shadow-lg disabled:pointer-events-none disabled:opacity-50" />
     </SliderPrimitive.Root>
   );
 });

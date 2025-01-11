@@ -6,7 +6,7 @@ import { useTabStore } from "~/stores/TabStore";
 import { cn } from "~/utils/utils";
 
 const AudioProgressSlider = React.forwardRef<
-  React.ElementRef<typeof SliderPrimitive.Root>,
+  React.ComponentRef<typeof SliderPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
 >(({ className, ...props }, ref) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -16,13 +16,13 @@ const AudioProgressSlider = React.forwardRef<
   // needed since radix-ui doesn't expose the wrapper that acutally moves the
   // thumb, so we need to get it ourselves to set the transition property
   const [thumbElemNode, setThumbElemNode] = useState<HTMLSpanElement | null>(
-    null
+    null,
   );
 
   // wasn't working by setting inline styles on <Track />, so doing same treatment
   // as with thumb here
   const [trackElemNode, setTrackElemNode] = useState<HTMLSpanElement | null>(
-    null
+    null,
   );
 
   useEffect(() => {
@@ -30,12 +30,12 @@ const AudioProgressSlider = React.forwardRef<
       const audioSliderNode = document.getElementById("audioSlider");
       if (audioSliderNode) {
         setThumbElemNode(
-          Array.from(audioSliderNode.children).at(-1) as HTMLSpanElement
+          Array.from(audioSliderNode.children).at(-1) as HTMLSpanElement,
         );
         setTrackElemNode(
           Array.from(
-            audioSliderNode.children[0]!.children
-          )[0] as HTMLSpanElement
+            audioSliderNode.children[0]!.children,
+          )[0] as HTMLSpanElement,
         );
       }
     }, 1000);
@@ -128,7 +128,7 @@ const AudioProgressSlider = React.forwardRef<
       id="audioSlider"
       className={cn(
         "relative flex w-full touch-none select-none items-center shadow-sm disabled:cursor-not-allowed data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
-        className
+        className,
       )}
       {...props}
     >
@@ -152,9 +152,7 @@ const AudioProgressSlider = React.forwardRef<
         onBlur={() => setIsDragging(false)}
         onPointerDown={() => setIsDragging(true)}
         onPointerUp={() => setIsDragging(false)}
-        className="block h-5 w-5 cursor-grab rounded-full
-border-2 border-primary bg-background shadow-md ring-offset-background 
-transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 active:cursor-grabbing active:shadow-lg disabled:pointer-events-none disabled:opacity-50"
+        className="block h-5 w-5 cursor-grab rounded-full border-2 border-primary bg-background shadow-md ring-offset-background transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 active:cursor-grabbing active:shadow-lg disabled:pointer-events-none disabled:opacity-50"
       />
     </SliderPrimitive.Root>
   );

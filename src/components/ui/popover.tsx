@@ -14,7 +14,7 @@ interface PopoverContentProps
 }
 
 const PopoverContent = React.forwardRef<
-  React.ElementRef<typeof PopoverPrimitive.Content>,
+  React.ComponentRef<typeof PopoverPrimitive.Content>,
   PopoverContentProps
 >(
   (
