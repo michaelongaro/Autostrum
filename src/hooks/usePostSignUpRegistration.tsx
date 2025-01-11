@@ -1,12 +1,18 @@
-import { useClerk } from "@clerk/nextjs";
+import { useAuth, useClerk } from "@clerk/nextjs";
 import { useLocalStorageValue } from "@react-hookz/web";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { api } from "~/utils/api";
 
-function PostSignUpRegistration() {
+function usePostSignUpRegistration() {
   const { user } = useClerk();
+  const { isSignedIn } = useAuth();
   const { push } = useRouter();
+
+  const { data: isArtistRegistered, isLoading: isLoadingQuery } =
+    api.artist.isArtistRegistered.useQuery(user?.id ?? "", {
+      enabled: Boolean(user?.id && isSignedIn),
+    });
 
   const localStorageRedirectRoute = useLocalStorageValue("redirectRoute");
 
@@ -23,15 +29,14 @@ function PostSignUpRegistration() {
     });
 
   useEffect(() => {
-    if (!user) return;
+    if (isLoadingQuery || !isSignedIn || isArtistRegistered || !user) return;
+
     addNewUser({
       userId: user.id,
       username: user.username!,
       profileImageUrl: user.imageUrl,
     });
-  }, [user, addNewUser]);
-
-  return null;
+  }, [addNewUser, isSignedIn, isLoadingQuery, isArtistRegistered]);
 }
 
-export default PostSignUpRegistration;
+export default usePostSignUpRegistration;

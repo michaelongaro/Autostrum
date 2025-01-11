@@ -1,6 +1,5 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { z } from "zod";
-
 import type { Artist } from "@prisma/client";
 import {
   createTRPCRouter,
@@ -16,6 +15,21 @@ export interface ArtistMetadata extends Artist {
 }
 
 export const artistRouter = createTRPCRouter({
+  isArtistRegistered: publicProcedure
+    .input(z.string())
+    .query(async ({ ctx, input: userId }) => {
+      const user = await ctx.prisma.artist.findFirst({
+        where: {
+          userId,
+        },
+        select: {
+          userId: true, // prisma throws runtime error if select is empty
+        },
+      });
+
+      return Boolean(user);
+    }),
+
   updateArtist: protectedProcedure
     .input(
       z.object({
@@ -23,7 +37,7 @@ export const artistRouter = createTRPCRouter({
         username: z.string().optional(),
         profileImageUrl: z.string().optional(),
         pinnedTabId: z.number().optional(),
-      })
+      }),
     )
     .mutation(({ input, ctx }) => {
       const { userId, username, profileImageUrl, pinnedTabId } = input;
@@ -45,7 +59,7 @@ export const artistRouter = createTRPCRouter({
       z.object({
         userId: z.string().optional(),
         username: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ input, ctx }) => {
       const artist = await ctx.prisma.artist.findUnique({
@@ -96,7 +110,7 @@ export const artistRouter = createTRPCRouter({
         sortBy: z.enum(["newest", "oldest", "mostLiked", "leastLiked", "none"]),
         // limit: z.number(), fine to hardcode I think, maybe end up scaling down from 25 on smaller screens?
         cursor: z.number().nullish(), // <-- "cursor" needs to exist, but can be any type
-      })
+      }),
     )
     .query(async ({ input, ctx }) => {
       const { searchQuery, sortByRelevance, sortBy, cursor } = input;
@@ -191,10 +205,11 @@ export const artistRouter = createTRPCRouter({
       z.object({
         userId: z.string(),
         deleteAllOfArtistsTabs: z.boolean(),
-      })
+      }),
     )
     .mutation(async ({ input, ctx }) => {
-      await clerkClient.users.deleteUser(input.userId);
+      const clerk = await clerkClient();
+      clerk.users.deleteUser(input.userId);
 
       if (!input.deleteAllOfArtistsTabs) {
         // keeping the tabs, just removing the artist from them

@@ -14,6 +14,7 @@ import DesktopHeader from "../Header/DesktopHeader";
 import MobileHeader from "../Header/MobileHeader";
 import useGetViewportLabel from "~/hooks/useGetViewportLabel";
 import useScreenWakeLock from "~/hooks/useScreenWakeLock";
+import usePostSignUpRegistration from "~/hooks/usePostSignUpRegistration";
 
 const MobileHeaderModal = dynamic(
   () => import("~/components/modals/MobileHeaderModal"),
@@ -30,6 +31,7 @@ function GeneralLayoutStatefulShell() {
 
   // reflects any updates made to username/profileImageUrl in Clerk to the ArtistMetadata
   useKeepArtistMetadataUpdatedWithClerk();
+  usePostSignUpRegistration();
   useInitializeAudioContext();
   useFetchAndLoadSoundfonts();
   useAutoCompileChords();

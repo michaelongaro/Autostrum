@@ -12,7 +12,7 @@ export const postSignUpRegistrationRouter = createTRPCRouter({
         userId: z.string(),
         username: z.string(),
         profileImageUrl: z.string(),
-      })
+      }),
     )
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.artist
