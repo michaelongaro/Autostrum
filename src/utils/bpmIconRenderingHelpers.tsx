@@ -201,4 +201,6 @@ export {
   chordSequencesAllHaveSameNoteLength,
   getDynamicNoteLengthIcon,
   QuarterNote,
+  EigthNote,
+  SixteenthNote,
 };

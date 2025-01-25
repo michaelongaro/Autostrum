@@ -24,6 +24,12 @@ import StrummingPattern from "../Tab/StrummingPattern";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "../ui/button";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
+import {
+  EigthNote,
+  getDynamicNoteLengthIcon,
+  QuarterNote,
+  SixteenthNote,
+} from "~/utils/bpmIconRenderingHelpers";
 
 const backdropVariants = {
   expanded: {
@@ -343,19 +349,47 @@ function StrummingPatternModal({
                 onValueChange={handleNoteLengthChange}
                 value={strummingPatternBeingEdited.value.noteLength}
               >
-                <SelectTrigger className="w-[135px]">
+                <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Select a length" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Note length</SelectLabel>
-                    <SelectItem value="1/4th">1/4th</SelectItem>
-                    <SelectItem value="1/4th triplet">1/4th triplet</SelectItem>
-                    <SelectItem value="1/8th">1/8th</SelectItem>
-                    <SelectItem value="1/8th triplet">1/8th triplet</SelectItem>
-                    <SelectItem value="1/16th">1/16th</SelectItem>
+                    <SelectItem value="1/4th">
+                      <div className="baseFlex gap-2">
+                        <QuarterNote className="" />
+                        1/4th
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="1/4th triplet">
+                      <div className="baseFlex gap-2">
+                        <QuarterNote />
+                        1/4th triplet
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="1/8th">
+                      <div className="baseFlex gap-2">
+                        <EigthNote />
+                        1/8th
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="1/8th triplet">
+                      <div className="baseFlex gap-2">
+                        <EigthNote />
+                        1/8th triplet
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="1/16th">
+                      <div className="baseFlex gap-2">
+                        <SixteenthNote />
+                        1/16th
+                      </div>
+                    </SelectItem>
                     <SelectItem value="1/16th triplet">
-                      1/16th triplet
+                      <div className="baseFlex gap-2">
+                        <SixteenthNote />
+                        1/16th triplet
+                      </div>
                     </SelectItem>
                   </SelectGroup>
                 </SelectContent>
