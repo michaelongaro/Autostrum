@@ -342,7 +342,7 @@ function StrummingPatternModal({
         }}
       >
         <div className="baseVertFlex max-h-[90vh] min-w-[370px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all sm:max-h-[90vh] sm:max-w-[700px] sm:p-8">
-          <div className="baseFlex w-full !items-start !justify-between gap-8 sm:!flex-col sm:gap-8">
+          <div className="baseFlex w-full !items-start !justify-between gap-4 sm:!flex-col sm:gap-8">
             <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center sm:!justify-start">
               <Label>Note length</Label>
               <Select
@@ -427,7 +427,7 @@ function StrummingPatternModal({
                       ? "0.375rem 0 0 0.375rem"
                       : "0.375rem",
                   }}
-                  className="baseFlex gap-2"
+                  className="baseFlex gap-2 whitespace-nowrap"
                   onClick={() =>
                     setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
                   }
