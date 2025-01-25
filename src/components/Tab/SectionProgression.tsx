@@ -93,7 +93,7 @@ function SectionProgression() {
                           {section.title}
                         </p>
                         {section.repetitions > 1 && (
-                          <p>x{section.repetitions}</p>
+                          <p>(x{section.repetitions})</p>
                         )}
                       </div>
                     </div>
@@ -140,7 +140,7 @@ function SectionProgression() {
                             {section.title}
                           </p>
                           {section.repetitions > 1 && (
-                            <p>x{section.repetitions}</p>
+                            <p>(x{section.repetitions})</p>
                           )}
                         </div>
                       </motion.div>

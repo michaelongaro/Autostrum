@@ -83,7 +83,7 @@ function PlaybackMenuContent() {
 
                   <div className="baseFlex gap-2">
                     <p className="text-nowrap font-semibold">{section.title}</p>
-                    {section.repetitions > 1 && <p>x{section.repetitions}</p>}
+                    {section.repetitions > 1 && <p>(x{section.repetitions})</p>}
                   </div>
                 </div>
               ))}
