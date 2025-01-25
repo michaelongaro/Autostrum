@@ -72,6 +72,11 @@ function Tab({ tab, refetchTab }: ITab) {
   const [forceCloseSectionAccordions, setForceCloseSectionAccordions] =
     useState(false);
 
+  // prevents layout shift when loading tab for first time, otherwise it would
+  // slide down into view above other content for a split second.
+  const [blockInitialLayoutAnimation, setBlockInitialLayoutAnimation] =
+    useState(true);
+
   const localStorageTabData = useLocalStorageValue("tabData");
 
   const {
@@ -149,6 +154,12 @@ function Tab({ tab, refetchTab }: ITab) {
     setShowPlaybackModal: state.setShowPlaybackModal,
     setLooping: state.setLooping,
   }));
+
+  useEffect(() => {
+    setTimeout(() => {
+      setBlockInitialLayoutAnimation(false);
+    }, 1000);
+  }, []);
 
   useEffect(() => {
     if (!tab) return;
@@ -367,7 +378,7 @@ function Tab({ tab, refetchTab }: ITab) {
             tabData.map((section, index) => (
               <motion.div
                 key={section.id}
-                layout={"position"}
+                layout={!blockInitialLayoutAnimation ? "position" : undefined}
                 transition={{
                   layout: {
                     type: "spring",
