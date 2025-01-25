@@ -72,6 +72,7 @@ function PlaybackBottomMetadata({
     looping,
     countInTimer,
     setCurrentChordIndex,
+    pauseAudio,
   } = useTabStore((state) => ({
     tabData: state.tabData,
     title: state.title,
@@ -87,6 +88,7 @@ function PlaybackBottomMetadata({
     looping: state.looping,
     countInTimer: state.countInTimer,
     setCurrentChordIndex: state.setCurrentChordIndex,
+    pauseAudio: state.pauseAudio,
   }));
 
   // idk if best approach, but need unique section titles, not the whole progression
@@ -202,7 +204,10 @@ function PlaybackBottomMetadata({
                 <Button
                   variant={"outline"}
                   className="size-9 !p-0"
-                  onClick={() => setShowEffectGlossaryDialog(true)}
+                  onClick={() => {
+                    pauseAudio();
+                    setShowEffectGlossaryDialog(true);
+                  }}
                 >
                   <FaBook className="h-4 w-4" />
                 </Button>
@@ -248,7 +253,10 @@ function PlaybackBottomMetadata({
               <Button
                 variant={"outline"}
                 className="size-9 !p-0"
-                onClick={() => setShowEffectGlossaryDialog(true)}
+                onClick={() => {
+                  pauseAudio();
+                  setShowEffectGlossaryDialog(true);
+                }}
               >
                 <FaBook className="h-4 w-4" />
               </Button>

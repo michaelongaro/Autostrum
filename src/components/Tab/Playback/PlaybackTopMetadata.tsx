@@ -227,7 +227,10 @@ function PlaybackTopMetadata({
                   <Button
                     variant={"outline"}
                     className="size-9 !p-0"
-                    onClick={() => setShowEffectGlossaryDialog(true)}
+                    onClick={() => {
+                      pauseAudio();
+                      setShowEffectGlossaryDialog(true);
+                    }}
                   >
                     <FaBook className="h-4 w-4" />
                   </Button>
