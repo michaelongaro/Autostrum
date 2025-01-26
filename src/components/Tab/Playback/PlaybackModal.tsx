@@ -410,7 +410,7 @@ function PlaybackModal() {
 
     if (
       scrollPosition === undefined ||
-      scrollPosition >= startPositionOfCurrentLoop
+      scrollPosition > startPositionOfCurrentLoop
     ) {
       return false;
     }
