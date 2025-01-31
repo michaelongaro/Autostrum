@@ -463,40 +463,29 @@ function TabMetadata({
     if (userId) {
       return (
         <div className="baseVertFlex w-full !items-start gap-2 bg-pink-100 p-2 pr-4 text-sm text-pink-950 md:text-base">
-          <div className="baseFlex gap-2">
-            {title ? (
-              <Check className="h-5 w-8 text-green-600" />
-            ) : (
+          {title === "" && (
+            <div className="baseFlex">
               <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 p-0 text-red-600" />
-            )}
-            <p>{`Title is ${title ? "present" : "missing"}`}</p>
-          </div>
-
-          <div className="baseFlex gap-2">
-            {genreId !== -1 ? (
-              <Check className="h-5 w-8 text-green-600" />
-            ) : (
-              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
-            )}
-            <p>{`Genre has ${genreId === -1 ? "not" : ""} been selected`}</p>
-          </div>
-
-          <div className="baseFlex gap-2">
-            {bpm !== -1 ? (
-              <Check className="h-5 w-8 text-green-600" />
-            ) : (
-              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
-            )}
-            <p>{`BPM is ${bpm === -1 ? "not" : ""} defined`}</p>
-          </div>
-
-          {!tabIsEffectivelyEmpty(tabData) ? (
-            <div className="baseFlex !flex-nowrap gap-2">
-              <Check className="h-5 w-8 text-green-600" />
-              <p>Tab isn&apos;t empty</p>
+              <p>Title is missing</p>
             </div>
-          ) : (
-            <div className="baseFlex !flex-nowrap gap-2">
+          )}
+
+          {genreId === -1 && (
+            <div className="baseFlex">
+              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
+              <p>Genre hasn't been selected</p>
+            </div>
+          )}
+
+          {bpm === -1 && (
+            <div className="baseFlex">
+              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
+              <p>Tempo isn't defined</p>
+            </div>
+          )}
+
+          {tabIsEffectivelyEmpty(tabData) && (
+            <div className="baseFlex !flex-nowrap">
               <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
               <p>Tab is empty</p>
             </div>
@@ -507,12 +496,12 @@ function TabMetadata({
 
     return (
       <div className="baseVertFlex w-full max-w-[350px] bg-pink-100 p-2 pt-1 text-sm text-pink-950 md:max-w-[400px] md:text-base">
-        <div className="baseFlex !flex-nowrap gap-2">
+        <div className="baseFlex !flex-nowrap">
           <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
-          <p>Only registered users can publish a tab.</p>
+          <p className="mb-[1px]">Only registered users can publish a tab.</p>
         </div>
-        <p className="text-xs md:text-sm">
-          This tab&apos;s data will be saved for you upon signing in.
+        <p className="text-xs text-gray-600 md:text-sm">
+          This tab will be saved for you upon signing in.
         </p>
       </div>
     );
