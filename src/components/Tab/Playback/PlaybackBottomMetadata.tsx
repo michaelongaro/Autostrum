@@ -463,11 +463,11 @@ function MobileSettingsDialog() {
                 </SelectItem>
 
                 <SelectItem value={"acoustic_grand_piano"}>
-                  Acoustic grand piano
+                  Grand piano - Acoustic
                 </SelectItem>
 
                 <SelectItem value={"electric_grand_piano"}>
-                  Electric grand piano
+                  Grand piano - Electric
                 </SelectItem>
               </SelectGroup>
             </SelectContent>
@@ -1052,11 +1052,11 @@ function DesktopSettings({
               </SelectItem>
 
               <SelectItem value={"acoustic_grand_piano"}>
-                Acoustic grand piano
+                Grand piano - Acoustic
               </SelectItem>
 
               <SelectItem value={"electric_grand_piano"}>
-                Electric grand piano
+                Grand piano - Electric
               </SelectItem>
             </SelectGroup>
           </SelectContent>
