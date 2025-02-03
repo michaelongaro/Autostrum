@@ -131,6 +131,11 @@ module.exports = {
         DEFAULT: "0 1px 2px hsla(336, 84%, 17%, 0.25)",
       },
     },
+    // mobile safari was glitchy/inconsistent at best with the default
+    // cubic-bezier transition timing function, so currently using linear
+    transitionTimingFunction: {
+      DEFAULT: "linear",
+    },
   },
   plugins: [
     require("tailwindcss-animate"),
