@@ -100,7 +100,7 @@ const AccordionContent = React.forwardRef<
       className={cn(
         `overflow-hidden ${
           animated
-            ? "pb-1 transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+            ? "transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
             : ""
         } `,
         className,

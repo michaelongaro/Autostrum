@@ -217,6 +217,7 @@ function Chords() {
                   </div>
 
                   <Button
+                    className="mb-1"
                     onClick={() => {
                       setChordBeingEdited({
                         index: chords.length,

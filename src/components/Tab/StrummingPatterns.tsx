@@ -396,6 +396,7 @@ function StrummingPatterns() {
 
                 {editing && (
                   <Button
+                    className="mb-1"
                     onClick={() => {
                       setStrummingPatternBeingEdited({
                         index: strummingPatterns.length,
