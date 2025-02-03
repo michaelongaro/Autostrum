@@ -880,7 +880,7 @@ function MobileMenuDialog() {
                   ))}
                 </>
               ) : (
-                <div className="text-center">
+                <div className="w-48 text-center xs:w-auto">
                   No strumming patterns were specified for this tab.
                 </div>
               )}
