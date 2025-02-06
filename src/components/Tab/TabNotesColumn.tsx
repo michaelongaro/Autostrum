@@ -38,6 +38,7 @@ interface TabNotesColumn {
   sectionIndex: number;
   subSectionIndex: number;
   columnIndex: number;
+  isFinalColumn: boolean;
 
   columnIsBeingPlayed: boolean;
   columnHasBeenPlayed: boolean;
@@ -61,6 +62,7 @@ function TabNotesColumn({
   sectionIndex,
   subSectionIndex,
   columnIndex,
+  isFinalColumn,
 
   columnIsBeingPlayed,
   columnHasBeenPlayed,
@@ -480,6 +482,12 @@ function TabNotesColumn({
             </Fragment>
           ))}
         </div>
+
+        {isFinalColumn && (
+          <div
+            className={`${reorderingColumns || showingDeleteColumnsButtons ? "mt-2" : ""} h-[280px] rounded-r-2xl border-2 border-pink-100 p-1`}
+          ></div>
+        )}
       </Element>
 
       {/* drag handle / delete button */}

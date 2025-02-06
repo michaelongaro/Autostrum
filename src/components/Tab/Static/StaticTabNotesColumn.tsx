@@ -8,11 +8,13 @@ import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 interface StaticTabNotesColumn {
   columnData: string[];
   columnIndex: number;
+  isFinalColumn: boolean;
 }
 
 function StaticTabNotesColumn({
   columnData,
   columnIndex,
+  isFinalColumn,
 }: StaticTabNotesColumn) {
   function relativelyGetColumn(indexRelativeToCurrentCombo: number): string[] {
     return (columnData[columnIndex + indexRelativeToCurrentCombo] ??
@@ -49,7 +51,7 @@ function StaticTabNotesColumn({
   return (
     <motion.div
       key={columnData[9]}
-      className="baseVertFlex h-[285px] cursor-default"
+      className="baseFlex h-[285px] cursor-default"
     >
       <div className="baseVertFlex mb-[3.2rem] mt-4">
         {columnData.map((note, index) => (
@@ -197,6 +199,10 @@ function StaticTabNotesColumn({
           </Fragment>
         ))}
       </div>
+
+      {isFinalColumn && (
+        <div className="h-[168px] rounded-r-2xl border-2 border-pink-100 p-1"></div>
+      )}
     </motion.div>
   );
 }

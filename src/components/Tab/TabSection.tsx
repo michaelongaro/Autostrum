@@ -990,6 +990,7 @@ function TabSection({
                     subSectionIndex={subSectionIndex}
                     columnIndex={index}
                     columnData={column}
+                    isFinalColumn={index === subSectionData.data.length - 1}
                     columnIsBeingPlayed={columnIsBeingPlayed(index)}
                     columnHasBeenPlayed={columnHasBeenPlayed(index)}
                     durationOfChord={getDurationOfCurrentChord()}
@@ -1008,8 +1009,6 @@ function TabSection({
             ))}
           </SortableContext>
         </DndContext>
-
-        <div className="h-[280px] rounded-r-2xl border-2 border-pink-100 p-1"></div>
       </div>
 
       <Button

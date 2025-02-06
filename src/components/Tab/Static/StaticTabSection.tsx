@@ -68,18 +68,14 @@ function StaticTabSection({ subSectionData }: StaticTabSection) {
             {column.includes("|") ? (
               <StaticTabMeasureLine columnData={column} />
             ) : (
-              <StaticTabNotesColumn columnData={column} columnIndex={index} />
+              <StaticTabNotesColumn
+                columnData={column}
+                columnIndex={index}
+                isFinalColumn={index === subSectionData.data.length - 1}
+              />
             )}
           </Fragment>
         ))}
-
-        <div
-          style={{
-            height: "168px",
-            marginBottom: "-1px",
-          }}
-          className="rounded-r-2xl border-2 border-pink-100 p-1"
-        ></div>
       </div>
     </motion.div>
   );
