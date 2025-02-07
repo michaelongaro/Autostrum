@@ -39,7 +39,7 @@ const sectionVariants = {
   },
 };
 
-function SectionProgressionDialog() {
+function SectionProgressionModal() {
   const [localSectionProgression, setLocalSectionProgression] = useState<
     SectionProgression[]
   >([]);
@@ -203,7 +203,7 @@ function SectionProgressionDialog() {
   );
 }
 
-export default SectionProgressionDialog;
+export default SectionProgressionModal;
 
 interface Section {
   id: string;
