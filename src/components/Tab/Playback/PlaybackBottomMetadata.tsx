@@ -115,11 +115,11 @@ function PlaybackBottomMetadata({
               <div className="baseFlex gap-4">
                 <div className="baseVertFlex !items-start">
                   <p className="text-sm font-medium">Tuning</p>
-                  <p>
+                  <div>
                     {tuningNotesToName[
                       tuning.toLowerCase() as keyof typeof tuningNotesToName
                     ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
-                  </p>
+                  </div>
                 </div>
 
                 <div className="baseVertFlex !items-start">

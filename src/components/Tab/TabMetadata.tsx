@@ -1240,11 +1240,11 @@ function TabMetadata({
 
                 <div className="baseVertFlex !items-start gap-2">
                   <div className="font-semibold">Tuning</div>
-                  <p className="baseFlex h-[44px] w-[145px] rounded-md border-2 font-medium">
+                  <div className="baseFlex h-[44px] w-[145px] rounded-md border-2 font-medium">
                     {tuningNotesToName[
                       tuning.toLowerCase() as keyof typeof tuningNotesToName
                     ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
-                  </p>
+                  </div>
                 </div>
               </div>
 
