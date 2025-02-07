@@ -93,7 +93,6 @@ function PlaybackModal() {
   // into the effect to get new currentPosition values
   const [scrollPositions, setScrollPositions] =
     useState<ScrollPositions | null>(null);
-  const scrollPositionsRef = useRef<ScrollPositions | null>(null);
 
   const earliestVisibleChordIndexRef = useRef<number>(0);
 
@@ -202,10 +201,6 @@ function PlaybackModal() {
   }, [currentChordIndex, audioMetadata.playing, scrollPositions, loopCount]);
 
   useEffect(() => {
-    scrollPositionsRef.current = scrollPositions;
-  }, [scrollPositions]);
-
-  useEffect(() => {
     earliestVisibleChordIndexRef.current = 0;
     // need to reset this value when either of these deps change
     // since expandedTabData will be recomputed, but the currentChordIndex
@@ -214,52 +209,51 @@ function PlaybackModal() {
 
   // chord virtualization effect
   useEffect(() => {
-    if (scrollPositionsRef.current === null) return;
-
-    // value is the new scrollPosition to update currentPosition to
-    const updates: { [itemId: string]: number } = {};
-
-    const earliestVisiblePosition =
-      getScrollPosition({
-        scrollPositions: scrollPositionsRef.current,
-        index: currentChordIndex,
-      }) +
-      initialPlaceholderWidth -
-      visiblePlaybackContainerWidth * 0.5 -
-      virtualizationBuffer;
-
-    let localIndex = earliestVisibleChordIndexRef.current;
-
-    while (true) {
-      const position =
-        getScrollPosition({
-          scrollPositions: scrollPositionsRef.current,
-          index: localIndex,
-        }) + initialPlaceholderWidth;
-
-      if (position < earliestVisiblePosition) {
-        const id = scrollPositionsRef.current.allIds[localIndex] || 0;
-        updates[id] =
-          position -
-          initialPlaceholderWidth +
-          scrollContainerWidth +
-          finalChordWidth;
-      } else {
-        break;
-      }
-
-      if (localIndex + 1 >= scrollPositionsRef.current.allIds.length) {
-        // wraps back around to beginning of scrollPositions
-        localIndex = 0;
-      } else {
-        localIndex++;
-      }
-    }
-
-    if (Object.keys(updates).length === 0) return;
-
     setScrollPositions((prev) => {
       if (prev === null) return null;
+
+      // value is the new scrollPosition to update currentPosition to
+      const updates: { [itemId: string]: number } = {};
+
+      const earliestVisiblePosition =
+        getScrollPosition({
+          scrollPositions: prev,
+          index: currentChordIndex,
+        }) +
+        initialPlaceholderWidth -
+        visiblePlaybackContainerWidth * 0.5 -
+        virtualizationBuffer;
+
+      // can maybe move this out of setState()
+      let localIndex = earliestVisibleChordIndexRef.current;
+
+      while (true) {
+        const position =
+          getScrollPosition({
+            scrollPositions: prev,
+            index: localIndex,
+          }) + initialPlaceholderWidth;
+
+        if (position < earliestVisiblePosition) {
+          const id = prev.allIds[localIndex] || 0;
+          updates[id] =
+            position -
+            initialPlaceholderWidth +
+            scrollContainerWidth +
+            finalChordWidth;
+        } else {
+          break;
+        }
+
+        if (localIndex + 1 >= prev.allIds.length) {
+          // wraps back around to beginning of scrollPositions
+          localIndex = 0;
+        } else {
+          localIndex++;
+        }
+      }
+
+      if (Object.keys(updates).length === 0) return prev;
 
       const newById = { ...prev.byId };
 
@@ -270,13 +264,13 @@ function PlaybackModal() {
         };
       }
 
+      earliestVisibleChordIndexRef.current = localIndex;
+
       return {
         ...prev,
         byId: newById,
       };
     });
-
-    earliestVisibleChordIndexRef.current = localIndex;
   }, [
     currentChordIndex,
     scrollContainerWidth,
