@@ -420,16 +420,17 @@ function PlaybackAudioControls({
           </AnimatePresence>
 
           <div className="baseFlex w-full !flex-nowrap gap-2">
-            <p>
+            <div className="baseFlex w-9 !justify-start self-start">
               {formatSecondsToMinutes(
                 audioMetadata.type === "Artist recording"
                   ? tabProgressValue
-                  : Math.min(
-                      tabProgressValue,
-                      currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0,
-                    ),
+                  : (playbackMetadata?.[
+                      audioMetadata.editingLoopRange
+                        ? loopRange[0]
+                        : currentChordIndex
+                    ]?.elapsedSeconds ?? 0),
               )}
-            </p>
+            </div>
 
             <ProgressSlider
               disabled={disablePlayButton}
@@ -443,15 +444,19 @@ function PlaybackAudioControls({
               setLoopRange={setLoopRange}
             />
 
-            <p>
+            <div className="baseFlex w-9 !justify-end self-start">
               {formatSecondsToMinutes(
                 audioMetadata.type === "Artist recording"
                   ? recordedAudioBuffer?.duration
                     ? Math.floor(recordedAudioBuffer.duration)
                     : 0
-                  : (currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0),
+                  : (playbackMetadata?.[
+                      audioMetadata.editingLoopRange
+                        ? loopRange[1]
+                        : playbackMetadata?.length - 1
+                    ]?.elapsedSeconds ?? 0),
               )}
-            </p>
+            </div>
           </div>
 
           <Toggle
