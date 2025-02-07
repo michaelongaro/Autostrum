@@ -20,7 +20,8 @@ function getDynamicNoteLengthIcon({
     | "1/8th"
     | "1/8th triplet"
     | "1/16th"
-    | "1/16th triplet";
+    | "1/16th triplet"
+    | "measureLine";
   isARestNote?: boolean;
   forInlineTabViewing?: boolean;
 }) {
@@ -36,7 +37,11 @@ function getDynamicNoteLengthIcon({
     }
   }
 
-  if (noteLength === "1/4th" || noteLength === "1/4th triplet") {
+  if (
+    noteLength === "1/4th" ||
+    noteLength === "1/4th triplet" ||
+    noteLength === "measureLine"
+  ) {
     return (
       <QuarterNote className={`${forInlineTabViewing ? "" : "mr-[2px]"}`} />
     );
