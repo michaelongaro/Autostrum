@@ -158,8 +158,6 @@ function ProgressSlider({
         startLoopIndex: adjustedStartIndex,
         endLoopIndex: adjustedEndIndex,
       });
-
-      return;
     }
   }, [
     loopRange,
@@ -189,7 +187,7 @@ function ProgressSlider({
         <Range
           key={"rangeTwoThumbs"} // needed so thumb(s) are properly initialized
           label="Range to loop within tab"
-          step={1} // 0.1
+          step={1}
           min={0}
           max={audioMetadata.fullCurrentlyPlayingMetadataLength - 1}
           // allowOverlap={true}
@@ -197,6 +195,10 @@ function ProgressSlider({
           values={loopRange}
           // any use for onFinalChange?
           onChange={(newLoopRange) => {
+            // react-range doesn't allow for a range of 0
+            if (Math.abs((newLoopRange[0] ?? 0) - (newLoopRange[1] ?? 0)) === 0)
+              return;
+
             setLoopRange(newLoopRange as [number, number]);
           }}
           renderTrack={({ props, children, disabled }) => (

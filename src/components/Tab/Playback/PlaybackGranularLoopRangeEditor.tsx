@@ -37,9 +37,12 @@ function PlaybackGranularLoopRangeEditor({
       <div className="baseFlex gap-2 xs:gap-4">
         <Button
           variant={"outline"}
-          disabled={loopRange[0] === 0}
+          disabled={
+            loopRange[0] === 0 || Math.abs(loopRange[0] - loopRange[1]) < 2
+          }
           onClick={() => {
-            if (loopRange[0] === 0) return;
+            if (loopRange[0] === 0 || Math.abs(loopRange[0] - loopRange[1]) < 2)
+              return;
 
             let newStartLoopIndex = loopRange[0] - 1;
 
@@ -61,12 +64,14 @@ function PlaybackGranularLoopRangeEditor({
           variant={"outline"}
           disabled={
             loopRange[0] ===
-            audioMetadata.fullCurrentlyPlayingMetadataLength - 1
+              audioMetadata.fullCurrentlyPlayingMetadataLength - 1 ||
+            Math.abs(loopRange[0] - loopRange[1]) < 2
           }
           onClick={() => {
             if (
               loopRange[0] ===
-              audioMetadata.fullCurrentlyPlayingMetadataLength - 1
+                audioMetadata.fullCurrentlyPlayingMetadataLength - 1 ||
+              Math.abs(loopRange[0] - loopRange[1]) < 2
             )
               return;
 
@@ -94,9 +99,12 @@ function PlaybackGranularLoopRangeEditor({
       <div className="baseFlex gap-2 xs:gap-4">
         <Button
           variant={"outline"}
-          disabled={loopRange[1] === 0}
+          disabled={
+            loopRange[1] === 0 || Math.abs(loopRange[0] - loopRange[1]) < 2
+          }
           onClick={() => {
-            if (loopRange[1] === 0) return;
+            if (loopRange[1] === 0 || Math.abs(loopRange[0] - loopRange[1]) < 2)
+              return;
 
             let newEndLoopIndex = loopRange[1] - 1;
 
@@ -116,12 +124,14 @@ function PlaybackGranularLoopRangeEditor({
           variant={"outline"}
           disabled={
             loopRange[1] ===
-            audioMetadata.fullCurrentlyPlayingMetadataLength - 1
+              audioMetadata.fullCurrentlyPlayingMetadataLength - 1 ||
+            Math.abs(loopRange[0] - loopRange[1]) < 2
           }
           onClick={() => {
             if (
               loopRange[1] ===
-              audioMetadata.fullCurrentlyPlayingMetadataLength - 1
+                audioMetadata.fullCurrentlyPlayingMetadataLength - 1 ||
+              Math.abs(loopRange[0] - loopRange[1]) < 2
             )
               return;
 
