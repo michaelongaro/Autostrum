@@ -483,7 +483,7 @@ function PlaybackModal() {
                         <div className="mb-6 h-[140px] w-full mobilePortrait:h-[165px]"></div>
                         {/* currently this fixes the highlight line extending past rounded borders of
                         sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
-                        <div className="z-0 mb-6 ml-2 h-[140px] w-[2px] shrink-0 bg-pink-600 mobilePortrait:h-[164px]"></div>
+                        <div className="z-0 mb-6 ml-1 h-[140px] w-[2px] shrink-0 bg-pink-600 mobilePortrait:h-[164px]"></div>
                         <div className="mb-6 h-[140px] w-full mobilePortrait:h-[165px]"></div>
                       </div>
 

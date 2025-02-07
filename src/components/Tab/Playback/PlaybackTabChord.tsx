@@ -243,9 +243,6 @@ function PlaybackTabNote({
     <div className="baseFlex w-[35px]">
       <div className="my-[10px] h-[1px] flex-[1] bg-pink-100/50 mobilePortrait:my-3"></div>
       <div
-        // key is "necessary" here because mobile safari did not consistently re-render this
-        // component purely based on prop changes...
-        key={isHighlighted ? "highlighted" : "notHighlighted"}
         style={{
           color: isHighlighted ? "hsl(335, 78%, 55%)" : "hsl(324, 77%, 95%)",
 
@@ -253,7 +250,7 @@ function PlaybackTabNote({
           marginTop: note === "x" ? "-2px" : "0",
           marginBottom: note === "x" ? "2px" : "0",
         }}
-        className={`baseFlex relative h-[20px] ${isAccented ? "font-bold" : ""}`}
+        className={`baseFlex relative h-[20px] transition-colors duration-100 ${isAccented ? "font-bold" : ""}`}
       >
         {note}
         {isStaccato && <div className="relative -top-2">.</div>}

@@ -96,9 +96,6 @@ function PlaybackStrummedChord({
 
       {strumIndex !== -1 && (
         <div
-          // key is "necessary" here because mobile safari did not consistently re-render this
-          // component purely based on prop changes...
-          key={isHighlighted ? "highlighted" : "notHighlighted"}
           style={{
             borderLeft: isFirstChordInSection ? "2px solid white" : "none",
             borderRight: isLastChordInSection ? "2px solid white" : "none",
@@ -150,7 +147,7 @@ function PlaybackStrummedChord({
               //   minFontSizePx: 12,
               // }),
             }}
-            className="relative mb-2 h-6 w-6 text-sm font-semibold"
+            className="relative mb-2 h-6 w-6 text-sm font-semibold transition-colors duration-100"
           >
             <div
               // TODO: not sure if this will ever be possible given how it interacts with
@@ -171,7 +168,7 @@ function PlaybackStrummedChord({
                   ? "hsl(335, 78%, 42%)"
                   : "hsl(324, 77%, 95%)",
               }}
-              className="baseVertFlex relative mb-2 h-[20px] text-lg"
+              className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
             >
               <div className="baseFlex">
                 {strum.includes("v") && (
@@ -230,7 +227,7 @@ function PlaybackStrummedChord({
                 ? "hsl(335, 78%, 42%)"
                 : "hsl(324, 77%, 95%)",
             }}
-            className="text-sm"
+            className="text-sm transition-colors duration-100"
           >
             {getBeatIndicator(noteLength, strumIndex)}
           </p>
