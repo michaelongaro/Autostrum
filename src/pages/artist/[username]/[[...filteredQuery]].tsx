@@ -27,7 +27,6 @@ import { api } from "~/utils/api";
 import formatDate from "~/utils/formatDate";
 import { formatNumber } from "~/utils/formatNumber";
 import Render404Page from "~/components/Search/Render404Page";
-import NoResultsFoundBubbles from "~/components/Search/NoResultsFoundBubbles";
 
 function ArtistProfile({ artistExists }: { artistExists: boolean }) {
   const { query } = useRouter();
@@ -60,7 +59,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
       },
       {
         enabled: !!usernameFromUrl,
-      }
+      },
     );
 
   const { data: fetchedTab, refetch: refetchTab } =
@@ -70,7 +69,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
       },
       {
         enabled: artist?.pinnedTabId !== -1,
-      }
+      },
     );
 
   if (!artistExists) {
@@ -84,8 +83,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="lightGlassmorphic baseVertFlex
-      my-12 min-h-[100dvh] w-11/12 !justify-start gap-8 rounded-md px-2 py-4 md:my-24 md:w-3/4 md:gap-16 md:p-8"
+      className="lightGlassmorphic baseVertFlex my-12 min-h-[100dvh] w-11/12 !justify-start gap-8 rounded-md px-2 py-4 md:my-24 md:w-3/4 md:gap-16 md:p-8"
     >
       <Head>
         <title>{`${query.username as string}'s profile | Autostrum`}</title>
@@ -145,9 +143,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
                     opacity: !profileImageLoaded ? 1 : 0,
                     zIndex: !profileImageLoaded ? 1 : -1,
                   }}
-                  className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 shadow-md transition-opacity
-                              ${!profileImageLoaded ? "animate-pulse" : ""}
-                            `}
+                  className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 shadow-md transition-opacity ${!profileImageLoaded ? "animate-pulse" : ""} `}
                 ></div>
               </>
             </div>
@@ -201,7 +197,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
 
           {artist ? (
             <p className="mt-[1.3rem] text-sm italic text-pink-200">{`joined on ${formatDate(
-              artist.createdAt
+              artist.createdAt,
             )}`}</p>
           ) : (
             <div className="mb-1 mt-3 h-4 w-24 animate-pulse rounded-md bg-pink-300"></div>
@@ -281,12 +277,10 @@ function ArtistNotFound() {
   return (
     <div className="lightGlassmorphic baseVertFlex w-10/12 gap-4 rounded-md p-4 md:w-[500px]">
       <div className="baseFlex gap-4">
-        <NoResultsFoundBubbles color={"#ec4899"} />
         <div className="baseFlex gap-2">
           <BiErrorCircle className="h-8 w-8" />
           <h1 className="text-2xl font-bold">Artist not found</h1>
         </div>
-        <NoResultsFoundBubbles color={"#ec4899"} reverseBubblePositions />
       </div>
       <p className="text-center text-lg">
         The artist you are looking for does not exist. Please check the URL and

@@ -7,7 +7,6 @@ import { useRouter } from "next/router";
 import { useMemo } from "react";
 import { BiErrorCircle } from "react-icons/bi";
 import { BsArrowRightShort } from "react-icons/bs";
-import NoResultsFoundBubbles from "~/components/Search/NoResultsFoundBubbles";
 import Tab from "~/components/Tab/Tab";
 import TabSkeleton from "~/components/Tab/TabSkeleton";
 import { Button } from "~/components/ui/button";
@@ -151,12 +150,10 @@ function TabNotFound() {
   return (
     <div className="lightGlassmorphic baseVertFlex w-10/12 gap-4 rounded-md p-4 md:w-[500px]">
       <div className="baseFlex gap-3 sm:gap-4">
-        <NoResultsFoundBubbles color={"#ec4899"} />
         <div className="baseFlex gap-2">
           <BiErrorCircle className="h-6 w-6 sm:h-8 sm:w-8" />
           <h1 className="text-xl font-bold sm:text-2xl">Tab not found</h1>
         </div>
-        <NoResultsFoundBubbles color={"#ec4899"} reverseBubblePositions />
       </div>
       <p className="text-center text-base sm:text-lg">
         The tab you are looking for does not exist. Please check the URL and try
@@ -172,12 +169,10 @@ function UserNotAllowedToEdit({ tabId }: { tabId: number }) {
   return (
     <div className="lightGlassmorphic baseVertFlex w-10/12 gap-4 rounded-md p-4 md:w-[550px]">
       <div className="baseFlex gap-3 sm:gap-4">
-        <NoResultsFoundBubbles color={"#ec4899"} />
         <div className="baseFlex gap-2">
           <BiErrorCircle className="h-6 w-6 sm:h-8 sm:w-8" />
           <h1 className="text-xl font-bold sm:text-2xl">Access denied</h1>
         </div>
-        <NoResultsFoundBubbles color={"#ec4899"} reverseBubblePositions />
       </div>
       <p className="text-center text-base sm:text-lg">
         You must be logged in as the owner of the tab to edit it.

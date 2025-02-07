@@ -6,7 +6,6 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo } from "react";
 import { BiErrorCircle } from "react-icons/bi";
-import NoResultsFoundBubbles from "~/components/Search/NoResultsFoundBubbles";
 import Tab from "~/components/Tab/Tab";
 import TabSkeleton from "~/components/Tab/TabSkeleton";
 import { useTabStore } from "~/stores/TabStore";
@@ -146,12 +145,10 @@ function TabNotFound() {
   return (
     <div className="lightGlassmorphic baseVertFlex w-10/12 gap-4 rounded-md p-4 md:w-[500px]">
       <div className="baseFlex gap-3 sm:gap-4">
-        <NoResultsFoundBubbles color={"#ec4899"} />
         <div className="baseFlex gap-2">
           <BiErrorCircle className="h-6 w-6 sm:h-8 sm:w-8" />
           <h1 className="text-xl font-bold sm:text-2xl">Tab not found</h1>
         </div>
-        <NoResultsFoundBubbles color={"#ec4899"} reverseBubblePositions />
       </div>
       <p className="text-center text-base sm:text-lg">
         The tab you are looking for does not exist. Please check the URL and try

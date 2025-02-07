@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { IoTelescopeOutline } from "react-icons/io5";
-import NoResultsFoundBubbles from "./NoResultsFoundBubbles";
 interface NoResultsFound {
   customKey: string;
 }
@@ -17,11 +16,7 @@ function NoResultsFound({ customKey }: NoResultsFound) {
     >
       <div className="baseVertFlex lightestGlassmorphic gap-2 rounded-md px-8 py-4 text-xl transition-all">
         <div className="baseFlex gap-4">
-          <NoResultsFoundBubbles color={"#ec4899"} />
-
           <IoTelescopeOutline className="h-9 w-9" />
-
-          <NoResultsFoundBubbles color={"#ec4899"} reverseBubblePositions />
         </div>
         No results found
       </div>
