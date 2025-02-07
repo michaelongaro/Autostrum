@@ -1,4 +1,4 @@
-import type { Tab } from "@prisma/client";
+import type { Tab as PrismaTab } from "@prisma/client";
 import type {
   QueryObserverResult,
   RefetchOptions,
@@ -236,7 +236,7 @@ function Tab({ tab, refetchTab }: ITab) {
       strummingPatterns,
       tabData: localStorageTabDataValue, // avoids name conflict with actual tabData
       sectionProgression,
-    } = JSON.parse(localStorageTabData.value as string) as Tab;
+    } = JSON.parse(localStorageTabData.value as string) as PrismaTab;
 
     setTitle(title);
     setDescription(description);
