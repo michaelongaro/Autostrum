@@ -15,7 +15,7 @@ import {
   rectSortingStrategy,
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useCallback, useState, memo, Fragment } from "react";
 import { BsKeyboard } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
@@ -56,6 +56,48 @@ const opacityAndScaleVariants = {
     transition: {
       ease: "easeInOut",
       duration: 0.25,
+    },
+  },
+};
+
+const xVariants = {
+  hidden: { scale: 0 },
+  visible: {
+    scale: 1,
+    transition: {
+      delay: 0.2,
+      duration: 0.2,
+    },
+  },
+  exit: {
+    scale: 0,
+    transition: {
+      duration: 0.2,
+      delay: 0,
+    },
+  },
+};
+
+const containerVariants = {
+  hidden: { x: "-100%", width: 0, opacity: 0, zIndex: -1 },
+  visible: {
+    x: 0,
+    width: "auto",
+    opacity: 1,
+    zIndex: 1,
+    transition: {
+      delay: 0,
+      duration: 0.2,
+    },
+  },
+  exit: {
+    x: "-100%",
+    width: 0,
+    opacity: 0,
+    zIndex: -1,
+    transition: {
+      duration: 0.2,
+      delay: 0.2,
     },
   },
 };
@@ -822,24 +864,37 @@ function TabSection({
                   borderRadius: editingPalmMuteNodes
                     ? "0.375rem 0 0 0.375rem"
                     : "0.375rem",
+                  transitionDelay: "0.1s",
                 }}
-                // should you just manually add these styles to the button component?
-                // not sure of good usecases for having anything but small sized buttons at these viewports..
-
-                // className="transition-colors transition-opacity"
                 onClick={toggleEditingPalmMuteNodes}
               >
                 PM Editor
               </Button>
 
-              {editingPalmMuteNodes && (
-                <Button
-                  className="rounded-l-none rounded-r-md px-2 py-0"
-                  onClick={toggleEditingPalmMuteNodes}
-                >
-                  <IoClose className="h-6 w-6" />
-                </Button>
-              )}
+              <AnimatePresence>
+                {editingPalmMuteNodes && (
+                  <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                  >
+                    <Button
+                      className="rounded-l-none rounded-r-md px-2 py-0"
+                      onClick={toggleEditingPalmMuteNodes}
+                    >
+                      <motion.div
+                        variants={xVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                      >
+                        <IoClose className="h-6 w-6" />
+                      </motion.div>
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <div className="baseFlex">
@@ -849,8 +904,8 @@ function TabSection({
                   borderRadius: reorderingColumns
                     ? "0.375rem 0 0 0.375rem"
                     : "0.375rem",
+                  transitionDelay: "0.1s",
                 }}
-                // className="transition-colors transition-opacity"
                 onClick={() => {
                   setReorderingColumns(!reorderingColumns);
                   setShowingDeleteColumnsButtons(false);
@@ -859,17 +914,33 @@ function TabSection({
                 Reorder chords
               </Button>
 
-              {reorderingColumns && (
-                <Button
-                  className="rounded-l-none rounded-r-md px-2 py-0"
-                  onClick={() => {
-                    setReorderingColumns(!reorderingColumns);
-                    setShowingDeleteColumnsButtons(false);
-                  }}
-                >
-                  <IoClose className="h-6 w-6" />
-                </Button>
-              )}
+              <AnimatePresence>
+                {reorderingColumns && (
+                  <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                  >
+                    <Button
+                      className="rounded-l-none rounded-r-md px-2 py-0"
+                      onClick={() => {
+                        setReorderingColumns(!reorderingColumns);
+                        setShowingDeleteColumnsButtons(false);
+                      }}
+                    >
+                      <motion.div
+                        variants={xVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                      >
+                        <IoClose className="h-6 w-6" />
+                      </motion.div>
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <div className="baseFlex">
@@ -880,6 +951,7 @@ function TabSection({
                   borderRadius: showingDeleteColumnsButtons
                     ? "0.375rem 0 0 0.375rem"
                     : "0.375rem",
+                  transitionDelay: "0.1s",
                 }}
                 className="baseFlex gap-2"
                 onClick={() => {
@@ -891,20 +963,36 @@ function TabSection({
                 <FaTrashAlt className="h-4 w-4" />
               </Button>
 
-              {showingDeleteColumnsButtons && (
-                <Button
-                  variant={"destructive"}
-                  className="rounded-l-none rounded-r-md px-2 py-0"
-                  onClick={() => {
-                    setShowingDeleteColumnsButtons(
-                      !showingDeleteColumnsButtons,
-                    );
-                    setReorderingColumns(false);
-                  }}
-                >
-                  <IoClose className="h-6 w-6" />
-                </Button>
-              )}
+              <AnimatePresence>
+                {showingDeleteColumnsButtons && (
+                  <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                  >
+                    <Button
+                      variant={"destructive"}
+                      className="rounded-l-none rounded-r-md px-2 py-0"
+                      onClick={() => {
+                        setShowingDeleteColumnsButtons(
+                          !showingDeleteColumnsButtons,
+                        );
+                        setReorderingColumns(false);
+                      }}
+                    >
+                      <motion.div
+                        variants={xVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                      >
+                        <IoClose className="h-6 w-6" />
+                      </motion.div>
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>

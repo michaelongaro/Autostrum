@@ -1,5 +1,5 @@
 import { FocusTrap } from "focus-trap-react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { useEffect, useState, useCallback } from "react";
 import { BsFillPlayFill, BsKeyboard, BsStopFill } from "react-icons/bs";
@@ -26,7 +26,6 @@ import { Button } from "../ui/button";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import {
   EigthNote,
-  getDynamicNoteLengthIcon,
   QuarterNote,
   SixteenthNote,
 } from "~/utils/bpmIconRenderingHelpers";
@@ -37,6 +36,48 @@ const backdropVariants = {
   },
   closed: {
     opacity: 0,
+  },
+};
+
+const xVariants = {
+  hidden: { scale: 0 },
+  visible: {
+    scale: 1,
+    transition: {
+      delay: 0.2,
+      duration: 0.2,
+    },
+  },
+  exit: {
+    scale: 0,
+    transition: {
+      duration: 0.2,
+      delay: 0,
+    },
+  },
+};
+
+const containerVariants = {
+  hidden: { x: "-100%", width: 0, opacity: 0, zIndex: -1 },
+  visible: {
+    x: 0,
+    width: "auto",
+    opacity: 1,
+    zIndex: 1,
+    transition: {
+      delay: 0,
+      duration: 0.2,
+    },
+  },
+  exit: {
+    x: "-100%",
+    width: 0,
+    opacity: 0,
+    zIndex: -1,
+    transition: {
+      duration: 0.2,
+      delay: 0.2,
+    },
   },
 };
 
@@ -394,6 +435,7 @@ function StrummingPatternModal({
                   </SelectGroup>
                 </SelectContent>
               </Select>
+
               <div className="baseFlex">
                 <Button
                   disabled={editingPalmMuteNodes}
@@ -401,22 +443,39 @@ function StrummingPatternModal({
                     borderRadius: editingPalmMuteNodes
                       ? "0.375rem 0 0 0.375rem"
                       : "0.375rem",
+                    transitionDelay: "0.1s",
                   }}
-                  // className="transition-colors transition-opacity"
                   onClick={toggleEditingPalmMuteNodes}
                 >
                   PM Editor
                 </Button>
 
-                {editingPalmMuteNodes && (
-                  <Button
-                    className="rounded-l-none rounded-r-md px-2 py-0"
-                    onClick={toggleEditingPalmMuteNodes}
-                  >
-                    <IoClose className="h-6 w-6" />
-                  </Button>
-                )}
+                <AnimatePresence>
+                  {editingPalmMuteNodes && (
+                    <motion.div
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                    >
+                      <Button
+                        className="rounded-l-none rounded-r-md px-2 py-0"
+                        onClick={toggleEditingPalmMuteNodes}
+                      >
+                        <motion.div
+                          variants={xVariants}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                        >
+                          <IoClose className="h-6 w-6" />
+                        </motion.div>
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
+
               {/* toggle delete strums */}
               <div className="baseFlex">
                 <Button
@@ -426,6 +485,7 @@ function StrummingPatternModal({
                     borderRadius: showingDeleteStrumsButtons
                       ? "0.375rem 0 0 0.375rem"
                       : "0.375rem",
+                    transitionDelay: "0.1s",
                   }}
                   className="baseFlex gap-2 whitespace-nowrap"
                   onClick={() =>
@@ -436,17 +496,35 @@ function StrummingPatternModal({
                   <FaTrashAlt className="hidden h-4 w-4 sm:block" />
                 </Button>
 
-                {showingDeleteStrumsButtons && (
-                  <Button
-                    variant={"destructive"}
-                    className="rounded-l-none rounded-r-md px-2 py-0"
-                    onClick={() =>
-                      setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
-                    }
-                  >
-                    <IoClose className="h-6 w-6" />
-                  </Button>
-                )}
+                <AnimatePresence>
+                  {showingDeleteStrumsButtons && (
+                    <motion.div
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                    >
+                      <Button
+                        variant={"destructive"}
+                        className="rounded-l-none rounded-r-md px-2 py-0"
+                        onClick={() =>
+                          setShowingDeleteStrumsButtons(
+                            !showingDeleteStrumsButtons,
+                          )
+                        }
+                      >
+                        <motion.div
+                          variants={xVariants}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                        >
+                          <IoClose className="h-6 w-6" />
+                        </motion.div>
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
 
