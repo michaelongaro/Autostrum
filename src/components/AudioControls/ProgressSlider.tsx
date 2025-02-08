@@ -282,13 +282,13 @@ function ProgressSlider({
                 ...props.style,
                 display: "flex",
                 width: "100%",
+                justifyContent: "center",
               }}
             >
               <div
                 ref={props.ref}
                 style={{
                   height: "8px",
-                  width: "100%",
                   borderRadius: "4px",
                   background: getTrackBackground({
                     values: [currentChordIndex],
@@ -298,6 +298,7 @@ function ProgressSlider({
                   }),
                   alignSelf: "center",
                 }}
+                className="w-full mobileLandscape:w-[95%]"
               >
                 {children}
               </div>
