@@ -249,8 +249,9 @@ function PlaybackTabNote({
           // "x" wasn't as centered as regular numbers were, manual adjustment below
           marginTop: note === "x" ? "-2px" : "0",
           marginBottom: note === "x" ? "2px" : "0",
+          transitionDuration: "75ms",
         }}
-        className={`baseFlex relative h-[20px] transition-colors duration-100 ${isAccented ? "font-bold" : ""}`}
+        className={`baseFlex relative h-[20px] transition-colors ${isAccented ? "font-bold" : ""}`}
       >
         {note}
         {isStaccato && <div className="relative -top-2">.</div>}

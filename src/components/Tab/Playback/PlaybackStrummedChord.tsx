@@ -140,6 +140,7 @@ function PlaybackStrummedChord({
               color: isHighlighted
                 ? "hsl(335, 78%, 42%)"
                 : "hsl(324, 77%, 95%)",
+              transitionDuration: "75ms",
               // fontSize: calculateFontSize({
               //   chordName,
               //   maxWidthPx: 20,
@@ -147,7 +148,7 @@ function PlaybackStrummedChord({
               //   minFontSizePx: 12,
               // }),
             }}
-            className="relative mb-2 h-6 w-6 text-sm font-semibold transition-colors duration-100"
+            className="relative mb-2 h-6 w-6 text-sm font-semibold transition-colors"
           >
             <div
               // TODO: not sure if this will ever be possible given how it interacts with
@@ -226,8 +227,9 @@ function PlaybackStrummedChord({
               color: isHighlighted
                 ? "hsl(335, 78%, 42%)"
                 : "hsl(324, 77%, 95%)",
+              transitionDuration: "75ms",
             }}
-            className="text-sm transition-colors duration-100"
+            className="text-sm transition-colors"
           >
             {getBeatIndicator(noteLength, strumIndex)}
           </p>
