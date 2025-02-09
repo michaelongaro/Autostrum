@@ -1213,7 +1213,7 @@ function AudioControls() {
                   style={{
                     textShadow: "none",
                   }}
-                  className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 bg-pink-100 p-4 pb-6 text-pink-950"
+                  className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950"
                 >
                   <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
 

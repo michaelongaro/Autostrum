@@ -200,7 +200,7 @@ function SearchResults({
       undefined,
       {
         scroll: false,
-      }
+      },
     );
   }
 
@@ -222,7 +222,7 @@ function SearchResults({
       undefined,
       {
         scroll: false,
-      }
+      },
     );
   }
 
@@ -246,7 +246,7 @@ function SearchResults({
       undefined,
       {
         scroll: false,
-      }
+      },
     );
   }
 
@@ -268,7 +268,7 @@ function SearchResults({
       undefined,
       {
         scroll: false,
-      }
+      },
     );
   }
 
@@ -327,14 +327,14 @@ function SearchResults({
       undefined,
       {
         scroll: false,
-      }
+      },
     );
   }
 
   // we have individual options for each sort type on mobile instead of clicking
   // through the either date/likes to cycle through the options.
   function handleMobileSortChange(
-    type: "newest" | "oldest" | "leastLiked" | "mostLiked" | "none"
+    type: "newest" | "oldest" | "leastLiked" | "mostLiked" | "none",
   ) {
     const newQueries = { ...query };
 
@@ -349,17 +349,14 @@ function SearchResults({
       undefined,
       {
         scroll: false,
-      }
+      },
     );
   }
 
   return (
     <div className="baseVertFlex min-h-[375px] w-full !flex-nowrap !justify-start rounded-md md:min-h-[525px]">
       {/* # of results + sorting options */}
-      <div
-        className="baseFlex w-full !items-center !justify-between gap-4 rounded-md bg-gradient-to-br
- from-pink-800/90 via-pink-800/95 to-pink-800 px-4 py-2 shadow-md @container xl:min-h-[76px]"
-      >
+      <div className="baseFlex w-full !items-center !justify-between gap-4 rounded-md bg-gradient-to-br from-pink-800/90 via-pink-800/95 to-pink-800 px-4 py-2 shadow-md @container xl:min-h-[76px]">
         {/* # of results */}
         {resultsCountIsLoading ? (
           <motion.div
@@ -408,7 +405,7 @@ function SearchResults({
                 zIndex: asPath.includes("/preferences") ? 60 : 50,
                 textShadow: "none",
               }}
-              className="baseVertFlex fixed bottom-0 left-0 right-0 !items-start gap-4 bg-pink-100 p-4 pb-6 text-pink-950"
+              className="baseVertFlex fixed bottom-0 left-0 right-0 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950"
             >
               <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
 
@@ -524,7 +521,7 @@ function SearchResults({
                         | "oldest"
                         | "leastLiked"
                         | "mostLiked"
-                        | "none"
+                        | "none",
                     )
                   }
                 >
