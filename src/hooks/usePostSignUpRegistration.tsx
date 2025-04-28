@@ -9,8 +9,8 @@ function usePostSignUpRegistration() {
   const { isSignedIn } = useAuth();
   const { push } = useRouter();
 
-  const { data: isArtistRegistered, isLoading: isLoadingQuery } =
-    api.artist.isArtistRegistered.useQuery(user?.id ?? "", {
+  const { data: isUserRegistered, isLoading: isLoadingQuery } =
+    api.user.isUserRegistered.useQuery(user?.id ?? "", {
       enabled: Boolean(user?.id && isSignedIn),
     });
 
@@ -29,14 +29,14 @@ function usePostSignUpRegistration() {
     });
 
   useEffect(() => {
-    if (isLoadingQuery || !isSignedIn || isArtistRegistered || !user) return;
+    if (isLoadingQuery || !isSignedIn || isUserRegistered || !user) return;
 
     addNewUser({
       userId: user.id,
       username: user.username!,
       profileImageUrl: user.imageUrl,
     });
-  }, [addNewUser, isSignedIn, isLoadingQuery, isArtistRegistered]);
+  }, [addNewUser, isSignedIn, isLoadingQuery, isUserRegistered]);
 }
 
 export default usePostSignUpRegistration;

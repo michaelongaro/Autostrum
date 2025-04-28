@@ -17,9 +17,7 @@ function Hero({
   showSignUpAndSignInButtons: boolean;
 }) {
   const { data: fetchedTab, refetch: refetchTab } =
-    api.tab.getMinimalTabById.useQuery({
-      id: 83,
-    });
+    api.search.getMinimalTabById.useQuery(83);
 
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
   const isAboveExtraLargeViewportWidth = useViewportWidthBreakpoint(1280);

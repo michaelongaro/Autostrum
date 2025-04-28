@@ -15,6 +15,10 @@ function GenreBubbles() {
         <Separator className="w-full bg-pink-600" />
       </div>
 
+      {/* TODO: hardcode the genres + colors + their icons in object/array, and just have the
+        total tab #s be fetched and smoothly fade in once they are ready. lowkey shouldn't even be in
+        initial page view with new additions you are adding to /explore  */}
+
       <div className="grid w-full grid-cols-2 place-items-center gap-4 lg:grid-cols-3 2xl:grid-cols-4">
         {genresAreLoading || !genres ? (
           <>

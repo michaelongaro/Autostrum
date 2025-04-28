@@ -8,19 +8,22 @@
     padding: 0.5rem;
     display: grid;
     gap: 1rem;
+    padding: 0 2rem;
     grid-template-rows: 1fr;
-    place-items: center;
-    grid-template-columns: repeat(14, 1fr);
+    grid-template-columns:
+      175px 1fr 48px 48px minmax(350px, 450px) 48px 48px 1fr 48px 48px;
     grid-template-areas:
-      "logo logo logo . explore explore explore create create create authentication authentication authentication authentication";
+      "logo . metronome tuner search explore create . theme authentication";
+    align-items: center;
   }
 }
 
-@media (min-width: 1536px) {
-  .desktopHeader {
-    grid-template-areas:
-      ". logo logo . . . explore explore create create authentication authentication authentication authentication";
-  }
+.leftGroup {
+  grid-area: left;
+}
+
+.rightGroup {
+  grid-area: right;
 }
 
 .logo {
@@ -36,12 +39,28 @@
   filter: brightness(0.95);
 }
 
+.metronome {
+  grid-area: metronome;
+}
+
+.tuner {
+  grid-area: tuner;
+}
+
+.search {
+  grid-area: search;
+}
+
 .explore {
   grid-area: explore;
 }
 
 .create {
   grid-area: create;
+}
+
+.theme {
+  grid-area: theme;
 }
 
 .authentication {

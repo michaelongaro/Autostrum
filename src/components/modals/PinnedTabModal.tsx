@@ -40,12 +40,12 @@ function PinnedTabModal({
   useModalScrollbarHandling();
 
   const { mutate: updateArtist, isLoading: isSaving } =
-    api.artist.updateArtist.useMutation({
+    api.user.update.useMutation({
       onSuccess: () => {
         setShowSaveCheckmark(true);
 
         setTimeout(() => {
-          void ctx.artist.getByIdOrUsername.invalidate();
+          void ctx.user.getByIdOrUsername.invalidate();
           void ctx.tab.getTabById.invalidate();
         }, 250);
 
@@ -113,7 +113,6 @@ function PinnedTabModal({
             <TbPinned className="h-5 w-5" />
             <p className="text-lg font-semibold">Pinned tab</p>
           </div>
-          <SearchInput initialSearchQueryFromUrl={searchQuery} />
 
           <SearchResults
             genreId={genreId}

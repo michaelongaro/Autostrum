@@ -13,6 +13,7 @@ import {
 import { resetTabSliderPosition } from "~/utils/tabSliderHelpers";
 import { parse } from "~/utils/tunings";
 import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
+import type { UrlParamFilters } from "~/hooks/useGetUrlParamFilters";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
@@ -245,16 +246,20 @@ const initialStoreState = {
   createdAt: null,
   updatedAt: null,
   title: "",
-  description: "",
+  description: null,
   genreId: -1,
   tuning: "e2 a2 d3 g3 b3 e4",
   bpm: 75,
   capo: 0,
+  key: null,
+  difficulty: 1,
   hasRecordedAudio: false,
   chords: [],
   strummingPatterns: [],
   tabData: [],
-  numberOfLikes: 0,
+  averageRating: 0.0,
+  ratingsCount: 0,
+  bookmarkCount: 0,
   editing: false,
   sectionProgression: [],
   currentlyCopiedData: null,
@@ -322,16 +327,22 @@ interface TabState {
   // used in <Tab />
   id: number;
   setId: (id: number) => void;
-  createdById: string | null;
-  setCreatedById: (createdById: string | null) => void;
+  createdByUserId: string | null;
+  setCreatedById: (createdByUserId: string | null) => void;
   createdAt: Date | null;
   setCreatedAt: (createdAt: Date | null) => void;
   updatedAt: Date | null;
   setUpdatedAt: (updatedAt: Date | null) => void;
   title: string;
   setTitle: (title: string) => void;
-  description: string;
-  setDescription: (description: string) => void;
+
+  artistId: number | null;
+  setArtistId: (artistId: number | null) => void;
+  artistName: string | undefined;
+  setArtistName: (artist: string | undefined) => void;
+
+  description: string | null;
+  setDescription: (description: string | null) => void;
   genreId: number;
   setGenreId: (genre: number) => void;
   tuning: string;
@@ -340,6 +351,10 @@ interface TabState {
   setBpm: (bpm: number) => void;
   capo: number;
   setCapo: (capo: number) => void;
+  key: string | null;
+  setKey: (key: string | null) => void;
+  difficulty: number;
+  setDifficulty: (difficulty: number) => void;
   hasRecordedAudio: boolean;
   setHasRecordedAudio: (hasRecordedAudio: boolean) => void;
   chords: Chord[];
@@ -348,8 +363,14 @@ interface TabState {
   setStrummingPatterns: (strummingPatterns: StrummingPattern[]) => void;
   tabData: Section[];
   setTabData: (tabData: Section[]) => void;
-  numberOfLikes: number;
-  setNumberOfLikes: (numberOfLikes: number) => void;
+
+  ratingsCount: number;
+  setRatingsCount: (ratingsCount: number) => void;
+  averageRating: number;
+  setAverageRating: (averageRating: number) => void;
+  bookmarkCount: number;
+  setBookmarkCount: (bookmarkCount: number) => void;
+
   editing: boolean;
   setEditing: (editing: boolean) => void;
   sectionProgression: SectionProgression[];
@@ -518,12 +539,10 @@ interface TabState {
   setCurrentChordIndex: (currentChordIndex: number) => void;
   audioMetadata: AudioMetadata;
   setAudioMetadata: (audioMetadata: AudioMetadata) => void;
-  instruments: {
-    [currentInstrumentName in InstrumentNames]: Soundfont.Player;
-  };
-  setInstruments: (instruments: {
-    [currentInstrumentName in InstrumentNames]: Soundfont.Player;
-  }) => void;
+  instruments: Record<InstrumentNames, Soundfont.Player>;
+  setInstruments: (
+    instruments: Record<InstrumentNames, Soundfont.Player>,
+  ) => void;
   currentInstrument: Soundfont.Player | null;
   setCurrentInstrument: (currentInstrument: Soundfont.Player | null) => void;
   previewMetadata: PreviewMetadata;
@@ -561,7 +580,7 @@ interface TabState {
   setIsLoadingARoute: (isLoadingARoute: boolean) => void;
   viewportLabel:
     | "mobile"
-    | "narrowMobileLandscape"
+    | "mobileNarrowLandscape"
     | "mobileLandscape"
     | "mobileLarge"
     | "tablet"
@@ -569,7 +588,7 @@ interface TabState {
   setViewportLabel: (
     viewportLabel:
       | "mobile"
-      | "narrowMobileLandscape"
+      | "mobileNarrowLandscape"
       | "mobileLandscape"
       | "mobileLarge"
       | "tablet"
@@ -593,15 +612,21 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       setOriginalTabData: (originalTabData) => set({ originalTabData }),
       id: -1,
       setId: (id) => set({ id }),
-      createdById: null,
-      setCreatedById: (createdById) => set({ createdById }),
+      createdByUserId: null,
+      setCreatedById: (createdByUserId) => set({ createdByUserId }),
       createdAt: null,
       setCreatedAt: (createdAt) => set({ createdAt }),
       updatedAt: null,
       setUpdatedAt: (updatedAt) => set({ updatedAt }),
       title: "",
       setTitle: (title) => set({ title }),
-      description: "",
+
+      artistId: null,
+      setArtistId: (artistId) => set({ artistId }),
+      artistName: undefined,
+      setArtistName: (artistName) => set({ artistName }),
+
+      description: null,
       setDescription: (description) => set({ description }),
       genreId: -1,
       setGenreId: (genreId) => set({ genreId }),
@@ -611,6 +636,10 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       setBpm: (bpm) => set({ bpm }),
       capo: 0,
       setCapo: (capo) => set({ capo }),
+      key: null,
+      setKey: (key) => set({ key }),
+      difficulty: 1,
+      setDifficulty: (difficulty) => set({ difficulty }),
       hasRecordedAudio: false,
       setHasRecordedAudio: (hasRecordedAudio) => set({ hasRecordedAudio }),
       chords: [],
@@ -619,8 +648,12 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       setStrummingPatterns: (strummingPatterns) => set({ strummingPatterns }),
       tabData: [],
       setTabData: (tabData) => set({ tabData }),
-      numberOfLikes: 0,
-      setNumberOfLikes: (numberOfLikes) => set({ numberOfLikes }),
+      ratingsCount: 0,
+      setRatingsCount: (ratingsCount) => set({ ratingsCount }),
+      averageRating: 0.0,
+      setAverageRating: (averageRating) => set({ averageRating }),
+      bookmarkCount: 0,
+      setBookmarkCount: (bookmarkCount) => set({ bookmarkCount }),
       editing: false,
       setEditing: (editing) => set({ editing }),
       sectionProgression: [],
@@ -748,7 +781,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         fullCurrentlyPlayingMetadataLength: -1,
       },
       setAudioMetadata: (audioMetadata) => set({ audioMetadata }),
-      // @ts-expect-error fix this type later
       instruments: {},
       setInstruments: (instruments) => set({ instruments }),
       currentInstrument: null,
@@ -1061,8 +1093,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             masterVolumeGainNode,
             currentInstrument,
             currentlyPlayingStrings,
-            acousticSteelOverrideForPreview:
-              instruments["acoustic_guitar_steel"] ?? undefined,
+            acousticSteelOverrideForPreview: instruments.acoustic_guitar_steel,
           });
 
           const { breakOnNextPreviewChord } = get();

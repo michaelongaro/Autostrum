@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { FaStar } from "react-icons/fa";
 import { Separator } from "~/components/ui/separator";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
@@ -31,13 +32,13 @@ function TabCardSkeleton({
           width: largeVariant
             ? 396
             : isAboveExtraSmallViewportWidth
-              ? 313
-              : 266,
+              ? 330
+              : 270,
           height: largeVariant
             ? 185
             : isAboveExtraSmallViewportWidth
-              ? 146
-              : 124,
+              ? 151
+              : 129,
         }}
         className="animate-pulse rounded-t-sm bg-pink-300"
       ></div>
@@ -45,49 +46,35 @@ function TabCardSkeleton({
       <Separator className="bg-pink-100" />
 
       <div
-        className={`baseVertFlex w-full !items-start !justify-between ${
-          hideArtist ? "" : "gap-2"
-        }`}
+        className={`baseVertFlex h-[90px] w-full !items-start gap-1 rounded-b-md p-2.5`}
       >
-        {/* title, date, and genre */}
-        <div className="baseVertFlex mt-[6px] !items-start gap-2 pb-1 pl-2">
-          <div className="h-6 w-48 animate-pulse rounded-md bg-pink-300"></div>
-          <div className="baseFlex gap-2">
-            <div className="h-5 w-16 animate-pulse rounded-md bg-pink-300"></div>
-            <div className="h-5 w-12 animate-pulse rounded-md bg-pink-300"></div>
-          </div>
+        {/* title */}
+        <div className="h-6 w-48 animate-pulse rounded-md bg-pink-300"></div>
+
+        {/* artist + difficulty */}
+        <div className="baseFlex w-full !justify-between">
+          <div className="h-5 w-16 animate-pulse rounded-md bg-pink-300"></div>
+          <div className="h-5 w-24 animate-pulse rounded-md bg-pink-300"></div>
         </div>
 
-        {/* artist link & likes & play button */}
-        <div
-          className={`baseFlex w-full !flex-nowrap !items-end ${
-            hideArtist ? "!justify-end" : "!justify-between"
-          } gap-2`}
-        >
-          {/* artist link */}
-          {!hideArtist && (
-            <div
-              className={`baseFlex w-1/2 !flex-nowrap !justify-start gap-2 pl-4 ${
-                hideLikesAndPlayButtons ? "" : "mb-1"
-              }`}
-            >
-              <div className="h-8 min-h-[32px] w-8 animate-pulse rounded-full bg-pink-300"></div>
-              <div className="h-5 w-16 animate-pulse rounded-md bg-pink-300 md:w-20"></div>
-            </div>
-          )}
+        {/* genre + rating/date */}
+        <div className="baseFlex w-full !justify-between">
+          <div className="h-5 w-12 animate-pulse rounded-full bg-pink-300"></div>
 
-          {!hideLikesAndPlayButtons ? (
-            <div className="baseFlex w-1/2 !flex-nowrap !justify-evenly rounded-tl-md border-l-2 border-t-2">
-              {/* likes button */}
-              <div className="h-8 w-full animate-pulse rounded-r-none rounded-bl-none rounded-tl-sm bg-pink-300"></div>
-              <Separator className="h-8 w-[1px]" />
-
-              {/* play/pause button*/}
-              <div className="h-8 w-full animate-pulse rounded-l-none rounded-br-sm rounded-tr-none bg-pink-300"></div>
+          <div className="baseFlex gap-2">
+            <div className="baseFlex gap-1">
+              <div className="h-4 w-8 animate-pulse rounded-md bg-pink-300"></div>
+              <FaStar className="size-3" />
+              <div className="h-4 w-8 animate-pulse rounded-md bg-pink-300"></div>
             </div>
-          ) : (
-            <div className="mb-1 mr-2 h-9 w-20 animate-pulse rounded-md bg-pink-300"></div>
-          )}
+
+            <Separator
+              className="h-[16px] w-[1px] bg-pink-100/50"
+              orientation="vertical"
+            />
+
+            <div className="h-5 w-20 animate-pulse rounded-md bg-pink-300"></div>
+          </div>
         </div>
       </div>
     </motion.div>

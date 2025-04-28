@@ -18,16 +18,16 @@ function TopProfileNavigationLayout({ children }: Layout) {
 
   const finalQueryOfUrl = useMemo(() => {
     if (asPath.includes("/tabs")) return "tabs";
-    if (asPath.includes("/likes")) return "likes";
+    if (asPath.includes("/bookmarks")) return "bookmarks";
     if (asPath.includes("/preferences")) return "preferences";
     return "preferences";
   }, [asPath]);
 
-  const [tabValue, setTabValue] = useState<"preferences" | "tabs" | "likes">(
-    finalQueryOfUrl
-  );
+  const [tabValue, setTabValue] = useState<
+    "preferences" | "tabs" | "bookmarks"
+  >(finalQueryOfUrl);
 
-  function pushToNewUrl(tabValue: "preferences" | "tabs" | "likes") {
+  function pushToNewUrl(tabValue: "preferences" | "tabs" | "bookmarks") {
     if (tabValue === "preferences") {
       void push(`/profile/preferences`);
     } else {
@@ -64,8 +64,8 @@ function TopProfileNavigationLayout({ children }: Layout) {
         defaultValue={finalQueryOfUrl}
         value={tabValue}
         onValueChange={(value) => {
-          setTabValue(value as "preferences" | "tabs" | "likes");
-          pushToNewUrl(value as "preferences" | "tabs" | "likes");
+          setTabValue(value as "preferences" | "tabs" | "bookmarks");
+          pushToNewUrl(value as "preferences" | "tabs" | "bookmarks");
         }}
         className="baseVertFlex my-12 w-full md:my-24"
       >
@@ -88,7 +88,7 @@ function TopProfileNavigationLayout({ children }: Layout) {
             Tabs
           </TabsTrigger>
           <TabsTrigger
-            value="likes"
+            value="bookmarks"
             className="baseVertFlex w-full gap-2 md:!flex-row"
           >
             <AiOutlineHeart className="h-4 w-4 md:h-5 md:w-5" />

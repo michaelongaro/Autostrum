@@ -114,7 +114,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
   // get tab owner username
   if (tab?.createdById) {
-    artist = await prisma.artist.findUnique({
+    artist = await prisma.user.findUnique({
       where: {
         userId: tab.createdById,
       },

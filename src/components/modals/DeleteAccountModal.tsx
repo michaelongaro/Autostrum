@@ -39,7 +39,7 @@ function DeleteAccountModal() {
   useModalScrollbarHandling();
 
   const { mutate: deleteAccount, isLoading: isDeleting } =
-    api.artist.deleteArtist.useMutation({
+    api.user.delete.useMutation({
       onSuccess: () => {
         setShowDeleteCheckmark(true);
 
@@ -62,7 +62,7 @@ function DeleteAccountModal() {
         //  }
       },
       onSettled: () => {
-        void ctx.artist.getByIdOrUsername.invalidate();
+        void ctx.user.getByIdOrUsername.invalidate();
       },
     });
 

@@ -35,7 +35,7 @@ function IndividualTabView({
   }));
 
   useEffect(() => {
-    setEditing(false); // zustand setters should be referential so it won't ever be stale
+    setEditing(false);
   }, []);
 
   const tabIdFromUrl = useMemo(() => {
@@ -109,7 +109,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
   // get tab owner username
   if (tab?.createdById) {
-    artist = await prisma.artist.findUnique({
+    artist = await prisma.user.findUnique({
       where: {
         userId: tab.createdById,
       },

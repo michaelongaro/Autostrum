@@ -33,13 +33,13 @@ function ArtistLikes() {
         <title>Likes | Autostrum</title>
         <meta
           name="description"
-          content="Filter through and explore the tabs you have liked."
+          content="Filter through and explore the tabs you have bookmarkd."
         />
         <meta property="og:title" content="Likes | Autostrum"></meta>
-        <meta property="og:url" content="www.autostrum.com/profile/likes" />
+        <meta property="og:url" content="www.autostrum.com/profile/bookmarks" />
         <meta
           property="og:description"
-          content="Filter through and explore the tabs you have liked."
+          content="Filter through and explore the tabs you have bookmarkd."
         />
         <meta property="og:type" content="website" />
         <meta
@@ -48,10 +48,9 @@ function ArtistLikes() {
         ></meta>
       </Head>
 
-      <TabsContent value="likes">
+      <TabsContent value="bookmarks">
         {/* search Results component */}
         <div className="baseVertFlex mt-4 w-full gap-8 md:mt-0">
-          <SearchInput initialSearchQueryFromUrl={searchQuery} />
           {serve404Page ? (
             <Render404Page />
           ) : (

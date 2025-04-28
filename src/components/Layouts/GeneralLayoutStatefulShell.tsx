@@ -7,7 +7,7 @@ import useDetectRouteChanges from "~/hooks/useDetectRouteChanges";
 import useFetchAndLoadSoundfonts from "~/hooks/useFetchAndLoadSoundfonts";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useInitializeAudioContext } from "~/hooks/useInitializeAudioContext";
-import useKeepArtistMetadataUpdatedWithClerk from "~/hooks/useKeepArtistMetadataUpdatedWithClerk";
+import useKeepUserMetadataUpdatedWithClerk from "~/hooks/useKeepUserMetadataUpdatedWithClerk";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import DesktopHeader from "../Header/DesktopHeader";
@@ -29,8 +29,8 @@ function GeneralLayoutStatefulShell() {
 
   const looping = useGetLocalStorageValues().looping;
 
-  // reflects any updates made to username/profileImageUrl in Clerk to the ArtistMetadata
-  useKeepArtistMetadataUpdatedWithClerk();
+  // reflects any updates made to username/profileImageUrl in Clerk to the UserMetadata
+  useKeepUserMetadataUpdatedWithClerk();
   usePostSignUpRegistration();
   useInitializeAudioContext();
   useFetchAndLoadSoundfonts();

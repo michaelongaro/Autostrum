@@ -21,21 +21,9 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
-import buildTabOrderBy from "~/utils/buildTabOrderBy";
-import combineTabTitlesAndUsernames from "~/utils/combineTabTitlesAndUsernames";
 
-export interface MinimalTabRepresentation {
-  id: number;
-  title: string;
-  genreId: number;
-  createdAt: Date;
-  updatedAt: Date;
-  createdById: string | null;
-  numberOfLikes: number;
-}
-export interface TabWithLikes extends Tab {
-  numberOfLikes: number;
-  // numberOfComments: number;
+export interface FullTab extends Tab {
+  artistName?: string;
 }
 
 // experimentally testing this zod schema from a typescript types -> zod converter online
@@ -118,9 +106,9 @@ export const tabRouter = createTRPCRouter({
           id: input.id,
         },
         include: {
-          _count: {
+          artist: {
             select: {
-              likes: true,
+              name: true,
             },
           },
         },
@@ -128,264 +116,56 @@ export const tabRouter = createTRPCRouter({
 
       if (!tab) return null;
 
-      const tabWithLikes: TabWithLikes = {
+      const fullTab: FullTab = {
         ...tab,
-        numberOfLikes: tab._count.likes,
+        artistName: tab.artist?.name,
       };
 
-      return tabWithLikes;
+      return fullTab;
     }),
 
-  getMinimalTabById: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .query(async ({ input, ctx }) => {
+  getRatingBookmarkAndViewCountByTabId: publicProcedure
+    .input(z.number())
+    .query(async ({ input: tabId, ctx }) => {
+      const userId = ctx.auth.userId;
+
       const tab = await ctx.prisma.tab.findUnique({
         where: {
-          id: input.id,
+          id: tabId,
         },
         select: {
-          id: true,
-          title: true,
-          genreId: true,
-          createdAt: true,
-          updatedAt: true,
-          createdById: true,
-          _count: {
+          averageRating: true,
+          ratingsCount: true,
+          pageViews: true,
+          bookmarks: {
+            where: userId ? { bookmarkedByUserId: userId } : undefined,
             select: {
-              likes: true,
+              bookmarkedByUserId: true,
             },
+            take: userId ? 1 : 0,
+          },
+          ratings: {
+            where: userId ? { userId: userId } : undefined,
+            select: {
+              value: true,
+            },
+            take: userId ? 1 : 0,
           },
         },
       });
 
       if (!tab) return null;
 
-      const tabWithLikes: MinimalTabRepresentation = {
-        ...tab,
-        numberOfLikes: tab._count.likes,
-      };
-
-      return tabWithLikes;
-    }),
-
-  getTabByIdMutateVariation: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ input, ctx }) => {
-      const tab = await ctx.prisma.tab.findUnique({
-        where: {
-          id: input.id,
-        },
-        include: {
-          _count: {
-            select: {
-              likes: true,
-            },
-          },
-        },
-      });
-
-      if (!tab) return null;
-
-      const tabWithLikes: TabWithLikes = {
-        ...tab,
-        numberOfLikes: tab._count.likes,
-      };
-
-      return tabWithLikes;
-    }),
-
-  getTabTitlesAndUsernamesBySearchQuery: publicProcedure
-    .input(
-      z.object({
-        query: z.string(),
-        includeUsernames: z.boolean().optional(),
-        userIdToSelectFrom: z.string().optional(),
-        likedByUserId: z.string().optional(),
-      }),
-    )
-    .query(async ({ input, ctx }) => {
-      const { query, includeUsernames, userIdToSelectFrom, likedByUserId } =
-        input;
-
-      const tabTitlesAndGenreIds = await ctx.prisma.tab.findMany({
-        where: {
-          title: {
-            contains: query,
-            mode: "insensitive",
-          },
-          createdById: userIdToSelectFrom,
-          likes: {
-            every: {
-              artistWhoLikedId: likedByUserId,
-            },
-          },
-        },
-        select: {
-          title: true,
-          genreId: true,
-        },
-        distinct: ["title"],
-        orderBy: {
-          _relevance: {
-            fields: ["title"],
-            search: query.replace(/[\s\n\t]/g, "_"),
-            sort: "asc",
-          },
-        },
-      });
-
-      let artists: { username: string }[] = [];
-      if (includeUsernames) {
-        artists = await ctx.prisma.artist.findMany({
-          where: {
-            username: {
-              contains: query,
-              mode: "insensitive",
-            },
-          },
-          select: {
-            username: true,
-          },
-          orderBy: {
-            _relevance: {
-              fields: ["username"],
-              search: query.replace(/ /g, ""), // usernames aren't allowed to have spaces
-              sort: "asc",
-            },
-          },
-        });
-      }
-
-      return combineTabTitlesAndUsernames({
-        tabs: tabTitlesAndGenreIds,
-        usernames: artists.map((artist) => artist.username),
-      });
-    }),
-
-  getInfiniteTabsBySearchQuery: publicProcedure
-    .input(
-      z.object({
-        searchQuery: z.string(),
-        genreId: z.number(),
-        sortByRelevance: z.boolean(),
-        sortBy: z.enum(["newest", "oldest", "mostLiked", "leastLiked", "none"]),
-        userIdToSelectFrom: z.string().optional(),
-        likedByUserId: z.string().optional(),
-        // limit: z.number(), fine to hardcode I think, maybe end up scaling down from 25 on smaller screens?
-        cursor: z.number().nullish(), // <-- "cursor" needs to exist, but can be any type
-      }),
-    )
-    .query(async ({ input, ctx }) => {
-      const {
-        searchQuery,
-        genreId,
-        sortByRelevance,
-        sortBy,
-        userIdToSelectFrom,
-        likedByUserId,
-        cursor,
-      } = input;
-
-      const limit = 15;
-
-      const orderBy = buildTabOrderBy(sortBy, sortByRelevance, searchQuery);
-
-      const [count, tabs] = await Promise.all([
-        ctx.prisma.tab.count({
-          where: {
-            title: {
-              contains: searchQuery,
-              mode: "insensitive",
-            },
-            genreId:
-              genreId === 9
-                ? {
-                    lt: genreId,
-                  }
-                : {
-                    equals: genreId,
-                  },
-            createdById: userIdToSelectFrom,
-            ...(likedByUserId !== undefined
-              ? {
-                  likes: {
-                    some: {
-                      artistWhoLikedId: likedByUserId,
-                    },
-                  },
-                }
-              : {}),
-          },
-        }),
-        ctx.prisma.tab.findMany({
-          take: limit + 1, // get an extra item at the end which we'll use as next cursor
-          distinct: ["id"],
-          where: {
-            title: {
-              contains: searchQuery,
-              mode: "insensitive",
-            },
-            genreId:
-              genreId === 9
-                ? {
-                    lt: genreId,
-                  }
-                : {
-                    equals: genreId,
-                  },
-            createdById: userIdToSelectFrom,
-            ...(likedByUserId !== undefined
-              ? {
-                  likes: {
-                    some: {
-                      artistWhoLikedId: likedByUserId,
-                    },
-                  },
-                }
-              : {}),
-          },
-          // gets bare minimum data to display in search results
-          select: {
-            id: true,
-            title: true,
-            genreId: true,
-            createdAt: true,
-            updatedAt: true,
-            createdById: true,
-            _count: {
-              select: {
-                likes: true,
-              },
-            },
-          },
-          ...(orderBy !== undefined ? { orderBy: orderBy } : {}),
-          cursor: cursor ? { id: cursor } : undefined,
-        }),
-      ]);
-
-      let nextCursor: typeof cursor | undefined = undefined;
-      if (tabs.length > limit) {
-        const nextItem = tabs.pop();
-        if (nextItem) {
-          nextCursor = nextItem.id;
-        }
-      }
-
-      const tabsWithLikes: MinimalTabRepresentation[] = [];
-
-      for (const tab of tabs) {
-        tabsWithLikes.push({
-          ...tab,
-          numberOfLikes: tab._count.likes,
-        });
-      }
+      const bookmarked = tab.bookmarks.length > 0;
+      const userRating =
+        tab.ratings.length > 0 ? (tab.ratings[0]?.value ?? null) : null;
 
       return {
-        data: {
-          tabs: tabsWithLikes,
-          nextCursor,
-        },
-        count,
+        averageRating: tab.averageRating,
+        ratingsCount: tab.ratingsCount,
+        pageViews: tab.pageViews,
+        bookmarked,
+        userRating,
       };
     }),
 
@@ -412,34 +192,18 @@ export const tabRouter = createTRPCRouter({
         // return null;
       }
 
-      if (tab?.hasRecordedAudio) {
-        const command = new DeleteObjectCommand({
-          Bucket: "autostrum-recordings",
-          Key: `${idToDelete}.webm`,
-        });
-        await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
-
-        try {
-          const res = await s3.send(command);
-          console.log(res);
-        } catch (e) {
-          console.log(e);
-          // return null;
-        }
-      }
-
-      // if this tab is the artist's pinned tab, then set the artist's pinnedTabId to -1 (default value)
-      if (tab && tab.createdById) {
-        const artist = await ctx.prisma.artist.findUnique({
+      // if this tab is the tabCreator's pinned tab, then set the tabCreator's pinnedTabId to -1 (default value)
+      if (tab?.createdByUserId) {
+        const tabCreator = await ctx.prisma.user.findUnique({
           where: {
-            userId: tab.createdById,
+            userId: tab.createdByUserId,
           },
         });
 
-        if (artist?.pinnedTabId === idToDelete) {
-          await ctx.prisma.artist.update({
+        if (tabCreator?.pinnedTabId === idToDelete) {
+          await ctx.prisma.user.update({
             where: {
-              id: artist.id,
+              id: tabCreator.id,
             },
             data: {
               pinnedTabId: -1,
@@ -459,9 +223,9 @@ export const tabRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.number().nullable(),
-        createdById: z.string(),
+        createdByUserId: z.string(),
         title: z.string(),
-        description: z.string(),
+        description: z.string().nullable(),
         genreId: z.number(),
         tuning: z.string(),
         bpm: z.number(),
@@ -486,13 +250,12 @@ export const tabRouter = createTRPCRouter({
       if (input.type === "create") {
         const tab = await ctx.prisma.tab.create({
           data: {
-            createdById: input.createdById,
+            createdByUserId: input.createdByUserId,
             title: input.title,
             description: input.description,
             genreId: input.genreId,
             tuning: input.tuning,
             sectionProgression: input.sectionProgression,
-            hasRecordedAudio: input.hasRecordedAudio,
             bpm: input.bpm,
             capo: input.capo,
             chords: input.chords,
@@ -518,26 +281,6 @@ export const tabRouter = createTRPCRouter({
           // return null;
         }
 
-        if (input.shouldUpdateInS3 && input.base64RecordedAudioFile) {
-          const buffer = Buffer.from(input.base64RecordedAudioFile, "base64");
-
-          const command = new PutObjectCommand({
-            Bucket: "autostrum-recordings",
-            Key: `${tab.id}.webm`,
-            Body: buffer,
-            ContentType: "audio/webm;codecs=opus",
-          });
-          await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
-
-          try {
-            const res = await s3.send(command);
-            console.log(res);
-          } catch (e) {
-            console.log(e);
-            // return null;
-          }
-        }
-
         return tab;
       } else if (input.type === "update" && input.id !== null) {
         // uploading screenshot to s3 bucket
@@ -557,46 +300,6 @@ export const tabRouter = createTRPCRouter({
           // return null;
         }
 
-        if (input.shouldUpdateInS3) {
-          if (input.base64RecordedAudioFile) {
-            // replace current recording w/ new one in s3
-
-            const buffer = Buffer.from(input.base64RecordedAudioFile, "base64");
-
-            const command = new PutObjectCommand({
-              Bucket: "autostrum-recordings",
-              Key: `${input.id}.webm`,
-              ContentType: "audio/webm",
-              Body: buffer,
-            });
-            await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
-
-            try {
-              const res = await s3.send(command);
-              console.log(res);
-            } catch (e) {
-              console.log(e);
-              // return null;
-            }
-          } else {
-            // delete current recording from s3
-
-            const command = new DeleteObjectCommand({
-              Bucket: "autostrum-recordings",
-              Key: `${input.id}.webm`,
-            });
-            await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
-
-            try {
-              const res = await s3.send(command);
-              console.log(res);
-            } catch (e) {
-              console.log(e);
-              // return null;
-            }
-          }
-        }
-
         return ctx.prisma.tab.update({
           where: {
             id: input.id,
@@ -607,7 +310,6 @@ export const tabRouter = createTRPCRouter({
             genreId: input.genreId,
             tuning: input.tuning,
             sectionProgression: input.sectionProgression,
-            hasRecordedAudio: input.hasRecordedAudio,
             bpm: input.bpm,
             capo: input.capo,
             chords: input.chords,

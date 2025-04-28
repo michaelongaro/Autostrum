@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { MdModeEditOutline } from "react-icons/md";
-import { cn } from "~/utils/utils";
+import { cn } from "~/utils/cn";
 import { Button } from "~/components/ui/button";
 import {
   Command,
@@ -25,11 +25,11 @@ import { PrettyTuning } from "~/components/ui/PrettyTuning";
 // currently hardcoding this component to work with tunings
 // but may need to be more generic in the future
 
-interface CommandCombobox {
+interface TuningCommandCombobox {
   customTuning: string | null;
 }
 
-export function CommandCombobox({ customTuning }: CommandCombobox) {
+function TuningCommandCombobox({ customTuning }: TuningCommandCombobox) {
   const [open, setOpen] = useState(false);
 
   const { tuning, setTuning, setShowCustomTuningModal } = useTabStore(
@@ -47,7 +47,7 @@ export function CommandCombobox({ customTuning }: CommandCombobox) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className="h-10 w-[175px] justify-between"
         >
           {tuning ? (
             <PrettyTuning tuning={tuning} displayWithFlex={true} />
@@ -64,7 +64,7 @@ export function CommandCombobox({ customTuning }: CommandCombobox) {
         className="w-[300px] p-0"
       >
         <Command>
-          <CommandInput placeholder="Search tunings..." />
+          <CommandInput autoFocus={false} placeholder="Search tunings..." />
 
           <div className="h-[1px] w-full bg-pink-800"></div>
 
@@ -152,3 +152,5 @@ export function CommandCombobox({ customTuning }: CommandCombobox) {
     </Popover>
   );
 }
+
+export default TuningCommandCombobox;

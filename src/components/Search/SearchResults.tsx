@@ -1,8 +1,8 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
-import { BsArrowDownShort, BsGridFill } from "react-icons/bs";
+import { useEffect, useState } from "react";
+import { BsGridFill } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
 import { LuFilter } from "react-icons/lu";
 import { Drawer } from "vaul";
@@ -16,17 +16,33 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Separator } from "~/components/ui/separator";
-import { Switch } from "~/components/ui/switch";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import { genreList } from "~/utils/genreList";
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
+import { tuningNotes } from "~/utils/tunings";
 import { Label } from "../ui/label";
-import GridArtistView from "./GridArtistView";
 import GridTabView from "./GridTabView";
-import TableArtistView from "./TableArtistView";
 import TableTabView from "./TableTabView";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { Button } from "~/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "~/components/ui/command";
+import DifficultyBars from "~/components/ui/DifficultyBars";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { PrettyTuning } from "~/components/ui/PrettyTuning";
+import { tunings } from "~/utils/tunings";
+import { cn } from "~/utils/cn";
+import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
+import Render404Page from "~/components/Search/Render404Page";
 
 const opacityVariants = {
   expanded: {
@@ -37,59 +53,29 @@ const opacityVariants = {
   },
 };
 
-export interface InfiniteQueryParams {
-  searchQuery: string;
-  genreId: number;
-  sortByRelevance: boolean;
-  sortBy: "newest" | "oldest" | "mostLiked" | "leastLiked" | "none";
-  likedByUserId: string | undefined;
-  userIdToSelectFrom: string | undefined;
-}
+const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 
-interface SearchResults {
-  genreId: number;
-  type: "tabs" | "artists";
-  searchQuery: string;
-  sortByRelevance: boolean;
-  additionalSortFilter:
-    | "newest"
-    | "oldest"
-    | "leastLiked"
-    | "mostLiked"
-    | "none";
-  viewType: "grid" | "table";
-  selectedPinnedTabId?: number;
-  setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
-  hideLikesAndPlayButtons?: boolean;
-}
-
-function SearchResults({
-  genreId,
-  type,
-  searchQuery,
-  sortByRelevance,
-  additionalSortFilter,
-  viewType,
-  selectedPinnedTabId,
-  setSelectedPinnedTabId,
-  hideLikesAndPlayButtons,
-}: SearchResults) {
+function SearchResults() {
   const { asPath, push, query, pathname } = useRouter();
 
-  const localStorageViewType = useLocalStorageValue("autostrumViewType");
+  const {
+    searchResultsCount,
+    mobileHeaderModal,
+    setMobileHeaderModal,
+    viewportLabel,
+  } = useTabStore((state) => ({
+    searchResultsCount: state.searchResultsCount,
+    mobileHeaderModal: state.mobileHeaderModal,
+    setMobileHeaderModal: state.setMobileHeaderModal,
+    viewportLabel: state.viewportLabel,
+  }));
 
+  const [tuningPopoverOpen, setTuningPopoverOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [resultsCountIsLoading, setResultsCountIsLoading] = useState(false);
   const [drawerHandleDisabled, setDrawerHandleDisabled] = useState(false);
 
-  const isAboveSmallViewportWidth = useViewportWidthBreakpoint(640);
-
-  const { searchResultsCount, mobileHeaderModal, setMobileHeaderModal } =
-    useTabStore((state) => ({
-      searchResultsCount: state.searchResultsCount,
-      mobileHeaderModal: state.mobileHeaderModal,
-      setMobileHeaderModal: state.setMobileHeaderModal,
-    }));
+  const localStorageLayoutType = useLocalStorageValue("autostrumLayoutType");
 
   useEffect(() => {
     if (!mobileHeaderModal.showing) {
@@ -97,112 +83,20 @@ function SearchResults({
     }
   }, [mobileHeaderModal.showing]);
 
-  function formatQueryResultsCount() {
-    const formattedTabString = searchResultsCount === 1 ? "tab" : "tabs";
-    const formattedArtistString =
-      searchResultsCount === 1 ? "artist" : "artists";
+  const {
+    searchQuery,
+    genreId,
+    tuning,
+    capo,
+    difficulty,
+    sortBy,
+    layoutType,
+    renderSearch404,
+    searchParamsParsed,
+  } = useGetUrlParamFilters();
 
-    if (type === "tabs") {
-      // Found 10 "Rock" tabs
-      if (searchQuery === "" && genreId >= 1 && genreId <= 8) {
-        return (
-          <div className="text-base sm:text-lg">
-            {`Found ${searchResultsCount}`}
-            <Badge
-              variant={isAboveSmallViewportWidth ? "default" : "smallerText"}
-              style={{ backgroundColor: genreList[genreId]?.color }}
-              className="relative bottom-[2px] mx-2"
-            >
-              {genreList[genreId]?.name}
-            </Badge>
-            {formattedTabString}
-          </div>
-        );
-      }
-
-      // Found 10 "Rock" tabs for "search query"
-      if (searchQuery !== "" && genreId >= 1 && genreId <= 8) {
-        return (
-          <p className="text-base sm:text-lg">
-            Found {searchResultsCount}
-            <Badge
-              variant={isAboveSmallViewportWidth ? "default" : "smallerText"}
-              style={{ backgroundColor: genreList[genreId]?.color }}
-              className="relative bottom-[2px] mx-2"
-            >
-              {genreList[genreId]?.name}
-            </Badge>
-            tabs for &quot;
-            {searchQuery}
-            &quot;
-          </p>
-        );
-      }
-
-      // Found 10 tabs across "All genres" (for search query)
-      if (genreId === 9) {
-        return (
-          <div className="text-base sm:text-lg">
-            {`Found ${searchResultsCount} ${formattedTabString} across`}
-            <Badge
-              variant={isAboveSmallViewportWidth ? "default" : "smallerText"}
-              className="relative bottom-[2px] mx-2 bg-pink-500"
-            >
-              All genres
-            </Badge>
-            {searchQuery !== "" && <span>for &quot;{searchQuery}&quot;</span>}
-          </div>
-        );
-      }
-
-      // fallback test
-      return <div></div>;
-    }
-
-    // all "artist" results are below:
-
-    // Found 10 artists
-    if (searchQuery === "" && type === "artists") {
-      return (
-        <p className="text-base sm:text-lg">
-          Found {searchResultsCount} {formattedArtistString}
-        </p>
-      );
-    }
-
-    // Found 10 artists for "search query"
-    return (
-      <p className="text-base sm:text-lg">
-        Found {searchResultsCount} artists for &quot;
-        {searchQuery}
-        &quot;
-      </p>
-    );
-  }
-
-  // all param change handlers below will remove the param if it is getting set
+  // fyi: all param change handlers below will remove the param if it is getting set
   // to the "default" values that we have defined in the useGetUrlParamFilters hook
-  function handleTypeChange(type: "tabs" | "artists") {
-    const newQuery = { ...query };
-    if (type === "artists") {
-      newQuery.type = "artists";
-    } else {
-      delete newQuery.type;
-    }
-
-    void push(
-      {
-        pathname,
-        query: {
-          ...newQuery,
-        },
-      },
-      undefined,
-      {
-        scroll: false,
-      },
-    );
-  }
 
   function handleGenreChange(stringifiedId: string) {
     const newQuery = { ...query };
@@ -215,9 +109,7 @@ function SearchResults({
     void push(
       {
         pathname,
-        query: {
-          ...newQuery,
-        },
+        query: newQuery,
       },
       undefined,
       {
@@ -226,22 +118,20 @@ function SearchResults({
     );
   }
 
-  function handleViewChange(viewType: "grid" | "table") {
-    localStorageViewType.set(viewType);
-
+  function handleTuningChange(tuning: string) {
     const newQuery = { ...query };
-    if (viewType === "grid") {
-      delete newQuery.view;
+    if (tuningNotes.includes(tuning) && tuning !== "e2 a2 d3 g3 b3 e4") {
+      newQuery.tuning = tuning;
     } else {
-      newQuery.view = "table";
+      delete newQuery.tuning;
     }
+
+    setTuningPopoverOpen(false);
 
     void push(
       {
         pathname,
-        query: {
-          ...newQuery,
-        },
+        query: newQuery,
       },
       undefined,
       {
@@ -250,20 +140,18 @@ function SearchResults({
     );
   }
 
-  function handleRelevanceChange() {
+  function handleCapoChange(capo: "all" | "true" | "false") {
     const newQuery = { ...query };
-    if (query.relevance === undefined) {
-      newQuery.relevance = "false";
+    if (capo === "true" || capo === "false") {
+      newQuery.capo = capo;
     } else {
-      delete newQuery.relevance;
+      delete newQuery.capo;
     }
 
     void push(
       {
         pathname,
-        query: {
-          ...newQuery,
-        },
+        query: newQuery,
       },
       undefined,
       {
@@ -272,57 +160,18 @@ function SearchResults({
     );
   }
 
-  // ask chatgpt to clean this logic up for you
-  function handleSortChange(type: "date" | "likes") {
-    let newSortParam = "";
-
-    switch (additionalSortFilter) {
-      case "newest":
-        if (type === "date") {
-          newSortParam = "oldest";
-        } else {
-          newSortParam = "mostLiked";
-        }
-        break;
-      case "oldest":
-        if (type === "date") {
-          newSortParam = "none";
-        } else {
-          newSortParam = "mostLiked";
-        }
-        break;
-      case "mostLiked":
-        if (type === "likes") {
-          newSortParam = "leastLiked";
-        } else {
-          newSortParam = "newest";
-        }
-        break;
-      case "leastLiked":
-        if (type === "likes") {
-          newSortParam = "none";
-        } else {
-          newSortParam = "newest";
-        }
-        break;
-      case "none":
-        if (type === "date") {
-          newSortParam = "newest";
-        } else {
-          newSortParam = "mostLiked";
-        }
-        break;
+  function handleDifficultyChange(difficulty: string) {
+    const newQuery = { ...query };
+    if (parseInt(difficulty) >= 1 && parseInt(difficulty) <= 5) {
+      newQuery.difficulty = difficulty;
+    } else {
+      delete newQuery.difficulty;
     }
-
-    const newQueries = { ...query };
-
-    if (newSortParam === "newest") delete newQueries.sort;
-    else newQueries.sort = newSortParam;
 
     void push(
       {
         pathname,
-        query: newQueries,
+        query: newQuery,
       },
       undefined,
       {
@@ -331,20 +180,68 @@ function SearchResults({
     );
   }
 
-  // we have individual options for each sort type on mobile instead of clicking
-  // through the either date/likes to cycle through the options.
-  function handleMobileSortChange(
-    type: "newest" | "oldest" | "leastLiked" | "mostLiked" | "none",
+  // default value changes between "relevance" and "newest"
+  // based on if there is a search query or not.
+  function handleSortByChange(
+    type: "relevance" | "newest" | "oldest" | "mostPopular" | "leastPopular",
   ) {
     const newQueries = { ...query };
 
-    if (type === "newest") delete newQueries.sort;
-    else newQueries.sort = type;
+    if (newQueries.search && type === "relevance") {
+      delete newQueries.sortBy;
+    } else if (!newQueries.search && type === "newest") {
+      delete newQueries.sortBy;
+    } else {
+      newQueries.sortBy = type;
+    }
 
     void push(
       {
         pathname,
         query: newQueries,
+      },
+      undefined,
+      {
+        scroll: false,
+      },
+    );
+  }
+
+  function handleLayoutChange(layoutType: "grid" | "table") {
+    localStorageLayoutType.set(layoutType);
+
+    const newQuery = { ...query };
+    if (layoutType === "grid") {
+      delete newQuery.layout;
+    } else {
+      newQuery.layout = "table";
+    }
+
+    void push(
+      {
+        pathname,
+        query: newQuery,
+      },
+      undefined,
+      {
+        scroll: false,
+      },
+    );
+  }
+
+  function resetSearchFilters() {
+    const newQuery = { ...query };
+    delete newQuery.genreId;
+    delete newQuery.tuning;
+    delete newQuery.capo;
+    delete newQuery.difficulty;
+    delete newQuery.sortBy;
+    delete newQuery.layout;
+
+    void push(
+      {
+        pathname,
+        query: newQuery,
       },
       undefined,
       {
@@ -354,453 +251,468 @@ function SearchResults({
   }
 
   return (
-    <div className="baseVertFlex min-h-[375px] w-full !flex-nowrap !justify-start rounded-md md:min-h-[525px]">
-      {/* # of results + sorting options */}
-      <div className="baseFlex w-full !items-center !justify-between gap-4 rounded-md bg-gradient-to-br from-pink-800/90 via-pink-800/95 to-pink-800 px-4 py-2 shadow-md @container xl:min-h-[76px]">
-        {/* # of results */}
-        {resultsCountIsLoading ? (
-          <motion.div
-            key={"searchResultsCountSkeleton"}
-            variants={opacityVariants}
-            initial="closed"
-            animate="expanded"
-            exit="closed"
+    // TODO: calc values are just guesses
+    <div className="baseFlex min-h-[calc(100dvh-10rem)] w-full !items-start gap-2 rounded-lg tablet:min-h-[calc(100dvh-14rem)]">
+      {/* tablet+ filters sidebar */}
+      <div className="baseVertFlex sticky top-24 !hidden h-fit w-64 !items-start !justify-start gap-4 rounded-lg bg-pink-800 p-4 tablet:!flex">
+        <p className="text-lg font-medium">Filters</p>
+        {/* genre selector */}
+        <div className="baseVertFlex !items-start gap-1.5">
+          <Label>Genre</Label>
+          <Select
+            value={genreId ? genreId.toString() : "allGenres"}
+            onValueChange={(value) => handleGenreChange(value)}
           >
-            <div className="h-8 w-48 animate-pulse rounded-md bg-pink-300"></div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key={"searchResultsCount"}
-            variants={opacityVariants}
-            initial="closed"
-            animate="expanded"
-            exit="closed"
-          >
-            {formatQueryResultsCount()}
-          </motion.div>
-        )}
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select a genre" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Genres</SelectLabel>
 
-        {/* mobile sorting options */}
-        <Drawer.Root
-          open={drawerOpen}
-          onOpenChange={(open) => {
-            setDrawerOpen(open);
-            setMobileHeaderModal({
-              showing: open,
-              zIndex: open ? (asPath.includes("/profile") ? 50 : 49) : 48,
-            });
-          }}
-          modal={false}
-          dismissible={!drawerHandleDisabled}
-        >
-          <Drawer.Trigger asChild>
-            <Button variant={"outline"} className="baseFlex gap-2 @3xl:hidden">
-              Filter
-              <LuFilter className="h-4 w-4" />
-            </Button>
-          </Drawer.Trigger>
-          <Drawer.Portal>
-            <Drawer.Content
+                <SelectItem value={"allGenres"}>
+                  <div className="baseFlex gap-2">
+                    <div
+                      style={{
+                        backgroundColor: "gray", // TODO: make this a circular gradient rainbow of all
+                        // the colors in genreList
+                        boxShadow: "0 1px 1px hsla(336, 84%, 17%, 0.9)",
+                      }}
+                      className="h-3 w-3 rounded-full"
+                    ></div>
+                    All genres
+                  </div>
+                </SelectItem>
+
+                <Separator className="my-1 w-full bg-pink-600" />
+
+                {Object.values(genreList).map((genre) => {
+                  return (
+                    <SelectItem key={genre.id} value={genre.id.toString()}>
+                      <div className="baseFlex gap-2">
+                        <div
+                          style={{
+                            backgroundColor: genre.color,
+                            boxShadow: "0 1px 1px hsla(336, 84%, 17%, 0.9)",
+                          }}
+                          className="h-3 w-3 rounded-full"
+                        ></div>
+
+                        {genre.name}
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="baseVertFlex !items-start gap-1.5">
+          <Label>Tuning</Label>
+          <Popover open={tuningPopoverOpen} onOpenChange={setTuningPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={tuningPopoverOpen}
+                className="w-[200px] justify-between"
+              >
+                {tuning ? (
+                  <PrettyTuning tuning={tuning} displayWithFlex={true} />
+                ) : (
+                  "All tunings"
+                )}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
               style={{
-                zIndex: asPath.includes("/preferences") ? 60 : 50,
                 textShadow: "none",
               }}
-              className="baseVertFlex fixed bottom-0 left-0 right-0 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950"
+              className="w-[300px] p-0"
             >
-              <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
+              <Command>
+                <CommandInput
+                  autoFocus={false}
+                  placeholder="Search tunings..."
+                />
 
-              <Label className="baseFlex gap-2">
-                Search filters
-                <LuFilter className="h-4 w-4" />
-              </Label>
-              <Separator className="mb-2 w-full bg-pink-600" />
-              {pathname.includes("/explore") && (
-                <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-                  <Label>Type</Label>
-                  <Select
-                    onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
-                    value={type}
-                    onValueChange={(value) =>
-                      handleTypeChange(value as "tabs" | "artists")
-                    }
-                  >
-                    <SelectTrigger className="w-28 border-ring">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent
-                      style={{
-                        zIndex: asPath.includes("/preferences") ? 60 : 50,
+                <div className="h-[1px] w-full bg-pink-800"></div>
+
+                <CommandList>
+                  <CommandEmpty>No tunings found.</CommandEmpty>
+
+                  <CommandGroup className="max-h-60 overflow-y-auto">
+                    {tunings.map((tuningObj) => (
+                      <CommandItem
+                        key={tuningObj.simpleNotes}
+                        value={tuningObj.notes}
+                        onSelect={(currentValue) => {
+                          handleTuningChange(currentValue);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            tuning
+                              ? tuning.toLowerCase() ===
+                                tuningObj.notes.toLowerCase()
+                                ? "opacity-100"
+                                : "opacity-100" // special case for "e2 a2 d3 g3 b3 e4" tuning
+                              : "opacity-0",
+                          )}
+                        />
+                        <div className="baseFlex w-full !justify-between">
+                          <div className="font-medium">{tuningObj.name}</div>
+                          <PrettyTuning
+                            tuning={tuningObj.simpleNotes}
+                            width="w-36"
+                          />
+                        </div>
+                      </CommandItem>
+                    ))}
+
+                    <CommandItem
+                      value={"custom"}
+                      onSelect={(currentValue) => {
+                        handleTuningChange(currentValue);
                       }}
                     >
-                      <SelectGroup>
-                        <SelectLabel>Result type</SelectLabel>
-                        <SelectItem value="tabs">Tabs</SelectItem>
-                        <SelectItem value="artists">Artists</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-                <Label>Genre</Label>
-                <Select
-                  onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
-                  value={genreId.toString()}
-                  onValueChange={(value) => handleGenreChange(value)}
-                >
-                  <SelectTrigger className="w-[180px] border-ring">
-                    <SelectValue placeholder="Select a genre" />
-                  </SelectTrigger>
-                  <SelectContent
-                    style={{
-                      zIndex: asPath.includes("/preferences") ? 60 : 50,
-                    }}
-                  >
-                    <SelectGroup>
-                      <SelectLabel>Genres</SelectLabel>
-
-                      {Object.values(genreList).map((genre) => {
-                        return (
-                          <SelectItem
-                            key={genre.id}
-                            value={genre.id.toString()}
-                          >
-                            <div className="baseFlex gap-2">
-                              <div
-                                style={{
-                                  backgroundColor: genre.color,
-                                  boxShadow:
-                                    "0 1px 1px hsla(336, 84%, 17%, 0.9)",
-                                }}
-                                className="h-3 w-3 rounded-full"
-                              ></div>
-                              {genre.name}
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-                <Label>View</Label>
-                <Select
-                  onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
-                  value={viewType}
-                  onValueChange={(value) =>
-                    handleViewChange(value as "grid" | "table")
-                  }
-                >
-                  <SelectTrigger className="w-24 border-ring">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent
-                    style={{
-                      zIndex: asPath.includes("/preferences") ? 60 : 50,
-                    }}
-                  >
-                    <SelectGroup>
-                      <SelectLabel>Results layout</SelectLabel>
-                      <SelectItem value="grid">Grid</SelectItem>
-                      <SelectItem value="table">Table</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-                <Label>Sort by</Label>
-                <Select
-                  onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
-                  value={additionalSortFilter}
-                  onValueChange={(value) =>
-                    handleMobileSortChange(
-                      value as
-                        | "newest"
-                        | "oldest"
-                        | "leastLiked"
-                        | "mostLiked"
-                        | "none",
-                    )
-                  }
-                >
-                  <SelectTrigger className="w-32 border-ring">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent
-                    style={{
-                      zIndex: asPath.includes("/preferences") ? 60 : 50,
-                    }}
-                  >
-                    <SelectGroup>
-                      <SelectLabel>Sort by</SelectLabel>
-                      <SelectItem value="newest">Newest</SelectItem>
-                      <SelectItem value="oldest">Oldest</SelectItem>
-                      <SelectItem value="leastLiked">Least likes</SelectItem>
-                      <SelectItem value="mostLiked">Most likes</SelectItem>
-                      <SelectItem value="none">None</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {searchQuery && (
-                <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-                  <Label>Relevance</Label>
-                  <Switch
-                    checked={sortByRelevance}
-                    onCheckedChange={() => handleRelevanceChange()}
-                  />
-                </div>
-              )}
-            </Drawer.Content>
-          </Drawer.Portal>
-        </Drawer.Root>
-
-        {/* desktop sorting options */}
-        <div className="baseFlex !hidden !justify-start gap-2 @3xl:!flex md:!justify-center md:gap-4">
-          {/* type (artist page only shows tabs so hide selector) */}
-          {asPath.includes("/explore") && (
-            <div className="baseVertFlex !items-start gap-1.5">
-              <Label>Type</Label>
-              <div className="baseFlex gap-2">
-                <Button
-                  variant={type !== "artists" ? "toggledOn" : "toggledOff"}
-                  size="sm"
-                  onClick={() => handleTypeChange("tabs")}
-                >
-                  Tabs
-                </Button>
-                <Button
-                  variant={type === "artists" ? "toggledOn" : "toggledOff"}
-                  size="sm"
-                  onClick={() => handleTypeChange("artists")}
-                >
-                  Artists
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* genre selector */}
-          <AnimatePresence>
-            {type === "tabs" && (
-              <motion.div
-                key={"searchResultsGenreSelector"}
-                initial={{ opacity: 0, width: 0, scale: 0 }}
-                animate={{ opacity: 1, width: "auto", scale: 1 }}
-                exit={{ opacity: 0, width: 0, scale: 0 }}
-                transition={{
-                  scale: {
-                    duration: 0.15,
-                  },
-                  opacity: {
-                    duration: 0.25,
-                  },
-                  width: {
-                    duration: 0.25,
-                  },
-                }}
-                className="baseVertFlex !items-start gap-1.5"
-              >
-                <Label>Genre</Label>
-                <Select
-                  value={genreId.toString()}
-                  onValueChange={(value) => handleGenreChange(value)}
-                >
-                  <SelectTrigger className="w-[180px] border-2">
-                    <SelectValue placeholder="Select a genre" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Genres</SelectLabel>
-
-                      {Object.values(genreList).map((genre) => {
-                        return (
-                          <SelectItem
-                            key={genre.id}
-                            value={genre.id.toString()}
-                          >
-                            <div className="baseFlex gap-2">
-                              {genre.name !== "All genres" && (
-                                <div
-                                  style={{
-                                    backgroundColor: genre.color,
-                                    boxShadow:
-                                      "0 1px 1px hsla(336, 84%, 17%, 0.9)",
-                                  }}
-                                  className="h-3 w-3 rounded-full"
-                                ></div>
-                              )}
-                              {genre.name}
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* view */}
-          <div className="baseVertFlex !items-start gap-1.5">
-            <Label>View</Label>
-            <div className="baseFlex gap-2">
-              <Button
-                variant={viewType === "grid" ? "toggledOn" : "toggledOff"}
-                size="sm"
-                onClick={() => handleViewChange("grid")}
-              >
-                <BsGridFill className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewType === "table" ? "toggledOn" : "toggledOff"}
-                size="sm"
-                onClick={() => handleViewChange("table")}
-              >
-                <CiViewTable className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* relevance + extra sorting filters */}
-          <div className="baseVertFlex !items-start gap-1.5">
-            <Label>Sort by</Label>
-            <div className="baseFlex gap-2">
-              {searchQuery && (
-                <Button
-                  variant={sortByRelevance ? "toggledOn" : "toggledOff"}
-                  size="sm"
-                  onClick={() => handleRelevanceChange()}
-                >
-                  Relevance
-                </Button>
-              )}
-              <Button
-                variant={
-                  additionalSortFilter === "newest" ||
-                  additionalSortFilter === "oldest"
-                    ? "toggledOn"
-                    : "toggledOff"
-                }
-                size="sm"
-                onClick={() => handleSortChange("date")}
-              >
-                Date
-                <AnimatePresence>
-                  {(additionalSortFilter === "newest" ||
-                    additionalSortFilter === "oldest") && (
-                    <motion.div
-                      key={"searchResultsDateSortArrow"}
-                      initial={{ opacity: 0, width: 0 }}
-                      animate={{ opacity: 1, width: "auto" }}
-                      exit={{ opacity: 0, width: 0 }}
-                      transition={{ duration: 0.25 }}
-                    >
-                      <BsArrowDownShort
-                        style={{
-                          transform:
-                            additionalSortFilter === "newest"
-                              ? "rotate(0deg)"
-                              : "rotate(180deg)",
-                        }}
-                        className="h-4 w-4 transition-all"
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          tuning && tuning === "custom"
+                            ? "opacity-100"
+                            : "opacity-0",
+                        )}
                       />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </Button>
-              <Button
-                variant={
-                  additionalSortFilter === "leastLiked" ||
-                  additionalSortFilter === "mostLiked"
-                    ? "toggledOn"
-                    : "toggledOff"
-                }
-                size="sm"
-                onClick={() => handleSortChange("likes")}
-              >
-                Likes
-                <AnimatePresence>
-                  {(additionalSortFilter === "leastLiked" ||
-                    additionalSortFilter === "mostLiked") && (
-                    <motion.div
-                      key={"searchResultsLikesSortArrow"}
-                      initial={{ opacity: 0, width: 0 }}
-                      animate={{ opacity: 1, width: "auto" }}
-                      exit={{ opacity: 0, width: 0 }}
-                      transition={{ duration: 0.25 }}
-                    >
-                      <BsArrowDownShort
-                        style={{
-                          transform:
-                            additionalSortFilter === "mostLiked"
-                              ? "rotate(0deg)"
-                              : "rotate(180deg)",
-                        }}
-                        className="h-4 w-4 transition-all"
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </Button>
-            </div>
-          </div>
+                      <div className="self-start font-medium">
+                        Custom tunings
+                      </div>
+                    </CommandItem>
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
+
+        <div className="baseVertFlex !items-start gap-1.5">
+          <Label>Capo</Label>
+          <Select
+            value={capo ? capo.toString() : "all"}
+            onValueChange={(value) => {
+              handleCapoChange(value as "all" | "true" | "false");
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup className="max-h-[300px] overflow-y-auto">
+                <SelectLabel>Capo</SelectLabel>
+
+                <SelectItem value={"all"}>All</SelectItem>
+
+                <Separator className="my-1 w-full bg-pink-600" />
+
+                <SelectItem value={"true"}>With capo</SelectItem>
+                <SelectItem value={"false"}>Without capo</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="baseVertFlex !items-start gap-1.5">
+          <Label>Difficulty</Label>
+          <Select
+            value={difficulty ? difficulty.toString() : "all"}
+            onValueChange={(value) => {
+              handleDifficultyChange(value);
+            }}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select a difficulty">
+                <div className="baseFlex gap-2">
+                  <DifficultyBars difficulty={difficulty ?? 5} />
+                  {DIFFICULTIES[(difficulty ?? 5) - 1]}
+                </div>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="w-[350px]">
+              <SelectGroup>
+                <SelectLabel>Difficulties</SelectLabel>
+
+                <SelectItem value={"1"}>
+                  <div className="baseVertFlex !items-start gap-1">
+                    <div className="baseFlex gap-2">
+                      <DifficultyBars difficulty={1} />
+                      <span className="font-medium">Beginner</span>
+                    </div>
+                    <p className="text-sm opacity-75">
+                      Open chords, basic melodies, simple strumming.
+                    </p>
+                  </div>
+                </SelectItem>
+                <SelectItem value={"2"}>
+                  <div className="baseVertFlex !items-start gap-1">
+                    <div className="baseFlex gap-2">
+                      <DifficultyBars difficulty={2} />
+                      <span className="font-medium">Easy</span>
+                    </div>
+                    <p className="text-sm opacity-75">
+                      Common progressions, basic barre chords, straightforward
+                      rhythms.
+                    </p>
+                  </div>
+                </SelectItem>
+                <SelectItem value={"3"}>
+                  <div className="baseVertFlex !items-start gap-1">
+                    <div className="baseFlex gap-2">
+                      <DifficultyBars difficulty={3} />
+                      <span className="font-medium">Intermediate</span>
+                    </div>
+                    <p className="text-sm opacity-75">
+                      Alternate picking, varied voicings, position shifts.
+                    </p>
+                  </div>
+                </SelectItem>
+                <SelectItem value={"4"}>
+                  <div className="baseVertFlex !items-start gap-1">
+                    <div className="baseFlex gap-2">
+                      <DifficultyBars difficulty={4} />
+                      <span className="font-medium">Advanced</span>
+                    </div>
+                    <p className="text-sm opacity-75">
+                      Fast playing, bends, slides, tapping, expressive control.
+                    </p>
+                  </div>
+                </SelectItem>
+                <SelectItem value={"5"}>
+                  <div className="baseVertFlex !items-start gap-1">
+                    <div className="baseFlex gap-2">
+                      <DifficultyBars difficulty={5} />
+                      <span className="font-medium">Expert</span>
+                    </div>
+                    <p className="text-sm opacity-75">
+                      Virtuoso speed, sweep picking, extended voicings,
+                      interpretation.
+                    </p>
+                  </div>
+                </SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="baseVertFlex !items-start gap-1.5">
+          <Label>Sort by</Label>
+          <Select
+            onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
+            value={sortBy}
+            onValueChange={(value) =>
+              handleSortByChange(
+                value as
+                  | "relevance"
+                  | "newest"
+                  | "oldest"
+                  | "mostPopular"
+                  | "leastPopular",
+              )
+            }
+          >
+            <SelectTrigger className="w-32 border-ring">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Sort by</SelectLabel>
+                <SelectItem value="relevance" disabled={!searchQuery}>
+                  Relevance
+                </SelectItem>
+                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="oldest">Oldest</SelectItem>
+                <SelectItem value="mostPopular">Most popular</SelectItem>
+                <SelectItem value="leastPopular">Least popular</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Button
+          variant="link"
+          onClick={() => resetSearchFilters()}
+          className="h-5 !p-0"
+        >
+          Reset filters
+        </Button>
       </div>
 
-      <AnimatePresence>
-        {viewType === "grid" ? (
-          <>
-            {/* card view */}
-            {type === "tabs" ? (
-              <GridTabView
-                genreId={genreId}
-                searchQuery={searchQuery}
-                sortByRelevance={sortByRelevance}
-                additionalSortFilter={additionalSortFilter}
-                selectedPinnedTabId={selectedPinnedTabId}
-                setSelectedPinnedTabId={setSelectedPinnedTabId}
-                setResultsCountIsLoading={setResultsCountIsLoading}
-                hideLikesAndPlayButtons={hideLikesAndPlayButtons}
-              />
+      <div className="baseVertFlex relative size-full">
+        {viewportLabel.includes("mobile") ? (
+          // mobile: # of results / filter drawer trigger
+          <div className="baseFlex sticky top-0 w-full !justify-between rounded-t-lg bg-pink-800 px-4 py-2 tablet:!hidden">
+            {/* # of results */}
+            {resultsCountIsLoading ? (
+              <motion.div
+                key={"searchResultsCountSkeleton"}
+                variants={opacityVariants}
+                initial="closed"
+                animate="expanded"
+                exit="closed"
+              >
+                <div className="h-8 w-48 animate-pulse rounded-md bg-pink-300"></div>
+              </motion.div>
             ) : (
-              <GridArtistView
-                searchQuery={searchQuery}
-                sortByRelevance={sortByRelevance}
-                additionalSortFilter={additionalSortFilter}
-                setResultsCountIsLoading={setResultsCountIsLoading}
-              />
+              <motion.div
+                key={"searchResultsCount"}
+                variants={opacityVariants}
+                initial="closed"
+                animate="expanded"
+                exit="closed"
+              >
+                {`${searchResultsCount} result${
+                  searchResultsCount === 1 ? "" : "s"
+                } found`}
+              </motion.div>
             )}
-          </>
+
+            {/* filter drawer trigger */}
+            <Drawer.Root
+              open={drawerOpen}
+              onOpenChange={(open) => {
+                setDrawerOpen(open);
+                setMobileHeaderModal({
+                  showing: open,
+                  zIndex: open ? (asPath.includes("/profile") ? 50 : 49) : 48,
+                });
+              }}
+              modal={false}
+              dismissible={!drawerHandleDisabled}
+            >
+              <Drawer.Trigger asChild>
+                <Button
+                  variant={"outline"}
+                  className="baseFlex gap-2 @3xl:hidden"
+                >
+                  Filter
+                  <LuFilter className="h-4 w-4" />
+                </Button>
+              </Drawer.Trigger>
+              <Drawer.Portal>
+                <Drawer.Content
+                  style={{
+                    zIndex: asPath.includes("/preferences") ? 60 : 50,
+                    textShadow: "none",
+                  }}
+                  className="baseVertFlex fixed bottom-0 left-0 right-0 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950"
+                >
+                  <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
+
+                  <Label className="baseFlex gap-2">
+                    Search filters
+                    <LuFilter className="h-4 w-4" />
+                  </Label>
+                  <Separator className="mb-2 w-full bg-pink-600" />
+
+                  {/* TODO */}
+                </Drawer.Content>
+              </Drawer.Portal>
+            </Drawer.Root>
+          </div>
         ) : (
-          <>
-            {/* table view */}
-            {type === "tabs" ? (
-              <TableTabView
-                genreId={genreId}
-                searchQuery={searchQuery}
-                sortByRelevance={sortByRelevance}
-                additionalSortFilter={additionalSortFilter}
-                selectedPinnedTabId={selectedPinnedTabId}
-                setSelectedPinnedTabId={setSelectedPinnedTabId}
-                setResultsCountIsLoading={setResultsCountIsLoading}
-                hideLikesAndPlayButtons={hideLikesAndPlayButtons}
-              />
+          // tablet+: # of results / view type toggle
+          <div className="baseFlex sticky top-24 !hidden w-full !justify-between rounded-t-lg bg-pink-800 px-4 py-3 tablet:!flex">
+            {/* # of results */}
+            {resultsCountIsLoading ? (
+              <motion.div
+                key={"searchResultsCountSkeleton"}
+                variants={opacityVariants}
+                initial="closed"
+                animate="expanded"
+                exit="closed"
+              >
+                <div className="h-8 w-48 animate-pulse rounded-md bg-pink-300"></div>
+              </motion.div>
             ) : (
-              <TableArtistView
-                searchQuery={searchQuery}
-                sortByRelevance={sortByRelevance}
-                additionalSortFilter={additionalSortFilter}
-                setResultsCountIsLoading={setResultsCountIsLoading}
-              />
+              <motion.div
+                key={"searchResultsCount"}
+                variants={opacityVariants}
+                initial="closed"
+                animate="expanded"
+                exit="closed"
+              >
+                {`${searchResultsCount} result${searchResultsCount === 1 ? "" : "s"} found`}
+              </motion.div>
             )}
-          </>
+
+            {/* view type toggle */}
+            <div className="baseFlex gap-3">
+              <Label>Layout</Label>
+              <div className="baseFlex gap-2">
+                <Button
+                  variant={layoutType === "grid" ? "toggledOn" : "toggledOff"}
+                  size="sm"
+                  onClick={() => handleLayoutChange("grid")}
+                  className="baseFlex gap-2"
+                >
+                  <BsGridFill className="h-4 w-4" />
+                  Grid
+                </Button>
+                <Button
+                  variant={layoutType === "table" ? "toggledOn" : "toggledOff"}
+                  size="sm"
+                  onClick={() => handleLayoutChange("table")}
+                  className="baseFlex gap-2"
+                >
+                  <CiViewTable className="h-4 w-4" />
+                  Table
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
-      </AnimatePresence>
+
+        {/* search results body */}
+        <div className="lightGlassmorphic w-full rounded-b-lg">
+          <AnimatePresence>
+            {renderSearch404 ? (
+              <Render404Page />
+            ) : (
+              <>
+                {searchParamsParsed && (
+                  <>
+                    {layoutType === "grid" && (
+                      <GridTabView
+                        searchQuery={searchQuery}
+                        genreId={genreId}
+                        tuning={tuning}
+                        capo={capo}
+                        difficulty={difficulty}
+                        sortBy={sortBy}
+                        setResultsCountIsLoading={setResultsCountIsLoading}
+                      />
+                    )}
+
+                    {layoutType === "table" && (
+                      <TableTabView
+                        searchQuery={searchQuery}
+                        genreId={genreId}
+                        tuning={tuning}
+                        capo={capo}
+                        difficulty={difficulty}
+                        sortBy={sortBy}
+                        setResultsCountIsLoading={setResultsCountIsLoading}
+                      />
+                    )}
+                  </>
+                )}
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
     </div>
   );
 }

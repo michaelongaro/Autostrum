@@ -1,4 +1,4 @@
-import { useEffect, type Dispatch, type SetStateAction } from "react";
+import { Fragment, useEffect, type Dispatch, type SetStateAction } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
@@ -10,61 +10,69 @@ import TabCardSkeleton from "./TabCardSkeleton";
 import NoResultsFound from "./NoResultsFound";
 
 interface GridTabView {
-  genreId: number;
-  searchQuery: string;
-  sortByRelevance: boolean;
-  additionalSortFilter:
-    | "newest"
-    | "oldest"
-    | "leastLiked"
-    | "mostLiked"
-    | "none";
-  selectedPinnedTabId?: number;
-  setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
+  searchQuery?: string;
+  genreId?: number;
+  tuning?: string;
+  capo?: boolean;
+  difficulty?: number;
+  sortBy: "relevance" | "newest" | "oldest" | "mostPopular" | "leastPopular";
   setResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
-  hideLikesAndPlayButtons?: boolean;
 }
 
 function GridTabView({
-  genreId,
   searchQuery,
-  sortByRelevance,
-  additionalSortFilter,
-  selectedPinnedTabId,
-  setSelectedPinnedTabId,
+  genreId,
+  tuning,
+  capo,
+  difficulty,
+  sortBy,
   setResultsCountIsLoading,
-  hideLikesAndPlayButtons,
 }: GridTabView) {
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
-
-  const { data: artistProfileBeingViewed } =
-    api.artist.getByIdOrUsername.useQuery(
-      {
-        username: query.username as string,
-      },
-      {
-        enabled: !!query.username,
-      },
-    );
 
   const { setSearchResultsCount } = useTabStore((state) => ({
     setSearchResultsCount: state.setSearchResultsCount,
   }));
 
+  const { data: userProfileBeingViewed } = api.user.getByIdOrUsername.useQuery(
+    {
+      username: query.username as string,
+    },
+    {
+      enabled: !!query.username,
+    },
+  );
+
+  const { data: currentUser } = api.user.getByIdOrUsername.useQuery(
+    {
+      userId: userId!,
+    },
+    {
+      enabled: !!userId,
+    },
+  );
+
   function getInfiniteQueryParams() {
     return {
       searchQuery,
-      genreId: genreId,
-      sortByRelevance,
-      sortBy: additionalSortFilter,
-      likedByUserId: asPath.includes("/likes") && userId ? userId : undefined,
+      genreId,
+      tuning,
+      capo: capo ?? undefined,
+      difficulty: difficulty ?? undefined,
+      sortBy,
       userIdToSelectFrom:
-        (asPath.includes("/tabs") || asPath.includes("/preferences")) && userId
+        (asPath.includes("/user") || asPath.includes("/profile/tabs")) && userId
           ? userId
-          : artistProfileBeingViewed
-            ? artistProfileBeingViewed.userId
+          : userProfileBeingViewed
+            ? userProfileBeingViewed.userId
             : undefined,
+      artistIdToSelectFrom:
+        asPath.includes("/artist") && query.artistId
+          ? Number(query.artistId)
+          : undefined,
+      bookmarkedByUserId:
+        asPath.includes("/profile/bookmarks") && userId ? userId : undefined,
     };
   }
 
@@ -74,7 +82,7 @@ function GridTabView({
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
-  } = api.tab.getInfiniteTabsBySearchQuery.useInfiniteQuery(
+  } = api.search.getInfiniteTabsBySearchQuery.useInfiniteQuery(
     getInfiniteQueryParams(),
     {
       getNextPageParam: (lastPage) => lastPage.data.nextCursor,
@@ -111,43 +119,32 @@ function GridTabView({
         style={{ gridAutoRows: "minmax(min-content, max-content)" }}
         className="grid w-full grid-cols-1 place-items-center gap-4 p-4 @2xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4"
       >
-        <>
+        <AnimatePresence mode={"popLayout"}>
           {tabResults?.pages.map((page) =>
             page.data.tabs?.map((tab, index) => (
-              <AnimatePresence key={tab.id} mode={"wait"}>
+              <Fragment key={tab.id}>
                 {index === page.data.tabs.length - 1 ? (
                   <GridTabCard
-                    ref={ref}
                     minimalTab={tab}
-                    selectedPinnedTabId={selectedPinnedTabId}
-                    setSelectedPinnedTabId={setSelectedPinnedTabId}
-                    infiniteQueryParams={getInfiniteQueryParams()}
-                    hideLikesAndPlayButtons={hideLikesAndPlayButtons}
+                    currentUser={currentUser}
+                    ref={ref as unknown as React.RefObject<HTMLDivElement>}
                   />
                 ) : (
-                  <GridTabCard
-                    minimalTab={tab}
-                    selectedPinnedTabId={selectedPinnedTabId}
-                    setSelectedPinnedTabId={setSelectedPinnedTabId}
-                    infiniteQueryParams={getInfiniteQueryParams()}
-                    hideLikesAndPlayButtons={hideLikesAndPlayButtons}
-                  />
+                  <GridTabCard minimalTab={tab} currentUser={currentUser} />
                 )}
-              </AnimatePresence>
+              </Fragment>
             )),
           )}
 
           {isFetching &&
             Array.from(Array(3).keys()).map((index) => (
-              <AnimatePresence key={index} mode={"sync"}>
-                <TabCardSkeleton
-                  uniqueKey={`tabCardSkeleton${index}`}
-                  hideArtist={asPath.includes("/preferences")}
-                  hideLikesAndPlayButtons={hideLikesAndPlayButtons}
-                />
-              </AnimatePresence>
+              <TabCardSkeleton
+                key={`tabCardSkeleton${index}`}
+                uniqueKey={`tabCardSkeleton${index}`}
+                hideArtist={asPath.includes("/preferences")}
+              />
             ))}
-        </>
+        </AnimatePresence>
       </div>
 
       {/* no results */}

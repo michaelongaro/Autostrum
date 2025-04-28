@@ -25,7 +25,7 @@ module.exports = {
     extend: {
       screens: {
         // tab title + bpm will be hidden below this threshold to free up extra space
-        narrowMobileLandscape: { raw: "(max-height: 370px)" },
+        mobileNarrowLandscape: { raw: "(max-height: 370px)" },
         // TODO: tweak this threshold
         mobileLandscape: { raw: "(min-height: 370px) and (max-height: 500px)" },
         // threshold to render regular height tab components on playback modal

@@ -53,7 +53,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
   }, [query.username]);
 
   const { data: artist, isFetching: isFetchingArtist } =
-    api.artist.getByIdOrUsername.useQuery(
+    api.user.getByIdOrUsername.useQuery(
       {
         username: usernameFromUrl,
       },
@@ -63,14 +63,9 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
     );
 
   const { data: fetchedTab, refetch: refetchTab } =
-    api.tab.getMinimalTabById.useQuery(
-      {
-        id: artist?.pinnedTabId ?? -1,
-      },
-      {
-        enabled: artist?.pinnedTabId !== -1,
-      },
-    );
+    api.search.getMinimalTabById.useQuery(artist?.pinnedTabId ?? -1, {
+      enabled: artist?.pinnedTabId !== -1,
+    });
 
   if (!artistExists) {
     return <ArtistNotFound />;
@@ -182,14 +177,14 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
                   {artist ? (
                     <div className="baseFlex gap-2">
                       <AiFillHeart className="h-6 w-6 text-pink-800" />
-                      {formatNumber(artist.numberOfLikes)}
+                      {formatNumber(artist.bookmarkCount)}
                     </div>
                   ) : (
                     <div className="h-6 w-14 animate-pulse rounded-md bg-pink-300"></div>
                   )}
                 </TooltipTrigger>
                 <TooltipContent side={"bottom"}>
-                  <p>Total likes</p>
+                  <p>Total bookmarks</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -233,7 +228,6 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
 
       {/* search Results component */}
       <div className="baseVertFlex mt-8 w-full gap-8">
-        <SearchInput initialSearchQueryFromUrl={searchQuery} />
         {serve404Page ? (
           <Render404Page />
         ) : (
@@ -259,7 +253,7 @@ export default ArtistProfile;
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const prisma = new PrismaClient();
-  const artist = await prisma.artist.findUnique({
+  const artist = await prisma.user.findUnique({
     where: {
       username: ctx.params?.username ? (ctx.params.username as string) : "",
     },

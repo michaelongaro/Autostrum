@@ -166,4 +166,30 @@ const tuningNotesToName = {
   "d2 a2 d3 g3 a3 d4": "Irish",
 };
 
-export { toString, parse, tunings, tuningNotesToName };
+const tuningNotes = [
+  "e2 a2 d3 g3 b3 e4",
+  "e2 a2 c#3 e3 a3 e4",
+  "b1 f#2 b2 f#3 b3 d#4",
+  "c2 g2 c3 g3 c4 e4",
+  "d2 a2 d3 f#3 a3 d4",
+  "e2 b2 e3 g#3 b3 e4",
+  "c2 f2 c3 f3 a3 f4",
+  "d2 g2 d3 g3 b3 d4",
+  "a1 e2 a2 d3 f#3 b3",
+  "a#1 f2 a#2 d#3 g3 c4",
+  "b1 f#2 b2 e3 g#3 c#4",
+  "c2 g2 c3 f3 a3 d4",
+  "c#2 g#2 c#3 f#3 a#3 d#4",
+  "d2 a2 d3 g3 b3 e4",
+  "d#2 a#2 d#3 g#3 c4 f4",
+  "e2 b2 e3 a3 c#4 f#4",
+  "f2 c3 f3 a#3 d4 g4",
+  "f#2 c#3 f#3 b3 d#4 g#4",
+  "g1 d2 g2 c3 e3 a3",
+  "g#1 d#2 g#2 c#3 f3 a#3",
+  "f2 a2 c3 g3 c4 e4",
+  "d2 a2 d3 f#3 b3 e4",
+  "d2 a2 d3 g3 a3 d4",
+];
+
+export { toString, parse, tunings, tuningNotes, tuningNotesToName };

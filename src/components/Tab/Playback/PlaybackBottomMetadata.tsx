@@ -759,7 +759,7 @@ function MobileMenuDialog() {
                             </Button>
                           </div>
 
-                          <div className="h-48 narrowMobileLandscape:h-36">
+                          <div className="mobileNarrowLandscape:h-36 h-48">
                             <ChordDiagram originalFrets={chord.frets} />
                           </div>
                         </div>

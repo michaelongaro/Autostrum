@@ -1,7 +1,7 @@
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import * as React from "react";
 
-import { cn } from "~/utils/utils";
+import { cn } from "~/utils/cn";
 
 const LoopingRangeSlider = React.forwardRef<
   React.ComponentRef<typeof SliderPrimitive.Root>,

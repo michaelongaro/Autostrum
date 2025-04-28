@@ -1,6 +1,6 @@
 generator client {
     provider        = "prisma-client-js"
-    previewFeatures = ["fullTextSearchPostgres"]
+    previewFeatures = ["fullTextSearchPostgres", "relationJoins"]
 }
 
 datasource db {
@@ -8,72 +8,153 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+// Singleton, updated by cron job
+model WeeklyFeaturedUser {
+    id Int @id @default(autoincrement())
+
+    userId String
+}
+
+// top 5 most popular tabs based on pageViews 
+// (updated daily by a cron job)
+model MostPopularTabs {
+    id Int @id @default(autoincrement())
+
+    tabId Int
+    tab   Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
+}
+
+// top 5 most popular artists based on aggregate # of pageViews
+// (updated daily by a cron job)
+model MostPopularArtists {
+    id Int @id @default(autoincrement())
+
+    artistId Int
+    artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+}
+
 model Artist {
-    id              Int      @id @default(autoincrement())
-    createdAt       DateTime @default(now())
-    userId          String   @unique
-    username        String   @unique
-    profileImageUrl String
-    pinnedTabId     Int      @default(-1)
-    likesGiven      Like[]   @relation("likeGiver")
-    likesReceived   Like[]   @relation("likeRecipient") // prob want better field name..
-    tabs            Tab[]
+    id Int @id @default(autoincrement())
+
+    name       String  @default("")
+    isVerified Boolean @default(false)
+    Tab        Tab[]
+
+    mostPopularArtists MostPopularArtists[]
+}
+
+model TabRating {
+    createdAt DateTime @default(now()) // might be used to detect spam
+
+    value Int // (1-5) rating
+
+    tab   Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
+    tabId Int
+
+    user   User   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+    userId String
+
+    @@id([userId, tabId]) // composite key to prevent duplicate ratings
+}
+
+model Bookmark {
+    createdAt DateTime @default(now())
+
+    tab   Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
+    tabId Int
+
+    // user who created the tab (recipient of the bookmark)
+    tabCreator       User   @relation("tabCreator", fields: [tabCreatorUserId], references: [userId], onDelete: Cascade)
+    tabCreatorUserId String
+
+    // user who is bookmarking
+    bookmarkedBy       User   @relation("bookmarkedBy", fields: [bookmarkedByUserId], references: [userId], onDelete: Cascade)
+    bookmarkedByUserId String
+
+    @@id([bookmarkedByUserId, tabId]) // composite key to prevent duplicate ratings
 }
 
 model Tab {
-    id                 Int       @id @default(autoincrement())
+    id        Int      @id @default(autoincrement())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
     title              String
     tuning             String
-    bpm                Int       @default(75)
-    chords             Json      @default("[]") // prisma doesn't seem to support direct default value of json
-    strummingPatterns  Json      @default("[]") // prisma doesn't seem to support direct default value of json
-    tabData            Json
+    description        String?
+    capo               Int     @default(0)
+    bpm                Int     @default(75)
+    difficulty         Int     @default(1) // 1-5
+    key                String?
+    chords             Json    @default("[]")
+    strummingPatterns  Json    @default("[]")
     sectionProgression Json
-    description        String    @default("")
-    capo               Int       @default(0)
-    hasRecordedAudio   Boolean   @default(false)
-    createdAt          DateTime  @default(now())
-    updatedAt          DateTime  @default(now()) @updatedAt
-    artist             Artist?   @relation(fields: [createdById], references: [userId], onDelete: Cascade)
-    createdById        String?
-    likes              Like[]
-    genre              Genre     @relation(fields: [genreId], references: [id])
-    genreId            Int
-    comments           Comment[]
-}
+    tabData            Json
 
-model Like {
-    id                Int    @id @default(autoincrement())
-    tab               Tab    @relation(fields: [tabId], references: [id], onDelete: Cascade)
-    tabId             Int
-    tabArtist         Artist @relation("likeRecipient", fields: [tabArtistId], references: [userId], onDelete: Cascade)
-    tabArtistId       String
-    tabArtistUsername String // necessary to avoid extra query when only searching with username
-    artistWhoLikes    Artist @relation("likeGiver", fields: [artistWhoLikedId], references: [userId], onDelete: Cascade)
-    artistWhoLikedId  String
+    createdBy       User?   @relation(fields: [createdByUserId], references: [userId], onDelete: Cascade)
+    createdByUserId String?
+
+    genre   Genre @relation(fields: [genreId], references: [id])
+    genreId Int
+
+    bookmarks       Bookmark[]
+    comments        Comment[]
+    mostPopularTabs MostPopularTabs[]
+
+    averageRating Float       @default(0)
+    ratingsCount  Int         @default(0) // needed to calculate new average rating in optimistic fashion
+    ratings       TabRating[]
+
+    artist   Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
+    artistId Int?
+
+    // tsvector column for FTS:
+    // Prisma doesn't manage this type directly, hence 'Unsupported'
+    // The '?' makes it optional, easier to handle with triggers
+    searchVector Unsupported("tsvector")?
+
+    pageViews Int @default(0)
+
+    @@index([searchVector], type: Gin) // Hint to Prisma about the index type, but the actual index is created via raw SQL migration
 }
 
 model Genre {
-    id    Int    @id @default(autoincrement())
+    id Int @id @default(autoincrement())
+
     name  String @unique
     color String
-    tabs  Tab[]
+
+    tabs Tab[]
 }
 
 model Comment {
-    id        Int       @id @default(autoincrement())
-    text      String
-    createdAt DateTime  @default(now())
-    authorId  String
-    tab       Tab       @relation(fields: [tabId], references: [id])
-    tabId     Int
+    id        Int      @id @default(autoincrement())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    text     String
+    authorId String
+
+    tab   Tab @relation(fields: [tabId], references: [id])
+    tabId Int
+
     replyTo   Comment?  @relation("Replies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     replyToId Int?
     replies   Comment[] @relation("Replies")
 }
 
-// Singleton, will be updated directly by cron job
-model WeeklyFeaturedArtist {
-    id       Int    @id @default(autoincrement())
-    artistId String
+model User {
+    id        Int      @id @default(autoincrement())
+    createdAt DateTime @default(now())
+
+    userId          String @unique // the id generated by Clerk upon sign up
+    username        String @unique
+    profileImageUrl String
+    pinnedTabId     Int    @default(-1)
+
+    bookmarks         Bookmark[] @relation("bookmarkedBy")
+    bookmarksReceived Bookmark[] @relation("tabCreator")
+
+    tabs       Tab[]
+    tabRatings TabRating[]
 }

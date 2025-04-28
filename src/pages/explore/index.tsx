@@ -10,7 +10,6 @@ import { TbPinned } from "react-icons/tb";
 import GenreBubbles from "~/components/Explore/GenreBubbles";
 import PinnedTabPlaceholder from "~/components/Profile/PinnedTabPlaceholder";
 import GridTabCard from "~/components/Search/GridTabCard";
-import SearchInput from "~/components/Search/SearchInput";
 import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
@@ -30,28 +29,23 @@ function Explore() {
 
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
-  const { data: weeklyFeaturedArtistId } =
-    api.weeklyFeaturedArtist.getIdOfWeeklyFeaturedArtist.useQuery();
+  const { data: weeklyFeaturedUserId } =
+    api.weeklyFeaturedUser.getUserId.useQuery();
 
   const { data: artist, isLoading: loadingCurrentArtist } =
-    api.artist.getByIdOrUsername.useQuery(
+    api.user.getByIdOrUsername.useQuery(
       {
-        userId: weeklyFeaturedArtistId as string,
+        userId: weeklyFeaturedUserId!,
       },
       {
-        enabled: !!weeklyFeaturedArtistId,
-      }
+        enabled: !!weeklyFeaturedUserId,
+      },
     );
 
   const { data: fetchedTab, refetch: refetchTab } =
-    api.tab.getMinimalTabById.useQuery(
-      {
-        id: artist?.pinnedTabId ?? -1,
-      },
-      {
-        enabled: artist?.pinnedTabId !== -1,
-      }
-    );
+    api.search.getMinimalTabById.useQuery(artist?.pinnedTabId ?? -1, {
+      enabled: artist?.pinnedTabId !== -1,
+    });
 
   return (
     <motion.div
@@ -80,8 +74,6 @@ function Explore() {
           content="https://www.autostrum.com/opengraphScreenshots/explore.png"
         ></meta>
       </Head>
-
-      <SearchInput />
 
       <div className="baseVertFlex w-full !items-start gap-0 p-1 md:gap-4 md:p-4">
         <div className="baseVertFlex gap-0 md:gap-1">
@@ -115,7 +107,7 @@ function Explore() {
                             }}
                             onClick={() =>
                               void push(
-                                `/artist/${artist?.username ?? "Anonymous"}`
+                                `/artist/${artist?.username ?? "Anonymous"}`,
                               )
                             }
                             style={{
@@ -133,9 +125,7 @@ function Explore() {
                           opacity: !profileImageLoaded ? 1 : 0,
                           zIndex: !profileImageLoaded ? 1 : -1,
                         }}
-                        className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 shadow-md transition-opacity
-                              ${!profileImageLoaded ? "animate-pulse" : ""}
-                            `}
+                        className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 shadow-md transition-opacity ${!profileImageLoaded ? "animate-pulse" : ""} `}
                       ></div>
                     </>
                   ) : (
@@ -188,14 +178,14 @@ function Explore() {
                       {artist ? (
                         <div className="baseFlex gap-2">
                           <AiFillHeart className="h-6 w-6 text-pink-800" />
-                          {formatNumber(artist.numberOfLikes)}
+                          {formatNumber(artist.bookmarkCount)}
                         </div>
                       ) : (
                         <div className="h-6 w-14 animate-pulse rounded-md bg-pink-300"></div>
                       )}
                     </TooltipTrigger>
                     <TooltipContent side={"bottom"}>
-                      <p>Total likes</p>
+                      <p>Total bookmarks</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -215,7 +205,6 @@ function Explore() {
                 {fetchedTab ? (
                   <GridTabCard
                     minimalTab={fetchedTab}
-                    refetchTab={refetchTab}
                     largeVariant={isAboveMediumViewportWidth}
                   />
                 ) : (

@@ -7,7 +7,7 @@ import type {
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { FaBook } from "react-icons/fa";
-import type { TabWithLikes } from "~/server/api/routers/tab";
+import type { FullTab } from "~/server/api/routers/tab";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
@@ -61,7 +61,7 @@ const opacityVariants = {
   },
 };
 interface ITab extends Partial<RefetchTab> {
-  tab: TabWithLikes | undefined | null;
+  tab: FullTab | undefined | null;
 }
 
 function Tab({ tab, refetchTab }: ITab) {
@@ -85,6 +85,8 @@ function Tab({ tab, refetchTab }: ITab) {
     setCreatedAt,
     setUpdatedAt,
     setTitle,
+    setArtistId,
+    setArtistName,
     setDescription,
     setGenreId,
     setTuning,
@@ -97,7 +99,7 @@ function Tab({ tab, refetchTab }: ITab) {
     getTabData,
     setTabData,
     setSectionProgression,
-    setNumberOfLikes,
+    setBookmarkCount,
     editing,
     setOriginalTabData,
     showAudioRecorderModal,
@@ -122,6 +124,8 @@ function Tab({ tab, refetchTab }: ITab) {
     setCreatedAt: state.setCreatedAt,
     setUpdatedAt: state.setUpdatedAt,
     setTitle: state.setTitle,
+    setArtistId: state.setArtistId,
+    setArtistName: state.setArtistName,
     setDescription: state.setDescription,
     setGenreId: state.setGenreId,
     setTuning: state.setTuning,
@@ -134,7 +138,7 @@ function Tab({ tab, refetchTab }: ITab) {
     getTabData: state.getTabData,
     setTabData: state.setTabData,
     setSectionProgression: state.setSectionProgression,
-    setNumberOfLikes: state.setNumberOfLikes,
+    setBookmarkCount: state.setBookmarkCount,
     editing: state.editing,
     setOriginalTabData: state.setOriginalTabData,
     showAudioRecorderModal: state.showAudioRecorderModal,
@@ -166,18 +170,20 @@ function Tab({ tab, refetchTab }: ITab) {
 
     setOriginalTabData(structuredClone(tab));
 
+    console.log("tab", tab);
+
     setId(tab.id);
     setCreatedById(tab.createdById);
     setCreatedAt(tab.createdAt);
     setUpdatedAt(tab.updatedAt);
     setTitle(tab.title);
+    setArtistId(tab.artistId);
+    setArtistName(tab.artistName);
     setDescription(tab.description);
     setGenreId(tab.genreId);
     setTuning(tab.tuning);
     setBpm(tab.bpm);
     setCapo(tab.capo);
-    setHasRecordedAudio(tab.hasRecordedAudio);
-    setNumberOfLikes(tab.numberOfLikes);
 
     // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setChords(tab.chords);
@@ -187,26 +193,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setTabData(tab.tabData);
     // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setSectionProgression(tab.sectionProgression ?? []);
-  }, [
-    tab,
-    setId,
-    setCreatedById,
-    setCreatedAt,
-    setUpdatedAt,
-    setBpm,
-    setCapo,
-    setDescription,
-    setGenreId,
-    setChords,
-    setHasRecordedAudio,
-    setStrummingPatterns,
-    setTabData,
-    setTitle,
-    setOriginalTabData,
-    setTuning,
-    setNumberOfLikes,
-    setSectionProgression,
-  ]);
+  }, [tab]);
 
   useEffect(() => {
     if (!tab && tabData.length === 0) {
@@ -321,57 +308,52 @@ function Tab({ tab, refetchTab }: ITab) {
                 className="baseFlex !flex-nowrap gap-2 lg:absolute lg:right-7 lg:top-0"
                 onClick={() => setShowEffectGlossaryDialog(true)}
               >
-                Effect glossary
                 <FaBook className="h-4 w-4" />
+                Effect glossary
               </Button>
             </div>
           )}
 
         <Separator className="w-[96%]" />
 
-        {(editing ||
-          sectionProgression.length > 0 ||
-          chords.length > 0 ||
-          strummingPatterns.length > 0) && (
-          <div className="baseVertFlex relative w-full gap-4">
-            <SectionProgression />
-            <Chords />
-            <StrummingPatterns />
+        <div className="baseVertFlex relative w-full gap-4">
+          <SectionProgression />
+          <Chords />
+          <StrummingPatterns />
 
-            <Button
-              variant={"secondary"}
-              className="baseFlex !flex-nowrap gap-2 lg:absolute lg:right-7 lg:top-0"
-              onClick={() => setShowEffectGlossaryDialog(true)}
-            >
-              Effect glossary
-              <FaBook className="h-4 w-4" />
-            </Button>
+          <Button
+            variant={"secondary"}
+            className="baseFlex !flex-nowrap gap-2 lg:absolute lg:right-7 lg:top-0"
+            onClick={() => setShowEffectGlossaryDialog(true)}
+          >
+            <FaBook className="h-4 w-4" />
+            Effect glossary
+          </Button>
 
-            {editing && (
-              <Popover>
-                <PopoverTrigger className="baseFlex absolute bottom-5 right-3 mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:bottom-3 sm:right-7">
-                  <HiOutlineLightBulb className="h-5 w-5" />
-                </PopoverTrigger>
-                <PopoverContent
-                  side="left"
-                  className="baseVertFlex w-72 gap-2 p-2 text-sm shadow-lg"
-                >
-                  <div className="baseFlex gap-2 font-semibold">
-                    <HiOutlineInformationCircle className="h-4 w-4" />
-                    Tip
-                  </div>
-                  <p>
-                    If performance degrades while playing generated audio, try
-                    minimizing sections that aren&apos;t being played or opt to
-                    listen in preview mode.
-                  </p>
-                </PopoverContent>
-              </Popover>
-            )}
+          {editing && (
+            <Popover>
+              <PopoverTrigger className="baseFlex absolute bottom-5 right-3 mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:bottom-3 sm:right-7">
+                <HiOutlineLightBulb className="h-5 w-5" />
+              </PopoverTrigger>
+              <PopoverContent
+                side="left"
+                className="baseVertFlex w-72 gap-2 p-2 text-sm shadow-lg"
+              >
+                <div className="baseFlex gap-2 font-semibold">
+                  <HiOutlineInformationCircle className="h-4 w-4" />
+                  Tip
+                </div>
+                <p>
+                  If performance degrades while playing generated audio, try
+                  minimizing sections that aren&apos;t being played or opt to
+                  listen in preview mode.
+                </p>
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
 
-            <Separator className="w-[96%]" />
-          </div>
-        )}
+        <Separator className="w-[96%]" />
 
         <div className="baseVertFlex relative size-full gap-4">
           {!showPlaybackModal &&

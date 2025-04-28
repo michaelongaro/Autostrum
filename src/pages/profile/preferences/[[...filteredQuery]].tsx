@@ -54,7 +54,7 @@ function Preferences() {
     }, 1000);
   }, []);
 
-  const { data: artist } = api.artist.getByIdOrUsername.useQuery(
+  const { data: artist } = api.user.getByIdOrUsername.useQuery(
     {
       userId: user?.id, // <--- this is jank
     },
@@ -64,14 +64,9 @@ function Preferences() {
   );
 
   const { data: fetchedTab, refetch: refetchTab } =
-    api.tab.getMinimalTabById.useQuery(
-      {
-        id: artist?.pinnedTabId ?? -1,
-      },
-      {
-        enabled: artist?.pinnedTabId !== -1,
-      },
-    );
+    api.search.getMinimalTabById.useQuery(artist?.pinnedTabId ?? -1, {
+      enabled: artist?.pinnedTabId !== -1,
+    });
 
   return (
     <motion.div

@@ -2,7 +2,7 @@ import * as React from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { PopoverArrow } from "@radix-ui/react-popover";
 
-import { cn } from "~/utils/utils";
+import { cn } from "~/utils/cn";
 
 const Popover = PopoverPrimitive.Root;
 
@@ -26,6 +26,7 @@ const PopoverContent = React.forwardRef<
         ref={ref}
         align={align}
         sideOffset={sideOffset}
+        collisionPadding={16}
         style={{
           textShadow: "none",
         }}

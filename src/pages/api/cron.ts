@@ -8,7 +8,7 @@ export default async function handler() {
 
   // use that userId to exclude from total pool of artists (ones that have pinnedTabId)
   // get all artists that have pinnedTabId
-  const elegibleArtistIds = await prisma.artist.findMany({
+  const elegibleArtistIds = await prisma.user.findMany({
     where: {
       pinnedTabId: {
         gt: -1,
@@ -20,7 +20,7 @@ export default async function handler() {
   });
 
   const filteredArtistIds = elegibleArtistIds.filter(
-    (artist) => artist.userId !== currentFeaturedArtist!.artistId
+    (artist) => artist.userId !== currentFeaturedArtist!.artistId,
   );
 
   const randomIndex = Math.floor(Math.random() * filteredArtistIds.length);

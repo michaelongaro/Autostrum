@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Tab" ADD COLUMN     "key" TEXT NOT NULL DEFAULT 'E';

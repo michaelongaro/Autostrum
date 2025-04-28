@@ -1,11 +1,8 @@
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import { useEffect, type Dispatch, type SetStateAction, Fragment } from "react";
-import { TbPinned } from "react-icons/tb";
+import { useEffect, type Dispatch, type SetStateAction } from "react";
 import { useInView } from "react-intersection-observer";
-import { AiFillHeart } from "react-icons/ai";
-import { BsFillPlayFill } from "react-icons/bs";
 import {
   Table,
   TableBody,
@@ -16,65 +13,75 @@ import {
 } from "~/components/ui/table";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
-import TableTabRow from "./TableTabRow";
 import NoResultsFound from "./NoResultsFound";
+import TableTabRow from "./TableTabRow";
+import type { ParsedUrlQuery } from "querystring";
+import { FaStar } from "react-icons/fa";
 
 interface TableTabView {
-  genreId: number;
-  searchQuery: string;
-  sortByRelevance: boolean;
-  additionalSortFilter:
-    | "newest"
-    | "oldest"
-    | "leastLiked"
-    | "mostLiked"
-    | "none";
-  selectedPinnedTabId?: number;
-  setSelectedPinnedTabId?: Dispatch<SetStateAction<number>>;
+  searchQuery?: string;
+  genreId?: number;
+  tuning?: string;
+  capo?: boolean;
+  difficulty?: number;
+  sortBy: "relevance" | "newest" | "oldest" | "mostPopular" | "leastPopular";
   setResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
-  hideLikesAndPlayButtons?: boolean;
 }
 
 function TableTabView({
-  genreId,
   searchQuery,
-  sortByRelevance,
-  additionalSortFilter,
-  selectedPinnedTabId,
-  setSelectedPinnedTabId,
+  genreId,
+  tuning,
+  capo,
+  difficulty,
+  sortBy,
   setResultsCountIsLoading,
-  hideLikesAndPlayButtons,
 }: TableTabView) {
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
-
-  const { data: artistProfileBeingViewed } =
-    api.artist.getByIdOrUsername.useQuery(
-      {
-        username: query.username as string,
-      },
-      {
-        enabled: !!query.username,
-      }
-    );
 
   const { setSearchResultsCount } = useTabStore((state) => ({
     setSearchResultsCount: state.setSearchResultsCount,
   }));
 
+  const { data: userProfileBeingViewed } = api.user.getByIdOrUsername.useQuery(
+    {
+      username: query.username as string,
+    },
+    {
+      enabled: !!query.username,
+    },
+  );
+
+  const { data: currentUser } = api.user.getByIdOrUsername.useQuery(
+    {
+      userId: userId!,
+    },
+    {
+      enabled: !!userId,
+    },
+  );
+
   function getInfiniteQueryParams() {
     return {
       searchQuery,
-      genreId: genreId,
-      sortByRelevance,
-      sortBy: additionalSortFilter,
-      likedByUserId: asPath.includes("/likes") && userId ? userId : undefined,
+      genreId,
+      tuning,
+      capo: capo ?? undefined,
+      difficulty: difficulty ?? undefined,
+      sortBy,
       userIdToSelectFrom:
-        (asPath.includes("/tabs") || asPath.includes("/preferences")) && userId
+        (asPath.includes("/user") || asPath.includes("/profile/tabs")) && userId
           ? userId
-          : artistProfileBeingViewed
-          ? artistProfileBeingViewed.userId
+          : userProfileBeingViewed
+            ? userProfileBeingViewed.userId
+            : undefined,
+      artistIdToSelectFrom:
+        asPath.includes("/artist") && query.artistId
+          ? Number(query.artistId)
           : undefined,
+      bookmarkedByUserId:
+        asPath.includes("/profile/bookmarks") && userId ? userId : undefined,
     };
   }
 
@@ -84,14 +91,14 @@ function TableTabView({
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
-  } = api.tab.getInfiniteTabsBySearchQuery.useInfiniteQuery(
+  } = api.search.getInfiniteTabsBySearchQuery.useInfiniteQuery(
     getInfiniteQueryParams(),
     {
       getNextPageParam: (lastPage) => lastPage.data.nextCursor,
       onSuccess: (data) => {
         setSearchResultsCount(data?.pages?.[0]?.count ?? 0);
       },
-    }
+    },
   );
 
   useEffect(() => {
@@ -107,7 +114,6 @@ function TableTabView({
       }
     },
   });
-
   return (
     <motion.div
       key={"TableTabViewSearchResults"}
@@ -115,68 +121,51 @@ function TableTabView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className={`baseVertFlex  w-full gap-4 overflow-y-auto p-4 transition-all ${
-        hideLikesAndPlayButtons ? "max-h-[70vh]" : ""
-      }`}
+      className="baseVertFlex w-full gap-4 p-4 transition-all"
     >
       <Table>
         {/* ideally want table to be rounded, but wasn't having much luck. look up online
         because I know on lyricize it was a bit of a hassle*/}
-        <TableHeader>
-          <TableRow>
-            {!hideLikesAndPlayButtons && (
-              <>
-                <TableHead>
-                  <div className="baseFlex">
-                    <BsFillPlayFill className="h-4 w-4" />
-                  </div>
-                </TableHead>
-                <TableHead>
-                  <div className="baseFlex">
-                    <AiFillHeart className="h-4 w-4" />
-                  </div>
-                </TableHead>
-              </>
-            )}
+        <TableHeader className="!sticky top-0">
+          <TableRow className="hover:!bg-transparent">
             <TableHead>Title</TableHead>
-            {selectedPinnedTabId !== undefined && (
-              <TableHead>
-                <TbPinned className="h-4 w-4" />
-              </TableHead>
-            )}
-            {genreId === 9 && <TableHead>Genre</TableHead>}
-            <TableHead className="min-w-[175px]">Artist</TableHead>
+
+            {!query.artist &&
+              !query.user &&
+              !asPath.includes("/profile/tabs") && (
+                <TableHead>Artist</TableHead>
+              )}
+
+            <TableHead>Rating</TableHead>
+
+            {!query.difficulty && <TableHead>Difficulty</TableHead>}
+
+            {!query.genreId && <TableHead>Genre</TableHead>}
+
             <TableHead>Date</TableHead>
-            {/* empty headers for likes and play/pause columns */}
+
+            {/* Empty header for bookmark toggle */}
+            <TableHead></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="w-full">
           <>
             {tabResults?.pages.map((page) =>
               page.data.tabs?.map((tab, index) => (
-                <Fragment key={tab.id}>
+                <AnimatePresence key={tab.id} mode={"wait"}>
                   {index === page.data.tabs.length - 1 ? (
                     <TableTabRow
-                      ref={ref}
-                      key={tab.id}
                       minimalTab={tab}
-                      selectedPinnedTabId={selectedPinnedTabId}
-                      setSelectedPinnedTabId={setSelectedPinnedTabId}
-                      infiniteQueryParams={getInfiniteQueryParams()}
-                      hideLikesAndPlayButtons={hideLikesAndPlayButtons}
+                      currentUser={currentUser}
+                      ref={
+                        ref as unknown as React.RefObject<HTMLTableRowElement>
+                      }
                     />
                   ) : (
-                    <TableTabRow
-                      key={tab.id}
-                      minimalTab={tab}
-                      selectedPinnedTabId={selectedPinnedTabId}
-                      setSelectedPinnedTabId={setSelectedPinnedTabId}
-                      infiniteQueryParams={getInfiniteQueryParams()}
-                      hideLikesAndPlayButtons={hideLikesAndPlayButtons}
-                    />
+                    <TableTabRow minimalTab={tab} currentUser={currentUser} />
                   )}
-                </Fragment>
-              ))
+                </AnimatePresence>
+              )),
             )}
 
             {isFetching &&
@@ -184,7 +173,7 @@ function TableTabView({
                 <AnimatePresence key={index} mode={"wait"}>
                   <TableTabSkeleton
                     key={`tabTableSkeleton${index}`}
-                    forPinnedModal={asPath.includes("/preferences")}
+                    query={query}
                   />
                 </AnimatePresence>
               ))}
@@ -202,50 +191,56 @@ function TableTabView({
 
 export default TableTabView;
 
-// TODO: probably don't want to show the artist for pinned modal since it is already implied..
-
-function TableTabSkeleton({
-  forPinnedModal,
-  hideLikesAndPlayButtons,
-}: {
-  forPinnedModal: boolean;
-  hideLikesAndPlayButtons?: boolean;
-}) {
+function TableTabSkeleton({ query }: { query: ParsedUrlQuery }) {
   return (
     <TableRow className="w-full">
-      {!hideLikesAndPlayButtons && (
-        <>
-          <TableCell>
-            <div className="baseFlex w-full">
-              <div className="h-8 w-12 animate-pulse rounded-md bg-pink-300"></div>
-            </div>
-          </TableCell>
-          <TableCell>
-            <div className="baseFlex w-full">
-              <div className="h-8 w-12 animate-pulse rounded-md bg-pink-300"></div>
-            </div>
-          </TableCell>
-        </>
-      )}
+      {/* title */}
       <TableCell>
-        <div className="h-6 w-32 animate-pulse rounded-md bg-pink-300"></div>
+        <div className="h-6 w-48 animate-pulse rounded-md bg-pink-300"></div>
       </TableCell>
-      {forPinnedModal && (
+
+      {/* artist */}
+      {!query.artist &&
+        !query.user &&
+        !query.username &&
+        !query.tuning &&
+        !query.capo && (
+          <TableCell>
+            <div className="h-6 w-32 animate-pulse rounded-md bg-pink-300"></div>
+          </TableCell>
+        )}
+
+      {/* rating */}
+      <TableCell>
+        <div className="baseFlex !justify-start gap-2">
+          <div className="h-6 w-12 animate-pulse rounded-md bg-pink-300"></div>
+          <FaStar className="size-3" />
+          <div className="h-6 w-12 animate-pulse rounded-md bg-pink-300"></div>
+        </div>
+      </TableCell>
+
+      {/* difficulty */}
+      {!query.difficulty && (
         <TableCell>
-          <div className="h-8 w-16 animate-pulse rounded-md bg-pink-300"></div>
+          <div className="h-6 w-24 animate-pulse rounded-md bg-pink-300"></div>
         </TableCell>
       )}
+
+      {/* genre */}
+      {!query.genreId && (
+        <TableCell>
+          <div className="h-6 w-16 animate-pulse rounded-md bg-pink-300"></div>
+        </TableCell>
+      )}
+
+      {/* date */}
       <TableCell>
-        <div className="h-8 w-32 animate-pulse rounded-md bg-pink-300"></div>
+        <div className="h-6 w-20 animate-pulse rounded-md bg-pink-300"></div>
       </TableCell>
 
-      <TableCell className="baseFlex !flex-nowrap !justify-start gap-2">
-        <div className="h-8 w-8 animate-pulse rounded-full bg-pink-300"></div>
-        <div className="h-6 w-24 animate-pulse rounded-md bg-pink-300"></div>
-      </TableCell>
-
+      {/* bookmark toggle */}
       <TableCell>
-        <div className="h-8 w-24 animate-pulse rounded-md bg-pink-300"></div>
+        <div className="h-10 w-10 animate-pulse rounded-md bg-pink-300"></div>
       </TableCell>
     </TableRow>
   );

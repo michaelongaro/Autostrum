@@ -1,22 +1,8 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
-import Render404Page from "~/components/Search/Render404Page";
-import SearchInput from "~/components/Search/SearchInput";
 import SearchResults from "~/components/Search/SearchResults";
-import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
 
 function FilteredQueryExplore() {
-  const {
-    serve404Page,
-    initializedWithParams,
-    genreId,
-    type,
-    view,
-    searchQuery,
-    sortByRelevance,
-    additionalSortFilter,
-  } = useGetUrlParamFilters();
-
   return (
     <motion.div
       key={"filteredQueryExplore"}
@@ -24,7 +10,7 @@ function FilteredQueryExplore() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="lightGlassmorphic baseVertFlex my-12 min-h-[650px] w-11/12 !justify-start gap-8 rounded-md p-2 md:my-24 md:w-3/4 md:p-8"
+      className="baseVertFlex my-12 min-h-[650px] w-11/12 !justify-start md:my-24 md:w-3/4 md:p-0"
     >
       <Head>
         <title>Explore | Autostrum</title>
@@ -47,23 +33,7 @@ function FilteredQueryExplore() {
 
       {/* search Results component */}
       <div className="baseVertFlex mt-4 w-full gap-8 md:mt-0">
-        <SearchInput initialSearchQueryFromUrl={searchQuery} />
-        {serve404Page ? (
-          <Render404Page />
-        ) : (
-          <>
-            {initializedWithParams && (
-              <SearchResults
-                genreId={genreId}
-                type={type}
-                searchQuery={searchQuery}
-                sortByRelevance={sortByRelevance}
-                additionalSortFilter={additionalSortFilter}
-                viewType={view}
-              />
-            )}
-          </>
-        )}
+        <SearchResults />
       </div>
     </motion.div>
   );

@@ -2,7 +2,7 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "~/utils/utils";
+import { cn } from "~/utils/cn";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 const buttonVariants = cva(
@@ -32,7 +32,7 @@ const buttonVariants = cva(
           "bg-green-600 hover:bg-green-700 shadow-none active:bg-green-800 disabled:opacity-50 disabled:bg-gray-500",
         scrollToTop:
           "lightGlassmorphic text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/60 border-2",
-        text: "text-primary-foreground hover:text-primary/80 active:text-primary/60",
+        text: "text-primary-foreground shadow-none hover:text-primary/80 active:text-primary/60",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -78,7 +78,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             variant === "secondary" ||
             variant === "ghost" ||
             variant === "outline" ||
-            variant === "text"
+            variant === "text" ||
+            variant === "link"
               ? "none"
               : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
         }}

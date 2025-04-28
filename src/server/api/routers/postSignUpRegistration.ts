@@ -15,7 +15,7 @@ export const postSignUpRegistrationRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      await ctx.prisma.artist
+      await ctx.prisma.user
         .create({
           data: {
             userId: input.userId,

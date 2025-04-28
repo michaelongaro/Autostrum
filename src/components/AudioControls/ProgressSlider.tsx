@@ -298,7 +298,7 @@ function ProgressSlider({
                   }),
                   alignSelf: "center",
                 }}
-                className="w-full narrowMobileLandscape:w-[95%] mobileLandscape:w-[95%]"
+                className="mobileNarrowLandscape:w-[95%] w-full mobileLandscape:w-[95%]"
               >
                 {children}
               </div>

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { useTabStore } from "~/stores/TabStore";
 
-import { cn } from "~/utils/utils";
+import { cn } from "~/utils/cn";
 
 const AudioProgressSlider = React.forwardRef<
   React.ComponentRef<typeof SliderPrimitive.Root>,

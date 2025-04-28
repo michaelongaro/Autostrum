@@ -1,5 +1,6 @@
 import { AnimatePresence } from "framer-motion";
 import { useRef, type ReactNode } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import Footer from "../Footer/Footer";
 import GeneralLayoutStatefulShell from "./GeneralLayoutStatefulShell";
 import { Noto_Sans } from "next/font/google";
@@ -25,6 +26,8 @@ function GeneralLayout({ children }: GeneralLayout) {
       <AnimatePresence mode="wait">{children}</AnimatePresence>
 
       <Footer />
+
+      <Analytics />
     </main>
   );
 }

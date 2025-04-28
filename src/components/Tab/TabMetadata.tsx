@@ -15,10 +15,10 @@ import {
   type SetStateAction,
 } from "react";
 import { createPortal } from "react-dom";
-import { AiFillEye, AiOutlineUser } from "react-icons/ai";
+import { AiFillEye } from "react-icons/ai";
 import { BsArrowRightShort, BsPlus } from "react-icons/bs";
 import { FaMicrophoneAlt, FaTrashAlt } from "react-icons/fa";
-import { MdModeEditOutline } from "react-icons/md";
+import { MdModeEditOutline, MdVerified } from "react-icons/md";
 import {
   Popover,
   PopoverContent,
@@ -27,12 +27,12 @@ import {
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore, type Section } from "~/stores/TabStore";
 import { api } from "~/utils/api";
-import formatDate from "~/utils/formatDate";
 import { genreList } from "~/utils/genreList";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import { tuningNotesToName } from "~/utils/tunings";
-import { CommandCombobox } from "../ui/CommandCombobox";
-import LikeAndUnlikeButton from "../ui/LikeAndUnlikeButton";
+import ArtistCommandCombobox from "~/components/ui/ArtistCommandCombobox";
+import TuningCommandCombobox from "../ui/TuningCommandCombobox";
+import BookmarkToggle from "../ui/BookmarkToggle";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -53,17 +53,28 @@ import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import TabScreenshotPreview from "./TabScreenshotPreview";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
+import RateTab from "~/components/ui/RateTab";
+import DifficultyBars from "~/components/ui/DifficultyBars";
+import { formatNumber } from "~/utils/formatNumber";
+
+const KEYS_BY_LETTER = {
+  A: ["A major", "A minor", "A# minor", "A♭ major", "A♭ minor"],
+  B: ["B major", "B minor", "B♭ major", "B♭ minor"],
+  C: ["C major", "C minor", "C# major", "C# minor", "C♭ major"],
+  D: ["D major", "D minor", "D# minor", "D♭ major"],
+  E: ["E major", "E minor", "E♭ major", "E♭ minor"],
+  F: ["F major", "F minor", "F# major", "F# minor"],
+  G: ["G major", "G minor", "G# minor", "G♭ major"],
+};
+
+const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 
 type TabMetadata = {
   customTuning: string | null;
   setIsPostingOrSaving: Dispatch<SetStateAction<boolean>>;
-} & Partial<RefetchTab>;
+};
 
-function TabMetadata({
-  refetchTab,
-  customTuning,
-  setIsPostingOrSaving,
-}: TabMetadata) {
+function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
   const { userId } = useAuth();
 
   const { push, asPath } = useRouter();
@@ -84,7 +95,6 @@ function TabMetadata({
 
   const [publishErrorOccurred, setPublishErrorOccurred] = useState(false);
   const [showPulsingError, setShowPulsingError] = useState(false);
-  const [profileImageLoaded, setProfileImageLoaded] = useState(false);
   const [showDeleteCheckmark, setShowDeleteCheckmark] = useState(false);
   const [showPublishCheckmark, setShowPublishCheckmark] = useState(false);
 
@@ -93,11 +103,14 @@ function TabMetadata({
   const {
     originalTabData,
     id,
-    createdById,
+    createdByUserId,
     createdAt,
-    updatedAt,
     title,
     setTitle,
+    artistId,
+    setArtistId,
+    artistName,
+    setArtistName,
     description,
     setDescription,
     genreId,
@@ -109,7 +122,10 @@ function TabMetadata({
     sectionProgression,
     bpm,
     setBpm,
-    numberOfLikes,
+    key,
+    setKey,
+    difficulty,
+    setDifficulty,
     capo,
     setCapo,
     hasRecordedAudio,
@@ -128,11 +144,14 @@ function TabMetadata({
   } = useTabStore((state) => ({
     originalTabData: state.originalTabData,
     id: state.id,
-    createdById: state.createdById,
+    createdByUserId: state.createdByUserId,
     createdAt: state.createdAt,
-    updatedAt: state.updatedAt,
     title: state.title,
     setTitle: state.setTitle,
+    artistId: state.artistId,
+    setArtistId: state.setArtistId,
+    artistName: state.artistName,
+    setArtistName: state.setArtistName,
     description: state.description,
     setDescription: state.setDescription,
     genreId: state.genreId,
@@ -148,7 +167,10 @@ function TabMetadata({
     setCapo: state.setCapo,
     hasRecordedAudio: state.hasRecordedAudio,
     editing: state.editing,
-    numberOfLikes: state.numberOfLikes,
+    key: state.key,
+    setKey: state.setKey,
+    difficulty: state.difficulty,
+    setDifficulty: state.setDifficulty,
     setEditing: state.setEditing,
     setOriginalTabData: state.setOriginalTabData,
     setShowAudioRecorderModal: state.setShowAudioRecorderModal,
@@ -161,6 +183,11 @@ function TabMetadata({
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
     setCurrentChordIndex: state.setCurrentChordIndex,
   }));
+
+  const { data: dynamicMetadata, isLoading: isLoadingDynamicMetadata } =
+    api.tab.getRatingBookmarkAndViewCountByTabId.useQuery(id, {
+      enabled: !editing,
+    });
 
   const { mutate: createOrUpdate, isLoading: isPosting } =
     api.tab.createOrUpdate.useMutation({
@@ -222,10 +249,10 @@ function TabMetadata({
   }, [isPosting, setIsPostingOrSaving]);
 
   // current user
-  const { data: currentArtist, refetch: refetchCurrentArtist } =
-    api.artist.getByIdOrUsername.useQuery(
+  const { data: currentUser, refetch: refetchCurrentUser } =
+    api.user.getByIdOrUsername.useQuery(
       {
-        userId: userId as string,
+        userId: userId!,
       },
       {
         enabled: !!userId,
@@ -237,12 +264,12 @@ function TabMetadata({
     data: tabCreator,
     isFetching: fetchingTabCreator,
     refetch: refetchTabCreator,
-  } = api.artist.getByIdOrUsername.useQuery(
+  } = api.user.getByIdOrUsername.useQuery(
     {
-      userId: createdById as string,
+      userId: createdByUserId!,
     },
     {
-      enabled: !!createdById,
+      enabled: !!createdByUserId,
     },
   );
 
@@ -262,23 +289,6 @@ function TabMetadata({
       (Number(inputValue) >= 1 && Number(inputValue) <= 500)
     ) {
       setBpm(Number(inputValue) === 0 ? -1 : Number(inputValue));
-    }
-  }
-
-  function handleCapoChange(event: ChangeEvent<HTMLInputElement>) {
-    const inputValue = event.target.value;
-
-    // Check if the input value is empty (backspace case)
-    if (inputValue === "") {
-      setCapo(Number(inputValue) === 0 ? -1 : Number(inputValue));
-      return;
-    }
-
-    // Check if the input value is a number between 1 and 12
-    const num = Number(inputValue);
-
-    if (!isNaN(num) && num >= 0 && num <= 12) {
-      setCapo(num);
     }
   }
 
@@ -385,7 +395,7 @@ function TabMetadata({
         if (userId) {
           createOrUpdate({
             id,
-            createdById: userId,
+            createdByUserId: userId,
             title,
             description,
             genreId,
@@ -416,6 +426,7 @@ function TabMetadata({
     const originalData = {
       id: originalTabData.id,
       title: originalTabData.title,
+      artist: originalTabData.artistId,
       description: originalTabData.description,
       genreId: originalTabData.genreId,
       tabData: originalTabData.tabData,
@@ -423,8 +434,8 @@ function TabMetadata({
       bpm: originalTabData.bpm,
       sectionProgression: originalTabData.sectionProgression,
       capo: originalTabData.capo,
-      createdById: originalTabData.createdById,
-      hasRecordedAudio: originalTabData.hasRecordedAudio,
+      key: originalTabData.key,
+      createdByUserId: originalTabData.createdByUserId,
       chords: originalTabData.chords,
       strummingPatterns: originalTabData.strummingPatterns,
     };
@@ -439,8 +450,8 @@ function TabMetadata({
       bpm,
       sectionProgression,
       capo,
-      createdById,
-      hasRecordedAudio,
+      key,
+      createdByUserId,
       chords,
       strummingPatterns,
     };
@@ -473,14 +484,14 @@ function TabMetadata({
           {genreId === -1 && (
             <div className="baseFlex">
               <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
-              <p>Genre hasn't been selected</p>
+              <p>Genre hasn&apos;t been selected</p>
             </div>
           )}
 
           {bpm === -1 && (
             <div className="baseFlex">
               <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
-              <p>Tempo isn't defined</p>
+              <p>Tempo isn&apos;t defined</p>
             </div>
           )}
 
@@ -637,7 +648,7 @@ function TabMetadata({
                   <PopoverTrigger
                     asChild
                     onClick={() => {
-                      if (!currentArtist) {
+                      if (!currentUser) {
                         setShowUnregisteredRecordingPopover(true);
                         setUnregisteredPopoverTimeoutId(
                           setTimeout(() => {
@@ -809,6 +820,15 @@ function TabMetadata({
 
             <div
               className={`${
+                classes.artist ?? ""
+              } baseVertFlex w-full !items-start gap-1.5`}
+            >
+              <Label htmlFor="title">Artist</Label>
+              <ArtistCommandCombobox customTuning={customTuning} />
+            </div>
+
+            <div
+              className={`${
                 classes.description ?? ""
               } baseVertFlex w-full !items-start gap-1.5`}
             >
@@ -819,6 +839,7 @@ function TabMetadata({
                 placeholder="Add any extra information about how to play this tab."
                 maxLength={500}
                 value={description ?? ""}
+                className="max-h-[350px] min-h-[122px]"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     // technically allows a *ton* of newlines, messing up ui, but not mission critical
@@ -900,29 +921,47 @@ function TabMetadata({
               <Label htmlFor="tuning">
                 Tuning <span className="text-destructiveRed">*</span>
               </Label>
-              <CommandCombobox customTuning={customTuning} />
+              <TuningCommandCombobox customTuning={customTuning} />
             </div>
 
             <div
               className={`${
                 classes.capo ?? ""
-              } baseVertFlex w-16 max-w-sm !items-start gap-1.5`}
+              } baseVertFlex !items-start gap-1.5`}
             >
               <Label htmlFor="capo">Capo</Label>
-              <Input
-                type="text"
-                placeholder="0"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                className="w-12"
-                value={capo === -1 ? "" : capo}
-                onChange={handleCapoChange}
-              />
+              <Select
+                value={capo.toString()}
+                onValueChange={(value) => setCapo(Number(value))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="None" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup className="max-h-[300px] overflow-y-auto">
+                    <SelectLabel>Capo</SelectLabel>
+
+                    <SelectItem value={"0"}>None</SelectItem>
+                    <SelectItem value={"1"}>1st fret</SelectItem>
+                    <SelectItem value={"2"}>2nd fret</SelectItem>
+                    <SelectItem value={"3"}>3rd fret</SelectItem>
+                    <SelectItem value={"4"}>4th fret</SelectItem>
+                    <SelectItem value={"5"}>5th fret</SelectItem>
+                    <SelectItem value={"6"}>6th fret</SelectItem>
+                    <SelectItem value={"7"}>7th fret</SelectItem>
+                    <SelectItem value={"8"}>8th fret</SelectItem>
+                    <SelectItem value={"9"}>9th fret</SelectItem>
+                    <SelectItem value={"10"}>10th fret</SelectItem>
+                    <SelectItem value={"11"}>11th fret</SelectItem>
+                    <SelectItem value={"12"}>12th fret</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
 
             <div
               className={`${
-                classes.bpm ?? ""
+                classes.tempo ?? ""
               } baseVertFlex relative w-16 max-w-sm !items-start gap-1.5`}
             >
               <Label htmlFor="bpm">
@@ -943,6 +982,138 @@ function TabMetadata({
                 <span className="ml-1">BPM</span>
               </div>
             </div>
+
+            <div
+              className={`${
+                classes.key ?? ""
+              } baseVertFlex !items-start gap-1.5`}
+            >
+              <Label>Key</Label>
+              <Select
+                value={key ?? ""}
+                onValueChange={(value) => setKey(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a key" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup className="max-h-[300px] overflow-y-auto">
+                    {Object.entries(KEYS_BY_LETTER).map(([letter, keys]) => (
+                      <>
+                        <SelectLabel>{letter}</SelectLabel>
+                        {keys.map((key) => (
+                          <SelectItem key={key} value={key}>
+                            {key}
+                          </SelectItem>
+                        ))}
+                      </>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div
+              className={`${
+                classes.difficulty ?? ""
+              } baseVertFlex !items-start gap-1.5`}
+            >
+              <Label>
+                Difficulty <span className="text-destructiveRed">*</span>
+              </Label>
+              <Select
+                value={difficulty.toString()}
+                onValueChange={(value) => setDifficulty(Number(value))}
+              >
+                <SelectTrigger
+                  style={{
+                    boxShadow:
+                      showPulsingError && genreId === -1
+                        ? "0 0 0 0.25rem hsl(0deg 100% 50%)"
+                        : "0 0 0 0 transparent",
+                    transitionProperty: "box-shadow",
+                    transitionTimingFunction: "ease-in-out",
+                    transitionDuration: "500ms",
+                  }}
+                  className={`w-[180px] ${
+                    showPulsingError && genreId === -1
+                      ? "animate-errorShake"
+                      : ""
+                  }`}
+                >
+                  <SelectValue placeholder="Select a difficulty">
+                    <div className="baseFlex gap-2">
+                      <DifficultyBars difficulty={difficulty} />
+                      {DIFFICULTIES[difficulty - 1]}
+                    </div>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="w-[350px]">
+                  <SelectGroup>
+                    <SelectLabel>Difficulties</SelectLabel>
+
+                    <SelectItem value={"1"}>
+                      <div className="baseVertFlex !items-start gap-1">
+                        <div className="baseFlex gap-2">
+                          <DifficultyBars difficulty={1} />
+                          <span className="font-medium">Beginner</span>
+                        </div>
+                        <p className="text-sm opacity-75">
+                          Open chords, basic melodies, simple strumming.
+                        </p>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value={"2"}>
+                      <div className="baseVertFlex !items-start gap-1">
+                        <div className="baseFlex gap-2">
+                          <DifficultyBars difficulty={2} />
+                          <span className="font-medium">Easy</span>
+                        </div>
+                        <p className="text-sm opacity-75">
+                          Common progressions, basic barre chords,
+                          straightforward rhythms.
+                        </p>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value={"3"}>
+                      <div className="baseVertFlex !items-start gap-1">
+                        <div className="baseFlex gap-2">
+                          <DifficultyBars difficulty={3} />
+                          <span className="font-medium">Intermediate</span>
+                        </div>
+                        <p className="text-sm opacity-75">
+                          Alternate picking, varied voicings, position shifts.
+                        </p>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value={"4"}>
+                      <div className="baseVertFlex !items-start gap-1">
+                        <div className="baseFlex gap-2">
+                          <DifficultyBars difficulty={4} />
+                          <span className="font-medium">Advanced</span>
+                        </div>
+                        <p className="text-sm opacity-75">
+                          Fast playing, bends, slides, tapping, expressive
+                          control.
+                        </p>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value={"5"}>
+                      <div className="baseVertFlex !items-start gap-1">
+                        <div className="baseFlex gap-2">
+                          <DifficultyBars difficulty={5} />
+                          <span className="font-medium">Expert</span>
+                        </div>
+                        <p className="text-sm opacity-75">
+                          Virtuoso speed, sweep picking, extended voicings,
+                          interpretation.
+                        </p>
+                      </div>
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       )}
@@ -956,108 +1127,93 @@ function TabMetadata({
           >
             {overMediumViewportThreshold ? (
               <div className="baseFlex w-full !justify-between">
-                <div className="baseFlex gap-2">
+                <div className="baseFlex w-full !justify-between gap-4">
                   <div className="baseFlex gap-2">
                     <div className="text-2xl font-bold">{title}</div>
 
-                    <LikeAndUnlikeButton
-                      customClassName="baseFlex gap-2 p-2"
-                      createdById={createdById}
-                      id={id}
-                      numberOfLikes={numberOfLikes}
-                      tabCreator={tabCreator}
-                      currentArtist={currentArtist}
-                      // fix typing/linting errors later
-                      refetchCurrentArtist={refetchCurrentArtist}
-                      // fix typing/linting errors later
-                      refetchTabCreator={refetchTabCreator}
-                      refetchTab={refetchTab}
-                    />
+                    {artistName && (
+                      <div className="baseFlex gap-1.5 text-lg">
+                        by
+                        <span className="baseFlex text-medium gap-1 underline">
+                          {artistName}
+                          <MdVerified className="size-4" />
+                        </span>
+                      </div>
+                    )}
                   </div>
 
-                  <Separator orientation="vertical" className="h-8" />
-
                   <div className="baseFlex gap-2">
-                    <Button
-                      disabled={!tabCreator}
-                      variant={"ghost"}
-                      className="px-3 py-1"
-                    >
-                      <Link
-                        href={`/artist/${tabCreator?.username ?? ""}`}
-                        className="baseFlex gap-2"
-                      >
-                        <div className="grid grid-cols-1 grid-rows-1">
-                          {tabCreator || fetchingTabCreator ? (
-                            <>
-                              {tabCreator && (
-                                <Image
-                                  src={tabCreator.profileImageUrl}
-                                  alt={`${
-                                    tabCreator?.username ?? "Anonymous"
-                                  }'s profile image`}
-                                  width={75}
-                                  height={75}
-                                  quality={100}
-                                  onLoad={() => {
-                                    setProfileImageLoaded(true);
-                                  }}
-                                  style={{
-                                    opacity: profileImageLoaded ? 1 : 0,
-                                    height: "2rem",
-                                    width: "2rem",
-                                  }}
-                                  className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full object-cover object-center shadow-md transition-opacity"
-                                />
-                              )}
-                              <div
-                                style={{
-                                  opacity: !profileImageLoaded ? 1 : 0,
-                                  zIndex: !profileImageLoaded ? 1 : -1,
-                                }}
-                                className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 shadow-md transition-opacity ${!profileImageLoaded ? "animate-pulse" : ""} `}
-                              ></div>
-                            </>
-                          ) : (
-                            <div className="baseFlex h-8 w-8 rounded-full border-[1px] shadow-md">
-                              <AiOutlineUser className="h-5 w-5" />
-                            </div>
-                          )}
-                        </div>
+                    <AnimatePresence mode="popLayout">
+                      {dynamicMetadata ? (
+                        <motion.div
+                          key={"crossfadeRateTab"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 0.25,
+                          }}
+                          className="baseFlex h-10 w-28"
+                        >
+                          <RateTab
+                            tabId={id}
+                            averageRating={dynamicMetadata.averageRating}
+                            ratingsCount={dynamicMetadata.ratingsCount}
+                            currentUser={currentUser}
+                            userRating={dynamicMetadata.userRating}
+                            customClassName={`${classes.rating} baseFlex w-28 gap-2 px-3 py-1`}
+                          />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key={"crossfadeRateTabPlaceholder"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 0.25,
+                          }}
+                          className="baseFlex h-10 w-28 animate-pulse rounded-md bg-pink-300"
+                        ></motion.div>
+                      )}
 
-                        {tabCreator || fetchingTabCreator ? (
-                          <div className="grid grid-cols-1 grid-rows-1">
-                            <>
-                              {tabCreator ? (
-                                <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate">
-                                  {tabCreator.username}
-                                </span>
-                              ) : (
-                                <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-5 w-20 animate-pulse rounded-md bg-pink-300"></div>
-                              )}
-                            </>
-                          </div>
-                        ) : (
-                          <span className="italic text-pink-100">
-                            Anonymous
-                          </span>
-                        )}
-                      </Link>
-                    </Button>
-
-                    <Separator className="h-[1px] w-4" />
-
-                    <p className="ml-2 text-pink-200">
-                      {updatedAt && updatedAt.getTime() !== createdAt?.getTime()
-                        ? `Updated on ${formatDate(updatedAt)}`
-                        : `Created on ${formatDate(createdAt ?? new Date())}`}
-                    </p>
+                      {dynamicMetadata ? (
+                        <motion.div
+                          key={"crossfadeBookmarkToggle"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 0.25,
+                          }}
+                          className="baseFlex h-10 w-36"
+                        >
+                          <BookmarkToggle
+                            tabId={id}
+                            createdByUserId={createdByUserId}
+                            currentUser={currentUser}
+                            showText={true}
+                            isBookmarked={dynamicMetadata.bookmarked}
+                            customClassName={`${classes.bookmark} baseFlex w-full gap-2 px-3 py-1`}
+                          />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key={"crossfadeBookmarkTogglePlaceholder"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 0.25,
+                          }}
+                          className="baseFlex h-10 w-36 animate-pulse rounded-md bg-pink-300"
+                        ></motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
 
-                {/* if you still wanted to add "forking" functionality, then that would go here */}
-
-                {((userId && createdById === userId) ||
+                {((userId && createdByUserId === userId) ??
                   asPath.includes("create")) && (
                   <Button
                     disabled={isLoadingARoute}
@@ -1082,211 +1238,286 @@ function TabMetadata({
             ) : (
               <div className="baseVertFlex relative w-full !items-start gap-2">
                 <div className="baseVertFlex !items-start gap-4">
-                  <div className="text-2xl font-bold">{title}</div>
-
                   <div className="baseVertFlex !items-start gap-2">
-                    <Button
-                      disabled={!tabCreator}
-                      variant={"ghost"}
-                      className="px-0 py-1"
-                    >
-                      <Link
-                        href={`/artist/${tabCreator?.username ?? ""}`}
-                        className="baseFlex gap-2"
-                      >
-                        <div className="grid grid-cols-1 grid-rows-1">
-                          {tabCreator || fetchingTabCreator ? (
-                            <>
-                              {tabCreator && (
-                                <Image
-                                  src={tabCreator?.profileImageUrl ?? ""}
-                                  alt={`${
-                                    tabCreator?.username ?? "Anonymous"
-                                  }'s profile image`}
-                                  width={75}
-                                  height={75}
-                                  quality={100}
-                                  onLoad={() => {
-                                    setProfileImageLoaded(true);
-                                  }}
-                                  style={{
-                                    opacity: profileImageLoaded ? 1 : 0,
-                                    height: "2rem",
-                                    width: "2rem",
-                                  }}
-                                  className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full object-cover object-center shadow-md transition-opacity"
-                                />
-                              )}
-                              <div
-                                style={{
-                                  opacity: !profileImageLoaded ? 1 : 0,
-                                  zIndex: !profileImageLoaded ? 1 : -1,
-                                }}
-                                className={`col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-8 rounded-full bg-pink-300 shadow-md transition-opacity ${!profileImageLoaded ? "animate-pulse" : ""} `}
-                              ></div>
-                            </>
-                          ) : (
-                            <div className="baseFlex h-8 w-8 rounded-full border-[1px] shadow-md">
-                              <AiOutlineUser className="h-5 w-5" />
-                            </div>
-                          )}
-                        </div>
+                    <div className="text-2xl font-bold">{title}</div>
 
-                        {tabCreator || fetchingTabCreator ? (
-                          <div className="grid grid-cols-1 grid-rows-1">
-                            <>
-                              {tabCreator ? (
-                                <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate">
-                                  {tabCreator.username}
-                                </span>
-                              ) : (
-                                <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-5 w-20 animate-pulse rounded-md bg-pink-300"></div>
-                              )}
-                            </>
-                          </div>
-                        ) : (
-                          <span className="italic text-pink-200">
-                            Anonymous
-                          </span>
-                        )}
-                      </Link>
-                    </Button>
+                    {artistName && (
+                      <div className="baseFlex gap-1.5 text-lg">
+                        by
+                        <span className="baseFlex text-medium gap-1 underline">
+                          {artistName}
+                          <MdVerified className="size-4" />
+                        </span>
+                      </div>
+                    )}
+                  </div>
 
-                    <p className="text-sm text-pink-200">
-                      {updatedAt && updatedAt.getTime() !== createdAt?.getTime()
-                        ? `Updated on ${formatDate(updatedAt)}`
-                        : `Created on ${formatDate(createdAt ?? new Date())}`}
-                    </p>
+                  <div className="baseFlex gap-2">
+                    <AnimatePresence mode="popLayout">
+                      {dynamicMetadata ? (
+                        <motion.div
+                          key={"crossfadeRateTab"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 0.25,
+                          }}
+                          className="baseFlex h-10 w-28"
+                        >
+                          <RateTab
+                            tabId={id}
+                            averageRating={dynamicMetadata.averageRating}
+                            ratingsCount={dynamicMetadata.ratingsCount}
+                            currentUser={currentUser}
+                            userRating={dynamicMetadata.userRating}
+                            customClassName={`${classes.rating} baseFlex w-28 gap-2 px-3 py-1`}
+                          />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key={"crossfadeRateTabPlaceholder"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 0.25,
+                          }}
+                          className="baseFlex h-10 w-28 animate-pulse rounded-md bg-pink-300"
+                        ></motion.div>
+                      )}
+
+                      {dynamicMetadata ? (
+                        <motion.div
+                          key={"crossfadeBookmarkToggle"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 0.25,
+                          }}
+                          className="baseFlex h-10 w-36"
+                        >
+                          <BookmarkToggle
+                            tabId={id}
+                            createdByUserId={createdByUserId}
+                            currentUser={currentUser}
+                            showText={true}
+                            isBookmarked={dynamicMetadata.bookmarked}
+                            customClassName={`${classes.bookmark} baseFlex w-full gap-2 px-3 py-1`}
+                          />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key={"crossfadeBookmarkTogglePlaceholder"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 0.25,
+                          }}
+                          className="baseFlex h-10 w-36 animate-pulse rounded-md bg-pink-300"
+                        ></motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
 
-                {/* if you still wanted to add "forking" functionality, then that would go here */}
-
                 <div
                   className={`baseFlex bottom-0 right-0 w-full !justify-end gap-2 ${
-                    (userId && createdById === userId) ||
+                    (userId && createdByUserId === userId) ||
                     asPath.includes("create")
                       ? "relative mt-2"
                       : "absolute"
                   }`}
                 >
-                  <LikeAndUnlikeButton
-                    customClassName="baseFlex gap-2 px-1 py-0 h-6"
-                    createdById={createdById}
-                    id={id}
-                    numberOfLikes={numberOfLikes}
-                    tabCreator={tabCreator}
-                    currentArtist={currentArtist}
-                    // fix typing/linting errors later
-                    refetchCurrentArtist={refetchCurrentArtist}
-                    // fix typing/linting errors later
-                    refetchTabCreator={refetchTabCreator}
-                    refetchTab={refetchTab}
-                  />
-
-                  {((userId && createdById === userId) ||
-                    asPath.includes("create")) && (
-                    <Button
-                      disabled={isLoadingARoute}
-                      className="baseFlex gap-2"
-                      onClick={() => {
-                        if (
-                          asPath.includes("create") ||
-                          asPath.includes("edit")
-                        ) {
-                          pauseAudio(true);
-                          setEditing(true);
-                        } else void push(`/tab/${id}/edit`);
-                      }}
-                    >
-                      {asPath.includes("edit") || asPath.includes("create")
-                        ? "Continue editing"
-                        : "Edit"}{" "}
-                      <MdModeEditOutline className="h-5 w-5" />
-                    </Button>
-                  )}
+                  {(userId && createdByUserId === userId) ??
+                    (asPath.includes("create") && (
+                      <Button
+                        disabled={isLoadingARoute}
+                        className="baseFlex gap-2"
+                        onClick={() => {
+                          if (
+                            asPath.includes("create") ||
+                            asPath.includes("edit")
+                          ) {
+                            pauseAudio(true);
+                            setEditing(true);
+                          } else void push(`/tab/${id}/edit`);
+                        }}
+                      >
+                        {asPath.includes("edit") || asPath.includes("create")
+                          ? "Continue editing"
+                          : "Edit"}{" "}
+                        <MdModeEditOutline className="h-5 w-5" />
+                      </Button>
+                    ))}
                 </div>
               </div>
             )}
           </div>
 
-          <div className="baseVertFlex w-full gap-4 p-4 xl:!flex-row xl:!items-start xl:gap-6">
-            <div className="baseVertFlex h-full w-full !items-start gap-4 sm:!flex-row sm:!justify-start sm:gap-6 xl:w-[50%]">
-              <div className="baseFlex !items-start !justify-start gap-6">
-                <div className="baseVertFlex !items-start gap-2">
-                  <div className="font-semibold">Genre</div>
-                  {genreList[genreId] && (
-                    <div
-                      style={{
-                        backgroundColor: genreList[genreId]?.color,
-                      }}
-                      className="baseFlex w-[145px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
-                    >
-                      {genreList[genreId]?.name}
-                      <Image
-                        src={`/genrePreviewBubbles/id${genreId}.png`}
-                        alt="three genre preview bubbles with the same color as the associated genre"
-                        width={32}
-                        height={32}
-                        quality={100}
-                        style={{
-                          pointerEvents: "none",
-                          userSelect: "none",
-                        }}
-                      />
-                    </div>
+          <div className={`${classes.viewingMetadataContainer}`}>
+            <div className={`${classes.descriptionGrid}`}>
+              <div
+                className={`${classes.description} baseVertFlex !items-start gap-2`}
+              >
+                <div className="font-semibold">Description</div>
+
+                <div className="baseVertFlex !items-start !justify-start gap-2 text-wrap break-words text-sm md:text-base lg:min-h-[44px]">
+                  {description ? (
+                    description.split("\n").map((paragraph, index) => (
+                      <p key={index} className="text-wrap break-words">
+                        {paragraph}
+                      </p>
+                    ))
+                  ) : (
+                    <p className="italic text-pink-200">
+                      No description provided.
+                    </p>
                   )}
                 </div>
-
-                <div className="baseVertFlex !items-start gap-2">
-                  <div className="font-semibold">Tuning</div>
-                  <div className="baseFlex h-[44px] w-[145px] rounded-md border-2 font-medium">
-                    {tuningNotesToName[
-                      tuning.toLowerCase() as keyof typeof tuningNotesToName
-                    ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
-                  </div>
-                </div>
               </div>
 
-              <div className="baseFlex !items-start !justify-start gap-6">
-                <div className="baseVertFlex !items-start gap-2">
-                  <div className="font-semibold">Tempo</div>
-                  <div className="baseFlex">
-                    <QuarterNote className="-ml-1 size-5" />
-                    <span>{bpm === -1 ? "" : bpm}</span>
-                    <span className="ml-1">BPM</span>
-                  </div>
-                </div>
+              <div
+                className={`${classes.createdBy} baseVertFlex w-full !items-start gap-2`}
+              >
+                <div className="font-semibold">Created by</div>
+                <div className="baseFlex gap-2">
+                  <Button
+                    disabled={!tabCreator}
+                    variant={"link"}
+                    className="h-6 !py-0 px-0 text-base"
+                  >
+                    <Link
+                      href={`/artist/${tabCreator?.username ?? ""}`}
+                      className="baseFlex gap-2"
+                    >
+                      {tabCreator || fetchingTabCreator ? (
+                        <div className="grid grid-cols-1 grid-rows-1">
+                          <>
+                            {tabCreator ? (
+                              <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate">
+                                {tabCreator.username}
+                              </span>
+                            ) : (
+                              <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-32 animate-pulse rounded-md bg-pink-300"></div>
+                            )}
+                          </>
+                        </div>
+                      ) : (
+                        <span className="italic text-pink-200">Anonymous</span>
+                      )}
+                    </Link>
+                  </Button>
 
-                <div className="baseVertFlex ml-[58px] !items-start gap-2 sm:ml-0">
-                  <p className="font-semibold">Capo</p>
-                  <p className="whitespace-nowrap text-nowrap">
-                    {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
+                  <p className="whitespace-nowrap text-sm text-pink-200">
+                    {`on ${new Intl.DateTimeFormat("en-US").format(createdAt ?? new Date())}`}
                   </p>
                 </div>
               </div>
+
+              <div
+                className={`${classes.pageViews} self-end text-sm opacity-80`}
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={"dynamicPageViews"}
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: "auto" }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{
+                      duration: 0.25,
+                    }}
+                    className="baseFlex gap-2"
+                  >
+                    {dynamicMetadata?.pageViews &&
+                      formatNumber(dynamicMetadata?.pageViews)}
+                    <span>
+                      view{dynamicMetadata?.pageViews === 1 ? "" : "s"}
+                    </span>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              <Separator
+                orientation="vertical"
+                className={`${classes.separator} h-[2px] w-full lg:h-full lg:w-[1px]`}
+              />
             </div>
 
-            <Separator
-              orientation="vertical"
-              className="hidden h-32 w-[1px] xl:block"
-            />
-
-            <div className="baseVertFlex !items-start gap-2 !self-start xl:w-[50%]">
-              <div className="font-semibold">Description</div>
-
-              <div className="baseVertFlex !items-start gap-2 text-wrap break-words text-sm md:text-base">
-                {description.length > 0 ? (
-                  description.split("\n").map((paragraph, index) => (
-                    <p key={index} className="text-wrap break-words">
-                      {paragraph}
-                    </p>
-                  ))
-                ) : (
-                  <p className="italic text-pink-200">
-                    No description provided.
-                  </p>
+            <div className={`${classes.metadataGrid}`}>
+              <div
+                className={`${classes.genre} baseVertFlex !items-start gap-2`}
+              >
+                <div className="font-semibold">Genre</div>
+                {genreList[genreId] && (
+                  <div
+                    style={{
+                      backgroundColor: genreList[genreId]?.color,
+                    }}
+                    className="baseFlex w-[145px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
+                  >
+                    {genreList[genreId]?.name}
+                    <Image
+                      src={`/genrePreviewBubbles/id${genreId}.png`}
+                      alt="three genre preview bubbles with the same color as the associated genre"
+                      width={32}
+                      height={32}
+                      quality={100}
+                      style={{
+                        pointerEvents: "none",
+                        userSelect: "none",
+                      }}
+                    />
+                  </div>
                 )}
+              </div>
+
+              <div
+                className={`${classes.tuning} baseVertFlex !items-start gap-2`}
+              >
+                <div className="font-semibold">Tuning</div>
+                <div className="baseFlex h-[44px] w-[145px] rounded-md border-2 font-medium">
+                  {tuningNotesToName[
+                    tuning.toLowerCase() as keyof typeof tuningNotesToName
+                  ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
+                </div>
+              </div>
+
+              <div
+                className={`${classes.capo} baseVertFlex !items-start gap-2`}
+              >
+                <p className="font-semibold">Capo</p>
+                <p className="whitespace-nowrap text-nowrap">
+                  {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
+                </p>
+              </div>
+
+              <div
+                className={`${classes.tempo} baseVertFlex !items-start gap-2`}
+              >
+                <div className="font-semibold">Tempo</div>
+                <div className="baseFlex">
+                  <QuarterNote className="-ml-1 size-5" />
+                  <span>{bpm === -1 ? "" : bpm}</span>
+                  <span className="ml-1">BPM</span>
+                </div>
+              </div>
+
+              <div
+                className={`${classes.difficulty} baseVertFlex !items-start gap-2`}
+              >
+                <div className="font-semibold">Difficulty</div>
+                <div className="baseFlex gap-2">
+                  <DifficultyBars difficulty={3} />
+                  <span>Intermediate</span>
+                </div>
+              </div>
+
+              <div className={`${classes.key} baseVertFlex !items-start gap-2`}>
+                <div className="font-semibold">Key</div>
+                <p>{key ?? "Not specified"}</p>
               </div>
             </div>
           </div>

@@ -70,7 +70,7 @@ function PlaybackTopMetadata({
     return tabData.map((section) => ({ id: section.id, title: section.title }));
   }, [tabData]);
 
-  if (playbackMetadata === null || viewportLabel === "narrowMobileLandscape")
+  if (playbackMetadata === null || viewportLabel === "mobileNarrowLandscape")
     return;
 
   return (

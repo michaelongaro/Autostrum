@@ -1,10 +1,12 @@
 import { genreRouter } from "~/server/api/routers/genre";
 import { createTRPCRouter } from "~/server/api/trpc";
-import { artistRouter } from "./routers/artist";
-import { likeRouter } from "./routers/like";
+import { userRouter } from "./routers/user";
+import { bookmarkRouter } from "./routers/bookmark";
 import { postSignUpRegistrationRouter } from "./routers/postSignUpRegistration";
 import { tabRouter } from "./routers/tab";
-import { weeklyFeaturedArtistRouter } from "./routers/weeklyFeaturedArtist";
+import { searchRouter } from "./routers/search";
+import { tabRatingRouter } from "./routers/tabRating";
+import { weeklyFeaturedUserRouter } from "./routers/weeklyFeaturedUser";
 
 /**
  * This is the primary router for your server.
@@ -13,10 +15,12 @@ import { weeklyFeaturedArtistRouter } from "./routers/weeklyFeaturedArtist";
  */
 export const appRouter = createTRPCRouter({
   genre: genreRouter,
+  search: searchRouter,
   tab: tabRouter,
-  artist: artistRouter,
-  like: likeRouter,
-  weeklyFeaturedArtist: weeklyFeaturedArtistRouter,
+  tabRating: tabRatingRouter,
+  user: userRouter,
+  bookmark: bookmarkRouter,
+  weeklyFeaturedUser: weeklyFeaturedUserRouter,
   postSignUpRegistration: postSignUpRegistrationRouter,
 });
 

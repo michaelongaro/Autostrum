@@ -1,127 +1,177 @@
-import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import debounce from "lodash.debounce";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BiSearchAlt2 } from "react-icons/bi";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { FaArrowLeft } from "react-icons/fa6";
 import { api } from "~/utils/api";
 import { genreList } from "~/utils/genreList";
 import { Badge } from "../ui/badge";
 import { isMobile } from "react-device-detect";
+import { IoIosMusicalNotes } from "react-icons/io";
+import { AiOutlineUser } from "react-icons/ai";
+import { Separator } from "~/components/ui/separator";
+import { useTabStore } from "~/stores/TabStore";
+
 interface SearchInput {
-  initialSearchQueryFromUrl?: string;
+  setShowMobileSearch?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
-  const { userId } = useAuth();
-  const { push, query, asPath, pathname } = useRouter();
+function SearchInput({ setShowMobileSearch }: SearchInput) {
+  const { push, query } = useRouter();
 
-  const [searchQuery, setSearchQuery] = useState(
-    initialSearchQueryFromUrl ?? ""
-  );
+  const { viewportLabel } = useTabStore((state) => ({
+    viewportLabel: state.viewportLabel,
+  }));
 
-  const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
-
-  useEffect(() => {
-    if (initialSearchQueryFromUrl) {
-      setSearchQuery(initialSearchQueryFromUrl);
-    }
-  }, [initialSearchQueryFromUrl]);
-
+  const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [enterButtonBeingPressed, setEnterButtonBeingPressed] = useState(false);
-  const [showAutofillResults, setShowAutofillResults] = useState(false);
-  const [artificallyShowLoadingSpinner, setArtificallyShowLoadingSpinner] =
-    useState(false);
+  const [searchType, setSearchType] = useState<"songs" | "artists">("songs");
 
+  const [showAutofillResults, setShowAutofillResults] = useState(
+    viewportLabel.includes("mobile"),
+  );
+  const [enterButtonBeingPressed, setEnterButtonBeingPressed] = useState(false);
+
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: artistProfileBeingViewed } =
-    api.artist.getByIdOrUsername.useQuery(
-      {
-        username: query.username as string,
-      },
-      {
-        enabled: !!query.username,
-      }
-    );
-
   const {
-    data: tabTitlesAndUsernamesFromSearchQuery,
-    isLoading: isLoadingResults,
-  } = api.tab.getTabTitlesAndUsernamesBySearchQuery.useQuery(
-    {
-      query: debouncedSearchQuery,
-      includeUsernames: asPath.includes("/explore"),
-      likedByUserId: asPath.includes("/likes") && userId ? userId : undefined,
-      userIdToSelectFrom:
-        asPath.includes("/tabs") && userId
-          ? userId
-          : typeof query.username === "string"
-          ? artistProfileBeingViewed?.userId
-          : undefined,
-    },
-    {
-      enabled: debouncedSearchQuery.length > 0,
+    data: mostPopularDailyTabsAndArtists,
+    isFetching: isFetchingMostPopularDailyTabsAndArtists,
+  } = api.search.getMostPopularDailyTabsAndArtists.useQuery();
+
+  const { data: songSearchResults, isFetching: isFetchingSongResults } =
+    api.search.getTabTitlesBySearchQuery.useQuery(debouncedSearchQuery, {
+      enabled: debouncedSearchQuery.length > 0 && searchType === "songs",
+    });
+
+  const { data: artistSearchResults, isFetching: isFetchingArtistResults } =
+    api.search.getArtistUsernamesBySearchQuery.useQuery(debouncedSearchQuery, {
+      enabled: debouncedSearchQuery.length > 0 && searchType === "artists",
+    });
+
+  useEffect(() => {
+    setSearchQuery((query.search as string) ?? "");
+  }, [query]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      // Do nothing if the results aren't showing
+      if (!showAutofillResults || viewportLabel.includes("mobile")) return;
+
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setShowAutofillResults(false);
+      }
     }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showAutofillResults, viewportLabel]);
+
+  const debouncedSetSearch = useMemo(
+    () =>
+      debounce((query: string) => {
+        setDebouncedSearchQuery(query);
+      }, 250),
+    [],
   );
 
-  function adjustQueryParams(type: "tabs" | "artists", searchQuery: string) {
+  useEffect(() => {
+    return () => {
+      debouncedSetSearch.cancel(); // Cancel any pending executions
+    };
+  }, [debouncedSetSearch]);
+
+  function adjustQueryParams({
+    searchQuery,
+    tabId,
+    artistId,
+  }: {
+    searchQuery: string;
+    tabId?: number;
+    artistId?: number;
+  }) {
     setShowAutofillResults(false);
+    const encodedSearchQuery = encodeURIComponent(searchQuery);
 
-    const prevQuery = { ...query };
-
-    delete prevQuery.genreId;
-
-    if (type === "artists") {
-      prevQuery.type = "artists";
+    if (tabId) {
+      void push({
+        pathname: "/tab",
+        query: {
+          title: encodedSearchQuery,
+          id: tabId,
+        },
+      });
+    } else if (artistId) {
+      void push({
+        pathname: "/artist",
+        query: {
+          name: encodedSearchQuery,
+          id: artistId,
+        },
+      });
     } else {
-      delete prevQuery.type;
+      void push({
+        pathname: "/explore/filters",
+        query: {
+          search: encodedSearchQuery,
+        },
+      });
     }
 
-    if (searchQuery.length === 0) {
-      delete prevQuery.search;
-    } else {
-      prevQuery.search = searchQuery;
-    }
-
-    void push({
-      pathname:
-        asPath.includes("/explore") && !asPath.includes("filters")
-          ? `${pathname}/filters`
-          : pathname,
-      query: {
-        ...prevQuery,
-      },
-    });
-  }
-
-  function getPlaceholderTextBasedOnParams() {
-    if (asPath.includes("/preferences") || asPath.includes("/tabs")) {
-      return "Search through your tabs";
-    } else if (asPath.includes("/likes")) {
-      return "Search for tabs you've liked";
-    } else if (asPath.includes("/artist")) {
-      return `Search through ${
-        artistProfileBeingViewed?.username ?? ""
-      }'s tabs`;
-    } else {
-      return "Search for your favorite tabs and artists";
-    }
+    setShowMobileSearch?.(false);
   }
 
   return (
-    <div className="baseFlex gap-4">
-      <div className="relative">
-        <BiSearchAlt2 className="absolute left-2 top-[0.72rem] h-5 w-5 md:left-[0.7rem] md:top-[0.8rem] md:h-6 md:w-6" />
+    <motion.div
+      key={"searchContainer"}
+      ref={searchContainerRef}
+      initial={{
+        width: viewportLabel.includes("mobile") ? "100%" : "95%",
+      }}
+      animate={{
+        width: viewportLabel.includes("mobile")
+          ? "100%"
+          : showAutofillResults
+            ? "100%"
+            : "98%",
+      }}
+      transition={{
+        ease: "easeOut",
+        duration: 0.35,
+      }}
+      className="baseFlex relative mt-1 tablet:mt-0"
+    >
+      {viewportLabel.includes("mobile") && (
+        <Button
+          variant={"text"}
+          onClick={() => {
+            setShowMobileSearch?.(false);
+          }}
+        >
+          <FaArrowLeft className="size-4" />
+        </Button>
+      )}
+
+      <div
+        className={`baseFlex w-full gap-2 transition-all ${viewportLabel.includes("mobile") ? "rounded-none border-none" : "rounded-md border-2"} ${showAutofillResults ? "rounded-b-none" : ""}`}
+      >
         <Input
           ref={searchInputRef}
           type="text"
-          maxLength={30}
-          placeholder={getPlaceholderTextBasedOnParams()}
+          maxLength={50}
+          placeholder={`Search for your favorite ${searchType === "songs" ? "songs" : "artists"}...`}
+          showFocusState={false}
+          autoFocus={viewportLabel.includes("mobile")}
           onFocus={() => {
             if (isMobile) {
               searchInputRef.current?.scrollIntoView({
@@ -129,48 +179,28 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
               });
             }
 
-            if (debouncedSearchQuery.length > 0) {
-              setShowAutofillResults(true);
-            }
-          }}
-          onBlur={() => {
-            // was focusing <body> without this timeout when clicking on an autofill
-            // result...
-            setTimeout(() => {
-              if (!document.activeElement?.id?.startsWith("autofillResult")) {
-                setShowAutofillResults(false);
-              }
-            }, 0);
+            setShowAutofillResults(true);
           }}
           onChange={(e) => {
             const query = e.target.value;
+            setSearchQuery(query);
 
             const trimmedQuery = query.trim();
             if (trimmedQuery !== searchQuery) {
-              debounce(() => {
-                setDebouncedSearchQuery(trimmedQuery);
-                if (trimmedQuery.length > 0) {
-                  setShowAutofillResults(true);
-                }
-                setArtificallyShowLoadingSpinner(true);
-                setTimeout(() => setArtificallyShowLoadingSpinner(false), 250);
-              }, 250)();
+              debouncedSetSearch(trimmedQuery);
             }
-
-            setSearchQuery(query);
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               setEnterButtonBeingPressed(true);
 
-              adjustQueryParams(
-                // response order is tabs and then artists, so if the first result is an artist,
-                // we know that's the only type of result we have
-                tabTitlesAndUsernamesFromSearchQuery?.[0]?.type === "username"
-                  ? "artists"
-                  : "tabs",
-                searchQuery
-              );
+              debouncedSetSearch.flush();
+              adjustQueryParams({
+                searchQuery:
+                  searchType === "artists"
+                    ? (artistSearchResults?.[0]?.name ?? searchQuery)
+                    : searchQuery,
+              });
             } else if (e.key === "Escape") {
               setShowAutofillResults(false);
             } else if (e.key === "ArrowDown") {
@@ -190,43 +220,108 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
             }
           }}
           value={searchQuery}
-          className="searchInputBoxShadow z-0 h-10 w-80 !scroll-mt-24 border-2 pl-8 text-sm focus-within:shadow-lg md:h-12 md:w-[25rem] md:pl-10 md:text-lg"
+          className="z-0 h-10 w-full !scroll-mt-24 border-none text-base !outline-none md:h-12"
         />
 
-        {/* autofill */}
-        <AnimatePresence mode="wait">
-          {showAutofillResults &&
-            searchQuery.length > 0 &&
-            debouncedSearchQuery.length > 0 && (
-              <motion.div
-                key={"searchAutofill"}
-                initial={{
-                  opacity: 0,
-                  top: isAboveMediumViewportWidth ? "3rem" : "2.15rem",
-                  scale: 0.97,
-                }}
-                animate={{
-                  opacity: 1,
-                  top: isAboveMediumViewportWidth ? "3rem" : "2.5rem",
-                  scale: 1,
-                }}
-                exit={{
-                  opacity: 0,
-                  top: isAboveMediumViewportWidth ? "3rem" : "2.15rem",
-                  scale: 0.97,
-                }}
-                transition={{
-                  top: { duration: 0.15 },
-                  scale: { duration: 0.15 },
-                  opacity: { duration: 0.1 },
-                }}
-                className="autofillResultsGlassmorphic absolute z-50 w-full rounded-md rounded-t-none border-2 border-t-0 border-pink-200 !shadow-xl"
-              >
-                {artificallyShowLoadingSpinner || isLoadingResults ? (
-                  <div className="baseFlex w-full gap-4 py-4">
-                    <p>Loading</p>
+        <Button
+          variant={"text"}
+          onClick={() => {
+            debouncedSetSearch.flush();
+            adjustQueryParams({
+              searchQuery:
+                searchType === "artists"
+                  ? (artistSearchResults?.[0]?.name ?? searchQuery)
+                  : searchQuery,
+              tabId: songSearchResults?.[0]?.id,
+              artistId: artistSearchResults?.[0]?.id,
+            });
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              setEnterButtonBeingPressed(true);
+            }
+          }}
+          onKeyUp={(e) => {
+            if (e.key === "Enter") {
+              setEnterButtonBeingPressed(false);
+            }
+          }}
+          className={`${enterButtonBeingPressed ? "!brightness-75" : ""}`}
+        >
+          <BiSearchAlt2 className="mt-1 size-5 tablet:mt-0 tablet:size-6" />
+        </Button>
+      </div>
+
+      <AnimatePresence mode="popLayout">
+        {/* songs/artists toggle and autofill results */}
+        {showAutofillResults && (
+          <motion.div
+            key={"searchAutofillContainer"}
+            id="searchTypeContainer"
+            initial={{
+              opacity: 0,
+              scale: 0.97,
+            }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+            }}
+            exit={{
+              opacity: 0,
+              scale: 0.97,
+            }}
+            transition={{
+              duration: 0.2,
+            }}
+            className={`autofillResultsGlassmorphic absolute left-0 z-50 w-full rounded-md rounded-t-none border-2 border-pink-200 ${viewportLabel.includes("mobile") ? "top-11 border-t-2 border-none" : "top-[50px] !shadow-xl"}`}
+          >
+            <div className="baseFlex w-full !justify-between p-2 text-sm">
+              <div className="baseFlex gap-3">
+                Searching for
+                <Button
+                  variant={searchType === "songs" ? "toggledOn" : "toggledOff"}
+                  onClick={() => {
+                    setSearchType("songs");
+                    setSearchQuery("");
+                    setDebouncedSearchQuery("");
+                    searchInputRef.current?.focus();
+                  }}
+                  className="baseFlex h-8 shrink-0 gap-2"
+                >
+                  <IoIosMusicalNotes className="size-5" />
+                  Songs
+                </Button>
+                <Button
+                  variant={
+                    searchType === "artists" ? "toggledOn" : "toggledOff"
+                  }
+                  onClick={() => {
+                    setSearchType("artists");
+                    setSearchQuery("");
+                    setDebouncedSearchQuery("");
+                    searchInputRef.current?.focus();
+                  }}
+                  className="baseFlex h-8 shrink-0 gap-2"
+                >
+                  <AiOutlineUser className="size-5" />
+                  Artists
+                </Button>
+              </div>
+
+              <AnimatePresence>
+                {(isFetchingMostPopularDailyTabsAndArtists ||
+                  isFetchingSongResults ||
+                  isFetchingArtistResults) && (
+                  <motion.div
+                    key={"loadingSpinner"}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="pr-1.5 tablet:pr-3"
+                  >
                     <svg
-                      className="h-6 w-6 animate-stableSpin rounded-full bg-inherit fill-none"
+                      className="size-4 animate-stableSpin rounded-full bg-inherit fill-none"
                       viewBox="0 0 24 24"
                     >
                       <circle
@@ -243,21 +338,266 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                  </div>
-                ) : (
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <Separator className="w-full bg-pink-200" />
+
+            <motion.div
+              key={"autofillResults"}
+              animate={{
+                height: "auto",
+              }}
+              style={{
+                justifyContent:
+                  songSearchResults?.length === 0 ||
+                  artistSearchResults?.length === 0
+                    ? "center"
+                    : "flex-start",
+              }}
+              className="baseVertFlex min-h-[calc(100dvh-10rem])] w-full sm:min-h-[250px]"
+            >
+              {/* no search input and daily popular songs/artists loaded, show popular songs/artists */}
+              {searchQuery.trim() === "" &&
+                !isFetchingMostPopularDailyTabsAndArtists &&
+                mostPopularDailyTabsAndArtists && (
                   <>
-                    {tabTitlesAndUsernamesFromSearchQuery === null ||
-                    tabTitlesAndUsernamesFromSearchQuery?.length === 0 ? (
-                      <p className="w-full p-2 text-center">No results found</p>
+                    {searchType === "songs" ? (
+                      <motion.div
+                        key={"popularSongs"}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="baseVertFlex mt-2 w-full !items-start gap-2"
+                      >
+                        <p className="ml-2 font-medium">Popular Songs</p>
+                        <div className="baseVertFlex w-full">
+                          {mostPopularDailyTabsAndArtists.tabs.map(
+                            (song, idx) => (
+                              <Button
+                                key={idx}
+                                id={`autofillResult${idx}`}
+                                tabIndex={-1}
+                                variant={"ghost"}
+                                className="baseVertFlex z-50 size-full !items-start gap-2 rounded-none p-2 transition-all"
+                                onFocus={() => {
+                                  if (debouncedSearchQuery.length > 0) {
+                                    setShowAutofillResults(true);
+                                  }
+                                }}
+                                onBlur={() => {
+                                  setShowAutofillResults(false);
+                                }}
+                                onClick={() => {
+                                  adjustQueryParams({
+                                    searchQuery: song.title,
+                                    tabId: song.id,
+                                  });
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    adjustQueryParams({
+                                      searchQuery: song.title,
+                                      tabId: song.id,
+                                    });
+                                  } else if (e.key === "Escape") {
+                                    setShowAutofillResults(false);
+                                  } else if (e.key === "ArrowDown") {
+                                    e.preventDefault();
+
+                                    const nextResult = document.getElementById(
+                                      `autofillResult${idx + 1}`,
+                                    );
+                                    if (nextResult) {
+                                      nextResult.focus();
+                                    }
+                                  } else if (e.key === "ArrowUp") {
+                                    e.preventDefault();
+
+                                    if (idx === 0) {
+                                      searchInputRef.current?.focus();
+                                      return;
+                                    }
+
+                                    const prevResult = document.getElementById(
+                                      `autofillResult${idx - 1}`,
+                                    );
+                                    if (prevResult) {
+                                      prevResult.focus();
+                                    }
+                                  }
+                                }}
+                              >
+                                <div className="baseFlex w-full !justify-between gap-2">
+                                  <span className="max-w-[70%] truncate">
+                                    {song.title}
+                                  </span>
+                                  <Badge
+                                    style={{
+                                      backgroundColor:
+                                        genreList[song.genreId]?.color,
+                                    }}
+                                  >
+                                    {genreList[song.genreId]?.name}
+                                  </Badge>
+                                </div>
+
+                                {song.artist.name && (
+                                  <div className="baseFlex ml-4 gap-2 truncate text-sm opacity-50">
+                                    {song.artist.isVerified && (
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-4 w-4"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                        aria-hidden="true"
+                                      >
+                                        <path
+                                          fillRule="evenodd"
+                                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm2.293-11.293a1 1 0 00-1.414 0L9.5 9.086l-.879-.879a1 1 0 10-1.414 1.414l1.793 1.793a1 1 0 001.414 0l3-3z"
+                                          clipRule="evenodd"
+                                        />
+                                      </svg>
+                                    )}
+                                    {song.artist.name}
+                                  </div>
+                                )}
+                              </Button>
+                            ),
+                          )}
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key={"popularArtists"}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="baseVertFlex mt-2 w-full !items-start gap-2"
+                      >
+                        <p className="ml-2 font-medium">Popular Artists</p>
+                        <div className="baseVertFlex w-full">
+                          {mostPopularDailyTabsAndArtists.artists.map(
+                            (artist, idx) => (
+                              <Button
+                                key={idx}
+                                id={`autofillResult${idx}`}
+                                tabIndex={-1}
+                                variant={"ghost"}
+                                className="baseFlex z-50 w-full !justify-start gap-2 rounded-none p-2 transition-all"
+                                onFocus={() => {
+                                  if (debouncedSearchQuery.length > 0) {
+                                    setShowAutofillResults(true);
+                                  }
+                                }}
+                                onBlur={() => {
+                                  setShowAutofillResults(false);
+                                }}
+                                onClick={() => {
+                                  adjustQueryParams({
+                                    searchQuery: artist.name,
+                                    artistId: artist.id,
+                                  });
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    adjustQueryParams({
+                                      searchQuery: artist.name,
+                                      artistId: artist.id,
+                                    });
+                                  } else if (e.key === "Escape") {
+                                    setShowAutofillResults(false);
+                                  } else if (e.key === "ArrowDown") {
+                                    e.preventDefault();
+
+                                    const nextResult = document.getElementById(
+                                      `autofillResult${idx + 1}`,
+                                    );
+                                    if (nextResult) {
+                                      nextResult.focus();
+                                    }
+                                  } else if (e.key === "ArrowUp") {
+                                    e.preventDefault();
+
+                                    if (idx === 0) {
+                                      searchInputRef.current?.focus();
+                                      return;
+                                    }
+
+                                    const prevResult = document.getElementById(
+                                      `autofillResult${idx - 1}`,
+                                    );
+                                    if (prevResult) {
+                                      prevResult.focus();
+                                    }
+                                  }
+                                }}
+                              >
+                                {artist.isVerified && (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-4 w-4"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                    aria-hidden="true"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm2.293-11.293a1 1 0 00-1.414 0L9.5 9.086l-.879-.879a1 1 0 10-1.414 1.414l1.793 1.793a1 1 0 001.414 0l3-3z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                )}
+
+                                <p className="max-w-[100%] truncate">
+                                  {artist.name}
+                                </p>
+                              </Button>
+                            ),
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </>
+                )}
+
+              {/* song query loaded, show autofill results */}
+              {searchType === "songs" &&
+                searchQuery.trim() !== "" &&
+                !isFetchingSongResults &&
+                songSearchResults !== undefined && (
+                  <>
+                    {songSearchResults.length === 0 ? (
+                      <motion.p
+                        key={"noResultsFound"}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                      >
+                        No results found
+                      </motion.p>
                     ) : (
                       <>
-                        {tabTitlesAndUsernamesFromSearchQuery?.map(
-                          (data, idx) => (
-                            <div
+                        {songSearchResults.map((song, idx) => (
+                          <motion.div
+                            key={`autofillResult${idx}`}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="baseVertFlex w-full"
+                          >
+                            <Button
                               key={idx}
                               id={`autofillResult${idx}`}
                               tabIndex={-1}
-                              className="baseFlex z-50 w-full cursor-pointer !justify-start gap-2 p-2 transition-all first-of-type:rounded-t-sm last-of-type:rounded-b-sm focus-within:bg-pink-700 hover:bg-pink-700"
+                              variant={"ghost"}
+                              className="baseVertFlex z-50 size-full !items-start gap-2 rounded-none p-2 transition-all"
                               onFocus={() => {
                                 if (debouncedSearchQuery.length > 0) {
                                   setShowAutofillResults(true);
@@ -267,32 +607,24 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                                 setShowAutofillResults(false);
                               }}
                               onClick={() => {
-                                adjustQueryParams(
-                                  // response order is tabs and then artists, so if the first result is an artist,
-                                  // we know that's the only type of result we have
-                                  data.type === "title" ? "tabs" : "artists",
-                                  data.type === "title"
-                                    ? data.value.title
-                                    : data.value
-                                );
+                                adjustQueryParams({
+                                  searchQuery: song.title,
+                                  tabId: song.id,
+                                });
                               }}
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") {
-                                  adjustQueryParams(
-                                    // response order is tabs and then artists, so if the first result is an artist,
-                                    // we know that's the only type of result we have
-                                    data.type === "title" ? "tabs" : "artists",
-                                    data.type === "title"
-                                      ? data.value.title
-                                      : data.value
-                                  );
+                                  adjustQueryParams({
+                                    searchQuery: song.title,
+                                    tabId: song.id,
+                                  });
                                 } else if (e.key === "Escape") {
                                   setShowAutofillResults(false);
                                 } else if (e.key === "ArrowDown") {
                                   e.preventDefault();
 
                                   const nextResult = document.getElementById(
-                                    `autofillResult${idx + 1}`
+                                    `autofillResult${idx + 1}`,
                                   );
                                   if (nextResult) {
                                     nextResult.focus();
@@ -306,7 +638,7 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                                   }
 
                                   const prevResult = document.getElementById(
-                                    `autofillResult${idx - 1}`
+                                    `autofillResult${idx - 1}`,
                                   );
                                   if (prevResult) {
                                     prevResult.focus();
@@ -314,67 +646,160 @@ function SearchInput({ initialSearchQueryFromUrl }: SearchInput) {
                                 }
                               }}
                             >
-                              <div className="w-[70px]">
+                              <div className="baseFlex w-full !justify-between gap-2">
+                                <span className="max-w-[70%] truncate">
+                                  {song.title}
+                                </span>
                                 <Badge
                                   style={{
                                     backgroundColor:
-                                      data.type === "title"
-                                        ? genreList[data.value.genreId]?.color
-                                        : "#047857",
+                                      genreList[song.genreId]?.color,
                                   }}
-                                  className=""
                                 >
-                                  {data.type === "title"
-                                    ? genreList[data.value.genreId]?.name ?? ""
-                                    : "Artist"}
+                                  {genreList[song.genreId]?.name}
                                 </Badge>
                               </div>
 
-                              <p className="max-w-[70%] truncate">
-                                {data.type === "title"
-                                  ? data.value.title ?? ""
-                                  : data.value}
-                              </p>
-                            </div>
-                          )
-                        )}
+                              {song.artistId && song.artistName && (
+                                <div className="baseFlex ml-4 gap-2 truncate text-sm opacity-50">
+                                  {song.artistIsVerified && (
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="h-4 w-4"
+                                      viewBox="0 0 20 20"
+                                      fill="currentColor"
+                                      aria-hidden="true"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm2.293-11.293a1 1 0 00-1.414 0L9.5 9.086l-.879-.879a1 1 0 10-1.414 1.414l1.793 1.793a1 1 0 001.414 0l3-3z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                  )}
+                                  {song.artistName}
+                                </div>
+                              )}
+                            </Button>
+                          </motion.div>
+                        ))}
                       </>
                     )}
                   </>
                 )}
-              </motion.div>
-            )}
-        </AnimatePresence>
-      </div>
 
-      <Button
-        onClick={() => {
-          adjustQueryParams(
-            // response order is tabs and then artists, so if the first result is an artist,
-            // we know that's the only type of result we have
-            tabTitlesAndUsernamesFromSearchQuery?.[0]?.type === "username"
-              ? "artists"
-              : "tabs",
-            searchQuery
-          );
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            setEnterButtonBeingPressed(true);
-          }
-        }}
-        onKeyUp={(e) => {
-          if (e.key === "Enter") {
-            setEnterButtonBeingPressed(false);
-          }
-        }}
-        className={`hidden shadow-sm md:block ${
-          enterButtonBeingPressed ? "!brightness-75" : ""
-        }`}
-      >
-        Search
-      </Button>
-    </div>
+              {/* artist query loaded, show autofill results */}
+              {searchType === "artists" &&
+                searchQuery.trim() !== "" &&
+                !isFetchingArtistResults &&
+                artistSearchResults !== undefined && (
+                  <>
+                    {artistSearchResults.length === 0 ? (
+                      <motion.p
+                        key={"noResultsFound"}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                      >
+                        No results found
+                      </motion.p>
+                    ) : (
+                      <>
+                        {artistSearchResults.map((artist, idx) => (
+                          <motion.div
+                            key={`autofillResult${idx}`}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="baseVertFlex w-full"
+                          >
+                            <Button
+                              key={idx}
+                              id={`autofillResult${idx}`}
+                              tabIndex={-1}
+                              variant={"ghost"}
+                              className="baseFlex z-50 w-full !justify-start gap-2 rounded-none p-2 transition-all"
+                              onFocus={() => {
+                                if (debouncedSearchQuery.length > 0) {
+                                  setShowAutofillResults(true);
+                                }
+                              }}
+                              onBlur={() => {
+                                setShowAutofillResults(false);
+                              }}
+                              onClick={() => {
+                                adjustQueryParams({
+                                  searchQuery: artist.name,
+                                  artistId: artist.id,
+                                });
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  adjustQueryParams({
+                                    searchQuery: artist.name,
+                                    artistId: artist.id,
+                                  });
+                                } else if (e.key === "Escape") {
+                                  setShowAutofillResults(false);
+                                } else if (e.key === "ArrowDown") {
+                                  e.preventDefault();
+
+                                  const nextResult = document.getElementById(
+                                    `autofillResult${idx + 1}`,
+                                  );
+                                  if (nextResult) {
+                                    nextResult.focus();
+                                  }
+                                } else if (e.key === "ArrowUp") {
+                                  e.preventDefault();
+
+                                  if (idx === 0) {
+                                    searchInputRef.current?.focus();
+                                    return;
+                                  }
+
+                                  const prevResult = document.getElementById(
+                                    `autofillResult${idx - 1}`,
+                                  );
+                                  if (prevResult) {
+                                    prevResult.focus();
+                                  }
+                                }
+                              }}
+                            >
+                              {artist.isVerified && (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                  aria-hidden="true"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm2.293-11.293a1 1 0 00-1.414 0L9.5 9.086l-.879-.879a1 1 0 10-1.414 1.414l1.793 1.793a1 1 0 001.414 0l3-3z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              )}
+
+                              <p className="max-w-[100%] truncate">
+                                {artist.name}
+                              </p>
+                            </Button>
+                          </motion.div>
+                        ))}
+                      </>
+                    )}
+                  </>
+                )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
