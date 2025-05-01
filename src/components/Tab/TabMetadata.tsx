@@ -502,163 +502,30 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
               )}
             </div>
 
-            <div className="baseFlex flex-wrap !justify-end gap-2">
-              <>
-                {!asPath.includes("create") && (
-                  <Popover
-                    open={showDeletePopover}
-                    onOpenChange={(open) => setShowDeletePopover(open)}
-                  >
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"destructive"}
-                        disabled={
-                          isDeleting || showDeleteCheckmark || isLoadingARoute
-                        }
-                        className="baseFlex gap-2"
-                      >
-                        {showDeleteCheckmark && !isDeleting
-                          ? "Deleted"
-                          : isDeleting
-                            ? "Deleting"
-                            : "Delete"}
-                        <FaTrashAlt className="h-4 w-4" />
-                        <AnimatePresence mode="wait">
-                          {isDeleting && (
-                            <motion.svg
-                              key="tabDeletionLoadingSpinner"
-                              initial={{ opacity: 0, width: 0 }}
-                              animate={{ opacity: 1, width: "24px" }}
-                              exit={{ opacity: 0 }}
-                              transition={{
-                                duration: 0.15,
-                              }}
-                              className="h-6 w-6 animate-stableSpin rounded-full bg-inherit fill-none"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              ></circle>
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              ></path>
-                            </motion.svg>
-                          )}
-
-                          {showDeleteCheckmark && (
-                            <motion.div
-                              key="deletionSuccessCheckmark"
-                              initial={{ opacity: 0, width: "20px" }}
-                              animate={{ opacity: 1, width: "20px" }}
-                              exit={{ opacity: 0, width: 0 }}
-                              transition={{
-                                duration: 0.25,
-                              }}
-                            >
-                              <Check className="h-5 w-5" />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="baseVertFlex gap-4 bg-pink-100 p-2 text-sm text-pink-950 md:text-base">
-                      <p className="w-auto text-center text-sm">
-                        Are you sure you want to delete this tab?
-                      </p>
-
-                      <div className="baseFlex gap-2">
-                        <Button
-                          variant={"outline"}
-                          size="sm"
-                          onClick={() => setShowDeletePopover(false)}
-                        >
-                          Cancel
-                        </Button>
-
-                        <Button
-                          variant={"destructive"}
-                          size="sm"
-                          disabled={isDeleting}
-                          onClick={() => {
-                            deleteTab(id);
-                            setShowDeletePopover(false);
-                          }}
-                          className="baseFlex gap-2"
-                        >
-                          Confirm
-                        </Button>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                )}
-
-                <Button
-                  variant={"secondary"}
-                  disabled={showPulsingError}
-                  onClick={handlePreview}
-                  className="baseFlex gap-2"
-                >
-                  Preview
-                  <AiFillEye className="h-5 w-5" />
-                </Button>
-
+            <div className="baseFlex w-full !justify-end gap-2">
+              {!asPath.includes("create") && (
                 <Popover
-                  open={showPublishPopover}
-                  onOpenChange={(open) => {
-                    if (open === false) {
-                      setShowPublishPopover(false);
-
-                      if (publishErrorOccurred) {
-                        setPublishErrorOccurred(false);
-                      }
-                    }
-                  }}
+                  open={showDeletePopover}
+                  onOpenChange={(open) => setShowDeletePopover(open)}
                 >
                   <PopoverTrigger asChild>
                     <Button
+                      variant={"destructive"}
                       disabled={
-                        audioMetadata.playing || // helps with performance when playing audio (while editing)
-                        isLoadingARoute ||
-                        isEqualToOriginalTabState() ||
-                        showPulsingError ||
-                        isPosting ||
-                        showPublishCheckmark ||
-                        takingScreenshot
+                        isDeleting || showDeleteCheckmark || isLoadingARoute
                       }
-                      onClick={() => void handleSave()}
                       className="baseFlex gap-2"
                     >
-                      {asPath.includes("create")
-                        ? `${
-                            showPublishCheckmark &&
-                            !isPosting &&
-                            !takingScreenshot
-                              ? "Published"
-                              : isPosting || takingScreenshot
-                                ? "Publishing"
-                                : "Publish"
-                          }`
-                        : `${
-                            showPublishCheckmark &&
-                            !isPosting &&
-                            !takingScreenshot
-                              ? "Saved"
-                              : isPosting || takingScreenshot
-                                ? "Saving"
-                                : "Save"
-                          }`}
-
+                      {showDeleteCheckmark && !isDeleting
+                        ? "Deleted"
+                        : isDeleting
+                          ? "Deleting"
+                          : "Delete"}
+                      <FaTrashAlt className="h-4 w-4" />
                       <AnimatePresence mode="wait">
-                        {(isPosting || takingScreenshot) && (
+                        {isDeleting && (
                           <motion.svg
-                            key="postingLoadingSpinner"
+                            key="tabDeletionLoadingSpinner"
                             initial={{ opacity: 0, width: 0 }}
                             animate={{ opacity: 1, width: "24px" }}
                             exit={{ opacity: 0 }}
@@ -683,9 +550,10 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                             ></path>
                           </motion.svg>
                         )}
-                        {showPublishCheckmark && (
+
+                        {showDeleteCheckmark && (
                           <motion.div
-                            key="postingSuccessCheckmark"
+                            key="deletionSuccessCheckmark"
                             initial={{ opacity: 0, width: "20px" }}
                             animate={{ opacity: 1, width: "20px" }}
                             exit={{ opacity: 0, width: 0 }}
@@ -699,11 +567,141 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                       </AnimatePresence>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
-                    {renderSavePopoverContent()}
+                  <PopoverContent className="baseVertFlex gap-4 bg-pink-100 p-2 text-sm text-pink-950 md:text-base">
+                    <p className="w-auto text-center text-sm">
+                      Are you sure you want to delete this tab?
+                    </p>
+
+                    <div className="baseFlex gap-2">
+                      <Button
+                        variant={"outline"}
+                        size="sm"
+                        onClick={() => setShowDeletePopover(false)}
+                      >
+                        Cancel
+                      </Button>
+
+                      <Button
+                        variant={"destructive"}
+                        size="sm"
+                        disabled={isDeleting}
+                        onClick={() => {
+                          deleteTab(id);
+                          setShowDeletePopover(false);
+                        }}
+                        className="baseFlex gap-2"
+                      >
+                        Confirm
+                      </Button>
+                    </div>
                   </PopoverContent>
                 </Popover>
-              </>
+              )}
+
+              <Button
+                variant={"secondary"}
+                disabled={showPulsingError}
+                onClick={handlePreview}
+                className="baseFlex gap-2"
+              >
+                Preview
+                <AiFillEye className="h-5 w-5" />
+              </Button>
+
+              <Popover
+                open={showPublishPopover}
+                onOpenChange={(open) => {
+                  if (open === false) {
+                    setShowPublishPopover(false);
+
+                    if (publishErrorOccurred) {
+                      setPublishErrorOccurred(false);
+                    }
+                  }
+                }}
+              >
+                <PopoverTrigger asChild>
+                  <Button
+                    disabled={
+                      audioMetadata.playing || // helps with performance when playing audio (while editing)
+                      isLoadingARoute ||
+                      isEqualToOriginalTabState() ||
+                      showPulsingError ||
+                      isPosting ||
+                      showPublishCheckmark ||
+                      takingScreenshot
+                    }
+                    onClick={() => void handleSave()}
+                    className="baseFlex gap-2"
+                  >
+                    {asPath.includes("create")
+                      ? `${
+                          showPublishCheckmark &&
+                          !isPosting &&
+                          !takingScreenshot
+                            ? "Published"
+                            : isPosting || takingScreenshot
+                              ? "Publishing"
+                              : "Publish"
+                        }`
+                      : `${
+                          showPublishCheckmark &&
+                          !isPosting &&
+                          !takingScreenshot
+                            ? "Saved"
+                            : isPosting || takingScreenshot
+                              ? "Saving"
+                              : "Save"
+                        }`}
+
+                    <AnimatePresence mode="wait">
+                      {(isPosting || takingScreenshot) && (
+                        <motion.svg
+                          key="postingLoadingSpinner"
+                          initial={{ opacity: 0, width: 0 }}
+                          animate={{ opacity: 1, width: "24px" }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 0.15,
+                          }}
+                          className="h-6 w-6 animate-stableSpin rounded-full bg-inherit fill-none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </motion.svg>
+                      )}
+                      {showPublishCheckmark && (
+                        <motion.div
+                          key="postingSuccessCheckmark"
+                          initial={{ opacity: 0, width: "20px" }}
+                          animate={{ opacity: 1, width: "20px" }}
+                          exit={{ opacity: 0, width: 0 }}
+                          transition={{
+                            duration: 0.25,
+                          }}
+                        >
+                          <Check className="h-5 w-5" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  {renderSavePopoverContent()}
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
