@@ -292,7 +292,7 @@ function PlaybackAudioControls({
 
           <Toggle
             variant={"outline"}
-            aria-label="Edit looping range"
+            aria-label="Edit loop range"
             disabled={!looping || audioMetadata.playing || countInTimer.showing}
             pressed={audioMetadata.editingLoopRange}
             className="h-8 w-8 p-1"

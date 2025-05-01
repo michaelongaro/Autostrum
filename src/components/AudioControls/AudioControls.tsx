@@ -887,7 +887,7 @@ function AudioControls() {
               {(asPath.includes("/tab") || asPath.includes("/create")) && (
                 <Toggle
                   variant={"outline"}
-                  aria-label="Edit looping range"
+                  aria-label="Edit loop range"
                   disabled={
                     !looping || audioMetadata.playing || countInTimer.showing
                   }
@@ -1124,7 +1124,7 @@ function AudioControls() {
                         className="baseFlex !flex-nowrap gap-2"
                       >
                         <CgArrowsShrinkH className="h-5 w-5" />
-                        Edit looping range
+                        Edit loop range
                       </Button>
                     </div>
                   )}
