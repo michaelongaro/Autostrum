@@ -743,11 +743,7 @@ function TabSection({
     const columnIsBeingPlayed =
       isSameSection && location.chordIndex === columnIndex;
 
-    return (
-      columnIsBeingPlayed &&
-      audioMetadata.playing &&
-      audioMetadata.type === "Generated"
-    );
+    return columnIsBeingPlayed && audioMetadata.playing;
   }
 
   function columnHasBeenPlayed(columnIndex: number) {

@@ -46,9 +46,4 @@ export const genreList: Record<
     name: "Misc.",
     color: "#0284c7",
   },
-  9: {
-    id: 9,
-    name: "All genres",
-    color: "#ec4899",
-  },
 };

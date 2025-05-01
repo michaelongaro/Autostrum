@@ -17,6 +17,7 @@ import NoResultsFound from "./NoResultsFound";
 import TableTabRow from "./TableTabRow";
 import type { ParsedUrlQuery } from "querystring";
 import { FaStar } from "react-icons/fa";
+import type { InfiniteQueryParams } from "~/server/api/routers/search";
 
 interface TableTabView {
   searchQuery?: string;
@@ -62,7 +63,7 @@ function TableTabView({
     },
   );
 
-  function getInfiniteQueryParams() {
+  function getInfiniteQueryParams(): InfiniteQueryParams {
     return {
       searchQuery,
       genreId,
@@ -157,6 +158,7 @@ function TableTabView({
                     <TableTabRow
                       minimalTab={tab}
                       currentUser={currentUser}
+                      infiniteQueryParams={getInfiniteQueryParams()}
                       ref={
                         ref as unknown as React.RefObject<HTMLTableRowElement>
                       }

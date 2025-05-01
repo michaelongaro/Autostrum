@@ -1,6 +1,5 @@
 import { AnimatePresence } from "framer-motion";
 import debounce from "lodash.debounce";
-import { useRouter } from "next/router";
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { BsPlus } from "react-icons/bs";
 import {
@@ -19,7 +18,7 @@ import {
   type StrummingPattern,
   type TabSection as TabSectionType,
 } from "~/stores/TabStore";
-import { Separator } from "../ui/separator";
+import { Separator } from "~/components/ui/separator";
 import ChordSection from "./ChordSection";
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabSection from "./TabSection";
@@ -41,13 +40,10 @@ function SectionContainer({
   forceCloseSectionAccordions,
   setForceCloseSectionAccordions,
 }: SectionContainer) {
-  const { asPath } = useRouter();
-
   const [accordionOpen, setAccordionOpen] = useState("opened");
   const [localTitle, setLocalTitle] = useState(sectionData.title);
 
   const {
-    id,
     bpm,
     strummingPatterns,
     tabData,
@@ -56,12 +52,7 @@ function SectionContainer({
     sectionProgression,
     setSectionProgression,
     audioMetadata,
-    previewMetadata,
-    playTab,
-    pauseAudio,
-    setCountInTimer,
   } = useTabStore((state) => ({
-    id: state.id,
     bpm: state.bpm,
     strummingPatterns: state.strummingPatterns,
     tabData: state.tabData,
@@ -70,10 +61,6 @@ function SectionContainer({
     sectionProgression: state.sectionProgression,
     setSectionProgression: state.setSectionProgression,
     audioMetadata: state.audioMetadata,
-    previewMetadata: state.previewMetadata,
-    playTab: state.playTab,
-    pauseAudio: state.pauseAudio,
-    setCountInTimer: state.setCountInTimer,
   }));
 
   useEffect(() => {
@@ -86,17 +73,11 @@ function SectionContainer({
   useEffect(() => {
     if (
       audioMetadata.playing &&
-      audioMetadata.type === "Generated" &&
       currentlyPlayingSectionIndex === sectionIndex
     ) {
       setAccordionOpen("opened");
     }
-  }, [
-    audioMetadata.playing,
-    audioMetadata.type,
-    currentlyPlayingSectionIndex,
-    sectionIndex,
-  ]);
+  }, [audioMetadata.playing, currentlyPlayingSectionIndex, sectionIndex]);
 
   function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.value.length > 25) return;

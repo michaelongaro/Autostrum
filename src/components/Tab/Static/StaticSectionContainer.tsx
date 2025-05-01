@@ -11,7 +11,7 @@ import {
   chordSequencesAllHaveSameNoteLength,
   getDynamicNoteLengthIcon,
 } from "~/utils/bpmIconRenderingHelpers";
-import { Separator } from "../../ui/separator";
+import { Separator } from "~/components/ui/separator";
 import ChordSection from ".././ChordSection";
 import StaticChordSection from "~/components/Tab/Static/StaticChordSection";
 

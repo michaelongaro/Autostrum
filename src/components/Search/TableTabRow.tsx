@@ -5,21 +5,30 @@ import DifficultyBars from "~/components/ui/DifficultyBars";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { TableCell, TableRow } from "~/components/ui/table";
-import type { MinimalTabRepresentation } from "~/server/api/routers/search";
+import type {
+  InfiniteQueryParams,
+  MinimalTabRepresentation,
+} from "~/server/api/routers/search";
 import type { UserMetadata } from "~/server/api/routers/user";
 import formatDate from "~/utils/formatDate";
 import { genreList } from "~/utils/genreList";
-import BookmarkToggle from "../ui/BookmarkToggle";
+import BookmarkToggle from "~/components/ui/BookmarkToggle";
 
 const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 
 interface TableTabRow {
   minimalTab: MinimalTabRepresentation;
   currentUser: UserMetadata | null | undefined;
+  infiniteQueryParams?: InfiniteQueryParams;
   ref?: React.RefObject<HTMLTableRowElement>;
 }
 
-function TableTabRow({ minimalTab, currentUser, ref }: TableTabRow) {
+function TableTabRow({
+  minimalTab,
+  currentUser,
+  infiniteQueryParams,
+  ref,
+}: TableTabRow) {
   const { query, asPath } = useRouter();
 
   // TODO: actually not sure if we can use framer motion with this since <table> structure is kinda
@@ -31,8 +40,8 @@ function TableTabRow({ minimalTab, currentUser, ref }: TableTabRow) {
       <TableCell className="whitespace-nowrap">
         <Button variant={"link"} asChild>
           <Link
-            href={`/tab/${minimalTab.id}`}
             prefetch={false}
+            href={`/tab/${minimalTab.id}/${encodeURIComponent(minimalTab.title)}`}
             className="!p-0 !text-base !font-semibold md:!text-lg"
           >
             {minimalTab.title}
@@ -49,7 +58,7 @@ function TableTabRow({ minimalTab, currentUser, ref }: TableTabRow) {
                 prefetch={false}
                 href={
                   minimalTab.artist
-                    ? `/artist/${minimalTab.artist.name}`
+                    ? `/artist/${minimalTab.artist.id}/${encodeURIComponent(minimalTab.artist.name)}`
                     : minimalTab.createdBy
                       ? `/user/${minimalTab.createdBy.username}`
                       : ""
@@ -129,6 +138,7 @@ function TableTabRow({ minimalTab, currentUser, ref }: TableTabRow) {
           isBookmarked={
             currentUser?.bookmarkedTabIds?.includes(minimalTab.id) ?? false
           }
+          infiniteQueryParams={infiniteQueryParams}
           customClassName="size-10"
         />
       </TableCell>

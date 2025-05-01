@@ -11,8 +11,8 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { useTabStore } from "~/stores/TabStore";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
 
@@ -367,7 +367,7 @@ function TabMeasureLine({
         <Button
           variant={"destructive"}
           size="sm"
-          disabled={audioMetadata.type === "Generated" && audioMetadata.playing}
+          disabled={audioMetadata.playing}
           className="absolute bottom-4 left-1/2 right-1/2 z-50 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
           onClick={handleDeleteMeasureLine}
         >

@@ -1,23 +1,28 @@
-import { SignInButton, SignUpButton } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { BsBarChartLine } from "react-icons/bs";
 import { GiMusicalScore } from "react-icons/gi";
 import { HiOutlineLightBulb } from "react-icons/hi";
-import { Button } from "~/components/ui/button";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
 import GridTabCard from "../Search/GridTabCard";
 import TabCardSkeleton from "../Search/TabCardSkeleton";
 import classes from "./Hero.module.css";
 
-function Hero({
-  showSignUpAndSignInButtons,
-}: {
-  showSignUpAndSignInButtons: boolean;
-}) {
-  const { data: fetchedTab, refetch: refetchTab } =
-    api.search.getMinimalTabById.useQuery(83);
+function Hero() {
+  const { userId } = useAuth();
+
+  const { data: currentUser } = api.user.getByIdOrUsername.useQuery(
+    {
+      userId: userId!,
+    },
+    {
+      enabled: !!userId,
+    },
+  );
+
+  const { data: fetchedTab } = api.search.getMinimalTabById.useQuery(83);
 
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
   const isAboveExtraLargeViewportWidth = useViewportWidthBreakpoint(1280);
@@ -52,29 +57,6 @@ function Hero({
             how you want them to sound
           </p>
         </div>
-
-        {showSignUpAndSignInButtons && (
-          <div className="baseFlex mt-4 gap-4">
-            <SignUpButton
-              mode="modal"
-              // afterSignUpUrl={`${
-              //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-              // }/postSignUpRegistration`}
-            >
-              <Button className="h-10 px-6 md:h-11 md:px-8">Sign up</Button>
-            </SignUpButton>
-            <SignInButton
-              mode="modal"
-              // afterSignUpUrl={`${
-              //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-              // }/postSignUpRegistration`}
-            >
-              <Button variant={"secondary"} className="h-10 md:h-11">
-                Sign in
-              </Button>
-            </SignInButton>
-          </div>
-        )}
       </div>
 
       <div className="baseVertFlex homepageLightGlassmorphic w-11/12 !flex-nowrap gap-8 rounded-xl p-4 shadow-sm sm:w-4/5 md:max-w-[550px] md:gap-4 md:p-8 xl:w-[950px] xl:max-w-[950px]">
@@ -152,8 +134,8 @@ function Hero({
               <div className="baseVertFlex !items-start gap-1">
                 <p className="text-sm md:text-base xl:h-[125px] xl:w-[250px]">
                   Play along with any tab, varying the playback speed,
-                  instrument, or directly with the artist&apos;s official
-                  recording.
+                  instrument, or choose to practice sections of the tab at a
+                  time.
                 </p>
               </div>
             </div>
@@ -166,8 +148,8 @@ function Hero({
                 <p className="text-lg font-bold md:text-xl">Practice</p>
                 <p className="text-sm md:text-base xl:h-[125px] xl:w-[250px]">
                   Play along with any tab, varying the playback speed,
-                  instrument, or directly with the artist&apos;s official
-                  recording.
+                  instrument, or choose to practice sections of the tab at a
+                  time.
                 </p>
               </div>
             </div>
@@ -179,7 +161,7 @@ function Hero({
             {fetchedTab ? (
               <GridTabCard
                 minimalTab={fetchedTab}
-                refetchTab={refetchTab}
+                currentUser={currentUser}
                 largeVariant={isAboveMediumViewportWidth}
               />
             ) : (

@@ -1,14 +1,8 @@
-import { buildClerkProps, getAuth } from "@clerk/nextjs/server";
 import { motion } from "framer-motion";
-import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import Hero from "~/components/HomePage/Hero";
 
-function Home({
-  showSignUpAndSignInButtons,
-}: {
-  showSignUpAndSignInButtons: boolean;
-}) {
+function Home() {
   return (
     <motion.div
       key={"home"}
@@ -22,13 +16,13 @@ function Home({
         <title>Autostrum</title>
         <meta
           name="description"
-          content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music. Play along to any tab with our realistic generated audio or directly with the artist's recording."
+          content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music. Practice any tab alongside our realistic generated audio and convenient audio controls."
         />
         <meta property="og:title" content="Autostrum"></meta>
         <meta property="og:url" content="www.autostrum.com" />
         <meta
           property="og:description"
-          content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music. Play along to any tab with our realistic generated audio or directly with the artist's recording."
+          content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music. Practice any tab alongside our realistic generated audio and convenient audio controls."
         />
         <meta property="og:type" content="website" />
         <meta
@@ -36,20 +30,9 @@ function Home({
           content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
         ></meta>
       </Head>
-      <Hero showSignUpAndSignInButtons={showSignUpAndSignInButtons} />
+      <Hero />
     </motion.div>
   );
 }
 
 export default Home;
-
-// export const getServerSideProps: GetServerSideProps = (ctx) => {
-//   const { userId } = getAuth(ctx.req);
-
-//   return {
-//     props: {
-//       showSignUpAndSignInButtons: userId === null,
-//       ...buildClerkProps(ctx.req),
-//     },
-//   };
-// };

@@ -8,7 +8,7 @@ import { Input } from "~/components/ui/input";
 import { FaArrowLeft } from "react-icons/fa6";
 import { api } from "~/utils/api";
 import { genreList } from "~/utils/genreList";
-import { Badge } from "../ui/badge";
+import { Badge } from "~/components/ui/badge";
 import { isMobile } from "react-device-detect";
 import { IoIosMusicalNotes } from "react-icons/io";
 import { AiOutlineUser } from "react-icons/ai";
@@ -104,28 +104,20 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
     const encodedSearchQuery = encodeURIComponent(searchQuery);
 
     if (tabId) {
-      void push({
-        pathname: "/tab",
-        query: {
-          title: encodedSearchQuery,
-          id: tabId,
-        },
-      });
+      void push(`/tab/${tabId}/${encodedSearchQuery}`);
     } else if (artistId) {
-      void push({
-        pathname: "/artist",
-        query: {
-          name: encodedSearchQuery,
-          id: artistId,
-        },
-      });
+      void push(`/artist/${artistId}/${encodedSearchQuery}`);
     } else {
-      void push({
-        pathname: "/explore/filters",
-        query: {
-          search: encodedSearchQuery,
-        },
-      });
+      if (encodedSearchQuery) {
+        void push({
+          pathname: "/explore/filters",
+          query: {
+            search: encodedSearchQuery,
+          },
+        });
+      } else {
+        void push("/explore/filters");
+      }
     }
 
     setShowMobileSearch?.(false);
@@ -149,7 +141,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
         ease: "easeOut",
         duration: 0.35,
       }}
-      className="baseFlex relative mt-1 tablet:mt-0"
+      className="baseFlex relative mt-0.5 tablet:mt-0"
     >
       {viewportLabel.includes("mobile") && (
         <Button
@@ -220,7 +212,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
             }
           }}
           value={searchQuery}
-          className="z-0 h-10 w-full !scroll-mt-24 border-none text-base !outline-none md:h-12"
+          className="z-0 h-10 w-full !scroll-mt-24 border-none text-base !outline-none md:h-11"
         />
 
         <Button
@@ -273,7 +265,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
             transition={{
               duration: 0.2,
             }}
-            className={`autofillResultsGlassmorphic absolute left-0 z-50 w-full rounded-md rounded-t-none border-2 border-pink-200 ${viewportLabel.includes("mobile") ? "top-11 border-t-2 border-none" : "top-[50px] !shadow-xl"}`}
+            className={`absolute left-0 z-50 w-full overflow-hidden rounded-md rounded-t-none border-pink-200 ${viewportLabel.includes("mobile") ? "top-11 border-t-2" : "autofillResultsGlassmorphic top-[46px] border-2 !shadow-xl"}`}
           >
             <div className="baseFlex w-full !justify-between p-2 text-sm">
               <div className="baseFlex gap-3">

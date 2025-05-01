@@ -23,6 +23,8 @@ import { ZodError } from "zod";
 
 interface AuthContext {
   auth: ReturnType<typeof getAuth>;
+  req: CreateNextContextOptions["req"];
+  res: CreateNextContextOptions["res"];
 }
 
 /**
@@ -35,9 +37,11 @@ interface AuthContext {
  *
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
-const createInnerTRPCContext = ({ auth }: AuthContext) => {
+const createInnerTRPCContext = ({ auth, req, res }: AuthContext) => {
   return {
     auth,
+    req,
+    res,
     prisma,
   };
 };
@@ -49,7 +53,11 @@ const createInnerTRPCContext = ({ auth }: AuthContext) => {
  * @see https://trpc.io/docs/context
  */
 export const createTRPCContext = (opts: CreateNextContextOptions) => {
-  return createInnerTRPCContext({ auth: getAuth(opts.req) });
+  return createInnerTRPCContext({
+    auth: getAuth(opts.req),
+    req: opts.req,
+    res: opts.res,
+  });
 };
 
 /**

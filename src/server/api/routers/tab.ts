@@ -222,6 +222,7 @@ export const tabRouter = createTRPCRouter({
   createOrUpdate: protectedProcedure
     .input(
       z.object({
+        type: z.enum(["create", "update"]),
         id: z.number().nullable(),
         createdByUserId: z.string(),
         title: z.string(),
@@ -231,38 +232,57 @@ export const tabRouter = createTRPCRouter({
         bpm: z.number(),
         capo: z.number(),
         chords: z.array(chordSchema),
-        hasRecordedAudio: z.boolean(),
         strummingPatterns: z.array(strummingPatternSchema),
         tabData: z.array(sectionSchema),
         sectionProgression: z.array(sectionProgressionSchema),
-        base64RecordedAudioFile: z.string().nullable(),
-        shouldUpdateInS3: z.boolean(),
         base64TabScreenshot: z.string(),
-        type: z.enum(["create", "update"]),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      // can we destructure input into it's fields here or does prisma not like that?
+      const {
+        type,
+        id,
+        createdByUserId,
+        title,
+        description,
+        genreId,
+        tuning,
+        bpm,
+        capo,
+        chords,
+        strummingPatterns,
+        tabData,
+        sectionProgression,
+      } = input;
 
       const base64Data = input.base64TabScreenshot.split(",")[1]!;
       const imageBuffer = Buffer.from(base64Data, "base64");
 
+      let tab: Tab | null = null;
+
       if (input.type === "create") {
-        const tab = await ctx.prisma.tab.create({
+        tab = await ctx.prisma.tab.create({
           data: {
-            createdByUserId: input.createdByUserId,
-            title: input.title,
-            description: input.description,
-            genreId: input.genreId,
-            tuning: input.tuning,
-            sectionProgression: input.sectionProgression,
-            bpm: input.bpm,
-            capo: input.capo,
-            chords: input.chords,
-            strummingPatterns: input.strummingPatterns,
-            tabData: input.tabData,
+            createdByUserId,
+            title,
+            description,
+            genreId,
+            tuning,
+            sectionProgression,
+            bpm,
+            capo,
+            chords,
+            strummingPatterns,
+            tabData,
           },
         });
+
+        if (tab) {
+          // immediately revalidate the tab's page before s3 upload to improve end user experience
+          await ctx.res.revalidate(
+            `/tab/?title=${encodeURIComponent(tab.title)}&id=${tab.id}`,
+          );
+        }
 
         // uploading screenshot to s3 bucket
         const command = new PutObjectCommand({
@@ -280,9 +300,32 @@ export const tabRouter = createTRPCRouter({
           console.log(e);
           // return null;
         }
+      } else if (type === "update" && id !== null) {
+        tab = await ctx.prisma.tab.update({
+          where: {
+            id,
+          },
+          data: {
+            title,
+            description,
+            genreId,
+            tuning,
+            sectionProgression,
+            bpm,
+            capo,
+            chords,
+            strummingPatterns,
+            tabData,
+          },
+        });
 
-        return tab;
-      } else if (input.type === "update" && input.id !== null) {
+        if (tab) {
+          // immediately revalidate the tab's page before s3 upload to improve end user experience
+          await ctx.res.revalidate(
+            `/tab/?title=${encodeURIComponent(tab.title)}&id=${tab.id}`,
+          );
+        }
+
         // uploading screenshot to s3 bucket
         const command = new PutObjectCommand({
           Bucket: "autostrum-screenshots",
@@ -299,24 +342,8 @@ export const tabRouter = createTRPCRouter({
           console.log(e);
           // return null;
         }
-
-        return ctx.prisma.tab.update({
-          where: {
-            id: input.id,
-          },
-          data: {
-            title: input.title,
-            description: input.description,
-            genreId: input.genreId,
-            tuning: input.tuning,
-            sectionProgression: input.sectionProgression,
-            bpm: input.bpm,
-            capo: input.capo,
-            chords: input.chords,
-            strummingPatterns: input.strummingPatterns,
-            tabData: input.tabData,
-          },
-        });
       }
+
+      return tab;
     }),
 });

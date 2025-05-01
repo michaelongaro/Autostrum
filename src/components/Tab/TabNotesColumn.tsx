@@ -27,7 +27,7 @@ import {
   DropdownMenuLabel,
 } from "~/components/ui/dropdown-menu";
 import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
-import { Button } from "../ui/button";
+import { Button } from "~/components/ui/button";
 import PalmMuteNode from "./PalmMuteNode";
 import TabNote from "./TabNote";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
@@ -135,11 +135,7 @@ function TabNotesColumn({
 
     const currentSection = getTabData()[sectionIndex]?.data[subSectionIndex];
 
-    if (
-      currentSection === undefined ||
-      (audioMetadata.type === "Generated" && audioMetadata.playing)
-    )
-      return true;
+    if (currentSection === undefined || audioMetadata.playing) return true;
 
     if (currentSection?.data.length === 1) {
       disabled = true;
@@ -210,7 +206,7 @@ function TabNotesColumn({
   }
 
   function handleDeleteChord() {
-    if (audioMetadata.type === "Generated" && currentChordIndex !== 0) {
+    if (currentChordIndex !== 0) {
       pauseAudio(true);
     }
 

@@ -7,7 +7,7 @@ import {
 import { BsPlus } from "react-icons/bs";
 import { useTabStore, type StrummingPattern } from "~/stores/TabStore";
 import { addOrRemoveStrummingPatternPalmMuteDashes } from "~/utils/palmMuteHelpers";
-import { Button } from "../ui/button";
+import { Button } from "~/components/ui/button";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 
 interface StrummingPatternPalmMuteNode {
@@ -63,7 +63,7 @@ function StrummingPatternPalmMuteNode({
       e.preventDefault(); // prevent cursor from moving
 
       const newNoteToFocus = document.getElementById(
-        `input-strummingPatternModal-${beatIndex}-1`
+        `input-strummingPatternModal-${beatIndex}-1`,
       );
 
       newNoteToFocus?.focus();
@@ -82,11 +82,11 @@ function StrummingPatternPalmMuteNode({
           getButtonOpacity(
             strummingPatternBeingEdited.value.strums[currentIndex]?.palmMute ??
               "-",
-            currentIndex
+            currentIndex,
           ) === "1"
         ) {
           const newNoteToFocus = document.getElementById(
-            `input-strummingPatternModal-${currentIndex}-${0}`
+            `input-strummingPatternModal-${currentIndex}-${0}`,
           );
 
           newNoteToFocus?.focus();
@@ -106,7 +106,7 @@ function StrummingPatternPalmMuteNode({
       while (!completedSearchOfPalmMuteNodes) {
         if (currentIndex >= strummingPatternBeingEdited.value.strums.length) {
           const newNoteToFocus = document.getElementById(
-            "strummingPatternExtendPatternButton"
+            "strummingPatternExtendPatternButton",
           );
 
           newNoteToFocus?.focus();
@@ -121,11 +121,11 @@ function StrummingPatternPalmMuteNode({
           getButtonOpacity(
             strummingPatternBeingEdited.value.strums[currentIndex]?.palmMute ??
               "-",
-            currentIndex
+            currentIndex,
           ) === "1"
         ) {
           const newNoteToFocus = document.getElementById(
-            `input-strummingPatternModal-${currentIndex}-${0}`
+            `input-strummingPatternModal-${currentIndex}-${0}`,
           );
 
           newNoteToFocus?.focus();
@@ -219,8 +219,7 @@ function StrummingPatternPalmMuteNode({
                 }`}
               ></div>
               <div
-                className={`h-[1px] w-1
-               flex-shrink-0 ${darkMode ? "bg-foreground" : "bg-background"}`}
+                className={`h-[1px] w-1 flex-shrink-0 ${darkMode ? "bg-foreground" : "bg-background"}`}
               ></div>
               <i className="mx-[0.125rem] flex-shrink-0">PM</i>
               <div
@@ -232,7 +231,7 @@ function StrummingPatternPalmMuteNode({
           )}
 
           {value === "end" && (
-            <div className=" baseFlex relative my-1 w-full !flex-nowrap">
+            <div className="baseFlex relative my-1 w-full !flex-nowrap">
               <div
                 className={`h-[1px] w-full ${
                   darkMode ? "bg-foreground" : "bg-background"
@@ -301,8 +300,8 @@ function StrummingPatternPalmMuteNode({
             darkMode
               ? "bg-foreground"
               : !editing || !editingPalmMuteNodes || getButtonOpacity() === "1"
-              ? "bg-background"
-              : "bg-background/50"
+                ? "bg-background"
+                : "bg-background/50"
           }`}
         ></div>
       )}

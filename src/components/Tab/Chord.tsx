@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import { parse, toString } from "~/utils/tunings";
-import { Input } from "../ui/input";
+import { Input } from "~/components/ui/input";
 import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
 
 interface Chord {

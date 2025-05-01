@@ -8,7 +8,7 @@ import {
 import { BsPlus } from "react-icons/bs";
 import { useTabStore } from "~/stores/TabStore";
 import { addOrRemovePalmMuteDashes } from "~/utils/palmMuteHelpers";
-import { Button } from "../ui/button";
+import { Button } from "~/components/ui/button";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 
@@ -60,7 +60,7 @@ function PalmMuteNode({
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
     const currentPalmMuteNode = document.getElementById(
-      `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-0`
+      `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-0`,
     );
 
     // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
@@ -68,7 +68,7 @@ function PalmMuteNode({
       e.preventDefault(); // prevent cursor from moving
 
       const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-1`
+        `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-1`,
       );
 
       focusAndScrollIntoView(currentPalmMuteNode, newNoteToFocus);
@@ -101,11 +101,11 @@ function PalmMuteNode({
             getTabData()[sectionIndex]!.data[subSectionIndex].data[
               currentIndex
             ]?.[0] ?? "-",
-            currentIndex
+            currentIndex,
           ) === "1"
         ) {
           const newNoteToFocus = document.getElementById(
-            `input-${sectionIndex}-${subSectionIndex}-${currentIndex}-${0}`
+            `input-${sectionIndex}-${subSectionIndex}-${currentIndex}-${0}`,
           );
 
           focusAndScrollIntoView(currentPalmMuteNode, newNoteToFocus);
@@ -136,7 +136,7 @@ function PalmMuteNode({
           getTabData()[sectionIndex]!.data[subSectionIndex]!.data.length
         ) {
           const newNoteToFocus = document.getElementById(
-            `${sectionIndex}${subSectionIndex}ExtendTabButton`
+            `${sectionIndex}${subSectionIndex}ExtendTabButton`,
           );
 
           focusAndScrollIntoView(currentPalmMuteNode, newNoteToFocus);
@@ -153,11 +153,11 @@ function PalmMuteNode({
             getTabData()[sectionIndex]!.data[subSectionIndex].data[
               currentIndex
             ]?.[0] ?? "-",
-            currentIndex
+            currentIndex,
           ) === "1"
         ) {
           const newNoteToFocus = document.getElementById(
-            `input-${sectionIndex}-${subSectionIndex}-${currentIndex}-${0}`
+            `input-${sectionIndex}-${subSectionIndex}-${currentIndex}-${0}`,
           );
 
           focusAndScrollIntoView(currentPalmMuteNode, newNoteToFocus);

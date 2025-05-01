@@ -3,6 +3,8 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown } from "lucide-react";
 
 import { cn } from "~/utils/cn";
+import { ScrollArea } from "~/components/ui/scrollarea";
+import { Separator } from "~/components/ui/separator";
 
 const Select = SelectPrimitive.Root;
 
@@ -55,7 +57,9 @@ const SelectContent = React.forwardRef<
             "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]",
         )}
       >
-        {children}
+        <ScrollArea type={"auto"} className="h-full">
+          {children}
+        </ScrollArea>
       </SelectPrimitive.Viewport>
     </SelectPrimitive.Content>
   </SelectPrimitive.Portal>
@@ -71,9 +75,12 @@ const SelectLabel = React.forwardRef<
     style={{
       textShadow: "none",
     }}
-    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)}
+    className={cn("py-1.5 pl-1 pr-2 text-sm font-semibold", className)}
     {...props}
-  />
+  >
+    {props.children}
+    <Separator className="mt-1 h-[1px] w-full bg-muted" />
+  </SelectPrimitive.Label>
 ));
 SelectLabel.displayName = SelectPrimitive.Label.displayName;
 
@@ -84,18 +91,17 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none text-shadow-none focus-within:!text-shadow hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex w-full cursor-default select-none items-center justify-between rounded-sm py-1.5 pl-2 pr-2 text-sm outline-none text-shadow-none focus-within:!text-shadow hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className,
     )}
     {...props}
   >
-    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+    <span className="relative right-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
         <Check className="h-4 w-4" />
       </SelectPrimitive.ItemIndicator>
     </span>
-
-    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
   </SelectPrimitive.Item>
 ));
 SelectItem.displayName = SelectPrimitive.Item.displayName;

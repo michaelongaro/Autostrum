@@ -9,7 +9,7 @@ function DifficultyBars({ difficulty }: { difficulty: number }) {
 function DifficultyBar({ filled }: { filled: boolean }) {
   return (
     <div
-      className={`h-[14px] w-[3px] rounded-full bg-pink-200 ${filled ? "" : "opacity-50"}`}
+      className={`h-[13px] w-[3px] rounded-full bg-current ${filled ? "" : "opacity-50"}`}
     ></div>
   );
 }

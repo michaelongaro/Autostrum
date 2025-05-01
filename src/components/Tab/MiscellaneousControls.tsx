@@ -348,7 +348,6 @@ function MiscellaneousControls({
             audioMetadata.editingLoopRange ||
             bpm === -1 ||
             !currentInstrument ||
-            audioMetadata.type === "Artist recording" ||
             artificalPlayButtonTimeout ||
             sectionIsEffectivelyEmpty(
               getTabData(),

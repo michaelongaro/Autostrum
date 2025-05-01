@@ -29,9 +29,7 @@ import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
@@ -59,13 +57,11 @@ function PlaybackBottomMetadata({
 }: PlaybackBottomMetadata) {
   const {
     tabData,
-    title,
     capo,
     tuning,
     sectionProgression,
     audioMetadata,
     playbackMetadata,
-    currentChordIndex,
     viewportLabel,
     setShowEffectGlossaryDialog,
     setAudioMetadata,
@@ -75,13 +71,11 @@ function PlaybackBottomMetadata({
     pauseAudio,
   } = useTabStore((state) => ({
     tabData: state.tabData,
-    title: state.title,
     capo: state.capo,
     tuning: state.tuning,
     sectionProgression: state.sectionProgression,
     audioMetadata: state.audioMetadata,
     playbackMetadata: state.playbackMetadata,
-    currentChordIndex: state.currentChordIndex,
     viewportLabel: state.viewportLabel,
     setShowEffectGlossaryDialog: state.setShowEffectGlossaryDialog,
     setAudioMetadata: state.setAudioMetadata,
@@ -173,25 +167,19 @@ function PlaybackBottomMetadata({
                               ]?.title}
                         </SelectValue>
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup className="max-h-60 overflow-y-auto">
-                          <SelectLabel>Sections</SelectLabel>
-
-                          <>
-                            {sections.map((section) => {
-                              return (
-                                <SelectItem key={section.id} value={section.id}>
-                                  {section.title}
-                                </SelectItem>
-                              );
-                            })}
-
-                            <div className="my-1 h-[1px] w-full bg-pink-800"></div>
-                            <SelectItem key={"fullTab"} value={`fullTab`}>
-                              Full tab
+                      <SelectContent className="max-h-60 overflow-y-auto">
+                        {sections.map((section) => {
+                          return (
+                            <SelectItem key={section.id} value={section.id}>
+                              {section.title}
                             </SelectItem>
-                          </>
-                        </SelectGroup>
+                          );
+                        })}
+
+                        <div className="my-1 h-[1px] w-full bg-pink-800"></div>
+                        <SelectItem key={"fullTab"} value={`fullTab`}>
+                          Full tab
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -227,10 +215,7 @@ function PlaybackBottomMetadata({
                 variant={"outline"}
                 aria-label="Edit looping range"
                 disabled={
-                  !looping ||
-                  audioMetadata.type === "Artist recording" ||
-                  audioMetadata.playing ||
-                  countInTimer.showing
+                  !looping || audioMetadata.playing || countInTimer.showing
                 }
                 pressed={audioMetadata.editingLoopRange}
                 className="size-9 p-1"
@@ -279,96 +264,25 @@ export default PlaybackBottomMetadata;
 
 function MobileSettingsDialog() {
   const {
-    id,
-    bpm,
-    hasRecordedAudio,
     currentInstrumentName,
     setCurrentInstrumentName,
-    playbackSpeed,
-    setPlaybackSpeed,
-    masterVolumeGainNode,
-    currentChordIndex,
-    setCurrentChordIndex,
-    currentlyPlayingMetadata,
     audioMetadata,
-    setAudioMetadata,
-    previewMetadata,
-    currentInstrument,
-    tabData,
-    recordedAudioFile,
-    recordedAudioBuffer,
-    setRecordedAudioBuffer,
-    playTab,
-    playRecordedAudio,
     pauseAudio,
-    fetchingFullTabData,
-    audioContext,
     countInTimer,
-    setCountInTimer,
-    mobileHeaderModal,
-    setMobileHeaderModal,
     loopDelay,
     setLoopDelay,
   } = useTabStore((state) => ({
-    id: state.id,
-    bpm: state.bpm,
-    hasRecordedAudio: state.hasRecordedAudio,
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
-    playbackSpeed: state.playbackSpeed,
-    setPlaybackSpeed: state.setPlaybackSpeed,
-    masterVolumeGainNode: state.masterVolumeGainNode,
-    currentChordIndex: state.currentChordIndex,
-    setCurrentChordIndex: state.setCurrentChordIndex,
-    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     audioMetadata: state.audioMetadata,
-    setAudioMetadata: state.setAudioMetadata,
-    previewMetadata: state.previewMetadata,
-    currentInstrument: state.currentInstrument,
-    tabData: state.tabData,
-    recordedAudioFile: state.recordedAudioFile,
-    recordedAudioBuffer: state.recordedAudioBuffer,
-    setRecordedAudioBuffer: state.setRecordedAudioBuffer,
-    playTab: state.playTab,
-    playRecordedAudio: state.playRecordedAudio,
     pauseAudio: state.pauseAudio,
-    fetchingFullTabData: state.fetchingFullTabData,
-    audioContext: state.audioContext,
     countInTimer: state.countInTimer,
-    setCountInTimer: state.setCountInTimer,
-    mobileHeaderModal: state.mobileHeaderModal,
-    setMobileHeaderModal: state.setMobileHeaderModal,
     loopDelay: state.loopDelay,
     setLoopDelay: state.setLoopDelay,
   }));
 
   const volume = useGetLocalStorageValues().volume;
   const localStorageVolume = useLocalStorageValue("autostrumVolume");
-
-  // function resetAudioStateOnSourceChange(
-  //   audioTypeBeingChangedTo: "Generated" | "Artist recording",
-  // ) {
-  //   if (oneSecondIntervalRef.current) {
-  //     clearInterval(oneSecondIntervalRef.current);
-  //     oneSecondIntervalRef.current = null;
-  //   }
-
-  //   pauseAudio(true);
-
-  //   setAudioMetadata({
-  //     tabId: id,
-  //     type: audioTypeBeingChangedTo,
-  //     playing: false,
-  //     location: null,
-  //     startLoopIndex: 0,
-  //     endLoopIndex: -1,
-  //     editingLoopRange: false,
-  //     fullCurrentlyPlayingMetadataLength: -1,
-  //   });
-
-  //   setTabProgressValue(0);
-  //   setCurrentChordIndex(0);
-  // }
 
   return (
     <Dialog>
@@ -387,44 +301,9 @@ function MobileSettingsDialog() {
       </DialogTrigger>
       <DialogContent className="baseVertFlex size-full bg-black">
         <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-          <Label>Source</Label>
-          <Select
-            disabled={countInTimer.showing}
-            value={audioMetadata.type}
-            onValueChange={(value) => {
-              if (value !== audioMetadata.type) {
-                // resetAudioStateOnSourceChange(
-                //   value as "Generated" | "Artist recording",
-                // );
-              }
-            }}
-          >
-            <SelectTrigger className="max-w-[10rem]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Audio source</SelectLabel>
-
-                <SelectItem value={"Generated"}>Generated</SelectItem>
-
-                <SelectItem
-                  value={"Artist recording"}
-                  disabled={!hasRecordedAudio}
-                >
-                  Artist recording
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
           <Label>Instrument</Label>
           <Select
-            disabled={
-              audioMetadata.type === "Artist recording" || countInTimer.showing
-            }
+            disabled={countInTimer.showing}
             // onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
             value={currentInstrumentName}
             onValueChange={(value) => {
@@ -443,33 +322,29 @@ function MobileSettingsDialog() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Instruments</SelectLabel>
+              <SelectItem value={"acoustic_guitar_nylon"}>
+                Acoustic guitar - Nylon
+              </SelectItem>
 
-                <SelectItem value={"acoustic_guitar_nylon"}>
-                  Acoustic guitar - Nylon
-                </SelectItem>
+              <SelectItem value={"acoustic_guitar_steel"}>
+                Acoustic guitar - Steel
+              </SelectItem>
 
-                <SelectItem value={"acoustic_guitar_steel"}>
-                  Acoustic guitar - Steel
-                </SelectItem>
+              <SelectItem value={"electric_guitar_clean"}>
+                Electric guitar - Clean
+              </SelectItem>
 
-                <SelectItem value={"electric_guitar_clean"}>
-                  Electric guitar - Clean
-                </SelectItem>
+              <SelectItem value={"electric_guitar_jazz"}>
+                Electric guitar - Jazz
+              </SelectItem>
 
-                <SelectItem value={"electric_guitar_jazz"}>
-                  Electric guitar - Jazz
-                </SelectItem>
+              <SelectItem value={"acoustic_grand_piano"}>
+                Grand piano - Acoustic
+              </SelectItem>
 
-                <SelectItem value={"acoustic_grand_piano"}>
-                  Grand piano - Acoustic
-                </SelectItem>
-
-                <SelectItem value={"electric_grand_piano"}>
-                  Grand piano - Electric
-                </SelectItem>
-              </SelectGroup>
+              <SelectItem value={"electric_grand_piano"}>
+                Grand piano - Electric
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -480,9 +355,7 @@ function MobileSettingsDialog() {
         <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
           <Label>Loop delay</Label>
           <Select
-            disabled={
-              audioMetadata.type === "Artist recording" || countInTimer.showing
-            }
+            disabled={countInTimer.showing}
             value={`${loopDelay}s`}
             onValueChange={(value) => {
               pauseAudio();
@@ -494,13 +367,10 @@ function MobileSettingsDialog() {
               <SelectValue>{`${loopDelay}s`}</SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Loop delay</SelectLabel>
-                <SelectItem value={"0s"}>0 seconds</SelectItem>
-                <SelectItem value={"1s"}>1 second</SelectItem>
-                <SelectItem value={"2s"}>2 seconds</SelectItem>
-                <SelectItem value={"3s"}>3 seconds</SelectItem>
-              </SelectGroup>
+              <SelectItem value={"0s"}>0 seconds</SelectItem>
+              <SelectItem value={"1s"}>1 second</SelectItem>
+              <SelectItem value={"2s"}>2 seconds</SelectItem>
+              <SelectItem value={"3s"}>3 seconds</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -759,7 +629,7 @@ function MobileMenuDialog() {
                             </Button>
                           </div>
 
-                          <div className="mobileNarrowLandscape:h-36 h-48">
+                          <div className="h-48 mobileNarrowLandscape:h-36">
                             <ChordDiagram originalFrets={chord.frets} />
                           </div>
                         </div>
@@ -902,67 +772,29 @@ function DesktopSettings({
   setTabProgressValue,
 }: DesktopSettings) {
   const {
-    id,
-    bpm,
-    hasRecordedAudio,
     currentInstrumentName,
     setCurrentInstrumentName,
     playbackSpeed,
     setPlaybackSpeed,
-    masterVolumeGainNode,
-    currentChordIndex,
     setCurrentChordIndex,
-    currentlyPlayingMetadata,
     audioMetadata,
     setAudioMetadata,
-    previewMetadata,
-    currentInstrument,
-    tabData,
-    recordedAudioFile,
-    recordedAudioBuffer,
-    setRecordedAudioBuffer,
-    playTab,
-    playRecordedAudio,
     pauseAudio,
     looping,
-    fetchingFullTabData,
-    audioContext,
     countInTimer,
-    setCountInTimer,
-    mobileHeaderModal,
-    setMobileHeaderModal,
     loopDelay,
     setLoopDelay,
   } = useTabStore((state) => ({
-    id: state.id,
-    bpm: state.bpm,
-    hasRecordedAudio: state.hasRecordedAudio,
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
     playbackSpeed: state.playbackSpeed,
     setPlaybackSpeed: state.setPlaybackSpeed,
-    masterVolumeGainNode: state.masterVolumeGainNode,
-    currentChordIndex: state.currentChordIndex,
     setCurrentChordIndex: state.setCurrentChordIndex,
-    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     audioMetadata: state.audioMetadata,
     setAudioMetadata: state.setAudioMetadata,
-    previewMetadata: state.previewMetadata,
-    currentInstrument: state.currentInstrument,
-    tabData: state.tabData,
-    recordedAudioFile: state.recordedAudioFile,
-    recordedAudioBuffer: state.recordedAudioBuffer,
-    setRecordedAudioBuffer: state.setRecordedAudioBuffer,
-    playTab: state.playTab,
-    playRecordedAudio: state.playRecordedAudio,
     pauseAudio: state.pauseAudio,
     looping: state.looping,
-    fetchingFullTabData: state.fetchingFullTabData,
-    audioContext: state.audioContext,
     countInTimer: state.countInTimer,
-    setCountInTimer: state.setCountInTimer,
-    mobileHeaderModal: state.mobileHeaderModal,
-    setMobileHeaderModal: state.setMobileHeaderModal,
     loopDelay: state.loopDelay,
     setLoopDelay: state.setLoopDelay,
   }));
@@ -973,46 +805,9 @@ function DesktopSettings({
   return (
     <div className="baseFlex w-full !items-end gap-4">
       <div className="baseVertFlex !items-start gap-2">
-        <Label>Source</Label>
-        <Select
-          value={audioMetadata.type}
-          disabled={countInTimer.showing || audioMetadata.editingLoopRange}
-          onValueChange={(value) => {
-            if (value !== audioMetadata.type) {
-              //  resetAudioStateOnSourceChange(
-              //    value as "Generated" | "Artist recording",
-              //  );
-            }
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Audio source</SelectLabel>
-
-              <SelectItem value={"Generated"}>Generated</SelectItem>
-
-              <SelectItem
-                value={"Artist recording"}
-                disabled={!hasRecordedAudio}
-              >
-                Artist recording
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="baseVertFlex !items-start gap-2">
         <Label>Instrument</Label>
         <Select
-          disabled={
-            audioMetadata.type === "Artist recording" ||
-            countInTimer.showing ||
-            audioMetadata.editingLoopRange
-          }
+          disabled={countInTimer.showing || audioMetadata.editingLoopRange}
           value={currentInstrumentName}
           onValueChange={(value) => {
             pauseAudio();
@@ -1032,33 +827,29 @@ function DesktopSettings({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Instruments</SelectLabel>
+            <SelectItem value={"acoustic_guitar_nylon"}>
+              Acoustic guitar - Nylon
+            </SelectItem>
 
-              <SelectItem value={"acoustic_guitar_nylon"}>
-                Acoustic guitar - Nylon
-              </SelectItem>
+            <SelectItem value={"acoustic_guitar_steel"}>
+              Acoustic guitar - Steel
+            </SelectItem>
 
-              <SelectItem value={"acoustic_guitar_steel"}>
-                Acoustic guitar - Steel
-              </SelectItem>
+            <SelectItem value={"electric_guitar_clean"}>
+              Electric guitar - Clean
+            </SelectItem>
 
-              <SelectItem value={"electric_guitar_clean"}>
-                Electric guitar - Clean
-              </SelectItem>
+            <SelectItem value={"electric_guitar_jazz"}>
+              Electric guitar - Jazz
+            </SelectItem>
 
-              <SelectItem value={"electric_guitar_jazz"}>
-                Electric guitar - Jazz
-              </SelectItem>
+            <SelectItem value={"acoustic_grand_piano"}>
+              Grand piano - Acoustic
+            </SelectItem>
 
-              <SelectItem value={"acoustic_grand_piano"}>
-                Grand piano - Acoustic
-              </SelectItem>
-
-              <SelectItem value={"electric_grand_piano"}>
-                Grand piano - Electric
-              </SelectItem>
-            </SelectGroup>
+            <SelectItem value={"electric_grand_piano"}>
+              Grand piano - Electric
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -1066,11 +857,7 @@ function DesktopSettings({
       <div className="baseVertFlex !items-start gap-2">
         <Label>Speed</Label>
         <Select
-          disabled={
-            audioMetadata.type === "Artist recording" ||
-            countInTimer.showing ||
-            audioMetadata.editingLoopRange
-          }
+          disabled={countInTimer.showing || audioMetadata.editingLoopRange}
           value={`${playbackSpeed}x`}
           onValueChange={(value) => {
             pauseAudio();
@@ -1094,15 +881,12 @@ function DesktopSettings({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Speed</SelectLabel>
-              <SelectItem value={"0.25x"}>0.25x</SelectItem>
-              <SelectItem value={"0.5x"}>0.5x</SelectItem>
-              <SelectItem value={"0.75x"}>0.75x</SelectItem>
-              <SelectItem value={"1x"}>1x</SelectItem>
-              <SelectItem value={"1.25x"}>1.25x</SelectItem>
-              <SelectItem value={"1.5x"}>1.5x</SelectItem>
-            </SelectGroup>
+            <SelectItem value={"0.25x"}>0.25x</SelectItem>
+            <SelectItem value={"0.5x"}>0.5x</SelectItem>
+            <SelectItem value={"0.75x"}>0.75x</SelectItem>
+            <SelectItem value={"1x"}>1x</SelectItem>
+            <SelectItem value={"1.25x"}>1.25x</SelectItem>
+            <SelectItem value={"1.5x"}>1.5x</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -1110,9 +894,7 @@ function DesktopSettings({
       <div className="baseVertFlex !items-start gap-2">
         <Label>Loop delay</Label>
         <Select
-          disabled={
-            audioMetadata.type === "Artist recording" || countInTimer.showing
-          }
+          disabled={countInTimer.showing}
           value={`${loopDelay}s`}
           onValueChange={(value) => {
             pauseAudio();
@@ -1124,13 +906,10 @@ function DesktopSettings({
             <SelectValue>{`${loopDelay}s`}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Loop delay</SelectLabel>
-              <SelectItem value={"0s"}>0 seconds</SelectItem>
-              <SelectItem value={"1s"}>1 second</SelectItem>
-              <SelectItem value={"2s"}>2 seconds</SelectItem>
-              <SelectItem value={"3s"}>3 seconds</SelectItem>
-            </SelectGroup>
+            <SelectItem value={"0s"}>0 seconds</SelectItem>
+            <SelectItem value={"1s"}>1 second</SelectItem>
+            <SelectItem value={"2s"}>2 seconds</SelectItem>
+            <SelectItem value={"3s"}>3 seconds</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -1138,14 +917,9 @@ function DesktopSettings({
       <Toggle
         variant={"outline"}
         aria-label="Edit looping range"
-        disabled={
-          !looping ||
-          audioMetadata.type === "Artist recording" ||
-          audioMetadata.playing ||
-          countInTimer.showing
-        }
+        disabled={!looping || audioMetadata.playing || countInTimer.showing}
         pressed={audioMetadata.editingLoopRange}
-        className="size-9 p-1"
+        className="baseFlex gap-2"
         onPressedChange={(value) => {
           // set to beginning of loop if moving to editing loop range, otherwise
           // reset to beginning of tab
@@ -1158,6 +932,7 @@ function DesktopSettings({
         }}
       >
         <CgArrowsShrinkH className="h-6 w-6" />
+        Edit loop range
       </Toggle>
 
       <Popover>

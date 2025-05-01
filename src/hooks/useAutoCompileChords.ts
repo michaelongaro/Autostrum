@@ -52,8 +52,6 @@ function useAutoCompileChords() {
   ] = useState(-1);
 
   const handleTabLogic = useCallback(() => {
-    if (audioMetadata.type === "Artist recording") return;
-
     function wholeTabIsEmpty() {
       if (tabData.length === 0 || tabData[0]?.data.length === 0) {
         return true;
@@ -157,7 +155,6 @@ function useAutoCompileChords() {
     audioMetadata.location,
     audioMetadata.startLoopIndex,
     audioMetadata.editingLoopRange,
-    audioMetadata.type,
     sectionProgression,
     chords,
     setAudioMetadata,

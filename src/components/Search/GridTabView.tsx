@@ -8,6 +8,7 @@ import { api } from "~/utils/api";
 import GridTabCard from "./GridTabCard";
 import TabCardSkeleton from "./TabCardSkeleton";
 import NoResultsFound from "./NoResultsFound";
+import type { InfiniteQueryParams } from "~/server/api/routers/search";
 
 interface GridTabView {
   searchQuery?: string;
@@ -53,7 +54,7 @@ function GridTabView({
     },
   );
 
-  function getInfiniteQueryParams() {
+  function getInfiniteQueryParams(): InfiniteQueryParams {
     return {
       searchQuery,
       genreId,
@@ -119,7 +120,7 @@ function GridTabView({
         style={{ gridAutoRows: "minmax(min-content, max-content)" }}
         className="grid w-full grid-cols-1 place-items-center gap-4 p-4 @2xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4"
       >
-        <AnimatePresence mode={"popLayout"}>
+        <AnimatePresence mode={"wait"}>
           {tabResults?.pages.map((page) =>
             page.data.tabs?.map((tab, index) => (
               <Fragment key={tab.id}>
@@ -127,6 +128,7 @@ function GridTabView({
                   <GridTabCard
                     minimalTab={tab}
                     currentUser={currentUser}
+                    infiniteQueryParams={getInfiniteQueryParams()}
                     ref={ref as unknown as React.RefObject<HTMLDivElement>}
                   />
                 ) : (

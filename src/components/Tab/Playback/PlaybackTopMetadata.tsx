@@ -243,9 +243,7 @@ function PlaybackTopMetadata({
                     <Label>Speed</Label>
                     <Select
                       disabled={
-                        audioMetadata.type === "Artist recording" ||
-                        countInTimer.showing ||
-                        audioMetadata.editingLoopRange
+                        countInTimer.showing || audioMetadata.editingLoopRange
                       }
                       value={`${playbackSpeed}x`}
                       onValueChange={(value) => {

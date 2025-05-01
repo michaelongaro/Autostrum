@@ -12,7 +12,7 @@ import {
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
-import { Button } from "../ui/button";
+import { Button } from "~/components/ui/button";
 
 const opacityVariants = {
   closed: {

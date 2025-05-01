@@ -1,5 +1,5 @@
 import { api } from "~/utils/api";
-import { Separator } from "../ui/separator";
+import { Separator } from "~/components/ui/separator";
 import GenreBubble from "./GenreBubble";
 
 const indicies = [1, 2, 3, 4, 5, 6, 7, 8];

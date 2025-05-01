@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { useState } from "react";
 import { HiOutlineInformationCircle } from "react-icons/hi";
-import { HiOutlineWrench } from "react-icons/hi2";
 import {
   Tooltip,
   TooltipContent,
@@ -11,8 +10,9 @@ import {
   TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { useTabStore } from "~/stores/TabStore";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { IoSettingsSharp } from "react-icons/io5";
 import { BsFillPlayFill } from "react-icons/bs";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 
@@ -120,16 +120,18 @@ function CustomTuningModal({
       >
         <div className="baseVertFlex min-w-[300px] max-w-[91vw] gap-8 rounded-md bg-pink-400 p-4 shadow-sm xl:max-w-[50vw]">
           <div className="baseFlex lightGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
-            <HiOutlineWrench className="h-5 w-5" />
+            <IoSettingsSharp className="h-5 w-5" />
             <p className="text-lg font-semibold">Custom tuning editor</p>
           </div>
 
-          <div className="baseVertFlex lightestGlassmorphic max-w-[23rem] gap-2 rounded-md p-2 text-sm">
-            <HiOutlineInformationCircle className="h-6 w-6" />
-            <p className="text-center">
-              Tuning notes must be written in Scientific Pitch Notation, you can
-              find the formula below.
-            </p>
+          <div className="baseVertFlex lightestGlassmorphic max-w-[23rem] gap-2 rounded-md p-2 text-sm sm:max-w-[30rem]">
+            <div className="baseFlex gap-4 px-4 sm:gap-2">
+              <HiOutlineInformationCircle className="size-5" />
+              <p className="max-w-[14rem] sm:max-w-[20rem] sm:text-center">
+                Tuning notes must be written in Scientific Pitch Notation, you
+                can find the formula below.
+              </p>
+            </div>
             <div className="baseFlex mt-2 gap-2 sm:gap-6">
               <div className="baseVertFlex gap-2">
                 <div className="grid w-full grid-cols-3 place-items-center text-sm font-semibold">
@@ -261,6 +263,7 @@ function CustomTuningModal({
                   ) || isEqual(customTuning, customInputValues.join(" "))
                 }
                 onClick={handleSaveCustomTuning}
+                className="px-4"
               >
                 Save
               </Button>

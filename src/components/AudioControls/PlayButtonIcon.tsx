@@ -17,14 +17,10 @@ const opacityAndScaleVariants = {
   },
 };
 
-type ShouldShowPauseIcon = Omit<
-  PlayButtonIcon,
-  "currentInstrument" | "recordedAudioBuffer"
->;
+type ShouldShowPauseIcon = Omit<PlayButtonIcon, "currentInstrument">;
 interface PlayButtonIcon {
   uniqueLocationKey: string;
   currentInstrument: Soundfont.Player | null;
-  recordedAudioBuffer?: AudioBuffer | null;
   audioMetadata?: AudioMetadata;
   tabId: number;
   sectionIndex?: number;
@@ -48,7 +44,6 @@ function PlayButtonIcon({
   previewMetadata,
   indexOfPattern,
   currentInstrument,
-  recordedAudioBuffer,
   showCountInTimer,
   previewType,
   forceShowLoadingSpinner,
@@ -159,13 +154,7 @@ function PlayButtonIcon({
       );
     }
 
-    if (
-      !currentInstrument ||
-      forceShowLoadingSpinner ||
-      (uniqueLocationKey === "audioControls" && // can only play recorded audio through <AudioControls />
-        audioMetadata?.type === "Artist recording" &&
-        !recordedAudioBuffer)
-    ) {
+    if (!currentInstrument || forceShowLoadingSpinner) {
       return (
         <motion.svg
           key={`${uniqueLocationKey}LoadingIcon`}

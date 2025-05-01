@@ -13,7 +13,6 @@ import {
 import { resetTabSliderPosition } from "~/utils/tabSliderHelpers";
 import { parse } from "~/utils/tunings";
 import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
-import type { UrlParamFilters } from "~/hooks/useGetUrlParamFilters";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
@@ -140,7 +139,6 @@ type InstrumentNames =
   | "electric_grand_piano";
 
 export interface AudioMetadata {
-  type: "Generated" | "Artist recording";
   playing: boolean;
   tabId: number;
   location: {
@@ -253,7 +251,6 @@ const initialStoreState = {
   capo: 0,
   key: null,
   difficulty: 1,
-  hasRecordedAudio: false,
   chords: [],
   strummingPatterns: [],
   tabData: [],
@@ -286,12 +283,12 @@ const initialStoreState = {
   },
 
   // playback
-  playbackModalViewingState: "Practice",
+  playbackModalViewingState: "Practice" as const,
 
   // related to sound generation/playing
   currentlyPlayingMetadata: null,
   playbackMetadata: null,
-  playbackSpeed: 1,
+  playbackSpeed: 1 as const,
   loopDelay: 0,
   currentChordIndex: 0,
   audioMetadata: {
@@ -307,13 +304,9 @@ const initialStoreState = {
   previewMetadata: {
     indexOfPattern: -1,
     currentChordIndex: 0,
-    type: "chord",
+    type: "chord" as const,
     playing: false,
   },
-  recordedAudioFile: null,
-  shouldUpdateInS3: false,
-  recordedAudioBuffer: null,
-  recordedAudioBufferSourceNode: null,
 
   isLoadingARoute: false,
   // idk if search needs to be included here
@@ -328,7 +321,7 @@ interface TabState {
   id: number;
   setId: (id: number) => void;
   createdByUserId: string | null;
-  setCreatedById: (createdByUserId: string | null) => void;
+  setCreatedByUserId: (createdByUserId: string | null) => void;
   createdAt: Date | null;
   setCreatedAt: (createdAt: Date | null) => void;
   updatedAt: Date | null;
@@ -355,8 +348,6 @@ interface TabState {
   setKey: (key: string | null) => void;
   difficulty: number;
   setDifficulty: (difficulty: number) => void;
-  hasRecordedAudio: boolean;
-  setHasRecordedAudio: (hasRecordedAudio: boolean) => void;
   chords: Chord[];
   setChords: (chords: Chord[]) => void;
   strummingPatterns: StrummingPattern[];
@@ -549,16 +540,6 @@ interface TabState {
   setPreviewMetadata: (previewMetadata: PreviewMetadata) => void;
   breakOnNextPreviewChord: boolean;
   setBreakOnNextPreviewChord: (breakOnNextPreviewChord: boolean) => void;
-  recordedAudioFile: Blob | null;
-  setRecordedAudioFile: (recordedAudioFile: Blob | null) => void;
-  shouldUpdateInS3: boolean;
-  setShouldUpdateInS3: (shouldUpdateInS3: boolean) => void;
-  recordedAudioBuffer: AudioBuffer | null;
-  setRecordedAudioBuffer: (recordedAudioBuffer: AudioBuffer | null) => void;
-  recordedAudioBufferSourceNode: AudioBufferSourceNode | null;
-  setRecordedAudioBufferSourceNode: (
-    recordedAudioBufferSourceNode: AudioBufferSourceNode | null,
-  ) => void;
 
   // playing/pausing sound functions
   playTab: ({ location, tabId }: PlayTab) => Promise<void>;
@@ -613,7 +594,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       id: -1,
       setId: (id) => set({ id }),
       createdByUserId: null,
-      setCreatedById: (createdByUserId) => set({ createdByUserId }),
+      setCreatedByUserId: (createdByUserId) => set({ createdByUserId }),
       createdAt: null,
       setCreatedAt: (createdAt) => set({ createdAt }),
       updatedAt: null,
@@ -640,8 +621,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       setKey: (key) => set({ key }),
       difficulty: 1,
       setDifficulty: (difficulty) => set({ difficulty }),
-      hasRecordedAudio: false,
-      setHasRecordedAudio: (hasRecordedAudio) => set({ hasRecordedAudio }),
       chords: [],
       setChords: (chords) => set({ chords }),
       strummingPatterns: [],
@@ -795,16 +774,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       breakOnNextPreviewChord: false,
       setBreakOnNextPreviewChord: (breakOnNextPreviewChord) =>
         set({ breakOnNextPreviewChord }),
-      recordedAudioFile: null,
-      setRecordedAudioFile: (recordedAudioFile) => set({ recordedAudioFile }),
-      shouldUpdateInS3: false,
-      setShouldUpdateInS3: (shouldUpdateInS3) => set({ shouldUpdateInS3 }),
-      recordedAudioBuffer: null,
-      setRecordedAudioBuffer: (recordedAudioBuffer) =>
-        set({ recordedAudioBuffer }),
-      recordedAudioBufferSourceNode: null,
-      setRecordedAudioBufferSourceNode: (recordedAudioBufferSourceNode) =>
-        set({ recordedAudioBufferSourceNode }),
 
       // playing/pausing sound functions
       playTab: async ({ location, tabId }: PlayTab) => {
@@ -821,7 +790,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           currentInstrument,
           audioContext,
           masterVolumeGainNode,
-          currentlyPlayingMetadata,
           setCurrentlyPlayingMetadata,
           visiblePlaybackContainerWidth,
           setPlaybackMetadata,
@@ -850,7 +818,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             tabId,
             location,
             playing: true,
-            type: "Generated",
           },
         });
 
@@ -1122,57 +1089,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         }
       },
 
-      playRecordedAudio: ({ audioBuffer, secondsElapsed }) => {
-        const {
-          audioMetadata,
-          previewMetadata,
-          audioContext,
-          masterVolumeGainNode,
-          pauseAudio,
-        } = get();
-
-        if (!audioContext || !masterVolumeGainNode) return;
-
-        if (audioMetadata.playing || previewMetadata.playing) {
-          pauseAudio();
-        }
-
-        const source = audioContext.createBufferSource();
-        source.buffer = audioBuffer;
-
-        set({
-          audioMetadata: {
-            ...audioMetadata,
-            playing: true,
-            type: "Artist recording",
-          },
-          recordedAudioBufferSourceNode: source,
-        });
-
-        source.connect(masterVolumeGainNode);
-        source.start(0, secondsElapsed);
-
-        source.onended = () => {
-          const { audioMetadata, looping } = get();
-
-          if (!looping) {
-            set({
-              audioMetadata: {
-                ...audioMetadata,
-                playing: false,
-              },
-            });
-          }
-        };
-      },
-
       pauseAudio: (resetToStart, resetCurrentlyPlayingMetadata) => {
-        const {
-          audioMetadata,
-          previewMetadata,
-          currentInstrument,
-          recordedAudioBufferSourceNode,
-        } = get();
+        const { audioMetadata, previewMetadata, currentInstrument } = get();
 
         if (
           !audioMetadata.playing &&
@@ -1192,26 +1110,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           return;
         }
 
-        if (
-          audioMetadata.playing &&
-          audioMetadata.type === "Artist recording"
-        ) {
-          recordedAudioBufferSourceNode?.stop();
-
-          set({
-            audioMetadata: {
-              ...audioMetadata,
-              playing: false,
-            },
-          });
-
-          if (resetToStart) {
-            resetTabSliderPosition();
-          }
-        } else if (
-          audioMetadata.playing &&
-          audioMetadata.type === "Generated"
-        ) {
+        if (audioMetadata.playing) {
           if (resetCurrentlyPlayingMetadata) {
             set({
               currentlyPlayingMetadata: null,
@@ -1300,7 +1199,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       viewportLabel: "mobile",
       setViewportLabel: (viewportLabel) => set({ viewportLabel }),
 
-      // reset (investigate what exactly the ts error is saying)
+      // reset
       resetStoreToInitValues: () => set(initialStoreState),
     }),
     shallow,

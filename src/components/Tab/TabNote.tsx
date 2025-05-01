@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
 import { useTabStore } from "~/stores/TabStore";
-import { Input } from "../ui/input";
+import { Input } from "~/components/ui/input";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 
 const chordMappings = {

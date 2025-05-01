@@ -21,7 +21,6 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-toggleOn hover:text-foreground shadow-none active:bg-toggleOn/60",
         link: "underline-offset-4 hover:underline shadow-none",
-        recording: "bg-blue-600 hover:bg-blue-700 active:bg-blue-800",
         toggledOn:
           "bg-primary text-primary-foreground hover:bg-primary/80 active:bg-primary/60 border-2",
         toggledOff:
@@ -30,8 +29,6 @@ const buttonVariants = cva(
           "bg-pink-200 hover:bg-pink-700 text-pink-800 !shadow-primaryButton hover:text-pink-200 active:bg-pink-800 active:text-pink-200",
         playPause:
           "bg-green-600 hover:bg-green-700 shadow-none active:bg-green-800 disabled:opacity-50 disabled:bg-gray-500",
-        scrollToTop:
-          "lightGlassmorphic text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/60 border-2",
         text: "text-primary-foreground shadow-none hover:text-primary/80 active:text-primary/60",
       },
       size: {

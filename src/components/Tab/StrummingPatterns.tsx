@@ -13,7 +13,7 @@ import {
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
-import { Button } from "../ui/button";
+import { Button } from "~/components/ui/button";
 import StrummingPattern from "./StrummingPattern";
 import {
   Accordion,

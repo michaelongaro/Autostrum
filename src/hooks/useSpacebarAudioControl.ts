@@ -1,26 +1,18 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useTabStore } from "~/stores/TabStore";
 
-function useSpacebarAudioControl({
-  tabProgressValue,
-}: {
-  tabProgressValue: number;
-}) {
+function useSpacebarAudioControl() {
   const {
     id,
     audioMetadata,
-    recordedAudioBuffer,
     playTab,
-    playRecordedAudio,
     pauseAudio,
     countInTimer,
     setCountInTimer,
   } = useTabStore((state) => ({
     id: state.id,
     audioMetadata: state.audioMetadata,
-    recordedAudioBuffer: state.recordedAudioBuffer,
     playTab: state.playTab,
-    playRecordedAudio: state.playRecordedAudio,
     pauseAudio: state.pauseAudio,
     countInTimer: state.countInTimer,
     setCountInTimer: state.setCountInTimer,
@@ -42,14 +34,7 @@ function useSpacebarAudioControl({
       });
 
       setTimeout(() => {
-        if (audioMetadata.type === "Artist recording" && recordedAudioBuffer) {
-          playRecordedAudio({
-            audioBuffer: recordedAudioBuffer,
-            secondsElapsed: tabProgressValue,
-          });
-        } else {
-          void playTab({ tabId: id, location: audioMetadata.location });
-        }
+        void playTab({ tabId: id, location: audioMetadata.location });
 
         setCountInTimer({
           ...countInTimer,
@@ -67,15 +52,11 @@ function useSpacebarAudioControl({
   }, [
     audioMetadata.location,
     audioMetadata.playing,
-    audioMetadata.type,
     countInTimer,
     id,
     pauseAudio,
-    playRecordedAudio,
     playTab,
-    recordedAudioBuffer,
     setCountInTimer,
-    tabProgressValue,
   ]);
 
   useEffect(() => {

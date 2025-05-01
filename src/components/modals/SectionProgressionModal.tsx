@@ -6,46 +6,19 @@ import { FaTrashAlt } from "react-icons/fa";
 import { BsPlus } from "react-icons/bs";
 import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
 import { useTabStore, type SectionProgression } from "~/stores/TabStore";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
+} from "~/components/ui/select";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
-
-const backdropVariants = {
-  expanded: {
-    opacity: 1,
-  },
-  closed: {
-    opacity: 0,
-  },
-};
-
-const sectionVariants = {
-  expanded: {
-    opacity: 1,
-    scale: 1,
-  },
-  closed: {
-    opacity: 0,
-    scale: 0.75,
-  },
-};
+import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 
 function SectionProgressionModal() {
-  const [localSectionProgression, setLocalSectionProgression] = useState<
-    SectionProgression[]
-  >([]);
-
-  const scrollableSectionsRef = useRef<HTMLDivElement>(null);
-
   const {
     tabData,
     sectionProgression,
@@ -58,10 +31,30 @@ function SectionProgressionModal() {
     setShowSectionProgressionModal: state.setShowSectionProgressionModal,
   }));
 
+  const [localSectionProgression, setLocalSectionProgression] = useState<
+    SectionProgression[]
+  >([]);
+
+  const scrollableSectionsRef = useRef<HTMLDivElement>(null);
+
   useModalScrollbarHandling();
 
   useEffect(() => {
-    setLocalSectionProgression(structuredClone(sectionProgression));
+    const baseSectionProgression =
+      sectionProgression.length === 0
+        ? [
+            {
+              id: crypto.randomUUID(),
+              sectionId: "",
+              title: "",
+              repetitions: 1,
+              startSeconds: 0, // will be overwritten by useAutoCompileChords
+              endSeconds: 0, // will be overwritten by useAutoCompileChords
+            },
+          ]
+        : structuredClone(sectionProgression);
+
+    setLocalSectionProgression(baseSectionProgression);
   }, [sectionProgression]);
 
   const sections = useMemo(() => {
@@ -116,10 +109,10 @@ function SectionProgressionModal() {
     <motion.div
       key={"sectionProgressionModalBackdrop"}
       className="baseFlex fixed left-0 top-0 z-50 h-[100dvh] w-[100vw] bg-black/50"
-      variants={backdropVariants}
-      initial="closed"
-      animate="expanded"
-      exit="closed"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       tabIndex={-1}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
@@ -135,66 +128,60 @@ function SectionProgressionModal() {
       >
         <div className="min-h-[20rem] min-w-[70vw] rounded-md bg-pink-400 p-4 shadow-sm md:min-w-[25rem]">
           <div className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full max-w-[90vw] !justify-between">
-            <div className="baseFlex lightestGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
-              <p className="text-lg font-semibold">Section progression</p>
-            </div>
+            <span className="self-start text-lg font-semibold text-pink-100">
+              Section progression
+            </span>
 
             <div
               ref={scrollableSectionsRef}
-              className="baseVertFlex mt-8 max-h-[70vh] w-full !justify-start gap-4 overflow-y-auto overflow-x-hidden p-4 px-12 md:max-h-[70vh]"
+              className="baseVertFlex mt-4 max-h-[70vh] w-full !justify-start overflow-y-auto pr-4 md:max-h-[70vh]"
             >
-              {localSectionProgression.length > 0 ? (
-                <AnimatePresence mode="wait">
-                  <>
-                    {localSectionProgression.map((section, index) => (
-                      <Section
-                        key={section.id}
-                        index={index}
-                        id={section.id}
-                        sectionId={section.sectionId}
-                        title={section.title}
-                        repetitions={section.repetitions}
-                        sections={sections}
-                        localSectionProgression={localSectionProgression}
-                        setLocalSectionProgression={setLocalSectionProgression}
-                      />
-                    ))}
-                  </>
-                </AnimatePresence>
-              ) : (
-                <Button onClick={addNewSectionToProgression}>
-                  Add first section
-                </Button>
-              )}
+              <AnimatePresence initial={false}>
+                {localSectionProgression.map((section, index) => (
+                  <Section
+                    key={section.id}
+                    index={index}
+                    id={section.id}
+                    sectionId={section.sectionId}
+                    title={section.title}
+                    repetitions={section.repetitions}
+                    sections={sections}
+                    localSectionProgression={localSectionProgression}
+                    setLocalSectionProgression={setLocalSectionProgression}
+                  />
+                ))}
+              </AnimatePresence>
             </div>
 
-            {localSectionProgression.length > 0 && (
+            <div className="baseFlex mt-8 w-full !justify-between gap-4">
               <Button
-                className="mt-5 rounded-full !py-5 px-2"
+                variant={"secondary"}
+                className="baseFlex gap-2 py-4"
                 onClick={addNewSectionToProgression}
               >
-                <BsPlus className="h-6 w-6 p-0" />
-              </Button>
-            )}
-
-            <div className="baseFlex mt-5 gap-4">
-              <Button
-                variant={"ghost"}
-                onClick={() => setShowSectionProgressionModal(false)}
-              >
-                Close
+                <BsPlus className="size-6" />
+                <span>Add section</span>
               </Button>
 
-              <Button
-                disabled={
-                  localSectionProgression.every(
-                    (section) => section.title === "",
-                  ) || isEqual(localSectionProgression, sectionProgression)
-                }
-                onClick={closeModal}
-              >
-                Save
-              </Button>
+              <div className="baseFlex gap-4">
+                <Button
+                  variant={"ghost"}
+                  onClick={() => setShowSectionProgressionModal(false)}
+                >
+                  Close
+                </Button>
+
+                <Button
+                  disabled={
+                    localSectionProgression.some(
+                      (section) => section.title === "",
+                    ) || isEqual(localSectionProgression, sectionProgression)
+                  }
+                  onClick={closeModal}
+                >
+                  Save
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -265,16 +252,16 @@ function Section({
   function moveSectionUp() {
     const newSectionProgression = [...localSectionProgression];
     const temp = newSectionProgression[index - 1];
-    newSectionProgression[index - 1] = newSectionProgression[index];
-    newSectionProgression[index] = temp;
+    newSectionProgression[index - 1] = newSectionProgression[index]!;
+    newSectionProgression[index] = temp!;
     setLocalSectionProgression(newSectionProgression);
   }
 
   function moveSectionDown() {
     const newSectionProgression = [...localSectionProgression];
     const temp = newSectionProgression[index + 1];
-    newSectionProgression[index + 1] = newSectionProgression[index];
-    newSectionProgression[index] = temp;
+    newSectionProgression[index + 1] = newSectionProgression[index]!;
+    newSectionProgression[index] = temp!;
     setLocalSectionProgression(newSectionProgression);
   }
 
@@ -282,46 +269,49 @@ function Section({
     <motion.div
       key={`sectionProgression${id}`}
       layout={"position"}
-      initial="closed"
-      animate="expanded"
-      exit="closed"
-      variants={sectionVariants}
-      className="baseFlex relative w-full gap-2"
+      initial={{ opacity: 0, height: 0, margin: 0 }}
+      animate={{
+        opacity: 1,
+        height: "auto",
+        marginTop: "0.5rem",
+        marginBottom: "0.5rem",
+      }}
+      exit={{ opacity: 0, height: 0, margin: 0 }}
+      transition={{ duration: 0.2 }}
+      className="baseVertFlex relative w-full gap-2"
     >
-      <div className="baseVertFlex gap-2">
-        <Button
-          disabled={index === 0}
-          variant="secondary"
-          size="sm"
-          className="px-2"
-          onClick={() => moveSectionUp()}
-        >
-          <BiUpArrowAlt className="h-5 w-5"></BiUpArrowAlt>
-        </Button>
-        <Button
-          disabled={index === localSectionProgression.length - 1}
-          variant="secondary"
-          size="sm"
-          className="px-2"
-          onClick={() => moveSectionDown()}
-        >
-          <BiDownArrowAlt className="h-5 w-5"></BiDownArrowAlt>
-        </Button>
-      </div>
-      <div className="baseVertFlex lightestGlassmorphic w-full gap-4 rounded-md px-8 py-4 xs:!flex-row sm:px-4">
-        <Select
-          value={sectionId === "" ? undefined : sectionId}
-          onValueChange={(id) => handleSectionChange(id)}
-        >
-          <SelectTrigger className="w-full xs:w-[175px]">
-            <SelectValue placeholder="Select a section">
-              {title || "Select a section"}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup className="max-h-60 overflow-y-auto">
-              <SelectLabel>Sections</SelectLabel>
+      <div className="baseFlex w-full !justify-start gap-2">
+        <span>{getOrdinalSuffix(index + 1)} section</span>
 
+        {/* TODO: consider implementing this later, you will have to do some local calculations */}
+        {/* <div className="baseFlex gap-2">
+          <span className="text-stone-300">
+            {formatSecondsToMinutes(
+              localSectionProgression[index]!.startSeconds,
+            )}
+          </span>
+          <span className="text-stone-300">-</span>
+          <span className="text-stone-300">
+            {formatSecondsToMinutes(localSectionProgression[index]!.endSeconds)}
+          </span>
+        </div> */}
+      </div>
+
+      <div className="baseVertFlex lightestGlassmorphic gap-6 rounded-md p-4 xs:!flex-row xs:!justify-between xs:gap-4">
+        <div className="baseVertFlex gap-4 xs:!flex-row">
+          <Select
+            value={sectionId === "" ? undefined : sectionId}
+            onValueChange={(id) => handleSectionChange(id)}
+          >
+            <SelectTrigger className="w-[218px] xs:w-[218px]">
+              <SelectValue
+                placeholder="Select a section"
+                className="overflow-x-hidden truncate"
+              >
+                {title || "Select a section"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="max-h-60 overflow-y-auto">
               {sections.map((section) => {
                 return (
                   <SelectItem key={section.id} value={section.id}>
@@ -329,28 +319,83 @@ function Section({
                   </SelectItem>
                 );
               })}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+            </SelectContent>
+          </Select>
 
-        <div className="baseFlex gap-4 xs:!flex-row xs:!items-center">
           <div className="baseFlex gap-2">
             <span>Repeat</span>
 
             <div className="relative w-12">
-              <span className="absolute bottom-[9px] left-2 text-sm">x</span>
+              <span className="absolute bottom-[10px] left-2 text-sm sm:bottom-[9px]">
+                x
+              </span>
               <Input
                 className="w-12 pl-4"
                 type="text"
+                inputMode="numeric"
                 autoComplete="off"
                 placeholder="1"
                 value={repetitions === -1 ? "" : repetitions}
                 onChange={handleRepetitionChange}
               />
             </div>
-          </div>
 
-          <Button variant={"destructive"} onClick={deleteSection}>
+            <div className="baseFlex gap-2 xs:!hidden">
+              <Button
+                disabled={index === 0}
+                variant="secondary"
+                size="sm"
+                className="px-2"
+                onClick={() => moveSectionUp()}
+              >
+                <BiUpArrowAlt className="h-5 w-5"></BiUpArrowAlt>
+              </Button>
+              <Button
+                disabled={index === localSectionProgression.length - 1}
+                variant="secondary"
+                size="sm"
+                className="px-2"
+                onClick={() => moveSectionDown()}
+              >
+                <BiDownArrowAlt className="h-5 w-5"></BiDownArrowAlt>
+              </Button>
+
+              <Button
+                variant={"destructive"}
+                disabled={localSectionProgression.length === 1}
+                onClick={deleteSection}
+              >
+                <FaTrashAlt className="size-4 text-pink-100" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="baseFlex !hidden w-full !justify-evenly gap-4 xs:!flex xs:w-auto xs:!flex-row xs:!justify-center">
+          <Button
+            disabled={index === 0}
+            variant="secondary"
+            size="sm"
+            className="px-2"
+            onClick={() => moveSectionUp()}
+          >
+            <BiUpArrowAlt className="h-5 w-5"></BiUpArrowAlt>
+          </Button>
+          <Button
+            disabled={index === localSectionProgression.length - 1}
+            variant="secondary"
+            size="sm"
+            className="px-2"
+            onClick={() => moveSectionDown()}
+          >
+            <BiDownArrowAlt className="h-5 w-5"></BiDownArrowAlt>
+          </Button>
+
+          <Button
+            variant={"destructive"}
+            disabled={localSectionProgression.length === 1}
+            onClick={deleteSection}
+          >
             <FaTrashAlt className="size-4 text-pink-100" />
           </Button>
         </div>

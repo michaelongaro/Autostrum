@@ -22,7 +22,7 @@ import {
 import { traverseToRemoveHangingStrummingPatternPairNode } from "~/utils/palmMuteHelpers";
 import StrummingPattern from "../Tab/StrummingPattern";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
-import { Button } from "../ui/button";
+import { Button } from "~/components/ui/button";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import {
   EigthNote,
@@ -394,45 +394,42 @@ function StrummingPatternModal({
                   <SelectValue placeholder="Select a length" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Note length</SelectLabel>
-                    <SelectItem value="1/4th">
-                      <div className="baseFlex gap-2">
-                        <QuarterNote className="" />
-                        1/4th
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="1/4th triplet">
-                      <div className="baseFlex gap-2">
-                        <QuarterNote />
-                        1/4th triplet
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="1/8th">
-                      <div className="baseFlex gap-2">
-                        <EigthNote />
-                        1/8th
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="1/8th triplet">
-                      <div className="baseFlex gap-2">
-                        <EigthNote />
-                        1/8th triplet
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="1/16th">
-                      <div className="baseFlex gap-2">
-                        <SixteenthNote />
-                        1/16th
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="1/16th triplet">
-                      <div className="baseFlex gap-2">
-                        <SixteenthNote />
-                        1/16th triplet
-                      </div>
-                    </SelectItem>
-                  </SelectGroup>
+                  <SelectItem value="1/4th">
+                    <div className="baseFlex gap-2">
+                      <QuarterNote className="" />
+                      1/4th
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="1/4th triplet">
+                    <div className="baseFlex gap-2">
+                      <QuarterNote />
+                      1/4th triplet
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="1/8th">
+                    <div className="baseFlex gap-2">
+                      <EigthNote />
+                      1/8th
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="1/8th triplet">
+                    <div className="baseFlex gap-2">
+                      <EigthNote />
+                      1/8th triplet
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="1/16th">
+                    <div className="baseFlex gap-2">
+                      <SixteenthNote />
+                      1/16th
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="1/16th triplet">
+                    <div className="baseFlex gap-2">
+                      <SixteenthNote />
+                      1/16th triplet
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
@@ -545,17 +542,17 @@ function StrummingPatternModal({
                 </div>
                 <p>-</p>
                 <p className="md:mr-4">Upstrum</p>
-                <div className="baseFlex gap-1">
+                <div className="place-self-end">
                   <kbd>s</kbd>
                 </div>
                 <p>-</p>
                 <p className="md:mr-4">Slap</p>
-                <div className="baseFlex gap-1">
+                <div className="place-self-end">
                   <kbd>&gt;</kbd>
                 </div>
                 <p>-</p>
                 <p className="md:mr-4">Accented</p>
-                <div className="baseFlex gap-1">
+                <div className="place-self-end">
                   <kbd>.</kbd>
                 </div>
                 <p>-</p>

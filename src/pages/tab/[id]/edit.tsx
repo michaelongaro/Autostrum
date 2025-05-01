@@ -22,7 +22,7 @@ interface OpenGraphData {
 }
 // not sure if this is correct file routing for slug
 
-function IndividualTabEdit({
+function EditIndividualTab({
   userAllowedToEdit,
   tabExists,
   openGraphData,
@@ -94,7 +94,7 @@ function IndividualTabEdit({
   );
 }
 
-export default IndividualTabEdit;
+export default EditIndividualTab;
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const { userId } = getAuth(ctx.req);

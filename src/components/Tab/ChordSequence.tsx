@@ -18,8 +18,8 @@ import {
   type ChordSection,
 } from "~/stores/TabStore";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import MiscellaneousControls from "./MiscellaneousControls";
 import StrummingPattern from "./StrummingPattern";
 import StrummingPatternPreview from "./StrummingPatternPreview";

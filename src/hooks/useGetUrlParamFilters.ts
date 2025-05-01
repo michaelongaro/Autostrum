@@ -72,7 +72,11 @@ function useGetUrlParamFilters() {
           }
           break;
         case "tuning":
-          if (typeof value === "string" && !tuningNotes.includes(value)) {
+          if (
+            typeof value === "string" &&
+            value !== "custom" &&
+            !tuningNotes.includes(value)
+          ) {
             setRenderSearch404(true);
             return;
           }

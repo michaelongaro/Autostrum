@@ -10,7 +10,7 @@ import { IoBookmarkOutline, IoBookmark } from "react-icons/io5";
 import type { UserMetadata } from "~/server/api/routers/user";
 import { api } from "~/utils/api";
 import { Button } from "./button";
-import type { InfiniteQueryParams } from "../Search/SearchResults";
+import type { InfiniteQueryParams } from "~/server/api/routers/search";
 
 interface BookmarkToggle {
   tabId: number;
@@ -54,8 +54,9 @@ function BookmarkToggle({
         };
       });
 
-      // only if on /explore, /artist, /user, or /profile
+      // only if on homepage, /explore, /artist, /user, or /profile
       if (
+        asPath === "/" ||
         asPath.includes("/explore") ||
         asPath.includes("/artist") ||
         asPath.includes("/user") ||
@@ -113,8 +114,9 @@ function BookmarkToggle({
         };
       });
 
-      // only if on /explore, /artist, /user, or /profile
+      // only if on homepage, /explore, /artist, /user, or /profile
       if (
+        asPath === "/" ||
         asPath.includes("/explore") ||
         asPath.includes("/artist") ||
         asPath.includes("/user") ||
@@ -154,8 +156,8 @@ function BookmarkToggle({
           );
         }
       } else if (asPath.includes("/profile/bookmarks") && infiniteQueryParams) {
-        await ctx.tab.getInfiniteTabsBySearchQuery.cancel();
-        ctx.tab.getInfiniteTabsBySearchQuery.setInfiniteData(
+        await ctx.search.getInfiniteTabsBySearchQuery.cancel();
+        ctx.search.getInfiniteTabsBySearchQuery.setInfiniteData(
           infiniteQueryParams,
           (prevTabData) => {
             if (!prevTabData) return { pages: [], pageParams: [] };

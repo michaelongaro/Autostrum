@@ -14,6 +14,18 @@ interface TabWithArtistRank {
   rank: number;
 }
 
+export interface InfiniteQueryParams {
+  searchQuery: string | undefined;
+  genreId: number | undefined;
+  tuning: string | undefined;
+  capo: boolean | undefined;
+  difficulty: number | undefined;
+  sortBy: "relevance" | "newest" | "oldest" | "mostPopular" | "leastPopular";
+  userIdToSelectFrom: string | undefined;
+  artistIdToSelectFrom: number | undefined;
+  bookmarkedByUserId: string | undefined;
+}
+
 export interface MinimalTabRepresentation {
   id: number;
   title: string;
@@ -23,6 +35,7 @@ export interface MinimalTabRepresentation {
   averageRating: number;
   ratingsCount: number;
   artist: {
+    id: number;
     name: string;
     isVerified: boolean;
   } | null;
@@ -53,6 +66,7 @@ export const searchRouter = createTRPCRouter({
           ratingsCount: true,
           artist: {
             select: {
+              id: true,
               name: true,
               isVerified: true,
             },
@@ -70,6 +84,7 @@ export const searchRouter = createTRPCRouter({
 
       const conditionalArtist = tab.artist
         ? {
+            id: tab.artist.id,
             name: tab.artist.name,
             isVerified: tab.artist.isVerified,
           }
@@ -501,6 +516,7 @@ export const searchRouter = createTRPCRouter({
                 ratingsCount: true,
                 artist: {
                   select: {
+                    id: true,
                     name: true,
                     isVerified: true,
                   },
@@ -526,6 +542,7 @@ export const searchRouter = createTRPCRouter({
           const sanitizedTabs: MinimalTabRepresentation[] = tabs.map((tab) => {
             const conditionalArtist = tab.artist
               ? {
+                  id: tab.artist.id,
                   name: tab.artist.name,
                   isVerified: tab.artist.isVerified,
                 }

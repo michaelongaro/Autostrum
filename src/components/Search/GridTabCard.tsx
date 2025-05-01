@@ -5,20 +5,24 @@ import { useEffect, useState } from "react";
 import { FaStar } from "react-icons/fa6";
 import DifficultyBars from "~/components/ui/DifficultyBars";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import type { MinimalTabRepresentation } from "~/server/api/routers/search";
+import type {
+  InfiniteQueryParams,
+  MinimalTabRepresentation,
+} from "~/server/api/routers/search";
 import type { UserMetadata } from "~/server/api/routers/user";
 import formatDate from "~/utils/formatDate";
 import { genreList } from "~/utils/genreList";
-import BookmarkToggle from "../ui/BookmarkToggle";
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
-import { Separator } from "../ui/separator";
+import BookmarkToggle from "~/components/ui/BookmarkToggle";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import { Separator } from "~/components/ui/separator";
 import { useRouter } from "next/router";
 
 interface GridTabCard {
   minimalTab: MinimalTabRepresentation;
   currentUser: UserMetadata | null | undefined;
   largeVariant?: boolean;
+  infiniteQueryParams?: InfiniteQueryParams;
   ref?: React.RefObject<HTMLDivElement>;
 }
 
@@ -26,6 +30,7 @@ function GridTabCard({
   minimalTab,
   currentUser,
   largeVariant,
+  infiniteQueryParams,
   ref,
 }: GridTabCard) {
   const { query, asPath } = useRouter();
@@ -81,7 +86,7 @@ function GridTabCard({
       {/* tab preview */}
       <div className="relative w-full">
         <Link
-          href={`/tab/${minimalTab.id}`}
+          href={`/tab/${minimalTab.id}/${encodeURIComponent(minimalTab.title)}`}
           prefetch={false}
           style={{
             width: largeVariant
@@ -155,6 +160,7 @@ function GridTabCard({
           isBookmarked={
             currentUser?.bookmarkedTabIds?.includes(minimalTab.id) ?? false
           }
+          infiniteQueryParams={infiniteQueryParams}
           customClassName={"absolute top-2 right-2 size-10"}
         />
       </div>
@@ -167,7 +173,7 @@ function GridTabCard({
           <Button variant={"link"} asChild>
             <Link
               prefetch={false}
-              href={`/tab/${minimalTab.id}`}
+              href={`/tab/${minimalTab.id}/${encodeURIComponent(minimalTab.title)}`}
               className="!h-5 !p-0 !font-semibold md:h-6 md:!text-lg"
             >
               <p>{minimalTab.title}</p>
@@ -193,7 +199,7 @@ function GridTabCard({
                       prefetch={false}
                       href={
                         minimalTab.artist
-                          ? `/artist/${minimalTab.artist.name}`
+                          ? `/artist/${minimalTab.artist.id}/${encodeURIComponent(minimalTab.artist.name)}`
                           : minimalTab.createdBy
                             ? `/user/${minimalTab.createdBy.username}`
                             : ""

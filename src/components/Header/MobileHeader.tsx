@@ -7,11 +7,12 @@ import {
 } from "@clerk/nextjs";
 import { IoSettingsOutline } from "react-icons/io5";
 import { useLocalStorageValue } from "@react-hookz/web";
-import { FaUser } from "react-icons/fa";
 import { AnimatePresence, motion } from "framer-motion";
 import { BiSearchAlt2 } from "react-icons/bi";
 import { Squash as Hamburger } from "hamburger-react";
 import { TbGuitarPick } from "react-icons/tb";
+import { IoColorPalette } from "react-icons/io5";
+import { FaUser } from "react-icons/fa";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +44,7 @@ import SearchInput from "~/components/Search/SearchInput";
 ///
 import { IoCompassOutline } from "react-icons/io5";
 import Binoculars from "~/components/ui/icons/Binoculars";
+import ThemePicker from "~/components/Header/ThemePicker";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -91,7 +93,7 @@ function MobileHeader() {
             animate="expanded"
             exit="closed"
             transition={{ duration: 0.3 }}
-            className="baseVertFlex fixed left-0 top-16 z-[49] w-full bg-pink-400 shadow-lg"
+            className="baseVertFlex fixed left-0 top-16 z-[49] max-h-[80dvh] w-full !justify-start overflow-y-auto rounded-b-xl bg-pink-400 shadow-lg"
           >
             <div className="baseVertFlex my-4 h-full max-w-[348px] gap-4">
               <div className="baseFlex w-full gap-4">
@@ -186,12 +188,13 @@ function MobileHeader() {
                   value="opened"
                   className="baseVertFlex relative w-full"
                 >
-                  <AccordionTrigger className="w-full">
-                    Theme - Navy | Night
+                  <AccordionTrigger className="baseFlex w-full !justify-start gap-2">
+                    <IoColorPalette className="size-5 !rotate-0" />
+                    Peony | Light
                   </AccordionTrigger>
 
                   <AccordionContent animated={true} className="w-full">
-                    content
+                    <ThemePicker />
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
@@ -199,57 +202,31 @@ function MobileHeader() {
               <Separator className="h-[1px] w-full" />
 
               {!isSignedIn && (
-                <div className="baseFlex gap-4">
-                  <SignUpButton
-                    mode="modal"
-                    // afterSignUpUrl={`${
-                    //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                    // }/postSignUpRegistration`}
-                    // afterSignInUrl={`${
-                    //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                    // }${asPath}`}
-                  >
-                    <Button
-                      className="h-10 px-6"
-                      onClick={() => {
-                        if (asPath.includes("/create")) {
-                          localStorageTabData.set(getStringifiedTabData());
-                        }
+                <SignInButton
+                  mode="modal"
+                  // afterSignUpUrl={`${
+                  //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+                  // }/postSignUpRegistration`}
+                  // afterSignInUrl={`${
+                  //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+                  // }${asPath}`}
+                >
+                  <Button
+                    className="baseFlex h-10 gap-2 px-8"
+                    onClick={() => {
+                      if (asPath.includes("/create")) {
+                        localStorageTabData.set(getStringifiedTabData());
+                      }
 
-                        // technically can sign in from signup page and vice versa
-                        if (!userId) localStorageRedirectRoute.set(asPath);
-                        // ^^ but technically could just append it onto the postSignupRegistration route right?
-                      }}
-                    >
-                      Sign up
-                    </Button>
-                  </SignUpButton>
-                  <SignInButton
-                    mode="modal"
-                    // afterSignUpUrl={`${
-                    //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                    // }/postSignUpRegistration`}
-                    // afterSignInUrl={`${
-                    //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                    // }${asPath}`}
+                      // technically can sign in from signup page and vice versa
+                      if (!userId) localStorageRedirectRoute.set(asPath);
+                      // ^^ but technically could just append it onto the postSignupRegistration route right?
+                    }}
                   >
-                    <Button
-                      variant={"secondary"}
-                      className="h-10"
-                      onClick={() => {
-                        if (asPath.includes("/create")) {
-                          localStorageTabData.set(getStringifiedTabData());
-                        }
-
-                        // technically can sign in from signup page and vice versa
-                        if (!userId) localStorageRedirectRoute.set(asPath);
-                        // ^^ but technically could just append it onto the postSignupRegistration route right?
-                      }}
-                    >
-                      Sign in
-                    </Button>
-                  </SignInButton>
-                </div>
+                    <FaUser className="size-4" />
+                    Sign in
+                  </Button>
+                </SignInButton>
               )}
 
               {isSignedIn && user && (
@@ -369,7 +346,7 @@ function MobileHeader() {
                         className="baseFlex w-[165px] gap-2"
                       >
                         <TbGuitarPick className="size-4" />
-                        My tabs
+                        Tabs
                       </Link>
                     </Button>
 
@@ -391,7 +368,7 @@ function MobileHeader() {
                         className="baseFlex w-[165px] gap-2 !px-0"
                       >
                         <IoBookmarkOutline className="size-4 shrink-0" />
-                        My bookmarks
+                        Bookmarks
                       </Link>
                     </Button>
                   </div>
@@ -445,7 +422,7 @@ function MobileHeader() {
 
               <DialogContent
                 renderCloseButton={false}
-                className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start bg-pink-500 p-0"
+                className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start bg-gradient-to-b from-pink-400 to-pink-500 p-0"
               >
                 <SearchInput setShowMobileSearch={setShowMobileSearch} />
               </DialogContent>

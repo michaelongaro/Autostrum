@@ -7,7 +7,7 @@ import { createTRPCContext } from "~/server/api/trpc";
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: "10mb", // extra, max should be around ~8mb due to the codec + sample rate + 5 min max recording time
+      sizeLimit: "10mb", // extra, maybe reduce if needed
     },
     responseLimit: false,
   },

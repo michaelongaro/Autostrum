@@ -17,7 +17,7 @@ import {
 import { createPortal } from "react-dom";
 import { AiFillEye } from "react-icons/ai";
 import { BsArrowRightShort, BsPlus } from "react-icons/bs";
-import { FaMicrophoneAlt, FaTrashAlt } from "react-icons/fa";
+import { FaTrashAlt } from "react-icons/fa";
 import { MdModeEditOutline, MdVerified } from "react-icons/md";
 import {
   Popover,
@@ -31,11 +31,11 @@ import { genreList } from "~/utils/genreList";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import { tuningNotesToName } from "~/utils/tunings";
 import ArtistCommandCombobox from "~/components/ui/ArtistCommandCombobox";
-import TuningCommandCombobox from "../ui/TuningCommandCombobox";
-import BookmarkToggle from "../ui/BookmarkToggle";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
+import BookmarkToggle from "~/components/ui/BookmarkToggle";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { IoIosShareAlt } from "react-icons/io";
 import {
   Select,
   SelectContent,
@@ -44,10 +44,9 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
-import { Separator } from "../ui/separator";
-import { Textarea } from "../ui/textarea";
-import type { RefetchTab } from "./Tab";
+} from "~/components/ui/select";
+import { Separator } from "~/components/ui/separator";
+import { Textarea } from "~/components/ui/textarea";
 import classes from "./TabMetadata.module.css";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import TabScreenshotPreview from "./TabScreenshotPreview";
@@ -56,6 +55,7 @@ import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
 import RateTab from "~/components/ui/RateTab";
 import DifficultyBars from "~/components/ui/DifficultyBars";
 import { formatNumber } from "~/utils/formatNumber";
+import TuningSelect from "~/components/ui/TuningSelect";
 
 const KEYS_BY_LETTER = {
   A: ["A major", "A minor", "A# minor", "A♭ major", "A♭ minor"],
@@ -76,7 +76,6 @@ type TabMetadata = {
 
 function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
   const { userId } = useAuth();
-
   const { push, asPath } = useRouter();
   const ctx = api.useUtils();
 
@@ -86,12 +85,6 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
 
   const [showDeletePopover, setShowDeletePopover] = useState(false);
   const [showPublishPopover, setShowPublishPopover] = useState(false);
-  const [
-    showUnregisteredRecordingPopover,
-    setShowUnregisteredRecordingPopover,
-  ] = useState(false);
-  const [unregisteredPopoverTimeoutId, setUnregisteredPopoverTimeoutId] =
-    useState<NodeJS.Timeout | null>(null);
 
   const [publishErrorOccurred, setPublishErrorOccurred] = useState(false);
   const [showPulsingError, setShowPulsingError] = useState(false);
@@ -128,19 +121,15 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
     setDifficulty,
     capo,
     setCapo,
-    hasRecordedAudio,
     editing,
     setEditing,
     setOriginalTabData,
-    setShowAudioRecorderModal,
-    recordedAudioFile,
-    shouldUpdateInS3,
     audioMetadata,
-    previewMetadata,
     pauseAudio,
     isLoadingARoute,
     setCurrentlyPlayingMetadata,
     setCurrentChordIndex,
+    viewportLabel,
   } = useTabStore((state) => ({
     originalTabData: state.originalTabData,
     id: state.id,
@@ -165,7 +154,6 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
     sectionProgression: state.sectionProgression,
     capo: state.capo,
     setCapo: state.setCapo,
-    hasRecordedAudio: state.hasRecordedAudio,
     editing: state.editing,
     key: state.key,
     setKey: state.setKey,
@@ -173,15 +161,12 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
     setDifficulty: state.setDifficulty,
     setEditing: state.setEditing,
     setOriginalTabData: state.setOriginalTabData,
-    setShowAudioRecorderModal: state.setShowAudioRecorderModal,
-    recordedAudioFile: state.recordedAudioFile,
-    shouldUpdateInS3: state.shouldUpdateInS3,
     audioMetadata: state.audioMetadata,
-    previewMetadata: state.previewMetadata,
     pauseAudio: state.pauseAudio,
     isLoadingARoute: state.isLoadingARoute,
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
     setCurrentChordIndex: state.setCurrentChordIndex,
+    viewportLabel: state.viewportLabel,
   }));
 
   const { data: dynamicMetadata, isLoading: isLoadingDynamicMetadata } =
@@ -200,7 +185,9 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
             setCurrentlyPlayingMetadata(null);
             setCurrentChordIndex(0);
             if (asPath.includes("create")) {
-              void push(`/tab/${tab.id}`);
+              void push(
+                `/tab/?title=${encodeURIComponent(tab.title)}&id=${tab.id}`,
+              );
             }
           }, 250);
 
@@ -364,28 +351,6 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
     // a bit for the posting to actually occur, this should be more synchronous
     setIsPostingOrSaving(true);
 
-    let base64RecordedAudioFile: string | null = null;
-
-    if (recordedAudioFile) {
-      base64RecordedAudioFile = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(recordedAudioFile);
-        reader.onloadend = () => {
-          // not sure if this is the best type-narrowing check for below resolve()
-          if (!reader.result || typeof reader.result !== "string") return null;
-          resolve(reader.result.split(",")[1]!);
-        };
-        reader.onerror = reject;
-      })
-        .then((base64) => {
-          return base64 as string;
-        })
-        .catch((err) => {
-          console.error(err);
-          return null;
-        });
-    }
-
     setMinifiedTabData(getMinifiedTabData());
     setTakingScreenshot(true);
 
@@ -394,6 +359,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
         const base64Screenshot = canvas.toDataURL("image/jpeg", 0.75);
         if (userId) {
           createOrUpdate({
+            type: asPath.includes("create") ? "create" : "update",
             id,
             createdByUserId: userId,
             title,
@@ -403,14 +369,10 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
             strummingPatterns,
             tabData,
             sectionProgression,
-            hasRecordedAudio,
             tuning,
             bpm,
             capo,
-            base64RecordedAudioFile,
-            shouldUpdateInS3,
             base64TabScreenshot: base64Screenshot,
-            type: asPath.includes("create") ? "create" : "update",
           });
         }
 
@@ -456,7 +418,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
       strummingPatterns,
     };
 
-    return isEqual(originalData, sanitizedCurrentTabData) && !shouldUpdateInS3;
+    return isEqual(originalData, sanitizedCurrentTabData);
   }
 
   function renderSavePopoverContent() {
@@ -528,7 +490,11 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                 <Button
                   disabled={isLoadingARoute}
                   className="baseFlex py-1 pl-1 pr-3 md:py-2"
-                  onClick={() => void push(`/tab/${id}`)}
+                  onClick={() =>
+                    void push(
+                      `/tab/?title=${encodeURIComponent(title)}&id=${id}`,
+                    )
+                  }
                 >
                   <BsArrowRightShort className="h-6 w-8 rotate-180 text-pink-100" />
                   Return to tab
@@ -633,57 +599,6 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                   </Popover>
                 )}
 
-                <Popover
-                  open={showUnregisteredRecordingPopover}
-                  onOpenChange={(open) => {
-                    if (open === false) {
-                      setShowUnregisteredRecordingPopover(false);
-                      if (unregisteredPopoverTimeoutId) {
-                        clearTimeout(unregisteredPopoverTimeoutId);
-                        setUnregisteredPopoverTimeoutId(null);
-                      }
-                    }
-                  }}
-                >
-                  <PopoverTrigger
-                    asChild
-                    onClick={() => {
-                      if (!currentUser) {
-                        setShowUnregisteredRecordingPopover(true);
-                        setUnregisteredPopoverTimeoutId(
-                          setTimeout(() => {
-                            setShowUnregisteredRecordingPopover(false);
-                          }, 2000),
-                        );
-                      }
-                    }}
-                  >
-                    <Button
-                      variant={"recording"}
-                      onClick={() => {
-                        if (!userId) return;
-
-                        setShowAudioRecorderModal(true);
-
-                        if (audioMetadata.playing || previewMetadata.playing) {
-                          pauseAudio();
-                        }
-                      }}
-                    >
-                      <div className="baseFlex gap-2 whitespace-nowrap text-nowrap">
-                        {hasRecordedAudio ? "Edit recording" : "Record tab"}
-                        <FaMicrophoneAlt className="h-4 w-4" />
-                      </div>
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[325px] bg-pink-100 p-2 text-sm text-pink-950 md:w-[375px] md:text-base">
-                    <div className="baseFlex !flex-nowrap gap-2 pr-2">
-                      <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
-                      <p> Only registered users can record a tab.</p>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-
                 <Button
                   variant={"secondary"}
                   disabled={showPulsingError}
@@ -741,9 +656,6 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                           }`}
 
                       <AnimatePresence mode="wait">
-                        {/* will need to also include condition for while recording is being
-                            uploaded to s3 to also show loading spinner, don't necessarily have to
-                            communicate that it's uploading recorded audio imo */}
                         {(isPosting || takingScreenshot) && (
                           <motion.svg
                             key="postingLoadingSpinner"
@@ -823,7 +735,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                 classes.artist ?? ""
               } baseVertFlex w-full !items-start gap-1.5`}
             >
-              <Label htmlFor="title">Artist</Label>
+              <Label>Artist</Label>
               <ArtistCommandCombobox customTuning={customTuning} />
             </div>
 
@@ -883,32 +795,22 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                   <SelectValue placeholder="Select a genre" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Genres</SelectLabel>
-
-                    {Object.values(genreList)
-                      .slice(0, Object.values(genreList).length - 1)
-                      .map((genre) => {
-                        return (
-                          <SelectItem
-                            key={genre.id}
-                            value={genre.id.toString()}
-                          >
-                            <div className="baseFlex gap-2">
-                              <div
-                                style={{
-                                  backgroundColor: genre.color,
-                                  boxShadow:
-                                    "0 1px 1px hsla(336, 84%, 17%, 0.9)",
-                                }}
-                                className="h-3 w-3 rounded-full"
-                              ></div>
-                              {genre.name}
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
-                  </SelectGroup>
+                  {Object.values(genreList).map((genre) => {
+                    return (
+                      <SelectItem key={genre.id} value={genre.id.toString()}>
+                        <div className="baseFlex gap-2">
+                          <div
+                            style={{
+                              backgroundColor: genre.color,
+                              boxShadow: "0 1px 1px hsla(336, 84%, 17%, 0.9)",
+                            }}
+                            className="h-3 w-3 rounded-full"
+                          ></div>
+                          {genre.name}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -921,7 +823,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
               <Label htmlFor="tuning">
                 Tuning <span className="text-destructiveRed">*</span>
               </Label>
-              <TuningCommandCombobox customTuning={customTuning} />
+              <TuningSelect customTuning={customTuning} />
             </div>
 
             <div
@@ -934,27 +836,23 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                 value={capo.toString()}
                 onValueChange={(value) => setCapo(Number(value))}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-28">
                   <SelectValue placeholder="None" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectGroup className="max-h-[300px] overflow-y-auto">
-                    <SelectLabel>Capo</SelectLabel>
-
-                    <SelectItem value={"0"}>None</SelectItem>
-                    <SelectItem value={"1"}>1st fret</SelectItem>
-                    <SelectItem value={"2"}>2nd fret</SelectItem>
-                    <SelectItem value={"3"}>3rd fret</SelectItem>
-                    <SelectItem value={"4"}>4th fret</SelectItem>
-                    <SelectItem value={"5"}>5th fret</SelectItem>
-                    <SelectItem value={"6"}>6th fret</SelectItem>
-                    <SelectItem value={"7"}>7th fret</SelectItem>
-                    <SelectItem value={"8"}>8th fret</SelectItem>
-                    <SelectItem value={"9"}>9th fret</SelectItem>
-                    <SelectItem value={"10"}>10th fret</SelectItem>
-                    <SelectItem value={"11"}>11th fret</SelectItem>
-                    <SelectItem value={"12"}>12th fret</SelectItem>
-                  </SelectGroup>
+                  <SelectItem value={"0"}>None</SelectItem>
+                  <SelectItem value={"1"}>1st fret</SelectItem>
+                  <SelectItem value={"2"}>2nd fret</SelectItem>
+                  <SelectItem value={"3"}>3rd fret</SelectItem>
+                  <SelectItem value={"4"}>4th fret</SelectItem>
+                  <SelectItem value={"5"}>5th fret</SelectItem>
+                  <SelectItem value={"6"}>6th fret</SelectItem>
+                  <SelectItem value={"7"}>7th fret</SelectItem>
+                  <SelectItem value={"8"}>8th fret</SelectItem>
+                  <SelectItem value={"9"}>9th fret</SelectItem>
+                  <SelectItem value={"10"}>10th fret</SelectItem>
+                  <SelectItem value={"11"}>11th fret</SelectItem>
+                  <SelectItem value={"12"}>12th fret</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -997,7 +895,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                   <SelectValue placeholder="Select a key" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectGroup className="max-h-[300px] overflow-y-auto">
+                  <SelectGroup>
                     {Object.entries(KEYS_BY_LETTER).map(([letter, keys]) => (
                       <>
                         <SelectLabel>{letter}</SelectLabel>
@@ -1049,68 +947,64 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="w-[350px]">
-                  <SelectGroup>
-                    <SelectLabel>Difficulties</SelectLabel>
-
-                    <SelectItem value={"1"}>
-                      <div className="baseVertFlex !items-start gap-1">
-                        <div className="baseFlex gap-2">
-                          <DifficultyBars difficulty={1} />
-                          <span className="font-medium">Beginner</span>
-                        </div>
-                        <p className="text-sm opacity-75">
-                          Open chords, basic melodies, simple strumming.
-                        </p>
+                  <SelectItem value={"1"}>
+                    <div className="baseVertFlex !items-start gap-1">
+                      <div className="baseFlex gap-2">
+                        <DifficultyBars difficulty={1} />
+                        <span className="font-medium">Beginner</span>
                       </div>
-                    </SelectItem>
-                    <SelectItem value={"2"}>
-                      <div className="baseVertFlex !items-start gap-1">
-                        <div className="baseFlex gap-2">
-                          <DifficultyBars difficulty={2} />
-                          <span className="font-medium">Easy</span>
-                        </div>
-                        <p className="text-sm opacity-75">
-                          Common progressions, basic barre chords,
-                          straightforward rhythms.
-                        </p>
+                      <p className="text-sm opacity-75">
+                        Open chords, basic melodies, simple strumming.
+                      </p>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value={"2"}>
+                    <div className="baseVertFlex !items-start gap-1">
+                      <div className="baseFlex gap-2">
+                        <DifficultyBars difficulty={2} />
+                        <span className="font-medium">Easy</span>
                       </div>
-                    </SelectItem>
-                    <SelectItem value={"3"}>
-                      <div className="baseVertFlex !items-start gap-1">
-                        <div className="baseFlex gap-2">
-                          <DifficultyBars difficulty={3} />
-                          <span className="font-medium">Intermediate</span>
-                        </div>
-                        <p className="text-sm opacity-75">
-                          Alternate picking, varied voicings, position shifts.
-                        </p>
+                      <p className="text-sm opacity-75">
+                        Common progressions, basic barre chords, straightforward
+                        rhythms.
+                      </p>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value={"3"}>
+                    <div className="baseVertFlex !items-start gap-1">
+                      <div className="baseFlex gap-2">
+                        <DifficultyBars difficulty={3} />
+                        <span className="font-medium">Intermediate</span>
                       </div>
-                    </SelectItem>
-                    <SelectItem value={"4"}>
-                      <div className="baseVertFlex !items-start gap-1">
-                        <div className="baseFlex gap-2">
-                          <DifficultyBars difficulty={4} />
-                          <span className="font-medium">Advanced</span>
-                        </div>
-                        <p className="text-sm opacity-75">
-                          Fast playing, bends, slides, tapping, expressive
-                          control.
-                        </p>
+                      <p className="text-sm opacity-75">
+                        Alternate picking, varied voicings, position shifts.
+                      </p>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value={"4"}>
+                    <div className="baseVertFlex !items-start gap-1">
+                      <div className="baseFlex gap-2">
+                        <DifficultyBars difficulty={4} />
+                        <span className="font-medium">Advanced</span>
                       </div>
-                    </SelectItem>
-                    <SelectItem value={"5"}>
-                      <div className="baseVertFlex !items-start gap-1">
-                        <div className="baseFlex gap-2">
-                          <DifficultyBars difficulty={5} />
-                          <span className="font-medium">Expert</span>
-                        </div>
-                        <p className="text-sm opacity-75">
-                          Virtuoso speed, sweep picking, extended voicings,
-                          interpretation.
-                        </p>
+                      <p className="text-sm opacity-75">
+                        Fast playing, bends, slides, tapping, expressive
+                        control.
+                      </p>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value={"5"}>
+                    <div className="baseVertFlex !items-start gap-1">
+                      <div className="baseFlex gap-2">
+                        <DifficultyBars difficulty={5} />
+                        <span className="font-medium">Expert</span>
                       </div>
-                    </SelectItem>
-                  </SelectGroup>
+                      <p className="text-sm opacity-75">
+                        Virtuoso speed, sweep picking, extended voicings,
+                        interpretation.
+                      </p>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1120,11 +1014,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
 
       {!editing && (
         <div className="min-h-[100px] w-full">
-          <div
-            className={`${
-              classes.headerInfo ?? ""
-            } w-full rounded-t-md bg-pink-700 !px-4 shadow-md md:!px-6`}
-          >
+          <div className="baseVertFlex !flex-start w-full !items-start gap-2 rounded-t-md bg-pink-700 px-4 py-4 shadow-md sm:!flex-row sm:!items-center sm:gap-4 tablet:!px-6">
             {overMediumViewportThreshold ? (
               <div className="baseFlex w-full !justify-between">
                 <div className="baseFlex w-full !justify-between gap-4">
@@ -1142,8 +1032,8 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                     )}
                   </div>
 
-                  <div className="baseFlex gap-2">
-                    <AnimatePresence mode="popLayout">
+                  <AnimatePresence mode="popLayout">
+                    <div className="baseFlex gap-2">
                       {dynamicMetadata ? (
                         <motion.div
                           key={"crossfadeRateTab"}
@@ -1209,8 +1099,23 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                           className="baseFlex h-10 w-36 animate-pulse rounded-md bg-pink-300"
                         ></motion.div>
                       )}
-                    </AnimatePresence>
-                  </div>
+
+                      <Button
+                        variant={"secondary"}
+                        disabled={isLoadingARoute}
+                        onClick={async () =>
+                          await navigator.share({
+                            title,
+                            text: `Check out this tab I found on Autostrum!`,
+                            url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
+                          })
+                        }
+                        className="!p-2"
+                      >
+                        <IoIosShareAlt className="size-5" />
+                      </Button>
+                    </div>
+                  </AnimatePresence>
                 </div>
 
                 {((userId && createdByUserId === userId) ??
@@ -1252,8 +1157,8 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                     )}
                   </div>
 
-                  <div className="baseFlex gap-2">
-                    <AnimatePresence mode="popLayout">
+                  <AnimatePresence mode="popLayout">
+                    <div className="baseFlex gap-2">
                       {dynamicMetadata ? (
                         <motion.div
                           key={"crossfadeRateTab"}
@@ -1319,8 +1224,23 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                           className="baseFlex h-10 w-36 animate-pulse rounded-md bg-pink-300"
                         ></motion.div>
                       )}
-                    </AnimatePresence>
-                  </div>
+
+                      <Button
+                        variant={"secondary"}
+                        disabled={isLoadingARoute}
+                        onClick={async () =>
+                          await navigator.share({
+                            title,
+                            text: `Check out this tab I found on Autostrum!`,
+                            url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
+                          })
+                        }
+                        className="!p-2"
+                      >
+                        <IoIosShareAlt className="size-5" />
+                      </Button>
+                    </div>
+                  </AnimatePresence>
                 </div>
 
                 <div
@@ -1439,12 +1359,14 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                   </motion.div>
                 </AnimatePresence>
               </div>
-
-              <Separator
-                orientation="vertical"
-                className={`${classes.separator} h-[2px] w-full lg:h-full lg:w-[1px]`}
-              />
             </div>
+
+            <Separator
+              orientation={
+                viewportLabel.includes("mobile") ? "horizontal" : "vertical"
+              }
+              className={`${classes.separator} my-4 h-[2px] w-full lg:mx-4 lg:h-full lg:w-[1px] xl:mx-8`}
+            />
 
             <div className={`${classes.metadataGrid}`}>
               <div
@@ -1456,7 +1378,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                     style={{
                       backgroundColor: genreList[genreId]?.color,
                     }}
-                    className="baseFlex w-[145px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
+                    className="baseFlex w-[140px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
                   >
                     {genreList[genreId]?.name}
                     <Image
@@ -1478,7 +1400,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                 className={`${classes.tuning} baseVertFlex !items-start gap-2`}
               >
                 <div className="font-semibold">Tuning</div>
-                <div className="baseFlex h-[44px] w-[145px] rounded-md border-2 font-medium">
+                <div className="baseFlex h-[44px] w-[140px] rounded-md border-2 font-medium">
                   {tuningNotesToName[
                     tuning.toLowerCase() as keyof typeof tuningNotesToName
                   ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}

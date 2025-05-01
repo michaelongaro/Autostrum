@@ -20,7 +20,7 @@ const MobileHeaderModal = dynamic(
   () => import("~/components/modals/MobileHeaderModal"),
 );
 
-// we had quite a bit of reactive logic in the GeneralLayout component, so we
+// I had quite a bit of reactive logic in the GeneralLayout component, so I
 // moved it to this component to contain the rerenders to this component (+ children) only
 // instead of the entire app.
 
@@ -47,7 +47,6 @@ function GeneralLayoutStatefulShell() {
     setAudioMetadata,
     resetAudioAndMetadataOnRouteChange,
     setCurrentlyPlayingMetadata,
-    recordedAudioBufferSourceNode,
     mobileHeaderModal,
     setMobileHeaderModal,
   } = useTabStore((state) => ({
@@ -59,7 +58,6 @@ function GeneralLayoutStatefulShell() {
     resetAudioAndMetadataOnRouteChange:
       state.resetAudioAndMetadataOnRouteChange,
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
-    recordedAudioBufferSourceNode: state.recordedAudioBufferSourceNode,
     mobileHeaderModal: state.mobileHeaderModal,
     setMobileHeaderModal: state.setMobileHeaderModal,
   }));
@@ -69,14 +67,7 @@ function GeneralLayoutStatefulShell() {
   // keeps looping local storage state in sync with store
   useEffect(() => {
     setLooping(looping);
-
-    // since playRecordedAudio() isn't async in any way, this is the only way to
-    // ensure that changes to the looping state are reflected on the audio buffer
-    // after it has already started playing.
-    if (recordedAudioBufferSourceNode) {
-      recordedAudioBufferSourceNode.loop = looping;
-    }
-  }, [looping, setLooping, recordedAudioBufferSourceNode]);
+  }, [looping, setLooping]);
 
   // route change state reset handling
   useEffect(() => {

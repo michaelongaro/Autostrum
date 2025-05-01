@@ -8,7 +8,7 @@ import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
 import { api } from "~/utils/api";
 import SearchInput from "../Search/SearchInput";
 import SearchResults from "../Search/SearchResults";
-import { Button } from "../ui/button";
+import { Button } from "~/components/ui/button";
 import { isDesktop } from "react-device-detect";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 
@@ -149,9 +149,6 @@ function PinnedTabModal({
                   : "Save"}
 
               <AnimatePresence mode="wait">
-                {/* will need to also include condition for while recording is being
-                            uploaded to s3 to also show loading spinner, don't necessarily have to
-                            communicate that it's uploading recorded audio imo */}
                 {isSaving && (
                   <motion.svg
                     key="pinnedModalSaveLoadingSpinner"

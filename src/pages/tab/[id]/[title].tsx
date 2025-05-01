@@ -1,16 +1,13 @@
-import { buildClerkProps } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
 import { motion } from "framer-motion";
-import type { GetServerSideProps } from "next";
+import type { GetStaticProps } from "next";
 import Head from "next/head";
-import { useRouter } from "next/router";
 import { useEffect, useMemo } from "react";
 import { BiErrorCircle } from "react-icons/bi";
 import Tab from "~/components/Tab/Tab";
-import TabSkeleton from "~/components/Tab/TabSkeleton";
 import { useTabStore } from "~/stores/TabStore";
-import { api } from "~/utils/api";
-import { AnimatePresence } from "framer-motion";
+import type { Tab as TabType } from "@prisma/client";
+import superjson from "superjson";
 
 interface OpenGraphData {
   title: string;
@@ -18,17 +15,16 @@ interface OpenGraphData {
   description: string;
 }
 
-// not sure if this is correct file routing for slug
-
-// not sure if this is the best name for this component
-function IndividualTabView({
-  tabExists,
-  openGraphData,
-}: {
-  tabExists: boolean;
+interface PageData {
+  tab: TabType | null;
   openGraphData: OpenGraphData;
-}) {
-  const router = useRouter();
+}
+
+function ViewIndividualTab({ json }: { json: string }) {
+  const { tab, openGraphData } = useMemo(
+    () => superjson.parse<PageData>(json),
+    [json],
+  );
 
   const { setEditing } = useTabStore((state) => ({
     setEditing: state.setEditing,
@@ -37,26 +33,6 @@ function IndividualTabView({
   useEffect(() => {
     setEditing(false);
   }, []);
-
-  const tabIdFromUrl = useMemo(() => {
-    if (typeof router.query.id === "string") {
-      return parseInt(router.query.id);
-    }
-    return -1;
-  }, [router.query.id]);
-
-  const { data: fetchedTab, refetch: refetchTab } = api.tab.getTabById.useQuery(
-    {
-      id: tabIdFromUrl,
-    },
-    {
-      enabled: tabIdFromUrl !== -1,
-    },
-  );
-
-  if (!tabExists) {
-    return <TabNotFound />;
-  }
 
   return (
     <motion.div
@@ -80,38 +56,44 @@ function IndividualTabView({
         ></meta>
       </Head>
 
-      <AnimatePresence mode="wait">
-        {fetchedTab ? (
-          <Tab tab={fetchedTab} refetchTab={refetchTab} />
-        ) : (
-          <TabSkeleton editing={false} />
-        )}
-      </AnimatePresence>
+      {tab ? <Tab tab={tab} /> : <TabNotFound />}
     </motion.div>
   );
 }
 
-export default IndividualTabView;
+export default ViewIndividualTab;
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
+export const getStaticProps: GetStaticProps = async (ctx) => {
   const prisma = new PrismaClient();
+
+  const id = ctx.params?.id ? parseInt(ctx.params.id as string) : -1;
+
   const tab = await prisma.tab.findUnique({
     where: {
-      id: ctx.params?.id ? parseInt(ctx.params.id as string) : -1,
-    },
-    select: {
-      title: true,
-      createdById: true,
+      id,
     },
   });
 
-  let artist = null;
+  if (!tab) {
+    return {
+      props: {
+        tab: null,
+        openGraphData: {
+          title: "Autostrum",
+          url: "www.autostrum.com/tab/",
+          description: "View and listen to this tab on Autostrum.",
+        },
+      },
+    };
+  }
+
+  let user = null;
 
   // get tab owner username
-  if (tab?.createdById) {
-    artist = await prisma.user.findUnique({
+  if (tab?.createdByUserId) {
+    user = await prisma.user.findUnique({
       where: {
-        userId: tab.createdById,
+        userId: tab.createdByUserId,
       },
       select: {
         username: true,
@@ -120,26 +102,31 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   }
 
   const openGraphData: OpenGraphData = {
-    title: "Autostrum",
-    url: `www.autostrum.com/tab/${ctx.params!.id as string}`,
-    description: "View and listen to this tab on Autostrum.",
+    title: `${tab.title} | Autostrum`,
+    url: `www.autostrum.com/tab/?title=${encodeURIComponent(tab.title)}&id=${tab.id}`,
+    description: `View ${
+      user?.username ? `${user.username}'s tab` : "the tab"
+    } ${tab.title} on Autostrum.`,
   };
-
-  if (tab) {
-    openGraphData.title = `${tab.title} | Autostrum`;
-    openGraphData.description = `View ${
-      artist?.username ? `${artist.username}'s tab` : "the tab"
-    } ${tab.title} on Autostrum.`;
-  }
 
   return {
     props: {
-      tabExists: tab !== null,
-      openGraphData,
-      ...buildClerkProps(ctx.req),
+      json: superjson.stringify({
+        tab,
+        openGraphData,
+      }),
     },
   };
 };
+
+export async function getStaticPaths() {
+  // Pre-render no paths at build time, generate all on demand
+
+  return {
+    paths: [],
+    fallback: "blocking",
+  };
+}
 
 function TabNotFound() {
   return (

@@ -5,44 +5,28 @@ import { useEffect, useState } from "react";
 import { BsGridFill } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
 import { LuFilter } from "react-icons/lu";
+import { useInView } from "react-intersection-observer";
 import { Drawer } from "vaul";
+import Render404Page from "~/components/Search/Render404Page";
+import { Button } from "~/components/ui/button";
+import DifficultyBars from "~/components/ui/DifficultyBars";
+import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
 import { Separator } from "~/components/ui/separator";
+import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
 import { useTabStore } from "~/stores/TabStore";
 import { genreList } from "~/utils/genreList";
-import { tuningNotes } from "~/utils/tunings";
-import { Label } from "../ui/label";
+import { tuningNotes, tunings } from "~/utils/tunings";
+import { Label } from "~/components/ui/label";
 import GridTabView from "./GridTabView";
 import TableTabView from "./TableTabView";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { Button } from "~/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "~/components/ui/command";
-import DifficultyBars from "~/components/ui/DifficultyBars";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
-import { PrettyTuning } from "~/components/ui/PrettyTuning";
-import { tunings } from "~/utils/tunings";
-import { cn } from "~/utils/cn";
-import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
-import Render404Page from "~/components/Search/Render404Page";
 
 const opacityVariants = {
   expanded: {
@@ -70,7 +54,7 @@ function SearchResults() {
     viewportLabel: state.viewportLabel,
   }));
 
-  const [tuningPopoverOpen, setTuningPopoverOpen] = useState(false);
+  const [applyStickyStyles, setApplyStickyStyles] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [resultsCountIsLoading, setResultsCountIsLoading] = useState(false);
   const [drawerHandleDisabled, setDrawerHandleDisabled] = useState(false);
@@ -94,6 +78,14 @@ function SearchResults() {
     renderSearch404,
     searchParamsParsed,
   } = useGetUrlParamFilters();
+
+  const { ref: stickyStylesSentinelRef } = useInView({
+    threshold: 0,
+    delay: 0,
+    onChange: (inView) => {
+      setApplyStickyStyles(inView);
+    },
+  });
 
   // fyi: all param change handlers below will remove the param if it is getting set
   // to the "default" values that we have defined in the useGetUrlParamFilters hook
@@ -120,13 +112,16 @@ function SearchResults() {
 
   function handleTuningChange(tuning: string) {
     const newQuery = { ...query };
-    if (tuningNotes.includes(tuning) && tuning !== "e2 a2 d3 g3 b3 e4") {
-      newQuery.tuning = tuning;
+
+    const lowercaseTuning = tuning.toLowerCase();
+
+    if (tuningNotes.includes(lowercaseTuning)) {
+      newQuery.tuning = lowercaseTuning;
+    } else if (tuning === "custom") {
+      newQuery.tuning = "custom";
     } else {
       delete newQuery.tuning;
     }
-
-    setTuningPopoverOpen(false);
 
     void push(
       {
@@ -254,151 +249,118 @@ function SearchResults() {
     // TODO: calc values are just guesses
     <div className="baseFlex min-h-[calc(100dvh-10rem)] w-full !items-start gap-2 rounded-lg tablet:min-h-[calc(100dvh-14rem)]">
       {/* tablet+ filters sidebar */}
-      <div className="baseVertFlex sticky top-24 !hidden h-fit w-64 !items-start !justify-start gap-4 rounded-lg bg-pink-800 p-4 tablet:!flex">
+      <div
+        className={`baseVertFlex sticky top-16 !hidden h-fit w-64 !items-start !justify-start gap-4 rounded-lg bg-pink-800 p-4 transition-all tablet:!flex ${applyStickyStyles ? "" : "rounded-t-none"}`}
+      >
         <p className="text-lg font-medium">Filters</p>
         {/* genre selector */}
-        <div className="baseVertFlex !items-start gap-1.5">
+        <div className="baseVertFlex w-full !items-start gap-1.5">
           <Label>Genre</Label>
           <Select
             value={genreId ? genreId.toString() : "allGenres"}
             onValueChange={(value) => handleGenreChange(value)}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a genre" />
             </SelectTrigger>
             <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Genres</SelectLabel>
+              <SelectItem value={"allGenres"}>
+                <div className="baseFlex gap-2">
+                  <div
+                    style={{
+                      backgroundColor: "gray", // TODO: make this a circular gradient rainbow of all
+                      // the colors in genreList
+                      boxShadow: "0 1px 1px hsla(336, 84%, 17%, 0.9)",
+                    }}
+                    className="h-3 w-3 rounded-full"
+                  ></div>
+                  All genres
+                </div>
+              </SelectItem>
 
-                <SelectItem value={"allGenres"}>
-                  <div className="baseFlex gap-2">
-                    <div
-                      style={{
-                        backgroundColor: "gray", // TODO: make this a circular gradient rainbow of all
-                        // the colors in genreList
-                        boxShadow: "0 1px 1px hsla(336, 84%, 17%, 0.9)",
-                      }}
-                      className="h-3 w-3 rounded-full"
-                    ></div>
-                    All genres
-                  </div>
-                </SelectItem>
+              <Separator className="my-1 w-full bg-pink-600" />
 
-                <Separator className="my-1 w-full bg-pink-600" />
+              {Object.values(genreList).map((genre) => {
+                return (
+                  <SelectItem key={genre.id} value={genre.id.toString()}>
+                    <div className="baseFlex gap-2">
+                      <div
+                        style={{
+                          backgroundColor: genre.color,
+                          boxShadow: "0 1px 1px hsla(336, 84%, 17%, 0.9)",
+                        }}
+                        className="h-3 w-3 rounded-full"
+                      ></div>
 
-                {Object.values(genreList).map((genre) => {
-                  return (
-                    <SelectItem key={genre.id} value={genre.id.toString()}>
-                      <div className="baseFlex gap-2">
-                        <div
-                          style={{
-                            backgroundColor: genre.color,
-                            boxShadow: "0 1px 1px hsla(336, 84%, 17%, 0.9)",
-                          }}
-                          className="h-3 w-3 rounded-full"
-                        ></div>
-
-                        {genre.name}
-                      </div>
-                    </SelectItem>
-                  );
-                })}
-              </SelectGroup>
+                      {genre.name}
+                    </div>
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
 
-        <div className="baseVertFlex !items-start gap-1.5">
+        <div className="baseVertFlex w-full !items-start gap-1.5">
           <Label>Tuning</Label>
-          <Popover open={tuningPopoverOpen} onOpenChange={setTuningPopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={tuningPopoverOpen}
-                className="w-[200px] justify-between"
-              >
+          <Select
+            value={tuning ? tuning.toLowerCase() : "all"}
+            onValueChange={(value) => {
+              handleTuningChange(value);
+            }}
+          >
+            <SelectTrigger className="h-10 w-full">
+              <SelectValue placeholder="Select tuning...">
                 {tuning ? (
-                  <PrettyTuning tuning={tuning} displayWithFlex={true} />
+                  <>
+                    {tuning === "custom" ? (
+                      "Custom"
+                    ) : (
+                      <PrettyTuning tuning={tuning} displayWithFlex={true} />
+                    )}
+                  </>
                 ) : (
                   "All tunings"
                 )}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent
               style={{
                 textShadow: "none",
               }}
-              className="w-[300px] p-0"
+              className="w-[300px]"
             >
-              <Command>
-                <CommandInput
-                  autoFocus={false}
-                  placeholder="Search tunings..."
-                />
+              {/* all tunings select item */}
+              <SelectItem value={"all"} className="font-medium">
+                All tunings
+              </SelectItem>
 
-                <div className="h-[1px] w-full bg-pink-800"></div>
+              <Separator className="my-1 w-full bg-pink-600" />
 
-                <CommandList>
-                  <CommandEmpty>No tunings found.</CommandEmpty>
+              {/* Standard Tunings */}
+              {tunings.map((tuningObj) => (
+                <SelectItem
+                  key={tuningObj.simpleNotes}
+                  value={tuningObj.notes.toLowerCase()} // Use the full notes string as the value
+                >
+                  <div className="baseFlex w-[235px] !justify-between">
+                    <span className="font-medium">{tuningObj.name}</span>
+                    <PrettyTuning tuning={tuningObj.simpleNotes} width="w-36" />
+                  </div>
+                </SelectItem>
+              ))}
 
-                  <CommandGroup className="max-h-60 overflow-y-auto">
-                    {tunings.map((tuningObj) => (
-                      <CommandItem
-                        key={tuningObj.simpleNotes}
-                        value={tuningObj.notes}
-                        onSelect={(currentValue) => {
-                          handleTuningChange(currentValue);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            tuning
-                              ? tuning.toLowerCase() ===
-                                tuningObj.notes.toLowerCase()
-                                ? "opacity-100"
-                                : "opacity-100" // special case for "e2 a2 d3 g3 b3 e4" tuning
-                              : "opacity-0",
-                          )}
-                        />
-                        <div className="baseFlex w-full !justify-between">
-                          <div className="font-medium">{tuningObj.name}</div>
-                          <PrettyTuning
-                            tuning={tuningObj.simpleNotes}
-                            width="w-36"
-                          />
-                        </div>
-                      </CommandItem>
-                    ))}
+              <Separator className="my-1 w-full bg-pink-600" />
 
-                    <CommandItem
-                      value={"custom"}
-                      onSelect={(currentValue) => {
-                        handleTuningChange(currentValue);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          tuning && tuning === "custom"
-                            ? "opacity-100"
-                            : "opacity-0",
-                        )}
-                      />
-                      <div className="self-start font-medium">
-                        Custom tunings
-                      </div>
-                    </CommandItem>
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+              {/* custom tuning catch-all selection */}
+              <SelectItem value={"custom"} className="font-medium">
+                Custom tunings
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="baseVertFlex !items-start gap-1.5">
+        <div className="baseVertFlex w-full !items-start gap-1.5">
           <Label>Capo</Label>
           <Select
             value={capo ? capo.toString() : "all"}
@@ -406,25 +368,21 @@ function SearchResults() {
               handleCapoChange(value as "all" | "true" | "false");
             }}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="All" />
             </SelectTrigger>
             <SelectContent>
-              <SelectGroup className="max-h-[300px] overflow-y-auto">
-                <SelectLabel>Capo</SelectLabel>
+              <SelectItem value={"all"}>Capo + Non-capo</SelectItem>
 
-                <SelectItem value={"all"}>All</SelectItem>
+              <Separator className="my-1 w-full bg-pink-600" />
 
-                <Separator className="my-1 w-full bg-pink-600" />
-
-                <SelectItem value={"true"}>With capo</SelectItem>
-                <SelectItem value={"false"}>Without capo</SelectItem>
-              </SelectGroup>
+              <SelectItem value={"true"}>With capo</SelectItem>
+              <SelectItem value={"false"}>Without capo</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        <div className="baseVertFlex !items-start gap-1.5">
+        <div className="baseVertFlex w-full !items-start gap-1.5">
           <Label>Difficulty</Label>
           <Select
             value={difficulty ? difficulty.toString() : "all"}
@@ -432,17 +390,25 @@ function SearchResults() {
               handleDifficultyChange(value);
             }}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a difficulty">
-                <div className="baseFlex gap-2">
-                  <DifficultyBars difficulty={difficulty ?? 5} />
-                  {DIFFICULTIES[(difficulty ?? 5) - 1]}
-                </div>
+                {difficulty ? (
+                  <div className="baseFlex gap-2">
+                    <DifficultyBars difficulty={difficulty ?? 5} />
+                    {DIFFICULTIES[(difficulty ?? 5) - 1]}
+                  </div>
+                ) : (
+                  <span>All difficulties</span>
+                )}
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="w-[350px]">
               <SelectGroup>
-                <SelectLabel>Difficulties</SelectLabel>
+                <SelectItem value={"all"}>
+                  <span className="font-medium">All difficulties</span>
+                </SelectItem>
+
+                <Separator className="my-1 w-full bg-pink-600" />
 
                 <SelectItem value={"1"}>
                   <div className="baseVertFlex !items-start gap-1">
@@ -506,7 +472,7 @@ function SearchResults() {
           </Select>
         </div>
 
-        <div className="baseVertFlex !items-start gap-1.5">
+        <div className="baseVertFlex w-full !items-start gap-1.5">
           <Label>Sort by</Label>
           <Select
             onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
@@ -522,20 +488,17 @@ function SearchResults() {
               )
             }
           >
-            <SelectTrigger className="w-32 border-ring">
+            <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Sort by</SelectLabel>
-                <SelectItem value="relevance" disabled={!searchQuery}>
-                  Relevance
-                </SelectItem>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="oldest">Oldest</SelectItem>
-                <SelectItem value="mostPopular">Most popular</SelectItem>
-                <SelectItem value="leastPopular">Least popular</SelectItem>
-              </SelectGroup>
+              <SelectItem value="relevance" disabled={!searchQuery}>
+                Relevance
+              </SelectItem>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="oldest">Oldest</SelectItem>
+              <SelectItem value="mostPopular">Most popular</SelectItem>
+              <SelectItem value="leastPopular">Least popular</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -550,6 +513,11 @@ function SearchResults() {
       </div>
 
       <div className="baseVertFlex relative size-full">
+        <div
+          ref={stickyStylesSentinelRef}
+          className="absolute top-0 h-[1px]"
+        ></div>
+
         {viewportLabel.includes("mobile") ? (
           // mobile: # of results / filter drawer trigger
           <div className="baseFlex sticky top-0 w-full !justify-between rounded-t-lg bg-pink-800 px-4 py-2 tablet:!hidden">
@@ -623,7 +591,7 @@ function SearchResults() {
           </div>
         ) : (
           // tablet+: # of results / view type toggle
-          <div className="baseFlex sticky top-24 !hidden w-full !justify-between rounded-t-lg bg-pink-800 px-4 py-3 tablet:!flex">
+          <div className="baseFlex sticky top-16 z-10 !hidden w-full !justify-between rounded-t-lg bg-pink-800 px-4 py-3 tablet:!flex">
             {/* # of results */}
             {resultsCountIsLoading ? (
               <motion.div

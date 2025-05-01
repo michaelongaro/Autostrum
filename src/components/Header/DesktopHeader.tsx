@@ -29,16 +29,15 @@ import { useTabStore } from "~/stores/TabStore";
 import { PiMetronome } from "react-icons/pi";
 import { IoColorPalette } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
-import { Button } from "../ui/button";
+import { Button } from "~/components/ui/button";
 import classes from "./DesktopHeader.module.css";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import SearchInput from "~/components/Search/SearchInput";
-import { Separator } from "~/components/ui/separator";
+import ThemePicker from "~/components/Header/ThemePicker";
 
 ///
 import { IoCompassOutline } from "react-icons/io5";
 import Binoculars from "~/components/ui/icons/Binoculars";
-import { useState } from "react";
 
 function DesktopHeader() {
   const { userId, isSignedIn } = useAuth();
@@ -48,8 +47,6 @@ function DesktopHeader() {
   const { getStringifiedTabData } = useTabStore((state) => ({
     getStringifiedTabData: state.getStringifiedTabData,
   }));
-
-  const [themePickerIsOpen, setThemePickerIsOpen] = useState(false);
 
   const localStorageTabData = useLocalStorageValue("tabData");
   const localStorageRedirectRoute = useLocalStorageValue("redirectRoute");
@@ -206,17 +203,12 @@ function DesktopHeader() {
                   </Button>
                 </PopoverTrigger>
               </TooltipTrigger>
-              <TooltipContent side={"bottom"}>
-                <p>Theme</p>
-              </TooltipContent>
+              <TooltipContent side={"bottom"}>Theme</TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
-          <PopoverContent
-            side={"bottom"}
-            className="baseVertFlex max-w-[275px] gap-1"
-          >
-            Themes
+          <PopoverContent side={"bottom"} className="baseFlex max-w-[275px]">
+            <ThemePicker />
           </PopoverContent>
         </Popover>
 
@@ -396,7 +388,7 @@ function DesktopHeader() {
                     className="baseFlex w-[165px] gap-2"
                   >
                     <TbGuitarPick className="size-4" />
-                    My tabs
+                    Tabs
                   </Link>
                 </Button>
 
@@ -418,7 +410,7 @@ function DesktopHeader() {
                     className="baseFlex w-[165px] gap-2 !px-0"
                   >
                     <IoBookmarkOutline className="size-4 shrink-0" />
-                    My bookmarks
+                    Bookmarks
                   </Link>
                 </Button>
               </div>

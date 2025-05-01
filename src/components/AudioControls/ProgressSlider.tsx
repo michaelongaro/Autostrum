@@ -1,97 +1,35 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import { useEffect, useRef, type Dispatch, type SetStateAction } from "react";
 import { getTrackBackground, Range } from "react-range";
-import { AudioProgressSlider } from "~/components/ui/AudioProgressSlider";
-import { LoopingRangeSlider } from "~/components/ui/LoopingRangeSlider";
 import { useTabStore } from "~/stores/TabStore";
 
 interface ProgressSlider {
-  tabProgressValue: number;
-  setTabProgressValue: Dispatch<SetStateAction<number>>;
-  wasPlayingBeforeScrubbing: boolean;
-  setWasPlayingBeforeScrubbing: Dispatch<SetStateAction<boolean>>;
   disabled: boolean;
-  setArtificalPlayButtonTimeout: Dispatch<SetStateAction<boolean>>;
   chordDurations: number[];
   loopRange: [number, number];
   setLoopRange: Dispatch<SetStateAction<[number, number]>>;
 }
 
 function ProgressSlider({
-  tabProgressValue,
-  setTabProgressValue,
-  wasPlayingBeforeScrubbing,
-  setWasPlayingBeforeScrubbing,
   disabled,
-  setArtificalPlayButtonTimeout,
   chordDurations,
   loopRange,
   setLoopRange,
 }: ProgressSlider) {
   const {
-    id,
-    bpm,
-    hasRecordedAudio,
-    currentInstrumentName,
-    setCurrentInstrumentName,
-    playbackSpeed,
-    setPlaybackSpeed,
-    masterVolumeGainNode,
     currentChordIndex,
     setCurrentChordIndex,
     currentlyPlayingMetadata,
     audioMetadata,
     setAudioMetadata,
-    previewMetadata,
-    currentInstrument,
-    tabData,
-    recordedAudioFile,
-    recordedAudioBuffer,
-    setRecordedAudioBuffer,
-    playTab,
-    playRecordedAudio,
     pauseAudio,
-    fetchingFullTabData,
-    audioContext,
-    countInTimer,
-    setCountInTimer,
-    mobileHeaderModal,
-    setMobileHeaderModal,
     playbackMetadata,
   } = useTabStore((state) => ({
-    id: state.id,
-    bpm: state.bpm,
-    hasRecordedAudio: state.hasRecordedAudio,
-    currentInstrumentName: state.currentInstrumentName,
-    setCurrentInstrumentName: state.setCurrentInstrumentName,
-    playbackSpeed: state.playbackSpeed,
-    setPlaybackSpeed: state.setPlaybackSpeed,
-    masterVolumeGainNode: state.masterVolumeGainNode,
     currentChordIndex: state.currentChordIndex,
     setCurrentChordIndex: state.setCurrentChordIndex,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     audioMetadata: state.audioMetadata,
     setAudioMetadata: state.setAudioMetadata,
-    previewMetadata: state.previewMetadata,
-    currentInstrument: state.currentInstrument,
-    tabData: state.tabData,
-    recordedAudioFile: state.recordedAudioFile,
-    recordedAudioBuffer: state.recordedAudioBuffer,
-    setRecordedAudioBuffer: state.setRecordedAudioBuffer,
-    playTab: state.playTab,
-    playRecordedAudio: state.playRecordedAudio,
     pauseAudio: state.pauseAudio,
-    fetchingFullTabData: state.fetchingFullTabData,
-    audioContext: state.audioContext,
-    countInTimer: state.countInTimer,
-    setCountInTimer: state.setCountInTimer,
-    mobileHeaderModal: state.mobileHeaderModal,
-    setMobileHeaderModal: state.setMobileHeaderModal,
     playbackMetadata: state.playbackMetadata,
   }));
 
@@ -136,8 +74,8 @@ function ProgressSlider({
         return;
       }
 
-      let adjustedStartIndex = loopRange[0] || 0;
-      let adjustedEndIndex =
+      const adjustedStartIndex = loopRange[0] || 0;
+      const adjustedEndIndex =
         loopRange[1] === audioMetadata.fullCurrentlyPlayingMetadataLength - 1
           ? -1
           : loopRange[1] || 0;
@@ -265,7 +203,7 @@ function ProgressSlider({
               pauseAudio();
             }
 
-            setCurrentChordIndex(values[0] || 0);
+            setCurrentChordIndex(values[0] ?? 0);
 
             // TODO: add logic for scrubbing through audio playback instead of tab playback
           }}
@@ -294,11 +232,11 @@ function ProgressSlider({
                     values: [currentChordIndex],
                     colors: [disabled ? "#666" : "#548BF4", "#ccc"],
                     min: 0,
-                    max: currentlyPlayingMetadata?.length || 0,
+                    max: currentlyPlayingMetadata?.length ?? 0,
                   }),
                   alignSelf: "center",
                 }}
-                className="mobileNarrowLandscape:w-[95%] w-full mobileLandscape:w-[95%]"
+                className="w-full mobileNarrowLandscape:w-[95%] mobileLandscape:w-[95%]"
               >
                 {children}
               </div>
@@ -315,7 +253,7 @@ function ProgressSlider({
                   currentChordIndex === 0
                     ? 0
                     : audioMetadata.playing
-                      ? chordDurations[currentChordIndex] || 0
+                      ? (chordDurations[currentChordIndex] ?? 0)
                       : 0
                 }s linear`,
               }}
@@ -323,89 +261,6 @@ function ProgressSlider({
             />
           )}
         />
-
-        // <AudioProgressSlider
-        //   value={[tabProgressValue]}
-        //   min={0}
-        //   // radix-slider thumb protrudes from lefthand side of the
-        //   // track if max has a value of 0...
-        //   max={
-        //     audioMetadata.type === "Artist recording"
-        //       ? recordedAudioBuffer
-        //         ? Math.floor(recordedAudioBuffer?.duration)
-        //         : 1
-        //       : currentlyPlayingMetadata
-        //         ? currentlyPlayingMetadata.at(-1)?.elapsedSeconds
-        //         : 1
-        //   }
-        //   step={1}
-        //   disabled={disabled}
-        //   style={{
-        //     pointerEvents: disabled ? "none" : "auto",
-        //   }}
-        //   onPointerDown={() => {
-        //     setWasPlayingBeforeScrubbing(audioMetadata.playing);
-        //     if (audioMetadata.playing) pauseAudio();
-        //   }}
-        //   onPointerUp={() => {
-        //     if (!wasPlayingBeforeScrubbing) return;
-
-        //     if (audioMetadata.type === "Generated") {
-        //       // waiting; playTab() needs to have currentChordIndex
-        //       // updated before it's called so it plays from the correct chord
-        //       setTimeout(() => {
-        //         void playTab({
-        //           tabId: id,
-        //           location: audioMetadata.location,
-        //         });
-
-        //         setArtificalPlayButtonTimeout(true);
-
-        //         setTimeout(() => {
-        //           setArtificalPlayButtonTimeout(false);
-        //         }, 300);
-        //       }, 50);
-        //     } else if (
-        //       audioMetadata.type === "Artist recording" &&
-        //       recordedAudioBuffer
-        //     ) {
-        //       void playRecordedAudio({
-        //         audioBuffer: recordedAudioBuffer,
-        //         secondsElapsed: tabProgressValue,
-        //       });
-
-        //       setArtificalPlayButtonTimeout(true);
-
-        //       setTimeout(() => {
-        //         setArtificalPlayButtonTimeout(false);
-        //       }, 300);
-        //     }
-        //   }}
-        //   onValueChange={(value) => {
-        //     setTabProgressValue(value[0]!);
-
-        //     if (
-        //       audioMetadata.type === "Artist recording" ||
-        //       !currentlyPlayingMetadata
-        //     )
-        //       return;
-
-        //     let newCurrentChordIndex = -1;
-
-        //     for (let i = 0; i < currentlyPlayingMetadata.length; i++) {
-        //       const metadata = currentlyPlayingMetadata[i]!;
-
-        //       if (metadata.elapsedSeconds === value[0]) {
-        //         newCurrentChordIndex = i;
-        //         break;
-        //       }
-        //     }
-
-        //     if (newCurrentChordIndex !== -1) {
-        //       setCurrentChordIndex(newCurrentChordIndex);
-        //     }
-        //   }}
-        // />
       )}
     </>
   );

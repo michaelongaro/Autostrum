@@ -9,8 +9,8 @@ import { useState, useEffect } from "react";
 import { FaBook } from "react-icons/fa";
 import type { FullTab } from "~/server/api/routers/tab";
 import { useTabStore } from "~/stores/TabStore";
-import { Button } from "../ui/button";
-import { Separator } from "../ui/separator";
+import { Button } from "~/components/ui/button";
+import { Separator } from "~/components/ui/separator";
 import SectionProgression from "./SectionProgression";
 import TabMetadata from "./TabMetadata";
 import { HiOutlineLightBulb, HiOutlineInformationCircle } from "react-icons/hi";
@@ -31,9 +31,6 @@ import Logo from "~/components/ui/icons/Logo";
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
 );
-// const AudioRecorderModal = dynamic(
-//   () => import("~/components/modals/AudioRecorderModal"),
-// );
 const ChordModal = dynamic(() => import("~/components/modals/ChordModal"));
 const StrummingPatternModal = dynamic(
   () => import("~/components/modals/StrummingPatternModal"),
@@ -60,11 +57,11 @@ const opacityVariants = {
     opacity: 0,
   },
 };
-interface ITab extends Partial<RefetchTab> {
+interface Tab {
   tab: FullTab | undefined | null;
 }
 
-function Tab({ tab, refetchTab }: ITab) {
+function Tab({ tab }: Tab) {
   const [customTuning, setCustomTuning] = useState<string | null>(null);
   const [isPostingOrSaving, setIsPostingOrSaving] = useState(false);
 
@@ -81,7 +78,7 @@ function Tab({ tab, refetchTab }: ITab) {
 
   const {
     setId,
-    setCreatedById,
+    setCreatedByUserId,
     setCreatedAt,
     setUpdatedAt,
     setTitle,
@@ -92,19 +89,15 @@ function Tab({ tab, refetchTab }: ITab) {
     setTuning,
     setBpm,
     setCapo,
-    setHasRecordedAudio,
     setChords,
     setStrummingPatterns,
     tabData,
     getTabData,
     setTabData,
     setSectionProgression,
-    setBookmarkCount,
     editing,
     setOriginalTabData,
-    showAudioRecorderModal,
     showSectionProgressionModal,
-    showEffectGlossaryDialog,
     setShowEffectGlossaryDialog,
     chordBeingEdited,
     strummingPatternBeingEdited,
@@ -120,7 +113,7 @@ function Tab({ tab, refetchTab }: ITab) {
     setLooping,
   } = useTabStore((state) => ({
     setId: state.setId,
-    setCreatedById: state.setCreatedById,
+    setCreatedByUserId: state.setCreatedByUserId,
     setCreatedAt: state.setCreatedAt,
     setUpdatedAt: state.setUpdatedAt,
     setTitle: state.setTitle,
@@ -131,19 +124,15 @@ function Tab({ tab, refetchTab }: ITab) {
     setTuning: state.setTuning,
     setBpm: state.setBpm,
     setCapo: state.setCapo,
-    setHasRecordedAudio: state.setHasRecordedAudio,
     setChords: state.setChords,
     setStrummingPatterns: state.setStrummingPatterns,
     tabData: state.tabData,
     getTabData: state.getTabData,
     setTabData: state.setTabData,
     setSectionProgression: state.setSectionProgression,
-    setBookmarkCount: state.setBookmarkCount,
     editing: state.editing,
     setOriginalTabData: state.setOriginalTabData,
-    showAudioRecorderModal: state.showAudioRecorderModal,
     showSectionProgressionModal: state.showSectionProgressionModal,
-    showEffectGlossaryDialog: state.showEffectGlossaryDialog,
     setShowEffectGlossaryDialog: state.setShowEffectGlossaryDialog,
     chordBeingEdited: state.chordBeingEdited,
     strummingPatternBeingEdited: state.strummingPatternBeingEdited,
@@ -173,7 +162,7 @@ function Tab({ tab, refetchTab }: ITab) {
     console.log("tab", tab);
 
     setId(tab.id);
-    setCreatedById(tab.createdById);
+    setCreatedByUserId(tab.createdByUserId);
     setCreatedAt(tab.createdAt);
     setUpdatedAt(tab.updatedAt);
     setTitle(tab.title);
@@ -286,14 +275,13 @@ function Tab({ tab, refetchTab }: ITab) {
         style={{
           transition: "filter 0.5s ease-in-out",
         }}
-        className={`baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-md md:my-24 2xl:w-8/12 ${
+        className={`baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-xl md:my-24 2xl:w-8/12 ${
           isPostingOrSaving
             ? "pointer-events-none brightness-90"
             : "brightness-100"
         }`}
       >
         <TabMetadata
-          refetchTab={refetchTab}
           customTuning={customTuning}
           setIsPostingOrSaving={setIsPostingOrSaving}
         />
@@ -420,11 +408,6 @@ function Tab({ tab, refetchTab }: ITab) {
           )}
         </div>
       </div>
-
-      {/* TODO: re-enable this when you find a react 19 compatible workaround */}
-      {/* <AnimatePresence mode="wait">
-        {showAudioRecorderModal && <AudioRecorderModal />}
-      </AnimatePresence> */}
 
       <AnimatePresence mode="wait">
         {showCustomTuningModal && (

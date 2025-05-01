@@ -1,6 +1,6 @@
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
-import { Button } from "../ui/button";
+import { Button } from "~/components/ui/button";
 import { motion } from "framer-motion";
 import {
   Accordion,
@@ -78,14 +78,10 @@ function SectionProgression() {
                       key={section.id}
                       className="grid w-full grid-cols-2 !place-items-start gap-2"
                     >
-                      <div className="baseFlex gap-2">
-                        <p className="text-stone-400">
-                          {formatSecondsToMinutes(section.startSeconds)}
-                        </p>
-                        <span className="text-stone-400">-</span>
-                        <p className="text-stone-400">
-                          {formatSecondsToMinutes(section.endSeconds)}
-                        </p>
+                      <div className="baseFlex gap-2 text-stone-300">
+                        <p>{formatSecondsToMinutes(section.startSeconds)}</p>
+                        <span>-</span>
+                        <p>{formatSecondsToMinutes(section.endSeconds)}</p>
                       </div>
 
                       <div className="baseFlex gap-2">
@@ -111,7 +107,7 @@ function SectionProgression() {
             ) : (
               <div className="baseFlex w-full !justify-start">
                 {sectionProgression.length === 0 ? (
-                  <p className="text-stone-400">
+                  <p className="text-stone-300">
                     No section progression specified
                   </p>
                 ) : (
@@ -125,14 +121,10 @@ function SectionProgression() {
                         exit="closed"
                         className="baseFlex w-full !justify-start gap-2"
                       >
-                        <div className="baseFlex w-24 gap-2">
-                          <p className="text-stone-400">
-                            {formatSecondsToMinutes(section.startSeconds)}
-                          </p>
-                          <span className="text-stone-400">-</span>
-                          <p className="text-stone-400">
-                            {formatSecondsToMinutes(section.endSeconds)}
-                          </p>
+                        <div className="baseFlex w-24 gap-2 text-stone-300">
+                          <p>{formatSecondsToMinutes(section.startSeconds)}</p>
+                          <span>-</span>
+                          <p>{formatSecondsToMinutes(section.endSeconds)}</p>
                         </div>
 
                         <div className="baseFlex gap-2">
