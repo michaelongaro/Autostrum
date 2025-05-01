@@ -25,9 +25,7 @@ import {
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
@@ -547,33 +545,29 @@ function AudioControls() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Instruments</SelectLabel>
+                    <SelectItem value={"acoustic_guitar_nylon"}>
+                      Acoustic guitar - Nylon
+                    </SelectItem>
 
-                      <SelectItem value={"acoustic_guitar_nylon"}>
-                        Acoustic guitar - Nylon
-                      </SelectItem>
+                    <SelectItem value={"acoustic_guitar_steel"}>
+                      Acoustic guitar - Steel
+                    </SelectItem>
 
-                      <SelectItem value={"acoustic_guitar_steel"}>
-                        Acoustic guitar - Steel
-                      </SelectItem>
+                    <SelectItem value={"electric_guitar_clean"}>
+                      Electric guitar - Clean
+                    </SelectItem>
 
-                      <SelectItem value={"electric_guitar_clean"}>
-                        Electric guitar - Clean
-                      </SelectItem>
+                    <SelectItem value={"electric_guitar_jazz"}>
+                      Electric guitar - Jazz
+                    </SelectItem>
 
-                      <SelectItem value={"electric_guitar_jazz"}>
-                        Electric guitar - Jazz
-                      </SelectItem>
+                    <SelectItem value={"acoustic_grand_piano"}>
+                      Grand piano - Acoustic
+                    </SelectItem>
 
-                      <SelectItem value={"acoustic_grand_piano"}>
-                        Grand piano - Acoustic
-                      </SelectItem>
-
-                      <SelectItem value={"electric_grand_piano"}>
-                        Grand piano - Electric
-                      </SelectItem>
-                    </SelectGroup>
+                    <SelectItem value={"electric_grand_piano"}>
+                      Grand piano - Electric
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -608,15 +602,12 @@ function AudioControls() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Speed</SelectLabel>
-                      <SelectItem value={"0.25x"}>0.25x</SelectItem>
-                      <SelectItem value={"0.5x"}>0.5x</SelectItem>
-                      <SelectItem value={"0.75x"}>0.75x</SelectItem>
-                      <SelectItem value={"1x"}>1x</SelectItem>
-                      <SelectItem value={"1.25x"}>1.25x</SelectItem>
-                      <SelectItem value={"1.5x"}>1.5x</SelectItem>
-                    </SelectGroup>
+                    <SelectItem value={"0.25x"}>0.25x</SelectItem>
+                    <SelectItem value={"0.5x"}>0.5x</SelectItem>
+                    <SelectItem value={"0.75x"}>0.75x</SelectItem>
+                    <SelectItem value={"1x"}>1x</SelectItem>
+                    <SelectItem value={"1.25x"}>1.25x</SelectItem>
+                    <SelectItem value={"1.5x"}>1.5x</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -973,8 +964,8 @@ function AudioControls() {
                   <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
 
                   <Label className="baseFlex gap-2">
+                    <IoSettingsOutline className="size-4" />
                     Audio settings
-                    <IoSettingsOutline className="h-4 w-4" />
                   </Label>
                   <Separator className="mb-2 w-full bg-pink-600" />
 
@@ -1000,33 +991,29 @@ function AudioControls() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Instruments</SelectLabel>
+                        <SelectItem value={"acoustic_guitar_nylon"}>
+                          Acoustic guitar - Nylon
+                        </SelectItem>
 
-                          <SelectItem value={"acoustic_guitar_nylon"}>
-                            Acoustic guitar - Nylon
-                          </SelectItem>
+                        <SelectItem value={"acoustic_guitar_steel"}>
+                          Acoustic guitar - Steel
+                        </SelectItem>
 
-                          <SelectItem value={"acoustic_guitar_steel"}>
-                            Acoustic guitar - Steel
-                          </SelectItem>
+                        <SelectItem value={"electric_guitar_clean"}>
+                          Electric guitar - Clean
+                        </SelectItem>
 
-                          <SelectItem value={"electric_guitar_clean"}>
-                            Electric guitar - Clean
-                          </SelectItem>
+                        <SelectItem value={"electric_guitar_jazz"}>
+                          Electric guitar - Jazz
+                        </SelectItem>
 
-                          <SelectItem value={"electric_guitar_jazz"}>
-                            Electric guitar - Jazz
-                          </SelectItem>
+                        <SelectItem value={"acoustic_grand_piano"}>
+                          Grand piano - Acoustic
+                        </SelectItem>
 
-                          <SelectItem value={"acoustic_grand_piano"}>
-                            Grand piano - Acoustic
-                          </SelectItem>
-
-                          <SelectItem value={"electric_grand_piano"}>
-                            Grand piano - Electric
-                          </SelectItem>
-                        </SelectGroup>
+                        <SelectItem value={"electric_grand_piano"}>
+                          Grand piano - Electric
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1061,15 +1048,12 @@ function AudioControls() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Speed</SelectLabel>
-                          <SelectItem value={"0.25x"}>0.25x</SelectItem>
-                          <SelectItem value={"0.5x"}>0.5x</SelectItem>
-                          <SelectItem value={"0.75x"}>0.75x</SelectItem>
-                          <SelectItem value={"1x"}>1x</SelectItem>
-                          <SelectItem value={"1.25x"}>1.25x</SelectItem>
-                          <SelectItem value={"1.5x"}>1.5x</SelectItem>
-                        </SelectGroup>
+                        <SelectItem value={"0.25x"}>0.25x</SelectItem>
+                        <SelectItem value={"0.5x"}>0.5x</SelectItem>
+                        <SelectItem value={"0.75x"}>0.75x</SelectItem>
+                        <SelectItem value={"1x"}>1x</SelectItem>
+                        <SelectItem value={"1.25x"}>1.25x</SelectItem>
+                        <SelectItem value={"1.5x"}>1.5x</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
