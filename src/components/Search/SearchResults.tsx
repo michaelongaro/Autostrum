@@ -1,13 +1,17 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BsGridFill } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
 import { LuFilter } from "react-icons/lu";
 import { useInView } from "react-intersection-observer";
 import { Drawer } from "vaul";
 import Render404Page from "~/components/Search/Render404Page";
+import {
+  OverlayScrollbarsComponent,
+  type OverlayScrollbarsComponentRef,
+} from "overlayscrollbars-react";
 import { Button } from "~/components/ui/button";
 import DifficultyBars from "~/components/ui/DifficultyBars";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
@@ -42,21 +46,17 @@ const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 function SearchResults() {
   const { asPath, push, query, pathname } = useRouter();
 
-  const {
-    searchResultsCount,
-    mobileHeaderModal,
-    setMobileHeaderModal,
-    viewportLabel,
-  } = useTabStore((state) => ({
-    searchResultsCount: state.searchResultsCount,
-    mobileHeaderModal: state.mobileHeaderModal,
-    setMobileHeaderModal: state.setMobileHeaderModal,
-    viewportLabel: state.viewportLabel,
-  }));
+  const { mobileHeaderModal, setMobileHeaderModal, viewportLabel } =
+    useTabStore((state) => ({
+      mobileHeaderModal: state.mobileHeaderModal,
+      setMobileHeaderModal: state.setMobileHeaderModal,
+      viewportLabel: state.viewportLabel,
+    }));
 
-  const [applyStickyStyles, setApplyStickyStyles] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [resultsCountIsLoading, setResultsCountIsLoading] = useState(false);
+  const [searchResultsCount, setSearchResultsCount] = useState(0);
+  const [searchResultsCountIsLoading, setSearchsearchResultsCountIsLoading] =
+    useState(false);
   const [drawerHandleDisabled, setDrawerHandleDisabled] = useState(false);
 
   const localStorageLayoutType = useLocalStorageValue("autostrumLayoutType");
@@ -79,12 +79,45 @@ function SearchResults() {
     searchParamsParsed,
   } = useGetUrlParamFilters();
 
-  const { ref: stickyStylesSentinelRef } = useInView({
+  const tableHeaderRef = useRef<OverlayScrollbarsComponentRef<"div">>(null);
+  const tableBodyRef = useRef<OverlayScrollbarsComponentRef<"div">>(null);
+  const [gridTemplateColumns, setGridTemplateColumns] = useState("");
+
+  const handleWindowResize = useCallback(() => {
+    const colGroup = document.getElementById("tableTabViewColGroup");
+
+    if (!colGroup) return;
+
+    const gridTemplateColumns = [];
+
+    // loop through colGroup children and push() the width of each column to the array
+    for (const col of colGroup.children) {
+      const colElement = col as HTMLTableColElement;
+      gridTemplateColumns.push(`${colElement.getBoundingClientRect().width}px`);
+    }
+
+    setGridTemplateColumns(gridTemplateColumns.join(" "));
+  }, []);
+
+  useEffect(() => {
+    if (layoutType !== "table" || searchResultsCountIsLoading) return;
+
+    window.addEventListener("resize", handleWindowResize);
+
+    handleWindowResize();
+
+    return () => {
+      window.removeEventListener("resize", handleWindowResize);
+    };
+  }, [handleWindowResize, layoutType, query, searchResultsCountIsLoading]);
+
+  const {
+    ref: stickyStylesSentinelRef,
+    inView: stickyHeaderNotActive, // TODO: find a better name for this
+  } = useInView({
     threshold: 0,
-    delay: 0,
-    onChange: (inView) => {
-      setApplyStickyStyles(inView);
-    },
+    initialInView: true,
+    rootMargin: "-64px", // height of the sticky header
   });
 
   // fyi: all param change handlers below will remove the param if it is getting set
@@ -203,6 +236,13 @@ function SearchResults() {
   }
 
   function handleLayoutChange(layoutType: "grid" | "table") {
+    if (
+      (layoutType === "grid" && !query.layout) ||
+      (layoutType === "table" && query.layout === "table")
+    ) {
+      return; // no need to push same params if the layout is already set to the desired type
+    }
+
     localStorageLayoutType.set(layoutType);
 
     const newQuery = { ...query };
@@ -246,13 +286,15 @@ function SearchResults() {
   }
 
   return (
-    // TODO: calc values are just guesses
-    <div className="baseFlex min-h-[calc(100dvh-10rem)] w-full !items-start gap-2 rounded-lg tablet:min-h-[calc(100dvh-14rem)]">
+    <div className="baseFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-4 md:min-h-[calc(100dvh-4rem-12rem-56px)]">
       {/* tablet+ filters sidebar */}
       <div
-        className={`baseVertFlex sticky top-16 !hidden h-fit w-64 !items-start !justify-start gap-4 rounded-lg bg-pink-800 p-4 transition-all tablet:!flex ${applyStickyStyles ? "" : "rounded-t-none"}`}
+        className={`baseVertFlex sticky top-16 !hidden h-fit w-56 shrink-0 !items-start !justify-start gap-4 rounded-lg bg-pink-800 p-4 transition-all tablet:!flex ${stickyHeaderNotActive ? "" : "rounded-t-none"}`}
       >
-        <p className="text-lg font-medium">Filters</p>
+        <div className="baseFlex gap-2">
+          <LuFilter className="size-5" />
+          <span className="text-lg font-medium">Filters</span>
+        </div>
         {/* genre selector */}
         <div className="baseVertFlex w-full !items-start gap-1.5">
           <Label>Genre</Label>
@@ -520,130 +562,308 @@ function SearchResults() {
 
         {viewportLabel.includes("mobile") ? (
           // mobile: # of results / filter drawer trigger
-          <div className="baseFlex sticky top-0 w-full !justify-between rounded-t-lg bg-pink-800 px-4 py-2 tablet:!hidden">
-            {/* # of results */}
-            {resultsCountIsLoading ? (
-              <motion.div
-                key={"searchResultsCountSkeleton"}
-                variants={opacityVariants}
-                initial="closed"
-                animate="expanded"
-                exit="closed"
-              >
-                <div className="h-8 w-48 animate-pulse rounded-md bg-pink-300"></div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key={"searchResultsCount"}
-                variants={opacityVariants}
-                initial="closed"
-                animate="expanded"
-                exit="closed"
-              >
-                {`${searchResultsCount} result${
-                  searchResultsCount === 1 ? "" : "s"
-                } found`}
-              </motion.div>
-            )}
+          <div
+            className={`baseVertFlex sticky top-16 z-10 w-full !justify-between gap-4 border-b bg-pink-800 tablet:!hidden ${layoutType === "table" ? "pb-1 pt-2" : "py-3"}`}
+          >
+            {/* scroll area + only show on hover for BOTH the header + the table scrollbars */}
 
-            {/* filter drawer trigger */}
-            <Drawer.Root
-              open={drawerOpen}
-              onOpenChange={(open) => {
-                setDrawerOpen(open);
-                setMobileHeaderModal({
-                  showing: open,
-                  zIndex: open ? (asPath.includes("/profile") ? 50 : 49) : 48,
-                });
-              }}
-              modal={false}
-              dismissible={!drawerHandleDisabled}
-            >
-              <Drawer.Trigger asChild>
-                <Button
-                  variant={"outline"}
-                  className="baseFlex gap-2 @3xl:hidden"
-                >
-                  Filter
-                  <LuFilter className="h-4 w-4" />
-                </Button>
-              </Drawer.Trigger>
-              <Drawer.Portal>
-                <Drawer.Content
-                  style={{
-                    zIndex: asPath.includes("/preferences") ? 60 : 50,
-                    textShadow: "none",
-                  }}
-                  className="baseVertFlex fixed bottom-0 left-0 right-0 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950"
-                >
-                  <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
+            <div className="baseFlex w-full !justify-between gap-2 px-4">
+              {/* # of results */}
+              <AnimatePresence mode="popLayout">
+                {searchResultsCountIsLoading ? (
+                  <motion.div
+                    key={"searchResultsCountSkeleton"}
+                    variants={opacityVariants}
+                    initial="closed"
+                    animate="expanded"
+                    exit="closed"
+                  >
+                    <div className="pulseAnimation h-6 w-48 rounded-md bg-pink-300"></div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key={"searchResultsCount"}
+                    variants={opacityVariants}
+                    initial="closed"
+                    animate="expanded"
+                    exit="closed"
+                  >
+                    {`${searchResultsCount} result${
+                      searchResultsCount === 1 ? "" : "s"
+                    } found`}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-                  <Label className="baseFlex gap-2">
-                    Search filters
+              {/* filter drawer trigger */}
+              <Drawer.Root
+                open={drawerOpen}
+                onOpenChange={(open) => {
+                  setDrawerOpen(open);
+                  setMobileHeaderModal({
+                    showing: open,
+                    zIndex: open ? (asPath.includes("/profile") ? 50 : 49) : 48,
+                  });
+                }}
+                modal={false}
+                dismissible={!drawerHandleDisabled}
+              >
+                <Drawer.Trigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className="baseFlex gap-2 @3xl:hidden"
+                  >
+                    Filter
                     <LuFilter className="h-4 w-4" />
-                  </Label>
-                  <Separator className="mb-2 w-full bg-pink-600" />
+                  </Button>
+                </Drawer.Trigger>
+                <Drawer.Portal>
+                  <Drawer.Content
+                    style={{
+                      zIndex: asPath.includes("/preferences") ? 60 : 50,
+                      textShadow: "none",
+                    }}
+                    className="baseVertFlex fixed bottom-0 left-0 right-0 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950"
+                  >
+                    <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
 
-                  {/* TODO */}
-                </Drawer.Content>
-              </Drawer.Portal>
-            </Drawer.Root>
+                    <Label className="baseFlex gap-2">
+                      Search filters
+                      <LuFilter className="h-4 w-4" />
+                    </Label>
+                    <Separator className="mb-2 w-full bg-pink-600" />
+
+                    {/* TODO */}
+                  </Drawer.Content>
+                </Drawer.Portal>
+              </Drawer.Root>
+            </div>
+
+            {layoutType === "table" && searchResultsCount > 0 && (
+              <>
+                {searchResultsCountIsLoading ? (
+                  <motion.div
+                    key={"tableTabViewHeaderSkeleton"}
+                    variants={opacityVariants}
+                    initial="closed"
+                    animate="expanded"
+                    exit="closed"
+                    className="h-5 w-full"
+                  ></motion.div>
+                ) : (
+                  <motion.div
+                    key={"tableTabViewHeader"}
+                    variants={opacityVariants}
+                    initial="closed"
+                    animate="expanded"
+                    exit="closed"
+                    className="h-5 w-full"
+                  >
+                    <OverlayScrollbarsComponent
+                      id="tableTabHeaderOverlayScrollbar"
+                      ref={tableHeaderRef}
+                      options={{
+                        scrollbars: { autoHide: "leave", autoHideDelay: 150 },
+                      }}
+                      events={{
+                        // keeps the table header and body in sync when scrolling
+                        scroll(instance) {
+                          const body = tableBodyRef.current
+                            ?.osInstance()
+                            ?.elements().viewport;
+                          console.log("body", body, tableBodyRef.current);
+                          if (!body) return;
+
+                          body.scrollLeft =
+                            instance.elements().viewport.scrollLeft;
+                        },
+                      }}
+                      defer
+                      className="w-full"
+                    >
+                      <div className="w-full border-pink-700 bg-pink-800">
+                        <div
+                          className="grid grid-rows-1 items-center text-sm font-medium text-muted-foreground"
+                          style={{
+                            gridTemplateColumns,
+                          }}
+                        >
+                          {/* conditional empty header for direct /edit page button */}
+                          {asPath.includes("/profile/tabs") && (
+                            <div className="h-full px-4"></div>
+                          )}
+
+                          <div className="px-4">Title</div>
+
+                          {!query.artist &&
+                            !query.user &&
+                            !asPath.includes("/profile/tabs") && (
+                              <div className="px-4">Artist</div>
+                            )}
+
+                          <div className="px-4">Rating</div>
+
+                          {!query.difficulty && (
+                            <div className="px-4">Difficulty</div>
+                          )}
+
+                          {!query.genreId && <div className="px-4">Genre</div>}
+
+                          <div className="px-4">Date</div>
+
+                          {/* Empty header for bookmark toggle */}
+                          <div className="h-full px-4"></div>
+                        </div>
+                      </div>
+                    </OverlayScrollbarsComponent>
+                  </motion.div>
+                )}
+              </>
+            )}
           </div>
         ) : (
           // tablet+: # of results / view type toggle
-          <div className="baseFlex sticky top-16 z-10 !hidden w-full !justify-between rounded-t-lg bg-pink-800 px-4 py-3 tablet:!flex">
-            {/* # of results */}
-            {resultsCountIsLoading ? (
-              <motion.div
-                key={"searchResultsCountSkeleton"}
-                variants={opacityVariants}
-                initial="closed"
-                animate="expanded"
-                exit="closed"
-              >
-                <div className="h-8 w-48 animate-pulse rounded-md bg-pink-300"></div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key={"searchResultsCount"}
-                variants={opacityVariants}
-                initial="closed"
-                animate="expanded"
-                exit="closed"
-              >
-                {`${searchResultsCount} result${searchResultsCount === 1 ? "" : "s"} found`}
-              </motion.div>
-            )}
+          <div
+            className={`baseVertFlex sticky top-16 z-10 !hidden w-full !justify-between gap-4 border-b bg-pink-800 transition-all tablet:!flex ${layoutType === "table" && searchResultsCount > 0 ? "pb-1 pt-2" : "py-3"} ${stickyHeaderNotActive ? "rounded-t-lg" : "rounded-t-none"}`}
+          >
+            <div className="baseFlex w-full !justify-between gap-2 px-4">
+              {/* # of results */}
+              <AnimatePresence mode="popLayout">
+                {searchResultsCountIsLoading ? (
+                  <motion.div
+                    key={"searchResultsCountSkeleton"}
+                    variants={opacityVariants}
+                    initial="closed"
+                    animate="expanded"
+                    exit="closed"
+                  >
+                    <div className="pulseAnimation h-6 w-48 rounded-md bg-pink-300"></div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key={"searchResultsCount"}
+                    variants={opacityVariants}
+                    initial="closed"
+                    animate="expanded"
+                    exit="closed"
+                  >
+                    {`${searchResultsCount} result${searchResultsCount === 1 ? "" : "s"} found`}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-            {/* view type toggle */}
-            <div className="baseFlex gap-3">
-              <Label>Layout</Label>
-              <div className="baseFlex gap-2">
-                <Button
-                  variant={layoutType === "grid" ? "toggledOn" : "toggledOff"}
-                  size="sm"
-                  onClick={() => handleLayoutChange("grid")}
-                  className="baseFlex gap-2"
-                >
-                  <BsGridFill className="h-4 w-4" />
-                  Grid
-                </Button>
-                <Button
-                  variant={layoutType === "table" ? "toggledOn" : "toggledOff"}
-                  size="sm"
-                  onClick={() => handleLayoutChange("table")}
-                  className="baseFlex gap-2"
-                >
-                  <CiViewTable className="h-4 w-4" />
-                  Table
-                </Button>
+              {/* view type toggle */}
+              <div className="baseFlex gap-3">
+                <Label>Layout</Label>
+                <div className="baseFlex gap-2">
+                  <Button
+                    variant={layoutType === "grid" ? "toggledOn" : "toggledOff"}
+                    size="sm"
+                    onClick={() => handleLayoutChange("grid")}
+                    className="baseFlex gap-2"
+                  >
+                    <BsGridFill className="h-4 w-4" />
+                    Grid
+                  </Button>
+                  <Button
+                    variant={
+                      layoutType === "table" ? "toggledOn" : "toggledOff"
+                    }
+                    size="sm"
+                    onClick={() => handleLayoutChange("table")}
+                    className="baseFlex gap-2"
+                  >
+                    <CiViewTable className="h-4 w-4" />
+                    Table
+                  </Button>
+                </div>
               </div>
             </div>
+
+            {layoutType === "table" && searchResultsCount > 0 && (
+              <>
+                {searchResultsCountIsLoading ? (
+                  <motion.div
+                    key={"tableTabViewHeaderSkeleton"}
+                    variants={opacityVariants}
+                    initial="closed"
+                    animate="expanded"
+                    exit="closed"
+                    className="h-5 w-full"
+                  ></motion.div>
+                ) : (
+                  <motion.div
+                    key={"tableTabViewHeader"}
+                    variants={opacityVariants}
+                    initial="closed"
+                    animate="expanded"
+                    exit="closed"
+                    className="h-5 w-full"
+                  >
+                    <OverlayScrollbarsComponent
+                      id="tableTabHeaderOverlayScrollbar"
+                      ref={tableHeaderRef}
+                      options={{
+                        scrollbars: { autoHide: "leave", autoHideDelay: 150 },
+                      }}
+                      events={{
+                        // keeps the table header and body in sync when scrolling
+                        scroll(instance) {
+                          const body = tableBodyRef.current
+                            ?.osInstance()
+                            ?.elements().viewport;
+                          if (!body) return;
+
+                          body.scrollLeft =
+                            instance.elements().viewport.scrollLeft;
+                        },
+                      }}
+                      defer
+                      className="w-full"
+                    >
+                      <div className="w-full border-pink-700 bg-pink-800">
+                        <div
+                          className="grid grid-rows-1 items-center text-sm font-medium text-muted-foreground"
+                          style={{
+                            gridTemplateColumns:
+                              gridTemplateColumns ?? undefined,
+                          }}
+                        >
+                          {/* conditional empty header for direct /edit page button */}
+                          {asPath.includes("/profile/tabs") && (
+                            <div className="h-full px-4"></div>
+                          )}
+
+                          <div className="px-4">Title</div>
+
+                          {!query.artist &&
+                            !query.user &&
+                            !asPath.includes("/profile/tabs") && (
+                              <div className="px-4">Artist</div>
+                            )}
+
+                          <div className="px-4">Rating</div>
+
+                          <div className="px-4">Difficulty</div>
+
+                          <div className="px-4">Genre</div>
+
+                          <div className="px-4"> Date</div>
+
+                          {/* Empty header for bookmark toggle */}
+                          <div className="h-full px-4"></div>
+                        </div>
+                      </div>
+                    </OverlayScrollbarsComponent>
+                  </motion.div>
+                )}
+              </>
+            )}
           </div>
         )}
 
         {/* search results body */}
-        <div className="lightGlassmorphic w-full rounded-b-lg">
+        <div className="lightGlassmorphic size-full rounded-b-lg">
           <AnimatePresence>
             {renderSearch404 ? (
               <Render404Page />
@@ -659,7 +879,10 @@ function SearchResults() {
                         capo={capo}
                         difficulty={difficulty}
                         sortBy={sortBy}
-                        setResultsCountIsLoading={setResultsCountIsLoading}
+                        setSearchResultsCount={setSearchResultsCount}
+                        setSearchsearchResultsCountIsLoading={
+                          setSearchsearchResultsCountIsLoading
+                        }
                       />
                     )}
 
@@ -671,7 +894,12 @@ function SearchResults() {
                         capo={capo}
                         difficulty={difficulty}
                         sortBy={sortBy}
-                        setResultsCountIsLoading={setResultsCountIsLoading}
+                        setSearchResultsCount={setSearchResultsCount}
+                        setSearchsearchResultsCountIsLoading={
+                          setSearchsearchResultsCountIsLoading
+                        }
+                        tableHeaderRef={tableHeaderRef}
+                        tableBodyRef={tableBodyRef}
                       />
                     )}
                   </>

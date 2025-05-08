@@ -174,6 +174,7 @@ function TabSection({
     currentChordIndex,
     playbackSpeed,
     audioMetadata,
+    viewportLabel,
   } = useTabStore((state) => ({
     bpm: state.bpm,
     tuning: state.tuning,
@@ -183,6 +184,7 @@ function TabSection({
     currentChordIndex: state.currentChordIndex,
     playbackSpeed: state.playbackSpeed,
     audioMetadata: state.audioMetadata,
+    viewportLabel: state.viewportLabel,
   }));
 
   const getPMNodeOpacities = useCallback(() => {
@@ -1009,7 +1011,10 @@ function TabSection({
               <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-white/20 active:hover:bg-white/10">
                 <HiOutlineInformationCircle className="h-5 w-5" />
               </PopoverTrigger>
-              <PopoverContent side={"right"} className="w-[300px] md:w-full">
+              <PopoverContent
+                side={viewportLabel.includes("mobile") ? "bottom" : "right"}
+                className="w-[350px] md:w-[385px]"
+              >
                 <div className="baseVertFlex gap-1">
                   <p className="baseFlex gap-2 text-sm font-semibold md:text-base">
                     <BsKeyboard className="h-5 w-5 sm:h-6 sm:w-6" />

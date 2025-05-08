@@ -1,19 +1,20 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
-import Hero from "~/components/HomePage/Hero";
+import TuningFork from "~/components/ui/icons/TuningFork";
 
-function Home() {
+function Tuner() {
   return (
     <motion.div
-      key={"home"}
+      key={"tuner"}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="baseVertFlex w-full"
+      // !justify-start
+      className="baseVertFlex my-12 min-h-[calc(100dvh-4rem-6rem)] w-full max-w-[1400px] md:my-24 md:min-h-[calc(100dvh-4rem-12rem)] md:w-3/4 md:p-0"
     >
       <Head>
-        <title>Autostrum</title>
+        <title>Tuner | Autostrum</title>
         <meta
           name="description"
           content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music. Practice any tab alongside our realistic generated audio and convenient audio controls."
@@ -31,9 +32,16 @@ function Home() {
         ></meta>
       </Head>
 
-      <Hero />
+      <div className="baseVertFlex lightGlassmorphic mx-8 gap-4 rounded-lg p-4">
+        <TuningFork className="size-8 md:size-10" />
+
+        <p className="w-80 text-center">
+          The tuner tool is currently under construction! Please check back soon
+          for further updates.
+        </p>
+      </div>
     </motion.div>
   );
 }
 
-export default Home;
+export default Tuner;

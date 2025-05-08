@@ -25,7 +25,7 @@ function GenreBubbles() {
             {indicies.map((index) => (
               <div
                 key={index}
-                className="h-36 w-full animate-pulse rounded-lg bg-pink-300"
+                className="pulseAnimation h-36 w-full rounded-lg bg-pink-300"
               ></div>
             ))}
           </>

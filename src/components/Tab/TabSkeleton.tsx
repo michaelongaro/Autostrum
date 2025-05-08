@@ -38,9 +38,9 @@ function TabSkeleton({ editing }: TabSkeleton) {
         <>
           <div className="baseVertFlex w-full gap-2">
             <div className="baseFlex w-full !justify-end gap-2 p-4">
-              <div className="h-8 w-28 animate-pulse rounded-md bg-pink-300"></div>
-              <div className="h-8 w-28 animate-pulse rounded-md bg-pink-300"></div>
-              <div className="h-8 w-20 animate-pulse rounded-md bg-pink-300"></div>
+              <div className="pulseAnimation h-8 w-28 rounded-md bg-pink-300"></div>
+              <div className="pulseAnimation h-8 w-28 rounded-md bg-pink-300"></div>
+              <div className="pulseAnimation h-8 w-20 rounded-md bg-pink-300"></div>
             </div>
 
             <div className={classes.editingMetadataContainer}>
@@ -52,7 +52,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
                 <Label htmlFor="title">
                   Title <span className="text-destructiveRed">*</span>
                 </Label>
-                <div className="h-8 w-full max-w-72 animate-pulse rounded-md bg-pink-300"></div>
+                <div className="pulseAnimation h-8 w-full max-w-72 rounded-md bg-pink-300"></div>
               </div>
 
               <div
@@ -61,7 +61,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
                 } baseVertFlex w-full !items-start gap-1.5`}
               >
                 <Label htmlFor="description">Description</Label>
-                <div className="h-16 w-full animate-pulse rounded-md bg-pink-300"></div>
+                <div className="pulseAnimation h-16 w-full rounded-md bg-pink-300"></div>
               </div>
 
               <div
@@ -72,7 +72,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
                 <Label>
                   Genre <span className="text-destructiveRed">*</span>
                 </Label>
-                <div className="h-8 w-[180px] animate-pulse rounded-md bg-pink-300"></div>
+                <div className="pulseAnimation h-8 w-[180px] rounded-md bg-pink-300"></div>
               </div>
 
               <div
@@ -83,7 +83,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
                 <Label htmlFor="tuning">
                   Tuning <span className="text-destructiveRed">*</span>
                 </Label>
-                <div className="h-8 w-[180px] animate-pulse rounded-md bg-pink-300"></div>
+                <div className="pulseAnimation h-8 w-[180px] rounded-md bg-pink-300"></div>
               </div>
 
               <div
@@ -92,7 +92,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
                 } baseVertFlex w-16 max-w-sm !items-start gap-1.5`}
               >
                 <Label htmlFor="capo">Capo</Label>
-                <div className="h-8 w-16 animate-pulse rounded-md bg-pink-300"></div>
+                <div className="pulseAnimation h-8 w-16 rounded-md bg-pink-300"></div>
               </div>
 
               <div
@@ -105,7 +105,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
                 </Label>
                 <div className="baseFlex">
                   <QuarterNote className="-ml-1 size-5" />
-                  <div className="h-8 w-16 animate-pulse rounded-md bg-pink-300"></div>
+                  <div className="pulseAnimation h-8 w-16 rounded-md bg-pink-300"></div>
                   <span className="ml-1">BPM</span>
                 </div>
               </div>
@@ -117,43 +117,43 @@ function TabSkeleton({ editing }: TabSkeleton) {
               style={{
                 minWidth: aboveMediumViewportWidth ? "500px" : "300px",
               }}
-              className="h-28 w-1/2 max-w-[91.7%] animate-pulse rounded-md bg-pink-300"
+              className="pulseAnimation h-28 w-1/2 max-w-[91.7%] rounded-md bg-pink-300"
             ></div>
             <div
               style={{
                 minWidth: aboveMediumViewportWidth ? "500px" : "300px",
               }}
-              className="h-28 w-1/2 max-w-[91.7%] animate-pulse rounded-md bg-pink-300"
+              className="pulseAnimation h-28 w-1/2 max-w-[91.7%] rounded-md bg-pink-300"
             ></div>
             <div
               style={{
                 minWidth: aboveMediumViewportWidth ? "500px" : "300px",
               }}
-              className="h-28 w-1/2 max-w-[91.7%] animate-pulse rounded-md bg-pink-300"
+              className="pulseAnimation h-28 w-1/2 max-w-[91.7%] rounded-md bg-pink-300"
             ></div>
 
-            <div className="h-10 w-36 animate-pulse rounded-md bg-pink-300 lg:absolute lg:right-7 lg:top-0"></div>
+            <div className="pulseAnimation h-10 w-36 rounded-md bg-pink-300 lg:absolute lg:right-7 lg:top-0"></div>
           </div>
           <Separator className="w-[96%]" />
           <div className="baseVertFlex w-full gap-4 p-6">
             <div className="relative w-full">
               <div className="baseFlex w-full !justify-start gap-2">
                 <Label className="text-lg font-semibold">Title</Label>
-                <div className="h-8 w-28 animate-pulse rounded-md bg-pink-300"></div>
+                <div className="pulseAnimation h-8 w-28 rounded-md bg-pink-300"></div>
               </div>
             </div>
 
-            <div className="h-36 w-full animate-pulse rounded-md bg-pink-300"></div>
+            <div className="pulseAnimation h-36 w-full rounded-md bg-pink-300"></div>
 
             <div className="baseFlex gap-4">
-              <div className="h-10 w-24 animate-pulse rounded-md bg-pink-300"></div>
-              <div className="h-10 w-28 animate-pulse rounded-md bg-pink-300"></div>
+              <div className="pulseAnimation h-10 w-24 rounded-md bg-pink-300"></div>
+              <div className="pulseAnimation h-10 w-28 rounded-md bg-pink-300"></div>
             </div>
           </div>
           <Separator className="w-[96%]" />
 
           <div className="baseFlex my-8 gap-4">
-            <div className="h-10 w-40 animate-pulse rounded-md bg-pink-300"></div>
+            <div className="pulseAnimation h-10 w-40 rounded-md bg-pink-300"></div>
           </div>
         </>
       )}
@@ -171,7 +171,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
                   <div className="baseFlex gap-2">
                     <div className="baseFlex gap-2">
                       <div className="text-2xl font-bold">
-                        <div className="h-8 w-52 animate-pulse rounded-md bg-pink-300"></div>
+                        <div className="pulseAnimation h-8 w-52 rounded-md bg-pink-300"></div>
                       </div>
 
                       <Button
@@ -187,25 +187,25 @@ function TabSkeleton({ editing }: TabSkeleton) {
 
                     <div className="baseFlex gap-2">
                       <div className="baseFlex gap-2">
-                        <div className="h-8 w-8 animate-pulse rounded-full bg-pink-300"></div>
-                        <div className="h-8 w-32 animate-pulse rounded-md bg-pink-300"></div>
+                        <div className="pulseAnimation h-8 w-8 rounded-full bg-pink-300"></div>
+                        <div className="pulseAnimation h-8 w-32 rounded-md bg-pink-300"></div>
                       </div>
                       <Separator className="h-[1px] w-4" />
-                      <div className="h-8 w-20 animate-pulse rounded-md bg-pink-300"></div>
+                      <div className="pulseAnimation h-8 w-20 rounded-md bg-pink-300"></div>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="baseVertFlex relative w-full !items-start gap-2">
                   <div className="baseVertFlex !items-start gap-4">
-                    <div className="h-8 w-52 animate-pulse rounded-md bg-pink-300"></div>
+                    <div className="pulseAnimation h-8 w-52 rounded-md bg-pink-300"></div>
 
                     <div className="baseVertFlex !items-start gap-2">
                       <div className="baseFlex gap-2">
-                        <div className="h-8 w-8 animate-pulse rounded-full bg-pink-300"></div>
-                        <div className="h-7 w-32 animate-pulse rounded-md bg-pink-300"></div>
+                        <div className="pulseAnimation h-8 w-8 rounded-full bg-pink-300"></div>
+                        <div className="pulseAnimation h-7 w-32 rounded-md bg-pink-300"></div>
                       </div>
-                      <div className="h-5 w-32 animate-pulse rounded-md bg-pink-300"></div>
+                      <div className="pulseAnimation h-5 w-32 rounded-md bg-pink-300"></div>
                     </div>
                   </div>
 
@@ -223,12 +223,12 @@ function TabSkeleton({ editing }: TabSkeleton) {
                 <div className="baseFlex !items-start !justify-start gap-6">
                   <div className="baseVertFlex !items-start gap-2">
                     <div className="font-semibold">Genre</div>
-                    <div className="h-8 w-[145px] animate-pulse rounded-md bg-pink-300"></div>
+                    <div className="pulseAnimation h-8 w-[145px] rounded-md bg-pink-300"></div>
                   </div>
 
                   <div className="baseVertFlex !items-start gap-2">
                     <div className="font-semibold">Tuning</div>
-                    <div className="h-8 w-[145px] animate-pulse rounded-md bg-pink-300"></div>
+                    <div className="pulseAnimation h-8 w-[145px] rounded-md bg-pink-300"></div>
                   </div>
                 </div>
 
@@ -237,14 +237,14 @@ function TabSkeleton({ editing }: TabSkeleton) {
                     <div className="font-semibold">Tempo</div>
                     <div className="baseFlex">
                       <QuarterNote className="-ml-1 size-5" />
-                      <div className="h-8 w-12 animate-pulse rounded-md bg-pink-300"></div>
+                      <div className="pulseAnimation h-8 w-12 rounded-md bg-pink-300"></div>
                       <span className="ml-1">BPM</span>
                     </div>
                   </div>
 
                   <div className="baseVertFlex ml-[41px] !items-start gap-2 sm:ml-0">
                     <p className="font-semibold">Capo</p>
-                    <div className="h-8 w-16 animate-pulse rounded-md bg-pink-300"></div>
+                    <div className="pulseAnimation h-8 w-16 rounded-md bg-pink-300"></div>
                   </div>
                 </div>
               </div>
@@ -256,7 +256,7 @@ function TabSkeleton({ editing }: TabSkeleton) {
 
               <div className="baseVertFlex w-full max-w-3xl !items-start gap-2 !self-start xl:w-[50%]">
                 <div className="font-semibold">Description</div>
-                <div className="h-16 w-full animate-pulse rounded-md bg-pink-300"></div>
+                <div className="pulseAnimation h-16 w-full rounded-md bg-pink-300"></div>
               </div>
             </div>
           </div>
@@ -268,30 +268,30 @@ function TabSkeleton({ editing }: TabSkeleton) {
               style={{
                 minWidth: aboveMediumViewportWidth ? "500px" : "300px",
               }}
-              className="h-16 w-1/2 max-w-[91.7%] animate-pulse rounded-md bg-pink-300 sm:h-24"
+              className="pulseAnimation h-16 w-1/2 max-w-[91.7%] rounded-md bg-pink-300 sm:h-24"
             ></div>
             <div
               style={{
                 minWidth: aboveMediumViewportWidth ? "500px" : "300px",
               }}
-              className="h-16 w-1/2 max-w-[91.7%] animate-pulse rounded-md bg-pink-300 sm:h-24"
+              className="pulseAnimation h-16 w-1/2 max-w-[91.7%] rounded-md bg-pink-300 sm:h-24"
             ></div>
             <div
               style={{
                 minWidth: aboveMediumViewportWidth ? "500px" : "300px",
               }}
-              className="h-16 w-1/2 max-w-[91.7%] animate-pulse rounded-md bg-pink-300 sm:h-24"
+              className="pulseAnimation h-16 w-1/2 max-w-[91.7%] rounded-md bg-pink-300 sm:h-24"
             ></div>
 
-            <div className="h-10 w-36 animate-pulse rounded-md bg-pink-300 lg:absolute lg:right-7 lg:top-0"></div>
+            <div className="pulseAnimation h-10 w-36 rounded-md bg-pink-300 lg:absolute lg:right-7 lg:top-0"></div>
           </div>
           <Separator className="w-[96%]" />
 
           <div className="baseVertFlex w-full !items-start gap-4 p-6 pt-0">
-            <div className="h-12 w-48 animate-pulse rounded-md bg-pink-300"></div>
-            <div className="h-36 w-full animate-pulse rounded-md bg-pink-300"></div>
-            <div className="h-36 w-full animate-pulse rounded-md bg-pink-300"></div>
-            <div className="h-36 w-full animate-pulse rounded-md bg-pink-300"></div>
+            <div className="pulseAnimation h-12 w-48 rounded-md bg-pink-300"></div>
+            <div className="pulseAnimation h-36 w-full rounded-md bg-pink-300"></div>
+            <div className="pulseAnimation h-36 w-full rounded-md bg-pink-300"></div>
+            <div className="pulseAnimation h-36 w-full rounded-md bg-pink-300"></div>
           </div>
         </>
       )}

@@ -153,7 +153,10 @@ function MobileHeader() {
                         : undefined,
                     }}
                   >
-                    <Link href={"/tuner"} className="baseFlex w-[165px] gap-2">
+                    <Link
+                      href={"/metronome"}
+                      className="baseFlex w-[165px] gap-2"
+                    >
                       <PiMetronome className="size-5 shrink-0" />
                       Metronome
                     </Link>

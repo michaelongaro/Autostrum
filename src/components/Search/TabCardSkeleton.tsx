@@ -40,7 +40,7 @@ function TabCardSkeleton({
               ? 151
               : 129,
         }}
-        className="animate-pulse rounded-t-sm bg-pink-300"
+        className="pulseAnimation rounded-t-sm bg-pink-300"
       ></div>
 
       <Separator className="bg-pink-100" />
@@ -49,23 +49,23 @@ function TabCardSkeleton({
         className={`baseVertFlex h-[90px] w-full !items-start gap-1 rounded-b-md p-2.5`}
       >
         {/* title */}
-        <div className="h-6 w-48 animate-pulse rounded-md bg-pink-300"></div>
+        <div className="pulseAnimation h-6 w-48 rounded-md bg-pink-300"></div>
 
         {/* artist + difficulty */}
         <div className="baseFlex w-full !justify-between">
-          <div className="h-5 w-16 animate-pulse rounded-md bg-pink-300"></div>
-          <div className="h-5 w-24 animate-pulse rounded-md bg-pink-300"></div>
+          <div className="pulseAnimation h-5 w-16 rounded-md bg-pink-300"></div>
+          <div className="pulseAnimation h-5 w-24 rounded-md bg-pink-300"></div>
         </div>
 
         {/* genre + rating/date */}
         <div className="baseFlex w-full !justify-between">
-          <div className="h-5 w-12 animate-pulse rounded-full bg-pink-300"></div>
+          <div className="pulseAnimation h-5 w-12 rounded-full bg-pink-300"></div>
 
           <div className="baseFlex gap-2">
             <div className="baseFlex gap-1">
-              <div className="h-4 w-8 animate-pulse rounded-md bg-pink-300"></div>
+              <div className="pulseAnimation h-4 w-8 rounded-md bg-pink-300"></div>
               <FaStar className="size-3" />
-              <div className="h-4 w-8 animate-pulse rounded-md bg-pink-300"></div>
+              <div className="pulseAnimation h-4 w-8 rounded-md bg-pink-300"></div>
             </div>
 
             <Separator
@@ -73,7 +73,7 @@ function TabCardSkeleton({
               orientation="vertical"
             />
 
-            <div className="h-5 w-20 animate-pulse rounded-md bg-pink-300"></div>
+            <div className="pulseAnimation h-5 w-20 rounded-md bg-pink-300"></div>
           </div>
         </div>
       </div>

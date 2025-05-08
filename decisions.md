@@ -22,3 +22,6 @@ I originally had skeleton loading components for <GridTabCard /> and <TableTabRo
 
 **Recorded audio & YouTube embeds**  
 I originally had the functionality for users to record and upload their own audio for a tab they had made, however the use case was too niche, increased code complexity, and fundamentally went against the core principle of minimizing the work it takes to create an accurate and easy to follow tab. I similarly had an idea to allow users to link a YouTube playthrough of their song, however this also went against my philosophy, as it would only be beneficial if the provided tools were not sufficient to accurately recreate the tab.
+
+**Content-visibility: auto**
+I tried using this instead of my custom virtualization approach for the tab playback modal believing that it would elegantly simplify my approach, however I was not able to achieve the necessary performance to warrent using it.

@@ -199,6 +199,11 @@ body {
   min-height: 100dvh;
 }
 
+table {
+  table-layout: fixed;
+  width: 100%;
+}
+
 .noScroll {
   position: fixed;
   overflow-y: scroll;
@@ -285,4 +290,16 @@ kbd {
   line-height: 1;
   padding: 2px 4px;
   white-space: nowrap;
+}
+
+/* slightly modified animate-pulse, that doesn't go all the way down to
+   0% opacity */
+@keyframes pulseAnimation {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pulseAnimation {
+  animation: pulseAnimation 2s cubic-bezier(0.4, 0.2, 0.6, 1) infinite;
 }

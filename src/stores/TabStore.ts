@@ -553,10 +553,6 @@ interface TabState {
     resetCurrentlyPlayingMetadata?: boolean,
   ) => void;
 
-  // related to search
-  searchResultsCount: number;
-  setSearchResultsCount: (searchResultsCount: number) => void;
-
   isLoadingARoute: boolean;
   setIsLoadingARoute: (isLoadingARoute: boolean) => void;
   viewportLabel:
@@ -1188,11 +1184,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       playbackModalViewingState: "Practice",
       setPlaybackModalViewingState: (playbackModalViewingState) =>
         set({ playbackModalViewingState }),
-
-      // search
-      searchResultsCount: 0,
-      setSearchResultsCount: (searchResultsCount) =>
-        set({ searchResultsCount }),
 
       isLoadingARoute: false,
       setIsLoadingARoute: (isLoadingARoute) => set({ isLoadingARoute }),

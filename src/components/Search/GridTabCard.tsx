@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -17,6 +17,7 @@ import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { useRouter } from "next/router";
+import { MdModeEditOutline } from "react-icons/md";
 
 interface GridTabCard {
   minimalTab: MinimalTabRepresentation;
@@ -74,14 +75,14 @@ function GridTabCard({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.25 }}
+      transition={{ duration: 0.3 }}
       style={{
         width: `${
           largeVariant ? 400 : isAboveExtraSmallViewportWidth ? 330 : 280
         }px`, // accounts for border (may need to add a few px to custom width now that I think about it)
         // height: `${width ? 183 : 146}px`,
       }}
-      className="baseVertFlex !flex-nowrap rounded-md border-2 shadow-md"
+      className="baseVertFlex !flex-nowrap overflow-hidden rounded-md border-2 shadow-md"
     >
       {/* tab preview */}
       <div className="relative w-full">
@@ -123,34 +124,64 @@ function GridTabCard({
                       : 129
                 }
                 onLoad={() => {
-                  setTabScreenshotLoaded(true);
+                  setTimeout(() => {
+                    setTabScreenshotLoaded(true);
+                  }, 100); // unsure if this is necessary, but it felt too flickery without it
                 }}
                 style={{
                   opacity: tabScreenshotLoaded ? 1 : 0,
+                  transition: "opacity 0.3s ease-in-out",
                 }}
-                className="col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-md object-cover object-center transition-opacity"
+                className="col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-md object-cover object-center"
               />
             )}
 
-            <div
-              style={{
-                opacity: !tabScreenshotLoaded ? 1 : 0,
-                zIndex: !tabScreenshotLoaded ? 1 : -1,
-                width: largeVariant
-                  ? 396
-                  : isAboveExtraSmallViewportWidth
-                    ? 313
-                    : 266,
-                height: largeVariant
-                  ? 185
-                  : isAboveExtraSmallViewportWidth
-                    ? 146
-                    : 124,
-              }}
-              className={`col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-md bg-pink-300 transition-opacity ${!tabScreenshotLoaded ? "animate-pulse" : ""} `}
-            ></div>
+            <AnimatePresence>
+              {!tabScreenshotLoaded && (
+                <motion.div
+                  key={`${minimalTab.id}gridTabCardSkeletonImageLoader`}
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  style={{
+                    width: largeVariant
+                      ? 396
+                      : isAboveExtraSmallViewportWidth
+                        ? 326
+                        : 276,
+                    height: largeVariant
+                      ? 185
+                      : isAboveExtraSmallViewportWidth
+                        ? 152
+                        : 129,
+                  }}
+                  className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-none bg-pink-300"
+                ></motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </Link>
+
+        {asPath.includes("/profile/tabs") && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="w-full"
+          >
+            <Button variant={"navigation"} asChild>
+              <Link
+                prefetch={false}
+                href={`/tab/${minimalTab.id}/edit`}
+                className="absolute right-14 top-2 size-10 !p-0"
+              >
+                <MdModeEditOutline className="size-5" />
+              </Link>
+            </Button>
+          </motion.div>
+        )}
 
         <BookmarkToggle
           tabId={minimalTab.id}
@@ -161,7 +192,7 @@ function GridTabCard({
             currentUser?.bookmarkedTabIds?.includes(minimalTab.id) ?? false
           }
           infiniteQueryParams={infiniteQueryParams}
-          customClassName={"absolute top-2 right-2 size-10"}
+          customClassName={"absolute top-2 right-2 size-10 z-10"}
         />
       </div>
 
@@ -243,28 +274,28 @@ function GridTabCard({
         </div>
 
         {/* genre pill --- ratings/createdAt */}
-        <div
-          className={`baseFlex w-full gap-2 text-sm ${!query.genreId ? "!justify-between" : "!justify-end"}`}
-        >
-          {!query.genreId && (
-            <Badge
-              style={{
-                backgroundColor: genreList[minimalTab.genreId]?.color,
-              }}
-            >
-              {genreList[minimalTab.genreId]?.name}
-            </Badge>
-          )}
+        <div className="baseFlex w-full !justify-between gap-2 text-sm">
+          <Badge
+            style={{
+              backgroundColor: genreList[minimalTab.genreId]?.color,
+            }}
+          >
+            {genreList[minimalTab.genreId]?.name}
+          </Badge>
 
           <div className="baseFlex gap-2">
-            <div className="baseFlex gap-1">
-              {minimalTab.averageRating}
-              <FaStar className="size-3" />({minimalTab.ratingsCount})
-            </div>
-            <Separator
-              className="h-[16px] w-[1px] bg-pink-100/50"
-              orientation="vertical"
-            />
+            {minimalTab.ratingsCount > 0 && (
+              <>
+                <div className="baseFlex gap-1">
+                  {minimalTab.averageRating}
+                  <FaStar className="size-3" />({minimalTab.ratingsCount})
+                </div>
+                <Separator
+                  className="h-[16px] w-[1px] bg-pink-100/50"
+                  orientation="vertical"
+                />
+              </>
+            )}
             {formatDate(minimalTab.createdAt)}
           </div>
         </div>

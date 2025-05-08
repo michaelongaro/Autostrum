@@ -243,10 +243,13 @@ function RateTabPopover({
 
   return (
     <Popover
-      open={showPopover || showUnregisteredPopover}
+      open={showPopover}
       onOpenChange={(open) => {
         if (open === false && showUnregisteredPopover) {
-          setShowUnregisteredPopover(false);
+          setShowPopover(false);
+          setTimeout(() => {
+            setShowUnregisteredPopover(false);
+          }, 150); // Allow time for the popover to close before resetting the state
           if (unregisteredPopoverTimeoutId) {
             clearTimeout(unregisteredPopoverTimeoutId);
             setUnregisteredPopoverTimeoutId(null);
@@ -263,10 +266,14 @@ function RateTabPopover({
         asChild
         onClick={() => {
           if (!currentUser) {
+            setShowPopover(true);
             setShowUnregisteredPopover(true);
             setUnregisteredPopoverTimeoutId(
               setTimeout(() => {
-                setShowUnregisteredPopover(false);
+                setShowPopover(false);
+                setTimeout(() => {
+                  setShowUnregisteredPopover(false);
+                }, 150); // Allow time for the popover to close before resetting the state
               }, 2000),
             );
           } else {

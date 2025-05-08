@@ -108,15 +108,19 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
     } else if (artistId) {
       void push(`/artist/${artistId}/${encodedSearchQuery}`);
     } else {
-      if (encodedSearchQuery) {
+      const pathname = "/explore/filters";
+      const newQuery = {
+        ...(encodedSearchQuery && { search: encodedSearchQuery }),
+        ...(query.layout && { layout: query.layout }),
+      };
+
+      if (Object.keys(newQuery).length > 0) {
         void push({
-          pathname: "/explore/filters",
-          query: {
-            search: encodedSearchQuery,
-          },
+          pathname: pathname,
+          query: newQuery,
         });
       } else {
-        void push("/explore/filters");
+        void push(pathname);
       }
     }
 

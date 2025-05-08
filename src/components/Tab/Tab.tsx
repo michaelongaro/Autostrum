@@ -1,9 +1,4 @@
 import type { Tab as PrismaTab } from "@prisma/client";
-import type {
-  QueryObserverResult,
-  RefetchOptions,
-  RefetchQueryFilters,
-} from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { FaBook } from "react-icons/fa";
@@ -42,23 +37,8 @@ const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
 );
 
-export interface RefetchTab {
-  refetchTab: <TPageData>(
-    options?: RefetchOptions & RefetchQueryFilters<TPageData>,
-    // @ts-expect-error asdf
-  ) => Promise<QueryObserverResult<TData, TError>>;
-}
-
-const opacityVariants = {
-  expanded: {
-    opacity: 1,
-  },
-  closed: {
-    opacity: 0,
-  },
-};
 interface Tab {
-  tab: FullTab | undefined | null;
+  tab?: FullTab | null;
 }
 
 function Tab({ tab }: Tab) {
@@ -158,8 +138,6 @@ function Tab({ tab }: Tab) {
     if (!tab) return;
 
     setOriginalTabData(structuredClone(tab));
-
-    console.log("tab", tab);
 
     setId(tab.id);
     setCreatedByUserId(tab.createdByUserId);
@@ -263,10 +241,9 @@ function Tab({ tab }: Tab) {
   return (
     <motion.div
       key={"fullTabBeingViewed"}
-      variants={opacityVariants}
-      initial="closed"
-      animate="expanded"
-      exit="closed"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
       className="baseVertFlex w-full"
     >
@@ -275,7 +252,7 @@ function Tab({ tab }: Tab) {
         style={{
           transition: "filter 0.5s ease-in-out",
         }}
-        className={`baseVertFlex lightGlassmorphic relative my-12 w-11/12 gap-4 rounded-xl md:my-24 2xl:w-8/12 ${
+        className={`baseVertFlex lightGlassmorphic relative w-full gap-4 md:rounded-xl ${
           isPostingOrSaving
             ? "pointer-events-none brightness-90"
             : "brightness-100"

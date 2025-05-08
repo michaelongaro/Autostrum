@@ -1,23 +1,22 @@
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import { useEffect, type Dispatch, type SetStateAction } from "react";
-import { useInView } from "react-intersection-observer";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table";
-import { useTabStore } from "~/stores/TabStore";
+  OverlayScrollbarsComponent,
+  type OverlayScrollbarsComponentRef,
+} from "overlayscrollbars-react";
+import {
+  useEffect,
+  type Dispatch,
+  type RefObject,
+  type SetStateAction,
+} from "react";
+import { useInView } from "react-intersection-observer";
+import { Table, TableBody } from "~/components/ui/table";
+import type { InfiniteQueryParams } from "~/server/api/routers/search";
 import { api } from "~/utils/api";
 import NoResultsFound from "./NoResultsFound";
 import TableTabRow from "./TableTabRow";
-import type { ParsedUrlQuery } from "querystring";
-import { FaStar } from "react-icons/fa";
-import type { InfiniteQueryParams } from "~/server/api/routers/search";
 
 interface TableTabView {
   searchQuery?: string;
@@ -26,7 +25,10 @@ interface TableTabView {
   capo?: boolean;
   difficulty?: number;
   sortBy: "relevance" | "newest" | "oldest" | "mostPopular" | "leastPopular";
-  setResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
+  setSearchResultsCount: Dispatch<SetStateAction<number>>;
+  setSearchsearchResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
+  tableHeaderRef: RefObject<OverlayScrollbarsComponentRef<"div"> | null>;
+  tableBodyRef: RefObject<OverlayScrollbarsComponentRef<"div"> | null>;
 }
 
 function TableTabView({
@@ -36,14 +38,13 @@ function TableTabView({
   capo,
   difficulty,
   sortBy,
-  setResultsCountIsLoading,
+  setSearchResultsCount,
+  setSearchsearchResultsCountIsLoading,
+  tableHeaderRef,
+  tableBodyRef,
 }: TableTabView) {
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
-
-  const { setSearchResultsCount } = useTabStore((state) => ({
-    setSearchResultsCount: state.setSearchResultsCount,
-  }));
 
   const { data: userProfileBeingViewed } = api.user.getByIdOrUsername.useQuery(
     {
@@ -104,8 +105,8 @@ function TableTabView({
 
   useEffect(() => {
     // only want to show loading indicator if we're fetching initial "page"
-    setResultsCountIsLoading(isFetching && !isFetchingNextPage);
-  }, [isFetching, isFetchingNextPage, setResultsCountIsLoading]);
+    setSearchsearchResultsCountIsLoading(isFetching && !isFetchingNextPage);
+  }, [isFetching, isFetchingNextPage, setSearchsearchResultsCountIsLoading]);
 
   const { ref } = useInView({
     threshold: 0.75,
@@ -115,6 +116,10 @@ function TableTabView({
       }
     },
   });
+
+  // FYI: using separate <AnimatePresence> instead of wrapping entire output in one
+  // because <OverlayScrollbarsComponent> needs to be a direct child of the DOM element I guess?
+
   return (
     <motion.div
       key={"TableTabViewSearchResults"}
@@ -122,128 +127,143 @@ function TableTabView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="baseVertFlex w-full gap-4 p-4 transition-all"
+      className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px-60px-45px)] w-full gap-4 transition-all md:min-h-[calc(100dvh-4rem-12rem-56px-60px-45px)]"
     >
-      <Table>
-        {/* ideally want table to be rounded, but wasn't having much luck. look up online
-        because I know on lyricize it was a bit of a hassle*/}
-        <TableHeader className="!sticky top-0">
-          <TableRow className="hover:!bg-transparent">
-            <TableHead>Title</TableHead>
+      {tabResults && tabResults.pages[0]?.count !== 0 && (
+        <OverlayScrollbarsComponent
+          ref={tableBodyRef}
+          options={{
+            scrollbars: { autoHide: "leave", autoHideDelay: 150 },
+          }}
+          events={{
+            // keeps the table header and body in sync when scrolling
+            scroll(instance) {
+              const header = tableHeaderRef.current
+                ?.osInstance()
+                ?.elements().viewport;
+              if (!header) return;
 
-            {!query.artist &&
-              !query.user &&
-              !asPath.includes("/profile/tabs") && (
-                <TableHead>Artist</TableHead>
-              )}
+              header.scrollLeft = instance.elements().viewport.scrollLeft;
+            },
+          }}
+          defer
+          className="w-full"
+        >
+          <div className="relative w-[1160px]">
+            <Table>
+              <colgroup id="tableTabViewColGroup">
+                {/* Direct /edit page button */}
+                {asPath.includes("/profile/tabs") && (
+                  <col className="w-[72px] sm:!w-[90.95px]" />
+                )}
 
-            <TableHead>Rating</TableHead>
+                {/* Title */}
+                <col className="w-[250px] sm:!w-[314.53px]" />
 
-            {!query.difficulty && <TableHead>Difficulty</TableHead>}
-
-            {!query.genreId && <TableHead>Genre</TableHead>}
-
-            <TableHead>Date</TableHead>
-
-            {/* Empty header for bookmark toggle */}
-            <TableHead></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody className="w-full">
-          <>
-            {tabResults?.pages.map((page) =>
-              page.data.tabs?.map((tab, index) => (
-                <AnimatePresence key={tab.id} mode={"wait"}>
-                  {index === page.data.tabs.length - 1 ? (
-                    <TableTabRow
-                      minimalTab={tab}
-                      currentUser={currentUser}
-                      infiniteQueryParams={getInfiniteQueryParams()}
-                      ref={
-                        ref as unknown as React.RefObject<HTMLTableRowElement>
-                      }
-                    />
-                  ) : (
-                    <TableTabRow minimalTab={tab} currentUser={currentUser} />
+                {/* Artist */}
+                {!query.artist &&
+                  !query.user &&
+                  !asPath.includes("/profile/tabs") && (
+                    <col className="w-[200px]" />
                   )}
-                </AnimatePresence>
-              )),
-            )}
 
-            {isFetching &&
-              Array.from(Array(3).keys()).map((index) => (
-                <AnimatePresence key={index} mode={"wait"}>
-                  <TableTabSkeleton
-                    key={`tabTableSkeleton${index}`}
-                    query={query}
-                  />
-                </AnimatePresence>
-              ))}
-          </>
-        </TableBody>
-      </Table>
+                {/* Rating */}
+                <col />
 
-      {/* no results */}
-      {!isFetching && tabResults?.pages?.[0]?.data.tabs.length === 0 && (
-        <NoResultsFound customKey={"tableTabViewNoResults"} />
+                {/* Difficulty */}
+                <col />
+
+                {/* Genre */}
+                <col />
+
+                {/* Date */}
+                <col />
+
+                {/* Bookmark toggle */}
+                <col className="w-[72px] sm:!w-[90.95px]" />
+              </colgroup>
+
+              <AnimatePresence mode="popLayout">
+                <TableBody className="w-full @container">
+                  {tabResults.pages.map((page) =>
+                    page.data.tabs?.map((tab, index) => (
+                      <AnimatePresence key={tab.id} mode={"wait"}>
+                        {index === page.data.tabs.length - 1 ? (
+                          <TableTabRow
+                            minimalTab={tab}
+                            currentUser={currentUser}
+                            infiniteQueryParams={getInfiniteQueryParams()}
+                            ref={
+                              ref as unknown as React.RefObject<HTMLTableRowElement>
+                            }
+                          />
+                        ) : (
+                          <TableTabRow
+                            minimalTab={tab}
+                            currentUser={currentUser}
+                          />
+                        )}
+                      </AnimatePresence>
+                    )),
+                  )}
+                </TableBody>
+              </AnimatePresence>
+            </Table>
+          </div>
+        </OverlayScrollbarsComponent>
       )}
+
+      <AnimatePresence mode="popLayout">
+        {/* loading spinner when fetching tabs */}
+        {isFetching && (
+          <motion.div
+            key={"gridTabViewSpinner"}
+            initial={{ opacity: 0, marginTop: "0", marginBottom: "0" }}
+            animate={{
+              opacity: 1,
+              marginTop:
+                tabResults && tabResults.pages.length !== 0 ? "1.75rem" : "0",
+              marginBottom:
+                tabResults && tabResults.pages.length !== 0 ? "1.75rem" : "0",
+            }}
+            exit={{ opacity: 0 }} // FYI: not sure if this is correct,
+            // but omitting exit margin animations because it looks off to see the spinner
+            // slide back up when it's really supposed to just fade out.
+            transition={{ duration: 0.25 }}
+          >
+            <svg
+              className={`animate-stableSpin rounded-full bg-inherit fill-none ${
+                tabResults ? "size-6" : "size-8"
+              }`}
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          </motion.div>
+        )}
+
+        {/* no results */}
+        {!isFetching && tabResults?.pages?.[0]?.data.tabs.length === 0 && (
+          <NoResultsFound
+            customKey={"tableTabViewNoResults"}
+            searchQueryExists={Boolean(searchQuery)}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
 
 export default TableTabView;
-
-function TableTabSkeleton({ query }: { query: ParsedUrlQuery }) {
-  return (
-    <TableRow className="w-full">
-      {/* title */}
-      <TableCell>
-        <div className="h-6 w-48 animate-pulse rounded-md bg-pink-300"></div>
-      </TableCell>
-
-      {/* artist */}
-      {!query.artist &&
-        !query.user &&
-        !query.username &&
-        !query.tuning &&
-        !query.capo && (
-          <TableCell>
-            <div className="h-6 w-32 animate-pulse rounded-md bg-pink-300"></div>
-          </TableCell>
-        )}
-
-      {/* rating */}
-      <TableCell>
-        <div className="baseFlex !justify-start gap-2">
-          <div className="h-6 w-12 animate-pulse rounded-md bg-pink-300"></div>
-          <FaStar className="size-3" />
-          <div className="h-6 w-12 animate-pulse rounded-md bg-pink-300"></div>
-        </div>
-      </TableCell>
-
-      {/* difficulty */}
-      {!query.difficulty && (
-        <TableCell>
-          <div className="h-6 w-24 animate-pulse rounded-md bg-pink-300"></div>
-        </TableCell>
-      )}
-
-      {/* genre */}
-      {!query.genreId && (
-        <TableCell>
-          <div className="h-6 w-16 animate-pulse rounded-md bg-pink-300"></div>
-        </TableCell>
-      )}
-
-      {/* date */}
-      <TableCell>
-        <div className="h-6 w-20 animate-pulse rounded-md bg-pink-300"></div>
-      </TableCell>
-
-      {/* bookmark toggle */}
-      <TableCell>
-        <div className="h-10 w-10 animate-pulse rounded-md bg-pink-300"></div>
-      </TableCell>
-    </TableRow>
-  );
-}

@@ -33,12 +33,13 @@ const backdropVariants = {
 const virtualizationBuffer = 100;
 
 interface ScrollPositions {
-  byId: {
-    [id: string]: {
+  byId: Record<
+    string,
+    {
       originalPosition: number;
       currentPosition: number | null;
-    };
-  };
+    }
+  >;
   allIds: string[];
 }
 
@@ -213,7 +214,7 @@ function PlaybackModal() {
       if (prev === null) return null;
 
       // value is the new scrollPosition to update currentPosition to
-      const updates: { [itemId: string]: number } = {};
+      const updates: Record<string, number> = {};
 
       const earliestVisiblePosition =
         getScrollPosition({
@@ -235,7 +236,7 @@ function PlaybackModal() {
           }) + initialPlaceholderWidth;
 
         if (position < earliestVisiblePosition) {
-          const id = prev.allIds[localIndex] || 0;
+          const id = prev.allIds[localIndex] ?? 0;
           updates[id] =
             position -
             initialPlaceholderWidth +
@@ -344,8 +345,8 @@ function PlaybackModal() {
 
     const lastChordId = localScrollPositions.allIds.at(-1);
 
-    let scrollContainerWidth =
-      localScrollPositions.byId[lastChordId || 0]?.originalPosition ||
+    const scrollContainerWidth =
+      localScrollPositions.byId[lastChordId ?? 0]?.originalPosition ??
       0 + finalElementWidth;
 
     setExpandedTabDataHasChanged(false);
@@ -445,7 +446,7 @@ function PlaybackModal() {
       >
         <div
           ref={modalContentRef}
-          className="baseVertFlex mobileNarrowLandscape:!justify-center relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none bg-black p-0 tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
+          className="baseVertFlex relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none bg-black p-0 mobileNarrowLandscape:!justify-center tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
         >
           <PlaybackTopMetadata
             tabProgressValue={tabProgressValue}
@@ -489,11 +490,11 @@ function PlaybackModal() {
                               scrollPositions,
                               currentChordIndex,
                               audioMetadata,
-                              numberOfChords: playbackMetadata?.length || 0,
+                              numberOfChords: playbackMetadata?.length ?? 0,
                             }),
                             transition: `transform ${
                               audioMetadata.playing
-                                ? chordDurations[currentChordIndex] || 0
+                                ? (chordDurations[currentChordIndex] ?? 0)
                                 : 0.2
                             }s linear`,
                           }}
@@ -515,7 +516,7 @@ function PlaybackModal() {
                                 <div
                                   style={{
                                     position: "absolute",
-                                    width: `${chordWidths[index] || 0}px`,
+                                    width: `${chordWidths[index] ?? 0}px`,
                                     left: `${
                                       getScrollPosition({
                                         scrollPositions,
@@ -623,9 +624,9 @@ function getScrollPosition({
   if (scrollPositions === null) return 0;
 
   return (
-    scrollPositions.byId[scrollPositions.allIds[index] || 0]?.currentPosition ||
-    scrollPositions.byId[scrollPositions.allIds[index] || 0]
-      ?.originalPosition ||
+    scrollPositions.byId[scrollPositions.allIds[index] ?? 0]?.currentPosition ??
+    scrollPositions.byId[scrollPositions.allIds[index] ?? 0]
+      ?.originalPosition ??
     0
   );
 }
@@ -683,7 +684,7 @@ function RenderChordByType({
         isFirstChordInSection={
           index === 0 &&
           (loopDelay !== 0 ||
-            scrollPositions.byId[scrollPositions.allIds[0] || 0]
+            scrollPositions.byId[scrollPositions.allIds[0] ?? 0]
               ?.currentPosition === null)
         }
         isLastChordInSection={chord?.isLastChord && loopDelay !== 0}
@@ -701,7 +702,7 @@ function RenderChordByType({
   if (type === "measureLine" && chord?.type === "tab") {
     return (
       <PlaybackTabMeasureLine
-        columnData={chord!.data.chordData}
+        columnData={chord.data.chordData}
         isDimmed={
           audioMetadata.editingLoopRange &&
           (index < audioMetadata.startLoopIndex ||
@@ -721,7 +722,7 @@ function RenderChordByType({
         isFirstChordInSection={
           index === 0 &&
           (loopDelay !== 0 ||
-            scrollPositions.byId[scrollPositions.allIds[0] || 0]
+            scrollPositions.byId[scrollPositions.allIds[0] ?? 0]
               ?.currentPosition === null)
         }
         isLastChordInSection={chord?.isLastChord && loopDelay !== 0}

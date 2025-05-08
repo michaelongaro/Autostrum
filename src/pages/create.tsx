@@ -1,14 +1,20 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import Head from "next/head";
 import AudioControls from "~/components/AudioControls/AudioControls";
 import Tab from "~/components/Tab/Tab";
 import { useTabStore } from "~/stores/TabStore";
+import { GiMusicalScore } from "react-icons/gi";
+import { EigthNote, QuarterNote } from "~/utils/bpmIconRenderingHelpers";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { BsFillPlayFill } from "react-icons/bs";
 
 function Create() {
   const { editing, showingAudioControls } = useTabStore((state) => ({
     editing: state.editing,
     showingAudioControls: state.showingAudioControls,
   }));
+
+  const isAboveMediumViewport = useViewportWidthBreakpoint(768);
 
   return (
     <motion.div
@@ -17,7 +23,7 @@ function Create() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="baseVertFlex w-full"
+      className="baseVertFlex my-12 min-h-[650px] w-full max-w-[1400px] !justify-start md:my-24 md:w-3/4 md:p-0"
     >
       <Head>
         <title>Create | Autostrum</title>
@@ -38,12 +44,44 @@ function Create() {
         ></meta>
       </Head>
 
-      <Tab tab={undefined} />
+      <div className="baseVertFlex w-full gap-4">
+        <div className="baseFlex w-full !justify-between gap-4 px-4 sm:px-0">
+          <h1 className="text-3xl font-semibold tracking-tight text-pink-50 md:text-4xl">
+            Create
+          </h1>
 
-      {/* can probably drop the <AnimatePresence> since it can't ever be triggered, right?*/}
-      <AnimatePresence mode="wait">
+          {isAboveMediumViewport ? (
+            <div className="baseFlex gap-4">
+              <BsFillPlayFill className="size-9 -rotate-12 text-pink-50" />
+              <QuarterNote className="size-9 rotate-12 text-pink-50" />
+              <GiMusicalScore className="size-9 -rotate-12 text-pink-50" />
+              <EigthNote className="size-9 rotate-12 text-pink-50" />
+            </div>
+          ) : (
+            <div className="baseFlex">
+              <div className="lightGlassmorphic relative -right-6 top-0.5 z-30 -rotate-6 rounded-lg p-2 outline outline-1">
+                <BsFillPlayFill className="size-6 text-pink-800" />
+              </div>
+
+              <div className="lightGlassmorphic relative -right-4 z-20 -rotate-3 rounded-lg p-2 outline outline-1">
+                <QuarterNote className="size-6 text-pink-800" />
+              </div>
+
+              <div className="lightGlassmorphic relative -right-2 z-10 rotate-3 rounded-lg p-2 outline outline-1">
+                <GiMusicalScore className="size-6 text-pink-800" />
+              </div>
+
+              <div className="lightGlassmorphic relative top-0.5 rotate-6 rounded-lg p-2 outline outline-1">
+                <EigthNote className="size-6 text-pink-800" />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <Tab />
+
         {editing && showingAudioControls && <AudioControls />}
-      </AnimatePresence>
+      </div>
     </motion.div>
   );
 }

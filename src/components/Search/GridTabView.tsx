@@ -1,12 +1,10 @@
-import { Fragment, useEffect, type Dispatch, type SetStateAction } from "react";
+import { useEffect, type Dispatch, type SetStateAction } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
 import { useInView } from "react-intersection-observer";
-import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import GridTabCard from "./GridTabCard";
-import TabCardSkeleton from "./TabCardSkeleton";
 import NoResultsFound from "./NoResultsFound";
 import type { InfiniteQueryParams } from "~/server/api/routers/search";
 
@@ -17,7 +15,8 @@ interface GridTabView {
   capo?: boolean;
   difficulty?: number;
   sortBy: "relevance" | "newest" | "oldest" | "mostPopular" | "leastPopular";
-  setResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
+  setSearchResultsCount: Dispatch<SetStateAction<number>>;
+  setSearchsearchResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 function GridTabView({
@@ -27,14 +26,11 @@ function GridTabView({
   capo,
   difficulty,
   sortBy,
-  setResultsCountIsLoading,
+  setSearchResultsCount,
+  setSearchsearchResultsCountIsLoading,
 }: GridTabView) {
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
-
-  const { setSearchResultsCount } = useTabStore((state) => ({
-    setSearchResultsCount: state.setSearchResultsCount,
-  }));
 
   const { data: userProfileBeingViewed } = api.user.getByIdOrUsername.useQuery(
     {
@@ -95,8 +91,8 @@ function GridTabView({
 
   useEffect(() => {
     // only want to show loading indicator if we're fetching initial "page"
-    setResultsCountIsLoading(isFetching && !isFetchingNextPage);
-  }, [isFetching, isFetchingNextPage, setResultsCountIsLoading]);
+    setSearchsearchResultsCountIsLoading(isFetching && !isFetchingNextPage);
+  }, [isFetching, isFetchingNextPage, setSearchsearchResultsCountIsLoading]);
 
   const { ref } = useInView({
     threshold: 0.75,
@@ -114,45 +110,85 @@ function GridTabView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="baseVertFlex w-full !flex-nowrap !justify-start gap-4 overflow-y-auto transition-all @container"
+      className={`baseVertFlex size-full min-h-[calc(100dvh-4rem-6rem-56px-60px)] @container md:min-h-[calc(100dvh-4rem-12rem-56px-60px)] ${
+        (isFetching && !isFetchingNextPage) ||
+        tabResults?.pages?.[0]?.data.tabs.length === 0
+          ? "" // loading spinner (when no results exist) and <NoResultsFound /> should be centered
+          : "!justify-start"
+      }`}
     >
-      <div
-        style={{ gridAutoRows: "minmax(min-content, max-content)" }}
-        className="grid w-full grid-cols-1 place-items-center gap-4 p-4 @2xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4"
-      >
-        <AnimatePresence mode={"wait"}>
-          {tabResults?.pages.map((page) =>
-            page.data.tabs?.map((tab, index) => (
-              <Fragment key={tab.id}>
-                {index === page.data.tabs.length - 1 ? (
-                  <GridTabCard
-                    minimalTab={tab}
-                    currentUser={currentUser}
-                    infiniteQueryParams={getInfiniteQueryParams()}
-                    ref={ref as unknown as React.RefObject<HTMLDivElement>}
-                  />
-                ) : (
-                  <GridTabCard minimalTab={tab} currentUser={currentUser} />
-                )}
-              </Fragment>
-            )),
-          )}
+      <AnimatePresence mode="popLayout">
+        {tabResults && tabResults.pages[0]?.count !== 0 && (
+          <div
+            style={{ gridAutoRows: "minmax(min-content, max-content)" }}
+            className="grid w-full grid-cols-1 place-items-center gap-4 p-4 @2xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4"
+          >
+            {tabResults.pages.map((page) =>
+              page.data.tabs.map((tab, index) => (
+                <GridTabCard
+                  key={tab.id}
+                  minimalTab={tab}
+                  currentUser={currentUser}
+                  infiniteQueryParams={getInfiniteQueryParams()}
+                  ref={
+                    index === page.data.tabs.length - 1
+                      ? (ref as unknown as React.RefObject<HTMLDivElement>)
+                      : undefined
+                  }
+                />
+              )),
+            )}
+          </div>
+        )}
 
-          {isFetching &&
-            Array.from(Array(3).keys()).map((index) => (
-              <TabCardSkeleton
-                key={`tabCardSkeleton${index}`}
-                uniqueKey={`tabCardSkeleton${index}`}
-                hideArtist={asPath.includes("/preferences")}
-              />
-            ))}
-        </AnimatePresence>
-      </div>
+        {/* loading spinner when fetching tabs */}
+        {isFetching && (
+          <motion.div
+            key={"gridTabViewSpinner"}
+            initial={{ opacity: 0, marginTop: "0", marginBottom: "0" }}
+            animate={{
+              opacity: 1,
+              marginTop:
+                tabResults && tabResults.pages.length !== 0 ? "1.75rem" : "0",
+              marginBottom:
+                tabResults && tabResults.pages.length !== 0 ? "1.75rem" : "0",
+            }}
+            exit={{ opacity: 0 }} // FYI: not sure if this is correct,
+            // but omitting exit margin animations because it looks off to see the spinner
+            // slide back up when it's really supposed to just fade out.
+            transition={{ duration: 0.25 }}
+          >
+            <svg
+              className={`animate-stableSpin rounded-full bg-inherit fill-none ${
+                tabResults ? "size-6" : "size-8"
+              }`}
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          </motion.div>
+        )}
 
-      {/* no results */}
-      {!isFetching && tabResults?.pages?.[0]?.data.tabs.length === 0 && (
-        <NoResultsFound customKey={"gridTabViewNoResults"} />
-      )}
+        {/* no results */}
+        {!isFetching && tabResults?.pages?.[0]?.data.tabs.length === 0 && (
+          <NoResultsFound
+            customKey={"gridTabViewNoResults"}
+            searchQueryExists={Boolean(searchQuery)}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

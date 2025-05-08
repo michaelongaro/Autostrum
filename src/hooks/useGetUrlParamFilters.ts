@@ -28,7 +28,7 @@ function useGetUrlParamFilters() {
   const [searchParamsParsed, setSearchParamsParsed] = useState(false);
 
   useLayoutEffect(() => {
-    const { filteredQuery, ...queryObj } = query;
+    const { filters, ...queryObj } = query;
 
     const validQueryKeys = [
       "search",

@@ -30,7 +30,7 @@ const PinnedTabModal = dynamic(
   () => import("~/components/modals/PinnedTabModal"),
 );
 
-function Preferences() {
+function Statistics() {
   const { user } = useClerk();
 
   // fair to have these here rather than store because (so far) we don't have to navigate around
@@ -70,7 +70,7 @@ function Preferences() {
 
   return (
     <motion.div
-      key={"ArtistPreferences"}
+      key={"ArtistStatistics"}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -79,12 +79,12 @@ function Preferences() {
       className="baseVertFlex z-50 w-full"
     >
       <Head>
-        <title>Preferences | Autostrum</title>
+        <title>Statistics | Autostrum</title>
         <meta
           name="description"
           content="Edit your account preferences, change your pinned tab on your profile, and more."
         />
-        <meta property="og:title" content="Preferences | Autostrum"></meta>
+        <meta property="og:title" content="Statistics | Autostrum"></meta>
         <meta
           property="og:url"
           content="www.autostrum.com/profile/preferences"
@@ -124,7 +124,7 @@ function Preferences() {
               className={`baseFlex col-start-1 col-end-2 row-start-1 row-end-2 h-full w-11/12 rounded-2xl bg-pink-300 transition-opacity ${
                 showClerkUserProfile
                   ? "z-[-1] opacity-0"
-                  : "animate-pulse opacity-100"
+                  : "pulseAnimation opacity-100"
               }`}
             ></div>
           </div>
@@ -259,6 +259,6 @@ function Preferences() {
   );
 }
 
-Preferences.PageLayout = TopProfileNavigationLayout;
+Statistics.PageLayout = TopProfileNavigationLayout;
 
-export default Preferences;
+export default Statistics;

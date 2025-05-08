@@ -15,7 +15,7 @@ import {
   type SetStateAction,
 } from "react";
 import { createPortal } from "react-dom";
-import { AiFillEye } from "react-icons/ai";
+import { FaEye } from "react-icons/fa";
 import { BsArrowRightShort, BsPlus } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
 import { MdModeEditOutline, MdVerified } from "react-icons/md";
@@ -604,8 +604,8 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                 onClick={handlePreview}
                 className="baseFlex gap-2"
               >
+                <FaEye className="h-4 w-4" />
                 Preview
-                <AiFillEye className="h-5 w-5" />
               </Button>
 
               <Popover
@@ -1061,7 +1061,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex h-10 w-28 animate-pulse rounded-md bg-pink-300"
+                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-pink-300"
                         ></motion.div>
                       )}
 
@@ -1094,7 +1094,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex h-10 w-36 animate-pulse rounded-md bg-pink-300"
+                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-pink-300"
                         ></motion.div>
                       )}
 
@@ -1186,7 +1186,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex h-10 w-28 animate-pulse rounded-md bg-pink-300"
+                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-pink-300"
                         ></motion.div>
                       )}
 
@@ -1219,7 +1219,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex h-10 w-36 animate-pulse rounded-md bg-pink-300"
+                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-pink-300"
                         ></motion.div>
                       )}
 
@@ -1319,7 +1319,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                                 {tabCreator.username}
                               </span>
                             ) : (
-                              <div className="col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-32 animate-pulse rounded-md bg-pink-300"></div>
+                              <div className="pulseAnimation col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-32 rounded-md bg-pink-300"></div>
                             )}
                           </>
                         </div>
@@ -1363,7 +1363,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
               orientation={
                 viewportLabel.includes("mobile") ? "horizontal" : "vertical"
               }
-              className={`${classes.separator} my-4 h-[2px] w-full lg:mx-4 lg:h-full lg:w-[1px] xl:mx-8`}
+              className={`${classes.separator} my-4 h-[2px] w-full lg:mx-4 lg:my-0 lg:h-full lg:w-[1px] xl:mx-8`}
             />
 
             <div className={`${classes.metadataGrid}`}>

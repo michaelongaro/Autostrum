@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 
-// Constants for the number of strings
 const STRING_COUNT = 6;
 
 // FYI: The reversal of the frets is purely due to the compiler expecting the frets in reverse order.

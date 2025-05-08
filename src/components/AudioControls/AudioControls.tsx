@@ -750,6 +750,7 @@ function AudioControls() {
             size={aboveLargeViewportWidth ? "default" : "sm"}
             disabled={disablePlayButton}
             onClick={handlePlayButtonClick}
+            className="!h-9"
           >
             <PlayButtonIcon
               uniqueLocationKey="audioControls"

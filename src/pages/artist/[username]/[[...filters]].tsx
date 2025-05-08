@@ -138,7 +138,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
                     opacity: !profileImageLoaded ? 1 : 0,
                     zIndex: !profileImageLoaded ? 1 : -1,
                   }}
-                  className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 shadow-md transition-opacity ${!profileImageLoaded ? "animate-pulse" : ""} `}
+                  className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 shadow-md transition-opacity ${!profileImageLoaded ? "pulseAnimation" : ""} `}
                 ></div>
               </>
             </div>
@@ -148,7 +148,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
                 {artist?.username ?? "Anonymous"}
               </p>
             ) : (
-              <div className="my-3 h-6 w-28 animate-pulse rounded-md bg-pink-300"></div>
+              <div className="pulseAnimation my-3 h-6 w-28 rounded-md bg-pink-300"></div>
             )}
           </div>
 
@@ -162,7 +162,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
                       {formatNumber(artist.numberOfTabs)}
                     </div>
                   ) : (
-                    <div className="h-6 w-14 animate-pulse rounded-md bg-pink-300"></div>
+                    <div className="pulseAnimation h-6 w-14 rounded-md bg-pink-300"></div>
                   )}
                 </TooltipTrigger>
                 <TooltipContent side={"bottom"}>
@@ -180,7 +180,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
                       {formatNumber(artist.bookmarkCount)}
                     </div>
                   ) : (
-                    <div className="h-6 w-14 animate-pulse rounded-md bg-pink-300"></div>
+                    <div className="pulseAnimation h-6 w-14 rounded-md bg-pink-300"></div>
                   )}
                 </TooltipTrigger>
                 <TooltipContent side={"bottom"}>
@@ -195,7 +195,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
               artist.createdAt,
             )}`}</p>
           ) : (
-            <div className="mb-1 mt-3 h-4 w-24 animate-pulse rounded-md bg-pink-300"></div>
+            <div className="pulseAnimation mb-1 mt-3 h-4 w-24 rounded-md bg-pink-300"></div>
           )}
         </div>
         {/* pinned tab */}
