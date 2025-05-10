@@ -13,6 +13,9 @@ Users - Just the username is necessary, since usernames are forced to be unique,
 **Tab caching strategy**  
 Each tab's page will have ISR for data fetching. Whenever the tab is updated by the creator, a programmatic invalidation of the current CDN cache will be triggered. Each tab has a special client side query for the tab's dynamic metadata (ratings, bookmark status, and page views). This should allow for the benefits of SSG and SSR without the drawbacks.
 
+**ISR - fallback: "blocking" vs fallback: true**
+I have fallback: "blocking" on /tab and /tab/edit instead of fallback: true, which means that user's will not see any skeleton loading state for either. In general though the /tab route should always be cached in the CDN already, and it wasn't fantastic UX to see a huge flash of content appear and the inevitable page-shift when the tab loaded in.
+
 **Full Text Search (FTS) on Tab/Artist queries**  
 Keeping FTS on tabs because we can leverage adding the tab's description to the lexem builder, which if the description is wrote in a meaningful way it could capture more terms related to that specific tab. The same is not true for artists, unless we were to add a "bio" section later on or something of that nature. A prefix match for artists is more than sufficient for now.  
 Note: tab search still includes a simple prefix match to help cover cases that FTS doesn't.
