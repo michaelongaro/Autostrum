@@ -30,6 +30,10 @@ const buttonVariants = cva(
         playPause:
           "bg-green-600 hover:bg-green-700 shadow-none active:bg-green-800 disabled:opacity-50 disabled:bg-gray-500",
         text: "text-primary-foreground shadow-none hover:text-primary/80 active:text-primary/60",
+        drawer:
+          "w-full !rounded-none font-normal !h-[65px] last-of-type:border-b-none border-b border-stone-400 h-full baseFlex bg-pink-100 active:brightness-75 relative py-0",
+        drawerNavigation:
+          "text-primary shadow-none hover:text-primary/80 active:text-primary/60",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -76,7 +80,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             variant === "ghost" ||
             variant === "outline" ||
             variant === "text" ||
-            variant === "link"
+            variant === "link" ||
+            variant === "drawer" ||
+            variant === "drawerNavigation"
               ? "none"
               : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
         }}

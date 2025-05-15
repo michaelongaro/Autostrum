@@ -576,4 +576,49 @@ export const searchRouter = createTRPCRouter({
         }
       }
     }),
+
+  getRelatedArtistsByName: publicProcedure
+    .input(z.string())
+    .query(async ({ input: query, ctx }) => {
+      const trimmedQuery = query.trim();
+
+      if (!trimmedQuery) {
+        return []; // Handle empty query
+      }
+
+      // FYI: by the time this is called, we have already done a direct (case-insensitive) query
+      // and there weren't any results. So this is a fallback to find similar artists.
+
+      const results = await ctx.prisma.artist.findMany({
+        where: {
+          OR: [
+            {
+              // Condition 1: Name starts with the query
+              name: {
+                startsWith: trimmedQuery,
+                mode: "insensitive",
+              },
+            },
+            {
+              // Condition 2: Name contains the query
+              name: {
+                contains: trimmedQuery,
+                mode: "insensitive",
+              },
+            },
+          ],
+        },
+        orderBy: {
+          name: "asc",
+        },
+        select: {
+          id: true,
+          name: true,
+          isVerified: true,
+        },
+        take: 3,
+      });
+
+      return results;
+    }),
 });

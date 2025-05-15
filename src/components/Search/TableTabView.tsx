@@ -46,15 +46,6 @@ function TableTabView({
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
 
-  const { data: userProfileBeingViewed } = api.user.getByIdOrUsername.useQuery(
-    {
-      username: query.username as string,
-    },
-    {
-      enabled: !!query.username,
-    },
-  );
-
   const { data: currentUser } = api.user.getByIdOrUsername.useQuery(
     {
       userId: userId!,
@@ -72,16 +63,13 @@ function TableTabView({
       capo: capo ?? undefined,
       difficulty: difficulty ?? undefined,
       sortBy,
-      userIdToSelectFrom:
-        (asPath.includes("/user") || asPath.includes("/profile/tabs")) && userId
-          ? userId
-          : userProfileBeingViewed
-            ? userProfileBeingViewed.userId
-            : undefined,
-      artistIdToSelectFrom:
-        asPath.includes("/artist") && query.artistId
-          ? Number(query.artistId)
+      userIdToSelectFrom: asPath.includes("/user")
+        ? ((query.userId as string) ?? undefined)
+        : asPath.includes("/profile/tabs")
+          ? (userId ?? undefined)
           : undefined,
+      artistIdToSelectFrom:
+        asPath.includes("/artist") && query.id ? Number(query.id) : undefined,
       bookmarkedByUserId:
         asPath.includes("/profile/bookmarks") && userId ? userId : undefined,
     };
@@ -127,7 +115,12 @@ function TableTabView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px-60px-45px)] w-full gap-4 transition-all md:min-h-[calc(100dvh-4rem-12rem-56px-60px-45px)]"
+      className={`baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px-60px-45px)] w-full gap-4 transition-all md:min-h-[calc(100dvh-4rem-12rem-56px-60px-45px)] ${
+        (isFetching && !isFetchingNextPage) ||
+        tabResults?.pages?.[0]?.data.tabs.length === 0
+          ? "" // loading spinner (when no results exist) and <NoResultsFound /> should be centered
+          : "!justify-start"
+      }`}
     >
       {tabResults && tabResults.pages[0]?.count !== 0 && (
         <OverlayScrollbarsComponent

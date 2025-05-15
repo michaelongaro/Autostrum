@@ -110,16 +110,16 @@ export const userRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const clerk = await clerkClient();
-      clerk.users.deleteUser(input.userId);
+      await clerk.users.deleteUser(input.userId);
 
       if (!input.deleteAllOfArtistsTabs) {
         // keeping the tabs, just removing the artist from them
         await ctx.prisma.tab.updateMany({
           where: {
-            createdById: input.userId,
+            createdByUserId: input.userId,
           },
           data: {
-            createdById: null,
+            createdByUserId: null,
           },
         });
       }

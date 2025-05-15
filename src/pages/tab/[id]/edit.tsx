@@ -6,9 +6,8 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 import { BiErrorCircle } from "react-icons/bi";
-import { BsArrowRightShort } from "react-icons/bs";
+import { BsArrowLeftShort } from "react-icons/bs";
 import Tab from "~/components/Tab/Tab";
-import TabSkeleton from "~/components/Tab/TabSkeleton";
 import { Button } from "~/components/ui/button";
 import { api } from "~/utils/api";
 import { AnimatePresence } from "framer-motion";
@@ -20,7 +19,6 @@ interface OpenGraphData {
   url: string;
   description: string;
 }
-// not sure if this is correct file routing for slug
 
 function EditIndividualTab({
   userAllowedToEdit,
@@ -79,11 +77,7 @@ function EditIndividualTab({
       </Head>
 
       <AnimatePresence mode="wait">
-        {fetchedTab ? (
-          <Tab tab={fetchedTab.data} />
-        ) : (
-          <TabSkeleton editing={true} />
-        )}
+        {fetchedTab && <Tab tab={fetchedTab.data} />}
       </AnimatePresence>
 
       {/* can probably drop the <AnimatePresence> since it can't ever be triggered, right?*/}
@@ -182,7 +176,7 @@ function UserNotAllowedToEdit({ tabId }: { tabId: number }) {
         onClick={() => void push(`/tab/${tabId}`)}
         className="baseFlex gap-1 pr-6"
       >
-        <BsArrowRightShort className="h-6 w-8 rotate-180 text-pink-100" />
+        <BsArrowLeftShort className="h-6 w-8 text-pink-100" />
         Return to tab
       </Button>
     </div>

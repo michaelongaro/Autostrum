@@ -78,9 +78,9 @@ function AudioControls() {
 
   const oneSecondIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const localStorageVolume = useLocalStorageValue("autostrumVolume");
-  const localStorageAutoscroll = useLocalStorageValue("autostrumAutoscroll");
-  const localStorageLooping = useLocalStorageValue("autostrumLooping");
+  const localStorageVolume = useLocalStorageValue("autostrum-volume");
+  const localStorageAutoscroll = useLocalStorageValue("autostrum-autoscroll");
+  const localStorageLooping = useLocalStorageValue("autostrum-looping");
 
   const volume = useGetLocalStorageValues().volume;
   const autoscrollEnabled = useGetLocalStorageValues().autoscroll;
@@ -943,7 +943,7 @@ function AudioControls() {
               // of the main thread being fully blocked... using this with the main
               // drawback being that it scrolls up to the top of the page when opened
               modal={false}
-              dismissible={!drawerHandleDisabled}
+              dismissible={!drawerHandleDisabled} // bad UX to allow drawer to be moved when <Select> is current open
             >
               <Drawer.Trigger asChild>
                 <Button

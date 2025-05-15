@@ -4,16 +4,21 @@ I tried to use shadcn/radix dialogs, however I ended up having quite a few rende
 **Recompilation of tab while editing**  
 While editing: trying to debounce auto compilation of chord data to happen at most every two seconds, since recompiling immediately on every single change to the tab was computationally expensive.
 
-**Route params**  
-Tabs (viewing) - Including both tab title and tab's id, since multiple tabs can have the same title.  
-Tabs (editing) - Only including the tab's id for simplicity.  
-Artists - Including both artist's name and their id, since multiple artists can have the same name.  
-Users - Just the username is necessary, since usernames are forced to be unique, and as it's more distinguishable than their id.
+**Route params**
+
+- Tabs
+  - Viewing - Including both tab title and tab's id, since multiple tabs can have the same title.
+  - Editing - Only including the tab's id for simplicity.
+- Artists
+  - When selected from autofill results - Includes both artist's name and their id, since multiple artists can have the same name.
+  - When manually searching after typing artist name - Only including artist's name, and client-side fetching exact match (if present), or displaying up to three related artists otherwise.
+- Users
+  - Just the username is necessary, since usernames are forced to be unique, and as it's more distinguishable than their id.
 
 **Tab caching strategy**  
 Each tab's page will have ISR for data fetching. Whenever the tab is updated by the creator, a programmatic invalidation of the current CDN cache will be triggered. Each tab has a special client side query for the tab's dynamic metadata (ratings, bookmark status, and page views). This should allow for the benefits of SSG and SSR without the drawbacks.
 
-**ISR - fallback: "blocking" vs fallback: true**
+**ISR - fallback: "blocking" vs fallback: true**  
 I have fallback: "blocking" on /tab and /tab/edit instead of fallback: true, which means that user's will not see any skeleton loading state for either. In general though the /tab route should always be cached in the CDN already, and it wasn't fantastic UX to see a huge flash of content appear and the inevitable page-shift when the tab loaded in.
 
 **Full Text Search (FTS) on Tab/Artist queries**  
@@ -31,3 +36,12 @@ I tried using this instead of my custom virtualization approach for the tab play
 
 **Immediate search vs select multiple & apply**  
 I originally push()'d the user to the new route as soon as they selected a different filter, however this proved to be bad UX. Now we allow the user to make any number of filter selections before "confirming" them by clicking the "apply" button. The same methodology goes for the "reset filters" button, which only locally changes the filters to their default states, but requires the user to click "apply" to actually get push()'d to the new route.
+
+**[...filters].tsx vs [[...filters]].tsx**  
+Come back to this once the search-and-official-artist-refactor has been merged. I would like to make the /filters be optional if no filters are currently applied, however I (believe) that I had to put a special early return on the useGetUrlParamFilters layout effect because if I was on the table viewing layout it would start off with the grid view and then shortly after switch over to the table view once the url params were loaded in. If this is just a dev server issue, then remove the early return and move to [...filters].tsx for all pages that have <SearchResults /> on them. Also, I am unsure of the best ergonomics surrounding representing default filters in a [[...filters]].tsx approach.
+
+**Keeping search autofill results global vs scoped to viewed context**  
+I can see the benefit to limiting autofill results to only the current context the user is looking at (their own tabs if on /profile/tabs or a specific artist's tabs if on /artist/[artistName]). However I do think it is a niche that isn't immediately necessary to be filled. The main use case that I see is if a user vaguely remembers a word or two from a title they are trying to find again, but don't want to have to scroll through the extra noise that comes with a global search. This can be added later on, but causes some issues with how to structure the autofill results to accomodate this dynamic approach.
+
+**Layout in localStorage vs as a param**  
+I moved the user's layout preference to localStorage exclusively for two reasons. First off being that a user might have legitiment reasons to have device-specific preferences for their layout. For example, if the user is on a low-data internet plan and doesn't want to incur the extra bandwidth that the grid tab previews come with, they could exclusively view results in the list form. Second, the layout param never quite fit with the rest of the search params, especially on mobile within the <Drawer>, due to it's different UI from the full width pane toggles.

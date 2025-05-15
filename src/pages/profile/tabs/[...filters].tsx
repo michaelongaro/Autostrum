@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import SearchInput from "~/components/Search/SearchInput";
 import SearchResults from "~/components/Search/SearchResults";
 import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
-import TopProfileNavigationLayout from "~/components/Layouts/TopProfileNavigationLayout";
+import TopProfileNavigationLayout from "~/components/Layout/TopProfileNavigationLayout";
 import { TabsContent } from "~/components/ui/tabs";
 import Head from "next/head";
 import Render404Page from "~/components/Search/Render404Page";

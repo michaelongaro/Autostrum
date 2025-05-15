@@ -2,7 +2,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import type { AppProps } from "next/app";
 import { api } from "~/utils/api";
 import NextProgress from "next-progress";
-import GeneralLayout from "~/components/Layouts/GeneralLayout";
+import GeneralLayout from "~/components/Layout/GeneralLayout";
 import "~/styles/globals.css";
 import "overlayscrollbars/overlayscrollbars.css";
 

@@ -32,15 +32,6 @@ function GridTabView({
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
 
-  const { data: userProfileBeingViewed } = api.user.getByIdOrUsername.useQuery(
-    {
-      username: query.username as string,
-    },
-    {
-      enabled: !!query.username,
-    },
-  );
-
   const { data: currentUser } = api.user.getByIdOrUsername.useQuery(
     {
       userId: userId!,
@@ -58,16 +49,13 @@ function GridTabView({
       capo: capo ?? undefined,
       difficulty: difficulty ?? undefined,
       sortBy,
-      userIdToSelectFrom:
-        (asPath.includes("/user") || asPath.includes("/profile/tabs")) && userId
-          ? userId
-          : userProfileBeingViewed
-            ? userProfileBeingViewed.userId
-            : undefined,
-      artistIdToSelectFrom:
-        asPath.includes("/artist") && query.artistId
-          ? Number(query.artistId)
+      userIdToSelectFrom: asPath.includes("/user")
+        ? ((query.userId as string) ?? undefined)
+        : asPath.includes("/profile/tabs")
+          ? (userId ?? undefined)
           : undefined,
+      artistIdToSelectFrom:
+        asPath.includes("/artist") && query.id ? Number(query.id) : undefined,
       bookmarkedByUserId:
         asPath.includes("/profile/bookmarks") && userId ? userId : undefined,
     };

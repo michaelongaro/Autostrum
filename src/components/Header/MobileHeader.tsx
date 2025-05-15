@@ -64,8 +64,10 @@ function MobileHeader() {
   const { user } = useUser();
   const { asPath } = useRouter();
 
-  const localStorageTabData = useLocalStorageValue("tabData");
-  const localStorageRedirectRoute = useLocalStorageValue("redirectRoute");
+  const localStorageTabData = useLocalStorageValue("autostrum-tabData");
+  const localStorageRedirectRoute = useLocalStorageValue(
+    "autostrum-redirectRoute",
+  );
 
   const [showMobileSearch, setShowMobileSearch] = useState(false);
 

@@ -16,7 +16,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { FaEye } from "react-icons/fa";
-import { BsArrowRightShort, BsPlus } from "react-icons/bs";
+import { BsArrowLeftShort, BsPlus } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
 import { MdModeEditOutline, MdVerified } from "react-icons/md";
 import {
@@ -496,7 +496,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                     )
                   }
                 >
-                  <BsArrowRightShort className="h-6 w-8 rotate-180 text-pink-100" />
+                  <BsArrowLeftShort className="h-6 w-8 text-pink-100" />
                   Return to tab
                 </Button>
               )}

@@ -14,7 +14,9 @@ function usePostSignUpRegistration() {
       enabled: Boolean(user?.id && isSignedIn),
     });
 
-  const localStorageRedirectRoute = useLocalStorageValue("redirectRoute");
+  const localStorageRedirectRoute = useLocalStorageValue(
+    "autostrum-redirectRoute",
+  );
 
   const { mutate: addNewUser } =
     api.postSignUpRegistration.initializeNewUser.useMutation({
@@ -36,7 +38,7 @@ function usePostSignUpRegistration() {
       username: user.username!,
       profileImageUrl: user.imageUrl,
     });
-  }, [addNewUser, isSignedIn, isLoadingQuery, isUserRegistered]);
+  }, [addNewUser, isSignedIn, isLoadingQuery, isUserRegistered, user]);
 }
 
 export default usePostSignUpRegistration;

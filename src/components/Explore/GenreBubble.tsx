@@ -73,7 +73,7 @@ function GenreBubble(genre: GenreWithTotalTabNumbers) {
 
   function searchForSpecificGenre(genreId: number) {
     void push({
-      pathname: `${pathname}/filters`,
+      pathname: "search/filters",
       query: {
         ...query,
         genreId,

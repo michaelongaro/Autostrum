@@ -1,6 +1,7 @@
 import { genreRouter } from "~/server/api/routers/genre";
 import { createTRPCRouter } from "~/server/api/trpc";
 import { userRouter } from "./routers/user";
+import { artistRouter } from "./routers/artist";
 import { bookmarkRouter } from "./routers/bookmark";
 import { postSignUpRegistrationRouter } from "./routers/postSignUpRegistration";
 import { tabRouter } from "./routers/tab";
@@ -19,6 +20,7 @@ export const appRouter = createTRPCRouter({
   tab: tabRouter,
   tabRating: tabRatingRouter,
   user: userRouter,
+  artist: artistRouter,
   bookmark: bookmarkRouter,
   weeklyFeaturedUser: weeklyFeaturedUserRouter,
   postSignUpRegistration: postSignUpRegistrationRouter,

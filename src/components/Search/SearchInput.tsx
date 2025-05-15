@@ -101,14 +101,18 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
     artistId?: number;
   }) {
     setShowAutofillResults(false);
-    const encodedSearchQuery = encodeURIComponent(searchQuery);
+    const encodedSearchQuery = encodeURIComponent(searchQuery.trim());
 
     if (tabId) {
       void push(`/tab/${tabId}/${encodedSearchQuery}`);
-    } else if (artistId) {
-      void push(`/artist/${artistId}/${encodedSearchQuery}`);
+    } else if (searchType === "artists") {
+      if (artistId) {
+        void push(`/artist/${encodedSearchQuery}/${artistId}/filters`);
+      } else {
+        void push(`/artist/${encodedSearchQuery}/filters`);
+      }
     } else {
-      const pathname = "/explore/filters";
+      const pathname = "/search/filters";
       const newQuery = {
         ...(encodedSearchQuery && { search: encodedSearchQuery }),
         ...(query.layout && { layout: query.layout }),
@@ -228,8 +232,6 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                 searchType === "artists"
                   ? (artistSearchResults?.[0]?.name ?? searchQuery)
                   : searchQuery,
-              tabId: songSearchResults?.[0]?.id,
-              artistId: artistSearchResults?.[0]?.id,
             });
           }}
           onKeyDown={(e) => {

@@ -48,8 +48,10 @@ function DesktopHeader() {
     getStringifiedTabData: state.getStringifiedTabData,
   }));
 
-  const localStorageTabData = useLocalStorageValue("tabData");
-  const localStorageRedirectRoute = useLocalStorageValue("redirectRoute");
+  const localStorageTabData = useLocalStorageValue("autostrum-tabData");
+  const localStorageRedirectRoute = useLocalStorageValue(
+    "autostrum-redirectRoute",
+  );
 
   return (
     <nav className="headerBackgroundGradient sticky left-0 top-0 z-[49] grid h-16 w-full grid-cols-1 grid-rows-1 shadow-md">

@@ -38,8 +38,10 @@ model Artist {
 
     name       String  @default("")
     isVerified Boolean @default(false)
-    Tab        Tab[]
+    totalTabs  Int     @default(0)
+    totalViews Int     @default(0)
 
+    Tab                Tab[]
     mostPopularArtists MostPopularArtists[]
 }
 
@@ -151,6 +153,12 @@ model User {
     username        String @unique
     profileImageUrl String
     pinnedTabId     Int    @default(-1)
+
+    // user stats
+    totalTabs              Int   @default(0)
+    totalTabViews          Int   @default(0)
+    averageTabRating       Float @default(0)
+    totalBookmarksReceived Int   @default(0)
 
     bookmarks         Bookmark[] @relation("bookmarkedBy")
     bookmarksReceived Bookmark[] @relation("tabCreator")

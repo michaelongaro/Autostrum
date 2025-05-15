@@ -9,7 +9,6 @@ interface UrlParamFilters {
   capo?: boolean;
   difficulty?: number;
   sortBy: "relevance" | "newest" | "oldest" | "mostPopular" | "leastPopular";
-  layoutType: "grid" | "table";
 }
 
 function useGetUrlParamFilters() {
@@ -22,27 +21,31 @@ function useGetUrlParamFilters() {
     capo: undefined,
     difficulty: undefined,
     sortBy: "newest",
-    layoutType: "grid",
   });
   const [renderSearch404, setRenderSearch404] = useState(false);
   const [searchParamsParsed, setSearchParamsParsed] = useState(false);
 
   useLayoutEffect(() => {
+    if (Object.keys(query).length === 0) return;
+
     const { filters, ...queryObj } = query;
 
     const validQueryKeys = [
+      "username", // just for /user
+      "name", // just for /artist
+      "id", // just for /artist
       "search",
       "genreId",
       "tuning",
       "capo",
       "difficulty",
       "sortBy",
-      "layout",
     ];
 
     // check if any invalid query keys are present
     for (const key of Object.keys(queryObj)) {
       if (!validQueryKeys.includes(key)) {
+        console.log("1", validQueryKeys, key);
         setRenderSearch404(true);
         return;
       }
@@ -56,6 +59,7 @@ function useGetUrlParamFilters() {
       switch (key) {
         case "search":
           if (typeof value === "string" && value.length > 50) {
+            console.log("2");
             setRenderSearch404(true);
             return;
           }
@@ -67,6 +71,7 @@ function useGetUrlParamFilters() {
               parseInt(value) < 1 ||
               parseInt(value) > 8)
           ) {
+            console.log("3");
             setRenderSearch404(true);
             return;
           }
@@ -77,6 +82,7 @@ function useGetUrlParamFilters() {
             value !== "custom" &&
             !tuningNotes.includes(value)
           ) {
+            console.log("4");
             setRenderSearch404(true);
             return;
           }
@@ -87,6 +93,7 @@ function useGetUrlParamFilters() {
             value !== "true" &&
             value !== "false"
           ) {
+            console.log("5");
             setRenderSearch404(true);
             return;
           }
@@ -98,6 +105,7 @@ function useGetUrlParamFilters() {
               parseInt(value) < 1 ||
               parseInt(value) > 5)
           ) {
+            console.log("6");
             setRenderSearch404(true);
             return;
           }
@@ -111,12 +119,7 @@ function useGetUrlParamFilters() {
             value !== "mostPopular" &&
             value !== "leastPopular"
           ) {
-            setRenderSearch404(true);
-            return;
-          }
-          break;
-        case "layout":
-          if (typeof value === "string" && value !== "table") {
+            console.log("7");
             setRenderSearch404(true);
             return;
           }
@@ -143,7 +146,6 @@ function useGetUrlParamFilters() {
         : query.search
           ? "relevance"
           : "newest",
-      layoutType: query.layout ? (query.layout as "grid" | "table") : "grid",
     });
     setSearchParamsParsed(true);
 
@@ -162,7 +164,6 @@ function useGetUrlParamFilters() {
     capo: searchParams.capo,
     sortBy: searchParams.sortBy,
     difficulty: searchParams.difficulty,
-    layoutType: searchParams.layoutType,
     renderSearch404,
     searchParamsParsed,
   };

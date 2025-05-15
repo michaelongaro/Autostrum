@@ -1,5 +1,5 @@
 import { AnimatePresence } from "framer-motion";
-import { useRef, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import Footer from "../Footer/Footer";
 import GeneralLayoutStatefulShell from "./GeneralLayoutStatefulShell";

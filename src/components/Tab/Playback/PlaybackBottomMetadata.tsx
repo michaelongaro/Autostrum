@@ -282,7 +282,7 @@ function MobileSettingsDialog() {
   }));
 
   const volume = useGetLocalStorageValues().volume;
-  const localStorageVolume = useLocalStorageValue("autostrumVolume");
+  const localStorageVolume = useLocalStorageValue("autostrum-volume");
 
   return (
     <Dialog>
@@ -304,7 +304,6 @@ function MobileSettingsDialog() {
           <Label>Instrument</Label>
           <Select
             disabled={countInTimer.showing}
-            // onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
             value={currentInstrumentName}
             onValueChange={(value) => {
               pauseAudio();
@@ -800,7 +799,7 @@ function DesktopSettings({
   }));
 
   const volume = useGetLocalStorageValues().volume;
-  const localStorageVolume = useLocalStorageValue("autostrumVolume");
+  const localStorageVolume = useLocalStorageValue("autostrum-volume");
 
   return (
     <div className="baseFlex w-full !items-end gap-4">

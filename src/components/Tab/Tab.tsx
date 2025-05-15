@@ -54,7 +54,7 @@ function Tab({ tab }: Tab) {
   const [blockInitialLayoutAnimation, setBlockInitialLayoutAnimation] =
     useState(true);
 
-  const localStorageTabData = useLocalStorageValue("tabData");
+  const localStorageTabData = useLocalStorageValue("autostrum-tabData");
 
   const {
     setId,

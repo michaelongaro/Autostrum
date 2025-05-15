@@ -28,7 +28,7 @@ import formatDate from "~/utils/formatDate";
 import { formatNumber } from "~/utils/formatNumber";
 import Render404Page from "~/components/Search/Render404Page";
 
-function ArtistProfile({ artistExists }: { artistExists: boolean }) {
+function UserProfile({ artistExists }: { artistExists: boolean }) {
   const { query } = useRouter();
   const {
     serve404Page,
@@ -249,7 +249,7 @@ function ArtistProfile({ artistExists }: { artistExists: boolean }) {
   );
 }
 
-export default ArtistProfile;
+export default UserProfile;
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const prisma = new PrismaClient();

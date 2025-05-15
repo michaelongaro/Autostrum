@@ -1,19 +1,28 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
+import { Check } from "lucide-react";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { BsGridFill } from "react-icons/bs";
-import { CiViewTable } from "react-icons/ci";
-import { LuFilter } from "react-icons/lu";
-import { useInView } from "react-intersection-observer";
-import { Drawer } from "vaul";
-import Render404Page from "~/components/Search/Render404Page";
 import {
   OverlayScrollbarsComponent,
   type OverlayScrollbarsComponentRef,
 } from "overlayscrollbars-react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { BsGridFill, BsPlus } from "react-icons/bs";
+import { CiViewTable } from "react-icons/ci";
+import { GoChevronRight } from "react-icons/go";
+import { LuFilter } from "react-icons/lu";
+import { useInView } from "react-intersection-observer";
+import { Drawer } from "vaul";
+import Render404Page from "~/components/Search/Render404Page";
 import { Button } from "~/components/ui/button";
 import DifficultyBars from "~/components/ui/DifficultyBars";
+import { Label } from "~/components/ui/label";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import {
   Select,
@@ -27,10 +36,11 @@ import { Separator } from "~/components/ui/separator";
 import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
 import { useTabStore } from "~/stores/TabStore";
 import { genreList } from "~/utils/genreList";
-import { tuningNotes, tunings } from "~/utils/tunings";
-import { Label } from "~/components/ui/label";
+import { tunings } from "~/utils/tunings";
 import GridTabView from "./GridTabView";
 import TableTabView from "./TableTabView";
+import Binoculars from "~/components/ui/icons/Binoculars";
+import Link from "next/link";
 
 const opacityVariants = {
   expanded: {
@@ -41,9 +51,64 @@ const opacityVariants = {
   },
 };
 
-const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
+// TODO: rename these to be more descriptive
 
-function SearchResults() {
+const baseDrawerVariants = {
+  initial: {
+    opacity: 0,
+    x: "-100%",
+  },
+  animate: {
+    opacity: 1,
+    x: 0,
+  },
+  exit: {
+    opacity: 0,
+    x: "-100%",
+  },
+};
+
+const individualDrawerVariants = {
+  initial: {
+    opacity: 0,
+    x: "100%",
+  },
+  animate: {
+    opacity: 1,
+    x: 0,
+  },
+  exit: {
+    opacity: 0,
+    x: "100%",
+  },
+};
+
+const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
+const difficultyDescriptions = [
+  "Open chords, basic melodies, simple strumming.",
+  "Common progressions, basic barre chords, straightforward rhythms.",
+  "Alternate picking, varied voicings, position shifts.",
+  "Fast playing, bends, slides, tapping, expressive control.",
+  "Virtuoso speed, sweep picking, extended voicings, interpretation.",
+];
+
+interface SearchResults {
+  isFetchingArtistId?: boolean; // happens whenever user manually searches for an artist, need to fetch the id as well
+  isFetchingUserId?: boolean; // happens whenever visiting a user's page, need to fetch the id as well
+  relatedArtists?: {
+    name: string;
+    id: number;
+    isVerified: boolean;
+  }[];
+  isFetchingRelatedArtists?: boolean;
+}
+
+function SearchResults({
+  isFetchingArtistId,
+  isFetchingUserId,
+  relatedArtists,
+  isFetchingRelatedArtists,
+}: SearchResults) {
   const { asPath, push, query, pathname } = useRouter();
 
   const { mobileHeaderModal, setMobileHeaderModal, viewportLabel } =
@@ -54,18 +119,28 @@ function SearchResults() {
     }));
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerView, setDrawerView] = useState<
+    "Search filters" | "Genre" | "Tuning" | "Capo" | "Difficulty" | "Sort by"
+  >("Search filters");
+
+  const [gateUntilWindowReady, setGateUntilWindowReady] = useState(true);
+
   const [searchResultsCount, setSearchResultsCount] = useState(0);
   const [searchResultsCountIsLoading, setSearchsearchResultsCountIsLoading] =
     useState(false);
-  const [drawerHandleDisabled, setDrawerHandleDisabled] = useState(false);
 
-  const localStorageLayoutType = useLocalStorageValue("autostrumLayoutType");
+  useEffect(() => {
+    setGateUntilWindowReady(false);
+  }, []);
 
   useEffect(() => {
     if (!mobileHeaderModal.showing) {
       setDrawerOpen(false);
     }
   }, [mobileHeaderModal.showing]);
+
+  const disableFiltersAndLayoutToggle =
+    isFetchingArtistId ?? isFetchingUserId ?? isFetchingRelatedArtists;
 
   const {
     searchQuery,
@@ -74,10 +149,64 @@ function SearchResults() {
     capo,
     difficulty,
     sortBy,
-    layoutType,
     renderSearch404,
     searchParamsParsed,
   } = useGetUrlParamFilters();
+
+  const layoutType = useLocalStorageValue("autostrum-layout", {
+    defaultValue: "grid",
+    initializeWithValue: true,
+  });
+
+  // really bad ux to immediately push() user to new route whenever they
+  // select a new filter, as selecting multiple filters would mean the user
+  // would have to wait for the page to reload multiple times. gating push()
+  // behind the "Apply" button.
+  const [localFilters, setLocalFilters] = useState({
+    genreId: genreId,
+    tuning: tuning,
+    capo: capo,
+    difficulty: difficulty,
+    sortBy: sortBy,
+  });
+
+  const [initialFilters, setInitialFilters] = useState<{
+    genreId: number | undefined;
+    tuning: string | undefined;
+    capo: boolean | undefined;
+    difficulty: number | undefined;
+    sortBy: string | undefined;
+  } | null>(null);
+
+  // unsure if this effect is necessary
+  useLayoutEffect(() => {
+    if (!searchParamsParsed || initialFilters) return;
+
+    setLocalFilters({
+      genreId: genreId,
+      tuning: tuning,
+      capo: capo,
+      difficulty: difficulty,
+      sortBy: sortBy,
+    });
+
+    setInitialFilters({
+      genreId: genreId,
+      tuning: tuning,
+      capo: capo,
+      difficulty: difficulty,
+      sortBy: sortBy,
+    });
+  }, [
+    searchParamsParsed,
+    initialFilters,
+    searchQuery,
+    genreId,
+    tuning,
+    capo,
+    difficulty,
+    sortBy,
+  ]);
 
   const tableHeaderRef = useRef<OverlayScrollbarsComponentRef<"div">>(null);
   const tableBodyRef = useRef<OverlayScrollbarsComponentRef<"div">>(null);
@@ -100,7 +229,7 @@ function SearchResults() {
   }, []);
 
   useEffect(() => {
-    if (layoutType !== "table" || searchResultsCountIsLoading) return;
+    if (layoutType.value !== "table" || searchResultsCountIsLoading) return;
 
     window.addEventListener("resize", handleWindowResize);
 
@@ -109,7 +238,12 @@ function SearchResults() {
     return () => {
       window.removeEventListener("resize", handleWindowResize);
     };
-  }, [handleWindowResize, layoutType, query, searchResultsCountIsLoading]);
+  }, [
+    handleWindowResize,
+    layoutType.value,
+    query,
+    searchResultsCountIsLoading,
+  ]);
 
   const {
     ref: stickyStylesSentinelRef,
@@ -123,77 +257,41 @@ function SearchResults() {
   // fyi: all param change handlers below will remove the param if it is getting set
   // to the "default" values that we have defined in the useGetUrlParamFilters hook
 
-  function handleGenreChange(stringifiedId: string) {
+  function applyFilters() {
     const newQuery = { ...query };
-    if (parseInt(stringifiedId) >= 1 && parseInt(stringifiedId) <= 8) {
-      newQuery.genreId = stringifiedId;
+
+    if (localFilters.genreId) {
+      newQuery.genreId = localFilters.genreId.toString();
     } else {
       delete newQuery.genreId;
     }
 
-    void push(
-      {
-        pathname,
-        query: newQuery,
-      },
-      undefined,
-      {
-        scroll: false,
-      },
-    );
-  }
-
-  function handleTuningChange(tuning: string) {
-    const newQuery = { ...query };
-
-    const lowercaseTuning = tuning.toLowerCase();
-
-    if (tuningNotes.includes(lowercaseTuning)) {
-      newQuery.tuning = lowercaseTuning;
-    } else if (tuning === "custom") {
-      newQuery.tuning = "custom";
+    if (localFilters.tuning) {
+      newQuery.tuning = localFilters.tuning;
     } else {
       delete newQuery.tuning;
     }
 
-    void push(
-      {
-        pathname,
-        query: newQuery,
-      },
-      undefined,
-      {
-        scroll: false,
-      },
-    );
-  }
-
-  function handleCapoChange(capo: "all" | "true" | "false") {
-    const newQuery = { ...query };
-    if (capo === "true" || capo === "false") {
-      newQuery.capo = capo;
+    if (localFilters.capo === true || localFilters.capo === false) {
+      newQuery.capo = localFilters.capo.toString();
     } else {
       delete newQuery.capo;
     }
 
-    void push(
-      {
-        pathname,
-        query: newQuery,
-      },
-      undefined,
-      {
-        scroll: false,
-      },
-    );
-  }
-
-  function handleDifficultyChange(difficulty: string) {
-    const newQuery = { ...query };
-    if (parseInt(difficulty) >= 1 && parseInt(difficulty) <= 5) {
-      newQuery.difficulty = difficulty;
+    if (localFilters.difficulty) {
+      newQuery.difficulty = localFilters.difficulty.toString();
     } else {
       delete newQuery.difficulty;
+    }
+
+    // default value changes between "relevance" and "newest"
+    // based on if there is a search query or not.
+    if (localFilters.sortBy === "relevance" && searchQuery) {
+      delete newQuery.sortBy;
+    } else if (localFilters.sortBy === "newest" && !searchQuery) {
+      delete newQuery.sortBy;
+    } else {
+      newQuery.sortBy = localFilters.sortBy;
     }
 
     void push(
@@ -235,55 +333,46 @@ function SearchResults() {
     );
   }
 
-  function handleLayoutChange(layoutType: "grid" | "table") {
-    if (
-      (layoutType === "grid" && !query.layout) ||
-      (layoutType === "table" && query.layout === "table")
-    ) {
-      return; // no need to push same params if the layout is already set to the desired type
-    }
-
-    localStorageLayoutType.set(layoutType);
-
-    const newQuery = { ...query };
-    if (layoutType === "grid") {
-      delete newQuery.layout;
-    } else {
-      newQuery.layout = "table";
-    }
-
-    void push(
-      {
-        pathname,
-        query: newQuery,
-      },
-      undefined,
-      {
-        scroll: false,
-      },
-    );
-  }
-
   function resetSearchFilters() {
-    const newQuery = { ...query };
-    delete newQuery.genreId;
-    delete newQuery.tuning;
-    delete newQuery.capo;
-    delete newQuery.difficulty;
-    delete newQuery.sortBy;
-    delete newQuery.layout;
+    setLocalFilters({
+      genreId: undefined,
+      tuning: undefined,
+      capo: undefined,
+      difficulty: undefined,
+      sortBy: searchQuery ? "relevance" : "newest",
+    });
+  }
 
-    void push(
-      {
-        pathname,
-        query: newQuery,
-      },
-      undefined,
-      {
-        scroll: false,
-      },
+  // disabled if user has the "default" filters selected for each filter
+  function disableResetFiltersButton() {
+    const defaultSortByFilter = searchQuery
+      ? localFilters.sortBy === "relevance"
+      : localFilters.sortBy === "newest";
+
+    return (
+      disableFiltersAndLayoutToggle ??
+      (localFilters.genreId === undefined &&
+        localFilters.tuning === undefined &&
+        localFilters.capo === undefined &&
+        localFilters.difficulty === undefined &&
+        defaultSortByFilter)
     );
   }
+
+  function disableApplyFiltersButton() {
+    return (
+      disableFiltersAndLayoutToggle ??
+      (localFilters.genreId === genreId &&
+        localFilters.tuning === tuning &&
+        localFilters.capo === capo &&
+        localFilters.difficulty === difficulty &&
+        localFilters.sortBy === sortBy)
+    );
+  }
+
+  // FYI: I really dislike this, but suppressing the hydration error
+  // for localstorage layout was an even worse approach.
+  if (gateUntilWindowReady) return null;
 
   return (
     <div className="baseFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-4 md:min-h-[calc(100dvh-4rem-12rem-56px)]">
@@ -299,8 +388,15 @@ function SearchResults() {
         <div className="baseVertFlex w-full !items-start gap-1.5">
           <Label>Genre</Label>
           <Select
-            value={genreId ? genreId.toString() : "allGenres"}
-            onValueChange={(value) => handleGenreChange(value)}
+            disabled={disableFiltersAndLayoutToggle}
+            value={
+              localFilters.genreId
+                ? localFilters.genreId.toString()
+                : "allGenres"
+            }
+            onValueChange={(value) =>
+              setLocalFilters((prev) => ({ ...prev, genreId: parseInt(value) }))
+            }
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a genre" />
@@ -346,19 +442,28 @@ function SearchResults() {
         <div className="baseVertFlex w-full !items-start gap-1.5">
           <Label>Tuning</Label>
           <Select
-            value={tuning ? tuning.toLowerCase() : "all"}
+            disabled={disableFiltersAndLayoutToggle}
+            value={
+              localFilters.tuning ? localFilters.tuning.toLowerCase() : "all"
+            }
             onValueChange={(value) => {
-              handleTuningChange(value);
+              setLocalFilters((prev) => ({
+                ...prev,
+                tuning: value,
+              }));
             }}
           >
             <SelectTrigger className="h-10 w-full">
               <SelectValue placeholder="Select tuning...">
-                {tuning ? (
+                {localFilters.tuning ? (
                   <>
-                    {tuning === "custom" ? (
+                    {localFilters.tuning === "custom" ? (
                       "Custom"
                     ) : (
-                      <PrettyTuning tuning={tuning} displayWithFlex={true} />
+                      <PrettyTuning
+                        tuning={localFilters.tuning}
+                        displayWithFlex={true}
+                      />
                     )}
                   </>
                 ) : (
@@ -405,9 +510,22 @@ function SearchResults() {
         <div className="baseVertFlex w-full !items-start gap-1.5">
           <Label>Capo</Label>
           <Select
-            value={capo ? capo.toString() : "all"}
+            disabled={disableFiltersAndLayoutToggle}
+            value={
+              localFilters.capo !== undefined
+                ? localFilters.capo.toString()
+                : "all"
+            }
             onValueChange={(value) => {
-              handleCapoChange(value as "all" | "true" | "false");
+              setLocalFilters((prev) => ({
+                ...prev,
+                capo:
+                  value === "true"
+                    ? true
+                    : value === "false"
+                      ? false
+                      : undefined,
+              }));
             }}
           >
             <SelectTrigger className="w-full">
@@ -427,17 +545,25 @@ function SearchResults() {
         <div className="baseVertFlex w-full !items-start gap-1.5">
           <Label>Difficulty</Label>
           <Select
-            value={difficulty ? difficulty.toString() : "all"}
+            disabled={disableFiltersAndLayoutToggle}
+            value={
+              localFilters.difficulty
+                ? localFilters.difficulty.toString()
+                : "all"
+            }
             onValueChange={(value) => {
-              handleDifficultyChange(value);
+              setLocalFilters((prev) => ({
+                ...prev,
+                difficulty: value === "all" ? undefined : parseInt(value),
+              }));
             }}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a difficulty">
-                {difficulty ? (
+                {localFilters.difficulty ? (
                   <div className="baseFlex gap-2">
-                    <DifficultyBars difficulty={difficulty ?? 5} />
-                    {DIFFICULTIES[(difficulty ?? 5) - 1]}
+                    <DifficultyBars difficulty={localFilters.difficulty ?? 5} />
+                    {DIFFICULTIES[(localFilters.difficulty ?? 5) - 1]}
                   </div>
                 ) : (
                   <span>All difficulties</span>
@@ -459,7 +585,7 @@ function SearchResults() {
                       <span className="font-medium">Beginner</span>
                     </div>
                     <p className="text-sm opacity-75">
-                      Open chords, basic melodies, simple strumming.
+                      {difficultyDescriptions[0]}
                     </p>
                   </div>
                 </SelectItem>
@@ -470,8 +596,7 @@ function SearchResults() {
                       <span className="font-medium">Easy</span>
                     </div>
                     <p className="text-sm opacity-75">
-                      Common progressions, basic barre chords, straightforward
-                      rhythms.
+                      {difficultyDescriptions[1]}
                     </p>
                   </div>
                 </SelectItem>
@@ -482,7 +607,7 @@ function SearchResults() {
                       <span className="font-medium">Intermediate</span>
                     </div>
                     <p className="text-sm opacity-75">
-                      Alternate picking, varied voicings, position shifts.
+                      {difficultyDescriptions[2]}
                     </p>
                   </div>
                 </SelectItem>
@@ -493,7 +618,7 @@ function SearchResults() {
                       <span className="font-medium">Advanced</span>
                     </div>
                     <p className="text-sm opacity-75">
-                      Fast playing, bends, slides, tapping, expressive control.
+                      {difficultyDescriptions[3]}
                     </p>
                   </div>
                 </SelectItem>
@@ -504,8 +629,7 @@ function SearchResults() {
                       <span className="font-medium">Expert</span>
                     </div>
                     <p className="text-sm opacity-75">
-                      Virtuoso speed, sweep picking, extended voicings,
-                      interpretation.
+                      {difficultyDescriptions[4]}
                     </p>
                   </div>
                 </SelectItem>
@@ -517,17 +641,18 @@ function SearchResults() {
         <div className="baseVertFlex w-full !items-start gap-1.5">
           <Label>Sort by</Label>
           <Select
-            onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
-            value={sortBy}
+            disabled={disableFiltersAndLayoutToggle}
+            value={localFilters.sortBy}
             onValueChange={(value) =>
-              handleSortByChange(
-                value as
+              setLocalFilters((prev) => ({
+                ...prev,
+                sortBy: value as
                   | "relevance"
                   | "newest"
                   | "oldest"
                   | "mostPopular"
                   | "leastPopular",
-              )
+              }))
             }
           >
             <SelectTrigger className="w-full">
@@ -545,13 +670,24 @@ function SearchResults() {
           </Select>
         </div>
 
-        <Button
-          variant="link"
-          onClick={() => resetSearchFilters()}
-          className="h-5 !p-0"
-        >
-          Reset filters
-        </Button>
+        <div className="baseFlex w-full !justify-between gap-2">
+          <Button
+            variant="link"
+            disabled={disableResetFiltersButton()}
+            onClick={() => resetSearchFilters()}
+            className="h-5 !p-0"
+          >
+            Reset filters
+          </Button>
+
+          <Button
+            variant="outline"
+            disabled={disableApplyFiltersButton()}
+            onClick={() => applyFilters()}
+          >
+            Apply
+          </Button>
+        </div>
       </div>
 
       <div className="baseVertFlex relative size-full">
@@ -559,11 +695,10 @@ function SearchResults() {
           ref={stickyStylesSentinelRef}
           className="absolute top-0 h-[1px]"
         ></div>
-
         {viewportLabel.includes("mobile") ? (
           // mobile: # of results / filter drawer trigger
           <div
-            className={`baseVertFlex sticky top-16 z-10 w-full !justify-between gap-4 border-b bg-pink-800 tablet:!hidden ${layoutType === "table" ? "pb-1 pt-2" : "py-3"}`}
+            className={`baseVertFlex sticky top-16 z-10 w-full !justify-between gap-4 border-b bg-pink-800 transition-all tablet:!hidden ${layoutType.value === "table" ? "pb-1 pt-2" : "py-3"}`}
           >
             {/* scroll area + only show on hover for BOTH the header + the table scrollbars */}
 
@@ -578,7 +713,7 @@ function SearchResults() {
                     animate="expanded"
                     exit="closed"
                   >
-                    <div className="pulseAnimation h-6 w-48 rounded-md bg-pink-300"></div>
+                    <div className="pulseAnimation h-6 w-36 rounded-md bg-pink-300"></div>
                   </motion.div>
                 ) : (
                   <motion.div
@@ -595,51 +730,750 @@ function SearchResults() {
                 )}
               </AnimatePresence>
 
-              {/* filter drawer trigger */}
-              <Drawer.Root
-                open={drawerOpen}
-                onOpenChange={(open) => {
-                  setDrawerOpen(open);
-                  setMobileHeaderModal({
-                    showing: open,
-                    zIndex: open ? (asPath.includes("/profile") ? 50 : 49) : 48,
-                  });
-                }}
-                modal={false}
-                dismissible={!drawerHandleDisabled}
-              >
-                <Drawer.Trigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className="baseFlex gap-2 @3xl:hidden"
-                  >
-                    Filter
-                    <LuFilter className="h-4 w-4" />
-                  </Button>
-                </Drawer.Trigger>
-                <Drawer.Portal>
-                  <Drawer.Content
-                    style={{
-                      zIndex: asPath.includes("/preferences") ? 60 : 50,
-                      textShadow: "none",
-                    }}
-                    className="baseVertFlex fixed bottom-0 left-0 right-0 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950"
-                  >
-                    <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
+              <div className="baseFlex gap-2">
+                {/* layout type selector */}
+                <div className="baseFlex gap-3">
+                  <Label>Layout</Label>
+                  <div className="baseFlex rounded-md border">
+                    <Button
+                      variant={"toggledOff"}
+                      size="sm"
+                      disabled={disableFiltersAndLayoutToggle}
+                      onClick={() => {
+                        layoutType.set("grid");
+                      }}
+                      className="baseFlex relative gap-2 border-none"
+                    >
+                      {layoutType.value === "grid" && (
+                        <motion.span
+                          layoutId="animatedToggleIndicator"
+                          className="absolute inset-0 !z-[-1] rounded-sm bg-pink-500"
+                          transition={{
+                            type: "spring",
+                            bounce: 0.2,
+                            duration: 0.6,
+                          }}
+                        />
+                      )}
+                      <BsGridFill className="size-4" />
+                    </Button>
+                    <Button
+                      variant={"toggledOff"}
+                      size="sm"
+                      disabled={disableFiltersAndLayoutToggle}
+                      onClick={() => {
+                        layoutType.set("table");
+                      }}
+                      className="baseFlex relative gap-2 border-none"
+                    >
+                      {layoutType.value === "table" && (
+                        <motion.span
+                          layoutId="animatedToggleIndicator"
+                          className="absolute inset-0 !z-[-1] rounded-sm bg-pink-500"
+                          transition={{
+                            type: "spring",
+                            bounce: 0.2,
+                            duration: 0.6,
+                          }}
+                        />
+                      )}
+                      <CiViewTable className="size-4" />
+                    </Button>
+                  </div>
+                </div>
 
-                    <Label className="baseFlex gap-2">
-                      Search filters
-                      <LuFilter className="h-4 w-4" />
-                    </Label>
-                    <Separator className="mb-2 w-full bg-pink-600" />
+                {/* filter drawer trigger */}
+                <Drawer.Root
+                  open={drawerOpen}
+                  onOpenChange={(open) => {
+                    setDrawerOpen(open);
+                    setMobileHeaderModal({
+                      showing: open,
+                      zIndex: open ? 49 : 48,
+                    });
+                  }}
+                  onClose={() => {
+                    setDrawerView("Search filters");
+                  }}
+                >
+                  <Drawer.Trigger asChild>
+                    <Button variant={"outline"} className="baseFlex w-9">
+                      <LuFilter className="size-4 shrink-0" />
+                    </Button>
+                  </Drawer.Trigger>
+                  <Drawer.Portal>
+                    <Drawer.Content
+                      style={{
+                        zIndex: asPath.includes("/preferences") ? 60 : 50,
+                        textShadow: "none",
+                      }}
+                      className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-4 text-pink-950"
+                    >
+                      <div className="mx-auto mb-4 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
 
-                    {/* TODO */}
-                  </Drawer.Content>
-                </Drawer.Portal>
-              </Drawer.Root>
+                      <div className="baseFlex w-full !justify-between px-3">
+                        <AnimatePresence mode="popLayout">
+                          {drawerView === "Search filters" ? (
+                            <motion.div
+                              key={"resetFiltersButton"}
+                              variants={opacityVariants}
+                              initial="closed"
+                              animate="expanded"
+                              exit="closed"
+                              transition={{ duration: 0.25 }}
+                              className="w-[56.5px]"
+                            >
+                              <Button
+                                variant="drawerNavigation"
+                                disabled={disableResetFiltersButton()}
+                                onClick={() => resetSearchFilters()}
+                                className="h-5 !p-0 font-normal"
+                              >
+                                Reset
+                              </Button>
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key={"returnToAllFiltersButton"}
+                              variants={opacityVariants}
+                              initial="closed"
+                              animate="expanded"
+                              exit="closed"
+                              transition={{ duration: 0.25 }}
+                              className="baseFlex -ml-1 !justify-start"
+                            >
+                              <Button
+                                variant="drawerNavigation"
+                                onClick={() => setDrawerView("Search filters")}
+                                className="h-5 !p-0 font-normal"
+                              >
+                                <GoChevronRight className="size-5 rotate-180" />
+                                Filters
+                              </Button>
+                            </motion.div>
+                          )}
+
+                          {/* drawer title */}
+                          {drawerView === "Search filters" ? (
+                            <motion.div
+                              key={"baseDrawerTitle"}
+                              variants={opacityVariants}
+                              initial="closed"
+                              animate="expanded"
+                              exit="closed"
+                              transition={{ duration: 0.25 }}
+                              className="baseFlex gap-2 font-medium"
+                            >
+                              <LuFilter className="size-4" />
+                              <span>Search filters</span>
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key={"drawerTitle"}
+                              variants={opacityVariants}
+                              initial="closed"
+                              animate="expanded"
+                              exit="closed"
+                              transition={{ duration: 0.25 }}
+                              className="baseFlex gap-2 font-medium"
+                            >
+                              <span>{drawerView}</span>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        <div className="baseFlex w-[56.5px] !justify-end">
+                          <Button
+                            variant="drawerNavigation"
+                            disabled={disableApplyFiltersButton()}
+                            onClick={() => applyFilters()}
+                          >
+                            Apply
+                          </Button>
+                        </div>
+                      </div>
+
+                      <Separator className="mt-2 w-full bg-stone-600" />
+
+                      {/* Main body content */}
+                      <div className="baseVertFlex h-[391px] w-full !justify-start overflow-y-auto">
+                        <AnimatePresence mode="popLayout" initial={false}>
+                          {/* All filters */}
+                          {drawerView === "Search filters" && (
+                            <motion.div
+                              key={"allFilters"}
+                              variants={baseDrawerVariants}
+                              initial="initial"
+                              animate="animate"
+                              exit="exit"
+                              transition={{ duration: 0.25 }}
+                              className="baseVertFlex w-full"
+                            >
+                              <Button
+                                variant={"drawer"}
+                                disabled={disableFiltersAndLayoutToggle}
+                                onClick={() => setDrawerView("Genre")}
+                                className="baseFlex w-full !justify-between gap-2"
+                              >
+                                <div className="baseFlex">
+                                  <span className="w-[75px] text-left font-semibold">
+                                    Genre
+                                  </span>
+                                  <div className="baseFlex gap-2">
+                                    <div
+                                      style={{
+                                        backgroundColor: genreId
+                                          ? genreList[genreId]!.color
+                                          : "gray",
+                                        boxShadow:
+                                          "0 1px 1px hsla(336, 84%, 17%, 0.9)",
+                                      }}
+                                      className="h-3 w-3 rounded-full"
+                                    ></div>
+                                    {genreId
+                                      ? genreList[genreId]!.name
+                                      : "All genres"}
+                                  </div>
+                                </div>
+
+                                <GoChevronRight className="size-4" />
+                              </Button>
+
+                              <Button
+                                variant={"drawer"}
+                                disabled={disableFiltersAndLayoutToggle}
+                                onClick={() => setDrawerView("Tuning")}
+                                className="baseFlex w-full !justify-between gap-2"
+                              >
+                                <div className="baseFlex">
+                                  <span className="w-[75px] text-left font-semibold">
+                                    Tuning
+                                  </span>
+                                  <div className="baseFlex gap-2">
+                                    {tuning ? (
+                                      tuning === "custom" ? (
+                                        "Custom"
+                                      ) : (
+                                        <PrettyTuning
+                                          tuning={tuning}
+                                          displayWithFlex={true}
+                                        />
+                                      )
+                                    ) : (
+                                      "All tunings"
+                                    )}
+                                  </div>
+                                </div>
+
+                                <GoChevronRight className="size-4" />
+                              </Button>
+
+                              <Button
+                                variant={"drawer"}
+                                disabled={disableFiltersAndLayoutToggle}
+                                onClick={() => setDrawerView("Capo")}
+                                className="baseFlex w-full !justify-between gap-2"
+                              >
+                                <div className="baseFlex">
+                                  <span className="w-[75px] text-left font-semibold">
+                                    Capo
+                                  </span>
+                                  <div className="baseFlex gap-2">
+                                    {capo === true
+                                      ? "With capo"
+                                      : capo === false
+                                        ? "Without capo"
+                                        : "Capo + Non-capo"}
+                                  </div>
+                                </div>
+
+                                <GoChevronRight className="size-4" />
+                              </Button>
+
+                              <Button
+                                variant={"drawer"}
+                                disabled={disableFiltersAndLayoutToggle}
+                                onClick={() => setDrawerView("Difficulty")}
+                                className="baseFlex w-full !justify-between gap-2"
+                              >
+                                <div className="baseFlex">
+                                  <span className="w-[75px] text-left font-semibold">
+                                    Difficulty
+                                  </span>
+                                  <div className="baseFlex gap-2">
+                                    {difficulty ? (
+                                      <div className="baseFlex gap-2">
+                                        <DifficultyBars
+                                          difficulty={difficulty ?? 5}
+                                        />
+                                        {DIFFICULTIES[(difficulty ?? 5) - 1]}
+                                      </div>
+                                    ) : (
+                                      "All difficulties"
+                                    )}
+                                  </div>
+                                </div>
+
+                                <GoChevronRight className="size-4" />
+                              </Button>
+
+                              <Button
+                                variant={"drawer"}
+                                disabled={disableFiltersAndLayoutToggle}
+                                onClick={() => setDrawerView("Sort by")}
+                                className="baseFlex w-full !justify-between gap-2"
+                              >
+                                <div className="baseFlex">
+                                  <span className="w-[75px] text-left font-semibold">
+                                    Sort by
+                                  </span>
+                                  <div className="baseFlex gap-2">
+                                    {sortBy === "relevance" && searchQuery
+                                      ? "Relevance"
+                                      : sortBy === "newest"
+                                        ? "Newest"
+                                        : sortBy === "oldest"
+                                          ? "Oldest"
+                                          : sortBy === "mostPopular"
+                                            ? "Most popular"
+                                            : sortBy === "leastPopular"
+                                              ? "Least popular"
+                                              : ""}
+                                  </div>
+                                </div>
+
+                                <GoChevronRight className="size-4" />
+                              </Button>
+                            </motion.div>
+                          )}
+
+                          {/* Genre */}
+                          {drawerView === "Genre" && (
+                            <motion.div
+                              key={"genreDrawer"}
+                              variants={individualDrawerVariants}
+                              initial="initial"
+                              animate="animate"
+                              exit="exit"
+                              transition={{ duration: 0.25 }}
+                              className="baseVertFlex w-full !justify-start"
+                            >
+                              <Button
+                                variant={"drawer"}
+                                value={"allGenres"}
+                                className="baseFlex w-full !justify-between gap-2"
+                                onClick={() => {
+                                  setLocalFilters((prev) => ({
+                                    ...prev,
+                                    genreId: undefined,
+                                  }));
+                                }}
+                              >
+                                <div className="baseFlex gap-2">
+                                  <div
+                                    style={{
+                                      backgroundColor: "gray",
+                                      boxShadow:
+                                        "0 1px 1px hsla(336, 84%, 17%, 0.9)",
+                                    }}
+                                    className="h-3 w-3 rounded-full"
+                                  ></div>
+                                  All genres
+                                </div>
+
+                                {genreId === undefined && (
+                                  <Check className="size-4" />
+                                )}
+                              </Button>
+
+                              {Object.values(genreList).map((genre) => {
+                                return (
+                                  <Button
+                                    key={genre.id}
+                                    variant={"drawer"}
+                                    value={genre.id.toString()}
+                                    className="baseFlex w-full !justify-between gap-2"
+                                    onClick={() =>
+                                      setLocalFilters((prev) => ({
+                                        ...prev,
+                                        genreId: genre.id,
+                                      }))
+                                    }
+                                  >
+                                    <div className="baseFlex gap-2">
+                                      <div
+                                        style={{
+                                          backgroundColor: genre.color,
+                                          boxShadow:
+                                            "0 1px 1px hsla(336, 84%, 17%, 0.9)",
+                                        }}
+                                        className="h-3 w-3 rounded-full"
+                                      ></div>
+
+                                      {genre.name}
+                                    </div>
+
+                                    {genreId === genre.id && (
+                                      <Check className="size-4" />
+                                    )}
+                                  </Button>
+                                );
+                              })}
+                            </motion.div>
+                          )}
+
+                          {/* Tuning */}
+                          {drawerView === "Tuning" && (
+                            <motion.div
+                              key={"tuningDrawer"}
+                              variants={individualDrawerVariants}
+                              initial="initial"
+                              animate="animate"
+                              exit="exit"
+                              transition={{ duration: 0.25 }}
+                              className="baseVertFlex w-full !justify-start"
+                            >
+                              <Button
+                                variant={"drawer"}
+                                value={"all"}
+                                className="baseFlex w-full !justify-between gap-2"
+                                onClick={() => {
+                                  setLocalFilters((prev) => ({
+                                    ...prev,
+                                    tuning: undefined,
+                                  }));
+                                }}
+                              >
+                                <div className="baseFlex gap-2">
+                                  All tunings
+                                </div>
+
+                                {tuning === undefined && (
+                                  <Check className="size-4" />
+                                )}
+                              </Button>
+
+                              {tunings.map((tuningObj) => (
+                                <Button
+                                  key={tuningObj.simpleNotes}
+                                  variant={"drawer"}
+                                  value={tuningObj.notes.toLowerCase()}
+                                  onClick={() =>
+                                    setLocalFilters((prev) => ({
+                                      ...prev,
+                                      tuning: tuningObj.notes.toLowerCase(),
+                                    }))
+                                  }
+                                  className="baseFlex w-full !justify-between gap-2"
+                                >
+                                  <div className="baseFlex w-[235px] !justify-between">
+                                    <span className="font-medium">
+                                      {tuningObj.name}
+                                    </span>
+                                    <PrettyTuning
+                                      tuning={tuningObj.simpleNotes}
+                                      width="w-36"
+                                    />
+                                  </div>
+
+                                  {tuning === tuningObj.notes && (
+                                    <Check className="size-4" />
+                                  )}
+                                </Button>
+                              ))}
+
+                              <Button
+                                variant={"drawer"}
+                                value={"custom"}
+                                className="baseFlex w-full !justify-between gap-2"
+                                onClick={() => {
+                                  setLocalFilters((prev) => ({
+                                    ...prev,
+                                    tuning: "custom",
+                                  }));
+                                }}
+                              >
+                                <div className="baseFlex gap-2">Custom</div>
+
+                                {tuning === "custom" && (
+                                  <Check className="size-4" />
+                                )}
+                              </Button>
+                            </motion.div>
+                          )}
+
+                          {/* Capo */}
+                          {drawerView === "Capo" && (
+                            <motion.div
+                              key={"capoDrawer"}
+                              variants={individualDrawerVariants}
+                              initial="initial"
+                              animate="animate"
+                              exit="exit"
+                              transition={{ duration: 0.25 }}
+                              className="baseVertFlex w-full !justify-start"
+                            >
+                              <Button
+                                variant={"drawer"}
+                                value={"all"}
+                                className="baseFlex w-full !justify-between gap-2"
+                                onClick={() => {
+                                  setLocalFilters((prev) => ({
+                                    ...prev,
+                                    capo: undefined,
+                                  }));
+                                }}
+                              >
+                                <div className="baseFlex gap-2">
+                                  Capo + Non-capo
+                                </div>
+
+                                {capo === undefined && (
+                                  <Check className="size-4" />
+                                )}
+                              </Button>
+
+                              <Button
+                                variant={"drawer"}
+                                value={"true"}
+                                className="baseFlex w-full !justify-between gap-2"
+                                onClick={() => {
+                                  setLocalFilters((prev) => ({
+                                    ...prev,
+                                    capo: true,
+                                  }));
+                                }}
+                              >
+                                <div className="baseFlex gap-2">With capo</div>
+
+                                {capo === true && <Check className="size-4" />}
+                              </Button>
+
+                              <Button
+                                variant={"drawer"}
+                                value={"false"}
+                                className="baseFlex w-full !justify-between gap-2"
+                                onClick={() => {
+                                  setLocalFilters((prev) => ({
+                                    ...prev,
+                                    capo: false,
+                                  }));
+                                }}
+                              >
+                                <div className="baseFlex gap-2">
+                                  Without capo
+                                </div>
+
+                                {capo === false && <Check className="size-4" />}
+                              </Button>
+                            </motion.div>
+                          )}
+
+                          {/* Difficulty */}
+                          {drawerView === "Difficulty" && (
+                            <motion.div
+                              key={"difficultyDrawer"}
+                              variants={individualDrawerVariants}
+                              initial="initial"
+                              animate="animate"
+                              exit="exit"
+                              transition={{ duration: 0.25 }}
+                              className="baseVertFlex w-full !justify-start"
+                            >
+                              <Button
+                                variant={"drawer"}
+                                value={"all"}
+                                className="baseFlex w-full !justify-between gap-2"
+                                onClick={() => {
+                                  setLocalFilters((prev) => ({
+                                    ...prev,
+                                    difficulty: undefined,
+                                  }));
+                                }}
+                              >
+                                <div className="baseFlex gap-2">
+                                  All difficulties
+                                </div>
+
+                                {difficulty === undefined && (
+                                  <Check className="size-4" />
+                                )}
+                              </Button>
+
+                              {DIFFICULTIES.map((difficultyName, index) => {
+                                return (
+                                  <Button
+                                    key={index + 1}
+                                    variant={"drawer"}
+                                    value={(index + 1).toString()}
+                                    className="baseFlex !h-[85px] w-full !justify-between gap-2"
+                                    onClick={() => {
+                                      setLocalFilters((prev) => ({
+                                        ...prev,
+                                        difficulty: index + 1,
+                                      }));
+                                    }}
+                                  >
+                                    <div className="baseVertFlex !items-start gap-1">
+                                      <div className="baseFlex gap-2">
+                                        <DifficultyBars
+                                          difficulty={index + 1}
+                                        />
+                                        <span className="font-medium">
+                                          {difficultyName}
+                                        </span>
+                                      </div>
+                                      <p className="text-left text-sm opacity-75">
+                                        {difficultyDescriptions[index]}
+                                      </p>
+                                    </div>
+
+                                    {difficulty === index + 1 && (
+                                      <Check className="size-4" />
+                                    )}
+                                  </Button>
+                                );
+                              })}
+                            </motion.div>
+                          )}
+
+                          {/* Sort by */}
+                          {drawerView === "Sort by" && (
+                            <motion.div
+                              key={"sortByDrawer"}
+                              variants={individualDrawerVariants}
+                              initial="initial"
+                              animate="animate"
+                              exit="exit"
+                              transition={{ duration: 0.25 }}
+                              className="baseVertFlex w-full !justify-start"
+                            >
+                              <Button
+                                variant={"drawer"}
+                                value={"relevance"}
+                                className="baseFlex w-full !justify-between gap-2"
+                                onClick={() =>
+                                  handleSortByChange(
+                                    "relevance" as
+                                      | "relevance"
+                                      | "newest"
+                                      | "oldest"
+                                      | "mostPopular"
+                                      | "leastPopular",
+                                  )
+                                }
+                              >
+                                <div className="baseFlex gap-2">Relevance</div>
+
+                                {sortBy === "relevance" && (
+                                  <Check className="size-4" />
+                                )}
+                              </Button>
+
+                              <Button
+                                variant={"drawer"}
+                                value={"newest"}
+                                className="baseFlex w-full !justify-between gap-2"
+                                onClick={() =>
+                                  handleSortByChange(
+                                    "newest" as
+                                      | "relevance"
+                                      | "newest"
+                                      | "oldest"
+                                      | "mostPopular"
+                                      | "leastPopular",
+                                  )
+                                }
+                              >
+                                <div className="baseFlex gap-2">Newest</div>
+
+                                {sortBy === "newest" && (
+                                  <Check className="size-4" />
+                                )}
+                              </Button>
+
+                              <Button
+                                variant={"drawer"}
+                                value={"oldest"}
+                                className="baseFlex w-full !justify-between gap-2"
+                                onClick={() =>
+                                  handleSortByChange(
+                                    "oldest" as
+                                      | "relevance"
+                                      | "newest"
+                                      | "oldest"
+                                      | "mostPopular"
+                                      | "leastPopular",
+                                  )
+                                }
+                              >
+                                <div className="baseFlex gap-2">Oldest</div>
+
+                                {sortBy === "oldest" && (
+                                  <Check className="size-4" />
+                                )}
+                              </Button>
+
+                              <Button
+                                variant={"drawer"}
+                                value={"mostPopular"}
+                                className="baseFlex w-full !justify-between gap-2"
+                                onClick={() =>
+                                  handleSortByChange(
+                                    "mostPopular" as
+                                      | "relevance"
+                                      | "newest"
+                                      | "oldest"
+                                      | "mostPopular"
+                                      | "leastPopular",
+                                  )
+                                }
+                              >
+                                <div className="baseFlex gap-2">
+                                  Most popular
+                                </div>
+
+                                {sortBy === "mostPopular" && (
+                                  <Check className="size-4" />
+                                )}
+                              </Button>
+
+                              <Button
+                                variant={"drawer"}
+                                value={"leastPopular"}
+                                className="baseFlex w-full !justify-between gap-2"
+                                onClick={() =>
+                                  handleSortByChange(
+                                    "leastPopular" as
+                                      | "relevance"
+                                      | "newest"
+                                      | "oldest"
+                                      | "mostPopular"
+                                      | "leastPopular",
+                                  )
+                                }
+                              >
+                                <div className="baseFlex gap-2">
+                                  Least popular
+                                </div>
+
+                                {sortBy === "leastPopular" && (
+                                  <Check className="size-4" />
+                                )}
+                              </Button>
+                            </motion.div>
+                          )}
+
+                          {/* Layout */}
+                        </AnimatePresence>
+                      </div>
+                    </Drawer.Content>
+                  </Drawer.Portal>
+                </Drawer.Root>
+              </div>
             </div>
 
-            {layoutType === "table" && searchResultsCount > 0 && (
+            {layoutType.value === "table" && searchResultsCount > 0 && (
               <>
                 {searchResultsCountIsLoading ? (
                   <motion.div
@@ -671,7 +1505,6 @@ function SearchResults() {
                           const body = tableBodyRef.current
                             ?.osInstance()
                             ?.elements().viewport;
-                          console.log("body", body, tableBodyRef.current);
                           if (!body) return;
 
                           body.scrollLeft =
@@ -724,7 +1557,7 @@ function SearchResults() {
         ) : (
           // tablet+: # of results / view type toggle
           <div
-            className={`baseVertFlex sticky top-16 z-10 !hidden w-full !justify-between gap-4 border-b bg-pink-800 transition-all tablet:!flex ${layoutType === "table" && searchResultsCount > 0 ? "pb-1 pt-2" : "py-3"} ${stickyHeaderNotActive ? "rounded-t-lg" : "rounded-t-none"}`}
+            className={`baseVertFlex sticky top-16 z-10 !hidden w-full !justify-between gap-4 border-b bg-pink-800 transition-all tablet:!flex ${layoutType.value === "table" && searchResultsCount > 0 ? "pb-1 pt-2" : "py-3"} ${stickyHeaderNotActive ? "rounded-t-lg" : "rounded-t-none"}`}
           >
             <div className="baseFlex w-full !justify-between gap-2 px-4">
               {/* # of results */}
@@ -752,35 +1585,59 @@ function SearchResults() {
                 )}
               </AnimatePresence>
 
-              {/* view type toggle */}
+              {/* layout type toggle */}
               <div className="baseFlex gap-3">
                 <Label>Layout</Label>
-                <div className="baseFlex gap-2">
+                <div className="baseFlex rounded-md border-2">
                   <Button
-                    variant={layoutType === "grid" ? "toggledOn" : "toggledOff"}
+                    variant={"toggledOff"}
                     size="sm"
-                    onClick={() => handleLayoutChange("grid")}
-                    className="baseFlex gap-2"
+                    onClick={() => {
+                      layoutType.set("grid");
+                    }}
+                    className="baseFlex relative gap-2 border-none"
                   >
-                    <BsGridFill className="h-4 w-4" />
+                    {layoutType.value === "grid" && (
+                      <motion.span
+                        layoutId="animatedToggleIndicator"
+                        className="absolute inset-0 !z-[-1] rounded-sm bg-pink-500"
+                        transition={{
+                          type: "spring",
+                          bounce: 0.2,
+                          duration: 0.6,
+                        }}
+                      />
+                    )}
+                    <BsGridFill className="size-4" />
                     Grid
                   </Button>
                   <Button
-                    variant={
-                      layoutType === "table" ? "toggledOn" : "toggledOff"
-                    }
+                    variant={"toggledOff"}
                     size="sm"
-                    onClick={() => handleLayoutChange("table")}
-                    className="baseFlex gap-2"
+                    onClick={() => {
+                      layoutType.set("table");
+                    }}
+                    className="baseFlex relative gap-2 border-none"
                   >
-                    <CiViewTable className="h-4 w-4" />
+                    {layoutType.value === "table" && (
+                      <motion.span
+                        layoutId="animatedToggleIndicator"
+                        className="absolute inset-0 !z-[-1] rounded-sm bg-pink-500"
+                        transition={{
+                          type: "spring",
+                          bounce: 0.2,
+                          duration: 0.6,
+                        }}
+                      />
+                    )}
+                    <CiViewTable className="size-4" />
                     Table
                   </Button>
                 </div>
               </div>
             </div>
 
-            {layoutType === "table" && searchResultsCount > 0 && (
+            {layoutType.value === "table" && searchResultsCount > 0 && (
               <>
                 {searchResultsCountIsLoading ? (
                   <motion.div
@@ -864,43 +1721,151 @@ function SearchResults() {
 
         {/* search results body */}
         <div className="lightGlassmorphic size-full rounded-b-lg">
-          <AnimatePresence>
+          <AnimatePresence mode="popLayout">
             {renderSearch404 ? (
-              <Render404Page />
+              <Render404Page
+                layoutType={layoutType.value as "grid" | "table"}
+              />
             ) : (
               <>
-                {searchParamsParsed && (
+                {isFetchingArtistId ||
+                isFetchingUserId ||
+                isFetchingRelatedArtists ? (
+                  <motion.div
+                    key={"searchResultsSpinner"}
+                    initial={{ opacity: 0 }}
+                    animate={{
+                      opacity: 1,
+                    }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="baseFlex size-full min-h-[calc(100dvh-4rem-6rem-56px-60px)] md:min-h-[calc(100dvh-4rem-12rem-56px-60px)]"
+                  >
+                    <svg
+                      className="size-8 animate-stableSpin rounded-full bg-inherit fill-none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                  </motion.div>
+                ) : (
                   <>
-                    {layoutType === "grid" && (
-                      <GridTabView
-                        searchQuery={searchQuery}
-                        genreId={genreId}
-                        tuning={tuning}
-                        capo={capo}
-                        difficulty={difficulty}
-                        sortBy={sortBy}
-                        setSearchResultsCount={setSearchResultsCount}
-                        setSearchsearchResultsCountIsLoading={
-                          setSearchsearchResultsCountIsLoading
-                        }
-                      />
+                    {relatedArtists && (
+                      <motion.div
+                        key={"relatedArtists"}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="baseVertFlex lightestGlassmorphic gap-4 rounded-md px-8 py-4 text-xl transition-all"
+                      >
+                        <div className="baseVertFlex gap-4">
+                          <Binoculars className="size-9" />
+                          No results found
+                        </div>
+
+                        {relatedArtists.length === 0 ? (
+                          <Button
+                            variant={"navigation"}
+                            asChild
+                            className="baseFlex"
+                          >
+                            <Link
+                              href={"/create"}
+                              onClick={() => {
+                                // TODO: add artistName to localStorage
+                                // to pre-fill the artist name in the create tab form
+                              }}
+                              className="baseFlex gap-2"
+                            >
+                              Be the first to create a tab for this artist
+                              <BsPlus className="size-4" />
+                            </Link>
+                          </Button>
+                        ) : (
+                          <div className="baseVertFlex gap-4">
+                            Related artists
+                            <div className="baseVertFlex gap-4 sm:!flex-row">
+                              {relatedArtists.map((artist) => (
+                                <Button
+                                  key={artist.id}
+                                  variant={"navigation"}
+                                  asChild
+                                  className="baseFlex"
+                                >
+                                  <Link
+                                    href={`/artist/${artist.name}/${artist.id}`}
+                                    className="baseFlex gap-1"
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="h-4 w-4"
+                                      viewBox="0 0 20 20"
+                                      fill="currentColor"
+                                      aria-hidden="true"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm2.293-11.293a1 1 0 00-1.414 0L9.5 9.086l-.879-.879a1 1 0 10-1.414 1.414l1.793 1.793a1 1 0 001.414 0l3-3z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                    {artist.name}
+                                  </Link>
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </motion.div>
                     )}
 
-                    {layoutType === "table" && (
-                      <TableTabView
-                        searchQuery={searchQuery}
-                        genreId={genreId}
-                        tuning={tuning}
-                        capo={capo}
-                        difficulty={difficulty}
-                        sortBy={sortBy}
-                        setSearchResultsCount={setSearchResultsCount}
-                        setSearchsearchResultsCountIsLoading={
-                          setSearchsearchResultsCountIsLoading
-                        }
-                        tableHeaderRef={tableHeaderRef}
-                        tableBodyRef={tableBodyRef}
-                      />
+                    {searchParamsParsed && (
+                      <>
+                        {layoutType.value === "grid" && (
+                          <GridTabView
+                            searchQuery={searchQuery}
+                            genreId={genreId}
+                            tuning={tuning}
+                            capo={capo}
+                            difficulty={difficulty}
+                            sortBy={sortBy}
+                            setSearchResultsCount={setSearchResultsCount}
+                            setSearchsearchResultsCountIsLoading={
+                              setSearchsearchResultsCountIsLoading
+                            }
+                          />
+                        )}
+
+                        {layoutType.value === "table" && (
+                          <TableTabView
+                            searchQuery={searchQuery}
+                            genreId={genreId}
+                            tuning={tuning}
+                            capo={capo}
+                            difficulty={difficulty}
+                            sortBy={sortBy}
+                            setSearchResultsCount={setSearchResultsCount}
+                            setSearchsearchResultsCountIsLoading={
+                              setSearchsearchResultsCountIsLoading
+                            }
+                            tableHeaderRef={tableHeaderRef}
+                            tableBodyRef={tableBodyRef}
+                          />
+                        )}
+                      </>
                     )}
                   </>
                 )}

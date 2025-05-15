@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 import { LuExternalLink } from "react-icons/lu";
-import TopProfileNavigationLayout from "~/components/Layouts/TopProfileNavigationLayout";
+import TopProfileNavigationLayout from "~/components/Layout/TopProfileNavigationLayout";
 import GridTabCard from "~/components/Search/GridTabCard";
 import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
 import { Button } from "~/components/ui/button";
