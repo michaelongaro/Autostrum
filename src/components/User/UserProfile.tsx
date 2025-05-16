@@ -9,27 +9,26 @@ import SearchResults from "~/components/Search/SearchResults";
 import { Separator } from "~/components/ui/separator";
 import { api } from "~/utils/api";
 
-interface User {
+interface UserProfile {
   uniqueKey: string;
 }
 
-function User({ uniqueKey }: User) {
+function UserProfile({ uniqueKey }: UserProfile) {
   const { query } = useRouter();
 
   const [userHasBeenFound, setUserHasBeenFound] = useState(false);
 
-  const { data: user, isFetching: isFetchingUser } =
-    api.user.getByIdOrUsername.useQuery(
-      {
-        userId: query.userId ? (query.userId as string) : undefined,
-        username: query.username ? (query.username as string) : undefined,
-      },
-      {
-        enabled:
-          (query.userId !== undefined || query.username !== undefined) &&
-          !userHasBeenFound, // do not want to refetch upon history.replaceState() below
-      },
-    );
+  const { data: userId, isFetching: isFetchingUserId } =
+    api.user.getByUsername.useQuery(query.username as string, {
+      enabled: query.username !== undefined && !userHasBeenFound, // do not want to refetch upon history.replaceState() below
+    });
+
+  const { data: user, isFetching: isFetchingUser } = api.user.getById.useQuery(
+    userId!,
+    {
+      enabled: userId !== null && !userHasBeenFound, // do not want to refetch upon history.replaceState() below
+    },
+  );
 
   useEffect(() => {
     setUserHasBeenFound(Boolean(user));
@@ -153,8 +152,8 @@ function User({ uniqueKey }: User) {
 
                 <div className="baseFlex gap-2">
                   <FaEye className="size-4 sm:size-5" />
-                  <span>{user.totalViews}</span>
-                  <span>{user.totalViews === 1 ? "View" : "Views"}</span>
+                  <span>{user.totalTabViews}</span>
+                  <span>{user.totalTabViews === 1 ? "View" : "Views"}</span>
                 </div>
               </div>
             </motion.div>
@@ -167,4 +166,4 @@ function User({ uniqueKey }: User) {
   );
 }
 
-export default User;
+export default UserProfile;

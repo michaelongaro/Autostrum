@@ -46,14 +46,9 @@ function TableTabView({
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
 
-  const { data: currentUser } = api.user.getByIdOrUsername.useQuery(
-    {
-      userId: userId!,
-    },
-    {
-      enabled: !!userId,
-    },
-  );
+  const { data: currentUser } = api.user.getById.useQuery(userId!, {
+    enabled: !!userId,
+  });
 
   function getInfiniteQueryParams(): InfiniteQueryParams {
     return {

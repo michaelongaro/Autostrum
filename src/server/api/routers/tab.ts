@@ -8,21 +8,13 @@ import type { Tab } from "@prisma/client";
 import { z } from "zod";
 import { env } from "~/env";
 
-const s3 = new S3Client({
-  region: "us-east-2",
-  credentials: {
-    accessKeyId: env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
 import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
 
-export interface FullTab extends Tab {
+export interface TabWithArtistName extends Tab {
   artistName?: string;
 }
 
@@ -116,7 +108,7 @@ export const tabRouter = createTRPCRouter({
 
       if (!tab) return null;
 
-      const fullTab: FullTab = {
+      const fullTab: TabWithArtistName = {
         ...tab,
         artistName: tab.artist?.name,
       };
@@ -169,56 +161,6 @@ export const tabRouter = createTRPCRouter({
       };
     }),
 
-  deleteTabById: protectedProcedure
-    .input(z.number())
-    .mutation(async ({ input: idToDelete, ctx }) => {
-      const tab = await ctx.prisma.tab.findUnique({
-        where: {
-          id: idToDelete,
-        },
-      });
-
-      const command = new DeleteObjectCommand({
-        Bucket: "autostrum-screenshots",
-        Key: `${idToDelete}.webm`,
-      });
-      await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
-
-      try {
-        const res = await s3.send(command);
-        console.log(res);
-      } catch (e) {
-        console.log(e);
-        // return null;
-      }
-
-      // if this tab is the tabCreator's pinned tab, then set the tabCreator's pinnedTabId to -1 (default value)
-      if (tab?.createdByUserId) {
-        const tabCreator = await ctx.prisma.user.findUnique({
-          where: {
-            userId: tab.createdByUserId,
-          },
-        });
-
-        if (tabCreator?.pinnedTabId === idToDelete) {
-          await ctx.prisma.user.update({
-            where: {
-              id: tabCreator.id,
-            },
-            data: {
-              pinnedTabId: -1,
-            },
-          });
-        }
-      }
-
-      await ctx.prisma.tab.delete({
-        where: {
-          id: idToDelete,
-        },
-      });
-    }),
-
   createOrUpdate: protectedProcedure
     .input(
       z.object({
@@ -254,6 +196,14 @@ export const tabRouter = createTRPCRouter({
         tabData,
         sectionProgression,
       } = input;
+
+      const s3 = new S3Client({
+        region: "us-east-2",
+        credentials: {
+          accessKeyId: env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+        },
+      });
 
       const base64Data = input.base64TabScreenshot.split(",")[1]!;
       const imageBuffer = Buffer.from(base64Data, "base64");
@@ -300,6 +250,18 @@ export const tabRouter = createTRPCRouter({
           console.log(e);
           // return null;
         }
+
+        // increment the tabCreator's number of tabs
+        await ctx.prisma.user.update({
+          where: {
+            userId: createdByUserId,
+          },
+          data: {
+            totalTabs: {
+              increment: 1,
+            },
+          },
+        });
       } else if (type === "update" && id !== null) {
         tab = await ctx.prisma.tab.update({
           where: {
@@ -345,5 +307,118 @@ export const tabRouter = createTRPCRouter({
       }
 
       return tab;
+    }),
+
+  deleteTabById: protectedProcedure
+    .input(z.number())
+    .mutation(async ({ input: idToDelete, ctx }) => {
+      const tab = await ctx.prisma.tab.findUnique({
+        where: {
+          id: idToDelete,
+        },
+      });
+
+      if (!tab) return null;
+
+      const s3 = new S3Client({
+        region: "us-east-2",
+        credentials: {
+          accessKeyId: env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+        },
+      });
+
+      const command = new DeleteObjectCommand({
+        Bucket: "autostrum-screenshots",
+        Key: `${idToDelete}.webm`,
+      });
+
+      try {
+        const res = await s3.send(command);
+        console.log(res);
+      } catch (e) {
+        console.log(e);
+        // return null;
+      }
+
+      // if this tab is the tabCreator's pinned tab, then set the tabCreator's pinnedTabId to -1 (default value)
+      if (tab.createdByUserId) {
+        const tabCreator = await ctx.prisma.user.findUnique({
+          where: {
+            userId: tab.createdByUserId,
+          },
+        });
+
+        if (tabCreator?.pinnedTabId === idToDelete) {
+          await ctx.prisma.user.update({
+            where: {
+              id: tabCreator.id,
+            },
+            data: {
+              pinnedTabId: -1,
+            },
+          });
+        }
+      }
+
+      // --- pre-tab deletion: precomputed fields bookkeeping ---
+      // count the number of bookmarks for this tab
+      const existingBookmarks = await ctx.prisma.bookmark.count({
+        where: {
+          tabId: idToDelete,
+        },
+      });
+
+      // delete tab row
+      await ctx.prisma.tab.delete({
+        where: {
+          id: idToDelete,
+        },
+      });
+
+      // --- post-tab deletion: precomputed fields bookkeeping ---
+      if (tab.createdByUserId) {
+        // recompute the tabCreator's average rating and total number of ratings
+        const tabs = await ctx.prisma.tab.findMany({
+          where: {
+            createdByUserId: tab.createdByUserId,
+          },
+          select: {
+            averageRating: true,
+            ratingsCount: true,
+          },
+        });
+
+        let totalRatings = 0;
+        let weightedSum = 0;
+
+        for (const t of tabs) {
+          totalRatings += t.ratingsCount;
+          weightedSum += t.averageRating * t.ratingsCount;
+        }
+
+        const newAverageRating =
+          totalRatings > 0 ? weightedSum / totalRatings : 0;
+
+        // update the tab creator's row w/ the new values
+        await ctx.prisma.user.update({
+          where: {
+            userId: tab.createdByUserId,
+          },
+          data: {
+            totalTabs: {
+              decrement: 1,
+            },
+            totalTabViews: {
+              decrement: tab.pageViews,
+            },
+            averageTabRating: newAverageRating,
+            totalTabRatings: totalRatings,
+            totalBookmarksReceived: {
+              decrement: existingBookmarks,
+            },
+          },
+        });
+      }
     }),
 });

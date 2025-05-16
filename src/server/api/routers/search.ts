@@ -44,7 +44,7 @@ export interface MinimalTabRepresentation {
     username: string;
   } | null;
 }
-export interface FullTab extends Tab {
+export interface TabWithArtistName extends Tab {
   artistName?: string;
 }
 

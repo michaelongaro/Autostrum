@@ -45,7 +45,7 @@ function PinnedTabModal({
         setShowSaveCheckmark(true);
 
         setTimeout(() => {
-          void ctx.user.getByIdOrUsername.invalidate();
+          void ctx.user.getById.invalidate(userId!);
           void ctx.tab.getTabById.invalidate();
         }, 250);
 

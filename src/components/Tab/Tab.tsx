@@ -2,7 +2,7 @@ import type { Tab as PrismaTab } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { FaBook } from "react-icons/fa";
-import type { FullTab } from "~/server/api/routers/tab";
+import type { TabWithArtistName } from "~/server/api/routers/tab";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
@@ -38,7 +38,7 @@ const PlaybackModal = dynamic(
 );
 
 interface Tab {
-  tab?: FullTab | null;
+  tab?: TabWithArtistName | null;
 }
 
 function Tab({ tab }: Tab) {

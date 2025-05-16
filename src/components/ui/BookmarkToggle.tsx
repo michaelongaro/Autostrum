@@ -42,8 +42,9 @@ function BookmarkToggle({
     onMutate: async () => {
       if (!currentUser) return;
 
-      // optimistic updates
+      // --- optimistic updates ---
 
+      // modify the dynamic metadata for the tab
       await ctx.tab.getRatingBookmarkAndViewCountByTabId.cancel();
       ctx.tab.getRatingBookmarkAndViewCountByTabId.setData(tabId, (prev) => {
         if (!prev) return prev;
@@ -54,43 +55,30 @@ function BookmarkToggle({
         };
       });
 
-      // only if on homepage, /explore, /artist, /user, or /profile
-      if (
-        asPath === "/" ||
-        asPath.includes("/explore") ||
-        asPath.includes("/artist") ||
-        asPath.includes("/user") ||
-        asPath.includes("/profile")
-      ) {
-        await ctx.user.getByIdOrUsername.cancel();
-        ctx.user.getByIdOrUsername.setData(
-          {
-            userId: currentUser.userId,
-          },
-          (prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              bookmarkedTabIds: [...prev.bookmarkedTabIds, tabId],
-            };
-          },
-        );
+      // add to the current user's bookmarked tab ids
+      await ctx.user.getById.cancel(currentUser.userId);
+      ctx.user.getById.setData(
+        currentUser.userId,
 
-        if (createdByUserId) {
-          await ctx.user.getByIdOrUsername.cancel();
-          ctx.user.getByIdOrUsername.setData(
-            {
-              userId: createdByUserId,
-            },
-            (prev) => {
-              if (!prev) return prev;
-              return {
-                ...prev,
-                bookmarkCount: prev.bookmarkCount + 1,
-              };
-            },
-          );
-        }
+        (prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            bookmarkedTabIds: [...prev.bookmarkedTabIds, tabId],
+          };
+        },
+      );
+
+      // increment the totalBookmarksReceived for the tab creator if they exist
+      if (createdByUserId) {
+        await ctx.user.getById.cancel(createdByUserId);
+        ctx.user.getById.setData(createdByUserId, (prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            totalBookmarksReceived: prev.totalBookmarksReceived + 1,
+          };
+        });
       }
     },
     onError: (e) => {
@@ -102,8 +90,9 @@ function BookmarkToggle({
     onMutate: async () => {
       if (!currentUser) return;
 
-      // optimistic updates
+      // --- optimistic updates ---
 
+      // modify the dynamic metadata for the tab
       await ctx.tab.getRatingBookmarkAndViewCountByTabId.cancel();
       ctx.tab.getRatingBookmarkAndViewCountByTabId.setData(tabId, (prev) => {
         if (!prev) return prev;
@@ -114,48 +103,34 @@ function BookmarkToggle({
         };
       });
 
-      // only if on homepage, /explore, /artist, /user, or /profile
-      if (
-        asPath === "/" ||
-        asPath.includes("/explore") ||
-        asPath.includes("/artist") ||
-        asPath.includes("/user") ||
-        asPath.includes("/profile")
-      ) {
-        await ctx.user.getByIdOrUsername.cancel();
-        ctx.user.getByIdOrUsername.setData(
-          {
-            userId: currentUser.userId,
-          },
-          (prev) => {
-            if (!prev) return prev;
+      // remove from the current user's bookmarked tab ids
+      await ctx.user.getById.cancel(currentUser.userId);
+      ctx.user.getById.setData(currentUser.userId, (prev) => {
+        if (!prev) return prev;
 
-            return {
-              ...prev,
-              bookmarkedTabIds: prev.bookmarkedTabIds.filter(
-                (bookmarkedTabId) => bookmarkedTabId !== tabId,
-              ),
-            };
-          },
-        );
+        return {
+          ...prev,
+          bookmarkedTabIds: prev.bookmarkedTabIds.filter(
+            (bookmarkedTabId) => bookmarkedTabId !== tabId,
+          ),
+        };
+      });
 
-        if (createdByUserId) {
-          await ctx.user.getByIdOrUsername.cancel();
-          ctx.user.getByIdOrUsername.setData(
-            {
-              userId: createdByUserId,
-            },
-            (prev) => {
-              if (!prev) return prev;
+      // decrement the totalBookmarksReceived for the tab creator if they exist
+      if (createdByUserId) {
+        await ctx.user.getById.cancel(createdByUserId);
+        ctx.user.getById.setData(createdByUserId, (prev) => {
+          if (!prev) return prev;
 
-              return {
-                ...prev,
-                bookmarkCount: prev.bookmarkCount - 1,
-              };
-            },
-          );
-        }
-      } else if (asPath.includes("/profile/bookmarks") && infiniteQueryParams) {
+          return {
+            ...prev,
+            totalBookmarksReceived: prev.totalBookmarksReceived - 1,
+          };
+        });
+      }
+
+      // if on bookmarks page, remove the tab from the infinite query
+      if (asPath.includes("/profile/bookmarks") && infiniteQueryParams) {
         await ctx.search.getInfiniteTabsBySearchQuery.cancel();
         ctx.search.getInfiniteTabsBySearchQuery.setInfiniteData(
           infiniteQueryParams,
@@ -226,6 +201,7 @@ function BookmarkToggle({
             if (isBookmarked) {
               removeBookmark({
                 tabId,
+                tabCreatorUserId: createdByUserId,
                 bookmarkedByUserId: currentUser.userId,
               });
             } else {

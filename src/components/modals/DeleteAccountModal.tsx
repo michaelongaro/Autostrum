@@ -26,7 +26,7 @@ function DeleteAccountModal() {
   const ctx = api.useUtils();
   const { userId } = useAuth();
 
-  const [deleteAllOfArtistsTabs, setDeleteAllOfArtistsTabs] = useState(true);
+  const [anonymizeUserTabs, setAnonymizeUserTabs] = useState(true);
   const [showDeleteCheckmark, setShowDeleteCheckmark] = useState(false);
 
   const { isLoadingARoute, setShowDeleteAccountModal } = useTabStore(
@@ -62,7 +62,7 @@ function DeleteAccountModal() {
         //  }
       },
       onSettled: () => {
-        void ctx.user.getByIdOrUsername.invalidate();
+        void ctx.user.getById.invalidate(userId!);
       },
     });
 
@@ -101,9 +101,9 @@ function DeleteAccountModal() {
             <div className="lightestGlassmorphic baseFlex !flex-nowrap !items-start gap-4 rounded-md p-4">
               <Checkbox
                 id="deleteTabs"
-                checked={deleteAllOfArtistsTabs}
+                checked={anonymizeUserTabs}
                 onCheckedChange={(value) =>
-                  setDeleteAllOfArtistsTabs(
+                  setAnonymizeUserTabs(
                     value === "indeterminate" ? false : value,
                   )
                 }
@@ -111,11 +111,11 @@ function DeleteAccountModal() {
               />
               <div className="baseVertFlex !items-start">
                 <label htmlFor="deleteTabs">
-                  Delete all of my tabs along with my account.
+                  Anonymize my tabs instead of deleting them
                 </label>
                 <p className="text-sm text-pink-200">
-                  Leaving this unchecked will preserve your tabs, and will
-                  display the artist as &ldquo;Anonymous&rdquo;.
+                  Checking this will preserve your tabs, and will display the
+                  associated user who created them as &ldquo;Anonymous&rdquo;.
                 </p>
               </div>
             </div>
@@ -140,7 +140,7 @@ function DeleteAccountModal() {
 
                 deleteAccount({
                   userId,
-                  deleteAllOfArtistsTabs,
+                  anonymizeUserTabs,
                 });
               }}
             >

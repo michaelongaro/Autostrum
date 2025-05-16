@@ -34,27 +34,17 @@ function Explore() {
 
   const isAboveMediumViewport = useViewportWidthBreakpoint(768);
 
-  const { data: currentUser } = api.user.getByIdOrUsername.useQuery(
-    {
-      userId: userId!,
-    },
-    {
-      enabled: !!userId,
-    },
-  );
+  const { data: currentUser } = api.user.getById.useQuery(userId!, {
+    enabled: !!userId,
+  });
 
   const { data: weeklyFeaturedUserId } =
     api.weeklyFeaturedUser.getUserId.useQuery();
 
   const { data: user, isLoading: loadingCurrentArtist } =
-    api.user.getByIdOrUsername.useQuery(
-      {
-        userId: weeklyFeaturedUserId!,
-      },
-      {
-        enabled: !!weeklyFeaturedUserId,
-      },
-    );
+    api.user.getById.useQuery(weeklyFeaturedUserId!, {
+      enabled: !!weeklyFeaturedUserId,
+    });
 
   const { data: fetchedTab } = api.search.getMinimalTabById.useQuery(
     user?.pinnedTabId ?? -1,
@@ -191,7 +181,7 @@ function Explore() {
                           {user ? (
                             <div className="baseFlex gap-2">
                               <GiMusicalScore className="h-6 w-6" />
-                              {formatNumber(user.numberOfTabs)}
+                              {formatNumber(user.totalTabs)}
                             </div>
                           ) : (
                             <div className="pulseAnimation h-6 w-14 rounded-md bg-pink-300"></div>
@@ -209,7 +199,7 @@ function Explore() {
                           {user ? (
                             <div className="baseFlex gap-2">
                               <AiFillHeart className="h-6 w-6 text-pink-800" />
-                              {formatNumber(user.bookmarkCount)}
+                              {formatNumber(user.totalBookmarksReceived)}
                             </div>
                           ) : (
                             <div className="pulseAnimation h-6 w-14 rounded-md bg-pink-300"></div>

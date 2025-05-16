@@ -13,14 +13,9 @@ import classes from "./Hero.module.css";
 function Hero() {
   const { userId } = useAuth();
 
-  const { data: currentUser } = api.user.getByIdOrUsername.useQuery(
-    {
-      userId: userId!,
-    },
-    {
-      enabled: !!userId,
-    },
-  );
+  const { data: currentUser } = api.user.getById.useQuery(userId!, {
+    enabled: !!userId,
+  });
 
   const { data: fetchedTab } = api.search.getMinimalTabById.useQuery(83);
 

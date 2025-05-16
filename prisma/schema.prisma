@@ -66,8 +66,8 @@ model Bookmark {
     tabId Int
 
     // user who created the tab (recipient of the bookmark)
-    tabCreator       User   @relation("tabCreator", fields: [tabCreatorUserId], references: [userId], onDelete: Cascade)
-    tabCreatorUserId String
+    tabCreator       User?   @relation("tabCreator", fields: [tabCreatorUserId], references: [userId], onDelete: SetNull)
+    tabCreatorUserId String?
 
     // user who is bookmarking
     bookmarkedBy       User   @relation("bookmarkedBy", fields: [bookmarkedByUserId], references: [userId], onDelete: Cascade)
@@ -93,7 +93,7 @@ model Tab {
     sectionProgression Json
     tabData            Json
 
-    createdBy       User?   @relation(fields: [createdByUserId], references: [userId], onDelete: Cascade)
+    createdBy       User?   @relation(fields: [createdByUserId], references: [userId], onDelete: SetNull)
     createdByUserId String?
 
     genre   Genre @relation(fields: [genreId], references: [id])
@@ -107,7 +107,7 @@ model Tab {
     ratingsCount  Int         @default(0) // needed to calculate new average rating in optimistic fashion
     ratings       TabRating[]
 
-    artist   Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
+    artist   Artist? @relation(fields: [artistId], references: [id], onDelete: SetNull)
     artistId Int?
 
     // tsvector column for FTS:
@@ -158,6 +158,7 @@ model User {
     totalTabs              Int   @default(0)
     totalTabViews          Int   @default(0)
     averageTabRating       Float @default(0)
+    totalTabRatings        Int   @default(0)
     totalBookmarksReceived Int   @default(0)
 
     bookmarks         Bookmark[] @relation("bookmarkedBy")

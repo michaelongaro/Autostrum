@@ -47,6 +47,7 @@ interface RateTab {
   ratingsCount: number;
   currentUser: UserMetadata | null | undefined;
   userRating: number | null;
+  tabCreatorUserId?: string;
   customClassName: string;
 }
 
@@ -56,6 +57,7 @@ function RateTab({
   ratingsCount,
   currentUser,
   userRating,
+  tabCreatorUserId,
   customClassName,
 }: RateTab) {
   const { viewportLabel, setMobileHeaderModal } = useTabStore((state) => ({
@@ -81,22 +83,28 @@ function RateTab({
 
   const ctx = api.useUtils();
 
-  const { mutate: addRating } = api.tabRating.rate.useMutation({
+  const { mutate: submitRating } = api.tabRating.rate.useMutation({
     onMutate: async () => {
-      // optimistic UI update
+      // --- optimistic UI update ---
+
+      // declaring above so that precomputed field bookkeeping can
+      // use these values as well
+      let userAlreadyRated = false;
+      let oldRating = 0;
+
       await ctx.tab.getRatingBookmarkAndViewCountByTabId.cancel();
 
       ctx.tab.getRatingBookmarkAndViewCountByTabId.setData(tabId, (prev) => {
         if (!prev || !selectedRating) return prev;
 
-        const userAlreadyRated = prev.userRating !== null; // Assuming null means no rating
-        const oldRating = prev.userRating ?? 0; // Use 0 if no prior rating
+        userAlreadyRated = prev.userRating !== null;
+        oldRating = prev.userRating ?? 0; // Use 0 if no prior rating
 
         let newAverageRating: number;
         let newRatingsCount: number;
 
         if (userAlreadyRated) {
-          // User is updating their rating
+          // User is updating their existing rating
           newAverageRating =
             (prev.averageRating * prev.ratingsCount -
               oldRating +
@@ -118,6 +126,40 @@ function RateTab({
           ratingsCount: newRatingsCount,
         };
       });
+
+      // --- precomputed fields bookkeeping ---
+      if (tabCreatorUserId) {
+        await ctx.user.getById.cancel(tabCreatorUserId);
+
+        ctx.user.getById.setData(tabCreatorUserId, (prev) => {
+          if (!prev || !selectedRating) return prev;
+
+          let newAverageRating: number;
+          let newRatingsCount: number;
+
+          if (userAlreadyRated) {
+            // User is updating their existing rating
+            newAverageRating =
+              (prev.averageTabRating * prev.totalTabRatings -
+                oldRating +
+                selectedRating) /
+              prev.totalTabRatings;
+            newRatingsCount = prev.totalTabRatings;
+          } else {
+            // User is submitting a new rating
+            newAverageRating =
+              (prev.averageTabRating * prev.totalTabRatings + selectedRating) /
+              (prev.totalTabRatings + 1);
+            newRatingsCount = prev.totalTabRatings + 1;
+          }
+
+          return {
+            ...prev,
+            averageTabRating: newAverageRating,
+            totalTabRatings: newRatingsCount,
+          };
+        });
+      }
 
       setRatingSubmitted(true);
       setShowThankYouMessage(true);
@@ -146,7 +188,8 @@ function RateTab({
           selectedRating={selectedRating}
           averageRating={averageRating}
           tabId={tabId}
-          addRating={addRating}
+          tabCreatorUserId={tabCreatorUserId}
+          submitRating={submitRating}
           ratingSubmitted={ratingSubmitted}
           setHoveredRating={setHoveredRating}
           setSelectedRating={setSelectedRating}
@@ -169,7 +212,8 @@ function RateTab({
           selectedRating={selectedRating}
           averageRating={averageRating}
           tabId={tabId}
-          addRating={addRating}
+          tabCreatorUserId={tabCreatorUserId}
+          submitRating={submitRating}
           ratingSubmitted={ratingSubmitted}
           setHoveredRating={setHoveredRating}
           setSelectedRating={setSelectedRating}
@@ -198,7 +242,12 @@ interface RateTabWrapper {
   selectedRating: number | null;
   averageRating: number;
   tabId: number;
-  addRating: (args: { tabId: number; rating: number }) => void;
+  tabCreatorUserId?: string;
+  submitRating: (args: {
+    tabId: number;
+    rating: number;
+    tabCreatorUserId?: string;
+  }) => void;
   ratingSubmitted: boolean;
   setHoveredRating: Dispatch<SetStateAction<number | null>>;
   setSelectedRating: Dispatch<SetStateAction<number | null>>;
@@ -224,7 +273,8 @@ function RateTabPopover({
   selectedRating,
   averageRating,
   tabId,
-  addRating,
+  tabCreatorUserId,
+  submitRating,
   ratingSubmitted,
   setHoveredRating,
   setSelectedRating,
@@ -320,7 +370,8 @@ function RateTabPopover({
             selectedRating={selectedRating}
             averageRating={averageRating}
             tabId={tabId}
-            addRating={addRating}
+            tabCreatorUserId={tabCreatorUserId}
+            submitRating={submitRating}
             ratingSubmitted={ratingSubmitted}
             setHoveredRating={setHoveredRating}
             setSelectedRating={setSelectedRating}
@@ -341,7 +392,8 @@ function RateTabDrawer({
   selectedRating,
   averageRating,
   tabId,
-  addRating,
+  tabCreatorUserId,
+  submitRating,
   ratingSubmitted,
   setHoveredRating,
   setSelectedRating,
@@ -404,7 +456,8 @@ function RateTabDrawer({
               selectedRating={selectedRating}
               averageRating={averageRating}
               tabId={tabId}
-              addRating={addRating}
+              tabCreatorUserId={tabCreatorUserId}
+              submitRating={submitRating}
               ratingSubmitted={ratingSubmitted}
               setHoveredRating={setHoveredRating}
               setSelectedRating={setSelectedRating}
@@ -458,7 +511,12 @@ interface RateTabInternals {
   selectedRating: number | null;
   averageRating: number;
   tabId: number;
-  addRating: (args: { tabId: number; rating: number }) => void;
+  tabCreatorUserId?: string;
+  submitRating: (args: {
+    tabId: number;
+    rating: number;
+    tabCreatorUserId?: string;
+  }) => void;
   ratingSubmitted: boolean;
   setHoveredRating: (rating: number | null) => void;
   setSelectedRating: (rating: number | null) => void;
@@ -473,7 +531,8 @@ function RateTabInternals({
   selectedRating,
   averageRating,
   tabId,
-  addRating,
+  tabCreatorUserId,
+  submitRating,
   ratingSubmitted,
   setHoveredRating,
   setSelectedRating,
@@ -640,11 +699,10 @@ function RateTabInternals({
               onClick={() => {
                 if (!selectedRating || !currentUser) return;
 
-                console.log(tabId, selectedRating);
-
-                addRating({
+                submitRating({
                   tabId,
                   rating: selectedRating,
+                  tabCreatorUserId,
                 });
               }}
             >

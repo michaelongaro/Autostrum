@@ -236,29 +236,15 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
   }, [isPosting, setIsPostingOrSaving]);
 
   // current user
-  const { data: currentUser, refetch: refetchCurrentUser } =
-    api.user.getByIdOrUsername.useQuery(
-      {
-        userId: userId!,
-      },
-      {
-        enabled: !!userId,
-      },
-    );
+  const { data: currentUser } = api.user.getById.useQuery(userId!, {
+    enabled: !!userId,
+  });
 
   // owner of tab
-  const {
-    data: tabCreator,
-    isFetching: fetchingTabCreator,
-    refetch: refetchTabCreator,
-  } = api.user.getByIdOrUsername.useQuery(
-    {
-      userId: createdByUserId!,
-    },
-    {
+  const { data: tabCreator, isFetching: fetchingTabCreator } =
+    api.user.getById.useQuery(createdByUserId!, {
       enabled: !!createdByUserId,
-    },
-  );
+    });
 
   function handleGenreChange(stringifiedId: string) {
     const id = parseInt(stringifiedId);
@@ -1049,6 +1035,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                             ratingsCount={dynamicMetadata.ratingsCount}
                             currentUser={currentUser}
                             userRating={dynamicMetadata.userRating}
+                            tabCreatorUserId={createdByUserId ?? undefined}
                             customClassName={`${classes.rating} baseFlex w-28 gap-2 px-3 py-1`}
                           />
                         </motion.div>
@@ -1174,6 +1161,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                             ratingsCount={dynamicMetadata.ratingsCount}
                             currentUser={currentUser}
                             userRating={dynamicMetadata.userRating}
+                            tabCreatorUserId={createdByUserId ?? undefined}
                             customClassName={`${classes.rating} baseFlex w-28 gap-2 px-3 py-1`}
                           />
                         </motion.div>

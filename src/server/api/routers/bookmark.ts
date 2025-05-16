@@ -11,12 +11,24 @@ export const bookmarkRouter = createTRPCRouter({
         bookmarkedByUserId: z.string(),
       }),
     )
-    .mutation(({ input, ctx }) => {
-      return ctx.prisma.bookmark.create({
+    .mutation(async ({ input, ctx }) => {
+      await ctx.prisma.bookmark.create({
         data: {
           tabId: input.tabId,
           tabCreatorUserId: input.tabCreatorUserId,
           bookmarkedByUserId: input.bookmarkedByUserId,
+        },
+      });
+
+      // --- precomputed fields bookkeeping ---
+      await ctx.prisma.user.update({
+        where: {
+          userId: input.tabCreatorUserId,
+        },
+        data: {
+          totalBookmarksReceived: {
+            increment: 1,
+          },
         },
       });
     }),
@@ -24,15 +36,28 @@ export const bookmarkRouter = createTRPCRouter({
     .input(
       z.object({
         tabId: z.number(),
+        tabCreatorUserId: z.string(),
         bookmarkedByUserId: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      return ctx.prisma.bookmark.delete({
+      await ctx.prisma.bookmark.delete({
         where: {
           bookmarkedByUserId_tabId: {
             tabId: input.tabId,
             bookmarkedByUserId: input.bookmarkedByUserId,
+          },
+        },
+      });
+
+      // --- precomputed fields bookkeeping ---
+      await ctx.prisma.user.update({
+        where: {
+          userId: input.tabCreatorUserId,
+        },
+        data: {
+          totalBookmarksReceived: {
+            decrement: 1,
           },
         },
       });

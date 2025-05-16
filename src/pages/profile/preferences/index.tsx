@@ -1,4 +1,4 @@
-import { UserProfile, useClerk } from "@clerk/nextjs";
+import { UserProfile, useAuth, useClerk } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { MdModeEditOutline } from "react-icons/md";
 import Head from "next/head";
@@ -32,6 +32,7 @@ const PinnedTabModal = dynamic(
 
 function Preferences() {
   const { user } = useClerk();
+  const { userId } = useAuth();
 
   // fair to have these here rather than store because (so far) we don't have to navigate around
   // "relative" classes on any parent elems in this component
@@ -54,14 +55,9 @@ function Preferences() {
     }, 1000);
   }, []);
 
-  const { data: artist } = api.user.getByIdOrUsername.useQuery(
-    {
-      userId: user?.id, // <--- this is jank
-    },
-    {
-      enabled: !!user,
-    },
-  );
+  const { data: artist } = api.user.getById.useQuery(userId!, {
+    enabled: !!userId,
+  });
 
   const { data: fetchedTab, refetch: refetchTab } =
     api.search.getMinimalTabById.useQuery(artist?.pinnedTabId ?? -1, {
