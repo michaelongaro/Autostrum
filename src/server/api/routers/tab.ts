@@ -86,37 +86,32 @@ const sectionSchema = z.object({
 });
 
 export const tabRouter = createTRPCRouter({
-  getTabById: publicProcedure
-    .input(
-      z.object({
-        id: z.number(),
-      }),
-    )
-    .query(async ({ input, ctx }) => {
-      const tab = await ctx.prisma.tab.findUnique({
-        where: {
-          id: input.id,
-        },
-        include: {
-          artist: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      });
+  // Currently not used, but keeping in case we need it in the future
+  // get: publicProcedure.input(z.number()).query(async ({ input: id, ctx }) => {
+  //   const tab = await ctx.prisma.tab.findUnique({
+  //     where: {
+  //       id,
+  //     },
+  //     include: {
+  //       artist: {
+  //         select: {
+  //           name: true,
+  //         },
+  //       },
+  //     },
+  //   });
 
-      if (!tab) return null;
+  //   if (!tab) return null;
 
-      const fullTab: TabWithArtistName = {
-        ...tab,
-        artistName: tab.artist?.name,
-      };
+  //   const fullTab: TabWithArtistName = {
+  //     ...tab,
+  //     artistName: tab.artist?.name,
+  //   };
 
-      return fullTab;
-    }),
+  //   return fullTab;
+  // }),
 
-  getRatingBookmarkAndViewCountByTabId: publicProcedure
+  getRatingBookmarkAndViewCount: publicProcedure
     .input(z.number())
     .query(async ({ input: tabId, ctx }) => {
       const userId = ctx.auth.userId;
@@ -309,7 +304,7 @@ export const tabRouter = createTRPCRouter({
       return tab;
     }),
 
-  deleteTabById: protectedProcedure
+  delete: protectedProcedure
     .input(z.number())
     .mutation(async ({ input: idToDelete, ctx }) => {
       const tab = await ctx.prisma.tab.findUnique({
