@@ -45,8 +45,8 @@ function BookmarkToggle({
       // --- optimistic updates ---
 
       // modify the dynamic metadata for the tab
-      await ctx.tab.getRatingBookmarkAndViewCountByTabId.cancel();
-      ctx.tab.getRatingBookmarkAndViewCountByTabId.setData(tabId, (prev) => {
+      await ctx.tab.getRatingBookmarkAndViewCount.cancel();
+      ctx.tab.getRatingBookmarkAndViewCount.setData(tabId, (prev) => {
         if (!prev) return prev;
 
         return {
@@ -93,8 +93,8 @@ function BookmarkToggle({
       // --- optimistic updates ---
 
       // modify the dynamic metadata for the tab
-      await ctx.tab.getRatingBookmarkAndViewCountByTabId.cancel();
-      ctx.tab.getRatingBookmarkAndViewCountByTabId.setData(tabId, (prev) => {
+      await ctx.tab.getRatingBookmarkAndViewCount.cancel();
+      ctx.tab.getRatingBookmarkAndViewCount.setData(tabId, (prev) => {
         if (!prev) return prev;
 
         return {

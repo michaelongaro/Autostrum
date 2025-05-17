@@ -1,11 +1,4 @@
-import {
-  SignInButton,
-  SignUpButton,
-  SignOutButton,
-  UserButton,
-  useAuth,
-  useUser,
-} from "@clerk/nextjs";
+import { SignInButton, SignOutButton, useAuth, useUser } from "@clerk/nextjs";
 import { useLocalStorageValue } from "@react-hookz/web";
 import Image from "next/image";
 import Link from "next/link";

@@ -30,7 +30,8 @@ function GeneralLayoutStatefulShell() {
   const looping = useGetLocalStorageValues().looping;
 
   // reflects any updates made to username/profileImageUrl in Clerk to the UserMetadata
-  useKeepUserMetadataUpdatedWithClerk();
+  // useKeepUserMetadataUpdatedWithClerk();
+
   usePostSignUpRegistration();
   useInitializeAudioContext();
   useFetchAndLoadSoundfonts();

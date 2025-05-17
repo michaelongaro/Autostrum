@@ -92,9 +92,9 @@ function RateTab({
       let userAlreadyRated = false;
       let oldRating = 0;
 
-      await ctx.tab.getRatingBookmarkAndViewCountByTabId.cancel();
+      await ctx.tab.getRatingBookmarkAndViewCount.cancel();
 
-      ctx.tab.getRatingBookmarkAndViewCountByTabId.setData(tabId, (prev) => {
+      ctx.tab.getRatingBookmarkAndViewCount.setData(tabId, (prev) => {
         if (!prev || !selectedRating) return prev;
 
         userAlreadyRated = prev.userRating !== null;

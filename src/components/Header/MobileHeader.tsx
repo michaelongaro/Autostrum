@@ -1,10 +1,4 @@
-import {
-  SignInButton,
-  SignOutButton,
-  SignUpButton,
-  useAuth,
-  useUser,
-} from "@clerk/nextjs";
+import { SignInButton, SignOutButton, useAuth, useUser } from "@clerk/nextjs";
 import { IoSettingsOutline } from "react-icons/io5";
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";

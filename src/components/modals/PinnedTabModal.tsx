@@ -46,7 +46,6 @@ function PinnedTabModal({
 
         setTimeout(() => {
           void ctx.user.getById.invalidate(userId!);
-          void ctx.tab.getTabById.invalidate();
         }, 250);
 
         setTimeout(() => {

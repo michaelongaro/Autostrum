@@ -9,7 +9,7 @@ function useKeepUserMetadataUpdatedWithClerk() {
   const ctx = api.useUtils();
 
   const { data: user } = api.user.getById.useQuery(clerkUser!.id, {
-    enabled: !!clerkUser?.id, // only run this query if user is logged in
+    enabled: Boolean(clerkUser?.id), // only run this query if user is logged in
   });
 
   const { mutate: updateArtist } = api.user.update.useMutation({
@@ -20,6 +20,7 @@ function useKeepUserMetadataUpdatedWithClerk() {
 
   useEffect(() => {
     if (!clerkUser || !user) return;
+
     if (
       clerkUser.username !== user.username ||
       clerkUser.imageUrl !== user.profileImageUrl

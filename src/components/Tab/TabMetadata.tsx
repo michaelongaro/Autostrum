@@ -170,7 +170,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
   }));
 
   const { data: dynamicMetadata, isLoading: isLoadingDynamicMetadata } =
-    api.tab.getRatingBookmarkAndViewCountByTabId.useQuery(id, {
+    api.tab.getRatingBookmarkAndViewCount.useQuery(id, {
       enabled: !editing,
     });
 
@@ -200,13 +200,10 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
         setPublishErrorOccurred(true);
         setShowPublishPopover(true);
       },
-      onSettled: () => {
-        void ctx.tab.getTabById.invalidate();
-      },
     });
 
   const { mutate: deleteTab, isLoading: isDeleting } =
-    api.tab.deleteTabById.useMutation({
+    api.tab.delete.useMutation({
       onSuccess: () => {
         setShowDeleteCheckmark(true);
 
@@ -225,9 +222,6 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
         //  } else {
         //    toast.error("Failed to post! Please try again later.");
         //  }
-      },
-      onSettled: () => {
-        void ctx.tab.getTabById.invalidate();
       },
     });
 
