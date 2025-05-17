@@ -1,17 +1,16 @@
-import { buildClerkProps, getAuth } from "@clerk/nextjs/server";
+import { getAuth } from "@clerk/nextjs/server";
+import type { Tab as TabType } from "@prisma/client";
 import { PrismaClient } from "@prisma/client";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import type { GetServerSideProps } from "next";
 import Head from "next/head";
+import Link from "next/link";
 import { useRouter } from "next/router";
-import { useMemo } from "react";
 import { BiErrorCircle } from "react-icons/bi";
 import { BsArrowLeftShort } from "react-icons/bs";
+import AudioControls from "~/components/AudioControls/AudioControls";
 import Tab from "~/components/Tab/Tab";
 import { Button } from "~/components/ui/button";
-import { api } from "~/utils/api";
-import { AnimatePresence } from "framer-motion";
-import AudioControls from "~/components/AudioControls/AudioControls";
 import { useTabStore } from "~/stores/TabStore";
 
 interface OpenGraphData {
@@ -22,36 +21,31 @@ interface OpenGraphData {
 
 function EditIndividualTab({
   userAllowedToEdit,
-  tabExists,
+  tab,
   openGraphData,
 }: {
   userAllowedToEdit: boolean;
-  tabExists: boolean;
+  tab: TabType;
   openGraphData: OpenGraphData;
 }) {
-  const router = useRouter();
+  const { query } = useRouter();
 
   const { showingAudioControls } = useTabStore((state) => ({
     showingAudioControls: state.showingAudioControls,
   }));
 
-  const tabIdFromUrl = useMemo(() => {
-    if (typeof router.query.id === "string") {
-      return parseInt(router.query.id);
-    }
-    return -1;
-  }, [router.query.id]);
-
-  const fetchedTab = api.tab.getTabById.useQuery({
-    id: tabIdFromUrl,
-  });
-
-  if (!tabExists) {
+  if (!tab) {
     return <TabNotFound />;
   }
 
   if (!userAllowedToEdit) {
-    return <UserNotAllowedToEdit tabId={tabExists ? tabIdFromUrl : -1} />;
+    return (
+      <UserNotAllowedToEdit
+        tabId={
+          tab ? (typeof query.id === "string" ? parseInt(query.id) : -1) : -1
+        }
+      />
+    );
   }
 
   return (
@@ -77,7 +71,7 @@ function EditIndividualTab({
       </Head>
 
       <AnimatePresence mode="wait">
-        {fetchedTab && <Tab tab={fetchedTab.data} />}
+        <Tab tab={tab} />
       </AnimatePresence>
 
       {/* can probably drop the <AnimatePresence> since it can't ever be triggered, right?*/}
@@ -93,24 +87,22 @@ export default EditIndividualTab;
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const { userId } = getAuth(ctx.req);
 
+  const tabId = ctx.params?.id ? parseInt(ctx.params.id as string) : -1;
+
   const prisma = new PrismaClient();
   const tab = await prisma.tab.findUnique({
     where: {
-      id: ctx.params?.id ? parseInt(ctx.params.id as string) : -1,
-    },
-    select: {
-      title: true,
-      createdById: true,
+      id: tabId,
     },
   });
 
   let artist = null;
 
-  // get tab owner username
-  if (tab?.createdById) {
+  // get tab owner username for open graph data
+  if (tab?.createdByUserId) {
     artist = await prisma.user.findUnique({
       where: {
-        userId: tab.createdById,
+        userId: tab.createdByUserId,
       },
       select: {
         username: true,
@@ -127,15 +119,15 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   if (tab) {
     openGraphData.title = `Edit ${tab.title} | Autostrum`;
     openGraphData.description = `Edit ${
-      artist?.username ? `${artist.username}'s tab` : "the tab"
+      artist?.username ? `${artist.username}'s tab` : "this tab"
     } ${tab.title} on Autostrum.`;
   }
+
   return {
     props: {
-      userAllowedToEdit: tab?.createdById === userId,
-      tabExists: tab !== null,
+      userAllowedToEdit: tab?.createdByUserId === userId,
+      tab,
       openGraphData,
-      ...buildClerkProps(ctx.req),
     },
   };
 };
@@ -158,8 +150,6 @@ function TabNotFound() {
 }
 
 function UserNotAllowedToEdit({ tabId }: { tabId: number }) {
-  const { push } = useRouter();
-
   return (
     <div className="lightGlassmorphic baseVertFlex w-10/12 gap-4 rounded-md p-4 md:w-[550px]">
       <div className="baseFlex gap-3 sm:gap-4">
@@ -172,12 +162,11 @@ function UserNotAllowedToEdit({ tabId }: { tabId: number }) {
         You must be logged in as the owner of the tab to edit it.
       </p>
 
-      <Button
-        onClick={() => void push(`/tab/${tabId}`)}
-        className="baseFlex gap-1 pr-6"
-      >
-        <BsArrowLeftShort className="h-6 w-8 text-pink-100" />
-        Return to tab
+      <Button asChild>
+        <Link href={`/tab/${tabId}`} className="baseFlex gap-1 pr-6">
+          <BsArrowLeftShort className="h-6 w-8 text-pink-100" />
+          Return to tab
+        </Link>
       </Button>
     </div>
   );
