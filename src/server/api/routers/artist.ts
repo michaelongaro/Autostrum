@@ -24,6 +24,9 @@ export const artistRouter = createTRPCRouter({
           name: {
             equals: name,
             mode: "insensitive" as const,
+            // keeping name case-insensitive because even though there could be multiple
+            // artists with the same name but different casing, I wouldn't wan to punish
+            // the user for not getting the exact casing right of the artist they are looking up.
           },
         };
       }
