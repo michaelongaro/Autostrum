@@ -21,7 +21,7 @@ export interface InfiniteQueryParams {
   capo: boolean | undefined;
   difficulty: number | undefined;
   sortBy: "relevance" | "newest" | "oldest" | "mostPopular" | "leastPopular";
-  userIdToSelectFrom: string | undefined;
+  usernameToSelectFrom: string | undefined;
   artistIdToSelectFrom: number | undefined;
   bookmarkedByUserId: string | undefined;
 }
@@ -296,7 +296,7 @@ export const searchRouter = createTRPCRouter({
           "mostPopular",
           "leastPopular",
         ]),
-        userIdToSelectFrom: z.string().optional(), // Filter by creator
+        usernameToSelectFrom: z.string().optional(), // Filter by creator's username
         artistIdToSelectFrom: z.number().optional(), // Filter by artist
         bookmarkedByUserId: z.string().optional(), // Filter by bookmarker
         limit: z.number().min(1).max(50).optional().default(15),
@@ -313,7 +313,7 @@ export const searchRouter = createTRPCRouter({
         difficulty,
         capo,
         sortBy,
-        userIdToSelectFrom,
+        usernameToSelectFrom,
         artistIdToSelectFrom,
         bookmarkedByUserId,
         limit,
@@ -355,9 +355,9 @@ export const searchRouter = createTRPCRouter({
             Prisma.sql`"Tab"."capo" ${capo ? Prisma.sql`>` : Prisma.sql`=`} 0`,
           );
         }
-        if (userIdToSelectFrom !== undefined) {
+        if (usernameToSelectFrom !== undefined) {
           conditions.push(
-            Prisma.sql`"Tab"."createdByUserId" = ${userIdToSelectFrom}`,
+            Prisma.sql`"User"."username" = ${usernameToSelectFrom}`,
           );
         }
         if (artistIdToSelectFrom !== undefined) {
@@ -463,8 +463,10 @@ export const searchRouter = createTRPCRouter({
         if (capo !== undefined) {
           where.capo = capo ? { gt: 0 } : { equals: 0 };
         }
-        if (userIdToSelectFrom !== undefined) {
-          where.createdByUserId = userIdToSelectFrom;
+        if (usernameToSelectFrom !== undefined) {
+          where.createdBy = {
+            username: usernameToSelectFrom,
+          };
         }
         if (artistIdToSelectFrom !== undefined) {
           where.artistId = artistIdToSelectFrom;
