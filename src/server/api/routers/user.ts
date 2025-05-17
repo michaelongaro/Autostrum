@@ -56,24 +56,54 @@ export const userRouter = createTRPCRouter({
       return userMetadata;
     }),
 
-  // fyi: used *only* on when visiting a user's profile page, and simply
-  // returns the user's userId. Makes optimistic updates easier by only having
-  // one key to invalidate/modify the data for.
-  getByUsername: publicProcedure
+  getProfileMetadataByUsername: publicProcedure
     .input(z.string())
     .query(async ({ input: username, ctx }) => {
       const user = await ctx.prisma.user.findUnique({
         where: {
           username,
         },
-        select: {
-          userId: true,
-        },
       });
 
       if (!user) return null;
 
-      return user.userId;
+      let minimalPinnedTab = null;
+
+      if (user.pinnedTabId !== -1) {
+        minimalPinnedTab = await ctx.prisma.tab.findUnique({
+          where: {
+            id: user.pinnedTabId,
+          },
+          select: {
+            id: true,
+            title: true,
+            genreId: true,
+            createdAt: true,
+            difficulty: true,
+            averageRating: true,
+            ratingsCount: true,
+            artist: {
+              select: {
+                id: true,
+                name: true,
+                isVerified: true,
+              },
+            },
+            createdBy: {
+              // not really necessary, but keeping to satisfy type for now
+              select: {
+                userId: true,
+                username: true,
+              },
+            },
+          },
+        });
+      }
+
+      return {
+        user,
+        pinnedTab: minimalPinnedTab,
+      };
     }),
 
   update: protectedProcedure
@@ -169,6 +199,8 @@ export const userRouter = createTRPCRouter({
 
       // apply the changes to each user's precomputed fields
       for (const { tabCreatorUserId, _count } of bookmarks) {
+        if (!tabCreatorUserId) continue;
+
         const user = await ctx.prisma.user.findUnique({
           where: {
             userId: tabCreatorUserId,
