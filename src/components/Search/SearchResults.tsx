@@ -94,7 +94,8 @@ const difficultyDescriptions = [
 
 interface SearchResults {
   isFetchingArtistId?: boolean; // happens whenever user manually searches for an artist, need to fetch the id as well
-  isFetchingUserId?: boolean; // happens whenever visiting a user's page, need to fetch the id as well
+  isFetchingUserMetadata?: boolean; // happens whenever visiting a user's profile page, need to fetch the user's metadata first
+  userDoesNotExist?: boolean; // happens whenever user manually searches for a user that doesn't exist
   relatedArtists?: {
     name: string;
     id: number;
@@ -105,7 +106,8 @@ interface SearchResults {
 
 function SearchResults({
   isFetchingArtistId,
-  isFetchingUserId,
+  isFetchingUserMetadata,
+  userDoesNotExist,
   relatedArtists,
   isFetchingRelatedArtists,
 }: SearchResults) {
@@ -123,14 +125,15 @@ function SearchResults({
     "Search filters" | "Genre" | "Tuning" | "Capo" | "Difficulty" | "Sort by"
   >("Search filters");
 
-  const [gateUntilWindowReady, setGateUntilWindowReady] = useState(true);
+  const [gateUntilWindowIsAvailable, setGateUntilWindowIsAvailable] =
+    useState(true);
 
   const [searchResultsCount, setSearchResultsCount] = useState(0);
   const [searchResultsCountIsLoading, setSearchsearchResultsCountIsLoading] =
     useState(false);
 
   useEffect(() => {
-    setGateUntilWindowReady(false);
+    setGateUntilWindowIsAvailable(false);
   }, []);
 
   useEffect(() => {
@@ -140,7 +143,11 @@ function SearchResults({
   }, [mobileHeaderModal.showing]);
 
   const disableFiltersAndLayoutToggle =
-    isFetchingArtistId ?? isFetchingUserId ?? isFetchingRelatedArtists;
+    isFetchingUserMetadata ||
+    userDoesNotExist ||
+    isFetchingArtistId ||
+    isFetchingRelatedArtists ||
+    relatedArtists !== undefined;
 
   const {
     searchQuery,
@@ -372,7 +379,7 @@ function SearchResults({
 
   // FYI: I really dislike this, but suppressing the hydration error
   // for localstorage layout was an even worse approach.
-  if (gateUntilWindowReady) return null;
+  if (gateUntilWindowIsAvailable) return null;
 
   return (
     <div className="baseFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-4 md:min-h-[calc(100dvh-4rem-12rem-56px)]">
@@ -1592,6 +1599,7 @@ function SearchResults({
                   <Button
                     variant={"toggledOff"}
                     size="sm"
+                    disabled={disableFiltersAndLayoutToggle}
                     onClick={() => {
                       layoutType.set("grid");
                     }}
@@ -1614,6 +1622,7 @@ function SearchResults({
                   <Button
                     variant={"toggledOff"}
                     size="sm"
+                    disabled={disableFiltersAndLayoutToggle}
                     onClick={() => {
                       layoutType.set("table");
                     }}
@@ -1728,8 +1737,8 @@ function SearchResults({
               />
             ) : (
               <>
-                {isFetchingArtistId ||
-                isFetchingUserId ||
+                {isFetchingUserMetadata ||
+                isFetchingArtistId ||
                 isFetchingRelatedArtists ? (
                   <motion.div
                     key={"searchResultsSpinner"}
@@ -1769,104 +1778,126 @@ function SearchResults({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.25 }}
-                        className="baseVertFlex lightestGlassmorphic gap-4 rounded-md px-8 py-4 text-xl transition-all"
+                        className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px-60px)] md:min-h-[calc(100dvh-4rem-12rem-56px-60px)]"
                       >
-                        <div className="baseVertFlex gap-4">
-                          <Binoculars className="size-9" />
-                          No results found
-                        </div>
-
-                        {relatedArtists.length === 0 ? (
-                          <Button
-                            variant={"navigation"}
-                            asChild
-                            className="baseFlex"
-                          >
-                            <Link
-                              href={"/create"}
-                              onClick={() => {
-                                // TODO: add artistName to localStorage
-                                // to pre-fill the artist name in the create tab form
-                              }}
-                              className="baseFlex gap-2"
-                            >
-                              Be the first to create a tab for this artist
-                              <BsPlus className="size-4" />
-                            </Link>
-                          </Button>
-                        ) : (
+                        <div className="baseVertFlex lightestGlassmorphic gap-4 rounded-md px-8 py-4 text-xl">
                           <div className="baseVertFlex gap-4">
-                            Related artists
-                            <div className="baseVertFlex gap-4 sm:!flex-row">
-                              {relatedArtists.map((artist) => (
-                                <Button
-                                  key={artist.id}
-                                  variant={"navigation"}
-                                  asChild
-                                  className="baseFlex"
-                                >
-                                  <Link
-                                    href={`/artist/${artist.name}/${artist.id}`}
-                                    className="baseFlex gap-1"
-                                  >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      className="h-4 w-4"
-                                      viewBox="0 0 20 20"
-                                      fill="currentColor"
-                                      aria-hidden="true"
-                                    >
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm2.293-11.293a1 1 0 00-1.414 0L9.5 9.086l-.879-.879a1 1 0 10-1.414 1.414l1.793 1.793a1 1 0 001.414 0l3-3z"
-                                        clipRule="evenodd"
-                                      />
-                                    </svg>
-                                    {artist.name}
-                                  </Link>
-                                </Button>
-                              ))}
-                            </div>
+                            <Binoculars className="size-9" />
+                            No results found
                           </div>
-                        )}
+
+                          {relatedArtists.length === 0 ? (
+                            <Button
+                              variant={"navigation"}
+                              asChild
+                              className="baseFlex"
+                            >
+                              <Link
+                                href={"/create"}
+                                onClick={() => {
+                                  // TODO: add artistName to localStorage
+                                  // to pre-fill the artist name in the create tab form
+                                }}
+                                className="baseFlex gap-2"
+                              >
+                                Create the first tab for this artist
+                                <BsPlus className="size-4" />
+                              </Link>
+                            </Button>
+                          ) : (
+                            <div className="baseVertFlex gap-4">
+                              Related artists
+                              <div className="baseVertFlex gap-4 sm:!flex-row">
+                                {relatedArtists.map((artist) => (
+                                  <Button
+                                    key={artist.id}
+                                    variant={"navigation"}
+                                    asChild
+                                    className="baseFlex"
+                                  >
+                                    <Link
+                                      href={`/artist/${artist.name}/${artist.id}`}
+                                      className="baseFlex gap-1"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-4 w-4"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                        aria-hidden="true"
+                                      >
+                                        <path
+                                          fillRule="evenodd"
+                                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm2.293-11.293a1 1 0 00-1.414 0L9.5 9.086l-.879-.879a1 1 0 10-1.414 1.414l1.793 1.793a1 1 0 001.414 0l3-3z"
+                                          clipRule="evenodd"
+                                        />
+                                      </svg>
+                                      {artist.name}
+                                    </Link>
+                                  </Button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </motion.div>
                     )}
 
-                    {searchParamsParsed && (
-                      <>
-                        {layoutType.value === "grid" && (
-                          <GridTabView
-                            searchQuery={searchQuery}
-                            genreId={genreId}
-                            tuning={tuning}
-                            capo={capo}
-                            difficulty={difficulty}
-                            sortBy={sortBy}
-                            setSearchResultsCount={setSearchResultsCount}
-                            setSearchsearchResultsCountIsLoading={
-                              setSearchsearchResultsCountIsLoading
-                            }
-                          />
-                        )}
-
-                        {layoutType.value === "table" && (
-                          <TableTabView
-                            searchQuery={searchQuery}
-                            genreId={genreId}
-                            tuning={tuning}
-                            capo={capo}
-                            difficulty={difficulty}
-                            sortBy={sortBy}
-                            setSearchResultsCount={setSearchResultsCount}
-                            setSearchsearchResultsCountIsLoading={
-                              setSearchsearchResultsCountIsLoading
-                            }
-                            tableHeaderRef={tableHeaderRef}
-                            tableBodyRef={tableBodyRef}
-                          />
-                        )}
-                      </>
+                    {userDoesNotExist && (
+                      <motion.div
+                        key={"userDoesNotExist"}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px-60px)] md:min-h-[calc(100dvh-4rem-12rem-56px-60px)]"
+                      >
+                        <div className="baseVertFlex lightestGlassmorphic gap-4 rounded-md px-8 py-4 text-xl">
+                          <div className="baseVertFlex gap-4">
+                            <Binoculars className="size-9" />
+                            This user does not exist.
+                          </div>
+                        </div>
+                      </motion.div>
                     )}
+
+                    {!relatedArtists &&
+                      !userDoesNotExist &&
+                      searchParamsParsed && (
+                        <>
+                          {layoutType.value === "grid" && (
+                            <GridTabView
+                              searchQuery={searchQuery}
+                              genreId={genreId}
+                              tuning={tuning}
+                              capo={capo}
+                              difficulty={difficulty}
+                              sortBy={sortBy}
+                              setSearchResultsCount={setSearchResultsCount}
+                              setSearchsearchResultsCountIsLoading={
+                                setSearchsearchResultsCountIsLoading
+                              }
+                            />
+                          )}
+
+                          {layoutType.value === "table" && (
+                            <TableTabView
+                              searchQuery={searchQuery}
+                              genreId={genreId}
+                              tuning={tuning}
+                              capo={capo}
+                              difficulty={difficulty}
+                              sortBy={sortBy}
+                              setSearchResultsCount={setSearchResultsCount}
+                              setSearchsearchResultsCountIsLoading={
+                                setSearchsearchResultsCountIsLoading
+                              }
+                              tableHeaderRef={tableHeaderRef}
+                              tableBodyRef={tableBodyRef}
+                            />
+                          )}
+                        </>
+                      )}
                   </>
                 )}
               </>

@@ -44,10 +44,10 @@ function GridTabView({
       capo: capo ?? undefined,
       difficulty: difficulty ?? undefined,
       sortBy,
-      userIdToSelectFrom: asPath.includes("/user")
-        ? ((query.userId as string) ?? undefined)
+      usernameToSelectFrom: asPath.includes("/user")
+        ? ((query.username as string) ?? undefined)
         : asPath.includes("/profile/tabs")
-          ? (userId ?? undefined)
+          ? (currentUser?.username ?? undefined)
           : undefined,
       artistIdToSelectFrom:
         asPath.includes("/artist") && query.id ? Number(query.id) : undefined,
@@ -69,6 +69,7 @@ function GridTabView({
       onSuccess: (data) => {
         setSearchResultsCount(data?.pages?.[0]?.count ?? 0);
       },
+      enabled: Boolean(asPath.includes("/profile/tabs") ? currentUser : true),
     },
   );
 

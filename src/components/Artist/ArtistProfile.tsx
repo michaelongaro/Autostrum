@@ -4,16 +4,15 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { BsMusicNoteBeamed } from "react-icons/bs";
 import { FaEye } from "react-icons/fa";
-import { GiMusicalScore } from "react-icons/gi";
 import SearchResults from "~/components/Search/SearchResults";
 import { Separator } from "~/components/ui/separator";
 import { api } from "~/utils/api";
 
-interface Artist {
+interface ArtistProfile {
   uniqueKey: string;
 }
 
-function Artist({ uniqueKey }: Artist) {
+function ArtistProfile({ uniqueKey }: ArtistProfile) {
   const { query } = useRouter();
 
   const [artistHasBeenFound, setArtistHasBeenFound] = useState(false);
@@ -96,7 +95,7 @@ function Artist({ uniqueKey }: Artist) {
 
       <div className="baseVertFlex w-full gap-4">
         <AnimatePresence mode="popLayout">
-          {isFetchingArtist && (
+          {isFetchingArtist ? (
             <motion.div
               key={"artistMetadataLoading"}
               initial={{ opacity: 0 }}
@@ -113,7 +112,7 @@ function Artist({ uniqueKey }: Artist) {
 
               <div className="baseVertFlex !items-start gap-4 md:!flex-row md:!items-center">
                 <div className="baseFlex gap-2">
-                  <GiMusicalScore className="size-4" />
+                  <BsMusicNoteBeamed className="size-4" />
                   <span className="font-medium">Songs</span>
                   <div className="pulseAnimation h-5 w-8 rounded-md bg-pink-300"></div>
                 </div>
@@ -125,9 +124,7 @@ function Artist({ uniqueKey }: Artist) {
                 </div>
               </div>
             </motion.div>
-          )}
-
-          {artist && (
+          ) : (
             <motion.div
               key={"artistMetadataLoaded"}
               initial={{ opacity: 0 }}
@@ -138,7 +135,7 @@ function Artist({ uniqueKey }: Artist) {
             >
               <div className="baseVertFlex !items-start gap-2">
                 <div className="baseFlex gap-1">
-                  {artist.isVerified && (
+                  {artist && artist.isVerified && (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-4 w-4"
@@ -164,23 +161,35 @@ function Artist({ uniqueKey }: Artist) {
                   }
                   className="baseFlex text-3xl font-semibold tracking-tight text-pink-50 md:left-8 md:top-14 md:text-4xl"
                 >
-                  {artist.name}
+                  {artist ? artist.name : query.name}
                 </h1>
               </div>
 
               <div className="baseFlex gap-4 font-medium sm:text-lg">
                 <div className="baseFlex gap-2">
                   <BsMusicNoteBeamed className="size-4 sm:size-5" />
-                  <span>{artist.totalTabs}</span>
-                  <span>{artist.totalTabs === 1 ? "Song" : "Songs"}</span>
+                  <span>{artist ? artist.totalTabs : 0}</span>
+                  <span>
+                    {artist
+                      ? artist.totalTabs === 1
+                        ? "Song"
+                        : "Songs"
+                      : "Songs"}
+                  </span>
                 </div>
 
                 <Separator orientation="vertical" className="h-6 w-[1px]" />
 
                 <div className="baseFlex gap-2">
                   <FaEye className="size-4 sm:size-5" />
-                  <span>{artist.totalViews}</span>
-                  <span>{artist.totalViews === 1 ? "View" : "Views"}</span>
+                  <span>{artist ? artist.totalViews : 0}</span>
+                  <span>
+                    {artist
+                      ? artist.totalViews === 1
+                        ? "View"
+                        : "Views"
+                      : "Views"}
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -197,4 +206,4 @@ function Artist({ uniqueKey }: Artist) {
   );
 }
 
-export default Artist;
+export default ArtistProfile;

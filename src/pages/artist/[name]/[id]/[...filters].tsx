@@ -1,7 +1,7 @@
-import Artist from "~/components/Artist/Artist";
+import ArtistProfile from "~/components/Artist/ArtistProfile";
 
 function ArtistProfileWithoutId() {
-  return <Artist uniqueKey="artistProfileWithId" />;
+  return <ArtistProfile uniqueKey="artistProfileWithId" />;
 }
 
 export default ArtistProfileWithoutId;
