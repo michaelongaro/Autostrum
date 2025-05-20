@@ -43,6 +43,11 @@ export interface MinimalTabRepresentation {
     userId: string;
     username: string;
   } | null;
+  bookmarks?:
+    | {
+        createdAt: Date;
+      }[]
+    | null; // Optional, only if bookmarkedByUserId is provided
 }
 export interface TabWithArtistName extends Tab {
   artistName?: string;
@@ -500,6 +505,9 @@ export const searchRouter = createTRPCRouter({
             break;
         }
 
+        // I think that we just manually do a .sort() on the results for bookmark createdAt date.
+        // this means that we need to retrieve the bookmark createdAt date to be able to sort by it.
+
         try {
           const [count, tabs] = await ctx.prisma.$transaction([
             ctx.prisma.tab.count({ where }),
@@ -529,6 +537,14 @@ export const searchRouter = createTRPCRouter({
                     username: true,
                   },
                 },
+                bookmarks: {
+                  select: {
+                    createdAt: true,
+                  },
+                  where: {
+                    bookmarkedByUserId: bookmarkedByUserId,
+                  },
+                },
               },
             }),
           ]);
@@ -541,7 +557,7 @@ export const searchRouter = createTRPCRouter({
             }
           }
 
-          const sanitizedTabs: MinimalTabRepresentation[] = tabs.map((tab) => {
+          let sanitizedTabs: MinimalTabRepresentation[] = tabs.map((tab) => {
             const conditionalArtist = tab.artist
               ? {
                   id: tab.artist.id,
@@ -563,6 +579,22 @@ export const searchRouter = createTRPCRouter({
               createdBy: conditionalCreatedBy,
             };
           });
+
+          if (
+            bookmarkedByUserId &&
+            (sortBy === "newest" || sortBy === "oldest")
+          ) {
+            // Sort the tabs by the bookmark createdAt date
+            sanitizedTabs.sort((a, b) => {
+              const aBookmark = a.bookmarks?.[0]?.createdAt ?? new Date(0);
+              const bBookmark = b.bookmarks?.[0]?.createdAt ?? new Date(0);
+              return sortBy === "newest"
+                ? bBookmark.getTime() - aBookmark.getTime() // Sort in descending order
+                : aBookmark.getTime() - bBookmark.getTime(); // Sort in ascending order
+            });
+            // Remove the bookmarks field from the sanitized tabs since we don't need it anymore
+            sanitizedTabs = sanitizedTabs.map(({ bookmarks, ...rest }) => rest);
+          }
 
           return {
             data: {

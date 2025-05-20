@@ -70,6 +70,8 @@ function GridTabView({
         setSearchResultsCount(data?.pages?.[0]?.count ?? 0);
       },
       enabled: Boolean(asPath.includes("/profile/tabs") ? currentUser : true),
+      // need to wait for currentUser to be fetched before trying to search when
+      // on current user's tabs page
     },
   );
 

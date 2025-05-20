@@ -31,6 +31,7 @@ import ThemePicker from "~/components/Header/ThemePicker";
 ///
 import { IoCompassOutline } from "react-icons/io5";
 import Binoculars from "~/components/ui/icons/Binoculars";
+import { useState } from "react";
 
 function DesktopHeader() {
   const { userId, isSignedIn } = useAuth();
@@ -40,6 +41,8 @@ function DesktopHeader() {
   const { getStringifiedTabData } = useTabStore((state) => ({
     getStringifiedTabData: state.getStringifiedTabData,
   }));
+
+  const [userPopoverOpen, setUserPopoverOpen] = useState(false);
 
   const localStorageTabData = useLocalStorageValue("autostrum-tabData");
   const localStorageRedirectRoute = useLocalStorageValue(
@@ -247,7 +250,7 @@ function DesktopHeader() {
         )}
 
         {isSignedIn && user && (
-          <Popover>
+          <Popover open={userPopoverOpen} onOpenChange={setUserPopoverOpen}>
             <PopoverTrigger asChild>
               <div className={`${classes.authentication} baseFlex shrink-0`}>
                 <Button
@@ -288,6 +291,9 @@ function DesktopHeader() {
                     href={`
                         /profile/${user.username}
                         `}
+                    onClick={() => {
+                      setUserPopoverOpen(false);
+                    }}
                     className="baseFlex !h-10 gap-2 !px-0"
                   >
                     <Image
@@ -311,7 +317,13 @@ function DesktopHeader() {
                 // }}
                 >
                   <Button variant={"link"} asChild>
-                    <Link href={`/`} className="baseFlex !p-0 underline">
+                    <Link
+                      href={`/`}
+                      onClick={() => {
+                        setUserPopoverOpen(false);
+                      }}
+                      className="baseFlex !p-0 underline"
+                    >
                       Sign out
                     </Link>
                   </Button>
@@ -334,6 +346,9 @@ function DesktopHeader() {
                 >
                   <Link
                     href={`/profile/preferences`}
+                    onClick={() => {
+                      setUserPopoverOpen(false);
+                    }}
                     className="baseFlex w-[165px] gap-2"
                   >
                     <IoSettingsOutline className="size-4" />
@@ -356,6 +371,9 @@ function DesktopHeader() {
                 >
                   <Link
                     href={`/profile/preferences`}
+                    onClick={() => {
+                      setUserPopoverOpen(false);
+                    }}
                     className="baseFlex w-[165px] gap-2"
                   >
                     <IoStatsChart className="size-4" />
@@ -379,7 +397,10 @@ function DesktopHeader() {
                   }}
                 >
                   <Link
-                    href={`/profile/tabs`}
+                    href={`/profile/tabs/filters`}
+                    onClick={() => {
+                      setUserPopoverOpen(false);
+                    }}
                     className="baseFlex w-[165px] gap-2"
                   >
                     <TbGuitarPick className="size-4" />
@@ -401,7 +422,10 @@ function DesktopHeader() {
                   }}
                 >
                   <Link
-                    href={`/profile/bookmarks`}
+                    href={`/profile/bookmarks/filters`}
+                    onClick={() => {
+                      setUserPopoverOpen(false);
+                    }}
                     className="baseFlex w-[165px] gap-2 !px-0"
                   >
                     <IoBookmarkOutline className="size-4 shrink-0" />

@@ -341,7 +341,7 @@ function MobileHeader() {
                       }}
                     >
                       <Link
-                        href={`/profile/tabs`}
+                        href={`/profile/tabs/filters`}
                         className="baseFlex w-[165px] gap-2"
                       >
                         <TbGuitarPick className="size-4" />
@@ -363,7 +363,7 @@ function MobileHeader() {
                       }}
                     >
                       <Link
-                        href={`/profile/bookmarks`}
+                        href={`/profile/bookmarks/filters`}
                         className="baseFlex w-[165px] gap-2 !px-0"
                       >
                         <IoBookmarkOutline className="size-4 shrink-0" />
