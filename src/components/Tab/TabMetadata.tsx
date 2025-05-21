@@ -106,8 +106,8 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
     setArtistName,
     description,
     setDescription,
-    genreId,
-    setGenreId,
+    genre,
+    setGenre,
     tuning,
     chords,
     strummingPatterns,
@@ -143,8 +143,8 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
     setArtistName: state.setArtistName,
     description: state.description,
     setDescription: state.setDescription,
-    genreId: state.genreId,
-    setGenreId: state.setGenreId,
+    genre: state.genre,
+    setGenre: state.setGenre,
     tuning: state.tuning,
     bpm: state.bpm,
     setBpm: state.setBpm,
@@ -240,13 +240,6 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
       enabled: !!createdByUserId,
     });
 
-  function handleGenreChange(stringifiedId: string) {
-    const id = parseInt(stringifiedId);
-    if (isNaN(id)) return;
-
-    setGenreId(id);
-  }
-
   function handleBpmChange(event: ChangeEvent<HTMLInputElement>) {
     const inputValue = event.target.value;
 
@@ -263,7 +256,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
     if (
       !title ||
       !tuning ||
-      genreId === -1 ||
+      genre === "" ||
       bpm === -1 ||
       tabIsEffectivelyEmpty(tabData)
     ) {
@@ -316,7 +309,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
       !userId ||
       !title ||
       !tuning ||
-      genreId === -1 ||
+      genre === "" ||
       bpm === -1 ||
       tabIsEffectivelyEmpty(tabData)
     ) {
@@ -344,7 +337,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
             createdByUserId: userId,
             title,
             description,
-            genreId,
+            genre,
             chords,
             strummingPatterns,
             tabData,
@@ -370,7 +363,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
       title: originalTabData.title,
       artist: originalTabData.artistId,
       description: originalTabData.description,
-      genreId: originalTabData.genreId,
+      genre: originalTabData.genre,
       tabData: originalTabData.tabData,
       tuning: originalTabData.tuning,
       bpm: originalTabData.bpm,
@@ -386,7 +379,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
       id,
       title,
       description,
-      genreId,
+      genre,
       tabData,
       tuning,
       bpm,
@@ -423,7 +416,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
             </div>
           )}
 
-          {genreId === -1 && (
+          {genre === "" && (
             <div className="baseFlex">
               <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
               <p>Genre hasn&apos;t been selected</p>
@@ -750,14 +743,11 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
               <Label>
                 Genre <span className="text-destructiveRed">*</span>
               </Label>
-              <Select
-                value={genreList[genreId]?.id.toString()}
-                onValueChange={(value) => handleGenreChange(value)}
-              >
+              <Select value={genre} onValueChange={(value) => setGenre(value)}>
                 <SelectTrigger
                   style={{
                     boxShadow:
-                      showPulsingError && genreId === -1
+                      showPulsingError && genre === ""
                         ? "0 0 0 0.25rem hsl(0deg 100% 50%)"
                         : "0 0 0 0 transparent",
                     transitionProperty: "box-shadow",
@@ -765,26 +755,24 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                     transitionDuration: "500ms",
                   }}
                   className={`w-[180px] ${
-                    showPulsingError && genreId === -1
-                      ? "animate-errorShake"
-                      : ""
+                    showPulsingError && genre === "" ? "animate-errorShake" : ""
                   }`}
                 >
                   <SelectValue placeholder="Select a genre" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.values(genreList).map((genre) => {
+                  {[...genreList.entries()].map(([name, color]) => {
                     return (
-                      <SelectItem key={genre.id} value={genre.id.toString()}>
+                      <SelectItem key={name} value={name}>
                         <div className="baseFlex gap-2">
                           <div
                             style={{
-                              backgroundColor: genre.color,
+                              backgroundColor: color,
                               boxShadow: "0 1px 1px hsla(336, 84%, 17%, 0.9)",
                             }}
                             className="h-3 w-3 rounded-full"
                           ></div>
-                          {genre.name}
+                          {name}
                         </div>
                       </SelectItem>
                     );
@@ -901,22 +889,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                 value={difficulty.toString()}
                 onValueChange={(value) => setDifficulty(Number(value))}
               >
-                <SelectTrigger
-                  style={{
-                    boxShadow:
-                      showPulsingError && genreId === -1
-                        ? "0 0 0 0.25rem hsl(0deg 100% 50%)"
-                        : "0 0 0 0 transparent",
-                    transitionProperty: "box-shadow",
-                    transitionTimingFunction: "ease-in-out",
-                    transitionDuration: "500ms",
-                  }}
-                  className={`w-[180px] ${
-                    showPulsingError && genreId === -1
-                      ? "animate-errorShake"
-                      : ""
-                  }`}
-                >
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select a difficulty">
                     <div className="baseFlex gap-2">
                       <DifficultyBars difficulty={difficulty} />
@@ -1353,16 +1326,16 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                 className={`${classes.genre} baseVertFlex !items-start gap-2`}
               >
                 <div className="font-semibold">Genre</div>
-                {genreList[genreId] && (
+                {genreList.get(genre) && (
                   <div
                     style={{
-                      backgroundColor: genreList[genreId]?.color,
+                      backgroundColor: genreList.get(genre),
                     }}
                     className="baseFlex w-[140px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
                   >
-                    {genreList[genreId]?.name}
+                    {genre}
                     <Image
-                      src={`/genrePreviewBubbles/id${genreId}.png`}
+                      src={`/genrePreviewBubbles/id${genre}.png`}
                       alt="three genre preview bubbles with the same color as the associated genre"
                       width={32}
                       height={32}

@@ -65,7 +65,7 @@ function Tab({ tab }: Tab) {
     setArtistId,
     setArtistName,
     setDescription,
-    setGenreId,
+    setGenre,
     setTuning,
     setBpm,
     setCapo,
@@ -100,7 +100,7 @@ function Tab({ tab }: Tab) {
     setArtistId: state.setArtistId,
     setArtistName: state.setArtistName,
     setDescription: state.setDescription,
-    setGenreId: state.setGenreId,
+    setGenre: state.setGenre,
     setTuning: state.setTuning,
     setBpm: state.setBpm,
     setCapo: state.setCapo,
@@ -147,7 +147,7 @@ function Tab({ tab }: Tab) {
     setArtistId(tab.artistId);
     setArtistName(tab.artistName);
     setDescription(tab.description);
-    setGenreId(tab.genreId);
+    setGenre(tab.genre);
     setTuning(tab.tuning);
     setBpm(tab.bpm);
     setCapo(tab.capo);
@@ -182,7 +182,7 @@ function Tab({ tab }: Tab) {
     const {
       title,
       description,
-      genreId,
+      genre,
       tuning,
       bpm,
       capo,
@@ -194,7 +194,7 @@ function Tab({ tab }: Tab) {
 
     setTitle(title);
     setDescription(description);
-    setGenreId(genreId);
+    setGenre(genre);
     setTuning(tuning);
     setBpm(bpm);
     setCapo(capo);
@@ -214,7 +214,7 @@ function Tab({ tab }: Tab) {
     setBpm,
     setCapo,
     setDescription,
-    setGenreId,
+    setGenre,
     setChords,
     setStrummingPatterns,
     setTabData,

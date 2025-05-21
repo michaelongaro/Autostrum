@@ -7,7 +7,7 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 interface TabWithArtistRank {
   id: number;
   title: string;
-  genreId: number;
+  genre: string;
   artistId: number | null; // Nullable because of LEFT JOIN and optional relation
   artistName: string | null; // Nullable because of LEFT JOIN and optional relation
   artistIsVerified: boolean | null; // Nullable
@@ -16,7 +16,7 @@ interface TabWithArtistRank {
 
 export interface InfiniteQueryParams {
   searchQuery: string | undefined;
-  genreId: number | undefined;
+  genre: string | undefined;
   tuning: string | undefined;
   capo: boolean | undefined;
   difficulty: number | undefined;
@@ -29,7 +29,7 @@ export interface InfiniteQueryParams {
 export interface MinimalTabRepresentation {
   id: number;
   title: string;
-  genreId: number;
+  genre: string;
   createdAt: Date;
   difficulty: number;
   averageRating: number;
@@ -64,7 +64,7 @@ export const searchRouter = createTRPCRouter({
         select: {
           id: true,
           title: true,
-          genreId: true,
+          genre: true,
           createdAt: true,
           difficulty: true,
           averageRating: true,
@@ -120,7 +120,7 @@ export const searchRouter = createTRPCRouter({
           select: {
             id: true,
             title: true,
-            genreId: true,
+            genre: true,
             artist: {
               select: {
                 id: true,
@@ -158,7 +158,7 @@ export const searchRouter = createTRPCRouter({
       return {
         id: tab.tab.id,
         title: tab.tab.title,
-        genreId: tab.tab.genreId,
+        genre: tab.tab.genre,
         artist: {
           id: tab.tab.artist?.id ?? null,
           name: tab.tab.artist?.name ?? null,
@@ -196,7 +196,7 @@ export const searchRouter = createTRPCRouter({
           SELECT
             "Tab".id,
             "Tab".title,
-            "Tab"."genreId",
+            "Tab"."genre",
             "Tab"."artistId",
             "Artist"."name" AS "artistName",
             "Artist"."isVerified" AS "artistIsVerified",
@@ -290,7 +290,7 @@ export const searchRouter = createTRPCRouter({
     .input(
       z.object({
         searchQuery: z.string().optional(),
-        genreId: z.number().optional(),
+        genre: z.string().optional(),
         tuning: z.string().optional(),
         difficulty: z.number().int().min(1).max(5).optional(),
         capo: z.boolean().optional(),
@@ -313,7 +313,7 @@ export const searchRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const {
         searchQuery,
-        genreId,
+        genre,
         tuning,
         difficulty,
         capo,
@@ -340,8 +340,8 @@ export const searchRouter = createTRPCRouter({
           Prisma.sql`("Tab"."searchVector" @@ ${tsQuery} OR "Tab"."title" ILIKE ${prefixPattern})`,
         ];
 
-        if (genreId !== undefined) {
-          conditions.push(Prisma.sql`"Tab"."genreId" = ${genreId}`);
+        if (genre !== undefined) {
+          conditions.push(Prisma.sql`"Tab"."genre" = ${genre}`);
         }
         if (tuning !== undefined) {
           if (tuning === "custom") {
@@ -391,7 +391,7 @@ export const searchRouter = createTRPCRouter({
           "Tab"."title" ASC`;
 
         const selectFields = Prisma.sql`
-          "Tab"."id", "Tab"."title", "Tab"."genreId",
+          "Tab"."id", "Tab"."title", "Tab"."genre",
           "Tab"."createdAt", "Tab"."difficulty",
           "Tab"."averageRating", "Tab"."ratingsCount",
           "Tab"."artistId",
@@ -452,8 +452,8 @@ export const searchRouter = createTRPCRouter({
           // Basic contains search if not using FTS relevance sort
           where.title = { contains: trimmedQuery, mode: "insensitive" };
         }
-        if (genreId !== undefined) {
-          where.genreId = genreId;
+        if (genre !== undefined) {
+          where.genre = genre;
         }
         if (tuning !== undefined) {
           if (tuning === "custom") {
@@ -508,6 +508,8 @@ export const searchRouter = createTRPCRouter({
         // I think that we just manually do a .sort() on the results for bookmark createdAt date.
         // this means that we need to retrieve the bookmark createdAt date to be able to sort by it.
 
+        console.log();
+
         try {
           const [count, tabs] = await ctx.prisma.$transaction([
             ctx.prisma.tab.count({ where }),
@@ -519,7 +521,7 @@ export const searchRouter = createTRPCRouter({
               select: {
                 id: true,
                 title: true,
-                genreId: true,
+                genre: true,
                 createdAt: true,
                 difficulty: true,
                 averageRating: true,

@@ -435,11 +435,12 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   </span>
                                   <Badge
                                     style={{
-                                      backgroundColor:
-                                        genreList[song.genreId]?.color,
+                                      backgroundColor: genreList.get(
+                                        song.genre,
+                                      ),
                                     }}
                                   >
-                                    {genreList[song.genreId]?.name}
+                                    {song.genre}
                                   </Badge>
                                 </div>
 
@@ -650,11 +651,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                 </span>
                                 <Badge
                                   style={{
-                                    backgroundColor:
-                                      genreList[song.genreId]?.color,
+                                    backgroundColor: genreList.get(song.genre),
                                   }}
                                 >
-                                  {genreList[song.genreId]?.name}
+                                  {song.genre}
                                 </Badge>
                               </div>
 

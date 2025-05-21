@@ -271,7 +271,7 @@ function DesktopHeader() {
               side={"bottom"}
               className="baseVertFlex w-[388px] !items-start gap-4"
             >
-              <div className="baseFlex w-full !justify-between gap-4">
+              <div className="baseFlex w-full !justify-between gap-4 px-1">
                 <Button
                   variant={"link"}
                   size={"lg"}
@@ -336,16 +336,16 @@ function DesktopHeader() {
                   size={"lg"}
                   asChild
                   style={{
-                    backgroundColor: asPath.includes("/profile/preferences")
+                    backgroundColor: asPath.includes("/profile/settings")
                       ? "#be185d"
                       : undefined,
-                    color: asPath.includes("/profile/preferences")
+                    color: asPath.includes("/profile/settings")
                       ? "#fbcfe8"
                       : undefined,
                   }}
                 >
                   <Link
-                    href={`/profile/preferences`}
+                    href={`/profile/settings`}
                     onClick={() => {
                       setUserPopoverOpen(false);
                     }}
@@ -370,7 +370,7 @@ function DesktopHeader() {
                   }}
                 >
                   <Link
-                    href={`/profile/preferences`}
+                    href={`/profile/statistics`}
                     onClick={() => {
                       setUserPopoverOpen(false);
                     }}

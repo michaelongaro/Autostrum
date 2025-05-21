@@ -286,16 +286,16 @@ function MobileHeader() {
                       size={"lg"}
                       asChild
                       style={{
-                        backgroundColor: asPath.includes("/profile/preferences")
+                        backgroundColor: asPath.includes("/profile/settings")
                           ? "#be185d"
                           : undefined,
-                        color: asPath.includes("/profile/preferences")
+                        color: asPath.includes("/profile/settings")
                           ? "#fbcfe8"
                           : undefined,
                       }}
                     >
                       <Link
-                        href={`/profile/preferences`}
+                        href={`/profile/settings`}
                         className="baseFlex w-[165px] gap-2"
                       >
                         <IoSettingsOutline className="size-4" />
@@ -317,7 +317,7 @@ function MobileHeader() {
                       }}
                     >
                       <Link
-                        href={`/profile/preferences`}
+                        href={`/profile/statistics`}
                         className="baseFlex w-[165px] gap-2"
                       >
                         <IoStatsChart className="size-4" />

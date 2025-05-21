@@ -245,7 +245,7 @@ const initialStoreState = {
   updatedAt: null,
   title: "",
   description: null,
-  genreId: -1,
+  genre: "",
   tuning: "e2 a2 d3 g3 b3 e4",
   bpm: 75,
   capo: 0,
@@ -336,8 +336,8 @@ interface TabState {
 
   description: string | null;
   setDescription: (description: string | null) => void;
-  genreId: number;
-  setGenreId: (genre: number) => void;
+  genre: string;
+  setGenre: (genre: string) => void;
   tuning: string;
   setTuning: (tuning: string) => void;
   bpm: number;
@@ -605,8 +605,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
 
       description: null,
       setDescription: (description) => set({ description }),
-      genreId: -1,
-      setGenreId: (genreId) => set({ genreId }),
+      genre: "",
+      setGenre: (genre) => set({ genre }),
       tuning: "e2 a2 d3 g3 b3 e4",
       setTuning: (tuning) => set({ tuning }),
       bpm: 75,
@@ -657,7 +657,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         const {
           title,
           description,
-          genreId,
+          genre,
           tuning,
           bpm,
           capo,
@@ -669,7 +669,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         return JSON.stringify({
           title,
           description,
-          genreId,
+          genre,
           tuning,
           bpm,
           capo,

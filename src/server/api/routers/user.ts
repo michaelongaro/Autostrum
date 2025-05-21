@@ -77,7 +77,7 @@ export const userRouter = createTRPCRouter({
           select: {
             id: true,
             title: true,
-            genreId: true,
+            genre: true,
             createdAt: true,
             difficulty: true,
             averageRating: true,
@@ -128,6 +128,152 @@ export const userRouter = createTRPCRouter({
           pinnedTabId,
         },
       });
+    }),
+
+  getStatistics: protectedProcedure
+    .input(z.string())
+    .query(async ({ input: userId, ctx }) => {
+      const user = await ctx.prisma.user.findUnique({
+        where: {
+          userId,
+        },
+      });
+
+      if (!user) return null;
+
+      // Fetch user's top 5 most viewed tabs / most bookmarked tabs / highest rated tabs
+      const [topViewedTabs, rawTopBookmarkedTabs, topRatedTabs] =
+        await Promise.all([
+          ctx.prisma.tab.findMany({
+            where: {
+              createdByUserId: userId,
+            },
+            select: {
+              id: true,
+              title: true,
+              pageViews: true,
+            },
+            orderBy: {
+              pageViews: "desc",
+            },
+            take: 5,
+          }),
+          ctx.prisma.tab.findMany({
+            where: {
+              createdByUserId: userId,
+            },
+            select: {
+              id: true,
+              title: true,
+              _count: {
+                select: {
+                  bookmarks: true,
+                },
+              },
+            },
+            orderBy: {
+              bookmarks: {
+                _count: "desc",
+              },
+            },
+            take: 5,
+          }),
+          ctx.prisma.tab.findMany({
+            where: {
+              createdByUserId: userId,
+            },
+            select: {
+              id: true,
+              title: true,
+              averageRating: true,
+              ratingsCount: true,
+            },
+            orderBy: {
+              averageRating: "desc",
+            },
+            take: 5,
+          }),
+        ]);
+
+      const topBookmarkedTabs = rawTopBookmarkedTabs.map((tab) => ({
+        id: tab.id,
+        title: tab.title,
+        bookmarksCount: tab._count.bookmarks,
+      }));
+
+      const miscStats = await ctx.prisma.tab.findMany({
+        where: {
+          createdByUserId: userId,
+        },
+        select: {
+          genre: true,
+          tuning: true,
+          capo: true,
+          difficulty: true,
+          artist: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      const genres = {
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+        6: 0,
+        7: 0,
+        8: 0,
+        9: 0,
+        10: 0,
+        11: 0,
+        12: 0,
+      };
+
+      const tunings = {
+        "e2 a2 d3 g3 b3 e4": 0,
+        "e2 a2 c#3 e3 a3 e4": 0,
+        "b1 f#2 b2 f#3 b3 d#4": 0,
+        "c2 g2 c3 g3 c4 e4": 0,
+        "d2 a2 d3 f#3 a3 d4": 0,
+        "e2 b2 e3 g#3 b3 e4": 0,
+        "c2 f2 c3 f3 a3 f4": 0,
+        "d2 g2 d3 g3 b3 d4": 0,
+        "a1 e2 a2 d3 f#3 b3": 0,
+        "a#1 f2 a#2 d#3 g3 c4": 0,
+        "b1 f#2 b2 e3 g#3 c#4": 0,
+        "c2 g2 c3 f3 a3 d4": 0,
+        "c#2 g#2 c#3 f#3 a#3 d#4": 0,
+        "d2 a2 d3 g3 b3 e4": 0,
+        "d#2 a#2 d#3 g#3 c4 f4": 0,
+        "e2 b2 e3 a3 c#4 f#4": 0,
+        "f2 c3 f3 a#3 d4 g4": 0,
+        "f#2 c#3 f#3 b3 d#4 g#4": 0,
+        "g1 d2 g2 c3 e3 a3": 0,
+        "g#1 d#2 g#2 c#3 f3 a#3": 0,
+        "f2 a2 c3 g3 c4 e4": 0,
+        "d2 a2 d3 f#3 b3 e4": 0,
+        "d2 a2 d3 g3 a3 d4": 0,
+        custom: 0,
+      };
+
+      const difficulties = {
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+      };
+
+      return {
+        ...user,
+        topViewedTabs,
+        topBookmarkedTabs,
+        topRatedTabs,
+      };
     }),
 
   delete: protectedProcedure

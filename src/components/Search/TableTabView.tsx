@@ -20,7 +20,7 @@ import TableTabRow from "./TableTabRow";
 
 interface TableTabView {
   searchQuery?: string;
-  genreId?: number;
+  genre?: string;
   tuning?: string;
   capo?: boolean;
   difficulty?: number;
@@ -33,7 +33,7 @@ interface TableTabView {
 
 function TableTabView({
   searchQuery,
-  genreId,
+  genre,
   tuning,
   capo,
   difficulty,
@@ -53,7 +53,7 @@ function TableTabView({
   function getInfiniteQueryParams(): InfiniteQueryParams {
     return {
       searchQuery,
-      genreId,
+      genre,
       tuning,
       capo: capo ?? undefined,
       difficulty: difficulty ?? undefined,

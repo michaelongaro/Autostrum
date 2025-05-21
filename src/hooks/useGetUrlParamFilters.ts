@@ -2,9 +2,24 @@ import { useRouter } from "next/router";
 import { useState, useLayoutEffect } from "react";
 import { tuningNotes } from "~/utils/tunings";
 
+const GENRE_NAMES = [
+  "Rock",
+  "Indie",
+  "Jazz",
+  "Pop",
+  "Country",
+  "Folk",
+  "Blues",
+  "Hip-Hop",
+  "Electronic",
+  "Classical",
+  "Metal",
+  "Misc.",
+];
+
 interface UrlParamFilters {
   searchQuery?: string;
-  genreId?: number;
+  genre?: string;
   tuning?: string;
   capo?: boolean;
   difficulty?: number;
@@ -16,7 +31,7 @@ function useGetUrlParamFilters() {
 
   const [searchParams, setSearchParams] = useState<UrlParamFilters>({
     searchQuery: undefined,
-    genreId: undefined,
+    genre: undefined,
     tuning: undefined,
     capo: undefined,
     difficulty: undefined,
@@ -35,7 +50,7 @@ function useGetUrlParamFilters() {
       "name", // just for /artist
       "id", // just for /artist
       "search",
-      "genreId",
+      "genre",
       "tuning",
       "capo",
       "difficulty",
@@ -45,7 +60,6 @@ function useGetUrlParamFilters() {
     // check if any invalid query keys are present
     for (const key of Object.keys(queryObj)) {
       if (!validQueryKeys.includes(key)) {
-        console.log("1", validQueryKeys, key);
         setRenderSearch404(true);
         return;
       }
@@ -59,19 +73,12 @@ function useGetUrlParamFilters() {
       switch (key) {
         case "search":
           if (typeof value === "string" && value.length > 50) {
-            console.log("2");
             setRenderSearch404(true);
             return;
           }
           break;
-        case "genreId":
-          if (
-            typeof value === "string" &&
-            (isNaN(parseInt(value)) ||
-              parseInt(value) < 1 ||
-              parseInt(value) > 8)
-          ) {
-            console.log("3");
+        case "genre":
+          if (typeof value === "string" && !GENRE_NAMES.includes(value)) {
             setRenderSearch404(true);
             return;
           }
@@ -82,7 +89,6 @@ function useGetUrlParamFilters() {
             value !== "custom" &&
             !tuningNotes.includes(value)
           ) {
-            console.log("4");
             setRenderSearch404(true);
             return;
           }
@@ -93,7 +99,6 @@ function useGetUrlParamFilters() {
             value !== "true" &&
             value !== "false"
           ) {
-            console.log("5");
             setRenderSearch404(true);
             return;
           }
@@ -105,7 +110,6 @@ function useGetUrlParamFilters() {
               parseInt(value) < 1 ||
               parseInt(value) > 5)
           ) {
-            console.log("6");
             setRenderSearch404(true);
             return;
           }
@@ -119,7 +123,6 @@ function useGetUrlParamFilters() {
             value !== "mostPopular" &&
             value !== "leastPopular"
           ) {
-            console.log("7");
             setRenderSearch404(true);
             return;
           }
@@ -130,7 +133,7 @@ function useGetUrlParamFilters() {
     // setting the state (w/ defaults if necessary)
     setSearchParams({
       searchQuery: query.search ? (query.search as string) : undefined,
-      genreId: query.genreId ? parseInt(query.genreId as string) : undefined,
+      genre: query.genre ? (query.genre as string) : undefined,
       tuning: query.tuning ? (query.tuning as string) : undefined,
       capo: query.capo ? (query.capo as string) === "true" : undefined,
       difficulty: query.difficulty
@@ -159,7 +162,7 @@ function useGetUrlParamFilters() {
 
   return {
     searchQuery: searchParams.searchQuery,
-    genreId: searchParams.genreId,
+    genre: searchParams.genre,
     tuning: searchParams.tuning,
     capo: searchParams.capo,
     sortBy: searchParams.sortBy,

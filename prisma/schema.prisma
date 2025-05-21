@@ -82,6 +82,7 @@ model Tab {
     updatedAt DateTime @default(now()) @updatedAt
 
     title              String
+    genre              String
     tuning             String
     description        String?
     capo               Int     @default(0)
@@ -95,9 +96,6 @@ model Tab {
 
     createdBy       User?   @relation(fields: [createdByUserId], references: [userId], onDelete: SetNull)
     createdByUserId String?
-
-    genre   Genre @relation(fields: [genreId], references: [id])
-    genreId Int
 
     bookmarks       Bookmark[]
     comments        Comment[]
@@ -118,15 +116,6 @@ model Tab {
     pageViews Int @default(0)
 
     @@index([searchVector], type: Gin) // Hint to Prisma about the index type, but the actual index is created via raw SQL migration
-}
-
-model Genre {
-    id Int @id @default(autoincrement())
-
-    name  String @unique
-    color String
-
-    tabs Tab[]
 }
 
 model Comment {

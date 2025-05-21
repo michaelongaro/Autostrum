@@ -10,7 +10,7 @@ import type { InfiniteQueryParams } from "~/server/api/routers/search";
 
 interface GridTabView {
   searchQuery?: string;
-  genreId?: number;
+  genre?: string;
   tuning?: string;
   capo?: boolean;
   difficulty?: number;
@@ -21,7 +21,7 @@ interface GridTabView {
 
 function GridTabView({
   searchQuery,
-  genreId,
+  genre,
   tuning,
   capo,
   difficulty,
@@ -39,7 +39,7 @@ function GridTabView({
   function getInfiniteQueryParams(): InfiniteQueryParams {
     return {
       searchQuery,
-      genreId,
+      genre,
       tuning,
       capo: capo ?? undefined,
       difficulty: difficulty ?? undefined,

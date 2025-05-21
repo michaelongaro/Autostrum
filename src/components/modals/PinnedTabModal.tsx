@@ -63,7 +63,7 @@ function PinnedTabModal({
   }, [pinnedTabIdFromDatabase]);
 
   const {
-    genreId,
+    genre,
     type,
     searchQuery,
     view,
@@ -114,7 +114,7 @@ function PinnedTabModal({
           </div>
 
           <SearchResults
-            genreId={genreId}
+            genre={genre}
             type={type}
             searchQuery={searchQuery}
             sortByRelevance={sortByRelevance}

@@ -151,7 +151,7 @@ function SearchResults({
 
   const {
     searchQuery,
-    genreId,
+    genre,
     tuning,
     capo,
     difficulty,
@@ -170,7 +170,7 @@ function SearchResults({
   // would have to wait for the page to reload multiple times. gating push()
   // behind the "Apply" button.
   const [localFilters, setLocalFilters] = useState({
-    genreId: genreId,
+    genre: genre,
     tuning: tuning,
     capo: capo,
     difficulty: difficulty,
@@ -178,7 +178,7 @@ function SearchResults({
   });
 
   const [initialFilters, setInitialFilters] = useState<{
-    genreId: number | undefined;
+    genre: string | undefined;
     tuning: string | undefined;
     capo: boolean | undefined;
     difficulty: number | undefined;
@@ -190,7 +190,7 @@ function SearchResults({
     if (!searchParamsParsed || initialFilters) return;
 
     setLocalFilters({
-      genreId: genreId,
+      genre: genre,
       tuning: tuning,
       capo: capo,
       difficulty: difficulty,
@@ -198,7 +198,7 @@ function SearchResults({
     });
 
     setInitialFilters({
-      genreId: genreId,
+      genre: genre,
       tuning: tuning,
       capo: capo,
       difficulty: difficulty,
@@ -208,7 +208,7 @@ function SearchResults({
     searchParamsParsed,
     initialFilters,
     searchQuery,
-    genreId,
+    genre,
     tuning,
     capo,
     difficulty,
@@ -267,10 +267,10 @@ function SearchResults({
   function applyFilters() {
     const newQuery = { ...query };
 
-    if (localFilters.genreId) {
-      newQuery.genreId = localFilters.genreId.toString();
+    if (localFilters.genre && localFilters.genre !== "allGenres") {
+      newQuery.genre = localFilters.genre;
     } else {
-      delete newQuery.genreId;
+      delete newQuery.genre;
     }
 
     if (localFilters.tuning) {
@@ -342,7 +342,7 @@ function SearchResults({
 
   function resetSearchFilters() {
     setLocalFilters({
-      genreId: undefined,
+      genre: undefined,
       tuning: undefined,
       capo: undefined,
       difficulty: undefined,
@@ -358,7 +358,7 @@ function SearchResults({
 
     return (
       disableFiltersAndLayoutToggle ??
-      (localFilters.genreId === undefined &&
+      (localFilters.genre === undefined &&
         localFilters.tuning === undefined &&
         localFilters.capo === undefined &&
         localFilters.difficulty === undefined &&
@@ -369,7 +369,7 @@ function SearchResults({
   function disableApplyFiltersButton() {
     return (
       disableFiltersAndLayoutToggle ??
-      (localFilters.genreId === genreId &&
+      (localFilters.genre === genre &&
         localFilters.tuning === tuning &&
         localFilters.capo === capo &&
         localFilters.difficulty === difficulty &&
@@ -396,13 +396,9 @@ function SearchResults({
           <Label>Genre</Label>
           <Select
             disabled={disableFiltersAndLayoutToggle}
-            value={
-              localFilters.genreId
-                ? localFilters.genreId.toString()
-                : "allGenres"
-            }
+            value={localFilters.genre ? localFilters.genre : "allGenres"}
             onValueChange={(value) =>
-              setLocalFilters((prev) => ({ ...prev, genreId: parseInt(value) }))
+              setLocalFilters((prev) => ({ ...prev, genre: value }))
             }
           >
             <SelectTrigger className="w-full">
@@ -425,19 +421,19 @@ function SearchResults({
 
               <Separator className="my-1 w-full bg-pink-600" />
 
-              {Object.values(genreList).map((genre) => {
+              {[...genreList.entries()].map(([name, color]) => {
                 return (
-                  <SelectItem key={genre.id} value={genre.id.toString()}>
+                  <SelectItem key={name} value={name}>
                     <div className="baseFlex gap-2">
                       <div
                         style={{
-                          backgroundColor: genre.color,
+                          backgroundColor: color,
                           boxShadow: "0 1px 1px hsla(336, 84%, 17%, 0.9)",
                         }}
                         className="h-3 w-3 rounded-full"
                       ></div>
 
-                      {genre.name}
+                      {name}
                     </div>
                   </SelectItem>
                 );
@@ -929,17 +925,15 @@ function SearchResults({
                                   <div className="baseFlex gap-2">
                                     <div
                                       style={{
-                                        backgroundColor: genreId
-                                          ? genreList[genreId]!.color
+                                        backgroundColor: genre
+                                          ? genreList.get(genre)
                                           : "gray",
                                         boxShadow:
                                           "0 1px 1px hsla(336, 84%, 17%, 0.9)",
                                       }}
                                       className="h-3 w-3 rounded-full"
                                     ></div>
-                                    {genreId
-                                      ? genreList[genreId]!.name
-                                      : "All genres"}
+                                    {genre ? genre : "All genres"}
                                   </div>
                                 </div>
 
@@ -1072,7 +1066,7 @@ function SearchResults({
                                 onClick={() => {
                                   setLocalFilters((prev) => ({
                                     ...prev,
-                                    genreId: undefined,
+                                    genre: undefined,
                                   }));
                                 }}
                               >
@@ -1088,39 +1082,39 @@ function SearchResults({
                                   All genres
                                 </div>
 
-                                {genreId === undefined && (
+                                {genre === undefined && (
                                   <Check className="size-4" />
                                 )}
                               </Button>
 
-                              {Object.values(genreList).map((genre) => {
+                              {[...genreList.entries()].map(([name, color]) => {
                                 return (
                                   <Button
-                                    key={genre.id}
+                                    key={name}
                                     variant={"drawer"}
-                                    value={genre.id.toString()}
+                                    value={name}
                                     className="baseFlex w-full !justify-between gap-2"
                                     onClick={() =>
                                       setLocalFilters((prev) => ({
                                         ...prev,
-                                        genreId: genre.id,
+                                        genre: name,
                                       }))
                                     }
                                   >
                                     <div className="baseFlex gap-2">
                                       <div
                                         style={{
-                                          backgroundColor: genre.color,
+                                          backgroundColor: color,
                                           boxShadow:
                                             "0 1px 1px hsla(336, 84%, 17%, 0.9)",
                                         }}
                                         className="h-3 w-3 rounded-full"
                                       ></div>
 
-                                      {genre.name}
+                                      {name}
                                     </div>
 
-                                    {genreId === genre.id && (
+                                    {genre === name && (
                                       <Check className="size-4" />
                                     )}
                                   </Button>
@@ -1547,7 +1541,7 @@ function SearchResults({
                             <div className="px-4">Difficulty</div>
                           )}
 
-                          {!query.genreId && <div className="px-4">Genre</div>}
+                          {!query.genre && <div className="px-4">Genre</div>}
 
                           <div className="px-4">Date</div>
 
@@ -1868,7 +1862,7 @@ function SearchResults({
                           {layoutType.value === "grid" && (
                             <GridTabView
                               searchQuery={searchQuery}
-                              genreId={genreId}
+                              genre={genre}
                               tuning={tuning}
                               capo={capo}
                               difficulty={difficulty}
@@ -1883,7 +1877,7 @@ function SearchResults({
                           {layoutType.value === "table" && (
                             <TableTabView
                               searchQuery={searchQuery}
-                              genreId={genreId}
+                              genre={genre}
                               tuning={tuning}
                               capo={capo}
                               difficulty={difficulty}

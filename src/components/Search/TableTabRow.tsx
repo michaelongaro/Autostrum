@@ -185,10 +185,10 @@ function TableTabRow({
         >
           <Badge
             style={{
-              backgroundColor: genreList[minimalTab.genreId]?.color,
+              backgroundColor: genreList.get(minimalTab.genre),
             }}
           >
-            {genreList[minimalTab.genreId]?.name}
+            {minimalTab.genre}
           </Badge>
         </motion.div>
       </TableCell>

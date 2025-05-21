@@ -1,41 +1,20 @@
-import type { Genre } from "@prisma/client";
-
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
-export interface GenreWithTotalTabNumbers extends Genre {
-  totalTabs: number;
-}
-
 export const genreRouter = createTRPCRouter({
-  getAll: publicProcedure.query(({ ctx }) => {
-    return ctx.prisma.genre.findMany({
-      orderBy: {
-        id: "asc",
-      },
-    });
-  }),
-
-  getAllWithTotalTabNumbers: publicProcedure.query(async ({ ctx }) => {
-    const genres = await ctx.prisma.genre.findMany({
-      orderBy: {
-        id: "asc",
-      },
-      include: {
-        _count: {
-          select: {
-            tabs: true,
-          },
-        },
+  getAllWithTotalTabCount: publicProcedure.query(async ({ ctx }) => {
+    const genreCounts = await ctx.prisma.tab.groupBy({
+      by: ["genre"],
+      _count: {
+        _all: true,
       },
     });
 
-    const genresWithTotalTabNumbers: GenreWithTotalTabNumbers[] = genres.map(
-      (genre) => ({
-        ...genre,
-        totalTabs: genre._count.tabs,
-      })
-    );
+    const genreMap = new Map<string, number>();
 
-    return genresWithTotalTabNumbers;
+    for (const group of genreCounts) {
+      genreMap.set(group.genre, group._count._all);
+    }
+
+    return genreMap;
   }),
 });
