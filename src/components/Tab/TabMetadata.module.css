@@ -45,6 +45,10 @@
       "description description description description description description tempo tempo key key";
     place-items: start;
   }
+
+  .description {
+    padding-right: 1rem;
+  }
 }
 
 @media (min-width: 1300px) {

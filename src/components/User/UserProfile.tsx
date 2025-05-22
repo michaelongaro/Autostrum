@@ -64,8 +64,6 @@ function UserProfile({ uniqueKey }: UserProfile) {
     };
   }, [mobileHeaderCarouselApi]);
 
-  console.log(userMetadata);
-
   return (
     <motion.div
       key={uniqueKey}

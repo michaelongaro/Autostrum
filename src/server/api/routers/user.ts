@@ -8,6 +8,8 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { env } from "~/env";
+import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
+import { tuningNotesToName } from "~/utils/tunings";
 
 export interface UserMetadata extends User {
   bookmarkedTabIds: number[];
@@ -201,7 +203,7 @@ export const userRouter = createTRPCRouter({
         bookmarksCount: tab._count.bookmarks,
       }));
 
-      const miscStats = await ctx.prisma.tab.findMany({
+      const rawMiscStats = await ctx.prisma.tab.findMany({
         where: {
           createdByUserId: userId,
         },
@@ -218,61 +220,215 @@ export const userRouter = createTRPCRouter({
         },
       });
 
-      const genres = {
-        1: 0,
-        2: 0,
-        3: 0,
-        4: 0,
-        5: 0,
-        6: 0,
-        7: 0,
-        8: 0,
-        9: 0,
-        10: 0,
-        11: 0,
-        12: 0,
+      const topFiveMostViewedTabs = new Map<
+        string,
+        { id: number; title: string; value: string }
+      >([
+        ["1st", { id: 0, title: "", value: "" }],
+        ["2nd", { id: 0, title: "", value: "" }],
+        ["3rd", { id: 0, title: "", value: "" }],
+        ["4th", { id: 0, title: "", value: "" }],
+        ["5th", { id: 0, title: "", value: "" }],
+      ]);
+      const topFiveMostBookmarkedTabs = new Map<
+        string,
+        { id: number; title: string; value: string }
+      >([
+        ["1st", { id: 0, title: "", value: "" }],
+        ["2nd", { id: 0, title: "", value: "" }],
+        ["3rd", { id: 0, title: "", value: "" }],
+        ["4th", { id: 0, title: "", value: "" }],
+        ["5th", { id: 0, title: "", value: "" }],
+      ]);
+      const topFiveMostRatedTabs = new Map<
+        string,
+        { id: number; title: string; value: string }
+      >([
+        ["1st", { id: 0, title: "", value: "" }],
+        ["2nd", { id: 0, title: "", value: "" }],
+        ["3rd", { id: 0, title: "", value: "" }],
+        ["4th", { id: 0, title: "", value: "" }],
+        ["5th", { id: 0, title: "", value: "" }],
+      ]);
+
+      // add the top 5 most viewed tabs
+      for (let i = 0; i < topViewedTabs.length; i++) {
+        const tab = topViewedTabs[i];
+
+        if (!tab) continue;
+
+        topFiveMostViewedTabs.set(getOrdinalSuffix(i + 1), {
+          id: tab.id,
+          title: tab.title,
+          value: `${tab.pageViews}`,
+        });
+      }
+
+      // add the top 5 most bookmarked tabs
+      for (let i = 0; i < topBookmarkedTabs.length; i++) {
+        const tab = topBookmarkedTabs[i];
+
+        if (!tab) continue;
+
+        topFiveMostBookmarkedTabs.set(getOrdinalSuffix(i + 1), {
+          id: tab.id,
+          title: tab.title,
+          value: `${tab.bookmarksCount}`,
+        });
+      }
+
+      // add the top 5 most rated tabs
+      for (let i = 0; i < topRatedTabs.length; i++) {
+        const tab = topRatedTabs[i];
+
+        if (!tab) continue;
+
+        topFiveMostRatedTabs.set(getOrdinalSuffix(i + 1), {
+          id: tab.id,
+          title: tab.title,
+          value: `${tab.averageRating} (${tab.ratingsCount})`,
+        });
+      }
+
+      // Key is the ordinal number of the stat (1st, 2nd, 3rd, etc.)
+      const topFiveStats: Map<
+        string,
+        {
+          id: number;
+          title: string;
+          value: string;
+        }
+      >[] = [
+        topFiveMostViewedTabs,
+        topFiveMostBookmarkedTabs,
+        topFiveMostRatedTabs,
+      ];
+
+      const miscStats: Map<string, number>[] = [];
+
+      const genres = new Map<string, number>([
+        ["Rock", 0],
+        ["Indie", 0],
+        ["Jazz", 0],
+        ["Pop", 0],
+        ["Folk", 0],
+        ["Country", 0],
+        ["Blues", 0],
+        ["Hip-Hop", 0],
+        ["Electronic", 0],
+        ["Classical", 0],
+        ["Metal", 0],
+        ["Misc.", 0],
+      ]);
+
+      const tunings = new Map<string, number>([
+        ["Standard", 0],
+        ["Open A", 0],
+        ["Open B", 0],
+        ["Open C", 0],
+        ["Open D", 0],
+        ["Open E", 0],
+        ["Open F", 0],
+        ["Open G", 0],
+        ["Drop A", 0],
+        ["Drop A#", 0],
+        ["Drop B", 0],
+        ["Drop C", 0],
+        ["Drop C#", 0],
+        ["Drop D", 0],
+        ["Drop D#", 0],
+        ["Drop E", 0],
+        ["Drop F", 0],
+        ["Drop F#", 0],
+        ["Drop G", 0],
+        ["Drop G#", 0],
+        ["Math Rock", 0],
+        ["Rondeña", 0],
+        ["Irish", 0],
+        ["custom", 0],
+      ]);
+
+      const difficulties = new Map<string, number>([
+        ["Beginner", 0],
+        ["Easy", 0],
+        ["Intermediate", 0],
+        ["Advanced", 0],
+        ["Expert", 0],
+      ]);
+
+      const capos = new Map<string, number>([
+        ["None", 0],
+        ["1st fret", 0],
+        ["2nd fret", 0],
+        ["3rd fret", 0],
+        ["4th fret", 0],
+        ["5th fret", 0],
+        ["6th fret", 0],
+        ["7th fret", 0],
+        ["8th fret", 0],
+        ["9th fret", 0],
+        ["10th fret", 0],
+        ["11th fret", 0],
+        ["12th fret", 0],
+      ]);
+
+      const artists = new Map<string, number>();
+
+      const difficultyIntToString = {
+        0: "Beginner",
+        1: "Easy",
+        2: "Intermediate",
+        3: "Advanced",
+        4: "Expert",
       };
 
-      const tunings = {
-        "e2 a2 d3 g3 b3 e4": 0,
-        "e2 a2 c#3 e3 a3 e4": 0,
-        "b1 f#2 b2 f#3 b3 d#4": 0,
-        "c2 g2 c3 g3 c4 e4": 0,
-        "d2 a2 d3 f#3 a3 d4": 0,
-        "e2 b2 e3 g#3 b3 e4": 0,
-        "c2 f2 c3 f3 a3 f4": 0,
-        "d2 g2 d3 g3 b3 d4": 0,
-        "a1 e2 a2 d3 f#3 b3": 0,
-        "a#1 f2 a#2 d#3 g3 c4": 0,
-        "b1 f#2 b2 e3 g#3 c#4": 0,
-        "c2 g2 c3 f3 a3 d4": 0,
-        "c#2 g#2 c#3 f#3 a#3 d#4": 0,
-        "d2 a2 d3 g3 b3 e4": 0,
-        "d#2 a#2 d#3 g#3 c4 f4": 0,
-        "e2 b2 e3 a3 c#4 f#4": 0,
-        "f2 c3 f3 a#3 d4 g4": 0,
-        "f#2 c#3 f#3 b3 d#4 g#4": 0,
-        "g1 d2 g2 c3 e3 a3": 0,
-        "g#1 d#2 g#2 c#3 f3 a#3": 0,
-        "f2 a2 c3 g3 c4 e4": 0,
-        "d2 a2 d3 f#3 b3 e4": 0,
-        "d2 a2 d3 g3 a3 d4": 0,
-        custom: 0,
-      };
+      // iterate through the rawMiscStats and increment the count for each row
+      for (const stat of rawMiscStats) {
+        const genreCount = genres.get(stat.genre);
+        if (genreCount !== undefined) {
+          genres.set(stat.genre, genreCount + 1);
+        }
 
-      const difficulties = {
-        1: 0,
-        2: 0,
-        3: 0,
-        4: 0,
-        5: 0,
-      };
+        const tuningNotesKey = stat.tuning as keyof typeof tuningNotesToName;
+        const friendlyTuningName = tuningNotesToName[tuningNotesKey];
+
+        const tuningCount = tunings.get(friendlyTuningName);
+        if (tuningCount !== undefined) {
+          tunings.set(friendlyTuningName, tuningCount + 1);
+        }
+
+        const difficulty =
+          stat.difficulty as keyof typeof difficultyIntToString;
+        const difficultyCount = difficulties.get(
+          difficultyIntToString[difficulty],
+        );
+        if (difficultyCount !== undefined) {
+          difficulties.set(
+            difficultyIntToString[difficulty],
+            difficultyCount + 1,
+          );
+        }
+
+        const ordinalCapo =
+          stat.capo === 0 ? "None" : getOrdinalSuffix(stat.capo + 1);
+        const capoCount = capos.get(ordinalCapo);
+        if (capoCount !== undefined) {
+          capos.set(ordinalCapo, capoCount + 1);
+        }
+
+        const artistName = stat.artist ? stat.artist.name : user.username;
+        const artistCount = artists.get(artistName);
+        if (artistCount !== undefined) {
+          artists.set(artistName, artistCount + 1);
+        } else {
+          artists.set(artistName, 1);
+        }
+      }
 
       return {
         ...user,
-        topViewedTabs,
-        topBookmarkedTabs,
-        topRatedTabs,
+        topFiveStats,
+        miscStats,
       };
     }),
 
