@@ -150,7 +150,7 @@ function TableTabView({
                 <col className="w-[250px] sm:!w-[314.53px]" />
 
                 {/* Artist */}
-                {!query.artist &&
+                {!asPath.includes("/artist") &&
                   !query.user &&
                   !asPath.includes("/profile/tabs") && (
                     <col className="w-[200px]" />

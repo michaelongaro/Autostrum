@@ -15,6 +15,7 @@ import formatDate from "~/utils/formatDate";
 import { genreList } from "~/utils/genreList";
 import BookmarkToggle from "~/components/ui/BookmarkToggle";
 import { MdModeEditOutline } from "react-icons/md";
+import Verified from "~/components/ui/icons/Verified";
 
 const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 
@@ -82,60 +83,50 @@ function TableTabRow({
       </TableCell>
 
       {/* Artist */}
-      {!query.artist && !query.user && !asPath.includes("/profile/tabs") && (
-        <TableCell>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.25 }}
-            className="w-full"
-          >
-            {minimalTab.artist || minimalTab.createdBy ? (
-              <Button variant={"link"} asChild>
-                <Link
-                  prefetch={false}
-                  href={
-                    minimalTab.artist
-                      ? `/artist/${minimalTab.artist.id}/${encodeURIComponent(minimalTab.artist.name)}`
-                      : minimalTab.createdBy
-                        ? `/user/${minimalTab.createdBy.username}`
-                        : ""
-                  }
-                  className="!h-6 !p-0"
-                >
-                  {minimalTab.artist ? (
-                    <div className="baseFlex gap-1">
-                      {minimalTab.artist.isVerified && (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                          aria-hidden="true"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm2.293-11.293a1 1 0 00-1.414 0L9.5 9.086l-.879-.879a1 1 0 10-1.414 1.414l1.793 1.793a1 1 0 001.414 0l3-3z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      )}
-                      <span className="min-w-0 max-w-[165px] truncate">
-                        {minimalTab.artist.name}
-                      </span>
-                    </div>
-                  ) : (
-                    (minimalTab.createdBy?.username ?? "Anonymous")
-                  )}
-                </Link>
-              </Button>
-            ) : (
-              <span className="text-sm italic">Anonymous</span>
-            )}
-          </motion.div>
-        </TableCell>
-      )}
+      {!asPath.includes("/artist") &&
+        !query.user &&
+        !asPath.includes("/profile/tabs") && (
+          <TableCell>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.25 }}
+              className="w-full"
+            >
+              {minimalTab.artist || minimalTab.createdBy ? (
+                <Button variant={"link"} asChild>
+                  <Link
+                    prefetch={false}
+                    href={
+                      minimalTab.artist
+                        ? `/artist/${encodeURIComponent(minimalTab.artist.name)}/${minimalTab.artist.id}`
+                        : minimalTab.createdBy
+                          ? `/user/${minimalTab.createdBy.username}`
+                          : ""
+                    }
+                    className="!h-6 !p-0"
+                  >
+                    {minimalTab.artist ? (
+                      <div className="baseFlex h-full gap-1">
+                        {minimalTab.artist.isVerified && (
+                          <Verified className="size-4" />
+                        )}
+                        <span className="min-w-0 max-w-[165px] truncate">
+                          {minimalTab.artist.name}
+                        </span>
+                      </div>
+                    ) : (
+                      (minimalTab.createdBy?.username ?? "Anonymous")
+                    )}
+                  </Link>
+                </Button>
+              ) : (
+                <span className="text-sm italic">Anonymous</span>
+              )}
+            </motion.div>
+          </TableCell>
+        )}
 
       {/* Rating */}
       <TableCell>

@@ -1529,7 +1529,7 @@ function SearchResults({
 
                           <div className="px-4">Title</div>
 
-                          {!query.artist &&
+                          {!asPath.includes("/artist") &&
                             !query.user &&
                             !asPath.includes("/profile/tabs") && (
                               <div className="px-4">Artist</div>
@@ -1696,7 +1696,7 @@ function SearchResults({
 
                           <div className="px-4">Title</div>
 
-                          {!query.artist &&
+                          {!asPath.includes("/artist") &&
                             !query.user &&
                             !asPath.includes("/profile/tabs") && (
                               <div className="px-4">Artist</div>

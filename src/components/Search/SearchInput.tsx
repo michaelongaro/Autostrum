@@ -14,6 +14,7 @@ import { IoIosMusicalNotes } from "react-icons/io";
 import { AiOutlineUser } from "react-icons/ai";
 import { Separator } from "~/components/ui/separator";
 import { useTabStore } from "~/stores/TabStore";
+import Verified from "~/components/ui/icons/Verified";
 
 interface SearchInput {
   setShowMobileSearch?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -447,19 +448,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                 {song.artist.name && (
                                   <div className="baseFlex ml-4 gap-2 truncate text-sm opacity-50">
                                     {song.artist.isVerified && (
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-4 w-4"
-                                        viewBox="0 0 20 20"
-                                        fill="currentColor"
-                                        aria-hidden="true"
-                                      >
-                                        <path
-                                          fillRule="evenodd"
-                                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm2.293-11.293a1 1 0 00-1.414 0L9.5 9.086l-.879-.879a1 1 0 10-1.414 1.414l1.793 1.793a1 1 0 001.414 0l3-3z"
-                                          clipRule="evenodd"
-                                        />
-                                      </svg>
+                                      <Verified className="size-5" />
                                     )}
                                     {song.artist.name}
                                   </div>
@@ -537,19 +526,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                 }}
                               >
                                 {artist.isVerified && (
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-4 w-4"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                    aria-hidden="true"
-                                  >
-                                    <path
-                                      fillRule="evenodd"
-                                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm2.293-11.293a1 1 0 00-1.414 0L9.5 9.086l-.879-.879a1 1 0 10-1.414 1.414l1.793 1.793a1 1 0 001.414 0l3-3z"
-                                      clipRule="evenodd"
-                                    />
-                                  </svg>
+                                  <Verified className="size-5" />
                                 )}
 
                                 <p className="max-w-[100%] truncate">
@@ -768,19 +745,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                               }}
                             >
                               {artist.isVerified && (
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-4 w-4"
-                                  viewBox="0 0 20 20"
-                                  fill="currentColor"
-                                  aria-hidden="true"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm2.293-11.293a1 1 0 00-1.414 0L9.5 9.086l-.879-.879a1 1 0 10-1.414 1.414l1.793 1.793a1 1 0 001.414 0l3-3z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
+                                <Verified className="size-5" />
                               )}
 
                               <p className="max-w-[100%] truncate">
