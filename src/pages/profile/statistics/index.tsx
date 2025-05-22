@@ -145,7 +145,7 @@ function UserStatistics() {
 
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex w-full !justify-start md:!hidden">
-          <span className="ml-8 text-3xl font-semibold tracking-tight !text-pink-50 md:text-4xl">
+          <span className="ml-4 text-3xl font-semibold tracking-tight !text-pink-50 md:text-4xl">
             Statistics
           </span>
         </div>
@@ -224,7 +224,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-5 w-8 rounded-md bg-pink-300"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-pink-300 lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -255,7 +255,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-5 w-8 rounded-md bg-pink-300"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-pink-300 lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -286,7 +286,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-5 w-8 rounded-md bg-pink-300"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-pink-300 lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -317,7 +317,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-5 w-8 rounded-md bg-pink-300"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-pink-300 lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -331,7 +331,7 @@ function UserStatistics() {
                   <div className="baseFlex gap-2">
                     <IoBookmark className="size-5 text-pink-50 lg:size-6" />
                     <span className="text-xl font-medium text-pink-50 lg:text-2xl">
-                      Total bookmarks received
+                      Total bookmarks
                     </span>
                   </div>
                   {currentUser ? (
@@ -348,7 +348,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-5 w-8 rounded-md bg-pink-300"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-pink-300 lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -383,7 +383,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-9 h-5 w-8 rounded-md bg-pink-300"
+                      className="pulseAnimation ml-9 h-6 w-28 rounded-md bg-pink-300 lg:h-7 lg:w-40"
                     ></motion.div>
                   )}
                 </div>
