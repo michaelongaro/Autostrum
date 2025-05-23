@@ -244,9 +244,9 @@ function GridTabCard({
                       prefetch={false}
                       href={
                         minimalTab.artist
-                          ? `/artist/${encodeURIComponent(minimalTab.artist.name)}/${minimalTab.artist.id}`
+                          ? `/artist/${encodeURIComponent(minimalTab.artist.name)}/${minimalTab.artist.id}/filters`
                           : minimalTab.createdBy
-                            ? `/user/${minimalTab.createdBy.username}`
+                            ? `/user/${minimalTab.createdBy.username}/filters`
                             : ""
                       }
                       className="!h-6 !p-0"

@@ -41,6 +41,7 @@ import GridTabView from "./GridTabView";
 import TableTabView from "./TableTabView";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import Link from "next/link";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 const opacityVariants = {
   expanded: {
@@ -252,6 +253,8 @@ function SearchResults({
     searchResultsCountIsLoading,
   ]);
 
+  const isAboveSmViewport = useViewportWidthBreakpoint(640);
+
   const {
     ref: stickyStylesSentinelRef,
     inView: stickyHeaderNotActive, // TODO: find a better name for this
@@ -260,6 +263,47 @@ function SearchResults({
     initialInView: true,
     rootMargin: "-64px", // height of the sticky header
   });
+
+  function getDynamicGridTemplateColumns() {
+    let gridTemplateColumns = "";
+
+    // Direct /edit page button
+    if (asPath.includes("/profile/tabs")) {
+      gridTemplateColumns += isAboveSmViewport ? "90.95px " : "72px ";
+    }
+
+    // Title
+    gridTemplateColumns += isAboveSmViewport ? "314.53px " : "250px ";
+
+    // Artist
+    if (!asPath.includes("/artist")) {
+      gridTemplateColumns += "200px ";
+    }
+
+    // Rating / Difficulty / Genre / Date
+    gridTemplateColumns += "repeat(4, ";
+
+    if (isAboveSmViewport) {
+      gridTemplateColumns += asPath.includes("/profile/tabs")
+        ? "115.89px"
+        : asPath.includes("/artist")
+          ? "188.63px"
+          : "138.63px";
+    } else {
+      gridTemplateColumns += asPath.includes("/profile/tabs")
+        ? "141.5px"
+        : asPath.includes("/artist")
+          ? "209.5px"
+          : "159.5px";
+    }
+
+    gridTemplateColumns += ") ";
+
+    // Bookmark toggle
+    gridTemplateColumns += isAboveSmViewport ? "90.95px" : "72px";
+
+    return gridTemplateColumns;
+  }
 
   // fyi: all param change handlers below will remove the param if it is getting set
   // to the "default" values that we have defined in the useGetUrlParamFilters hook
@@ -700,14 +744,888 @@ function SearchResults({
         ></div>
         {viewportLabel.includes("mobile") ? (
           // mobile: # of results / filter drawer trigger
-          <div
-            className={`baseVertFlex sticky top-16 z-10 w-full !justify-between gap-4 border-b bg-pink-800 transition-all tablet:!hidden ${layoutType.value === "table" ? "pb-1 pt-2" : "py-3"}`}
+          <motion.div
+            initial={false}
+            animate={{
+              paddingBottom:
+                layoutType.value === "table" ? "0.25rem" : "0.75rem",
+            }}
+            transition={{ duration: 0.5, ease: "linear" }}
+            className="baseVertFlex sticky top-16 z-10 w-full !justify-between border-b bg-pink-800 pt-3 tablet:!hidden"
           >
             {/* scroll area + only show on hover for BOTH the header + the table scrollbars */}
+            <AnimatePresence initial={false}>
+              <div className="baseFlex w-full !justify-between gap-2 px-4">
+                {/* # of results */}
+                <AnimatePresence mode="popLayout">
+                  {searchResultsCountIsLoading ? (
+                    <motion.div
+                      key={"searchResultsCountSkeleton"}
+                      variants={opacityVariants}
+                      initial="closed"
+                      animate="expanded"
+                      exit="closed"
+                    >
+                      <div className="pulseAnimation h-6 w-36 rounded-md bg-pink-300"></div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key={"searchResultsCount"}
+                      variants={opacityVariants}
+                      initial="closed"
+                      animate="expanded"
+                      exit="closed"
+                    >
+                      {`${searchResultsCount} result${
+                        searchResultsCount === 1 ? "" : "s"
+                      } found`}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-            <div className="baseFlex w-full !justify-between gap-2 px-4">
-              {/* # of results */}
-              <AnimatePresence mode="popLayout">
+                <div className="baseFlex gap-2">
+                  {/* layout type selector */}
+                  <div className="baseFlex gap-3">
+                    <Label>Layout</Label>
+                    <div className="baseFlex rounded-md border">
+                      <Button
+                        variant={"toggledOff"}
+                        size="sm"
+                        disabled={disableFiltersAndLayoutToggle}
+                        onClick={() => {
+                          layoutType.set("grid");
+                        }}
+                        className="baseFlex relative gap-2 border-none"
+                      >
+                        {layoutType.value === "grid" && (
+                          <motion.span
+                            layoutId="animatedToggleIndicator"
+                            className="absolute inset-0 !z-[-1] rounded-sm bg-pink-500"
+                            transition={{
+                              type: "spring",
+                              bounce: 0.2,
+                              duration: 0.6,
+                            }}
+                          />
+                        )}
+                        <BsGridFill className="size-4" />
+                      </Button>
+                      <Button
+                        variant={"toggledOff"}
+                        size="sm"
+                        disabled={disableFiltersAndLayoutToggle}
+                        onClick={() => {
+                          layoutType.set("table");
+                        }}
+                        className="baseFlex relative gap-2 border-none"
+                      >
+                        {layoutType.value === "table" && (
+                          <motion.span
+                            layoutId="animatedToggleIndicator"
+                            className="absolute inset-0 !z-[-1] rounded-sm bg-pink-500"
+                            transition={{
+                              type: "spring",
+                              bounce: 0.2,
+                              duration: 0.6,
+                            }}
+                          />
+                        )}
+                        <CiViewTable className="size-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* filter drawer trigger */}
+                  <Drawer.Root
+                    open={drawerOpen}
+                    onOpenChange={(open) => {
+                      setDrawerOpen(open);
+                      setMobileHeaderModal({
+                        showing: open,
+                        zIndex: open ? 49 : 48,
+                      });
+                    }}
+                    onClose={() => {
+                      setDrawerView("Search filters");
+                    }}
+                  >
+                    <Drawer.Trigger asChild>
+                      <Button variant={"outline"} className="baseFlex w-9">
+                        <LuFilter className="size-4 shrink-0" />
+                      </Button>
+                    </Drawer.Trigger>
+                    <Drawer.Portal>
+                      <Drawer.Content
+                        style={{
+                          zIndex: asPath.includes("/preferences") ? 60 : 50,
+                          textShadow: "none",
+                        }}
+                        className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-4 text-pink-950"
+                      >
+                        <div className="mx-auto mb-4 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
+
+                        <div className="baseFlex w-full !justify-between px-3">
+                          <AnimatePresence mode="popLayout">
+                            {drawerView === "Search filters" ? (
+                              <motion.div
+                                key={"resetFiltersButton"}
+                                variants={opacityVariants}
+                                initial="closed"
+                                animate="expanded"
+                                exit="closed"
+                                transition={{ duration: 0.25 }}
+                                className="w-[56.5px]"
+                              >
+                                <Button
+                                  variant="drawerNavigation"
+                                  disabled={disableResetFiltersButton()}
+                                  onClick={() => resetSearchFilters()}
+                                  className="h-5 !p-0 font-normal"
+                                >
+                                  Reset
+                                </Button>
+                              </motion.div>
+                            ) : (
+                              <motion.div
+                                key={"returnToAllFiltersButton"}
+                                variants={opacityVariants}
+                                initial="closed"
+                                animate="expanded"
+                                exit="closed"
+                                transition={{ duration: 0.25 }}
+                                className="baseFlex -ml-1 !justify-start"
+                              >
+                                <Button
+                                  variant="drawerNavigation"
+                                  onClick={() =>
+                                    setDrawerView("Search filters")
+                                  }
+                                  className="h-5 !p-0 font-normal"
+                                >
+                                  <GoChevronRight className="size-5 rotate-180" />
+                                  Filters
+                                </Button>
+                              </motion.div>
+                            )}
+
+                            {/* drawer title */}
+                            {drawerView === "Search filters" ? (
+                              <motion.div
+                                key={"baseDrawerTitle"}
+                                variants={opacityVariants}
+                                initial="closed"
+                                animate="expanded"
+                                exit="closed"
+                                transition={{ duration: 0.25 }}
+                                className="baseFlex gap-2 font-medium"
+                              >
+                                <LuFilter className="size-4" />
+                                <span>Search filters</span>
+                              </motion.div>
+                            ) : (
+                              <motion.div
+                                key={"drawerTitle"}
+                                variants={opacityVariants}
+                                initial="closed"
+                                animate="expanded"
+                                exit="closed"
+                                transition={{ duration: 0.25 }}
+                                className="baseFlex gap-2 font-medium"
+                              >
+                                <span>{drawerView}</span>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+
+                          <div className="baseFlex w-[56.5px] !justify-end">
+                            <Button
+                              variant="drawerNavigation"
+                              disabled={disableApplyFiltersButton()}
+                              onClick={() => applyFilters()}
+                            >
+                              Apply
+                            </Button>
+                          </div>
+                        </div>
+
+                        <Separator className="mt-2 w-full bg-stone-600" />
+
+                        {/* Main body content */}
+                        <div className="baseVertFlex h-[391px] w-full !justify-start overflow-y-auto">
+                          <AnimatePresence mode="popLayout" initial={false}>
+                            {/* All filters */}
+                            {drawerView === "Search filters" && (
+                              <motion.div
+                                key={"allFilters"}
+                                variants={baseDrawerVariants}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                transition={{ duration: 0.25 }}
+                                className="baseVertFlex w-full"
+                              >
+                                <Button
+                                  variant={"drawer"}
+                                  disabled={disableFiltersAndLayoutToggle}
+                                  onClick={() => setDrawerView("Genre")}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                >
+                                  <div className="baseFlex">
+                                    <span className="w-[75px] text-left font-semibold">
+                                      Genre
+                                    </span>
+                                    <div className="baseFlex gap-2">
+                                      <div
+                                        style={{
+                                          backgroundColor: genre
+                                            ? genreList.get(genre)
+                                            : "gray",
+                                          boxShadow:
+                                            "0 1px 1px hsla(336, 84%, 17%, 0.9)",
+                                        }}
+                                        className="h-3 w-3 rounded-full"
+                                      ></div>
+                                      {genre ? genre : "All genres"}
+                                    </div>
+                                  </div>
+
+                                  <GoChevronRight className="size-4" />
+                                </Button>
+
+                                <Button
+                                  variant={"drawer"}
+                                  disabled={disableFiltersAndLayoutToggle}
+                                  onClick={() => setDrawerView("Tuning")}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                >
+                                  <div className="baseFlex">
+                                    <span className="w-[75px] text-left font-semibold">
+                                      Tuning
+                                    </span>
+                                    <div className="baseFlex gap-2">
+                                      {tuning ? (
+                                        tuning === "custom" ? (
+                                          "Custom"
+                                        ) : (
+                                          <PrettyTuning
+                                            tuning={tuning}
+                                            displayWithFlex={true}
+                                          />
+                                        )
+                                      ) : (
+                                        "All tunings"
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <GoChevronRight className="size-4" />
+                                </Button>
+
+                                <Button
+                                  variant={"drawer"}
+                                  disabled={disableFiltersAndLayoutToggle}
+                                  onClick={() => setDrawerView("Capo")}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                >
+                                  <div className="baseFlex">
+                                    <span className="w-[75px] text-left font-semibold">
+                                      Capo
+                                    </span>
+                                    <div className="baseFlex gap-2">
+                                      {capo === true
+                                        ? "With capo"
+                                        : capo === false
+                                          ? "Without capo"
+                                          : "Capo + Non-capo"}
+                                    </div>
+                                  </div>
+
+                                  <GoChevronRight className="size-4" />
+                                </Button>
+
+                                <Button
+                                  variant={"drawer"}
+                                  disabled={disableFiltersAndLayoutToggle}
+                                  onClick={() => setDrawerView("Difficulty")}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                >
+                                  <div className="baseFlex">
+                                    <span className="w-[75px] text-left font-semibold">
+                                      Difficulty
+                                    </span>
+                                    <div className="baseFlex gap-2">
+                                      {difficulty ? (
+                                        <div className="baseFlex gap-2">
+                                          <DifficultyBars
+                                            difficulty={difficulty ?? 5}
+                                          />
+                                          {DIFFICULTIES[(difficulty ?? 5) - 1]}
+                                        </div>
+                                      ) : (
+                                        "All difficulties"
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <GoChevronRight className="size-4" />
+                                </Button>
+
+                                <Button
+                                  variant={"drawer"}
+                                  disabled={disableFiltersAndLayoutToggle}
+                                  onClick={() => setDrawerView("Sort by")}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                >
+                                  <div className="baseFlex">
+                                    <span className="w-[75px] text-left font-semibold">
+                                      Sort by
+                                    </span>
+                                    <div className="baseFlex gap-2">
+                                      {sortBy === "relevance" && searchQuery
+                                        ? "Relevance"
+                                        : sortBy === "newest"
+                                          ? "Newest"
+                                          : sortBy === "oldest"
+                                            ? "Oldest"
+                                            : sortBy === "mostPopular"
+                                              ? "Most popular"
+                                              : sortBy === "leastPopular"
+                                                ? "Least popular"
+                                                : ""}
+                                    </div>
+                                  </div>
+
+                                  <GoChevronRight className="size-4" />
+                                </Button>
+                              </motion.div>
+                            )}
+
+                            {/* Genre */}
+                            {drawerView === "Genre" && (
+                              <motion.div
+                                key={"genreDrawer"}
+                                variants={individualDrawerVariants}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                transition={{ duration: 0.25 }}
+                                className="baseVertFlex w-full !justify-start"
+                              >
+                                <Button
+                                  variant={"drawer"}
+                                  value={"allGenres"}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                  onClick={() => {
+                                    setLocalFilters((prev) => ({
+                                      ...prev,
+                                      genre: undefined,
+                                    }));
+                                  }}
+                                >
+                                  <div className="baseFlex gap-2">
+                                    <div
+                                      style={{
+                                        backgroundColor: "gray",
+                                        boxShadow:
+                                          "0 1px 1px hsla(336, 84%, 17%, 0.9)",
+                                      }}
+                                      className="h-3 w-3 rounded-full"
+                                    ></div>
+                                    All genres
+                                  </div>
+
+                                  {genre === undefined && (
+                                    <Check className="size-4" />
+                                  )}
+                                </Button>
+
+                                {[...genreList.entries()].map(
+                                  ([name, color]) => {
+                                    return (
+                                      <Button
+                                        key={name}
+                                        variant={"drawer"}
+                                        value={name}
+                                        className="baseFlex w-full !justify-between gap-2"
+                                        onClick={() =>
+                                          setLocalFilters((prev) => ({
+                                            ...prev,
+                                            genre: name,
+                                          }))
+                                        }
+                                      >
+                                        <div className="baseFlex gap-2">
+                                          <div
+                                            style={{
+                                              backgroundColor: color,
+                                              boxShadow:
+                                                "0 1px 1px hsla(336, 84%, 17%, 0.9)",
+                                            }}
+                                            className="h-3 w-3 rounded-full"
+                                          ></div>
+
+                                          {name}
+                                        </div>
+
+                                        {genre === name && (
+                                          <Check className="size-4" />
+                                        )}
+                                      </Button>
+                                    );
+                                  },
+                                )}
+                              </motion.div>
+                            )}
+
+                            {/* Tuning */}
+                            {drawerView === "Tuning" && (
+                              <motion.div
+                                key={"tuningDrawer"}
+                                variants={individualDrawerVariants}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                transition={{ duration: 0.25 }}
+                                className="baseVertFlex w-full !justify-start"
+                              >
+                                <Button
+                                  variant={"drawer"}
+                                  value={"all"}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                  onClick={() => {
+                                    setLocalFilters((prev) => ({
+                                      ...prev,
+                                      tuning: undefined,
+                                    }));
+                                  }}
+                                >
+                                  <div className="baseFlex gap-2">
+                                    All tunings
+                                  </div>
+
+                                  {tuning === undefined && (
+                                    <Check className="size-4" />
+                                  )}
+                                </Button>
+
+                                {tunings.map((tuningObj) => (
+                                  <Button
+                                    key={tuningObj.simpleNotes}
+                                    variant={"drawer"}
+                                    value={tuningObj.notes.toLowerCase()}
+                                    onClick={() =>
+                                      setLocalFilters((prev) => ({
+                                        ...prev,
+                                        tuning: tuningObj.notes.toLowerCase(),
+                                      }))
+                                    }
+                                    className="baseFlex w-full !justify-between gap-2"
+                                  >
+                                    <div className="baseFlex w-[235px] !justify-between">
+                                      <span className="font-medium">
+                                        {tuningObj.name}
+                                      </span>
+                                      <PrettyTuning
+                                        tuning={tuningObj.simpleNotes}
+                                        width="w-36"
+                                      />
+                                    </div>
+
+                                    {tuning === tuningObj.notes && (
+                                      <Check className="size-4" />
+                                    )}
+                                  </Button>
+                                ))}
+
+                                <Button
+                                  variant={"drawer"}
+                                  value={"custom"}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                  onClick={() => {
+                                    setLocalFilters((prev) => ({
+                                      ...prev,
+                                      tuning: "custom",
+                                    }));
+                                  }}
+                                >
+                                  <div className="baseFlex gap-2">Custom</div>
+
+                                  {tuning === "custom" && (
+                                    <Check className="size-4" />
+                                  )}
+                                </Button>
+                              </motion.div>
+                            )}
+
+                            {/* Capo */}
+                            {drawerView === "Capo" && (
+                              <motion.div
+                                key={"capoDrawer"}
+                                variants={individualDrawerVariants}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                transition={{ duration: 0.25 }}
+                                className="baseVertFlex w-full !justify-start"
+                              >
+                                <Button
+                                  variant={"drawer"}
+                                  value={"all"}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                  onClick={() => {
+                                    setLocalFilters((prev) => ({
+                                      ...prev,
+                                      capo: undefined,
+                                    }));
+                                  }}
+                                >
+                                  <div className="baseFlex gap-2">
+                                    Capo + Non-capo
+                                  </div>
+
+                                  {capo === undefined && (
+                                    <Check className="size-4" />
+                                  )}
+                                </Button>
+
+                                <Button
+                                  variant={"drawer"}
+                                  value={"true"}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                  onClick={() => {
+                                    setLocalFilters((prev) => ({
+                                      ...prev,
+                                      capo: true,
+                                    }));
+                                  }}
+                                >
+                                  <div className="baseFlex gap-2">
+                                    With capo
+                                  </div>
+
+                                  {capo === true && (
+                                    <Check className="size-4" />
+                                  )}
+                                </Button>
+
+                                <Button
+                                  variant={"drawer"}
+                                  value={"false"}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                  onClick={() => {
+                                    setLocalFilters((prev) => ({
+                                      ...prev,
+                                      capo: false,
+                                    }));
+                                  }}
+                                >
+                                  <div className="baseFlex gap-2">
+                                    Without capo
+                                  </div>
+
+                                  {capo === false && (
+                                    <Check className="size-4" />
+                                  )}
+                                </Button>
+                              </motion.div>
+                            )}
+
+                            {/* Difficulty */}
+                            {drawerView === "Difficulty" && (
+                              <motion.div
+                                key={"difficultyDrawer"}
+                                variants={individualDrawerVariants}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                transition={{ duration: 0.25 }}
+                                className="baseVertFlex w-full !justify-start"
+                              >
+                                <Button
+                                  variant={"drawer"}
+                                  value={"all"}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                  onClick={() => {
+                                    setLocalFilters((prev) => ({
+                                      ...prev,
+                                      difficulty: undefined,
+                                    }));
+                                  }}
+                                >
+                                  <div className="baseFlex gap-2">
+                                    All difficulties
+                                  </div>
+
+                                  {difficulty === undefined && (
+                                    <Check className="size-4" />
+                                  )}
+                                </Button>
+
+                                {DIFFICULTIES.map((difficultyName, index) => {
+                                  return (
+                                    <Button
+                                      key={index + 1}
+                                      variant={"drawer"}
+                                      value={(index + 1).toString()}
+                                      className="baseFlex !h-[85px] w-full !justify-between gap-2"
+                                      onClick={() => {
+                                        setLocalFilters((prev) => ({
+                                          ...prev,
+                                          difficulty: index + 1,
+                                        }));
+                                      }}
+                                    >
+                                      <div className="baseVertFlex !items-start gap-1">
+                                        <div className="baseFlex gap-2">
+                                          <DifficultyBars
+                                            difficulty={index + 1}
+                                          />
+                                          <span className="font-medium">
+                                            {difficultyName}
+                                          </span>
+                                        </div>
+                                        <p className="text-left text-sm opacity-75">
+                                          {difficultyDescriptions[index]}
+                                        </p>
+                                      </div>
+
+                                      {difficulty === index + 1 && (
+                                        <Check className="size-4" />
+                                      )}
+                                    </Button>
+                                  );
+                                })}
+                              </motion.div>
+                            )}
+
+                            {/* Sort by */}
+                            {drawerView === "Sort by" && (
+                              <motion.div
+                                key={"sortByDrawer"}
+                                variants={individualDrawerVariants}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                transition={{ duration: 0.25 }}
+                                className="baseVertFlex w-full !justify-start"
+                              >
+                                <Button
+                                  variant={"drawer"}
+                                  value={"relevance"}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                  onClick={() =>
+                                    handleSortByChange(
+                                      "relevance" as
+                                        | "relevance"
+                                        | "newest"
+                                        | "oldest"
+                                        | "mostPopular"
+                                        | "leastPopular",
+                                    )
+                                  }
+                                >
+                                  <div className="baseFlex gap-2">
+                                    Relevance
+                                  </div>
+
+                                  {sortBy === "relevance" && (
+                                    <Check className="size-4" />
+                                  )}
+                                </Button>
+
+                                <Button
+                                  variant={"drawer"}
+                                  value={"newest"}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                  onClick={() =>
+                                    handleSortByChange(
+                                      "newest" as
+                                        | "relevance"
+                                        | "newest"
+                                        | "oldest"
+                                        | "mostPopular"
+                                        | "leastPopular",
+                                    )
+                                  }
+                                >
+                                  <div className="baseFlex gap-2">Newest</div>
+
+                                  {sortBy === "newest" && (
+                                    <Check className="size-4" />
+                                  )}
+                                </Button>
+
+                                <Button
+                                  variant={"drawer"}
+                                  value={"oldest"}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                  onClick={() =>
+                                    handleSortByChange(
+                                      "oldest" as
+                                        | "relevance"
+                                        | "newest"
+                                        | "oldest"
+                                        | "mostPopular"
+                                        | "leastPopular",
+                                    )
+                                  }
+                                >
+                                  <div className="baseFlex gap-2">Oldest</div>
+
+                                  {sortBy === "oldest" && (
+                                    <Check className="size-4" />
+                                  )}
+                                </Button>
+
+                                <Button
+                                  variant={"drawer"}
+                                  value={"mostPopular"}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                  onClick={() =>
+                                    handleSortByChange(
+                                      "mostPopular" as
+                                        | "relevance"
+                                        | "newest"
+                                        | "oldest"
+                                        | "mostPopular"
+                                        | "leastPopular",
+                                    )
+                                  }
+                                >
+                                  <div className="baseFlex gap-2">
+                                    Most popular
+                                  </div>
+
+                                  {sortBy === "mostPopular" && (
+                                    <Check className="size-4" />
+                                  )}
+                                </Button>
+
+                                <Button
+                                  variant={"drawer"}
+                                  value={"leastPopular"}
+                                  className="baseFlex w-full !justify-between gap-2"
+                                  onClick={() =>
+                                    handleSortByChange(
+                                      "leastPopular" as
+                                        | "relevance"
+                                        | "newest"
+                                        | "oldest"
+                                        | "mostPopular"
+                                        | "leastPopular",
+                                    )
+                                  }
+                                >
+                                  <div className="baseFlex gap-2">
+                                    Least popular
+                                  </div>
+
+                                  {sortBy === "leastPopular" && (
+                                    <Check className="size-4" />
+                                  )}
+                                </Button>
+                              </motion.div>
+                            )}
+
+                            {/* Layout */}
+                          </AnimatePresence>
+                        </div>
+                      </Drawer.Content>
+                    </Drawer.Portal>
+                  </Drawer.Root>
+                </div>
+              </div>
+
+              {layoutType.value === "table" && (
+                <motion.div
+                  initial={{ opacity: 0, marginTop: "0", height: "0" }}
+                  animate={{
+                    opacity: 1,
+                    marginTop: "1rem",
+                    height: "20px",
+                  }}
+                  exit={{ opacity: 0, marginTop: "0", height: "0" }}
+                  transition={{
+                    ease: "linear",
+                    duration: 0.5,
+                    opacity: {
+                      duration: 0.15,
+                    },
+                  }}
+                  className="w-full"
+                >
+                  <OverlayScrollbarsComponent
+                    id="tableTabHeaderOverlayScrollbar"
+                    ref={tableHeaderRef}
+                    options={{
+                      scrollbars: { autoHide: "leave", autoHideDelay: 150 },
+                    }}
+                    events={{
+                      // keeps the table header and body in sync when scrolling
+                      scroll(instance) {
+                        const body = tableBodyRef.current
+                          ?.osInstance()
+                          ?.elements().viewport;
+                        if (!body) return;
+
+                        body.scrollLeft =
+                          instance.elements().viewport.scrollLeft;
+                      },
+                    }}
+                    defer
+                    className="w-full"
+                  >
+                    <div className="w-full border-pink-700 bg-pink-800">
+                      <div
+                        className="grid grid-rows-1 items-center text-sm font-medium text-muted-foreground"
+                        style={{
+                          gridTemplateColumns: getDynamicGridTemplateColumns(),
+                        }}
+                      >
+                        {/* conditional empty header for direct /edit page button */}
+                        {asPath.includes("/profile/tabs") && (
+                          <div className="h-full px-4"></div>
+                        )}
+
+                        <div className="px-4">Title</div>
+
+                        {!asPath.includes("/artist") && (
+                          <div className="px-4">Artist</div>
+                        )}
+
+                        <div className="px-4">Rating</div>
+
+                        {!query.difficulty && (
+                          <div className="px-4">Difficulty</div>
+                        )}
+
+                        {!query.genre && <div className="px-4">Genre</div>}
+
+                        <div className="px-4">Date</div>
+
+                        {/* Empty header for bookmark toggle */}
+                        <div className="h-full px-4"></div>
+                      </div>
+                    </div>
+                  </OverlayScrollbarsComponent>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        ) : (
+          // tablet+: # of results / view type toggle
+          <motion.div
+            initial={false}
+            animate={{
+              paddingBottom:
+                layoutType.value === "table" ? "0.25rem" : "0.75rem",
+            }}
+            transition={{ duration: 0.5, ease: "linear" }}
+            className={`baseVertFlex sticky top-16 z-10 w-full !justify-between border-b bg-pink-800 pt-3 ${stickyHeaderNotActive ? "rounded-t-lg" : "rounded-t-none"}`}
+          >
+            <AnimatePresence initial={false}>
+              <div className="baseFlex w-full !justify-between gap-2 px-4">
+                {/* # of results */}
                 {searchResultsCountIsLoading ? (
                   <motion.div
                     key={"searchResultsCountSkeleton"}
@@ -716,7 +1634,7 @@ function SearchResults({
                     animate="expanded"
                     exit="closed"
                   >
-                    <div className="pulseAnimation h-6 w-36 rounded-md bg-pink-300"></div>
+                    <div className="pulseAnimation h-6 w-48 rounded-md bg-pink-300"></div>
                   </motion.div>
                 ) : (
                   <motion.div
@@ -726,18 +1644,14 @@ function SearchResults({
                     animate="expanded"
                     exit="closed"
                   >
-                    {`${searchResultsCount} result${
-                      searchResultsCount === 1 ? "" : "s"
-                    } found`}
+                    {`${searchResultsCount} result${searchResultsCount === 1 ? "" : "s"} found`}
                   </motion.div>
                 )}
-              </AnimatePresence>
 
-              <div className="baseFlex gap-2">
-                {/* layout type selector */}
+                {/* layout type toggle */}
                 <div className="baseFlex gap-3">
                   <Label>Layout</Label>
-                  <div className="baseFlex rounded-md border">
+                  <div className="baseFlex rounded-md border-2">
                     <Button
                       variant={"toggledOff"}
                       size="sm"
@@ -759,6 +1673,7 @@ function SearchResults({
                         />
                       )}
                       <BsGridFill className="size-4" />
+                      Grid
                     </Button>
                     <Button
                       variant={"toggledOff"}
@@ -781,945 +1696,86 @@ function SearchResults({
                         />
                       )}
                       <CiViewTable className="size-4" />
+                      Table
                     </Button>
                   </div>
                 </div>
+              </div>
 
-                {/* filter drawer trigger */}
-                <Drawer.Root
-                  open={drawerOpen}
-                  onOpenChange={(open) => {
-                    setDrawerOpen(open);
-                    setMobileHeaderModal({
-                      showing: open,
-                      zIndex: open ? 49 : 48,
-                    });
+              {layoutType.value === "table" && (
+                <motion.div
+                  initial={{ opacity: 0, marginTop: "0", height: "0" }}
+                  animate={{
+                    opacity: 1,
+                    marginTop: "1rem",
+                    height: "20px",
                   }}
-                  onClose={() => {
-                    setDrawerView("Search filters");
+                  exit={{ opacity: 0, marginTop: "0", height: "0" }}
+                  transition={{
+                    ease: "linear",
+                    duration: 0.5,
+                    opacity: {
+                      duration: 0.15,
+                    },
                   }}
+                  className="w-full"
                 >
-                  <Drawer.Trigger asChild>
-                    <Button variant={"outline"} className="baseFlex w-9">
-                      <LuFilter className="size-4 shrink-0" />
-                    </Button>
-                  </Drawer.Trigger>
-                  <Drawer.Portal>
-                    <Drawer.Content
-                      style={{
-                        zIndex: asPath.includes("/preferences") ? 60 : 50,
-                        textShadow: "none",
-                      }}
-                      className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-4 text-pink-950"
-                    >
-                      <div className="mx-auto mb-4 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
-
-                      <div className="baseFlex w-full !justify-between px-3">
-                        <AnimatePresence mode="popLayout">
-                          {drawerView === "Search filters" ? (
-                            <motion.div
-                              key={"resetFiltersButton"}
-                              variants={opacityVariants}
-                              initial="closed"
-                              animate="expanded"
-                              exit="closed"
-                              transition={{ duration: 0.25 }}
-                              className="w-[56.5px]"
-                            >
-                              <Button
-                                variant="drawerNavigation"
-                                disabled={disableResetFiltersButton()}
-                                onClick={() => resetSearchFilters()}
-                                className="h-5 !p-0 font-normal"
-                              >
-                                Reset
-                              </Button>
-                            </motion.div>
-                          ) : (
-                            <motion.div
-                              key={"returnToAllFiltersButton"}
-                              variants={opacityVariants}
-                              initial="closed"
-                              animate="expanded"
-                              exit="closed"
-                              transition={{ duration: 0.25 }}
-                              className="baseFlex -ml-1 !justify-start"
-                            >
-                              <Button
-                                variant="drawerNavigation"
-                                onClick={() => setDrawerView("Search filters")}
-                                className="h-5 !p-0 font-normal"
-                              >
-                                <GoChevronRight className="size-5 rotate-180" />
-                                Filters
-                              </Button>
-                            </motion.div>
-                          )}
-
-                          {/* drawer title */}
-                          {drawerView === "Search filters" ? (
-                            <motion.div
-                              key={"baseDrawerTitle"}
-                              variants={opacityVariants}
-                              initial="closed"
-                              animate="expanded"
-                              exit="closed"
-                              transition={{ duration: 0.25 }}
-                              className="baseFlex gap-2 font-medium"
-                            >
-                              <LuFilter className="size-4" />
-                              <span>Search filters</span>
-                            </motion.div>
-                          ) : (
-                            <motion.div
-                              key={"drawerTitle"}
-                              variants={opacityVariants}
-                              initial="closed"
-                              animate="expanded"
-                              exit="closed"
-                              transition={{ duration: 0.25 }}
-                              className="baseFlex gap-2 font-medium"
-                            >
-                              <span>{drawerView}</span>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        <div className="baseFlex w-[56.5px] !justify-end">
-                          <Button
-                            variant="drawerNavigation"
-                            disabled={disableApplyFiltersButton()}
-                            onClick={() => applyFilters()}
-                          >
-                            Apply
-                          </Button>
-                        </div>
-                      </div>
-
-                      <Separator className="mt-2 w-full bg-stone-600" />
-
-                      {/* Main body content */}
-                      <div className="baseVertFlex h-[391px] w-full !justify-start overflow-y-auto">
-                        <AnimatePresence mode="popLayout" initial={false}>
-                          {/* All filters */}
-                          {drawerView === "Search filters" && (
-                            <motion.div
-                              key={"allFilters"}
-                              variants={baseDrawerVariants}
-                              initial="initial"
-                              animate="animate"
-                              exit="exit"
-                              transition={{ duration: 0.25 }}
-                              className="baseVertFlex w-full"
-                            >
-                              <Button
-                                variant={"drawer"}
-                                disabled={disableFiltersAndLayoutToggle}
-                                onClick={() => setDrawerView("Genre")}
-                                className="baseFlex w-full !justify-between gap-2"
-                              >
-                                <div className="baseFlex">
-                                  <span className="w-[75px] text-left font-semibold">
-                                    Genre
-                                  </span>
-                                  <div className="baseFlex gap-2">
-                                    <div
-                                      style={{
-                                        backgroundColor: genre
-                                          ? genreList.get(genre)
-                                          : "gray",
-                                        boxShadow:
-                                          "0 1px 1px hsla(336, 84%, 17%, 0.9)",
-                                      }}
-                                      className="h-3 w-3 rounded-full"
-                                    ></div>
-                                    {genre ? genre : "All genres"}
-                                  </div>
-                                </div>
-
-                                <GoChevronRight className="size-4" />
-                              </Button>
-
-                              <Button
-                                variant={"drawer"}
-                                disabled={disableFiltersAndLayoutToggle}
-                                onClick={() => setDrawerView("Tuning")}
-                                className="baseFlex w-full !justify-between gap-2"
-                              >
-                                <div className="baseFlex">
-                                  <span className="w-[75px] text-left font-semibold">
-                                    Tuning
-                                  </span>
-                                  <div className="baseFlex gap-2">
-                                    {tuning ? (
-                                      tuning === "custom" ? (
-                                        "Custom"
-                                      ) : (
-                                        <PrettyTuning
-                                          tuning={tuning}
-                                          displayWithFlex={true}
-                                        />
-                                      )
-                                    ) : (
-                                      "All tunings"
-                                    )}
-                                  </div>
-                                </div>
-
-                                <GoChevronRight className="size-4" />
-                              </Button>
-
-                              <Button
-                                variant={"drawer"}
-                                disabled={disableFiltersAndLayoutToggle}
-                                onClick={() => setDrawerView("Capo")}
-                                className="baseFlex w-full !justify-between gap-2"
-                              >
-                                <div className="baseFlex">
-                                  <span className="w-[75px] text-left font-semibold">
-                                    Capo
-                                  </span>
-                                  <div className="baseFlex gap-2">
-                                    {capo === true
-                                      ? "With capo"
-                                      : capo === false
-                                        ? "Without capo"
-                                        : "Capo + Non-capo"}
-                                  </div>
-                                </div>
-
-                                <GoChevronRight className="size-4" />
-                              </Button>
-
-                              <Button
-                                variant={"drawer"}
-                                disabled={disableFiltersAndLayoutToggle}
-                                onClick={() => setDrawerView("Difficulty")}
-                                className="baseFlex w-full !justify-between gap-2"
-                              >
-                                <div className="baseFlex">
-                                  <span className="w-[75px] text-left font-semibold">
-                                    Difficulty
-                                  </span>
-                                  <div className="baseFlex gap-2">
-                                    {difficulty ? (
-                                      <div className="baseFlex gap-2">
-                                        <DifficultyBars
-                                          difficulty={difficulty ?? 5}
-                                        />
-                                        {DIFFICULTIES[(difficulty ?? 5) - 1]}
-                                      </div>
-                                    ) : (
-                                      "All difficulties"
-                                    )}
-                                  </div>
-                                </div>
-
-                                <GoChevronRight className="size-4" />
-                              </Button>
-
-                              <Button
-                                variant={"drawer"}
-                                disabled={disableFiltersAndLayoutToggle}
-                                onClick={() => setDrawerView("Sort by")}
-                                className="baseFlex w-full !justify-between gap-2"
-                              >
-                                <div className="baseFlex">
-                                  <span className="w-[75px] text-left font-semibold">
-                                    Sort by
-                                  </span>
-                                  <div className="baseFlex gap-2">
-                                    {sortBy === "relevance" && searchQuery
-                                      ? "Relevance"
-                                      : sortBy === "newest"
-                                        ? "Newest"
-                                        : sortBy === "oldest"
-                                          ? "Oldest"
-                                          : sortBy === "mostPopular"
-                                            ? "Most popular"
-                                            : sortBy === "leastPopular"
-                                              ? "Least popular"
-                                              : ""}
-                                  </div>
-                                </div>
-
-                                <GoChevronRight className="size-4" />
-                              </Button>
-                            </motion.div>
-                          )}
-
-                          {/* Genre */}
-                          {drawerView === "Genre" && (
-                            <motion.div
-                              key={"genreDrawer"}
-                              variants={individualDrawerVariants}
-                              initial="initial"
-                              animate="animate"
-                              exit="exit"
-                              transition={{ duration: 0.25 }}
-                              className="baseVertFlex w-full !justify-start"
-                            >
-                              <Button
-                                variant={"drawer"}
-                                value={"allGenres"}
-                                className="baseFlex w-full !justify-between gap-2"
-                                onClick={() => {
-                                  setLocalFilters((prev) => ({
-                                    ...prev,
-                                    genre: undefined,
-                                  }));
-                                }}
-                              >
-                                <div className="baseFlex gap-2">
-                                  <div
-                                    style={{
-                                      backgroundColor: "gray",
-                                      boxShadow:
-                                        "0 1px 1px hsla(336, 84%, 17%, 0.9)",
-                                    }}
-                                    className="h-3 w-3 rounded-full"
-                                  ></div>
-                                  All genres
-                                </div>
-
-                                {genre === undefined && (
-                                  <Check className="size-4" />
-                                )}
-                              </Button>
-
-                              {[...genreList.entries()].map(([name, color]) => {
-                                return (
-                                  <Button
-                                    key={name}
-                                    variant={"drawer"}
-                                    value={name}
-                                    className="baseFlex w-full !justify-between gap-2"
-                                    onClick={() =>
-                                      setLocalFilters((prev) => ({
-                                        ...prev,
-                                        genre: name,
-                                      }))
-                                    }
-                                  >
-                                    <div className="baseFlex gap-2">
-                                      <div
-                                        style={{
-                                          backgroundColor: color,
-                                          boxShadow:
-                                            "0 1px 1px hsla(336, 84%, 17%, 0.9)",
-                                        }}
-                                        className="h-3 w-3 rounded-full"
-                                      ></div>
-
-                                      {name}
-                                    </div>
-
-                                    {genre === name && (
-                                      <Check className="size-4" />
-                                    )}
-                                  </Button>
-                                );
-                              })}
-                            </motion.div>
-                          )}
-
-                          {/* Tuning */}
-                          {drawerView === "Tuning" && (
-                            <motion.div
-                              key={"tuningDrawer"}
-                              variants={individualDrawerVariants}
-                              initial="initial"
-                              animate="animate"
-                              exit="exit"
-                              transition={{ duration: 0.25 }}
-                              className="baseVertFlex w-full !justify-start"
-                            >
-                              <Button
-                                variant={"drawer"}
-                                value={"all"}
-                                className="baseFlex w-full !justify-between gap-2"
-                                onClick={() => {
-                                  setLocalFilters((prev) => ({
-                                    ...prev,
-                                    tuning: undefined,
-                                  }));
-                                }}
-                              >
-                                <div className="baseFlex gap-2">
-                                  All tunings
-                                </div>
-
-                                {tuning === undefined && (
-                                  <Check className="size-4" />
-                                )}
-                              </Button>
-
-                              {tunings.map((tuningObj) => (
-                                <Button
-                                  key={tuningObj.simpleNotes}
-                                  variant={"drawer"}
-                                  value={tuningObj.notes.toLowerCase()}
-                                  onClick={() =>
-                                    setLocalFilters((prev) => ({
-                                      ...prev,
-                                      tuning: tuningObj.notes.toLowerCase(),
-                                    }))
-                                  }
-                                  className="baseFlex w-full !justify-between gap-2"
-                                >
-                                  <div className="baseFlex w-[235px] !justify-between">
-                                    <span className="font-medium">
-                                      {tuningObj.name}
-                                    </span>
-                                    <PrettyTuning
-                                      tuning={tuningObj.simpleNotes}
-                                      width="w-36"
-                                    />
-                                  </div>
-
-                                  {tuning === tuningObj.notes && (
-                                    <Check className="size-4" />
-                                  )}
-                                </Button>
-                              ))}
-
-                              <Button
-                                variant={"drawer"}
-                                value={"custom"}
-                                className="baseFlex w-full !justify-between gap-2"
-                                onClick={() => {
-                                  setLocalFilters((prev) => ({
-                                    ...prev,
-                                    tuning: "custom",
-                                  }));
-                                }}
-                              >
-                                <div className="baseFlex gap-2">Custom</div>
-
-                                {tuning === "custom" && (
-                                  <Check className="size-4" />
-                                )}
-                              </Button>
-                            </motion.div>
-                          )}
-
-                          {/* Capo */}
-                          {drawerView === "Capo" && (
-                            <motion.div
-                              key={"capoDrawer"}
-                              variants={individualDrawerVariants}
-                              initial="initial"
-                              animate="animate"
-                              exit="exit"
-                              transition={{ duration: 0.25 }}
-                              className="baseVertFlex w-full !justify-start"
-                            >
-                              <Button
-                                variant={"drawer"}
-                                value={"all"}
-                                className="baseFlex w-full !justify-between gap-2"
-                                onClick={() => {
-                                  setLocalFilters((prev) => ({
-                                    ...prev,
-                                    capo: undefined,
-                                  }));
-                                }}
-                              >
-                                <div className="baseFlex gap-2">
-                                  Capo + Non-capo
-                                </div>
-
-                                {capo === undefined && (
-                                  <Check className="size-4" />
-                                )}
-                              </Button>
-
-                              <Button
-                                variant={"drawer"}
-                                value={"true"}
-                                className="baseFlex w-full !justify-between gap-2"
-                                onClick={() => {
-                                  setLocalFilters((prev) => ({
-                                    ...prev,
-                                    capo: true,
-                                  }));
-                                }}
-                              >
-                                <div className="baseFlex gap-2">With capo</div>
-
-                                {capo === true && <Check className="size-4" />}
-                              </Button>
-
-                              <Button
-                                variant={"drawer"}
-                                value={"false"}
-                                className="baseFlex w-full !justify-between gap-2"
-                                onClick={() => {
-                                  setLocalFilters((prev) => ({
-                                    ...prev,
-                                    capo: false,
-                                  }));
-                                }}
-                              >
-                                <div className="baseFlex gap-2">
-                                  Without capo
-                                </div>
-
-                                {capo === false && <Check className="size-4" />}
-                              </Button>
-                            </motion.div>
-                          )}
-
-                          {/* Difficulty */}
-                          {drawerView === "Difficulty" && (
-                            <motion.div
-                              key={"difficultyDrawer"}
-                              variants={individualDrawerVariants}
-                              initial="initial"
-                              animate="animate"
-                              exit="exit"
-                              transition={{ duration: 0.25 }}
-                              className="baseVertFlex w-full !justify-start"
-                            >
-                              <Button
-                                variant={"drawer"}
-                                value={"all"}
-                                className="baseFlex w-full !justify-between gap-2"
-                                onClick={() => {
-                                  setLocalFilters((prev) => ({
-                                    ...prev,
-                                    difficulty: undefined,
-                                  }));
-                                }}
-                              >
-                                <div className="baseFlex gap-2">
-                                  All difficulties
-                                </div>
-
-                                {difficulty === undefined && (
-                                  <Check className="size-4" />
-                                )}
-                              </Button>
-
-                              {DIFFICULTIES.map((difficultyName, index) => {
-                                return (
-                                  <Button
-                                    key={index + 1}
-                                    variant={"drawer"}
-                                    value={(index + 1).toString()}
-                                    className="baseFlex !h-[85px] w-full !justify-between gap-2"
-                                    onClick={() => {
-                                      setLocalFilters((prev) => ({
-                                        ...prev,
-                                        difficulty: index + 1,
-                                      }));
-                                    }}
-                                  >
-                                    <div className="baseVertFlex !items-start gap-1">
-                                      <div className="baseFlex gap-2">
-                                        <DifficultyBars
-                                          difficulty={index + 1}
-                                        />
-                                        <span className="font-medium">
-                                          {difficultyName}
-                                        </span>
-                                      </div>
-                                      <p className="text-left text-sm opacity-75">
-                                        {difficultyDescriptions[index]}
-                                      </p>
-                                    </div>
-
-                                    {difficulty === index + 1 && (
-                                      <Check className="size-4" />
-                                    )}
-                                  </Button>
-                                );
-                              })}
-                            </motion.div>
-                          )}
-
-                          {/* Sort by */}
-                          {drawerView === "Sort by" && (
-                            <motion.div
-                              key={"sortByDrawer"}
-                              variants={individualDrawerVariants}
-                              initial="initial"
-                              animate="animate"
-                              exit="exit"
-                              transition={{ duration: 0.25 }}
-                              className="baseVertFlex w-full !justify-start"
-                            >
-                              <Button
-                                variant={"drawer"}
-                                value={"relevance"}
-                                className="baseFlex w-full !justify-between gap-2"
-                                onClick={() =>
-                                  handleSortByChange(
-                                    "relevance" as
-                                      | "relevance"
-                                      | "newest"
-                                      | "oldest"
-                                      | "mostPopular"
-                                      | "leastPopular",
-                                  )
-                                }
-                              >
-                                <div className="baseFlex gap-2">Relevance</div>
-
-                                {sortBy === "relevance" && (
-                                  <Check className="size-4" />
-                                )}
-                              </Button>
-
-                              <Button
-                                variant={"drawer"}
-                                value={"newest"}
-                                className="baseFlex w-full !justify-between gap-2"
-                                onClick={() =>
-                                  handleSortByChange(
-                                    "newest" as
-                                      | "relevance"
-                                      | "newest"
-                                      | "oldest"
-                                      | "mostPopular"
-                                      | "leastPopular",
-                                  )
-                                }
-                              >
-                                <div className="baseFlex gap-2">Newest</div>
-
-                                {sortBy === "newest" && (
-                                  <Check className="size-4" />
-                                )}
-                              </Button>
-
-                              <Button
-                                variant={"drawer"}
-                                value={"oldest"}
-                                className="baseFlex w-full !justify-between gap-2"
-                                onClick={() =>
-                                  handleSortByChange(
-                                    "oldest" as
-                                      | "relevance"
-                                      | "newest"
-                                      | "oldest"
-                                      | "mostPopular"
-                                      | "leastPopular",
-                                  )
-                                }
-                              >
-                                <div className="baseFlex gap-2">Oldest</div>
-
-                                {sortBy === "oldest" && (
-                                  <Check className="size-4" />
-                                )}
-                              </Button>
-
-                              <Button
-                                variant={"drawer"}
-                                value={"mostPopular"}
-                                className="baseFlex w-full !justify-between gap-2"
-                                onClick={() =>
-                                  handleSortByChange(
-                                    "mostPopular" as
-                                      | "relevance"
-                                      | "newest"
-                                      | "oldest"
-                                      | "mostPopular"
-                                      | "leastPopular",
-                                  )
-                                }
-                              >
-                                <div className="baseFlex gap-2">
-                                  Most popular
-                                </div>
-
-                                {sortBy === "mostPopular" && (
-                                  <Check className="size-4" />
-                                )}
-                              </Button>
-
-                              <Button
-                                variant={"drawer"}
-                                value={"leastPopular"}
-                                className="baseFlex w-full !justify-between gap-2"
-                                onClick={() =>
-                                  handleSortByChange(
-                                    "leastPopular" as
-                                      | "relevance"
-                                      | "newest"
-                                      | "oldest"
-                                      | "mostPopular"
-                                      | "leastPopular",
-                                  )
-                                }
-                              >
-                                <div className="baseFlex gap-2">
-                                  Least popular
-                                </div>
-
-                                {sortBy === "leastPopular" && (
-                                  <Check className="size-4" />
-                                )}
-                              </Button>
-                            </motion.div>
-                          )}
-
-                          {/* Layout */}
-                        </AnimatePresence>
-                      </div>
-                    </Drawer.Content>
-                  </Drawer.Portal>
-                </Drawer.Root>
-              </div>
-            </div>
-
-            {layoutType.value === "table" && searchResultsCount > 0 && (
-              <>
-                {searchResultsCountIsLoading ? (
-                  <motion.div
-                    key={"tableTabViewHeaderSkeleton"}
-                    variants={opacityVariants}
-                    initial="closed"
-                    animate="expanded"
-                    exit="closed"
-                    className="h-5 w-full"
-                  ></motion.div>
-                ) : (
-                  <motion.div
-                    key={"tableTabViewHeader"}
-                    variants={opacityVariants}
-                    initial="closed"
-                    animate="expanded"
-                    exit="closed"
-                    className="h-5 w-full"
-                  >
-                    <OverlayScrollbarsComponent
-                      id="tableTabHeaderOverlayScrollbar"
-                      ref={tableHeaderRef}
-                      options={{
-                        scrollbars: { autoHide: "leave", autoHideDelay: 150 },
-                      }}
-                      events={{
-                        // keeps the table header and body in sync when scrolling
-                        scroll(instance) {
-                          const body = tableBodyRef.current
-                            ?.osInstance()
-                            ?.elements().viewport;
-                          if (!body) return;
-
-                          body.scrollLeft =
-                            instance.elements().viewport.scrollLeft;
-                        },
-                      }}
-                      defer
-                      className="w-full"
-                    >
-                      <div className="w-full border-pink-700 bg-pink-800">
-                        <div
-                          className="grid grid-rows-1 items-center text-sm font-medium text-muted-foreground"
-                          style={{
-                            gridTemplateColumns,
-                          }}
-                        >
-                          {/* conditional empty header for direct /edit page button */}
-                          {asPath.includes("/profile/tabs") && (
-                            <div className="h-full px-4"></div>
-                          )}
-
-                          <div className="px-4">Title</div>
-
-                          {!asPath.includes("/artist") &&
-                            !query.user &&
-                            !asPath.includes("/profile/tabs") && (
-                              <div className="px-4">Artist</div>
-                            )}
-
-                          <div className="px-4">Rating</div>
-
-                          {!query.difficulty && (
-                            <div className="px-4">Difficulty</div>
-                          )}
-
-                          {!query.genre && <div className="px-4">Genre</div>}
-
-                          <div className="px-4">Date</div>
-
-                          {/* Empty header for bookmark toggle */}
-                          <div className="h-full px-4"></div>
-                        </div>
-                      </div>
-                    </OverlayScrollbarsComponent>
-                  </motion.div>
-                )}
-              </>
-            )}
-          </div>
-        ) : (
-          // tablet+: # of results / view type toggle
-          <div
-            className={`baseVertFlex sticky top-16 z-10 !hidden w-full !justify-between gap-4 border-b bg-pink-800 transition-all tablet:!flex ${layoutType.value === "table" && searchResultsCount > 0 ? "pb-1 pt-2" : "py-3"} ${stickyHeaderNotActive ? "rounded-t-lg" : "rounded-t-none"}`}
-          >
-            <div className="baseFlex w-full !justify-between gap-2 px-4">
-              {/* # of results */}
-              <AnimatePresence mode="popLayout">
-                {searchResultsCountIsLoading ? (
-                  <motion.div
-                    key={"searchResultsCountSkeleton"}
-                    variants={opacityVariants}
-                    initial="closed"
-                    animate="expanded"
-                    exit="closed"
-                  >
-                    <div className="pulseAnimation h-6 w-48 rounded-md bg-pink-300"></div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key={"searchResultsCount"}
-                    variants={opacityVariants}
-                    initial="closed"
-                    animate="expanded"
-                    exit="closed"
-                  >
-                    {`${searchResultsCount} result${searchResultsCount === 1 ? "" : "s"} found`}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* layout type toggle */}
-              <div className="baseFlex gap-3">
-                <Label>Layout</Label>
-                <div className="baseFlex rounded-md border-2">
-                  <Button
-                    variant={"toggledOff"}
-                    size="sm"
-                    disabled={disableFiltersAndLayoutToggle}
-                    onClick={() => {
-                      layoutType.set("grid");
+                  <OverlayScrollbarsComponent
+                    id="tableTabHeaderOverlayScrollbar"
+                    ref={tableHeaderRef}
+                    options={{
+                      scrollbars: { autoHide: "leave", autoHideDelay: 150 },
                     }}
-                    className="baseFlex relative gap-2 border-none"
-                  >
-                    {layoutType.value === "grid" && (
-                      <motion.span
-                        layoutId="animatedToggleIndicator"
-                        className="absolute inset-0 !z-[-1] rounded-sm bg-pink-500"
-                        transition={{
-                          type: "spring",
-                          bounce: 0.2,
-                          duration: 0.6,
-                        }}
-                      />
-                    )}
-                    <BsGridFill className="size-4" />
-                    Grid
-                  </Button>
-                  <Button
-                    variant={"toggledOff"}
-                    size="sm"
-                    disabled={disableFiltersAndLayoutToggle}
-                    onClick={() => {
-                      layoutType.set("table");
+                    events={{
+                      // keeps the table header and body in sync when scrolling
+                      scroll(instance) {
+                        const body = tableBodyRef.current
+                          ?.osInstance()
+                          ?.elements().viewport;
+                        if (!body) return;
+
+                        body.scrollLeft =
+                          instance.elements().viewport.scrollLeft;
+                      },
                     }}
-                    className="baseFlex relative gap-2 border-none"
+                    defer
+                    className="w-full"
                   >
-                    {layoutType.value === "table" && (
-                      <motion.span
-                        layoutId="animatedToggleIndicator"
-                        className="absolute inset-0 !z-[-1] rounded-sm bg-pink-500"
-                        transition={{
-                          type: "spring",
-                          bounce: 0.2,
-                          duration: 0.6,
+                    <div className="w-full border-pink-700 bg-pink-800">
+                      <div
+                        className="grid grid-rows-1 items-center text-sm font-medium text-muted-foreground"
+                        style={{
+                          gridTemplateColumns: getDynamicGridTemplateColumns(),
                         }}
-                      />
-                    )}
-                    <CiViewTable className="size-4" />
-                    Table
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {layoutType.value === "table" && searchResultsCount > 0 && (
-              <>
-                {searchResultsCountIsLoading ? (
-                  <motion.div
-                    key={"tableTabViewHeaderSkeleton"}
-                    variants={opacityVariants}
-                    initial="closed"
-                    animate="expanded"
-                    exit="closed"
-                    className="h-5 w-full"
-                  ></motion.div>
-                ) : (
-                  <motion.div
-                    key={"tableTabViewHeader"}
-                    variants={opacityVariants}
-                    initial="closed"
-                    animate="expanded"
-                    exit="closed"
-                    className="h-5 w-full"
-                  >
-                    <OverlayScrollbarsComponent
-                      id="tableTabHeaderOverlayScrollbar"
-                      ref={tableHeaderRef}
-                      options={{
-                        scrollbars: { autoHide: "leave", autoHideDelay: 150 },
-                      }}
-                      events={{
-                        // keeps the table header and body in sync when scrolling
-                        scroll(instance) {
-                          const body = tableBodyRef.current
-                            ?.osInstance()
-                            ?.elements().viewport;
-                          if (!body) return;
-
-                          body.scrollLeft =
-                            instance.elements().viewport.scrollLeft;
-                        },
-                      }}
-                      defer
-                      className="w-full"
-                    >
-                      <div className="w-full border-pink-700 bg-pink-800">
-                        <div
-                          className="grid grid-rows-1 items-center text-sm font-medium text-muted-foreground"
-                          style={{
-                            gridTemplateColumns:
-                              gridTemplateColumns ?? undefined,
-                          }}
-                        >
-                          {/* conditional empty header for direct /edit page button */}
-                          {asPath.includes("/profile/tabs") && (
-                            <div className="h-full px-4"></div>
-                          )}
-
-                          <div className="px-4">Title</div>
-
-                          {!asPath.includes("/artist") &&
-                            !query.user &&
-                            !asPath.includes("/profile/tabs") && (
-                              <div className="px-4">Artist</div>
-                            )}
-
-                          <div className="px-4">Rating</div>
-
-                          <div className="px-4">Difficulty</div>
-
-                          <div className="px-4">Genre</div>
-
-                          <div className="px-4"> Date</div>
-
-                          {/* Empty header for bookmark toggle */}
+                      >
+                        {/* conditional empty header for direct /edit page button */}
+                        {asPath.includes("/profile/tabs") && (
                           <div className="h-full px-4"></div>
-                        </div>
+                        )}
+
+                        <div className="px-4">Title</div>
+
+                        {!asPath.includes("/artist") && (
+                          <div className="px-4">Artist</div>
+                        )}
+
+                        <div className="px-4">Rating</div>
+
+                        <div className="px-4">Difficulty</div>
+
+                        <div className="px-4">Genre</div>
+
+                        <div className="px-4"> Date</div>
+
+                        {/* Empty header for bookmark toggle */}
+                        <div className="h-full px-4"></div>
                       </div>
-                    </OverlayScrollbarsComponent>
-                  </motion.div>
-                )}
-              </>
-            )}
-          </div>
+                    </div>
+                  </OverlayScrollbarsComponent>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         )}
 
         {/* search results body */}

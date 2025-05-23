@@ -150,23 +150,27 @@ function TableTabView({
                 <col className="w-[250px] sm:!w-[314.53px]" />
 
                 {/* Artist */}
-                {!asPath.includes("/artist") &&
-                  !query.user &&
-                  !asPath.includes("/profile/tabs") && (
-                    <col className="w-[200px]" />
-                  )}
+                {!asPath.includes("/artist") && <col className="w-[200px]" />}
 
                 {/* Rating */}
-                <col />
+                <col
+                  className={`${asPath.includes("/profile/tabs") ? "w-[141.5px] sm:w-[115.89px]" : asPath.includes("/artist") ? "w-[209.5px] sm:w-[188.63px]" : "w-[159.5px] sm:w-[138.63px]"} `}
+                />
 
                 {/* Difficulty */}
-                <col />
+                <col
+                  className={`${asPath.includes("/profile/tabs") ? "w-[141.5px] sm:w-[115.89px]" : asPath.includes("/artist") ? "w-[209.5px] sm:w-[188.63px]" : "w-[159.5px] sm:w-[138.63px]"} `}
+                />
 
                 {/* Genre */}
-                <col />
+                <col
+                  className={`${asPath.includes("/profile/tabs") ? "w-[141.5px] sm:w-[115.89px]" : asPath.includes("/artist") ? "w-[209.5px] sm:w-[188.63px]" : "w-[159.5px] sm:w-[138.63px]"} `}
+                />
 
                 {/* Date */}
-                <col />
+                <col
+                  className={`${asPath.includes("/profile/tabs") ? "w-[141.5px] sm:w-[115.89px]" : asPath.includes("/artist") ? "w-[209.5px] sm:w-[188.63px]" : "w-[159.5px] sm:w-[138.63px]"} `}
+                />
 
                 {/* Bookmark toggle */}
                 <col className="w-[72px] sm:!w-[90.95px]" />
@@ -176,23 +180,17 @@ function TableTabView({
                 <TableBody className="w-full @container">
                   {tabResults.pages.map((page) =>
                     page.data.tabs?.map((tab, index) => (
-                      <AnimatePresence key={tab.id} mode={"wait"}>
-                        {index === page.data.tabs.length - 1 ? (
-                          <TableTabRow
-                            minimalTab={tab}
-                            currentUser={currentUser}
-                            infiniteQueryParams={getInfiniteQueryParams()}
-                            ref={
-                              ref as unknown as React.RefObject<HTMLTableRowElement>
-                            }
-                          />
-                        ) : (
-                          <TableTabRow
-                            minimalTab={tab}
-                            currentUser={currentUser}
-                          />
-                        )}
-                      </AnimatePresence>
+                      <TableTabRow
+                        key={tab.id}
+                        minimalTab={tab}
+                        currentUser={currentUser}
+                        infiniteQueryParams={getInfiniteQueryParams()}
+                        ref={
+                          index === page.data.tabs.length - 1
+                            ? (ref as unknown as React.RefObject<HTMLTableRowElement>)
+                            : undefined
+                        }
+                      />
                     )),
                   )}
                 </TableBody>

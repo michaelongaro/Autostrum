@@ -32,7 +32,7 @@ function TableTabRow({
   infiniteQueryParams,
   ref,
 }: TableTabRow) {
-  const { query, asPath } = useRouter();
+  const { asPath } = useRouter();
 
   return (
     <TableRow ref={ref} className="w-full">
@@ -83,50 +83,48 @@ function TableTabRow({
       </TableCell>
 
       {/* Artist */}
-      {!asPath.includes("/artist") &&
-        !query.user &&
-        !asPath.includes("/profile/tabs") && (
-          <TableCell>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1.25 }}
-              className="w-full"
-            >
-              {minimalTab.artist || minimalTab.createdBy ? (
-                <Button variant={"link"} asChild>
-                  <Link
-                    prefetch={false}
-                    href={
-                      minimalTab.artist
-                        ? `/artist/${encodeURIComponent(minimalTab.artist.name)}/${minimalTab.artist.id}`
-                        : minimalTab.createdBy
-                          ? `/user/${minimalTab.createdBy.username}`
-                          : ""
-                    }
-                    className="!h-6 !p-0"
-                  >
-                    {minimalTab.artist ? (
-                      <div className="baseFlex h-full gap-1">
-                        {minimalTab.artist.isVerified && (
-                          <Verified className="size-4" />
-                        )}
-                        <span className="min-w-0 max-w-[165px] truncate">
-                          {minimalTab.artist.name}
-                        </span>
-                      </div>
-                    ) : (
-                      (minimalTab.createdBy?.username ?? "Anonymous")
-                    )}
-                  </Link>
-                </Button>
-              ) : (
-                <span className="text-sm italic">Anonymous</span>
-              )}
-            </motion.div>
-          </TableCell>
-        )}
+      {!asPath.includes("/artist") && (
+        <TableCell>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.25 }}
+            className="w-full"
+          >
+            {minimalTab.artist || minimalTab.createdBy ? (
+              <Button variant={"link"} asChild>
+                <Link
+                  prefetch={false}
+                  href={
+                    minimalTab.artist
+                      ? `/artist/${encodeURIComponent(minimalTab.artist.name)}/${minimalTab.artist.id}/filters`
+                      : minimalTab.createdBy
+                        ? `/user/${minimalTab.createdBy.username}/filters`
+                        : ""
+                  }
+                  className="!h-6 !p-0"
+                >
+                  {minimalTab.artist ? (
+                    <div className="baseFlex h-full gap-1">
+                      {minimalTab.artist.isVerified && (
+                        <Verified className="size-4" />
+                      )}
+                      <span className="min-w-0 max-w-[165px] truncate">
+                        {minimalTab.artist.name}
+                      </span>
+                    </div>
+                  ) : (
+                    (minimalTab.createdBy?.username ?? "Anonymous")
+                  )}
+                </Link>
+              </Button>
+            ) : (
+              <span className="text-sm italic">Anonymous</span>
+            )}
+          </motion.div>
+        </TableCell>
+      )}
 
       {/* Rating */}
       <TableCell>
