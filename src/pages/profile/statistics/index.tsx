@@ -185,7 +185,7 @@ function UserStatistics() {
           </Button>
         </div>
 
-        <div className="baseVertFlex lightGlassmorphic min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-12 rounded-lg p-4 md:min-h-[calc(100dvh-4rem-12rem-56px)] md:p-8 xl:!flex-row">
+        <div className="baseVertFlex lightGlassmorphic min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-12 p-4 md:min-h-[calc(100dvh-4rem-12rem-56px)] md:rounded-lg md:p-8 xl:!flex-row">
           <AnimatePresence mode="popLayout">
             {/* main stats */}
             <div className="baseVertFlex w-full gap-4 xl:w-1/2">
