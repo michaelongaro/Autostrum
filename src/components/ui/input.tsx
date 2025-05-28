@@ -44,6 +44,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <input
         type={type}
+        autoComplete="off"
+        autoCorrect="off"
+        spellCheck="false"
         style={{
           ...(showingErrorShakeAnimation && {
             boxShadow: "0 0 0 0.25rem hsl(0deg 100% 50%)",

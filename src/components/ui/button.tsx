@@ -79,6 +79,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             variant === "secondary" ||
             variant === "ghost" ||
             variant === "outline" ||
+            variant === "destructive" ||
             variant === "text" ||
             variant === "link" ||
             variant === "drawer" ||
