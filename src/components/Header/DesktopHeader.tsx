@@ -1,4 +1,5 @@
-import { SignInButton, SignOutButton, useAuth, useUser } from "@clerk/nextjs";
+import { useState } from "react";
+import { SignInButton, SignOutButton, useAuth } from "@clerk/nextjs";
 import { useLocalStorageValue } from "@react-hookz/web";
 import Image from "next/image";
 import Link from "next/link";
@@ -27,20 +28,23 @@ import classes from "./DesktopHeader.module.css";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import SearchInput from "~/components/Search/SearchInput";
 import ThemePicker from "~/components/Header/ThemePicker";
+import { api } from "~/utils/api";
 
 ///
 import { IoCompassOutline } from "react-icons/io5";
 import Binoculars from "~/components/ui/icons/Binoculars";
-import { useState } from "react";
 
 function DesktopHeader() {
   const { userId, isSignedIn } = useAuth();
-  const { user } = useUser();
   const { asPath } = useRouter();
 
   const { getStringifiedTabData } = useTabStore((state) => ({
     getStringifiedTabData: state.getStringifiedTabData,
   }));
+
+  const { data: currentUser } = api.user.getById.useQuery(userId!, {
+    enabled: !!userId,
+  });
 
   const [userPopoverOpen, setUserPopoverOpen] = useState(false);
 
@@ -249,7 +253,7 @@ function DesktopHeader() {
           </div>
         )}
 
-        {isSignedIn && user && (
+        {isSignedIn && currentUser && (
           <Popover open={userPopoverOpen} onOpenChange={setUserPopoverOpen}>
             <PopoverTrigger asChild>
               <div className={`${classes.authentication} baseFlex shrink-0`}>
@@ -258,7 +262,7 @@ function DesktopHeader() {
                   className="!size-12 !rounded-full !p-0"
                 >
                   <Image
-                    src={user.imageUrl}
+                    src={currentUser.profileImageUrl}
                     alt="User profile image"
                     className="!size-10 rounded-full"
                     width={48}
@@ -272,24 +276,10 @@ function DesktopHeader() {
               className="baseVertFlex w-[388px] !items-start gap-4"
             >
               <div className="baseFlex w-full !justify-between gap-4 px-1">
-                <Button
-                  variant={"link"}
-                  size={"lg"}
-                  asChild
-                  style={{
-                    backgroundColor: asPath.includes(
-                      `/profile/${user.username}`,
-                    )
-                      ? "#be185d"
-                      : undefined,
-                    color: asPath.includes(`/profile/${user.username}`)
-                      ? "#fbcfe8"
-                      : undefined,
-                  }}
-                >
+                <Button variant={"link"} size={"lg"} asChild>
                   <Link
                     href={`
-                        /profile/${user.username}
+                        /user/${currentUser.username}/filters
                         `}
                     onClick={() => {
                       setUserPopoverOpen(false);
@@ -297,13 +287,15 @@ function DesktopHeader() {
                     className="baseFlex !h-10 gap-2 !px-0"
                   >
                     <Image
-                      src={user.imageUrl}
+                      src={currentUser.profileImageUrl}
                       alt="User profile image"
                       className="!size-8 rounded-full"
                       width={48}
                       height={48}
                     />
-                    <p className="text-lg font-medium">{user.username}</p>
+                    <p className="text-lg font-medium">
+                      {currentUser.username}
+                    </p>
                   </Link>
                 </Button>
 

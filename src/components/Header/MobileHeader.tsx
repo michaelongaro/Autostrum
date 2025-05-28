@@ -1,4 +1,4 @@
-import { SignInButton, SignOutButton, useAuth, useUser } from "@clerk/nextjs";
+import { SignInButton, SignOutButton, useAuth } from "@clerk/nextjs";
 import { IoSettingsOutline } from "react-icons/io5";
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
@@ -34,6 +34,7 @@ import {
 import { Separator } from "~/components/ui/separator";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import SearchInput from "~/components/Search/SearchInput";
+import { api } from "~/utils/api";
 
 ///
 import { IoCompassOutline } from "react-icons/io5";
@@ -52,18 +53,8 @@ const opacityAndScaleVariants = {
 };
 
 function MobileHeader() {
-  const [mobileHeaderIsOpen, setMobileHeaderIsOpen] = useState(false);
-
   const { userId, isSignedIn } = useAuth();
-  const { user } = useUser();
   const { asPath } = useRouter();
-
-  const localStorageTabData = useLocalStorageValue("autostrum-tabData");
-  const localStorageRedirectRoute = useLocalStorageValue(
-    "autostrum-redirectRoute",
-  );
-
-  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   const { getStringifiedTabData, mobileHeaderModal, setMobileHeaderModal } =
     useTabStore((state) => ({
@@ -71,6 +62,18 @@ function MobileHeader() {
       mobileHeaderModal: state.mobileHeaderModal,
       setMobileHeaderModal: state.setMobileHeaderModal,
     }));
+
+  const { data: currentUser } = api.user.getById.useQuery(userId!, {
+    enabled: !!userId,
+  });
+
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [mobileHeaderIsOpen, setMobileHeaderIsOpen] = useState(false);
+
+  const localStorageTabData = useLocalStorageValue("autostrum-tabData");
+  const localStorageRedirectRoute = useLocalStorageValue(
+    "autostrum-redirectRoute",
+  );
 
   useEffect(() => {
     if (!mobileHeaderModal.showing) {
@@ -228,38 +231,26 @@ function MobileHeader() {
                 </SignInButton>
               )}
 
-              {isSignedIn && user && (
+              {isSignedIn && currentUser && (
                 <div className="baseVertFlex w-full max-w-[348px] !items-start gap-4">
                   <div className="baseFlex w-full !justify-between gap-4">
-                    <Button
-                      variant={"link"}
-                      size={"lg"}
-                      asChild
-                      style={{
-                        backgroundColor: asPath.includes(
-                          `/profile/${user.username}`,
-                        )
-                          ? "#be185d"
-                          : undefined,
-                        color: asPath.includes(`/profile/${user.username}`)
-                          ? "#fbcfe8"
-                          : undefined,
-                      }}
-                    >
+                    <Button variant={"link"} size={"lg"} asChild>
                       <Link
                         href={`
-                        /profile/${user.username}
+                        /user/${currentUser.username}/filters
                         `}
                         className="baseFlex !h-10 gap-2 !px-0"
                       >
                         <Image
-                          src={user.imageUrl}
+                          src={currentUser.profileImageUrl}
                           alt="User profile image"
                           className="!size-8 rounded-full"
                           width={48}
                           height={48}
                         />
-                        <p className="text-lg font-medium">{user.username}</p>
+                        <p className="text-lg font-medium">
+                          {currentUser.username}
+                        </p>
                       </Link>
                     </Button>
 
