@@ -69,6 +69,8 @@
     "react": "^19.1.0",
     "react-device-detect": "^2.2.3",
     "react-dom": "^19.1.0",
+    "react-easy-crop": "^5.4.2",
+    "react-focus-lock": "^2.13.6",
     "react-icons": "^5.4.0",
     "react-intersection-observer": "^9.16.0",
     "react-range": "^1.10.0",

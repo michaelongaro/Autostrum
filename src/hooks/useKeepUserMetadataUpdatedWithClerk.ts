@@ -12,7 +12,7 @@ function useKeepUserMetadataUpdatedWithClerk() {
     enabled: Boolean(clerkUser?.id), // only run this query if user is logged in
   });
 
-  const { mutate: updateArtist } = api.user.update.useMutation({
+  const { mutate: updateUser } = api.user.update.useMutation({
     onSettled: () => {
       void ctx.user.getById.invalidate(clerkUser?.id);
     },
@@ -25,13 +25,13 @@ function useKeepUserMetadataUpdatedWithClerk() {
       clerkUser.username !== user.username ||
       clerkUser.imageUrl !== user.profileImageUrl
     ) {
-      updateArtist({
+      updateUser({
         userId: clerkUser.id,
         username: clerkUser.username!,
         profileImageUrl: clerkUser.imageUrl,
       });
     }
-  }, [clerkUser, user, updateArtist]);
+  }, [clerkUser, user, updateUser]);
 }
 
 export default useKeepUserMetadataUpdatedWithClerk;

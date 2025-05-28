@@ -15,6 +15,20 @@ export interface UserMetadata extends User {
   bookmarkedTabIds: number[];
 }
 
+function base64ToBlob(base64: string, contentType = "image/jpeg"): Blob {
+  // Remove the data URL part if present
+  const base64Data = base64.replace(/^data:image\/\w+;base64,/, "");
+  const byteCharacters = atob(base64Data);
+  const byteNumbers = new Array(byteCharacters.length);
+
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+
+  const byteArray = new Uint8Array(byteNumbers);
+  return new Blob([byteArray], { type: contentType });
+}
+
 export const userRouter = createTRPCRouter({
   isUserRegistered: publicProcedure
     .input(z.string())
@@ -108,17 +122,58 @@ export const userRouter = createTRPCRouter({
       };
     }),
 
+  // TODO: make a proper "create" function when done w/ this branch
+
   update: protectedProcedure
     .input(
       z.object({
         userId: z.string(),
-        username: z.string().optional(),
-        profileImageUrl: z.string().optional(),
+        username: z.string().min(1).max(20).optional(),
+        newPassword: z.string().min(8).max(128).optional(),
+        confirmPassword: z.string().min(8).max(128).optional(),
+        newProfileImage: z.string().optional(), // base64 string
+        profileImageUrl: z.string().optional(), // only used for inital account creation
         pinnedTabId: z.number().optional(),
       }),
     )
-    .mutation(({ input, ctx }) => {
-      const { userId, username, profileImageUrl, pinnedTabId } = input;
+    .mutation(async ({ input, ctx }) => {
+      const {
+        userId,
+        username,
+        newPassword,
+        confirmPassword,
+        newProfileImage, // base64 string
+        profileImageUrl,
+        pinnedTabId,
+      } = input;
+
+      if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+        if (newPassword !== confirmPassword) {
+          throw new Error("Passwords do not match");
+        }
+      }
+
+      const clerk = await clerkClient();
+
+      let updatedClerkUser = null;
+
+      if (newPassword) {
+        await clerk.users.updateUser(userId, {
+          password: newPassword,
+          skipPasswordChecks: true,
+        });
+      }
+
+      if (newProfileImage) {
+        const blob = base64ToBlob(newProfileImage, "image/jpeg");
+        const newImageFile = new File([blob], "profileImage", {
+          type: "image/jpeg",
+        });
+
+        updatedClerkUser = await clerk.users.updateUserProfileImage(userId, {
+          file: newImageFile,
+        });
+      }
 
       return ctx.prisma.user.update({
         where: {
@@ -126,7 +181,9 @@ export const userRouter = createTRPCRouter({
         },
         data: {
           username,
-          profileImageUrl,
+          profileImageUrl: updatedClerkUser
+            ? updatedClerkUser.imageUrl
+            : profileImageUrl,
           pinnedTabId,
         },
       });

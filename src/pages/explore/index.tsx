@@ -8,7 +8,7 @@ import { useState } from "react";
 import { AiFillHeart, AiOutlineUser } from "react-icons/ai";
 import { GiMusicalScore } from "react-icons/gi";
 import { TbPinned } from "react-icons/tb";
-import PinnedTabPlaceholder from "~/components/Profile/PinnedTabPlaceholder";
+import PinnedTabPlaceholder from "~/components/Profile/PinnedTabSelector";
 import GridTabCard from "~/components/Search/GridTabCard";
 import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
 import { Button } from "~/components/ui/button";
@@ -220,9 +220,7 @@ function Explore() {
                   <TbPinned className="size-5" />
                   Pinned tab
                 </p>
-                {user?.pinnedTabId === -1 ? (
-                  <PinnedTabPlaceholder />
-                ) : (
+                {user?.pinnedTabId === -1 ? null : ( // <PinnedTabPlaceholder />
                   <AnimatePresence mode="sync">
                     {fetchedTab ? (
                       <GridTabCard

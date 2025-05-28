@@ -111,6 +111,60 @@ export const tabRouter = createTRPCRouter({
   //   return fullTab;
   // }),
 
+  // only used in <PinnedTabSelector /> on user's settings page,
+  // but doesn't need to be protected
+  getTitle: protectedProcedure
+    .input(z.number())
+    .query(async ({ input: id, ctx }) => {
+      const tab = await ctx.prisma.tab.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          title: true,
+        },
+      });
+
+      if (!tab) return null;
+
+      return tab.title;
+    }),
+
+  getTabsForPinnedTabSelector: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        sortBy: z.enum(["Newest", "Oldest", "Most popular", "Least popular"]),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const { userId, sortBy } = input;
+
+      const sortOptionsMap = {
+        Newest: { createdAt: "desc" as const },
+        Oldest: { createdAt: "asc" as const },
+        "Most popular": { pageViews: "desc" as const },
+        "Least popular": { pageViews: "asc" as const },
+      };
+
+      const orderBy = sortOptionsMap[sortBy];
+
+      const tabs = await ctx.prisma.tab.findMany({
+        where: {
+          createdByUserId: userId,
+        },
+        select: {
+          createdAt: true,
+          id: true,
+          title: true,
+          pageViews: true,
+        },
+        orderBy,
+      });
+
+      return tabs;
+    }),
+
   getRatingBookmarkAndViewCount: publicProcedure
     .input(z.number())
     .query(async ({ input: tabId, ctx }) => {
