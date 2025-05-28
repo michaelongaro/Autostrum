@@ -43,7 +43,7 @@ interface Tab {
 
 function Tab({ tab }: Tab) {
   const [customTuning, setCustomTuning] = useState<string | null>(null);
-  const [isPostingOrSaving, setIsPostingOrSaving] = useState(false);
+  const [isPublishingOrUpdating, setIsPublishingOrUpdating] = useState(false);
 
   // true when creating new section, results in way less cpu/ram usage for arguably worse ux
   const [forceCloseSectionAccordions, setForceCloseSectionAccordions] =
@@ -253,14 +253,14 @@ function Tab({ tab }: Tab) {
           transition: "filter 0.5s ease-in-out",
         }}
         className={`baseVertFlex lightGlassmorphic relative w-full gap-4 md:rounded-xl ${
-          isPostingOrSaving
+          isPublishingOrUpdating
             ? "pointer-events-none brightness-90"
             : "brightness-100"
         }`}
       >
         <TabMetadata
           customTuning={customTuning}
-          setIsPostingOrSaving={setIsPostingOrSaving}
+          setIsPublishingOrUpdating={setIsPublishingOrUpdating}
         />
 
         {!editing &&

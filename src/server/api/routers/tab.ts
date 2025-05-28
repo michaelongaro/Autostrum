@@ -156,11 +156,9 @@ export const tabRouter = createTRPCRouter({
       };
     }),
 
-  createOrUpdate: protectedProcedure
+  create: protectedProcedure
     .input(
       z.object({
-        type: z.enum(["create", "update"]),
-        id: z.number().nullable(),
         createdByUserId: z.string(),
         title: z.string(),
         description: z.string().nullable(),
@@ -177,8 +175,6 @@ export const tabRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const {
-        type,
-        id,
         createdByUserId,
         title,
         description,
@@ -203,102 +199,144 @@ export const tabRouter = createTRPCRouter({
       const base64Data = input.base64TabScreenshot.split(",")[1]!;
       const imageBuffer = Buffer.from(base64Data, "base64");
 
-      let tab: Tab | null = null;
+      const tab = await ctx.prisma.tab.create({
+        data: {
+          createdByUserId,
+          title,
+          description,
+          genre,
+          tuning,
+          sectionProgression,
+          bpm,
+          capo,
+          chords,
+          strummingPatterns,
+          tabData,
+        },
+      });
 
-      if (input.type === "create") {
-        tab = await ctx.prisma.tab.create({
-          data: {
-            createdByUserId,
-            title,
-            description,
-            genre,
-            tuning,
-            sectionProgression,
-            bpm,
-            capo,
-            chords,
-            strummingPatterns,
-            tabData,
+      if (tab) {
+        // immediately revalidate the tab's page before s3 upload to improve end user experience
+        await ctx.res.revalidate(
+          `/tab/?title=${encodeURIComponent(tab.title)}&id=${tab.id}`,
+        );
+      }
+
+      // uploading screenshot to s3 bucket
+      const command = new PutObjectCommand({
+        Bucket: "autostrum-screenshots",
+        Key: `${tab.id}.jpeg`,
+        Body: imageBuffer,
+        ContentType: "image/jpeg",
+      });
+      await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
+
+      try {
+        const res = await s3.send(command);
+        console.log(res);
+      } catch (e) {
+        console.log(e);
+        // return null;
+      }
+
+      // increment the tabCreator's number of tabs
+      await ctx.prisma.user.update({
+        where: {
+          userId: createdByUserId,
+        },
+        data: {
+          totalTabs: {
+            increment: 1,
           },
-        });
+        },
+      });
 
-        if (tab) {
-          // immediately revalidate the tab's page before s3 upload to improve end user experience
-          await ctx.res.revalidate(
-            `/tab/?title=${encodeURIComponent(tab.title)}&id=${tab.id}`,
-          );
-        }
+      return tab;
+    }),
 
-        // uploading screenshot to s3 bucket
-        const command = new PutObjectCommand({
-          Bucket: "autostrum-screenshots",
-          Key: `${tab.id}.jpeg`,
-          Body: imageBuffer,
-          ContentType: "image/jpeg",
-        });
-        await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        title: z.string(),
+        description: z.string().nullable(),
+        genre: z.string(),
+        tuning: z.string(),
+        bpm: z.number(),
+        capo: z.number(),
+        chords: z.array(chordSchema),
+        strummingPatterns: z.array(strummingPatternSchema),
+        tabData: z.array(sectionSchema),
+        sectionProgression: z.array(sectionProgressionSchema),
+        base64TabScreenshot: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const {
+        id,
+        title,
+        description,
+        genre,
+        tuning,
+        bpm,
+        capo,
+        chords,
+        strummingPatterns,
+        tabData,
+        sectionProgression,
+      } = input;
 
-        try {
-          const res = await s3.send(command);
-          console.log(res);
-        } catch (e) {
-          console.log(e);
-          // return null;
-        }
+      const s3 = new S3Client({
+        region: "us-east-2",
+        credentials: {
+          accessKeyId: env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+        },
+      });
 
-        // increment the tabCreator's number of tabs
-        await ctx.prisma.user.update({
-          where: {
-            userId: createdByUserId,
-          },
-          data: {
-            totalTabs: {
-              increment: 1,
-            },
-          },
-        });
-      } else if (type === "update" && id !== null) {
-        tab = await ctx.prisma.tab.update({
-          where: {
-            id,
-          },
-          data: {
-            title,
-            description,
-            genre,
-            tuning,
-            sectionProgression,
-            bpm,
-            capo,
-            chords,
-            strummingPatterns,
-            tabData,
-          },
-        });
+      const base64Data = input.base64TabScreenshot.split(",")[1]!;
+      const imageBuffer = Buffer.from(base64Data, "base64");
 
-        if (tab) {
-          // immediately revalidate the tab's page before s3 upload to improve end user experience
-          await ctx.res.revalidate(
-            `/tab/?title=${encodeURIComponent(tab.title)}&id=${tab.id}`,
-          );
-        }
+      const tab = await ctx.prisma.tab.update({
+        where: {
+          id,
+        },
+        data: {
+          title,
+          description,
+          genre,
+          tuning,
+          sectionProgression,
+          bpm,
+          capo,
+          chords,
+          strummingPatterns,
+          tabData,
+        },
+      });
 
-        // uploading screenshot to s3 bucket
-        const command = new PutObjectCommand({
-          Bucket: "autostrum-screenshots",
-          Key: `${input.id}.jpeg`,
-          Body: imageBuffer,
-          ContentType: "image/jpeg",
-        });
-        await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
+      if (tab) {
+        // immediately revalidate the tab's page before s3 upload to improve end user experience
+        await ctx.res.revalidate(
+          `/tab/?title=${encodeURIComponent(tab.title)}&id=${tab.id}`,
+        );
+      }
 
-        try {
-          const res = await s3.send(command);
-          console.log(res);
-        } catch (e) {
-          console.log(e);
-          // return null;
-        }
+      // uploading screenshot to s3 bucket
+      const command = new PutObjectCommand({
+        Bucket: "autostrum-screenshots",
+        Key: `${input.id}.jpeg`,
+        Body: imageBuffer,
+        ContentType: "image/jpeg",
+      });
+      await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
+
+      try {
+        const res = await s3.send(command);
+        console.log(res);
+      } catch (e) {
+        console.log(e);
+        // return null;
       }
 
       return tab;

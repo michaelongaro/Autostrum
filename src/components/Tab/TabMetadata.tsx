@@ -2,14 +2,13 @@ import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import html2canvas from "html2canvas";
 import isEqual from "lodash.isequal";
-import { Check } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import {
+  useEffect,
   useRef,
   useState,
-  useEffect,
   type ChangeEvent,
   type Dispatch,
   type SetStateAction,
@@ -71,27 +70,12 @@ const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 
 type TabMetadata = {
   customTuning: string | null;
-  setIsPostingOrSaving: Dispatch<SetStateAction<boolean>>;
+  setIsPublishingOrUpdating: Dispatch<SetStateAction<boolean>>;
 };
 
-function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
+function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
   const { userId } = useAuth();
   const { push, asPath } = useRouter();
-  const ctx = api.useUtils();
-
-  const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
-  const [takingScreenshot, setTakingScreenshot] = useState(false);
-  const tabPreviewScreenshotRef = useRef(null);
-
-  const [showDeletePopover, setShowDeletePopover] = useState(false);
-  const [showPublishPopover, setShowPublishPopover] = useState(false);
-
-  const [publishErrorOccurred, setPublishErrorOccurred] = useState(false);
-  const [showPulsingError, setShowPulsingError] = useState(false);
-  const [showDeleteCheckmark, setShowDeleteCheckmark] = useState(false);
-  const [showPublishCheckmark, setShowPublishCheckmark] = useState(false);
-
-  const overMediumViewportThreshold = useViewportWidthBreakpoint(768);
 
   const {
     originalTabData,
@@ -174,29 +158,56 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
       enabled: !editing,
     });
 
-  const { mutate: createOrUpdate, isLoading: isPosting } =
-    api.tab.createOrUpdate.useMutation({
+  const [saveButtonText, setSaveButtonText] = useState(
+    asPath.includes("create") ? "Publish" : "Save",
+  );
+  const [deleteButtonText, setDeleteButtonText] = useState("Delete");
+
+  const { mutate: publishTab, isLoading: isPublishing } =
+    api.tab.create.useMutation({
       onSuccess: (tab) => {
-        if (tab) {
-          setShowPublishCheckmark(true);
+        setTimeout(() => {
+          setSaveButtonText("");
           setOriginalTabData(tab);
+        }, 2000);
 
-          setTimeout(() => {
-            setCurrentlyPlayingMetadata(null);
-            setCurrentChordIndex(0);
-            if (asPath.includes("create")) {
-              void push(
-                `/tab/?title=${encodeURIComponent(tab.title)}&id=${tab.id}`,
-              );
-            }
-          }, 250);
+        setTimeout(() => {
+          setCurrentlyPlayingMetadata(null);
+          setCurrentChordIndex(0);
+        }, 250);
 
-          setTimeout(() => {
-            setShowPublishCheckmark(false);
-          }, 1500);
-        }
+        setTimeout(() => {
+          void push(
+            `/tab/?title=${encodeURIComponent(tab.title)}&id=${tab.id}`,
+          );
+        }, 4000);
       },
       onError: (e) => {
+        console.error("Error publishing tab:", e);
+        setPublishErrorOccurred(true);
+        setShowPublishPopover(true);
+      },
+    });
+
+  const { mutate: updateTab, isLoading: isUpdating } =
+    api.tab.update.useMutation({
+      onSuccess: (tab) => {
+        setTimeout(() => {
+          setSaveButtonText("");
+          setOriginalTabData(tab);
+        }, 2000);
+
+        setTimeout(() => {
+          setCurrentlyPlayingMetadata(null);
+          setCurrentChordIndex(0);
+        }, 250);
+
+        setTimeout(() => {
+          setSaveButtonText("Save");
+        }, 4000);
+      },
+      onError: (e) => {
+        console.error("Error saving tab:", e);
         setPublishErrorOccurred(true);
         setShowPublishPopover(true);
       },
@@ -205,29 +216,18 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
   const { mutate: deleteTab, isLoading: isDeleting } =
     api.tab.delete.useMutation({
       onSuccess: () => {
-        setShowDeleteCheckmark(true);
+        setTimeout(() => {
+          setDeleteButtonText("");
+        }, 2000);
 
         setTimeout(() => {
           void push(`/create`);
-        }, 250);
-
-        setTimeout(() => {
-          setShowDeleteCheckmark(false);
-        }, 1500);
+        }, 4000);
       },
       onError: (e) => {
-        //  const errorMessage = e.data?.zodError?.fieldErrors.content;
-        //  if (errorMessage && errorMessage[0]) {
-        //    toast.error(errorMessage[0]);
-        //  } else {
-        //    toast.error("Failed to post! Please try again later.");
-        //  }
+        console.error("Error deleting tab:", e);
       },
     });
-
-  useEffect(() => {
-    setIsPostingOrSaving(isPosting);
-  }, [isPosting, setIsPostingOrSaving]);
 
   // current user
   const { data: currentUser } = api.user.getById.useQuery(userId!, {
@@ -239,6 +239,22 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
     api.user.getById.useQuery(createdByUserId!, {
       enabled: !!createdByUserId,
     });
+
+  const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
+  const [takingScreenshot, setTakingScreenshot] = useState(false);
+  const tabPreviewScreenshotRef = useRef(null);
+
+  const [showDeletePopover, setShowDeletePopover] = useState(false);
+  const [showPublishPopover, setShowPublishPopover] = useState(false);
+
+  const [publishErrorOccurred, setPublishErrorOccurred] = useState(false);
+  const [showPulsingError, setShowPulsingError] = useState(false);
+
+  const overMediumViewportThreshold = useViewportWidthBreakpoint(768);
+
+  useEffect(() => {
+    setIsPublishingOrUpdating(isPublishing || isUpdating);
+  }, [isPublishing, isUpdating, setIsPublishingOrUpdating]);
 
   function handleBpmChange(event: ChangeEvent<HTMLInputElement>) {
     const inputValue = event.target.value;
@@ -320,9 +336,7 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
       return;
     }
 
-    // have to set this manually rather than relying on the effect since it takes
-    // a bit for the posting to actually occur, this should be more synchronous
-    setIsPostingOrSaving(true);
+    setSaveButtonText(asPath.includes("create") ? "Publishing" : "Saving");
 
     setMinifiedTabData(getMinifiedTabData());
     setTakingScreenshot(true);
@@ -330,11 +344,24 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
     setTimeout(() => {
       void html2canvas(tabPreviewScreenshotRef.current!).then((canvas) => {
         const base64Screenshot = canvas.toDataURL("image/jpeg", 0.75);
-        if (userId) {
-          createOrUpdate({
-            type: asPath.includes("create") ? "create" : "update",
-            id,
+        if (asPath.includes("create")) {
+          publishTab({
             createdByUserId: userId,
+            title,
+            description,
+            genre,
+            chords,
+            strummingPatterns,
+            tabData,
+            sectionProgression,
+            tuning,
+            bpm,
+            capo,
+            base64TabScreenshot: base64Screenshot,
+          });
+        } else {
+          updateTab({
+            id,
             title,
             description,
             genre,
@@ -484,59 +511,57 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                   <PopoverTrigger asChild>
                     <Button
                       variant={"destructive"}
-                      disabled={
-                        isDeleting || showDeleteCheckmark || isLoadingARoute
-                      }
+                      disabled={isDeleting || isLoadingARoute}
                       className="baseFlex gap-2"
                     >
-                      {showDeleteCheckmark && !isDeleting
-                        ? "Deleted"
-                        : isDeleting
-                          ? "Deleting"
-                          : "Delete"}
-                      <FaTrashAlt className="h-4 w-4" />
-                      <AnimatePresence mode="wait">
-                        {isDeleting && (
-                          <motion.svg
-                            key="tabDeletionLoadingSpinner"
-                            initial={{ opacity: 0, width: 0 }}
-                            animate={{ opacity: 1, width: "24px" }}
-                            exit={{ opacity: 0 }}
-                            transition={{
-                              duration: 0.15,
-                            }}
-                            className="h-6 w-6 animate-stableSpin rounded-full bg-inherit fill-none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
+                      <AnimatePresence mode={"popLayout"} initial={false}>
+                        <motion.div
+                          key={deleteButtonText}
+                          initial={{ opacity: 0, y: -20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 20 }}
+                          transition={{
+                            duration: 0.25,
+                          }}
+                          className="baseFlex w-[85px] gap-2"
+                        >
+                          {deleteButtonText === "Delete" && (
+                            <FaTrashAlt className="h-4 w-4" />
+                          )}
+                          {deleteButtonText}
+                          {deleteButtonText === "Deleting" && (
+                            <div
+                              className="inline-block size-4 animate-spin rounded-full border-[2px] border-pink-50 border-t-transparent text-pink-50"
+                              role="status"
+                              aria-label="loading"
+                            >
+                              <span className="sr-only">Loading...</span>
+                            </div>
+                          )}
+                          {deleteButtonText === "" && (
+                            <svg
+                              fill="none"
+                              viewBox="0 0 24 24"
                               stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                          </motion.svg>
-                        )}
-
-                        {showDeleteCheckmark && (
-                          <motion.div
-                            key="deletionSuccessCheckmark"
-                            initial={{ opacity: 0, width: "20px" }}
-                            animate={{ opacity: 1, width: "20px" }}
-                            exit={{ opacity: 0, width: 0 }}
-                            transition={{
-                              duration: 0.25,
-                            }}
-                          >
-                            <Check className="h-5 w-5" />
-                          </motion.div>
-                        )}
+                              strokeWidth={2}
+                              className="size-5 text-pink-50"
+                            >
+                              <motion.path
+                                initial={{ pathLength: 0 }}
+                                animate={{ pathLength: 1 }}
+                                transition={{
+                                  delay: 0.2,
+                                  type: "tween",
+                                  ease: "easeOut",
+                                  duration: 0.3,
+                                }}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          )}
+                        </motion.div>
                       </AnimatePresence>
                     </Button>
                   </PopoverTrigger>
@@ -600,74 +625,60 @@ function TabMetadata({ customTuning, setIsPostingOrSaving }: TabMetadata) {
                       isLoadingARoute ||
                       isEqualToOriginalTabState() ||
                       showPulsingError ||
-                      isPosting ||
-                      showPublishCheckmark ||
+                      isPublishing ||
+                      isUpdating ||
+                      isDeleting ||
                       takingScreenshot
                     }
                     onClick={() => void handleSave()}
-                    className="baseFlex gap-2"
+                    className="baseFlex"
                   >
-                    {asPath.includes("create")
-                      ? `${
-                          showPublishCheckmark &&
-                          !isPosting &&
-                          !takingScreenshot
-                            ? "Published"
-                            : isPosting || takingScreenshot
-                              ? "Publishing"
-                              : "Publish"
-                        }`
-                      : `${
-                          showPublishCheckmark &&
-                          !isPosting &&
-                          !takingScreenshot
-                            ? "Saved"
-                            : isPosting || takingScreenshot
-                              ? "Saving"
-                              : "Save"
-                        }`}
-
-                    <AnimatePresence mode="wait">
-                      {(isPosting || takingScreenshot) && (
-                        <motion.svg
-                          key="postingLoadingSpinner"
-                          initial={{ opacity: 0, width: 0 }}
-                          animate={{ opacity: 1, width: "24px" }}
-                          exit={{ opacity: 0 }}
-                          transition={{
-                            duration: 0.15,
-                          }}
-                          className="h-6 w-6 animate-stableSpin rounded-full bg-inherit fill-none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
+                    <AnimatePresence mode={"popLayout"} initial={false}>
+                      <motion.div
+                        key={saveButtonText}
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{
+                          duration: 0.25,
+                        }}
+                        className="baseFlex w-[100px] gap-2"
+                      >
+                        {saveButtonText}
+                        {(saveButtonText === "Publishing" ||
+                          saveButtonText === "Saving") && (
+                          <div
+                            className="inline-block size-4 animate-spin rounded-full border-[2px] border-pink-50 border-t-transparent text-pink-50"
+                            role="status"
+                            aria-label="loading"
+                          >
+                            <span className="sr-only">Loading...</span>
+                          </div>
+                        )}
+                        {saveButtonText === "" && (
+                          <svg
+                            fill="none"
+                            viewBox="0 0 24 24"
                             stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </motion.svg>
-                      )}
-                      {showPublishCheckmark && (
-                        <motion.div
-                          key="postingSuccessCheckmark"
-                          initial={{ opacity: 0, width: "20px" }}
-                          animate={{ opacity: 1, width: "20px" }}
-                          exit={{ opacity: 0, width: 0 }}
-                          transition={{
-                            duration: 0.25,
-                          }}
-                        >
-                          <Check className="h-5 w-5" />
-                        </motion.div>
-                      )}
+                            strokeWidth={2}
+                            className="size-5 text-pink-50"
+                          >
+                            <motion.path
+                              initial={{ pathLength: 0 }}
+                              animate={{ pathLength: 1 }}
+                              transition={{
+                                delay: 0.2,
+                                type: "tween",
+                                ease: "easeOut",
+                                duration: 0.3,
+                              }}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        )}
+                      </motion.div>
                     </AnimatePresence>
                   </Button>
                 </PopoverTrigger>
