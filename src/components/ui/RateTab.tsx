@@ -11,14 +11,20 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import {
+  Drawer,
+  DrawerTrigger,
+  DrawerPortal,
+  DrawerContent,
+} from "~/components/ui/drawer";
 import type { UserMetadata } from "~/server/api/routers/user";
 import { api } from "~/utils/api";
 import { formatNumber } from "~/utils/formatNumber";
 import { Button } from "./button";
 import { FaRegStar, FaStar } from "react-icons/fa6";
 import { useTabStore } from "~/stores/TabStore";
-import { Drawer } from "vaul";
-import { SignUpButton, SignInButton } from "@clerk/nextjs";
+import { SignInButton } from "@clerk/nextjs";
+import { FaUser } from "react-icons/fa";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -407,7 +413,7 @@ function RateTabDrawer({
   showThankYouMessage,
 }: RateTabWrapper) {
   return (
-    <Drawer.Root
+    <Drawer
       open={showDrawer}
       onOpenChange={(open) => {
         setShowDrawer(open);
@@ -425,7 +431,7 @@ function RateTabDrawer({
       }}
       modal={true}
     >
-      <Drawer.Trigger asChild>
+      <DrawerTrigger asChild>
         <Button
           variant={"secondary"}
           className="baseFlex w-full !flex-nowrap gap-2 text-base"
@@ -440,16 +446,14 @@ function RateTabDrawer({
           </div>
           {`(${formatNumber(ratingsCount)})`}
         </Button>
-      </Drawer.Trigger>
-      <Drawer.Portal>
-        <Drawer.Content
+      </DrawerTrigger>
+      <DrawerPortal>
+        <DrawerContent
           style={{
             textShadow: "none",
           }}
           className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950"
         >
-          <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
-
           {currentUser ? (
             <RateTabInternals
               hoveredRating={hoveredRating}
@@ -472,18 +476,7 @@ function RateTabDrawer({
                 Only registered users can rate tabs.
               </p>
 
-              <div className="baseFlex gap-4">
-                <SignUpButton
-                  mode="modal"
-                  // afterSignUpUrl={`${
-                  //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                  // }/postSignUpRegistration`}
-                  // afterSignInUrl={`${
-                  //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                  // }${asPath}`}
-                >
-                  <Button size={"lg"}>Sign up</Button>
-                </SignUpButton>
+              <div className="baseFlex">
                 <SignInButton
                   mode="modal"
                   // afterSignUpUrl={`${
@@ -493,16 +486,17 @@ function RateTabDrawer({
                   //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
                   // }${asPath}`}
                 >
-                  <Button variant={"secondary"} className="h-11">
+                  <Button className="baseFlex gap-2 px-8">
+                    <FaUser className="size-4" />
                     Sign in
                   </Button>
                 </SignInButton>
               </div>
             </div>
           )}
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.Root>
+        </DrawerContent>
+      </DrawerPortal>
+    </Drawer>
   );
 }
 

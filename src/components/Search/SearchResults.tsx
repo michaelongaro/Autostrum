@@ -18,7 +18,15 @@ import { CiViewTable } from "react-icons/ci";
 import { GoChevronRight } from "react-icons/go";
 import { LuFilter } from "react-icons/lu";
 import { useInView } from "react-intersection-observer";
-import { Drawer } from "vaul";
+import {
+  Drawer,
+  DrawerTrigger,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerPortal,
+} from "~/components/ui/drawer";
 import Render404Page from "~/components/Search/Render404Page";
 import { Button } from "~/components/ui/button";
 import DifficultyBars from "~/components/ui/DifficultyBars";
@@ -836,7 +844,7 @@ function SearchResults({
                   </div>
 
                   {/* filter drawer trigger */}
-                  <Drawer.Root
+                  <Drawer
                     open={drawerOpen}
                     onOpenChange={(open) => {
                       setDrawerOpen(open);
@@ -849,21 +857,18 @@ function SearchResults({
                       setDrawerView("Search filters");
                     }}
                   >
-                    <Drawer.Trigger asChild>
+                    <DrawerTrigger asChild>
                       <Button variant={"outline"} className="baseFlex w-9">
                         <LuFilter className="size-4 shrink-0" />
                       </Button>
-                    </Drawer.Trigger>
-                    <Drawer.Portal>
-                      <Drawer.Content
+                    </DrawerTrigger>
+                    <DrawerPortal>
+                      <DrawerContent
                         style={{
-                          zIndex: asPath.includes("/preferences") ? 60 : 50,
                           textShadow: "none",
                         }}
                         className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-4 text-pink-950"
                       >
-                        <div className="mx-auto mb-4 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
-
                         <div className="baseFlex w-full !justify-between px-3">
                           <AnimatePresence mode="popLayout">
                             {drawerView === "Search filters" ? (
@@ -1530,9 +1535,9 @@ function SearchResults({
                             {/* Layout */}
                           </AnimatePresence>
                         </div>
-                      </Drawer.Content>
-                    </Drawer.Portal>
-                  </Drawer.Root>
+                      </DrawerContent>
+                    </DrawerPortal>
+                  </Drawer>
                 </div>
               </div>
 

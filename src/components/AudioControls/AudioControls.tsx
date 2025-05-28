@@ -13,7 +13,12 @@ import { GoChevronDown, GoChevronUp } from "react-icons/go";
 import { IoSettingsOutline } from "react-icons/io5";
 import { RiArrowGoBackFill } from "react-icons/ri";
 import { TiArrowLoop } from "react-icons/ti";
-import { Drawer } from "vaul";
+import {
+  Drawer,
+  DrawerPortal,
+  DrawerTrigger,
+  DrawerContent,
+} from "~/components/ui/drawer";
 import { AudioProgressSlider } from "~/components/ui/AudioProgressSlider";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
@@ -925,7 +930,7 @@ function AudioControls() {
               </Button>
             </>
           ) : (
-            <Drawer.Root
+            <Drawer
               open={drawerOpen}
               onOpenChange={(open) => {
                 if (open && audioMetadata.playing) {
@@ -945,7 +950,7 @@ function AudioControls() {
               modal={false}
               dismissible={!drawerHandleDisabled} // bad UX to allow drawer to be moved when <Select> is current open
             >
-              <Drawer.Trigger asChild>
+              <DrawerTrigger asChild>
                 <Button
                   disabled={audioMetadata.editingLoopRange}
                   size="sm"
@@ -954,20 +959,18 @@ function AudioControls() {
                 >
                   <IoSettingsOutline className="h-5 w-5" />
                 </Button>
-              </Drawer.Trigger>
-              <Drawer.Portal>
-                <Drawer.Content
+              </DrawerTrigger>
+              <DrawerPortal>
+                <DrawerContent
                   style={{
                     textShadow: "none",
                   }}
                   className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950"
                 >
-                  <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray-300" />
-
-                  <Label className="baseFlex gap-2">
+                  <div className="baseFlex gap-2">
                     <IoSettingsOutline className="size-4" />
                     Audio settings
-                  </Label>
+                  </div>
                   <Separator className="mb-2 w-full bg-pink-600" />
 
                   <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
@@ -1113,9 +1116,9 @@ function AudioControls() {
                       </Button>
                     </div>
                   )}
-                </Drawer.Content>
-              </Drawer.Portal>
-            </Drawer.Root>
+                </DrawerContent>
+              </DrawerPortal>
+            </Drawer>
           )}
         </div>
       </div>
