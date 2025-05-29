@@ -229,6 +229,12 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
       },
     });
 
+  const { mutate: processPageView } = api.tab.processPageView.useMutation({
+    onError: (e) => {
+      console.error("Error processing page view:", e);
+    },
+  });
+
   // current user
   const { data: currentUser } = api.user.getById.useQuery(userId!, {
     enabled: !!userId,
@@ -251,6 +257,26 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
   const [showPulsingError, setShowPulsingError] = useState(false);
 
   const overMediumViewportThreshold = useViewportWidthBreakpoint(768);
+
+  useEffect(() => {
+    if (editing) return;
+
+    let processPageViewTimeout: NodeJS.Timeout | null = null;
+
+    processPageViewTimeout = setTimeout(() => {
+      processPageView({
+        tabId: id,
+        tabCreatorUserId: createdByUserId ?? undefined,
+        artistId: artistId ?? undefined,
+      });
+    }, 5000); // user must be on page for at least 5 seconds before processing page view
+
+    return () => {
+      if (processPageViewTimeout) {
+        clearTimeout(processPageViewTimeout);
+      }
+    };
+  }, [artistId, createdByUserId, editing, id, processPageView]);
 
   useEffect(() => {
     setIsPublishingOrUpdating(isPublishing || isUpdating);

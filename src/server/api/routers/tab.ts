@@ -210,6 +210,98 @@ export const tabRouter = createTRPCRouter({
       };
     }),
 
+  processPageView: publicProcedure
+    .input(
+      z.object({
+        tabId: z.number(),
+        tabCreatorUserId: z.string().optional(),
+        artistId: z.number().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { tabId, tabCreatorUserId, artistId } = input;
+
+      const ipAddress =
+        ctx.req.headers["x-forwarded-for"] || ctx.req.socket.remoteAddress;
+
+      if (!ipAddress || typeof ipAddress !== "string") {
+        throw new Error("IP address not found");
+      }
+
+      // make sure that the IP address is not already in the DailyTabView model for this tab
+      const existingView = await ctx.prisma.dailyTabView.findUnique({
+        where: {
+          userIpAddress: ipAddress,
+        },
+      });
+
+      if (existingView) return;
+
+      // 1) increment the tab's page views
+      await ctx.prisma.tab.update({
+        where: {
+          id: tabId,
+        },
+        data: {
+          pageViews: {
+            increment: 1,
+          },
+        },
+      });
+
+      // 2) add a new row to the DailyTabView model
+      await ctx.prisma.dailyTabView.create({
+        data: {
+          userIpAddress: ipAddress,
+          tabId,
+        },
+      });
+
+      if (tabCreatorUserId) {
+        // 3) increment the tabCreator's totalTabViews (if tabCreatorUserId is provided)
+        await ctx.prisma.user.update({
+          where: {
+            userId: tabCreatorUserId,
+          },
+          data: {
+            totalTabViews: {
+              increment: 1,
+            },
+          },
+        });
+
+        // 4) increment the user's WeeklyTotalTabViews
+        await ctx.prisma.weeklyUserTotalTabView.upsert({
+          where: {
+            userId: tabCreatorUserId,
+          },
+          update: {
+            totalTabPageViews: {
+              increment: 1,
+            },
+          },
+          create: {
+            userId: tabCreatorUserId,
+            totalTabPageViews: 1,
+          },
+        });
+      }
+
+      if (artistId) {
+        // 5) increment the artist's totalTabViews
+        await ctx.prisma.artist.update({
+          where: {
+            id: artistId,
+          },
+          data: {
+            totalViews: {
+              increment: 1,
+            },
+          },
+        });
+      }
+    }),
+
   create: protectedProcedure
     .input(
       z.object({

@@ -8,11 +8,33 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-// Singleton, updated by cron job
+// FYI: this model isn't technically necessary, but I am keeping it for debugging
+// purposes or if I need to change the weekly featured users for some reason.
+// (updated weekly by a cron job)
 model WeeklyFeaturedUser {
-    id Int @id @default(autoincrement())
+    id        Int      @id @default(autoincrement())
+    createdAt DateTime @default(now())
 
-    userId String
+    userId String @unique
+}
+
+// used to get the WeeklyFeaturedUsers each week
+// (entire model is cleared weekly by a cron job)
+model WeeklyUserTotalTabView {
+    id        Int      @id @default(autoincrement())
+    createdAt DateTime @default(now())
+
+    userId            String @unique
+    totalTabPageViews Int    @default(0) // total tab page views for the week
+}
+
+// prevents users from spam-viewing the same tab multiple times in a day
+// (entire model is cleared daily by a cron job)
+model DailyTabView {
+    userIpAddress String   @id // always going to be querying by user IP address
+    createdAt     DateTime @default(now())
+
+    tabId Int
 }
 
 // top 5 most popular tabs based on pageViews 
