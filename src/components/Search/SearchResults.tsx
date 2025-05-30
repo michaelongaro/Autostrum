@@ -226,40 +226,6 @@ function SearchResults({
 
   const tableHeaderRef = useRef<OverlayScrollbarsComponentRef<"div">>(null);
   const tableBodyRef = useRef<OverlayScrollbarsComponentRef<"div">>(null);
-  const [gridTemplateColumns, setGridTemplateColumns] = useState("");
-
-  const handleWindowResize = useCallback(() => {
-    const colGroup = document.getElementById("tableTabViewColGroup");
-
-    if (!colGroup) return;
-
-    const gridTemplateColumns = [];
-
-    // loop through colGroup children and push() the width of each column to the array
-    for (const col of colGroup.children) {
-      const colElement = col as HTMLTableColElement;
-      gridTemplateColumns.push(`${colElement.getBoundingClientRect().width}px`);
-    }
-
-    setGridTemplateColumns(gridTemplateColumns.join(" "));
-  }, []);
-
-  useEffect(() => {
-    if (layoutType.value !== "table" || searchResultsCountIsLoading) return;
-
-    window.addEventListener("resize", handleWindowResize);
-
-    handleWindowResize();
-
-    return () => {
-      window.removeEventListener("resize", handleWindowResize);
-    };
-  }, [
-    handleWindowResize,
-    layoutType.value,
-    query,
-    searchResultsCountIsLoading,
-  ]);
 
   const isAboveSmViewport = useViewportWidthBreakpoint(640);
 
