@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { MdOutlineMailOutline } from "react-icons/md";
 import { Button } from "~/components/ui/button";
+import { FaGithub } from "react-icons/fa";
 import { Separator } from "~/components/ui/separator";
 
 function Footer() {
   return (
-    <footer className="footerBackgroundGradient baseFlex z-30 h-16 w-full gap-4">
+    <footer className="footerBackgroundGradient baseFlex z-30 h-16 w-full gap-2 xs:gap-4">
       <Button variant={"link"} asChild>
         <a
           href="mailto:michael.ongaro.dev@gmail.com"
@@ -14,14 +15,28 @@ function Footer() {
           className="baseFlex gap-2"
         >
           <MdOutlineMailOutline className="size-5" />
-          <p>Contact</p>
+          <span>Contact</span>
         </a>
       </Button>
 
-      <Separator orientation="vertical" className="h-4" />
+      <Separator orientation="vertical" className="h-4 bg-pink-50/50" />
 
       <Button variant={"link"} asChild>
         <Link href={"/privacy"}>Privacy Policy</Link>
+      </Button>
+
+      <Separator orientation="vertical" className="h-4 bg-pink-50/50" />
+
+      <Button variant={"link"} asChild>
+        <a
+          href="https://github.com/michaelongaro/Autostrum"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="baseFlex gap-2"
+        >
+          <FaGithub className="size-5" />
+          <span>GitHub</span>
+        </a>
       </Button>
     </footer>
   );
