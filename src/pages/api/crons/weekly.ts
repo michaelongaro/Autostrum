@@ -1,6 +1,10 @@
 import { PrismaClient } from "@prisma/client";
+import type { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handler() {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
   const prisma = new PrismaClient();
 
   // get the top 5 most viewed users from the past week
@@ -23,4 +27,7 @@ export default async function handler() {
 
   // clear the previous weekly user total tab views
   await prisma.weeklyUserTotalTabView.deleteMany({});
+
+  // revalidate the /explore page to fetch the new weekly featured users
+  await res.revalidate("/explore");
 }
