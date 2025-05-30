@@ -7,7 +7,6 @@ import { postSignUpRegistrationRouter } from "./routers/postSignUpRegistration";
 import { tabRouter } from "./routers/tab";
 import { searchRouter } from "./routers/search";
 import { tabRatingRouter } from "./routers/tabRating";
-import { weeklyFeaturedUserRouter } from "./routers/weeklyFeaturedUser";
 
 /**
  * This is the primary router for your server.
@@ -22,7 +21,6 @@ export const appRouter = createTRPCRouter({
   user: userRouter,
   artist: artistRouter,
   bookmark: bookmarkRouter,
-  weeklyFeaturedUser: weeklyFeaturedUserRouter,
   postSignUpRegistration: postSignUpRegistrationRouter,
 });
 
