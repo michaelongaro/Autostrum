@@ -1,57 +1,49 @@
 import { useAuth } from "@clerk/nextjs";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import Head from "next/head";
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import { useState } from "react";
-import { AiFillHeart, AiOutlineUser } from "react-icons/ai";
-import { GiMusicalScore } from "react-icons/gi";
-import { TbPinned } from "react-icons/tb";
-import PinnedTabPlaceholder from "~/components/Profile/PinnedTabSelector";
-import GridTabCard from "~/components/Search/GridTabCard";
-import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
-import { Button } from "~/components/ui/button";
+import { useMemo } from "react";
+import superjson from "superjson";
 import { Separator } from "~/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
-import { formatNumber } from "~/utils/formatNumber";
-
+import { PrismaClient, type User } from "@prisma/client";
+import type { GetStaticProps } from "next";
 import GuitarImage from "public/explore/header.jpg";
 import GenreCards from "~/components/Explore/GenreCards";
+import type { MinimalTabRepresentation } from "~/server/api/routers/search";
+import WeeklyFeaturedUsers from "~/components/Explore/WeeklyFeaturedUsers";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "~/components/ui/carousel";
+import GridTabCard from "~/components/Search/GridTabCard";
+import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
+import Link from "next/link";
+import { Button } from "~/components/ui/button";
 
-function Explore() {
+const LENGTH_FIFTEEN_ARRAY = Array.from({ length: 15 }, (_, i) => i + 1);
+
+interface Explore {
+  weeklyFeaturedUsers: (User & {
+    pinnedTab: MinimalTabRepresentation | null;
+  })[];
+}
+
+function Explore({ json }: { json: string }) {
+  const { weeklyFeaturedUsers } = useMemo(
+    () => superjson.parse<Explore>(json),
+    [json],
+  );
+
   const { userId } = useAuth();
-  const { push } = useRouter();
-
-  const [profileImageLoaded, setProfileImageLoaded] = useState(false);
-
-  const isAboveMediumViewport = useViewportWidthBreakpoint(768);
 
   const { data: currentUser } = api.user.getById.useQuery(userId!, {
     enabled: !!userId,
   });
 
-  const { data: weeklyFeaturedUserId } =
-    api.weeklyFeaturedUser.getUserId.useQuery();
-
-  const { data: user, isLoading: loadingCurrentArtist } =
-    api.user.getById.useQuery(weeklyFeaturedUserId!, {
-      enabled: !!weeklyFeaturedUserId,
-    });
-
-  const { data: fetchedTab } = api.search.getMinimalTabById.useQuery(
-    user?.pinnedTabId ?? -1,
-    {
-      enabled: user?.pinnedTabId !== -1,
-    },
-  );
+  const { data: mostRecentAndPopularTabs } =
+    api.search.getMostRecentAndPopularTabs.useQuery();
 
   return (
     <motion.div
@@ -95,150 +87,109 @@ function Explore() {
         </div>
 
         <div className="baseVertFlex lightGlassmorphic w-full !items-start !justify-start gap-8 rounded-lg p-4">
-          {/* weekly featured user */}
-          <div className="baseVertFlex w-full !items-start gap-0 p-1 md:gap-4 md:p-4">
+          {/* weekly featured users */}
+          <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
             <div className="baseVertFlex gap-0 md:gap-1">
-              <p className="text-xl font-bold md:text-[1.35rem]">
-                Weekly featured user
-              </p>
+              <span className="text-xl font-bold md:text-[1.35rem]">
+                Weekly featured users
+              </span>
               <Separator className="w-full bg-pink-600" />
             </div>
-            <div className="baseVertFlex w-full !flex-nowrap lg:!flex-row lg:!items-end lg:gap-8">
-              <div className="baseFlex h-[285px]">
-                <div className="lightestGlassmorphic baseVertFlex min-w-[200px] !flex-nowrap gap-3 rounded-md px-4 py-6">
-                  <div className="baseVertFlex gap-4">
-                    <div className="grid grid-cols-1 grid-rows-1">
-                      {user || loadingCurrentArtist ? (
-                        <>
-                          {user && (
-                            <Link
-                              href={`/user/${user.username}`}
-                              className="col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24"
-                            >
-                              <Image
-                                src={user.profileImageUrl}
-                                alt={`${
-                                  user?.username ?? "Anonymous"
-                                }'s profile image`}
-                                width={300}
-                                height={300}
-                                quality={100}
-                                onLoad={() => {
-                                  setProfileImageLoaded(true);
-                                }}
-                                onClick={() =>
-                                  void push(
-                                    `/user/${user?.username ?? "Anonymous"}`,
-                                  )
-                                }
-                                style={{
-                                  opacity: profileImageLoaded ? 1 : 0,
-                                  width: "6rem",
-                                  height: "6rem",
-                                }}
-                                className="h-24 w-24 rounded-full object-cover object-center shadow-md transition-opacity"
-                              />
-                            </Link>
-                          )}
 
-                          <div
-                            style={{
-                              opacity: !profileImageLoaded ? 1 : 0,
-                              zIndex: !profileImageLoaded ? 1 : -1,
-                            }}
-                            className={`col-start-1 col-end-2 row-start-1 row-end-2 h-24 w-24 rounded-full bg-pink-300 shadow-md transition-opacity ${!profileImageLoaded ? "pulseAnimation" : ""} `}
-                          ></div>
-                        </>
-                      ) : (
-                        <div className="baseFlex h-24 w-24 rounded-full border-2 shadow-md">
-                          <AiOutlineUser className="h-16 w-16" />
-                        </div>
-                      )}
-                    </div>
+            <WeeklyFeaturedUsers
+              weeklyFeaturedUsers={weeklyFeaturedUsers}
+              currentUser={currentUser}
+            />
+          </div>
 
-                    {user ? (
-                      <Button
-                        variant={"link"}
-                        asChild
-                        className="inline-block max-w-[200px]"
-                      >
-                        <Link
-                          href={`/user/${user?.username ?? "Anonymous"}`}
-                          className="block truncate !p-0 !text-xl !font-semibold"
-                        >
-                          {user?.username}
-                        </Link>
-                      </Button>
-                    ) : (
-                      <div className="pulseAnimation my-3 h-6 w-28 rounded-md bg-pink-300"></div>
-                    )}
-                  </div>
-
-                  <div className="baseFlex gap-4">
-                    <TooltipProvider delayDuration={300}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          {user ? (
-                            <div className="baseFlex gap-2">
-                              <GiMusicalScore className="h-6 w-6" />
-                              {formatNumber(user.totalTabs)}
-                            </div>
-                          ) : (
-                            <div className="pulseAnimation h-6 w-14 rounded-md bg-pink-300"></div>
-                          )}
-                        </TooltipTrigger>
-                        <TooltipContent side={"bottom"}>
-                          <p>Total tabs</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-
-                    <TooltipProvider delayDuration={300}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          {user ? (
-                            <div className="baseFlex gap-2">
-                              <AiFillHeart className="h-6 w-6 text-pink-800" />
-                              {formatNumber(user.totalBookmarksReceived)}
-                            </div>
-                          ) : (
-                            <div className="pulseAnimation h-6 w-14 rounded-md bg-pink-300"></div>
-                          )}
-                        </TooltipTrigger>
-                        <TooltipContent side={"bottom"}>
-                          <p>Total bookmarks</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </div>
+          {/* Newly added tabs carousel */}
+          <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
+            <div className="baseFlex w-full !items-end !justify-between gap-2">
+              <div className="baseVertFlex gap-0 md:gap-1">
+                <span className="text-xl font-bold md:text-[1.35rem]">
+                  Newly added tabs
+                </span>
+                <Separator className="w-full bg-pink-600" />
               </div>
 
-              {/* pinned tab */}
-              <div className="baseVertFlex !flex-nowrap !items-start gap-2">
-                <p className="baseFlex gap-2 text-lg font-semibold">
-                  <TbPinned className="size-5" />
-                  Pinned tab
-                </p>
-                {user?.pinnedTabId === -1 ? null : ( // <PinnedTabPlaceholder />
-                  <AnimatePresence mode="sync">
-                    {fetchedTab ? (
-                      <GridTabCard
-                        minimalTab={fetchedTab}
-                        currentUser={currentUser}
-                        largeVariant={isAboveMediumViewport}
-                      />
-                    ) : (
-                      <TabCardSkeleton
-                        uniqueKey={`${user?.id ?? ""}profileTabCardSkeleton`}
-                        largeVariant={isAboveMediumViewport}
-                        hideArtist
-                      />
-                    )}
-                  </AnimatePresence>
-                )}
-              </div>
+              <Button variant={"link"} asChild>
+                <Link
+                  href={"/search/filters"}
+                  className="!h-6 !py-0 text-pink-50"
+                >
+                  View more
+                </Link>
+              </Button>
             </div>
+
+            <Carousel
+              opts={{
+                dragFree: true,
+              }}
+              className="baseFlex w-full"
+            >
+              <CarouselContent>
+                {LENGTH_FIFTEEN_ARRAY.map((_, index) => (
+                  <CarouselItem key={index} className="basis-auto">
+                    {mostRecentAndPopularTabs?.mostRecentTabs ? (
+                      <GridTabCard
+                        minimalTab={
+                          mostRecentAndPopularTabs.mostRecentTabs[index]!
+                        }
+                        currentUser={currentUser}
+                      />
+                    ) : (
+                      <TabCardSkeleton uniqueKey={`mostRecentTabs-${index}`} />
+                    )}
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
+          </div>
+
+          {/* Most popular tabs carousel */}
+          <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
+            <div className="baseFlex w-full !items-end !justify-between gap-2">
+              <div className="baseVertFlex gap-0 md:gap-1">
+                <span className="text-xl font-bold md:text-[1.35rem]">
+                  Most popular tabs
+                </span>
+                <Separator className="w-full bg-pink-600" />
+              </div>
+
+              <Button variant={"link"} asChild>
+                <Link
+                  href={"/search/filters?sortBy=mostPopular"}
+                  className="!h-6 !py-0 text-pink-50"
+                >
+                  View more
+                </Link>
+              </Button>
+            </div>
+
+            <Carousel
+              opts={{
+                dragFree: true,
+              }}
+              className="baseFlex w-full"
+            >
+              <CarouselContent>
+                {LENGTH_FIFTEEN_ARRAY.map((_, index) => (
+                  <CarouselItem key={index} className="basis-auto">
+                    {mostRecentAndPopularTabs?.mostPopularTabs ? (
+                      <GridTabCard
+                        minimalTab={
+                          mostRecentAndPopularTabs.mostPopularTabs[index]!
+                        }
+                        currentUser={currentUser}
+                      />
+                    ) : (
+                      <TabCardSkeleton uniqueKey={`mostPopularTabs-${index}`} />
+                    )}
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
           </div>
 
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
@@ -258,3 +209,70 @@ function Explore() {
 }
 
 export default Explore;
+
+export const getStaticProps: GetStaticProps = async () => {
+  const prisma = new PrismaClient();
+
+  // get the five weekly featured users' userIds
+  const featuredUserIds = await prisma.weeklyFeaturedUser.findMany({
+    select: {
+      userId: true,
+    },
+    take: 5,
+  });
+
+  // get the user data for the weekly featured users
+  const featuredUsers = await prisma.user.findMany({
+    where: {
+      userId: {
+        in: featuredUserIds.map((user) => user.userId),
+      },
+    },
+  });
+
+  // get each user's pinned tab
+  const minimalPinnedTabs = await prisma.tab.findMany({
+    where: {
+      id: {
+        in: featuredUsers.map((user) => user.pinnedTabId),
+      },
+    },
+    select: {
+      id: true,
+      title: true,
+      genre: true,
+      createdAt: true,
+      difficulty: true,
+      averageRating: true,
+      ratingsCount: true,
+      artist: {
+        select: {
+          id: true,
+          name: true,
+          isVerified: true,
+        },
+      },
+      // do not need "createdBy" since we already have the user's full data
+    },
+  });
+
+  // combine the user data with their pinned tabs
+  const weeklyFeaturedUsers = featuredUsers.map((user) => {
+    const pinnedTab = minimalPinnedTabs.find(
+      (tab) => tab.id === user.pinnedTabId,
+    );
+
+    return {
+      ...user,
+      pinnedTab: pinnedTab || null, // if no pinned tab, set to null
+    };
+  });
+
+  return {
+    props: {
+      json: superjson.stringify({
+        weeklyFeaturedUsers,
+      }),
+    },
+  };
+};

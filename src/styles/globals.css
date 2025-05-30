@@ -303,3 +303,22 @@ kbd {
 .pulseAnimation {
   animation: pulseAnimation 2s cubic-bezier(0.4, 0.2, 0.6, 1) infinite;
 }
+
+@keyframes progressBarGrow {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.progressBar {
+  animation: progressBarGrow linear;
+  animation-fill-mode: forwards;
+}
+
+.progressBar-paused {
+  animation-play-state: paused !important;
+}

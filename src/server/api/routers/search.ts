@@ -178,6 +178,111 @@ export const searchRouter = createTRPCRouter({
     return { tabs: sanitizedTabs, artists: sanitizedArtists };
   }),
 
+  getMostRecentAndPopularTabs: publicProcedure.query(async ({ ctx }) => {
+    const mostRecentTabs = await ctx.prisma.tab.findMany({
+      select: {
+        id: true,
+        title: true,
+        genre: true,
+        createdAt: true,
+        difficulty: true,
+        averageRating: true,
+        ratingsCount: true,
+        artist: {
+          select: {
+            id: true,
+            name: true,
+            isVerified: true,
+          },
+        },
+        createdBy: {
+          select: {
+            userId: true,
+            username: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 15,
+    });
+
+    const mostPopularTabs = await ctx.prisma.tab.findMany({
+      select: {
+        id: true,
+        title: true,
+        genre: true,
+        createdAt: true,
+        difficulty: true,
+        averageRating: true,
+        ratingsCount: true,
+        artist: {
+          select: {
+            id: true,
+            name: true,
+            isVerified: true,
+          },
+        },
+        createdBy: {
+          select: {
+            userId: true,
+            username: true,
+          },
+        },
+      },
+      orderBy: { pageViews: "desc" },
+      take: 15,
+    });
+
+    if (!mostRecentTabs || !mostPopularTabs) return null;
+
+    const fullMostRecentTabs: MinimalTabRepresentation[] = mostRecentTabs.map(
+      (tab) => {
+        return {
+          ...tab,
+          artist: tab.artist
+            ? {
+                id: tab.artist.id,
+                name: tab.artist.name,
+                isVerified: tab.artist.isVerified,
+              }
+            : null,
+          createdBy: tab.createdBy
+            ? {
+                userId: tab.createdBy.userId,
+                username: tab.createdBy.username,
+              }
+            : null,
+        };
+      },
+    );
+
+    const fullMostPopularTabs: MinimalTabRepresentation[] = mostPopularTabs.map(
+      (tab) => {
+        return {
+          ...tab,
+          artist: tab.artist
+            ? {
+                id: tab.artist.id,
+                name: tab.artist.name,
+                isVerified: tab.artist.isVerified,
+              }
+            : null,
+          createdBy: tab.createdBy
+            ? {
+                userId: tab.createdBy.userId,
+                username: tab.createdBy.username,
+              }
+            : null,
+        };
+      },
+    );
+
+    return {
+      mostRecentTabs: fullMostRecentTabs,
+      mostPopularTabs: fullMostPopularTabs,
+    };
+  }),
+
   getTabTitlesBySearchQuery: publicProcedure
     .input(z.string())
     .query(async ({ input: query, ctx }) => {
