@@ -6,6 +6,36 @@ import { api } from "~/utils/api";
 import { formatNumber } from "~/utils/formatNumber";
 import { genreList } from "~/utils/genreList";
 
+import rockImage from "public/genreThumbnails/rock.jpg";
+import indieImage from "public/genreThumbnails/indie.jpg";
+import popImage from "public/genreThumbnails/pop.jpg";
+import hipHopImage from "public/genreThumbnails/hiphop.jpg";
+import jazzImage from "public/genreThumbnails/jazz.jpg";
+import bluesImage from "public/genreThumbnails/blues.jpg";
+import classicalImage from "public/genreThumbnails/classical.jpg";
+import countryImage from "public/genreThumbnails/country.jpg";
+import metalImage from "public/genreThumbnails/metal.jpg";
+import folkImage from "public/genreThumbnails/folk.jpg";
+import electronicImage from "public/genreThumbnails/electronic.jpg";
+import miscImage from "public/genreThumbnails/misc.jpg";
+import type { StaticImageData } from "next/image";
+import Image from "next/image";
+
+const genreNameToImageMap: Record<string, StaticImageData> = {
+  Rock: rockImage,
+  Indie: indieImage,
+  Jazz: jazzImage,
+  Pop: popImage,
+  Folk: folkImage,
+  Country: countryImage,
+  Blues: bluesImage,
+  "Hip-Hop": hipHopImage,
+  Electronic: electronicImage,
+  Classical: classicalImage,
+  Metal: metalImage,
+  Misc: miscImage,
+};
+
 const opacityVariants = {
   expanded: {
     opacity: 1,
@@ -26,6 +56,7 @@ function GenreCards() {
           key={genre}
           name={genre}
           color={color}
+          image={genreNameToImageMap[genre] ?? miscImage}
           totalTabs={genres?.get(genre) ?? 0}
         />
       ))}
@@ -38,16 +69,14 @@ export default GenreCards;
 interface GenreCard {
   name: string;
   color: string;
+  image: StaticImageData;
   totalTabs: number;
 }
 
-function GenreCard({ name, color, totalTabs }: GenreCard) {
-  const { push, query, pathname } = useRouter();
+function GenreCard({ name, color, image, totalTabs }: GenreCard) {
+  const { push, query } = useRouter();
 
-  const [hoveringOnGenre, setHoveringOnGenre] = useState(false);
-  const [mouseDownOnGenre, setMouseDownOnGenre] = useState(false);
-
-  const aboveSmallViewportWidth = useViewportWidthBreakpoint(640);
+  const [darkenCard, setDarkenCard] = useState(false);
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -86,16 +115,14 @@ function GenreCard({ name, color, totalTabs }: GenreCard) {
       style={{
         backgroundColor: color,
       }}
-      className={`baseVertFlex group relative h-36 w-full cursor-pointer !items-start !justify-start gap-1 rounded-lg p-4 shadow-md transition-all hover:shadow-lg sm:!justify-center sm:p-6 md:gap-2 ${
-        mouseDownOnGenre ? "brightness-75" : "brightness-100"
+      className={`baseVertFlex group relative h-36 w-full cursor-pointer !items-start !justify-start gap-1 overflow-hidden rounded-lg p-4 shadow-md transition-all hover:shadow-lg sm:!justify-center sm:p-6 md:gap-2 ${
+        darkenCard ? "brightness-75" : "brightness-100"
       }`}
-      onMouseEnter={() => setHoveringOnGenre(true)}
-      onMouseLeave={() => {
-        setHoveringOnGenre(false);
-        setMouseDownOnGenre(false);
+      onPointerLeave={() => {
+        setDarkenCard(false);
       }}
-      onMouseDown={() => setMouseDownOnGenre(true)}
-      onMouseUp={() => setMouseDownOnGenre(false)}
+      onPointerDown={() => setDarkenCard(true)}
+      onPointerUp={() => setDarkenCard(false)}
       onMouseMove={handleMouseMove}
       onClick={() => {
         searchForSpecificGenre(name);
@@ -118,6 +145,14 @@ function GenreCard({ name, color, totalTabs }: GenreCard) {
         }}
       />
 
+      {/* bg-gradient-to-b from-transparent to-black/50 */}
+      <div
+        style={{
+          backgroundColor: color,
+        }}
+        className="absolute inset-0 z-10 size-full opacity-50 blur-sm lg:hidden"
+      ></div>
+
       {/* z-index as fallback just incase for weird safari positioning */}
       <p className="z-10 text-lg font-semibold">{name}</p>
 
@@ -125,6 +160,17 @@ function GenreCard({ name, color, totalTabs }: GenreCard) {
       <p className="z-10">{`${formatNumber(totalTabs)} ${
         totalTabs === 1 ? "tab" : "tabs"
       }`}</p>
+
+      <Image
+        src={image}
+        alt={`${name} genre thumbnail`}
+        // style={{
+        //   // width: "300px",
+        //   clipPath: "polygon(60% 0%, 100% 0%, 100% 100%, 40% 100%)",
+        // }}
+        className="pointer-events-none absolute bottom-0 right-0 size-full select-none rounded-lg object-cover object-center opacity-75 grayscale lg:rounded-l-none lg:[clip-path:polygon(60%_0%,100%_0%,100%_100%,40%_100%)]"
+      />
     </motion.div>
   );
 }
+//[clip-path:polygon(0%_0%,50%_0%,50%_100%,0%_100%)]
