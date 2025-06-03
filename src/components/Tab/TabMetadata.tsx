@@ -1010,18 +1010,28 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                     <div className="text-2xl font-bold">{title}</div>
 
                     {artistName && (
-                      <div className="baseFlex gap-1.5 text-lg">
+                      <div className="baseFlex gap-2 text-lg">
                         by
-                        <span className="baseFlex text-medium gap-1 underline">
-                          {artistName}
-                          <MdVerified className="size-4" />
-                        </span>
+                        <Button variant={"link"} asChild>
+                          <Link
+                            prefetch={false}
+                            href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
+                            className="!h-6 !p-0"
+                          >
+                            <div className="baseFlex gap-1 font-medium">
+                              {artistIsVerified && (
+                                <Verified className="size-5" />
+                              )}
+                              {artistName}
+                            </div>
+                          </Link>
+                        </Button>
                       </div>
                     )}
                   </div>
 
                   <AnimatePresence mode="popLayout">
-                    <div className="baseFlex gap-2">
+                    <div className="baseFlex gap-3">
                       {dynamicMetadata ? (
                         <motion.div
                           key={"crossfadeRateTab"}
@@ -1138,10 +1148,20 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                     {artistName && (
                       <div className="baseFlex gap-1.5 text-lg">
                         by
-                        <span className="baseFlex text-medium gap-1 underline">
-                          {artistName}
-                          <MdVerified className="size-4" />
-                        </span>
+                        <Button variant={"link"} asChild>
+                          <Link
+                            prefetch={false}
+                            href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
+                            className="!h-6 !p-0"
+                          >
+                            <div className="baseFlex gap-1 font-medium">
+                              {artistIsVerified && (
+                                <Verified className="size-5" />
+                              )}
+                              {artistName}
+                            </div>
+                          </Link>
+                        </Button>
                       </div>
                     )}
                   </div>
