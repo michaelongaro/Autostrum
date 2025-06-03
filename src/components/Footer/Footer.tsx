@@ -22,7 +22,9 @@ function Footer() {
       <Separator orientation="vertical" className="h-4 bg-pink-50/50" />
 
       <Button variant={"link"} asChild>
-        <Link href={"/privacy"}>Privacy Policy</Link>
+        <Link prefetch={false} href={"/privacy"}>
+          Privacy Policy
+        </Link>
       </Button>
 
       <Separator orientation="vertical" className="h-4 bg-pink-50/50" />
