@@ -46,6 +46,7 @@
     place-items: start;
   }
 
+  .artist,
   .description {
     padding-right: 1rem;
   }

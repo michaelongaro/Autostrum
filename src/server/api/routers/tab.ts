@@ -14,8 +14,9 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 
-export interface TabWithArtistName extends Tab {
+export interface TabWithArtistMetadata extends Tab {
   artistName?: string;
+  artistIsVerified?: boolean;
 }
 
 // experimentally testing this zod schema from a typescript types -> zod converter online
@@ -103,7 +104,7 @@ export const tabRouter = createTRPCRouter({
 
   //   if (!tab) return null;
 
-  //   const fullTab: TabWithArtistName = {
+  //   const fullTab: TabWithArtistMetadata = {
   //     ...tab,
   //     artistName: tab.artist?.name,
   //   };
@@ -307,6 +308,8 @@ export const tabRouter = createTRPCRouter({
       z.object({
         createdByUserId: z.string(),
         title: z.string(),
+        artistId: z.number().optional(),
+        artistName: z.string().optional(),
         description: z.string().nullable(),
         genre: z.string(),
         tuning: z.string(),
@@ -323,6 +326,8 @@ export const tabRouter = createTRPCRouter({
       const {
         createdByUserId,
         title,
+        artistId,
+        artistName,
         description,
         genre,
         tuning,
@@ -347,7 +352,6 @@ export const tabRouter = createTRPCRouter({
 
       const tab = await ctx.prisma.tab.create({
         data: {
-          createdByUserId,
           title,
           description,
           genre,
@@ -358,6 +362,19 @@ export const tabRouter = createTRPCRouter({
           chords,
           strummingPatterns,
           tabData,
+          ...(createdByUserId
+            ? { createdBy: { connect: { userId: createdByUserId } } }
+            : {}), // FYI: even though createdByUserId will always be provided, since the field is optional
+          // in our schema, prisma wants us to use the relation field.
+          ...(artistId != null
+            ? { artist: { connect: { id: artistId } } }
+            : artistName
+              ? {
+                  artist: {
+                    create: { name: artistName, isVerified: false },
+                  },
+                }
+              : {}),
         },
       });
 
@@ -405,6 +422,8 @@ export const tabRouter = createTRPCRouter({
       z.object({
         id: z.number(),
         title: z.string(),
+        artistId: z.number().optional(),
+        artistName: z.string().optional(),
         description: z.string().nullable(),
         genre: z.string(),
         tuning: z.string(),
@@ -421,6 +440,8 @@ export const tabRouter = createTRPCRouter({
       const {
         id,
         title,
+        artistId,
+        artistName,
         description,
         genre,
         tuning,
@@ -458,6 +479,15 @@ export const tabRouter = createTRPCRouter({
           chords,
           strummingPatterns,
           tabData,
+          ...(artistId != null
+            ? { artist: { connect: { id: artistId } } }
+            : artistName
+              ? {
+                  artist: {
+                    create: { name: artistName, isVerified: false },
+                  },
+                }
+              : {}),
         },
       });
 

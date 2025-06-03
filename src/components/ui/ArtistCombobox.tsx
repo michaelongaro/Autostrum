@@ -1,0 +1,302 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { Check, ChevronsUpDown, Search } from "lucide-react";
+import { cn } from "~/utils/cn";
+import { BsPlus } from "react-icons/bs";
+import { GiMicrophone } from "react-icons/gi";
+import { Button } from "~/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { useTabStore } from "~/stores/TabStore";
+import { IoClose } from "react-icons/io5";
+import { api } from "~/utils/api";
+import debounce from "lodash.debounce";
+import { Input } from "~/components/ui/input";
+import { AnimatePresence, motion } from "framer-motion";
+import Verified from "~/components/ui/icons/Verified";
+import { ScrollArea } from "~/components/ui/scrollarea";
+
+function ArtistCommandCombobox() {
+  const {
+    artistId,
+    artistName,
+    artistIsVerified,
+    setArtistId,
+    setArtistName,
+    setArtistIsVerified,
+  } = useTabStore((state) => ({
+    artistId: state.artistId,
+    artistName: state.artistName,
+    artistIsVerified: state.artistIsVerified,
+    setArtistId: state.setArtistId,
+    setArtistName: state.setArtistName,
+    setArtistIsVerified: state.setArtistIsVerified,
+  }));
+
+  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
+  const { data: artistSearchResults, isFetching: isFetchingArtistResults } =
+    api.search.getArtistUsernamesBySearchQuery.useQuery(
+      {
+        query: debouncedSearchQuery,
+      },
+      {
+        enabled: debouncedSearchQuery.length > 0,
+      },
+    );
+
+  const debouncedSetSearch = useMemo(
+    () =>
+      debounce((query: string) => {
+        setDebouncedSearchQuery(query);
+      }, 250),
+    [],
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedSetSearch.cancel(); // Cancel any pending executions
+    };
+  }, [debouncedSetSearch]);
+
+  return (
+    <Popover
+      open={open}
+      modal={true}
+      onOpenChange={(open) => {
+        setOpen(open);
+        if (!open) {
+          // Reset search query when the popover is closed
+
+          setTimeout(() => {
+            setSearchQuery("");
+          }, 15); // slightly delay to ensure the popover closes first
+        }
+      }}
+    >
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="h-10 w-full max-w-72 justify-between"
+        >
+          {artistName ? (
+            <span className="baseFlex gap-1.5 truncate">
+              {artistIsVerified && (
+                <Verified className="inline size-4 shrink-0 text-pink-800" />
+              )}
+              {artistName}
+            </span>
+          ) : (
+            <span>Select artist...</span>
+          )}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        style={{
+          textShadow: "none",
+        }}
+        className="w-[300px] p-0"
+      >
+        <div className="baseFlex border-b px-3">
+          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+          <Input
+            placeholder="Enter artist name..."
+            onChange={(e) => {
+              const query = e.target.value;
+              setSearchQuery(query);
+
+              const trimmedQuery = query.trim();
+              if (trimmedQuery !== searchQuery) {
+                debouncedSetSearch(trimmedQuery);
+              }
+            }}
+            value={searchQuery}
+            showFocusState={false}
+            className="flex h-11 w-full rounded-md !border-none bg-transparent py-3 outline-none placeholder:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          />
+
+          <AnimatePresence>
+            {isFetchingArtistResults && (
+              <motion.div
+                key={"loadingArtistSearchResults"}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="baseVertFlex"
+              >
+                <svg
+                  className="size-4 animate-stableSpin rounded-full bg-inherit fill-none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <div className="h-[1px] w-full bg-pink-800"></div>
+
+        <div className="overflow-y-hidden">
+          <ScrollArea type={"auto"} className="h-full">
+            <div className={`max-h-60 ${artistName ? "h-[200px]" : "h-60"}`}>
+              <AnimatePresence mode={"popLayout"}>
+                {searchQuery.trim().length === 0 && (
+                  <motion.div
+                    key={"defaultArtistSearchResults"}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                      duration: 0.2,
+                    }}
+                    className="baseVertFlex h-full gap-2"
+                  >
+                    <motion.div
+                      layout="position"
+                      className="baseVertFlex gap-2"
+                    >
+                      <GiMicrophone className="h-6 w-6" />
+                      <span className="text-sm font-medium">
+                        Enter an artist&apos;s name above
+                      </span>
+                    </motion.div>
+                  </motion.div>
+                )}
+
+                {searchQuery.trim().length > 0 &&
+                  artistSearchResults &&
+                  artistSearchResults.length > 0 && (
+                    <motion.div
+                      key={"artistSearchResults"}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="baseVertFlex size-full !justify-start"
+                    >
+                      {artistSearchResults.map((artist) => (
+                        <Button
+                          key={artist.id}
+                          variant={"text"}
+                          value={`${artist.id}`}
+                          onClick={() => {
+                            setArtistId(artist.id);
+                            setArtistName(artist.name);
+                            setArtistIsVerified(artist.isVerified);
+                          }}
+                          className="relative flex w-full select-none items-center justify-between rounded-sm py-1.5 pl-2 pr-2 text-sm outline-none text-shadow-none focus-within:!text-shadow hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:!text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                        >
+                          <Check
+                            className={cn(
+                              "ml-1 mr-4 size-4 shrink-0 text-inherit",
+                              artistId === artist.id
+                                ? "opacity-100"
+                                : "opacity-0",
+                            )}
+                          />
+                          <div className="baseFlex w-full !justify-start gap-2 font-medium">
+                            {artist.isVerified && (
+                              <Verified className="size-4" />
+                            )}
+                            <div>{artist.name}</div>
+                          </div>
+                        </Button>
+                      ))}
+                    </motion.div>
+                  )}
+
+                {searchQuery.trim().length > 0 &&
+                  !isFetchingArtistResults &&
+                  artistSearchResults &&
+                  artistSearchResults.length === 0 && (
+                    <motion.div
+                      key={"noArtistSearchResults"}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="baseVertFlex size-full gap-4"
+                    >
+                      <span className="">
+                        No results found for &ldquo;{searchQuery}&rdquo;{" "}
+                      </span>
+                      <Button
+                        onClick={() => {
+                          setOpen(false);
+
+                          setTimeout(() => {
+                            setArtistName(searchQuery);
+                            setSearchQuery("");
+                          }, 0); // slightly delay to ensure the popover closes first
+                        }}
+                        className="baseFlex gap-1"
+                      >
+                        <BsPlus className="size-5" />
+                        Add artist
+                      </Button>
+                      <span className="w-52 text-balance text-center text-xs opacity-75">
+                        Please ensure the artist&apos;s name is properly spelled
+                        and capitalized.
+                      </span>
+                    </motion.div>
+                  )}
+              </AnimatePresence>
+            </div>
+          </ScrollArea>
+
+          <AnimatePresence mode={"popLayout"} initial={false}>
+            {artistName && (
+              <motion.div
+                key={"detachArtistButton"}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="baseVertFlex h-10 w-full"
+              >
+                <div className="h-[1px] w-full bg-pink-800"></div>
+                <Button
+                  variant={"link"}
+                  onClick={() => {
+                    setArtistId(null);
+                    setArtistName("");
+                    setArtistIsVerified(false);
+                  }}
+                  className="baseFlex h-9 gap-2 p-0"
+                >
+                  <IoClose className="size-4 text-pink-800" />
+                  Detach artist
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+export default ArtistCommandCombobox;

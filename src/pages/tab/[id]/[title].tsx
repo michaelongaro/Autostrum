@@ -8,6 +8,7 @@ import Tab from "~/components/Tab/Tab";
 import { useTabStore } from "~/stores/TabStore";
 import type { Tab as TabType } from "@prisma/client";
 import superjson from "superjson";
+import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 
 interface OpenGraphData {
   title: string;
@@ -72,6 +73,15 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
     where: {
       id,
     },
+    include: {
+      artist: {
+        select: {
+          id: true,
+          name: true,
+          isVerified: true,
+        },
+      },
+    },
   });
 
   if (!tab) {
@@ -87,32 +97,23 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
     };
   }
 
-  let user = null;
-
-  // get tab owner username
-  if (tab?.createdByUserId) {
-    user = await prisma.user.findUnique({
-      where: {
-        userId: tab.createdByUserId,
-      },
-      select: {
-        username: true,
-      },
-    });
-  }
-
   const openGraphData: OpenGraphData = {
     title: `${tab.title} | Autostrum`,
     url: `www.autostrum.com/tab/?title=${encodeURIComponent(tab.title)}&id=${tab.id}`,
-    description: `View ${
-      user?.username ? `${user.username}'s tab` : "the tab"
-    } ${tab.title} on Autostrum.`,
+    description: `View the guitar tab of ${tab.title} on Autostrum.`,
+  };
+
+  const tabWithArtist: TabWithArtistMetadata = {
+    ...tab,
+    artistId: tab.artist?.id || null,
+    artistName: tab.artist?.name,
+    artistIsVerified: tab.artist?.isVerified,
   };
 
   return {
     props: {
       json: superjson.stringify({
-        tab,
+        tab: tabWithArtist,
         openGraphData,
       }),
     },

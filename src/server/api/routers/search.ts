@@ -49,9 +49,6 @@ export interface MinimalTabRepresentation {
       }[]
     | null; // Optional, only if bookmarkedByUserId is provided
 }
-export interface TabWithArtistName extends Tab {
-  artistName?: string;
-}
 
 export const searchRouter = createTRPCRouter({
   getMinimalTabById: publicProcedure
@@ -335,9 +332,15 @@ export const searchRouter = createTRPCRouter({
     }),
 
   getArtistUsernamesBySearchQuery: publicProcedure
-    .input(z.string())
-    .query(async ({ input: query, ctx }) => {
-      const trimmedQuery = query.trim();
+    .input(
+      z.object({
+        query: z.string(),
+        limitResults: z.boolean().optional().default(true),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const { query: rawQuery, limitResults } = input;
+      const trimmedQuery = rawQuery.trim();
 
       if (!trimmedQuery) {
         return []; // Handle empty query
@@ -374,7 +377,7 @@ export const searchRouter = createTRPCRouter({
           orderBy: {
             name: "asc",
           },
-          take: 5,
+          take: limitResults ? 5 : undefined,
         });
 
         console.log(`Found ${results.length} artists for "${trimmedQuery}":`);

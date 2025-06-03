@@ -333,6 +333,8 @@ interface TabState {
   setArtistId: (artistId: number | null) => void;
   artistName: string | undefined;
   setArtistName: (artist: string | undefined) => void;
+  artistIsVerified: boolean | undefined;
+  setArtistIsVerified: (artistIsVerified: boolean | undefined) => void;
 
   description: string | null;
   setDescription: (description: string | null) => void;
@@ -602,6 +604,8 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       setArtistId: (artistId) => set({ artistId }),
       artistName: undefined,
       setArtistName: (artistName) => set({ artistName }),
+      artistIsVerified: false,
+      setArtistIsVerified: (artistIsVerified) => set({ artistIsVerified }),
 
       description: null,
       setDescription: (description) => set({ description }),

@@ -17,7 +17,7 @@ import { createPortal } from "react-dom";
 import { FaEye } from "react-icons/fa";
 import { BsArrowLeftShort, BsPlus } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
-import { MdModeEditOutline, MdVerified } from "react-icons/md";
+import { MdModeEditOutline } from "react-icons/md";
 import {
   Popover,
   PopoverContent,
@@ -29,7 +29,7 @@ import { api } from "~/utils/api";
 import { genreList } from "~/utils/genreList";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import { tuningNotesToName } from "~/utils/tunings";
-import ArtistCommandCombobox from "~/components/ui/ArtistCommandCombobox";
+import ArtistCombobox from "~/components/ui/ArtistCombobox";
 import BookmarkToggle from "~/components/ui/BookmarkToggle";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -55,6 +55,7 @@ import RateTab from "~/components/ui/RateTab";
 import DifficultyBars from "~/components/ui/DifficultyBars";
 import { formatNumber } from "~/utils/formatNumber";
 import TuningSelect from "~/components/ui/TuningSelect";
+import Verified from "~/components/ui/icons/Verified";
 
 const KEYS_BY_LETTER = {
   A: ["A major", "A minor", "A# minor", "A♭ major", "A♭ minor"],
@@ -88,6 +89,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setArtistId,
     artistName,
     setArtistName,
+    artistIsVerified,
     description,
     setDescription,
     genre,
@@ -125,6 +127,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setArtistId: state.setArtistId,
     artistName: state.artistName,
     setArtistName: state.setArtistName,
+    artistIsVerified: state.artistIsVerified,
     description: state.description,
     setDescription: state.setDescription,
     genre: state.genre,
@@ -744,7 +747,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               } baseVertFlex w-full !items-start gap-1.5`}
             >
               <Label>Artist</Label>
-              <ArtistCommandCombobox customTuning={customTuning} />
+              <ArtistCombobox />
             </div>
 
             <div

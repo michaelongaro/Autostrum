@@ -9,7 +9,6 @@ import { FaArrowLeft } from "react-icons/fa6";
 import { api } from "~/utils/api";
 import { genreList } from "~/utils/genreList";
 import { Badge } from "~/components/ui/badge";
-import { isMobile } from "react-device-detect";
 import { IoIosMusicalNotes } from "react-icons/io";
 import { AiOutlineUser } from "react-icons/ai";
 import { Separator } from "~/components/ui/separator";
@@ -50,9 +49,14 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
     });
 
   const { data: artistSearchResults, isFetching: isFetchingArtistResults } =
-    api.search.getArtistUsernamesBySearchQuery.useQuery(debouncedSearchQuery, {
-      enabled: debouncedSearchQuery.length > 0 && searchType === "artists",
-    });
+    api.search.getArtistUsernamesBySearchQuery.useQuery(
+      {
+        query: debouncedSearchQuery,
+      },
+      {
+        enabled: debouncedSearchQuery.length > 0 && searchType === "artists",
+      },
+    );
 
   useEffect(() => {
     setSearchQuery((query.search as string) ?? "");
@@ -174,12 +178,6 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
           showFocusState={false}
           autoFocus={viewportLabel.includes("mobile")}
           onFocus={() => {
-            if (isMobile) {
-              searchInputRef.current?.scrollIntoView({
-                behavior: "smooth",
-              });
-            }
-
             setShowAutofillResults(true);
           }}
           onChange={(e) => {

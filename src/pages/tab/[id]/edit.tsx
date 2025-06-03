@@ -1,5 +1,4 @@
 import { getAuth } from "@clerk/nextjs/server";
-import type { Tab as TabType } from "@prisma/client";
 import { PrismaClient } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
 import type { GetServerSideProps } from "next";
@@ -11,6 +10,7 @@ import { BsArrowLeftShort } from "react-icons/bs";
 import AudioControls from "~/components/AudioControls/AudioControls";
 import Tab from "~/components/Tab/Tab";
 import { Button } from "~/components/ui/button";
+import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import { useTabStore } from "~/stores/TabStore";
 
 interface OpenGraphData {
@@ -25,7 +25,7 @@ function EditIndividualTab({
   openGraphData,
 }: {
   userAllowedToEdit: boolean;
-  tab: TabType;
+  tab: TabWithArtistMetadata;
   openGraphData: OpenGraphData;
 }) {
   const { query } = useRouter();
@@ -94,21 +94,21 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     where: {
       id: tabId,
     },
+    include: {
+      artist: {
+        select: {
+          id: true,
+          name: true,
+          isVerified: true,
+        },
+      },
+      createdBy: {
+        select: {
+          username: true,
+        },
+      },
+    },
   });
-
-  let artist = null;
-
-  // get tab owner username for open graph data
-  if (tab?.createdByUserId) {
-    artist = await prisma.user.findUnique({
-      where: {
-        userId: tab.createdByUserId,
-      },
-      select: {
-        username: true,
-      },
-    });
-  }
 
   const openGraphData: OpenGraphData = {
     title: "Autostrum",
@@ -119,14 +119,17 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   if (tab) {
     openGraphData.title = `Edit ${tab.title} | Autostrum`;
     openGraphData.description = `Edit ${
-      artist?.username ? `${artist.username}'s tab` : "this tab"
+      tab.createdBy?.username ? `${tab.createdBy.username}'s tab` : "this tab"
     } ${tab.title} on Autostrum.`;
   }
+
+  // removing user from tab object to adhere to TabWithArtistMetadata type
+  const { createdBy, ...tabWithArtistMetadata } = tab || {};
 
   return {
     props: {
       userAllowedToEdit: tab?.createdByUserId === userId,
-      tab,
+      tab: tabWithArtistMetadata,
       openGraphData,
     },
   };
