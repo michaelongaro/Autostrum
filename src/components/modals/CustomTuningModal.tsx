@@ -233,27 +233,27 @@ function CustomTuningModal({
 
                 setTimeout(() => {
                   setHighlightedNoteInputIndex(1);
-
-                  setTimeout(() => {
-                    setHighlightedNoteInputIndex(2);
-
-                    setTimeout(() => {
-                      setHighlightedNoteInputIndex(3);
-
-                      setTimeout(() => {
-                        setHighlightedNoteInputIndex(4);
-
-                        setTimeout(() => {
-                          setHighlightedNoteInputIndex(5);
-
-                          setTimeout(() => {
-                            setHighlightedNoteInputIndex(null);
-                          }, 345);
-                        }, 345);
-                      }, 345);
-                    }, 345);
-                  }, 345);
                 }, 345);
+
+                setTimeout(() => {
+                  setHighlightedNoteInputIndex(2);
+                }, 695);
+
+                setTimeout(() => {
+                  setHighlightedNoteInputIndex(3);
+                }, 1045);
+
+                setTimeout(() => {
+                  setHighlightedNoteInputIndex(4);
+                }, 1395);
+
+                setTimeout(() => {
+                  setHighlightedNoteInputIndex(5);
+                }, 1745);
+
+                setTimeout(() => {
+                  setHighlightedNoteInputIndex(null);
+                }, 2095);
               }}
             >
               <BsFillPlayFill className="h-6 w-6" />
