@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { BsFillPauseFill, BsFillPlayFill, BsStopFill } from "react-icons/bs";
+import { BsFillPauseFill, BsStopFill } from "react-icons/bs";
 import type Soundfont from "soundfont-player";
+import PlayIcon from "~/components/ui/icons/PlayIcon";
 import {
   useTabStore,
   type AudioMetadata,
@@ -47,7 +48,7 @@ function PlayButtonIcon({
   showCountInTimer,
   previewType,
   forceShowLoadingSpinner,
-  size = "1.25rem",
+  size = "0.75rem",
 }: PlayButtonIcon) {
   const { audioContext, masterVolumeGainNode, countInBuffer } = useTabStore(
     (state) => ({
@@ -228,9 +229,9 @@ function PlayButtonIcon({
         initial="closed"
         animate="expanded"
         transition={{ duration: 0.3 }}
-        className="z-10"
+        className="z-10 px-1"
       >
-        <BsFillPlayFill
+        <PlayIcon
           style={{
             width: size,
             height: size,
