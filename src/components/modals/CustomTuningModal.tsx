@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { useState } from "react";
 import { HiOutlineInformationCircle } from "react-icons/hi";
+import { IoClose } from "react-icons/io5";
 import {
   Tooltip,
   TooltipContent,
@@ -119,9 +120,21 @@ function CustomTuningModal({
         }}
       >
         <div className="baseVertFlex min-w-[300px] max-w-[91vw] gap-8 rounded-md bg-pink-400 p-4 shadow-sm xl:max-w-[50vw]">
-          <div className="baseFlex lightGlassmorphic gap-2 rounded-md p-2 px-8 text-pink-100">
-            <IoSettingsSharp className="h-5 w-5" />
-            <p className="text-lg font-semibold">Custom tuning editor</p>
+          <div className="baseFlex w-full !justify-between gap-2 text-pink-100">
+            <div className="baseFlex gap-2">
+              <IoSettingsSharp className="h-5 w-5" />
+              <p className="text-lg font-semibold">Custom tuning editor</p>
+            </div>
+
+            <Button
+              variant={"text"}
+              onClick={() => {
+                setShowCustomTuningModal(false);
+              }}
+              className="h-4 p-0"
+            >
+              <IoClose className="size-5 text-pink-50" />
+            </Button>
           </div>
 
           <div className="baseVertFlex lightestGlassmorphic max-w-[23rem] gap-2 rounded-md p-2 text-sm sm:max-w-[30rem]">
@@ -129,7 +142,7 @@ function CustomTuningModal({
               <HiOutlineInformationCircle className="size-5" />
               <p className="max-w-[14rem] sm:max-w-[20rem] sm:text-center">
                 Tuning notes must be written in Scientific Pitch Notation, you
-                can find the formula below.
+                can find the format below.
               </p>
             </div>
             <div className="baseFlex mt-2 gap-2 sm:gap-6">
@@ -206,17 +219,17 @@ function CustomTuningModal({
                 )
               }
               variant={"playPause"}
-              className="baseFlex gap-4"
+              className="baseFlex gap-2"
               onClick={() => {
+                setHighlightedNoteInputIndex(0);
+
                 void playPreview({
                   data: ["0", "0", "0", "0", "0", "0"],
                   index: -1,
                   type: "chord",
                   customTuning: customInputValues.join(" "),
-                  customBpm: 40,
+                  customBpm: "40",
                 });
-
-                setHighlightedNoteInputIndex(0);
 
                 setTimeout(() => {
                   setHighlightedNoteInputIndex(1);
@@ -247,27 +260,17 @@ function CustomTuningModal({
               Preview notes
             </Button>
 
-            <div className="baseFlex gap-4">
-              <Button
-                variant={"ghost"}
-                onClick={() => {
-                  setShowCustomTuningModal(false);
-                }}
-              >
-                Close
-              </Button>
-              <Button
-                disabled={
-                  customInputValues.some(
-                    (customInputValue) => customInputValue === "",
-                  ) || isEqual(customTuning, customInputValues.join(" "))
-                }
-                onClick={handleSaveCustomTuning}
-                className="px-4"
-              >
-                Save
-              </Button>
-            </div>
+            <Button
+              disabled={
+                customInputValues.some(
+                  (customInputValue) => customInputValue === "",
+                ) || isEqual(customTuning, customInputValues.join(" "))
+              }
+              onClick={handleSaveCustomTuning}
+              className="px-4"
+            >
+              Save
+            </Button>
           </div>
         </div>
       </FocusTrap>

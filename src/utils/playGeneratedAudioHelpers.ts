@@ -353,12 +353,8 @@ function playSlapSound({
   currentlyPlayingStrings,
 }: PlaySlapSound) {
   // stopping all notes currently playing
-  for (
-    let stringIdx = 0;
-    stringIdx < currentlyPlayingStrings.length;
-    stringIdx++
-  ) {
-    currentlyPlayingStrings[stringIdx]?.stop();
+  for (const currentlyPlayingString of currentlyPlayingStrings) {
+    currentlyPlayingString?.stop();
   }
 
   // Create an OscillatorNode to simulate the slap sound
@@ -817,10 +813,10 @@ function calculateRelativeChordDelayMultiplier(
   bpm: number,
   strumChordQuickly: boolean,
 ) {
-  // Clamp BPM to [0, 400]
+  // Clamp BPM between 0 and 400
   const clampedBpm = Math.max(0, Math.min(400, bpm));
 
-  // Linearly map 0 → 0.05 and 400 → 0.0075
+  // Linearly map 0 BPM to 0.05 seconds and 400 BPM to 0.0075 seconds
   const mappedValue = 0.05 + (clampedBpm / 400) * (0.0075 - 0.05);
 
   return strumChordQuickly ? mappedValue * 0.75 : mappedValue;
@@ -851,6 +847,7 @@ interface PlayNoteColumn {
     | undefined
   )[];
   acousticSteelOverrideForPreview?: Soundfont.Player;
+  forTuningPreview?: boolean;
 }
 
 function playNoteColumn({
@@ -867,6 +864,7 @@ function playNoteColumn({
   currentInstrument,
   currentlyPlayingStrings,
   acousticSteelOverrideForPreview,
+  forTuningPreview,
 }: PlayNoteColumn) {
   return new Promise<void>((resolve) => {
     setTimeout(
@@ -899,10 +897,12 @@ function playNoteColumn({
 
     // TODO: allow just > and or . to be present + provide handling for these cases
     if (currColumn[7]?.includes("v") || currColumn[7]?.includes("^")) {
-      chordDelayMultiplier = calculateRelativeChordDelayMultiplier(
-        bpm,
-        currColumn[7]?.includes(">") || currColumn[7]?.includes("."),
-      );
+      chordDelayMultiplier = forTuningPreview
+        ? 0.35
+        : calculateRelativeChordDelayMultiplier(
+            bpm,
+            currColumn[7]?.includes(">") || currColumn[7]?.includes("."),
+          );
     }
 
     const allInlineEffects = /[hp\/\\\\br~>.x]/g;
@@ -1004,9 +1004,9 @@ function playNoteColumn({
             }
           }
         } else {
-          if (prevNote && prevNote.includes("b")) {
+          if (prevNote?.includes("b")) {
             transitionToFret = extractNumber(prevNote) + capo; // release back to original note
-          } else if (secondPrevNote && secondPrevNote.includes("b")) {
+          } else if (secondPrevNote?.includes("b")) {
             transitionToFret = extractNumber(secondPrevNote) + capo; // release back to original note
           } else {
             if (baseFret <= 2) {
@@ -1095,7 +1095,7 @@ function playNoteColumn({
 
       // pre-note arbitrary slide up/down
       else if (currNote?.[0] === "/" || currNote?.[0] === "\\") {
-        if (currNote?.[0] === "/") {
+        if (currNote.startsWith("/")) {
           let baseFret = extractNumber(currNote);
 
           if (baseFret <= 2) {

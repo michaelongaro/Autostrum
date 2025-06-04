@@ -172,7 +172,7 @@ interface PlayPreview {
   index: number; // technically only necessary for strumming pattern, not chord preview
   type: "chord" | "strummingPattern";
   customTuning?: string;
-  customBpm?: number;
+  customBpm?: string;
 }
 interface PlayRecordedAudio {
   audioBuffer: AudioBuffer;
@@ -1010,7 +1010,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
 
         const compiledChords =
           type === "chord"
-            ? [["", ...(data as string[]), "v", "58", "1"]]
+            ? [["", ...(data as string[]), "v", customBpm ?? "58", "1"]]
             : compileStrummingPatternPreview({
                 strummingPattern: data as StrummingPattern,
               });
@@ -1051,7 +1051,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
               type === "chord" ? (customTuning ?? tuning) : "e2 a2 d3 g3 b3 e4",
             ),
             capo: type === "chord" ? capo : 0,
-            bpm: customBpm ?? alteredBpm,
+            bpm: alteredBpm,
             secondPrevColumn,
             prevColumn,
             currColumn,
@@ -1061,6 +1061,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             currentInstrument,
             currentlyPlayingStrings,
             acousticSteelOverrideForPreview: instruments.acoustic_guitar_steel,
+            forTuningPreview: customBpm !== undefined,
           });
 
           const { breakOnNextPreviewChord } = get();
