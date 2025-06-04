@@ -2,7 +2,6 @@ import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import html2canvas from "html2canvas";
 import isEqual from "lodash.isequal";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import {
@@ -1008,7 +1007,13 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
           <div className="baseVertFlex !flex-start w-full !items-start gap-2 rounded-t-md bg-pink-700 px-4 py-4 shadow-md sm:!flex-row sm:!items-center sm:gap-4 tablet:!px-6">
             {overMediumViewportThreshold ? (
               <div className="baseFlex w-full !justify-between">
-                <div className="baseFlex w-full !justify-between gap-4">
+                <div
+                  className={`baseFlex w-full gap-4 ${
+                    asPath.includes("create") || asPath.includes("edit")
+                      ? "!justify-start"
+                      : "!justify-between"
+                  } `}
+                >
                   <div className="baseFlex gap-2">
                     <div className="text-2xl font-bold">{title}</div>
 
@@ -1033,91 +1038,93 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                     )}
                   </div>
 
-                  <AnimatePresence mode="popLayout">
-                    <div className="baseFlex gap-3">
-                      {dynamicMetadata ? (
-                        <motion.div
-                          key={"crossfadeRateTab"}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{
-                            duration: 0.25,
-                          }}
-                          className="baseFlex h-10 w-28"
-                        >
-                          <RateTab
-                            tabId={id}
-                            averageRating={dynamicMetadata.averageRating}
-                            ratingsCount={dynamicMetadata.ratingsCount}
-                            currentUser={currentUser}
-                            userRating={dynamicMetadata.userRating}
-                            tabCreatorUserId={createdByUserId ?? undefined}
-                            customClassName={`${classes.rating} baseFlex w-28 gap-2 px-3 py-1`}
-                          />
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key={"crossfadeRateTabPlaceholder"}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{
-                            duration: 0.25,
-                          }}
-                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-pink-300"
-                        ></motion.div>
-                      )}
+                  {!asPath.includes("create") && !asPath.includes("edit") && (
+                    <AnimatePresence mode="popLayout">
+                      <div className="baseFlex gap-3">
+                        {dynamicMetadata ? (
+                          <motion.div
+                            key={"crossfadeRateTab"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{
+                              duration: 0.25,
+                            }}
+                            className="baseFlex h-10 w-28"
+                          >
+                            <RateTab
+                              tabId={id}
+                              averageRating={dynamicMetadata.averageRating}
+                              ratingsCount={dynamicMetadata.ratingsCount}
+                              currentUser={currentUser}
+                              userRating={dynamicMetadata.userRating}
+                              tabCreatorUserId={createdByUserId ?? undefined}
+                              customClassName={`${classes.rating} baseFlex w-28 gap-2 px-3 py-1`}
+                            />
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key={"crossfadeRateTabPlaceholder"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{
+                              duration: 0.25,
+                            }}
+                            className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-pink-300"
+                          ></motion.div>
+                        )}
 
-                      {dynamicMetadata ? (
-                        <motion.div
-                          key={"crossfadeBookmarkToggle"}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{
-                            duration: 0.25,
-                          }}
-                          className="baseFlex h-10 w-36"
-                        >
-                          <BookmarkToggle
-                            tabId={id}
-                            createdByUserId={createdByUserId}
-                            currentUser={currentUser}
-                            showText={true}
-                            isBookmarked={dynamicMetadata.bookmarked}
-                            customClassName={`${classes.bookmark} baseFlex w-full gap-2 px-3 py-1`}
-                          />
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key={"crossfadeBookmarkTogglePlaceholder"}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{
-                            duration: 0.25,
-                          }}
-                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-pink-300"
-                        ></motion.div>
-                      )}
+                        {dynamicMetadata ? (
+                          <motion.div
+                            key={"crossfadeBookmarkToggle"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{
+                              duration: 0.25,
+                            }}
+                            className="baseFlex h-10 w-36"
+                          >
+                            <BookmarkToggle
+                              tabId={id}
+                              createdByUserId={createdByUserId}
+                              currentUser={currentUser}
+                              showText={true}
+                              isBookmarked={dynamicMetadata.bookmarked}
+                              customClassName={`${classes.bookmark} baseFlex w-full gap-2 px-3 py-1`}
+                            />
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key={"crossfadeBookmarkTogglePlaceholder"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{
+                              duration: 0.25,
+                            }}
+                            className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-pink-300"
+                          ></motion.div>
+                        )}
 
-                      <Button
-                        variant={"secondary"}
-                        disabled={isLoadingARoute}
-                        onClick={async () =>
-                          await navigator.share({
-                            title,
-                            text: `Check out this tab I found on Autostrum!`,
-                            url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
-                          })
-                        }
-                        className="!p-2"
-                      >
-                        <IoIosShareAlt className="size-5" />
-                      </Button>
-                    </div>
-                  </AnimatePresence>
+                        <Button
+                          variant={"secondary"}
+                          disabled={isLoadingARoute}
+                          onClick={async () =>
+                            await navigator.share({
+                              title,
+                              text: `Check out this tab I found on Autostrum!`,
+                              url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
+                            })
+                          }
+                          className="!p-2"
+                        >
+                          <IoIosShareAlt className="size-5" />
+                        </Button>
+                      </div>
+                    </AnimatePresence>
+                  )}
                 </div>
 
                 {((userId && createdByUserId === userId) ??
@@ -1391,20 +1398,9 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                     style={{
                       backgroundColor: genreList.get(genre),
                     }}
-                    className="baseFlex w-[140px] !justify-between gap-2 rounded-md px-4 py-[0.39rem]"
+                    className="baseFlex h-11 w-[140px] !justify-start gap-2 rounded-md px-4"
                   >
                     {genre}
-                    <Image
-                      src={`/genrePreviewBubbles/id${genre}.png`}
-                      alt="three genre preview bubbles with the same color as the associated genre"
-                      width={32}
-                      height={32}
-                      quality={100}
-                      style={{
-                        pointerEvents: "none",
-                        userSelect: "none",
-                      }}
-                    />
                   </div>
                 )}
               </div>
