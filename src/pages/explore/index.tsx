@@ -10,6 +10,9 @@ import { PrismaClient, type User } from "@prisma/client";
 import type { GetStaticProps } from "next";
 import GuitarImage from "public/explore/header.jpg";
 import GenreCards from "~/components/Explore/GenreCards";
+import { FaRankingStar } from "react-icons/fa6";
+import { IoFlash, IoStatsChart } from "react-icons/io5";
+import { BsGridFill } from "react-icons/bs";
 import type { MinimalTabRepresentation } from "~/server/api/routers/search";
 import WeeklyFeaturedUsers from "~/components/Explore/WeeklyFeaturedUsers";
 import {
@@ -90,9 +93,12 @@ function Explore({ json }: { json: string }) {
           {/* weekly featured users */}
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
             <div className="baseVertFlex gap-0 md:gap-1">
-              <span className="text-xl font-bold md:text-[1.35rem]">
-                Weekly featured users
-              </span>
+              <div className="baseFlex gap-2">
+                <FaRankingStar className="size-6 text-pink-50" />
+                <span className="text-xl font-bold md:text-[1.35rem]">
+                  Weekly featured users
+                </span>
+              </div>
               <Separator className="w-full bg-pink-600" />
             </div>
 
@@ -106,9 +112,12 @@ function Explore({ json }: { json: string }) {
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
             <div className="baseFlex w-full !items-end !justify-between gap-2">
               <div className="baseVertFlex gap-0 md:gap-1">
-                <span className="text-xl font-bold md:text-[1.35rem]">
-                  Newly added tabs
-                </span>
+                <div className="baseFlex gap-2">
+                  <IoFlash className="size-5 text-pink-50" />
+                  <span className="text-xl font-bold md:text-[1.35rem]">
+                    Newly added tabs
+                  </span>
+                </div>
                 <Separator className="w-full bg-pink-600" />
               </div>
 
@@ -151,9 +160,12 @@ function Explore({ json }: { json: string }) {
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
             <div className="baseFlex w-full !items-end !justify-between gap-2">
               <div className="baseVertFlex gap-0 md:gap-1">
-                <span className="text-xl font-bold md:text-[1.35rem]">
-                  Most popular tabs
-                </span>
+                <div className="baseFlex gap-2">
+                  <IoStatsChart className="size-5 text-pink-50" />
+                  <span className="text-xl font-bold md:text-[1.35rem]">
+                    Most popular tabs
+                  </span>
+                </div>
                 <Separator className="w-full bg-pink-600" />
               </div>
 
@@ -194,7 +206,12 @@ function Explore({ json }: { json: string }) {
 
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
             <div className="baseVertFlex gap-0 md:gap-1">
-              <p className="text-xl font-bold md:text-[1.35rem]">Genres</p>
+              <div className="baseFlex gap-2">
+                <BsGridFill className="size-5 text-pink-50" />
+                <span className="text-xl font-bold md:text-[1.35rem]">
+                  Genres
+                </span>
+              </div>
               <Separator className="w-full bg-pink-600" />
             </div>
 
