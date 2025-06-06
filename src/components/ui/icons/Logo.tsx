@@ -5,6 +5,7 @@ function Logo(props: React.SVGProps<SVGSVGElement>) {
       height={198.795}
       viewBox="0 0 45.548 52.598"
       xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
       {...props}
     >
       <path
