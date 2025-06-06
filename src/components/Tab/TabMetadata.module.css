@@ -52,7 +52,14 @@
   }
 }
 
-@media (min-width: 1300px) {
+/* not ideal, but trying to prevent overlap due to page width breakpoint changes  */
+@media (min-width: 1175px) {
+  .editingMetadataContainer {
+    max-width: 95%;
+  }
+}
+
+@media (min-width: 1400px) {
   .editingMetadataContainer {
     max-width: 95%;
     grid-template-rows: auto auto;
@@ -63,6 +70,22 @@
     place-items: start;
   }
 }
+
+
+/* not ideal, but trying to prevent overlap due to page width breakpoint changes  */
+@media (min-width: 1536px) {
+  .editingMetadataContainer {
+    max-width: 100%;
+  }
+}
+
+/* not ideal, but trying to prevent overlap due to page width breakpoint changes  */
+@media (min-width: 1650px) {
+  .editingMetadataContainer {
+    max-width: 95%;
+  }
+}
+
 
 .viewingMetadataContainer {
   width: 100%;
@@ -133,6 +156,7 @@
 
   .metadataGrid {
     width: 100%;
+    max-width: none;
     grid-template-rows: auto auto;
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-areas:

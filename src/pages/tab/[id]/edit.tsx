@@ -55,7 +55,7 @@ function EditIndividualTab({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="baseVertFlex w-full"
+      className="baseVertFlex my-12 min-h-[650px] w-full !justify-start md:my-24 md:w-[85%] md:p-0 xl:w-[70%]"
     >
       <Head>
         <title>{openGraphData.title}</title>

@@ -42,7 +42,7 @@ function ViewIndividualTab({ json }: { json: string }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="baseVertFlex my-12 min-h-[650px] w-full !justify-start md:my-24 md:w-3/4 md:p-0"
+      className="baseVertFlex my-12 min-h-[650px] w-full !justify-start md:my-24 md:w-[85%] md:p-0 2xl:w-[70%]"
     >
       <Head>
         <title>{openGraphData.title}</title>
