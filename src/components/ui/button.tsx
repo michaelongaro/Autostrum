@@ -29,7 +29,7 @@ const buttonVariants = cva(
           "bg-pink-200 hover:bg-pink-700 text-pink-800 !shadow-primaryButton hover:text-pink-200 active:bg-pink-800 active:text-pink-200",
         playPause:
           "bg-green-600 hover:bg-green-700 shadow-none active:bg-green-800 disabled:opacity-50 disabled:bg-gray-500",
-        text: "text-primary-foreground shadow-none hover:text-primary/80 active:text-primary/60",
+        text: "text-primary-foreground shadow-none hover:text-primary-foreground/80 active:text-primary-foreground/60",
         drawer:
           "w-full !rounded-none font-normal !h-[65px] last-of-type:border-b-none border-b border-stone-400 h-full baseFlex bg-pink-100 active:brightness-75 relative py-0",
         drawerNavigation:
