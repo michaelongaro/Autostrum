@@ -22,6 +22,8 @@ import dynamic from "next/dynamic";
 import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
 import EffectGlossaryDialog from "~/components/Dialogs/EffectGlossaryDialog";
 import Logo from "~/components/ui/icons/Logo";
+import ExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
+import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
 
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
@@ -90,6 +92,7 @@ function Tab({ tab }: Tab) {
     strummingPatterns,
     audioMetadata,
     showPlaybackModal,
+    viewportLabel,
     setShowPlaybackModal,
     setLooping,
   } = useTabStore((state) => ({
@@ -126,6 +129,7 @@ function Tab({ tab }: Tab) {
     strummingPatterns: state.strummingPatterns,
     audioMetadata: state.audioMetadata,
     showPlaybackModal: state.showPlaybackModal,
+    viewportLabel: state.viewportLabel,
     setShowPlaybackModal: state.setShowPlaybackModal,
     setLooping: state.setLooping,
   }));
@@ -255,7 +259,7 @@ function Tab({ tab }: Tab) {
         style={{
           transition: "filter 0.5s ease-in-out",
         }}
-        className={`baseVertFlex lightGlassmorphic relative w-full gap-4 md:rounded-xl ${
+        className={`baseVertFlex lightGlassmorphic relative w-full md:rounded-xl ${
           isPublishingOrUpdating
             ? "pointer-events-none brightness-90"
             : "brightness-100"
@@ -282,23 +286,23 @@ function Tab({ tab }: Tab) {
             </div>
           )}
 
-        <Separator className="w-[96%]" />
+        <Separator className="mt-2 w-full tablet:w-[96%]" />
 
-        <div className="baseVertFlex relative w-full gap-4">
-          <SectionProgression />
-          <Chords />
-          <StrummingPatterns />
+        {editing ? (
+          <div className="baseVertFlex relative mt-2 w-full gap-4">
+            <SectionProgression />
+            <Chords />
+            <StrummingPatterns />
 
-          <Button
-            variant={"secondary"}
-            className="baseFlex !flex-nowrap gap-2 lg:absolute lg:right-7 lg:top-0"
-            onClick={() => setShowEffectGlossaryDialog(true)}
-          >
-            <FaBook className="h-4 w-4" />
-            Effect glossary
-          </Button>
+            <Button
+              variant={"secondary"}
+              className="baseFlex !flex-nowrap gap-2 lg:absolute lg:right-7 lg:top-0"
+              onClick={() => setShowEffectGlossaryDialog(true)}
+            >
+              <FaBook className="h-4 w-4" />
+              Effect glossary
+            </Button>
 
-          {editing && (
             <Popover>
               <PopoverTrigger className="baseFlex absolute bottom-5 right-3 mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:bottom-3 sm:right-7">
                 <HiOutlineLightBulb className="h-5 w-5" />
@@ -318,10 +322,18 @@ function Tab({ tab }: Tab) {
                 </p>
               </PopoverContent>
             </Popover>
-          )}
-        </div>
+          </div>
+        ) : (
+          <>
+            {viewportLabel.includes("mobile") ? (
+              <MobileExtraTabMetadata />
+            ) : (
+              <ExtraTabMetadata />
+            )}
+          </>
+        )}
 
-        <Separator className="w-[96%]" />
+        <Separator className="my-2 w-full tablet:w-[96%]" />
 
         <div className="baseVertFlex relative size-full gap-4">
           {!showPlaybackModal &&

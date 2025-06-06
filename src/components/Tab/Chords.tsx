@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 import { MdModeEditOutline } from "react-icons/md";
-import ChordDiagram from "~/components/Tab/Playback/ChordDiagram";
 import {
   Accordion,
   AccordionContent,
@@ -11,7 +10,6 @@ import {
 } from "~/components/ui/accordion";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
-import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 import { Button } from "~/components/ui/button";
 
 const opacityVariants = {
@@ -28,32 +26,22 @@ function Chords() {
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const {
-    id,
-    currentInstrument,
     chords,
     setChords,
     setChordBeingEdited,
     getTabData,
     setTabData,
-    editing,
-    audioMetadata,
     previewMetadata,
-    playPreview,
     pauseAudio,
     currentlyCopiedData,
     setCurrentlyCopiedData,
   } = useTabStore((state) => ({
-    id: state.id,
-    currentInstrument: state.currentInstrument,
     chords: state.chords,
     setChords: state.setChords,
     setChordBeingEdited: state.setChordBeingEdited,
     getTabData: state.getTabData,
     setTabData: state.setTabData,
-    editing: state.editing,
-    audioMetadata: state.audioMetadata,
     previewMetadata: state.previewMetadata,
-    playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
     currentlyCopiedData: state.currentlyCopiedData,
     setCurrentlyCopiedData: state.setCurrentlyCopiedData,
@@ -69,36 +57,18 @@ function Chords() {
       setCurrentlyCopiedData(null);
     }
 
-    for (
-      let sectionIndex = 0;
-      sectionIndex < newTabData.length;
-      sectionIndex++
-    ) {
-      const section = newTabData[sectionIndex];
-
+    for (const [sectionIndex, section] of newTabData.entries()) {
       if (!section) continue;
-      for (
-        let subSectionIndex = 0;
-        subSectionIndex < section.data.length;
-        subSectionIndex++
-      ) {
-        const subSection = section.data[subSectionIndex];
 
+      for (const [subSectionIndex, subSection] of section.data.entries()) {
         if (subSection?.type === "chord") {
-          for (
-            let chordSequenceIndex = 0;
-            chordSequenceIndex < subSection.data.length;
-            chordSequenceIndex++
-          ) {
-            const chordGroup = subSection.data[chordSequenceIndex];
-
+          for (const [
+            chordSequenceIndex,
+            chordGroup,
+          ] of subSection.data.entries()) {
             if (!chordGroup) continue;
-            for (
-              let chordIndex = 0;
-              chordIndex < chordGroup.data.length;
-              chordIndex++
-            ) {
-              const chordName = chordGroup.data[chordIndex];
+
+            for (const [chordIndex, chordName] of chordGroup.data.entries()) {
               if (!chordName) continue;
 
               if (chordName === chordNameToBeDeleted) {
@@ -123,7 +93,6 @@ function Chords() {
   return (
     <div
       style={{
-        display: editing ? "flex" : chords.length === 0 ? "none" : "flex",
         minWidth: aboveMediumViewportWidth ? "500px" : "300px",
       }}
       className="baseVertFlex lightestGlassmorphic w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 !shadow-lighterGlassmorphic md:p-4"
@@ -149,178 +118,87 @@ function Chords() {
             </p>
           </AccordionTrigger>
           <AccordionContent className="w-full">
-            <>
-              {editing ? (
-                <div className="baseVertFlex w-full !items-start gap-4">
-                  <div
-                    className={`baseFlex flex-wrap !justify-start gap-4 ${chords.length > 0 ? "mt-4" : ""}`}
+            <div className="baseVertFlex w-full !items-start gap-4">
+              <div
+                className={`baseFlex flex-wrap !justify-start gap-4 ${chords.length > 0 ? "mt-4" : ""}`}
+              >
+                {chords.map((chord, index) => (
+                  <motion.div
+                    key={chord.id}
+                    variants={opacityVariants}
+                    initial="closed"
+                    animate="open"
+                    exit="closed"
+                    className="baseFlex border-r-none h-10 !flex-nowrap overflow-hidden rounded-md border-2"
                   >
-                    {chords.map((chord, index) => (
-                      <motion.div
-                        key={chord.id}
-                        variants={opacityVariants}
-                        initial="closed"
-                        animate="open"
-                        exit="closed"
-                        className="baseFlex border-r-none h-10 !flex-nowrap overflow-hidden rounded-md border-2"
+                    <p
+                      style={{
+                        textShadow:
+                          previewMetadata.indexOfPattern === index &&
+                          previewMetadata.playing &&
+                          previewMetadata.type === "chord"
+                            ? "none"
+                            : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
+                        color:
+                          previewMetadata.indexOfPattern === index &&
+                          previewMetadata.playing &&
+                          previewMetadata.type === "chord"
+                            ? "hsl(335, 78%, 42%)"
+                            : "hsl(324, 77%, 95%)",
+                      }}
+                      className="px-3 font-semibold transition-colors"
+                    >
+                      {chord.name}
+                    </p>
+
+                    <div className="baseFlex h-full w-full !justify-evenly">
+                      {/* edit button */}
+                      <Button
+                        variant={"ghost"}
+                        size={"sm"}
+                        className="baseFlex h-full w-1/2 gap-2 rounded-none border-l-2 border-r-[1px]"
+                        onClick={() => {
+                          pauseAudio();
+                          setChordBeingEdited({
+                            index,
+                            value: chord,
+                          });
+                        }}
                       >
-                        <p
-                          style={{
-                            textShadow:
-                              previewMetadata.indexOfPattern === index &&
-                              previewMetadata.playing &&
-                              previewMetadata.type === "chord"
-                                ? "none"
-                                : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
-                            color:
-                              previewMetadata.indexOfPattern === index &&
-                              previewMetadata.playing &&
-                              previewMetadata.type === "chord"
-                                ? "hsl(335, 78%, 42%)"
-                                : "hsl(324, 77%, 95%)",
-                          }}
-                          className="px-3 font-semibold transition-colors"
-                        >
-                          {chord.name}
-                        </p>
-
-                        <div className="baseFlex h-full w-full !justify-evenly">
-                          {/* edit button */}
-                          <Button
-                            variant={"ghost"}
-                            size={"sm"}
-                            className="baseFlex h-full w-1/2 gap-2 rounded-none border-l-2 border-r-[1px]"
-                            onClick={() => {
-                              pauseAudio();
-                              setChordBeingEdited({
-                                index,
-                                value: chord,
-                              });
-                            }}
-                          >
-                            {/* add the tooltip below for "Edit" */}
-                            <MdModeEditOutline className="h-6 w-6" />
-                          </Button>
-                          {/* delete button */}
-                          <Button
-                            variant={"destructive"}
-                            size="sm"
-                            className="baseFlex h-full w-1/2 rounded-l-none border-l-[1px]"
-                            onClick={() => handleDeleteChord(index, chord.name)}
-                          >
-                            {/* add the tooltip below for "Delete" */}
-                            <FaTrashAlt className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  <Button
-                    className="mb-1"
-                    onClick={() => {
-                      setChordBeingEdited({
-                        index: chords.length,
-                        value: {
-                          id: crypto.randomUUID(),
-                          name: "",
-                          frets: ["", "", "", "", "", ""],
-                        },
-                      });
-                    }}
-                  >
-                    Add chord
-                  </Button>
-                </div>
-              ) : (
-                <div className="mt-2 grid max-h-[calc(100dvh-6rem)] w-full auto-rows-auto grid-cols-1 place-items-center gap-4 overflow-y-auto px-8 xs:grid-cols-2 md:grid-cols-3">
-                  <>
-                    {chords.map((chord, index) => (
-                      <motion.div
-                        key={chord.id}
-                        variants={opacityVariants}
-                        initial="closed"
-                        animate="open"
-                        exit="closed"
-                        className="baseFlex max-w-[175px]"
+                        {/* add the tooltip below for "Edit" */}
+                        <MdModeEditOutline className="h-6 w-6" />
+                      </Button>
+                      {/* delete button */}
+                      <Button
+                        variant={"destructive"}
+                        size="sm"
+                        className="baseFlex h-full w-1/2 rounded-l-none border-l-[1px]"
+                        onClick={() => handleDeleteChord(index, chord.name)}
                       >
-                        <div className="baseVertFlex gap-3">
-                          <div className="baseFlex w-full !justify-between border-b py-2">
-                            <p
-                              style={{
-                                textShadow:
-                                  previewMetadata.indexOfPattern === index &&
-                                  previewMetadata.playing &&
-                                  previewMetadata.type === "chord"
-                                    ? "none"
-                                    : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
-                                color:
-                                  previewMetadata.indexOfPattern === index &&
-                                  previewMetadata.playing &&
-                                  previewMetadata.type === "chord"
-                                    ? "hsl(335, 78%, 42%)"
-                                    : "hsl(324, 77%, 95%)",
-                              }}
-                              className="px-3 font-semibold transition-colors"
-                            >
-                              {chord.name}
-                            </p>
+                        {/* add the tooltip below for "Delete" */}
+                        <FaTrashAlt className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
 
-                            {/* preview chord button */}
-                            <Button
-                              variant={"playPause"}
-                              disabled={
-                                !currentInstrument ||
-                                (previewMetadata.indexOfPattern === index &&
-                                  previewMetadata.playing &&
-                                  previewMetadata.type === "chord")
-                              }
-                              size={"sm"}
-                              onClick={() => {
-                                if (
-                                  audioMetadata.playing ||
-                                  previewMetadata.playing
-                                ) {
-                                  pauseAudio();
-                                }
-
-                                setTimeout(
-                                  () => {
-                                    void playPreview({
-                                      data: chord.frets,
-                                      index,
-                                      type: "chord",
-                                    });
-                                  },
-                                  audioMetadata.playing ||
-                                    previewMetadata.playing
-                                    ? 50
-                                    : 0,
-                                );
-                              }}
-                              className="baseFlex mr-3 h-6 w-10 rounded-sm"
-                            >
-                              <PlayButtonIcon
-                                uniqueLocationKey={`chordPreview${index}`}
-                                tabId={id}
-                                currentInstrument={currentInstrument}
-                                previewMetadata={previewMetadata}
-                                indexOfPattern={index}
-                                previewType="chord"
-                              />
-                            </Button>
-                          </div>
-
-                          <div className="h-48">
-                            <ChordDiagram originalFrets={chord.frets} />
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </>
-                </div>
-              )}
-            </>
+              <Button
+                className="mb-1"
+                onClick={() => {
+                  setChordBeingEdited({
+                    index: chords.length,
+                    value: {
+                      id: crypto.randomUUID(),
+                      name: "",
+                      frets: ["", "", "", "", "", ""],
+                    },
+                  });
+                }}
+              >
+                Add chord
+              </Button>
+            </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>

@@ -206,15 +206,15 @@ function PlayButtonIcon({
           previewMetadata?.indexOfPattern === indexOfPattern ? (
             <BsStopFill
               style={{
-                width: size,
-                height: size,
+                width: `calc(${size} * 1.5)`, // TODO: probably make custom icon components of these as well w/ better box sizing to avoid this hack
+                height: `calc(${size} * 1.5)`, // TODO: probably make custom icon components of these as well w/ better box sizing to avoid this hack
               }}
             />
           ) : (
             <BsFillPauseFill
               style={{
-                width: size,
-                height: size,
+                width: `calc(${size} * 1.5)`, // TODO: probably make custom icon components of these as well w/ better box sizing to avoid this hack
+                height: `calc(${size} * 1.5)`, // TODO: probably make custom icon components of these as well w/ better box sizing to avoid this hack
               }}
             />
           )}
