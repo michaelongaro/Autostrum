@@ -76,7 +76,7 @@ function ChordDiagram({ originalFrets }: ChordDiagram) {
         const fretIndex = displayFrets.indexOf(fret);
         if (fretIndex === -1) continue; // Fret not displayed
 
-        const y = 20 + (fretIndex + 0.5) * 40; // Centered between frets
+        const y = 15 + (fretIndex + 0.5) * 30; // Centered between frets
         const x = 40 + s * 20;
 
         fingers.push(
@@ -122,7 +122,7 @@ function ChordDiagram({ originalFrets }: ChordDiagram) {
       <text
         key={`fret-number-${fret}-${f}`}
         x={30}
-        y={20 + (f + 1) * 40 + 5} // Positioned to the left of the diagram
+        y={15 + (f + 1) * 30 + 5} // Positioned to the left of the diagram
         textAnchor="middle"
         fontSize="12"
         fill="white"
@@ -141,9 +141,9 @@ function ChordDiagram({ originalFrets }: ChordDiagram) {
         <line
           key={`fret-${fret}-${f}`}
           x1={40}
-          y1={20 + f * 40}
+          y1={15 + f * 30}
           x2={40 + (STRING_COUNT - 1) * 20}
-          y2={20 + f * 40}
+          y2={15 + f * 30}
           stroke="white"
           strokeLinecap="round"
           strokeWidth={maxFret <= 4 && f === 0 ? 4 : 1} // only show nut if full chord is within first 4 frets
@@ -152,7 +152,7 @@ function ChordDiagram({ originalFrets }: ChordDiagram) {
     });
   };
 
-  const svgHeight = 20 + FRET_COUNT * 40 + 20;
+  const svgHeight = 15 + FRET_COUNT * 30 + 15;
 
   return (
     <svg
@@ -167,9 +167,9 @@ function ChordDiagram({ originalFrets }: ChordDiagram) {
         <line
           key={`string-${s}`}
           x1={40 + s * 20}
-          y1={20}
+          y1={15}
           x2={40 + s * 20}
-          y2={20 + FRET_COUNT * 40}
+          y2={15 + FRET_COUNT * 30}
           stroke="white"
           strokeWidth="1"
         />
