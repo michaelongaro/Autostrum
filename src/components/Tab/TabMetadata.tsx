@@ -1026,7 +1026,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                             href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
                             className="!h-6 !p-0"
                           >
-                            <div className="baseFlex gap-1 font-medium">
+                            <div className="baseFlex gap-1 text-lg font-medium">
                               {artistIsVerified && (
                                 <Verified className="size-5" />
                               )}
@@ -1164,7 +1164,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                             href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
                             className="!h-6 !p-0"
                           >
-                            <div className="baseFlex gap-1 font-medium">
+                            <div className="baseFlex gap-1 text-lg font-medium">
                               {artistIsVerified && (
                                 <Verified className="size-5" />
                               )}
