@@ -60,3 +60,15 @@ I originally had a combined "getByIdOrUsername" as I thought it aided in versati
 
 **Pre-computed vs On-demand metadata fields**  
 I highly value read speed to elevate use experience. Due to this, various models like Tab, Artist, and User each have their own pre-computed fields that get manually updated whenever corresponding actions occur (rating a tab, deleting a tab, deleting a user's account, etc.) I understand this brings on extra responsibility to make sure data stays aligned, but so far it seems manageable.
+
+**Precomputed widths of table column headers**  
+I decided to precompute and hardcode all variations of dynamic widths of each column so that the header in <SearchResults /> can always be rendered w/ hardcoded widths as well. Before I was using an effect to read the widths of each row's column, however that didn't work when there were no rows to display or initial results were still being fetched, so the column headers rendered with each one on it’s own separate row, causing layout shift when the results loaded in.
+
+**User data in database vs. Clerk**  
+For now, I am still storing user’s profile images and retrieving their email address through clerk, but I plan on moving away reliance on clerk. The user table should hold the user’s email address and S3 should hold the profile images. The current plan is to eventually migrate to betterAuth.
+
+**Dynamic strum speed methodology**  
+I’m mapping the current BPM to a range of delays between strummed notes to make the strumming sound more realistic. At slower BPMs, there’s a longer delay between each note, while at faster BPMs, the notes are strummed more quickly. I’ve set the range of delays to be relatively narrow and biased toward faster strumming. This is because, when users select a slower BPM for practice, they typically want more time between each strum, rather than having each chord strummed more slowly.
+
+**Artist and username casing**  
+Since different artists can have the same name but with different casings (Sia vs. SIA), we explicitly allow the same name as as long as the casings are different. I also am allowing the same for usernames, but this is just my personal choice
