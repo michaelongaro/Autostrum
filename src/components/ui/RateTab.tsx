@@ -16,6 +16,8 @@ import {
   DrawerTrigger,
   DrawerPortal,
   DrawerContent,
+  DrawerTitle,
+  DrawerDescription,
 } from "~/components/ui/drawer";
 import type { UserMetadata } from "~/server/api/routers/user";
 import { api } from "~/utils/api";
@@ -25,6 +27,7 @@ import { FaRegStar, FaStar } from "react-icons/fa6";
 import { useTabStore } from "~/stores/TabStore";
 import { SignInButton } from "@clerk/nextjs";
 import { FaUser } from "react-icons/fa";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -454,6 +457,14 @@ function RateTabDrawer({
           }}
           className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950"
         >
+          <VisuallyHidden>
+            <DrawerTitle>Rate this tab</DrawerTitle>
+            <DrawerDescription>
+              Rate this tab to help others gauge its quality. Your rating will
+              be visible to all users.
+            </DrawerDescription>
+          </VisuallyHidden>
+
           {currentUser ? (
             <RateTabInternals
               hoveredRating={hoveredRating}

@@ -4,13 +4,20 @@ import type { Area, Point } from "react-easy-crop";
 import { FiUpload } from "react-icons/fi";
 import { IoClose } from "react-icons/io5";
 import { MdCrop } from "react-icons/md";
-import { Drawer, DrawerContent, DrawerPortal } from "~/components/ui/drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerPortal,
+  DrawerTitle,
+} from "~/components/ui/drawer";
 import EditImage from "~/components/Profile/EditImage";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { AnimatePresence, motion } from "framer-motion";
 import type { LocalSettings } from "~/pages/profile/settings";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 // Helper to read file as data URL
 function readFile(file: File): Promise<string> {
@@ -221,6 +228,15 @@ function EditImageSelector({
               }}
               className="baseVertFlex fixed bottom-0 left-0 right-0 h-[75dvh] max-h-[500px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-4 text-pink-950"
             >
+              <VisuallyHidden>
+                <DrawerTitle>Image editor</DrawerTitle>
+                <DrawerDescription>
+                  Use the controls below to edit your profile image. You can
+                  crop, rotate, and zoom in on the image. When you&apos;re done,
+                  click &ldquo;Save&rdquo; to apply the changes.
+                </DrawerDescription>
+              </VisuallyHidden>
+
               <Separator className="mt-2 w-full bg-stone-400" />
 
               <EditImage

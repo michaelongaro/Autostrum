@@ -18,6 +18,8 @@ import {
   DrawerPortal,
   DrawerTrigger,
   DrawerContent,
+  DrawerTitle,
+  DrawerDescription,
 } from "~/components/ui/drawer";
 import { AudioProgressSlider } from "~/components/ui/AudioProgressSlider";
 import { Button } from "~/components/ui/button";
@@ -49,6 +51,7 @@ import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import { returnTransitionToTabSlider } from "~/utils/tabSliderHelpers";
 import { LoopingRangeSlider } from "~/components/ui/LoopingRangeSlider";
 import PlayButtonIcon from "./PlayButtonIcon";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -967,6 +970,14 @@ function AudioControls() {
                   }}
                   className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950"
                 >
+                  <VisuallyHidden>
+                    <DrawerTitle>Audio settings</DrawerTitle>
+                    <DrawerDescription>
+                      Change the instrument, playback speed, and other audio
+                      settings.
+                    </DrawerDescription>
+                  </VisuallyHidden>
+
                   <div className="baseFlex gap-2">
                     <IoSettingsOutline className="size-4" />
                     Audio settings

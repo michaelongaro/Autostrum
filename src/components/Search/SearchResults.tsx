@@ -6,13 +6,7 @@ import {
   OverlayScrollbarsComponent,
   type OverlayScrollbarsComponentRef,
 } from "overlayscrollbars-react";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { BsGridFill, BsPlus } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
 import { GoChevronRight } from "react-icons/go";
@@ -21,11 +15,10 @@ import { useInView } from "react-intersection-observer";
 import {
   Drawer,
   DrawerTrigger,
-  DrawerClose,
   DrawerContent,
-  DrawerHeader,
-  DrawerOverlay,
   DrawerPortal,
+  DrawerTitle,
+  DrawerDescription,
 } from "~/components/ui/drawer";
 import Render404Page from "~/components/Search/Render404Page";
 import { Button } from "~/components/ui/button";
@@ -50,6 +43,7 @@ import TableTabView from "./TableTabView";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import Link from "next/link";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 const opacityVariants = {
   expanded: {
@@ -835,6 +829,13 @@ function SearchResults({
                         }}
                         className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-4 text-pink-950"
                       >
+                        <VisuallyHidden>
+                          <DrawerTitle>Search filters</DrawerTitle>
+                          <DrawerDescription>
+                            Use the search filters to narrow down your results.
+                          </DrawerDescription>
+                        </VisuallyHidden>
+
                         <div className="baseFlex w-full !justify-between px-3">
                           <AnimatePresence mode="popLayout">
                             {drawerView === "Search filters" ? (

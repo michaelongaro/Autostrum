@@ -1,5 +1,5 @@
 import { api } from "~/utils/api";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useState, type Dispatch, type SetStateAction } from "react";
 import { TbPinned } from "react-icons/tb";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
@@ -10,11 +10,14 @@ import {
   DrawerTrigger,
   DrawerContent,
   DrawerPortal,
+  DrawerTitle,
+  DrawerDescription,
 } from "~/components/ui/drawer";
 import { Separator } from "~/components/ui/separator";
 import PinnedTabList from "~/components/Profile/PinnedTabList";
 import { IoClose } from "react-icons/io5";
 import type { LocalSettings } from "~/pages/profile/settings";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface PinnedTabSelector {
   userId: string;
@@ -128,6 +131,13 @@ function PinnedTabSelector({
                   }}
                   className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-4 text-pink-950"
                 >
+                  <VisuallyHidden>
+                    <DrawerTitle>Pinned tab selector</DrawerTitle>
+                    <DrawerDescription>
+                      Select a pinned tab to display on your profile.
+                    </DrawerDescription>
+                  </VisuallyHidden>
+
                   <Separator className="mt-2 w-full bg-stone-400" />
 
                   <PinnedTabList
