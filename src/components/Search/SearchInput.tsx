@@ -155,7 +155,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
         ease: "easeOut",
         duration: 0.35,
       }}
-      className="baseFlex relative mt-0.5 tablet:mt-0"
+      className="baseFlex relative mt-0.5 max-w-lg tablet:mt-0"
     >
       {viewportLabel.includes("mobile") && (
         <Button

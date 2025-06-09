@@ -92,7 +92,7 @@ function MobileHeader() {
             animate="expanded"
             exit="closed"
             transition={{ duration: 0.3 }}
-            className="baseVertFlex fixed left-0 top-16 z-[49] max-h-[80dvh] w-full !justify-start overflow-y-auto rounded-b-xl bg-pink-400 shadow-lg"
+            className="baseVertFlex fixed top-16 z-[49] max-h-[80dvh] w-full max-w-lg !justify-start overflow-y-auto rounded-b-xl bg-pink-400 shadow-lg"
           >
             <div className="baseVertFlex my-4 h-full max-w-[348px] gap-4">
               <div className="baseFlex w-full gap-4">
@@ -412,7 +412,7 @@ function MobileHeader() {
 
               <DialogContent
                 renderCloseButton={false}
-                className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start bg-gradient-to-b from-pink-400 to-pink-500 p-0"
+                className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start !rounded-none bg-gradient-to-b from-pink-400 to-pink-500 p-0"
               >
                 <SearchInput setShowMobileSearch={setShowMobileSearch} />
               </DialogContent>
