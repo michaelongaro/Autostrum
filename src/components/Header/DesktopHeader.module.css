@@ -5,16 +5,21 @@
 
 @media (min-width: 1024px) {
   .desktopHeader {
-    padding: 0.5rem;
     display: grid;
     gap: 1rem;
-    padding: 0 2rem;
+    padding: 0 1rem;
     grid-template-rows: 1fr;
     grid-template-columns:
       175px 1fr 48px 48px minmax(350px, 450px) 48px 48px 1fr 48px 48px;
     grid-template-areas:
       "logo . metronome tuner search explore create . theme authentication";
     align-items: center;
+  }
+}
+
+@media (min-width: 1536px) {
+  .desktopHeader {
+    padding: 0 2rem;
   }
 }
 
