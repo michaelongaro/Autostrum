@@ -62,7 +62,7 @@ function DesktopExtraTabMetadata() {
             <motion.span
               layoutId="activeTabUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full bg-pink-50"
+              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-pink-50"
             />
           )}
         </Button>
@@ -77,7 +77,7 @@ function DesktopExtraTabMetadata() {
             <motion.span
               layoutId="activeTabUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full bg-pink-50"
+              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-pink-50"
             />
           )}
         </Button>
@@ -92,7 +92,7 @@ function DesktopExtraTabMetadata() {
             <motion.span
               layoutId="activeTabUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full bg-pink-50"
+              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-pink-50"
             />
           )}
         </Button>
