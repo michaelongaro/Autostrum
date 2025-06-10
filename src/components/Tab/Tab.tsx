@@ -5,6 +5,12 @@ import { FaBook } from "react-icons/fa";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 import { Separator } from "~/components/ui/separator";
 import SectionProgression from "./SectionProgression";
 import TabMetadata from "./TabMetadata";
@@ -24,7 +30,16 @@ import EffectGlossaryDialog from "~/components/Dialogs/EffectGlossaryDialog";
 import Logo from "~/components/ui/icons/Logo";
 import ExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
 import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
+import CChordDiagram from "~/components/ui/icons/CChordDiagram";
+import { useInView } from "react-intersection-observer";
+import ChordDiagram from "~/components/Tab/Playback/ChordDiagram";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "~/components/ui/carousel";
 
+const TipsModal = dynamic(() => import("~/components/modals/TipsModal"));
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
 );
@@ -46,6 +61,9 @@ interface Tab {
 function Tab({ tab }: Tab) {
   const [customTuning, setCustomTuning] = useState<string | null>(null);
   const [isPublishingOrUpdating, setIsPublishingOrUpdating] = useState(false);
+  const [showTipsModal, setShowTipsModal] = useState(false);
+  const [tabContentIsInView, setTabContentIsInView] = useState(false);
+  const [showPinnedChords, setShowPinnedChords] = useState(false);
 
   // true when creating new section, results in way less cpu/ram usage for arguably worse ux
   const [forceCloseSectionAccordions, setForceCloseSectionAccordions] =
@@ -55,6 +73,14 @@ function Tab({ tab }: Tab) {
   // slide down into view above other content for a split second.
   const [blockInitialLayoutAnimation, setBlockInitialLayoutAnimation] =
     useState(true);
+
+  const { ref: tabContentRef } = useInView({
+    rootMargin: "-300px 0px -300px 0px",
+    threshold: 0,
+    onChange: (inView) => {
+      setTabContentIsInView(inView);
+    },
+  });
 
   const localStorageTabData = useLocalStorageValue("autostrum-tabData");
 
@@ -277,7 +303,7 @@ function Tab({ tab }: Tab) {
             <div className="baseFlex relative h-10 w-full">
               <Button
                 variant={"secondary"}
-                className="baseFlex !flex-nowrap gap-2 lg:absolute lg:right-7 lg:top-0"
+                className="baseFlex gap-2 lg:absolute lg:right-7 lg:top-0"
                 onClick={() => setShowEffectGlossaryDialog(true)}
               >
                 <FaBook className="h-4 w-4" />
@@ -294,34 +320,45 @@ function Tab({ tab }: Tab) {
             <Chords />
             <StrummingPatterns />
 
-            <Button
-              variant={"secondary"}
-              className="baseFlex !flex-nowrap gap-2 lg:absolute lg:right-7 lg:top-0"
-              onClick={() => setShowEffectGlossaryDialog(true)}
-            >
-              <FaBook className="h-4 w-4" />
-              Effect glossary
-            </Button>
-
-            <Popover>
-              <PopoverTrigger className="baseFlex absolute bottom-5 right-3 mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:bottom-3 sm:right-7">
-                <HiOutlineLightBulb className="h-5 w-5" />
-              </PopoverTrigger>
-              <PopoverContent
-                side="left"
-                className="baseVertFlex w-72 gap-2 p-2 text-sm shadow-lg"
+            <div className="baseFlex gap-4">
+              <Button
+                variant={"secondary"}
+                className="baseFlex gap-2 lg:absolute lg:left-7 lg:top-0"
+                onClick={() => setShowTipsModal(true)}
               >
-                <div className="baseFlex gap-2 font-semibold">
-                  <HiOutlineInformationCircle className="h-4 w-4" />
-                  Tip
-                </div>
-                <p>
-                  If performance degrades while playing generated audio, try
-                  minimizing sections that aren&apos;t being played or opt to
-                  listen in preview mode.
-                </p>
-              </PopoverContent>
-            </Popover>
+                <HiOutlineInformationCircle className="size-4" />
+                Tips
+              </Button>
+
+              <Button
+                variant={"secondary"}
+                className="baseFlex gap-2 lg:absolute lg:right-7 lg:top-0"
+                onClick={() => setShowEffectGlossaryDialog(true)}
+              >
+                <FaBook className="size-4" />
+                Effect glossary
+              </Button>
+
+              <Popover>
+                <PopoverTrigger className="baseFlex absolute bottom-1 right-1 mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:bottom-3 sm:right-7">
+                  <HiOutlineLightBulb className="h-5 w-5" />
+                </PopoverTrigger>
+                <PopoverContent
+                  side="left"
+                  className="baseVertFlex w-72 gap-2 p-2 text-sm shadow-lg"
+                >
+                  <div className="baseFlex gap-2 font-semibold">
+                    <HiOutlineInformationCircle className="size-4" />
+                    Tip
+                  </div>
+                  <p>
+                    If performance degrades while playing generated audio, try
+                    minimizing sections that aren&apos;t being played or opt to
+                    listen in preview mode.
+                  </p>
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
         ) : (
           <>
@@ -335,7 +372,61 @@ function Tab({ tab }: Tab) {
 
         <Separator className="my-2 w-full tablet:w-[96%]" />
 
-        <div className="baseVertFlex relative size-full gap-4">
+        <div
+          ref={tabContentRef}
+          className="baseVertFlex relative size-full gap-4"
+        >
+          <AnimatePresence mode="wait">
+            {showPinnedChords && (
+              <motion.div
+                key={"stickyPinnedChords"}
+                // FYI: tried to animate height too, however idk if it's possible/easy
+                // given that this is a sticky element. (worked fine when not sticky)
+                initial={{
+                  opacity: 0,
+                  paddingTop: 0,
+                  paddingBottom: 0,
+                }}
+                animate={{
+                  opacity: 1,
+                  paddingTop: "0.5rem",
+                  paddingBottom: "0.5rem",
+                }}
+                exit={{
+                  opacity: 0,
+                  paddingTop: 0,
+                  paddingBottom: 0,
+                }}
+                transition={{ duration: 0.25 }}
+                className="baseFlex sticky left-0 top-16 z-10 w-full bg-pink-800"
+              >
+                <Carousel
+                  opts={{
+                    dragFree: true,
+                    align: "start",
+                  }}
+                  className="baseFlex max-w-[90%]"
+                >
+                  <CarouselContent>
+                    {chords.map((chord) => (
+                      <CarouselItem
+                        key={chord.id}
+                        className="baseVertFlex basis-auto gap-2"
+                      >
+                        <span className="text-sm font-medium">
+                          {chord.name}
+                        </span>
+                        <div className="h-[80px] tablet:h-[118px]">
+                          <ChordDiagram originalFrets={chord.frets} />
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                </Carousel>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {!showPlaybackModal &&
             tabData.map((section, index) => (
               <motion.div
@@ -385,19 +476,76 @@ function Tab({ tab }: Tab) {
             </Button>
           )}
 
-          {!editing && audioMetadata.fullCurrentlyPlayingMetadataLength > 0 && (
-            <Button
-              variant="playPause"
-              className="baseFlex sticky bottom-4 right-4 mb-4 gap-3 !rounded-full px-8 py-6 text-lg shadow-lg tablet:bottom-6 tablet:px-10 tablet:text-xl"
-              onClick={() => {
-                setShowPlaybackModal(true);
-                setLooping(true);
-              }}
-            >
-              <Logo className="size-[18px] fill-pink-50 tablet:size-5" />
-              Practice
-            </Button>
-          )}
+          <AnimatePresence>
+            {!editing &&
+              audioMetadata.fullCurrentlyPlayingMetadataLength > 0 &&
+              tabContentIsInView && (
+                <motion.div
+                  key="stickyBottomControls"
+                  initial={{ opacity: 0 }}
+                  animate={{
+                    opacity: 1,
+                  }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="baseFlex sticky bottom-4 mb-4 gap-4 tablet:bottom-6"
+                >
+                  <TooltipProvider delayDuration={150}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={"navigation"}
+                          style={{
+                            backgroundColor: showPinnedChords
+                              ? "#be185d"
+                              : undefined,
+                            color: showPinnedChords ? "#fbcfe8" : undefined,
+                          }}
+                          className="baseFlex !size-11 !rounded-full !p-0"
+                          onClick={() => {
+                            setShowPinnedChords((prev) => !prev);
+                          }}
+                        >
+                          <CChordDiagram />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side={"top"}>
+                        <span>{showPinnedChords ? "Unpin" : "Pin"} chords</span>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <Button
+                    variant="playPause"
+                    className="baseFlex gap-3 !rounded-full px-8 py-6 text-lg shadow-lg tablet:px-10 tablet:text-xl"
+                    onClick={() => {
+                      setShowPlaybackModal(true);
+                      setLooping(true);
+                    }}
+                  >
+                    <Logo className="size-[18px] fill-pink-50 tablet:size-5" />
+                    Practice
+                  </Button>
+
+                  <TooltipProvider delayDuration={150}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={"navigation"}
+                          className="baseFlex !size-11 gap-2 !rounded-full !p-0 shadow-lg"
+                          onClick={() => setShowEffectGlossaryDialog(true)}
+                        >
+                          <FaBook className="size-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side={"top"}>
+                        <span>Effect glossary</span>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </motion.div>
+              )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -412,6 +560,10 @@ function Tab({ tab }: Tab) {
 
       <AnimatePresence mode="wait">
         {showSectionProgressionModal && <SectionProgressionModal />}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        {showTipsModal && <TipsModal setShowTipsModal={setShowTipsModal} />}
       </AnimatePresence>
 
       <EffectGlossaryDialog />
