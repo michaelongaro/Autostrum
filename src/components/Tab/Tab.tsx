@@ -490,30 +490,34 @@ function Tab({ tab }: Tab) {
                   transition={{ duration: 0.25 }}
                   className="baseFlex sticky bottom-4 mb-4 gap-4 tablet:bottom-6"
                 >
-                  <TooltipProvider delayDuration={150}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant={"navigation"}
-                          style={{
-                            backgroundColor: showPinnedChords
-                              ? "#be185d"
-                              : undefined,
-                            color: showPinnedChords ? "#fbcfe8" : undefined,
-                          }}
-                          className="baseFlex !size-11 !rounded-full !p-0"
-                          onClick={() => {
-                            setShowPinnedChords((prev) => !prev);
-                          }}
-                        >
-                          <CChordDiagram />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side={"top"}>
-                        <span>{showPinnedChords ? "Unpin" : "Pin"} chords</span>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  {chords.length > 0 && (
+                    <TooltipProvider delayDuration={150}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant={"navigation"}
+                            style={{
+                              backgroundColor: showPinnedChords
+                                ? "#be185d"
+                                : undefined,
+                              color: showPinnedChords ? "#fbcfe8" : undefined,
+                            }}
+                            className="baseFlex !size-11 !rounded-full !p-0"
+                            onClick={() => {
+                              setShowPinnedChords((prev) => !prev);
+                            }}
+                          >
+                            <CChordDiagram />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side={"top"}>
+                          <span>
+                            {showPinnedChords ? "Unpin" : "Pin"} chords
+                          </span>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
 
                   <Button
                     variant="playPause"
