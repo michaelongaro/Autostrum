@@ -1,6 +1,7 @@
 import { type Dispatch, type SetStateAction } from "react";
 import { motion } from "framer-motion";
 import { useTabStore } from "~/stores/TabStore";
+import { Button } from "~/components/ui/button";
 
 interface AnimatedTabs {
   activeTabName: string;
@@ -19,32 +20,27 @@ function AnimatedTabs({
   }));
 
   return (
-    <div className="flex space-x-4 rounded-full border p-1">
+    <div className="baseFlex gap-8">
       {tabNames.map((tabName) => (
-        <button
+        <Button
           key={tabName}
+          variant={"text"}
           onClick={() => {
             setActiveTabName(tabName);
 
             if (playing && tabName !== "Practice") pauseAudio();
           }}
-          className={`${
-            activeTabName === tabName ? "" : "hover:text-white/60"
-          } relative rounded-full px-3 py-1.5 text-sm font-medium text-white transition focus-visible:outline-2 sm:whitespace-nowrap sm:text-nowrap`}
-          style={{
-            WebkitTapHighlightColor: "transparent",
-          }}
+          className="relative !p-0 font-medium text-white transition focus-visible:outline-2 sm:whitespace-nowrap sm:text-nowrap"
         >
           {activeTabName === tabName && (
             <motion.span
-              layoutId="bubble"
-              className="absolute inset-0 z-10 bg-white mix-blend-difference"
-              style={{ borderRadius: 9999 }}
+              layoutId="activeTabPlaybackUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full bg-pink-50 mobilePortrait:bottom-[-8px] tablet:bottom-[-4px]"
             />
           )}
           {tabName}
-        </button>
+        </Button>
       ))}
     </div>
   );
