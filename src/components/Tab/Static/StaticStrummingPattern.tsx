@@ -110,7 +110,7 @@ function StaticStrummingPattern({
               <PopoverContent
                 side="bottom"
                 sideOffset={0}
-                className="chordPreviewGlassmorphic size-40 border-2 p-0 pt-3 text-pink-100"
+                className="z-0 size-40 border-2 bg-pink-300 p-0 py-3 text-pink-900"
               >
                 <ChordDiagram
                   originalFrets={
