@@ -35,7 +35,7 @@ function StaticChordSection({ subSectionData }: StaticChordSection) {
       <AnimatePresence mode="wait">
         <motion.div
           key={`${subSectionData.id}ChordSectionWrapper`}
-          className="baseFlex flex-wrap !items-start !justify-start gap-8"
+          className="baseFlex flex-wrap !items-end !justify-start gap-8"
         >
           {subSectionData.data.map((chordSequence, index) => (
             <Fragment key={`${chordSequence.id}wrapper`}>
