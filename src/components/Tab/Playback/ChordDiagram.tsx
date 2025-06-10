@@ -80,7 +80,13 @@ function ChordDiagram({ originalFrets }: ChordDiagram) {
         const x = 40 + s * 20;
 
         fingers.push(
-          <circle key={`finger-${s}`} cx={x} cy={y} r="8" fill="white" />,
+          <circle
+            key={`finger-${s}`}
+            cx={x}
+            cy={y}
+            r="7"
+            fill="currentColor"
+          />,
         );
       }
     }
@@ -104,7 +110,7 @@ function ChordDiagram({ originalFrets }: ChordDiagram) {
             textAnchor="middle"
             fontSize="14"
             fontWeight="500"
-            fill="white"
+            fill="currentColor"
           >
             {fret === 0 ? "O" : "X"}
           </text>
@@ -125,7 +131,7 @@ function ChordDiagram({ originalFrets }: ChordDiagram) {
         y={15 + (f + 1) * 30 + 5} // Positioned to the left of the diagram
         textAnchor="middle"
         fontSize="12"
-        fill="white"
+        fill="currentColor"
       >
         {fret}
       </text>
@@ -144,7 +150,7 @@ function ChordDiagram({ originalFrets }: ChordDiagram) {
           y1={15 + f * 30}
           x2={40 + (STRING_COUNT - 1) * 20}
           y2={15 + f * 30}
-          stroke="white"
+          stroke="currentColor"
           strokeLinecap="round"
           strokeWidth={maxFret <= 4 && f === 0 ? 4 : 1} // only show nut if full chord is within first 4 frets
         />
@@ -170,7 +176,7 @@ function ChordDiagram({ originalFrets }: ChordDiagram) {
           y1={15}
           x2={40 + s * 20}
           y2={15 + FRET_COUNT * 30}
-          stroke="white"
+          stroke="currentColor"
           strokeWidth="1"
         />
       ))}
