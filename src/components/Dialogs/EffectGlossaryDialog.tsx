@@ -65,7 +65,7 @@ function EffectGlossaryDialog() {
                     </PopoverTrigger>
                     <PopoverContent
                       side={"bottom"}
-                      className="baseVertFlex max-w-[300px] gap-1 md:max-w-none"
+                      className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
                     >
                       <div className="font-semibold">
                         Valid notation examples
@@ -118,7 +118,7 @@ function EffectGlossaryDialog() {
                     </PopoverTrigger>
                     <PopoverContent
                       side={"bottom"}
-                      className="baseVertFlex max-w-[300px] gap-1 md:max-w-none"
+                      className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
                     >
                       <div className="font-semibold">
                         Valid notation examples
@@ -171,7 +171,7 @@ function EffectGlossaryDialog() {
                     </PopoverTrigger>
                     <PopoverContent
                       side={"bottom"}
-                      className="baseVertFlex max-w-[300px] gap-1 md:max-w-none"
+                      className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
                     >
                       <div className="font-semibold">
                         Valid notation examples
@@ -224,7 +224,7 @@ function EffectGlossaryDialog() {
                     </PopoverTrigger>
                     <PopoverContent
                       side={"bottom"}
-                      className="baseVertFlex max-w-[300px] gap-1 md:max-w-none"
+                      className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
                     >
                       <div className="font-semibold">
                         Valid notation examples
