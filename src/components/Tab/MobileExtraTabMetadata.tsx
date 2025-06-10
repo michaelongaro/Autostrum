@@ -93,8 +93,8 @@ function MobileExtraTabMetadata() {
 
   return (
     <div className="baseVertFlex w-full gap-4">
-      {/* sticky tab selector + expand/collapse toggle*/}
-      <div className="baseFlex sticky left-0 top-16 w-full !justify-between gap-2 px-3 sm:!justify-center">
+      {/* tab selector + expand/collapse toggle*/}
+      <div className="baseFlex w-full !justify-between gap-2 px-3 sm:!justify-center">
         <Carousel
           setApi={setCarouselApi}
           opts={{
