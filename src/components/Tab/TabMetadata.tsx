@@ -1004,7 +1004,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
       {!editing && (
         <div className="min-h-[100px] w-full">
-          <div className="baseVertFlex !flex-start w-full !items-start gap-2 rounded-t-md bg-pink-700 px-4 py-4 shadow-md sm:!flex-row sm:!items-center sm:gap-4 tablet:!px-6">
+          <div className="baseVertFlex !flex-start w-full !items-start gap-2 bg-pink-700 px-4 py-4 shadow-md sm:!flex-row sm:!items-center sm:gap-4 md:rounded-t-md tablet:!px-6">
             {overMediumViewportThreshold ? (
               <div className="baseFlex w-full !justify-between">
                 <div
