@@ -1,19 +1,13 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useIsomorphicLayoutEffect } from "@react-hookz/web";
+import { useState } from "react";
 
 function useViewportWidthBreakpoint(width: number) {
   const [viewportLargerThanBreakpoint, setViewportLargerThanBreakpoint] =
     useState(false);
 
-  const useIsomorphicLayoutEffect =
-    typeof window !== "undefined" ? useLayoutEffect : useEffect;
-
   useIsomorphicLayoutEffect(() => {
     function handleResize() {
-      if (window.innerWidth >= width) {
-        setViewportLargerThanBreakpoint(true);
-      } else {
-        setViewportLargerThanBreakpoint(false);
-      }
+      setViewportLargerThanBreakpoint(window.innerWidth >= width);
     }
 
     handleResize();
