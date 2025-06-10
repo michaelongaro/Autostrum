@@ -12,7 +12,6 @@ import {
   getDynamicNoteLengthIcon,
 } from "~/utils/bpmIconRenderingHelpers";
 import { Separator } from "~/components/ui/separator";
-import ChordSection from ".././ChordSection";
 import StaticChordSection from "~/components/Tab/Static/StaticChordSection";
 
 interface StaticSectionContainer {
