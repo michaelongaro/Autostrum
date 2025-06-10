@@ -315,9 +315,11 @@ function RateTabPopover({
           }
         } else if (open === false && showPopover) {
           setShowPopover(false);
-          setHoveredRating(null);
-          setSelectedRating(userRating);
-          setRatingSubmitted(userRating ? true : false);
+          setTimeout(() => {
+            setHoveredRating(null);
+            setSelectedRating(userRating);
+            setRatingSubmitted(userRating ? true : false);
+          }, 150); // Allow time for the popover to close before resetting the state
         }
       }}
     >
@@ -427,9 +429,11 @@ function RateTabDrawer({
         });
 
         if (open === false && showDrawer) {
-          setHoveredRating(null);
-          setSelectedRating(userRating);
-          setRatingSubmitted(userRating ? true : false);
+          setTimeout(() => {
+            setHoveredRating(null);
+            setSelectedRating(userRating);
+            setRatingSubmitted(userRating ? true : false);
+          }, 150); // Allow time for the drawer to close before resetting the state
         }
       }}
       modal={true}
@@ -549,12 +553,12 @@ function RateTabInternals({
   return (
     <div className="baseVertFlex w-full gap-4 overflow-x-hidden">
       <div className="baseVertFlex w-full gap-2">
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={`ratingTitle${hoveredRating ?? selectedRating ?? averageRating}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.15 }}
             className="baseFlex gap-2 text-lg font-medium"
           >
@@ -652,12 +656,12 @@ function RateTabInternals({
       </div>
 
       {/* description of hovered rating */}
-      <AnimatePresence mode="wait" initial={false}>
+      <AnimatePresence mode="popLayout" initial={false}>
         <motion.p
           key={`ratingDescription${hoveredRating ?? selectedRating ?? averageRating}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 20 }}
           transition={{ duration: 0.15 }}
           className="baseFlex gap-2 text-center opacity-80"
         >
