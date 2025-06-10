@@ -1,0 +1,112 @@
+function CChordDiagram() {
+  return (
+    <div className="h-[23px]">
+      <svg
+        viewBox="10 0 150 150"
+        width="100%"
+        height="100%"
+        role="img"
+        aria-label="Guitar chord diagram for frets: , 3, 2, 0, 1, 0"
+      >
+        <line
+          x1="40"
+          y1="15"
+          x2="40"
+          y2="135"
+          stroke="currentColor"
+          strokeWidth="2"
+        ></line>
+        <line
+          x1="60"
+          y1="15"
+          x2="60"
+          y2="135"
+          stroke="currentColor"
+          strokeWidth="2"
+        ></line>
+        <line
+          x1="80"
+          y1="15"
+          x2="80"
+          y2="135"
+          stroke="currentColor"
+          strokeWidth="2"
+        ></line>
+        <line
+          x1="100"
+          y1="15"
+          x2="100"
+          y2="135"
+          stroke="currentColor"
+          strokeWidth="2"
+        ></line>
+        <line
+          x1="120"
+          y1="15"
+          x2="120"
+          y2="135"
+          stroke="currentColor"
+          strokeWidth="2"
+        ></line>
+        <line
+          x1="140"
+          y1="15"
+          x2="140"
+          y2="135"
+          stroke="currentColor"
+          strokeWidth="2"
+        ></line>
+        <line
+          x1="40"
+          y1="15"
+          x2="140"
+          y2="15"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeWidth="8"
+        ></line>
+        <line
+          x1="40"
+          y1="45"
+          x2="140"
+          y2="45"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeWidth="2"
+        ></line>
+        <line
+          x1="40"
+          y1="75"
+          x2="140"
+          y2="75"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeWidth="2"
+        ></line>
+        <line
+          x1="40"
+          y1="105"
+          x2="140"
+          y2="105"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeWidth="2"
+        ></line>
+        <line
+          x1="40"
+          y1="135"
+          x2="140"
+          y2="135"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeWidth="2"
+        ></line>
+        <circle cx="60" cy="90" r="8" fill="currentColor"></circle>
+        <circle cx="80" cy="60" r="8" fill="currentColor"></circle>
+        <circle cx="120" cy="30" r="8" fill="currentColor"></circle>
+      </svg>
+    </div>
+  );
+}
+
+export default CChordDiagram;
