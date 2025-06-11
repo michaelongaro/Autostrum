@@ -17,18 +17,11 @@ import {
 } from "@dnd-kit/sortable";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useCallback, useState, memo, Fragment } from "react";
-import { BsKeyboard } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
-import { HiOutlineInformationCircle } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
 import {
   useTabStore,
   type TabSection as TabSectionType,
@@ -174,7 +167,6 @@ function TabSection({
     currentChordIndex,
     playbackSpeed,
     audioMetadata,
-    viewportLabel,
   } = useTabStore((state) => ({
     bpm: state.bpm,
     tuning: state.tuning,
@@ -184,7 +176,6 @@ function TabSection({
     currentChordIndex: state.currentChordIndex,
     playbackSpeed: state.playbackSpeed,
     audioMetadata: state.audioMetadata,
-    viewportLabel: state.viewportLabel,
   }));
 
   const getPMNodeOpacities = useCallback(() => {
@@ -813,7 +804,7 @@ function TabSection({
       style={{
         padding: aboveMediumViewportWidth ? "2rem" : "1rem 0.5rem 1rem 0.5rem",
       }}
-      className="baseVertFlex lightestGlassmorphic relative h-full w-full !justify-start gap-4 rounded-md rounded-tl-md"
+      className="baseVertFlex lightestGlassmorphic relative h-full w-full !justify-start gap-1 rounded-md rounded-tl-md"
     >
       <div className="baseFlex w-full !items-start">
         <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
@@ -1003,48 +994,8 @@ function TabSection({
       </div>
 
       <div className="baseFlex relative w-full flex-wrap !justify-start">
-        {editingPalmMuteNodes ? (
+        {editingPalmMuteNodes && (
           <p className="absolute left-[0.4rem] top-6 text-sm italic">PM</p>
-        ) : (
-          <div className="absolute left-1 top-6">
-            <Popover>
-              <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-white/20 active:hover:bg-white/10">
-                <HiOutlineInformationCircle className="h-5 w-5" />
-              </PopoverTrigger>
-              <PopoverContent
-                side={viewportLabel.includes("mobile") ? "bottom" : "right"}
-                className="w-[350px] md:w-[385px]"
-              >
-                <div className="baseVertFlex gap-1">
-                  <p className="baseFlex gap-2 text-sm font-semibold md:text-base">
-                    <BsKeyboard className="h-5 w-5 sm:h-6 sm:w-6" />
-                    Hotkeys
-                  </p>
-                  <ul className="list-disc pl-4 text-sm md:text-base">
-                    <li>
-                      You can navigate through inputs with your arrow keys.
-                    </li>
-                    <li>
-                      Enter
-                      <kbd className="ml-1.5">A</kbd> -{" "}
-                      <kbd className="mr-1.5">G</kbd>
-                      for the respective major chord.
-                    </li>
-                    <li>
-                      Enter
-                      <kbd className="ml-1.5">a</kbd> -{" "}
-                      <kbd className="mr-1.5">g</kbd>
-                      for the respective minor chord.
-                    </li>
-                    <li>
-                      Copying ( <kbd>Ctrl</kbd> + <kbd>C</kbd> ) & pasting ({" "}
-                      <kbd>Ctrl</kbd> + <kbd>V</kbd> ) chords works as expected.
-                    </li>
-                  </ul>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
         )}
 
         <div className="baseVertFlex relative h-[280px] rounded-l-2xl border-2 border-pink-100 p-2">
@@ -1104,7 +1055,7 @@ function TabSection({
         id={`${sectionIndex}${subSectionIndex}ExtendTabButton`}
         onKeyDown={handleExtendTabButtonKeyDown}
         onClick={addNewColumns}
-        className="mt-4"
+        className="mt-2"
       >
         Extend tab
       </Button>

@@ -38,8 +38,8 @@ import {
   CarouselContent,
   CarouselItem,
 } from "~/components/ui/carousel";
+import TipsDialog from "~/components/Dialogs/TipsDialog";
 
-const TipsModal = dynamic(() => import("~/components/modals/TipsModal"));
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
 );
@@ -566,9 +566,10 @@ function Tab({ tab }: Tab) {
         {showSectionProgressionModal && <SectionProgressionModal />}
       </AnimatePresence>
 
-      <AnimatePresence mode="wait">
-        {showTipsModal && <TipsModal setShowTipsModal={setShowTipsModal} />}
-      </AnimatePresence>
+      <TipsDialog
+        showTipsDialog={showTipsModal}
+        setShowTipsDialog={setShowTipsModal}
+      />
 
       <EffectGlossaryDialog />
 

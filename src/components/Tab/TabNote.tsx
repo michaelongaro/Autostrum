@@ -125,6 +125,85 @@ function TabNote({
       `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`,
     );
 
+    if (e.key.toLowerCase() === "q" || e.key.toLowerCase() === "w") {
+      e.preventDefault();
+
+      const after = e.key.toLowerCase() === "w";
+
+      const newTabData = getTabData();
+
+      const currentColumnData =
+        newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex]!;
+
+      const newColumnPalmMuteValue =
+        (currentColumnData[0] === "start" && after) ||
+        (currentColumnData[0] === "end" && !after) ||
+        currentColumnData[0] === "-"
+          ? "-"
+          : "";
+
+      const newColumnData = [
+        newColumnPalmMuteValue,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "1/4th",
+        crypto.randomUUID(),
+      ];
+
+      const insertionIndex = after ? columnIndex + 1 : columnIndex;
+
+      newTabData[sectionIndex]!.data[subSectionIndex]!.data.splice(
+        insertionIndex,
+        0,
+        newColumnData,
+      );
+
+      setTabData(newTabData);
+
+      // Focus the newly created column
+      setTimeout(() => {
+        const newNoteToFocus = document.getElementById(
+          `input-${sectionIndex}-${subSectionIndex}-${insertionIndex}-${noteIndex}`,
+        );
+
+        focusAndScrollIntoView(currentNote, newNoteToFocus);
+      }, 0);
+
+      return;
+    }
+
+    // Change note length hotkeys
+    if (["r", "t", "y"].includes(e.key.toLowerCase())) {
+      e.preventDefault();
+
+      const newTabData = getTabData();
+
+      const columnData =
+        newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex]!;
+
+      let noteLength: "1/4th" | "1/8th" | "1/16th" = "1/4th";
+
+      if (e.key.toLowerCase() === "t") noteLength = "1/8th";
+      if (e.key.toLowerCase() === "y") noteLength = "1/16th";
+
+      columnData[8] = noteLength;
+
+      newTabData[sectionIndex]!.data[subSectionIndex]!.data.splice(
+        columnIndex,
+        1,
+        columnData,
+      );
+
+      setTabData(newTabData);
+
+      return;
+    }
+
     // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
     if (e.key === "ArrowDown") {
       e.preventDefault(); // prevent cursor from moving
