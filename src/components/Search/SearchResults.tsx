@@ -798,7 +798,7 @@ function SearchResults({
                             }}
                           />
                         )}
-                        <CiViewTable className="size-4" />
+                        <CiViewTable className="size-4 stroke-[0.5px]" />
                       </Button>
                     </div>
                   </div>
@@ -1667,7 +1667,7 @@ function SearchResults({
                           }}
                         />
                       )}
-                      <CiViewTable className="size-4" />
+                      <CiViewTable className="size-4 stroke-[0.5px]" />
                       Table
                     </Button>
                   </div>
