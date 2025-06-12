@@ -247,11 +247,20 @@ export const getStaticProps: GetStaticProps = async () => {
     },
   });
 
+  const featuredUserPinnedTabIds = [];
+
+  for (const user of featuredUsers) {
+    // if the user has a pinned tab, add it to the array
+    if (user.pinnedTabId) {
+      featuredUserPinnedTabIds.push(user.pinnedTabId);
+    }
+  }
+
   // get each user's pinned tab
   const minimalPinnedTabs = await prisma.tab.findMany({
     where: {
       id: {
-        in: featuredUsers.map((user) => user.pinnedTabId),
+        in: featuredUserPinnedTabIds.map((id) => id),
       },
     },
     select: {
