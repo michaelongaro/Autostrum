@@ -396,9 +396,9 @@ function WeeklyFeaturedUsers({
                     <Button variant={"link"} asChild>
                       <Link
                         href={`/user/${user.username}/filters`}
-                        className="baseFlex gap-2 !p-0"
+                        className="baseFlex max-w-[100%] !justify-start gap-2 !p-0"
                       >
-                        <div className="grid grid-cols-1 grid-rows-1">
+                        <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                           <Image
                             src={user.profileImageUrl}
                             alt={`${user.username}'s profile picture`}
@@ -434,20 +434,13 @@ function WeeklyFeaturedUsers({
                           </AnimatePresence>
                         </div>
 
-                        <h1
-                          style={
-                            {
-                              // computed font size based on length of user name
-                            }
-                          }
-                          className="baseFlex text-3xl font-semibold tracking-tight text-pink-50 md:left-8 md:top-14 md:text-3xl"
-                        >
+                        <span className="w-full truncate text-3xl font-semibold tracking-tight text-pink-50 md:left-8 md:top-14 md:text-3xl">
                           {user.username}
-                        </h1>
+                        </span>
                       </Link>
                     </Button>
 
-                    <div className="baseVertFlex mt-4 !items-start gap-2 font-medium sm:text-lg">
+                    <div className="baseVertFlex mt-4 !items-start gap-2 self-center font-medium sm:text-lg">
                       <div className="baseFlex w-full !justify-between gap-4">
                         <div className="baseFlex gap-2">
                           <BsMusicNoteBeamed className="size-4 sm:size-5" />

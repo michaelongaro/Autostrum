@@ -103,19 +103,21 @@ function TableTabRow({
                         ? `/user/${minimalTab.createdBy.username}/filters`
                         : ""
                   }
-                  className="!h-6 !p-0"
+                  className="baseFlex !h-6 max-w-[100%] !justify-start !p-0"
                 >
                   {minimalTab.artist ? (
-                    <div className="baseFlex h-full gap-1">
+                    <div className="baseFlex size-full !justify-start gap-1">
                       {minimalTab.artist.isVerified && (
-                        <Verified className="size-4" />
+                        <Verified className="size-4 shrink-0" />
                       )}
                       <span className="min-w-0 max-w-[165px] truncate">
                         {minimalTab.artist.name}
                       </span>
                     </div>
                   ) : (
-                    (minimalTab.createdBy?.username ?? "Anonymous")
+                    <span className="min-w-0 max-w-[165px] truncate">
+                      {minimalTab.createdBy?.username ?? "Anonymous"}
+                    </span>
                   )}
                 </Link>
               </Button>

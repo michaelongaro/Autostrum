@@ -23,6 +23,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "~/components/ui/carousel";
+import getDynamicFontSize from "~/utils/getDynamicFontSize";
 
 interface UserProfile {
   uniqueKey: string;
@@ -45,6 +46,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
     enabled: !!currentUserId,
   });
 
+  const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
   const isAboveLargeViewport = useViewportWidthBreakpoint(1024);
   const isAbove2XlViewport = useViewportWidthBreakpoint(1536);
 
@@ -236,7 +238,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                           <div className="baseFlex gap-1">User</div>
 
                           <div className="baseFlex gap-2">
-                            <div className="grid grid-cols-1 grid-rows-1">
+                            <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                               {userMetadata ? (
                                 <Image
                                   src={userMetadata.user.profileImageUrl}
@@ -277,12 +279,17 @@ function UserProfile({ uniqueKey }: UserProfile) {
                             </div>
 
                             <h1
-                              style={
-                                {
-                                  // computed font size based on length of user name
-                                }
-                              }
-                              className="baseFlex text-3xl font-semibold tracking-tight text-pink-50 md:left-8 md:top-14 md:text-4xl"
+                              style={{
+                                fontSize: getDynamicFontSize(
+                                  userMetadata
+                                    ? userMetadata.user.username
+                                    : (query.username as string),
+                                  isAboveMediumViewportWidth ? 26 : 20,
+                                  isAboveMediumViewportWidth ? 36 : 30,
+                                  50,
+                                ),
+                              }}
+                              className="baseFlex font-semibold tracking-tight text-pink-50 md:left-8 md:top-14"
                             >
                               {userMetadata
                                 ? userMetadata.user.username
@@ -400,7 +407,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                     <div className="baseFlex gap-1">User</div>
 
                     <div className="baseFlex gap-2">
-                      <div className="grid grid-cols-1 grid-rows-1">
+                      <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                         {userMetadata ? (
                           <Image
                             src={userMetadata.user.profileImageUrl}
@@ -416,10 +423,10 @@ function UserProfile({ uniqueKey }: UserProfile) {
                               opacity: userScreenshotLoaded ? 1 : 0,
                               transition: "opacity 0.3s ease-in-out",
                             }}
-                            className="col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full object-cover object-center md:size-10"
+                            className="col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full object-cover object-center"
                           />
                         ) : (
-                          <div className="baseFlex size-9 md:size-10">
+                          <div className="baseFlex size-10">
                             <FaUser className="size-6 text-pink-50" />
                           </div>
                         )}
@@ -432,19 +439,24 @@ function UserProfile({ uniqueKey }: UserProfile) {
                               animate={{ opacity: 0 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.3 }}
-                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full bg-pink-300 md:size-10"
+                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full bg-pink-300"
                             ></motion.div>
                           )}
                         </AnimatePresence>
                       </div>
 
                       <h1
-                        style={
-                          {
-                            // computed font size based on length of user name
-                          }
-                        }
-                        className="baseFlex text-3xl font-semibold tracking-tight text-pink-50 md:left-8 md:top-14 md:text-4xl"
+                        style={{
+                          fontSize: getDynamicFontSize(
+                            userMetadata
+                              ? userMetadata.user.username
+                              : (query.username as string),
+                            26,
+                            36,
+                            30,
+                          ),
+                        }}
+                        className="baseFlex left-8 top-14 font-semibold tracking-tight text-pink-50"
                       >
                         {userMetadata
                           ? userMetadata.user.username
@@ -536,7 +548,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                   <div className="baseVertFlex !items-start gap-2">
                     User
                     <div className="baseFlex gap-2">
-                      <div className="grid grid-cols-1 grid-rows-1">
+                      <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                         {userMetadata ? (
                           <Image
                             src={userMetadata.user.profileImageUrl}
@@ -552,10 +564,10 @@ function UserProfile({ uniqueKey }: UserProfile) {
                               opacity: userScreenshotLoaded ? 1 : 0,
                               transition: "opacity 0.3s ease-in-out",
                             }}
-                            className="col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full object-cover object-center md:size-10"
+                            className="col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full object-cover object-center"
                           />
                         ) : (
-                          <div className="baseFlex size-9 md:size-10">
+                          <div className="baseFlex size-10">
                             <FaUser className="size-6 text-pink-50" />
                           </div>
                         )}
@@ -568,20 +580,13 @@ function UserProfile({ uniqueKey }: UserProfile) {
                               animate={{ opacity: 0 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.3 }}
-                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full bg-pink-300 md:size-10"
+                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full bg-pink-300"
                             ></motion.div>
                           )}
                         </AnimatePresence>
                       </div>
 
-                      <h1
-                        style={
-                          {
-                            // computed font size based on length of user name
-                          }
-                        }
-                        className="baseFlex text-3xl font-semibold tracking-tight text-pink-50 md:left-8 md:top-14 md:text-4xl"
-                      >
+                      <h1 className="baseFlex left-8 top-14 text-4xl font-semibold tracking-tight text-pink-50">
                         {userMetadata
                           ? userMetadata.user.username
                           : query.username}

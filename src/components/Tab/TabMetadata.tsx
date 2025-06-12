@@ -55,6 +55,7 @@ import DifficultyBars from "~/components/ui/DifficultyBars";
 import { formatNumber } from "~/utils/formatNumber";
 import TuningSelect from "~/components/ui/TuningSelect";
 import Verified from "~/components/ui/icons/Verified";
+import getDynamicFontSize from "~/utils/getDynamicFontSize";
 
 const KEYS_BY_LETTER = {
   A: ["A major", "A minor", "A# minor", "A♭ major", "A♭ minor"],
@@ -1012,10 +1013,17 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                     asPath.includes("create") || asPath.includes("edit")
                       ? "!justify-start"
                       : "!justify-between"
-                  } `}
+                  }`}
                 >
-                  <div className="baseFlex gap-2">
-                    <div className="text-2xl font-bold">{title}</div>
+                  <div className="baseFlex !justify-start gap-2">
+                    <div
+                      style={{
+                        fontSize: getDynamicFontSize(title, 20, 24, 30),
+                      }}
+                      className="max-w-[80%] text-wrap font-bold"
+                    >
+                      {title}
+                    </div>
 
                     {artistName && (
                       <div className="baseFlex gap-2 text-lg">
@@ -1028,9 +1036,11 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           >
                             <div className="baseFlex gap-1 text-lg font-medium">
                               {artistIsVerified && (
-                                <Verified className="size-5" />
+                                <Verified className="size-5 shrink-0" />
                               )}
-                              {artistName}
+                              <span className="max-w-[300px] truncate">
+                                {artistName}
+                              </span>
                             </div>
                           </Link>
                         </Button>
@@ -1040,7 +1050,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
                   {!asPath.includes("create") && !asPath.includes("edit") && (
                     <AnimatePresence mode="popLayout">
-                      <div className="baseFlex gap-3">
+                      <div className="baseFlex shrink-0 gap-3">
                         {dynamicMetadata ? (
                           <motion.div
                             key={"crossfadeRateTab"}
@@ -1151,24 +1161,33 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               </div>
             ) : (
               <div className="baseVertFlex relative w-full !items-start gap-2">
-                <div className="baseVertFlex !items-start gap-4">
-                  <div className="baseVertFlex !items-start gap-2">
-                    <div className="text-2xl font-bold">{title}</div>
+                <div className="baseVertFlex w-full !items-start gap-4">
+                  <div className="baseVertFlex w-full !items-start gap-2">
+                    <div
+                      style={{
+                        fontSize: getDynamicFontSize(title, 20, 24, 30),
+                      }}
+                      className="text-wrap font-bold"
+                    >
+                      {title}
+                    </div>
 
                     {artistName && (
-                      <div className="baseFlex gap-1.5 text-lg">
+                      <div className="baseFlex w-full max-w-[100%] !justify-start gap-1.5 text-lg">
                         by
                         <Button variant={"link"} asChild>
                           <Link
                             prefetch={false}
                             href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
-                            className="!h-6 !p-0"
+                            className="baseFlex !h-6 !justify-start !p-0"
                           >
-                            <div className="baseFlex gap-1 text-lg font-medium">
+                            <div className="baseFlex w-full gap-1 text-lg font-medium">
                               {artistIsVerified && (
-                                <Verified className="size-5" />
+                                <Verified className="size-5 shrink-0" />
                               )}
-                              {artistName}
+                              <span className="max-w-full truncate">
+                                {artistName}
+                              </span>
                             </div>
                           </Link>
                         </Button>
@@ -1177,7 +1196,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   </div>
 
                   <AnimatePresence mode="popLayout">
-                    <div className="baseFlex gap-2">
+                    <div className="baseFlex gap-3">
                       {dynamicMetadata ? (
                         <motion.div
                           key={"crossfadeRateTab"}
@@ -1330,7 +1349,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                     className="h-6 !py-0 px-0 text-base"
                   >
                     <Link
-                      href={`/artist/${tabCreator?.username ?? ""}`}
+                      href={`/user/${tabCreator?.username ?? ""}/filters`}
                       className="baseFlex gap-2"
                     >
                       {tabCreator || fetchingTabCreator ? (

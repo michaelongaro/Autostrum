@@ -7,7 +7,9 @@ import { FaEye } from "react-icons/fa";
 import SearchResults from "~/components/Search/SearchResults";
 import Verified from "~/components/ui/icons/Verified";
 import { Separator } from "~/components/ui/separator";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
+import getDynamicFontSize from "~/utils/getDynamicFontSize";
 
 interface ArtistProfile {
   uniqueKey: string;
@@ -38,6 +40,8 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
         enabled: artist === null, // only fetch once initial query is complete and has no results
       },
     );
+
+  const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   useEffect(() => {
     setArtistHasBeenFound(Boolean(artist));
@@ -143,12 +147,15 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
                 </div>
 
                 <h1
-                  style={
-                    {
-                      // computed font size based on length of artist name
-                    }
-                  }
-                  className="baseFlex text-3xl font-semibold tracking-tight text-pink-50 md:left-8 md:top-14 md:text-4xl"
+                  style={{
+                    fontSize: getDynamicFontSize(
+                      artist ? artist.name : (query.name as string),
+                      isAboveMediumViewportWidth ? 26 : 20,
+                      isAboveMediumViewportWidth ? 36 : 30,
+                      50,
+                    ),
+                  }}
+                  className="baseFlex font-semibold tracking-tight text-pink-50"
                 >
                   {artist ? artist.name : query.name}
                 </h1>

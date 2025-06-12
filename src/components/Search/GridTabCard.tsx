@@ -217,9 +217,9 @@ function GridTabCard({
             <Link
               prefetch={false}
               href={`/tab/${minimalTab.id}/${encodeURIComponent(minimalTab.title)}`}
-              className="!h-5 !p-0 !font-semibold md:h-6 md:!text-lg"
+              className="baseFlex !h-5 w-full !justify-start !p-0 !font-semibold md:h-6 md:!text-lg"
             >
-              <p>{minimalTab.title}</p>
+              <span className="max-w-full truncate">{minimalTab.title}</span>
             </Link>
           </Button>
         </div>
@@ -249,17 +249,21 @@ function GridTabCard({
                             ? `/user/${minimalTab.createdBy.username}/filters`
                             : ""
                       }
-                      className="!h-6 !p-0"
+                      className="baseFlex !h-6 max-w-[60%] !justify-start !p-0 xs:max-w-[65%]"
                     >
                       {minimalTab.artist ? (
-                        <div className="baseFlex h-full gap-1">
+                        <div className="baseFlex size-full !justify-start gap-1">
                           {minimalTab.artist.isVerified && (
-                            <Verified className="size-5" />
+                            <Verified className="size-5 shrink-0" />
                           )}
-                          {minimalTab.artist.name}
+                          <span className="max-w-[100%] truncate">
+                            {minimalTab.artist.name}
+                          </span>
                         </div>
                       ) : (
-                        (minimalTab.createdBy?.username ?? "Anonymous")
+                        <span className="max-w-[100%] truncate">
+                          {minimalTab.createdBy?.username ?? "Anonymous"}
+                        </span>
                       )}
                     </Link>
                   </Button>
