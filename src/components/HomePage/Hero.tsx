@@ -61,7 +61,7 @@ function Hero() {
           {isAboveExtraLargeViewportWidth ? (
             <div className="baseFlex !flex-nowrap gap-3 xl:flex-col xl:!items-start">
               <div className="baseFlex w-full !justify-start gap-2">
-                <div className="lightestGlassmorphic mr-2 rounded-md p-2">
+                <div className="lightestGlassmorphic mr-2 shrink-0 rounded-md p-2">
                   <GiMusicalScore className="h-8 w-8" />
                 </div>
                 <p className="text-lg font-bold md:text-xl">Compose</p>
@@ -75,7 +75,7 @@ function Hero() {
             </div>
           ) : (
             <div className="baseFlex !flex-nowrap gap-4 xl:flex-col xl:!items-start">
-              <div className="lightestGlassmorphic rounded-md p-2">
+              <div className="lightestGlassmorphic shrink-0 rounded-md p-2">
                 <GiMusicalScore className="h-8 w-8" />
               </div>
               <div className="baseVertFlex !items-start gap-1">
@@ -91,7 +91,7 @@ function Hero() {
           {isAboveExtraLargeViewportWidth ? (
             <div className="baseFlex !flex-nowrap gap-3 xl:flex-col xl:!items-start">
               <div className="baseFlex w-full !justify-start gap-2">
-                <div className="lightestGlassmorphic mr-2 rounded-md p-2">
+                <div className="lightestGlassmorphic mr-2 shrink-0 rounded-md p-2">
                   <HiOutlineLightBulb className="h-8 w-8" />
                 </div>
                 <p className="text-lg font-bold md:text-xl">Find inspiration</p>
@@ -105,7 +105,7 @@ function Hero() {
             </div>
           ) : (
             <div className="baseFlex !flex-nowrap gap-4 xl:flex-col xl:!items-start">
-              <div className="lightestGlassmorphic rounded-md p-2">
+              <div className="lightestGlassmorphic shrink-0 rounded-md p-2">
                 <HiOutlineLightBulb className="h-8 w-8" />
               </div>
               <div className="baseVertFlex !items-start gap-1">
@@ -121,7 +121,7 @@ function Hero() {
           {isAboveExtraLargeViewportWidth ? (
             <div className="baseFlex !flex-nowrap gap-3 xl:flex-col xl:!items-start">
               <div className="baseFlex w-full !justify-start gap-2">
-                <div className="lightestGlassmorphic mr-2 rounded-md p-2">
+                <div className="lightestGlassmorphic mr-2 shrink-0 rounded-md p-2">
                   <BsBarChartLine className="h-8 w-8" />
                 </div>
                 <p className="text-lg font-bold md:text-xl">Practice</p>
@@ -136,7 +136,7 @@ function Hero() {
             </div>
           ) : (
             <div className="baseFlex !flex-nowrap gap-4 xl:flex-col xl:!items-start">
-              <div className="lightestGlassmorphic rounded-md p-2">
+              <div className="lightestGlassmorphic shrink-0 rounded-md p-2">
                 <BsBarChartLine className="h-8 w-8" />
               </div>
               <div className="baseVertFlex !items-start gap-1">
