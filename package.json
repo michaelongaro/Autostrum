@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "next build",
+    "build": "prisma generate && prisma migrate deploy && next build",
     "dev": "next dev --turbopack",
     "preinstall": "npx force-resolutions",
     "postinstall": "prisma generate && patch-package",
