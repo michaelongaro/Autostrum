@@ -134,9 +134,7 @@ type InstrumentNames =
   | "acoustic_guitar_nylon"
   | "acoustic_guitar_steel"
   | "electric_guitar_clean"
-  | "electric_guitar_jazz"
-  | "acoustic_grand_piano"
-  | "electric_grand_piano";
+  | "electric_guitar_jazz";
 
 export interface AudioMetadata {
   playing: boolean;
@@ -513,17 +511,13 @@ interface TabState {
     | "acoustic_guitar_nylon"
     | "acoustic_guitar_steel"
     | "electric_guitar_clean"
-    | "electric_guitar_jazz"
-    | "acoustic_grand_piano"
-    | "electric_grand_piano";
+    | "electric_guitar_jazz";
   setCurrentInstrumentName: (
     currentInstrumentName:
       | "acoustic_guitar_nylon"
       | "acoustic_guitar_steel"
       | "electric_guitar_clean"
-      | "electric_guitar_jazz"
-      | "acoustic_grand_piano"
-      | "electric_grand_piano",
+      | "electric_guitar_jazz",
   ) => void;
   looping: boolean;
   setLooping: (looping: boolean) => void;

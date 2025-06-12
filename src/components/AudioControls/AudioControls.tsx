@@ -543,9 +543,7 @@ function AudioControls() {
                         | "acoustic_guitar_nylon"
                         | "acoustic_guitar_steel"
                         | "electric_guitar_clean"
-                        | "electric_guitar_jazz"
-                        | "acoustic_grand_piano"
-                        | "electric_grand_piano",
+                        | "electric_guitar_jazz",
                     );
                   }}
                 >
@@ -567,14 +565,6 @@ function AudioControls() {
 
                     <SelectItem value={"electric_guitar_jazz"}>
                       Electric guitar - Jazz
-                    </SelectItem>
-
-                    <SelectItem value={"acoustic_grand_piano"}>
-                      Grand piano - Acoustic
-                    </SelectItem>
-
-                    <SelectItem value={"electric_grand_piano"}>
-                      Grand piano - Electric
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -1020,14 +1010,6 @@ function AudioControls() {
 
                         <SelectItem value={"electric_guitar_jazz"}>
                           Electric guitar - Jazz
-                        </SelectItem>
-
-                        <SelectItem value={"acoustic_grand_piano"}>
-                          Grand piano - Acoustic
-                        </SelectItem>
-
-                        <SelectItem value={"electric_grand_piano"}>
-                          Grand piano - Electric
                         </SelectItem>
                       </SelectContent>
                     </Select>
