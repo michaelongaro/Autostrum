@@ -47,6 +47,7 @@ interface PlaybackBottomMetadata {
   setLoopRange: Dispatch<SetStateAction<[number, number]>>;
   tabProgressValue: number;
   setTabProgressValue: Dispatch<SetStateAction<number>>;
+  setShowBackgroundBlur: Dispatch<SetStateAction<boolean>>;
 }
 
 function PlaybackBottomMetadata({
@@ -54,6 +55,7 @@ function PlaybackBottomMetadata({
   setLoopRange,
   tabProgressValue,
   setTabProgressValue,
+  setShowBackgroundBlur,
 }: PlaybackBottomMetadata) {
   const {
     tabData,
@@ -185,7 +187,9 @@ function PlaybackBottomMetadata({
                   </div>
                 )}
 
-                <MobileSettingsDialog />
+                <MobileSettingsPopover
+                  setShowBackgroundBlur={setShowBackgroundBlur}
+                />
 
                 <MobileMenuDialog />
 
@@ -207,7 +211,9 @@ function PlaybackBottomMetadata({
         <div className="baseFlex w-full px-4 py-4">
           {viewportLabel.includes("mobile") ? (
             <div className="baseFlex gap-4">
-              <MobileSettingsDialog />
+              <MobileSettingsPopover
+                setShowBackgroundBlur={setShowBackgroundBlur}
+              />
 
               <MobileMenuDialog />
 
@@ -262,7 +268,13 @@ function PlaybackBottomMetadata({
 
 export default PlaybackBottomMetadata;
 
-function MobileSettingsDialog() {
+interface MobileSettingsPopover {
+  setShowBackgroundBlur: Dispatch<SetStateAction<boolean>>;
+}
+
+function MobileSettingsPopover({
+  setShowBackgroundBlur,
+}: MobileSettingsPopover) {
   const {
     currentInstrumentName,
     setCurrentInstrumentName,
@@ -285,91 +297,138 @@ function MobileSettingsDialog() {
   const localStorageVolume = useLocalStorageValue("autostrum-volume");
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
+    <Popover
+      onOpenChange={(open) => {
+        setShowBackgroundBlur(open);
+      }}
+    >
+      <PopoverTrigger asChild>
         <Button
           variant="outline"
           onClick={() => {
             if (audioMetadata.playing) pauseAudio();
           }}
+          className="z-50"
         >
           <IoSettingsOutline className="h-5 w-5" />
           <span className="ml-0 hidden mobilePortrait:ml-3 mobilePortrait:block">
             Settings
           </span>
         </Button>
-      </DialogTrigger>
-      <DialogContent className="baseVertFlex size-full bg-black">
-        <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-          <Label>Instrument</Label>
-          <Select
-            disabled={countInTimer.showing}
-            value={currentInstrumentName}
-            onValueChange={(value) => {
-              pauseAudio();
+      </PopoverTrigger>
+      <PopoverContent className="baseVertFlex size-full w-[450px] gap-4 bg-black text-white mobilePortrait:w-[300px]">
+        <div className="baseVertFlex w-full !items-start gap-2">
+          <span className="font-medium">Instrument</span>
 
-              setCurrentInstrumentName(
-                value as
-                  | "acoustic_guitar_nylon"
-                  | "acoustic_guitar_steel"
-                  | "electric_guitar_clean"
-                  | "electric_guitar_jazz",
-              );
-            }}
-          >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={"acoustic_guitar_nylon"}>
-                Acoustic guitar - Nylon
-              </SelectItem>
+          <div className="grid w-full grid-cols-2 grid-rows-2 gap-2 mobilePortrait:grid-cols-1 mobilePortrait:grid-rows-4">
+            <Button
+              variant={
+                currentInstrumentName === "acoustic_guitar_nylon"
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() => {
+                setCurrentInstrumentName("acoustic_guitar_nylon");
+              }}
+            >
+              Acoustic guitar - Nylon
+            </Button>
 
-              <SelectItem value={"acoustic_guitar_steel"}>
-                Acoustic guitar - Steel
-              </SelectItem>
+            <Button
+              variant={
+                currentInstrumentName === "acoustic_guitar_steel"
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() => {
+                setCurrentInstrumentName("acoustic_guitar_steel");
+              }}
+            >
+              Acoustic guitar - Steel
+            </Button>
 
-              <SelectItem value={"electric_guitar_clean"}>
-                Electric guitar - Clean
-              </SelectItem>
+            <Button
+              variant={
+                currentInstrumentName === "electric_guitar_clean"
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() => {
+                setCurrentInstrumentName("electric_guitar_clean");
+              }}
+            >
+              Electric guitar - Clean
+            </Button>
 
-              <SelectItem value={"electric_guitar_jazz"}>
-                Electric guitar - Jazz
-              </SelectItem>
-            </SelectContent>
-          </Select>
+            <Button
+              variant={
+                currentInstrumentName === "electric_guitar_jazz"
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() => {
+                setCurrentInstrumentName("electric_guitar_jazz");
+              }}
+            >
+              Electric guitar - Jazz
+            </Button>
+          </div>
         </div>
 
-        {/* unsure of this setup, might be better as a <Range> like in squeak
-          or as [-] val [+] system */}
+        <div className="baseVertFlex w-full !items-start gap-2">
+          <span className="font-medium">Loop delay</span>
 
-        <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-          <Label>Loop delay</Label>
-          <Select
-            disabled={countInTimer.showing}
-            value={`${loopDelay}s`}
-            onValueChange={(value) => {
-              pauseAudio();
+          <div className="baseFlex w-full !justify-start gap-2">
+            <Button
+              variant={loopDelay === 0 ? "default" : "outline"}
+              disabled={countInTimer.showing}
+              onClick={() => {
+                setLoopDelay(0);
+              }}
+              className="w-full"
+            >
+              0s
+            </Button>
 
-              setLoopDelay(Number(value[0]));
-            }}
-          >
-            <SelectTrigger className="w-16">
-              <SelectValue>{`${loopDelay}s`}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={"0s"}>0 seconds</SelectItem>
-              <SelectItem value={"1s"}>1 second</SelectItem>
-              <SelectItem value={"2s"}>2 seconds</SelectItem>
-              <SelectItem value={"3s"}>3 seconds</SelectItem>
-            </SelectContent>
-          </Select>
+            <Button
+              variant={loopDelay === 1 ? "default" : "outline"}
+              disabled={countInTimer.showing}
+              onClick={() => {
+                setLoopDelay(1);
+              }}
+              className="w-full"
+            >
+              1s
+            </Button>
+
+            <Button
+              variant={loopDelay === 2 ? "default" : "outline"}
+              disabled={countInTimer.showing}
+              onClick={() => {
+                setLoopDelay(2);
+              }}
+              className="w-full"
+            >
+              2s
+            </Button>
+
+            <Button
+              variant={loopDelay === 3 ? "default" : "outline"}
+              disabled={countInTimer.showing}
+              onClick={() => {
+                setLoopDelay(3);
+              }}
+              className="w-full"
+            >
+              3s
+            </Button>
+          </div>
         </div>
 
         {/* gives tablet users ability to still control volume */}
         {!isMobileOnly && (
-          <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
-            <Label>Volume</Label>
+          <div className="baseVertFlex w-full !items-start gap-2">
+            <span className="font-medium">Volume</span>
             <div className="baseFlex w-full max-w-64 !flex-nowrap gap-2 md:justify-self-end">
               <AnimatePresence mode="popLayout">
                 {volume === 0 && (
@@ -425,8 +484,8 @@ function MobileSettingsDialog() {
             </div>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </PopoverContent>
+    </Popover>
   );
 }
 
