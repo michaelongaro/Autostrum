@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "pinnedTabId" DROP NOT NULL,
+ALTER COLUMN "pinnedTabId" DROP DEFAULT;

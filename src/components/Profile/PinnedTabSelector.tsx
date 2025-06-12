@@ -21,8 +21,8 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface PinnedTabSelector {
   userId: string;
-  localPinnedTabId: number;
-  setLocalPinnedTabId: Dispatch<SetStateAction<number>>;
+  localPinnedTabId: number | null;
+  setLocalPinnedTabId: Dispatch<SetStateAction<number | null>>;
   setShowPinnedTabModal: Dispatch<SetStateAction<boolean>>;
   localSettings: LocalSettings | null;
 }
@@ -39,8 +39,8 @@ function PinnedTabSelector({
   }));
 
   const { data: pinnedTabTitle, isFetching: isFetchingPinnedTabTitle } =
-    api.tab.getTitle.useQuery(localPinnedTabId, {
-      enabled: localPinnedTabId !== -1,
+    api.tab.getTitle.useQuery(localPinnedTabId ?? -1, {
+      enabled: localPinnedTabId !== null,
     });
 
   const [drawerIsOpen, setDrawerIsOpen] = useState(false);
@@ -62,8 +62,7 @@ function PinnedTabSelector({
 
           <motion.div
             key={
-              localSettings &&
-              (!isFetchingPinnedTabTitle || localPinnedTabId === -1)
+              localSettings && (!isFetchingPinnedTabTitle || !localPinnedTabId)
                 ? "loadedPinnedTab"
                 : "loadingPinnedTab"
             }

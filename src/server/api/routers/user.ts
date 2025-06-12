@@ -85,7 +85,7 @@ export const userRouter = createTRPCRouter({
 
       let minimalPinnedTab = null;
 
-      if (user.pinnedTabId !== -1) {
+      if (user.pinnedTabId) {
         minimalPinnedTab = await ctx.prisma.tab.findUnique({
           where: {
             id: user.pinnedTabId,

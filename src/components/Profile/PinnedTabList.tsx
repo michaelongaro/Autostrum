@@ -21,8 +21,8 @@ import type { LocalSettings } from "~/pages/profile/settings";
 
 interface PinnedTabList {
   userId: string;
-  localPinnedTabId: number;
-  setLocalPinnedTabId: Dispatch<SetStateAction<number>>;
+  localPinnedTabId: number | null;
+  setLocalPinnedTabId: Dispatch<SetStateAction<number | null>>;
   setShowPinnedTabModal?: Dispatch<SetStateAction<boolean>>;
   localSettings: LocalSettings | null;
 }
@@ -43,8 +43,6 @@ function PinnedTabList({
       userId,
       sortBy,
     });
-
-  console.log("userTabs", userTabs);
 
   return (
     <div className="baseVertFlex w-full !items-start gap-4">
