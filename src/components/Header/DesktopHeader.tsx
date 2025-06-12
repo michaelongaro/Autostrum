@@ -264,9 +264,9 @@ function DesktopHeader() {
                   <Image
                     src={currentUser.profileImageUrl}
                     alt="User profile image"
-                    className="!size-10 rounded-full"
-                    width={48}
-                    height={48}
+                    className="!size-10 rounded-full bg-cover object-center"
+                    width={300}
+                    height={300}
                   />
                 </Button>
               </div>

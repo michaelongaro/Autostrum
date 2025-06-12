@@ -244,9 +244,9 @@ function MobileHeader() {
                         <Image
                           src={currentUser.profileImageUrl}
                           alt="User profile image"
-                          className="!size-8 rounded-full"
-                          width={48}
-                          height={48}
+                          className="!size-8 rounded-full bg-cover object-center"
+                          width={300}
+                          height={300}
                         />
                         <p className="text-lg font-medium">
                           {currentUser.username}
