@@ -1020,7 +1020,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                       style={{
                         fontSize: getDynamicFontSize(title, 20, 24, 30),
                       }}
-                      className="max-w-[80%] text-wrap font-bold"
+                      className="max-w-[100%] text-wrap font-bold"
                     >
                       {title}
                     </div>
@@ -1342,7 +1342,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 className={`${classes.createdBy} baseVertFlex w-full !items-start gap-2`}
               >
                 <div className="font-semibold">Created by</div>
-                <div className="baseFlex gap-2">
+                <div className="baseFlex !items-baseline gap-2">
                   <Button
                     disabled={!tabCreator}
                     variant={"link"}
@@ -1370,9 +1370,9 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                     </Link>
                   </Button>
 
-                  <p className="whitespace-nowrap text-sm text-pink-200">
+                  <span className="whitespace-nowrap text-sm text-pink-200">
                     {`on ${new Intl.DateTimeFormat("en-US").format(createdAt ?? new Date())}`}
-                  </p>
+                  </span>
                 </div>
               </div>
 
