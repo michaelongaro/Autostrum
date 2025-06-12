@@ -214,6 +214,7 @@ function PlaybackAudioControls({
               audioMetadata={audioMetadata}
               forceShowLoadingSpinner={fetchingFullTabData}
               showCountInTimer={countInTimer.showing}
+              size="0.25rem"
             />
           </Button>
 
@@ -401,7 +402,7 @@ function PlaybackAudioControls({
                     audioMetadata={audioMetadata}
                     forceShowLoadingSpinner={fetchingFullTabData}
                     showCountInTimer={countInTimer.showing}
-                    size={"1.5rem"}
+                    size={"1rem"}
                   />
                 </Button>
 

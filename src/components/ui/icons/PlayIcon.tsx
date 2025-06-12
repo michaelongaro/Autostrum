@@ -5,7 +5,6 @@ function PlayIcon(props: React.SVGProps<SVGSVGElement>) {
       fill="currentColor"
       strokeWidth={0}
       viewBox="4 3.5 8 9"
-      className="h-6 w-6"
       height="1em"
       width="1em"
       xmlns="http://www.w3.org/2000/svg"
