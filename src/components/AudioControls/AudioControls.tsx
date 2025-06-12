@@ -528,8 +528,8 @@ function AudioControls() {
           <div className="baseFlex w-full !justify-between">
             {/* instrument, speed selects*/}
             <div className="baseFlex gap-2">
-              <div className="baseFlex !flex-nowrap gap-2">
-                <Label>Instrument</Label>
+              <div className="baseFlex gap-2">
+                <Label className="shrink-0">Instrument</Label>
                 <Select
                   disabled={
                     countInTimer.showing || audioMetadata.editingLoopRange
@@ -570,8 +570,8 @@ function AudioControls() {
                 </Select>
               </div>
 
-              <div className="baseFlex !flex-nowrap gap-2">
-                <Label>Speed</Label>
+              <div className="baseFlex gap-2">
+                <Label className="shrink-0">Speed</Label>
                 <Select
                   disabled={
                     countInTimer.showing || audioMetadata.editingLoopRange
