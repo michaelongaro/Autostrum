@@ -8,6 +8,7 @@ import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
 import { useTabStore, type SectionProgression } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import {
   Select,
   SelectContent,
@@ -134,23 +135,31 @@ function SectionProgressionModal() {
 
             <div
               ref={scrollableSectionsRef}
-              className="baseVertFlex mt-4 max-h-[70vh] w-full !justify-start overflow-y-auto pr-4 md:max-h-[70vh]"
+              className="baseVertFlex mt-4 max-h-[65vh] w-full !justify-start px-4 md:max-h-[65vh]"
             >
-              <AnimatePresence initial={false}>
-                {localSectionProgression.map((section, index) => (
-                  <Section
-                    key={section.id}
-                    index={index}
-                    id={section.id}
-                    sectionId={section.sectionId}
-                    title={section.title}
-                    repetitions={section.repetitions}
-                    sections={sections}
-                    localSectionProgression={localSectionProgression}
-                    setLocalSectionProgression={setLocalSectionProgression}
-                  />
-                ))}
-              </AnimatePresence>
+              <OverlayScrollbarsComponent
+                options={{
+                  scrollbars: { autoHide: "leave", autoHideDelay: 150 },
+                }}
+                defer
+                className="w-full"
+              >
+                <AnimatePresence initial={false}>
+                  {localSectionProgression.map((section, index) => (
+                    <Section
+                      key={section.id}
+                      index={index}
+                      id={section.id}
+                      sectionId={section.sectionId}
+                      title={section.title}
+                      repetitions={section.repetitions}
+                      sections={sections}
+                      localSectionProgression={localSectionProgression}
+                      setLocalSectionProgression={setLocalSectionProgression}
+                    />
+                  ))}
+                </AnimatePresence>
+              </OverlayScrollbarsComponent>
             </div>
 
             <div className="baseFlex mt-8 w-full !justify-between gap-4">
@@ -345,7 +354,7 @@ function Section({
                 disabled={index === 0}
                 variant="secondary"
                 size="sm"
-                className="px-2"
+                className="!h-10 px-2"
                 onClick={() => moveSectionUp()}
               >
                 <BiUpArrowAlt className="h-5 w-5"></BiUpArrowAlt>
@@ -354,7 +363,7 @@ function Section({
                 disabled={index === localSectionProgression.length - 1}
                 variant="secondary"
                 size="sm"
-                className="px-2"
+                className="!h-10 px-2"
                 onClick={() => moveSectionDown()}
               >
                 <BiDownArrowAlt className="h-5 w-5"></BiDownArrowAlt>
@@ -364,6 +373,7 @@ function Section({
                 variant={"destructive"}
                 disabled={localSectionProgression.length === 1}
                 onClick={deleteSection}
+                className="!h-10 !px-3"
               >
                 <FaTrashAlt className="size-4 text-pink-100" />
               </Button>
@@ -376,7 +386,7 @@ function Section({
             disabled={index === 0}
             variant="secondary"
             size="sm"
-            className="px-2"
+            className="h-10 px-2"
             onClick={() => moveSectionUp()}
           >
             <BiUpArrowAlt className="h-5 w-5"></BiUpArrowAlt>
@@ -385,7 +395,7 @@ function Section({
             disabled={index === localSectionProgression.length - 1}
             variant="secondary"
             size="sm"
-            className="px-2"
+            className="h-10 px-2"
             onClick={() => moveSectionDown()}
           >
             <BiDownArrowAlt className="h-5 w-5"></BiDownArrowAlt>
@@ -395,6 +405,7 @@ function Section({
             variant={"destructive"}
             disabled={localSectionProgression.length === 1}
             onClick={deleteSection}
+            className="h-10 !px-3"
           >
             <FaTrashAlt className="size-4 text-pink-100" />
           </Button>

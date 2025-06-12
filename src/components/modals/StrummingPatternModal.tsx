@@ -9,9 +9,7 @@ import { Label } from "~/components/ui/label";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
@@ -29,6 +27,7 @@ import {
   QuarterNote,
   SixteenthNote,
 } from "~/utils/bpmIconRenderingHelpers";
+import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 
 const backdropVariants = {
   expanded: {
@@ -272,32 +271,17 @@ function StrummingPatternModal({
 
     if (oldLength !== undefined) {
       const newTabData = getTabData();
-      for (
-        let sectionIndex = 0;
-        sectionIndex < newTabData.length;
-        sectionIndex++
-      ) {
-        const section = newTabData[sectionIndex];
-
+      for (const [sectionIndex, section] of newTabData.entries()) {
         if (!section) continue;
 
-        for (
-          let subSectionIndex = 0;
-          subSectionIndex < section.data.length;
-          subSectionIndex++
-        ) {
-          const subSection = section.data[subSectionIndex];
-
+        for (const [subSectionIndex, subSection] of section.data.entries()) {
           if (subSection?.type === "chord") {
-            for (
-              let chordSequenceIndex = 0;
-              chordSequenceIndex < subSection.data.length;
-              chordSequenceIndex++
-            ) {
-              const chordProgression =
-                subSection.data[chordSequenceIndex]?.data;
-              const strummingPattern =
-                subSection.data[chordSequenceIndex]?.strummingPattern;
+            for (const [
+              chordSequenceIndex,
+              chordSequence,
+            ] of subSection.data.entries()) {
+              const chordProgression = chordSequence?.data;
+              const strummingPattern = chordSequence?.strummingPattern;
               if (
                 !chordProgression ||
                 !strummingPattern ||
@@ -311,35 +295,24 @@ function StrummingPatternModal({
               // pattern.data is what we need to update
               if (newLength < oldLength) {
                 // delete the last elements
-
-                // @ts-expect-error undefined checks are done above
                 newTabData[sectionIndex].data[subSectionIndex].data[
                   chordSequenceIndex
-                  // @ts-expect-error undefined checks are done above
-                ]!.data = structuredClone(chordProgression.slice(0, newLength));
+                ].data = structuredClone(chordProgression.slice(0, newLength));
               } else {
                 // new pattern w/ extra empty string elements
-
                 const newChordProgression = [...chordProgression];
-
                 for (let i = 0; i < newLength - oldLength; i++) {
                   newChordProgression.push("");
                 }
-
-                // @ts-expect-error undefined checks are done above
                 newTabData[sectionIndex].data[subSectionIndex].data[
                   chordSequenceIndex
-                  // @ts-expect-error undefined checks are done above
-                ]!.data = newChordProgression;
+                ].data = newChordProgression;
               }
 
               // updating to new strumming pattern
-
-              // @ts-expect-error undefined checks are done above
               newTabData[sectionIndex].data[subSectionIndex].data[
                 chordSequenceIndex
-                // @ts-expect-error undefined checks are done above
-              ]!.strummingPattern = strummingPatternBeingEdited.value;
+              ].strummingPattern = strummingPatternBeingEdited.value;
             }
           }
         }
@@ -382,7 +355,7 @@ function StrummingPatternModal({
           initialFocus: false,
         }}
       >
-        <div className="baseVertFlex max-h-[90vh] min-w-[370px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all sm:max-h-[90vh] sm:max-w-[700px] sm:p-8">
+        <div className="baseVertFlex max-h-[90vh] min-w-[370px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all sm:max-w-[700px] sm:p-8">
           <div className="baseFlex w-full !items-start !justify-between gap-4 sm:!flex-col sm:gap-8">
             <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center sm:!justify-start">
               <Label>Note length</Label>
@@ -561,19 +534,27 @@ function StrummingPatternModal({
             </div>
           </div>
 
-          <div className="baseFlex !items-start overflow-y-auto">
-            {/* editing inputs of strumming pattern */}
-            <StrummingPattern
-              data={strummingPatternBeingEdited.value}
-              mode={"editingStrummingPattern"}
-              index={strummingPatternBeingEdited.index}
-              pmNodeOpacities={pmNodeOpacities}
-              editingPalmMuteNodes={editingPalmMuteNodes}
-              setEditingPalmMuteNodes={setEditingPalmMuteNodes}
-              showingDeleteStrumsButtons={showingDeleteStrumsButtons}
-              lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
-              setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
-            />
+          <div className="baseVertFlex max-h-[40vh] !items-start !justify-start">
+            <OverlayScrollbarsComponent
+              options={{
+                scrollbars: { autoHide: "leave", autoHideDelay: 150 },
+              }}
+              defer
+              className="w-full"
+            >
+              {/* editing inputs of strumming pattern */}
+              <StrummingPattern
+                data={strummingPatternBeingEdited.value}
+                mode={"editingStrummingPattern"}
+                index={strummingPatternBeingEdited.index}
+                pmNodeOpacities={pmNodeOpacities}
+                editingPalmMuteNodes={editingPalmMuteNodes}
+                setEditingPalmMuteNodes={setEditingPalmMuteNodes}
+                showingDeleteStrumsButtons={showingDeleteStrumsButtons}
+                lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+                setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
+              />
+            </OverlayScrollbarsComponent>
           </div>
 
           <div className="baseFlex mt-4 w-full !justify-between gap-8">
