@@ -85,6 +85,7 @@ function PlaybackModal() {
 
   const [containerElement, setContainerElement] =
     useState<HTMLDivElement | null>(null);
+  const [showBackgroundBlur, setShowBackgroundBlur] = useState(false);
 
   const [chordDurations, setChordDurations] = useState<number[]>([]);
   const [initialPlaceholderWidth, setInitialPlaceholderWidth] = useState(0);
@@ -454,6 +455,18 @@ function PlaybackModal() {
           />
 
           <AnimatePresence mode="popLayout">
+            {showBackgroundBlur && (
+              <motion.div
+                key="BackgroundBlur"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="absolute left-0 top-0 z-10 h-full w-full bg-black/50 backdrop-blur-sm"
+              ></motion.div>
+            )}
+            <motion.div></motion.div>
+
             {playbackModalViewingState === "Practice" && (
               <motion.div
                 key="PracticeTab"
@@ -584,6 +597,7 @@ function PlaybackModal() {
                 setLoopRange={setLoopRange}
                 tabProgressValue={tabProgressValue}
                 setTabProgressValue={setTabProgressValue}
+                setShowBackgroundBlur={setShowBackgroundBlur}
               />
             </div>
           )}
