@@ -1,17 +1,17 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 
 function useGetLocalStorageValues() {
-  const localStorageVolume = useLocalStorageValue("autostrum-Volume", {
+  const localStorageVolume = useLocalStorageValue("autostrum-volume", {
     defaultValue: "1",
     initializeWithValue: true,
   });
 
-  const localStorageAutoscroll = useLocalStorageValue("autostrum-Autoscroll", {
+  const localStorageAutoscroll = useLocalStorageValue("autostrum-autoscroll", {
     defaultValue: "true",
     initializeWithValue: true,
   });
 
-  const localStorageLooping = useLocalStorageValue("autostrum-Looping", {
+  const localStorageLooping = useLocalStorageValue("autostrum-looping", {
     defaultValue: "false",
     initializeWithValue: true,
   });
