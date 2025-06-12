@@ -1,7 +1,6 @@
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
 import { formatNumber } from "~/utils/formatNumber";
 import { genreList } from "~/utils/genreList";
@@ -164,10 +163,6 @@ function GenreCard({ name, color, image, totalTabs }: GenreCard) {
       <Image
         src={image}
         alt={`${name} genre thumbnail`}
-        // style={{
-        //   // width: "300px",
-        //   clipPath: "polygon(60% 0%, 100% 0%, 100% 100%, 40% 100%)",
-        // }}
         className="pointer-events-none absolute bottom-0 right-0 size-full select-none rounded-lg object-cover object-center opacity-75 grayscale lg:rounded-l-none lg:[clip-path:polygon(60%_0%,100%_0%,100%_100%,40%_100%)]"
       />
     </motion.div>
