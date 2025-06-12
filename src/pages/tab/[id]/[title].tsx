@@ -87,12 +87,14 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
   if (!tab) {
     return {
       props: {
-        tab: null,
-        openGraphData: {
-          title: "Autostrum",
-          url: "www.autostrum.com/tab/",
-          description: "View and listen to this tab on Autostrum.",
-        },
+        json: superjson.stringify({
+          tab: null,
+          openGraphData: {
+            title: "Autostrum",
+            url: "www.autostrum.com/tab/",
+            description: "View and listen to this tab on Autostrum.",
+          },
+        }),
       },
     };
   }
@@ -131,9 +133,9 @@ export async function getStaticPaths() {
 
 function TabNotFound() {
   return (
-    <div className="lightGlassmorphic baseVertFlex w-10/12 gap-4 rounded-md p-4 md:w-[500px]">
+    <div className="lightGlassmorphic baseVertFlex my-auto w-10/12 gap-4 rounded-md p-4 md:w-[500px]">
       <div className="baseFlex gap-3 sm:gap-4">
-        <div className="baseFlex gap-2">
+        <div className="baseVertFlex gap-2">
           <Binoculars className="size-6 sm:size-9" />
           <h1 className="text-xl font-bold sm:text-2xl">Tab not found</h1>
         </div>
