@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, ChevronsUpDown, Search } from "lucide-react";
+import { BiSearchAlt2 } from "react-icons/bi";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "~/utils/cn";
 import { BsPlus } from "react-icons/bs";
 import { GiMicrophone } from "react-icons/gi";
@@ -88,11 +89,11 @@ function ArtistCommandCombobox() {
           className="h-10 w-full max-w-72 justify-between"
         >
           {artistName ? (
-            <span className="baseFlex gap-1.5 truncate">
+            <span className="baseFlex max-w-full !justify-start gap-1.5">
               {artistIsVerified && (
                 <Verified className="inline size-4 shrink-0 text-pink-800" />
               )}
-              {artistName}
+              <span className="truncate">{artistName}</span>
             </span>
           ) : (
             <span>Select artist...</span>
@@ -107,9 +108,10 @@ function ArtistCommandCombobox() {
         className="w-[300px] p-0"
       >
         <div className="baseFlex border-b px-3">
-          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+          <BiSearchAlt2 className="mr-2 mt-1 size-5 shrink-0 opacity-50" />
           <Input
             placeholder="Enter artist name..."
+            maxLength={60}
             onChange={(e) => {
               const query = e.target.value;
               setSearchQuery(query);
@@ -240,8 +242,13 @@ function ArtistCommandCombobox() {
                       transition={{ duration: 0.2 }}
                       className="baseVertFlex size-full gap-4"
                     >
-                      <span className="">
-                        No results found for &ldquo;{searchQuery}&rdquo;{" "}
+                      <span className="baseVertFlex w-48">
+                        No results found for
+                        <span className="w-full break-all text-center">
+                          &ldquo;
+                          {searchQuery}
+                          &rdquo;
+                        </span>
                       </span>
                       <Button
                         onClick={() => {
