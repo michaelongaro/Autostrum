@@ -1388,7 +1388,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                     transition={{
                       duration: 0.25,
                     }}
-                    className="baseFlex gap-2"
+                    className="baseFlex gap-1"
                   >
                     {dynamicMetadata?.pageViews &&
                       formatNumber(dynamicMetadata?.pageViews)}
