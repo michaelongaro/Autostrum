@@ -1121,13 +1121,17 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                         <Button
                           variant={"secondary"}
                           disabled={isLoadingARoute}
-                          onClick={async () =>
-                            await navigator.share({
-                              title,
-                              text: `Check out this tab I found on Autostrum!`,
-                              url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
-                            })
-                          }
+                          onClick={async () => {
+                            try {
+                              await navigator.share({
+                                title,
+                                text: `Check out this tab I found on Autostrum!`,
+                                url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
+                              });
+                            } catch (error) {
+                              console.error("Error sharing tab:", error);
+                            }
+                          }}
                           className="!p-2"
                         >
                           <IoIosShareAlt className="size-5" />
@@ -1267,13 +1271,17 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                       <Button
                         variant={"secondary"}
                         disabled={isLoadingARoute}
-                        onClick={async () =>
-                          await navigator.share({
-                            title,
-                            text: `Check out this tab I found on Autostrum!`,
-                            url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
-                          })
-                        }
+                        onClick={async () => {
+                          try {
+                            await navigator.share({
+                              title,
+                              text: `Check out this tab I found on Autostrum!`,
+                              url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
+                            });
+                          } catch (error) {
+                            console.error("Error sharing tab:", error);
+                          }
+                        }}
                         className="!p-2"
                       >
                         <IoIosShareAlt className="size-5" />
