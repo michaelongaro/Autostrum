@@ -411,7 +411,7 @@ function Tab({ tab }: Tab) {
                     {chords.map((chord) => (
                       <CarouselItem
                         key={chord.id}
-                        className="baseVertFlex basis-auto gap-2"
+                        className="baseVertFlex basis-[96px] gap-2 md:basis-[134px]"
                       >
                         <span className="text-sm font-medium">
                           {chord.name}
