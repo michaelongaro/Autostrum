@@ -45,10 +45,18 @@ const opacityAndScaleVariants = {
   expanded: {
     opacity: 1,
     transform: "translateY(0)",
+    transition: {
+      opacity: { duration: 0.2, ease: "easeInOut" },
+      transform: { duration: 0.3, ease: "easeInOut" },
+    },
   },
   closed: {
-    opacity: 0.5,
+    opacity: 0,
     transform: "translateY(-100%)",
+    transition: {
+      opacity: { duration: 0.2, ease: "easeInOut" },
+      transform: { duration: 0.3, ease: "easeInOut" },
+    },
   },
 };
 
@@ -91,7 +99,6 @@ function MobileHeader() {
             initial="closed"
             animate="expanded"
             exit="closed"
-            transition={{ duration: 0.3 }}
             className="baseVertFlex fixed top-16 z-[49] max-h-[80dvh] w-full max-w-lg !justify-start overflow-y-auto rounded-b-xl bg-pink-400 shadow-lg"
           >
             <div className="baseVertFlex my-4 h-full max-w-[348px] gap-4">
@@ -427,6 +434,7 @@ function MobileHeader() {
                   zIndex: 48,
                 });
               }}
+              easing="ease-in-out"
               color="#fdf2f8"
               rounded
               size={28}
