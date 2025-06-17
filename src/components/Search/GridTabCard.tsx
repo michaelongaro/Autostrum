@@ -185,7 +185,7 @@ function GridTabCard({
                   <Link
                     prefetch={false}
                     href={`/tab/${minimalTab.id}/edit`}
-                    className="absolute right-14 top-2 size-10 !p-0"
+                    className="absolute right-14 top-2 !size-10 !p-0"
                   >
                     <MdModeEditOutline className="size-5" />
                   </Link>
