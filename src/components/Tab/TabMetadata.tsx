@@ -1007,7 +1007,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
         <div className="min-h-[100px] w-full">
           <div className="baseVertFlex !flex-start w-full !items-start gap-2 bg-pink-700 px-4 py-4 shadow-md sm:!flex-row sm:!items-center sm:gap-4 md:rounded-t-md tablet:!px-6">
             {overMediumViewportThreshold ? (
-              <div className="baseFlex w-full !justify-between">
+              <div className="baseFlex w-full !justify-between gap-3">
                 <div
                   className={`baseFlex w-full gap-4 ${
                     asPath.includes("create") || asPath.includes("edit")
@@ -1164,7 +1164,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 )}
               </div>
             ) : (
-              <div className="baseVertFlex relative w-full !items-start gap-2">
+              <div className="baseVertFlex relative w-full !items-start gap-2 sm:!flex-row sm:!items-end">
                 <div className="baseVertFlex w-full !items-start gap-4">
                   <div className="baseVertFlex w-full !items-start gap-2">
                     <div
@@ -1290,36 +1290,27 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   </AnimatePresence>
                 </div>
 
-                <div
-                  className={`baseFlex bottom-0 right-0 w-full !justify-end gap-2 ${
-                    (userId && createdByUserId === userId) ||
-                    asPath.includes("create")
-                      ? "relative mt-2"
-                      : "absolute"
-                  }`}
-                >
-                  {(userId && createdByUserId === userId) ??
-                    (asPath.includes("create") && (
-                      <Button
-                        disabled={isLoadingARoute}
-                        className="baseFlex gap-2"
-                        onClick={() => {
-                          if (
-                            asPath.includes("create") ||
-                            asPath.includes("edit")
-                          ) {
-                            pauseAudio(true);
-                            setEditing(true);
-                          } else void push(`/tab/${id}/edit`);
-                        }}
-                      >
-                        {asPath.includes("edit") || asPath.includes("create")
-                          ? "Continue editing"
-                          : "Edit"}{" "}
-                        <MdModeEditOutline className="h-5 w-5" />
-                      </Button>
-                    ))}
-                </div>
+                {((userId && createdByUserId === userId) ??
+                  asPath.includes("create")) && (
+                  <Button
+                    disabled={isLoadingARoute}
+                    className="baseFlex gap-2"
+                    onClick={() => {
+                      if (
+                        asPath.includes("create") ||
+                        asPath.includes("edit")
+                      ) {
+                        pauseAudio(true);
+                        setEditing(true);
+                      } else void push(`/tab/${id}/edit`);
+                    }}
+                  >
+                    {asPath.includes("edit") || asPath.includes("create")
+                      ? "Continue editing"
+                      : "Edit"}{" "}
+                    <MdModeEditOutline className="h-5 w-5" />
+                  </Button>
+                )}
               </div>
             )}
           </div>
