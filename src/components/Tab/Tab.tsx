@@ -315,7 +315,7 @@ function Tab({ tab }: Tab) {
         <Separator className="mt-2 w-full tablet:w-[96%]" />
 
         {editing ? (
-          <div className="baseVertFlex relative mt-2 w-full gap-4">
+          <div className="baseVertFlex relative mb-4 mt-6 w-full gap-4 sm:mb-0 sm:mt-4">
             <SectionProgression />
             <Chords />
             <StrummingPatterns />
@@ -340,7 +340,7 @@ function Tab({ tab }: Tab) {
               </Button>
 
               <Popover>
-                <PopoverTrigger className="baseFlex absolute bottom-1 right-1 mr-1 h-8 w-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:bottom-3 sm:right-7">
+                <PopoverTrigger className="baseFlex size-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:absolute sm:bottom-0 sm:right-4 lg:right-6">
                   <HiOutlineLightBulb className="h-5 w-5" />
                 </PopoverTrigger>
                 <PopoverContent
