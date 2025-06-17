@@ -107,25 +107,30 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
-              className="baseVertFlex w-full !items-start gap-4 px-2 md:!flex-row md:!items-center md:!justify-between md:px-0"
+              className="baseVertFlex w-full !items-start gap-2 px-4 md:!flex-row md:!items-end md:!justify-between md:px-0"
             >
-              <div className="baseVertFlex !items-start gap-2">
-                <div className="baseFlex gap-1">Artist</div>
+              <div className="baseVertFlex !items-start gap-1 sm:gap-0">
+                <div className="baseFlex h-6 gap-1">Artist</div>
 
-                <div className="pulseAnimation h-[38px] w-36 rounded-md bg-pink-300"></div>
+                <div className="pulseAnimation h-[45px] w-36 rounded-md bg-pink-300 md:h-[54px]"></div>
               </div>
 
-              <div className="baseVertFlex !items-start gap-4 md:!flex-row md:!items-center">
+              <div className="baseFlex gap-4 font-medium sm:text-lg">
                 <div className="baseFlex gap-2">
-                  <BsMusicNoteBeamed className="size-4" />
-                  <span className="font-medium">Songs</span>
+                  <BsMusicNoteBeamed className="size-4 sm:size-5" />
                   <div className="pulseAnimation h-5 w-8 rounded-md bg-pink-300"></div>
+                  <span>Songs</span>
                 </div>
 
+                <Separator
+                  orientation="vertical"
+                  className="h-6 w-[1px] opacity-50"
+                />
+
                 <div className="baseFlex gap-2">
-                  <FaEye className="size-4" />
-                  <span className="font-medium">Views</span>
+                  <FaEye className="size-4 sm:size-5" />
                   <div className="pulseAnimation h-5 w-10 rounded-md bg-pink-300"></div>
+                  <span>Views</span>
                 </div>
               </div>
             </motion.div>
@@ -136,10 +141,10 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
-              className="baseVertFlex w-full !items-start gap-4 px-2 md:!flex-row md:!items-end md:!justify-between md:px-0"
+              className="baseVertFlex w-full !items-start gap-2 px-4 md:!flex-row md:!items-end md:!justify-between md:px-0"
             >
-              <div className="baseVertFlex !items-start gap-2">
-                <div className="baseFlex gap-1">
+              <div className="baseVertFlex !items-start gap-1 sm:gap-0">
+                <div className="baseFlex h-6 gap-1">
                   {artist && artist.isVerified && (
                     <Verified className="size-5" />
                   )}
@@ -174,7 +179,10 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
                   </span>
                 </div>
 
-                <Separator orientation="vertical" className="h-6 w-[1px]" />
+                <Separator
+                  orientation="vertical"
+                  className="h-6 w-[1px] opacity-50"
+                />
 
                 <div className="baseFlex gap-2">
                   <FaEye className="size-4 sm:size-5" />
