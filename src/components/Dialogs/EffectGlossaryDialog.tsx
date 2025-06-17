@@ -67,9 +67,7 @@ function EffectGlossaryDialog() {
                       side={"bottom"}
                       className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
                     >
-                      <div className="font-semibold">
-                        Valid notation examples
-                      </div>
+                      <div className="font-semibold">Notation variations</div>
                       <Separator className="mb-2 w-full bg-pink-600" />
                       <div className="baseFlex gap-4">
                         <div className="baseVertFlex gap-2">
@@ -120,9 +118,7 @@ function EffectGlossaryDialog() {
                       side={"bottom"}
                       className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
                     >
-                      <div className="font-semibold">
-                        Valid notation examples
-                      </div>
+                      <div className="font-semibold">Notation variations</div>
                       <Separator className="mb-2 w-full bg-pink-600" />
                       <div className="baseFlex gap-4">
                         <div className="baseVertFlex gap-2">
@@ -173,9 +169,7 @@ function EffectGlossaryDialog() {
                       side={"bottom"}
                       className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
                     >
-                      <div className="font-semibold">
-                        Valid notation examples
-                      </div>
+                      <div className="font-semibold">Notation variations</div>
                       <Separator className="mb-2 w-full bg-pink-600" />
                       <div className="baseFlex gap-4">
                         <div className="baseVertFlex gap-2">
@@ -226,9 +220,7 @@ function EffectGlossaryDialog() {
                       side={"bottom"}
                       className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
                     >
-                      <div className="font-semibold">
-                        Valid notation examples
-                      </div>
+                      <div className="font-semibold">Notation variations</div>
                       <Separator className="mb-2 w-full bg-pink-600" />
                       <div className="baseFlex gap-4">
                         <div className="baseVertFlex gap-2">
