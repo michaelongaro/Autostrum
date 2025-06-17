@@ -482,6 +482,8 @@ export const userRouter = createTRPCRouter({
         }
       }
 
+      miscStats.push(genres, tunings, difficulties, capos, artists);
+
       return {
         ...user,
         topFiveStats,
