@@ -176,10 +176,6 @@
   }
 }
 
-* {
-  min-width: 0;
-}
-
 /* semi hacky way to prevent empty space in gradient while mobile
    address bar is animating out */
 body::before {
