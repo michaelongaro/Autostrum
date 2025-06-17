@@ -102,6 +102,7 @@ function ArtistCommandCombobox() {
         </Button>
       </PopoverTrigger>
       <PopoverContent
+        side="bottom"
         style={{
           textShadow: "none",
         }}
@@ -123,7 +124,7 @@ function ArtistCommandCombobox() {
             }}
             value={searchQuery}
             showFocusState={false}
-            className="flex h-11 w-full rounded-md !border-none bg-transparent py-3 outline-none placeholder:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-11 w-full rounded-md !border-none bg-transparent py-3 text-base outline-none placeholder:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
           />
 
           <AnimatePresence>
