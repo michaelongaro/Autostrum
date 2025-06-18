@@ -36,29 +36,8 @@ import TuningFork from "~/components/ui/icons/TuningFork";
 import SearchInput from "~/components/Search/SearchInput";
 import { api } from "~/utils/api";
 
-///
-import { IoCompassOutline } from "react-icons/io5";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import ThemePicker from "~/components/Header/ThemePicker";
-
-const opacityAndScaleVariants = {
-  expanded: {
-    opacity: 1,
-    transform: "translateY(0)",
-    transition: {
-      opacity: { duration: 0.2, ease: "easeInOut" },
-      transform: { duration: 0.3, ease: "easeInOut" },
-    },
-  },
-  closed: {
-    opacity: 0,
-    transform: "translateY(-100%)",
-    transition: {
-      opacity: { duration: 0.2, ease: "easeInOut" },
-      transform: { duration: 0.3, ease: "easeInOut" },
-    },
-  },
-};
 
 function MobileHeader() {
   const { userId, isSignedIn } = useAuth();
@@ -95,10 +74,28 @@ function MobileHeader() {
         {mobileHeaderIsOpen && (
           <motion.div
             key={"mobileHamburgerMenu"}
-            variants={opacityAndScaleVariants}
-            initial="closed"
-            animate="expanded"
-            exit="closed"
+            initial={{
+              opacity: 0,
+              transform: "translateY(-100%)",
+              transition: {
+                opacity: { duration: 0.2, ease: "easeInOut" },
+                transform: { duration: 0.35, ease: "easeInOut" },
+              },
+            }}
+            animate={{
+              opacity: 1,
+              transform: "translateY(0)",
+              transition: {
+                opacity: { duration: 0.2, ease: "easeInOut" },
+                transform: { duration: 0.35, ease: "easeInOut" },
+              },
+            }}
+            exit={{
+              opacity: 0,
+              transition: {
+                opacity: { duration: 0.2, ease: "easeInOut" },
+              },
+            }}
             className="baseVertFlex fixed top-16 z-[49] max-h-[80dvh] w-full max-w-lg !justify-start overflow-y-auto rounded-b-xl bg-pink-400 shadow-lg"
           >
             <div className="baseVertFlex my-4 h-full max-w-[348px] gap-4">
