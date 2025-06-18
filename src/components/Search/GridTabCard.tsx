@@ -42,6 +42,7 @@ function GridTabCard({
 
   const [tabScreenshot, setTabScreenshot] = useState<string>();
   const [tabScreenshotLoaded, setTabScreenshotLoaded] = useState(false);
+  const [isPressingOnScreenshot, setIsPressingOnScreenshot] = useState(false);
 
   const isAboveExtraSmallViewportWidth = useViewportWidthBreakpoint(450);
 
@@ -114,7 +115,12 @@ function GridTabCard({
               className="w-full cursor-pointer rounded-t-md transition-all hover:brightness-90 active:brightness-[0.8]"
             >
               {/* tab preview screenshot */}
-              <div className="grid grid-cols-1 grid-rows-1">
+              <div
+                onTouchStart={() => setIsPressingOnScreenshot(true)}
+                onTouchEnd={() => setIsPressingOnScreenshot(false)}
+                onTouchCancel={() => setIsPressingOnScreenshot(false)}
+                className="grid grid-cols-1 grid-rows-1"
+              >
                 {tabScreenshot && (
                   <Image
                     src={tabScreenshot}
@@ -141,8 +147,11 @@ function GridTabCard({
                     style={{
                       opacity: tabScreenshotLoaded ? 1 : 0,
                       transition: "opacity 0.3s ease-in-out",
+                      filter: isPressingOnScreenshot
+                        ? "brightness(0.8)"
+                        : "none",
                     }}
-                    className="col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-md object-cover object-center"
+                    className="pointer-events-none col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-md object-cover object-center !transition-all"
                   />
                 )}
 
