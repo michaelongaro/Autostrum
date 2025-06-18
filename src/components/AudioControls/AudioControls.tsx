@@ -992,7 +992,7 @@ function AudioControls() {
                         );
                       }}
                     >
-                      <SelectTrigger className="w-48 border-ring">
+                      <SelectTrigger className="w-52 border-ring">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
