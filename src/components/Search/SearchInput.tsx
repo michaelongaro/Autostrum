@@ -355,7 +355,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                     ? "center"
                     : "flex-start",
               }}
-              className="baseVertFlex min-h-[calc(100dvh-10rem])] w-full sm:min-h-[250px]"
+              className="baseVertFlex min-h-[calc(100dvh-10rem)] w-full !justify-start sm:min-h-[250px] sm:!justify-center"
             >
               {/* no search input and daily popular songs/artists loaded, show popular songs/artists */}
               {searchQuery.trim() === "" &&
@@ -556,6 +556,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
+                        className="mt-12 sm:mt-0"
                       >
                         No results found
                       </motion.p>
@@ -669,6 +670,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
+                        className="mt-12 sm:mt-0"
                       >
                         No results found
                       </motion.p>
