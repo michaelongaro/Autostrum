@@ -791,9 +791,9 @@ function TabSection({
       key={subSectionData.id}
       layout={"position"}
       variants={opacityAndScaleVariants}
-      // initial="closed"
-      // animate="expanded"
-      // exit="closed"
+      initial="closed"
+      animate="expanded"
+      exit="closed"
       transition={{
         layout: {
           type: "spring",
