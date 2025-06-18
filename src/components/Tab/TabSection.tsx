@@ -54,16 +54,18 @@ const opacityAndScaleVariants = {
 };
 
 const xVariants = {
-  hidden: { scale: 0 },
+  hidden: { scale: 0, opacity: 0 },
   visible: {
     scale: 1,
+    opacity: 1,
     transition: {
-      delay: 0.2,
+      delay: 0.1,
       duration: 0.2,
     },
   },
   exit: {
     scale: 0,
+    opacity: 0,
     transition: {
       duration: 0.2,
       delay: 0,
@@ -90,7 +92,7 @@ const containerVariants = {
     zIndex: -1,
     transition: {
       duration: 0.2,
-      delay: 0.2,
+      delay: 0.1,
     },
   },
 };
@@ -867,6 +869,9 @@ function TabSection({
                     initial="hidden"
                     animate="visible"
                     exit="exit"
+                    transition={{
+                      ease: "easeInOut",
+                    }}
                   >
                     <Button
                       className="rounded-l-none rounded-r-md px-2 py-0"
@@ -877,6 +882,9 @@ function TabSection({
                         initial="hidden"
                         animate="visible"
                         exit="exit"
+                        transition={{
+                          ease: "easeInOut",
+                        }}
                       >
                         <IoClose className="h-6 w-6" />
                       </motion.div>
@@ -910,6 +918,9 @@ function TabSection({
                     initial="hidden"
                     animate="visible"
                     exit="exit"
+                    transition={{
+                      ease: "easeInOut",
+                    }}
                   >
                     <Button
                       className="rounded-l-none rounded-r-md px-2 py-0"
@@ -923,6 +934,9 @@ function TabSection({
                         initial="hidden"
                         animate="visible"
                         exit="exit"
+                        transition={{
+                          ease: "easeInOut",
+                        }}
                       >
                         <IoClose className="h-6 w-6" />
                       </motion.div>
@@ -959,6 +973,9 @@ function TabSection({
                     initial="hidden"
                     animate="visible"
                     exit="exit"
+                    transition={{
+                      ease: "easeInOut",
+                    }}
                   >
                     <Button
                       variant={"destructive"}
@@ -975,6 +992,9 @@ function TabSection({
                         initial="hidden"
                         animate="visible"
                         exit="exit"
+                        transition={{
+                          ease: "easeInOut",
+                        }}
                       >
                         <IoClose className="h-6 w-6" />
                       </motion.div>

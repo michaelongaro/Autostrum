@@ -39,16 +39,18 @@ const backdropVariants = {
 };
 
 const xVariants = {
-  hidden: { scale: 0 },
+  hidden: { scale: 0, opacity: 0 },
   visible: {
     scale: 1,
+    opacity: 1,
     transition: {
-      delay: 0.2,
+      delay: 0.1,
       duration: 0.2,
     },
   },
   exit: {
     scale: 0,
+    opacity: 0,
     transition: {
       duration: 0.2,
       delay: 0,
@@ -75,7 +77,7 @@ const containerVariants = {
     zIndex: -1,
     transition: {
       duration: 0.2,
-      delay: 0.2,
+      delay: 0.1,
     },
   },
 };
@@ -356,7 +358,7 @@ function StrummingPatternModal({
         }}
       >
         <div className="baseVertFlex max-h-[90vh] min-w-[370px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all sm:max-w-[700px] sm:p-8">
-          <div className="baseFlex w-full !items-start !justify-between gap-4 sm:!flex-col sm:gap-8">
+          <div className="baseFlex w-full !items-start !justify-between sm:!flex-col sm:gap-8">
             <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center sm:!justify-start">
               <Label>Note length</Label>
               <Select
@@ -427,6 +429,9 @@ function StrummingPatternModal({
                       initial="hidden"
                       animate="visible"
                       exit="exit"
+                      transition={{
+                        ease: "easeInOut",
+                      }}
                     >
                       <Button
                         className="rounded-l-none rounded-r-md px-2 py-0"
@@ -437,6 +442,9 @@ function StrummingPatternModal({
                           initial="hidden"
                           animate="visible"
                           exit="exit"
+                          transition={{
+                            ease: "easeInOut",
+                          }}
                         >
                           <IoClose className="h-6 w-6" />
                         </motion.div>
@@ -473,6 +481,9 @@ function StrummingPatternModal({
                       initial="hidden"
                       animate="visible"
                       exit="exit"
+                      transition={{
+                        ease: "easeInOut",
+                      }}
                     >
                       <Button
                         variant={"destructive"}
@@ -488,6 +499,9 @@ function StrummingPatternModal({
                           initial="hidden"
                           animate="visible"
                           exit="exit"
+                          transition={{
+                            ease: "easeInOut",
+                          }}
                         >
                           <IoClose className="h-6 w-6" />
                         </motion.div>
@@ -504,7 +518,7 @@ function StrummingPatternModal({
                 Hotkeys
               </div>
 
-              <div className="mt-2 grid grid-cols-[45px_5px_70px] !place-items-start gap-2 md:flex md:w-full md:gap-2">
+              <div className="mt-2 grid grid-cols-[46px_5px_70px] !place-items-start gap-2 md:flex md:w-full md:!place-items-end md:gap-2">
                 <div className="baseFlex gap-1">
                   <kbd>v</kbd> / <kbd>d</kbd>
                 </div>
