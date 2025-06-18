@@ -312,7 +312,9 @@ function Tab({ tab }: Tab) {
             </div>
           )}
 
-        <Separator className="mt-2 w-full tablet:w-[96%]" />
+        <Separator
+          className={`mt-2 ${editing ? "w-[96%]" : "w-full tablet:w-[96%]"}`}
+        />
 
         {editing ? (
           <div className="baseVertFlex relative mb-4 mt-6 w-full gap-4 sm:mb-0 sm:mt-4">
@@ -370,11 +372,13 @@ function Tab({ tab }: Tab) {
           </>
         )}
 
-        <Separator className="my-2 w-full tablet:w-[96%]" />
+        <Separator
+          className={`my-2 ${editing ? "w-[96%]" : "w-full tablet:w-[96%]"}`}
+        />
 
         <div
           ref={tabContentRef}
-          className="baseVertFlex relative size-full gap-4"
+          className="baseVertFlex relative mt-2 size-full gap-4"
         >
           <AnimatePresence mode="wait">
             {showPinnedChords && (
