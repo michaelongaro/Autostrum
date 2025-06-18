@@ -755,7 +755,7 @@ function SearchResults({
                   {/* layout type selector */}
                   <div className="baseFlex gap-3">
                     <Label>Layout</Label>
-                    <div className="baseFlex rounded-md border">
+                    <div className="baseFlex overflow-y-hidden rounded-md border">
                       <Button
                         variant={"toggledOff"}
                         size="sm"
@@ -1623,7 +1623,7 @@ function SearchResults({
                 {/* layout type toggle */}
                 <div className="baseFlex gap-3">
                   <Label>Layout</Label>
-                  <div className="baseFlex rounded-md border-2">
+                  <div className="baseFlex overflow-hidden rounded-md border-2">
                     <Button
                       variant={"toggledOff"}
                       size="sm"
