@@ -1,6 +1,4 @@
-import { Check } from "lucide-react";
 import { MdModeEditOutline } from "react-icons/md";
-import { cn } from "~/utils/cn";
 import { Button } from "~/components/ui/button";
 import {
   Select,
@@ -30,11 +28,6 @@ function TuningSelect({ customTuning }: TuningSelectProps) {
 
   const [selectIsOpen, setSelectIsOpen] = useState(false);
 
-  function handleEditOrCreateClick() {
-    setShowCustomTuningModal(true);
-    setSelectIsOpen(false);
-  }
-
   return (
     <Select
       open={selectIsOpen}
@@ -57,6 +50,7 @@ function TuningSelect({ customTuning }: TuningSelectProps) {
           )}
         </SelectValue>
       </SelectTrigger>
+
       <SelectContent
         style={{
           textShadow: "none",
@@ -91,26 +85,33 @@ function TuningSelect({ customTuning }: TuningSelectProps) {
           </SelectItem>
         )}
 
-        {/* Edit/Create Button Area */}
+        {/* Edit/Create custom tuning */}
         <div className="p-2">
-          {customTuning ? (
-            <Button
-              size="sm"
-              className="baseFlex w-full gap-2"
-              onClick={handleEditOrCreateClick}
-            >
-              Edit custom tuning
-              <MdModeEditOutline className="h-4 w-4" />
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              className="w-full"
-              onClick={handleEditOrCreateClick}
-            >
-              Create a custom tuning
-            </Button>
-          )}
+          <Button
+            size="sm"
+            className="baseFlex w-full gap-2 p-2"
+            onClick={() => {
+              setShowCustomTuningModal(true);
+              setSelectIsOpen(false);
+            }}
+            // FYI: I have no idea why onClick doesn't work on mobile, however onTouchEnd
+            // does, and achieves the same effect.
+            onTouchEnd={() => {
+              setShowCustomTuningModal(true);
+              setSelectIsOpen(false);
+            }}
+          >
+            <>
+              {customTuning ? (
+                <>
+                  Edit custom tuning
+                  <MdModeEditOutline className="size-4" />
+                </>
+              ) : (
+                "Create custom tuning"
+              )}
+            </>
+          </Button>
         </div>
       </SelectContent>
     </Select>
