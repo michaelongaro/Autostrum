@@ -133,9 +133,9 @@ function MobileHeader() {
                 >
                   <Link
                     href={"/create"}
-                    className="baseFlex w-[165px] gap-1 text-[1.13rem]"
+                    className="baseFlex w-[165px] gap-[0.14rem] text-[1.13rem]"
                   >
-                    <BsPlus className="size-6" />
+                    <BsPlus className="size-7" />
                     Create
                   </Link>
                 </Button>
