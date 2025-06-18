@@ -113,7 +113,7 @@ function MobileHeader() {
                 >
                   <Link
                     href={"/explore"}
-                    className="baseFlex w-[165px] gap-2 text-[1.13rem]"
+                    className="baseFlex w-[165px] gap-2.5 text-[1.13rem]"
                   >
                     <Binoculars className="size-[18px]" />
                     Explore
@@ -133,7 +133,7 @@ function MobileHeader() {
                 >
                   <Link
                     href={"/create"}
-                    className="baseFlex w-[165px] gap-2 text-[1.13rem]"
+                    className="baseFlex w-[165px] gap-1 text-[1.13rem]"
                   >
                     <BsPlus className="size-6" />
                     Create
