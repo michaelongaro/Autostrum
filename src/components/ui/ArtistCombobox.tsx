@@ -19,7 +19,7 @@ import debounce from "lodash.debounce";
 import { Input } from "~/components/ui/input";
 import { AnimatePresence, motion } from "framer-motion";
 import Verified from "~/components/ui/icons/Verified";
-import { ScrollArea } from "~/components/ui/scrollarea";
+import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 
 function ArtistCommandCombobox() {
   const {
@@ -163,7 +163,13 @@ function ArtistCommandCombobox() {
         <div className="h-[1px] w-full bg-pink-800"></div>
 
         <div className="overflow-y-hidden">
-          <ScrollArea type={"auto"} className="h-full">
+          <OverlayScrollbarsComponent
+            options={{
+              scrollbars: { autoHide: "leave", autoHideDelay: 150 },
+            }}
+            defer
+            className="max-h-[300px] w-full"
+          >
             <div className={`max-h-60 ${artistName ? "h-[200px]" : "h-60"}`}>
               <AnimatePresence mode={"popLayout"}>
                 {searchQuery.trim().length === 0 && (
@@ -214,7 +220,7 @@ function ArtistCommandCombobox() {
                         >
                           <Check
                             className={cn(
-                              "ml-1 mr-4 size-4 shrink-0 text-inherit",
+                              "ml-1 mr-3 size-4 shrink-0 text-inherit",
                               artistId === artist.id
                                 ? "opacity-100"
                                 : "opacity-0",
@@ -273,7 +279,7 @@ function ArtistCommandCombobox() {
                   )}
               </AnimatePresence>
             </div>
-          </ScrollArea>
+          </OverlayScrollbarsComponent>
 
           <AnimatePresence mode={"popLayout"} initial={false}>
             {artistName && (

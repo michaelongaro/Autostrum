@@ -1,10 +1,9 @@
 import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown } from "lucide-react";
-
 import { cn } from "~/utils/cn";
-import { ScrollArea } from "~/components/ui/scrollarea";
 import { Separator } from "~/components/ui/separator";
+import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 
 const Select = SelectPrimitive.Root;
 
@@ -57,9 +56,19 @@ const SelectContent = React.forwardRef<
             "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]",
         )}
       >
-        <ScrollArea type={"auto"} className="h-full min-h-[250px]">
+        <OverlayScrollbarsComponent
+          options={{
+            scrollbars: { autoHide: "leave", autoHideDelay: 150 },
+            overflow: {
+              x: "hidden",
+              y: "scroll",
+            },
+          }}
+          defer
+          className="max-h-[300px] w-full"
+        >
           {children}
-        </ScrollArea>
+        </OverlayScrollbarsComponent>
       </SelectPrimitive.Viewport>
     </SelectPrimitive.Content>
   </SelectPrimitive.Portal>
