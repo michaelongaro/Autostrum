@@ -936,11 +936,6 @@ function AudioControls() {
                   zIndex: open ? 49 : 48,
                 });
               }}
-              // ideally we would have modal={true}, but currently radix-ui
-              // dialogs cause horrible forced reflows which caused 3-5+ seconds
-              // of the main thread being fully blocked... using this with the main
-              // drawback being that it scrolls up to the top of the page when opened
-              modal={false}
               dismissible={!drawerHandleDisabled} // bad UX to allow drawer to be moved when <Select> is current open
             >
               <DrawerTrigger asChild>
