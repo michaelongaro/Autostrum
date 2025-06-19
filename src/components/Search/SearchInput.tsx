@@ -356,7 +356,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                     ? "center"
                     : "flex-start",
               }}
-              className="baseVertFlex min-h-[calc(100dvh-10rem)] w-full !justify-start sm:min-h-[250px] sm:!justify-center"
+              className="baseVertFlex min-h-[calc(100dvh-10rem)] w-full sm:min-h-[250px]"
             >
               {/* no search input and daily popular songs/artists loaded, show popular songs/artists */}
               {searchQuery.trim() === "" &&
