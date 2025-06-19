@@ -8,9 +8,7 @@ import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
@@ -158,27 +156,23 @@ function PlaybackTopMetadata({
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectGroup className="max-h-60 overflow-y-auto">
-                              <SelectLabel>Sections</SelectLabel>
+                            <>
+                              {sections.map((section) => {
+                                return (
+                                  <SelectItem
+                                    key={section.id}
+                                    value={section.id}
+                                  >
+                                    {section.title}
+                                  </SelectItem>
+                                );
+                              })}
 
-                              <>
-                                {sections.map((section) => {
-                                  return (
-                                    <SelectItem
-                                      key={section.id}
-                                      value={section.id}
-                                    >
-                                      {section.title}
-                                    </SelectItem>
-                                  );
-                                })}
-
-                                <div className="my-1 h-[1px] w-full bg-pink-800"></div>
-                                <SelectItem key={"fullTab"} value={`fullTab`}>
-                                  Full tab
-                                </SelectItem>
-                              </>
-                            </SelectGroup>
+                              <div className="my-1 h-[1px] w-full bg-pink-800"></div>
+                              <SelectItem key={"fullTab"} value={`fullTab`}>
+                                Full tab
+                              </SelectItem>
+                            </>
                           </SelectContent>
                         </Select>
                       </div>
@@ -270,15 +264,12 @@ function PlaybackTopMetadata({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Speed</SelectLabel>
-                          <SelectItem value={"0.25x"}>0.25x</SelectItem>
-                          <SelectItem value={"0.5x"}>0.5x</SelectItem>
-                          <SelectItem value={"0.75x"}>0.75x</SelectItem>
-                          <SelectItem value={"1x"}>1x</SelectItem>
-                          <SelectItem value={"1.25x"}>1.25x</SelectItem>
-                          <SelectItem value={"1.5x"}>1.5x</SelectItem>
-                        </SelectGroup>
+                        <SelectItem value={"0.25x"}>0.25x</SelectItem>
+                        <SelectItem value={"0.5x"}>0.5x</SelectItem>
+                        <SelectItem value={"0.75x"}>0.75x</SelectItem>
+                        <SelectItem value={"1x"}>1x</SelectItem>
+                        <SelectItem value={"1.25x"}>1.25x</SelectItem>
+                        <SelectItem value={"1.5x"}>1.5x</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -325,27 +316,20 @@ function PlaybackTopMetadata({
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectGroup className="max-h-60 overflow-y-auto">
-                            <SelectLabel>Sections</SelectLabel>
+                          <>
+                            {sections.map((section) => {
+                              return (
+                                <SelectItem key={section.id} value={section.id}>
+                                  {section.title}
+                                </SelectItem>
+                              );
+                            })}
 
-                            <>
-                              {sections.map((section) => {
-                                return (
-                                  <SelectItem
-                                    key={section.id}
-                                    value={section.id}
-                                  >
-                                    {section.title}
-                                  </SelectItem>
-                                );
-                              })}
-
-                              <div className="my-1 h-[1px] w-full bg-pink-800"></div>
-                              <SelectItem key={"fullTab"} value={`fullTab`}>
-                                Full tab
-                              </SelectItem>
-                            </>
-                          </SelectGroup>
+                            <div className="my-1 h-[1px] w-full bg-pink-800"></div>
+                            <SelectItem key={"fullTab"} value={`fullTab`}>
+                              Full tab
+                            </SelectItem>
+                          </>
                         </SelectContent>
                       </Select>
                     </div>
