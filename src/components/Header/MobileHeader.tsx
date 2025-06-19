@@ -35,13 +35,13 @@ import { Separator } from "~/components/ui/separator";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import SearchInput from "~/components/Search/SearchInput";
 import { api } from "~/utils/api";
-
 import Binoculars from "~/components/ui/icons/Binoculars";
 import ThemePicker from "~/components/Header/ThemePicker";
 
 function MobileHeader() {
   const { userId, isSignedIn } = useAuth();
   const { asPath } = useRouter();
+  const router = useRouter();
 
   const { getStringifiedTabData, mobileHeaderModal, setMobileHeaderModal } =
     useTabStore((state) => ({
@@ -63,10 +63,21 @@ function MobileHeader() {
   );
 
   useEffect(() => {
-    if (!mobileHeaderModal.showing) {
+    function handleRouteChange() {
+      setShowMobileSearch(false);
       setMobileHeaderIsOpen(false);
+      setMobileHeaderModal({
+        showing: false,
+        zIndex: 48,
+      });
     }
-  }, [mobileHeaderModal]);
+
+    router.events.on("routeChangeStart", handleRouteChange);
+
+    return () => {
+      router.events.off("routeChangeStart", handleRouteChange);
+    };
+  }, [router.events]);
 
   return (
     <>

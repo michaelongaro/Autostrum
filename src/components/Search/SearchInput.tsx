@@ -133,8 +133,6 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
         void push(pathname);
       }
     }
-
-    setShowMobileSearch?.(false);
   }
 
   return (
@@ -252,7 +250,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
 
       <AnimatePresence mode="popLayout">
         {/* songs/artists toggle and autofill results */}
-        {showAutofillResults && (
+        {/* FYI: this is a bit hacky, since "showAutofillResults" doesn't apply to mobile dialog,
+            since they are always showing */}
+        {(viewportLabel.includes("mobile") ||
+          (!viewportLabel.includes("mobile") && showAutofillResults)) && (
           <motion.div
             key={"searchAutofillContainer"}
             id="searchTypeContainer"
@@ -390,7 +391,6 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   className="baseVertFlex z-50 !size-full min-h-10 !items-start rounded-none py-2 transition-all"
                                   onClick={() => {
                                     setShowAutofillResults(false);
-                                    setShowMobileSearch?.(false);
                                   }}
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter") {
@@ -488,7 +488,6 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   className="baseFlex z-50 min-h-10 w-full !justify-start gap-2 rounded-none py-2 transition-all"
                                   onClick={() => {
                                     setShowAutofillResults(false);
-                                    setShowMobileSearch?.(false);
                                   }}
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter") {
@@ -551,7 +550,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                   <>
                     {songSearchResults.length === 0 ? (
                       <motion.p
-                        key={"noResultsFound"}
+                        key={"songNoResultsFound"}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -564,7 +563,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                       <>
                         {songSearchResults.map((song, idx) => (
                           <motion.div
-                            key={`autofillResult${idx}`}
+                            key={`songAutofillResult${idx}`}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -586,7 +585,6 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                 className="baseVertFlex z-50 !size-full !items-start rounded-none transition-all"
                                 onClick={() => {
                                   setShowAutofillResults(false);
-                                  setShowMobileSearch?.(false);
                                 }}
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter") {
@@ -665,7 +663,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                   <>
                     {artistSearchResults.length === 0 ? (
                       <motion.p
-                        key={"noResultsFound"}
+                        key={"artistNoResultsFound"}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -687,7 +685,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                           >
                             <Button
                               key={idx}
-                              id={`autofillResult${idx}`}
+                              id={`artistAutofillResult${idx}`}
                               tabIndex={-1}
                               variant={"ghost"}
                               asChild
@@ -700,7 +698,6 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                 className="baseFlex z-50 w-full !justify-start gap-2 rounded-none transition-all"
                                 onClick={() => {
                                   setShowAutofillResults(false);
-                                  setShowMobileSearch?.(false);
                                 }}
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter") {
