@@ -190,11 +190,11 @@ function PinnedTabList({
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.3 }}
-                              className="w-full"
+                              className="baseFlex w-full"
                             >
                               <Button
                                 variant={"outline"}
-                                className={`!size-5 rounded-full !p-0 outline outline-1 hover:bg-pink-600 ${tab.id === localPinnedTabId ? "bg-pink-600" : ""} `}
+                                className={`!size-5 !shrink-0 rounded-full !p-0 outline outline-1 hover:bg-pink-600 ${tab.id === localPinnedTabId ? "bg-pink-600" : ""} `}
                                 onClick={() => {
                                   setLocalPinnedTabId(tab.id);
                                 }}
