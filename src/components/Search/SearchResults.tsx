@@ -889,7 +889,7 @@ function SearchResults({
                                 animate="expanded"
                                 exit="closed"
                                 transition={{ duration: 0.25 }}
-                                className="baseFlex gap-2 font-medium"
+                                className="baseFlex gap-2 whitespace-nowrap text-nowrap font-medium"
                               >
                                 <LuFilter className="size-4" />
                                 <span>Search filters</span>
@@ -902,7 +902,7 @@ function SearchResults({
                                 animate="expanded"
                                 exit="closed"
                                 transition={{ duration: 0.25 }}
-                                className="baseFlex gap-2 font-medium"
+                                className="baseFlex gap-2 whitespace-nowrap text-nowrap font-medium"
                               >
                                 <span>{drawerView}</span>
                               </motion.div>
