@@ -6,7 +6,13 @@ import {
   OverlayScrollbarsComponent,
   type OverlayScrollbarsComponentRef,
 } from "overlayscrollbars-react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import { BsGridFill, BsPlus } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
 import { GoChevronRight } from "react-icons/go";
@@ -221,6 +227,9 @@ function SearchResults({
   const tableHeaderRef = useRef<OverlayScrollbarsComponentRef<"div">>(null);
   const tableBodyRef = useRef<OverlayScrollbarsComponentRef<"div">>(null);
 
+  const activeScrollerRef = useRef<"header" | "body" | null>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const isAboveSmViewport = useViewportWidthBreakpoint(640);
 
   const {
@@ -231,6 +240,24 @@ function SearchResults({
     initialInView: true,
     rootMargin: "-64px", // height of the sticky header
   });
+
+  const handlePointerDown = useCallback((scroller: "header" | "body") => {
+    // Clear any pending timeout from a previous momentum scroll
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = null;
+    }
+    activeScrollerRef.current = scroller;
+  }, []);
+
+  const handlePointerUp = useCallback(() => {
+    // To handle momentum scrolling, we don't clear the active scroller
+    // immediately. Instead, we set a timeout.
+    scrollTimeoutRef.current = setTimeout(() => {
+      activeScrollerRef.current = null;
+      scrollTimeoutRef.current = null;
+    }, 750);
+  }, []);
 
   function getDynamicGridTemplateColumns() {
     let gridTemplateColumns = "";
@@ -1533,8 +1560,13 @@ function SearchResults({
                       scrollbars: { autoHide: "leave", autoHideDelay: 150 },
                     }}
                     events={{
-                      // keeps the table header and body in sync when scrolling
                       scroll(instance) {
+                        // Only sync if this is NOT the active scroller, or if no scroller is active.
+                        // This prevents the feedback loop. We allow `null` to handle programmatic scrolls.
+                        if (activeScrollerRef.current === "body") {
+                          return;
+                        }
+
                         const body = tableBodyRef.current
                           ?.osInstance()
                           ?.elements().viewport;
@@ -1542,6 +1574,23 @@ function SearchResults({
 
                         body.scrollLeft =
                           instance.elements().viewport.scrollLeft;
+                      },
+                      initialized(instance) {
+                        const { viewport } = instance.elements();
+                        viewport.addEventListener("pointerdown", () =>
+                          handlePointerDown("header"),
+                        );
+                        viewport.addEventListener("pointerup", handlePointerUp);
+                      },
+                      destroyed(instance) {
+                        const { viewport } = instance.elements();
+                        viewport.removeEventListener("pointerdown", () =>
+                          handlePointerDown("header"),
+                        );
+                        viewport.removeEventListener(
+                          "pointerup",
+                          handlePointerUp,
+                        );
                       },
                     }}
                     defer
@@ -1699,8 +1748,13 @@ function SearchResults({
                       scrollbars: { autoHide: "leave", autoHideDelay: 150 },
                     }}
                     events={{
-                      // keeps the table header and body in sync when scrolling
                       scroll(instance) {
+                        // Only sync if this is NOT the active scroller, or if no scroller is active.
+                        // This prevents the feedback loop. We allow `null` to handle programmatic scrolls.
+                        if (activeScrollerRef.current === "body") {
+                          return;
+                        }
+
                         const body = tableBodyRef.current
                           ?.osInstance()
                           ?.elements().viewport;
@@ -1708,6 +1762,23 @@ function SearchResults({
 
                         body.scrollLeft =
                           instance.elements().viewport.scrollLeft;
+                      },
+                      initialized(instance) {
+                        const { viewport } = instance.elements();
+                        viewport.addEventListener("pointerdown", () =>
+                          handlePointerDown("header"),
+                        );
+                        viewport.addEventListener("pointerup", handlePointerUp);
+                      },
+                      destroyed(instance) {
+                        const { viewport } = instance.elements();
+                        viewport.removeEventListener("pointerdown", () =>
+                          handlePointerDown("header"),
+                        );
+                        viewport.removeEventListener(
+                          "pointerup",
+                          handlePointerUp,
+                        );
                       },
                     }}
                     defer
@@ -1916,6 +1987,9 @@ function SearchResults({
                               }
                               tableHeaderRef={tableHeaderRef}
                               tableBodyRef={tableBodyRef}
+                              activeScrollerRef={activeScrollerRef}
+                              handlePointerDown={handlePointerDown}
+                              handlePointerUp={handlePointerUp}
                             />
                           )}
                         </>

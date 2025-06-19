@@ -29,6 +29,9 @@ interface TableTabView {
   setSearchsearchResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
   tableHeaderRef: RefObject<OverlayScrollbarsComponentRef<"div"> | null>;
   tableBodyRef: RefObject<OverlayScrollbarsComponentRef<"div"> | null>;
+  activeScrollerRef: RefObject<"header" | "body" | null>;
+  handlePointerDown: (scroller: "header" | "body") => void;
+  handlePointerUp: () => void;
 }
 
 function TableTabView({
@@ -42,6 +45,9 @@ function TableTabView({
   setSearchsearchResultsCountIsLoading,
   tableHeaderRef,
   tableBodyRef,
+  activeScrollerRef,
+  handlePointerDown,
+  handlePointerUp,
 }: TableTabView) {
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
@@ -125,14 +131,32 @@ function TableTabView({
             scrollbars: { autoHide: "leave", autoHideDelay: 150 },
           }}
           events={{
-            // keeps the table header and body in sync when scrolling
             scroll(instance) {
+              // Only sync if this is NOT the active scroller.
+              if (activeScrollerRef.current === "header") {
+                return;
+              }
+
               const header = tableHeaderRef.current
                 ?.osInstance()
                 ?.elements().viewport;
               if (!header) return;
 
               header.scrollLeft = instance.elements().viewport.scrollLeft;
+            },
+            initialized(instance) {
+              const { viewport } = instance.elements();
+              viewport.addEventListener("pointerdown", () =>
+                handlePointerDown("body"),
+              );
+              viewport.addEventListener("pointerup", handlePointerUp);
+            },
+            destroyed(instance) {
+              const { viewport } = instance.elements();
+              viewport.removeEventListener("pointerdown", () =>
+                handlePointerDown("body"),
+              );
+              viewport.removeEventListener("pointerup", handlePointerUp);
             },
           }}
           defer
