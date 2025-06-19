@@ -99,7 +99,7 @@ function TableTabView({
   }, [isFetching, isFetchingNextPage, setSearchsearchResultsCountIsLoading]);
 
   const { ref } = useInView({
-    threshold: 0.75,
+    threshold: 0.25,
     onChange: (inView) => {
       if (inView && hasNextPage) {
         void fetchNextPage();
