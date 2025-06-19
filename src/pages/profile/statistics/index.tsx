@@ -212,6 +212,7 @@ function UserStatistics() {
                   </div>
                   {currentUser ? (
                     <motion.span
+                      key={"totalTabs"}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -221,6 +222,7 @@ function UserStatistics() {
                     </motion.span>
                   ) : (
                     <motion.div
+                      key={"totalTabsPlaceholder"}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -243,6 +245,7 @@ function UserStatistics() {
                   </div>
                   {currentUser ? (
                     <motion.span
+                      key={"totalTabViews"}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -252,6 +255,7 @@ function UserStatistics() {
                     </motion.span>
                   ) : (
                     <motion.div
+                      key={"totalTabViewsPlaceholder"}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -274,6 +278,7 @@ function UserStatistics() {
                   </div>
                   {currentUser ? (
                     <motion.span
+                      key={"averageTabRating"}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -283,6 +288,7 @@ function UserStatistics() {
                     </motion.span>
                   ) : (
                     <motion.div
+                      key={"averageTabRatingPlaceholder"}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -305,6 +311,7 @@ function UserStatistics() {
                   </div>
                   {currentUser ? (
                     <motion.span
+                      key={"totalTabRatings"}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -314,6 +321,7 @@ function UserStatistics() {
                     </motion.span>
                   ) : (
                     <motion.div
+                      key={"totalTabRatingsPlaceholder"}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -336,6 +344,7 @@ function UserStatistics() {
                   </div>
                   {currentUser ? (
                     <motion.span
+                      key={"totalBookmarks"}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -345,6 +354,7 @@ function UserStatistics() {
                     </motion.span>
                   ) : (
                     <motion.div
+                      key={"totalBookmarksPlaceholder"}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -367,6 +377,7 @@ function UserStatistics() {
                   </div>
                   {currentUser ? (
                     <motion.span
+                      key={"memberSince"}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -380,6 +391,7 @@ function UserStatistics() {
                     </motion.span>
                   ) : (
                     <motion.div
+                      key={"memberSincePlaceholder"}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -391,7 +403,10 @@ function UserStatistics() {
             </div>
 
             {/* top 5 tabs + misc stats tables*/}
-            <div className="baseVertFlex w-full !items-start gap-12 xl:w-1/2 xl:gap-4">
+            <div
+              key={"topFiveStatsAndMiscStats"}
+              className="baseVertFlex w-full !items-start gap-12 xl:w-1/2 xl:gap-4"
+            >
               <div className="baseVertFlex w-full gap-2">
                 <div className="baseVertFlex w-full gap-2">
                   <div className="baseFlex w-full !justify-start gap-3">
@@ -444,6 +459,7 @@ function UserStatistics() {
                           <TableRow key={rank} className="w-full">
                             <TableCell>
                               <motion.div
+                                key={`rank-${rank}`}
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
@@ -458,6 +474,7 @@ function UserStatistics() {
 
                             <TableCell>
                               <motion.div
+                                key={`title-${tab.id}`}
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
@@ -477,6 +494,7 @@ function UserStatistics() {
 
                             <TableCell>
                               <motion.div
+                                key={`value-${tab.id}`}
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
@@ -498,6 +516,7 @@ function UserStatistics() {
                     currentUser.totalTabs === 0 ||
                     isFetchingCurrentUser) && (
                     <motion.div
+                      key={"topFiveStatsPlaceholder"}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -508,6 +527,7 @@ function UserStatistics() {
 
                       {!currentUser && (
                         <motion.svg
+                          key={"topFiveStatsSpinner"}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
@@ -533,6 +553,7 @@ function UserStatistics() {
 
                       {currentUser && currentUser.totalTabs === 0 && (
                         <motion.div
+                          key={"noTabsFound"}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
@@ -660,6 +681,7 @@ function UserStatistics() {
                             <TableRow key={category} className="w-full">
                               <TableCell>
                                 <motion.div
+                                  key={`${category}Category`}
                                   initial={{ opacity: 0 }}
                                   animate={{ opacity: 1 }}
                                   exit={{ opacity: 0 }}
@@ -674,6 +696,7 @@ function UserStatistics() {
 
                               <TableCell>
                                 <motion.div
+                                  key={`${category}NumberOfTabs`}
                                   initial={{ opacity: 0 }}
                                   animate={{ opacity: 1 }}
                                   exit={{ opacity: 0 }}
@@ -695,6 +718,7 @@ function UserStatistics() {
                       currentUser.totalTabs === 0 ||
                       isFetchingCurrentUser) && (
                       <motion.div
+                        key={"miscStatsPlaceholder"}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -703,6 +727,7 @@ function UserStatistics() {
                       >
                         {!currentUser && (
                           <motion.svg
+                            key={"miscStatsPlaceholderSpinner"}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -728,6 +753,7 @@ function UserStatistics() {
 
                         {currentUser && currentUser.totalTabs === 0 && (
                           <motion.div
+                            key={"miscStatsNoTabsFound"}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}

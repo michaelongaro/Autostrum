@@ -12,6 +12,7 @@ import {
   useRef,
   useState,
   useCallback,
+  Fragment,
 } from "react";
 import { BsGridFill, BsPlus } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
@@ -1537,6 +1538,7 @@ function SearchResults({
 
               {layoutType.value === "table" && (
                 <motion.div
+                  key={"mobileTableTabHeader"}
                   initial={{ opacity: 0, marginTop: "0", height: "0" }}
                   animate={{
                     opacity: 1,
@@ -1725,6 +1727,7 @@ function SearchResults({
 
               {layoutType.value === "table" && (
                 <motion.div
+                  key={"tabletTableTabHeader"}
                   initial={{ opacity: 0, marginTop: "0", height: "0" }}
                   animate={{
                     opacity: 1,
@@ -1829,7 +1832,7 @@ function SearchResults({
                 layoutType={layoutType.value as "grid" | "table"}
               />
             ) : (
-              <>
+              <Fragment key={"searchResultsBody"}>
                 {isFetchingUserMetadata ||
                 isFetchingArtistId ||
                 isFetchingRelatedArtists ? (
@@ -1996,7 +1999,7 @@ function SearchResults({
                       )}
                   </>
                 )}
-              </>
+              </Fragment>
             )}
           </AnimatePresence>
         </div>

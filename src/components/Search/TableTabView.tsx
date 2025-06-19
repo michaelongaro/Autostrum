@@ -228,7 +228,7 @@ function TableTabView({
         {/* loading spinner when fetching tabs */}
         {isFetching && (
           <motion.div
-            key={"gridTabViewSpinner"}
+            key={"tableTabViewSpinner"}
             initial={{ opacity: 0, marginTop: "0", marginBottom: "0" }}
             animate={{
               opacity: 1,

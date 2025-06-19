@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { BsMusicNoteBeamed } from "react-icons/bs";
 import { FaEye } from "react-icons/fa";
 import SearchResults from "~/components/Search/SearchResults";
@@ -217,7 +217,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
               <div className="pulseAnimation hidden h-[94px] w-[330px] rounded-md bg-pink-300 lg:block"></div>
             </motion.div>
           ) : (
-            <>
+            <Fragment key="userMetadataLoaded">
               {/* mobile <Carousel> layout */}
               {!isAboveLargeViewport && !isAbove2XlViewport && (
                 <motion.div
@@ -678,7 +678,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                   )}
                 </motion.div>
               )}
-            </>
+            </Fragment>
           )}
         </AnimatePresence>
 

@@ -885,7 +885,11 @@ function UserSettings() {
             >
               <AnimatePresence mode={"popLayout"} initial={false}>
                 <motion.div
-                  key={saveButtonText}
+                  key={
+                    saveButtonText === ""
+                      ? "saveButtonText-empty"
+                      : saveButtonText
+                  }
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 20 }}
@@ -956,7 +960,6 @@ function UserSettings() {
             localPinnedTabId={localPinnedTabId}
             setLocalPinnedTabId={setLocalPinnedTabId}
             setShowPinnedTabModal={setShowPinnedTabModal}
-            localSettings={localSettings}
           />
         )}
         {showDeleteAccountModal && (

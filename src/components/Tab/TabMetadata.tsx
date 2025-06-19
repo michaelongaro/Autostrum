@@ -5,6 +5,7 @@ import isEqual from "lodash.isequal";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import {
+  Fragment,
   useEffect,
   useRef,
   useState,
@@ -903,14 +904,14 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 <SelectContent>
                   <SelectGroup>
                     {Object.entries(KEYS_BY_LETTER).map(([letter, keys]) => (
-                      <>
+                      <Fragment key={letter}>
                         <SelectLabel>{letter}</SelectLabel>
                         {keys.map((key) => (
                           <SelectItem key={key} value={key}>
                             {key}
                           </SelectItem>
                         ))}
-                      </>
+                      </Fragment>
                     ))}
                   </SelectGroup>
                 </SelectContent>
