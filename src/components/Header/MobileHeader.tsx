@@ -62,6 +62,13 @@ function MobileHeader() {
     "autostrum-redirectRoute",
   );
 
+  // closes the mobile header when the user taps outside of it
+  useEffect(() => {
+    if (!mobileHeaderModal.showing) {
+      setMobileHeaderIsOpen(false);
+    }
+  }, [mobileHeaderModal.showing]);
+
   useEffect(() => {
     function handleRouteChange() {
       setShowMobileSearch(false);
