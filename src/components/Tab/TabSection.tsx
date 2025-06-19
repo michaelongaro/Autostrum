@@ -1005,6 +1005,7 @@ function TabSection({
             </div>
           </div>
         </div>
+
         <MiscellaneousControls
           type={"tab"}
           sectionId={sectionId}

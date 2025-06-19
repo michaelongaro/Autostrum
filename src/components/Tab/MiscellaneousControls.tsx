@@ -337,7 +337,7 @@ function MiscellaneousControls({
       className={`baseFlex !items-end gap-2 ${
         forSectionContainer
           ? "w-2/6 !flex-nowrap !justify-end sm:w-1/6 sm:!flex-row sm:!justify-end"
-          : "w-1/6 !flex-col-reverse !flex-nowrap lg:!flex-row lg:!justify-end"
+          : `w-1/6 !flex-nowrap lg:!justify-end ${type === "tab" || type === "chord" ? "mr-3 mt-0.5 lg:mr-0 lg:mt-0" : "!justify-end"}`
       }`}
       onClick={(e) => e.stopPropagation()}
     >
