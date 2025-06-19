@@ -17,14 +17,12 @@ import { Button } from "~/components/ui/button";
 import { formatNumber } from "~/utils/formatNumber";
 import { IoClose } from "react-icons/io5";
 import formatDate from "~/utils/formatDate";
-import type { LocalSettings } from "~/pages/profile/settings";
 
 interface PinnedTabList {
   userId: string;
   localPinnedTabId: number | null;
   setLocalPinnedTabId: Dispatch<SetStateAction<number | null>>;
   setShowPinnedTabModal?: Dispatch<SetStateAction<boolean>>;
-  localSettings: LocalSettings | null;
 }
 
 function PinnedTabList({
@@ -32,7 +30,6 @@ function PinnedTabList({
   localPinnedTabId,
   setLocalPinnedTabId,
   setShowPinnedTabModal,
-  localSettings,
 }: PinnedTabList) {
   const [sortBy, setSortBy] = useState<
     "Newest" | "Oldest" | "Most popular" | "Least popular"
@@ -45,11 +42,11 @@ function PinnedTabList({
     });
 
   return (
-    <div className="baseVertFlex w-full !items-start gap-4">
-      <div className="baseFlex w-full !justify-between gap-2 px-2 lg:px-0">
-        <div className="baseFlex gap-2">
-          <TbPinned className="size-4 lg:size-5 lg:text-pink-50" />
-          <span className="lg:text-lg">Pinned tab</span>
+    <div className="baseVertFlex size-full !items-start !justify-start">
+      <div className="baseFlex my-2 w-full !justify-between gap-2 px-2 lg:mt-0 lg:px-0">
+        <div className="baseFlex gap-1">
+          <TbPinned className="size-4 stroke-[2.5px] lg:size-5 lg:text-pink-50" />
+          <span className="font-medium lg:text-lg">Pinned tab</span>
         </div>
         <div className="baseFlex gap-2">
           <Label className="text-nowrap">Sort by</Label>
@@ -60,7 +57,7 @@ function PinnedTabList({
               setSortBy(value as "Newest" | "Oldest" | "Most popular");
             }}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -86,7 +83,7 @@ function PinnedTabList({
         </div>
       </div>
 
-      {/* list of user's tabs */}
+      {/* table headers */}
       <div className="w-full border-pink-700 bg-pink-800">
         <div
           className="grid h-8 grid-rows-1 items-center text-sm font-medium text-muted-foreground"
@@ -105,6 +102,7 @@ function PinnedTabList({
         </div>
       </div>
 
+      {/* list of user's tabs */}
       <AnimatePresence mode="wait">
         {isFetchingUserTabs && (
           <motion.div
@@ -113,7 +111,7 @@ function PinnedTabList({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="baseFlex size-full min-h-[50dvh] lg:min-h-[350px]" // TODO: tweak these
+            className="baseFlex size-full lg:min-h-[350px]"
           >
             <svg
               className="size-8 animate-stableSpin rounded-full bg-inherit fill-none"
@@ -143,7 +141,7 @@ function PinnedTabList({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="baseFlex size-full min-h-[50dvh] lg:min-h-[350px]" // TODO: tweak these
+            className="baseFlex size-full lg:min-h-[350px]"
           >
             <div className="baseVertFlex lightestGlassmorphic gap-4 rounded-md px-8 py-4 text-xl">
               <div className="baseVertFlex gap-4 text-pink-50">
@@ -161,7 +159,7 @@ function PinnedTabList({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="baseVertFlex gap-2"
+            className="baseVertFlex h-[336px] gap-2 overflow-hidden lg:h-auto lg:pb-0"
           >
             <OverlayScrollbarsComponent
               options={{
@@ -174,7 +172,7 @@ function PinnedTabList({
                 <Table>
                   <colgroup id="tableTabViewColGroup">
                     {/* "radio" selection status column */}
-                    <col className="w-[72px]" />
+                    <col className="w-[50px]" />
                     {/* Title */}
                     <col className="w-auto" />
                     {/* Views / Date */}
@@ -196,7 +194,7 @@ function PinnedTabList({
                             >
                               <Button
                                 variant={"outline"}
-                                className={`size-5 rounded-full outline ${tab.id === localPinnedTabId ? "bg-pink-600" : ""} `}
+                                className={`!size-5 rounded-full !p-0 outline outline-1 hover:bg-pink-600 ${tab.id === localPinnedTabId ? "bg-pink-600" : ""} `}
                                 onClick={() => {
                                   setLocalPinnedTabId(tab.id);
                                 }}

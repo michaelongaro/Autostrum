@@ -143,7 +143,6 @@ function PinnedTabSelector({
                     userId={userId}
                     localPinnedTabId={localPinnedTabId}
                     setLocalPinnedTabId={setLocalPinnedTabId}
-                    localSettings={localSettings}
                   />
                 </DrawerContent>
               </DrawerPortal>

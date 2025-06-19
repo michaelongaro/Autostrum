@@ -41,7 +41,7 @@ export interface LocalSettings {
   username: string;
   passwordEnabled: boolean;
   profileImageUrl: string;
-  pinnedTabId: number;
+  pinnedTabId: number | null;
   theme: string; // TODO: add user email + theme to user model
 }
 
@@ -55,7 +55,7 @@ function UserSettings() {
   );
 
   // separate so that we can just pass this specifically to the PinnedTabSelector
-  const [localPinnedTabId, setLocalPinnedTabId] = useState<number>(-1);
+  const [localPinnedTabId, setLocalPinnedTabId] = useState<number | null>(null);
   const [usernameInputHasReceivedFocus, setUsernameInputHasReceivedFocus] =
     useState(false);
   const [saveButtonText, setSaveButtonText] = useState("Save");

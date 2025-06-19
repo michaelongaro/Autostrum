@@ -133,7 +133,7 @@ export const userRouter = createTRPCRouter({
         confirmPassword: z.string().min(8).max(128).optional(),
         newProfileImage: z.string().optional(), // base64 string
         profileImageUrl: z.string().optional(), // only used for inital account creation
-        pinnedTabId: z.number().optional(),
+        pinnedTabId: z.number().nullish().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {

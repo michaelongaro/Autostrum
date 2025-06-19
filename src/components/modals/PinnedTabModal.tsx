@@ -2,14 +2,12 @@ import { motion } from "framer-motion";
 import type { Dispatch, SetStateAction } from "react";
 import FocusLock from "react-focus-lock";
 import PinnedTabList from "~/components/Profile/PinnedTabList";
-import type { LocalSettings } from "~/pages/profile/settings";
 
 interface PinnedTabModal {
   userId: string;
-  localPinnedTabId: number;
-  setLocalPinnedTabId: Dispatch<SetStateAction<number>>;
+  localPinnedTabId: number | null;
+  setLocalPinnedTabId: Dispatch<SetStateAction<number | null>>;
   setShowPinnedTabModal: Dispatch<SetStateAction<boolean>>;
-  localSettings: LocalSettings | null;
 }
 
 function PinnedTabModal({
@@ -17,7 +15,6 @@ function PinnedTabModal({
   localPinnedTabId,
   setLocalPinnedTabId,
   setShowPinnedTabModal,
-  localSettings,
 }: PinnedTabModal) {
   return (
     <motion.div
@@ -40,7 +37,6 @@ function PinnedTabModal({
             localPinnedTabId={localPinnedTabId}
             setLocalPinnedTabId={setLocalPinnedTabId}
             setShowPinnedTabModal={setShowPinnedTabModal}
-            localSettings={localSettings}
           />
         </div>
       </FocusLock>
