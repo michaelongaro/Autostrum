@@ -50,12 +50,14 @@ function MobileHeader() {
       setMobileHeaderModal: state.setMobileHeaderModal,
     }));
 
-  const { data: currentUser } = api.user.getById.useQuery(userId!, {
-    enabled: !!userId,
-  });
+  const { data: currentUser, isInitialLoading: isLoadingCurrentUser } =
+    api.user.getById.useQuery(userId!, {
+      enabled: !!userId,
+    });
 
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [mobileHeaderIsOpen, setMobileHeaderIsOpen] = useState(false);
+  const [userProfileImageLoaded, setUserProfileImageLoaded] = useState(false);
 
   const localStorageTabData = useLocalStorageValue("autostrum-tabData");
   const localStorageRedirectRoute = useLocalStorageValue(
@@ -225,167 +227,310 @@ function MobileHeader() {
 
               <Separator className="h-[1px] w-full" />
 
-              {!isSignedIn && (
-                <SignInButton
-                  mode="modal"
-                  // afterSignUpUrl={`${
-                  //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                  // }/postSignUpRegistration`}
-                  // afterSignInUrl={`${
-                  //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                  // }${asPath}`}
-                >
-                  <Button
-                    className="baseFlex h-10 gap-2 px-8"
-                    onClick={() => {
-                      if (asPath.includes("/create")) {
-                        localStorageTabData.set(getStringifiedTabData());
-                      }
-
-                      // technically can sign in from signup page and vice versa
-                      if (!userId) localStorageRedirectRoute.set(asPath);
-                      // ^^ but technically could just append it onto the postSignupRegistration route right?
+              <AnimatePresence mode="popLayout">
+                {(isSignedIn === undefined || isLoadingCurrentUser) && (
+                  <motion.div
+                    key="loadingAuth"
+                    initial={{
+                      opacity: 0,
+                      transition: {
+                        opacity: {
+                          duration: 0.2,
+                          delay: 0.1,
+                          ease: "easeInOut",
+                        },
+                      },
                     }}
+                    animate={{
+                      opacity: 1,
+                      transition: {
+                        opacity: {
+                          duration: 0.2,
+                          delay: 0.1,
+                          ease: "easeInOut",
+                        },
+                      },
+                    }}
+                    exit={{
+                      opacity: 0,
+                      transition: {
+                        opacity: {
+                          duration: 0.2,
+                          ease: "easeInOut",
+                        },
+                      },
+                    }}
+                    className="baseFlex h-[50px] w-full"
                   >
-                    <FaUser className="size-4" />
-                    Sign in
-                  </Button>
-                </SignInButton>
-              )}
+                    <svg
+                      className="size-5 animate-stableSpin rounded-full bg-inherit fill-none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                  </motion.div>
+                )}
 
-              {isSignedIn && currentUser && (
-                <div className="baseVertFlex w-full max-w-[348px] !items-start gap-4">
-                  <div className="baseFlex w-full !justify-between gap-4">
-                    <Button variant={"link"} size={"lg"} asChild>
-                      <Link
-                        href={`
+                {isSignedIn === false && (
+                  <motion.div
+                    key="notSignedIn"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                      opacity: { duration: 0.1, ease: "easeInOut" },
+                    }}
+                    className="baseFlex h-[50px] w-full"
+                  >
+                    <SignInButton
+                      mode="modal"
+                      // afterSignUpUrl={`${
+                      //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+                      // }/postSignUpRegistration`}
+                      // afterSignInUrl={`${
+                      //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+                      // }${asPath}`}
+                    >
+                      <Button
+                        className="baseFlex h-10 gap-2 px-8"
+                        onClick={() => {
+                          if (asPath.includes("/create")) {
+                            localStorageTabData.set(getStringifiedTabData());
+                          }
+
+                          // technically can sign in from signup page and vice versa
+                          if (!userId) localStorageRedirectRoute.set(asPath);
+                          // ^^ but technically could just append it onto the postSignupRegistration route right?
+                        }}
+                      >
+                        <FaUser className="size-4" />
+                        Sign in
+                      </Button>
+                    </SignInButton>
+                  </motion.div>
+                )}
+
+                {isSignedIn && currentUser && (
+                  <motion.div
+                    key="signedIn"
+                    initial={{
+                      opacity: 0,
+                      height: "50px",
+                      transition: {
+                        opacity: {
+                          duration: 0.2,
+                          delay: 0.1,
+                          ease: "easeInOut",
+                        },
+                        height: {
+                          duration: 0.2,
+                          ease: "easeInOut",
+                        },
+                      },
+                    }}
+                    animate={{
+                      opacity: 1,
+                      height: "auto",
+                      transition: {
+                        opacity: {
+                          duration: 0.2,
+                          delay: 0.1,
+                          ease: "easeInOut",
+                        },
+                        height: {
+                          duration: 0.2,
+                          ease: "easeInOut",
+                        },
+                      },
+                    }}
+                    exit={{
+                      opacity: 0,
+                      height: "50px",
+                      transition: {
+                        opacity: {
+                          duration: 0.2,
+                          ease: "easeInOut",
+                        },
+                        height: {
+                          duration: 0.2,
+                          delay: 0.1,
+                          ease: "easeInOut",
+                        },
+                      },
+                    }}
+                    className="baseVertFlex w-full max-w-[348px] !items-start gap-4"
+                  >
+                    <div className="baseFlex w-full !justify-between gap-4">
+                      <Button variant={"link"} size={"lg"} asChild>
+                        <Link
+                          href={`
                         /user/${currentUser.username}/filters
                         `}
-                        className="baseFlex !h-10 gap-2 !px-0"
-                      >
-                        <Image
-                          src={currentUser.profileImageUrl}
-                          alt="User profile image"
-                          className="!size-8 rounded-full bg-cover object-center"
-                          width={300}
-                          height={300}
-                        />
-                        <p className="text-lg font-medium">
-                          {currentUser.username}
-                        </p>
-                      </Link>
-                    </Button>
+                          className="baseFlex !h-10 gap-2 !px-0"
+                        >
+                          <div className="grid shrink-0 grid-cols-1 grid-rows-1">
+                            <Image
+                              src={currentUser.profileImageUrl}
+                              alt={`${currentUser.username}'s profile picture`}
+                              width={300}
+                              height={300}
+                              onLoad={() => {
+                                setTimeout(() => {
+                                  setUserProfileImageLoaded(true);
+                                }, 100); // unsure if this is necessary, but it felt too flickery without it
+                              }}
+                              style={{
+                                opacity: userProfileImageLoaded ? 1 : 0,
+                                transition: "opacity 0.3s ease-in-out",
+                              }}
+                              className="col-start-1 col-end-2 row-start-1 row-end-2 !size-8 rounded-full object-cover object-center"
+                            />
 
-                    <SignOutButton
-                    // afterSignOutUrl={`${
-                    //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                    // }/`}
-                    // onSignOut={() => {
-                    //   localStorageTabData.set(getStringifiedTabData());
-                    //   localStorageRedirectRoute.set(asPath);
-                    // }}
-                    >
-                      <Button variant={"link"} asChild>
-                        <Link href={`/`} className="baseFlex !p-0 underline">
-                          Sign out
+                            <AnimatePresence>
+                              {!userProfileImageLoaded && (
+                                <motion.div
+                                  key={"gridTabCardSkeletonImageLoader-lg"}
+                                  initial={{ opacity: 1 }}
+                                  animate={{ opacity: 0 }}
+                                  exit={{ opacity: 0 }}
+                                  transition={{ duration: 0.3 }}
+                                  className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-8 rounded-full bg-pink-300"
+                                ></motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          <p className="text-lg font-medium">
+                            {currentUser.username}
+                          </p>
                         </Link>
                       </Button>
-                    </SignOutButton>
-                  </div>
 
-                  <div className="baseFlex w-full gap-4">
-                    <Button
-                      variant={"navigation"}
-                      size={"lg"}
-                      asChild
-                      style={{
-                        backgroundColor: asPath.includes("/profile/settings")
-                          ? "#be185d"
-                          : undefined,
-                        color: asPath.includes("/profile/settings")
-                          ? "#fbcfe8"
-                          : undefined,
-                      }}
-                    >
-                      <Link
-                        href={`/profile/settings`}
-                        className="baseFlex w-[165px] gap-2"
+                      <SignOutButton
+                      // afterSignOutUrl={`${
+                      //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
+                      // }/`}
+                      // onSignOut={() => {
+                      //   localStorageTabData.set(getStringifiedTabData());
+                      //   localStorageRedirectRoute.set(asPath);
+                      // }}
                       >
-                        <IoSettingsOutline className="size-4" />
-                        Settings
-                      </Link>
-                    </Button>
+                        <Button variant={"link"} asChild>
+                          <Link href={`/`} className="baseFlex !p-0 underline">
+                            Sign out
+                          </Link>
+                        </Button>
+                      </SignOutButton>
+                    </div>
 
-                    <Button
-                      variant={"navigation"}
-                      size={"lg"}
-                      asChild
-                      style={{
-                        backgroundColor: asPath.includes("/profile/statistics")
-                          ? "#be185d"
-                          : undefined,
-                        color: asPath.includes("/profile/statistics")
-                          ? "#fbcfe8"
-                          : undefined,
-                      }}
-                    >
-                      <Link
-                        href={`/profile/statistics`}
-                        className="baseFlex w-[165px] gap-2"
+                    <div className="baseFlex w-full gap-4">
+                      <Button
+                        variant={"navigation"}
+                        size={"lg"}
+                        asChild
+                        style={{
+                          backgroundColor: asPath.includes("/profile/settings")
+                            ? "#be185d"
+                            : undefined,
+                          color: asPath.includes("/profile/settings")
+                            ? "#fbcfe8"
+                            : undefined,
+                        }}
                       >
-                        <IoStatsChart className="size-4" />
-                        Statistics
-                      </Link>
-                    </Button>
-                  </div>
+                        <Link
+                          href={`/profile/settings`}
+                          className="baseFlex w-[165px] gap-2"
+                        >
+                          <IoSettingsOutline className="size-4" />
+                          Settings
+                        </Link>
+                      </Button>
 
-                  <div className="baseFlex w-full gap-4">
-                    <Button
-                      variant={"navigation"}
-                      size={"lg"}
-                      asChild
-                      style={{
-                        backgroundColor: asPath.includes("/profile/tabs")
-                          ? "#be185d"
-                          : undefined,
-                        color: asPath.includes("/profile/tabs")
-                          ? "#fbcfe8"
-                          : undefined,
-                      }}
-                    >
-                      <Link
-                        href={`/profile/tabs/filters`}
-                        className="baseFlex w-[165px] gap-2"
+                      <Button
+                        variant={"navigation"}
+                        size={"lg"}
+                        asChild
+                        style={{
+                          backgroundColor: asPath.includes(
+                            "/profile/statistics",
+                          )
+                            ? "#be185d"
+                            : undefined,
+                          color: asPath.includes("/profile/statistics")
+                            ? "#fbcfe8"
+                            : undefined,
+                        }}
                       >
-                        <TbGuitarPick className="size-4" />
-                        Tabs
-                      </Link>
-                    </Button>
+                        <Link
+                          href={`/profile/statistics`}
+                          className="baseFlex w-[165px] gap-2"
+                        >
+                          <IoStatsChart className="size-4" />
+                          Statistics
+                        </Link>
+                      </Button>
+                    </div>
 
-                    <Button
-                      variant={"navigation"}
-                      size={"lg"}
-                      asChild
-                      style={{
-                        backgroundColor: asPath.includes("/profile/bookmarks")
-                          ? "#be185d"
-                          : undefined,
-                        color: asPath.includes("/profile/bookmarks")
-                          ? "#fbcfe8"
-                          : undefined,
-                      }}
-                    >
-                      <Link
-                        href={`/profile/bookmarks/filters`}
-                        className="baseFlex w-[165px] gap-2 !px-0"
+                    <div className="baseFlex w-full gap-4">
+                      <Button
+                        variant={"navigation"}
+                        size={"lg"}
+                        asChild
+                        style={{
+                          backgroundColor: asPath.includes("/profile/tabs")
+                            ? "#be185d"
+                            : undefined,
+                          color: asPath.includes("/profile/tabs")
+                            ? "#fbcfe8"
+                            : undefined,
+                        }}
                       >
-                        <IoBookmarkOutline className="size-4 shrink-0" />
-                        Bookmarks
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              )}
+                        <Link
+                          href={`/profile/tabs/filters`}
+                          className="baseFlex w-[165px] gap-2"
+                        >
+                          <TbGuitarPick className="size-4" />
+                          Tabs
+                        </Link>
+                      </Button>
+
+                      <Button
+                        variant={"navigation"}
+                        size={"lg"}
+                        asChild
+                        style={{
+                          backgroundColor: asPath.includes("/profile/bookmarks")
+                            ? "#be185d"
+                            : undefined,
+                          color: asPath.includes("/profile/bookmarks")
+                            ? "#fbcfe8"
+                            : undefined,
+                        }}
+                      >
+                        <Link
+                          href={`/profile/bookmarks/filters`}
+                          className="baseFlex w-[165px] gap-2 !px-0"
+                        >
+                          <IoBookmarkOutline className="size-4 shrink-0" />
+                          Bookmarks
+                        </Link>
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         )}
