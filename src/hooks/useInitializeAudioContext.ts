@@ -87,9 +87,13 @@ export function useInitializeAudioContext() {
         return await newAudioContext.decodeAudioData(arrayBuffer);
       }
 
-      fetchAudioFile("/sounds/countIn.wav").then((audioBuffer) => {
-        setCountInBuffer(audioBuffer);
-      });
+      fetchAudioFile("/sounds/countIn.wav")
+        .then((audioBuffer) => {
+          setCountInBuffer(audioBuffer);
+        })
+        .catch((error) => {
+          console.error("Error fetching count-in audio file:", error);
+        });
     }
 
     window.addEventListener("click", handleUserInteraction);
