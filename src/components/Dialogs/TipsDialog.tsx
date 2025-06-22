@@ -41,9 +41,9 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
           <div className="baseFlex !items-start gap-2">
             <div className="mt-3 h-[1px] w-3 shrink-0 bg-pink-950" />
             Use a BPM marker when an entire section of the song needs a new,
-            consistent tempo (slower or faster). For small, one-off timing
-            changes (like a brief pause or a few faster notes) it&apos;s better
-            to simply adjust the length of the individual notes involved.
+            consistent tempo. For small, one-off timing changes like a brief
+            pause or a few faster notes, it&apos;s recommended to adjust the
+            length of the individual notes instead.
           </div>
 
           {/* Strumming */}
@@ -102,8 +102,8 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
             <div className="mt-3 h-[1px] w-3 shrink-0 bg-pink-950" />
             <span>
               Enter
-              <kbd className="ml-1.5">r</kbd> / <kbd className="mr-1.5">t</kbd>{" "}
-              / <kbd className="mr-1.5">y</kbd>
+              <kbd className="ml-1.5">r</kbd> / <kbd>t</kbd> /{" "}
+              <kbd className="mr-1.5">y</kbd>
               to change the current chord&apos;s note length between 1/4th,
               1/8th, and 1/16th respectively.
             </span>
