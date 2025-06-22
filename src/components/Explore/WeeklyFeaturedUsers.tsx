@@ -388,15 +388,15 @@ function WeeklyFeaturedUsers({
             >
               <div className="baseFlex lightestGlassmorphic size-full rounded-lg px-4 py-4">
                 <div
-                  className={`baseVertFlex gap-8 md:!flex-row ${user.pinnedTab === null ? "md:gap-12" : ""}`}
+                  className={`baseVertFlex min-w-0 gap-8 md:!flex-row ${user.pinnedTab === null ? "md:gap-12" : ""}`}
                 >
-                  <div className="baseVertFlex !items-start gap-2">
+                  <div className="baseVertFlex min-w-0 !items-start gap-2">
                     <div className="baseFlex gap-1">User</div>
 
                     <Button variant={"link"} asChild>
                       <Link
                         href={`/user/${user.username}/filters`}
-                        className="baseFlex max-w-[100%] !justify-start gap-2 !p-0"
+                        className="baseFlex min-w-0 max-w-[250px] !justify-start gap-2 !p-0 md:max-w-[100%]"
                       >
                         <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                           <Image
@@ -434,8 +434,11 @@ function WeeklyFeaturedUsers({
                           </AnimatePresence>
                         </div>
 
-                        <span className="w-full truncate text-3xl font-semibold tracking-tight text-pink-50 md:left-8 md:top-14 md:text-3xl">
-                          {user.username}
+                        <span className="w-full truncate text-3xl font-semibold tracking-tight text-pink-50 md:text-3xl">
+                          {/* {user.username} */}
+                          leyendoleyendoleyendoleyendoleyendoleyendo
+                          leyendoleyendoleyendoleyendoleyendoleyendo
+                          leyendoleyendo
                         </span>
                       </Link>
                     </Button>
@@ -485,7 +488,7 @@ function WeeklyFeaturedUsers({
 
                   {/* user's pinned tab / placeholder */}
                   {user.pinnedTab === null ? (
-                    <div className="lightestGlassmorphic baseVertFlex h-[94px] w-[280px] gap-2 rounded-md border-2 md:mt-24">
+                    <div className="lightestGlassmorphic baseVertFlex h-[94px] w-[280px] shrink-0 gap-2 rounded-md border-2 md:mt-24">
                       <TbPinned className="size-5 text-pink-50" />
                       No active pinned tab
                     </div>
