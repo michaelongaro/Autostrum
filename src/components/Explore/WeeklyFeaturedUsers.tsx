@@ -434,11 +434,8 @@ function WeeklyFeaturedUsers({
                           </AnimatePresence>
                         </div>
 
-                        <span className="w-full truncate text-3xl font-semibold tracking-tight text-pink-50 md:text-3xl">
-                          {/* {user.username} */}
-                          leyendoleyendoleyendoleyendoleyendoleyendo
-                          leyendoleyendoleyendoleyendoleyendoleyendo
-                          leyendoleyendo
+                        <span className="w-full truncate text-2xl font-semibold tracking-tight text-pink-50 md:text-3xl">
+                          {user.username}
                         </span>
                       </Link>
                     </Button>
