@@ -425,13 +425,13 @@ function UserStatistics() {
                   <Table>
                     <colgroup>
                       {/* Rank */}
-                      <col className="w-[100px]" />
+                      <col className="w-[60px] sm:w-[100px]" />
 
                       {/* Title */}
                       <col className="w-auto" />
 
                       {/* Views/Bookmarks/Ratings */}
-                      <col className="w-[150px]" />
+                      <col className="w-[90px] sm:w-[150px]" />
                     </colgroup>
 
                     <TableHeader>
@@ -479,15 +479,13 @@ function UserStatistics() {
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.25 }}
-                                className="w-full"
+                                className="w-full max-w-[230px] truncate sm:max-w-[300px]"
                               >
                                 <Link
                                   href={`/tab/${tab.id}/${encodeURIComponent(tab.title)}`}
                                   className="!p-0 !text-base !font-semibold md:!text-lg"
                                 >
-                                  <span className="max-w-[230px] truncate sm:max-w-[300px]">
-                                    {tab.title}
-                                  </span>
+                                  {tab.title}
                                 </Link>
                               </motion.div>
                             </TableCell>
