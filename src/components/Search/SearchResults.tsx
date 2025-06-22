@@ -756,21 +756,23 @@ function SearchResults({
                 <AnimatePresence mode="popLayout">
                   {searchResultsCountIsLoading ? (
                     <motion.div
-                      key={"searchResultsCountSkeleton"}
+                      key={"mobileSearchResultsCountSkeleton"}
                       variants={opacityVariants}
                       initial="closed"
                       animate="expanded"
                       exit="closed"
+                      transition={{ duration: 0.3 }}
                     >
                       <div className="pulseAnimation h-6 w-36 rounded-md bg-pink-300"></div>
                     </motion.div>
                   ) : (
                     <motion.div
-                      key={"searchResultsCount"}
+                      key={"mobileSearchResultsCount"}
                       variants={opacityVariants}
                       initial="closed"
                       animate="expanded"
                       exit="closed"
+                      transition={{ duration: 0.3 }}
                     >
                       {`${searchResultsCount} result${
                         searchResultsCount === 1 ? "" : "s"
@@ -1649,27 +1651,35 @@ function SearchResults({
             <AnimatePresence initial={false}>
               <div className="baseFlex w-full !justify-between gap-2 px-4">
                 {/* # of results */}
-                {searchResultsCountIsLoading ? (
-                  <motion.div
-                    key={"searchResultsCountSkeleton"}
-                    variants={opacityVariants}
-                    initial="closed"
-                    animate="expanded"
-                    exit="closed"
-                  >
-                    <div className="pulseAnimation h-6 w-48 rounded-md bg-pink-300"></div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key={"searchResultsCount"}
-                    variants={opacityVariants}
-                    initial="closed"
-                    animate="expanded"
-                    exit="closed"
-                  >
-                    {`${searchResultsCount} result${searchResultsCount === 1 ? "" : "s"} found`}
-                  </motion.div>
-                )}
+                <AnimatePresence mode="popLayout">
+                  {searchResultsCountIsLoading ? (
+                    <motion.div
+                      key={"tabletSearchResultsCountSkeleton"}
+                      variants={opacityVariants}
+                      initial="closed"
+                      animate="expanded"
+                      exit="closed"
+                      transition={{
+                        duration: 0.3,
+                      }}
+                    >
+                      <div className="pulseAnimation h-6 w-48 rounded-md bg-pink-300"></div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key={"tabletSearchResultsCount"}
+                      variants={opacityVariants}
+                      initial="closed"
+                      animate="expanded"
+                      exit="closed"
+                      transition={{
+                        duration: 0.3,
+                      }}
+                    >
+                      {`${searchResultsCount} result${searchResultsCount === 1 ? "" : "s"} found`}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {/* layout type toggle */}
                 <div className="baseFlex gap-3">
