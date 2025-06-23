@@ -33,20 +33,22 @@ function EffectGlossaryDialog() {
       open={showEffectGlossaryDialog}
     >
       <VisuallyHidden>
-        <DialogTitle>Effect glossary </DialogTitle>
+        <DialogTitle>Effect glossary</DialogTitle>
         <DialogDescription>
           A list of all the effects and their notations that can be used in the
           tab editor.
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex max-h-[90dvh] max-w-[250px] !justify-start gap-4 overflow-y-auto rounded-lg bg-pink-100 text-pink-950 xs:max-w-[450px]">
+      <DialogContent className="baseVertFlex max-h-[90dvh] max-w-[350px] !justify-start gap-4 overflow-y-auto rounded-lg bg-pink-100 px-2 text-pink-950 xs:max-w-[450px] xs:p-4">
         <p className="baseFlex gap-2 font-semibold">
           <FaBook className="size-4" />
-          Effect Glossary
+          Effect glossary
         </p>
 
-        <div className="baseVertFlex !items-start gap-4 xs:!flex-row xs:gap-8">
+        <div
+          className={`baseFlex !items-start gap-4 xs:gap-8 ${editing ? "!flex-col xs:!flex-row" : ""}`}
+        >
           <div
             className={`baseVertFlex gap-2 ${editing ? "min-w-[190px]" : "min-w-[150px]"}`}
           >
@@ -271,7 +273,7 @@ function EffectGlossaryDialog() {
             </div>
             <div className="grid w-full grid-cols-5 pl-1 text-sm">
               <span
-                className={`col-span-1 ${editing ? "" : "relative bottom-[9px] text-[30px]"}`}
+                className={`col-span-1 ${editing ? "" : "relative bottom-[8.5px] text-[30px]"}`}
               >
                 .
               </span>
@@ -386,7 +388,7 @@ function EffectGlossaryDialog() {
 
         {!editing && (
           <div className="baseVertFlex w-full gap-2">
-            <div className="h-[1px] w-full bg-black"></div>
+            <div className="h-[1px] w-full max-w-[300px] bg-black xs:max-w-none"></div>
             <p className="text-sm">
               <span className="font-semibold">Bolded</span> effects are
               accented.
