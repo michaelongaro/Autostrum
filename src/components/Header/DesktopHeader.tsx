@@ -54,7 +54,7 @@ function DesktopHeader() {
   );
 
   return (
-    <nav className="headerBackgroundGradient sticky left-0 top-0 z-[49] grid h-16 w-full grid-cols-1 grid-rows-1 shadow-md">
+    <nav className="headerBackgroundGradient baseFlex sticky left-0 top-0 z-[49] h-16 w-full shadow-md">
       <div className={classes.desktopHeader}>
         <Link href={"/"} className={`${classes.logo} shrink-0`}>
           <Image
