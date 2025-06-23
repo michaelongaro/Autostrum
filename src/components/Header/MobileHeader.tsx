@@ -89,7 +89,72 @@ function MobileHeader() {
   }, [router.events]);
 
   return (
-    <>
+    <nav className="sticky left-0 top-0 z-[49] h-16 w-full">
+      <div className="headerBackgroundGradient absolute z-[49] flex h-16 w-full items-start justify-between overflow-clip p-2 shadow-md lg:hidden">
+        <Link
+          href={"/"}
+          className="baseFlex h-12 pl-2 transition-[filter] hover:brightness-[1.05] active:brightness-[0.95]"
+        >
+          <Image
+            src="/logoWithTitle.svg"
+            alt="Autostrum header logo"
+            style={{
+              filter: "drop-shadow(0px 1px 0.5px hsla(336, 84%, 17%, 0.25))",
+            }}
+            width={150}
+            height={50}
+            priority
+          />
+        </Link>
+
+        <div className="baseFlex gap-3">
+          <Dialog
+            open={showMobileSearch}
+            onOpenChange={setShowMobileSearch}
+            modal={true}
+          >
+            <DialogTrigger asChild>
+              <Button
+                variant="link"
+                onClick={() => setShowMobileSearch(true)}
+                className="!px-0"
+              >
+                <BiSearchAlt2 className="size-[26px]" />
+              </Button>
+            </DialogTrigger>
+
+            <VisuallyHidden>
+              <DialogTitle>Search</DialogTitle>
+              <DialogDescription>
+                Search for your favorite songs and artists here.
+              </DialogDescription>
+            </VisuallyHidden>
+
+            <DialogContent
+              renderCloseButton={false}
+              className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start !rounded-none bg-gradient-to-b from-pink-400 to-pink-500 p-0"
+            >
+              <SearchInput setShowMobileSearch={setShowMobileSearch} />
+            </DialogContent>
+          </Dialog>
+
+          <Hamburger
+            toggled={mobileHeaderIsOpen}
+            onToggle={(open) => {
+              setMobileHeaderIsOpen(open);
+              setMobileHeaderModal({
+                showing: open,
+                zIndex: 48,
+              });
+            }}
+            easing="ease-in-out"
+            color="#fdf2f8"
+            rounded
+            size={28}
+          />
+        </div>
+      </div>
+
       <AnimatePresence mode="wait">
         {mobileHeaderIsOpen && (
           <motion.div
@@ -104,7 +169,7 @@ function MobileHeader() {
             }}
             animate={{
               opacity: 1,
-              transform: "translateY(0)",
+              transform: "translateY(0%)",
               transition: {
                 opacity: { duration: 0.2, ease: "easeInOut" },
                 transform: { duration: 0.35, ease: "easeInOut" },
@@ -116,7 +181,7 @@ function MobileHeader() {
                 opacity: { duration: 0.2, ease: "easeInOut" },
               },
             }}
-            className="baseVertFlex fixed top-16 z-[49] max-h-[80dvh] w-full max-w-lg !justify-start overflow-y-auto rounded-b-xl bg-pink-400 shadow-lg"
+            className="baseVertFlex fixed top-16 z-[-1] max-h-[80dvh] w-full max-w-lg !justify-start overflow-y-auto rounded-b-xl bg-pink-400 shadow-lg"
           >
             <div className="baseVertFlex my-4 h-full max-w-[348px] gap-4">
               <div className="baseFlex w-full gap-4">
@@ -376,8 +441,8 @@ function MobileHeader() {
                       <Button variant={"link"} size={"lg"} asChild>
                         <Link
                           href={`
-                        /user/${currentUser.username}/filters
-                        `}
+                /user/${currentUser.username}/filters
+                `}
                           className="baseFlex !h-10 gap-2 !px-0"
                         >
                           <div className="grid shrink-0 grid-cols-1 grid-rows-1">
@@ -535,74 +600,7 @@ function MobileHeader() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <nav className="headerBackgroundGradient sticky left-0 top-0 z-[49] grid h-16 w-full grid-cols-1 grid-rows-1 shadow-md">
-        <div className="absolute flex h-16 w-full items-start justify-between overflow-clip p-2 lg:hidden">
-          <Link
-            href={"/"}
-            className="baseFlex h-12 pl-2 transition-[filter] hover:brightness-[1.05] active:brightness-[0.95]"
-          >
-            <Image
-              src="/logoWithTitle.svg"
-              alt="Autostrum header logo"
-              style={{
-                filter: "drop-shadow(0px 1px 0.5px hsla(336, 84%, 17%, 0.25))",
-              }}
-              width={150}
-              height={50}
-              priority
-            />
-          </Link>
-
-          <div className="baseFlex gap-3">
-            <Dialog
-              open={showMobileSearch}
-              onOpenChange={setShowMobileSearch}
-              modal={true}
-            >
-              <DialogTrigger asChild>
-                <Button
-                  variant="link"
-                  onClick={() => setShowMobileSearch(true)}
-                  className="!px-0"
-                >
-                  <BiSearchAlt2 className="size-[26px]" />
-                </Button>
-              </DialogTrigger>
-
-              <VisuallyHidden>
-                <DialogTitle>Search</DialogTitle>
-                <DialogDescription>
-                  Search for your favorite songs and artists here.
-                </DialogDescription>
-              </VisuallyHidden>
-
-              <DialogContent
-                renderCloseButton={false}
-                className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start !rounded-none bg-gradient-to-b from-pink-400 to-pink-500 p-0"
-              >
-                <SearchInput setShowMobileSearch={setShowMobileSearch} />
-              </DialogContent>
-            </Dialog>
-
-            <Hamburger
-              toggled={mobileHeaderIsOpen}
-              onToggle={(open) => {
-                setMobileHeaderIsOpen(open);
-                setMobileHeaderModal({
-                  showing: open,
-                  zIndex: 48,
-                });
-              }}
-              easing="ease-in-out"
-              color="#fdf2f8"
-              rounded
-              size={28}
-            />
-          </div>
-        </div>
-      </nav>
-    </>
+    </nav>
   );
 }
 
