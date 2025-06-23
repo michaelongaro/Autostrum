@@ -774,7 +774,7 @@ function SearchResults({
                       exit="closed"
                       transition={{ duration: 0.3 }}
                     >
-                      {`${searchResultsCount} result${
+                      {`${searchResultsCount} tab${
                         searchResultsCount === 1 ? "" : "s"
                       } found`}
                     </motion.div>
@@ -1676,7 +1676,7 @@ function SearchResults({
                         duration: 0.3,
                       }}
                     >
-                      {`${searchResultsCount} result${searchResultsCount === 1 ? "" : "s"} found`}
+                      {`${searchResultsCount} tab${searchResultsCount === 1 ? "" : "s"} found`}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -1889,7 +1889,7 @@ function SearchResults({
                         <div className="baseVertFlex lightestGlassmorphic gap-4 rounded-md px-8 py-4 text-xl">
                           <div className="baseVertFlex gap-4">
                             <Binoculars className="size-9" />
-                            No results found
+                            No tabs found
                           </div>
 
                           {relatedArtists.length === 0 ? (
