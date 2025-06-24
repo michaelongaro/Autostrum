@@ -39,6 +39,7 @@ import {
   CarouselItem,
 } from "~/components/ui/carousel";
 import TipsDialog from "~/components/Dialogs/TipsDialog";
+import { useRouter } from "next/router";
 
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
@@ -59,6 +60,8 @@ interface Tab {
 }
 
 function Tab({ tab }: Tab) {
+  const { asPath } = useRouter();
+
   const [customTuning, setCustomTuning] = useState<string | null>(null);
   const [isPublishingOrUpdating, setIsPublishingOrUpdating] = useState(false);
   const [showTipsModal, setShowTipsModal] = useState(false);
@@ -378,7 +381,11 @@ function Tab({ tab }: Tab) {
 
         <div
           ref={tabContentRef}
-          className="baseVertFlex relative mt-2 size-full gap-4"
+          id={"tabBodyContent"}
+          style={{
+            minHeight: asPath.includes("screenshot") ? "1000px" : "auto",
+          }}
+          className="baseVertFlex relative mt-2 size-full scroll-m-24 !justify-start gap-4"
         >
           <AnimatePresence mode="wait">
             {showPinnedChords && (
@@ -486,6 +493,7 @@ function Tab({ tab }: Tab) {
               tabContentIsInView && (
                 <motion.div
                   key="stickyBottomControls"
+                  id="stickyBottomControls"
                   initial={{ opacity: 0 }}
                   animate={{
                     opacity: 1,

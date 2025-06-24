@@ -99,6 +99,8 @@
     "eslint": "^9.24.0",
     "eslint-config-next": "^15.3.1",
     "eslint-plugin-react-compiler": "^19.0.0-beta-714736e-20250131",
+    "p-limit": "^6.2.0",
+    "playwright": "^1.53.1",
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.9",
