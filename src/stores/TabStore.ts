@@ -239,7 +239,7 @@ const initialStoreState = {
   // tab data
   originalTabData: null,
   id: -1,
-  createdById: null,
+  createdByUserId: null,
   createdAt: null,
   updatedAt: null,
   title: "",
