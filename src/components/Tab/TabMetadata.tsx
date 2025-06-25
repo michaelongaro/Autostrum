@@ -157,7 +157,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     viewportLabel: state.viewportLabel,
   }));
 
-  const { data: dynamicMetadata, isLoading: isLoadingDynamicMetadata } =
+  const { data: dynamicMetadata } =
     api.tab.getRatingBookmarkAndViewCount.useQuery(id, {
       enabled: !editing,
     });
@@ -181,9 +181,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
         }, 250);
 
         setTimeout(() => {
-          void push(
-            `/tab/?title=${encodeURIComponent(tab.title)}&id=${tab.id}`,
-          );
+          void push(`/tab/${tab.id}/${encodeURIComponent(tab.title)}`);
         }, 4000);
       },
       onError: (e) => {
