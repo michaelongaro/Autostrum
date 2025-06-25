@@ -376,6 +376,8 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
           publishTab({
             createdByUserId: userId,
             title,
+            artistId,
+            artistName,
             description,
             genre,
             chords,
@@ -391,6 +393,8 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
           updateTab({
             id,
             title,
+            artistId,
+            artistName,
             description,
             genre,
             chords,
@@ -732,7 +736,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 showingErrorShakeAnimation={showPulsingError && !title}
                 className="w-full max-w-72"
                 onChange={(e) => {
-                  if (e.target.value.length > 30) return;
+                  if (e.target.value.length > 50) return;
                   setTitle(e.target.value);
                 }}
               />
@@ -875,7 +879,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   placeholder="75"
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  className="w-[50px]"
+                  className="w-[53px]"
                   value={bpm === -1 ? "" : bpm}
                   showingErrorShakeAnimation={showPulsingError && bpm === -1}
                   onChange={handleBpmChange}
@@ -1015,7 +1019,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   <div className="baseFlex !justify-start gap-2">
                     <div
                       style={{
-                        fontSize: getDynamicFontSize(title, 20, 24, 30),
+                        fontSize: getDynamicFontSize(title, 20, 24, 50),
                       }}
                       className="max-w-[100%] text-wrap font-bold"
                     >
@@ -1166,7 +1170,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   <div className="baseVertFlex w-full !items-start gap-2">
                     <div
                       style={{
-                        fontSize: getDynamicFontSize(title, 20, 24, 30),
+                        fontSize: getDynamicFontSize(title, 20, 24, 50),
                       }}
                       className="text-wrap font-bold"
                     >
