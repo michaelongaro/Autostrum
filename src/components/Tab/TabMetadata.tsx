@@ -1125,7 +1125,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   )}
                 </div>
 
-                {((userId && createdByUserId === userId) ??
+                {((userId && createdByUserId === userId) ||
                   asPath.includes("create")) && (
                   <Button
                     disabled={isLoadingARoute}
