@@ -307,8 +307,8 @@ export const tabRouter = createTRPCRouter({
     .input(
       z.object({
         createdByUserId: z.string(),
-        title: z.string().max(30),
-        artistId: z.number().optional(),
+        title: z.string().max(50),
+        artistId: z.number().nullable(),
         artistName: z.string().max(60).optional(),
         description: z.string().max(500).nullable(),
         genre: z.string(),
@@ -421,8 +421,8 @@ export const tabRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.number(),
-        title: z.string().max(30),
-        artistId: z.number().optional(),
+        title: z.string().max(50),
+        artistId: z.number().nullable(),
         artistName: z.string().max(60).optional(),
         description: z.string().max(500).nullable(),
         genre: z.string(),
