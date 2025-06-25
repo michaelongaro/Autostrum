@@ -516,167 +516,34 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     <>
       {editing && (
         <div className="baseVertFlex w-full gap-2">
-          <div className="baseVertFlex w-full !items-start !justify-between gap-2 p-4 sm:!flex-row md:!items-center">
-            <div className="baseFlex">
-              {!asPath.includes("create") && (
-                <Button
-                  disabled={isLoadingARoute}
-                  className="baseFlex py-1 pl-1 pr-3 md:py-2"
-                  onClick={() =>
-                    void push(`/tab/${id}/${encodeURIComponent(title)}`)
-                  }
-                >
-                  <BsArrowLeftShort className="h-6 w-8 text-pink-100" />
-                  Return to tab
-                </Button>
-              )}
-            </div>
-
-            <div className="baseFlex w-full !justify-end gap-2">
-              {!asPath.includes("create") && (
-                <Popover
-                  open={showDeletePopover}
-                  onOpenChange={(open) => setShowDeletePopover(open)}
-                >
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"destructive"}
-                      disabled={isDeleting || isLoadingARoute}
-                      className="baseFlex gap-2"
-                    >
-                      <AnimatePresence mode={"popLayout"} initial={false}>
-                        <motion.div
-                          key={deleteButtonText}
-                          initial={{ opacity: 0, y: -20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 20 }}
-                          transition={{
-                            duration: 0.25,
-                          }}
-                          className="baseFlex w-[85px] gap-2"
-                        >
-                          {deleteButtonText === "Delete" && (
-                            <FaTrashAlt className="h-4 w-4" />
-                          )}
-                          {deleteButtonText}
-                          {deleteButtonText === "Deleting" && (
-                            <div
-                              className="inline-block size-4 animate-spin rounded-full border-[2px] border-pink-50 border-t-transparent text-pink-50"
-                              role="status"
-                              aria-label="loading"
-                            >
-                              <span className="sr-only">Loading...</span>
-                            </div>
-                          )}
-                          {deleteButtonText === "" && (
-                            <svg
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={2}
-                              className="size-5 text-pink-50"
-                            >
-                              <motion.path
-                                initial={{ pathLength: 0 }}
-                                animate={{ pathLength: 1 }}
-                                transition={{
-                                  delay: 0.2,
-                                  type: "tween",
-                                  ease: "easeOut",
-                                  duration: 0.3,
-                                }}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                          )}
-                        </motion.div>
-                      </AnimatePresence>
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="baseVertFlex gap-4 bg-pink-100 p-2 text-sm text-pink-950 md:text-base">
-                    <p className="w-auto text-center text-sm">
-                      Are you sure you want to delete this tab?
-                    </p>
-
-                    <div className="baseFlex gap-2">
-                      <Button
-                        variant={"outline"}
-                        size="sm"
-                        onClick={() => setShowDeletePopover(false)}
-                      >
-                        Cancel
-                      </Button>
-
-                      <Button
-                        variant={"destructive"}
-                        size="sm"
-                        disabled={isDeleting}
-                        onClick={() => {
-                          deleteTab(id);
-                          setShowDeletePopover(false);
-                        }}
-                        className="baseFlex gap-2"
-                      >
-                        Confirm
-                      </Button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              )}
-
-              <Button
-                variant={"secondary"}
-                disabled={showPulsingError}
-                onClick={handlePreview}
-                className="baseFlex gap-2"
-              >
-                <FaEye className="h-4 w-4" />
-                Preview
-              </Button>
-
+          <div className="baseFlex w-full !justify-end gap-2 p-4 sm:gap-3">
+            {!asPath.includes("create") && (
               <Popover
-                open={showPublishPopover}
-                onOpenChange={(open) => {
-                  if (open === false) {
-                    setShowPublishPopover(false);
-
-                    if (publishErrorOccurred) {
-                      setPublishErrorOccurred(false);
-                    }
-                  }
-                }}
+                open={showDeletePopover}
+                onOpenChange={(open) => setShowDeletePopover(open)}
               >
                 <PopoverTrigger asChild>
                   <Button
-                    disabled={
-                      audioMetadata.playing || // helps with performance when playing audio (while editing)
-                      isLoadingARoute ||
-                      isEqualToOriginalTabState() ||
-                      showPulsingError ||
-                      isPublishing ||
-                      isUpdating ||
-                      isDeleting ||
-                      takingScreenshot
-                    }
-                    onClick={() => void handleSave()}
-                    className="baseFlex"
+                    variant={"destructive"}
+                    disabled={isDeleting || isLoadingARoute}
+                    className="baseFlex gap-2"
                   >
                     <AnimatePresence mode={"popLayout"} initial={false}>
                       <motion.div
-                        key={saveButtonText}
+                        key={deleteButtonText}
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 20 }}
                         transition={{
                           duration: 0.25,
                         }}
-                        className="baseFlex w-[100px] gap-2"
+                        className="baseFlex w-[85px] gap-2"
                       >
-                        {saveButtonText}
-                        {(saveButtonText === "Publishing" ||
-                          saveButtonText === "Saving") && (
+                        {deleteButtonText === "Delete" && (
+                          <FaTrashAlt className="h-4 w-4" />
+                        )}
+                        {deleteButtonText}
+                        {deleteButtonText === "Deleting" && (
                           <div
                             className="inline-block size-4 animate-spin rounded-full border-[2px] border-pink-50 border-t-transparent text-pink-50"
                             role="status"
@@ -685,7 +552,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                             <span className="sr-only">Loading...</span>
                           </div>
                         )}
-                        {saveButtonText === "" && (
+                        {deleteButtonText === "" && (
                           <svg
                             fill="none"
                             viewBox="0 0 24 24"
@@ -712,11 +579,127 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                     </AnimatePresence>
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  {renderSavePopoverContent()}
+                <PopoverContent className="baseVertFlex gap-4 bg-pink-100 p-2 text-sm text-pink-950 md:text-base">
+                  <p className="w-auto text-center text-sm">
+                    Are you sure you want to delete this tab?
+                  </p>
+
+                  <div className="baseFlex gap-2">
+                    <Button
+                      variant={"outline"}
+                      size="sm"
+                      onClick={() => setShowDeletePopover(false)}
+                    >
+                      Cancel
+                    </Button>
+
+                    <Button
+                      variant={"destructive"}
+                      size="sm"
+                      disabled={isDeleting}
+                      onClick={() => {
+                        deleteTab(id);
+                        setShowDeletePopover(false);
+                      }}
+                      className="baseFlex gap-2"
+                    >
+                      Confirm
+                    </Button>
+                  </div>
                 </PopoverContent>
               </Popover>
-            </div>
+            )}
+
+            <Button
+              variant={"secondary"}
+              disabled={showPulsingError}
+              onClick={handlePreview}
+              className="baseFlex gap-2"
+            >
+              <FaEye className="h-4 w-4" />
+              Preview
+            </Button>
+
+            <Popover
+              open={showPublishPopover}
+              onOpenChange={(open) => {
+                if (open === false) {
+                  setShowPublishPopover(false);
+
+                  if (publishErrorOccurred) {
+                    setPublishErrorOccurred(false);
+                  }
+                }
+              }}
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  disabled={
+                    audioMetadata.playing || // helps with performance when playing audio (while editing)
+                    isLoadingARoute ||
+                    isEqualToOriginalTabState() ||
+                    showPulsingError ||
+                    isPublishing ||
+                    isUpdating ||
+                    isDeleting ||
+                    takingScreenshot
+                  }
+                  onClick={() => void handleSave()}
+                  className="baseFlex"
+                >
+                  <AnimatePresence mode={"popLayout"} initial={false}>
+                    <motion.div
+                      key={saveButtonText}
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 20 }}
+                      transition={{
+                        duration: 0.25,
+                      }}
+                      className="baseFlex w-[100px] gap-2"
+                    >
+                      {saveButtonText}
+                      {(saveButtonText === "Publishing" ||
+                        saveButtonText === "Saving") && (
+                        <div
+                          className="inline-block size-4 animate-spin rounded-full border-[2px] border-pink-50 border-t-transparent text-pink-50"
+                          role="status"
+                          aria-label="loading"
+                        >
+                          <span className="sr-only">Loading...</span>
+                        </div>
+                      )}
+                      {saveButtonText === "" && (
+                        <svg
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          className="size-5 text-pink-50"
+                        >
+                          <motion.path
+                            initial={{ pathLength: 0 }}
+                            animate={{ pathLength: 1 }}
+                            transition={{
+                              delay: 0.2,
+                              type: "tween",
+                              ease: "easeOut",
+                              duration: 0.3,
+                            }}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                {renderSavePopoverContent()}
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className={classes.editingMetadataContainer}>
