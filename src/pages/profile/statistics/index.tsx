@@ -405,7 +405,7 @@ function UserStatistics() {
             {/* top 5 tabs + misc stats tables*/}
             <div
               key={"topFiveStatsAndMiscStats"}
-              className="baseVertFlex w-full !items-start gap-12 xl:w-1/2 xl:gap-4"
+              className="baseVertFlex w-full !items-start gap-12 xl:w-1/2 xl:gap-0"
             >
               <div className="baseVertFlex w-full gap-2">
                 <div className="baseVertFlex w-full gap-2">
