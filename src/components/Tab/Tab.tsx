@@ -72,11 +72,6 @@ function Tab({ tab }: Tab) {
   const [forceCloseSectionAccordions, setForceCloseSectionAccordions] =
     useState(false);
 
-  // prevents layout shift when loading tab for first time, otherwise it would
-  // slide down into view above other content for a split second.
-  const [blockInitialLayoutAnimation, setBlockInitialLayoutAnimation] =
-    useState(true);
-
   const { ref: tabContentRef } = useInView({
     rootMargin: "-300px 0px -300px 0px",
     threshold: 0,
@@ -101,6 +96,8 @@ function Tab({ tab }: Tab) {
     setTuning,
     setBpm,
     setCapo,
+    setKey,
+    setDifficulty,
     setChords,
     setStrummingPatterns,
     tabData,
@@ -138,6 +135,8 @@ function Tab({ tab }: Tab) {
     setTuning: state.setTuning,
     setBpm: state.setBpm,
     setCapo: state.setCapo,
+    setKey: state.setKey,
+    setDifficulty: state.setDifficulty,
     setChords: state.setChords,
     setStrummingPatterns: state.setStrummingPatterns,
     tabData: state.tabData,
@@ -164,12 +163,6 @@ function Tab({ tab }: Tab) {
   }));
 
   useEffect(() => {
-    setTimeout(() => {
-      setBlockInitialLayoutAnimation(false);
-    }, 1000);
-  }, []);
-
-  useEffect(() => {
     if (!tab) return;
 
     setOriginalTabData(structuredClone(tab));
@@ -187,6 +180,8 @@ function Tab({ tab }: Tab) {
     setTuning(tab.tuning);
     setBpm(tab.bpm);
     setCapo(tab.capo);
+    setKey(tab.key);
+    setDifficulty(tab.difficulty);
 
     // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setChords(tab.chords);
@@ -442,7 +437,6 @@ function Tab({ tab }: Tab) {
             tabData.map((section, index) => (
               <motion.div
                 key={section.id}
-                layout={!blockInitialLayoutAnimation ? "position" : undefined}
                 transition={{
                   layout: {
                     type: "spring",
