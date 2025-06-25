@@ -605,7 +605,7 @@ function MobileMenuDialog() {
               className="baseVertFlex size-full overflow-y-hidden py-0"
             >
               {chords.length > 0 ? (
-                <div className="my-4 grid max-h-[calc(100dvh-6rem)] w-full grid-cols-1 !place-items-center gap-8 overflow-y-scroll px-8 xs:grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
+                <div className="baseFlex my-4 max-h-[calc(100dvh-6rem)] w-full flex-wrap gap-8 overflow-y-scroll px-8">
                   <>
                     {chords.map((chord, index) => (
                       <div
@@ -679,7 +679,7 @@ function MobileMenuDialog() {
                             </Button>
                           </div>
 
-                          <div className="h-48 mobileNarrowLandscape:h-36">
+                          <div className="h-36">
                             <ChordDiagram originalFrets={chord.frets} />
                           </div>
                         </div>
@@ -702,10 +702,10 @@ function MobileMenuDialog() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className={`baseVertFlex h-full max-h-[calc(100dvh-6rem)] gap-10 overflow-y-auto ${strummingPatterns.length > 0 ? "!justify-start pb-8 pt-4" : ""}`}
+              className="baseVertFlex h-full max-h-[calc(100dvh-6rem)]"
             >
               {strummingPatterns.length > 0 ? (
-                <>
+                <div className="baseVertFlex h-full w-full !justify-start gap-10 overflow-y-auto py-8">
                   {strummingPatterns.map((pattern, index) => (
                     <div
                       key={pattern.id}
@@ -798,7 +798,7 @@ function MobileMenuDialog() {
                       </div>
                     </div>
                   ))}
-                </>
+                </div>
               ) : (
                 <div className="w-48 text-center xs:w-auto">
                   No strumming patterns were specified for this tab.

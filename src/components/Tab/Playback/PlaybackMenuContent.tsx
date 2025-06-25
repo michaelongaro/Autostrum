@@ -1,17 +1,11 @@
 import { motion } from "framer-motion";
+import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { useState } from "react";
-import { HiOutlineInformationCircle } from "react-icons/hi";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
-import Chord from "~/components/Tab/Chord";
 import ChordDiagram from "~/components/Tab/Playback/ChordDiagram";
 import StrummingPattern from "~/components/Tab/StrummingPattern";
 import { type LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
 import { Button } from "~/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 
@@ -102,7 +96,7 @@ function PlaybackMenuContent() {
           className="baseVertFlex size-full overflow-y-hidden py-8"
         >
           {chords.length > 0 ? (
-            <div className="grid max-h-[calc(100dvh-6rem)] w-full auto-rows-auto grid-cols-6 place-items-center gap-4 overflow-y-auto px-8">
+            <div className="baseFlex max-h-[calc(100dvh-6rem)] w-full flex-wrap gap-8 overflow-y-auto px-8">
               <>
                 {chords.map((chord, index) => (
                   <div key={chord.id} className="baseFlex">
@@ -172,7 +166,7 @@ function PlaybackMenuContent() {
                         </Button>
                       </div>
 
-                      <div className="h-48">
+                      <div className="h-36">
                         <ChordDiagram originalFrets={chord.frets} />
                       </div>
                     </div>
@@ -193,95 +187,106 @@ function PlaybackMenuContent() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className={`baseVertFlex h-full max-h-[calc(100dvh-6rem)] w-full overflow-y-auto ${strummingPatterns.length > 0 ? "mt-8 !justify-start" : ""}`}
+          className={`baseVertFlex h-full ${strummingPatterns.length > 0 ? "max-h-[520px] pb-8" : ""}`}
         >
           {strummingPatterns.length > 0 ? (
-            <div className="baseVertFlex !items-start gap-10">
-              {strummingPatterns.map((pattern, index) => (
-                <div key={pattern.id} className="shrink-0 overflow-hidden">
-                  <div className="baseVertFlex !items-start">
-                    <Button
-                      variant={"playPause"}
-                      size={"sm"}
-                      disabled={
-                        !currentInstrument || artificalPlayButtonTimeout[index]
-                      }
-                      onClick={() => {
-                        if (
-                          previewMetadata.playing &&
-                          index === previewMetadata.indexOfPattern &&
-                          previewMetadata.type === "strummingPattern"
-                        ) {
-                          pauseAudio();
-                          setArtificalPlayButtonTimeout((prev) => {
-                            const prevArtificalPlayButtonTimeout = [...prev];
-                            prevArtificalPlayButtonTimeout[index] = true;
-                            return prevArtificalPlayButtonTimeout;
-                          });
-
-                          setTimeout(() => {
-                            setArtificalPlayButtonTimeout((prev) => {
-                              const prevArtificalPlayButtonTimeout = [...prev];
-                              prevArtificalPlayButtonTimeout[index] = false;
-                              return prevArtificalPlayButtonTimeout;
-                            });
-                          }, 300);
-                        } else {
+            <OverlayScrollbarsComponent
+              options={{
+                scrollbars: { autoHide: "leave", autoHideDelay: 150 },
+              }}
+              defer
+              className="w-full"
+            >
+              <div className="baseVertFlex size-full !justify-start gap-10">
+                {strummingPatterns.map((pattern, index) => (
+                  <div key={pattern.id} className="shrink-0 overflow-hidden">
+                    <div className="baseVertFlex !items-start">
+                      <Button
+                        variant={"playPause"}
+                        size={"sm"}
+                        disabled={
+                          !currentInstrument ||
+                          artificalPlayButtonTimeout[index]
+                        }
+                        onClick={() => {
                           if (
-                            audioMetadata.playing ||
-                            previewMetadata.playing
+                            previewMetadata.playing &&
+                            index === previewMetadata.indexOfPattern &&
+                            previewMetadata.type === "strummingPattern"
                           ) {
                             pauseAudio();
-                          }
+                            setArtificalPlayButtonTimeout((prev) => {
+                              const prevArtificalPlayButtonTimeout = [...prev];
+                              prevArtificalPlayButtonTimeout[index] = true;
+                              return prevArtificalPlayButtonTimeout;
+                            });
 
-                          setTimeout(
-                            () => {
-                              void playPreview({
-                                data: pattern,
-                                index,
-                                type: "strummingPattern",
+                            setTimeout(() => {
+                              setArtificalPlayButtonTimeout((prev) => {
+                                const prevArtificalPlayButtonTimeout = [
+                                  ...prev,
+                                ];
+                                prevArtificalPlayButtonTimeout[index] = false;
+                                return prevArtificalPlayButtonTimeout;
                               });
-                            },
-                            audioMetadata.playing || previewMetadata.playing
-                              ? 50
-                              : 0,
-                          );
-                        }
-                      }}
-                      className="baseFlex ml-2 h-6 w-20 gap-2 rounded-b-none"
-                    >
-                      <p>
-                        {previewMetadata.playing &&
-                        index === previewMetadata.indexOfPattern &&
-                        previewMetadata.type === "strummingPattern"
-                          ? "Stop"
-                          : "Play"}
-                      </p>
-                      <PlayButtonIcon
-                        uniqueLocationKey={`strummingPatternPreview${index}`}
-                        tabId={id}
-                        currentInstrument={currentInstrument}
-                        previewMetadata={previewMetadata}
-                        indexOfPattern={index}
-                        previewType="strummingPattern"
-                      />
-                    </Button>
-                    <div className="baseFlex border-b-none !flex-nowrap rounded-md border-2">
-                      <StrummingPattern
-                        data={pattern}
-                        mode="viewing"
-                        index={index}
-                        lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
-                        setLastModifiedPalmMuteNode={
-                          setLastModifiedPalmMuteNode
-                        }
-                        pmNodeOpacities={[]} //
-                      />
+                            }, 300);
+                          } else {
+                            if (
+                              audioMetadata.playing ||
+                              previewMetadata.playing
+                            ) {
+                              pauseAudio();
+                            }
+
+                            setTimeout(
+                              () => {
+                                void playPreview({
+                                  data: pattern,
+                                  index,
+                                  type: "strummingPattern",
+                                });
+                              },
+                              audioMetadata.playing || previewMetadata.playing
+                                ? 50
+                                : 0,
+                            );
+                          }
+                        }}
+                        className="baseFlex ml-2 h-6 w-20 gap-2 rounded-b-none"
+                      >
+                        <p>
+                          {previewMetadata.playing &&
+                          index === previewMetadata.indexOfPattern &&
+                          previewMetadata.type === "strummingPattern"
+                            ? "Stop"
+                            : "Play"}
+                        </p>
+                        <PlayButtonIcon
+                          uniqueLocationKey={`strummingPatternPreview${index}`}
+                          tabId={id}
+                          currentInstrument={currentInstrument}
+                          previewMetadata={previewMetadata}
+                          indexOfPattern={index}
+                          previewType="strummingPattern"
+                        />
+                      </Button>
+                      <div className="baseFlex border-b-none !flex-nowrap rounded-md border-2">
+                        <StrummingPattern
+                          data={pattern}
+                          mode="viewing"
+                          index={index}
+                          lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+                          setLastModifiedPalmMuteNode={
+                            setLastModifiedPalmMuteNode
+                          }
+                          pmNodeOpacities={[]} //
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </OverlayScrollbarsComponent>
           ) : (
             <div>No strumming patterns were specified for this tab.</div>
           )}
