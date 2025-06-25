@@ -69,7 +69,7 @@ function StaticSectionContainer({
             {/* map over tab/chord subSections */}
             <div
               id={`sectionIndex${sectionIndex}`}
-              className="baseVertFlex w-full"
+              className="baseVertFlex w-full gap-3"
             >
               {sectionData.data.map((subSection, index) => (
                 <div
@@ -79,7 +79,7 @@ function StaticSectionContainer({
                   {(subSection.type === "tab" ||
                     chordSequencesAllHaveSameNoteLength(subSection) ||
                     subSection.repetitions > 1) && (
-                    <div className="baseFlex ml-2 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
+                    <div className="baseFlex ml-4 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
                       {(subSection.type === "tab" ||
                         chordSequencesAllHaveSameNoteLength(subSection)) && (
                         <div className="baseFlex gap-1">
