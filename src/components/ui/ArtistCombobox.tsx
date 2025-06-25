@@ -21,7 +21,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Verified from "~/components/ui/icons/Verified";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 
-function ArtistCommandCombobox() {
+function ArtistCombobox() {
   const {
     artistId,
     artistName,
@@ -313,4 +313,4 @@ function ArtistCommandCombobox() {
   );
 }
 
-export default ArtistCommandCombobox;
+export default ArtistCombobox;
