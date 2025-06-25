@@ -1325,7 +1325,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 className={`${classes.createdBy} baseVertFlex w-full !items-start gap-2`}
               >
                 <div className="font-semibold">Created by</div>
-                <div className="baseFlex !items-baseline gap-2">
+                <div className="baseFlex h-6 gap-2">
                   <Button
                     disabled={!tabCreator}
                     variant={"link"}
@@ -1335,27 +1335,42 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                       href={`/user/${tabCreator?.username ?? ""}/filters`}
                       className="baseFlex gap-2"
                     >
-                      {tabCreator || fetchingTabCreator ? (
-                        <div className="grid grid-cols-1 grid-rows-1">
-                          <>
-                            {tabCreator ? (
-                              <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate">
-                                {tabCreator.username}
-                              </span>
-                            ) : (
-                              <div className="pulseAnimation col-start-1 col-end-2 row-start-1 row-end-2 h-8 w-32 rounded-md bg-pink-300"></div>
-                            )}
-                          </>
-                        </div>
-                      ) : (
-                        <span className="italic text-pink-200">Anonymous</span>
-                      )}
+                      <AnimatePresence mode="popLayout">
+                        <motion.div
+                          key={fetchingTabCreator ? "loading" : "loaded"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="baseFlex"
+                        >
+                          {fetchingTabCreator ? (
+                            <div className="pulseAnimation col-start-1 col-end-2 row-start-1 row-end-2 h-6 w-32 rounded-md bg-pink-300"></div>
+                          ) : (
+                            <>
+                              {tabCreator ? (
+                                <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate">
+                                  {tabCreator.username}
+                                </span>
+                              ) : (
+                                <span className="italic text-pink-200">
+                                  Anonymous
+                                </span>
+                              )}
+                            </>
+                          )}
+                        </motion.div>
+                      </AnimatePresence>
                     </Link>
                   </Button>
 
-                  <span className="whitespace-nowrap text-sm text-pink-200">
+                  <motion.div
+                    layout
+                    transition={{ duration: 0.5, ease: "easeInOut" }}
+                    className="mt-[2px] whitespace-nowrap text-sm text-pink-200"
+                  >
                     {`on ${new Intl.DateTimeFormat("en-US").format(createdAt ?? new Date())}`}
-                  </span>
+                  </motion.div>
                 </div>
               </div>
 
