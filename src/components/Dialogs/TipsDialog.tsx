@@ -102,8 +102,8 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
             <div className="mt-3 h-[1px] w-3 shrink-0 bg-pink-950" />
             <span>
               Enter
-              <kbd className="ml-1.5">r</kbd> / <kbd>t</kbd> /{" "}
-              <kbd className="mr-1.5">y</kbd>
+              <kbd className="ml-1.5">y</kbd> / <kbd>h</kbd> /{" "}
+              <kbd className="mr-1.5">n</kbd>
               to change the current chord&apos;s note length between 1/4th,
               1/8th, and 1/16th respectively.
             </span>

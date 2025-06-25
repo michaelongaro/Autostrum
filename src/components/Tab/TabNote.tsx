@@ -178,7 +178,7 @@ function TabNote({
     }
 
     // Change note length hotkeys
-    if (["r", "t", "y"].includes(e.key.toLowerCase())) {
+    if (["y", "h", "n"].includes(e.key.toLowerCase())) {
       e.preventDefault();
 
       const newTabData = getTabData();
@@ -188,8 +188,8 @@ function TabNote({
 
       let noteLength: "1/4th" | "1/8th" | "1/16th" = "1/4th";
 
-      if (e.key.toLowerCase() === "t") noteLength = "1/8th";
-      if (e.key.toLowerCase() === "y") noteLength = "1/16th";
+      if (e.key.toLowerCase() === "h") noteLength = "1/8th";
+      if (e.key.toLowerCase() === "n") noteLength = "1/16th";
 
       columnData[8] = noteLength;
 
@@ -361,7 +361,10 @@ function TabNote({
       const chordLetter =
         [...value].find((char) => /[A-Ga-g]/.test(char)) ?? "";
 
-      if (chordLetter !== "") {
+      const isValidChord =
+        chordLetter !== "" && (chordLetter !== "b" || value.length === 1);
+
+      if (isValidChord) {
         const chordArray: string[] =
           chordMappings[chordLetter as keyof typeof chordMappings];
 
