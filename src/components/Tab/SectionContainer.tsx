@@ -208,7 +208,7 @@ function SectionContainer({
                     value={localTitle}
                     placeholder="Section title"
                     onChange={updateSectionTitle}
-                    className="max-w-[8rem] font-semibold sm:max-w-[12rem]"
+                    className="w-[10rem] font-semibold xs:w-[15rem]"
                   />
                 </div>
               </div>
