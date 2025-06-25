@@ -301,7 +301,9 @@ function TabNotesColumn({
             marginTop:
               reorderingColumns || showingDeleteColumnsButtons ? "8px" : "0",
             transform:
-              highlightChord || columnHasBeenPlayed ? "scaleX(1)" : "scaleX(0)",
+              highlightChord || columnHasBeenPlayed
+                ? `scaleX(${isFinalColumn ? "0.8" : "1"})` // makes sure that "endcap" doesn't get highlighted as well
+                : "scaleX(0)",
             transformOrigin: "left center",
             transitionDuration: highlightChord ? `${durationOfChord}s` : "0s",
             msTransitionProperty: "transform",
