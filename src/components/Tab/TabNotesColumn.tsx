@@ -347,7 +347,7 @@ function TabNotesColumn({
                             ? "32px"
                             : "40px",
                       }}
-                      className="absolute right-4"
+                      className={`absolute ${isFinalColumn ? "right-7" : ""} `}
                     >
                       <DropdownMenu
                         modal={true}
@@ -468,7 +468,7 @@ function TabNotesColumn({
                           ? "-1.5rem"
                           : "-1rem",
                     }}
-                    className="baseVertFlex absolute left-[53%] right-1/2 w-[1.5rem] -translate-x-1/2"
+                    className={`baseVertFlex absolute ${isFinalColumn ? "left-[42%]" : "left-[53%]"} right-1/2 w-[1.5rem] -translate-x-1/2`}
                   >
                     {getDynamicNoteLengthIcon({
                       noteLength: columnData[8],
