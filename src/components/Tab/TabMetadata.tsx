@@ -519,9 +519,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   disabled={isLoadingARoute}
                   className="baseFlex py-1 pl-1 pr-3 md:py-2"
                   onClick={() =>
-                    void push(
-                      `/tab/?title=${encodeURIComponent(title)}&id=${id}`,
-                    )
+                    void push(`/tab/${id}/${encodeURIComponent(title)}`)
                   }
                 >
                   <BsArrowLeftShort className="h-6 w-8 text-pink-100" />

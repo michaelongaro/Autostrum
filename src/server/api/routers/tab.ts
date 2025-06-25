@@ -381,7 +381,7 @@ export const tabRouter = createTRPCRouter({
       if (tab) {
         // immediately revalidate the tab's page before s3 upload to improve end user experience
         await ctx.res.revalidate(
-          `/tab/?title=${encodeURIComponent(tab.title)}&id=${tab.id}`,
+          `/tab/${tab.id}/${encodeURIComponent(tab.title)}`,
         );
       }
 
@@ -494,7 +494,7 @@ export const tabRouter = createTRPCRouter({
       if (tab) {
         // immediately revalidate the tab's page before s3 upload to improve end user experience
         await ctx.res.revalidate(
-          `/tab/?title=${encodeURIComponent(tab.title)}&id=${tab.id}`,
+          `/tab/${tab.id}/${encodeURIComponent(tab.title)}`,
         );
       }
 

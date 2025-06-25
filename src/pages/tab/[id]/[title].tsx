@@ -101,7 +101,7 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
 
   const openGraphData: OpenGraphData = {
     title: `${tab.title} | Autostrum`,
-    url: `www.autostrum.com/tab/?title=${encodeURIComponent(tab.title)}&id=${tab.id}`,
+    url: `www.autostrum.com//tab/${tab.id}/${encodeURIComponent(tab.title)}`,
     description: `View the guitar tab of ${tab.title} on Autostrum.`,
   };
 
