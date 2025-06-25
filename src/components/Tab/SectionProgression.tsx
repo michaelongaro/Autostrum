@@ -83,7 +83,7 @@ function SectionProgression() {
                         {section.title}
                       </p>
                       {section.repetitions > 1 && (
-                        <p>(x{section.repetitions})</p>
+                        <p>({section.repetitions}x)</p>
                       )}
                     </div>
                   </div>

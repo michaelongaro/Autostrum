@@ -68,7 +68,7 @@ function StaticChordSection({ subSectionData }: StaticChordSection) {
                             />
                           )}
 
-                          <p>Repeat x{chordSequence.repetitions}</p>
+                          <p>Repeat {chordSequence.repetitions}x</p>
                         </div>
                       )}
                     </div>

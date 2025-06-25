@@ -106,7 +106,7 @@ function StaticSectionContainer({
                             />
                           )}
 
-                          <p>Repeat x{subSection.repetitions}</p>
+                          <p>Repeat {subSection.repetitions}x</p>
                         </div>
                       )}
                     </div>

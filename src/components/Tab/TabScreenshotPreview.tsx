@@ -122,7 +122,7 @@ function PreviewSectionContainer({
                       />
                     )}
 
-                    <p>Repeat x{subSection.repetitions}</p>
+                    <p>Repeat {subSection.repetitions}x</p>
                   </div>
                 )}
               </div>
@@ -292,7 +292,7 @@ function PreviewChordSection({
                           />
                         )}
 
-                        <p>Repeat x{chordSequence.repetitions}</p>
+                        <p>Repeat {chordSequence.repetitions}x</p>
                       </div>
                     )}
                   </div>
