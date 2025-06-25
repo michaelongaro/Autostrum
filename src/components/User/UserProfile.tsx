@@ -35,8 +35,6 @@ function UserProfile({ uniqueKey }: UserProfile) {
 
   const [userScreenshotLoaded, setUserScreenshotLoaded] = useState(false);
 
-  console.log(query);
-
   const { data: userMetadata, isFetching: isFetchingUserMetadata } =
     api.user.getProfileMetadataByUsername.useQuery(query.username as string, {
       enabled: query.username !== undefined,

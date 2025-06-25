@@ -380,13 +380,6 @@ export const searchRouter = createTRPCRouter({
           take: limitResults ? 5 : undefined,
         });
 
-        console.log(`Found ${results.length} artists for "${trimmedQuery}":`);
-        results.forEach((artist) => {
-          console.log(
-            `- ID: ${artist.id}, Name: ${artist.name}, Verified: ${artist.isVerified}`,
-          );
-        });
-
         return results;
       } catch (error) {
         console.error("Error searching artists with ILIKE:", error);
