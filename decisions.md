@@ -72,3 +72,6 @@ I’m mapping the current BPM to a range of delays between strummed notes to mak
 
 **Artist and username casing**  
 Since different artists can have the same name but with different casings (Sia vs. SIA), we explicitly allow the same name as as long as the casings are different. I also am allowing the same for usernames, but this is just my personal choice
+
+**Extracted in-line functions within `<TabNote>` to utils file**  
+Due to the sheer number of `<TabNote>` components that could reasonably be rendered at one time while creating/editing a tab, I wanted to reduce the overall computation/memory footprint by extracting these rather heavy onKeyDown and onChange functions to a utils file so they could be cached instead of recreated on every render.
