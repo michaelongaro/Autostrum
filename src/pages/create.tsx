@@ -45,7 +45,7 @@ function Create() {
       </Head>
 
       <div className="baseVertFlex w-full gap-4">
-        <div className="baseFlex w-full !justify-between gap-4 px-4 sm:px-0">
+        <div className="baseFlex w-full !justify-between gap-4 px-4 md:px-0">
           <h1 className="text-3xl font-semibold tracking-tight text-pink-50 md:text-4xl">
             Create
           </h1>

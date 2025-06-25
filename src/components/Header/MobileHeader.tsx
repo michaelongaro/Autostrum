@@ -89,7 +89,7 @@ function MobileHeader() {
   }, [router.events]);
 
   return (
-    <nav className="sticky left-0 top-0 z-[49] h-16 w-full">
+    <nav className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full">
       <div className="headerBackgroundGradient absolute z-[49] flex h-16 w-full items-start justify-between overflow-clip p-2 shadow-md lg:hidden">
         <Link
           href={"/"}
