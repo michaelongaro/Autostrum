@@ -1,9 +1,8 @@
 import { motion } from "framer-motion";
-import { Fragment, useMemo } from "react";
+import { Fragment } from "react";
 import StaticTabMeasureLine from "~/components/Tab/Static/StaticTabMeasureLine";
 import StaticTabNotesColumn from "~/components/Tab/Static/StaticTabNotesColumn";
 import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore, type TabSection } from "~/stores/TabStore";
 
 export interface LastModifiedPalmMuteNodeLocation {
@@ -17,23 +16,9 @@ interface StaticTabSection {
 }
 
 function StaticTabSection({ subSectionData }: StaticTabSection) {
-  const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
-
   const { tuning } = useTabStore((state) => ({
     tuning: state.tuning,
   }));
-
-  const sectionPadding = useMemo(() => {
-    let padding = "0 1rem";
-
-    if (aboveMediumViewportWidth) {
-      padding = "0 2rem";
-    } else {
-      padding = "0 1rem";
-    }
-
-    return padding;
-  }, [aboveMediumViewportWidth]);
 
   return (
     <motion.div
@@ -46,11 +31,7 @@ function StaticTabSection({ subSectionData }: StaticTabSection) {
           duration: 1,
         },
       }}
-      style={{
-        padding: sectionPadding,
-        borderTopLeftRadius: subSectionData.repetitions > 1 ? 0 : "0.375rem",
-      }}
-      className="baseVertFlex lightestGlassmorphic relative h-full !justify-start rounded-md"
+      className="baseVertFlex lightestGlassmorphic relative h-full !justify-start rounded-md px-4 md:px-8"
     >
       <div className="baseFlex relative w-full flex-wrap !justify-start">
         <div
