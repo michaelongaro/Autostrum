@@ -350,7 +350,7 @@ function DesktopHeader() {
                         <Image
                           src={currentUser.profileImageUrl}
                           alt="User profile image"
-                          className="!size-8 rounded-full"
+                          className="!size-8 rounded-full object-cover object-center"
                           width={48}
                           height={48}
                         />
