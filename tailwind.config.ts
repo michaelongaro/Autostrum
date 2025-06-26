@@ -1,6 +1,8 @@
 import { type Config } from "tailwindcss";
 import defaultTheme from "tailwindcss/defaultTheme";
 import plugin from "tailwindcss/plugin";
+import tailwindcssAnimate from "tailwindcss-animate";
+import containerQueries from "@tailwindcss/container-queries";
 
 module.exports = {
   future: {
@@ -119,8 +121,8 @@ module.exports = {
         },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+        "accordion-down": "accordion-down 0.25s ease-out",
+        "accordion-up": "accordion-up 0.25s ease-out",
         errorShake: "errorShake 0.5s ease-in-out forwards",
         smallErrorShake: "smallErrorShake 0.5s ease-in-out forwards",
         colorOscillate: "colorOscillate 1.75s ease-in-out infinite",
@@ -138,8 +140,8 @@ module.exports = {
     },
   },
   plugins: [
-    require("tailwindcss-animate"),
-    require("@tailwindcss/container-queries"),
+    tailwindcssAnimate,
+    containerQueries,
 
     // TODO: probably remove this during UI refactor, since this was
     // a bit of a hack
