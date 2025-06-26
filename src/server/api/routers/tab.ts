@@ -315,6 +315,7 @@ export const tabRouter = createTRPCRouter({
         tuning: z.string(),
         bpm: z.number(),
         capo: z.number(),
+        difficulty: z.number(),
         chords: z.array(chordSchema),
         strummingPatterns: z.array(strummingPatternSchema),
         tabData: z.array(sectionSchema),
@@ -333,6 +334,7 @@ export const tabRouter = createTRPCRouter({
         tuning,
         bpm,
         capo,
+        difficulty,
         chords,
         strummingPatterns,
         tabData,
@@ -359,6 +361,7 @@ export const tabRouter = createTRPCRouter({
           sectionProgression,
           bpm,
           capo,
+          difficulty,
           chords,
           strummingPatterns,
           tabData,
@@ -414,6 +417,20 @@ export const tabRouter = createTRPCRouter({
         },
       });
 
+      // increment the artist's number of tabs (if artistId is provided)
+      if (tab.artistId) {
+        await ctx.prisma.artist.update({
+          where: {
+            id: tab.artistId,
+          },
+          data: {
+            totalTabs: {
+              increment: 1,
+            },
+          },
+        });
+      }
+
       return tab;
     }),
 
@@ -429,6 +446,7 @@ export const tabRouter = createTRPCRouter({
         tuning: z.string(),
         bpm: z.number(),
         capo: z.number(),
+        difficulty: z.number(),
         chords: z.array(chordSchema),
         strummingPatterns: z.array(strummingPatternSchema),
         tabData: z.array(sectionSchema),
@@ -447,6 +465,7 @@ export const tabRouter = createTRPCRouter({
         tuning,
         bpm,
         capo,
+        difficulty,
         chords,
         strummingPatterns,
         tabData,
@@ -464,6 +483,17 @@ export const tabRouter = createTRPCRouter({
       const base64Data = input.base64TabScreenshot.split(",")[1]!;
       const imageBuffer = Buffer.from(base64Data, "base64");
 
+      // need to know if artistId changed, since we will then need to update the old and new
+      // artist's totalTabs
+      const oldTab = await ctx.prisma.tab.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          artistId: true,
+        },
+      });
+
       const tab = await ctx.prisma.tab.update({
         where: {
           id,
@@ -476,6 +506,7 @@ export const tabRouter = createTRPCRouter({
           sectionProgression,
           bpm,
           capo,
+          difficulty,
           chords,
           strummingPatterns,
           tabData,
@@ -513,6 +544,36 @@ export const tabRouter = createTRPCRouter({
       } catch (e) {
         console.log(e);
         // return null;
+      }
+
+      // check if the artistId has changed
+      if (oldTab?.artistId !== artistId) {
+        // decrement the old artist's totalTabs
+        if (oldTab?.artistId) {
+          await ctx.prisma.artist.update({
+            where: {
+              id: oldTab.artistId,
+            },
+            data: {
+              totalTabs: {
+                decrement: 1,
+              },
+            },
+          });
+        }
+        // increment the new artist's totalTabs
+        if (artistId) {
+          await ctx.prisma.artist.update({
+            where: {
+              id: artistId,
+            },
+            data: {
+              totalTabs: {
+                increment: 1,
+              },
+            },
+          });
+        }
       }
 
       return tab;
