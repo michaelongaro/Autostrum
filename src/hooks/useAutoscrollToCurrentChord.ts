@@ -23,21 +23,25 @@ function useAutoscrollToCurrentChord({
     currentChordIndex,
     audioMetadata,
     playbackSpeed,
+    interactingWithAudioProgressSlider,
   } = useTabStore((state) => ({
     editing: state.editing,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     currentChordIndex: state.currentChordIndex,
     audioMetadata: state.audioMetadata,
     playbackSpeed: state.playbackSpeed,
+    interactingWithAudioProgressSlider:
+      state.interactingWithAudioProgressSlider,
   }));
 
   useEffect(() => {
     if (
       // potential complications w/ short (aka repeated) tab data while in playback dialog
       !editing ||
-      // don't want to scroll to first chord when first loading tab
+      // don't want to scroll to first chord when initially loading tab in
       (previousChordYScrollValue === -1 && currentChordIndex === 0) ||
       !currentlyPlayingMetadata ||
+      (!audioMetadata.playing && !interactingWithAudioProgressSlider) ||
       !autoscrollEnabled ||
       currentChordIndex === currentlyPlayingMetadata.length - 1 // always are going to be scrolling to the next chord (for better ux)
     )
@@ -128,6 +132,7 @@ function useAutoscrollToCurrentChord({
     previousChordYScrollValue,
     previousChordSectionIndex,
     playbackSpeed,
+    interactingWithAudioProgressSlider,
   ]);
 }
 

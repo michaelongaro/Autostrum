@@ -264,6 +264,7 @@ const initialStoreState = {
   currentlyCopiedData: null,
   currentlyCopiedChord: null,
   fetchingFullTabData: false,
+  interactingWithAudioProgressSlider: false,
 
   countInTimer: {
     showing: false,
@@ -540,6 +541,10 @@ interface TabState {
   setPreviewMetadata: (previewMetadata: PreviewMetadata) => void;
   breakOnNextPreviewChord: boolean;
   setBreakOnNextPreviewChord: (breakOnNextPreviewChord: boolean) => void;
+  interactingWithAudioProgressSlider: boolean;
+  setInteractingWithAudioProgressSlider: (
+    interactingWithAudioProgressSlider: boolean,
+  ) => void;
 
   // playing/pausing sound functions
   playTab: ({ location, tabId }: PlayTab) => Promise<void>;
@@ -772,6 +777,10 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       breakOnNextPreviewChord: false,
       setBreakOnNextPreviewChord: (breakOnNextPreviewChord) =>
         set({ breakOnNextPreviewChord }),
+      interactingWithAudioProgressSlider: false,
+      setInteractingWithAudioProgressSlider: (
+        interactingWithAudioProgressSlider,
+      ) => set({ interactingWithAudioProgressSlider }),
 
       // playing/pausing sound functions
       playTab: async ({ location, tabId }: PlayTab) => {

@@ -113,6 +113,7 @@ function AudioControls() {
     setAudioMetadata,
     previewMetadata,
     currentInstrument,
+    setInteractingWithAudioProgressSlider,
     tabData,
     playTab,
     pauseAudio,
@@ -136,6 +137,8 @@ function AudioControls() {
     setAudioMetadata: state.setAudioMetadata,
     previewMetadata: state.previewMetadata,
     currentInstrument: state.currentInstrument,
+    setInteractingWithAudioProgressSlider:
+      state.setInteractingWithAudioProgressSlider,
     tabData: state.tabData,
     playTab: state.playTab,
     pauseAudio: state.pauseAudio,
@@ -651,7 +654,7 @@ function AudioControls() {
                     className="baseFlex gap-2"
                   >
                     <RiArrowGoBackFill className="h-4 w-4" />
-                    <p>Play whole tab</p>
+                    <span>Play whole tab</span>
                   </Button>
                 </motion.div>
               )}
@@ -761,14 +764,14 @@ function AudioControls() {
           </Button>
 
           <div className="baseFlex w-9/12 !flex-nowrap gap-2">
-            <p>
+            <span>
               {formatSecondsToMinutes(
                 Math.min(
                   tabProgressValue,
                   currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0,
                 ),
               )}
-            </p>
+            </span>
 
             {audioMetadata.editingLoopRange ? (
               <LoopingRangeSlider
@@ -818,10 +821,12 @@ function AudioControls() {
                   pointerEvents: disablePlayButton ? "none" : "auto",
                 }}
                 onPointerDown={() => {
+                  setInteractingWithAudioProgressSlider(true);
                   setWasPlayingBeforeScrubbing(audioMetadata.playing);
                   if (audioMetadata.playing) pauseAudio();
                 }}
                 onPointerUp={() => {
+                  setInteractingWithAudioProgressSlider(false);
                   if (!wasPlayingBeforeScrubbing) return;
 
                   // waiting; playTab() needs to have currentChordIndex
@@ -862,11 +867,11 @@ function AudioControls() {
               />
             )}
 
-            <p>
+            <span>
               {formatSecondsToMinutes(
                 currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0,
               )}
-            </p>
+            </span>
           </div>
 
           {/* conceptually: what should you do if user toggles looping while playing already... */}
