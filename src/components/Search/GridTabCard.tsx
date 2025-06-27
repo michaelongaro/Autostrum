@@ -243,44 +243,42 @@ function GridTabCard({
               : "!justify-end"
           }`}
         >
-          {!asPath.includes("/artist") &&
-            !asPath.includes("/profile/tabs") &&
-            query.username !== minimalTab.createdBy?.username && (
-              <>
-                {minimalTab.artist || minimalTab.createdBy ? (
-                  <Button variant={"link"} asChild>
-                    <Link
-                      prefetch={false}
-                      href={
-                        minimalTab.artist
-                          ? `/artist/${encodeURIComponent(minimalTab.artist.name)}/${minimalTab.artist.id}/filters`
-                          : minimalTab.createdBy
-                            ? `/user/${minimalTab.createdBy.username}/filters`
-                            : ""
-                      }
-                      className="baseFlex !h-6 max-w-[60%] !justify-start !p-0 xs:max-w-[65%]"
-                    >
-                      {minimalTab.artist ? (
-                        <div className="baseFlex size-full !justify-start gap-1">
-                          {minimalTab.artist.isVerified && (
-                            <Verified className="size-5 shrink-0" />
-                          )}
-                          <span className="max-w-[100%] truncate">
-                            {minimalTab.artist.name}
-                          </span>
-                        </div>
-                      ) : (
+          {!asPath.includes("/artist") && (
+            <>
+              {minimalTab.artist || minimalTab.createdBy ? (
+                <Button variant={"link"} asChild>
+                  <Link
+                    prefetch={false}
+                    href={
+                      minimalTab.artist
+                        ? `/artist/${encodeURIComponent(minimalTab.artist.name)}/${minimalTab.artist.id}/filters`
+                        : minimalTab.createdBy
+                          ? `/user/${minimalTab.createdBy.username}/filters`
+                          : ""
+                    }
+                    className="baseFlex !h-6 max-w-[60%] !justify-start !p-0 xs:max-w-[65%]"
+                  >
+                    {minimalTab.artist ? (
+                      <div className="baseFlex size-full !justify-start gap-1">
+                        {minimalTab.artist.isVerified && (
+                          <Verified className="size-5 shrink-0" />
+                        )}
                         <span className="max-w-[100%] truncate">
-                          {minimalTab.createdBy?.username ?? "Anonymous"}
+                          {minimalTab.artist.name}
                         </span>
-                      )}
-                    </Link>
-                  </Button>
-                ) : (
-                  <span className="text-sm italic">Anonymous</span>
-                )}
-              </>
-            )}
+                      </div>
+                    ) : (
+                      <span className="max-w-[100%] truncate">
+                        {minimalTab.createdBy?.username ?? "Anonymous"}
+                      </span>
+                    )}
+                  </Link>
+                </Button>
+              ) : (
+                <span className="text-sm italic">Anonymous</span>
+              )}
+            </>
+          )}
 
           <div className="baseFlex gap-2 text-sm">
             Difficulty
