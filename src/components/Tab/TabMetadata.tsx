@@ -15,7 +15,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { FaEye } from "react-icons/fa";
-import { BsArrowLeftShort, BsPlus } from "react-icons/bs";
+import { BsPlus } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
 import { MdModeEditOutline } from "react-icons/md";
 import {
@@ -23,6 +23,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore, type Section } from "~/stores/TabStore";
 import { api } from "~/utils/api";
@@ -57,6 +64,16 @@ import { formatNumber } from "~/utils/formatNumber";
 import TuningSelect from "~/components/ui/TuningSelect";
 import Verified from "~/components/ui/icons/Verified";
 import getDynamicFontSize from "~/utils/getDynamicFontSize";
+import { LiaEllipsisVSolid } from "react-icons/lia";
+import { HiOutlineExternalLink } from "react-icons/hi";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
 
 const KEYS_BY_LETTER = {
   A: ["A major", "A minor", "A# minor", "A♭ major", "A♭ minor"],
@@ -166,6 +183,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     asPath.includes("create") ? "Publish" : "Save",
   );
   const [deleteButtonText, setDeleteButtonText] = useState("Delete");
+  const [showDeleteAlertDialog, setShowDeleteAlertDialog] = useState(false);
 
   const { mutate: publishTab, isLoading: isPublishing } =
     api.tab.create.useMutation({
@@ -252,7 +270,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
   const [takingScreenshot, setTakingScreenshot] = useState(false);
   const tabPreviewScreenshotRef = useRef(null);
 
-  const [showDeletePopover, setShowDeletePopover] = useState(false);
   const [showPublishPopover, setShowPublishPopover] = useState(false);
 
   const [publishErrorOccurred, setPublishErrorOccurred] = useState(false);
@@ -522,96 +539,45 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
         <div className="baseVertFlex w-full gap-2">
           <div className="baseFlex w-full !justify-end gap-2 p-4 sm:gap-3">
             {!asPath.includes("create") && (
-              <Popover
-                open={showDeletePopover}
-                onOpenChange={(open) => setShowDeletePopover(open)}
-              >
-                <PopoverTrigger asChild>
+              <DropdownMenu modal={true}>
+                <DropdownMenuTrigger asChild>
                   <Button
-                    variant={"destructive"}
-                    disabled={isDeleting || isLoadingARoute}
-                    className="baseFlex gap-2"
+                    aria-label="Miscellaneous tab actions dropdown trigger"
+                    variant={"ghost"}
+                    className="px-0"
                   >
-                    <AnimatePresence mode={"popLayout"} initial={false}>
-                      <motion.div
-                        key={deleteButtonText}
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 20 }}
-                        transition={{
-                          duration: 0.25,
-                        }}
-                        className="baseFlex w-[85px] gap-2"
-                      >
-                        {deleteButtonText === "Delete" && (
-                          <FaTrashAlt className="h-4 w-4" />
-                        )}
-                        {deleteButtonText}
-                        {deleteButtonText === "Deleting" && (
-                          <div
-                            className="inline-block size-4 animate-spin rounded-full border-[2px] border-pink-50 border-t-transparent text-pink-50"
-                            role="status"
-                            aria-label="loading"
-                          >
-                            <span className="sr-only">Loading...</span>
-                          </div>
-                        )}
-                        {deleteButtonText === "" && (
-                          <svg
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                            className="size-5 text-pink-50"
-                          >
-                            <motion.path
-                              initial={{ pathLength: 0 }}
-                              animate={{ pathLength: 1 }}
-                              transition={{
-                                delay: 0.2,
-                                type: "tween",
-                                ease: "easeOut",
-                                duration: 0.3,
-                              }}
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        )}
-                      </motion.div>
-                    </AnimatePresence>
+                    <LiaEllipsisVSolid className="size-7 sm:size-8" />
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="baseVertFlex gap-4 bg-pink-100 p-2 text-sm text-pink-950 md:text-base">
-                  <p className="w-auto text-center text-sm">
-                    Are you sure you want to delete this tab?
-                  </p>
+                </DropdownMenuTrigger>
 
-                  <div className="baseFlex gap-2">
-                    <Button
-                      variant={"outline"}
-                      size="sm"
-                      onClick={() => setShowDeletePopover(false)}
-                    >
-                      Cancel
-                    </Button>
-
-                    <Button
-                      variant={"destructive"}
-                      size="sm"
-                      disabled={isDeleting}
+                <DropdownMenuContent side={"bottom"}>
+                  <DropdownMenuItem className="baseFlex">
+                    <Link
+                      href={`/tab/${id}/${encodeURIComponent(title)}`}
+                      className="baseFlex w-full !justify-between gap-2 font-normal"
                       onClick={() => {
-                        deleteTab(id);
-                        setShowDeletePopover(false);
+                        pauseAudio(true);
+                        setEditing(false);
                       }}
-                      className="baseFlex gap-2"
                     >
-                      Confirm
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
+                      View tab
+                      <HiOutlineExternalLink className="size-4" />
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem
+                    className="baseFlex !justify-between gap-2 focus-within:!bg-[rgb(255,0,0)] focus-within:!text-pink-100 active:!bg-[rgb(255,0,0)] active:!text-pink-100"
+                    onClick={() => {
+                      setShowDeleteAlertDialog(true);
+                    }}
+                  >
+                    Delete tab
+                    <FaTrashAlt className="size-4 text-inherit" />
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
 
             <Button
@@ -1039,6 +1005,29 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   {!asPath.includes("create") && !asPath.includes("edit") && (
                     <AnimatePresence mode="popLayout">
                       <div className="baseFlex shrink-0 gap-3">
+                        {((userId && createdByUserId === userId) ||
+                          asPath.includes("create")) && (
+                          <Button
+                            disabled={isLoadingARoute}
+                            className="baseFlex gap-2 whitespace-nowrap text-nowrap"
+                            onClick={() => {
+                              if (
+                                asPath.includes("create") ||
+                                asPath.includes("edit")
+                              ) {
+                                pauseAudio(true);
+                                setEditing(true);
+                              } else void push(`/tab/${id}/edit`);
+                            }}
+                          >
+                            {asPath.includes("edit") ||
+                            asPath.includes("create")
+                              ? "Continue editing"
+                              : "Edit"}
+                            <MdModeEditOutline className="h-5 w-5" />
+                          </Button>
+                        )}
+
                         {dynamicMetadata ? (
                           <motion.div
                             key={"crossfadeRateTab"}
@@ -1128,28 +1117,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                     </AnimatePresence>
                   )}
                 </div>
-
-                {((userId && createdByUserId === userId) ||
-                  asPath.includes("create")) && (
-                  <Button
-                    disabled={isLoadingARoute}
-                    className="baseFlex gap-2 whitespace-nowrap text-nowrap"
-                    onClick={() => {
-                      if (
-                        asPath.includes("create") ||
-                        asPath.includes("edit")
-                      ) {
-                        pauseAudio(true);
-                        setEditing(true);
-                      } else void push(`/tab/${id}/edit`);
-                    }}
-                  >
-                    {asPath.includes("edit") || asPath.includes("create")
-                      ? "Continue editing"
-                      : "Edit"}
-                    <MdModeEditOutline className="h-5 w-5" />
-                  </Button>
-                )}
               </div>
             ) : (
               <div className="baseVertFlex relative w-full !items-start gap-2 sm:!flex-row sm:!items-end">
@@ -1475,6 +1442,92 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
           </div>
         </div>
       )}
+
+      <AlertDialog
+        open={showDeleteAlertDialog}
+        onOpenChange={(open) => {
+          if (!open) setShowDeleteAlertDialog(false);
+        }}
+      >
+        <AlertDialogContent className="bg-pink-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-lg font-semibold">
+              Delete Tab
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this tab? This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="baseFlex gap-2">
+            <Button
+              variant={"outline"}
+              onClick={() => setShowDeleteAlertDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant={"destructive"}
+              disabled={isDeleting || isLoadingARoute}
+              className="baseFlex gap-2"
+              onClick={() => {
+                setDeleteButtonText("Deleting");
+                deleteTab(id);
+              }}
+            >
+              <AnimatePresence mode={"popLayout"} initial={false}>
+                <motion.div
+                  key={deleteButtonText}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{
+                    duration: 0.25,
+                  }}
+                  className="baseFlex w-[85px] gap-2"
+                >
+                  {deleteButtonText === "Delete" && (
+                    <FaTrashAlt className="h-4 w-4" />
+                  )}
+                  {deleteButtonText}
+                  {deleteButtonText === "Deleting" && (
+                    <div
+                      className="inline-block size-4 animate-spin rounded-full border-[2px] border-pink-50 border-t-transparent text-pink-50"
+                      role="status"
+                      aria-label="loading"
+                    >
+                      <span className="sr-only">Loading...</span>
+                    </div>
+                  )}
+                  {deleteButtonText === "" && (
+                    <svg
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      className="size-5 text-pink-50"
+                    >
+                      <motion.path
+                        initial={{ pathLength: 0 }}
+                        animate={{ pathLength: 1 }}
+                        transition={{
+                          delay: 0.2,
+                          type: "tween",
+                          ease: "easeOut",
+                          duration: 0.3,
+                        }}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {minifiedTabData &&
         createPortal(
