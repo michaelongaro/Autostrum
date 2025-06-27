@@ -388,6 +388,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
             tuning,
             bpm,
             capo,
+            key,
             base64TabScreenshot: base64Screenshot,
           });
         } else {
@@ -406,6 +407,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
             tuning,
             bpm,
             capo,
+            key,
             base64TabScreenshot: base64Screenshot,
           });
         }
