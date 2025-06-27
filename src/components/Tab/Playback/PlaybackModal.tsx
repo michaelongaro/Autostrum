@@ -424,7 +424,6 @@ function PlaybackModal() {
       initial="closed"
       animate="expanded"
       exit="closed"
-      tabIndex={-1}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           setShowPlaybackModal(false);
@@ -441,12 +440,13 @@ function PlaybackModal() {
     >
       <FocusTrap
         focusTrapOptions={{
-          allowOutsideClick: true,
+          allowOutsideClick: true, // to click on the effect dialog "x"
           initialFocus: false,
         }}
       >
         <div
           ref={modalContentRef}
+          tabIndex={-1}
           className="baseVertFlex relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none bg-black p-0 mobileNarrowLandscape:!justify-center tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
         >
           <PlaybackTopMetadata

@@ -114,7 +114,6 @@ function SectionProgressionModal() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      tabIndex={-1}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           setShowSectionProgressionModal(false);
@@ -123,11 +122,13 @@ function SectionProgressionModal() {
     >
       <FocusTrap
         focusTrapOptions={{
-          allowOutsideClick: true,
           initialFocus: false,
         }}
       >
-        <div className="min-h-[20rem] min-w-[70vw] rounded-md bg-pink-400 p-4 shadow-sm md:min-w-[25rem]">
+        <div
+          tabIndex={-1}
+          className="min-h-[20rem] min-w-[70vw] rounded-md bg-pink-400 p-4 shadow-sm md:min-w-[25rem]"
+        >
           <div className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full max-w-[90vw] !justify-between">
             <span className="self-start text-lg font-semibold text-pink-100">
               Section progression

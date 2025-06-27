@@ -151,7 +151,6 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       initial="closed"
       animate="expanded"
       exit="closed"
-      tabIndex={-1}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           if (audioMetadata.playing) pauseAudio();
@@ -161,11 +160,13 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
     >
       <FocusTrap
         focusTrapOptions={{
-          allowOutsideClick: true,
           initialFocus: false,
         }}
       >
-        <div className="baseVertFlex relative min-w-[300px] max-w-[90vw] gap-4 rounded-md bg-pink-400 p-4 shadow-sm xs:max-w-[380px] xs:gap-8">
+        <div
+          tabIndex={-1}
+          className="baseVertFlex relative min-w-[300px] max-w-[90vw] gap-4 rounded-md bg-pink-400 p-4 shadow-sm xs:max-w-[380px] xs:gap-8"
+        >
           {/* chord title */}
           <div className="baseFlex w-full !items-end !justify-between">
             <div className="baseVertFlex !items-start gap-2">

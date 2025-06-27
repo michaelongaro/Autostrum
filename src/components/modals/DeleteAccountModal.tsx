@@ -21,6 +21,8 @@ const backdropVariants = {
   },
 };
 
+// FYI: this should surely be an <AlertDialog> right?
+
 interface DeleteAccountModal {
   setShowDeleteAccountModal: Dispatch<SetStateAction<boolean>>;
 }
@@ -66,7 +68,6 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
       initial="closed"
       animate="expanded"
       exit="closed"
-      tabIndex={-1}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           setShowDeleteAccountModal(false);
@@ -78,7 +79,10 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
           initialFocus: false,
         }}
       >
-        <div className="baseVertFlex w-[350px] gap-10 rounded-md bg-pink-400 p-4 shadow-sm sm:w-[500px]">
+        <div
+          tabIndex={-1}
+          className="baseVertFlex w-[350px] gap-10 rounded-md bg-pink-400 p-4 shadow-sm sm:w-[500px]"
+        >
           <div className="baseFlex w-full !justify-between gap-2">
             <div className="baseFlex gap-2">
               <IoWarningOutline className="size-6" />

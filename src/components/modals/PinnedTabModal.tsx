@@ -23,7 +23,6 @@ function PinnedTabModal({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
       className="baseFlex fixed left-0 top-0 z-50 h-[100dvh] w-[100vw] bg-black/50"
-      tabIndex={-1}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           setShowPinnedTabModal(false);
@@ -31,7 +30,10 @@ function PinnedTabModal({
       }}
     >
       <FocusLock autoFocus={false} returnFocus={true} persistentFocus={true}>
-        <div className="baseVertFlex h-[500px] w-[500px] gap-4 rounded-md bg-pink-400 p-4 shadow-sm">
+        <div
+          tabIndex={-1}
+          className="baseVertFlex h-[500px] w-[500px] gap-4 rounded-md bg-pink-400 p-4 shadow-sm"
+        >
           <PinnedTabList
             userId={userId}
             localPinnedTabId={localPinnedTabId}

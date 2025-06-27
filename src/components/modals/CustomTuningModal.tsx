@@ -106,7 +106,6 @@ function CustomTuningModal({
       initial="closed"
       animate="expanded"
       exit="closed"
-      tabIndex={-1}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           setShowCustomTuningModal(false);
@@ -115,11 +114,13 @@ function CustomTuningModal({
     >
       <FocusTrap
         focusTrapOptions={{
-          allowOutsideClick: true,
           initialFocus: false,
         }}
       >
-        <div className="baseVertFlex min-w-[300px] max-w-[91vw] gap-8 rounded-md bg-pink-400 p-4 shadow-sm xl:max-w-[50vw]">
+        <div
+          tabIndex={-1}
+          className="baseVertFlex min-w-[300px] max-w-[91vw] gap-8 rounded-md bg-pink-400 p-4 shadow-sm xl:max-w-[50vw]"
+        >
           <div className="baseFlex w-full !justify-between gap-2 text-pink-100">
             <div className="baseFlex gap-2">
               <IoSettingsSharp className="h-5 w-5" />
