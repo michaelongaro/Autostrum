@@ -39,6 +39,7 @@ export function useInitializeAudioContext() {
       if (audioContext && masterVolumeGainNode) return;
 
       const newAudioContext = new AudioContext();
+      void newAudioContext.resume(); // Resume the context to ensure it is active (iOS safari requirement)
 
       const newMasterVolumeGainNode = newAudioContext.createGain();
 

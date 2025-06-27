@@ -807,6 +807,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
 
         if (!audioContext || !masterVolumeGainNode || !currentInstrument) {
           const newAudioContext = new AudioContext();
+          void newAudioContext.resume(); // Resume the context to ensure it is active (iOS safari requirement)
 
           const newMasterVolumeGainNode = newAudioContext.createGain();
 
