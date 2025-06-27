@@ -600,7 +600,7 @@ export const tabRouter = createTRPCRouter({
 
       const command = new DeleteObjectCommand({
         Bucket: "autostrum-screenshots",
-        Key: `${idToDelete}.webm`,
+        Key: `${idToDelete}.jpeg`,
       });
 
       try {

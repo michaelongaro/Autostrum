@@ -676,7 +676,7 @@ export const userRouter = createTRPCRouter({
           const deleteParams = {
             Bucket: "autostrum-screenshots",
             Delete: {
-              Objects: chunk.map(({ id: tabId }) => ({ Key: `${tabId}.webm` })),
+              Objects: chunk.map(({ id: tabId }) => ({ Key: `${tabId}.jpeg` })),
               Quiet: false,
             },
           };
