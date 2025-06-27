@@ -214,7 +214,7 @@ function PlaybackAudioControls({
               audioMetadata={audioMetadata}
               forceShowLoadingSpinner={fetchingFullTabData}
               showCountInTimer={countInTimer.showing}
-              size="0.25rem"
+              size="0.75rem"
             />
           </Button>
 
@@ -222,10 +222,11 @@ function PlaybackAudioControls({
           <AnimatePresence mode={"popLayout"} initial={false}>
             <motion.div
               key={playbackSpeed}
-              initial={{ scale: 0.5, x: 30, opacity: 0 }}
-              animate={{ scale: 1, x: 0, opacity: 1 }}
-              exit={{ scale: 0.5, x: -30, opacity: 0 }}
+              initial={{ x: 10, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -10, opacity: 0 }}
               transition={{ duration: 0.25 }}
+              className="w-[36px]"
             >
               <Button
                 variant="link"
@@ -255,7 +256,7 @@ function PlaybackAudioControls({
                   setTabProgressValue(adjustedProgress);
                   setPlaybackSpeed(newPlaybackSpeed);
                 }}
-                className="w-6"
+                className="w-[36px] !px-0"
               >
                 {playbackSpeed}x
               </Button>

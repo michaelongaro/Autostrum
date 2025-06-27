@@ -483,7 +483,7 @@ function UserStatistics() {
                               >
                                 <Link
                                   href={`/tab/${tab.id}/${encodeURIComponent(tab.title)}`}
-                                  className="!p-0 !text-base !font-semibold md:!text-lg"
+                                  className="!p-0 !text-base !font-semibold hover:underline md:!text-lg"
                                 >
                                   {tab.title}
                                 </Link>

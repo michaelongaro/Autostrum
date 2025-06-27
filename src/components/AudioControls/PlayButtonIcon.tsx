@@ -147,7 +147,7 @@ function PlayButtonIcon({
   function renderPlayButtonIcon() {
     if (showCountInTimer && !hideCountInTimer) {
       return (
-        <div className="baseFlex size-10 overflow-hidden">
+        <div className="baseFlex size-10 shrink-0 overflow-hidden">
           <div key={countInNumber} className="countIn text-lg">
             {countInNumber}
           </div>
@@ -163,7 +163,7 @@ function PlayButtonIcon({
           initial="closed"
           animate="expanded"
           transition={{ duration: 0.3 }}
-          className="size-5 animate-stableSpin rounded-full bg-inherit fill-none"
+          className="size-5 shrink-0 animate-stableSpin rounded-full bg-inherit fill-none"
           viewBox="0 0 24 24"
         >
           <circle
@@ -201,6 +201,7 @@ function PlayButtonIcon({
           initial="closed"
           animate="expanded"
           transition={{ duration: 0.3 }}
+          className="shrink-0"
         >
           {previewType === "strummingPattern" &&
           previewMetadata?.indexOfPattern === indexOfPattern ? (
@@ -229,7 +230,7 @@ function PlayButtonIcon({
         initial="closed"
         animate="expanded"
         transition={{ duration: 0.3 }}
-        className="z-10 px-1"
+        className="z-10 shrink-0 px-1"
       >
         <PlayIcon
           style={{
