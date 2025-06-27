@@ -199,6 +199,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
         }, 250);
 
         setTimeout(() => {
+          setIsPublishingOrUpdating(false);
           void push(`/tab/${tab.id}/${encodeURIComponent(tab.title)}`);
         }, 4000);
       },
@@ -223,6 +224,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
         }, 250);
 
         setTimeout(() => {
+          setIsPublishingOrUpdating(false);
           setSaveButtonText("Save");
         }, 4000);
       },
@@ -296,10 +298,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
       }
     };
   }, [artistId, createdByUserId, editing, id, processPageView]);
-
-  useEffect(() => {
-    setIsPublishingOrUpdating(isPublishing || isUpdating);
-  }, [isPublishing, isUpdating, setIsPublishingOrUpdating]);
 
   function handleBpmChange(event: ChangeEvent<HTMLInputElement>) {
     const inputValue = event.target.value;
@@ -381,6 +379,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
       return;
     }
 
+    setIsPublishingOrUpdating(true);
     setSaveButtonText(asPath.includes("create") ? "Publishing" : "Saving");
 
     setMinifiedTabData(getMinifiedTabData());
