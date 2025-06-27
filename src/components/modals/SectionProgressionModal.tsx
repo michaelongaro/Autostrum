@@ -136,7 +136,7 @@ function SectionProgressionModal() {
 
             <div
               ref={scrollableSectionsRef}
-              className="baseVertFlex mt-4 max-h-[65vh] w-full !justify-start px-4 md:max-h-[65vh]"
+              className="baseVertFlex mt-4 max-h-[60vh] w-full !justify-start px-4 md:max-h-[65vh]"
             >
               <OverlayScrollbarsComponent
                 options={{
