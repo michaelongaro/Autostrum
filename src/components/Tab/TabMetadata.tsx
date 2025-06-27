@@ -552,6 +552,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 <DropdownMenuContent side={"bottom"}>
                   <DropdownMenuItem className="baseFlex">
                     <Link
+                      prefetch={false}
                       href={`/tab/${id}/${encodeURIComponent(title)}`}
                       className="baseFlex w-full !justify-between gap-2 font-normal"
                       onClick={() => {
@@ -1302,6 +1303,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                     className="h-6 !py-0 px-0 text-base"
                   >
                     <Link
+                      prefetch={false}
                       href={`/user/${tabCreator?.username ?? ""}/filters`}
                       className="baseFlex gap-2"
                     >

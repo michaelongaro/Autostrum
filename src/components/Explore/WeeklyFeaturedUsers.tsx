@@ -395,6 +395,7 @@ function WeeklyFeaturedUsers({
 
                     <Button variant={"link"} asChild>
                       <Link
+                        prefetch={false}
                         href={`/user/${user.username}/filters`}
                         className="baseFlex min-w-0 max-w-[250px] !justify-start gap-2 !p-0 md:max-w-[100%]"
                       >

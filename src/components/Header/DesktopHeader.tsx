@@ -85,6 +85,7 @@ function DesktopHeader() {
                 className={classes.metronome}
               >
                 <Link
+                  prefetch={false}
                   href={"/metronome"}
                   className="baseFlex !size-12 !rounded-full !p-0"
                 >
@@ -114,6 +115,7 @@ function DesktopHeader() {
                 className={classes.tuner}
               >
                 <Link
+                  prefetch={false}
                   href={"/tuner"}
                   className="baseFlex !size-12 !rounded-full !p-0"
                 >
@@ -149,6 +151,7 @@ function DesktopHeader() {
                 className={classes.explore}
               >
                 <Link
+                  prefetch={false}
                   href={"/explore"}
                   className="baseFlex !size-12 !rounded-full !p-0"
                 >
@@ -178,6 +181,7 @@ function DesktopHeader() {
                 className={classes.create}
               >
                 <Link
+                  prefetch={false}
                   href={"/create"}
                   className="baseFlex !size-12 !rounded-full !p-0"
                 >
@@ -339,6 +343,7 @@ function DesktopHeader() {
                   <div className="baseFlex w-full !justify-between gap-4 px-1">
                     <Button variant={"link"} size={"lg"} asChild>
                       <Link
+                        prefetch={false}
                         href={`
                       /user/${currentUser.username}/filters
                       `}
@@ -371,6 +376,7 @@ function DesktopHeader() {
                     >
                       <Button variant={"link"} asChild>
                         <Link
+                          prefetch={false}
                           href={`/`}
                           onClick={() => {
                             setUserPopoverOpen(false);
@@ -398,6 +404,7 @@ function DesktopHeader() {
                       }}
                     >
                       <Link
+                        prefetch={false}
                         href={`/profile/settings`}
                         onClick={() => {
                           setUserPopoverOpen(false);
@@ -423,6 +430,7 @@ function DesktopHeader() {
                       }}
                     >
                       <Link
+                        prefetch={false}
                         href={`/profile/statistics`}
                         onClick={() => {
                           setUserPopoverOpen(false);
@@ -450,6 +458,7 @@ function DesktopHeader() {
                       }}
                     >
                       <Link
+                        prefetch={false}
                         href={`/profile/tabs/filters`}
                         onClick={() => {
                           setUserPopoverOpen(false);
@@ -475,6 +484,7 @@ function DesktopHeader() {
                       }}
                     >
                       <Link
+                        prefetch={false}
                         href={`/profile/bookmarks/filters`}
                         onClick={() => {
                           setUserPopoverOpen(false);

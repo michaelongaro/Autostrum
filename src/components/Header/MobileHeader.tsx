@@ -92,6 +92,7 @@ function MobileHeader() {
     <nav className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full">
       <div className="headerBackgroundGradient absolute z-[49] flex h-16 w-full items-start justify-between overflow-clip p-2 shadow-md lg:hidden">
         <Link
+          prefetch={false}
           href={"/"}
           className="baseFlex h-12 pl-2 transition-[filter] hover:brightness-[1.05] active:brightness-[0.95]"
         >
@@ -197,6 +198,7 @@ function MobileHeader() {
                   }}
                 >
                   <Link
+                    prefetch={false}
                     href={"/explore"}
                     className="baseFlex w-[165px] gap-2.5 text-[1.13rem]"
                   >
@@ -217,6 +219,7 @@ function MobileHeader() {
                   }}
                 >
                   <Link
+                    prefetch={false}
                     href={"/create"}
                     className="baseFlex w-[165px] gap-[0.14rem] text-[1.13rem]"
                   >
@@ -242,6 +245,7 @@ function MobileHeader() {
                     }}
                   >
                     <Link
+                      prefetch={false}
                       href={"/metronome"}
                       className="baseFlex w-[165px] gap-2"
                     >
@@ -260,7 +264,11 @@ function MobileHeader() {
                       color: asPath.includes("/tuner") ? "#fbcfe8" : undefined,
                     }}
                   >
-                    <Link href={"/tuner"} className="baseFlex w-[165px] gap-2">
+                    <Link
+                      prefetch={false}
+                      href={"/tuner"}
+                      className="baseFlex w-[165px] gap-2"
+                    >
                       <TuningFork className="size-4" />
                       Tuner
                     </Link>
@@ -440,6 +448,7 @@ function MobileHeader() {
                     <div className="baseFlex w-full !justify-between gap-4">
                       <Button variant={"link"} size={"lg"} asChild>
                         <Link
+                          prefetch={false}
                           href={`
                 /user/${currentUser.username}/filters
                 `}
@@ -493,7 +502,11 @@ function MobileHeader() {
                       // }}
                       >
                         <Button variant={"link"} asChild>
-                          <Link href={`/`} className="baseFlex !p-0 underline">
+                          <Link
+                            prefetch={false}
+                            href={`/`}
+                            className="baseFlex !p-0 underline"
+                          >
                             Sign out
                           </Link>
                         </Button>
@@ -515,6 +528,7 @@ function MobileHeader() {
                         }}
                       >
                         <Link
+                          prefetch={false}
                           href={`/profile/settings`}
                           className="baseFlex w-[165px] gap-2"
                         >
@@ -539,6 +553,7 @@ function MobileHeader() {
                         }}
                       >
                         <Link
+                          prefetch={false}
                           href={`/profile/statistics`}
                           className="baseFlex w-[165px] gap-2"
                         >
@@ -563,6 +578,7 @@ function MobileHeader() {
                         }}
                       >
                         <Link
+                          prefetch={false}
                           href={`/profile/tabs/filters`}
                           className="baseFlex w-[165px] gap-2"
                         >
@@ -585,6 +601,7 @@ function MobileHeader() {
                         }}
                       >
                         <Link
+                          prefetch={false}
                           href={`/profile/bookmarks/filters`}
                           className="baseFlex w-[165px] gap-2 !px-0"
                         >

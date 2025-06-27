@@ -166,7 +166,11 @@ function UserNotAllowedToEdit({ tabId }: { tabId: number }) {
       </p>
 
       <Button asChild>
-        <Link href={`/tab/${tabId}`} className="baseFlex gap-1 pr-6">
+        <Link
+          prefetch={false}
+          href={`/tab/${tabId}`}
+          className="baseFlex gap-1 pr-6"
+        >
           <BsArrowLeftShort className="h-6 w-8 text-pink-100" />
           Return to tab
         </Link>

@@ -153,6 +153,7 @@ function UserStatistics() {
         <div className="baseFlex !hidden w-full !justify-start gap-4 md:!flex">
           <Button variant={"text"} asChild>
             <Link
+              prefetch={false}
               href={"/profile/settings"}
               className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50/50 hover:!text-pink-50 active:!text-pink-50/75 lg:!text-4xl"
             >
@@ -161,6 +162,7 @@ function UserStatistics() {
           </Button>
           <Button variant={"text"} asChild>
             <Link
+              prefetch={false}
               href={"/profile/statistics"}
               className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50 hover:!text-pink-50 active:text-pink-50/75 lg:!text-4xl"
             >
@@ -169,6 +171,7 @@ function UserStatistics() {
           </Button>
           <Button variant={"text"} asChild>
             <Link
+              prefetch={false}
               href={"/profile/tabs/filters"}
               className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50/50 hover:!text-pink-50 active:!text-pink-50/75 lg:!text-4xl"
             >
@@ -177,6 +180,7 @@ function UserStatistics() {
           </Button>
           <Button variant={"text"} asChild>
             <Link
+              prefetch={false}
               href={"/profile/bookmarks/filters"}
               className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50/50 hover:!text-pink-50 active:!text-pink-50/75 lg:!text-4xl"
             >

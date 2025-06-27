@@ -123,6 +123,7 @@ function Explore({ json }: { json: string }) {
 
               <Button variant={"link"} asChild>
                 <Link
+                  prefetch={false}
                   href={"/search/filters"}
                   className="!h-6 !py-0 text-pink-50"
                 >
@@ -171,6 +172,7 @@ function Explore({ json }: { json: string }) {
 
               <Button variant={"link"} asChild>
                 <Link
+                  prefetch={false}
                   href={"/search/filters?sortBy=mostPopular"}
                   className="!h-6 !py-0 text-pink-50"
                 >

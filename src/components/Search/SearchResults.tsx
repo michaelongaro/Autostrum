@@ -1899,6 +1899,7 @@ function SearchResults({
                               className="baseFlex"
                             >
                               <Link
+                                prefetch={false}
                                 href={"/create"}
                                 onClick={() => {
                                   // TODO: add artistName to localStorage
@@ -1922,6 +1923,7 @@ function SearchResults({
                                     className="baseFlex"
                                   >
                                     <Link
+                                      prefetch={false}
                                       href={`/artist/${artist.name}/${artist.id}`}
                                       className="baseFlex gap-1"
                                     >
