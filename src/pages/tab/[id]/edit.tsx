@@ -74,7 +74,6 @@ function EditIndividualTab({
         <Tab tab={tab} />
       </AnimatePresence>
 
-      {/* can probably drop the <AnimatePresence> since it can't ever be triggered, right?*/}
       <AnimatePresence mode="wait">
         {showingAudioControls && <AudioControls />}
       </AnimatePresence>
