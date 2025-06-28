@@ -957,165 +957,156 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
         <div className="min-h-[100px] w-full">
           <div className="baseVertFlex !flex-start w-full !items-start gap-2 bg-pink-700 px-4 py-4 shadow-md sm:!flex-row sm:!items-center sm:gap-4 md:rounded-t-md tablet:!px-6">
             {overMediumViewportThreshold ? (
-              <div className="baseFlex w-full !justify-between gap-3">
-                <div
-                  className={`baseFlex w-full gap-4 ${
-                    asPath.includes("create") || asPath.includes("edit")
-                      ? "!justify-start"
-                      : "!justify-between"
-                  }`}
-                >
-                  <div className="baseFlex !justify-start gap-2">
-                    <div
-                      style={{
-                        fontSize: getDynamicFontSize(title, 20, 24, 50),
-                      }}
-                      className="max-w-[100%] text-wrap font-bold"
-                    >
-                      {title}
-                    </div>
-
-                    {artistName && (
-                      <div className="baseFlex gap-2 text-lg">
-                        by
-                        <Button variant={"link"} asChild>
-                          <Link
-                            prefetch={false}
-                            href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
-                            className="!h-6 !p-0"
-                          >
-                            <div className="baseFlex gap-1 text-lg font-medium">
-                              {artistIsVerified && (
-                                <Verified className="size-5 shrink-0" />
-                              )}
-                              <span className="max-w-[300px] truncate">
-                                {artistName}
-                              </span>
-                            </div>
-                          </Link>
-                        </Button>
-                      </div>
-                    )}
+              <div className="baseFlex w-full !justify-between gap-4">
+                <div className="baseFlex !justify-start gap-2">
+                  <div
+                    style={{
+                      fontSize: getDynamicFontSize(title, 20, 24, 50),
+                    }}
+                    className="max-w-[100%] text-wrap font-bold"
+                  >
+                    {title}
                   </div>
+
+                  {artistName && (
+                    <div className="baseFlex gap-2 text-lg">
+                      by
+                      <Button variant={"link"} asChild>
+                        <Link
+                          prefetch={false}
+                          href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
+                          className="!h-6 !p-0"
+                        >
+                          <div className="baseFlex gap-1 text-lg font-medium">
+                            {artistIsVerified && (
+                              <Verified className="size-5 shrink-0" />
+                            )}
+                            <span className="max-w-[300px] truncate">
+                              {artistName}
+                            </span>
+                          </div>
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="baseFlex shrink-0 gap-3">
+                  {((userId && createdByUserId === userId) ||
+                    asPath.includes("create")) && (
+                    <Button
+                      disabled={isLoadingARoute}
+                      className="baseFlex gap-2 whitespace-nowrap text-nowrap"
+                      onClick={() => {
+                        if (
+                          asPath.includes("create") ||
+                          asPath.includes("edit")
+                        ) {
+                          pauseAudio(true);
+                          setEditing(true);
+                        } else void push(`/tab/${id}/edit`);
+                      }}
+                    >
+                      {asPath.includes("edit") || asPath.includes("create")
+                        ? "Continue editing"
+                        : "Edit"}
+                      <MdModeEditOutline className="size-5" />
+                    </Button>
+                  )}
 
                   {!asPath.includes("create") && !asPath.includes("edit") && (
                     <AnimatePresence mode="popLayout">
-                      <div className="baseFlex shrink-0 gap-3">
-                        {((userId && createdByUserId === userId) ||
-                          asPath.includes("create")) && (
-                          <Button
-                            disabled={isLoadingARoute}
-                            className="baseFlex gap-2 whitespace-nowrap text-nowrap"
-                            onClick={() => {
-                              if (
-                                asPath.includes("create") ||
-                                asPath.includes("edit")
-                              ) {
-                                pauseAudio(true);
-                                setEditing(true);
-                              } else void push(`/tab/${id}/edit`);
-                            }}
-                          >
-                            {asPath.includes("edit") ||
-                            asPath.includes("create")
-                              ? "Continue editing"
-                              : "Edit"}
-                            <MdModeEditOutline className="h-5 w-5" />
-                          </Button>
-                        )}
-
-                        {dynamicMetadata ? (
-                          <motion.div
-                            key={"crossfadeRateTab"}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{
-                              duration: 0.25,
-                            }}
-                            className="baseFlex h-10 w-28"
-                          >
-                            <RateTab
-                              tabId={id}
-                              averageRating={dynamicMetadata.averageRating}
-                              ratingsCount={dynamicMetadata.ratingsCount}
-                              currentUser={currentUser}
-                              userRating={dynamicMetadata.userRating}
-                              tabCreatorUserId={createdByUserId ?? undefined}
-                              customClassName={`${classes.rating} baseFlex w-28 gap-2 px-3 py-1`}
-                            />
-                          </motion.div>
-                        ) : (
-                          <motion.div
-                            key={"crossfadeRateTabPlaceholder"}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{
-                              duration: 0.25,
-                            }}
-                            className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-pink-300"
-                          ></motion.div>
-                        )}
-
-                        {dynamicMetadata ? (
-                          <motion.div
-                            key={"crossfadeBookmarkToggle"}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{
-                              duration: 0.25,
-                            }}
-                            className="baseFlex h-10 w-36"
-                          >
-                            <BookmarkToggle
-                              tabId={id}
-                              createdByUserId={createdByUserId}
-                              currentUser={currentUser}
-                              showText={true}
-                              isBookmarked={dynamicMetadata.bookmarked}
-                              customClassName={`${classes.bookmark} baseFlex w-full gap-2 px-3 py-1`}
-                            />
-                          </motion.div>
-                        ) : (
-                          <motion.div
-                            key={"crossfadeBookmarkTogglePlaceholder"}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{
-                              duration: 0.25,
-                            }}
-                            className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-pink-300"
-                          ></motion.div>
-                        )}
-
-                        <Button
-                          variant={"secondary"}
-                          disabled={isLoadingARoute}
-                          onClick={async () => {
-                            try {
-                              await navigator.share({
-                                title,
-                                text: `Check out this tab I found on Autostrum!`,
-                                url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
-                              });
-                            } catch (error) {
-                              console.error("Error sharing tab:", error);
-                            }
+                      {dynamicMetadata ? (
+                        <motion.div
+                          key={"crossfadeRateTab"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 0.25,
                           }}
-                          className="!p-2"
+                          className="baseFlex h-10 w-28"
                         >
-                          <IoIosShareAlt className="size-5" />
-                        </Button>
-                      </div>
+                          <RateTab
+                            tabId={id}
+                            averageRating={dynamicMetadata.averageRating}
+                            ratingsCount={dynamicMetadata.ratingsCount}
+                            currentUser={currentUser}
+                            userRating={dynamicMetadata.userRating}
+                            tabCreatorUserId={createdByUserId ?? undefined}
+                            customClassName={`${classes.rating} baseFlex w-28 gap-2 px-3 py-1`}
+                          />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key={"crossfadeRateTabPlaceholder"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 0.25,
+                          }}
+                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-pink-300"
+                        ></motion.div>
+                      )}
+
+                      {dynamicMetadata ? (
+                        <motion.div
+                          key={"crossfadeBookmarkToggle"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 0.25,
+                          }}
+                          className="baseFlex h-10 w-36"
+                        >
+                          <BookmarkToggle
+                            tabId={id}
+                            createdByUserId={createdByUserId}
+                            currentUser={currentUser}
+                            showText={true}
+                            isBookmarked={dynamicMetadata.bookmarked}
+                            customClassName={`${classes.bookmark} baseFlex w-full gap-2 px-3 py-1`}
+                          />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key={"crossfadeBookmarkTogglePlaceholder"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 0.25,
+                          }}
+                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-pink-300"
+                        ></motion.div>
+                      )}
+
+                      <Button
+                        variant={"secondary"}
+                        disabled={isLoadingARoute}
+                        onClick={async () => {
+                          try {
+                            await navigator.share({
+                              title,
+                              text: `Check out this tab I found on Autostrum!`,
+                              url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
+                            });
+                          } catch (error) {
+                            console.error("Error sharing tab:", error);
+                          }
+                        }}
+                        className="!p-2"
+                      >
+                        <IoIosShareAlt className="size-5" />
+                      </Button>
                     </AnimatePresence>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="baseVertFlex relative w-full !items-start gap-2 sm:!flex-row sm:!items-end">
+              <div className="baseVertFlex relative w-full !items-start gap-4 sm:!flex-row sm:!items-end">
                 <div className="baseVertFlex w-full !items-start gap-4">
                   <div className="baseVertFlex w-full !items-start gap-2">
                     <div
@@ -1241,7 +1232,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   </AnimatePresence>
                 </div>
 
-                {((userId && createdByUserId === userId) ??
+                {((userId && createdByUserId === userId) ||
                   asPath.includes("create")) && (
                   <Button
                     disabled={isLoadingARoute}
@@ -1258,8 +1249,8 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   >
                     {asPath.includes("edit") || asPath.includes("create")
                       ? "Continue editing"
-                      : "Edit"}{" "}
-                    <MdModeEditOutline className="h-5 w-5" />
+                      : "Edit"}
+                    <MdModeEditOutline className="size-5" />
                   </Button>
                 )}
               </div>
