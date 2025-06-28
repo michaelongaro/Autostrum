@@ -3,7 +3,6 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { Tab } from "@prisma/client";
 import { z } from "zod";
 import { env } from "~/env";
@@ -343,17 +342,6 @@ export const tabRouter = createTRPCRouter({
         sectionProgression,
       } = input;
 
-      const s3 = new S3Client({
-        region: "us-east-2",
-        credentials: {
-          accessKeyId: env.AWS_ACCESS_KEY_ID,
-          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-        },
-      });
-
-      const base64Data = input.base64TabScreenshot.split(",")[1]!;
-      const imageBuffer = Buffer.from(base64Data, "base64");
-
       const tab = await ctx.prisma.tab.create({
         data: {
           title,
@@ -391,6 +379,17 @@ export const tabRouter = createTRPCRouter({
         );
       }
 
+      const s3 = new S3Client({
+        region: "us-east-2",
+        credentials: {
+          accessKeyId: env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+        },
+      });
+
+      const base64Data = input.base64TabScreenshot.split(",")[1]!;
+      const imageBuffer = Buffer.from(base64Data, "base64");
+
       // uploading screenshot to s3 bucket
       const command = new PutObjectCommand({
         Bucket: "autostrum-screenshots",
@@ -398,40 +397,43 @@ export const tabRouter = createTRPCRouter({
         Body: imageBuffer,
         ContentType: "image/jpeg",
       });
-      await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
 
-      try {
-        const res = await s3.send(command);
-        console.log(res);
-      } catch (e) {
-        console.log(e);
-        // return null;
-      }
-
-      // increment the tabCreator's number of tabs
-      await ctx.prisma.user.update({
-        where: {
-          userId: createdByUserId,
-        },
-        data: {
-          totalTabs: {
-            increment: 1,
-          },
-        },
+      s3.send(command).catch((e) => {
+        console.error(e);
       });
 
-      // increment the artist's number of tabs (if artistId is provided)
-      if (tab.artistId) {
-        await ctx.prisma.artist.update({
+      // increment the tabCreator's number of tabs
+      ctx.prisma.user
+        .update({
           where: {
-            id: tab.artistId,
+            userId: createdByUserId,
           },
           data: {
             totalTabs: {
               increment: 1,
             },
           },
+        })
+        .catch((e) => {
+          console.error("Error incrementing tabCreator's totalTabs:", e);
         });
+
+      // increment the artist's number of tabs (if artistId is provided)
+      if (tab.artistId) {
+        ctx.prisma.artist
+          .update({
+            where: {
+              id: tab.artistId,
+            },
+            data: {
+              totalTabs: {
+                increment: 1,
+              },
+            },
+          })
+          .catch((e) => {
+            console.error("Error incrementing artist's totalTabs:", e);
+          });
       }
 
       return tab;
@@ -476,17 +478,6 @@ export const tabRouter = createTRPCRouter({
         tabData,
         sectionProgression,
       } = input;
-
-      const s3 = new S3Client({
-        region: "us-east-2",
-        credentials: {
-          accessKeyId: env.AWS_ACCESS_KEY_ID,
-          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-        },
-      });
-
-      const base64Data = input.base64TabScreenshot.split(",")[1]!;
-      const imageBuffer = Buffer.from(base64Data, "base64");
 
       // need to know if artistId changed, since we will then need to update the old and new
       // artist's totalTabs
@@ -535,6 +526,17 @@ export const tabRouter = createTRPCRouter({
         );
       }
 
+      const s3 = new S3Client({
+        region: "us-east-2",
+        credentials: {
+          accessKeyId: env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+        },
+      });
+
+      const base64Data = input.base64TabScreenshot.split(",")[1]!;
+      const imageBuffer = Buffer.from(base64Data, "base64");
+
       // uploading screenshot to s3 bucket
       const command = new PutObjectCommand({
         Bucket: "autostrum-screenshots",
@@ -542,43 +544,46 @@ export const tabRouter = createTRPCRouter({
         Body: imageBuffer,
         ContentType: "image/jpeg",
       });
-      await getSignedUrl(s3, command, { expiresIn: 15 * 60 }); // expires in 15 minutes
 
-      try {
-        const res = await s3.send(command);
-        console.log(res);
-      } catch (e) {
-        console.log(e);
-        // return null;
-      }
+      s3.send(command).catch((e) => {
+        console.error(e);
+      });
 
       // check if the artistId has changed
       if (oldTab?.artistId !== artistId) {
         // decrement the old artist's totalTabs
         if (oldTab?.artistId) {
-          await ctx.prisma.artist.update({
-            where: {
-              id: oldTab.artistId,
-            },
-            data: {
-              totalTabs: {
-                decrement: 1,
+          ctx.prisma.artist
+            .update({
+              where: {
+                id: oldTab.artistId,
               },
-            },
-          });
+              data: {
+                totalTabs: {
+                  decrement: 1,
+                },
+              },
+            })
+            .catch((e) => {
+              console.error("Error decrementing old artist's totalTabs:", e);
+            });
         }
         // increment the new artist's totalTabs
         if (artistId) {
-          await ctx.prisma.artist.update({
-            where: {
-              id: artistId,
-            },
-            data: {
-              totalTabs: {
-                increment: 1,
+          ctx.prisma.artist
+            .update({
+              where: {
+                id: artistId,
               },
-            },
-          });
+              data: {
+                totalTabs: {
+                  increment: 1,
+                },
+              },
+            })
+            .catch((e) => {
+              console.error("Error incrementing new artist's totalTabs:", e);
+            });
         }
       }
 
