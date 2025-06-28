@@ -608,12 +608,15 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                     isPublishing ||
                     isUpdating ||
                     isDeleting ||
-                    takingScreenshot
+                    takingScreenshot ||
+                    (asPath.includes("create") &&
+                      saveButtonText !== "Publish") ||
+                    (asPath.includes("edit") && saveButtonText !== "Save")
                   }
                   onClick={() => void handleSave()}
-                  className="baseFlex"
+                  className="baseFlex overflow-hidden"
                 >
-                  <AnimatePresence mode={"popLayout"} initial={false}>
+                  <AnimatePresence mode={"wait"} initial={false}>
                     <motion.div
                       key={saveButtonText}
                       initial={{ opacity: 0, y: -20 }}
@@ -622,7 +625,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                       transition={{
                         duration: 0.25,
                       }}
-                      className="baseFlex w-[100px] gap-2"
+                      className="baseFlex w-[100px] gap-2 overflow-hidden"
                     >
                       {saveButtonText}
                       {(saveButtonText === "Publishing" ||
@@ -1456,14 +1459,14 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
             </Button>
             <Button
               variant={"destructive"}
-              disabled={isDeleting || isLoadingARoute}
-              className="baseFlex gap-2"
+              disabled={deleteButtonText !== "Delete" || isLoadingARoute}
               onClick={() => {
                 setDeleteButtonText("Deleting");
                 deleteTab(id);
               }}
+              className="baseFlex overflow-hidden"
             >
-              <AnimatePresence mode={"popLayout"} initial={false}>
+              <AnimatePresence mode={"wait"} initial={false}>
                 <motion.div
                   key={deleteButtonText}
                   initial={{ opacity: 0, y: -20 }}
@@ -1472,7 +1475,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   transition={{
                     duration: 0.25,
                   }}
-                  className="baseFlex w-[85px] gap-2"
+                  className="baseFlex w-[85px] gap-2 overflow-hidden"
                 >
                   {deleteButtonText === "Delete" && (
                     <FaTrashAlt className="h-4 w-4" />

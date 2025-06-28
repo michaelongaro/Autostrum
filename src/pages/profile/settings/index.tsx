@@ -885,9 +885,9 @@ function UserSettings() {
                   // theme: localSettings?.theme,
                 });
               }}
-              className="baseFlex mr-3 gap-2 lg:mr-0"
+              className="baseFlex mr-3 gap-2 overflow-hidden lg:mr-0"
             >
-              <AnimatePresence mode={"popLayout"} initial={false}>
+              <AnimatePresence mode={"wait"} initial={false}>
                 <motion.div
                   key={
                     saveButtonText === ""
@@ -900,7 +900,7 @@ function UserSettings() {
                   transition={{
                     duration: 0.25,
                   }}
-                  className="baseFlex w-[122.75px] gap-2"
+                  className="baseFlex w-[122.75px] gap-2 overflow-hidden"
                 >
                   {saveButtonText}
                   {saveButtonText === "Saving" && (

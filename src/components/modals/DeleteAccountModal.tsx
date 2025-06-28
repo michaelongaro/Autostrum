@@ -136,7 +136,7 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
           <Button
             disabled={isDeleting || isLoadingARoute || showDeleteCheckmark}
             variant={"destructive"}
-            className="baseFlex gap-2 self-end"
+            className="baseFlex gap-2 self-end overflow-hidden"
             onClick={() => {
               if (!userId) return;
 
@@ -146,7 +146,7 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
               });
             }}
           >
-            <AnimatePresence mode={"popLayout"} initial={false}>
+            <AnimatePresence mode={"wait"} initial={false}>
               <motion.div
                 key={
                   isDeleting

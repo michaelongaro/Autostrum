@@ -353,7 +353,7 @@ function EditImage({
               disabled={saveButtonText !== "Save" || !localCroppedAreaPixels}
               className="overflow-hidden px-8"
             >
-              <AnimatePresence mode={"popLayout"} initial={false}>
+              <AnimatePresence mode={"wait"} initial={false}>
                 <motion.div
                   key={saveButtonText}
                   initial={{ opacity: 0, y: -20 }}
@@ -365,7 +365,7 @@ function EditImage({
                       duration: 0.15,
                     },
                   }}
-                  className="baseFlex w-24 gap-2"
+                  className="baseFlex w-24 gap-2 overflow-hidden"
                 >
                   {saveButtonText}
                   {saveButtonText === "Saving" && (
