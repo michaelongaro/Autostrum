@@ -136,7 +136,7 @@ function EditImageSelector({
                   opacity: profileImageLoaded ? 1 : 0,
                   transition: "opacity 0.3s ease-in-out",
                 }}
-                className="size-16 rounded-full shadow-sm lg:size-32"
+                className="size-16 rounded-full object-cover object-center shadow-sm lg:size-32"
               />
 
               <AnimatePresence>
