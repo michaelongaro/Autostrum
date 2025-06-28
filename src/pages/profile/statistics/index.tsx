@@ -288,7 +288,9 @@ function UserStatistics() {
                       exit={{ opacity: 0 }}
                       className="ml-8 text-2xl font-semibold text-pink-50 lg:text-3xl"
                     >
-                      {currentUser.averageTabRating}
+                      {currentUser.totalTabRatings > 0
+                        ? currentUser.averageTabRating.toFixed(1)
+                        : "-"}
                     </motion.span>
                   ) : (
                     <motion.div

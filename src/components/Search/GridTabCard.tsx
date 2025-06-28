@@ -324,7 +324,7 @@ function GridTabCard({
             {minimalTab.ratingsCount > 0 && (
               <>
                 <div className="baseFlex gap-1">
-                  {minimalTab.averageRating}
+                  {minimalTab.averageRating.toFixed(1)}
                   <FaStar className="size-3" />({minimalTab.ratingsCount})
                 </div>
                 <Separator

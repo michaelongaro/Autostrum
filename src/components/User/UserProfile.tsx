@@ -331,8 +331,12 @@ function UserProfile({ uniqueKey }: UserProfile) {
                               </div>
                               <span className="w-12 text-end">
                                 {userMetadata
-                                  ? userMetadata.user.averageTabRating
-                                  : 0}
+                                  ? userMetadata.user.totalTabRatings > 0
+                                    ? userMetadata.user.averageTabRating.toFixed(
+                                        1,
+                                      )
+                                    : "-"
+                                  : "-"}
                               </span>
                             </div>
 
@@ -494,8 +498,10 @@ function UserProfile({ uniqueKey }: UserProfile) {
                         </div>
                         <span className="w-12 text-end">
                           {userMetadata
-                            ? userMetadata.user.averageTabRating
-                            : 0}
+                            ? userMetadata.user.totalTabRatings > 0
+                              ? userMetadata.user.averageTabRating.toFixed(1)
+                              : "-"
+                            : "-"}
                         </span>
                       </div>
 
@@ -632,8 +638,10 @@ function UserProfile({ uniqueKey }: UserProfile) {
                         </div>
                         <span className="w-12 text-end">
                           {userMetadata
-                            ? userMetadata.user.averageTabRating
-                            : 0}
+                            ? userMetadata.user.totalTabRatings > 0
+                              ? userMetadata.user.averageTabRating.toFixed(1)
+                              : "-"
+                            : "-"}
                         </span>
                       </div>
 
