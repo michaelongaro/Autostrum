@@ -73,6 +73,25 @@ function GridTabCard({
     void fetchImage();
   }, [tabScreenshot, minimalTab.id]);
 
+  function allowedToRenderArtistLink() {
+    const isArtistPage = asPath.includes("/artist");
+    const isProfileTabsPage = asPath.includes("/profile/tabs");
+    const isCreatedByVisitedUser =
+      query.username === minimalTab.createdBy?.username;
+    const isForPinnedTab = pinnedTabType !== undefined;
+    const artistIsNotAttached = minimalTab.artist === null;
+
+    if (isArtistPage) return false;
+
+    if (isProfileTabsPage && artistIsNotAttached) return false;
+
+    if (isCreatedByVisitedUser && artistIsNotAttached) return false;
+
+    if (isForPinnedTab && artistIsNotAttached) return false;
+
+    return true;
+  }
+
   return (
     <motion.div
       ref={ref}
@@ -236,14 +255,10 @@ function GridTabCard({
         {/* artist/tab creator link --- difficulty */}
         <div
           className={`baseFlex w-full gap-2 ${
-            !asPath.includes("/artist") &&
-            !asPath.includes("/profile/tabs") &&
-            query.username !== minimalTab.createdBy?.username
-              ? "!justify-between"
-              : "!justify-end"
+            allowedToRenderArtistLink() ? "!justify-between" : "!justify-end"
           }`}
         >
-          {!asPath.includes("/artist") && (
+          {allowedToRenderArtistLink() && (
             <>
               {minimalTab.artist || minimalTab.createdBy ? (
                 <Button variant={"link"} asChild>
@@ -261,7 +276,7 @@ function GridTabCard({
                     {minimalTab.artist ? (
                       <div className="baseFlex size-full !justify-start gap-1">
                         {minimalTab.artist.isVerified && (
-                          <Verified className="size-5 shrink-0" />
+                          <Verified className="size-4 shrink-0" />
                         )}
                         <span className="max-w-[100%] truncate">
                           {minimalTab.artist.name}
