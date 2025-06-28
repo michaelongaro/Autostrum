@@ -372,12 +372,12 @@ export const tabRouter = createTRPCRouter({
         },
       });
 
-      if (tab) {
-        // immediately revalidate the tab's page before s3 upload to improve end user experience
-        await ctx.res.revalidate(
-          `/tab/${tab.id}/${encodeURIComponent(tab.title)}`,
-        );
-      }
+      // immediately revalidate the tab's page before s3 upload to improve end user experience
+      ctx.res
+        .revalidate(`/tab/${tab.id}/${encodeURIComponent(tab.title)}`)
+        .catch((e) => {
+          console.error("Error revalidating tab page:", e);
+        });
 
       const s3 = new S3Client({
         region: "us-east-2",
@@ -519,12 +519,12 @@ export const tabRouter = createTRPCRouter({
         },
       });
 
-      if (tab) {
-        // immediately revalidate the tab's page before s3 upload to improve end user experience
-        await ctx.res.revalidate(
-          `/tab/${tab.id}/${encodeURIComponent(tab.title)}`,
-        );
-      }
+      // immediately revalidate the tab's page before s3 upload to improve end user experience
+      ctx.res
+        .revalidate(`/tab/${tab.id}/${encodeURIComponent(tab.title)}`)
+        .catch((e) => {
+          console.error("Error revalidating tab page:", e);
+        });
 
       const s3 = new S3Client({
         region: "us-east-2",
