@@ -402,7 +402,7 @@ export const userRouter = createTRPCRouter({
         ["Math Rock", 0],
         ["Rondeña", 0],
         ["Irish", 0],
-        ["custom", 0],
+        ["Custom", 0],
       ]);
 
       const difficulties = new Map<string, number>([
@@ -447,7 +447,8 @@ export const userRouter = createTRPCRouter({
         }
 
         const tuningNotesKey = stat.tuning as keyof typeof tuningNotesToName;
-        const friendlyTuningName = tuningNotesToName[tuningNotesKey];
+        const friendlyTuningName =
+          tuningNotesToName[tuningNotesKey] ?? "Custom";
 
         const tuningCount = tunings.get(friendlyTuningName);
         if (tuningCount !== undefined) {
