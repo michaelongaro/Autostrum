@@ -1,6 +1,5 @@
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
-import html2canvas from "html2canvas";
 import isEqual from "lodash.isequal";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -326,40 +325,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setEditing(false);
   }
 
-  function getMinifiedTabData() {
-    const modifiedTabData: Section[] = [];
-
-    // gets first two subsections from first section
-    if (tabData[0]!.data.length > 1) {
-      modifiedTabData.push({
-        ...tabData[0]!,
-        data: tabData[0]!.data.slice(0, 2),
-      });
-    }
-    // combined first subsection from first two sections
-    else if (tabData.length > 1) {
-      modifiedTabData.push(
-        {
-          ...tabData[0]!,
-          data: [...tabData[0]!.data],
-        },
-        {
-          ...tabData[1]!,
-          data: [...tabData[1]!.data.slice(0, 1)],
-        },
-      );
-    }
-    // only has one section w/ one subsection within, and uses that
-    else {
-      modifiedTabData.push({
-        ...tabData[0]!,
-        data: [...tabData[0]!.data],
-      });
-    }
-
-    return modifiedTabData;
-  }
-
   async function handleSave() {
     if (
       !userId ||
@@ -379,12 +344,15 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setIsPublishingOrUpdating(true);
     setSaveButtonText(asPath.includes("create") ? "Publishing" : "Saving");
 
-    setMinifiedTabData(getMinifiedTabData());
+    setMinifiedTabData(tabData);
     setTakingScreenshot(true);
 
+    const { domToDataUrl } = await import("modern-screenshot");
+
     setTimeout(() => {
-      void html2canvas(tabPreviewScreenshotRef.current!).then((canvas) => {
-        const base64Screenshot = canvas.toDataURL("image/jpeg", 0.75);
+      void domToDataUrl(tabPreviewScreenshotRef.current!, {
+        quality: 0.75,
+      }).then((base64TabScreenshot) => {
         if (asPath.includes("create")) {
           publishTab({
             createdByUserId: userId,
@@ -402,7 +370,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
             bpm,
             capo,
             key,
-            base64TabScreenshot: base64Screenshot,
+            base64TabScreenshot,
           });
         } else {
           updateTab({
@@ -421,7 +389,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
             bpm,
             capo,
             key,
-            base64TabScreenshot: base64Screenshot,
+            base64TabScreenshot,
           });
         }
 
@@ -1519,22 +1487,17 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
       {minifiedTabData &&
         createPortal(
-          <div className="h-full w-full overflow-hidden">
+          <div className="size-full overflow-hidden">
             <div
               ref={tabPreviewScreenshotRef}
               style={{
                 background:
                   "linear-gradient(315deg, hsl(6, 100%, 66%), hsl(340, 100%, 76%), hsl(297, 100%, 87%)) fixed center / cover",
               }}
-              className="baseFlex h-[581px] w-[1245px] scale-75"
+              className="baseFlex h-[615px] w-[1318px]"
             >
-              <div className="h-[581px] w-[1245px] bg-pink-500 bg-opacity-30">
-                <TabScreenshotPreview
-                  baselineBpm={bpm}
-                  tuning={tuning}
-                  tabData={minifiedTabData}
-                  chords={chords}
-                />
+              <div className="h-[615px] w-[1318px] bg-pink-500 bg-opacity-30">
+                <TabScreenshotPreview tabData={minifiedTabData} />
               </div>
             </div>
           </div>,
