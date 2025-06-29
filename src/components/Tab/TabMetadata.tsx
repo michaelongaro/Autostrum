@@ -74,6 +74,7 @@ import {
   AlertDialogFooter,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
+import { Badge } from "~/components/ui/badge";
 
 const KEYS_BY_LETTER = {
   A: ["A major", "A minor", "A# minor", "A♭ major", "A♭ minor"],
@@ -1372,27 +1373,23 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 className={`${classes.genre} baseVertFlex !items-start gap-2`}
               >
                 <div className="font-semibold">Genre</div>
-                {genreList.get(genre) && (
-                  <div
-                    style={{
-                      backgroundColor: genreList.get(genre),
-                    }}
-                    className="baseFlex h-11 w-[140px] !justify-start gap-2 rounded-md px-4"
-                  >
-                    {genre}
-                  </div>
-                )}
+                <Badge
+                  style={{
+                    backgroundColor: genreList.get(genre),
+                  }}
+                  className="px-4 py-2.5"
+                >
+                  {genre}
+                </Badge>
               </div>
 
               <div
                 className={`${classes.tuning} baseVertFlex !items-start gap-2`}
               >
                 <div className="font-semibold">Tuning</div>
-                <div className="baseFlex h-[44px] w-[140px] rounded-md border-2 font-medium">
-                  {tuningNotesToName[
-                    tuning.toLowerCase() as keyof typeof tuningNotesToName
-                  ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
-                </div>
+                {tuningNotesToName[
+                  tuning.toLowerCase() as keyof typeof tuningNotesToName
+                ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
               </div>
 
               <div
