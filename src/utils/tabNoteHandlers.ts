@@ -189,7 +189,7 @@ export function handleTabNoteKeyDown(
   }
 
   // Change note length hotkeys
-  if (["y", "h", "n"].includes(e.key.toLowerCase())) {
+  if (["t", "y", "u"].includes(e.key.toLowerCase())) {
     e.preventDefault();
 
     const newTabData = getTabData();
@@ -199,8 +199,8 @@ export function handleTabNoteKeyDown(
 
     let noteLength: "1/4th" | "1/8th" | "1/16th" = "1/4th";
 
-    if (e.key.toLowerCase() === "h") noteLength = "1/8th";
-    if (e.key.toLowerCase() === "n") noteLength = "1/16th";
+    if (e.key.toLowerCase() === "y") noteLength = "1/8th";
+    if (e.key.toLowerCase() === "u") noteLength = "1/16th";
 
     columnData[8] = noteLength;
 
@@ -212,6 +212,68 @@ export function handleTabNoteKeyDown(
 
     setTabData(newTabData);
 
+    return;
+  }
+
+  // Clear current chord
+  if (e.ctrlKey && !e.shiftKey && e.key === "Backspace") {
+    e.preventDefault();
+
+    const newTabData = getTabData();
+    const column =
+      newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex]!;
+
+    // Only clear if not a measure line
+    if (column[8] !== "measureLine") {
+      // Keep palm mute, note length, id, but clear notes and effects
+      const palmMuteNode = column[0];
+      const noteLengthModifier = column[8];
+      const id = column[9];
+
+      newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex] = [
+        palmMuteNode ?? "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "", // notes
+        noteLengthModifier ?? "1/4th",
+        id,
+      ];
+
+      setTabData(newTabData);
+    }
+    return;
+  }
+
+  // delete current chord
+  if (e.ctrlKey && e.shiftKey && e.key === "Backspace") {
+    e.preventDefault();
+
+    const newTabData = getTabData();
+    const section = newTabData[sectionIndex]!.data[subSectionIndex]!.data;
+
+    // Only delete if not a measure line and not the last column
+    if (section[columnIndex]?.[8] !== "measureLine" && section.length > 1) {
+      newTabData[sectionIndex]!.data[subSectionIndex]!.data.splice(
+        columnIndex,
+        1,
+      );
+
+      setTabData(newTabData);
+
+      // Focus the next column, or previous if at end
+      setTimeout(() => {
+        const nextIndex =
+          columnIndex < section.length - 1 ? columnIndex : columnIndex - 1;
+        const newNoteToFocus = document.getElementById(
+          `input-${sectionIndex}-${subSectionIndex}-${nextIndex}-${noteIndex}`,
+        );
+        focusAndScrollIntoView(currentNote, newNoteToFocus);
+      }, 0);
+    }
     return;
   }
 
