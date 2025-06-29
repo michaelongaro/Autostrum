@@ -92,6 +92,20 @@ function GridTabCard({
     return true;
   }
 
+  function getDynamicWidth() {
+    if (largeVariant) return 400;
+    if (pinnedTabType !== undefined || isAboveExtraSmallViewportWidth)
+      return 330;
+    return 280;
+  }
+
+  function getDynamicHeight() {
+    if (largeVariant) return 185;
+    if (pinnedTabType !== undefined || isAboveExtraSmallViewportWidth)
+      return 152;
+    return 129;
+  }
+
   return (
     <motion.div
       ref={ref}
@@ -101,13 +115,8 @@ function GridTabCard({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
       style={{
-        width: `${
-          largeVariant ? 400 : isAboveExtraSmallViewportWidth ? 330 : 280
-        }px`, // accounts for border (may need to add a few px to custom width now that I think about it)
-        // height: `${width ? 183 : 146}px`,
-        minWidth: `${
-          largeVariant ? 400 : isAboveExtraSmallViewportWidth ? 330 : 280
-        }px`,
+        width: `${getDynamicWidth()}px`,
+        minWidth: `${getDynamicWidth()}px`,
       }}
       className="baseVertFlex !flex-nowrap overflow-hidden rounded-md border-2 shadow-md"
     >
@@ -120,16 +129,8 @@ function GridTabCard({
               href={`/tab/${minimalTab.id}/${encodeURIComponent(minimalTab.title)}`}
               prefetch={false}
               style={{
-                width: largeVariant
-                  ? 396
-                  : isAboveExtraSmallViewportWidth
-                    ? 325
-                    : 276,
-                height: largeVariant
-                  ? 185
-                  : isAboveExtraSmallViewportWidth
-                    ? 152
-                    : 129,
+                width: getDynamicWidth(),
+                height: getDynamicHeight(),
               }}
               className="w-full cursor-pointer rounded-t-md transition-all hover:brightness-90 active:brightness-[0.8]"
             >
@@ -144,20 +145,8 @@ function GridTabCard({
                   <Image
                     src={tabScreenshot}
                     alt={`screenshot of ${minimalTab.title}`}
-                    width={
-                      largeVariant
-                        ? 396
-                        : isAboveExtraSmallViewportWidth
-                          ? 325
-                          : 276
-                    }
-                    height={
-                      largeVariant
-                        ? 185
-                        : isAboveExtraSmallViewportWidth
-                          ? 152
-                          : 129
-                    }
+                    width={getDynamicWidth()}
+                    height={getDynamicHeight()}
                     onLoad={() => {
                       setTimeout(() => {
                         setTabScreenshotLoaded(true);
@@ -169,6 +158,8 @@ function GridTabCard({
                       filter: isPressingOnScreenshot
                         ? "brightness(0.8)"
                         : "none",
+                      width: `${getDynamicWidth()}px`,
+                      height: `${getDynamicHeight()}px`,
                     }}
                     className="pointer-events-none col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-md object-cover object-center !transition-all"
                   />
