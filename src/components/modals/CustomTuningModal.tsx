@@ -199,7 +199,7 @@ function CustomTuningModal({
                       ? "hsl(335, 78%, 42%)"
                       : "hsl(324, 77%, 95%)",
                 }}
-                className="w-12 p-2 text-center"
+                className="w-[52px] p-2 text-center"
                 onChange={(e) => {
                   if (e.target.value.length > 3) return;
 
@@ -214,6 +214,7 @@ function CustomTuningModal({
           <div className="baseFlex w-full !justify-between">
             <Button
               disabled={
+                highlightedNoteInputIndex !== null ||
                 (previewMetadata.playing && previewMetadata.type === "chord") ||
                 customInputValues.some(
                   (customInputValue) => customInputValue === "",
