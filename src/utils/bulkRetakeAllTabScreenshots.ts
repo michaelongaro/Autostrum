@@ -74,7 +74,7 @@ async function screenshotAndUpload(tab: { id: number; title: string }) {
         height: 615,
       },
       type: "jpeg",
-      quality: 90,
+      quality: 75,
     });
 
     // Upload to S3
