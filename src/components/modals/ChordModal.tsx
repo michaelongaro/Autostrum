@@ -188,7 +188,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
               }
               variant={"playPause"}
               size={"default"}
-              className="baseFlex gap-4"
+              className="baseFlex gap-2"
               onClick={() => {
                 void playPreview({
                   data: chordBeingEdited.value.frets,
@@ -235,17 +235,19 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
                     <span>-</span>
                     <span>Minor chords</span>
 
-                    <kbd className="h-min w-min">x</kbd>
+                    <kbd className="h-min w-min place-self-end">x</kbd>
                     <span>-</span>
                     <span>Muted string</span>
                   </div>
                 </div>
 
                 {capo > 0 && (
-                  <div className="baseVertFlex !items-start text-sm">
-                    <p className="font-medium underline">Reminder</p>
+                  <div className="baseVertFlex !items-start gap-1 text-sm">
+                    <p className="font-medium underline underline-offset-2">
+                      Reminder
+                    </p>
                     <p>
-                      Fret values should be relative to capo on{" "}
+                      Fret values should be relative to capo on the{" "}
                       {getOrdinalSuffix(capo)} fret.
                     </p>
                   </div>
