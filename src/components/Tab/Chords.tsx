@@ -104,7 +104,7 @@ function Chords() {
         onValueChange={(value) => {
           setAccordionValue(value);
         }}
-        className="baseVertFlex w-full !items-start gap-2 rounded-md"
+        className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 xs:px-0"
       >
         <AccordionItem value="opened" className="w-full">
           <AccordionTrigger>
