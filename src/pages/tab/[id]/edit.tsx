@@ -5,10 +5,12 @@ import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useMemo } from "react";
 import { BiErrorCircle } from "react-icons/bi";
 import { BsArrowLeftShort } from "react-icons/bs";
 import AudioControls from "~/components/AudioControls/AudioControls";
 import Tab from "~/components/Tab/Tab";
+import superjson from "superjson";
 import { Button } from "~/components/ui/button";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import { useTabStore } from "~/stores/TabStore";
@@ -19,15 +21,18 @@ interface OpenGraphData {
   description: string;
 }
 
-function EditIndividualTab({
-  userAllowedToEdit,
-  tab,
-  openGraphData,
-}: {
+interface PageData {
   userAllowedToEdit: boolean;
-  tab: TabWithArtistMetadata;
+  tab: TabWithArtistMetadata | null;
   openGraphData: OpenGraphData;
-}) {
+}
+
+function EditIndividualTab({ json }: { json: string }) {
+  const { userAllowedToEdit, tab, openGraphData } = useMemo(
+    () => superjson.parse<PageData>(json),
+    [json],
+  );
+
   const { query } = useRouter();
 
   const { showingAudioControls } = useTabStore((state) => ({
@@ -127,9 +132,11 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
   return {
     props: {
-      userAllowedToEdit: tab?.createdByUserId === userId,
-      tab: tabWithArtistMetadata,
-      openGraphData,
+      json: superjson.stringify({
+        userAllowedToEdit: tab?.createdByUserId === userId,
+        tab: tabWithArtistMetadata,
+        openGraphData,
+      }),
     },
   };
 };

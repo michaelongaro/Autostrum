@@ -5,7 +5,6 @@ import Head from "next/head";
 import { useEffect, useMemo } from "react";
 import Tab from "~/components/Tab/Tab";
 import { useTabStore } from "~/stores/TabStore";
-import type { Tab as TabType } from "@prisma/client";
 import superjson from "superjson";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import Binoculars from "~/components/ui/icons/Binoculars";
@@ -17,7 +16,7 @@ interface OpenGraphData {
 }
 
 interface PageData {
-  tab: TabType | null;
+  tab: TabWithArtistMetadata | null;
   openGraphData: OpenGraphData;
 }
 
@@ -105,7 +104,7 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
     description: `View the guitar tab of ${tab.title} on Autostrum.`,
   };
 
-  const tabWithArtist: TabWithArtistMetadata = {
+  const tabWithArtistMetadata: TabWithArtistMetadata = {
     ...tab,
     artistId: tab.artist?.id || null,
     artistName: tab.artist?.name,
@@ -115,7 +114,7 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
   return {
     props: {
       json: superjson.stringify({
-        tab: tabWithArtist,
+        tab: tabWithArtistMetadata,
         openGraphData,
       }),
     },
