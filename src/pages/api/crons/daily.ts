@@ -22,40 +22,50 @@ export default async function handler(
 
   const prisma = new PrismaClient();
 
-  // clear the daily tab view model
-  await prisma.dailyTabView.deleteMany({});
+  try {
+    // clear the daily tab view model
+    await prisma.dailyTabView.deleteMany({});
 
-  // get the top 5 most popular tabs
-  const topFiveTabs = await prisma.tab.findMany({
-    orderBy: {
-      pageViews: "desc",
-    },
-    take: 5,
-  });
+    // get the top 5 most popular tabs
+    const topFiveTabs = await prisma.tab.findMany({
+      orderBy: {
+        pageViews: "desc",
+      },
+      take: 5,
+    });
 
-  // set the most popular tabs
-  await prisma.mostPopularTabs.updateMany({
-    data: topFiveTabs.map((tab, index) => ({
-      id: index + 1,
-      tabId: tab.id,
-    })),
-  });
+    // Create an array of individual update promises
+    const updateTabPromises = topFiveTabs.map((tab, index) =>
+      prisma.mostPopularTabs.update({
+        where: { id: index + 1 },
+        data: { tabId: tab.id },
+      }),
+    );
 
-  // get the top 5 most popular artists
-  const topFiveArtists = await prisma.artist.findMany({
-    orderBy: {
-      totalViews: "desc",
-    },
-    take: 5,
-  });
+    // get the top 5 most popular artists
+    const topFiveArtists = await prisma.artist.findMany({
+      orderBy: {
+        totalViews: "desc",
+      },
+      take: 5,
+    });
 
-  // set the most popular artists
-  await prisma.mostPopularArtists.updateMany({
-    data: topFiveArtists.map((artist, index) => ({
-      id: index + 1,
-      artistId: artist.id,
-    })),
-  });
+    // Create an array of individual update promises
+    const updateArtistPromises = topFiveArtists.map((artist, index) =>
+      prisma.mostPopularArtists.update({
+        where: { id: index + 1 },
+        data: { artistId: artist.id },
+      }),
+    );
 
-  return res.status(200).json({ success: true });
+    // Execute all update operations in a single transaction
+    await prisma.$transaction([...updateTabPromises, ...updateArtistPromises]);
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Cron job failed:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  } finally {
+    await prisma.$disconnect();
+  }
 }
