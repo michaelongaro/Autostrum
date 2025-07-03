@@ -10,6 +10,13 @@ export default async function handler(
   const { secret } = req.query;
   if (secret !== env.CRON_SECRET) {
     console.warn("Unauthorized cron attempt or missing secret.");
+    console.log(
+      "Expected secret:",
+      env.CRON_SECRET,
+      "Received secret:",
+      secret,
+      req.query,
+    );
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -17,6 +24,7 @@ export default async function handler(
   if (req.method !== "GET") {
     console.warn("Invalid request method for cron job.");
     res.setHeader("Allow", ["GET"]);
+    console.log("Received method:", req.method);
     return res.status(405).json({ message: "Method Not Allowed" });
   }
 
