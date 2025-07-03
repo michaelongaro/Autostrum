@@ -22,29 +22,39 @@ export default async function handler(
 
   const prisma = new PrismaClient();
 
-  // get the top 5 most viewed users from the past week
-  const topFiveUsers = await prisma.weeklyUserTotalTabView.findMany({
-    orderBy: {
-      totalTabPageViews: "desc",
-    },
-    take: 5,
-  });
+  try {
+    // Get the needed data before starting the transaction
+    const topFiveUsers = await prisma.weeklyUserTotalTabView.findMany({
+      orderBy: {
+        totalTabPageViews: "desc",
+      },
+      take: 5,
+    });
 
-  // clear the previous weekly featured users
-  await prisma.weeklyFeaturedUser.deleteMany({});
+    // Perform all related write operations within a transaction for consistency
+    await prisma.$transaction([
+      // Clear the previous weekly featured users
+      prisma.weeklyFeaturedUser.deleteMany({}),
 
-  // set the new weekly featured users
-  await prisma.weeklyFeaturedUser.createMany({
-    data: topFiveUsers.map((user) => ({
-      userId: user.userId,
-    })),
-  });
+      // Set the new weekly featured users
+      prisma.weeklyFeaturedUser.createMany({
+        data: topFiveUsers.map((user) => ({
+          userId: user.userId,
+        })),
+      }),
 
-  // clear the previous weekly user total tab views
-  await prisma.weeklyUserTotalTabView.deleteMany({});
+      // Clear the source data for the next cycle
+      prisma.weeklyUserTotalTabView.deleteMany({}),
+    ]);
 
-  // revalidate the /explore page to fetch the new weekly featured users
-  await res.revalidate("/explore");
+    // Revalidate only after the transaction is successful
+    await res.revalidate("/explore");
 
-  return res.status(200).json({ success: true });
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Weekly cron job failed:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  } finally {
+    await prisma.$disconnect();
+  }
 }
