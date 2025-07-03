@@ -35,7 +35,8 @@ export default async function handler(
 
   // set the most popular tabs
   await prisma.mostPopularTabs.updateMany({
-    data: topFiveTabs.map((tab) => ({
+    data: topFiveTabs.map((tab, index) => ({
+      id: index + 1,
       tabId: tab.id,
     })),
   });
@@ -50,7 +51,8 @@ export default async function handler(
 
   // set the most popular artists
   await prisma.mostPopularArtists.updateMany({
-    data: topFiveArtists.map((artist) => ({
+    data: topFiveArtists.map((artist, index) => ({
+      id: index + 1,
       artistId: artist.id,
     })),
   });
