@@ -1,11 +1,13 @@
 import { PrismaClient } from "@prisma/client";
-import type { NextApiResponse } from "next";
-import type { NextRequest } from "next/server";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { env } from "~/env";
 
-export default async function handler(req: NextRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
   // make sure that the request is from Vercel's cron job
-  const authHeader = req.headers.get("authorization");
+  const authHeader = req.headers.authorization; //headers.get("authorization");
   if (authHeader !== env.CRON_SECRET) {
     console.warn("Unauthorized cron attempt or missing authHeader.");
     console.log(
