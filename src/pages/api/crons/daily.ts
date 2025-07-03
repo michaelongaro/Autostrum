@@ -8,7 +8,7 @@ export default async function handler(
 ) {
   // make sure that the request is from Vercel's cron job
   const authHeader = req.headers.authorization; //headers.get("authorization");
-  if (authHeader !== env.CRON_SECRET) {
+  if (authHeader !== `Bearer ${env.CRON_SECRET}`) {
     console.warn("Unauthorized cron attempt or missing authHeader.");
     console.log(
       "Expected authHeader:",
