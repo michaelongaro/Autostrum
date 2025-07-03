@@ -7,18 +7,17 @@ export default async function handler(
   res: NextApiResponse,
 ) {
   // make sure that the request is from Vercel's cron job
-  const authHeader = req.headers.authorization; //headers.get("authorization");
+  const authHeader = req.headers.authorization;
   if (authHeader !== `Bearer ${env.CRON_SECRET}`) {
     console.warn("Unauthorized cron attempt or missing authHeader.");
-    console.log(
-      "Expected authHeader:",
-      env.CRON_SECRET,
-      "Received authHeader:",
-      authHeader,
-    );
-    return new Response("Unauthorized", {
-      status: 401,
-    });
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  // make sure that the request is a GET request
+  if (req.method !== "GET") {
+    console.warn("Invalid request method for cron job.");
+    res.setHeader("Allow", ["GET"]);
+    return res.status(405).json({ message: "Method Not Allowed" });
   }
 
   const prisma = new PrismaClient();
@@ -35,7 +34,7 @@ export default async function handler(
   });
 
   // set the most popular tabs
-  await prisma.mostPopularTabs.createMany({
+  await prisma.mostPopularTabs.updateMany({
     data: topFiveTabs.map((tab) => ({
       tabId: tab.id,
     })),
@@ -50,7 +49,7 @@ export default async function handler(
   });
 
   // set the most popular artists
-  await prisma.mostPopularArtists.createMany({
+  await prisma.mostPopularArtists.updateMany({
     data: topFiveArtists.map((artist) => ({
       artistId: artist.id,
     })),
