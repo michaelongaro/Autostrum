@@ -1,31 +1,20 @@
 import { PrismaClient } from "@prisma/client";
-import type { NextApiRequest, NextApiResponse } from "next";
 import { env } from "~/env";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+export async function GET(request: Request) {
   // make sure that the request is from Vercel's cron job
-  const { secret } = req.query;
-  if (secret !== env.CRON_SECRET) {
-    console.warn("Unauthorized cron attempt or missing secret.");
+  const authHeader = request.headers.get("authorization");
+  if (authHeader !== env.CRON_SECRET) {
+    console.warn("Unauthorized cron attempt or missing authHeader.");
     console.log(
-      "Expected secret:",
+      "Expected authHeader:",
       env.CRON_SECRET,
-      "Received secret:",
-      secret,
-      req.query,
+      "Received authHeader:",
+      authHeader,
     );
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  // make sure that the request is a GET request
-  if (req.method !== "GET") {
-    console.warn("Invalid request method for cron job.");
-    res.setHeader("Allow", ["GET"]);
-    console.log("Received method:", req.method);
-    return res.status(405).json({ message: "Method Not Allowed" });
+    return new Response("Unauthorized", {
+      status: 401,
+    });
   }
 
   const prisma = new PrismaClient();
@@ -62,4 +51,6 @@ export default async function handler(
       artistId: artist.id,
     })),
   });
+
+  return Response.json({ success: true });
 }

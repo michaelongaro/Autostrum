@@ -1,15 +1,13 @@
 import { PrismaClient } from "@prisma/client";
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiResponse } from "next";
+import type { NextRequest } from "next/server";
 import { env } from "~/env";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+export default async function handler(req: NextRequest, res: NextApiResponse) {
   // make sure that the request is from Vercel's cron job
-  const { secret } = req.query;
-  if (secret !== env.CRON_SECRET) {
-    console.warn("Unauthorized cron attempt or missing secret.");
+  const authHeader = req.headers.get("authorization");
+  if (authHeader !== env.CRON_SECRET) {
+    console.warn("Unauthorized cron attempt or missing authHeader.");
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -45,4 +43,6 @@ export default async function handler(
 
   // revalidate the /explore page to fetch the new weekly featured users
   await res.revalidate("/explore");
+
+  return res.status(200).json({ success: true });
 }
