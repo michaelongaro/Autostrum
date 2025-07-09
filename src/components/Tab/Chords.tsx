@@ -95,7 +95,7 @@ function Chords() {
       style={{
         minWidth: aboveMediumViewportWidth ? "500px" : "300px",
       }}
-      className="baseVertFlex lightestGlassmorphic w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 !shadow-lighterGlassmorphic md:p-4"
+      className="baseVertFlex relative w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary p-2 text-secondary-foreground !shadow-primaryButton transition-all hover:bg-secondary-hover hover:text-secondary-foreground md:p-4"
     >
       <Accordion
         type="single"
@@ -108,14 +108,7 @@ function Chords() {
       >
         <AccordionItem value="opened" className="w-full">
           <AccordionTrigger>
-            <p
-              style={{
-                textShadow: "0 1px 2px hsla(336, 84%, 17%, 0.25)",
-              }}
-              className="text-lg font-bold"
-            >
-              Chords
-            </p>
+            <span className="text-lg font-bold">Chords</span>
           </AccordionTrigger>
           <AccordionContent className="w-full">
             <div className="baseVertFlex w-full !items-start gap-4">
@@ -129,27 +122,11 @@ function Chords() {
                     initial="closed"
                     animate="open"
                     exit="closed"
-                    className="baseFlex border-r-none h-10 !flex-nowrap overflow-hidden rounded-md border-2"
+                    className="baseFlex border-r-none h-10 overflow-hidden rounded-md border-2"
                   >
-                    <p
-                      style={{
-                        textShadow:
-                          previewMetadata.indexOfPattern === index &&
-                          previewMetadata.playing &&
-                          previewMetadata.type === "chord"
-                            ? "none"
-                            : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
-                        color:
-                          previewMetadata.indexOfPattern === index &&
-                          previewMetadata.playing &&
-                          previewMetadata.type === "chord"
-                            ? "hsl(335, 78%, 42%)"
-                            : "hsl(324, 77%, 95%)",
-                      }}
-                      className="px-3 font-semibold transition-colors"
-                    >
+                    <span className="px-3 font-semibold text-foreground">
                       {chord.name}
-                    </p>
+                    </span>
 
                     <div className="baseFlex h-full w-full !justify-evenly">
                       {/* edit button */}
@@ -168,11 +145,12 @@ function Chords() {
                         {/* add the tooltip below for "Edit" */}
                         <MdModeEditOutline className="h-6 w-6" />
                       </Button>
+
                       {/* delete button */}
                       <Button
                         variant={"destructive"}
                         size="sm"
-                        className="baseFlex h-full w-1/2 rounded-l-none border-l-[1px]"
+                        className="baseFlex h-full w-1/2 rounded-l-none rounded-r-sm border-l-[1px]"
                         onClick={() => handleDeleteChord(index, chord.name)}
                       >
                         {/* add the tooltip below for "Delete" */}

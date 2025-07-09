@@ -1,16 +1,14 @@
 import { useState } from "react";
 import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
-import { parse, toString } from "~/utils/tunings";
 import { Input } from "~/components/ui/input";
 import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
 
 interface Chord {
   chordBeingEdited: { index: number; value: ChordType };
-  editing: boolean;
   highlightChord: boolean;
 }
 
-function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
+function Chord({ chordBeingEdited, highlightChord }: Chord) {
   const [isFocused, setIsFocused] = useState([
     false,
     false,
@@ -130,52 +128,26 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
   }
 
   return (
-    <div
-      className={`baseFlex w-full ${
-        !editing ? "lightestGlassmorphic rounded-md py-4" : ""
-      }`}
-    >
-      <div
-        style={{
-          height: editing ? "280px" : "168px",
-          padding: editing ? "0.5rem" : "0.5rem 0.35rem",
-        }}
-        className="baseVertFlex relative rounded-l-2xl border-2 border-pink-100"
-      >
-        <PrettyVerticalTuning
-          tuning={tuning}
-          height={editing ? "250px" : "168px"}
-        />
+    <div className="baseFlex w-full">
+      <div className="baseVertFlex relative h-[280px] rounded-l-2xl border-2 border-foreground p-2">
+        <PrettyVerticalTuning tuning={tuning} height={"250px"} />
       </div>
 
-      <div
-        style={{
-          gap: editing ? "0.5rem" : "0",
-        }}
-        className="baseVertFlex"
-      >
+      <div className="baseVertFlex gap-2">
         {chordBeingEdited.value.frets.map((fret, index) => (
           <div
             key={index}
             style={{
-              borderTop: `${
-                index === 0 ? "2px solid rgb(253 242 248)" : "none"
-              }`,
+              borderTop: `${index === 0 ? "2px solid" : "none"}`,
               paddingTop: `${index === 0 ? "7px" : "0"}`,
-              borderBottom: `${
-                index === 5 ? "2px solid rgb(253 242 248)" : "none"
-              }`,
+              borderBottom: `${index === 5 ? "2px solid" : "none"}`,
               paddingBottom: `${index === 5 ? "7px" : "0"}`,
             }}
             className="baseFlex w-full"
           >
-            <div
-              style={{
-                margin: editing ? "0" : "0.75rem 0",
-              }}
-              className="h-[1px] w-4 flex-[1] bg-pink-100/50"
-            ></div>
-            {editing ? (
+            <div className="h-[1px] w-4 flex-[1] bg-foreground/50"></div>
+
+            <>
               <Input
                 id={`input-chordModal-chordModal-${index}`}
                 type="text"
@@ -188,10 +160,10 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
                     fret.length > 0 && !isFocused[index] ? "2px" : "1px"
                   }`,
                   color: highlightChord
-                    ? "hsl(335, 78%, 42%)"
-                    : "hsl(324, 77%, 95%)",
+                    ? "hsl(var(--primary))"
+                    : "hsl(var(--foreground))",
                 }}
-                className="h-[37px] w-[37px] rounded-full p-0 text-center shadow-sm shadow-pink-600"
+                className="h-[37px] w-[37px] rounded-full p-0 text-center shadow-sm"
                 onFocus={(e) => {
                   setIsFocused((prev) => {
                     prev[index] = true;
@@ -211,45 +183,14 @@ function Chord({ chordBeingEdited, editing, highlightChord }: Chord) {
                   });
                 }}
               />
-            ) : (
-              <>
-                {fret !== "" ? (
-                  <div
-                    style={{
-                      color: highlightChord
-                        ? "hsl(335, 78%, 42%)"
-                        : "hsl(324, 77%, 95%)",
-                    }}
-                    className="h-6 transition-colors"
-                  >
-                    {fret}
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      margin: editing ? "0" : "0.75rem 0",
-                    }}
-                    className="h-[1px] w-2 flex-[1] bg-pink-100/50"
-                  ></div>
-                )}
-              </>
-            )}
-            <div
-              style={{
-                margin: editing ? "0" : "0.75rem 0",
-              }}
-              className="h-[1px] w-4 flex-[1] bg-pink-100/50"
-            ></div>
+            </>
+
+            <div className="h-[1px] w-4 flex-[1] bg-foreground/50"></div>
           </div>
         ))}
       </div>
-      <div
-        style={{
-          height: editing ? "280px" : "168px",
-          padding: editing ? "0.25rem" : "0.25rem 0.15rem",
-        }}
-        className="rounded-r-2xl border-2 border-pink-100 p-1"
-      ></div>
+
+      <div className="h-[280px] rounded-r-2xl border-2 border-foreground p-1"></div>
     </div>
   );
 }

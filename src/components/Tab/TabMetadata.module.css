@@ -149,6 +149,7 @@
     width: 100%;
     grid-template-rows: auto auto;
     grid-template-columns: 1.5fr 1.5fr 0.5fr;
+    row-gap: 0.5rem;
     grid-template-areas:
       "description description description"
       "createdBy createdBy pageViews";
@@ -163,6 +164,7 @@
       "genre tuning difficulty"
       "tempo capo key";
     column-gap: 1rem;
+    row-gap: 1.8rem;
   }
 
 }

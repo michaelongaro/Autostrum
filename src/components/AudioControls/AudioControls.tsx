@@ -348,7 +348,7 @@ function AudioControls() {
       animate="expanded"
       exit="closed"
     >
-      <div className="baseVertFlex audioControlsBoxShadow h-full w-[95vw] max-w-[800px] rounded-xl bg-pink-600 p-2 transition-opacity lg:rounded-full lg:px-10 lg:py-2 xl:w-10/12">
+      <div className="baseVertFlex audioControlsBoxShadow h-full w-[95vw] max-w-[800px] rounded-xl bg-accent p-2 text-primary-foreground transition-opacity lg:rounded-full lg:px-10 lg:py-2 xl:w-10/12">
         <AnimatePresence mode="sync">
           {aboveLargeViewportWidth && visibility === "minimized" && (
             <motion.div
@@ -415,7 +415,7 @@ function AudioControls() {
                             editingLoopRange: false,
                           });
                         }}
-                        className="baseFlex h-[28px] !flex-nowrap gap-2 !py-0 px-1"
+                        className="baseFlex h-[28px] gap-2 !py-0 px-1"
                       >
                         <RiArrowGoBackFill className="h-3.5 w-3.5" />
                         <p className="text-xs">Play whole tab</p>
@@ -443,9 +443,9 @@ function AudioControls() {
             </Button>
 
             {audioMetadata.editingLoopRange ? (
-              <div className="baseFlex col-span-5 w-full !flex-nowrap">
+              <div className="baseFlex col-span-5 w-full">
                 <Button
-                  className="baseFlex !flex-nowrap gap-2 text-[0.6rem]"
+                  className="baseFlex gap-2 text-[0.6rem]"
                   onClick={() => {
                     setAudioMetadata({
                       ...audioMetadata,
@@ -461,7 +461,7 @@ function AudioControls() {
               <>
                 {!isMobileOnly && (
                   <div
-                    className={`baseFlex col-span-5 w-full !flex-nowrap gap-2 md:w-1/2 md:justify-self-end ${
+                    className={`baseFlex col-span-5 w-full gap-2 md:w-1/2 md:justify-self-end ${
                       visibility === "minimized" ? "opacity-0" : "opacity-100"
                     } transition-opacity`}
                   >
@@ -722,7 +722,7 @@ function AudioControls() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
-                  className="baseVertFlex h-36 w-12 !flex-nowrap gap-2 p-2"
+                  className="baseVertFlex h-36 w-12 gap-2 p-2"
                   side="top"
                 >
                   <VerticalSlider
@@ -742,7 +742,7 @@ function AudioControls() {
         )}
 
         {/* bottom layer: play/pause, loop, slider*/}
-        <div className="baseFlex mt-2 w-full !flex-nowrap gap-4">
+        <div className="baseFlex mt-2 w-full gap-4">
           {/* audio source, instrument, speed selects*/}
 
           {/* play/pause button*/}
@@ -763,7 +763,7 @@ function AudioControls() {
             />
           </Button>
 
-          <div className="baseFlex w-9/12 !flex-nowrap gap-2">
+          <div className="baseFlex w-9/12 gap-2">
             <span>
               {formatSecondsToMinutes(
                 Math.min(
@@ -954,12 +954,7 @@ function AudioControls() {
                 </Button>
               </DrawerTrigger>
               <DrawerPortal>
-                <DrawerContent
-                  style={{
-                    textShadow: "none",
-                  }}
-                  className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950"
-                >
+                <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950">
                   <VisuallyHidden>
                     <DrawerTitle>Audio settings</DrawerTitle>
                     <DrawerDescription>
@@ -974,7 +969,7 @@ function AudioControls() {
                   </div>
                   <Separator className="mb-2 w-full bg-pink-600" />
 
-                  <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+                  <div className="baseFlex w-full !justify-between gap-4">
                     <Label>Instrument</Label>
                     <Select
                       disabled={countInTimer.showing}
@@ -1015,7 +1010,7 @@ function AudioControls() {
                     </Select>
                   </div>
 
-                  <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+                  <div className="baseFlex w-full !justify-between gap-4">
                     <Label>Speed</Label>
                     <Select
                       disabled={countInTimer.showing}
@@ -1055,7 +1050,7 @@ function AudioControls() {
                     </Select>
                   </div>
 
-                  <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+                  <div className="baseFlex w-full !justify-between gap-4">
                     <Label>Autoscroll</Label>
                     <Switch
                       id="autoscroll"
@@ -1066,7 +1061,7 @@ function AudioControls() {
                     />
                   </div>
 
-                  <div className="baseFlex w-full !flex-nowrap !justify-between gap-4">
+                  <div className="baseFlex w-full !justify-between gap-4">
                     <Label>Loop</Label>
                     <Switch
                       id="loop"
@@ -1102,7 +1097,7 @@ function AudioControls() {
 
                           setDrawerOpen(false);
                         }}
-                        className="baseFlex !flex-nowrap gap-2"
+                        className="baseFlex gap-2"
                       >
                         <CgArrowsShrinkH className="h-5 w-5" />
                         Edit loop range

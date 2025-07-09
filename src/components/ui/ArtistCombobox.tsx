@@ -86,12 +86,12 @@ function ArtistCombobox() {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="h-10 w-full max-w-72 justify-between"
+          className="h-10 w-full max-w-72 justify-between font-normal text-foreground"
         >
           {artistName ? (
             <span className="baseFlex max-w-full !justify-start gap-1.5">
               {artistIsVerified && (
-                <Verified className="inline size-4 shrink-0 text-pink-800" />
+                <Verified className="inline size-4 shrink-0" />
               )}
               <span className="truncate">{artistName}</span>
             </span>
@@ -101,13 +101,7 @@ function ArtistCombobox() {
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent
-        side="bottom"
-        style={{
-          textShadow: "none",
-        }}
-        className="w-[300px] p-0"
-      >
+      <PopoverContent side="bottom" className="w-[300px] p-0">
         <div className="baseFlex border-b px-3">
           <BiSearchAlt2 className="mr-2 mt-1 size-5 shrink-0 opacity-50" />
           <Input
@@ -216,7 +210,7 @@ function ArtistCombobox() {
                             setArtistName(artist.name);
                             setArtistIsVerified(artist.isVerified);
                           }}
-                          className="relative flex w-full select-none items-center justify-between rounded-sm py-1.5 pl-2 pr-2 text-sm outline-none text-shadow-none focus-within:!text-shadow hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:!text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                          className="text-shadow-none focus-within:!text-shadow relative flex w-full select-none items-center justify-between rounded-sm py-1.5 pl-2 pr-2 text-sm outline-none hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:!text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
                         >
                           <Check
                             className={cn(

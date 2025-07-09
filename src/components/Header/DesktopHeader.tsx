@@ -73,14 +73,16 @@ function DesktopHeader() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant={"navigation"}
+                variant={"secondary"}
                 size={"lg"}
                 asChild
                 style={{
                   backgroundColor: asPath.includes("/metronome")
-                    ? "#be185d"
+                    ? "hsl(var(--accent))"
                     : undefined,
-                  color: asPath.includes("/metronome") ? "#fbcfe8" : undefined,
+                  color: asPath.includes("/metronome")
+                    ? "hsl(var(--accent-foreground))"
+                    : undefined,
                 }}
                 className={classes.metronome}
               >
@@ -103,14 +105,16 @@ function DesktopHeader() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant={"navigation"}
+                variant={"secondary"}
                 size={"lg"}
                 asChild
                 style={{
                   backgroundColor: asPath.includes("/tuner")
-                    ? "#be185d"
+                    ? "hsl(var(--accent))"
                     : undefined,
-                  color: asPath.includes("/tuner") ? "#fbcfe8" : undefined,
+                  color: asPath.includes("/tuner")
+                    ? "hsl(var(--accent-foreground))"
+                    : undefined,
                 }}
                 className={classes.tuner}
               >
@@ -139,14 +143,16 @@ function DesktopHeader() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant={"navigation"}
+                variant={"secondary"}
                 size={"lg"}
                 asChild
                 style={{
                   backgroundColor: asPath.includes("/explore")
-                    ? "#be185d"
+                    ? "hsl(var(--accent))"
                     : undefined,
-                  color: asPath.includes("/explore") ? "#fbcfe8" : undefined,
+                  color: asPath.includes("/explore")
+                    ? "hsl(var(--accent-foreground))"
+                    : undefined,
                 }}
                 className={classes.explore}
               >
@@ -169,14 +175,16 @@ function DesktopHeader() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant={"navigation"}
+                variant={"secondary"}
                 size={"lg"}
                 asChild
                 style={{
                   backgroundColor: asPath.includes("/create")
-                    ? "#be185d"
+                    ? "hsl(var(--accent))"
                     : undefined,
-                  color: asPath.includes("/create") ? "#fbcfe8" : undefined,
+                  color: asPath.includes("/create")
+                    ? "hsl(var(--accent-foreground))"
+                    : undefined,
                 }}
                 className={classes.create}
               >
@@ -201,7 +209,7 @@ function DesktopHeader() {
               <TooltipTrigger asChild>
                 <PopoverTrigger asChild>
                   <Button
-                    variant={"navigation"}
+                    variant={"secondary"}
                     size={"lg"}
                     className={`${classes.theme} baseFlex !size-12 !rounded-full !p-0`}
                   >
@@ -391,15 +399,15 @@ function DesktopHeader() {
 
                   <div className="baseFlex w-full gap-4">
                     <Button
-                      variant={"navigation"}
+                      variant={"secondary"}
                       size={"lg"}
                       asChild
                       style={{
                         backgroundColor: asPath.includes("/profile/settings")
-                          ? "#be185d"
+                          ? "hsl(var(--accent))"
                           : undefined,
                         color: asPath.includes("/profile/settings")
-                          ? "#fbcfe8"
+                          ? "hsl(var(--accent-foreground))"
                           : undefined,
                       }}
                     >
@@ -417,15 +425,15 @@ function DesktopHeader() {
                     </Button>
 
                     <Button
-                      variant={"navigation"}
+                      variant={"secondary"}
                       size={"lg"}
                       asChild
                       style={{
                         backgroundColor: asPath.includes("/profile/statistics")
-                          ? "#be185d"
+                          ? "hsl(var(--accent))"
                           : undefined,
                         color: asPath.includes("/profile/statistics")
-                          ? "#fbcfe8"
+                          ? "hsl(var(--accent-foreground))"
                           : undefined,
                       }}
                     >
@@ -445,15 +453,15 @@ function DesktopHeader() {
 
                   <div className="baseFlex w-full gap-4">
                     <Button
-                      variant={"navigation"}
+                      variant={"secondary"}
                       size={"lg"}
                       asChild
                       style={{
                         backgroundColor: asPath.includes("/profile/tabs")
-                          ? "#be185d"
+                          ? "hsl(var(--accent))"
                           : undefined,
                         color: asPath.includes("/profile/tabs")
-                          ? "#fbcfe8"
+                          ? "hsl(var(--accent-foreground))"
                           : undefined,
                       }}
                     >
@@ -471,15 +479,15 @@ function DesktopHeader() {
                     </Button>
 
                     <Button
-                      variant={"navigation"}
+                      variant={"secondary"}
                       size={"lg"}
                       asChild
                       style={{
                         backgroundColor: asPath.includes("/profile/bookmarks")
-                          ? "#be185d"
+                          ? "hsl(var(--accent))"
                           : undefined,
                         color: asPath.includes("/profile/bookmarks")
-                          ? "#fbcfe8"
+                          ? "hsl(var(--accent-foreground))"
                           : undefined,
                       }}
                     >

@@ -46,16 +46,16 @@ function Create() {
 
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex w-full !justify-between gap-4 px-4 md:px-0">
-          <h1 className="text-3xl font-semibold tracking-tight text-pink-50 md:text-4xl">
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
             Create
           </h1>
 
           {isAboveMediumViewport ? (
             <div className="baseFlex gap-4">
-              <BsFillPlayFill className="size-9 -rotate-12 text-pink-50" />
-              <QuarterNote className="size-9 rotate-12 text-pink-50" />
-              <GiMusicalScore className="size-9 -rotate-12 text-pink-50" />
-              <EigthNote className="size-9 rotate-12 text-pink-50" />
+              <BsFillPlayFill className="size-9 -rotate-12 text-foreground" />
+              <QuarterNote className="size-9 rotate-12 text-foreground" />
+              <GiMusicalScore className="size-9 -rotate-12 text-foreground" />
+              <EigthNote className="size-9 rotate-12 text-foreground" />
             </div>
           ) : (
             <div className="baseFlex">

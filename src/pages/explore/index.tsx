@@ -94,7 +94,7 @@ function Explore({ json }: { json: string }) {
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
             <div className="baseVertFlex gap-0 md:gap-1">
               <div className="baseFlex gap-2">
-                <FaRankingStar className="size-6 text-pink-50" />
+                <FaRankingStar className="size-6 text-foreground" />
                 <span className="text-xl font-bold md:text-[1.35rem]">
                   Weekly featured users
                 </span>
@@ -113,7 +113,7 @@ function Explore({ json }: { json: string }) {
             <div className="baseFlex w-full !items-end !justify-between gap-2">
               <div className="baseVertFlex gap-0 md:gap-1">
                 <div className="baseFlex gap-2">
-                  <IoFlash className="size-5 text-pink-50" />
+                  <IoFlash className="size-5 text-foreground" />
                   <span className="text-xl font-bold md:text-[1.35rem]">
                     Newly added tabs
                   </span>
@@ -125,7 +125,7 @@ function Explore({ json }: { json: string }) {
                 <Link
                   prefetch={false}
                   href={"/search/filters"}
-                  className="!h-6 !py-0 text-pink-50"
+                  className="!h-6 !py-0 text-foreground"
                 >
                   View more
                 </Link>
@@ -162,7 +162,7 @@ function Explore({ json }: { json: string }) {
             <div className="baseFlex w-full !items-end !justify-between gap-2">
               <div className="baseVertFlex gap-0 md:gap-1">
                 <div className="baseFlex gap-2">
-                  <IoStatsChart className="size-5 text-pink-50" />
+                  <IoStatsChart className="size-5 text-foreground" />
                   <span className="text-xl font-bold md:text-[1.35rem]">
                     Most popular tabs
                   </span>
@@ -174,7 +174,7 @@ function Explore({ json }: { json: string }) {
                 <Link
                   prefetch={false}
                   href={"/search/filters?sortBy=mostPopular"}
-                  className="!h-6 !py-0 text-pink-50"
+                  className="!h-6 !py-0 text-foreground"
                 >
                   View more
                 </Link>
@@ -209,7 +209,7 @@ function Explore({ json }: { json: string }) {
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
             <div className="baseVertFlex gap-0 md:gap-1">
               <div className="baseFlex gap-2">
-                <BsGridFill className="size-5 text-pink-50" />
+                <BsGridFill className="size-5 text-foreground" />
                 <span className="text-xl font-bold md:text-[1.35rem]">
                   Genres
                 </span>

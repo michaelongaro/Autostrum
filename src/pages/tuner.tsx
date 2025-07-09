@@ -32,7 +32,7 @@ function Tuner() {
         ></meta>
       </Head>
 
-      <div className="baseVertFlex lightGlassmorphic mx-8 gap-4 rounded-lg p-4">
+      <div className="baseVertFlex mx-8 gap-4 rounded-lg border bg-secondary p-4 shadow-md">
         <TuningFork className="size-8 md:size-10" />
 
         <p className="w-80 text-center">

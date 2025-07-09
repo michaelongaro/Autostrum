@@ -65,13 +65,9 @@ function StaticTabNotesColumn({
             {index > 0 && index < 7 && (
               <div
                 style={{
-                  borderTop: `${
-                    index === 1 ? "2px solid rgb(253 242 248)" : "none"
-                  }`,
+                  borderTop: `${index === 1 ? "2px solid" : "none"}`,
                   paddingTop: `${index === 1 ? "7px" : "0"}`,
-                  borderBottom: `${
-                    index === 6 ? "2px solid rgb(253 242 248)" : "none"
-                  }`,
+                  borderBottom: `${index === 6 ? "2px solid" : "none"}`,
                   paddingBottom: `${index === 6 ? "7px" : "0"}`,
                   transition: "width 0.15s ease-in-out",
                   // maybe also need "flex-basis: content" here if editing?
@@ -82,7 +78,7 @@ function StaticTabNotesColumn({
                   style={{
                     opacity: lineBeforeNoteOpacity(index) ? 1 : 0,
                   }}
-                  className="h-[1px] flex-[1] bg-pink-100/50"
+                  className="h-[1px] flex-[1] bg-foreground/50"
                 ></div>
 
                 <StaticTabNote
@@ -105,7 +101,7 @@ function StaticTabNotesColumn({
                   style={{
                     opacity: lineAfterNoteOpacity(index) ? 1 : 0,
                   }}
-                  className="h-[1px] flex-[1] bg-pink-100/50"
+                  className="h-[1px] flex-[1] bg-foreground/50"
                 ></div>
               </div>
             )}
@@ -201,7 +197,7 @@ function StaticTabNotesColumn({
       </div>
 
       {isFinalColumn && (
-        <div className="h-[168px] rounded-r-2xl border-2 border-pink-100 p-1"></div>
+        <div className="h-[168px] rounded-r-2xl border-2 border-foreground p-1"></div>
       )}
     </motion.div>
   );

@@ -26,16 +26,14 @@ function Privacy() {
           content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
         ></meta>
       </Head>
-      <div className="baseVertFlex z-10 my-24 !flex-nowrap gap-16">
+      <div className="baseVertFlex z-10 my-24 gap-16">
         <div className="baseVertFlex lightGlassmorphic baseVertFlex w-5/6 items-start gap-4 rounded-xl p-4 shadow-sm sm:w-auto md:p-8">
           <h1 className="text-3xl font-bold">Privacy Policy for Autostrum</h1>
           <p>Last updated - September 25th, 2023</p>
 
           <div className="baseVertFlex w-full !items-start gap-8">
             <div className="baseVertFlex !items-start gap-2">
-              <h2 className="border-b-2 text-xl font-semibold ">
-                Introduction
-              </h2>
+              <h2 className="border-b-2 text-xl font-semibold">Introduction</h2>
               <p className="text-pink-100">
                 Welcome to Autostrum. This Privacy Policy outlines how we
                 collect, use, and handle your information when you use our
@@ -70,7 +68,7 @@ function Privacy() {
             </div>
 
             <div className="baseVertFlex !items-start gap-2">
-              <h2 className="border-b-2 text-xl font-semibold ">
+              <h2 className="border-b-2 text-xl font-semibold">
                 How We Use Your Information
               </h2>
               <p className="text-pink-100">
@@ -96,7 +94,7 @@ function Privacy() {
             </div>
 
             <div className="baseVertFlex !items-start gap-2">
-              <h2 className="border-b-2 text-xl font-semibold ">
+              <h2 className="border-b-2 text-xl font-semibold">
                 Data Storage and Security
               </h2>
               <p className="text-pink-100">
@@ -106,7 +104,7 @@ function Privacy() {
             </div>
 
             <div className="baseVertFlex !items-start gap-2">
-              <h2 className="border-b-2 text-xl font-semibold ">
+              <h2 className="border-b-2 text-xl font-semibold">
                 Data Retention and Deletion
               </h2>
               <p className="text-pink-100">
@@ -117,7 +115,7 @@ function Privacy() {
             </div>
 
             <div className="baseVertFlex !items-start gap-2">
-              <h2 className="border-b-2 text-xl font-semibold ">
+              <h2 className="border-b-2 text-xl font-semibold">
                 Changes to This Policy
               </h2>
               <p className="text-pink-100">
@@ -127,7 +125,7 @@ function Privacy() {
             </div>
 
             <div className="baseVertFlex !items-start gap-2">
-              <h2 className="border-b-2 text-xl font-semibold ">Contact Us</h2>
+              <h2 className="border-b-2 text-xl font-semibold">Contact Us</h2>
               <div className="baseFlex gap-2">
                 <p className="text-pink-100">
                   For any questions about this Privacy Policy, please contact us

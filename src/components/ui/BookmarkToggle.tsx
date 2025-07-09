@@ -221,7 +221,7 @@ function BookmarkToggle({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
-                className="baseFlex !flex-nowrap gap-2"
+                className="baseFlex gap-2"
               >
                 <IoBookmark className="h-[18px] w-[18px] md:h-5 md:w-5" />
                 {showText && "Bookmarked"}
@@ -233,7 +233,7 @@ function BookmarkToggle({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
-                className="baseFlex !flex-nowrap gap-2"
+                className="baseFlex gap-2"
               >
                 <IoBookmarkOutline className="h-[18px] w-[18px] md:h-5 md:w-5" />
                 {showText && "Bookmark"}

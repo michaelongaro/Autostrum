@@ -60,13 +60,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               : "150ms",
         }}
         className={cn(
-          `flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base ring-offset-background sm:text-base ${
+          `flex h-10 w-full rounded-md border bg-transparent px-3 py-2 text-base ring-offset-background sm:text-base ${
             showingErrorShakeAnimation
               ? smallErrorShakeAnimation
                 ? "animate-smallErrorShake"
                 : "animate-errorShake"
               : "transition-all"
-          } file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground ${focusClasses} disabled:cursor-not-allowed disabled:opacity-50`,
+          } file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-foreground/50 ${focusClasses} disabled:cursor-not-allowed disabled:opacity-50`,
           className,
         )}
         ref={ref}

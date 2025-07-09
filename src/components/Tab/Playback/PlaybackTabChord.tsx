@@ -35,7 +35,7 @@ function PlaybackTabChord({
           {/* show new current bpm */}
           {columnData[8] !== "" && (
             <div
-              className={`baseFlex absolute -top-7 !flex-nowrap gap-[0.125rem] text-pink-100`}
+              className={`baseFlex absolute -top-7 gap-[0.125rem] text-pink-100`}
             >
               <QuarterNote />
               <p className="text-center text-xs">{columnData[8]}</p>

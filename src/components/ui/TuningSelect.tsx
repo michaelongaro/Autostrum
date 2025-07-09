@@ -51,12 +51,7 @@ function TuningSelect({ customTuning }: TuningSelectProps) {
         </SelectValue>
       </SelectTrigger>
 
-      <SelectContent
-        style={{
-          textShadow: "none",
-        }}
-        className="w-[300px]"
-      >
+      <SelectContent className="w-[300px]">
         {/* Standard Tunings */}
         {tunings.map((tuningObj) => (
           <SelectItem
@@ -70,7 +65,7 @@ function TuningSelect({ customTuning }: TuningSelectProps) {
           </SelectItem>
         ))}
 
-        <SelectSeparator className="bg-pink-600" />
+        <SelectSeparator />
 
         {/* Custom tuning (if it exists) */}
         {customTuning && (

@@ -134,9 +134,6 @@ function PlaybackStrummedChord({
 
           <div
             style={{
-              textShadow: isHighlighted
-                ? "none"
-                : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
               color: isHighlighted
                 ? "hsl(335, 78%, 42%)"
                 : "hsl(324, 77%, 95%)",
@@ -160,7 +157,7 @@ function PlaybackStrummedChord({
             </div>
           </div>
 
-          <div className="baseFlex !flex-nowrap">
+          <div className="baseFlex">
             <div style={{ width: "0.25rem" }}></div>
 
             <div
@@ -219,7 +216,6 @@ function PlaybackStrummedChord({
 
           <p
             style={{
-              textShadow: "none",
               height:
                 getBeatIndicator(noteLength, strumIndex) === ""
                   ? "1.25rem"

@@ -170,7 +170,7 @@ function UserSettings() {
 
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex w-full !justify-between px-4 lg:px-0">
-          <span className="text-3xl font-semibold tracking-tight !text-pink-50 md:text-4xl lg:hidden">
+          <span className="text-3xl font-semibold tracking-tight !text-foreground md:text-4xl lg:hidden">
             Settings
           </span>
 
@@ -179,7 +179,7 @@ function UserSettings() {
               <Link
                 prefetch={false}
                 href={"/profile/settings"}
-                className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50 hover:!text-pink-50 active:!text-pink-50/75 lg:!text-4xl"
+                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
               >
                 Settings
               </Link>
@@ -188,7 +188,7 @@ function UserSettings() {
               <Link
                 prefetch={false}
                 href={"/profile/statistics"}
-                className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50/50 hover:!text-pink-50 active:text-pink-50/75 lg:!text-4xl"
+                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:text-foreground/75 lg:!text-4xl"
               >
                 Statistics
               </Link>
@@ -197,7 +197,7 @@ function UserSettings() {
               <Link
                 prefetch={false}
                 href={"/profile/tabs/filters"}
-                className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50/50 hover:!text-pink-50 active:!text-pink-50/75 lg:!text-4xl"
+                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
               >
                 Tabs
               </Link>
@@ -206,7 +206,7 @@ function UserSettings() {
               <Link
                 prefetch={false}
                 href={"/profile/bookmarks/filters"}
-                className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50/50 hover:!text-pink-50 active:!text-pink-50/75 lg:!text-4xl"
+                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
               >
                 Bookmarks
               </Link>
@@ -219,7 +219,7 @@ function UserSettings() {
           >
             <PopoverTrigger asChild>
               <Button variant={"text"} className="!p-0">
-                <Ellipsis className="size-[18px] text-pink-50 lg:size-5" />
+                <Ellipsis className="size-[18px] text-foreground lg:size-5" />
               </Button>
             </PopoverTrigger>
             <PopoverContent side={"bottom"} align="end" className="w-fit">
@@ -244,7 +244,7 @@ function UserSettings() {
             <div className="baseVertFlex w-full !items-start gap-4 lg:gap-12">
               {/* email */}
               <div className="baseVertFlex w-full !items-start gap-2 lg:!flex-row lg:!items-center lg:!justify-between">
-                <span className="text-xl font-medium !text-pink-50 lg:text-2xl">
+                <span className="text-xl font-medium !text-foreground lg:text-2xl">
                   Email
                 </span>
 
@@ -257,7 +257,7 @@ function UserSettings() {
                   className="baseFlex"
                 >
                   {localSettings ? (
-                    <span className="font-medium italic !text-pink-50/75 lg:text-xl">
+                    <span className="font-medium italic !text-foreground/75 lg:text-xl">
                       {localSettings.emailAddress}
                     </span>
                   ) : (
@@ -275,7 +275,7 @@ function UserSettings() {
               <div className="baseVertFlex w-full !items-start gap-2 lg:!flex-row lg:!justify-between">
                 <Label
                   htmlFor={"username"}
-                  className="text-xl font-medium !text-pink-50 lg:text-2xl"
+                  className="text-xl font-medium !text-foreground lg:text-2xl"
                 >
                   Username
                 </Label>
@@ -295,7 +295,7 @@ function UserSettings() {
                         type="text"
                         value={localSettings?.username}
                         placeholder="Enter your username"
-                        className="w-[275px] !text-pink-50"
+                        className="w-[275px] !text-foreground"
                         onFocus={() => setUsernameInputHasReceivedFocus(true)}
                         onChange={(e) => {
                           setLocalSettings((prev) => ({
@@ -336,7 +336,7 @@ function UserSettings() {
                           },
                         }}
                         transition={{ duration: 0.35 }}
-                        className="baseFlex gap-2 text-nowrap text-sm font-medium !text-pink-50/75"
+                        className="baseFlex gap-2 text-nowrap text-sm font-medium !text-foreground/75"
                       >
                         {localSettings &&
                         (localSettings.username.length < 1 ||
@@ -349,7 +349,7 @@ function UserSettings() {
                             transition={{ duration: 0.15 }}
                             className="rounded-full bg-red-500 p-0.5"
                           >
-                            <IoClose className="size-3 text-pink-50" />
+                            <IoClose className="size-3 text-foreground" />
                           </motion.div>
                         ) : (
                           <motion.div
@@ -360,7 +360,7 @@ function UserSettings() {
                             transition={{ duration: 0.15 }}
                             className="rounded-full bg-green-600 p-0.5"
                           >
-                            <Check className="size-3 text-pink-50" />
+                            <Check className="size-3 text-foreground" />
                           </motion.div>
                         )}
                         Must be between 1 - 20 characters
@@ -377,7 +377,7 @@ function UserSettings() {
 
               {/* password */}
               <div className="baseVertFlex relative w-full !items-start gap-2 lg:!flex-row lg:!items-start lg:!justify-between">
-                <span className="text-xl font-medium !text-pink-50 lg:text-2xl">
+                <span className="text-xl font-medium !text-foreground lg:text-2xl">
                   Password
                 </span>
 
@@ -394,7 +394,7 @@ function UserSettings() {
                     >
                       <Label
                         htmlFor={"newPassword"}
-                        className="font-medium !text-pink-50"
+                        className="font-medium !text-foreground"
                       >
                         New password
                       </Label>
@@ -407,7 +407,7 @@ function UserSettings() {
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
                           placeholder="Enter your new password"
-                          className="w-full max-w-[275px] !text-pink-50 lg:w-[275px]"
+                          className="w-full max-w-[275px] !text-foreground lg:w-[275px]"
                         />
 
                         <Button
@@ -427,14 +427,14 @@ function UserSettings() {
                             transition={{ duration: 0.15 }}
                           >
                             {showPasswords ? (
-                              <FaRegEyeSlash className="size-5 text-pink-50" />
+                              <FaRegEyeSlash className="size-5 text-foreground" />
                             ) : (
-                              <FaRegEye className="size-5 text-pink-50" />
+                              <FaRegEye className="size-5 text-foreground" />
                             )}
                           </motion.div>
                         </Button>
 
-                        <div className="baseFlex gap-2 text-sm font-medium !text-pink-50/75">
+                        <div className="baseFlex gap-2 text-sm font-medium !text-foreground/75">
                           {newPassword.length < 8 ? (
                             <motion.div
                               key={"newPasswordErrorIcon"}
@@ -444,7 +444,7 @@ function UserSettings() {
                               transition={{ duration: 0.15 }}
                               className="rounded-full bg-red-500 p-0.5"
                             >
-                              <IoClose className="size-3 text-pink-50" />
+                              <IoClose className="size-3 text-foreground" />
                             </motion.div>
                           ) : (
                             <motion.div
@@ -455,7 +455,7 @@ function UserSettings() {
                               transition={{ duration: 0.15 }}
                               className="rounded-full bg-green-600 p-0.5"
                             >
-                              <Check className="size-3 text-pink-50" />
+                              <Check className="size-3 text-foreground" />
                             </motion.div>
                           )}
                           Must be greater than 8 characters
@@ -464,7 +464,7 @@ function UserSettings() {
 
                       <Label
                         htmlFor={"confirmPassword"}
-                        className="mt-2 font-medium !text-pink-50"
+                        className="mt-2 font-medium !text-foreground"
                       >
                         Confirm password
                       </Label>
@@ -476,7 +476,7 @@ function UserSettings() {
                           value={confirmPassword}
                           placeholder="Confirm your new password"
                           maxLength={128}
-                          className="w-full max-w-[275px] !text-pink-50 lg:w-[275px]"
+                          className="w-full max-w-[275px] !text-foreground lg:w-[275px]"
                           onChange={(e) => setConfirmPassword(e.target.value)}
                         />
 
@@ -497,14 +497,14 @@ function UserSettings() {
                             transition={{ duration: 0.15 }}
                           >
                             {showPasswords ? (
-                              <FaRegEyeSlash className="size-5 text-pink-50" />
+                              <FaRegEyeSlash className="size-5 text-foreground" />
                             ) : (
-                              <FaRegEye className="size-5 text-pink-50" />
+                              <FaRegEye className="size-5 text-foreground" />
                             )}
                           </motion.div>
                         </Button>
 
-                        <div className="baseFlex gap-2 text-sm font-medium !text-pink-50/75">
+                        <div className="baseFlex gap-2 text-sm font-medium !text-foreground/75">
                           {confirmPassword.length < 8 ? (
                             <motion.div
                               key={"confirmPasswordLengthErrorIcon"}
@@ -514,7 +514,7 @@ function UserSettings() {
                               transition={{ duration: 0.15 }}
                               className="rounded-full bg-red-500 p-0.5"
                             >
-                              <IoClose className="size-3 text-pink-50" />
+                              <IoClose className="size-3 text-foreground" />
                             </motion.div>
                           ) : (
                             <motion.div
@@ -525,12 +525,12 @@ function UserSettings() {
                               transition={{ duration: 0.15 }}
                               className="rounded-full bg-green-600 p-0.5"
                             >
-                              <Check className="size-3 text-pink-50" />
+                              <Check className="size-3 text-foreground" />
                             </motion.div>
                           )}
                           Must be greater than 8 characters
                         </div>
-                        <div className="baseFlex gap-2 text-sm font-medium !text-pink-50/75">
+                        <div className="baseFlex gap-2 text-sm font-medium !text-foreground/75">
                           {newPassword !== confirmPassword ? (
                             <motion.div
                               key={"confirmPasswordEqualityErrorIcon"}
@@ -540,7 +540,7 @@ function UserSettings() {
                               transition={{ duration: 0.15 }}
                               className="rounded-full bg-red-500 p-0.5"
                             >
-                              <IoClose className="size-3 text-pink-50" />
+                              <IoClose className="size-3 text-foreground" />
                             </motion.div>
                           ) : (
                             <motion.div
@@ -551,7 +551,7 @@ function UserSettings() {
                               transition={{ duration: 0.15 }}
                               className="rounded-full bg-green-600 p-0.5"
                             >
-                              <Check className="size-3 text-pink-50" />
+                              <Check className="size-3 text-foreground" />
                             </motion.div>
                           )}
                           Passwords must match
@@ -569,7 +569,7 @@ function UserSettings() {
                     >
                       {localSettings ? (
                         <span
-                          className={`font-medium ${localSettings.passwordEnabled ? "!text-pink-50 lg:text-2xl" : "italic !text-pink-50/75 lg:text-xl"} lg:text-xl`}
+                          className={`font-medium ${localSettings.passwordEnabled ? "!text-foreground lg:text-2xl" : "italic !text-foreground/75 lg:text-xl"} lg:text-xl`}
                         >
                           {localSettings.passwordEnabled
                             ? "********"
@@ -657,7 +657,7 @@ function UserSettings() {
 
               {/* color selector */}
               <div className="baseVertFlex relative w-full !items-start gap-2 lg:!flex-row lg:!justify-between">
-                <span className="text-xl font-medium !text-pink-50 lg:text-2xl">
+                <span className="text-xl font-medium !text-foreground lg:text-2xl">
                   Color
                 </span>
 
@@ -770,7 +770,7 @@ function UserSettings() {
 
               {/* theme selector */}
               <div className="baseVertFlex relative w-full !items-start gap-2 lg:!flex-row lg:!justify-between">
-                <div className="baseFlex gap-1 text-xl font-medium !text-pink-50 lg:gap-2 lg:text-2xl">
+                <div className="baseFlex gap-1 text-xl font-medium !text-foreground lg:gap-2 lg:text-2xl">
                   Theme
                   <Popover>
                     <PopoverTrigger asChild>
@@ -905,7 +905,7 @@ function UserSettings() {
                   {saveButtonText}
                   {saveButtonText === "Saving" && (
                     <div
-                      className="inline-block size-4 animate-spin rounded-full border-[2px] border-pink-50 border-t-transparent text-pink-50"
+                      className="inline-block size-4 animate-spin rounded-full border-[2px] border-pink-50 border-t-transparent text-foreground"
                       role="status"
                       aria-label="loading"
                     >
@@ -918,7 +918,7 @@ function UserSettings() {
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                       strokeWidth={2}
-                      className="size-5 text-pink-50"
+                      className="size-5 text-foreground"
                     >
                       <motion.path
                         initial={{ pathLength: 0 }}

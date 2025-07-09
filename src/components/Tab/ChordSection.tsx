@@ -10,7 +10,10 @@ import {
   type ChordSection as ChordSectionType,
   type ChordSequence as ChordSequenceType,
 } from "~/stores/TabStore";
-import { chordSequencesAllHaveSameNoteLength } from "~/utils/bpmIconRenderingHelpers";
+import {
+  chordSequencesAllHaveSameNoteLength,
+  QuarterNote,
+} from "~/utils/bpmIconRenderingHelpers";
 import ChordSequence from "./ChordSequence";
 import MiscellaneousControls from "./MiscellaneousControls";
 
@@ -106,11 +109,39 @@ function ChordSection({
           duration: 1,
         },
       }}
-      className="baseVertFlex lightestGlassmorphic relative h-full w-full !justify-start gap-4 rounded-md p-4 md:p-8"
+      className="baseVertFlex relative h-full w-full !justify-start gap-4 rounded-md border bg-secondary-active/50 p-4 shadow-md md:p-8"
     >
       <div className="baseFlex w-full !items-start">
         <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
           <div className="baseFlex gap-2">
+            <div className="baseFlex gap-2">
+              <Label>BPM</Label>
+
+              <div className="baseFlex">
+                <QuarterNote className="-ml-1 size-5" />
+
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="w-[52px] px-2.5"
+                  placeholder={
+                    subSectionData.bpm === -1
+                      ? bpm === -1
+                        ? ""
+                        : bpm.toString()
+                      : subSectionData.bpm.toString()
+                  }
+                  value={
+                    subSectionData.bpm === -1
+                      ? ""
+                      : subSectionData.bpm.toString()
+                  }
+                  onChange={handleBpmChange}
+                />
+              </div>
+            </div>
+
             <div className="baseFlex gap-2">
               <Label>Repetitions</Label>
               <div className="relative w-12">
@@ -129,27 +160,6 @@ function ChordSection({
                   onChange={handleRepetitionsChange}
                 />
               </div>
-            </div>
-
-            <div className="baseFlex gap-2">
-              <Label>BPM</Label>
-              <Input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                className="w-[52px] px-2.5"
-                placeholder={
-                  subSectionData.bpm === -1
-                    ? bpm === -1
-                      ? ""
-                      : bpm.toString()
-                    : subSectionData.bpm.toString()
-                }
-                value={
-                  subSectionData.bpm === -1 ? "" : subSectionData.bpm.toString()
-                }
-                onChange={handleBpmChange}
-              />
             </div>
           </div>
         </div>
@@ -197,11 +207,7 @@ function ChordSection({
         </motion.div>
       </AnimatePresence>
 
-      <Button onClick={addAnotherChordSequence}>
-        {`Add ${
-          subSectionData.data.length === 0 ? "a" : "another"
-        } chord progression`}
-      </Button>
+      <Button onClick={addAnotherChordSequence}>Add chord progression</Button>
     </motion.div>
   );
 }

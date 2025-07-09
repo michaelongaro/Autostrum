@@ -119,7 +119,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
               transition={{ duration: 0.25 }}
               className="baseVertFlex w-full gap-4 px-2 lg:!flex-row lg:!items-end lg:!justify-between lg:px-0"
             >
-              <div className="baseVertFlex !items-start gap-2">
+              <div className="baseVertFlex !items-start gap-2 text-foreground">
                 <div className="baseFlex gap-1">User</div>
 
                 <div className="baseFlex gap-2">
@@ -232,7 +232,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                   >
                     <CarouselContent>
                       <CarouselItem className="baseFlex">
-                        <div className="baseVertFlex !items-start gap-2">
+                        <div className="baseVertFlex !items-start gap-2 text-foreground">
                           <div className="baseFlex gap-1">User</div>
 
                           <div className="baseFlex gap-2">

@@ -185,7 +185,7 @@ function CustomTuningModal({
             </div>
           </div>
 
-          <div className="baseFlex !flex-nowrap gap-2">
+          <div className="baseFlex gap-2">
             {customInputValues.map((value, index) => (
               <Input
                 key={index}

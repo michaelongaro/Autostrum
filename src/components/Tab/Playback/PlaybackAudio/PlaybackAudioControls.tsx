@@ -263,7 +263,7 @@ function PlaybackAudioControls({
             </motion.div>
           </AnimatePresence>
 
-          <div className="baseFlex w-full !flex-nowrap gap-2">
+          <div className="baseFlex w-full gap-2">
             <div className="baseFlex w-9 !justify-start self-start">
               {formatSecondsToMinutes(
                 playbackMetadata?.[

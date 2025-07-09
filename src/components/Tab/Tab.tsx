@@ -283,7 +283,7 @@ function Tab({ tab }: Tab) {
         style={{
           transition: "filter 0.5s ease-in-out",
         }}
-        className={`baseVertFlex lightGlassmorphic relative w-full md:rounded-xl ${
+        className={`baseVertFlex bg-muted relative w-full border shadow-lg md:rounded-xl ${
           isPublishingOrUpdating
             ? "pointer-events-none brightness-90"
             : "brightness-100"
@@ -293,7 +293,6 @@ function Tab({ tab }: Tab) {
           customTuning={customTuning}
           setIsPublishingOrUpdating={setIsPublishingOrUpdating}
         />
-
         {!editing &&
           sectionProgression.length === 0 &&
           chords.length === 0 &&
@@ -311,9 +310,8 @@ function Tab({ tab }: Tab) {
           )}
 
         <Separator
-          className={`mt-2 ${editing ? "w-[96%]" : "w-full tablet:w-[96%]"}`}
+          className={`mt-2 bg-border ${editing ? "w-[96%]" : "w-full tablet:w-[96%]"}`}
         />
-
         {editing ? (
           <div className="baseVertFlex relative mb-4 mt-6 w-full gap-4 sm:mb-0 sm:mt-4">
             <SectionProgression />
@@ -369,11 +367,9 @@ function Tab({ tab }: Tab) {
             )}
           </>
         )}
-
         <Separator
-          className={`my-2 ${editing ? "w-[96%]" : "w-full tablet:w-[96%]"}`}
+          className={`my-2 bg-border ${editing ? "w-[96%]" : "w-full tablet:w-[96%]"}`}
         />
-
         <div
           ref={tabContentRef}
           id={"tabBodyContent"}
@@ -477,7 +473,7 @@ function Tab({ tab }: Tab) {
 
           {editing && (
             <Button onClick={addNewSection} className="mb-12">
-              Add another section
+              Add section
             </Button>
           )}
 
@@ -501,7 +497,7 @@ function Tab({ tab }: Tab) {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
-                            variant={"navigation"}
+                            variant={"secondary"}
                             style={{
                               backgroundColor: showPinnedChords
                                 ? "#be185d"
@@ -541,7 +537,7 @@ function Tab({ tab }: Tab) {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
-                          variant={"navigation"}
+                          variant={"secondary"}
                           className="baseFlex !size-11 gap-2 !rounded-full !p-0 shadow-lg"
                           onClick={() => setShowEffectGlossaryDialog(true)}
                         >

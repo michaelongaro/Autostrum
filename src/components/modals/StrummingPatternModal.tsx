@@ -28,6 +28,7 @@ import {
   SixteenthNote,
 } from "~/utils/bpmIconRenderingHelpers";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
+import { X } from "lucide-react";
 
 const backdropVariants = {
   expanded: {
@@ -357,163 +358,176 @@ function StrummingPatternModal({
       >
         <div
           tabIndex={-1}
-          className="baseVertFlex max-h-[90vh] min-w-[370px] max-w-[90vw] !flex-nowrap !justify-start gap-4 rounded-md bg-pink-400 p-4 shadow-sm transition-all sm:max-w-[700px] sm:p-8"
+          className="baseVertFlex modalGradient max-h-[90vh] min-w-[370px] max-w-[90vw] !justify-start gap-4 rounded-md p-4 text-foreground shadow-sm transition-all sm:max-w-[700px]"
         >
           <div className="baseFlex w-full !items-start !justify-between sm:!flex-col sm:gap-8">
-            <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center sm:!justify-start">
-              <Label>Note length</Label>
-              <Select
-                onValueChange={handleNoteLengthChange}
-                value={strummingPatternBeingEdited.value.noteLength}
+            <div className="baseFlex w-full !items-start !justify-between">
+              <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center sm:!justify-start">
+                <Label>Note length</Label>
+                <Select
+                  onValueChange={handleNoteLengthChange}
+                  value={strummingPatternBeingEdited.value.noteLength}
+                >
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Select a length" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1/4th">
+                      <div className="baseFlex gap-2">
+                        <QuarterNote className="" />
+                        1/4th
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="1/4th triplet">
+                      <div className="baseFlex gap-2">
+                        <QuarterNote />
+                        1/4th triplet
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="1/8th">
+                      <div className="baseFlex gap-2">
+                        <EigthNote />
+                        1/8th
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="1/8th triplet">
+                      <div className="baseFlex gap-2">
+                        <EigthNote />
+                        1/8th triplet
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="1/16th">
+                      <div className="baseFlex gap-2">
+                        <SixteenthNote />
+                        1/16th
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="1/16th triplet">
+                      <div className="baseFlex gap-2">
+                        <SixteenthNote />
+                        1/16th triplet
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <div className="baseFlex">
+                  <Button
+                    disabled={editingPalmMuteNodes}
+                    style={{
+                      borderRadius: editingPalmMuteNodes
+                        ? "0.375rem 0 0 0.375rem"
+                        : "0.375rem",
+                      transitionDelay: "0.1s",
+                    }}
+                    onClick={toggleEditingPalmMuteNodes}
+                  >
+                    PM Editor
+                  </Button>
+
+                  <AnimatePresence>
+                    {editingPalmMuteNodes && (
+                      <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        transition={{
+                          ease: "easeInOut",
+                        }}
+                      >
+                        <Button
+                          className="rounded-l-none rounded-r-md px-2 py-0"
+                          onClick={toggleEditingPalmMuteNodes}
+                        >
+                          <motion.div
+                            variants={xVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            transition={{
+                              ease: "easeInOut",
+                            }}
+                          >
+                            <IoClose className="h-6 w-6" />
+                          </motion.div>
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* toggle delete strums */}
+                <div className="baseFlex">
+                  <Button
+                    variant={"destructive"}
+                    disabled={showingDeleteStrumsButtons}
+                    style={{
+                      borderRadius: showingDeleteStrumsButtons
+                        ? "0.375rem 0 0 0.375rem"
+                        : "0.375rem",
+                      transitionDelay: "0.1s",
+                    }}
+                    className="baseFlex gap-2 whitespace-nowrap"
+                    onClick={() =>
+                      setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
+                    }
+                  >
+                    Delete strums
+                    <FaTrashAlt className="hidden h-4 w-4 sm:block" />
+                  </Button>
+
+                  <AnimatePresence>
+                    {showingDeleteStrumsButtons && (
+                      <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        transition={{
+                          ease: "easeInOut",
+                        }}
+                      >
+                        <Button
+                          variant={"destructive"}
+                          className="rounded-l-none rounded-r-md px-2 py-0"
+                          onClick={() =>
+                            setShowingDeleteStrumsButtons(
+                              !showingDeleteStrumsButtons,
+                            )
+                          }
+                        >
+                          <motion.div
+                            variants={xVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            transition={{
+                              ease: "easeInOut",
+                            }}
+                          >
+                            <IoClose className="h-6 w-6" />
+                          </motion.div>
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              <Button
+                variant={"ghost"}
+                onClick={() => {
+                  if (audioMetadata.playing) pauseAudio();
+                  setStrummingPatternBeingEdited(null);
+                }}
+                className="baseFlex size-8 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
               >
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Select a length" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1/4th">
-                    <div className="baseFlex gap-2">
-                      <QuarterNote className="" />
-                      1/4th
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="1/4th triplet">
-                    <div className="baseFlex gap-2">
-                      <QuarterNote />
-                      1/4th triplet
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="1/8th">
-                    <div className="baseFlex gap-2">
-                      <EigthNote />
-                      1/8th
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="1/8th triplet">
-                    <div className="baseFlex gap-2">
-                      <EigthNote />
-                      1/8th triplet
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="1/16th">
-                    <div className="baseFlex gap-2">
-                      <SixteenthNote />
-                      1/16th
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="1/16th triplet">
-                    <div className="baseFlex gap-2">
-                      <SixteenthNote />
-                      1/16th triplet
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-
-              <div className="baseFlex">
-                <Button
-                  disabled={editingPalmMuteNodes}
-                  style={{
-                    borderRadius: editingPalmMuteNodes
-                      ? "0.375rem 0 0 0.375rem"
-                      : "0.375rem",
-                    transitionDelay: "0.1s",
-                  }}
-                  onClick={toggleEditingPalmMuteNodes}
-                >
-                  PM Editor
-                </Button>
-
-                <AnimatePresence>
-                  {editingPalmMuteNodes && (
-                    <motion.div
-                      variants={containerVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      transition={{
-                        ease: "easeInOut",
-                      }}
-                    >
-                      <Button
-                        className="rounded-l-none rounded-r-md px-2 py-0"
-                        onClick={toggleEditingPalmMuteNodes}
-                      >
-                        <motion.div
-                          variants={xVariants}
-                          initial="hidden"
-                          animate="visible"
-                          exit="exit"
-                          transition={{
-                            ease: "easeInOut",
-                          }}
-                        >
-                          <IoClose className="h-6 w-6" />
-                        </motion.div>
-                      </Button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* toggle delete strums */}
-              <div className="baseFlex">
-                <Button
-                  variant={"destructive"}
-                  disabled={showingDeleteStrumsButtons}
-                  style={{
-                    borderRadius: showingDeleteStrumsButtons
-                      ? "0.375rem 0 0 0.375rem"
-                      : "0.375rem",
-                    transitionDelay: "0.1s",
-                  }}
-                  className="baseFlex gap-2 whitespace-nowrap"
-                  onClick={() =>
-                    setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
-                  }
-                >
-                  Delete strums
-                  <FaTrashAlt className="hidden h-4 w-4 sm:block" />
-                </Button>
-
-                <AnimatePresence>
-                  {showingDeleteStrumsButtons && (
-                    <motion.div
-                      variants={containerVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      transition={{
-                        ease: "easeInOut",
-                      }}
-                    >
-                      <Button
-                        variant={"destructive"}
-                        className="rounded-l-none rounded-r-md px-2 py-0"
-                        onClick={() =>
-                          setShowingDeleteStrumsButtons(
-                            !showingDeleteStrumsButtons,
-                          )
-                        }
-                      >
-                        <motion.div
-                          variants={xVariants}
-                          initial="hidden"
-                          animate="visible"
-                          exit="exit"
-                          transition={{
-                            ease: "easeInOut",
-                          }}
-                        >
-                          <IoClose className="h-6 w-6" />
-                        </motion.div>
-                      </Button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                <X className="size-5" />
+              </Button>
             </div>
 
-            <div className="baseVertFlex lightestGlassmorphic gap-1 rounded-md px-4 py-3 text-sm xs:px-8 sm:w-auto sm:gap-2 sm:self-center md:px-4">
+            <div className="baseVertFlex gap-1 rounded-md border bg-secondary px-4 py-3 text-sm shadow-sm xs:px-8 sm:w-auto sm:gap-2 sm:self-center md:px-4">
               <div className="baseFlex w-auto gap-2 font-semibold">
                 <BsKeyboard className="h-6 w-6" />
                 Hotkeys
@@ -613,33 +627,22 @@ function StrummingPatternModal({
                 Preview
               </>
             </Button>
-            <div className="baseFlex gap-4">
-              <Button
-                variant={"ghost"}
-                onClick={() => {
-                  if (audioMetadata.playing) pauseAudio();
-                  setStrummingPatternBeingEdited(null);
-                }}
-              >
-                Close
-              </Button>
 
-              {/* should be disabled if lodash isEqual to the strummingPatterns original version */}
-              <Button
-                disabled={
-                  strummingPatternBeingEdited.value.strums.every(
-                    (strum) => strum.strum === "",
-                  ) ||
-                  isEqual(
-                    strummingPatternBeingEdited.value,
-                    strummingPatterns[strummingPatternBeingEdited.index],
-                  )
-                }
-                onClick={handleSaveStrummingPattern}
-              >
-                Save
-              </Button>
-            </div>
+            {/* should be disabled if lodash isEqual to the strummingPatterns original version */}
+            <Button
+              disabled={
+                strummingPatternBeingEdited.value.strums.every(
+                  (strum) => strum.strum === "",
+                ) ||
+                isEqual(
+                  strummingPatternBeingEdited.value,
+                  strummingPatterns[strummingPatternBeingEdited.index],
+                )
+              }
+              onClick={handleSaveStrummingPattern}
+            >
+              Save
+            </Button>
           </div>
         </div>
       </FocusTrap>

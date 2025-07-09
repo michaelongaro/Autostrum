@@ -124,12 +124,7 @@ function PinnedTabSelector({
                 <Button variant={"outline"}>Edit</Button>
               </DrawerTrigger>
               <DrawerPortal>
-                <DrawerContent
-                  style={{
-                    textShadow: "none",
-                  }}
-                  className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-4 text-pink-950"
-                >
+                <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-4 text-pink-950">
                   <VisuallyHidden>
                     <DrawerTitle>Pinned tab selector</DrawerTitle>
                     <DrawerDescription>

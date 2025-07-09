@@ -429,7 +429,7 @@ function MobileSettingsPopover({
         {!isMobileOnly && (
           <div className="baseVertFlex w-full !items-start gap-2">
             <span className="font-medium">Volume</span>
-            <div className="baseFlex w-full max-w-64 !flex-nowrap gap-2 md:justify-self-end">
+            <div className="baseFlex w-full max-w-64 gap-2 md:justify-self-end">
               <AnimatePresence mode="popLayout">
                 {volume === 0 && (
                   <motion.div
@@ -616,12 +616,6 @@ function MobileMenuDialog() {
                           <div className="baseFlex w-full !justify-between border-b py-2">
                             <p
                               style={{
-                                textShadow:
-                                  previewMetadata.indexOfPattern === index &&
-                                  previewMetadata.playing &&
-                                  previewMetadata.type === "chord"
-                                    ? "none"
-                                    : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
                                 color:
                                   previewMetadata.indexOfPattern === index &&
                                   previewMetadata.playing &&
@@ -783,7 +777,7 @@ function MobileMenuDialog() {
                             previewType="strummingPattern"
                           />
                         </Button>
-                        <div className="baseFlex border-b-none !flex-nowrap rounded-md border-2">
+                        <div className="baseFlex border-b-none rounded-md border-2">
                           <StrummingPattern
                             data={pattern}
                             mode="viewing"

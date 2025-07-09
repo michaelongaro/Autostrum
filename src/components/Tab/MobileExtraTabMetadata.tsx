@@ -272,7 +272,7 @@ function MobileExtraTabMetadata() {
                         No chords specified
                       </p>
                     ) : (
-                      <div className="baseFlex !flex-wrap !items-start gap-8">
+                      <div className="baseFlex flex-wrap !items-start gap-8">
                         {chords.map((chord, index) => (
                           <div
                             key={chord.id}
@@ -282,13 +282,6 @@ function MobileExtraTabMetadata() {
                               <div className="baseFlex w-full !justify-between gap-2 border-b pb-2">
                                 <p
                                   style={{
-                                    textShadow:
-                                      previewMetadata.indexOfPattern ===
-                                        index &&
-                                      previewMetadata.playing &&
-                                      previewMetadata.type === "chord"
-                                        ? "none"
-                                        : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
                                     color:
                                       previewMetadata.indexOfPattern ===
                                         index &&
@@ -384,7 +377,7 @@ function MobileExtraTabMetadata() {
                         No strumming patterns specified
                       </p>
                     ) : (
-                      <div className="baseFlex !flex-wrap !items-start gap-8">
+                      <div className="baseFlex flex-wrap !items-start gap-8">
                         {strummingPatterns.map((pattern, index) => (
                           <div
                             key={pattern.id}
@@ -464,7 +457,7 @@ function MobileExtraTabMetadata() {
                                 previewType="strummingPattern"
                               />
                             </Button>
-                            <div className="baseFlex border-b-none !flex-nowrap rounded-md border-2">
+                            <div className="baseFlex border-b-none rounded-md border-2">
                               <StrummingPattern
                                 data={pattern}
                                 mode="viewing"

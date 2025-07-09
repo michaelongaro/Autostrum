@@ -118,7 +118,7 @@ function GridTabCard({
         width: `${getDynamicWidth()}px`,
         minWidth: `${getDynamicWidth()}px`,
       }}
-      className="baseVertFlex !flex-nowrap overflow-hidden rounded-md border-2 shadow-md"
+      className="baseVertFlex overflow-hidden rounded-md border-2 shadow-md"
     >
       {/* tab preview */}
 
@@ -161,7 +161,7 @@ function GridTabCard({
                       width: `${getDynamicWidth()}px`,
                       height: `${getDynamicHeight()}px`,
                     }}
-                    className="pointer-events-none col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-md object-cover object-center !transition-all"
+                    className="pointer-events-none col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-sm object-cover object-center !transition-all"
                   />
                 )}
 
@@ -229,7 +229,7 @@ function GridTabCard({
         </>
       )}
 
-      <div className="baseVertFlex lightestGlassmorphic w-full gap-1 rounded-b-md p-2.5 !shadow-none">
+      <div className="baseVertFlex w-full gap-1 rounded-b-sm p-2.5 !shadow-none">
         {/* title */}
         <div className="baseVertFlex w-full !items-start">
           <Button variant={"link"} asChild>

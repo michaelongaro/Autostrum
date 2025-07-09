@@ -50,11 +50,11 @@ function DesktopExtraTabMetadata() {
   return (
     <div className="baseVertFlex w-3/4 gap-4">
       {/* tab selector */}
-      <div className="baseFlex lightestGlassmorphic !items-start gap-16 rounded-lg rounded-t-none px-8 py-1">
+      <div className="baseFlex !items-start gap-16 rounded-lg rounded-t-none bg-accent px-8 py-1">
         <Button
           variant={"text"}
           onClick={() => setActiveTabName("Section progression")}
-          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium ${activeTabName === "Section progression" ? "" : "opacity-50 hover:opacity-100"}`}
+          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-background ${activeTabName === "Section progression" ? "" : "opacity-50 hover:opacity-100"}`}
         >
           <BsMusicNoteList className="size-4" />
           Section progression
@@ -62,14 +62,14 @@ function DesktopExtraTabMetadata() {
             <motion.span
               layoutId="activeTabUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-pink-50"
+              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-background"
             />
           )}
         </Button>
         <Button
           variant={"text"}
           onClick={() => setActiveTabName("Chords")}
-          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium ${activeTabName === "Chords" ? "" : "opacity-50 hover:opacity-100"}`}
+          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-background ${activeTabName === "Chords" ? "" : "opacity-50 hover:opacity-100"}`}
         >
           <BsMusicNoteBeamed className="size-4" />
           Chords
@@ -77,14 +77,14 @@ function DesktopExtraTabMetadata() {
             <motion.span
               layoutId="activeTabUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-pink-50"
+              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-background"
             />
           )}
         </Button>
         <Button
           variant={"text"}
           onClick={() => setActiveTabName("Strumming patterns")}
-          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium ${activeTabName === "Strumming patterns" ? "" : "opacity-50 hover:opacity-100"}`}
+          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-background ${activeTabName === "Strumming patterns" ? "" : "opacity-50 hover:opacity-100"}`}
         >
           <Logo className="z-0 size-4" />
           Strumming patterns
@@ -92,7 +92,7 @@ function DesktopExtraTabMetadata() {
             <motion.span
               layoutId="activeTabUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-pink-50"
+              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-background"
             />
           )}
         </Button>
@@ -115,7 +115,7 @@ function DesktopExtraTabMetadata() {
             >
               <div className="baseFlex w-full">
                 {sectionProgression.length === 0 ? (
-                  <p className="baseFlex h-24 text-stone-300">
+                  <p className="baseFlex h-24 text-gray">
                     No section progression specified
                   </p>
                 ) : (
@@ -127,7 +127,7 @@ function DesktopExtraTabMetadata() {
                         key={section.id}
                         className="baseFlex w-full !justify-start gap-2"
                       >
-                        <div className="baseFlex w-24 gap-2 text-stone-300">
+                        <div className="baseFlex w-24 gap-2 text-gray">
                           <p>{formatSecondsToMinutes(section.startSeconds)}</p>
                           <span>-</span>
                           <p>{formatSecondsToMinutes(section.endSeconds)}</p>
@@ -169,34 +169,28 @@ function DesktopExtraTabMetadata() {
               className="baseVertFlex w-full !justify-start overflow-y-hidden"
             >
               {chords.length === 0 ? (
-                <p className="baseFlex h-24 text-stone-300">
+                <span className="baseFlex h-24 text-gray">
                   No chords specified
-                </p>
+                </span>
               ) : (
-                <div className="baseFlex !flex-wrap !items-start gap-8">
+                <div className="baseFlex flex-wrap !items-start gap-8">
                   {chords.map((chord, index) => (
                     <div key={chord.id} className="baseFlex max-w-[175px]">
                       <div className="baseVertFlex gap-3">
                         <div className="baseFlex w-full !justify-between gap-2 border-b pb-2">
-                          <p
+                          <span
                             style={{
-                              textShadow:
-                                previewMetadata.indexOfPattern === index &&
-                                previewMetadata.playing &&
-                                previewMetadata.type === "chord"
-                                  ? "none"
-                                  : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
                               color:
                                 previewMetadata.indexOfPattern === index &&
                                 previewMetadata.playing &&
                                 previewMetadata.type === "chord"
-                                  ? "hsl(335, 78%, 42%)"
-                                  : "hsl(324, 77%, 95%)",
+                                  ? "hsl(var(--primary))"
+                                  : "hsl(var(--foreground))",
                             }}
                             className="font-semibold transition-colors"
                           >
                             {chord.name}
-                          </p>
+                          </span>
 
                           {/* preview chord button */}
                           <Button
@@ -271,11 +265,11 @@ function DesktopExtraTabMetadata() {
               className={`baseVertFlex w-full overflow-y-hidden ${strummingPatterns.length > 2 ? "!justify-start" : ""}`}
             >
               {strummingPatterns.length === 0 ? (
-                <p className="baseFlex h-24 text-stone-300">
+                <p className="baseFlex h-24 text-gray">
                   No strumming patterns specified
                 </p>
               ) : (
-                <div className="baseFlex !flex-wrap !items-start gap-8">
+                <div className="baseFlex flex-wrap !items-start gap-8">
                   {strummingPatterns.map((pattern, index) => (
                     <div key={pattern.id} className="baseVertFlex !items-start">
                       <Button
@@ -347,7 +341,7 @@ function DesktopExtraTabMetadata() {
                           previewType="strummingPattern"
                         />
                       </Button>
-                      <div className="baseFlex border-b-none !flex-nowrap rounded-md border-2">
+                      <div className="baseFlex border-b-none rounded-md border-2">
                         <StrummingPattern
                           data={pattern}
                           mode="viewing"

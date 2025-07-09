@@ -17,7 +17,7 @@ function StrummingPatternPreview({ data }: StrummingPatternPreview) {
         {data.strums.slice(0, 8).map((strum, strumIndex) => (
           <div key={strumIndex} className="baseFlex">
             <div className="baseVertFlex relative mt-1">
-              <div className="baseFlex !flex-nowrap">
+              <div className="baseFlex">
                 <div className="w-1"></div>
 
                 {/* only rendering v/^/s to keep preview from getting too large */}

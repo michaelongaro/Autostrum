@@ -18,6 +18,7 @@ import {
 } from "~/components/ui/select";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
+import { X } from "lucide-react";
 
 function SectionProgressionModal() {
   const {
@@ -127,12 +128,22 @@ function SectionProgressionModal() {
       >
         <div
           tabIndex={-1}
-          className="min-h-[20rem] min-w-[70vw] rounded-md bg-pink-400 p-4 shadow-sm md:min-w-[25rem]"
+          className="modalGradient min-h-[20rem] min-w-[70vw] rounded-md p-4 shadow-sm md:min-w-[25rem]"
         >
           <div className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full max-w-[90vw] !justify-between">
-            <span className="self-start text-lg font-semibold text-pink-100">
-              Section progression
-            </span>
+            <div className="baseFlex w-full !justify-between">
+              <span className="self-start text-lg font-semibold text-foreground">
+                Section progression
+              </span>
+
+              <Button
+                variant={"ghost"}
+                onClick={() => setShowSectionProgressionModal(false)}
+                className="baseFlex size-8 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+              >
+                <X className="size-5" />
+              </Button>
+            </div>
 
             <div
               ref={scrollableSectionsRef}
@@ -173,25 +184,17 @@ function SectionProgressionModal() {
                 <span>Add section</span>
               </Button>
 
-              <div className="baseFlex gap-4">
-                <Button
-                  variant={"ghost"}
-                  onClick={() => setShowSectionProgressionModal(false)}
-                >
-                  Close
-                </Button>
-
-                <Button
-                  disabled={
-                    localSectionProgression.some(
-                      (section) => section.title === "",
-                    ) || isEqual(localSectionProgression, sectionProgression)
-                  }
-                  onClick={closeModal}
-                >
-                  Save
-                </Button>
-              </div>
+              <Button
+                disabled={
+                  localSectionProgression.some(
+                    (section) => section.title === "",
+                  ) || isEqual(localSectionProgression, sectionProgression)
+                }
+                onClick={closeModal}
+                className="px-8"
+              >
+                Save
+              </Button>
             </div>
           </div>
         </div>
@@ -307,7 +310,8 @@ function Section({
         </div> */}
       </div>
 
-      <div className="baseVertFlex lightestGlassmorphic gap-6 rounded-md p-4 xs:!flex-row xs:!justify-between xs:gap-4">
+      {/* bg-secondary mx-1 text-secondary-foreground shadow-md */}
+      <div className="baseVertFlex gap-6 rounded-md py-1 text-foreground xs:!flex-row xs:!justify-between xs:gap-4">
         <div className="baseVertFlex gap-4 xs:!flex-row">
           <Select
             value={sectionId === "" ? undefined : sectionId}
@@ -354,20 +358,19 @@ function Section({
               <Button
                 disabled={index === 0}
                 variant="secondary"
-                size="sm"
-                className="!h-10 px-2"
+                className="!h-10"
                 onClick={() => moveSectionUp()}
               >
-                <BiUpArrowAlt className="h-5 w-5"></BiUpArrowAlt>
+                <BiUpArrowAlt className="size-5"></BiUpArrowAlt>
               </Button>
+
               <Button
                 disabled={index === localSectionProgression.length - 1}
                 variant="secondary"
-                size="sm"
-                className="!h-10 px-2"
+                className="!h-10"
                 onClick={() => moveSectionDown()}
               >
-                <BiDownArrowAlt className="h-5 w-5"></BiDownArrowAlt>
+                <BiDownArrowAlt className="size-5"></BiDownArrowAlt>
               </Button>
 
               <Button
@@ -387,28 +390,28 @@ function Section({
             disabled={index === 0}
             variant="secondary"
             size="sm"
-            className="h-10 px-2"
+            className="size-10 !p-0"
             onClick={() => moveSectionUp()}
           >
-            <BiUpArrowAlt className="h-5 w-5"></BiUpArrowAlt>
+            <BiUpArrowAlt className="size-5"></BiUpArrowAlt>
           </Button>
           <Button
             disabled={index === localSectionProgression.length - 1}
             variant="secondary"
             size="sm"
-            className="h-10 px-2"
+            className="size-10 !p-0"
             onClick={() => moveSectionDown()}
           >
-            <BiDownArrowAlt className="h-5 w-5"></BiDownArrowAlt>
+            <BiDownArrowAlt className="size-5"></BiDownArrowAlt>
           </Button>
 
           <Button
             variant={"destructive"}
             disabled={localSectionProgression.length === 1}
             onClick={deleteSection}
-            className="h-10 !px-3"
+            className="!size-10 !p-0"
           >
-            <FaTrashAlt className="size-4 text-pink-100" />
+            <FaTrashAlt className="size-4 text-destructive-foreground" />
           </Button>
         </div>
       </div>

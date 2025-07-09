@@ -441,7 +441,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
   function renderSavePopoverContent() {
     if (publishErrorOccurred) {
       return (
-        <div className="baseVertFlex w-full !items-start gap-2 bg-pink-100 p-2 text-sm text-pink-950 md:text-base">
+        <div className="baseVertFlex w-full !items-start gap-2 p-2 text-sm md:text-base">
           <div className="baseFlex gap-2">
             <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
             <p>Failed to publish tab. Please try again later.</p>
@@ -452,31 +452,31 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
     if (userId) {
       return (
-        <div className="baseVertFlex w-full !items-start gap-2 bg-pink-100 p-2 pr-4 text-sm text-pink-950 md:text-base">
+        <div className="baseVertFlex w-full !items-start gap-2 p-2 pr-4 text-sm md:text-base">
           {title === "" && (
             <div className="baseFlex">
-              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 p-0 text-red-600" />
+              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 p-0 text-destructive" />
               <p>Title is missing</p>
             </div>
           )}
 
           {genre === "" && (
             <div className="baseFlex">
-              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
+              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-destructive" />
               <p>Genre hasn&apos;t been selected</p>
             </div>
           )}
 
           {bpm === -1 && (
             <div className="baseFlex">
-              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
+              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-destructive" />
               <p>Tempo isn&apos;t defined</p>
             </div>
           )}
 
           {tabIsEffectivelyEmpty(tabData) && (
-            <div className="baseFlex !flex-nowrap">
-              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
+            <div className="baseFlex">
+              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-destructive" />
               <p>Tab is empty</p>
             </div>
           )}
@@ -485,12 +485,12 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     }
 
     return (
-      <div className="baseVertFlex w-full max-w-[350px] bg-pink-100 p-2 pt-1 text-sm text-pink-950 md:max-w-[400px] md:text-base">
-        <div className="baseFlex !flex-nowrap">
-          <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
+      <div className="baseVertFlex w-full max-w-[350px] p-2 pt-1 text-sm md:max-w-[400px] md:text-base">
+        <div className="baseFlex">
+          <BsPlus className="h-8 w-8 rotate-45 text-destructive" />
           <p className="mb-[1px]">Only registered users can publish a tab.</p>
         </div>
-        <p className="text-xs text-gray-600 md:text-sm">
+        <p className="text-gray-600 text-xs md:text-sm">
           This tab will be saved for you upon signing in.
         </p>
       </div>
@@ -533,7 +533,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   <DropdownMenuSeparator />
 
                   <DropdownMenuItem
-                    className="baseFlex !justify-between gap-2 focus-within:!bg-[rgb(255,0,0)] focus-within:!text-pink-100 active:!bg-[rgb(255,0,0)] active:!text-pink-100"
+                    className="baseFlex !justify-between gap-2 focus-within:!bg-destructive focus-within:!text-destructive-foreground active:!bg-destructive active:!text-destructive-foreground"
                     onClick={() => {
                       setShowDeleteAlertDialog(true);
                     }}
@@ -600,7 +600,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                       {(saveButtonText === "Publishing" ||
                         saveButtonText === "Saving") && (
                         <div
-                          className="inline-block size-4 animate-spin rounded-full border-[2px] border-pink-50 border-t-transparent text-pink-50"
+                          className="inline-block size-4 animate-spin rounded-full border-[2px] border-foreground border-t-transparent text-foreground"
                           role="status"
                           aria-label="loading"
                         >
@@ -613,7 +613,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           viewBox="0 0 24 24"
                           stroke="currentColor"
                           strokeWidth={2}
-                          className="size-5 text-pink-50"
+                          className="size-5 text-foreground"
                         >
                           <motion.path
                             initial={{ pathLength: 0 }}
@@ -647,7 +647,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               } baseVertFlex w-full !items-start gap-1.5`}
             >
               <Label htmlFor="title">
-                Title <span className="text-destructiveRed">*</span>
+                Title <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="title"
@@ -703,7 +703,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               } baseVertFlex !items-start gap-1.5`}
             >
               <Label>
-                Genre <span className="text-destructiveRed">*</span>
+                Genre <span className="text-destructive">*</span>
               </Label>
               <Select value={genre} onValueChange={(value) => setGenre(value)}>
                 <SelectTrigger
@@ -749,7 +749,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               } baseVertFlex max-w-sm !items-start gap-1.5`}
             >
               <Label htmlFor="tuning">
-                Tuning <span className="text-destructiveRed">*</span>
+                Tuning <span className="text-destructive">*</span>
               </Label>
               <TuningSelect customTuning={customTuning} />
             </div>
@@ -791,7 +791,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               } baseVertFlex relative w-16 max-w-sm !items-start gap-1.5`}
             >
               <Label htmlFor="bpm">
-                Tempo <span className="text-destructiveRed">*</span>
+                Tempo <span className="text-destructive">*</span>
               </Label>
               <div className="baseFlex">
                 <QuarterNote className="-ml-1 size-5" />
@@ -845,7 +845,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               } baseVertFlex !items-start gap-1.5`}
             >
               <Label>
-                Difficulty <span className="text-destructiveRed">*</span>
+                Difficulty <span className="text-destructive">*</span>
               </Label>
               <Select
                 value={difficulty.toString()}
@@ -927,7 +927,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
       {!editing && (
         <div className="min-h-[100px] w-full">
-          <div className="baseVertFlex !flex-start w-full !items-start gap-2 bg-pink-700 px-4 py-4 shadow-md sm:!flex-row sm:!items-center sm:gap-4 md:rounded-t-md tablet:!px-6">
+          <div className="baseVertFlex !flex-start w-full !items-start gap-2 bg-accent px-4 py-4 text-primary-foreground shadow-md sm:!flex-row sm:!items-center sm:gap-4 md:rounded-t-md tablet:!px-6">
             {overMediumViewportThreshold ? (
               <div className="baseFlex w-full !justify-between gap-4">
                 <div className="baseFlex !justify-start gap-2">
@@ -1057,6 +1057,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
                       <Button
                         variant={"secondary"}
+                        size={"icon"}
                         disabled={isLoadingARoute}
                         onClick={async () => {
                           try {
@@ -1069,7 +1070,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                             console.error("Error sharing tab:", error);
                           }
                         }}
-                        className="!p-2"
                       >
                         <IoIosShareAlt className="size-5" />
                       </Button>
@@ -1244,9 +1244,9 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                       </p>
                     ))
                   ) : (
-                    <p className="italic text-pink-200">
+                    <span className="italic text-pink-200">
                       No description provided.
-                    </p>
+                    </span>
                   )}
                 </div>
               </div>
@@ -1298,7 +1298,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   <motion.div
                     layout
                     transition={{ duration: 0.5, ease: "easeInOut" }}
-                    className="mt-[2px] whitespace-nowrap text-sm text-pink-200"
+                    className="mt-[2px] whitespace-nowrap text-sm opacity-80"
                   >
                     {`on ${new Intl.DateTimeFormat("en-US").format(createdAt ?? new Date())}`}
                   </motion.div>
@@ -1333,7 +1333,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               orientation={
                 viewportLabel.includes("mobile") ? "horizontal" : "vertical"
               }
-              className={`${classes.separator} my-4 h-[2px] w-full lg:mx-4 lg:my-0 lg:h-full lg:w-[1px] xl:mx-8`}
+              className={`${classes.separator} my-4 h-[2px] w-full bg-gray/50 lg:mx-4 lg:my-0 lg:h-full lg:w-[1px] xl:mx-8`}
             />
 
             <div className={`${classes.metadataGrid}`}>
@@ -1448,7 +1448,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   {deleteButtonText}
                   {deleteButtonText === "Deleting" && (
                     <div
-                      className="inline-block size-4 animate-spin rounded-full border-[2px] border-pink-50 border-t-transparent text-pink-50"
+                      className="inline-block size-4 animate-spin rounded-full border-[2px] border-foreground border-t-transparent text-foreground"
                       role="status"
                       aria-label="loading"
                     >
@@ -1461,7 +1461,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                       strokeWidth={2}
-                      className="size-5 text-pink-50"
+                      className="size-5 text-foreground"
                     >
                       <motion.path
                         initial={{ pathLength: 0 }}

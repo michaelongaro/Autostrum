@@ -33,6 +33,7 @@ import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import TabMeasureLine from "./TabMeasureLine";
 import TabNotesColumn from "./TabNotesColumn";
 import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
+import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -806,12 +807,33 @@ function TabSection({
       style={{
         padding: aboveMediumViewportWidth ? "2rem" : "1rem 0.5rem 1rem 0.5rem",
       }}
-      className="baseVertFlex lightestGlassmorphic relative h-full w-full !justify-start gap-1 rounded-md rounded-tl-md"
+      className="baseVertFlex relative h-full w-full !justify-start gap-1 rounded-md rounded-tl-md border bg-secondary-active/50 shadow-md"
     >
       <div className="baseFlex w-full !items-start">
-        <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
+        <div className="baseVertFlex w-5/6 !items-start gap-4 lg:!flex-row lg:!justify-start">
           <div className="baseFlex gap-2">
             <div className="baseFlex gap-2">
+              <div className="baseFlex gap-2">
+                <Label>BPM</Label>
+                <div className="baseFlex">
+                  <QuarterNote className="-ml-1 size-5" />
+
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="w-[52px] px-2.5"
+                    placeholder={bpm === -1 ? "" : bpm.toString()}
+                    value={
+                      subSectionData.bpm === -1
+                        ? ""
+                        : subSectionData.bpm.toString()
+                    }
+                    onChange={handleBpmChange}
+                  />
+                </div>
+              </div>
+
               <Label>Repetitions</Label>
               <div className="relative w-12">
                 <span className="absolute bottom-[9px] left-2 text-sm">x</span>
@@ -829,21 +851,6 @@ function TabSection({
                   onChange={handleRepetitionsChange}
                 />
               </div>
-            </div>
-
-            <div className="baseFlex gap-2">
-              <Label>BPM</Label>
-              <Input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                className="w-[52px] px-2.5"
-                placeholder={bpm === -1 ? "" : bpm.toString()}
-                value={
-                  subSectionData.bpm === -1 ? "" : subSectionData.bpm.toString()
-                }
-                onChange={handleBpmChange}
-              />
             </div>
           </div>
 
@@ -1019,7 +1026,7 @@ function TabSection({
           <p className="absolute left-[0.4rem] top-6 text-sm italic">PM</p>
         )}
 
-        <div className="baseVertFlex relative h-[280px] rounded-l-2xl border-2 border-pink-100 p-2">
+        <div className="baseVertFlex relative h-[280px] rounded-l-2xl border-2 border-foreground p-2">
           <PrettyVerticalTuning tuning={tuning} height={"250px"} />
         </div>
 

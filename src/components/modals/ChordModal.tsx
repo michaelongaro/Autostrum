@@ -9,6 +9,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
+import { X } from "lucide-react";
 
 const backdropVariants = {
   expanded: {
@@ -69,7 +70,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
     );
 
     if (chordNameAlreadyExists) {
-      // show error message
+      // TODO: show error message
     } else {
       // update chord name of all strumming patterns that use this chord
       // if the chord name has changed.
@@ -79,36 +80,20 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       ) {
         const newTabData = getTabData();
 
-        for (
-          let sectionIndex = 0;
-          sectionIndex < newTabData.length;
-          sectionIndex++
-        ) {
-          const section = newTabData[sectionIndex];
-
+        for (const [sectionIndex, section] of newTabData.entries()) {
           if (!section) continue;
 
-          for (
-            let subSectionIndex = 0;
-            subSectionIndex < section.data.length;
-            subSectionIndex++
-          ) {
-            const subSection = section.data[subSectionIndex];
-
+          for (const [subSectionIndex, subSection] of section.data.entries()) {
             if (subSection?.type === "chord") {
-              for (
-                let chordSequenceIndex = 0;
-                chordSequenceIndex < subSection.data.length;
-                chordSequenceIndex++
-              ) {
-                const chordGroup = subSection.data[chordSequenceIndex];
+              for (const [
+                chordSequenceIndex,
+                chordGroup,
+              ] of subSection.data.entries()) {
                 if (!chordGroup) continue;
-                for (
-                  let chordIndex = 0;
-                  chordIndex < chordGroup.data.length;
-                  chordIndex++
-                ) {
-                  const chordName = chordGroup.data[chordIndex];
+                for (const [
+                  chordIndex,
+                  chordName,
+                ] of chordGroup.data.entries()) {
                   if (!chordName) continue;
 
                   if (chordName === chords[chordBeingEdited.index]?.name) {
@@ -165,10 +150,10 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       >
         <div
           tabIndex={-1}
-          className="baseVertFlex relative min-w-[300px] max-w-[90vw] gap-4 rounded-md bg-pink-400 p-4 shadow-sm xs:max-w-[380px] xs:gap-8"
+          className="baseVertFlex modalGradient relative min-w-[300px] max-w-[90vw] gap-4 rounded-md p-4 shadow-sm xs:max-w-[380px] xs:gap-8"
         >
           {/* chord title */}
-          <div className="baseFlex w-full !items-end !justify-between">
+          <div className="baseFlex w-full !items-start !justify-between">
             <div className="baseVertFlex !items-start gap-2">
               <Label>Chord name</Label>
               <Input
@@ -180,25 +165,14 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
             </div>
 
             <Button
-              disabled={
-                (previewMetadata.indexOfPattern === chordBeingEdited.index &&
-                  previewMetadata.playing &&
-                  previewMetadata.type === "chord") ||
-                chordBeingEdited.value.frets.every((fret) => fret === "")
-              }
-              variant={"playPause"}
-              size={"default"}
-              className="baseFlex gap-2"
+              variant={"ghost"}
               onClick={() => {
-                void playPreview({
-                  data: chordBeingEdited.value.frets,
-                  index: chordBeingEdited.index,
-                  type: "chord",
-                });
+                if (audioMetadata.playing) pauseAudio();
+                setChordBeingEdited(null);
               }}
+              className="baseFlex size-8 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
             >
-              <BsFillPlayFill className="h-6 w-6" />
-              Preview
+              <X className="size-5" />
             </Button>
           </div>
 
@@ -206,7 +180,6 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
             <div className="baseFlex !items-start gap-2">
               <Chord
                 chordBeingEdited={chordBeingEdited}
-                editing={true}
                 highlightChord={
                   previewMetadata.indexOfPattern === chordBeingEdited.index &&
                   previewMetadata.playing &&
@@ -216,7 +189,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
 
               {/* ml here seems hacky */}
               <div className="baseVertFlex ml-0 h-full w-48 gap-4 xs:ml-[30px]">
-                <div className="baseVertFlex lightestGlassmorphic w-full !items-start gap-2 rounded-md p-2 text-sm">
+                <div className="baseVertFlex w-full !items-start gap-2 rounded-md border bg-secondary p-2 text-sm shadow-sm">
                   <div className="baseFlex w-[160px] gap-2 font-semibold">
                     <BsKeyboard className="h-6 w-6" />
                     Hotkeys
@@ -257,16 +230,29 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
           </div>
 
           {/* a bit janky to have absolute positioning on this  */}
-          <div className="baseFlex absolute bottom-4 right-9 gap-4">
+          <div className="baseFlex w-full !justify-between gap-4">
             <Button
-              variant={"ghost"}
+              disabled={
+                (previewMetadata.indexOfPattern === chordBeingEdited.index &&
+                  previewMetadata.playing &&
+                  previewMetadata.type === "chord") ||
+                chordBeingEdited.value.frets.every((fret) => fret === "")
+              }
+              variant={"playPause"}
+              size={"default"}
+              className="baseFlex gap-2"
               onClick={() => {
-                if (audioMetadata.playing) pauseAudio();
-                setChordBeingEdited(null);
+                void playPreview({
+                  data: chordBeingEdited.value.frets,
+                  index: chordBeingEdited.index,
+                  type: "chord",
+                });
               }}
             >
-              Close
+              <BsFillPlayFill className="h-6 w-6" />
+              Preview
             </Button>
+
             <Button
               disabled={
                 chordBeingEdited.value.frets.every((fret) => fret === "") ||
@@ -274,6 +260,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
                 isEqual(chordBeingEdited.value, chords[chordBeingEdited.index])
               }
               onClick={handleSaveChord}
+              className="px-8"
             >
               Save
             </Button>

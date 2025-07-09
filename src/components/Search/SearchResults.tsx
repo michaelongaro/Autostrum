@@ -514,12 +514,7 @@ function SearchResults({
                 )}
               </SelectValue>
             </SelectTrigger>
-            <SelectContent
-              style={{
-                textShadow: "none",
-              }}
-              className="w-[300px]"
-            >
+            <SelectContent className="w-[300px]">
               {/* all tunings select item */}
               <SelectItem value={"all"} className="font-medium">
                 All tunings
@@ -853,12 +848,7 @@ function SearchResults({
                       </Button>
                     </DrawerTrigger>
                     <DrawerPortal>
-                      <DrawerContent
-                        style={{
-                          textShadow: "none",
-                        }}
-                        className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-4 text-pink-950"
-                      >
+                      <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-4 text-pink-950">
                         <VisuallyHidden>
                           <DrawerTitle>Search filters</DrawerTitle>
                           <DrawerDescription>
@@ -1602,7 +1592,7 @@ function SearchResults({
                   >
                     <div className="w-full border-pink-700 bg-pink-800">
                       <div
-                        className="grid grid-rows-1 items-center text-sm font-medium text-muted-foreground"
+                        className="text-muted grid grid-rows-1 items-center text-sm font-medium"
                         style={{
                           gridTemplateColumns: getDynamicGridTemplateColumns(),
                         }}
@@ -1799,7 +1789,7 @@ function SearchResults({
                   >
                     <div className="w-full border-pink-700 bg-pink-800">
                       <div
-                        className="grid grid-rows-1 items-center text-sm font-medium text-muted-foreground"
+                        className="text-muted grid grid-rows-1 items-center text-sm font-medium"
                         style={{
                           gridTemplateColumns: getDynamicGridTemplateColumns(),
                         }}

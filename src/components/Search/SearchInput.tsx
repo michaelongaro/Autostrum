@@ -272,35 +272,51 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
             transition={{
               duration: 0.2,
             }}
-            className={`absolute left-0 z-50 w-full overflow-hidden rounded-md rounded-t-none border-pink-200 ${viewportLabel.includes("mobile") ? "top-11 border-t-2" : "autofillResultsGlassmorphic top-[46px] border-2 !shadow-xl"}`}
+            className={`absolute left-0 z-50 w-full overflow-hidden rounded-md rounded-t-none border-border bg-secondary ${viewportLabel.includes("mobile") ? "top-11 border-t-2" : "top-[46px] border-2 !shadow-xl"}`}
           >
             <div className="baseFlex w-full !justify-between p-2 text-sm">
               <div className="baseFlex gap-3">
                 Searching for
                 <Button
-                  variant={searchType === "songs" ? "toggledOn" : "toggledOff"}
+                  variant={"secondary"}
+                  style={{
+                    backgroundColor:
+                      searchType === "songs" ? "hsl(var(--accent))" : undefined,
+                    color:
+                      searchType === "songs"
+                        ? "hsl(var(--accent-foreground))"
+                        : undefined,
+                  }}
+                  className="baseFlex h-8 shrink-0 gap-2"
                   onClick={() => {
                     setSearchType("songs");
                     setSearchQuery("");
                     setDebouncedSearchQuery("");
                     searchInputRef.current?.focus();
                   }}
-                  className="baseFlex h-8 shrink-0 gap-2"
                 >
                   <IoIosMusicalNotes className="size-5" />
                   Songs
                 </Button>
                 <Button
-                  variant={
-                    searchType === "artists" ? "toggledOn" : "toggledOff"
-                  }
+                  variant={"secondary"}
+                  style={{
+                    backgroundColor:
+                      searchType === "artists"
+                        ? "hsl(var(--accent))"
+                        : undefined,
+                    color:
+                      searchType === "artists"
+                        ? "hsl(var(--accent-foreground))"
+                        : undefined,
+                  }}
+                  className="baseFlex h-8 shrink-0 gap-2"
                   onClick={() => {
                     setSearchType("artists");
                     setSearchQuery("");
                     setDebouncedSearchQuery("");
                     searchInputRef.current?.focus();
                   }}
-                  className="baseFlex h-8 shrink-0 gap-2"
                 >
                   <AiOutlineUser className="size-5" />
                   Artists

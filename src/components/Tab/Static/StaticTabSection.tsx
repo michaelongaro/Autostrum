@@ -23,7 +23,6 @@ function StaticTabSection({ subSectionData }: StaticTabSection) {
   return (
     <motion.div
       key={subSectionData.id}
-      // variants={opacityAndScaleVariants}
       transition={{
         layout: {
           type: "spring",
@@ -31,7 +30,7 @@ function StaticTabSection({ subSectionData }: StaticTabSection) {
           duration: 1,
         },
       }}
-      className="baseVertFlex lightestGlassmorphic relative h-full !justify-start rounded-md px-4 md:px-8"
+      className="baseVertFlex relative h-full !justify-start rounded-md border bg-secondary-active/50 px-4 shadow-md md:px-8"
     >
       <div className="baseFlex relative w-full flex-wrap !justify-start">
         <div
@@ -39,7 +38,7 @@ function StaticTabSection({ subSectionData }: StaticTabSection) {
             height: "168px",
             marginBottom: "-1px", // necessary anymore?
           }}
-          className="baseVertFlex relative rounded-l-2xl border-2 border-pink-100 p-2"
+          className="baseVertFlex relative rounded-l-2xl border-2 border-foreground p-2"
         >
           <PrettyVerticalTuning tuning={tuning} height={"150px"} />
         </div>

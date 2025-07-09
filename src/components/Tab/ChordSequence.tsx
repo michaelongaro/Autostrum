@@ -23,6 +23,7 @@ import { Label } from "~/components/ui/label";
 import MiscellaneousControls from "./MiscellaneousControls";
 import StrummingPattern from "./StrummingPattern";
 import StrummingPatternPreview from "./StrummingPatternPreview";
+import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -216,7 +217,7 @@ function ChordSequence({
       className="baseFlex w-full"
     >
       {Object.keys(chordSequenceData.strummingPattern).length === 0 ? (
-        <div className="baseVertFlex relative h-full w-full gap-2 rounded-md border-2 border-pink-100 bg-black/25 px-4 py-8 shadow-sm">
+        <div className="baseVertFlex relative h-full w-full gap-2 rounded-md border bg-secondary-active px-4 py-8 shadow-sm">
           <p className="mt-8 text-lg font-semibold sm:mt-0">
             No strumming patterns exist
           </p>
@@ -251,9 +252,30 @@ function ChordSequence({
           </div>
         </div>
       ) : (
-        <div className="baseVertFlex relative w-full !justify-start gap-4 rounded-md border-2 border-pink-100 p-4 shadow-sm">
+        <div className="baseVertFlex relative w-full !justify-start gap-4 rounded-md border bg-secondary-active p-4 shadow-sm">
           <div className="baseFlex w-full !items-start">
             <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
+              <div className="baseFlex gap-2">
+                <Label>BPM</Label>
+
+                <div className="baseFlex">
+                  <QuarterNote className="-ml-1 size-5" />
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
+                    placeholder={placeholderBpm}
+                    value={
+                      chordSequenceData.bpm === -1
+                        ? ""
+                        : chordSequenceData.bpm.toString()
+                    }
+                    onChange={handleBpmChange}
+                  />
+                </div>
+              </div>
+
               <div className="baseFlex gap-2">
                 <Label>Repetitions</Label>
                 <div className="relative w-12">
@@ -274,23 +296,6 @@ function ChordSequence({
                     onChange={handleRepetitionsChange}
                   />
                 </div>
-              </div>
-
-              <div className="baseFlex gap-2">
-                <Label>BPM</Label>
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
-                  placeholder={placeholderBpm}
-                  value={
-                    chordSequenceData.bpm === -1
-                      ? ""
-                      : chordSequenceData.bpm.toString()
-                  }
-                  onChange={handleBpmChange}
-                />
               </div>
 
               <div className="baseFlex !justify-start gap-2">

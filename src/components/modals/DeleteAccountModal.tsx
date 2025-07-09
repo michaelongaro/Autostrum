@@ -110,7 +110,7 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
               </p>
             </div>
 
-            <div className="lightestGlassmorphic baseFlex !flex-nowrap !items-start gap-4 rounded-md p-4">
+            <div className="lightestGlassmorphic baseFlex !items-start gap-4 rounded-md p-4">
               <Checkbox
                 id="deleteTabs"
                 checked={anonymizeUserTabs}

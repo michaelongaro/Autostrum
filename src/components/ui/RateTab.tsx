@@ -358,7 +358,7 @@ function RateTabPopover({
             animate="expanded"
             exit="closed"
             transition={{ duration: 0.15 }}
-            className="baseFlex !flex-nowrap gap-2 text-base"
+            className="baseFlex gap-2 text-base"
           >
             <div className="baseFlex gap-1">
               {averageRating.toFixed(1)}
@@ -441,7 +441,7 @@ function RateTabDrawer({
       <DrawerTrigger asChild>
         <Button
           variant={"secondary"}
-          className="baseFlex w-full !flex-nowrap gap-2 text-base"
+          className="baseFlex w-full gap-2 text-base"
         >
           <div className="baseFlex gap-1">
             {averageRating.toFixed(1)}
@@ -455,12 +455,7 @@ function RateTabDrawer({
         </Button>
       </DrawerTrigger>
       <DrawerPortal>
-        <DrawerContent
-          style={{
-            textShadow: "none",
-          }}
-          className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950"
-        >
+        <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950">
           <VisuallyHidden>
             <DrawerTitle>Rate this tab</DrawerTitle>
             <DrawerDescription>

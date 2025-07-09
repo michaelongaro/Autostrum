@@ -336,8 +336,8 @@ function MiscellaneousControls({
     <div
       className={`baseFlex !items-end gap-2 ${
         forSectionContainer
-          ? "w-2/6 !flex-nowrap !justify-end sm:w-1/6 sm:!flex-row sm:!justify-end"
-          : `w-1/6 !flex-nowrap lg:!justify-end ${type === "tab" || type === "chord" ? "mr-3 mt-0.5 lg:mr-0 lg:mt-0" : "!justify-end"}`
+          ? "w-2/6 !justify-end sm:w-1/6 sm:!flex-row sm:!justify-end"
+          : `w-1/6 lg:!justify-end ${type === "tab" || type === "chord" ? "mr-3 mt-0.5 lg:mr-0 lg:mt-0" : "!justify-end"}`
       }`}
       onClick={(e) => e.stopPropagation()}
     >
@@ -481,7 +481,7 @@ function MiscellaneousControls({
           <DropdownMenuSeparator />
 
           <DropdownMenuItem
-            className="baseFlex !justify-between gap-2 focus-within:!bg-[rgb(255,0,0)] focus-within:!text-pink-100 active:!bg-[rgb(255,0,0)] active:!text-pink-100"
+            className="baseFlex !justify-between gap-2 focus-within:!bg-destructive focus-within:!text-destructive-foreground active:!bg-destructive active:!text-destructive-foreground"
             onClick={deleteSection}
           >
             Delete

@@ -211,7 +211,7 @@ function StrummingPatternPalmMuteNode({
               style={{
                 margin: viewingInSelectDropdown ? "0.15rem 0" : "0",
               }}
-              className="baseFlex relative w-full !flex-nowrap"
+              className="baseFlex relative w-full"
             >
               <div
                 className={`h-4 w-[1px] flex-shrink-0 ${
@@ -231,7 +231,7 @@ function StrummingPatternPalmMuteNode({
           )}
 
           {value === "end" && (
-            <div className="baseFlex relative my-1 w-full !flex-nowrap">
+            <div className="baseFlex relative my-1 w-full">
               <div
                 className={`h-[1px] w-full ${
                   darkMode ? "bg-foreground" : "bg-background"

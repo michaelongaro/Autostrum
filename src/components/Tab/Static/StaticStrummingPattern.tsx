@@ -98,7 +98,6 @@ function StaticStrummingPattern({
                 >
                   <p
                     style={{
-                      textShadow: "0 1px 2px hsla(336, 84%, 17%, 0.25)",
                       color: "hsl(324, 77%, 95%)",
                     }}
                     className="mx-0.5 h-6 text-base font-semibold transition-colors"
@@ -125,7 +124,7 @@ function StaticStrummingPattern({
               </PopoverContent>
             </Popover>
 
-            <div className="baseFlex !flex-nowrap">
+            <div className="baseFlex">
               <div className="gap-1"></div>
               {/* spacer so that PM nodes can be connected seamlessly above */}
               <div
@@ -190,7 +189,6 @@ function StaticStrummingPattern({
             {/* beat indicator */}
             <p
               style={{
-                textShadow: "none",
                 height:
                   getBeatIndicator(data.noteLength, strumIndex) === ""
                     ? "1.25rem"
