@@ -78,7 +78,7 @@ function Explore({ json }: { json: string }) {
 
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex relative w-full gap-4 px-2 md:px-0">
-          <h1 className="baseFlex absolute left-6 top-8 text-3xl font-semibold tracking-tight text-pink-50 md:left-8 md:top-14 md:text-4xl">
+          <h1 className="baseFlex absolute left-6 top-8 text-3xl font-semibold tracking-tight text-primary-foreground md:left-8 md:top-14 md:text-4xl">
             Explore
           </h1>
 
@@ -89,7 +89,7 @@ function Explore({ json }: { json: string }) {
           />
         </div>
 
-        <div className="baseVertFlex lightGlassmorphic w-full !items-start !justify-start gap-8 rounded-lg p-4">
+        <div className="baseVertFlex w-full !items-start !justify-start gap-8 rounded-lg border bg-muted p-4 shadow-lg">
           {/* weekly featured users */}
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
             <div className="baseVertFlex gap-0 md:gap-1">
@@ -99,7 +99,7 @@ function Explore({ json }: { json: string }) {
                   Weekly featured users
                 </span>
               </div>
-              <Separator className="w-full bg-pink-600" />
+              <Separator className="w-full bg-primary" />
             </div>
 
             <WeeklyFeaturedUsers
@@ -118,7 +118,7 @@ function Explore({ json }: { json: string }) {
                     Newly added tabs
                   </span>
                 </div>
-                <Separator className="w-full bg-pink-600" />
+                <Separator className="w-full bg-primary" />
               </div>
 
               <Button variant={"link"} asChild>
@@ -138,7 +138,7 @@ function Explore({ json }: { json: string }) {
               }}
               className="baseFlex w-full"
             >
-              <CarouselContent>
+              <CarouselContent className="pb-1">
                 {LENGTH_FIFTEEN_ARRAY.map((_, index) => (
                   <CarouselItem key={index} className="basis-auto">
                     {mostRecentAndPopularTabs?.mostRecentTabs ? (
@@ -167,7 +167,7 @@ function Explore({ json }: { json: string }) {
                     Most popular tabs
                   </span>
                 </div>
-                <Separator className="w-full bg-pink-600" />
+                <Separator className="w-full bg-primary" />
               </div>
 
               <Button variant={"link"} asChild>
@@ -187,7 +187,7 @@ function Explore({ json }: { json: string }) {
               }}
               className="baseFlex w-full"
             >
-              <CarouselContent>
+              <CarouselContent className="pb-1">
                 {LENGTH_FIFTEEN_ARRAY.map((_, index) => (
                   <CarouselItem key={index} className="basis-auto">
                     {mostRecentAndPopularTabs?.mostPopularTabs ? (
@@ -214,7 +214,7 @@ function Explore({ json }: { json: string }) {
                   Genres
                 </span>
               </div>
-              <Separator className="w-full bg-pink-600" />
+              <Separator className="w-full bg-primary" />
             </div>
 
             <div className="grid w-full grid-cols-2 place-items-center gap-4 lg:grid-cols-3 2xl:grid-cols-4">

@@ -8,7 +8,7 @@ function Ellipsis(props: SVGProps<SVGSVGElement>) {
       stroke="currentColor"
       strokeWidth={0}
       aria-hidden="true"
-      className="z-50 h-2 w-4 rotate-90 text-pink-50 hover:text-pink-950"
+      className="z-50 h-2 w-4 rotate-90"
       viewBox="10.5 4.5 3 15"
       {...props}
     >

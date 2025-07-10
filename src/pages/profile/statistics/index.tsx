@@ -189,7 +189,7 @@ function UserStatistics() {
           </Button>
         </div>
 
-        <div className="baseVertFlex lightGlassmorphic min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-12 p-4 md:min-h-[calc(100dvh-4rem-12rem-56px)] md:rounded-lg md:p-8 xl:!flex-row">
+        <div className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-12 border bg-muted p-4 shadow-lg md:min-h-[calc(100dvh-4rem-12rem-56px)] md:rounded-lg md:p-8 xl:!flex-row">
           <AnimatePresence mode="popLayout">
             {/* main stats */}
             <div className="baseVertFlex w-full gap-4 xl:w-1/2">
@@ -202,7 +202,7 @@ function UserStatistics() {
                 </div>
                 <Separator
                   orientation="horizontal"
-                  className="h-[2px] w-full bg-pink-50"
+                  className="h-[2px] w-full bg-foreground"
                 />
               </div>
 
@@ -237,7 +237,7 @@ function UserStatistics() {
 
                 <Separator
                   orientation="horizontal"
-                  className="h-[1px] w-full bg-pink-50/50"
+                  className="h-[1px] w-full bg-foreground/50"
                 />
 
                 <div className="baseFlex w-full !justify-between gap-2">
@@ -270,7 +270,7 @@ function UserStatistics() {
 
                 <Separator
                   orientation="horizontal"
-                  className="h-[1px] w-full bg-pink-50/50"
+                  className="h-[1px] w-full bg-foreground/50"
                 />
 
                 <div className="baseFlex w-full !justify-between gap-2">
@@ -305,7 +305,7 @@ function UserStatistics() {
 
                 <Separator
                   orientation="horizontal"
-                  className="h-[1px] w-full bg-pink-50/50"
+                  className="h-[1px] w-full bg-foreground/50"
                 />
 
                 <div className="baseFlex w-full !justify-between gap-2">
@@ -338,7 +338,7 @@ function UserStatistics() {
 
                 <Separator
                   orientation="horizontal"
-                  className="h-[1px] w-full bg-pink-50/50"
+                  className="h-[1px] w-full bg-foreground/50"
                 />
 
                 <div className="baseFlex w-full !justify-between gap-2">
@@ -371,7 +371,7 @@ function UserStatistics() {
 
                 <Separator
                   orientation="horizontal"
-                  className="h-[1px] w-full bg-pink-50/50"
+                  className="h-[1px] w-full bg-foreground/50"
                 />
 
                 <div className="baseFlex w-full !justify-between gap-2">
@@ -423,7 +423,7 @@ function UserStatistics() {
                   </div>
                   <Separator
                     orientation="horizontal"
-                    className="h-[2px] w-full bg-pink-50"
+                    className="h-[2px] w-full bg-foreground"
                   />
                 </div>
 
@@ -442,9 +442,13 @@ function UserStatistics() {
 
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="h-8 px-4">Rank</TableHead>
-                        <TableHead className="h-8 px-4">Title</TableHead>
-                        <TableHead className="h-8 px-4">
+                        <TableHead className="h-8 px-4 text-foreground/80">
+                          Rank
+                        </TableHead>
+                        <TableHead className="h-8 px-4 text-foreground/80">
+                          Title
+                        </TableHead>
+                        <TableHead className="h-8 px-4 text-foreground/80">
                           {topFiveStatsHeaders[topFiveStatsSlide]}
                         </TableHead>
                       </TableRow>
@@ -635,11 +639,11 @@ function UserStatistics() {
                   </div>
                   <Separator
                     orientation="horizontal"
-                    className="h-[2px] w-full bg-pink-50"
+                    className="h-[2px] w-full bg-foreground"
                   />
                 </div>
 
-                <div className="baseFlex text-muted w-full text-sm">
+                <div className="baseFlex w-full text-sm text-foreground/75">
                   <div className="baseFlex ml-4 w-1/2 !justify-start">
                     {miscStatsHeaders[miscStatsSlide]}
                   </div>

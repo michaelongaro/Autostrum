@@ -210,7 +210,7 @@ function ArtistCombobox() {
                             setArtistName(artist.name);
                             setArtistIsVerified(artist.isVerified);
                           }}
-                          className="text-shadow-none focus-within:!text-shadow relative flex w-full select-none items-center justify-between rounded-sm py-1.5 pl-2 pr-2 text-sm outline-none hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:!text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                          className="focus-within:!text-shadow relative flex w-full select-none items-center justify-between rounded-sm py-1.5 pl-2 pr-2 text-sm outline-none hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:!text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
                         >
                           <Check
                             className={cn(

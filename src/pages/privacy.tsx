@@ -27,14 +27,14 @@ function Privacy() {
         ></meta>
       </Head>
       <div className="baseVertFlex z-10 my-24 gap-16">
-        <div className="baseVertFlex lightGlassmorphic baseVertFlex w-5/6 items-start gap-4 rounded-xl p-4 shadow-sm sm:w-auto md:p-8">
+        <div className="baseVertFlex baseVertFlex w-5/6 items-start gap-4 rounded-xl border bg-muted p-4 shadow-lg sm:w-auto md:p-8">
           <h1 className="text-3xl font-bold">Privacy Policy for Autostrum</h1>
           <p>Last updated - September 25th, 2023</p>
 
           <div className="baseVertFlex w-full !items-start gap-8">
             <div className="baseVertFlex !items-start gap-2">
               <h2 className="border-b-2 text-xl font-semibold">Introduction</h2>
-              <p className="text-pink-100">
+              <p>
                 Welcome to Autostrum. This Privacy Policy outlines how we
                 collect, use, and handle your information when you use our
                 services.
@@ -45,7 +45,7 @@ function Privacy() {
               <h2 className="border-b-2 text-xl font-semibold">
                 Information We Collect
               </h2>
-              <ol className="ml-8 list-disc text-pink-100 md:ml-12">
+              <ol className="ml-8 list-disc md:ml-12">
                 <li>
                   <div className="baseFlex !justify-start gap-2">
                     <p className="font-semibold">Email Address:</p>
@@ -71,10 +71,8 @@ function Privacy() {
               <h2 className="border-b-2 text-xl font-semibold">
                 How We Use Your Information
               </h2>
-              <p className="text-pink-100">
-                Your information is used for the following purposes:
-              </p>
-              <ol className="ml-8 list-disc text-pink-100 md:ml-12">
+              <p>Your information is used for the following purposes:</p>
+              <ol className="ml-8 list-disc md:ml-12">
                 <li>
                   <div className="baseFlex !justify-start gap-2">
                     <p className="font-semibold">
@@ -97,7 +95,7 @@ function Privacy() {
               <h2 className="border-b-2 text-xl font-semibold">
                 Data Storage and Security
               </h2>
-              <p className="text-pink-100">
+              <p>
                 We share your data with Clerk, an external service that manages
                 our authentication process.
               </p>
@@ -107,7 +105,7 @@ function Privacy() {
               <h2 className="border-b-2 text-xl font-semibold">
                 Data Retention and Deletion
               </h2>
-              <p className="text-pink-100">
+              <p>
                 Your information is retained until you choose to delete your
                 account. Deleting your account will remove your information from
                 both Clerk and our database.
@@ -118,7 +116,7 @@ function Privacy() {
               <h2 className="border-b-2 text-xl font-semibold">
                 Changes to This Policy
               </h2>
-              <p className="text-pink-100">
+              <p>
                 We may update this Privacy Policy. We will notify you of any
                 changes by posting the new Privacy Policy on this page.
               </p>
@@ -127,7 +125,7 @@ function Privacy() {
             <div className="baseVertFlex !items-start gap-2">
               <h2 className="border-b-2 text-xl font-semibold">Contact Us</h2>
               <div className="baseFlex gap-2">
-                <p className="text-pink-100">
+                <p>
                   For any questions about this Privacy Policy, please contact us
                   at:
                 </p>
@@ -137,7 +135,7 @@ function Privacy() {
                   rel="noopener noreferrer"
                   className="baseFlex gap-2 underline"
                 >
-                  <p className="text-pink-100">michael.ongaro.dev@gmail.com</p>
+                  <p>michael.ongaro.dev@gmail.com</p>
                 </a>
               </div>
             </div>

@@ -19,7 +19,10 @@ function Footer() {
         </a>
       </Button>
 
-      <Separator orientation="vertical" className="h-4 bg-pink-50/50" />
+      <Separator
+        orientation="vertical"
+        className="h-4 w-[1px] bg-foreground/50"
+      />
 
       <Button variant={"link"} asChild>
         <Link prefetch={false} href={"/privacy"}>
@@ -27,7 +30,10 @@ function Footer() {
         </Link>
       </Button>
 
-      <Separator orientation="vertical" className="h-4 bg-pink-50/50" />
+      <Separator
+        orientation="vertical"
+        className="h-4 w-[1px] bg-foreground/50"
+      />
 
       <Button variant={"link"} asChild>
         <a

@@ -224,13 +224,13 @@ function UserSettings() {
             </PopoverTrigger>
             <PopoverContent side={"bottom"} align="end" className="w-fit">
               <Button
-                variant={"outline"}
+                variant={"destructive"}
                 disabled={!localSettings}
                 onClick={() => {
                   setShowExtraSettingsPopover(false);
                   setShowDeleteAccountModal(true);
                 }}
-                className="baseFlex gap-2 bg-pink-50 p-4 !text-red-700"
+                className="baseFlex gap-2 p-4"
               >
                 <FaTrashAlt className="size-4" />
                 Delete account
@@ -240,7 +240,7 @@ function UserSettings() {
         </div>
 
         <AnimatePresence mode="popLayout">
-          <div className="baseVertFlex lightGlassmorphic w-full !items-start gap-4 p-4 py-6 md:rounded-lg md:p-8 lg:!flex-row lg:gap-12">
+          <div className="baseVertFlex w-full !items-start gap-4 border bg-muted p-4 py-6 shadow-lg md:rounded-lg md:p-8 lg:!flex-row lg:gap-12">
             <div className="baseVertFlex w-full !items-start gap-4 lg:gap-12">
               {/* email */}
               <div className="baseVertFlex w-full !items-start gap-2 lg:!flex-row lg:!items-center lg:!justify-between">
@@ -268,7 +268,7 @@ function UserSettings() {
 
               <Separator
                 orientation="horizontal"
-                className="h-[1px] w-full bg-pink-50/50"
+                className="h-[1px] w-full bg-foreground/50"
               />
 
               {/* username */}
@@ -349,7 +349,7 @@ function UserSettings() {
                             transition={{ duration: 0.15 }}
                             className="rounded-full bg-red-500 p-0.5"
                           >
-                            <IoClose className="size-3 text-foreground" />
+                            <IoClose className="size-3 text-primary-foreground" />
                           </motion.div>
                         ) : (
                           <motion.div
@@ -360,7 +360,7 @@ function UserSettings() {
                             transition={{ duration: 0.15 }}
                             className="rounded-full bg-green-600 p-0.5"
                           >
-                            <Check className="size-3 text-foreground" />
+                            <Check className="size-3 text-primary-foreground" />
                           </motion.div>
                         )}
                         Must be between 1 - 20 characters
@@ -372,7 +372,7 @@ function UserSettings() {
 
               <Separator
                 orientation="horizontal"
-                className="h-[1px] w-full bg-pink-50/50"
+                className="h-[1px] w-full bg-foreground/50"
               />
 
               {/* password */}
@@ -608,7 +608,7 @@ function UserSettings() {
 
               <Separator
                 orientation="horizontal"
-                className="h-[1px] w-full bg-pink-50/50"
+                className="h-[1px] w-full bg-foreground/50"
               />
 
               {/* profile image */}
@@ -631,13 +631,13 @@ function UserSettings() {
 
               <Separator
                 orientation="horizontal"
-                className="h-[1px] w-full bg-pink-50/50 lg:hidden"
+                className="h-[1px] w-full bg-foreground/50 lg:hidden"
               />
             </div>
 
             <Separator
               orientation="vertical"
-              className="hidden h-[550px] w-[1px] bg-pink-50/50 lg:block"
+              className="hidden h-[550px] w-[1px] bg-foreground/50 lg:block"
             />
 
             <div className="baseVertFlex w-full !items-start gap-4 lg:gap-10">
@@ -652,7 +652,7 @@ function UserSettings() {
 
               <Separator
                 orientation="horizontal"
-                className="h-[1px] w-full bg-pink-50/50"
+                className="h-[1px] w-full bg-foreground/50"
               />
 
               {/* color selector */}
@@ -765,7 +765,7 @@ function UserSettings() {
 
               <Separator
                 orientation="horizontal"
-                className="h-[1px] w-full bg-pink-50/50"
+                className="h-[1px] w-full bg-foreground/50"
               />
 
               {/* theme selector */}

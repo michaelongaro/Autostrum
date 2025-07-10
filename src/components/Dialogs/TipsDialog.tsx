@@ -29,7 +29,7 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex max-h-[90dvh] max-w-[350px] !justify-start gap-4 overflow-y-auto rounded-lg bg-pink-100 text-pink-950 sm:max-w-[550px] xl:max-w-[1000px]">
+      <DialogContent className="baseVertFlex max-h-[90dvh] max-w-[350px] !justify-start gap-4 overflow-y-auto rounded-lg sm:max-w-[550px] xl:max-w-[1000px]">
         <div className="baseFlex w-full !justify-start gap-2 text-lg font-semibold">
           <HiOutlineInformationCircle className="size-5" />
           Tips
@@ -40,7 +40,7 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
             {/* Tab */}
             <div className="font-medium underline">Tab</div>
             <div className="baseFlex !items-start gap-2">
-              <div className="mt-3 h-[1px] w-3 shrink-0 bg-pink-950" />
+              <div className="mt-3 h-[1px] w-3 shrink-0 bg-foreground" />
               Use a BPM marker when an entire section of the song needs a new,
               consistent tempo. For small, one-off timing changes like a brief
               pause or a few faster notes, it&apos;s recommended to adjust the
@@ -50,7 +50,7 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
             {/* Strumming */}
             <div className="mt-2 font-medium underline">Strumming</div>
             <div className="baseFlex !items-start gap-2">
-              <div className="mt-3 h-[1px] w-3 shrink-0 bg-pink-950" />
+              <div className="mt-3 h-[1px] w-3 shrink-0 bg-foreground" />
               <div className="baseVertFlex w-full !items-start gap-2">
                 You only need to assign chords to the first strum where the
                 chord changes. <br></br>
@@ -67,18 +67,18 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
             {/* Hotkeys */}
             <div className="mt-2 font-medium underline">Hotkeys</div>
             <div className="baseFlex !items-start gap-2">
-              <div className="mt-3 h-[1px] w-3 shrink-0 bg-pink-950" />
+              <div className="mt-3 h-[1px] w-3 shrink-0 bg-foreground" />
               You can navigate through inputs with your arrow keys.
             </div>
             <div className="baseFlex !items-start gap-2">
-              <div className="mt-3 h-[1px] w-3 shrink-0 bg-pink-950" />
+              <div className="mt-3 h-[1px] w-3 shrink-0 bg-foreground" />
               <span>
                 Copying ( <kbd>Ctrl</kbd> + <kbd>C</kbd> ) & pasting ({" "}
                 <kbd>Ctrl</kbd> + <kbd>V</kbd> ) chords works as expected.
               </span>
             </div>
             <div className="baseFlex !items-start gap-2">
-              <div className="mt-3 h-[1px] w-3 shrink-0 bg-pink-950" />
+              <div className="mt-3 h-[1px] w-3 shrink-0 bg-foreground" />
               <span>
                 Enter
                 <kbd className="ml-1.5">a</kbd> -{" "}
@@ -90,7 +90,7 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
             </div>
 
             <div className="baseFlex !items-start gap-2">
-              <div className="mt-3 h-[1px] w-3 shrink-0 bg-pink-950" />
+              <div className="mt-3 h-[1px] w-3 shrink-0 bg-foreground" />
               <span>
                 Enter
                 <kbd className="ml-1.5">q</kbd> /{" "}
@@ -99,7 +99,7 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
               </span>
             </div>
             <div className="baseFlex !items-start gap-2">
-              <div className="mt-3 h-[1px] w-3 shrink-0 bg-pink-950" />
+              <div className="mt-3 h-[1px] w-3 shrink-0 bg-foreground" />
               <span>
                 Enter
                 <kbd className="ml-1.5">t</kbd> / <kbd>y</kbd> /{" "}
@@ -109,7 +109,7 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
               </span>
             </div>
             <div className="baseFlex !items-start gap-2">
-              <div className="mt-3 h-[1px] w-3 shrink-0 bg-pink-950" />
+              <div className="mt-3 h-[1px] w-3 shrink-0 bg-foreground" />
               <span>
                 Enter
                 <kbd className="ml-1.5">Ctrl</kbd> + <kbd>Backspace</kbd> or

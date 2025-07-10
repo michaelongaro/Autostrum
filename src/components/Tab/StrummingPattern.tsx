@@ -558,7 +558,7 @@ function StrummingPattern({
 
                           <SelectItem
                             value="noChord"
-                            className="text-shadow-none hover:text-shadow italic"
+                            className="hover:text-shadow italic"
                           >
                             No chord
                           </SelectItem>

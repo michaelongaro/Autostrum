@@ -11,6 +11,7 @@ import { IoWarningOutline } from "react-icons/io5";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import { IoClose } from "react-icons/io5";
+import { X } from "lucide-react";
 
 const backdropVariants = {
   expanded: {
@@ -81,7 +82,7 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
       >
         <div
           tabIndex={-1}
-          className="baseVertFlex w-[350px] gap-10 rounded-md bg-pink-400 p-4 shadow-sm sm:w-[500px]"
+          className="baseVertFlex modalGradient w-[350px] gap-10 rounded-md p-4 shadow-sm sm:w-[500px]"
         >
           <div className="baseFlex w-full !justify-between gap-2">
             <div className="baseFlex gap-2">
@@ -91,12 +92,12 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
 
             <Button
               variant={"text"}
-              className="!size-8 shrink-0 !p-0"
+              className="baseFlex size-8 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
               onClick={() => {
                 setShowDeleteAccountModal(false);
               }}
             >
-              <IoClose className="size-5 text-pink-50" />
+              <X className="size-5" />
             </Button>
           </div>
 
@@ -110,7 +111,7 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
               </p>
             </div>
 
-            <div className="lightestGlassmorphic baseFlex !items-start gap-4 rounded-md p-4">
+            <div className="baseFlex !items-start gap-4 rounded-md border bg-secondary-active/50 p-4 shadow-md">
               <Checkbox
                 id="deleteTabs"
                 checked={anonymizeUserTabs}
@@ -125,7 +126,7 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
                 <label htmlFor="deleteTabs">
                   Anonymize my tabs instead of deleting them
                 </label>
-                <p className="text-sm text-pink-200">
+                <p className="text-sm">
                   Checking this will preserve your tabs, and will display the
                   associated user who created them as &ldquo;Anonymous&rdquo;.
                 </p>

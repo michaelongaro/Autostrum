@@ -12,6 +12,7 @@ import { IoClose } from "react-icons/io5";
 import { MdCrop } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { X } from "lucide-react";
 
 // Helper to create an image element from a URL
 const createImage = (url: string): Promise<HTMLImageElement> =>
@@ -255,7 +256,7 @@ function EditImage({
     <div className="baseVertFlex size-full p-4 lg:gap-4 lg:p-0">
       <div className="baseFlex w-full !justify-start gap-2 lg:!justify-between">
         <div className="baseFlex gap-2">
-          <MdCrop className="size-4 lg:size-5 lg:text-pink-50" />
+          <MdCrop className="size-4 lg:size-5" />
           <span className="lg:text-lg">Edit image</span>
         </div>
 
@@ -266,13 +267,13 @@ function EditImage({
             setShowEditImageModal(false);
           }}
         >
-          <IoClose className="size-5 text-pink-50" />
+          <X className="size-5" />
         </Button>
       </div>
 
       {imageBeingEdited && (
         <>
-          <div className="baseFlex w-full !justify-between gap-2 text-sm text-pink-50/75">
+          <div className="baseFlex w-full !justify-between gap-2 text-sm text-foreground/75">
             <div>
               <span className="font-semibold">Crop size:</span>{" "}
               {Math.round(
@@ -301,7 +302,7 @@ function EditImage({
 
           <div
             ref={cropperRef}
-            className="baseFlex relative h-[70%] w-full overflow-hidden rounded-lg bg-gray-800 lg:h-[300px]"
+            className="baseFlex bg-gray-800 relative h-[70%] w-full overflow-hidden rounded-lg lg:h-[300px]"
           >
             <Cropper
               image={imageBeingEdited}
@@ -324,7 +325,7 @@ function EditImage({
             />
           </div>
 
-          <div className="baseFlex !hidden w-full !justify-between text-sm text-pink-50/75 lg:!flex">
+          <div className="baseFlex !hidden w-full !justify-between text-sm text-foreground/75 lg:!flex">
             <div className="baseFlex gap-2">
               <span className="font-semibold">Pan:</span>
               <span>Click + drag</span>
@@ -370,7 +371,7 @@ function EditImage({
                   {saveButtonText}
                   {saveButtonText === "Saving" && (
                     <div
-                      className="inline-block size-4 animate-spin rounded-full border-[2px] border-pink-50 border-t-transparent text-pink-50"
+                      className="inline-block size-4 animate-spin rounded-full border-[2px] border-primary-foreground border-t-transparent text-primary-foreground"
                       role="status"
                       aria-label="loading"
                     >
@@ -383,7 +384,7 @@ function EditImage({
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                       strokeWidth={2}
-                      className="size-5 text-pink-50"
+                      className="size-5 text-primary-foreground"
                     >
                       <motion.path
                         initial={{ pathLength: 0 }}

@@ -60,19 +60,19 @@ function Create() {
           ) : (
             <div className="baseFlex">
               <div className="lightGlassmorphic relative -right-6 top-0.5 z-30 -rotate-6 rounded-lg p-2 outline outline-1">
-                <BsFillPlayFill className="size-6 text-pink-800" />
+                <BsFillPlayFill className="size-6 text-foreground" />
               </div>
 
               <div className="lightGlassmorphic relative -right-4 z-20 -rotate-3 rounded-lg p-2 outline outline-1">
-                <QuarterNote className="size-6 text-pink-800" />
+                <QuarterNote className="size-6 text-foreground" />
               </div>
 
               <div className="lightGlassmorphic relative -right-2 z-10 rotate-3 rounded-lg p-2 outline outline-1">
-                <GiMusicalScore className="size-6 text-pink-800" />
+                <GiMusicalScore className="size-6 text-foreground" />
               </div>
 
               <div className="lightGlassmorphic relative top-0.5 rotate-6 rounded-lg p-2 outline outline-1">
-                <EigthNote className="size-6 text-pink-800" />
+                <EigthNote className="size-6 text-foreground" />
               </div>
             </div>
           )}

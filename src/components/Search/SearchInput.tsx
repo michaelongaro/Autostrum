@@ -358,7 +358,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
               </AnimatePresence>
             </div>
 
-            <Separator className="w-full bg-pink-200" />
+            <Separator className="h-[1px] w-full bg-border" />
 
             <motion.div
               key={"autofillResults"}
@@ -450,9 +450,12 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                     </span>
                                     <Badge
                                       style={{
-                                        backgroundColor: genreList.get(
-                                          song.genre,
-                                        ),
+                                        backgroundColor: genreList
+                                          .get(song.genre)
+                                          ?.replace(/\)$/, " / 0.07)"),
+                                        borderColor: genreList.get(song.genre),
+                                        border: "1px solid",
+                                        color: genreList.get(song.genre),
                                       }}
                                     >
                                       {song.genre}
@@ -642,9 +645,12 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   </span>
                                   <Badge
                                     style={{
-                                      backgroundColor: genreList.get(
-                                        song.genre,
-                                      ),
+                                      backgroundColor: genreList
+                                        .get(song.genre)
+                                        ?.replace(/\)$/, " / 0.07)"),
+                                      borderColor: genreList.get(song.genre),
+                                      border: "1px solid",
+                                      color: genreList.get(song.genre),
                                     }}
                                   >
                                     {song.genre}

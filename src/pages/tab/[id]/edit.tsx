@@ -167,9 +167,9 @@ function UserNotAllowedToEdit({ tabId }: { tabId: number }) {
           <h1 className="text-xl font-bold sm:text-2xl">Access denied</h1>
         </div>
       </div>
-      <p className="text-center text-base sm:text-lg">
+      <span className="text-center text-base sm:text-lg">
         You must be logged in as the owner of the tab to edit it.
-      </p>
+      </span>
 
       <Button asChild>
         <Link

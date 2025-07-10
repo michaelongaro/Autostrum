@@ -107,9 +107,7 @@ function EditImageSelector({
 
   return (
     <div className="baseVertFlex relative w-full !items-start gap-2 lg:!flex-row lg:!justify-between">
-      <span className="text-xl font-medium !text-pink-50 lg:text-2xl">
-        Profile image
-      </span>
+      <span className="text-xl font-medium lg:text-2xl">Profile image</span>
 
       <div className="baseFlex w-full !justify-between gap-8 lg:w-auto lg:!justify-center">
         <motion.div

@@ -176,7 +176,12 @@ function TableTabRow({
         >
           <Badge
             style={{
-              backgroundColor: genreList.get(minimalTab.genre),
+              backgroundColor: genreList
+                .get(minimalTab.genre)
+                ?.replace(/\)$/, " / 0.07)"),
+              borderColor: genreList.get(minimalTab.genre),
+              border: "1px solid",
+              color: genreList.get(minimalTab.genre),
             }}
           >
             {minimalTab.genre}

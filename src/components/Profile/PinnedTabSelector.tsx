@@ -50,14 +50,12 @@ function PinnedTabSelector({
 
   return (
     <div className="baseVertFlex w-full !items-start gap-2 lg:!flex-row lg:!justify-between">
-      <span className="text-xl font-medium !text-pink-50 lg:text-2xl">
-        Pinned tab
-      </span>
+      <span className="text-xl font-medium lg:text-2xl">Pinned tab</span>
 
       <div className="baseFlex w-full !justify-between gap-4 lg:w-auto lg:!justify-center">
         <div className="baseFlex gap-2">
           <motion.div layout>
-            <TbPinned className="size-4 text-pink-50 sm:size-5" />
+            <TbPinned className="size-4 sm:size-5" />
           </motion.div>
 
           <motion.div
@@ -94,7 +92,7 @@ function PinnedTabSelector({
                 setLocalPinnedTabId(-1);
               }}
             >
-              <IoClose className="size-5 text-pink-50" />
+              <IoClose className="size-5" />
             </Button>
           )}
 

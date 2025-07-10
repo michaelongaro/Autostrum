@@ -1343,7 +1343,12 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 <div className="font-semibold">Genre</div>
                 <Badge
                   style={{
-                    backgroundColor: genreList.get(genre),
+                    backgroundColor: genreList
+                      .get(genre)
+                      ?.replace(/\)$/, " / 0.07)"),
+                    borderColor: genreList.get(genre),
+                    border: "1px solid",
+                    color: genreList.get(genre),
                   }}
                   className="px-4 py-2.5"
                 >

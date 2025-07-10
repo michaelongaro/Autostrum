@@ -23,7 +23,7 @@ function Hero() {
 
   return (
     <div className="baseVertFlex z-10 my-24 gap-16 md:gap-24">
-      <div className="homepageLightGlassmorphic baseVertFlex w-5/6 items-start gap-2 rounded-xl p-4 shadow-sm sm:w-auto md:gap-4 md:p-8">
+      <div className="baseVertFlex w-5/6 items-start gap-2 rounded-xl border bg-muted p-4 shadow-md sm:w-auto md:gap-4 md:p-8">
         <div className="baseVertFlex gap-4">
           <h1 className="baseVertFlex gap-2 text-3xl font-bold md:text-5xl">
             Welcome to
@@ -49,14 +49,14 @@ function Hero() {
         </div>
       </div>
 
-      <div className="baseVertFlex homepageLightGlassmorphic w-11/12 gap-8 rounded-xl p-4 shadow-sm sm:w-4/5 md:max-w-[550px] md:gap-4 md:p-8 xl:w-[950px] xl:max-w-[950px]">
+      <div className="baseVertFlex w-11/12 gap-8 rounded-xl border bg-muted p-4 shadow-md sm:w-4/5 md:max-w-[550px] md:gap-4 md:p-8 xl:w-[950px] xl:max-w-[950px]">
         <div className="baseVertFlex gap-8 xl:flex-row xl:gap-12">
           {/* ideally would try to be smarter about mobile vs desktop styles/org rather than repeat
               myself twice here */}
           {isAboveExtraLargeViewportWidth ? (
             <div className="baseFlex gap-3 xl:flex-col xl:!items-start">
               <div className="baseFlex w-full !justify-start gap-2">
-                <div className="lightestGlassmorphic mr-2 shrink-0 rounded-md p-2">
+                <div className="mr-2 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
                   <GiMusicalScore className="h-8 w-8" />
                 </div>
                 <p className="text-lg font-bold md:text-xl">Compose</p>
@@ -70,7 +70,7 @@ function Hero() {
             </div>
           ) : (
             <div className="baseFlex gap-4 xl:flex-col xl:!items-start">
-              <div className="lightestGlassmorphic shrink-0 rounded-md p-2">
+              <div className="shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
                 <GiMusicalScore className="h-8 w-8" />
               </div>
               <div className="baseVertFlex !items-start gap-1">
@@ -86,7 +86,7 @@ function Hero() {
           {isAboveExtraLargeViewportWidth ? (
             <div className="baseFlex gap-3 xl:flex-col xl:!items-start">
               <div className="baseFlex w-full !justify-start gap-2">
-                <div className="lightestGlassmorphic mr-2 shrink-0 rounded-md p-2">
+                <div className="mr-2 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
                   <HiOutlineLightBulb className="h-8 w-8" />
                 </div>
                 <p className="text-lg font-bold md:text-xl">Find inspiration</p>
@@ -100,7 +100,7 @@ function Hero() {
             </div>
           ) : (
             <div className="baseFlex gap-4 xl:flex-col xl:!items-start">
-              <div className="lightestGlassmorphic shrink-0 rounded-md p-2">
+              <div className="shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
                 <HiOutlineLightBulb className="h-8 w-8" />
               </div>
               <div className="baseVertFlex !items-start gap-1">
@@ -116,7 +116,7 @@ function Hero() {
           {isAboveExtraLargeViewportWidth ? (
             <div className="baseFlex gap-3 xl:flex-col xl:!items-start">
               <div className="baseFlex w-full !justify-start gap-2">
-                <div className="lightestGlassmorphic mr-2 shrink-0 rounded-md p-2">
+                <div className="mr-2 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
                   <BsBarChartLine className="h-8 w-8" />
                 </div>
                 <p className="text-lg font-bold md:text-xl">Practice</p>
@@ -131,7 +131,7 @@ function Hero() {
             </div>
           ) : (
             <div className="baseFlex gap-4 xl:flex-col xl:!items-start">
-              <div className="lightestGlassmorphic shrink-0 rounded-md p-2">
+              <div className="shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
                 <BsBarChartLine className="h-8 w-8" />
               </div>
               <div className="baseVertFlex !items-start gap-1">

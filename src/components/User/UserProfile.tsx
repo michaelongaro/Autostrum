@@ -173,7 +173,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
 
                   <Separator
                     orientation="vertical"
-                    className="h-8 opacity-50"
+                    className="h-8 w-[1px] bg-foreground/50"
                   />
 
                   <div className="baseFlex gap-2">
@@ -186,7 +186,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
 
                   <Separator
                     orientation="vertical"
-                    className="h-8 opacity-50"
+                    className="h-8 w-[1px] bg-foreground/50"
                   />
 
                   <div className="baseFlex gap-2">
@@ -199,7 +199,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
 
                   <Separator
                     orientation="vertical"
-                    className="h-8 opacity-50"
+                    className="h-8 w-[1px] bg-foreground/50"
                   />
 
                   <div className="baseFlex gap-2">
@@ -256,7 +256,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                                 />
                               ) : (
                                 <div className="baseFlex size-9 md:size-10">
-                                  <FaUser className="size-6 text-pink-50" />
+                                  <FaUser className="size-6" />
                                 </div>
                               )}
 
@@ -287,7 +287,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                                   50,
                                 ),
                               }}
-                              className="baseFlex font-semibold tracking-tight text-pink-50 md:left-8 md:top-14"
+                              className="baseFlex font-semibold tracking-tight md:left-8 md:top-14"
                             >
                               {userMetadata
                                 ? userMetadata.user.username
@@ -362,7 +362,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                         {(userMetadata === null ||
                           userMetadata?.pinnedTab === null) && (
                           <div className="lightestGlassmorphic baseVertFlex h-[94px] w-[280px] gap-2 rounded-md border-2">
-                            <TbPinned className="size-5 text-pink-50" />
+                            <TbPinned className="size-5" />
                             No active pinned tab
                           </div>
                         )}
@@ -429,7 +429,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                           />
                         ) : (
                           <div className="baseFlex size-10">
-                            <FaUser className="size-6 text-pink-50" />
+                            <FaUser className="size-6" />
                           </div>
                         )}
 
@@ -458,7 +458,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                             30,
                           ),
                         }}
-                        className="baseFlex left-8 top-14 font-semibold tracking-tight text-pink-50"
+                        className="baseFlex left-8 top-14 font-semibold tracking-tight"
                       >
                         {userMetadata
                           ? userMetadata.user.username
@@ -525,7 +525,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                   {(userMetadata === null ||
                     userMetadata?.pinnedTab === null) && (
                     <div className="lightestGlassmorphic baseVertFlex h-[94px] w-[280px] gap-2 rounded-md border-2">
-                      <TbPinned className="size-5 text-pink-50" />
+                      <TbPinned className="size-5" />
                       No active pinned tab
                     </div>
                   )}
@@ -572,7 +572,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                           />
                         ) : (
                           <div className="baseFlex size-10">
-                            <FaUser className="size-6 text-pink-50" />
+                            <FaUser className="size-6" />
                           </div>
                         )}
 
@@ -590,7 +590,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                         </AnimatePresence>
                       </div>
 
-                      <h1 className="baseFlex left-8 top-14 text-4xl font-semibold tracking-tight text-pink-50">
+                      <h1 className="baseFlex left-8 top-14 text-4xl font-semibold tracking-tight">
                         {userMetadata
                           ? userMetadata.user.username
                           : query.username}
@@ -611,7 +611,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
 
                       <Separator
                         orientation="vertical"
-                        className="h-8 opacity-50"
+                        className="h-8 w-[1px] bg-foreground/50"
                       />
 
                       <div className="baseFlex gap-2">
@@ -628,7 +628,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
 
                       <Separator
                         orientation="vertical"
-                        className="h-8 opacity-50"
+                        className="h-8 w-[1px] bg-foreground/50"
                       />
 
                       <div className="baseFlex gap-2">
@@ -647,7 +647,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
 
                       <Separator
                         orientation="vertical"
-                        className="h-8 opacity-50"
+                        className="h-8 w-[1px] bg-foreground/50"
                       />
 
                       <div className="baseFlex gap-2">
@@ -670,7 +670,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                   {(userMetadata === null ||
                     userMetadata?.pinnedTab === null) && (
                     <div className="lightestGlassmorphic baseVertFlex h-[94px] w-[330px] gap-2 rounded-md border-2">
-                      <TbPinned className="size-5 text-pink-50" />
+                      <TbPinned className="size-5" />
                       No active pinned tab
                     </div>
                   )}
