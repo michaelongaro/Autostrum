@@ -85,17 +85,17 @@ function Explore({ json }: { json: string }) {
           <Image
             src={GuitarImage}
             alt={"hi"}
-            className="h-24 w-full rounded-lg object-cover object-top md:h-36"
+            className="h-24 w-full rounded-lg object-cover object-top md:h-36 md:rounded-xl"
           />
         </div>
 
-        <div className="baseVertFlex w-full !items-start !justify-start gap-8 rounded-lg border bg-muted p-4 shadow-lg">
+        <div className="baseVertFlex w-full !items-start !justify-start gap-8 border bg-muted p-4 shadow-lg md:rounded-xl">
           {/* weekly featured users */}
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
             <div className="baseVertFlex gap-0 md:gap-1">
               <div className="baseFlex gap-2">
-                <FaRankingStar className="size-6 text-foreground" />
-                <span className="text-xl font-bold md:text-[1.35rem]">
+                <FaRankingStar className="size-5 text-foreground md:size-6" />
+                <span className="text-lg font-bold md:text-[1.35rem]">
                   Weekly featured users
                 </span>
               </div>
@@ -113,8 +113,8 @@ function Explore({ json }: { json: string }) {
             <div className="baseFlex w-full !items-end !justify-between gap-2">
               <div className="baseVertFlex gap-0 md:gap-1">
                 <div className="baseFlex gap-2">
-                  <IoFlash className="size-5 text-foreground" />
-                  <span className="text-xl font-bold md:text-[1.35rem]">
+                  <IoFlash className="size-4 text-foreground md:size-5" />
+                  <span className="text-lg font-bold md:text-[1.35rem]">
                     Newly added tabs
                   </span>
                 </div>
@@ -162,8 +162,8 @@ function Explore({ json }: { json: string }) {
             <div className="baseFlex w-full !items-end !justify-between gap-2">
               <div className="baseVertFlex gap-0 md:gap-1">
                 <div className="baseFlex gap-2">
-                  <IoStatsChart className="size-5 text-foreground" />
-                  <span className="text-xl font-bold md:text-[1.35rem]">
+                  <IoStatsChart className="size-4 text-foreground md:size-5" />
+                  <span className="text-lg font-bold md:text-[1.35rem]">
                     Most popular tabs
                   </span>
                 </div>
@@ -209,8 +209,8 @@ function Explore({ json }: { json: string }) {
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
             <div className="baseVertFlex gap-0 md:gap-1">
               <div className="baseFlex gap-2">
-                <BsGridFill className="size-5 text-foreground" />
-                <span className="text-xl font-bold md:text-[1.35rem]">
+                <BsGridFill className="size-4 text-foreground md:size-5" />
+                <span className="text-lg font-bold md:text-[1.35rem]">
                   Genres
                 </span>
               </div>

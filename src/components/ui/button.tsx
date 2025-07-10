@@ -8,6 +8,7 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 const buttonVariants = cva(
   "inline-flex items-center justify-center rounded-md text-sm shadow-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
+    // might want to make separate variants for "primaryOutline" and "primaryGhost" so you don't need the "!"
     variants: {
       variant: {
         default:
@@ -15,7 +16,7 @@ const buttonVariants = cva(
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary-hover !shadow-primaryButton hover:text-secondary-foreground active:bg-secondary-active",
         outline:
-          "border text-foreground hover:bg-background active:bg-background/60",
+          "border text-foreground hover:bg-background hover:!text-foreground active:bg-background/60",
         ghost:
           "hover:bg-toggleOn hover:!text-foreground shadow-none active:bg-toggleOn/80",
         link: "underline-offset-4 hover:underline shadow-none",
@@ -31,7 +32,7 @@ const buttonVariants = cva(
           "bg-green-600 text-primary-foreground hover:bg-green-700 shadow-none active:bg-green-800 disabled:opacity-50 disabled:bg-gray-500",
         text: "text-foreground shadow-none hover:text-foreground/80 active:text-foreground/60",
         drawer:
-          "w-full !rounded-none font-normal !h-[65px] last-of-type:border-b-none border-b border-stone-400 h-full baseFlex bg-pink-100 active:brightness-75 relative py-0",
+          "w-full !rounded-none font-normal !h-[65px] last-of-type:border-b-none border-b border-gray h-full baseFlex bg-secondary active:brightness-90 relative py-0",
         drawerNavigation:
           "text-primary shadow-none hover:text-primary/80 active:text-primary/60",
       },

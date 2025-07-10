@@ -220,7 +220,7 @@ function EditImageSelector({
           }}
         >
           <DrawerPortal>
-            <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 h-[75dvh] max-h-[500px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-4 text-pink-950">
+            <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 h-[75dvh] max-h-[500px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-3 text-pink-950">
               <VisuallyHidden>
                 <DrawerTitle>Image editor</DrawerTitle>
                 <DrawerDescription>

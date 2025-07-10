@@ -15,7 +15,6 @@ import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import { Button } from "~/components/ui/button";
 import { formatNumber } from "~/utils/formatNumber";
-import { IoClose } from "react-icons/io5";
 import formatDate from "~/utils/formatDate";
 import { X } from "lucide-react";
 

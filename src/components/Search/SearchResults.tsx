@@ -743,7 +743,7 @@ function SearchResults({
                 layoutType.value === "table" ? "0.25rem" : "0.75rem",
             }}
             transition={{ duration: 0.5, ease: "linear" }}
-            className="baseVertFlex sticky top-16 z-10 w-full !justify-between border-b bg-accent pt-3 text-primary-foreground tablet:!hidden"
+            className="baseVertFlex sticky top-16 z-20 w-full !justify-between border-b bg-accent pt-3 text-primary-foreground tablet:!hidden"
           >
             {/* scroll area + only show on hover for BOTH the header + the table scrollbars */}
             <AnimatePresence initial={false}>
@@ -783,11 +783,17 @@ function SearchResults({
                     <Label>Layout</Label>
                     <div className="baseFlex overflow-y-hidden rounded-md border">
                       <Button
-                        variant={"toggledOff"}
+                        variant={"ghost"}
                         size="sm"
                         disabled={disableFiltersAndLayoutToggle}
                         onClick={() => {
                           layoutType.set("grid");
+                        }}
+                        style={{
+                          color:
+                            layoutType.value === "grid"
+                              ? "hsl(var(--foreground))"
+                              : "hsl(var(--background))",
                         }}
                         className="baseFlex relative gap-2 border-none"
                       >
@@ -804,12 +810,19 @@ function SearchResults({
                         )}
                         <BsGridFill className="size-4" />
                       </Button>
+
                       <Button
-                        variant={"toggledOff"}
+                        variant={"ghost"}
                         size="sm"
                         disabled={disableFiltersAndLayoutToggle}
                         onClick={() => {
                           layoutType.set("table");
+                        }}
+                        style={{
+                          color:
+                            layoutType.value === "table"
+                              ? "hsl(var(--foreground))"
+                              : "hsl(var(--background))",
                         }}
                         className="baseFlex relative gap-2 border-none"
                       >
@@ -844,12 +857,15 @@ function SearchResults({
                     }}
                   >
                     <DrawerTrigger asChild>
-                      <Button variant={"outline"} className="baseFlex w-9">
+                      <Button
+                        variant={"outline"}
+                        className="baseFlex w-9 text-primary-foreground"
+                      >
                         <LuFilter className="size-4 shrink-0" />
                       </Button>
                     </DrawerTrigger>
                     <DrawerPortal>
-                      <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-4 text-pink-950">
+                      <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-secondary pt-3">
                         <VisuallyHidden>
                           <DrawerTitle>Search filters</DrawerTitle>
                           <DrawerDescription>
@@ -1705,6 +1721,7 @@ function SearchResults({
                       <BsGridFill className="size-4" />
                       Grid
                     </Button>
+
                     <Button
                       variant={"ghost"}
                       size="sm"

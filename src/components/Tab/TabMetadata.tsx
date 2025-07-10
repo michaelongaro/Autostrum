@@ -1244,7 +1244,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                       </p>
                     ))
                   ) : (
-                    <span className="italic text-pink-200">
+                    <span className="italic text-foreground/70">
                       No description provided.
                     </span>
                   )}
@@ -1410,17 +1410,17 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
           if (!open) setShowDeleteAlertDialog(false);
         }}
       >
-        <AlertDialogContent className="bg-pink-800">
+        <AlertDialogContent className="modalGradient border shadow-sm">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-semibold">
               Delete Tab
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-foreground">
               Are you sure you want to delete this tab? This action cannot be
               undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="baseFlex gap-2">
+          <AlertDialogFooter className="baseFlex mt-4 gap-4">
             <Button
               variant={"outline"}
               onClick={() => setShowDeleteAlertDialog(false)}

@@ -948,7 +948,7 @@ function AudioControls() {
                   disabled={audioMetadata.editingLoopRange}
                   size="sm"
                   variant={"outline"}
-                  className="px-2 py-1"
+                  className="px-2 py-1 text-primary-foreground"
                 >
                   <IoSettingsOutline className="h-5 w-5" />
                 </Button>

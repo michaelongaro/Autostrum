@@ -10,7 +10,6 @@ import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import { IoWarningOutline } from "react-icons/io5";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
-import { IoClose } from "react-icons/io5";
 import { X } from "lucide-react";
 
 const backdropVariants = {

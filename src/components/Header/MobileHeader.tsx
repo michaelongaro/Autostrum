@@ -116,9 +116,9 @@ function MobileHeader() {
           >
             <DialogTrigger asChild>
               <Button
-                variant="link"
+                variant="text"
                 onClick={() => setShowMobileSearch(true)}
-                className="!px-0"
+                className="!px-0 text-primary-foreground"
               >
                 <BiSearchAlt2 className="size-[26px]" />
               </Button>
@@ -133,7 +133,7 @@ function MobileHeader() {
 
             <DialogContent
               renderCloseButton={false}
-              className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start !rounded-none bg-gradient-to-b from-pink-400 to-pink-500 p-0"
+              className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start !rounded-none p-0"
             >
               <SearchInput setShowMobileSearch={setShowMobileSearch} />
             </DialogContent>
@@ -149,7 +149,7 @@ function MobileHeader() {
               });
             }}
             easing="ease-in-out"
-            color="#fdf2f8"
+            color="hsl(var(--primary-foreground))"
             rounded
             size={28}
           />
@@ -182,19 +182,21 @@ function MobileHeader() {
                 opacity: { duration: 0.2, ease: "easeInOut" },
               },
             }}
-            className="baseVertFlex fixed top-16 z-[-1] max-h-[80dvh] w-full max-w-lg !justify-start overflow-y-auto rounded-b-xl bg-pink-400 shadow-lg"
+            className="baseVertFlex fixed top-16 z-[-1] max-h-[80dvh] w-full max-w-lg !justify-start overflow-y-auto rounded-b-xl bg-secondary-active shadow-lg"
           >
             <div className="baseVertFlex my-4 h-full max-w-[348px] gap-4">
               <div className="baseFlex w-full gap-4">
                 <Button
-                  variant={"navigation"}
+                  variant={"secondary"}
                   size={"lg"}
                   asChild
                   style={{
                     backgroundColor: asPath.includes("/explore")
-                      ? "#be185d"
+                      ? "hsl(var(--accent))"
                       : undefined,
-                    color: asPath.includes("/explore") ? "#fbcfe8" : undefined,
+                    color: asPath.includes("/explore")
+                      ? "hsl(var(--accent-foreground))"
+                      : undefined,
                   }}
                 >
                   <Link
@@ -208,14 +210,16 @@ function MobileHeader() {
                 </Button>
 
                 <Button
-                  variant={"navigation"}
+                  variant={"secondary"}
                   size={"lg"}
                   asChild
                   style={{
                     backgroundColor: asPath.includes("/create")
-                      ? "#be185d"
+                      ? "hsl(var(--accent))"
                       : undefined,
-                    color: asPath.includes("/create") ? "#fbcfe8" : undefined,
+                    color: asPath.includes("/create")
+                      ? "hsl(var(--accent-foreground))"
+                      : undefined,
                   }}
                 >
                   <Link
@@ -232,15 +236,15 @@ function MobileHeader() {
               <div className="baseVertFlex w-full max-w-[348px] gap-2">
                 <div className="baseFlex w-full gap-4">
                   <Button
-                    variant={"navigation"}
+                    variant={"secondary"}
                     size={"lg"}
                     asChild
                     style={{
                       backgroundColor: asPath.includes("/metronome")
-                        ? "#be185d"
+                        ? "hsl(var(--accent))"
                         : undefined,
                       color: asPath.includes("/metronome")
-                        ? "#fbcfe8"
+                        ? "hsl(var(--accent-foreground))"
                         : undefined,
                     }}
                   >
@@ -254,14 +258,16 @@ function MobileHeader() {
                     </Link>
                   </Button>
                   <Button
-                    variant={"navigation"}
+                    variant={"secondary"}
                     size={"lg"}
                     asChild
                     style={{
                       backgroundColor: asPath.includes("/tuner")
-                        ? "#be185d"
+                        ? "hsl(var(--accent))"
                         : undefined,
-                      color: asPath.includes("/tuner") ? "#fbcfe8" : undefined,
+                      color: asPath.includes("/tuner")
+                        ? "hsl(var(--accent-foreground))"
+                        : undefined,
                     }}
                   >
                     <Link
@@ -276,7 +282,7 @@ function MobileHeader() {
                 </div>
               </div>
 
-              <Separator className="h-[1px] w-full" />
+              <Separator className="h-[1px] w-full bg-foreground/50" />
 
               <Accordion
                 type="single"
@@ -298,7 +304,7 @@ function MobileHeader() {
                 </AccordionItem>
               </Accordion>
 
-              <Separator className="h-[1px] w-full" />
+              <Separator className="h-[1px] w-full bg-foreground/50" />
 
               <AnimatePresence mode="popLayout">
                 {(isSignedIn === undefined || isLoadingCurrentUser) && (
@@ -515,15 +521,15 @@ function MobileHeader() {
 
                     <div className="baseFlex w-full gap-4">
                       <Button
-                        variant={"navigation"}
+                        variant={"secondary"}
                         size={"lg"}
                         asChild
                         style={{
                           backgroundColor: asPath.includes("/profile/settings")
-                            ? "#be185d"
+                            ? "hsl(var(--accent))"
                             : undefined,
                           color: asPath.includes("/profile/settings")
-                            ? "#fbcfe8"
+                            ? "hsl(var(--accent-foreground))"
                             : undefined,
                         }}
                       >
@@ -538,17 +544,17 @@ function MobileHeader() {
                       </Button>
 
                       <Button
-                        variant={"navigation"}
+                        variant={"secondary"}
                         size={"lg"}
                         asChild
                         style={{
                           backgroundColor: asPath.includes(
                             "/profile/statistics",
                           )
-                            ? "#be185d"
+                            ? "hsl(var(--accent))"
                             : undefined,
                           color: asPath.includes("/profile/statistics")
-                            ? "#fbcfe8"
+                            ? "hsl(var(--accent-foreground))"
                             : undefined,
                         }}
                       >
@@ -565,15 +571,15 @@ function MobileHeader() {
 
                     <div className="baseFlex w-full gap-4">
                       <Button
-                        variant={"navigation"}
+                        variant={"secondary"}
                         size={"lg"}
                         asChild
                         style={{
                           backgroundColor: asPath.includes("/profile/tabs")
-                            ? "#be185d"
+                            ? "hsl(var(--accent))"
                             : undefined,
                           color: asPath.includes("/profile/tabs")
-                            ? "#fbcfe8"
+                            ? "hsl(var(--accent-foreground))"
                             : undefined,
                         }}
                       >
@@ -588,15 +594,15 @@ function MobileHeader() {
                       </Button>
 
                       <Button
-                        variant={"navigation"}
+                        variant={"secondary"}
                         size={"lg"}
                         asChild
                         style={{
                           backgroundColor: asPath.includes("/profile/bookmarks")
-                            ? "#be185d"
+                            ? "hsl(var(--accent))"
                             : undefined,
                           color: asPath.includes("/profile/bookmarks")
-                            ? "#fbcfe8"
+                            ? "hsl(var(--accent-foreground))"
                             : undefined,
                         }}
                       >

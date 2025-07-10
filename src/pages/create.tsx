@@ -59,19 +59,19 @@ function Create() {
             </div>
           ) : (
             <div className="baseFlex">
-              <div className="lightGlassmorphic relative -right-6 top-0.5 z-30 -rotate-6 rounded-lg p-2 outline outline-1">
+              <div className="relative -right-6 top-0.5 z-30 -rotate-6 rounded-lg border bg-muted p-2 shadow-sm">
                 <BsFillPlayFill className="size-6 text-foreground" />
               </div>
 
-              <div className="lightGlassmorphic relative -right-4 z-20 -rotate-3 rounded-lg p-2 outline outline-1">
+              <div className="relative -right-4 z-20 -rotate-3 rounded-lg border bg-muted p-2 shadow-sm">
                 <QuarterNote className="size-6 text-foreground" />
               </div>
 
-              <div className="lightGlassmorphic relative -right-2 z-10 rotate-3 rounded-lg p-2 outline outline-1">
+              <div className="relative -right-2 z-10 rotate-3 rounded-lg border bg-muted p-2 shadow-sm">
                 <GiMusicalScore className="size-6 text-foreground" />
               </div>
 
-              <div className="lightGlassmorphic relative top-0.5 rotate-6 rounded-lg p-2 outline outline-1">
+              <div className="relative top-0.5 rotate-6 rounded-lg border bg-muted p-2 shadow-sm">
                 <EigthNote className="size-6 text-foreground" />
               </div>
             </div>

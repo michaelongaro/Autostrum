@@ -33,7 +33,7 @@ const DrawerOverlay = React.forwardRef<
       animationTimingFunction: "ease-in-out",
     }}
     className={cn(
-      "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-black/40 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className,
     )}
     {...props}
@@ -55,7 +55,7 @@ const DrawerContent = React.forwardRef<
       )}
       {...props}
     >
-      <div className="bg-gray-300 mx-auto mb-4 h-1 w-12 flex-shrink-0 rounded-full" />
+      <div className="mx-auto mb-4 h-1 w-12 flex-shrink-0 rounded-full bg-gray/25" />
 
       {children}
     </DrawerPrimitive.Content>
