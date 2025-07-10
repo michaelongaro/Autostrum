@@ -30,25 +30,25 @@ function PlaybackTabChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex relative mb-[24px] h-[144px] w-4 border-y-2 border-white mobilePortrait:h-[168px]"
+          className="baseVertFlex relative mb-[24px] h-[144px] w-4 border-y-2 border-foreground mobilePortrait:h-[168px]"
         >
           {/* show new current bpm */}
           {columnData[8] !== "" && (
             <div
-              className={`baseFlex absolute -top-7 gap-[0.125rem] text-pink-100`}
+              className={`baseFlex absolute -top-7 gap-[0.125rem] text-foreground`}
             >
               <QuarterNote />
-              <p className="text-center text-xs">{columnData[8]}</p>
+              <span className="text-center text-xs">{columnData[8]}</span>
             </div>
           )}
 
           {/* spacer to ease transition from tab -> strum */}
-          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50 mobilePortrait:my-3"></div>
-          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50 mobilePortrait:my-3"></div>
-          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50 mobilePortrait:my-3"></div>
-          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50 mobilePortrait:my-3"></div>
-          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50 mobilePortrait:my-3"></div>
-          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-pink-100/50 mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-foreground/50 mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-foreground/50 mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-foreground/50 mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-foreground/50 mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-foreground/50 mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-end bg-gradient-to-r from-transparent to-foreground/50 mobilePortrait:my-3"></div>
         </div>
       )}
 
@@ -73,16 +73,10 @@ function PlaybackTabChord({
                 {index > 0 && index < 7 && (
                   <div
                     style={{
-                      borderTop: `${
-                        index === 1 ? "2px solid rgb(253 242 248)" : "none"
-                      }`,
+                      borderTop: `${index === 1 ? "2px solid" : "none"}`,
                       paddingTop: `${index === 1 ? "7px" : "0"}`,
-                      borderLeft: isFirstChordInSection
-                        ? "2px solid white"
-                        : "none",
-                      borderRight: isLastChordInSection
-                        ? "2px solid white"
-                        : "none",
+                      borderLeft: isFirstChordInSection ? "2px solid" : "none",
+                      borderRight: isLastChordInSection ? "2px solid" : "none",
                       borderRadius:
                         isFirstChordInSection && index === 1
                           ? "10px 0 0 0" // top left
@@ -93,14 +87,12 @@ function PlaybackTabChord({
                               : isLastChordInSection && index === 6
                                 ? "0 0 10px 0" // bottom right
                                 : "none",
-                      borderBottom: `${
-                        index === 6 ? "2px solid rgb(253 242 248)" : "none"
-                      }`,
+                      borderBottom: `${index === 6 ? "2px solid" : "none"}`,
                       paddingBottom: `${index === 6 ? "7px" : "0"}`,
                     }}
                     className="baseFlex relative w-[35px] basis-[content]"
                   >
-                    <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
+                    <div className="h-[1px] flex-[1] bg-foreground/50"></div>
 
                     <PlaybackTabNote
                       note={
@@ -119,7 +111,7 @@ function PlaybackTabChord({
                       }
                     />
 
-                    <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
+                    <div className="h-[1px] flex-[1] bg-foreground/50"></div>
                   </div>
                 )}
 
@@ -241,22 +233,24 @@ function PlaybackTabNote({
 }: PlaybackTabNote) {
   return (
     <div className="baseFlex w-[35px]">
-      <div className="my-[10px] h-[1px] flex-[1] bg-pink-100/50 mobilePortrait:my-3"></div>
+      <div className="my-[10px] h-[1px] flex-[1] bg-foreground/50 mobilePortrait:my-3"></div>
       <div
         style={{
-          color: isHighlighted ? "hsl(335, 78%, 55%)" : "hsl(324, 77%, 95%)",
+          color: isHighlighted
+            ? "hsl(var(--primary))"
+            : "hsl(var(--foreground))",
+          transitionDuration: "75ms",
 
           // "x" wasn't as centered as regular numbers were, manual adjustment below
           marginTop: note === "x" ? "-2px" : "0",
           marginBottom: note === "x" ? "2px" : "0",
-          transitionDuration: "75ms",
         }}
         className={`baseFlex relative h-[20px] transition-colors ${isAccented ? "font-bold" : ""}`}
       >
         {note}
         {isStaccato && <div className="relative -top-2">.</div>}
       </div>
-      <div className="my-[10px] h-[1px] flex-[1] bg-pink-100/50 mobilePortrait:my-3"></div>
+      <div className="my-[10px] h-[1px] flex-[1] bg-foreground/50 mobilePortrait:my-3"></div>
     </div>
   );
 }

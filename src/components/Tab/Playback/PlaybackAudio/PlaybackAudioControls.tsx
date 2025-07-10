@@ -10,7 +10,7 @@ import {
 } from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
-import ProgressSlider from "~/components/AudioControls/ProgressSlider";
+import PlaybackProgressSlider from "~/components/AudioControls/PlaybackProgressSlider";
 import PlaybackGranularLoopRangeEditor from "~/components/Tab/Playback/PlaybackGranularLoopRangeEditor";
 import { Button } from "~/components/ui/button";
 import { Toggle } from "~/components/ui/toggle";
@@ -274,7 +274,7 @@ function PlaybackAudioControls({
               )}
             </div>
 
-            <ProgressSlider
+            <PlaybackProgressSlider
               disabled={disablePlayButton}
               chordDurations={chordDurations}
               loopRange={loopRange}
@@ -316,7 +316,7 @@ function PlaybackAudioControls({
 
       {!viewportLabel.includes("Landscape") && (
         <div className="baseVertFlex w-full max-w-[90vw] gap-2 sm:max-w-xl">
-          <ProgressSlider
+          <PlaybackProgressSlider
             disabled={disablePlayButton}
             chordDurations={chordDurations}
             loopRange={loopRange}

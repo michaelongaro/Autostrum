@@ -24,7 +24,7 @@ function PlaybackTabMeasureLine({
             <>
               {columnData[7] && columnData[7] !== "-1" && (
                 <div
-                  className={`baseFlex absolute gap-[0.125rem] text-pink-100 ${
+                  className={`baseFlex absolute gap-[0.125rem] text-foreground ${
                     note === "-" ? "-top-1" : "top-3"
                   }`}
                 >
@@ -41,7 +41,7 @@ function PlaybackTabMeasureLine({
                     style={{
                       top: "-14px",
                     }}
-                    className="relative h-[1px] w-full bg-white"
+                    className="relative h-[1px] w-full bg-foreground"
                   ></div>
                 )}
               </div>
@@ -50,7 +50,7 @@ function PlaybackTabMeasureLine({
 
           {index > 0 && index < 7 && (
             <div className="baseFlex w-full">
-              <div className="h-[24px] w-[2px] bg-white mobilePortrait:h-[28px]"></div>
+              <div className="h-[24px] w-[2px] bg-foreground mobilePortrait:h-[28px]"></div>
             </div>
           )}
         </Fragment>

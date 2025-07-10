@@ -178,7 +178,7 @@ function PlaybackBottomMetadata({
                           );
                         })}
 
-                        <div className="my-1 h-[1px] w-full bg-pink-800"></div>
+                        <div className="my-1 h-[1px] w-full bg-primary"></div>
                         <SelectItem key={"fullTab"} value={`fullTab`}>
                           Full tab
                         </SelectItem>

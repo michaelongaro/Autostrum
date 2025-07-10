@@ -30,7 +30,7 @@ function StaticChordSection({ subSectionData }: StaticChordSection) {
   return (
     <motion.div
       key={subSectionData.id}
-      className="baseVertFlex lightestGlassmorphic relative h-full !justify-start rounded-md p-4 md:p-8"
+      className="baseVertFlex relative h-full !justify-start rounded-md border bg-secondary-active/50 p-4 shadow-md md:p-8"
     >
       <AnimatePresence mode="wait">
         <motion.div
@@ -43,7 +43,7 @@ function StaticChordSection({ subSectionData }: StaticChordSection) {
                 <div className="baseVertFlex !items-start">
                   {(showBpm(chordSequence) ||
                     chordSequence.repetitions > 1) && (
-                    <div className="baseFlex ml-4 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
+                    <div className="baseFlex ml-4 gap-3 rounded-t-md border bg-secondary-active/25 px-2 py-1 text-sm !shadow-sm">
                       {showBpm(chordSequence) && (
                         <div className="baseFlex gap-1">
                           {getDynamicNoteLengthIcon({

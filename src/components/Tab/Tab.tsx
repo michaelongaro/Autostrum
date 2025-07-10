@@ -283,7 +283,7 @@ function Tab({ tab }: Tab) {
         style={{
           transition: "filter 0.5s ease-in-out",
         }}
-        className={`baseVertFlex bg-muted relative w-full border shadow-lg md:rounded-xl ${
+        className={`baseVertFlex relative w-full border bg-muted shadow-lg md:rounded-xl ${
           isPublishingOrUpdating
             ? "pointer-events-none brightness-90"
             : "brightness-100"
@@ -400,7 +400,7 @@ function Tab({ tab }: Tab) {
                   paddingBottom: 0,
                 }}
                 transition={{ duration: 0.25 }}
-                className="baseFlex sticky left-0 top-16 z-10 w-full bg-pink-800"
+                className="baseFlex sticky left-0 top-20 z-10 w-[calc(100%-3.45rem)] rounded-xl border bg-muted shadow-lg"
               >
                 <Carousel
                   opts={{
@@ -413,7 +413,7 @@ function Tab({ tab }: Tab) {
                     {chords.map((chord) => (
                       <CarouselItem
                         key={chord.id}
-                        className="baseVertFlex basis-[96px] gap-2 md:basis-[134px]"
+                        className="baseVertFlex basis-[96px] gap-2 text-foreground md:basis-[134px]"
                       >
                         <span className="text-sm font-medium">
                           {chord.name}
@@ -500,9 +500,11 @@ function Tab({ tab }: Tab) {
                             variant={"secondary"}
                             style={{
                               backgroundColor: showPinnedChords
-                                ? "#be185d"
+                                ? "hsl(var(--accent))"
                                 : undefined,
-                              color: showPinnedChords ? "#fbcfe8" : undefined,
+                              color: showPinnedChords
+                                ? "hsl(var(--primary-foreground"
+                                : undefined,
                             }}
                             className="baseFlex !size-11 !rounded-full !p-0"
                             onClick={() => {

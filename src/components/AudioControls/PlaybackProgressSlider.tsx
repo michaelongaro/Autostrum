@@ -2,19 +2,19 @@ import { useEffect, useRef, type Dispatch, type SetStateAction } from "react";
 import { getTrackBackground, Range } from "react-range";
 import { useTabStore } from "~/stores/TabStore";
 
-interface ProgressSlider {
+interface PlaybackProgressSlider {
   disabled: boolean;
   chordDurations: number[];
   loopRange: [number, number];
   setLoopRange: Dispatch<SetStateAction<[number, number]>>;
 }
 
-function ProgressSlider({
+function PlaybackProgressSlider({
   disabled,
   chordDurations,
   loopRange,
   setLoopRange,
-}: ProgressSlider) {
+}: PlaybackProgressSlider) {
   const {
     currentChordIndex,
     setCurrentChordIndex,
@@ -157,7 +157,11 @@ function ProgressSlider({
                   borderRadius: "4px",
                   background: getTrackBackground({
                     values: loopRange,
-                    colors: [disabled ? "#666" : "#ccc", "#548BF4", "#ccc"],
+                    colors: [
+                      disabled ? "#666" : "#ccc",
+                      "hsl(var(--primary))",
+                      "#ccc",
+                    ],
                     min: 0,
                     max: audioMetadata.fullCurrentlyPlayingMetadataLength - 1,
                   }),
@@ -174,7 +178,7 @@ function ProgressSlider({
               key={`${props.key}-${index}-toggle`}
               style={{
                 ...props.style,
-                backgroundColor: "#999",
+                backgroundColor: "hsl(var(--gray))",
               }}
               className="z-10 size-[18px] rounded-full will-change-transform"
             />
@@ -230,7 +234,7 @@ function ProgressSlider({
                   borderRadius: "4px",
                   background: getTrackBackground({
                     values: [currentChordIndex],
-                    colors: [disabled ? "#666" : "#548BF4", "#ccc"],
+                    colors: [disabled ? "#666" : "hsl(var(--primary))", "#ccc"],
                     min: 0,
                     max: currentlyPlayingMetadata?.length ?? 0,
                   }),
@@ -248,7 +252,7 @@ function ProgressSlider({
               key={`${props.key}-${index}`}
               style={{
                 ...props.style,
-                backgroundColor: "#999",
+                backgroundColor: "hsl(var(--gray))",
                 transition: `transform ${
                   currentChordIndex === 0
                     ? 0
@@ -266,4 +270,4 @@ function ProgressSlider({
   );
 }
 
-export default ProgressSlider;
+export default PlaybackProgressSlider;

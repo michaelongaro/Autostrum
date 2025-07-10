@@ -76,9 +76,9 @@ function PlaybackTopMetadata({
       {viewportLabel === "mobileLandscape" ? (
         <div className="baseVertFlex w-full gap-2">
           <div className="baseFlex w-full !justify-start gap-4 px-4 pt-2">
-            <p className="text-lg font-semibold text-white tablet:text-2xl">
+            <span className="text-lg font-semibold tablet:text-2xl">
               {title}
-            </p>
+            </span>
 
             <Separator className="h-4 w-[1px]" />
 
@@ -100,9 +100,9 @@ function PlaybackTopMetadata({
             {/* title + auto tuner button */}
             <div className="baseVertFlex !items-start gap-2">
               <div className="baseFlex gap-4">
-                <p className="text-xl font-bold text-white tablet:text-2xl">
+                <span className="text-xl font-bold tablet:text-2xl">
                   {title}
-                </p>
+                </span>
 
                 {!viewportLabel.includes("mobile") &&
                   sectionProgression.length > 1 && (
@@ -110,7 +110,7 @@ function PlaybackTopMetadata({
                       <Separator className="h-6 w-[1px]" />
 
                       <div className="baseFlex gap-2">
-                        <p className="text-sm font-medium">Section</p>
+                        <span className="text-sm font-medium">Section</span>
                         <Select
                           value={
                             audioMetadata.location === null
@@ -168,7 +168,7 @@ function PlaybackTopMetadata({
                                 );
                               })}
 
-                              <div className="my-1 h-[1px] w-full bg-pink-800"></div>
+                              <div className="my-1 h-[1px] w-full bg-primary"></div>
                               <SelectItem key={"fullTab"} value={`fullTab`}>
                                 Full tab
                               </SelectItem>
@@ -182,7 +182,7 @@ function PlaybackTopMetadata({
 
               <div className="baseFlex gap-4">
                 <div className="baseVertFlex !items-start text-nowrap">
-                  <p className="text-sm font-medium">Tempo</p>
+                  <span className="text-sm font-medium">Tempo</span>
                   <div className="baseFlex w-[79px] !justify-start gap-1.5">
                     <div className="w-2">
                       {getDynamicNoteLengthIcon({
@@ -196,7 +196,7 @@ function PlaybackTopMetadata({
                   </div>
                 </div>
                 <div className="baseVertFlex !items-start">
-                  <p className="text-sm font-medium">Tuning</p>
+                  <span className="text-sm font-medium">Tuning</span>
                   <div>
                     {tuningNotesToName[
                       tuning.toLowerCase() as keyof typeof tuningNotesToName
@@ -205,7 +205,7 @@ function PlaybackTopMetadata({
                 </div>
 
                 <div className="baseVertFlex !items-start">
-                  <p className="text-sm font-medium">Capo</p>
+                  <span className="text-sm font-medium">Capo</span>
                   {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
                 </div>
 
@@ -213,8 +213,8 @@ function PlaybackTopMetadata({
                   variant={"outline"}
                   className="baseFlex h-9 gap-2 !px-2.5 !py-0 sm:!px-4"
                 >
-                  <TuningFork className="size-4 fill-white" />
-                  <p className="hidden sm:block">Tuner</p>
+                  <TuningFork className="size-4" />
+                  <span className="hidden sm:block">Tuner</span>
                 </Button>
 
                 {!viewportLabel.includes("mobile") && (
@@ -325,7 +325,7 @@ function PlaybackTopMetadata({
                               );
                             })}
 
-                            <div className="my-1 h-[1px] w-full bg-pink-800"></div>
+                            <div className="my-1 h-[1px] w-full bg-primary"></div>
                             <SelectItem key={"fullTab"} value={`fullTab`}>
                               Full tab
                             </SelectItem>
@@ -356,7 +356,7 @@ function Menu() {
     }));
 
   return (
-    <div className="baseVertFlex max-h-dvh w-full max-w-none !justify-start bg-black">
+    <div className="baseFlex w-full max-w-none">
       <AnimatedTabs
         activeTabName={playbackModalViewingState}
         setActiveTabName={

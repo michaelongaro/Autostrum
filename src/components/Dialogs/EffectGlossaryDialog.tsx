@@ -40,7 +40,7 @@ function EffectGlossaryDialog() {
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex max-h-[90dvh] max-w-[350px] !justify-start gap-4 overflow-y-auto rounded-lg bg-pink-100 px-2 text-pink-950 xs:max-w-[450px] xs:p-4">
+      <DialogContent className="baseVertFlex max-h-[90dvh] max-w-[350px] !justify-start gap-4 overflow-y-auto rounded-lg bg-foreground px-2 text-pink-950 xs:max-w-[450px] xs:p-4">
         <p className="baseFlex gap-2 font-semibold">
           <FaBook className="size-4" />
           Effect glossary
@@ -53,7 +53,7 @@ function EffectGlossaryDialog() {
             className={`baseVertFlex gap-2 ${editing ? "min-w-[190px]" : "min-w-[150px]"}`}
           >
             <Label className="mt-2">Note effects</Label>
-            <Separator className="mb-2 w-full bg-pink-600" />
+            <Separator className="mb-2 w-full bg-primary" />
 
             <div className="grid w-full grid-cols-5 pl-1 text-sm">
               <span className="col-span-1">h</span>
@@ -62,7 +62,7 @@ function EffectGlossaryDialog() {
                 Hammer-on
                 {editing && (
                   <Popover>
-                    <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-pink-500/20 active:bg-pink-500/10">
+                    <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-primary/20 active:bg-primary/10">
                       <HiOutlineInformationCircle className="h-5 w-5" />
                     </PopoverTrigger>
                     <PopoverContent
@@ -70,32 +70,32 @@ function EffectGlossaryDialog() {
                       className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
                     >
                       <div className="font-semibold">Notation variations</div>
-                      <Separator className="mb-2 w-full bg-pink-600" />
+                      <Separator className="mb-2 w-full bg-primary" />
                       <div className="baseFlex gap-4">
                         <div className="baseVertFlex gap-2">
                           <p>Standard</p>
-                          <div className="baseFlex lightestGlassmorphic rounded-md p-2">
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                          <div className="baseFlex rounded-md border bg-secondary p-2">
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               3h
                             </div>
-                            <div className="h-[1px] w-2 bg-pink-100"></div>
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               5
                             </div>
                           </div>
                         </div>
                         <div className="baseVertFlex gap-2">
                           <p>Delayed</p>
-                          <div className="baseFlex lightestGlassmorphic rounded-md p-2">
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                          <div className="baseFlex rounded-md border bg-secondary p-2">
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               3
                             </div>
-                            <div className="h-[1px] w-2 bg-pink-100"></div>
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               h
                             </div>
-                            <div className="h-[1px] w-2 bg-pink-100"></div>
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               5
                             </div>
                           </div>
@@ -113,7 +113,7 @@ function EffectGlossaryDialog() {
                 Pull-off
                 {editing && (
                   <Popover>
-                    <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-pink-500/20 active:bg-pink-500/10">
+                    <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-primary/20 active:bg-primary/10">
                       <HiOutlineInformationCircle className="h-5 w-5" />
                     </PopoverTrigger>
                     <PopoverContent
@@ -121,32 +121,32 @@ function EffectGlossaryDialog() {
                       className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
                     >
                       <div className="font-semibold">Notation variations</div>
-                      <Separator className="mb-2 w-full bg-pink-600" />
+                      <Separator className="mb-2 w-full bg-primary" />
                       <div className="baseFlex gap-4">
                         <div className="baseVertFlex gap-2">
                           <p>Standard</p>
-                          <div className="baseFlex lightestGlassmorphic rounded-md p-2">
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                          <div className="baseFlex rounded-md border bg-secondary p-2">
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               3p
                             </div>
-                            <div className="h-[1px] w-2 bg-pink-100"></div>
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               5
                             </div>
                           </div>
                         </div>
                         <div className="baseVertFlex gap-2">
                           <p>Delayed</p>
-                          <div className="baseFlex lightestGlassmorphic rounded-md p-2">
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                          <div className="baseFlex rounded-md border bg-secondary p-2">
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               3
                             </div>
-                            <div className="h-[1px] w-2 bg-pink-100"></div>
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               p
                             </div>
-                            <div className="h-[1px] w-2 bg-pink-100"></div>
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               5
                             </div>
                           </div>
@@ -164,7 +164,7 @@ function EffectGlossaryDialog() {
                 Slide up
                 {editing && (
                   <Popover>
-                    <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-pink-500/20 active:bg-pink-500/10">
+                    <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-primary/20 active:bg-primary/10">
                       <HiOutlineInformationCircle className="h-5 w-5" />
                     </PopoverTrigger>
                     <PopoverContent
@@ -172,32 +172,32 @@ function EffectGlossaryDialog() {
                       className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
                     >
                       <div className="font-semibold">Notation variations</div>
-                      <Separator className="mb-2 w-full bg-pink-600" />
+                      <Separator className="mb-2 w-full bg-primary" />
                       <div className="baseFlex gap-4">
                         <div className="baseVertFlex gap-2">
                           <p>Standard</p>
-                          <div className="baseFlex lightestGlassmorphic rounded-md p-2">
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                          <div className="baseFlex rounded-md border bg-secondary p-2">
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               3/
                             </div>
-                            <div className="h-[1px] w-2 bg-pink-100"></div>
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               5
                             </div>
                           </div>
                         </div>
                         <div className="baseVertFlex gap-2">
                           <p>Delayed</p>
-                          <div className="baseFlex lightestGlassmorphic rounded-md p-2">
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                          <div className="baseFlex rounded-md border bg-secondary p-2">
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               3
                             </div>
-                            <div className="h-[1px] w-2 bg-pink-100"></div>
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               /
                             </div>
-                            <div className="h-[1px] w-2 bg-pink-100"></div>
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               5
                             </div>
                           </div>
@@ -215,7 +215,7 @@ function EffectGlossaryDialog() {
                 Slide down
                 {editing && (
                   <Popover>
-                    <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-pink-500/20 active:bg-pink-500/10">
+                    <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-primary/20 active:bg-primary/10">
                       <HiOutlineInformationCircle className="h-5 w-5" />
                     </PopoverTrigger>
                     <PopoverContent
@@ -223,32 +223,32 @@ function EffectGlossaryDialog() {
                       className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
                     >
                       <div className="font-semibold">Notation variations</div>
-                      <Separator className="mb-2 w-full bg-pink-600" />
+                      <Separator className="mb-2 w-full bg-primary" />
                       <div className="baseFlex gap-4">
                         <div className="baseVertFlex gap-2">
                           <p>Standard</p>
-                          <div className="baseFlex lightestGlassmorphic rounded-md p-2">
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                          <div className="baseFlex rounded-md border bg-secondary p-2">
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               3\
                             </div>
-                            <div className="h-[1px] w-2 bg-pink-100"></div>
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               5
                             </div>
                           </div>
                         </div>
                         <div className="baseVertFlex gap-2">
                           <p>Delayed</p>
-                          <div className="baseFlex lightestGlassmorphic rounded-md p-2">
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                          <div className="baseFlex rounded-md border bg-secondary p-2">
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               3
                             </div>
-                            <div className="h-[1px] w-2 bg-pink-100"></div>
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               \
                             </div>
-                            <div className="h-[1px] w-2 bg-pink-100"></div>
-                            <div className="baseFlex h-9 w-9 rounded-full border-2 border-pink-100 text-sm text-pink-100">
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
                               5
                             </div>
                           </div>
@@ -299,7 +299,7 @@ function EffectGlossaryDialog() {
 
           <div className="baseVertFlex w-full gap-2">
             <Label className="mt-2">Chord effects</Label>
-            <Separator className="mb-2 w-full bg-pink-600" />
+            <Separator className="mb-2 w-full bg-primary" />
 
             {editing ? (
               <>
@@ -361,7 +361,7 @@ function EffectGlossaryDialog() {
             )}
 
             <Label className="mt-4">Section effects</Label>
-            <Separator className="mb-2 w-full bg-pink-600" />
+            <Separator className="mb-2 w-full bg-primary" />
 
             <div className="grid w-full grid-cols-5 pl-1 text-sm">
               <span className="col-span-1">PM</span>
@@ -372,7 +372,7 @@ function EffectGlossaryDialog() {
             {editing && (
               <>
                 <Label className="mt-4">Miscellaneous</Label>
-                <Separator className="mb-2 w-full bg-pink-600" />
+                <Separator className="mb-2 w-full bg-primary" />
 
                 <div className="grid w-full grid-cols-5 pl-1 text-sm">
                   <span className="col-span-1">|</span>

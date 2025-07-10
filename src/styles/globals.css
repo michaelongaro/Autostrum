@@ -69,9 +69,7 @@
 }
 
 .modalGradient {
-  background: linear-gradient(145deg,
-      #FEF7F9,
-      #FACEDD) center / cover;
+  @apply bg-gradient-to-br from-background to-secondary-active;
 }
 
 /* below are same gradients as background, but up by ~7% on lightness value of hsl to match the
