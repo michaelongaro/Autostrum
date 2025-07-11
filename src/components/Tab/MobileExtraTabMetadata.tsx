@@ -123,7 +123,7 @@ function MobileExtraTabMetadata() {
                   <motion.span
                     layoutId="activeTabUnderline"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-pink-50"
+                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
                   />
                 )}
               </Button>
@@ -144,7 +144,7 @@ function MobileExtraTabMetadata() {
                   <motion.span
                     layoutId="activeTabUnderline"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-pink-50"
+                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
                   />
                 )}
               </Button>
@@ -165,7 +165,7 @@ function MobileExtraTabMetadata() {
                   <motion.span
                     layoutId="activeTabUnderline"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-pink-50"
+                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
                   />
                 )}
               </Button>

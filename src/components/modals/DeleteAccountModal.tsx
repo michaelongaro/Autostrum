@@ -204,7 +204,7 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                       strokeWidth={2}
-                      className="size-5 text-pink-50"
+                      className="size-5 text-primary-foreground"
                     >
                       <motion.path
                         initial={{ pathLength: 0 }}

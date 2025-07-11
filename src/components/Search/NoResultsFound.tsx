@@ -25,7 +25,7 @@ function NoResultsFound({ customKey, searchQueryExists }: NoResultsFound) {
       </div>
 
       {searchQueryExists && (
-        <Button variant={"navigation"} asChild>
+        <Button variant={"secondary"} asChild>
           <Link prefetch={false} href="/create" className="baseFlex gap-2">
             <BsPlus className="size-4" />
             Create the first tab for this song

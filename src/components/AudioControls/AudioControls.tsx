@@ -348,7 +348,12 @@ function AudioControls() {
       animate="expanded"
       exit="closed"
     >
-      <div className="baseVertFlex audioControlsBoxShadow h-full w-[95vw] max-w-[800px] rounded-xl bg-accent p-2 text-primary-foreground transition-opacity lg:rounded-full lg:px-10 lg:py-2 xl:w-10/12">
+      <div
+        style={{
+          boxShadow: "0 25px 45px -12px rgb(0 0 0 / 0.4)", // large subtle blur
+        }}
+        className="baseVertFlex audioControlsBoxShadow h-full w-[95vw] max-w-[800px] rounded-xl bg-accent p-2 text-primary-foreground transition-opacity lg:rounded-full lg:px-10 lg:py-2 xl:w-10/12"
+      >
         <AnimatePresence mode="sync">
           {aboveLargeViewportWidth && visibility === "minimized" && (
             <motion.div
@@ -674,7 +679,10 @@ function AudioControls() {
 
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="p-2">
+                  <Button
+                    variant="outline"
+                    className="p-2 text-primary-foreground"
+                  >
                     <AnimatePresence mode="popLayout">
                       {volume === 0 && (
                         <motion.div
@@ -954,7 +962,7 @@ function AudioControls() {
                 </Button>
               </DrawerTrigger>
               <DrawerPortal>
-                <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950">
+                <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl bg-secondary p-4 pb-6">
                   <VisuallyHidden>
                     <DrawerTitle>Audio settings</DrawerTitle>
                     <DrawerDescription>
@@ -967,7 +975,7 @@ function AudioControls() {
                     <IoSettingsOutline className="size-4" />
                     Audio settings
                   </div>
-                  <Separator className="mb-2 w-full bg-pink-600" />
+                  <Separator className="mb-2 w-full bg-primary" />
 
                   <div className="baseFlex w-full !justify-between gap-4">
                     <Label>Instrument</Label>

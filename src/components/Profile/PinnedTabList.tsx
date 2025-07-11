@@ -159,7 +159,7 @@ function PinnedTabList({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="baseVertFlex h-[336px] gap-2 overflow-hidden lg:h-auto lg:pb-0"
+            className="baseVertFlex h-[336px] !justify-start gap-2 overflow-hidden lg:h-auto lg:pb-0"
           >
             <OverlayScrollbarsComponent
               options={{

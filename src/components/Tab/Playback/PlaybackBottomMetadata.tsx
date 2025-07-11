@@ -124,7 +124,7 @@ function PlaybackBottomMetadata({
                 </div>
 
                 <Button variant={"outline"} className="size-9 !p-0">
-                  <TuningFork className="size-4 fill-white" />
+                  <TuningFork className="size-4" />
                 </Button>
               </div>
 
@@ -316,7 +316,7 @@ function MobileSettingsPopover({
           </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="baseVertFlex size-full w-[450px] gap-4 bg-black text-white mobilePortrait:w-[300px]">
+      <PopoverContent className="baseVertFlex size-full w-[450px] gap-4 mobilePortrait:w-[300px]">
         <div className="baseVertFlex w-full !items-start gap-2">
           <span className="font-medium">Instrument</span>
 
@@ -540,7 +540,7 @@ function MobileMenuDialog() {
           </span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="baseVertFlex size-full max-h-dvh max-w-none !justify-start !rounded-none bg-black pb-0">
+      <DialogContent className="baseVertFlex size-full max-h-dvh max-w-none !justify-start !rounded-none pb-0">
         <AnimatedTabs
           activeTabName={activeTabName}
           setActiveTabName={
@@ -560,7 +560,7 @@ function MobileMenuDialog() {
               className="baseVertFlex h-full max-h-[calc(100dvh-6rem)] w-full gap-2 overflow-y-auto"
             >
               {sectionProgression.length === 0 ? (
-                <p className="text-lg font-semibold text-white">
+                <p className="text-lg font-semibold text-gray">
                   No section progression found.
                 </p>
               ) : (

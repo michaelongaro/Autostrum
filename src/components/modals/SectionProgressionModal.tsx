@@ -379,7 +379,7 @@ function Section({
                 onClick={deleteSection}
                 className="!h-10 !px-3"
               >
-                <FaTrashAlt className="size-4 text-pink-100" />
+                <FaTrashAlt className="size-4" />
               </Button>
             </div>
           </div>

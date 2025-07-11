@@ -238,7 +238,7 @@ function DesktopHeader() {
               }}
               className={`${classes.authentication} pulseAnimation baseFlex size-12 shrink-0`}
             >
-              <div className="pulseAnimation size-10 shrink-0 rounded-full bg-pink-300"></div>
+              <div className="pulseAnimation size-10 shrink-0 rounded-full bg-secondary-active"></div>
             </motion.div>
           )}
 
@@ -336,7 +336,7 @@ function DesktopHeader() {
                               animate={{ opacity: 0 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.3 }}
-                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full bg-pink-300"
+                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full bg-secondary-active"
                             ></motion.div>
                           )}
                         </AnimatePresence>

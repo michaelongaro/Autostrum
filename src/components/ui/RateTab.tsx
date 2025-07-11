@@ -372,7 +372,7 @@ function RateTabPopover({
           </motion.div>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="baseFlex w-[350px] bg-pink-100 py-2 text-sm text-pink-950 md:text-base">
+      <PopoverContent className="baseFlex w-[350px] py-2 text-sm md:text-base">
         {showUnregisteredPopover ? (
           "Only registered users can rate tabs."
         ) : (
@@ -455,7 +455,7 @@ function RateTabDrawer({
         </Button>
       </DrawerTrigger>
       <DrawerPortal>
-        <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl bg-pink-100 p-4 pb-6 text-pink-950">
+        <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl bg-secondary p-4 pb-6">
           <VisuallyHidden>
             <DrawerTitle>Rate this tab</DrawerTitle>
             <DrawerDescription>
@@ -482,9 +482,9 @@ function RateTabDrawer({
             />
           ) : (
             <div className="baseVertFlex my-8 w-full gap-8">
-              <p className="font-medium">
+              <span className="font-medium">
                 Only registered users can rate tabs.
-              </p>
+              </span>
 
               <div className="baseFlex">
                 <SignInButton

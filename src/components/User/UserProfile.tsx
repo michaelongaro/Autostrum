@@ -123,9 +123,9 @@ function UserProfile({ uniqueKey }: UserProfile) {
                 <div className="baseFlex gap-1">User</div>
 
                 <div className="baseFlex gap-2">
-                  <div className="pulseAnimation size-9 rounded-full bg-pink-300 md:size-10"></div>
+                  <div className="pulseAnimation size-9 rounded-full bg-secondary-active md:size-10"></div>
 
-                  <div className="pulseAnimation h-[38px] w-36 rounded-md bg-pink-300"></div>
+                  <div className="pulseAnimation h-[38px] w-36 rounded-md bg-secondary-active"></div>
                 </div>
 
                 <div className="baseVertFlex mt-4 !items-start gap-2 pb-[25px] font-medium sm:text-lg lg:pb-0 2xl:hidden">
@@ -134,7 +134,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <BsMusicNoteBeamed className="size-4 sm:size-5" />
                       <span>Total tabs</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 self-center rounded-md bg-pink-300"></div>
+                    <div className="pulseAnimation h-5 w-12 self-center rounded-md bg-secondary-active"></div>
                   </div>
 
                   <div className="baseFlex w-full !justify-between gap-16">
@@ -142,7 +142,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <FaEye className="size-4 sm:size-5" />
                       <span>Total views</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 self-center rounded-md bg-pink-300"></div>
+                    <div className="pulseAnimation h-5 w-12 self-center rounded-md bg-secondary-active"></div>
                   </div>
 
                   <div className="baseFlex w-full !justify-between gap-16">
@@ -150,7 +150,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <FaStar className="size-4 sm:size-5" />
                       <span>Average rating</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 self-center rounded-md bg-pink-300"></div>
+                    <div className="pulseAnimation h-5 w-12 self-center rounded-md bg-secondary-active"></div>
                   </div>
 
                   <div className="baseFlex w-full !justify-between gap-16">
@@ -158,7 +158,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <IoBookmark className="size-4 sm:size-5" />
                       <span>Bookmarks received</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 self-center rounded-md bg-pink-300"></div>
+                    <div className="pulseAnimation h-5 w-12 self-center rounded-md bg-secondary-active"></div>
                   </div>
                 </div>
 
@@ -168,7 +168,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <BsMusicNoteBeamed className="size-4 sm:size-5" />
                       <span>Total tabs</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 rounded-md bg-pink-300"></div>
+                    <div className="pulseAnimation h-5 w-12 rounded-md bg-secondary-active"></div>
                   </div>
 
                   <Separator
@@ -181,7 +181,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <FaEye className="size-4 sm:size-5" />
                       <span>Total views</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 rounded-md bg-pink-300"></div>
+                    <div className="pulseAnimation h-5 w-12 rounded-md bg-secondary-active"></div>
                   </div>
 
                   <Separator
@@ -194,7 +194,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <FaStar className="size-4 sm:size-5" />
                       <span>Average rating</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 rounded-md bg-pink-300"></div>
+                    <div className="pulseAnimation h-5 w-12 rounded-md bg-secondary-active"></div>
                   </div>
 
                   <Separator
@@ -207,12 +207,12 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <IoBookmark className="size-4 sm:size-5" />
                       <span>Bookmarks received</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 rounded-md bg-pink-300"></div>
+                    <div className="pulseAnimation h-5 w-12 rounded-md bg-secondary-active"></div>
                   </div>
                 </div>
               </div>
 
-              <div className="pulseAnimation hidden h-[94px] w-[330px] rounded-md bg-pink-300 lg:block"></div>
+              <div className="pulseAnimation hidden h-[94px] w-[330px] rounded-md bg-secondary-active lg:block"></div>
             </motion.div>
           ) : (
             <Fragment key="userMetadataLoaded">
@@ -270,7 +270,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                                     animate={{ opacity: 0 }}
                                     exit={{ opacity: 0 }}
                                     transition={{ duration: 0.3 }}
-                                    className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full bg-pink-300 md:size-10"
+                                    className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full bg-secondary-active md:size-10"
                                   ></motion.div>
                                 )}
                               </AnimatePresence>
@@ -361,7 +361,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                         {/* user's pinned tab / placeholder */}
                         {(userMetadata === null ||
                           userMetadata?.pinnedTab === null) && (
-                          <div className="lightestGlassmorphic baseVertFlex h-[94px] w-[280px] gap-2 rounded-md border-2">
+                          <div className="baseVertFlex h-[94px] w-[280px] gap-2 rounded-md border-2 bg-secondary-active/50">
                             <TbPinned className="size-5" />
                             No active pinned tab
                           </div>
@@ -381,13 +381,13 @@ function UserProfile({ uniqueKey }: UserProfile) {
                   <div className="baseFlex gap-2">
                     <Button asChild>
                       <div
-                        className={`!h-2 !w-8 cursor-pointer rounded-full !p-0 ${mobileHeaderSlide === 0 ? "!bg-pink-800" : "!bg-pink-50"}`}
+                        className={`!h-2 !w-8 cursor-pointer rounded-full !p-0 ${mobileHeaderSlide === 0 ? "!bg-accent" : "!bg-foreground"}`}
                         onClick={() => mobileHeaderCarouselApi?.scrollTo(0)}
                       />
                     </Button>
                     <Button asChild>
                       <div
-                        className={`!h-2 !w-8 cursor-pointer rounded-full !p-0 ${mobileHeaderSlide === 1 ? "!bg-pink-800" : "!bg-pink-50"}`}
+                        className={`!h-2 !w-8 cursor-pointer rounded-full !p-0 ${mobileHeaderSlide === 1 ? "!bg-accent" : "!bg-foreground"}`}
                         onClick={() => mobileHeaderCarouselApi?.scrollTo(1)}
                       />
                     </Button>
@@ -441,7 +441,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                               animate={{ opacity: 0 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.3 }}
-                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full bg-pink-300"
+                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full bg-secondary-active"
                             ></motion.div>
                           )}
                         </AnimatePresence>
@@ -524,7 +524,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                   {/* user's pinned tab / placeholder */}
                   {(userMetadata === null ||
                     userMetadata?.pinnedTab === null) && (
-                    <div className="lightestGlassmorphic baseVertFlex h-[94px] w-[280px] gap-2 rounded-md border-2">
+                    <div className="baseVertFlex h-[94px] w-[280px] gap-2 rounded-md border-2 bg-secondary-active/50">
                       <TbPinned className="size-5" />
                       No active pinned tab
                     </div>
@@ -584,7 +584,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                               animate={{ opacity: 0 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.3 }}
-                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full bg-pink-300"
+                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full bg-secondary-active"
                             ></motion.div>
                           )}
                         </AnimatePresence>
@@ -669,7 +669,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                   {/* user's pinned tab / placeholder */}
                   {(userMetadata === null ||
                     userMetadata?.pinnedTab === null) && (
-                    <div className="lightestGlassmorphic baseVertFlex h-[94px] w-[330px] gap-2 rounded-md border-2">
+                    <div className="baseVertFlex h-[94px] w-[330px] gap-2 rounded-md border-2 bg-secondary-active/50">
                       <TbPinned className="size-5" />
                       No active pinned tab
                     </div>

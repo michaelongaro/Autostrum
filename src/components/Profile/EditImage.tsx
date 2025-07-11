@@ -253,7 +253,7 @@ function EditImage({
   }, [imageBeingEdited]);
 
   return (
-    <div className="baseVertFlex size-full p-4 lg:gap-4 lg:p-0">
+    <div className="baseVertFlex size-full gap-2 p-4 md:gap-0 lg:gap-4 lg:p-0">
       <div className="baseFlex w-full !justify-start gap-2 lg:!justify-between">
         <div className="baseFlex gap-2">
           <MdCrop className="size-4 lg:size-5" />

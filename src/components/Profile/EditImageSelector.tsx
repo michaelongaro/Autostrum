@@ -145,13 +145,13 @@ function EditImageSelector({
                     animate={{ opacity: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="pulseAnimation absolute inset-0 z-10 size-16 rounded-full bg-pink-300 lg:size-32"
+                    className="pulseAnimation absolute inset-0 z-10 size-16 rounded-full bg-secondary-active lg:size-32"
                   ></motion.div>
                 )}
               </AnimatePresence>
             </>
           ) : (
-            <div className="pulseAnimation size-16 rounded-full bg-pink-300 shadow-sm lg:size-32"></div>
+            <div className="pulseAnimation size-16 rounded-full bg-secondary-active shadow-sm lg:size-32"></div>
           )}
         </motion.div>
 
@@ -220,7 +220,7 @@ function EditImageSelector({
           }}
         >
           <DrawerPortal>
-            <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 h-[75dvh] max-h-[500px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-3 text-pink-950">
+            <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 h-[75dvh] max-h-[500px] !items-start !justify-start rounded-t-2xl bg-secondary pt-3">
               <VisuallyHidden>
                 <DrawerTitle>Image editor</DrawerTitle>
                 <DrawerDescription>
@@ -230,7 +230,7 @@ function EditImageSelector({
                 </DrawerDescription>
               </VisuallyHidden>
 
-              <Separator className="mt-2 w-full bg-stone-400" />
+              <Separator className="mt-2 w-full bg-gray" />
 
               <EditImage
                 imageBeingEdited={imageBeingEdited}

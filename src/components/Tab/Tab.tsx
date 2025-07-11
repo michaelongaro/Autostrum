@@ -338,7 +338,7 @@ function Tab({ tab }: Tab) {
               </Button>
 
               <Popover>
-                <PopoverTrigger className="baseFlex size-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:absolute sm:bottom-0 sm:right-4 lg:right-6">
+                <PopoverTrigger className="baseFlex size-8 rounded-md transition-all hover:bg-primary-foreground/20 hover:text-yellow-300 active:hover:bg-primary-foreground/10 sm:absolute sm:bottom-0 sm:right-4 lg:right-6">
                   <HiOutlineLightBulb className="h-5 w-5" />
                 </PopoverTrigger>
                 <PopoverContent
@@ -531,7 +531,7 @@ function Tab({ tab }: Tab) {
                       setLooping(true);
                     }}
                   >
-                    <Logo className="size-[18px] fill-pink-50 tablet:size-5" />
+                    <Logo className="size-[18px] tablet:size-5" />
                     Practice
                   </Button>
 

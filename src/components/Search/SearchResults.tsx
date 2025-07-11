@@ -759,7 +759,7 @@ function SearchResults({
                       exit="closed"
                       transition={{ duration: 0.3 }}
                     >
-                      <div className="pulseAnimation h-6 w-36 rounded-md bg-pink-300"></div>
+                      <div className="pulseAnimation h-6 w-36 rounded-md bg-secondary-active"></div>
                     </motion.div>
                   ) : (
                     <motion.div
@@ -957,7 +957,7 @@ function SearchResults({
                           </div>
                         </div>
 
-                        <Separator className="mt-2 w-full bg-stone-600" />
+                        <Separator className="mt-2 w-full bg-gray" />
 
                         {/* Main body content */}
                         <div className="baseVertFlex h-[391px] w-full !justify-start overflow-y-auto">
@@ -1627,11 +1627,9 @@ function SearchResults({
 
                         <div className="px-4">Rating</div>
 
-                        {!query.difficulty && (
-                          <div className="px-4">Difficulty</div>
-                        )}
+                        <div className="px-4">Difficulty</div>
 
-                        {!query.genre && <div className="px-4">Genre</div>}
+                        <div className="px-4">Genre</div>
 
                         <div className="px-4">Date</div>
 
@@ -1670,7 +1668,7 @@ function SearchResults({
                         duration: 0.3,
                       }}
                     >
-                      <div className="pulseAnimation h-6 w-48 rounded-md bg-pink-300"></div>
+                      <div className="pulseAnimation h-6 w-48 rounded-md bg-secondary-active"></div>
                     </motion.div>
                   ) : (
                     <motion.div
@@ -1914,7 +1912,7 @@ function SearchResults({
 
                           {relatedArtists.length === 0 ? (
                             <Button
-                              variant={"navigation"}
+                              variant={"secondary"}
                               asChild
                               className="baseFlex"
                             >
@@ -1938,7 +1936,7 @@ function SearchResults({
                                 {relatedArtists.map((artist) => (
                                   <Button
                                     key={artist.id}
-                                    variant={"navigation"}
+                                    variant={"secondary"}
                                     asChild
                                     className="baseFlex"
                                   >

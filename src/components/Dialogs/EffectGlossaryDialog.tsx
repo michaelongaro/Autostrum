@@ -40,11 +40,11 @@ function EffectGlossaryDialog() {
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex max-h-[90dvh] max-w-[350px] !justify-start gap-4 overflow-y-auto rounded-lg bg-foreground px-2 text-pink-950 xs:max-w-[450px] xs:p-4">
-        <p className="baseFlex gap-2 font-semibold">
+      <DialogContent className="baseVertFlex max-h-[90dvh] max-w-[350px] !justify-start gap-4 overflow-y-auto rounded-lg bg-foreground px-2 xs:max-w-[450px] xs:p-4">
+        <span className="baseFlex gap-2 font-semibold">
           <FaBook className="size-4" />
           Effect glossary
-        </p>
+        </span>
 
         <div
           className={`baseFlex !items-start gap-4 xs:gap-8 ${editing ? "!flex-col xs:!flex-row" : ""}`}

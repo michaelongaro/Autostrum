@@ -48,26 +48,6 @@
   @apply flex flex-col items-center justify-center;
 }
 
-.lightestGlassmorphic {
-  @apply bg-gradient-to-br from-pink-500/50 to-pink-500/90 shadow-lightestGlassmorphic backdrop-blur-sm;
-}
-
-.lightGlassmorphic {
-  @apply bg-gradient-to-br from-pink-200/[0.15] to-pink-200/30 shadow-md backdrop-blur-sm;
-}
-
-.homepageLightGlassmorphic {
-  @apply bg-gradient-to-br from-pink-200/20 to-pink-200/25 shadow-md backdrop-blur-sm;
-}
-
-.autofillResultsGlassmorphic {
-  @apply bg-gradient-to-br from-pink-400 to-pink-500 shadow-sm backdrop-blur-xl;
-}
-
-.chordPreviewGlassmorphic {
-  @apply bg-gradient-to-br from-pink-500/40 via-pink-500/60 to-pink-500/60 backdrop-blur-sm;
-}
-
 .modalGradient {
   @apply bg-gradient-to-br from-background to-secondary-active;
 }
@@ -98,24 +78,6 @@
   box-shadow: 0 -2px 8px 0 rgb(0 0 0 / 0.06);
 }
 
-/* shadow-md was too harsh for my liking, this is a scaled back version, in-between sm and md */
-.searchInputBoxShadow {
-  box-shadow:
-    0 3px 4px -1px rgb(0 0 0 / 0.1),
-    0 2px 4px -2px rgb(0 0 0 / 0.1);
-}
-
-/* basically just shadow-2xl but with less opacity on background color and slighly less blur  */
-.audioControlsBoxShadow {
-  box-shadow: 0 25px 45px -12px rgb(0 0 0 / 0.4);
-}
-
-@media (min-width: 480px) {
-  .securedByClerkBreakpoint {
-    @apply max-w-[95%];
-  }
-}
-
 /* @media (min-width: 768px) {
   .headerBackgroundGradient {
     background: linear-gradient(315deg,
@@ -138,7 +100,7 @@
     /* 2 */
     --background: 343 78% 98%;
     /* 12 */
-    --foreground: 332 63% 24%;
+    --foreground: 332 63% 34%;
 
     /* muave 9, btw I am planning on having separators be gray/50, but you might want 
        options from the radix "border/separators" columns */
@@ -188,6 +150,9 @@
   }
 
   body {
+    /* FYI: it's not necessary to have the bg-gradient-to-br background here, could directly reference
+       css vars in body { } below */
+    /* bg-gradient-to-br from-background via-secondary-active to-border */
     @apply bg-background text-foreground;
     font-feature-settings:
       "rlig" 1,
@@ -195,8 +160,9 @@
   }
 }
 
-/* semi hacky way to prevent empty space in gradient while mobile
-   address bar is animating out */
+/* necessary(?) to prevent background gradient disappearing when .noScroll is applied
+   Scrolling seems to be a bit janky on iOS though when gradient is on pseudo ::before rather than
+   actual body */
 body::before {
   content: "";
   position: fixed;
@@ -232,17 +198,6 @@ table {
 html body[data-scroll-locked] {
   overflow: visible !important;
   margin-right: 0 !important;
-}
-
-.cl-internal-uxtgvn {
-  box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.1),
-    0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
-}
-
-.cl-rootBox,
-.cl-userButtonPopoverCard {
-  text-shadow: none;
 }
 
 @keyframes countInAnimation {

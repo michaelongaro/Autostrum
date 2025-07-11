@@ -1018,7 +1018,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-pink-300"
+                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-secondary-active"
                         ></motion.div>
                       )}
 
@@ -1051,7 +1051,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-pink-300"
+                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-secondary-active"
                         ></motion.div>
                       )}
 
@@ -1145,7 +1145,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-pink-300"
+                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-secondary-active"
                         ></motion.div>
                       )}
 
@@ -1178,7 +1178,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-pink-300"
+                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-secondary-active"
                         ></motion.div>
                       )}
 
@@ -1276,7 +1276,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           className="baseFlex"
                         >
                           {fetchingTabCreator ? (
-                            <div className="pulseAnimation col-start-1 col-end-2 row-start-1 row-end-2 h-6 w-32 rounded-md bg-pink-300"></div>
+                            <div className="pulseAnimation col-start-1 col-end-2 row-start-1 row-end-2 h-6 w-32 rounded-md bg-secondary-active"></div>
                           ) : (
                             <>
                               {tabCreator ? (
@@ -1284,7 +1284,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                                   {tabCreator.username}
                                 </span>
                               ) : (
-                                <span className="italic text-pink-200">
+                                <span className="italic text-foreground/75">
                                   Anonymous
                                 </span>
                               )}
@@ -1501,7 +1501,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               }}
               className="baseFlex h-[615px] w-[1318px]"
             >
-              <div className="h-[615px] w-[1318px] bg-pink-500 bg-opacity-30">
+              <div className="h-[615px] w-[1318px] bg-muted">
                 <TabScreenshotPreview tabData={minifiedTabData} />
               </div>
             </div>

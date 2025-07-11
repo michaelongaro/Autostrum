@@ -41,7 +41,7 @@ function ThemePicker() {
             }}
             className="!size-12 !rounded-full bg-[#E93D82] !p-0"
           ></Button>
-          <p className="text-sm font-medium">Peony</p>
+          <span className="text-sm font-medium">Peony</span>
         </div>
 
         <div className="baseVertFlex w-full gap-1">
@@ -52,7 +52,7 @@ function ThemePicker() {
             }}
             className="!size-12 !rounded-full bg-[#CA244D] !p-0"
           ></Button>
-          <p className="text-sm font-medium opacity-50">Quartz</p>
+          <span className="text-sm font-medium opacity-50">Quartz</span>
         </div>
 
         <div className="baseVertFlex w-full gap-1">
@@ -63,7 +63,7 @@ function ThemePicker() {
             }}
             className="!size-12 !rounded-full bg-[#CE2C31] !p-0"
           ></Button>
-          <p className="text-sm font-medium opacity-50">Crimson</p>
+          <span className="text-sm font-medium opacity-50">Crimson</span>
         </div>
 
         <div className="baseVertFlex w-full gap-1">
@@ -74,7 +74,7 @@ function ThemePicker() {
             }}
             className="!size-12 !rounded-full bg-[#F76B15] !p-0"
           ></Button>
-          <p className="text-sm font-medium opacity-50">Saffron</p>
+          <span className="text-sm font-medium opacity-50">Saffron</span>
         </div>
 
         <div className="baseVertFlex w-full gap-1">
@@ -85,7 +85,7 @@ function ThemePicker() {
             }}
             className="!size-12 !rounded-full bg-[#46A758] !p-0"
           ></Button>
-          <p className="text-sm font-medium opacity-50">Pistachio</p>
+          <span className="text-sm font-medium opacity-50">Pistachio</span>
         </div>
 
         <div className="baseVertFlex w-full gap-1">
@@ -96,7 +96,7 @@ function ThemePicker() {
             }}
             className="!size-12 !rounded-full bg-[#12A594] !p-0"
           ></Button>
-          <p className="text-sm font-medium opacity-50">Verdant</p>
+          <span className="text-sm font-medium opacity-50">Verdant</span>
         </div>
 
         <div className="baseVertFlex w-full gap-1">
@@ -107,7 +107,7 @@ function ThemePicker() {
             }}
             className="!size-12 !rounded-full bg-[#00A2C7] !p-0"
           ></Button>
-          <p className="text-sm font-medium opacity-50">Aqua</p>
+          <span className="text-sm font-medium opacity-50">Aqua</span>
         </div>
 
         <div className="baseVertFlex w-full gap-1">
@@ -118,7 +118,7 @@ function ThemePicker() {
             }}
             className="!size-12 !rounded-full bg-[#0D74CE] !p-0"
           ></Button>
-          <p className="text-sm font-medium opacity-50">Azure</p>
+          <span className="text-sm font-medium opacity-50">Azure</span>
         </div>
 
         <div className="baseVertFlex w-full gap-1">
@@ -129,7 +129,7 @@ function ThemePicker() {
             }}
             className="!size-12 !rounded-full bg-[#8E4EC6] !p-0"
           ></Button>
-          <p className="text-sm font-medium opacity-50">Amethyst</p>
+          <span className="text-sm font-medium opacity-50">Amethyst</span>
         </div>
       </div>
 
@@ -146,7 +146,7 @@ function ThemePicker() {
           >
             <IoSunnyOutline className="size-6 text-foreground" />
           </Button>
-          <p className="text-sm font-medium">Light</p>
+          <span className="text-sm font-medium">Light</span>
         </div>
 
         <div className="baseVertFlex w-full gap-1">
@@ -159,7 +159,7 @@ function ThemePicker() {
           >
             <IoMoonOutline className="size-6 text-foreground" />
           </Button>
-          <p className="text-sm font-medium opacity-50">Dark</p>
+          <span className="text-sm font-medium opacity-50">Dark</span>
         </div>
 
         <div className="baseVertFlex w-full gap-1">
@@ -172,7 +172,7 @@ function ThemePicker() {
           >
             <HiMiniComputerDesktop className="size-6 text-foreground" />
           </Button>
-          <p className="text-sm font-medium opacity-50">System</p>
+          <span className="text-sm font-medium opacity-50">System</span>
         </div>
       </div>
     </div>

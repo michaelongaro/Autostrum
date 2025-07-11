@@ -82,30 +82,30 @@ function PlaybackStrummedChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex mb-[24px] h-[144px] w-4 shrink-0 border-y-2 border-white mobilePortrait:h-[168px]"
+          className="baseVertFlex mb-[24px] h-[144px] w-4 shrink-0 border-y-2 border-foreground mobilePortrait:h-[168px]"
         >
           {/* spacer to ease transition from strum -> tab */}
-          <div className="my-[10px] h-[1px] w-1/2 self-start bg-gradient-to-r from-pink-100/50 to-transparent mobilePortrait:my-3"></div>
-          <div className="my-[10px] h-[1px] w-1/2 self-start bg-gradient-to-r from-pink-100/50 to-transparent mobilePortrait:my-3"></div>
-          <div className="my-[10px] h-[1px] w-1/2 self-start bg-gradient-to-r from-pink-100/50 to-transparent mobilePortrait:my-3"></div>
-          <div className="my-[10px] h-[1px] w-1/2 self-start bg-gradient-to-r from-pink-100/50 to-transparent mobilePortrait:my-3"></div>
-          <div className="my-[10px] h-[1px] w-1/2 self-start bg-gradient-to-r from-pink-100/50 to-transparent mobilePortrait:my-3"></div>
-          <div className="my-[10px] h-[1px] w-1/2 self-start bg-gradient-to-r from-pink-100/50 to-transparent mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-start bg-gradient-to-r from-foreground/50 to-transparent mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-start bg-gradient-to-r from-foreground/50 to-transparent mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-start bg-gradient-to-r from-foreground/50 to-transparent mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-start bg-gradient-to-r from-foreground/50 to-transparent mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-start bg-gradient-to-r from-foreground/50 to-transparent mobilePortrait:my-3"></div>
+          <div className="my-[10px] h-[1px] w-1/2 self-start bg-gradient-to-r from-foreground/50 to-transparent mobilePortrait:my-3"></div>
         </div>
       )}
 
       {strumIndex !== -1 && (
         <div
           style={{
-            borderLeft: isFirstChordInSection ? "2px solid white" : "none",
-            borderRight: isLastChordInSection ? "2px solid white" : "none",
+            borderLeft: isFirstChordInSection ? "2px solid" : "none",
+            borderRight: isLastChordInSection ? "2px solid" : "none",
             borderRadius: isFirstChordInSection
               ? "10px 0 0 10px"
               : isLastChordInSection
                 ? "0 10px 10px 0"
                 : "none",
-            borderTop: "2px solid rgb(253 242 248)",
-            borderBottom: "2px solid rgb(253 242 248)",
+            borderTop: "2px solid",
+            borderBottom: "2px solid",
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
@@ -135,15 +135,9 @@ function PlaybackStrummedChord({
           <div
             style={{
               color: isHighlighted
-                ? "hsl(335, 78%, 42%)"
-                : "hsl(324, 77%, 95%)",
+                ? "hsl(var(--primary))"
+                : "hsl(var(--foreground))",
               transitionDuration: "75ms",
-              // fontSize: calculateFontSize({
-              //   chordName,
-              //   maxWidthPx: 20,
-              //   maxFontSizePx: 16,
-              //   minFontSizePx: 12,
-              // }),
             }}
             className="relative mb-2 h-6 w-6 text-sm font-semibold transition-colors"
           >
@@ -243,40 +237,3 @@ function PlaybackStrummedChord({
 }
 
 export default PlaybackStrummedChord;
-
-const calculateFontSize = ({
-  chordName,
-  maxWidthPx,
-  maxFontSizePx = 24,
-  minFontSizePx = 12,
-}: {
-  chordName: string;
-  maxWidthPx: number;
-  maxFontSizePx?: number;
-  minFontSizePx?: number;
-}) => {
-  const canvas = document.createElement("canvas");
-  const context = canvas.getContext("2d");
-
-  // Function to get the width of the chord name in a given font size
-  const getTextWidth = (text: string, fontSize: number) => {
-    if (!context) {
-      throw new Error("Canvas context is not available");
-    }
-
-    context.font = `${fontSize}px Arial`; // Using a default font family, not sure if this is the best approach
-    return context.measureText(text).width;
-  };
-
-  let fontSize = maxFontSizePx;
-
-  // Reduce font size until the chord fits within the max width or hits the minimum font size
-  while (
-    fontSize > minFontSizePx &&
-    getTextWidth(chordName, fontSize) > maxWidthPx
-  ) {
-    fontSize -= 1; // Reduce font size by 1px on each iteration
-  }
-
-  return fontSize;
-};

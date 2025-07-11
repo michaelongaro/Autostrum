@@ -26,8 +26,6 @@ const buttonVariants = cva(
           "bg-primary text-primary-foreground hover:bg-primary/80 active:bg-primary/60 border-2",
         toggledOff:
           "text-primary-foreground hover:bg-secondary/20 active:bg-secondary/30 border-2",
-        navigation:
-          "bg-pink-200 hover:bg-pink-700 text-pink-800 !shadow-primaryButton hover:text-pink-200 active:bg-pink-800 active:text-pink-200",
         playPause:
           "bg-green-600 text-primary-foreground hover:bg-green-700 shadow-none active:bg-green-800 disabled:opacity-50 disabled:bg-gray-500",
         text: "text-foreground shadow-none hover:text-foreground/80 active:text-foreground/60",

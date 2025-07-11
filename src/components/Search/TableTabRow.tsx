@@ -46,7 +46,7 @@ function TableTabRow({
             transition={{ duration: 0.3 }}
             className="w-full"
           >
-            <Button variant={"navigation"} asChild>
+            <Button variant={"secondary"} asChild>
               <Link
                 prefetch={false}
                 href={`/tab/${minimalTab.id}/edit`}

@@ -68,7 +68,7 @@ function StaticChordSection({ subSectionData }: StaticChordSection) {
                             />
                           )}
 
-                          <p>Repeat {chordSequence.repetitions}x</p>
+                          <span>Repeat {chordSequence.repetitions}x</span>
                         </div>
                       )}
                     </div>
@@ -79,7 +79,9 @@ function StaticChordSection({ subSectionData }: StaticChordSection) {
                   </AnimatePresence>
                 </div>
               ) : (
-                <p className="italic text-pink-200">Empty strumming pattern</p>
+                <span className="italic text-gray">
+                  Empty strumming pattern
+                </span>
               )}
             </Fragment>
           ))}

@@ -242,7 +242,7 @@ function BookmarkToggle({
           </AnimatePresence>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="baseFlex w-full bg-pink-100 py-2 text-sm text-pink-950 md:text-base">
+      <PopoverContent className="baseFlex w-full py-2 text-sm md:text-base">
         Only registered users can bookmark tabs.
       </PopoverContent>
     </Popover>

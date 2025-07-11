@@ -182,7 +182,7 @@ function GridTabCard({
                           ? 152
                           : 129,
                     }}
-                    className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-none bg-pink-300"
+                    className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-none bg-secondary-active"
                   ></motion.div>
                 )}
               </AnimatePresence>
@@ -197,7 +197,7 @@ function GridTabCard({
               transition={{ duration: 0.3 }}
               className="w-full"
             >
-              <Button variant={"navigation"} asChild>
+              <Button variant={"secondary"} asChild>
                 <Link
                   prefetch={false}
                   href={`/tab/${minimalTab.id}/edit`}
@@ -318,7 +318,7 @@ function GridTabCard({
                   <FaStar className="size-3" />({minimalTab.ratingsCount})
                 </div>
                 <Separator
-                  className="h-[16px] w-[1px] bg-pink-100/50"
+                  className="h-[16px] w-[1px] bg-foreground/50"
                   orientation="vertical"
                 />
               </>

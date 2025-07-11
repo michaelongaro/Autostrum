@@ -41,7 +41,7 @@ function Hero() {
 
           <p className="text-center text-base md:text-lg">
             Create and share your riffs{" "}
-            <span className="mx-[1px] italic text-pink-600 underline underline-offset-2">
+            <span className="mx-[1px] italic text-primary underline underline-offset-2">
               exactly
             </span>{" "}
             how you want them to sound

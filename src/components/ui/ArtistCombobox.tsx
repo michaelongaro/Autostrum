@@ -154,7 +154,7 @@ function ArtistCombobox() {
           </AnimatePresence>
         </div>
 
-        <div className="h-[1px] w-full bg-pink-800"></div>
+        <div className="h-[1px] w-full bg-foreground"></div>
 
         <div className="overflow-y-hidden">
           <OverlayScrollbarsComponent
@@ -285,7 +285,7 @@ function ArtistCombobox() {
                 transition={{ duration: 0.2 }}
                 className="baseVertFlex h-10 w-full"
               >
-                <div className="h-[1px] w-full bg-pink-800"></div>
+                <div className="h-[1px] w-full bg-foreground"></div>
                 <Button
                   variant={"link"}
                   onClick={() => {
@@ -295,7 +295,7 @@ function ArtistCombobox() {
                   }}
                   className="baseFlex h-9 gap-2 p-0"
                 >
-                  <IoClose className="size-4 text-pink-800" />
+                  <IoClose className="size-4 text-accent" />
                   Detach artist
                 </Button>
               </motion.div>

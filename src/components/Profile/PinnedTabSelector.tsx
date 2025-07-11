@@ -77,7 +77,7 @@ function PinnedTabSelector({
                 {pinnedTabTitle ?? "None"}
               </span>
             ) : (
-              <div className="pulseAnimation h-5 w-28 rounded-md bg-pink-300"></div>
+              <div className="pulseAnimation h-5 w-28 rounded-md bg-secondary-active"></div>
             )}
           </motion.div>
         </div>
@@ -122,7 +122,7 @@ function PinnedTabSelector({
                 <Button variant={"outline"}>Edit</Button>
               </DrawerTrigger>
               <DrawerPortal>
-                <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-3 text-pink-950">
+                <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-secondary pt-3">
                   <VisuallyHidden>
                     <DrawerTitle>Pinned tab selector</DrawerTitle>
                     <DrawerDescription>
@@ -130,7 +130,7 @@ function PinnedTabSelector({
                     </DrawerDescription>
                   </VisuallyHidden>
 
-                  <Separator className="mt-2 w-full bg-stone-400" />
+                  <Separator className="mt-2 w-full bg-gray" />
 
                   <PinnedTabList
                     userId={userId}

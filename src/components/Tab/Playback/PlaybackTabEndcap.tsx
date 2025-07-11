@@ -19,7 +19,7 @@ function PlaybackTabEndcap({ type, tuning }: PlaybackTabEndcap) {
             height: "168px",
             marginBottom: "0px",
           }}
-          className="baseVertFlex relative w-full rounded-l-2xl border-2 border-pink-100 p-2"
+          className="baseVertFlex relative w-full rounded-l-2xl border-2 border-foreground p-2"
         >
           {toString(parse(tuning), { pad: 1 })
             .split("")
@@ -34,7 +34,7 @@ function PlaybackTabEndcap({ type, tuning }: PlaybackTabEndcap) {
             height: "168px",
             marginBottom: "0px",
           }}
-          className="rounded-r-2xl border-2 border-pink-100 p-1"
+          className="rounded-r-2xl border-2 border-foreground p-1"
         ></div>
       )}
     </div>
