@@ -3,69 +3,16 @@
 @tailwind utilities;
 
 @layer base {
+
   :root {
-    /* 2 */
-    --background: 337 25% 10%;
-    /* 12 */
-    --foreground: 330 91% 88%;
-
-    /* muave 9, btw I am planning on having separators be gray/50, but you might want 
-       options from the radix "border/separators" columns */
-    --gray: 249 6% 57%;
-
-    /* 2 */
-    --muted: 337 25% 10%;
-
-    /* 12 */
-    --skeleton: 330 91% 88%;
-
-    /* (light) 8 */
-    --border: 336 55% 73%;
-
-    /* 6 */
-    --ring: 333 49% 29%;
-
-    /* 9 */
-    --primary: 336 80% 58%;
-    /* (light) 1 */
-    --primary-foreground: 340 100% 99%;
-
-    /* 3 */
-    --secondary: 333 45% 15%;
-    /* 4 */
-    --secondary-hover: 331 62% 19%;
-    /* 5 */
-    --secondary-active: 331 59% 23%;
-    /* 11 */
-    --secondary-foreground: 345 100% 79%;
-
-    /* 5 */
-    --accent: 331 59% 23%;
-    /* (light) 1 */
-    --accent-foreground: 340 100% 99%;
-
-    --destructive: 0 90% 50%;
-    --destructive-foreground: 324 77% 95%;
-
-    /* gradient vars */
-    /* 4 */
-    --gradient-primary: 331 62% 19%;
-    /* 1 */
-    --gradient-secondary: 338 19% 8%;
-
     --radius: 0.5rem;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
 
   body {
-    /* FYI: it's not necessary to have the bg-gradient-to-br background here, could directly reference
-       css vars in body { } below */
-    /* bg-gradient-to-br from-background via-secondary-active to-border */
     @apply bg-background text-foreground;
     font-feature-settings:
       "rlig" 1,

@@ -62,8 +62,22 @@ const COLOR_VALUES = {
   azure: {},
   // purple
   amethyst: {},
-};
+} as const;
 
-export function updateCSSThemeVars() {
-  // TODO
+type Colors = typeof COLOR_VALUES;
+
+export function updateCSSThemeVars(
+  color: keyof Colors,
+  theme: "light" | "dark",
+) {
+  const colors = COLOR_VALUES[color][theme];
+
+  if (!colors) {
+    throw new Error(`Color "${color}" or theme "${theme}" not found.`);
+  }
+
+  Object.entries(colors).forEach(([key, value]) => {
+    console.log(`Setting --${key} to hsl(${value})`);
+    document.documentElement.style.setProperty(`--${key}`, `${value}`);
+  });
 }

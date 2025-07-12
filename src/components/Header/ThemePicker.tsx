@@ -2,6 +2,7 @@ import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { IoSunnyOutline, IoMoonOutline } from "react-icons/io5";
 import { HiMiniComputerDesktop } from "react-icons/hi2";
+import { updateCSSThemeVars } from "~/utils/updateCSSThemeVars";
 
 function ThemePicker() {
   // light/dark theme change should probably call handleThemeChange() after adding/removing
@@ -37,7 +38,7 @@ function ThemePicker() {
           <Button
             variant={"outline"}
             onClick={() => {
-              // document.documentElement.setAttribute("data-theme", "light");
+              updateCSSThemeVars("peony", "light");
             }}
             className="!size-12 !rounded-full bg-[#E93D82] !p-0"
           ></Button>
@@ -140,7 +141,7 @@ function ThemePicker() {
           <Button
             variant={"outline"}
             onClick={() => {
-              // document.documentElement.setAttribute("data-theme", "light");
+              updateCSSThemeVars("peony", "light");
             }}
             className="!size-12 !rounded-full !p-0"
           >
@@ -153,7 +154,7 @@ function ThemePicker() {
           <Button
             variant={"outline"}
             onClick={() => {
-              // document.documentElement.setAttribute("data-theme", "light");
+              updateCSSThemeVars("peony", "dark");
             }}
             className="!size-12 !rounded-full !p-0"
           >
