@@ -54,7 +54,7 @@ function DesktopHeader() {
   );
 
   return (
-    <nav className="headerBackgroundGradient baseFlex sticky left-0 top-0 z-[49] h-16 w-full shadow-md">
+    <nav className="headerAndFooterBackgroundGradient baseFlex sticky left-0 top-0 z-[49] h-16 w-full shadow-md">
       <div className={classes.desktopHeader}>
         <Link href={"/"} className={`${classes.logo} shrink-0`}>
           <Image
@@ -236,9 +236,9 @@ function DesktopHeader() {
               transition={{
                 opacity: { duration: 0.1, ease: "easeInOut" },
               }}
-              className={`${classes.authentication} pulseAnimation baseFlex size-12 shrink-0`}
+              className={`${classes.authentication} pulseAnimation bg-skeleton baseFlex size-12 shrink-0`}
             >
-              <div className="pulseAnimation size-10 shrink-0 rounded-full bg-secondary-active"></div>
+              <div className="pulseAnimation bg-skeleton size-10 shrink-0 rounded-full"></div>
             </motion.div>
           )}
 
@@ -336,7 +336,7 @@ function DesktopHeader() {
                               animate={{ opacity: 0 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.3 }}
-                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full bg-secondary-active"
+                              className="pulseAnimation bg-skeleton z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full"
                             ></motion.div>
                           )}
                         </AnimatePresence>

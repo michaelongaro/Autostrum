@@ -77,7 +77,7 @@ function PinnedTabSelector({
                 {pinnedTabTitle ?? "None"}
               </span>
             ) : (
-              <div className="pulseAnimation h-5 w-28 rounded-md bg-secondary-active"></div>
+              <div className="pulseAnimation bg-skeleton h-5 w-28 rounded-md"></div>
             )}
           </motion.div>
         </div>

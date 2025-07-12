@@ -54,7 +54,7 @@ function DesktopExtraTabMetadata() {
         <Button
           variant={"text"}
           onClick={() => setActiveTabName("Section progression")}
-          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-background ${activeTabName === "Section progression" ? "" : "opacity-50 hover:opacity-100"}`}
+          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-primary-foreground ${activeTabName === "Section progression" ? "" : "opacity-50 hover:opacity-100"}`}
         >
           <BsMusicNoteList className="size-4" />
           Section progression
@@ -62,14 +62,15 @@ function DesktopExtraTabMetadata() {
             <motion.span
               layoutId="activeTabUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-background"
+              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-primary-foreground"
             />
           )}
         </Button>
+
         <Button
           variant={"text"}
           onClick={() => setActiveTabName("Chords")}
-          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-background ${activeTabName === "Chords" ? "" : "opacity-50 hover:opacity-100"}`}
+          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-primary-foreground ${activeTabName === "Chords" ? "" : "opacity-50 hover:opacity-100"}`}
         >
           <BsMusicNoteBeamed className="size-4" />
           Chords
@@ -77,14 +78,15 @@ function DesktopExtraTabMetadata() {
             <motion.span
               layoutId="activeTabUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-background"
+              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-primary-foreground"
             />
           )}
         </Button>
+
         <Button
           variant={"text"}
           onClick={() => setActiveTabName("Strumming patterns")}
-          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-background ${activeTabName === "Strumming patterns" ? "" : "opacity-50 hover:opacity-100"}`}
+          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-primary-foreground ${activeTabName === "Strumming patterns" ? "" : "opacity-50 hover:opacity-100"}`}
         >
           <Logo className="z-0 size-4" />
           Strumming patterns
@@ -92,7 +94,7 @@ function DesktopExtraTabMetadata() {
             <motion.span
               layoutId="activeTabUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-background"
+              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-primary-foreground"
             />
           )}
         </Button>

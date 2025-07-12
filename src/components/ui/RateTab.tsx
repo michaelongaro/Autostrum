@@ -680,7 +680,7 @@ function RateTabInternals({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="baseFlex h-10 gap-2 text-center text-stone-500"
+            className="baseFlex h-10 gap-2 text-center text-gray"
           >
             Thank you for your feedback!
           </motion.p>

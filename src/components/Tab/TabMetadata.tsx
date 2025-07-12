@@ -443,7 +443,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
       return (
         <div className="baseVertFlex w-full !items-start gap-2 p-2 text-sm md:text-base">
           <div className="baseFlex gap-2">
-            <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
+            <BsPlus className="h-8 w-8 rotate-45 text-destructive" />
             <p>Failed to publish tab. Please try again later.</p>
           </div>
         </div>
@@ -927,7 +927,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
       {!editing && (
         <div className="min-h-[100px] w-full">
-          <div className="baseVertFlex !flex-start w-full !items-start gap-2 bg-accent px-4 py-4 text-primary-foreground shadow-md sm:!flex-row sm:!items-center sm:gap-4 md:rounded-t-md tablet:!px-6">
+          <div className="baseVertFlex !flex-start w-full !items-start gap-2 bg-accent px-4 py-4 text-primary-foreground shadow-md sm:!flex-row sm:!items-center sm:gap-4 md:rounded-t-xl tablet:!px-6">
             {overMediumViewportThreshold ? (
               <div className="baseFlex w-full !justify-between gap-4">
                 <div className="baseFlex !justify-start gap-2">
@@ -1018,7 +1018,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-secondary-active"
+                          className="baseFlex pulseAnimation bg-skeleton h-10 w-28 rounded-md"
                         ></motion.div>
                       )}
 
@@ -1051,7 +1051,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-secondary-active"
+                          className="baseFlex pulseAnimation bg-skeleton h-10 w-36 rounded-md"
                         ></motion.div>
                       )}
 
@@ -1145,7 +1145,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-secondary-active"
+                          className="baseFlex pulseAnimation bg-skeleton h-10 w-28 rounded-md"
                         ></motion.div>
                       )}
 
@@ -1178,7 +1178,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-secondary-active"
+                          className="baseFlex pulseAnimation bg-skeleton h-10 w-36 rounded-md"
                         ></motion.div>
                       )}
 
@@ -1276,7 +1276,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           className="baseFlex"
                         >
                           {fetchingTabCreator ? (
-                            <div className="pulseAnimation col-start-1 col-end-2 row-start-1 row-end-2 h-6 w-32 rounded-md bg-secondary-active"></div>
+                            <div className="pulseAnimation bg-skeleton col-start-1 col-end-2 row-start-1 row-end-2 h-6 w-32 rounded-md"></div>
                           ) : (
                             <>
                               {tabCreator ? (

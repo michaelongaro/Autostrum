@@ -206,7 +206,7 @@ function MobileExtraTabMetadata() {
                   >
                     <div className="baseFlex w-full">
                       {sectionProgression.length === 0 ? (
-                        <p className="baseFlex h-24 text-stone-300">
+                        <p className="baseFlex h-24 text-gray">
                           No section progression specified
                         </p>
                       ) : (
@@ -218,7 +218,7 @@ function MobileExtraTabMetadata() {
                               key={section.id}
                               className="baseFlex w-full !justify-start gap-2"
                             >
-                              <div className="baseFlex w-24 gap-2 text-stone-300">
+                              <div className="baseFlex w-24 gap-2 text-gray">
                                 <p>
                                   {formatSecondsToMinutes(section.startSeconds)}
                                 </p>
@@ -268,7 +268,7 @@ function MobileExtraTabMetadata() {
                     className="baseVertFlex w-full !justify-start overflow-y-hidden"
                   >
                     {chords.length === 0 ? (
-                      <p className="baseFlex h-24 text-stone-300">
+                      <p className="baseFlex h-24 text-gray">
                         No chords specified
                       </p>
                     ) : (
@@ -373,7 +373,7 @@ function MobileExtraTabMetadata() {
                     className={`baseVertFlex w-full overflow-y-hidden ${strummingPatterns.length > 2 ? "!justify-start" : ""}`}
                   >
                     {strummingPatterns.length === 0 ? (
-                      <p className="baseFlex h-24 text-stone-300">
+                      <p className="baseFlex h-24 text-gray">
                         No strumming patterns specified
                       </p>
                     ) : (

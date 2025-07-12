@@ -571,19 +571,19 @@ function MobileMenuDialog() {
                       className="baseFlex w-full !justify-start gap-2"
                     >
                       <div className="baseFlex w-24 gap-2">
-                        <p className="text-stone-400">
+                        <span className="text-gray">
                           {formatSecondsToMinutes(section.startSeconds)}
-                        </p>
-                        <span className="text-stone-400">-</span>
-                        <p className="text-stone-400">
+                        </span>
+                        <span className="text-gray">-</span>
+                        <span className="text-gray">
                           {formatSecondsToMinutes(section.endSeconds)}
-                        </p>
+                        </span>
                       </div>
 
                       <div className="baseFlex gap-2">
-                        <p className="text-nowrap font-semibold">
+                        <span className="text-nowrap font-semibold">
                           {section.title}
-                        </p>
+                        </span>
                         {section.repetitions > 1 && (
                           <p>({section.repetitions}x)</p>
                         )}

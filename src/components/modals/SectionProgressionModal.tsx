@@ -298,13 +298,13 @@ function Section({
 
         {/* TODO: consider implementing this later, you will have to do some local calculations */}
         {/* <div className="baseFlex gap-2">
-          <span className="text-stone-300">
+          <span className="text-gray">
             {formatSecondsToMinutes(
               localSectionProgression[index]!.startSeconds,
             )}
           </span>
-          <span className="text-stone-300">-</span>
-          <span className="text-stone-300">
+          <span className="text-gray">-</span>
+          <span className="text-gray">
             {formatSecondsToMinutes(localSectionProgression[index]!.endSeconds)}
           </span>
         </div> */}

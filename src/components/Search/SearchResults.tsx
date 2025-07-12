@@ -759,7 +759,7 @@ function SearchResults({
                       exit="closed"
                       transition={{ duration: 0.3 }}
                     >
-                      <div className="pulseAnimation h-6 w-36 rounded-md bg-secondary-active"></div>
+                      <div className="pulseAnimation bg-skeleton h-6 w-36 rounded-md"></div>
                     </motion.div>
                   ) : (
                     <motion.div
@@ -1668,7 +1668,7 @@ function SearchResults({
                         duration: 0.3,
                       }}
                     >
-                      <div className="pulseAnimation h-6 w-48 rounded-md bg-secondary-active"></div>
+                      <div className="pulseAnimation bg-skeleton h-6 w-48 rounded-md"></div>
                     </motion.div>
                   ) : (
                     <motion.div

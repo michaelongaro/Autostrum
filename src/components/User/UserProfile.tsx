@@ -123,9 +123,9 @@ function UserProfile({ uniqueKey }: UserProfile) {
                 <div className="baseFlex gap-1">User</div>
 
                 <div className="baseFlex gap-2">
-                  <div className="pulseAnimation size-9 rounded-full bg-secondary-active md:size-10"></div>
+                  <div className="pulseAnimation bg-skeleton size-9 rounded-full md:size-10"></div>
 
-                  <div className="pulseAnimation h-[38px] w-36 rounded-md bg-secondary-active"></div>
+                  <div className="pulseAnimation bg-skeleton h-[38px] w-36 rounded-md"></div>
                 </div>
 
                 <div className="baseVertFlex mt-4 !items-start gap-2 pb-[25px] font-medium sm:text-lg lg:pb-0 2xl:hidden">
@@ -134,7 +134,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <BsMusicNoteBeamed className="size-4 sm:size-5" />
                       <span>Total tabs</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 self-center rounded-md bg-secondary-active"></div>
+                    <div className="pulseAnimation bg-skeleton h-5 w-12 self-center rounded-md"></div>
                   </div>
 
                   <div className="baseFlex w-full !justify-between gap-16">
@@ -142,7 +142,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <FaEye className="size-4 sm:size-5" />
                       <span>Total views</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 self-center rounded-md bg-secondary-active"></div>
+                    <div className="pulseAnimation bg-skeleton h-5 w-12 self-center rounded-md"></div>
                   </div>
 
                   <div className="baseFlex w-full !justify-between gap-16">
@@ -150,7 +150,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <FaStar className="size-4 sm:size-5" />
                       <span>Average rating</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 self-center rounded-md bg-secondary-active"></div>
+                    <div className="pulseAnimation bg-skeleton h-5 w-12 self-center rounded-md"></div>
                   </div>
 
                   <div className="baseFlex w-full !justify-between gap-16">
@@ -158,7 +158,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <IoBookmark className="size-4 sm:size-5" />
                       <span>Bookmarks received</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 self-center rounded-md bg-secondary-active"></div>
+                    <div className="pulseAnimation bg-skeleton h-5 w-12 self-center rounded-md"></div>
                   </div>
                 </div>
 
@@ -168,7 +168,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <BsMusicNoteBeamed className="size-4 sm:size-5" />
                       <span>Total tabs</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 rounded-md bg-secondary-active"></div>
+                    <div className="pulseAnimation bg-skeleton h-5 w-12 rounded-md"></div>
                   </div>
 
                   <Separator
@@ -181,7 +181,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <FaEye className="size-4 sm:size-5" />
                       <span>Total views</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 rounded-md bg-secondary-active"></div>
+                    <div className="pulseAnimation bg-skeleton h-5 w-12 rounded-md"></div>
                   </div>
 
                   <Separator
@@ -194,7 +194,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <FaStar className="size-4 sm:size-5" />
                       <span>Average rating</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 rounded-md bg-secondary-active"></div>
+                    <div className="pulseAnimation bg-skeleton h-5 w-12 rounded-md"></div>
                   </div>
 
                   <Separator
@@ -207,12 +207,12 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <IoBookmark className="size-4 sm:size-5" />
                       <span>Bookmarks received</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 rounded-md bg-secondary-active"></div>
+                    <div className="pulseAnimation bg-skeleton h-5 w-12 rounded-md"></div>
                   </div>
                 </div>
               </div>
 
-              <div className="pulseAnimation hidden h-[94px] w-[330px] rounded-md bg-secondary-active lg:block"></div>
+              <div className="pulseAnimation bg-skeleton hidden h-[94px] w-[330px] rounded-md lg:block"></div>
             </motion.div>
           ) : (
             <Fragment key="userMetadataLoaded">
@@ -270,7 +270,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                                     animate={{ opacity: 0 }}
                                     exit={{ opacity: 0 }}
                                     transition={{ duration: 0.3 }}
-                                    className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full bg-secondary-active md:size-10"
+                                    className="pulseAnimation bg-skeleton z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full md:size-10"
                                   ></motion.div>
                                 )}
                               </AnimatePresence>
@@ -441,7 +441,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                               animate={{ opacity: 0 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.3 }}
-                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full bg-secondary-active"
+                              className="pulseAnimation bg-skeleton z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full"
                             ></motion.div>
                           )}
                         </AnimatePresence>
@@ -584,7 +584,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                               animate={{ opacity: 0 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.3 }}
-                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full bg-secondary-active"
+                              className="pulseAnimation bg-skeleton z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full"
                             ></motion.div>
                           )}
                         </AnimatePresence>

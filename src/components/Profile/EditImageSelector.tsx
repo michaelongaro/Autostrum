@@ -145,13 +145,13 @@ function EditImageSelector({
                     animate={{ opacity: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="pulseAnimation absolute inset-0 z-10 size-16 rounded-full bg-secondary-active lg:size-32"
+                    className="pulseAnimation bg-skeleton absolute inset-0 z-10 size-16 rounded-full lg:size-32"
                   ></motion.div>
                 )}
               </AnimatePresence>
             </>
           ) : (
-            <div className="pulseAnimation size-16 rounded-full bg-secondary-active shadow-sm lg:size-32"></div>
+            <div className="pulseAnimation bg-skeleton size-16 rounded-full shadow-sm lg:size-32"></div>
           )}
         </motion.div>
 

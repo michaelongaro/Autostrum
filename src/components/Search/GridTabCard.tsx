@@ -182,7 +182,7 @@ function GridTabCard({
                           ? 152
                           : 129,
                     }}
-                    className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-none bg-secondary-active"
+                    className="pulseAnimation bg-skeleton z-10 col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-none"
                   ></motion.div>
                 )}
               </AnimatePresence>

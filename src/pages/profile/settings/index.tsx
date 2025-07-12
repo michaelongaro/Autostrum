@@ -261,7 +261,7 @@ function UserSettings() {
                       {localSettings.emailAddress}
                     </span>
                   ) : (
-                    <div className="pulseAnimation h-6 w-48 rounded-md bg-secondary-active lg:h-7"></div>
+                    <div className="pulseAnimation bg-skeleton h-6 w-48 rounded-md lg:h-7"></div>
                   )}
                 </motion.div>
               </div>
@@ -305,7 +305,7 @@ function UserSettings() {
                         }}
                       />
                     ) : (
-                      <div className="pulseAnimation h-10 w-[275px] rounded-md bg-secondary-active lg:h-7"></div>
+                      <div className="pulseAnimation bg-skeleton h-10 w-[275px] rounded-md lg:h-7"></div>
                     )}
                   </motion.div>
 
@@ -347,7 +347,7 @@ function UserSettings() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.15 }}
-                            className="rounded-full bg-red-500 p-0.5"
+                            className="rounded-full bg-destructive p-0.5"
                           >
                             <IoClose className="size-3 text-primary-foreground" />
                           </motion.div>
@@ -442,7 +442,7 @@ function UserSettings() {
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.15 }}
-                              className="rounded-full bg-red-500 p-0.5"
+                              className="rounded-full bg-destructive p-0.5"
                             >
                               <IoClose className="size-3 text-foreground" />
                             </motion.div>
@@ -512,7 +512,7 @@ function UserSettings() {
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.15 }}
-                              className="rounded-full bg-red-500 p-0.5"
+                              className="rounded-full bg-destructive p-0.5"
                             >
                               <IoClose className="size-3 text-foreground" />
                             </motion.div>
@@ -538,7 +538,7 @@ function UserSettings() {
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.15 }}
-                              className="rounded-full bg-red-500 p-0.5"
+                              className="rounded-full bg-destructive p-0.5"
                             >
                               <IoClose className="size-3 text-foreground" />
                             </motion.div>
@@ -576,7 +576,7 @@ function UserSettings() {
                             : "Controlled by attached Google account"}
                         </span>
                       ) : (
-                        <div className="pulseAnimation h-6 w-64 rounded-md bg-secondary-active lg:h-7"></div>
+                        <div className="pulseAnimation bg-skeleton h-6 w-64 rounded-md lg:h-7"></div>
                       )}
                     </motion.div>
                   )}

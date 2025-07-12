@@ -1,144 +1,57 @@
-/* TODO: not sure which grays to use yet */
-
-/* peony */
-@import "@radix-ui/colors/crimson.css";
-@import "@radix-ui/colors/crimson-dark.css";
-
-/* quartz */
-@import "@radix-ui/colors/ruby.css";
-@import "@radix-ui/colors/ruby-dark.css";
-
-/* crimson */
-@import "@radix-ui/colors/red.css";
-@import "@radix-ui/colors/red-dark.css";
-
-/* saffron */
-@import "@radix-ui/colors/orange.css";
-@import "@radix-ui/colors/orange-dark.css";
-
-/* pistachio */
-@import "@radix-ui/colors/grass.css";
-@import "@radix-ui/colors/grass-dark.css";
-
-/* verdant */
-@import "@radix-ui/colors/teal.css";
-@import "@radix-ui/colors/teal-dark.css";
-
-/* aqua */
-@import "@radix-ui/colors/cyan.css";
-@import "@radix-ui/colors/cyan-dark.css";
-
-/* azure */
-@import "@radix-ui/colors/blue.css";
-@import "@radix-ui/colors/blue-dark.css";
-
-/* amethyst */
-@import "@radix-ui/colors/purple.css";
-@import "@radix-ui/colors/purple-dark.css";
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-.baseFlex {
-  @apply flex items-center justify-center;
-}
-
-.baseVertFlex {
-  @apply flex flex-col items-center justify-center;
-}
-
-.modalGradient {
-  @apply bg-gradient-to-br from-background to-secondary-active;
-}
-
-/* below are same gradients as background, but up by ~7% on lightness value of hsl to match the
-   glassmorphic effect. Couldn't use glassmorphic since light content bleeding through
-   made for really bad contrast issues with nav links */
-/* need to do this instead of one-liner for safari compatability 
-      with background-attachment: fixed */
-.headerBackgroundGradient {
-  background: linear-gradient(145deg,
-      #F3BED1,
-      #EAACC3,
-      #E093B2);
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-/* need to do this instead of one-liner for safari compatability 
-   with background-attachment: fixed */
-.footerBackgroundGradient {
-  background: linear-gradient(145deg,
-      #FFFCFD,
-      #FFE9F0,
-      #FACEDD);
-  background-repeat: no-repeat;
-  background-position: center;
-  box-shadow: 0 -2px 8px 0 rgb(0 0 0 / 0.06);
-}
-
-/* @media (min-width: 768px) {
-  .headerBackgroundGradient {
-    background: linear-gradient(315deg,
-        hsl(345, 95%, 69%),
-        hsl(331, 95%, 74%),
-        hsl(298, 100%, 79%));
-  }
-
-  .footerBackgroundGradient {
-    background: linear-gradient(315deg,
-        hsl(359, 83%, 66%),
-        hsl(349, 100%, 73%),
-        hsl(333, 93%, 73%));
-  }
-} */
-
-
 @layer base {
   :root {
     /* 2 */
-    --background: 343 78% 98%;
+    --background: 337 25% 10%;
     /* 12 */
-    --foreground: 332 63% 34%;
+    --foreground: 330 91% 88%;
 
     /* muave 9, btw I am planning on having separators be gray/50, but you might want 
        options from the radix "border/separators" columns */
     --gray: 249 6% 57%;
 
-    /* 4 */
-    --muted: 341 94% 93%;
+    /* 2 */
+    --muted: 337 25% 10%;
 
-    /* 8 */
-    --border: 336, 55%, 73%;
+    /* 12 */
+    --skeleton: 330 91% 88%;
 
-    /* 4, not sure about this one */
-    --toggle-on: 341 94% 93%;
+    /* (light) 8 */
+    --border: 336 55% 73%;
 
     /* 6 */
-    --ring: 338 69% 85%;
+    --ring: 333 49% 29%;
 
     /* 9 */
     --primary: 336 80% 58%;
-    /* 1 */
+    /* (light) 1 */
     --primary-foreground: 340 100% 99%;
 
     /* 3 */
-    --secondary: 341 100% 96%;
+    --secondary: 333 45% 15%;
     /* 4 */
-    --secondary-hover: 341 94% 93%;
+    --secondary-hover: 331 62% 19%;
     /* 5 */
-    --secondary-active: 341 81% 89%;
+    --secondary-active: 331 59% 23%;
     /* 11 */
-    --secondary-foreground: 336 75% 45%;
+    --secondary-foreground: 345 100% 79%;
 
-    /* 11 */
-    --accent: 336 75% 45%;
-    /* 1 */
+    /* 5 */
+    --accent: 331 59% 23%;
+    /* (light) 1 */
     --accent-foreground: 340 100% 99%;
 
     --destructive: 0 90% 50%;
     --destructive-foreground: 324 77% 95%;
+
+    /* gradient vars */
+    /* 4 */
+    --gradient-primary: 331 62% 19%;
+    /* 1 */
+    --gradient-secondary: 338 19% 8%;
 
     --radius: 0.5rem;
   }
@@ -171,11 +84,16 @@ body::before {
   bottom: 0;
   left: 0;
   z-index: -1;
-  background: linear-gradient(145deg,
+  /* background: linear-gradient(145deg,
       #FEF7F9,
       #FACEDD,
-      #E093B2) center / cover;
-  height: 100vh;
+      #E093B2) center / cover; */
+  background: linear-gradient(145deg,
+      hsl(var(--gradient-primary)),
+      hsl(var(--gradient-secondary)),
+      hsl(var(--gradient-secondary)),
+      hsl(var(--gradient-primary))) center / cover;
+  height: 100dvh;
 }
 
 body {
@@ -187,17 +105,41 @@ table {
   width: 100%;
 }
 
+.baseFlex {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.baseVertFlex {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.modalGradient {
+  background: linear-gradient(145deg,
+      hsl(var(--gradient-primary)),
+      hsl(var(--gradient-secondary)),
+      hsl(var(--gradient-secondary)),
+      hsl(var(--gradient-secondary)),
+      hsl(var(--gradient-secondary)),
+      hsl(var(--gradient-primary)));
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.headerAndFooterBackgroundGradient {
+  background-color: hsl(var(--background));
+  box-shadow: 0 2px 8px 0 rgb(0 0 0 / 0.06);
+}
+
+/* used to emulate <dialog> behavior */
 .noScroll {
   position: fixed;
   overflow-y: scroll;
   inline-size: 100%;
-}
-
-/* used to override radix-ui's "feature"/bug of auto-removing scrollbar
-   on opening of a <Select> */
-html body[data-scroll-locked] {
-  overflow: visible !important;
-  margin-right: 0 !important;
 }
 
 @keyframes countInAnimation {

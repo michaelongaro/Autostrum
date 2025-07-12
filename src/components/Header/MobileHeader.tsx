@@ -90,7 +90,7 @@ function MobileHeader() {
 
   return (
     <nav className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full">
-      <div className="headerBackgroundGradient absolute z-[49] flex h-16 w-full items-start justify-between overflow-clip p-2 shadow-md lg:hidden">
+      <div className="headerAndFooterBackgroundGradient absolute z-[49] flex h-16 w-full items-start justify-between overflow-clip p-2 shadow-md lg:hidden">
         <Link
           prefetch={false}
           href={"/"}
@@ -486,7 +486,7 @@ function MobileHeader() {
                                   animate={{ opacity: 0 }}
                                   exit={{ opacity: 0 }}
                                   transition={{ duration: 0.3 }}
-                                  className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-8 rounded-full bg-secondary-active"
+                                  className="pulseAnimation bg-skeleton z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-8 rounded-full"
                                 ></motion.div>
                               )}
                             </AnimatePresence>
