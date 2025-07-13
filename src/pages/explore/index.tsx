@@ -110,7 +110,7 @@ function Explore({ json }: { json: string }) {
 
           {/* Newly added tabs carousel */}
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
-            <div className="baseFlex w-full !items-end !justify-between gap-2">
+            <div className="baseFlex w-full !items-baseline !justify-between gap-2">
               <div className="baseVertFlex gap-0 md:gap-1">
                 <div className="baseFlex gap-2">
                   <IoFlash className="size-4 text-foreground md:size-5" />
@@ -159,7 +159,7 @@ function Explore({ json }: { json: string }) {
 
           {/* Most popular tabs carousel */}
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
-            <div className="baseFlex w-full !items-end !justify-between gap-2">
+            <div className="baseFlex w-full !items-baseline !justify-between gap-2">
               <div className="baseVertFlex gap-0 md:gap-1">
                 <div className="baseFlex gap-2">
                   <IoStatsChart className="size-4 text-foreground md:size-5" />

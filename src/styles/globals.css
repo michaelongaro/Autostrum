@@ -85,9 +85,13 @@ kbd {
   background-position: center;
 }
 
+/* TODO: determine whether this gradient should be kept or if playback modal
+   should just use modalGradient as well */
 .playbackModalGradient {
   background: linear-gradient(145deg,
       hsl(var(--gradient-primary)),
+      hsl(var(--gradient-secondary)),
+      hsl(var(--gradient-secondary)),
       hsl(var(--gradient-secondary)),
       hsl(var(--gradient-secondary)),
       hsl(var(--gradient-secondary)),
