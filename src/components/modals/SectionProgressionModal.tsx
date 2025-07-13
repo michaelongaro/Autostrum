@@ -291,7 +291,7 @@ function Section({
       }}
       exit={{ opacity: 0, height: 0, margin: 0 }}
       transition={{ duration: 0.2 }}
-      className="baseVertFlex relative w-full gap-2"
+      className="baseVertFlex relative w-full gap-2 rounded-lg border bg-secondary p-4 shadow-sm"
     >
       <div className="baseFlex w-full !justify-start gap-2">
         <span>{getOrdinalSuffix(index + 1)} section</span>
@@ -310,9 +310,8 @@ function Section({
         </div> */}
       </div>
 
-      {/* bg-secondary mx-1 text-secondary-foreground shadow-md */}
       <div className="baseVertFlex gap-6 rounded-md py-1 text-foreground xs:!flex-row xs:!justify-between xs:gap-4">
-        <div className="baseVertFlex gap-4 xs:!flex-row">
+        <div className="baseVertFlex !items-start gap-4 xs:!flex-row">
           <Select
             value={sectionId === "" ? undefined : sectionId}
             onValueChange={(id) => handleSectionChange(id)}

@@ -1609,7 +1609,7 @@ function SearchResults({
                   >
                     <div className="w-full bg-accent">
                       <div
-                        className="grid grid-rows-1 items-center text-sm font-medium text-muted"
+                        className="grid grid-rows-1 items-center text-sm font-medium text-primary-foreground/70"
                         style={{
                           gridTemplateColumns: getDynamicGridTemplateColumns(),
                         }}

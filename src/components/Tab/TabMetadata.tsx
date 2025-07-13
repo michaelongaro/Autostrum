@@ -1410,7 +1410,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
           if (!open) setShowDeleteAlertDialog(false);
         }}
       >
-        <AlertDialogContent className="modalGradient border shadow-sm">
+        <AlertDialogContent className="border bg-secondary shadow-sm">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-semibold">
               Delete Tab

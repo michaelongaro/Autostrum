@@ -527,7 +527,7 @@ function StrummingPatternModal({
               </Button>
             </div>
 
-            <div className="baseVertFlex gap-1 rounded-md border bg-secondary px-4 py-3 text-sm shadow-sm xs:px-8 sm:w-auto sm:gap-2 sm:self-center md:px-4">
+            <div className="baseVertFlex gap-1 rounded-lg border bg-secondary px-4 py-3 text-sm shadow-sm xs:px-8 sm:w-auto sm:gap-2 sm:self-center md:px-4">
               <div className="baseFlex w-auto gap-2 font-semibold">
                 <BsKeyboard className="h-6 w-6" />
                 Hotkeys

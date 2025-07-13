@@ -40,7 +40,7 @@ function EffectGlossaryDialog() {
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex max-h-[90dvh] max-w-[350px] !justify-start gap-4 overflow-y-auto rounded-lg bg-foreground px-2 xs:max-w-[450px] xs:p-4">
+      <DialogContent className="baseVertFlex max-h-[90dvh] max-w-[350px] !justify-start gap-4 overflow-y-auto rounded-lg px-2 xs:max-w-[450px] xs:p-4">
         <span className="baseFlex gap-2 font-semibold">
           <FaBook className="size-4" />
           Effect glossary
@@ -388,7 +388,7 @@ function EffectGlossaryDialog() {
 
         {!editing && (
           <div className="baseVertFlex w-full gap-2">
-            <div className="h-[1px] w-full max-w-[300px] bg-black xs:max-w-none"></div>
+            <Separator className="w-full max-w-[300px] bg-primary xs:max-w-none" />
             <p className="text-sm">
               <span className="font-semibold">Bolded</span> effects are
               accented.

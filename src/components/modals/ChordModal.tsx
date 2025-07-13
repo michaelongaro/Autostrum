@@ -189,7 +189,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
 
               {/* ml here seems hacky */}
               <div className="baseVertFlex ml-0 h-full w-48 gap-4 xs:ml-[30px]">
-                <div className="baseVertFlex w-full !items-start gap-2 rounded-md border bg-secondary p-2 text-sm shadow-sm">
+                <div className="baseVertFlex w-full !items-start gap-2 rounded-lg border bg-secondary p-2 text-sm shadow-sm">
                   <div className="baseFlex w-[160px] gap-2 font-semibold">
                     <BsKeyboard className="h-6 w-6" />
                     Hotkeys

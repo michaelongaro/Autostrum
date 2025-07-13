@@ -6,7 +6,12 @@ import { Separator } from "~/components/ui/separator";
 
 function Footer() {
   return (
-    <footer className="headerAndFooterBackgroundGradient baseFlex z-30 h-16 w-full gap-2 xs:gap-4">
+    <footer
+      style={{
+        boxShadow: "0 -4px 6px -1px #0000001a, 0 -2px 4px -2px #0000001a",
+      }}
+      className="headerAndFooterBackgroundGradient baseFlex z-30 h-16 w-full gap-2 xs:gap-4"
+    >
       <Button variant={"link"} asChild>
         <a
           href="mailto:michael.ongaro.dev@gmail.com"

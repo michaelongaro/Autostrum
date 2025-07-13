@@ -118,7 +118,7 @@ function MobileHeader() {
               <Button
                 variant="text"
                 onClick={() => setShowMobileSearch(true)}
-                className="!px-0 text-primary-foreground"
+                className="!px-0"
               >
                 <BiSearchAlt2 className="size-[26px]" />
               </Button>
@@ -149,7 +149,6 @@ function MobileHeader() {
               });
             }}
             easing="ease-in-out"
-            color="hsl(var(--primary-foreground))"
             rounded
             size={28}
           />

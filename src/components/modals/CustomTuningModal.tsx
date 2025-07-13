@@ -138,7 +138,7 @@ function CustomTuningModal({
             </Button>
           </div>
 
-          <div className="baseVertFlex max-w-[23rem] gap-2 rounded-md border bg-secondary-active/50 p-2 text-sm shadow-md sm:max-w-[30rem]">
+          <div className="baseVertFlex max-w-[23rem] gap-2 rounded-lg border bg-secondary p-2 text-sm shadow-sm sm:max-w-[30rem]">
             <div className="baseFlex gap-4 px-4 sm:gap-2">
               <HiOutlineInformationCircle className="size-5" />
               <p className="max-w-[14rem] sm:max-w-[20rem] sm:text-center">

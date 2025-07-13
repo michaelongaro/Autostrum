@@ -21,8 +21,12 @@ const COLOR_VALUES = {
       "accent-foreground": "340 100% 99%", // 1
       destructive: "0 90% 50%", // TODO/TBD
       "destructive-foreground": "324 77% 95%", // TODO/TBD
-      "gradient-primary": "341 94% 93%", // 4
-      "gradient-secondary": "340 100% 99%", // 1
+      "gradient-primary": "338 69% 85%", // 6
+      "gradient-secondary": "341 100% 96%", // 3
+      "modal-gradient-from": "341 100% 96%", // 3
+      "modal-gradient-to": "341 94% 93%", // 4
+      "header-footer-gradient-from": "341 100% 96%", // 3
+      "header-footer-gradient-to": "341 94% 93%", // 4
     },
     dark: {
       background: "337 25% 10%", // 2
@@ -32,6 +36,7 @@ const COLOR_VALUES = {
       skeleton: "330 91% 88%", // 12
       border: "336 55% 73%", // 8 (light)
       ring: "333 49% 29%", // 6
+      modal: "331 62% 19%", // 4
       primary: "336 80% 58%", // 9
       "primary-foreground": "340 100% 99%", // 1
       secondary: "333 45% 15%", // 3
@@ -44,6 +49,10 @@ const COLOR_VALUES = {
       "destructive-foreground": "324 77% 95%", // TODO/TBD
       "gradient-primary": "331 62% 19%", // 4
       "gradient-secondary": "338 19% 8%", // 1
+      "modal-gradient-from": "337 25% 10%", // 2
+      "modal-gradient-to": "333 45% 15%", // 3
+      "header-footer-gradient-from": "338 19% 8%", // 1
+      "header-footer-gradient-to": "337 25% 10%", // 2
     },
   },
   // ruby
@@ -76,8 +85,31 @@ export function updateCSSThemeVars(
     throw new Error(`Color "${color}" or theme "${theme}" not found.`);
   }
 
+  addGlobalTransition();
+
   Object.entries(colors).forEach(([key, value]) => {
-    console.log(`Setting --${key} to hsl(${value})`);
     document.documentElement.style.setProperty(`--${key}`, `${value}`);
   });
+
+  setTimeout(() => {
+    removeGlobalTransition();
+  }, 0); // wait for the next event loop tick before removing the transition
+}
+
+function addGlobalTransition() {
+  const style = document.createElement("style");
+  style.id = "global-transition-style";
+  style.textContent = `
+    * {
+      transition: all 0s !important;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function removeGlobalTransition() {
+  const style = document.getElementById("global-transition-style");
+  if (style) {
+    style.remove();
+  }
 }

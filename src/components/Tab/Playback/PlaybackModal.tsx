@@ -447,7 +447,7 @@ function PlaybackModal() {
         <div
           ref={modalContentRef}
           tabIndex={-1}
-          className="baseVertFlex modalGradient relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none p-0 mobileNarrowLandscape:!justify-center tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
+          className="baseVertFlex relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none bg-secondary p-0 mobileNarrowLandscape:!justify-center tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
         >
           <PlaybackTopMetadata
             tabProgressValue={tabProgressValue}

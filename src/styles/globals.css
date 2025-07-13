@@ -31,10 +31,6 @@ body::before {
   bottom: 0;
   left: 0;
   z-index: -1;
-  /* background: linear-gradient(145deg,
-      #FEF7F9,
-      #FACEDD,
-      #E093B2) center / cover; */
   background: linear-gradient(145deg,
       hsl(var(--gradient-primary)),
       hsl(var(--gradient-secondary)),
@@ -52,6 +48,22 @@ table {
   width: 100%;
 }
 
+kbd {
+  background-color: #eee;
+  border-radius: 3px;
+  border: 1px solid #b4b4b4;
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.2),
+    0 2px 0 0 rgba(255, 255, 255, 0.7) inset;
+  color: #333;
+  display: inline-block;
+  font-size: 0.85em;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 4px;
+  white-space: nowrap;
+}
+
 .baseFlex {
   display: flex;
   justify-content: center;
@@ -67,6 +79,14 @@ table {
 
 .modalGradient {
   background: linear-gradient(145deg,
+      hsl(var(--modal-gradient-from)),
+      hsl(var(--modal-gradient-to)));
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.playbackModalGradient {
+  background: linear-gradient(145deg,
       hsl(var(--gradient-primary)),
       hsl(var(--gradient-secondary)),
       hsl(var(--gradient-secondary)),
@@ -78,8 +98,11 @@ table {
 }
 
 .headerAndFooterBackgroundGradient {
-  background-color: hsl(var(--background));
-  box-shadow: 0 2px 8px 0 rgb(0 0 0 / 0.06);
+  background: linear-gradient(145deg,
+      hsl(var(--header-footer-gradient-from)),
+      hsl(var(--header-footer-gradient-to)));
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 /* used to emulate <dialog> behavior */
@@ -87,6 +110,14 @@ table {
   position: fixed;
   overflow-y: scroll;
   inline-size: 100%;
+}
+
+/* used to override radix-ui's "feature"/bug of auto-removing scrollbar
+   on opening of a <Select>, especially visible when opening a <Select>
+   in a modal */
+html body[data-scroll-locked] {
+  overflow: visible !important;
+  margin-right: 0 !important;
 }
 
 @keyframes countInAnimation {
@@ -137,21 +168,6 @@ table {
   animation: copyAndPasteAnimation 0.35s ease-in-out;
 }
 
-kbd {
-  background-color: #eee;
-  border-radius: 3px;
-  border: 1px solid #b4b4b4;
-  box-shadow:
-    0 1px 1px rgba(0, 0, 0, 0.2),
-    0 2px 0 0 rgba(255, 255, 255, 0.7) inset;
-  color: #333;
-  display: inline-block;
-  font-size: 0.85em;
-  font-weight: 700;
-  line-height: 1;
-  padding: 2px 4px;
-  white-space: nowrap;
-}
 
 /* slightly modified animate-pulse, that doesn't go all the way down to
    0% opacity */
