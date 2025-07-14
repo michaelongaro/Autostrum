@@ -32,8 +32,8 @@ function ThemePicker() {
   return (
     <div className="baseVertFlex mt-4 w-full !items-start gap-2 tablet:mt-0">
       <span className="font-medium">Color</span>
-      <Separator className="bg-primary" />
-      <div className="grid w-full grid-cols-3 grid-rows-3 gap-1">
+      <Separator className="bg-foreground" />
+      <div className="mt-2 grid w-full grid-cols-3 grid-rows-3 gap-2">
         <div className="baseVertFlex w-full gap-1">
           <Button
             variant={"outline"}
@@ -135,8 +135,8 @@ function ThemePicker() {
       </div>
 
       <span className="mt-2 font-medium">Theme</span>
-      <Separator className="bg-primary" />
-      <div className="grid w-full grid-cols-3 grid-rows-1 gap-1">
+      <Separator className="bg-foreground" />
+      <div className="mt-2 grid w-full grid-cols-3 grid-rows-1 gap-2">
         <div className="baseVertFlex w-full gap-1">
           <Button
             variant={"outline"}
