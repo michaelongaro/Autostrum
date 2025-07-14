@@ -1,5 +1,4 @@
 import { useTabStore } from "~/stores/TabStore";
-import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
 import {
   Popover,
@@ -52,7 +51,7 @@ function EffectGlossaryDialog() {
           <div
             className={`baseVertFlex gap-2 ${editing ? "min-w-[190px]" : "min-w-[150px]"}`}
           >
-            <Label className="mt-2">Note effects</Label>
+            <span className="mt-2 text-sm font-medium">Note effects</span>
             <Separator className="mb-2 w-full bg-primary" />
 
             <div className="grid w-full grid-cols-5 pl-1 text-sm">
@@ -298,7 +297,7 @@ function EffectGlossaryDialog() {
           </div>
 
           <div className="baseVertFlex w-full gap-2">
-            <Label className="mt-2">Chord effects</Label>
+            <span className="mt-2 text-sm font-medium">Chord effects</span>
             <Separator className="mb-2 w-full bg-primary" />
 
             {editing ? (
@@ -360,7 +359,7 @@ function EffectGlossaryDialog() {
               </>
             )}
 
-            <Label className="mt-4">Section effects</Label>
+            <span className="mt-4 text-sm font-medium">Section effects</span>
             <Separator className="mb-2 w-full bg-primary" />
 
             <div className="grid w-full grid-cols-5 pl-1 text-sm">
@@ -371,7 +370,7 @@ function EffectGlossaryDialog() {
 
             {editing && (
               <>
-                <Label className="mt-4">Miscellaneous</Label>
+                <span className="mt-4 text-sm font-medium">Miscellaneous</span>
                 <Separator className="mb-2 w-full bg-primary" />
 
                 <div className="grid w-full grid-cols-5 pl-1 text-sm">
