@@ -37,6 +37,34 @@ body::before {
       hsl(var(--gradient-secondary)),
       hsl(var(--gradient-primary))) center / cover;
   height: 100dvh;
+
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  background-image: url('/ui/noise.svg');
+  /* courtesy of https://www.fffuel.co/nnnoise/ */
+}
+
+.modalGradient::after,
+.playbackModalGradient::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  background-image: url('/ui/noise.svg');
+  pointer-events: none;
+  opacity: 0.5;
+  /* courtesy of https://www.fffuel.co/nnnoise/ */
 }
 
 body {
@@ -83,7 +111,17 @@ kbd {
       hsl(var(--modal-gradient-to)));
   background-repeat: no-repeat;
   background-position: center;
+
 }
+
+/* .modalGradient::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: url('/ui/noise.svg');
+  opacity: 0.5;
+} */
 
 /* TODO: determine whether this gradient should be kept or if playback modal
    should just use modalGradient as well */
@@ -100,6 +138,16 @@ kbd {
   background-repeat: no-repeat;
   background-position: center;
 }
+
+/* .playbackModalGradient::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-image: url('/ui/noise.svg');
+  opacity: 0.5;
+  pointer-events: none;
+} */
 
 .headerAndFooterBackgroundGradient {
   background: linear-gradient(145deg,
