@@ -8,7 +8,8 @@ function Footer() {
   return (
     <footer
       style={{
-        boxShadow: "0 -4px 6px -1px #0000001a, 0 -2px 4px -2px #0000001a",
+        boxShadow:
+          "0 -4px 6px -1px hsl(var(--primary) / 0.1), 0 -2px 4px -2px hsl(var(--primary) / 0.1)",
       }}
       className="headerAndFooterBackgroundGradient baseFlex z-30 h-16 w-full gap-2 xs:gap-4"
     >
