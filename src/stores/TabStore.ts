@@ -295,7 +295,6 @@ const initialStoreState = {
   loopDelay: 0,
   currentChordIndex: 0,
   audioMetadata: {
-    type: "Generated",
     tabId: -1,
     playing: false,
     location: null,
@@ -753,7 +752,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       currentChordIndex: 0,
       setCurrentChordIndex: (currentChordIndex) => set({ currentChordIndex }),
       audioMetadata: {
-        type: "Generated",
         tabId: -1,
         playing: false,
         location: null,
