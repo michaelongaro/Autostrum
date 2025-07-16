@@ -4,17 +4,22 @@ import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
 import StaticTabNote from "~/components/Tab/Static/StaticTabNote";
 import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
+import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 
 interface StaticTabNotesColumn {
   columnData: string[];
   columnIndex: number;
   isFinalColumn: boolean;
+  color: string;
+  theme: "light" | "dark";
 }
 
 function StaticTabNotesColumn({
   columnData,
   columnIndex,
   isFinalColumn,
+  color,
+  theme,
 }: StaticTabNotesColumn) {
   function relativelyGetColumn(indexRelativeToCurrentCombo: number): string[] {
     return (columnData[columnIndex + indexRelativeToCurrentCombo] ??
@@ -58,7 +63,7 @@ function StaticTabNotesColumn({
           <Fragment key={index}>
             {index === 0 && (
               <div className="baseFlex h-9 w-full">
-                <StaticPalmMuteNode value={note} />
+                <StaticPalmMuteNode value={note} color={color} theme={theme} />
               </div>
             )}
 
@@ -69,16 +74,16 @@ function StaticTabNotesColumn({
                   paddingTop: `${index === 1 ? "7px" : "0"}`,
                   borderBottom: `${index === 6 ? "2px solid" : "none"}`,
                   paddingBottom: `${index === 6 ? "7px" : "0"}`,
-                  transition: "width 0.15s ease-in-out",
-                  // maybe also need "flex-basis: content" here if editing?
+                  borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
                 }}
                 className="baseFlex relative w-[35px] basis-[content]"
               >
                 <div
                   style={{
                     opacity: lineBeforeNoteOpacity(index) ? 1 : 0,
+                    backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]} / 0.5)`,
                   }}
-                  className="h-[1px] flex-[1] bg-foreground/50"
+                  className="h-[1px] flex-[1]"
                 ></div>
 
                 <StaticTabNote
@@ -95,13 +100,16 @@ function StaticTabNotesColumn({
                   isStaccato={
                     note.includes(".") && !columnData[7]?.includes(".") // felt distracting to see the staccato on every note w/in the chord
                   }
+                  color={color}
+                  theme={theme}
                 />
 
                 <div
                   style={{
                     opacity: lineAfterNoteOpacity(index) ? 1 : 0,
+                    backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]} / 0.5)`,
                   }}
-                  className="h-[1px] flex-[1] bg-foreground/50"
+                  className="h-[1px] flex-[1]"
                 ></div>
               </div>
             )}
@@ -112,6 +120,7 @@ function StaticTabNotesColumn({
                   style={{
                     top: "0.25rem",
                     lineHeight: "16px",
+                    color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
                   }}
                   className="baseVertFlex absolute left-1/2 right-1/2 top-2 w-[1.5rem] -translate-x-1/2"
                 >
@@ -197,7 +206,12 @@ function StaticTabNotesColumn({
       </div>
 
       {isFinalColumn && (
-        <div className="h-[168px] rounded-r-2xl border-2 border-foreground p-1"></div>
+        <div
+          style={{
+            borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+          }}
+          className="h-[168px] rounded-r-2xl border-2 p-1"
+        ></div>
       )}
     </motion.div>
   );

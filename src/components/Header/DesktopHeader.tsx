@@ -236,7 +236,7 @@ function DesktopHeader() {
               transition={{
                 opacity: { duration: 0.1, ease: "easeInOut" },
               }}
-              className={`${classes.authentication} pulseAnimation bg-skeleton baseFlex size-12 shrink-0`}
+              className={`${classes.authentication} pulseAnimation bg-skeleton baseFlex size-12 shrink-0 rounded-full`}
             >
               <div className="pulseAnimation bg-skeleton size-10 shrink-0 rounded-full"></div>
             </motion.div>

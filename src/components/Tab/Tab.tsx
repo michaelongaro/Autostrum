@@ -283,11 +283,12 @@ function Tab({ tab }: Tab) {
         style={{
           transition: "filter 0.5s ease-in-out",
         }}
-        className={`baseVertFlex relative w-full border bg-muted shadow-lg md:rounded-xl ${
-          isPublishingOrUpdating
-            ? "pointer-events-none brightness-90"
-            : "brightness-100"
-        }`}
+        className={`baseVertFlex relative w-full border bg-muted shadow-lg md:rounded-xl`}
+        // ${
+        //   isPublishingOrUpdating
+        //     ? "pointer-events-none brightness-90"
+        //     : ""
+        // }
       >
         <TabMetadata
           customTuning={customTuning}

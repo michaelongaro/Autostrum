@@ -74,6 +74,8 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { Badge } from "~/components/ui/badge";
+import Image from "next/image";
+import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 
 const KEYS_BY_LETTER = {
   A: ["A major", "A minor", "A# minor", "A♭ major", "A♭ minor"],
@@ -267,6 +269,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
   const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
   const [takingScreenshot, setTakingScreenshot] = useState(false);
   const tabPreviewScreenshotRef = useRef(null);
+  const tabPreviewScreenshotRefTwo = useRef(null);
 
   const [showPublishPopover, setShowPublishPopover] = useState(false);
 
@@ -325,6 +328,13 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setEditing(false);
   }
 
+  // const [screenshotDataUrl, setScreenshotDataUrl] = useState<string | null>(
+  //   null,
+  // );
+  // const [screenshotDataUrlTwo, setScreenshotDataUrlTwo] = useState<
+  //   string | null
+  // >(null);
+
   async function handleSave() {
     if (
       !userId ||
@@ -344,59 +354,70 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setIsPublishingOrUpdating(true);
     setSaveButtonText(asPath.includes("create") ? "Publishing" : "Saving");
 
-    setMinifiedTabData(tabData);
+    setMinifiedTabData(tabData.slice(0, 2)); // screenshot can never show more than 2 sections
     setTakingScreenshot(true);
 
     const { domToDataUrl } = await import("modern-screenshot");
 
-    setTimeout(() => {
-      void domToDataUrl(tabPreviewScreenshotRef.current!, {
-        quality: 0.75,
-      }).then((base64TabScreenshot) => {
-        if (asPath.includes("create")) {
-          publishTab({
-            createdByUserId: userId,
-            title,
-            artistId,
-            artistName,
-            description,
-            genre,
-            chords,
-            difficulty,
-            strummingPatterns,
-            tabData,
-            sectionProgression,
-            tuning,
-            bpm,
-            capo,
-            key,
-            base64TabScreenshot,
-          });
-        } else {
-          updateTab({
-            id,
-            title,
-            artistId,
-            artistName,
-            description,
-            genre,
-            chords,
-            difficulty,
-            strummingPatterns,
-            tabData,
-            sectionProgression,
-            tuning,
-            bpm,
-            capo,
-            key,
-            base64TabScreenshot,
-          });
-        }
+    // not ideal, but giving DOM extra time to render
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        setMinifiedTabData(undefined);
-        setTakingScreenshot(false);
+    const [lightScreenshot, darkScreenshot] = await Promise.all([
+      domToDataUrl(tabPreviewScreenshotRef.current!, {
+        quality: 0.75,
+      }),
+      domToDataUrl(tabPreviewScreenshotRefTwo.current!, {
+        quality: 0.75,
+      }),
+    ]);
+
+    // setScreenshotDataUrl(lightScreenshot);
+    // setScreenshotDataUrlTwo(darkScreenshot);
+
+    if (asPath.includes("create")) {
+      publishTab({
+        createdByUserId: userId,
+        title,
+        artistId,
+        artistName,
+        description,
+        genre,
+        chords,
+        difficulty,
+        strummingPatterns,
+        tabData,
+        sectionProgression,
+        tuning,
+        bpm,
+        capo,
+        key,
+        lightScreenshot,
+        darkScreenshot,
       });
-    }, 1000); // trying to give ample time for state to update and <TabPreview /> to completely render
+    } else {
+      updateTab({
+        id,
+        title,
+        artistId,
+        artistName,
+        description,
+        genre,
+        chords,
+        difficulty,
+        strummingPatterns,
+        tabData,
+        sectionProgression,
+        tuning,
+        bpm,
+        capo,
+        key,
+        lightScreenshot,
+        darkScreenshot,
+      });
+    }
+
+    setMinifiedTabData(undefined);
+    setTakingScreenshot(false);
   }
 
   function isEqualToOriginalTabState() {
@@ -1018,7 +1039,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation bg-skeleton h-10 w-28 rounded-md"
+                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-skeleton"
                         ></motion.div>
                       )}
 
@@ -1051,7 +1072,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation bg-skeleton h-10 w-36 rounded-md"
+                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-skeleton"
                         ></motion.div>
                       )}
 
@@ -1145,7 +1166,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation bg-skeleton h-10 w-28 rounded-md"
+                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-skeleton"
                         ></motion.div>
                       )}
 
@@ -1178,7 +1199,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation bg-skeleton h-10 w-36 rounded-md"
+                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-skeleton"
                         ></motion.div>
                       )}
 
@@ -1276,7 +1297,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           className="baseFlex"
                         >
                           {fetchingTabCreator ? (
-                            <div className="pulseAnimation bg-skeleton col-start-1 col-end-2 row-start-1 row-end-2 h-6 w-32 rounded-md"></div>
+                            <div className="pulseAnimation col-start-1 col-end-2 row-start-1 row-end-2 h-6 w-32 rounded-md bg-skeleton"></div>
                           ) : (
                             <>
                               {tabCreator ? (
@@ -1496,15 +1517,68 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
             <div
               ref={tabPreviewScreenshotRef}
               style={{
-                background:
-                  "linear-gradient(315deg, hsl(6, 100%, 66%), hsl(340, 100%, 76%), hsl(297, 100%, 87%)) fixed center / cover",
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony"]["light"]["screenshot-muted"]})`,
               }}
-              className="baseFlex h-[615px] w-[1318px]"
+              className="baseFlex h-[615px] w-[1318px] grayscale"
             >
-              <div className="h-[615px] w-[1318px] bg-muted">
-                <TabScreenshotPreview tabData={minifiedTabData} />
-              </div>
+              <TabScreenshotPreview
+                tabData={minifiedTabData}
+                color={"peony"}
+                theme={"light"}
+              />
             </div>
+
+            <div
+              ref={tabPreviewScreenshotRefTwo}
+              style={{
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony"]["dark"]["screenshot-muted"]})`,
+              }}
+              className="baseFlex h-[615px] w-[1318px] grayscale"
+            >
+              <TabScreenshotPreview
+                tabData={minifiedTabData}
+                color={"peony"}
+                theme={"dark"}
+              />
+            </div>
+
+            {/* {screenshotDataUrl && (
+              <div className="relative size-full min-h-[615px]">
+                <Image
+                  src={screenshotDataUrl}
+                  alt="Tab screenshot"
+                  width={1300}
+                  height={615}
+                  className="absolute inset-0 size-full"
+                />
+
+                <div
+                  style={{
+                    backgroundColor: `hsl(${SCREENSHOT_COLORS["peony"]["light"]["screenshot-secondary"]})`,
+                  }}
+                  className="absolute inset-0 z-10 size-full mix-blend-color"
+                ></div>
+              </div>
+            )}
+
+            {screenshotDataUrlTwo && (
+              <div className="relative size-full min-h-[615px]">
+                <Image
+                  src={screenshotDataUrlTwo}
+                  alt="Tab screenshot"
+                  width={1300}
+                  height={615}
+                  className="absolute inset-0 size-full"
+                />
+
+                <div
+                  style={{
+                    backgroundColor: `hsl(${SCREENSHOT_COLORS["peony"]["dark"]["screenshot-secondary"]} / 0.5)`,
+                  }}
+                  className="absolute inset-0 z-10 size-full mix-blend-color"
+                ></div>
+              </div>
+            )} */}
           </div>,
           document.getElementById("mainTabComponent")!,
         )}

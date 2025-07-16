@@ -11,12 +11,19 @@ import {
   getDynamicNoteLengthIcon,
 } from "~/utils/bpmIconRenderingHelpers";
 import StaticChordSequence from "~/components/Tab/Static/StaticChordSequence";
+import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 
 export interface StaticChordSection {
   subSectionData: ChordSectionType;
+  color: string;
+  theme: "light" | "dark";
 }
 
-function StaticChordSection({ subSectionData }: StaticChordSection) {
+function StaticChordSection({
+  subSectionData,
+  color,
+  theme,
+}: StaticChordSection) {
   const { bpm } = useTabStore((state) => ({
     bpm: state.bpm,
   }));
@@ -30,7 +37,11 @@ function StaticChordSection({ subSectionData }: StaticChordSection) {
   return (
     <motion.div
       key={subSectionData.id}
-      className="baseVertFlex relative h-full !justify-start rounded-md border bg-secondary-active/50 p-4 shadow-md md:p-8"
+      style={{
+        borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
+        backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.5)`,
+      }}
+      className="baseVertFlex relative h-full !justify-start rounded-md border p-4 shadow-md md:p-8"
     >
       <AnimatePresence mode="wait">
         <motion.div
@@ -43,7 +54,14 @@ function StaticChordSection({ subSectionData }: StaticChordSection) {
                 <div className="baseVertFlex !items-start">
                   {(showBpm(chordSequence) ||
                     chordSequence.repetitions > 1) && (
-                    <div className="baseFlex ml-4 gap-3 rounded-t-md border bg-secondary-active/25 px-2 py-1 text-sm !shadow-sm">
+                    <div
+                      style={{
+                        borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
+                        backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.25)`,
+                        color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                      }}
+                      className="baseFlex ml-4 gap-3 rounded-t-md border px-2 py-1 text-sm !shadow-sm"
+                    >
                       {showBpm(chordSequence) && (
                         <div className="baseFlex gap-1">
                           {getDynamicNoteLengthIcon({
@@ -75,7 +93,11 @@ function StaticChordSection({ subSectionData }: StaticChordSection) {
                   )}
 
                   <AnimatePresence mode="wait">
-                    <StaticChordSequence chordSequenceData={chordSequence} />
+                    <StaticChordSequence
+                      chordSequenceData={chordSequence}
+                      color={color}
+                      theme={theme}
+                    />
                   </AnimatePresence>
                 </div>
               ) : (

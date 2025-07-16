@@ -1,5 +1,43 @@
 // comments are the radix color names
 
+export const SCREENSHOT_COLORS = {
+  // crimson
+  peony: {
+    light: {
+      "screenshot-muted": "341 94% 93%", // 4
+      "screenshot-foreground": "332 63% 34%", // 12
+      "screenshot-primary-foreground": "340 100% 99%", // 1
+      "screenshot-border": "336 55% 73%", // 8
+      "screenshot-accent": "336 75% 45%", // 11
+      "screenshot-secondary": "341 81% 89%", // 5
+    },
+    dark: {
+      "screenshot-muted": "337 25% 10%", // 2
+      "screenshot-foreground": "330 91% 88%", // 12
+      "screenshot-primary-foreground": "340 100% 99%", // 1
+      "screenshot-border": "336 55% 73%", // 8
+      "screenshot-accent": "331 59% 23%", // 5
+      "screenshot-secondary": "331 59% 23%", // 5
+    },
+  },
+  // ruby
+  quartz: {},
+  // red
+  crimson: {},
+  // orange
+  saffron: {},
+  // grass
+  pistachio: {},
+  // teal
+  verdant: {},
+  // cyan
+  aqua: {},
+  // blue
+  azure: {},
+  // purple
+  amethyst: {},
+} as const;
+
 const COLOR_VALUES = {
   // crimson
   peony: {
@@ -21,6 +59,8 @@ const COLOR_VALUES = {
       "accent-foreground": "340 100% 99%", // 1
       destructive: "0 90% 50%", // TODO/TBD
       "destructive-foreground": "324 77% 95%", // TODO/TBD
+
+      // gradients
       "gradient-primary": "338 69% 85%", // 6
       "gradient-secondary": "341 100% 96%", // 3
       "modal-gradient-from": "341 100% 96%", // 3
@@ -47,6 +87,8 @@ const COLOR_VALUES = {
       "accent-foreground": "340 100% 99%", // 1
       destructive: "0 90% 50%", // TODO/TBD
       "destructive-foreground": "324 77% 95%", // TODO/TBD
+
+      // gradients
       "gradient-primary": "331 62% 19%", // 4
       "gradient-secondary": "338 19% 8%", // 1
       "modal-gradient-from": "337 25% 10%", // 2
