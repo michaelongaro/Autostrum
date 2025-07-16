@@ -14,8 +14,8 @@ function useScreenWakeLock() {
     async function requestWakeLock() {
       try {
         wakeLockRef.current = await navigator.wakeLock.request("screen");
-      } catch (err) {
-        console.error(`The Wake Lock request has failed: ${err}`);
+      } catch (e) {
+        console.error("The Wake Lock request has failed: ", e);
       }
     }
 
@@ -31,18 +31,23 @@ function useScreenWakeLock() {
               wakeLockRef.current = sentinel;
             }
           })
-          .catch((err) => {
-            console.error(`The Wake Lock request has failed: ${err}`);
+          .catch((e) => {
+            console.error("The Wake Lock request has failed: ", e);
           });
       }
     }
 
     if (showPlaybackModal) {
-      requestWakeLock();
+      void requestWakeLock();
     } else {
-      wakeLockRef.current?.release().then(() => {
-        wakeLockRef.current = null;
-      });
+      wakeLockRef.current
+        ?.release()
+        .then(() => {
+          wakeLockRef.current = null;
+        })
+        .catch((e) => {
+          console.error("The Wake Lock release has failed: ", e);
+        });
     }
 
     document.addEventListener("visibilitychange", reaquireWakeLock);
@@ -50,9 +55,14 @@ function useScreenWakeLock() {
     return () => {
       isMounted = false; // Clean up the flag on unmount
 
-      wakeLockRef.current?.release().then(() => {
-        wakeLockRef.current = null;
-      });
+      wakeLockRef.current
+        ?.release()
+        .then(() => {
+          wakeLockRef.current = null;
+        })
+        .catch((e) => {
+          console.error("The Wake Lock release has failed: ", e);
+        });
 
       document.removeEventListener("visibilitychange", reaquireWakeLock);
     };
