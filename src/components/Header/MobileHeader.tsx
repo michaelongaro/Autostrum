@@ -181,7 +181,7 @@ function MobileHeader() {
                 opacity: { duration: 0.2, ease: "easeInOut" },
               },
             }}
-            className="baseVertFlex fixed top-16 z-[-1] max-h-[80dvh] w-full max-w-lg !justify-start overflow-y-auto rounded-b-xl bg-secondary-active shadow-lg"
+            className="baseVertFlex mobileHeaderGradient fixed top-16 z-[-1] max-h-[80dvh] w-full max-w-lg !justify-start overflow-y-auto rounded-b-xl border-t border-foreground shadow-lg"
           >
             <div className="baseVertFlex my-4 h-full max-w-[348px] gap-4">
               <div className="baseFlex w-full gap-4">
@@ -281,7 +281,7 @@ function MobileHeader() {
                 </div>
               </div>
 
-              <Separator className="h-[1px] w-full bg-foreground/50" />
+              <Separator className="h-[1px] w-full bg-foreground/75" />
 
               <Accordion
                 type="single"
@@ -303,7 +303,7 @@ function MobileHeader() {
                 </AccordionItem>
               </Accordion>
 
-              <Separator className="h-[1px] w-full bg-foreground/50" />
+              <Separator className="h-[1px] w-full bg-foreground/75" />
 
               <AnimatePresence mode="popLayout">
                 {(isSignedIn === undefined || isLoadingCurrentUser) && (
@@ -485,7 +485,7 @@ function MobileHeader() {
                                   animate={{ opacity: 0 }}
                                   exit={{ opacity: 0 }}
                                   transition={{ duration: 0.3 }}
-                                  className="pulseAnimation bg-skeleton z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-8 rounded-full"
+                                  className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-8 rounded-full bg-skeleton"
                                 ></motion.div>
                               )}
                             </AnimatePresence>

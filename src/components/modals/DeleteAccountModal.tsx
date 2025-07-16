@@ -81,7 +81,7 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
       >
         <div
           tabIndex={-1}
-          className="baseVertFlex modalGradient w-[350px] gap-10 rounded-md p-4 shadow-sm sm:w-[500px]"
+          className="baseVertFlex modalGradient relative w-[350px] gap-10 rounded-lg border p-4 shadow-sm sm:w-[500px]"
         >
           <div className="baseFlex w-full !justify-between gap-2">
             <div className="baseFlex gap-2">
@@ -90,8 +90,7 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
             </div>
 
             <Button
-              variant={"text"}
-              className="baseFlex size-8 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+              variant={"modalClose"}
               onClick={() => {
                 setShowDeleteAccountModal(false);
               }}

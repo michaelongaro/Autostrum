@@ -1,4 +1,4 @@
-// comments are the radix color names
+// first-level comments are the radix color names, keys are user-facing names
 
 export const SCREENSHOT_COLORS = {
   // crimson
@@ -48,7 +48,7 @@ const COLOR_VALUES = {
       muted: "341 94% 93%", // 4
       skeleton: "341 81% 89%", // 5
       border: "336 55% 73%", // 8
-      ring: "338 69% 85%", // 6
+      ring: "336 45% 48%", // 8 (dark)
       primary: "336 80% 58%", // 9
       "primary-foreground": "340 100% 99%", // 1
       secondary: "341 100% 96%", // 3
@@ -65,6 +65,8 @@ const COLOR_VALUES = {
       "gradient-secondary": "341 100% 96%", // 3
       "modal-gradient-from": "341 100% 96%", // 3
       "modal-gradient-to": "341 94% 93%", // 4
+      "mobile-header-gradient-from": "341 94% 93%", // 4
+      "mobile-header-gradient-to": "341 94% 93%", // 4
       "header-footer-gradient-from": "341 100% 96%", // 3
       "header-footer-gradient-to": "341 94% 93%", // 4
     },
@@ -75,24 +77,26 @@ const COLOR_VALUES = {
       muted: "337 25% 10%", // 2
       skeleton: "330 91% 88%", // 12
       border: "336 55% 73%", // 8 (light)
-      ring: "333 49% 29%", // 6
+      ring: "336 45% 48%", // 8
       modal: "331 62% 19%", // 4
-      primary: "336 80% 58%", // 9
+      primary: "335.93 79.63% 57.65%", // 9
       "primary-foreground": "340 100% 99%", // 1
       secondary: "333 45% 15%", // 3
       "secondary-hover": "331 62% 19%", // 4
       "secondary-active": "331 59% 23%", // 5
-      "secondary-foreground": "345 100% 79%", // 11
+      "secondary-foreground": "330 91% 88%", // 12
       accent: "331 59% 23%", // 5
-      "accent-foreground": "340 100% 99%", // 1
+      "accent-foreground": "340 100% 99%", // 1 (light)
       destructive: "0 90% 50%", // TODO/TBD
       "destructive-foreground": "324 77% 95%", // TODO/TBD
 
       // gradients
       "gradient-primary": "331 62% 19%", // 4
       "gradient-secondary": "338 19% 8%", // 1
-      "modal-gradient-from": "337 25% 10%", // 2
-      "modal-gradient-to": "333 45% 15%", // 3
+      "modal-gradient-from": "338 19% 8%", // 1
+      "modal-gradient-to": "337 25% 10%", // 2
+      "mobile-header-gradient-from": "338 19% 8%", // 1
+      "mobile-header-gradient-to": "337 25% 10%", // 2
       "header-footer-gradient-from": "338 19% 8%", // 1
       "header-footer-gradient-to": "337 25% 10%", // 2
     },

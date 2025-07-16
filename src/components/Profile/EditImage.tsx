@@ -261,13 +261,14 @@ function EditImage({
         </div>
 
         <Button
-          variant={"text"}
-          className="hidden !size-8 shrink-0 !p-0 lg:!flex"
+          variant={"modalClose"}
+          className="!hidden shrink-0 lg:!flex"
           onClick={() => {
             setShowEditImageModal(false);
           }}
         >
           <X className="size-5" />
+          <span className="sr-only">Close</span>
         </Button>
       </div>
 

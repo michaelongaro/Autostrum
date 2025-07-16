@@ -30,9 +30,10 @@ function ThemePicker() {
   }
 
   return (
-    <div className="baseVertFlex mt-4 w-full !items-start gap-2 tablet:mt-0">
-      <span className="font-medium">Color</span>
-      <Separator className="bg-foreground" />
+    <div className="baseVertFlex mt-4 w-full !items-start tablet:mt-0">
+      <span className="font-medium sm:text-lg">Color</span>
+      <Separator className="h-[1px] bg-foreground/50" />
+
       <div className="mt-2 grid w-full grid-cols-3 grid-rows-3 gap-2">
         <div className="baseVertFlex w-full gap-1">
           <Button
@@ -134,8 +135,9 @@ function ThemePicker() {
         </div>
       </div>
 
-      <span className="mt-2 font-medium">Theme</span>
-      <Separator className="bg-foreground" />
+      <span className="mt-2 font-medium sm:mt-4 sm:text-lg">Theme</span>
+      <Separator className="h-[1px] bg-foreground/50" />
+
       <div className="mt-2 grid w-full grid-cols-3 grid-rows-1 gap-2">
         <div className="baseVertFlex w-full gap-1">
           <Button

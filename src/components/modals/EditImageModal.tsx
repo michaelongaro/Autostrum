@@ -47,7 +47,7 @@ function EditImageModal({
       <FocusLock autoFocus={false} returnFocus={true} persistentFocus={true}>
         <div
           tabIndex={-1}
-          className="baseVertFlex modalGradient size-[500px] gap-4 rounded-md p-4 shadow-sm"
+          className="baseVertFlex modalGradient relative size-[500px] gap-4 rounded-lg border p-4 shadow-sm"
         >
           <EditImage
             imageBeingEdited={imageBeingEdited}

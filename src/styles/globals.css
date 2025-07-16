@@ -111,17 +111,15 @@ kbd {
       hsl(var(--modal-gradient-to)));
   background-repeat: no-repeat;
   background-position: center;
-
 }
 
-/* .modalGradient::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background-image: url('/ui/noise.svg');
-  opacity: 0.5;
-} */
+.mobileHeaderGradient {
+  background: linear-gradient(145deg,
+      hsl(var(--mobile-header-gradient-from)),
+      hsl(var(--mobile-header-gradient-to)));
+  background-repeat: no-repeat;
+  background-position: center;
+}
 
 /* TODO: determine whether this gradient should be kept or if playback modal
    should just use modalGradient as well */
@@ -139,18 +137,8 @@ kbd {
   background-position: center;
 }
 
-/* .playbackModalGradient::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background-image: url('/ui/noise.svg');
-  opacity: 0.5;
-  pointer-events: none;
-} */
-
 .headerAndFooterBackgroundGradient {
-  background: linear-gradient(145deg,
+  background: linear-gradient(5deg,
       hsl(var(--header-footer-gradient-from)),
       hsl(var(--header-footer-gradient-to)));
   background-repeat: no-repeat;

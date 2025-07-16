@@ -732,10 +732,13 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                     boxShadow:
                       showPulsingError && genre === ""
                         ? "0 0 0 0.25rem hsl(0deg 100% 50%)"
-                        : "0 0 0 0 transparent",
-                    transitionProperty: "box-shadow",
-                    transitionTimingFunction: "ease-in-out",
-                    transitionDuration: "500ms",
+                        : "",
+                    transitionProperty:
+                      showPulsingError && genre === "" ? "box-shadow" : "",
+                    transitionTimingFunction:
+                      showPulsingError && genre === "" ? "ease-in-out" : "",
+                    transitionDuration:
+                      showPulsingError && genre === "" ? "500ms" : "",
                   }}
                   className={`w-[180px] ${
                     showPulsingError && genre === "" ? "animate-errorShake" : ""

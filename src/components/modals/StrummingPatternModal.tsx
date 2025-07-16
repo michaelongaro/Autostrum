@@ -358,11 +358,11 @@ function StrummingPatternModal({
       >
         <div
           tabIndex={-1}
-          className="baseVertFlex modalGradient max-h-[90vh] min-w-[370px] max-w-[90vw] !justify-start gap-4 rounded-md p-4 text-foreground shadow-sm transition-all sm:max-w-[700px]"
+          className="baseVertFlex modalGradient relative max-h-[90vh] min-w-[370px] max-w-[90vw] !justify-start gap-4 rounded-lg border p-4 text-foreground shadow-sm transition-all sm:max-w-[700px]"
         >
-          <div className="baseFlex w-full !items-start !justify-between sm:!flex-col sm:gap-8">
+          <div className="baseFlex w-full !items-start !justify-between md:!flex-col md:gap-8">
             <div className="baseFlex w-full !items-start !justify-between">
-              <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center sm:!justify-start">
+              <div className="baseVertFlex !items-start gap-2 md:!flex-row md:!items-center md:!justify-start">
                 <Label>Note length</Label>
                 <Select
                   onValueChange={handleNoteLengthChange}
@@ -516,18 +516,17 @@ function StrummingPatternModal({
               </div>
 
               <Button
-                variant={"ghost"}
+                variant={"modalClose"}
                 onClick={() => {
                   if (audioMetadata.playing) pauseAudio();
                   setStrummingPatternBeingEdited(null);
                 }}
-                className="baseFlex size-8 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
               >
                 <X className="size-5" />
               </Button>
             </div>
 
-            <div className="baseVertFlex gap-1 rounded-lg border bg-secondary px-4 py-3 text-sm shadow-sm xs:px-8 sm:w-auto sm:gap-2 sm:self-center md:px-4">
+            <div className="baseVertFlex mt-[70px] gap-1 rounded-lg border bg-secondary px-4 py-3 text-sm shadow-sm xs:px-8 md:mt-0 md:w-auto md:gap-2 md:self-center md:px-4">
               <div className="baseFlex w-auto gap-2 font-semibold">
                 <BsKeyboard className="h-6 w-6" />
                 Hotkeys

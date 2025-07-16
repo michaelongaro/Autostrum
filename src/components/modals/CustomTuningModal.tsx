@@ -119,7 +119,7 @@ function CustomTuningModal({
       >
         <div
           tabIndex={-1}
-          className="baseVertFlex modalGradient min-w-[300px] max-w-[91vw] gap-8 rounded-md p-4 shadow-sm xl:max-w-[50vw]"
+          className="baseVertFlex modalGradient relative min-w-[300px] max-w-[95vw] gap-8 rounded-lg border p-4 shadow-sm xl:max-w-[50vw]"
         >
           <div className="baseFlex w-full !justify-between gap-2">
             <div className="baseFlex gap-2">
@@ -128,11 +128,10 @@ function CustomTuningModal({
             </div>
 
             <Button
-              variant={"text"}
+              variant={"modalClose"}
               onClick={() => {
                 setShowCustomTuningModal(false);
               }}
-              className="h-4 p-0"
             >
               <X className="size-5" />
             </Button>
@@ -185,7 +184,7 @@ function CustomTuningModal({
             </div>
           </div>
 
-          <div className="baseFlex gap-2">
+          <div className="baseFlex gap-1 xs:gap-2">
             {customInputValues.map((value, index) => (
               <Input
                 key={index}

@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-
 import { cn } from "~/utils/cn";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
@@ -29,6 +28,8 @@ const buttonVariants = cva(
         playPause:
           "bg-green-600 text-primary-foreground hover:bg-green-700 shadow-none active:bg-green-800 disabled:opacity-50 disabled:bg-gray-500",
         text: "text-foreground shadow-none hover:text-foreground/80 active:text-foreground/60",
+        modalClose:
+          "baseFlex !size-5 absolute right-4 top-4 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none",
         drawer:
           "w-full !rounded-none font-normal !h-[65px] last-of-type:border-b-none border-b border-gray h-full baseFlex bg-secondary active:brightness-90 relative py-0",
         drawerNavigation:

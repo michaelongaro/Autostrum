@@ -150,7 +150,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       >
         <div
           tabIndex={-1}
-          className="baseVertFlex modalGradient relative min-w-[300px] max-w-[90vw] gap-4 rounded-md p-4 shadow-sm xs:max-w-[380px] xs:gap-8"
+          className="baseVertFlex modalGradient relative min-w-[300px] max-w-[90vw] gap-4 rounded-lg border p-4 shadow-sm xs:max-w-[380px] xs:gap-8"
         >
           {/* chord title */}
           <div className="baseFlex w-full !items-start !justify-between">
@@ -165,14 +165,14 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
             </div>
 
             <Button
-              variant={"ghost"}
+              variant={"modalClose"}
               onClick={() => {
                 if (audioMetadata.playing) pauseAudio();
                 setChordBeingEdited(null);
               }}
-              className="baseFlex size-8 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
             >
               <X className="size-5" />
+              <span className="sr-only">Close</span>
             </Button>
           </div>
 

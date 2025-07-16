@@ -32,7 +32,7 @@ function PinnedTabModal({
       <FocusLock autoFocus={false} returnFocus={true} persistentFocus={true}>
         <div
           tabIndex={-1}
-          className="baseVertFlex modalGradient h-[500px] w-[500px] gap-4 rounded-md p-4 shadow-sm"
+          className="baseVertFlex modalGradient relative h-[500px] w-[500px] gap-4 rounded-lg border p-4 shadow-sm"
         >
           <PinnedTabList
             userId={userId}

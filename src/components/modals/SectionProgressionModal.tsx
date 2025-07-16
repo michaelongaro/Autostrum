@@ -128,7 +128,7 @@ function SectionProgressionModal() {
       >
         <div
           tabIndex={-1}
-          className="modalGradient min-h-[20rem] min-w-[70vw] rounded-md p-4 shadow-sm md:min-w-[25rem]"
+          className="modalGradient relative min-h-[20rem] min-w-[70vw] rounded-lg border p-4 shadow-sm md:min-w-[25rem]"
         >
           <div className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full max-w-[90vw] !justify-between">
             <div className="baseFlex w-full !justify-between">
@@ -137,9 +137,8 @@ function SectionProgressionModal() {
               </span>
 
               <Button
-                variant={"ghost"}
+                variant={"modalClose"}
                 onClick={() => setShowSectionProgressionModal(false)}
-                className="baseFlex size-8 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
               >
                 <X className="size-5" />
               </Button>
