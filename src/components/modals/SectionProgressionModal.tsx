@@ -312,10 +312,7 @@ function Section({
 
       <div className="baseVertFlex gap-6 rounded-md py-1 text-foreground xs:!flex-row xs:!justify-between xs:gap-4">
         <div className="baseVertFlex !items-start gap-4 xs:!flex-row">
-          <Select
-            value={sectionId === "" ? undefined : sectionId}
-            onValueChange={(id) => handleSectionChange(id)}
-          >
+          <Select value={sectionId} onValueChange={handleSectionChange}>
             <SelectTrigger className="w-[218px] xs:w-[218px]">
               <SelectValue
                 placeholder="Select a section"
