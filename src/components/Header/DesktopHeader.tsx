@@ -50,7 +50,7 @@ function DesktopHeader() {
 
   const localStorageTabData = useLocalStorageValue("autostrum-tabData");
   const localStorageRedirectRoute = useLocalStorageValue(
-    "autostrum-redirectRoute",
+    "autostrum-redirect-route",
   );
 
   return (
@@ -236,9 +236,9 @@ function DesktopHeader() {
               transition={{
                 opacity: { duration: 0.1, ease: "easeInOut" },
               }}
-              className={`${classes.authentication} pulseAnimation bg-skeleton baseFlex size-12 shrink-0 rounded-full`}
+              className={`${classes.authentication} pulseAnimation baseFlex size-12 shrink-0 rounded-full bg-skeleton`}
             >
-              <div className="pulseAnimation bg-skeleton size-10 shrink-0 rounded-full"></div>
+              <div className="pulseAnimation size-10 shrink-0 rounded-full bg-skeleton"></div>
             </motion.div>
           )}
 
@@ -336,7 +336,7 @@ function DesktopHeader() {
                               animate={{ opacity: 0 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.3 }}
-                              className="pulseAnimation bg-skeleton z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full"
+                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full bg-skeleton"
                             ></motion.div>
                           )}
                         </AnimatePresence>

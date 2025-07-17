@@ -2,11 +2,12 @@ import { motion } from "framer-motion";
 import StaticStrummingPattern from "~/components/Tab/Static/StaticStrummingPattern";
 import { type ChordSequence } from "~/stores/TabStore";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
+import type { COLORS, THEME } from "~/stores/TabStore";
 
 export interface StaticChordSequence {
   chordSequenceData: ChordSequence;
-  color: string;
-  theme: "light" | "dark";
+  color: COLORS;
+  theme: THEME;
 }
 
 function StaticChordSequence({

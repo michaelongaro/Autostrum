@@ -1,9 +1,10 @@
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
+import type { COLORS, THEME } from "~/stores/TabStore";
 
 interface StaticPalmMuteNode {
   value: string;
-  color: string;
-  theme: "light" | "dark";
+  color: COLORS;
+  theme: THEME;
 }
 
 function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {

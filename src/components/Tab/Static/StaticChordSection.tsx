@@ -12,11 +12,12 @@ import {
 } from "~/utils/bpmIconRenderingHelpers";
 import StaticChordSequence from "~/components/Tab/Static/StaticChordSequence";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
+import type { COLORS, THEME } from "~/stores/TabStore";
 
 export interface StaticChordSection {
   subSectionData: ChordSectionType;
-  color: string;
-  theme: "light" | "dark";
+  color: COLORS;
+  theme: THEME;
 }
 
 function StaticChordSection({

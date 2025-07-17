@@ -5,13 +5,14 @@ import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
 import StaticTabNote from "~/components/Tab/Static/StaticTabNote";
 import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
+import type { COLORS, THEME } from "~/stores/TabStore";
 
 interface StaticTabNotesColumn {
   columnData: string[];
   columnIndex: number;
   isFinalColumn: boolean;
-  color: string;
-  theme: "light" | "dark";
+  color: COLORS;
+  theme: THEME;
 }
 
 function StaticTabNotesColumn({

@@ -15,6 +15,7 @@ import MobileHeader from "../Header/MobileHeader";
 import useGetViewportLabel from "~/hooks/useGetViewportLabel";
 import useScreenWakeLock from "~/hooks/useScreenWakeLock";
 import usePostSignUpRegistration from "~/hooks/usePostSignUpRegistration";
+import useColorAndThemeController from "~/hooks/useColorAndThemeController";
 
 const MobileHeaderModal = dynamic(
   () => import("~/components/modals/MobileHeaderModal"),
@@ -32,6 +33,7 @@ function GeneralLayoutStatefulShell() {
   // reflects any updates made to username/profileImageUrl in Clerk to the UserMetadata
   // useKeepUserMetadataUpdatedWithClerk();
 
+  useColorAndThemeController();
   usePostSignUpRegistration();
   useInitializeAudioContext();
   useFetchAndLoadSoundfonts();

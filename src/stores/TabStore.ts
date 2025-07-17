@@ -235,6 +235,19 @@ interface PlaybackChord {
   isRaised: boolean; // only true if this chord and strummed chord to the left are both > 5 characters. Allowing entire chord names to render w/o overlap
 }
 
+export type COLORS =
+  | "peony"
+  | "quartz"
+  | "crimson"
+  | "saffron"
+  | "pistachio"
+  | "verdant"
+  | "aqua"
+  | "azure"
+  | "amethyst";
+
+export type THEME = "light" | "dark";
+
 const initialStoreState = {
   // tab data
   originalTabData: null,
@@ -309,6 +322,11 @@ const initialStoreState = {
     type: "chord" as const,
     playing: false,
   },
+
+  // theme
+  color: "peony" as COLORS,
+  theme: "light" as "light" | "dark",
+  followsDeviceTheme: true,
 
   isLoadingARoute: false,
   // idk if search needs to be included here
@@ -576,6 +594,14 @@ interface TabState {
       | "desktop",
   ) => void;
 
+  // theme
+  color: COLORS;
+  setColor: (color: COLORS) => void;
+  theme: "light" | "dark";
+  setTheme: (theme: "light" | "dark") => void;
+  followsDeviceTheme: boolean;
+  setFollowsDeviceTheme: (followsDeviceTheme: boolean) => void;
+
   // reset
   resetStoreToInitValues: () => void;
 }
@@ -812,7 +838,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           if (isMobileOnly) {
             // mobile doesn't get access to a volume slider (users expect to use device's volume directly) so initializing at full volume.
             newMasterVolumeGainNode.gain.value = 2;
-            localStorage.setItem("autostrumVolume", "2");
+            localStorage.setItem("autostrum-volume", "2");
           }
 
           newMasterVolumeGainNode.connect(newAudioContext.destination);
@@ -1218,6 +1244,15 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       setIsLoadingARoute: (isLoadingARoute) => set({ isLoadingARoute }),
       viewportLabel: "mobile",
       setViewportLabel: (viewportLabel) => set({ viewportLabel }),
+
+      // theme
+      color: "peony",
+      setColor: (color) => set({ color }),
+      theme: "light",
+      setTheme: (theme) => set({ theme }),
+      followsDeviceTheme: true,
+      setFollowsDeviceTheme: (followsDeviceTheme) =>
+        set({ followsDeviceTheme }),
 
       // reset
       resetStoreToInitValues: () => set(initialStoreState),

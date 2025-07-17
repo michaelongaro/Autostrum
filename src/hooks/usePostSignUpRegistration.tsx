@@ -15,7 +15,7 @@ function usePostSignUpRegistration() {
     });
 
   const localStorageRedirectRoute = useLocalStorageValue(
-    "autostrum-redirectRoute",
+    "autostrum-redirect-route",
   );
 
   const { mutate: addNewUser } =

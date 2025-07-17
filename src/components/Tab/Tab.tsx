@@ -121,6 +121,8 @@ function Tab({ tab }: Tab) {
     viewportLabel,
     setShowPlaybackModal,
     setLooping,
+    color,
+    theme,
   } = useTabStore((state) => ({
     setId: state.setId,
     setCreatedByUserId: state.setCreatedByUserId,
@@ -160,6 +162,8 @@ function Tab({ tab }: Tab) {
     viewportLabel: state.viewportLabel,
     setShowPlaybackModal: state.setShowPlaybackModal,
     setLooping: state.setLooping,
+    color: state.color,
+    theme: state.theme,
   }));
 
   useEffect(() => {
@@ -467,6 +471,8 @@ function Tab({ tab }: Tab) {
                   <StaticSectionContainer
                     sectionIndex={index}
                     sectionData={section}
+                    color={color}
+                    theme={theme}
                   />
                 )}
               </motion.div>

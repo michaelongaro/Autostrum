@@ -5,6 +5,7 @@ import StaticTabNotesColumn from "~/components/Tab/Static/StaticTabNotesColumn";
 import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
 import { useTabStore, type TabSection } from "~/stores/TabStore";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
+import type { COLORS, THEME } from "~/stores/TabStore";
 
 export interface LastModifiedPalmMuteNodeLocation {
   columnIndex: number;
@@ -14,8 +15,8 @@ export interface LastModifiedPalmMuteNodeLocation {
 
 interface StaticTabSection {
   subSectionData: TabSection;
-  color: string;
-  theme: "light" | "dark";
+  color: COLORS;
+  theme: THEME;
 }
 
 function StaticTabSection({ subSectionData, color, theme }: StaticTabSection) {

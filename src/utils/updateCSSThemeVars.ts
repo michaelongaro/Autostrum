@@ -1,5 +1,24 @@
 // first-level comments are the radix color names, keys are user-facing names
 
+import type { COLORS, THEME } from "~/stores/TabStore";
+
+export type ScreenshotColorKey =
+  | "screenshot-muted"
+  | "screenshot-foreground"
+  | "screenshot-primary-foreground"
+  | "screenshot-border"
+  | "screenshot-accent"
+  | "screenshot-secondary";
+
+type ScreenshotColorScale = Record<ScreenshotColorKey, string>;
+type ScreenshotColorValues = Record<
+  COLORS,
+  Record<THEME, ScreenshotColorScale>
+>;
+
+type ColorScale = Record<string, string>;
+type ColorValues = Record<COLORS, Record<THEME, ColorScale>>;
+
 export const SCREENSHOT_COLORS = {
   // crimson
   peony: {
@@ -21,22 +40,22 @@ export const SCREENSHOT_COLORS = {
     },
   },
   // ruby
-  quartz: {},
+  quartz: { light: {}, dark: {} },
   // red
-  crimson: {},
+  crimson: { light: {}, dark: {} },
   // orange
-  saffron: {},
+  saffron: { light: {}, dark: {} },
   // grass
-  pistachio: {},
+  pistachio: { light: {}, dark: {} },
   // teal
-  verdant: {},
+  verdant: { light: {}, dark: {} },
   // cyan
-  aqua: {},
+  aqua: { light: {}, dark: {} },
   // blue
-  azure: {},
+  azure: { light: {}, dark: {} },
   // purple
-  amethyst: {},
-} as const;
+  amethyst: { light: {}, dark: {} },
+} as const satisfies ScreenshotColorValues;
 
 const COLOR_VALUES = {
   // crimson
@@ -102,29 +121,24 @@ const COLOR_VALUES = {
     },
   },
   // ruby
-  quartz: {},
+  quartz: { light: {}, dark: {} },
   // red
-  crimson: {},
+  crimson: { light: {}, dark: {} },
   // orange
-  saffron: {},
+  saffron: { light: {}, dark: {} },
   // grass
-  pistachio: {},
+  pistachio: { light: {}, dark: {} },
   // teal
-  verdant: {},
+  verdant: { light: {}, dark: {} },
   // cyan
-  aqua: {},
+  aqua: { light: {}, dark: {} },
   // blue
-  azure: {},
+  azure: { light: {}, dark: {} },
   // purple
-  amethyst: {},
-} as const;
+  amethyst: { light: {}, dark: {} },
+} as const satisfies ColorValues;
 
-type Colors = typeof COLOR_VALUES;
-
-export function updateCSSThemeVars(
-  color: keyof Colors,
-  theme: "light" | "dark",
-) {
+export function updateCSSThemeVars(color: COLORS, theme: THEME) {
   const colors = COLOR_VALUES[color][theme];
 
   if (!colors) {

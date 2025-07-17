@@ -14,12 +14,13 @@ import { Button } from "~/components/ui/button";
 import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import renderStaticStrummingGuide from "~/utils/renderStaticStrummingGuide";
+import type { COLORS, THEME } from "~/stores/TabStore";
 
 interface StaticStrummingPattern {
   data: StrummingPatternType;
   chordSequenceData?: string[];
-  color: string;
-  theme: "light" | "dark";
+  color: COLORS;
+  theme: THEME;
 }
 
 function StaticStrummingPattern({

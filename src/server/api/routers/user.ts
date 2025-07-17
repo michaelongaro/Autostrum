@@ -18,15 +18,8 @@ export interface UserMetadata extends User {
 function base64ToBlob(base64: string, contentType = "image/jpeg"): Blob {
   // Remove the data URL part if present
   const base64Data = base64.replace(/^data:image\/\w+;base64,/, "");
-  const byteCharacters = atob(base64Data);
-  const byteNumbers = new Array(byteCharacters.length);
-
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
-
-  const byteArray = new Uint8Array(byteNumbers);
-  return new Blob([byteArray], { type: contentType });
+  const buffer = Buffer.from(base64Data, "base64");
+  return new Blob([buffer], { type: contentType });
 }
 
 export const userRouter = createTRPCRouter({
@@ -122,7 +115,25 @@ export const userRouter = createTRPCRouter({
       };
     }),
 
-  // TODO: make a proper "create" function when done w/ this branch
+  updateColor: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        color: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { userId, color } = input;
+
+      await ctx.prisma.user.update({
+        where: {
+          userId,
+        },
+        data: {
+          color,
+        },
+      });
+    }),
 
   update: protectedProcedure
     .input(
@@ -153,26 +164,28 @@ export const userRouter = createTRPCRouter({
         }
       }
 
-      const clerk = await clerkClient();
-
       let updatedClerkUser = null;
 
-      if (newPassword) {
-        await clerk.users.updateUser(userId, {
-          password: newPassword,
-          skipPasswordChecks: true,
-        });
-      }
+      if (newPassword || newProfileImage) {
+        const clerk = await clerkClient();
 
-      if (newProfileImage) {
-        const blob = base64ToBlob(newProfileImage, "image/jpeg");
-        const newImageFile = new File([blob], "profileImage", {
-          type: "image/jpeg",
-        });
+        if (newPassword) {
+          await clerk.users.updateUser(userId, {
+            password: newPassword,
+            skipPasswordChecks: true,
+          });
+        }
 
-        updatedClerkUser = await clerk.users.updateUserProfileImage(userId, {
-          file: newImageFile,
-        });
+        if (newProfileImage) {
+          const blob = base64ToBlob(newProfileImage, "image/jpeg");
+          const newImageFile = new File([blob], "profileImage", {
+            type: "image/jpeg",
+          });
+
+          updatedClerkUser = await clerk.users.updateUserProfileImage(userId, {
+            file: newImageFile,
+          });
+        }
       }
 
       return ctx.prisma.user.update({

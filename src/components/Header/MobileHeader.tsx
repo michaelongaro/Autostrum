@@ -61,7 +61,7 @@ function MobileHeader() {
 
   const localStorageTabData = useLocalStorageValue("autostrum-tabData");
   const localStorageRedirectRoute = useLocalStorageValue(
-    "autostrum-redirectRoute",
+    "autostrum-redirect-route",
   );
 
   // closes the mobile header when the user taps outside of it

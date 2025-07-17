@@ -14,12 +14,13 @@ import {
 import { Separator } from "~/components/ui/separator";
 import StaticChordSection from "~/components/Tab/Static/StaticChordSection";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
+import type { COLORS, THEME } from "~/stores/TabStore";
 
 interface StaticSectionContainer {
   sectionData: Section;
   sectionIndex: number;
-  color: string;
-  theme: "light" | "dark";
+  color: COLORS;
+  theme: THEME;
 }
 
 function StaticSectionContainer({

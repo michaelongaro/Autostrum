@@ -2,11 +2,12 @@ import { motion } from "framer-motion";
 import { Fragment } from "react";
 import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
+import type { COLORS, THEME } from "~/stores/TabStore";
 
 interface StaticTabMeasureLine {
   columnData: string[];
-  color: string;
-  theme: "light" | "dark";
+  color: COLORS;
+  theme: THEME;
 }
 
 function StaticTabMeasureLine({

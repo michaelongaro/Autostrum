@@ -25,6 +25,8 @@ import type { Area, Point } from "react-easy-crop";
 import { Check } from "lucide-react";
 import EditImageSelector from "~/components/Profile/EditImageSelector";
 import Ellipsis from "~/components/ui/icons/Ellipsis";
+import { updateCSSThemeVars } from "~/utils/updateCSSThemeVars";
+import { useTabStore } from "~/stores/TabStore";
 
 const EditImageModal = dynamic(
   () => import("~/components/modals/EditImageModal"),
@@ -35,6 +37,30 @@ const PinnedTabModal = dynamic(
 const DeleteAccountModal = dynamic(
   () => import("~/components/modals/DeleteAccountModal"),
 );
+
+const COLORS = [
+  "peony",
+  "quartz",
+  "crimson",
+  "saffron",
+  "pistachio",
+  "verdant",
+  "aqua",
+  "azure",
+  "amethyst",
+] as const;
+
+const COLOR_HEX_VALUES: Record<(typeof COLORS)[number], string> = {
+  peony: "#E93D82",
+  quartz: "#CA244D",
+  crimson: "#CE2C31",
+  saffron: "#F76B15",
+  pistachio: "#46A758",
+  verdant: "#12A594",
+  aqua: "#00A2C7",
+  azure: "#0D74CE",
+  amethyst: "#8E4EC6",
+};
 
 export interface LocalSettings {
   emailAddress: string;
@@ -49,6 +75,22 @@ function UserSettings() {
   const { userId } = useAuth();
   const { user: clerkUser } = useUser();
   const ctx = api.useUtils();
+
+  const {
+    color,
+    setColor,
+    theme,
+    setTheme,
+    followsDeviceTheme,
+    setFollowsDeviceTheme,
+  } = useTabStore((state) => ({
+    color: state.color,
+    setColor: state.setColor,
+    theme: state.theme,
+    setTheme: state.setTheme,
+    followsDeviceTheme: state.followsDeviceTheme,
+    setFollowsDeviceTheme: state.setFollowsDeviceTheme,
+  }));
 
   const [localSettings, setLocalSettings] = useState<LocalSettings | null>(
     null,
@@ -79,6 +121,13 @@ function UserSettings() {
         setSaveButtonText("Save");
       }, 4000);
     },
+    onError: (e) => {
+      console.error(e);
+    },
+  });
+
+  const { mutate: updateDBColor } = api.user.updateColor.useMutation({
+    // FYI: I don't believe an onSuccess is necessary here
     onError: (e) => {
       console.error(e);
     },
@@ -261,7 +310,7 @@ function UserSettings() {
                       {localSettings.emailAddress}
                     </span>
                   ) : (
-                    <div className="pulseAnimation bg-skeleton h-6 w-48 rounded-md lg:h-7"></div>
+                    <div className="pulseAnimation h-6 w-48 rounded-md bg-skeleton lg:h-7"></div>
                   )}
                 </motion.div>
               </div>
@@ -305,7 +354,7 @@ function UserSettings() {
                         }}
                       />
                     ) : (
-                      <div className="pulseAnimation bg-skeleton h-10 w-[275px] rounded-md lg:h-7"></div>
+                      <div className="pulseAnimation h-10 w-[275px] rounded-md bg-skeleton lg:h-7"></div>
                     )}
                   </motion.div>
 
@@ -576,7 +625,7 @@ function UserSettings() {
                             : "Controlled by attached Google account"}
                         </span>
                       ) : (
-                        <div className="pulseAnimation bg-skeleton h-6 w-64 rounded-md lg:h-7"></div>
+                        <div className="pulseAnimation h-6 w-64 rounded-md bg-skeleton lg:h-7"></div>
                       )}
                     </motion.div>
                   )}
@@ -662,118 +711,38 @@ function UserSettings() {
                 </span>
 
                 <div className="grid w-full max-w-[450px] grid-cols-3 grid-rows-3 gap-4 self-center">
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-[#E93D82] !p-0"
-                    ></Button>
-                    <span className="text-sm font-medium">Peony</span>
-                  </div>
+                  {COLORS.map((colorString) => (
+                    <div
+                      key={colorString}
+                      className="baseVertFlex w-full gap-1"
+                    >
+                      <Button
+                        variant={"outline"}
+                        onClick={() => {
+                          updateCSSThemeVars(colorString, theme);
+                          setColor(colorString);
+                          window.localStorage.setItem(
+                            "autostrum-color",
+                            colorString,
+                          );
 
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-[#CA244D] !p-0"
-                    ></Button>
-                    <span className="text-sm font-medium opacity-50">
-                      Quartz
-                    </span>
-                  </div>
-
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-[#CE2C31] !p-0"
-                    ></Button>
-                    <span className="text-sm font-medium opacity-50">
-                      Crimson
-                    </span>
-                  </div>
-
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-[#F76B15] !p-0"
-                    ></Button>
-                    <span className="text-sm font-medium opacity-50">
-                      Saffron
-                    </span>
-                  </div>
-
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-[#46A758] !p-0"
-                    ></Button>
-                    <span className="text-sm font-medium opacity-50">
-                      Pistachio
-                    </span>
-                  </div>
-
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-[#12A594] !p-0"
-                    ></Button>
-                    <span className="text-sm font-medium opacity-50">
-                      Verdant
-                    </span>
-                  </div>
-
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-[#00A2C7] !p-0"
-                    ></Button>
-                    <span className="text-sm font-medium opacity-50">Aqua</span>
-                  </div>
-
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-[#0D74CE] !p-0"
-                    ></Button>
-                    <span className="text-sm font-medium opacity-50">
-                      Azure
-                    </span>
-                  </div>
-
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-[#8E4EC6] !p-0"
-                    ></Button>
-                    <span className="text-sm font-medium opacity-50">
-                      Amethyst
-                    </span>
-                  </div>
+                          if (userId) {
+                            updateDBColor({ userId, color: colorString });
+                          }
+                        }}
+                        style={{
+                          backgroundColor: COLOR_HEX_VALUES[colorString],
+                        }}
+                        className={`!size-12 !rounded-full !p-0`}
+                      ></Button>
+                      <span
+                        className={`text-sm font-medium transition-all ${color === colorString ? "" : "opacity-50"}`}
+                      >
+                        {colorString.charAt(0).toUpperCase() +
+                          colorString.slice(1)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -808,39 +777,78 @@ function UserSettings() {
                     <Button
                       variant={"outline"}
                       onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
+                        updateCSSThemeVars(color, "light");
+                        setTheme("light");
+                        setFollowsDeviceTheme(false);
+                        window.localStorage.setItem("autostrum-theme", "light");
+                        window.localStorage.setItem(
+                          "autostrum-follows-device-theme",
+                          "false",
+                        );
                       }}
                       className="!size-12 !rounded-full !p-0"
                     >
-                      <IoSunnyOutline className="size-6" />
+                      <IoSunnyOutline className="size-6 text-foreground" />
                     </Button>
-                    <span className="text-sm font-medium">Light</span>
+                    <span
+                      className={`text-sm font-medium ${!followsDeviceTheme && theme === "light" ? "" : "opacity-50"}`}
+                    >
+                      Light
+                    </span>
                   </div>
 
                   <div className="baseVertFlex w-full gap-1">
                     <Button
                       variant={"outline"}
                       onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
+                        updateCSSThemeVars(color, "dark");
+                        setTheme("dark");
+                        setFollowsDeviceTheme(false);
+                        window.localStorage.setItem("autostrum-theme", "dark");
+                        window.localStorage.setItem(
+                          "autostrum-follows-device-theme",
+                          "false",
+                        );
                       }}
                       className="!size-12 !rounded-full !p-0"
                     >
-                      <IoMoonOutline className="size-6" />
+                      <IoMoonOutline className="size-6 text-foreground" />
                     </Button>
-                    <span className="text-sm font-medium opacity-50">Dark</span>
+                    <span
+                      className={`text-sm font-medium ${!followsDeviceTheme && theme === "dark" ? "" : "opacity-50"}`}
+                    >
+                      Dark
+                    </span>
                   </div>
 
                   <div className="baseVertFlex w-full gap-1">
                     <Button
                       variant={"outline"}
                       onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
+                        const systemTheme = window.matchMedia(
+                          "(prefers-color-scheme: dark)",
+                        ).matches
+                          ? "dark"
+                          : "light";
+                        updateCSSThemeVars(color, systemTheme);
+                        setTheme(systemTheme);
+                        setFollowsDeviceTheme(true);
+                        window.localStorage.setItem(
+                          "autostrum-theme",
+                          systemTheme,
+                        );
+                        window.localStorage.setItem(
+                          "autostrum-follows-device-theme",
+                          "true",
+                        );
                       }}
                       className="!size-12 !rounded-full !p-0"
                     >
-                      <HiMiniComputerDesktop className="size-6" />
+                      <HiMiniComputerDesktop className="size-6 text-foreground" />
                     </Button>
-                    <span className="text-sm font-medium opacity-50">
+                    <span
+                      className={`text-sm font-medium ${followsDeviceTheme ? "" : "opacity-50"}`}
+                    >
                       System
                     </span>
                   </div>
