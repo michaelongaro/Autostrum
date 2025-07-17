@@ -425,7 +425,7 @@ function SearchResults({
     <div className="baseFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-4 md:min-h-[calc(100dvh-4rem-12rem-56px)]">
       {/* tablet+ filters sidebar */}
       <div
-        className={`baseVertFlex sticky top-16 !hidden h-fit w-56 shrink-0 !items-start !justify-start gap-4 rounded-lg bg-accent p-4 text-primary-foreground transition-all tablet:!flex ${stickyHeaderNotActive ? "" : "rounded-t-none"}`}
+        className={`baseVertFlex sticky top-16 !hidden h-fit w-56 shrink-0 !items-start !justify-start gap-4 rounded-lg border bg-accent p-4 text-primary-foreground transition-all tablet:!flex ${stickyHeaderNotActive ? "" : "rounded-t-none"}`}
       >
         <div className="baseFlex gap-2">
           <LuFilter className="size-5" />
@@ -743,7 +743,7 @@ function SearchResults({
                 layoutType.value === "table" ? "0.25rem" : "0.75rem",
             }}
             transition={{ duration: 0.5, ease: "linear" }}
-            className="baseVertFlex sticky top-16 z-20 w-full !justify-between border-b bg-accent pt-3 text-primary-foreground tablet:!hidden"
+            className="baseVertFlex sticky top-16 z-20 w-full !justify-between border-b-0 border-t bg-accent pt-3 text-primary-foreground tablet:!hidden"
           >
             {/* scroll area + only show on hover for BOTH the header + the table scrollbars */}
             <AnimatePresence initial={false}>
@@ -1645,7 +1645,7 @@ function SearchResults({
                 layoutType.value === "table" ? "0.25rem" : "0.75rem",
             }}
             transition={{ duration: 0.5, ease: "linear" }}
-            className={`baseVertFlex sticky top-16 z-20 w-full !justify-between border-b bg-accent pt-3 text-primary-foreground ${stickyHeaderNotActive ? "rounded-t-lg" : "rounded-t-none"}`}
+            className={`baseVertFlex sticky top-16 z-20 w-full !justify-between border bg-accent pt-3 text-primary-foreground ${stickyHeaderNotActive ? "rounded-t-lg" : "rounded-t-none"}`}
           >
             <AnimatePresence initial={false}>
               <div className="baseFlex w-full !justify-between gap-2 px-4">
@@ -1803,7 +1803,7 @@ function SearchResults({
                   >
                     <div className="w-full bg-accent">
                       <div
-                        className="grid grid-rows-1 items-center text-sm font-medium text-muted"
+                        className="grid grid-rows-1 items-center text-sm font-medium text-primary-foreground/75"
                         style={{
                           gridTemplateColumns: getDynamicGridTemplateColumns(),
                         }}

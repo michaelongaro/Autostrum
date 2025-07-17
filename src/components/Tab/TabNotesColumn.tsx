@@ -10,7 +10,6 @@ import {
   memo,
   type Dispatch,
   type SetStateAction,
-  type SVGProps,
 } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
@@ -300,6 +299,7 @@ function TabNotesColumn({
           style={{
             marginTop:
               reorderingColumns || showingDeleteColumnsButtons ? "8px" : "0",
+            backgroundColor: "hsl(var(--primary) / 0.75)",
             transform:
               highlightChord || columnHasBeenPlayed
                 ? `scaleX(${isFinalColumn ? "0.8" : "1"})` // makes sure that "endcap" doesn't get highlighted as well
@@ -309,7 +309,7 @@ function TabNotesColumn({
             msTransitionProperty: "transform",
             transitionTimingFunction: "linear",
           }}
-          className="absolute left-0 h-[276px] w-full bg-primary"
+          className="absolute left-0 h-[276px] w-full"
         ></div>
 
         <div className="baseVertFlex mb-[3.2rem] mt-4 gap-2">

@@ -23,6 +23,12 @@ type ColorValues = Record<COLORS, Record<THEME, ColorScale>>;
 // pistachio, verdant - sage 9
 // aqua, azure - slate 9
 
+// TODO: document current arrangment of what color #s are used for light/dark
+// and also screenshot variants too
+
+// FYI: these values are all subject to change, whether it's small foreground tweaks
+// or entire rearrangments of color intensities.
+
 export const SCREENSHOT_COLORS = {
   peony: {
     light: {

@@ -237,7 +237,7 @@ function PlaybackTabNote({
       <div
         style={{
           color: isHighlighted
-            ? "hsl(var(--primary))"
+            ? "hsl(var(--primary) / 0.75)"
             : "hsl(var(--foreground))",
           transitionDuration: "75ms",
 

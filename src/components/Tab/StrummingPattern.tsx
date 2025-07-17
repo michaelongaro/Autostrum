@@ -593,7 +593,7 @@ function StrummingPattern({
                           : "1px"
                       }`,
                       color: highlightChord(strumIndex, true)
-                        ? "hsl(var(--primary))"
+                        ? "hsl(var(--primary) / 0.75)"
                         : "hsl(var(--foreground))",
                     }}
                     className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm"
@@ -620,7 +620,7 @@ function StrummingPattern({
                   <div
                     style={{
                       color: highlightChord(strumIndex, index !== undefined)
-                        ? "hsl(var(--primary))"
+                        ? "hsl(var(--primary) / 0.75)"
                         : "inherit",
                     }}
                     className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
@@ -695,7 +695,7 @@ function StrummingPattern({
                       ? "1.25rem"
                       : "auto",
                   color: highlightChord(strumIndex, index !== undefined)
-                    ? "hsl(335, 78%, 42%)"
+                    ? "hsl(var(--primary) / 0.75)"
                     : "inherit",
                 }}
                 className="text-sm transition-colors"
