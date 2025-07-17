@@ -43,12 +43,19 @@ function MobileHeader() {
   const { asPath } = useRouter();
   const router = useRouter();
 
-  const { getStringifiedTabData, mobileHeaderModal, setMobileHeaderModal } =
-    useTabStore((state) => ({
-      getStringifiedTabData: state.getStringifiedTabData,
-      mobileHeaderModal: state.mobileHeaderModal,
-      setMobileHeaderModal: state.setMobileHeaderModal,
-    }));
+  const {
+    getStringifiedTabData,
+    mobileHeaderModal,
+    setMobileHeaderModal,
+    color,
+    theme,
+  } = useTabStore((state) => ({
+    getStringifiedTabData: state.getStringifiedTabData,
+    mobileHeaderModal: state.mobileHeaderModal,
+    setMobileHeaderModal: state.setMobileHeaderModal,
+    color: state.color,
+    theme: state.theme,
+  }));
 
   const { data: currentUser, isInitialLoading: isLoadingCurrentUser } =
     api.user.getById.useQuery(userId!, {
@@ -294,7 +301,19 @@ function MobileHeader() {
                 >
                   <AccordionTrigger className="baseFlex w-full !justify-start gap-2">
                     <IoColorPalette className="size-5 !rotate-0" />
-                    Peony | Light
+
+                    <span>
+                      {color.charAt(0).toUpperCase() + color.slice(1)}
+                    </span>
+
+                    <Separator
+                      orientation="vertical"
+                      className="h-[100%] w-[1px] bg-foreground/50"
+                    />
+
+                    <span>
+                      {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                    </span>
                   </AccordionTrigger>
 
                   <AccordionContent animated={true} className="w-full">
