@@ -69,8 +69,8 @@ function Hero() {
               </div>
             </div>
           ) : (
-            <div className="baseFlex gap-4 xl:flex-col xl:!items-start">
-              <div className="shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
+            <div className="baseFlex !items-start gap-4">
+              <div className="mt-1 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
                 <GiMusicalScore className="h-8 w-8" />
               </div>
               <div className="baseVertFlex !items-start gap-1">
@@ -99,8 +99,8 @@ function Hero() {
               </div>
             </div>
           ) : (
-            <div className="baseFlex gap-4 xl:flex-col xl:!items-start">
-              <div className="shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
+            <div className="baseFlex !items-start gap-4">
+              <div className="mt-1 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
                 <HiOutlineLightBulb className="h-8 w-8" />
               </div>
               <div className="baseVertFlex !items-start gap-1">
@@ -130,8 +130,8 @@ function Hero() {
               </div>
             </div>
           ) : (
-            <div className="baseFlex gap-4 xl:flex-col xl:!items-start">
-              <div className="shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
+            <div className="baseFlex !items-start gap-4">
+              <div className="mt-1 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
                 <BsBarChartLine className="h-8 w-8" />
               </div>
               <div className="baseVertFlex !items-start gap-1">
