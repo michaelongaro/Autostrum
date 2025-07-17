@@ -6,6 +6,8 @@ import { updateCSSThemeVars } from "~/utils/updateCSSThemeVars";
 import { api } from "~/utils/api";
 import { useTabStore } from "~/stores/TabStore";
 import { useAuth } from "@clerk/nextjs";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 const COLORS = [
   "peony",
@@ -57,6 +59,9 @@ function ThemePicker() {
     },
   });
 
+  const [hoveredColor, setHoveredColor] = useState<string | null>(null);
+  const [hoveredTheme, setHoveredTheme] = useState<string | null>(null);
+
   return (
     <div className="baseVertFlex mt-4 w-full !items-start tablet:mt-0">
       <span className="font-medium sm:text-lg">Color</span>
@@ -66,7 +71,12 @@ function ThemePicker() {
         {COLORS.map((colorString) => (
           <div key={colorString} className="baseVertFlex w-full gap-1">
             <Button
-              variant={"outline"}
+              variant={"theme"}
+              onMouseEnter={() => setHoveredColor(colorString)}
+              onMouseLeave={() => setHoveredColor(null)}
+              onTouchStart={() => setHoveredColor(colorString)}
+              onTouchEnd={() => setHoveredColor(null)}
+              onTouchCancel={() => setHoveredColor(null)}
               onClick={() => {
                 updateCSSThemeVars(colorString, theme);
                 setColor(colorString);
@@ -77,10 +87,23 @@ function ThemePicker() {
                 }
               }}
               style={{ backgroundColor: COLOR_HEX_VALUES[colorString] }}
-              className={`!size-12 !rounded-full !p-0`}
-            ></Button>
+              className={`relative !size-12 !rounded-full !p-0`}
+            >
+              <AnimatePresence>
+                {(color === colorString || hoveredColor === colorString) && (
+                  <motion.div
+                    key={`hovered-color-${colorString}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute inset-0 rounded-full border border-foreground"
+                  ></motion.div>
+                )}
+              </AnimatePresence>
+            </Button>
             <span
-              className={`text-sm font-medium transition-all ${color === colorString ? "" : "opacity-50"}`}
+              className={`text-sm font-medium transition-all ${color === colorString ? "opacity-100" : "opacity-50"}`}
             >
               {colorString.charAt(0).toUpperCase() + colorString.slice(1)}
             </span>
@@ -94,7 +117,12 @@ function ThemePicker() {
       <div className="mt-2 grid w-full grid-cols-3 grid-rows-1 gap-2">
         <div className="baseVertFlex w-full gap-1">
           <Button
-            variant={"outline"}
+            variant={"theme"}
+            onMouseEnter={() => setHoveredTheme("light")}
+            onMouseLeave={() => setHoveredTheme(null)}
+            onTouchStart={() => setHoveredTheme("light")}
+            onTouchEnd={() => setHoveredTheme(null)}
+            onTouchCancel={() => setHoveredTheme(null)}
             onClick={() => {
               updateCSSThemeVars(color, "light");
               setTheme("light");
@@ -105,9 +133,22 @@ function ThemePicker() {
                 "false",
               );
             }}
-            className="!size-12 !rounded-full !p-0"
+            className="relative !size-12 !rounded-full !p-0"
           >
             <IoSunnyOutline className="size-6 text-foreground" />
+            <AnimatePresence>
+              {((theme === "light" && !followsDeviceTheme) ||
+                hoveredTheme === "light") && (
+                <motion.div
+                  key={"hovered-theme-light"}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 rounded-full border border-foreground"
+                ></motion.div>
+              )}
+            </AnimatePresence>
           </Button>
           <span
             className={`text-sm font-medium ${!followsDeviceTheme && theme === "light" ? "" : "opacity-50"}`}
@@ -118,7 +159,12 @@ function ThemePicker() {
 
         <div className="baseVertFlex w-full gap-1">
           <Button
-            variant={"outline"}
+            variant={"theme"}
+            onMouseEnter={() => setHoveredTheme("dark")}
+            onMouseLeave={() => setHoveredTheme(null)}
+            onTouchStart={() => setHoveredTheme("dark")}
+            onTouchEnd={() => setHoveredTheme(null)}
+            onTouchCancel={() => setHoveredTheme(null)}
             onClick={() => {
               updateCSSThemeVars(color, "dark");
               setTheme("dark");
@@ -129,9 +175,22 @@ function ThemePicker() {
                 "false",
               );
             }}
-            className="!size-12 !rounded-full !p-0"
+            className="relative !size-12 !rounded-full !p-0"
           >
             <IoMoonOutline className="size-6 text-foreground" />
+            <AnimatePresence>
+              {((theme === "dark" && !followsDeviceTheme) ||
+                hoveredTheme === "dark") && (
+                <motion.div
+                  key={"hovered-theme-dark"}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 rounded-full border border-foreground"
+                ></motion.div>
+              )}
+            </AnimatePresence>
           </Button>
           <span
             className={`text-sm font-medium ${!followsDeviceTheme && theme === "dark" ? "" : "opacity-50"}`}
@@ -142,7 +201,12 @@ function ThemePicker() {
 
         <div className="baseVertFlex w-full gap-1">
           <Button
-            variant={"outline"}
+            variant={"theme"}
+            onMouseEnter={() => setHoveredTheme("system")}
+            onMouseLeave={() => setHoveredTheme(null)}
+            onTouchStart={() => setHoveredTheme("system")}
+            onTouchEnd={() => setHoveredTheme(null)}
+            onTouchCancel={() => setHoveredTheme(null)}
             onClick={() => {
               const systemTheme = window.matchMedia(
                 "(prefers-color-scheme: dark)",
@@ -158,9 +222,21 @@ function ThemePicker() {
                 "true",
               );
             }}
-            className="!size-12 !rounded-full !p-0"
+            className="relative !size-12 !rounded-full !p-0"
           >
             <HiMiniComputerDesktop className="size-6 text-foreground" />
+            <AnimatePresence>
+              {(hoveredTheme === "system" || followsDeviceTheme) && (
+                <motion.div
+                  key={"hovered-theme-system"}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 rounded-full border border-foreground"
+                ></motion.div>
+              )}
+            </AnimatePresence>
           </Button>
           <span
             className={`text-sm font-medium ${followsDeviceTheme ? "" : "opacity-50"}`}

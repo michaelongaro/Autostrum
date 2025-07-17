@@ -61,6 +61,10 @@ module.exports = {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
+        toggle: {
+          foreground: "hsl(var(--toggle-foreground))",
+          background: "hsl(var(--toggle-background))",
+        },
       },
       boxShadow: {
         primaryButton: "0 1px 2px 0 rgb(0 0 0 / 0.25)",

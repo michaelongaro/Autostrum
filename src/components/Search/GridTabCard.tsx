@@ -182,7 +182,7 @@ function GridTabCard({
                           ? 152
                           : 129,
                     }}
-                    className="pulseAnimation bg-skeleton z-10 col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-none"
+                    className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-none bg-skeleton"
                   ></motion.div>
                 )}
               </AnimatePresence>
@@ -293,7 +293,7 @@ function GridTabCard({
               style={{
                 backgroundColor: genreList
                   .get(minimalTab.genre)
-                  ?.replace(/\)$/, " / 0.07)"),
+                  ?.replace(/\)$/, " / 0.15)"),
                 borderColor: genreList.get(minimalTab.genre),
                 border: "1px solid",
                 color: genreList.get(minimalTab.genre),

@@ -189,7 +189,7 @@ function UserStatistics() {
           </Button>
         </div>
 
-        <div className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-12 border bg-muted p-4 shadow-lg md:min-h-[calc(100dvh-4rem-12rem-56px)] md:rounded-lg md:p-8 xl:!flex-row">
+        <div className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-12 border-y bg-muted p-4 shadow-lg md:min-h-[calc(100dvh-4rem-12rem-56px)] md:rounded-lg md:border md:p-8 xl:!flex-row">
           <AnimatePresence mode="popLayout">
             {/* main stats */}
             <div className="baseVertFlex w-full gap-4 xl:w-1/2">
@@ -230,7 +230,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation bg-skeleton ml-8 h-8 w-20 rounded-md lg:h-9"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-skeleton lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -263,7 +263,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation bg-skeleton ml-8 h-8 w-20 rounded-md lg:h-9"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-skeleton lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -298,7 +298,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation bg-skeleton ml-8 h-8 w-20 rounded-md lg:h-9"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-skeleton lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -331,7 +331,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation bg-skeleton ml-8 h-8 w-20 rounded-md lg:h-9"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-skeleton lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -364,7 +364,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation bg-skeleton ml-8 h-8 w-20 rounded-md lg:h-9"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-skeleton lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -401,7 +401,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation bg-skeleton ml-9 h-6 w-28 rounded-md lg:h-7 lg:w-40"
+                      className="pulseAnimation ml-9 h-6 w-28 rounded-md bg-skeleton lg:h-7 lg:w-40"
                     ></motion.div>
                   )}
                 </div>

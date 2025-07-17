@@ -17,19 +17,20 @@ const buttonVariants = cva(
         outline:
           "border text-foreground hover:bg-background hover:!text-foreground active:bg-background/60",
         ghost:
-          "hover:bg-secondary-hover hover:!text-foreground shadow-none active:bg-secondary-hover/80",
+          "hover:bg-secondary-active hover:!text-foreground shadow-none active:bg-secondary-active/80",
         link: "underline-offset-4 hover:underline shadow-none",
+        text: "text-foreground shadow-none hover:text-foreground/80 active:text-foreground/60",
         destructive:
           "bg-destructive text-destructive-foreground !shadow-primaryButton hover:bg-destructive/80 active:bg-destructive active:brightness-75",
-        toggledOn:
-          "bg-primary text-primary-foreground hover:bg-primary/80 active:bg-primary/60 border-2",
-        toggledOff:
-          "text-primary-foreground hover:bg-secondary/20 active:bg-secondary/30 border-2",
         playPause:
           "bg-green-600 text-primary-foreground hover:bg-green-700 shadow-none active:bg-green-800 disabled:opacity-50 disabled:bg-gray-500",
-        text: "text-foreground shadow-none hover:text-foreground/80 active:text-foreground/60",
         modalClose:
           "baseFlex !size-5 absolute right-4 top-4 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none",
+        toggleOn:
+          "text-toggle-foreground hover:bg-secondary/20 active:bg-secondary/30",
+        toggleOff:
+          "text-toggle-background hover:bg-secondary/20 active:bg-secondary/30",
+        theme: "border rounded-full hover:brightness-110 active:brightness-100",
         drawer:
           "w-full !rounded-none font-normal !h-[65px] last-of-type:border-b-none border-b border-gray h-full baseFlex bg-secondary active:brightness-90 relative py-0",
         drawerNavigation:

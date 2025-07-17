@@ -287,7 +287,7 @@ function Tab({ tab }: Tab) {
         style={{
           transition: "filter 0.5s ease-in-out",
         }}
-        className={`baseVertFlex relative w-full border bg-muted shadow-lg md:rounded-xl`}
+        className={`baseVertFlex relative w-full border-y bg-muted shadow-lg md:rounded-xl md:border`}
         // ${
         //   isPublishingOrUpdating
         //     ? "pointer-events-none brightness-90"
@@ -547,7 +547,7 @@ function Tab({ tab }: Tab) {
                       <TooltipTrigger asChild>
                         <Button
                           variant={"secondary"}
-                          className="baseFlex !size-11 gap-2 !rounded-full !p-0 shadow-lg"
+                          className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
                           onClick={() => setShowEffectGlossaryDialog(true)}
                         >
                           <FaBook className="size-4" />

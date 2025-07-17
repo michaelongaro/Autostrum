@@ -445,7 +445,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                       style={{
                                         backgroundColor: genreList
                                           .get(song.genre)
-                                          ?.replace(/\)$/, " / 0.07)"),
+                                          ?.replace(/\)$/, " / 0.15)"),
                                         borderColor: genreList.get(song.genre),
                                         border: "1px solid",
                                         color: genreList.get(song.genre),

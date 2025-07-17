@@ -148,6 +148,9 @@ function UserSettings() {
   const [zoom, setZoom] = useState<number>(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
+  const [hoveredColor, setHoveredColor] = useState<string | null>(null);
+  const [hoveredTheme, setHoveredTheme] = useState<string | null>(null);
+
   const [showEditImageModal, setShowEditImageModal] = useState(false);
   const [showPinnedTabModal, setShowPinnedTabModal] = useState(false);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
@@ -289,7 +292,7 @@ function UserSettings() {
         </div>
 
         <AnimatePresence mode="popLayout">
-          <div className="baseVertFlex w-full !items-start gap-4 border bg-muted p-4 py-6 shadow-lg md:rounded-lg md:p-8 lg:!flex-row lg:gap-12">
+          <div className="baseVertFlex w-full !items-start gap-4 border-y bg-muted p-4 py-6 shadow-lg md:rounded-lg md:border md:p-8 lg:!flex-row lg:gap-12">
             <div className="baseVertFlex w-full !items-start gap-4 lg:gap-12">
               {/* email */}
               <div className="baseVertFlex w-full !items-start gap-2 lg:!flex-row lg:!items-center lg:!justify-between">
@@ -710,14 +713,19 @@ function UserSettings() {
                   Color
                 </span>
 
-                <div className="grid w-full max-w-[450px] grid-cols-3 grid-rows-3 gap-4 self-center">
+                <div className="my-2 grid w-full max-w-[450px] grid-cols-3 grid-rows-3 gap-4 self-center sm:my-0">
                   {COLORS.map((colorString) => (
                     <div
                       key={colorString}
                       className="baseVertFlex w-full gap-1"
                     >
                       <Button
-                        variant={"outline"}
+                        variant={"theme"}
+                        onMouseEnter={() => setHoveredColor(colorString)}
+                        onMouseLeave={() => setHoveredColor(null)}
+                        onTouchStart={() => setHoveredColor(colorString)}
+                        onTouchEnd={() => setHoveredColor(null)}
+                        onTouchCancel={() => setHoveredColor(null)}
                         onClick={() => {
                           updateCSSThemeVars(colorString, theme);
                           setColor(colorString);
@@ -733,10 +741,24 @@ function UserSettings() {
                         style={{
                           backgroundColor: COLOR_HEX_VALUES[colorString],
                         }}
-                        className={`!size-12 !rounded-full !p-0`}
-                      ></Button>
+                        className={`relative !size-12 !rounded-full !p-0`}
+                      >
+                        <AnimatePresence>
+                          {(color === colorString ||
+                            hoveredColor === colorString) && (
+                            <motion.div
+                              key={`settings-hovered-color-${colorString}`}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="absolute inset-0 rounded-full border border-foreground"
+                            ></motion.div>
+                          )}
+                        </AnimatePresence>
+                      </Button>
                       <span
-                        className={`text-sm font-medium transition-all ${color === colorString ? "" : "opacity-50"}`}
+                        className={`text-sm font-medium transition-all ${color === colorString ? "opacity-100" : "opacity-50"}`}
                       >
                         {colorString.charAt(0).toUpperCase() +
                           colorString.slice(1)}
@@ -772,10 +794,15 @@ function UserSettings() {
                     </PopoverContent>
                   </Popover>
                 </div>
-                <div className="grid w-full max-w-[450px] grid-cols-3 grid-rows-1 gap-4 self-center">
+                <div className="my-2 grid w-full max-w-[450px] grid-cols-3 grid-rows-1 gap-4 self-center sm:my-0">
                   <div className="baseVertFlex w-full gap-1">
                     <Button
-                      variant={"outline"}
+                      variant={"theme"}
+                      onMouseEnter={() => setHoveredTheme("light")}
+                      onMouseLeave={() => setHoveredTheme(null)}
+                      onTouchStart={() => setHoveredTheme("light")}
+                      onTouchEnd={() => setHoveredTheme(null)}
+                      onTouchCancel={() => setHoveredTheme(null)}
                       onClick={() => {
                         updateCSSThemeVars(color, "light");
                         setTheme("light");
@@ -786,9 +813,22 @@ function UserSettings() {
                           "false",
                         );
                       }}
-                      className="!size-12 !rounded-full !p-0"
+                      className="relative !size-12 !rounded-full !p-0"
                     >
                       <IoSunnyOutline className="size-6 text-foreground" />
+                      <AnimatePresence>
+                        {((theme === "light" && !followsDeviceTheme) ||
+                          hoveredTheme === "light") && (
+                          <motion.div
+                            key={"settings-hovered-theme-light"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute inset-0 rounded-full border border-foreground"
+                          ></motion.div>
+                        )}
+                      </AnimatePresence>
                     </Button>
                     <span
                       className={`text-sm font-medium ${!followsDeviceTheme && theme === "light" ? "" : "opacity-50"}`}
@@ -799,7 +839,12 @@ function UserSettings() {
 
                   <div className="baseVertFlex w-full gap-1">
                     <Button
-                      variant={"outline"}
+                      variant={"theme"}
+                      onMouseEnter={() => setHoveredTheme("dark")}
+                      onMouseLeave={() => setHoveredTheme(null)}
+                      onTouchStart={() => setHoveredTheme("dark")}
+                      onTouchEnd={() => setHoveredTheme(null)}
+                      onTouchCancel={() => setHoveredTheme(null)}
                       onClick={() => {
                         updateCSSThemeVars(color, "dark");
                         setTheme("dark");
@@ -810,9 +855,22 @@ function UserSettings() {
                           "false",
                         );
                       }}
-                      className="!size-12 !rounded-full !p-0"
+                      className="relative !size-12 !rounded-full !p-0"
                     >
                       <IoMoonOutline className="size-6 text-foreground" />
+                      <AnimatePresence>
+                        {((theme === "dark" && !followsDeviceTheme) ||
+                          hoveredTheme === "dark") && (
+                          <motion.div
+                            key={"settings-hovered-theme-dark"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute inset-0 rounded-full border border-foreground"
+                          ></motion.div>
+                        )}
+                      </AnimatePresence>
                     </Button>
                     <span
                       className={`text-sm font-medium ${!followsDeviceTheme && theme === "dark" ? "" : "opacity-50"}`}
@@ -823,7 +881,12 @@ function UserSettings() {
 
                   <div className="baseVertFlex w-full gap-1">
                     <Button
-                      variant={"outline"}
+                      variant={"theme"}
+                      onMouseEnter={() => setHoveredTheme("system")}
+                      onMouseLeave={() => setHoveredTheme(null)}
+                      onTouchStart={() => setHoveredTheme("system")}
+                      onTouchEnd={() => setHoveredTheme(null)}
+                      onTouchCancel={() => setHoveredTheme(null)}
                       onClick={() => {
                         const systemTheme = window.matchMedia(
                           "(prefers-color-scheme: dark)",
@@ -842,9 +905,21 @@ function UserSettings() {
                           "true",
                         );
                       }}
-                      className="!size-12 !rounded-full !p-0"
+                      className="relative !size-12 !rounded-full !p-0"
                     >
                       <HiMiniComputerDesktop className="size-6 text-foreground" />
+                      <AnimatePresence>
+                        {(hoveredTheme === "system" || followsDeviceTheme) && (
+                          <motion.div
+                            key={"settings-hovered-theme-system"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute inset-0 rounded-full border border-foreground"
+                          ></motion.div>
+                        )}
+                      </AnimatePresence>
                     </Button>
                     <span
                       className={`text-sm font-medium ${followsDeviceTheme ? "" : "opacity-50"}`}

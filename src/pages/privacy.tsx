@@ -29,7 +29,7 @@ function Privacy() {
       <div className="baseVertFlex z-10 my-24 gap-16">
         <div className="baseVertFlex baseVertFlex w-5/6 items-start gap-4 rounded-xl border bg-muted p-4 shadow-lg sm:w-auto md:p-8">
           <h1 className="text-3xl font-bold">Privacy Policy for Autostrum</h1>
-          <p>Last updated - September 25th, 2023</p>
+          <p>Last updated - July 16th, 2025</p>
 
           <div className="baseVertFlex w-full !items-start gap-8">
             <div className="baseVertFlex !items-start gap-2">

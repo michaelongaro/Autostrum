@@ -90,7 +90,7 @@ function MobileHeader() {
 
   return (
     <nav className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full">
-      <div className="headerAndFooterBackgroundGradient absolute z-[49] flex h-16 w-full items-start justify-between overflow-clip p-2 shadow-md lg:hidden">
+      <div className="headerAndFooterBackgroundGradient absolute z-[49] flex h-16 w-full items-start justify-between overflow-clip p-2 shadow-md shadow-primary/10 lg:hidden">
         <Link
           prefetch={false}
           href={"/"}
@@ -133,7 +133,7 @@ function MobileHeader() {
 
             <DialogContent
               renderCloseButton={false}
-              className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start !rounded-none p-0"
+              className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start !rounded-none border-none p-0"
             >
               <SearchInput setShowMobileSearch={setShowMobileSearch} />
             </DialogContent>

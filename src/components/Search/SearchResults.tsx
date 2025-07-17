@@ -759,7 +759,7 @@ function SearchResults({
                       exit="closed"
                       transition={{ duration: 0.3 }}
                     >
-                      <div className="pulseAnimation bg-skeleton h-6 w-36 rounded-md"></div>
+                      <div className="pulseAnimation h-6 w-36 rounded-md bg-skeleton"></div>
                     </motion.div>
                   ) : (
                     <motion.div
@@ -783,17 +783,13 @@ function SearchResults({
                     <Label>Layout</Label>
                     <div className="baseFlex overflow-y-hidden rounded-md border">
                       <Button
-                        variant={"ghost"}
+                        variant={
+                          layoutType.value === "grid" ? "toggleOn" : "toggleOff"
+                        }
                         size="sm"
                         disabled={disableFiltersAndLayoutToggle}
                         onClick={() => {
                           layoutType.set("grid");
-                        }}
-                        style={{
-                          color:
-                            layoutType.value === "grid"
-                              ? "hsl(var(--foreground))"
-                              : "hsl(var(--background))",
                         }}
                         className="baseFlex relative gap-2 border-none"
                       >
@@ -812,17 +808,15 @@ function SearchResults({
                       </Button>
 
                       <Button
-                        variant={"ghost"}
+                        variant={
+                          layoutType.value === "table"
+                            ? "toggleOn"
+                            : "toggleOff"
+                        }
                         size="sm"
                         disabled={disableFiltersAndLayoutToggle}
                         onClick={() => {
                           layoutType.set("table");
-                        }}
-                        style={{
-                          color:
-                            layoutType.value === "table"
-                              ? "hsl(var(--foreground))"
-                              : "hsl(var(--background))",
                         }}
                         className="baseFlex relative gap-2 border-none"
                       >
@@ -1668,7 +1662,7 @@ function SearchResults({
                         duration: 0.3,
                       }}
                     >
-                      <div className="pulseAnimation bg-skeleton h-6 w-48 rounded-md"></div>
+                      <div className="pulseAnimation h-6 w-48 rounded-md bg-skeleton"></div>
                     </motion.div>
                   ) : (
                     <motion.div
@@ -1691,17 +1685,13 @@ function SearchResults({
                   <Label>Layout</Label>
                   <div className="baseFlex overflow-hidden rounded-md border-2">
                     <Button
-                      variant={"ghost"}
+                      variant={
+                        layoutType.value === "grid" ? "toggleOn" : "toggleOff"
+                      }
                       size="sm"
                       disabled={disableFiltersAndLayoutToggle}
                       onClick={() => {
                         layoutType.set("grid");
-                      }}
-                      style={{
-                        color:
-                          layoutType.value === "grid"
-                            ? "hsl(var(--foreground))"
-                            : "hsl(var(--background))",
                       }}
                       className="baseFlex relative gap-2 rounded-sm"
                     >
@@ -1721,17 +1711,13 @@ function SearchResults({
                     </Button>
 
                     <Button
-                      variant={"ghost"}
+                      variant={
+                        layoutType.value === "table" ? "toggleOn" : "toggleOff"
+                      }
                       size="sm"
                       disabled={disableFiltersAndLayoutToggle}
                       onClick={() => {
                         layoutType.set("table");
-                      }}
-                      style={{
-                        color:
-                          layoutType.value === "table"
-                            ? "hsl(var(--foreground))"
-                            : "hsl(var(--background))",
                       }}
                       className="baseFlex relative gap-2 rounded-sm"
                     >
@@ -1853,7 +1839,7 @@ function SearchResults({
         )}
 
         {/* search results body */}
-        <div className="size-full rounded-b-lg border bg-muted shadow-lg">
+        <div className="size-full !border-t-0 border-b bg-muted shadow-lg md:rounded-b-lg md:border">
           <AnimatePresence mode="popLayout">
             {renderSearch404 ? (
               <Render404Page

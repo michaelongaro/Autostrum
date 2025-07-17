@@ -76,6 +76,8 @@ const COLOR_VALUES = {
       "secondary-foreground": "336 75% 45%", // 11
       accent: "336 75% 45%", // 11
       "accent-foreground": "340 100% 99%", // 1
+      "toggle-foreground": "332 63% 34%", // 12
+      "toggle-background": "343 78% 98%", // 2
       destructive: "0 90% 50%", // TODO/TBD
       "destructive-foreground": "324 77% 95%", // TODO/TBD
 
@@ -99,13 +101,15 @@ const COLOR_VALUES = {
       ring: "336 45% 48%", // 8
       modal: "331 62% 19%", // 4
       primary: "335.93 79.63% 57.65%", // 9
-      "primary-foreground": "340 100% 99%", // 1
+      "primary-foreground": "340 100% 99%", // 1 (light)
       secondary: "333 45% 15%", // 3
       "secondary-hover": "331 62% 19%", // 4
       "secondary-active": "331 59% 23%", // 5
       "secondary-foreground": "330 91% 88%", // 12
       accent: "331 59% 23%", // 5
       "accent-foreground": "340 100% 99%", // 1 (light)
+      "toggle-foreground": "340 100% 99%", // 1 (light)
+      "toggle-background": "340 100% 99%", // 1 (light)
       destructive: "0 90% 50%", // TODO/TBD
       "destructive-foreground": "324 77% 95%", // TODO/TBD
 
