@@ -7,14 +7,14 @@ import useDetectRouteChanges from "~/hooks/useDetectRouteChanges";
 import useFetchAndLoadSoundfonts from "~/hooks/useFetchAndLoadSoundfonts";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useInitializeAudioContext } from "~/hooks/useInitializeAudioContext";
-import useKeepUserMetadataUpdatedWithClerk from "~/hooks/useKeepUserMetadataUpdatedWithClerk";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import DesktopHeader from "../Header/DesktopHeader";
 import MobileHeader from "../Header/MobileHeader";
 import useGetViewportLabel from "~/hooks/useGetViewportLabel";
 import useScreenWakeLock from "~/hooks/useScreenWakeLock";
-import usePostSignUpRegistration from "~/hooks/usePostSignUpRegistration";
+import useColorAndThemeController from "~/hooks/useColorAndThemeController";
+import PostSignupDialog from "~/components/Dialogs/PostSignupDialog";
 
 const MobileHeaderModal = dynamic(
   () => import("~/components/modals/MobileHeaderModal"),
@@ -29,10 +29,7 @@ function GeneralLayoutStatefulShell() {
 
   const looping = useGetLocalStorageValues().looping;
 
-  // reflects any updates made to username/profileImageUrl in Clerk to the UserMetadata
-  // useKeepUserMetadataUpdatedWithClerk();
-
-  usePostSignUpRegistration();
+  useColorAndThemeController();
   useInitializeAudioContext();
   useFetchAndLoadSoundfonts();
   useAutoCompileChords();
@@ -111,6 +108,8 @@ function GeneralLayoutStatefulShell() {
           />
         )}
       </AnimatePresence>
+
+      <PostSignupDialog />
     </>
   );
 }

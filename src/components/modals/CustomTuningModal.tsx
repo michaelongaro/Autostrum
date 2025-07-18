@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { useState } from "react";
 import { HiOutlineInformationCircle } from "react-icons/hi";
-import { IoClose } from "react-icons/io5";
 import {
   Tooltip,
   TooltipContent,
@@ -16,6 +15,7 @@ import { Input } from "~/components/ui/input";
 import { IoSettingsSharp } from "react-icons/io5";
 import { BsFillPlayFill } from "react-icons/bs";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
+import { X } from "lucide-react";
 
 const backdropVariants = {
   expanded: {
@@ -101,7 +101,7 @@ function CustomTuningModal({
   return (
     <motion.div
       key={"CustomTuningModalBackdrop"}
-      className="baseFlex fixed left-0 top-0 z-50 h-[100dvh] w-[100vw] bg-black/50"
+      className="baseFlex fixed left-0 top-0 z-50 h-[100dvh] w-[100vw] bg-black/60 backdrop-blur-sm"
       variants={backdropVariants}
       initial="closed"
       animate="expanded"
@@ -119,26 +119,25 @@ function CustomTuningModal({
       >
         <div
           tabIndex={-1}
-          className="baseVertFlex min-w-[300px] max-w-[91vw] gap-8 rounded-md bg-pink-400 p-4 shadow-sm xl:max-w-[50vw]"
+          className="baseVertFlex modalGradient relative min-w-[300px] max-w-[95vw] gap-8 rounded-lg border p-4 shadow-sm xl:max-w-[50vw]"
         >
-          <div className="baseFlex w-full !justify-between gap-2 text-pink-100">
+          <div className="baseFlex w-full !justify-between gap-2">
             <div className="baseFlex gap-2">
               <IoSettingsSharp className="h-5 w-5" />
               <p className="text-lg font-semibold">Custom tuning editor</p>
             </div>
 
             <Button
-              variant={"text"}
+              variant={"modalClose"}
               onClick={() => {
                 setShowCustomTuningModal(false);
               }}
-              className="h-4 p-0"
             >
-              <IoClose className="size-5 text-pink-50" />
+              <X className="size-5" />
             </Button>
           </div>
 
-          <div className="baseVertFlex lightestGlassmorphic max-w-[23rem] gap-2 rounded-md p-2 text-sm sm:max-w-[30rem]">
+          <div className="baseVertFlex max-w-[23rem] gap-2 rounded-lg border bg-secondary p-2 text-sm shadow-sm sm:max-w-[30rem]">
             <div className="baseFlex gap-4 px-4 sm:gap-2">
               <HiOutlineInformationCircle className="size-5" />
               <p className="max-w-[14rem] sm:max-w-[20rem] sm:text-center">
@@ -185,7 +184,7 @@ function CustomTuningModal({
             </div>
           </div>
 
-          <div className="baseFlex !flex-nowrap gap-2">
+          <div className="baseFlex gap-1 xs:gap-2">
             {customInputValues.map((value, index) => (
               <Input
                 key={index}
@@ -196,8 +195,8 @@ function CustomTuningModal({
                 style={{
                   color:
                     highlightedNoteInputIndex === index
-                      ? "hsl(335, 78%, 42%)"
-                      : "hsl(324, 77%, 95%)",
+                      ? "hsl(var(--primary))"
+                      : "hsl(var(--foreground))",
                 }}
                 className="w-[52px] p-2 text-center"
                 onChange={(e) => {
@@ -220,7 +219,7 @@ function CustomTuningModal({
                   (customInputValue) => customInputValue === "",
                 )
               }
-              variant={"playPause"}
+              variant={"audio"}
               className="baseFlex gap-2"
               onClick={() => {
                 setHighlightedNoteInputIndex(0);
@@ -269,7 +268,7 @@ function CustomTuningModal({
                 ) || isEqual(customTuning, customInputValues.join(" "))
               }
               onClick={handleSaveCustomTuning}
-              className="px-4"
+              className="px-8"
             >
               Save
             </Button>

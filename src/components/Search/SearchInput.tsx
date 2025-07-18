@@ -7,7 +7,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { FaArrowLeft } from "react-icons/fa6";
 import { api } from "~/utils/api";
-import { genreList } from "~/utils/genreList";
+import { genreList, genreLightList } from "~/utils/genreList";
 import { Badge } from "~/components/ui/badge";
 import { IoIosMusicalNotes } from "react-icons/io";
 import { AiOutlineUser } from "react-icons/ai";
@@ -167,7 +167,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
       )}
 
       <div
-        className={`baseFlex w-full gap-2 transition-all ${viewportLabel.includes("mobile") ? "rounded-none border-none" : "rounded-md border-2"} ${showAutofillResults ? "rounded-b-none" : ""}`}
+        className={`baseFlex w-full gap-2 transition-all ${viewportLabel.includes("mobile") ? "rounded-none border-none" : "rounded-md border"} ${showAutofillResults ? "rounded-b-none" : ""}`}
       >
         <Input
           ref={searchInputRef}
@@ -272,35 +272,51 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
             transition={{
               duration: 0.2,
             }}
-            className={`absolute left-0 z-50 w-full overflow-hidden rounded-md rounded-t-none border-pink-200 ${viewportLabel.includes("mobile") ? "top-11 border-t-2" : "autofillResultsGlassmorphic top-[46px] border-2 !shadow-xl"}`}
+            className={`absolute left-0 z-50 w-full overflow-hidden rounded-md rounded-t-none border-border bg-muted ${viewportLabel.includes("mobile") ? "top-11 border-t" : "top-[45px] border !shadow-xl"}`}
           >
             <div className="baseFlex w-full !justify-between p-2 text-sm">
               <div className="baseFlex gap-3">
                 Searching for
                 <Button
-                  variant={searchType === "songs" ? "toggledOn" : "toggledOff"}
+                  variant={"secondary"}
+                  style={{
+                    backgroundColor:
+                      searchType === "songs" ? "hsl(var(--accent))" : undefined,
+                    color:
+                      searchType === "songs"
+                        ? "hsl(var(--accent-foreground))"
+                        : undefined,
+                  }}
+                  className="baseFlex h-8 shrink-0 gap-2"
                   onClick={() => {
                     setSearchType("songs");
                     setSearchQuery("");
                     setDebouncedSearchQuery("");
                     searchInputRef.current?.focus();
                   }}
-                  className="baseFlex h-8 shrink-0 gap-2"
                 >
                   <IoIosMusicalNotes className="size-5" />
                   Songs
                 </Button>
                 <Button
-                  variant={
-                    searchType === "artists" ? "toggledOn" : "toggledOff"
-                  }
+                  variant={"secondary"}
+                  style={{
+                    backgroundColor:
+                      searchType === "artists"
+                        ? "hsl(var(--accent))"
+                        : undefined,
+                    color:
+                      searchType === "artists"
+                        ? "hsl(var(--accent-foreground))"
+                        : undefined,
+                  }}
+                  className="baseFlex h-8 shrink-0 gap-2"
                   onClick={() => {
                     setSearchType("artists");
                     setSearchQuery("");
                     setDebouncedSearchQuery("");
                     searchInputRef.current?.focus();
                   }}
-                  className="baseFlex h-8 shrink-0 gap-2"
                 >
                   <AiOutlineUser className="size-5" />
                   Artists
@@ -342,21 +358,14 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
               </AnimatePresence>
             </div>
 
-            <Separator className="w-full bg-pink-200" />
+            <Separator className="h-[1px] w-full bg-border" />
 
             <motion.div
               key={"autofillResults"}
               animate={{
                 height: "auto",
               }}
-              style={{
-                justifyContent:
-                  songSearchResults?.length === 0 ||
-                  artistSearchResults?.length === 0
-                    ? "center"
-                    : "flex-start",
-              }}
-              className="baseVertFlex min-h-[calc(100dvh-10rem)] w-full sm:min-h-[250px]"
+              className="baseVertFlex min-h-dvh w-full !justify-start sm:min-h-[250px]"
             >
               {/* no search input and daily popular songs/artists loaded, show popular songs/artists */}
               {searchQuery.trim() === "" &&
@@ -434,9 +443,12 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                     </span>
                                     <Badge
                                       style={{
-                                        backgroundColor: genreList.get(
-                                          song.genre,
-                                        ),
+                                        backgroundColor: genreLightList
+                                          .get(song.genre)
+                                          ?.replace(/\)$/, " / 0.75)"),
+                                        borderColor: genreList.get(song.genre),
+                                        border: "1px solid",
+                                        color: genreList.get(song.genre),
                                       }}
                                     >
                                       {song.genre}
@@ -555,7 +567,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
-                        className="mt-12 sm:mt-0"
+                        className="mt-12 sm:mt-28"
                       >
                         No results found
                       </motion.p>
@@ -626,9 +638,12 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   </span>
                                   <Badge
                                     style={{
-                                      backgroundColor: genreList.get(
-                                        song.genre,
-                                      ),
+                                      backgroundColor: genreLightList
+                                        .get(song.genre)
+                                        ?.replace(/\)$/, " / 0.75)"),
+                                      borderColor: genreList.get(song.genre),
+                                      border: "1px solid",
+                                      color: genreList.get(song.genre),
                                     }}
                                   >
                                     {song.genre}
@@ -668,7 +683,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
-                        className="mt-12 sm:mt-0"
+                        className="mt-12 sm:mt-28"
                       >
                         No results found
                       </motion.p>

@@ -17,7 +17,7 @@ function NoResultsFound({ customKey, searchQueryExists }: NoResultsFound) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="baseVertFlex lightestGlassmorphic gap-4 rounded-md px-8 py-4 text-xl transition-all"
+      className="baseVertFlex gap-4 rounded-md border bg-secondary-active/50 px-8 py-4 text-xl shadow-lg transition-all"
     >
       <div className="baseVertFlex gap-4">
         <Binoculars className="size-9" />
@@ -25,7 +25,7 @@ function NoResultsFound({ customKey, searchQueryExists }: NoResultsFound) {
       </div>
 
       {searchQueryExists && (
-        <Button variant={"navigation"} asChild>
+        <Button variant={"secondary"} asChild>
           <Link prefetch={false} href="/create" className="baseFlex gap-2">
             <BsPlus className="size-4" />
             Create the first tab for this song

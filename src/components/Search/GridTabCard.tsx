@@ -11,7 +11,7 @@ import type {
 } from "~/server/api/routers/search";
 import type { UserMetadata } from "~/server/api/routers/user";
 import formatDate from "~/utils/formatDate";
-import { genreList } from "~/utils/genreList";
+import { genreLightList, genreList } from "~/utils/genreList";
 import BookmarkToggle from "~/components/ui/BookmarkToggle";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -20,10 +20,14 @@ import { useRouter } from "next/router";
 import { MdModeEditOutline } from "react-icons/md";
 import { TbPinned } from "react-icons/tb";
 import Verified from "~/components/ui/icons/Verified";
+import type { COLORS, THEME } from "~/stores/TabStore";
+import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 
 interface GridTabCard {
   minimalTab: MinimalTabRepresentation;
   currentUser: UserMetadata | null | undefined;
+  color: COLORS;
+  theme: THEME;
   largeVariant?: boolean;
   pinnedTabType?: "full" | "withoutScreenshot";
   infiniteQueryParams?: InfiniteQueryParams;
@@ -33,6 +37,8 @@ interface GridTabCard {
 function GridTabCard({
   minimalTab,
   currentUser,
+  color,
+  theme,
   largeVariant,
   pinnedTabType,
   infiniteQueryParams,
@@ -40,18 +46,21 @@ function GridTabCard({
 }: GridTabCard) {
   const { query, asPath } = useRouter();
 
-  const [tabScreenshot, setTabScreenshot] = useState<string>();
+  const [tabScreenshotLight, setTabScreenshotLight] = useState<string>();
+  const [tabScreenshotDark, setTabScreenshotDark] = useState<string>();
+
+  // TODO: likley need light and dark versions of this
   const [tabScreenshotLoaded, setTabScreenshotLoaded] = useState(false);
   const [isPressingOnScreenshot, setIsPressingOnScreenshot] = useState(false);
 
   const isAboveExtraSmallViewportWidth = useViewportWidthBreakpoint(450);
 
   useEffect(() => {
-    if (tabScreenshot) return;
+    if (tabScreenshotLight || theme === "dark") return;
 
     const fetchImage = async () => {
       try {
-        const res = await fetch(`/api/getTabScreenshot/${minimalTab.id}`);
+        const res = await fetch(`/api/getTabScreenshot/${minimalTab.id}/light`);
         if (!res.ok) {
           console.error("Failed to fetch image");
           return;
@@ -59,19 +68,46 @@ function GridTabCard({
         const blob = await res.blob();
 
         const reader = new FileReader();
+        reader.readAsDataURL(blob);
         reader.onloadend = function () {
           if (typeof reader?.result === "string") {
-            setTabScreenshot(reader.result);
+            setTabScreenshotLight(reader.result);
           }
         };
-        reader.readAsDataURL(blob);
       } catch (error) {
         console.error("Error fetching image:", error, minimalTab.id);
       }
     };
 
     void fetchImage();
-  }, [tabScreenshot, minimalTab.id]);
+  }, [tabScreenshotLight, minimalTab.id, theme]);
+
+  useEffect(() => {
+    if (tabScreenshotDark || theme === "light") return;
+
+    const fetchImage = async () => {
+      try {
+        const res = await fetch(`/api/getTabScreenshot/${minimalTab.id}/dark`);
+        if (!res.ok) {
+          console.error("Failed to fetch image");
+          return;
+        }
+        const blob = await res.blob();
+
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = function () {
+          if (typeof reader?.result === "string") {
+            setTabScreenshotDark(reader.result);
+          }
+        };
+      } catch (error) {
+        console.error("Error fetching image:", error, minimalTab.id);
+      }
+    };
+
+    void fetchImage();
+  }, [tabScreenshotDark, minimalTab.id, theme]);
 
   function allowedToRenderArtistLink() {
     const isArtistPage = asPath.includes("/artist");
@@ -118,35 +154,40 @@ function GridTabCard({
         width: `${getDynamicWidth()}px`,
         minWidth: `${getDynamicWidth()}px`,
       }}
-      className="baseVertFlex !flex-nowrap overflow-hidden rounded-md border-2 shadow-md"
+      className="baseVertFlex overflow-hidden rounded-md border shadow-sm"
     >
       {/* tab preview */}
 
       {pinnedTabType !== "withoutScreenshot" && (
-        <>
-          <div className="relative w-full">
-            <Link
-              href={`/tab/${minimalTab.id}/${encodeURIComponent(minimalTab.title)}`}
-              prefetch={false}
-              style={{
-                width: getDynamicWidth(),
-                height: getDynamicHeight(),
-              }}
-              className="w-full cursor-pointer rounded-t-md transition-all hover:brightness-90 active:brightness-[0.8]"
+        <div className="relative w-full">
+          <Link
+            href={`/tab/${minimalTab.id}/${encodeURIComponent(minimalTab.title)}`}
+            prefetch={false}
+            style={{
+              width: getDynamicWidth(),
+              height: getDynamicHeight(),
+            }}
+            className="w-full cursor-pointer rounded-t-md transition-all hover:brightness-90 active:brightness-[0.8]"
+          >
+            {/* tab preview screenshot */}
+            <div
+              onTouchStart={() => setIsPressingOnScreenshot(true)}
+              onTouchEnd={() => setIsPressingOnScreenshot(false)}
+              onTouchCancel={() => setIsPressingOnScreenshot(false)}
+              className="relative grid grid-cols-1 grid-rows-1 border-b"
             >
-              {/* tab preview screenshot */}
-              <div
-                onTouchStart={() => setIsPressingOnScreenshot(true)}
-                onTouchEnd={() => setIsPressingOnScreenshot(false)}
-                onTouchCancel={() => setIsPressingOnScreenshot(false)}
-                className="grid grid-cols-1 grid-rows-1"
-              >
-                {tabScreenshot && (
+              {(tabScreenshotLight || tabScreenshotDark) && (
+                <>
                   <Image
-                    src={tabScreenshot}
+                    src={
+                      theme === "light"
+                        ? tabScreenshotLight!
+                        : tabScreenshotDark!
+                    }
                     alt={`screenshot of ${minimalTab.title}`}
                     width={getDynamicWidth()}
                     height={getDynamicHeight()}
+                    unoptimized={true}
                     onLoad={() => {
                       setTimeout(() => {
                         setTabScreenshotLoaded(true);
@@ -161,75 +202,80 @@ function GridTabCard({
                       width: `${getDynamicWidth()}px`,
                       height: `${getDynamicHeight()}px`,
                     }}
-                    className="pointer-events-none col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-md object-cover object-center !transition-all"
+                    className="pointer-events-none col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-sm object-cover object-center !transition-all"
                   />
+
+                  <div
+                    style={{
+                      backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / ${theme === "light" ? "1" : "0.5"})`,
+                    }}
+                    className="absolute inset-0 z-10 size-full mix-blend-color"
+                  ></div>
+                </>
+              )}
+
+              <AnimatePresence>
+                {!tabScreenshotLoaded && (
+                  <motion.div
+                    key={`${minimalTab.id}gridTabCardSkeletonImageLoader`}
+                    initial={{ opacity: 1 }}
+                    animate={{ opacity: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    style={{
+                      width: largeVariant
+                        ? 396
+                        : isAboveExtraSmallViewportWidth
+                          ? 326
+                          : 276,
+                      height: largeVariant
+                        ? 185
+                        : isAboveExtraSmallViewportWidth
+                          ? 152
+                          : 129,
+                    }}
+                    className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-none bg-foreground/50"
+                  ></motion.div>
                 )}
+              </AnimatePresence>
+            </div>
+          </Link>
 
-                <AnimatePresence>
-                  {!tabScreenshotLoaded && (
-                    <motion.div
-                      key={`${minimalTab.id}gridTabCardSkeletonImageLoader`}
-                      initial={{ opacity: 1 }}
-                      animate={{ opacity: 0 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                      style={{
-                        width: largeVariant
-                          ? 396
-                          : isAboveExtraSmallViewportWidth
-                            ? 326
-                            : 276,
-                        height: largeVariant
-                          ? 185
-                          : isAboveExtraSmallViewportWidth
-                            ? 152
-                            : 129,
-                      }}
-                      className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-none bg-pink-300"
-                    ></motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </Link>
+          {asPath.includes("/profile/tabs") && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="w-full"
+            >
+              <Button variant={"secondary"} asChild>
+                <Link
+                  prefetch={false}
+                  href={`/tab/${minimalTab.id}/edit`}
+                  className="absolute right-14 top-2 !size-10 !p-0"
+                >
+                  <MdModeEditOutline className="size-5" />
+                </Link>
+              </Button>
+            </motion.div>
+          )}
 
-            {asPath.includes("/profile/tabs") && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="w-full"
-              >
-                <Button variant={"navigation"} asChild>
-                  <Link
-                    prefetch={false}
-                    href={`/tab/${minimalTab.id}/edit`}
-                    className="absolute right-14 top-2 !size-10 !p-0"
-                  >
-                    <MdModeEditOutline className="size-5" />
-                  </Link>
-                </Button>
-              </motion.div>
-            )}
-
-            <BookmarkToggle
-              tabId={minimalTab.id}
-              createdByUserId={minimalTab.createdBy?.userId ?? null}
-              currentUser={currentUser}
-              showText={false}
-              isBookmarked={
-                currentUser?.bookmarkedTabIds?.includes(minimalTab.id) ?? false
-              }
-              infiniteQueryParams={infiniteQueryParams}
-              customClassName={"absolute top-2 right-2 size-10 z-10"}
-            />
-          </div>
-
-          <Separator className="bg-pink-100" />
-        </>
+          <BookmarkToggle
+            tabId={minimalTab.id}
+            createdByUserId={minimalTab.createdBy?.userId ?? null}
+            currentUser={currentUser}
+            showText={false}
+            isBookmarked={
+              currentUser?.bookmarkedTabIds?.includes(minimalTab.id) ?? false
+            }
+            infiniteQueryParams={infiniteQueryParams}
+            customClassName={"absolute top-2 right-2 size-10 z-10"}
+          />
+        </div>
       )}
 
-      <div className="baseVertFlex lightestGlassmorphic w-full gap-1 rounded-b-md p-2.5 !shadow-none">
+      <div className="baseVertFlex w-full gap-1 rounded-b-sm bg-secondary-active p-2.5">
         {/* title */}
         <div className="baseVertFlex w-full !items-start">
           <Button variant={"link"} asChild>
@@ -297,14 +343,19 @@ function GridTabCard({
           <div className="baseFlex gap-2">
             <Badge
               style={{
-                backgroundColor: genreList.get(minimalTab.genre),
+                backgroundColor: genreLightList
+                  .get(minimalTab.genre)
+                  ?.replace(/\)$/, " / 0.75)"),
+                borderColor: genreList.get(minimalTab.genre),
+                border: "1px solid",
+                color: genreList.get(minimalTab.genre),
               }}
             >
               {minimalTab.genre}
             </Badge>
 
             {pinnedTabType && (
-              <Badge className="baseFlex gap-1 outline outline-1">
+              <Badge className="baseFlex gap-1 border border-primary bg-primary/10 text-primary">
                 <TbPinned className="size-4" />
                 Pinned
               </Badge>
@@ -319,7 +370,7 @@ function GridTabCard({
                   <FaStar className="size-3" />({minimalTab.ratingsCount})
                 </div>
                 <Separator
-                  className="h-[16px] w-[1px] bg-pink-100/50"
+                  className="h-[16px] w-[1px] bg-foreground/50"
                   orientation="vertical"
                 />
               </>

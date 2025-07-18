@@ -30,13 +30,13 @@ function AnimatedTabs({
 
             if (playing && tabName !== "Practice") pauseAudio();
           }}
-          className="relative !p-0 font-medium text-white transition focus-visible:outline-2 sm:whitespace-nowrap sm:text-nowrap"
+          className="relative !p-0 font-medium transition focus-visible:outline-2 sm:whitespace-nowrap sm:text-nowrap"
         >
           {activeTabName === tabName && (
             <motion.span
               layoutId="activeTabPlaybackUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-pink-50 mobilePortrait:bottom-[-8px] tablet:bottom-[4px]"
+              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-primary mobilePortrait:bottom-[-8px] tablet:bottom-[4px]"
             />
           )}
           {tabName}

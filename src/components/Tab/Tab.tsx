@@ -39,7 +39,6 @@ import {
   CarouselItem,
 } from "~/components/ui/carousel";
 import TipsDialog from "~/components/Dialogs/TipsDialog";
-import { useRouter } from "next/router";
 
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
@@ -60,8 +59,6 @@ interface Tab {
 }
 
 function Tab({ tab }: Tab) {
-  const { asPath } = useRouter();
-
   const [customTuning, setCustomTuning] = useState<string | null>(null);
   const [isPublishingOrUpdating, setIsPublishingOrUpdating] = useState(false);
   const [showTipsModal, setShowTipsModal] = useState(false);
@@ -121,6 +118,8 @@ function Tab({ tab }: Tab) {
     viewportLabel,
     setShowPlaybackModal,
     setLooping,
+    color,
+    theme,
   } = useTabStore((state) => ({
     setId: state.setId,
     setCreatedByUserId: state.setCreatedByUserId,
@@ -160,6 +159,8 @@ function Tab({ tab }: Tab) {
     viewportLabel: state.viewportLabel,
     setShowPlaybackModal: state.setShowPlaybackModal,
     setLooping: state.setLooping,
+    color: state.color,
+    theme: state.theme,
   }));
 
   useEffect(() => {
@@ -283,17 +284,14 @@ function Tab({ tab }: Tab) {
         style={{
           transition: "filter 0.5s ease-in-out",
         }}
-        className={`baseVertFlex lightGlassmorphic relative w-full md:rounded-xl ${
-          isPublishingOrUpdating
-            ? "pointer-events-none brightness-90"
-            : "brightness-100"
+        className={`baseVertFlex relative w-full border-y bg-muted shadow-lg md:rounded-xl md:border ${
+          isPublishingOrUpdating ? "pointer-events-none brightness-90" : ""
         }`}
       >
         <TabMetadata
           customTuning={customTuning}
           setIsPublishingOrUpdating={setIsPublishingOrUpdating}
         />
-
         {!editing &&
           sectionProgression.length === 0 &&
           chords.length === 0 &&
@@ -311,9 +309,8 @@ function Tab({ tab }: Tab) {
           )}
 
         <Separator
-          className={`mt-2 ${editing ? "w-[96%]" : "w-full tablet:w-[96%]"}`}
+          className={`mt-2 bg-border ${editing ? "w-[96%]" : "w-full tablet:w-[96%]"}`}
         />
-
         {editing ? (
           <div className="baseVertFlex relative mb-4 mt-6 w-full gap-4 sm:mb-0 sm:mt-4">
             <SectionProgression />
@@ -340,7 +337,7 @@ function Tab({ tab }: Tab) {
               </Button>
 
               <Popover>
-                <PopoverTrigger className="baseFlex size-8 rounded-md transition-all hover:bg-white/20 hover:text-yellow-300 active:hover:bg-white/10 sm:absolute sm:bottom-0 sm:right-4 lg:right-6">
+                <PopoverTrigger className="baseFlex size-8 rounded-md transition-all hover:bg-primary-foreground/20 hover:text-yellow-300 active:hover:bg-primary-foreground/10 sm:absolute sm:bottom-0 sm:right-4 lg:right-6">
                   <HiOutlineLightBulb className="h-5 w-5" />
                 </PopoverTrigger>
                 <PopoverContent
@@ -369,17 +366,11 @@ function Tab({ tab }: Tab) {
             )}
           </>
         )}
-
         <Separator
-          className={`my-2 ${editing ? "w-[96%]" : "w-full tablet:w-[96%]"}`}
+          className={`my-2 bg-border ${editing ? "w-[96%]" : "w-full tablet:w-[96%]"}`}
         />
-
         <div
           ref={tabContentRef}
-          id={"tabBodyContent"}
-          style={{
-            minHeight: asPath.includes("screenshot") ? "1000px" : "auto",
-          }}
           className="baseVertFlex relative mt-2 size-full scroll-m-24 !justify-start gap-4"
         >
           <AnimatePresence mode="wait">
@@ -404,7 +395,7 @@ function Tab({ tab }: Tab) {
                   paddingBottom: 0,
                 }}
                 transition={{ duration: 0.25 }}
-                className="baseFlex sticky left-0 top-16 z-10 w-full bg-pink-800"
+                className="baseFlex sticky left-0 top-20 z-10 w-[calc(100%-3.45rem)] rounded-xl border bg-muted shadow-lg"
               >
                 <Carousel
                   opts={{
@@ -417,7 +408,7 @@ function Tab({ tab }: Tab) {
                     {chords.map((chord) => (
                       <CarouselItem
                         key={chord.id}
-                        className="baseVertFlex basis-[96px] gap-2 md:basis-[134px]"
+                        className="baseVertFlex basis-[96px] gap-2 text-foreground md:basis-[134px]"
                       >
                         <span className="text-sm font-medium">
                           {chord.name}
@@ -470,6 +461,8 @@ function Tab({ tab }: Tab) {
                   <StaticSectionContainer
                     sectionIndex={index}
                     sectionData={section}
+                    color={color}
+                    theme={theme}
                   />
                 )}
               </motion.div>
@@ -477,7 +470,7 @@ function Tab({ tab }: Tab) {
 
           {editing && (
             <Button onClick={addNewSection} className="mb-12">
-              Add another section
+              Add section
             </Button>
           )}
 
@@ -501,12 +494,14 @@ function Tab({ tab }: Tab) {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
-                            variant={"navigation"}
+                            variant={"secondary"}
                             style={{
                               backgroundColor: showPinnedChords
-                                ? "#be185d"
+                                ? "hsl(var(--accent))"
                                 : undefined,
-                              color: showPinnedChords ? "#fbcfe8" : undefined,
+                              color: showPinnedChords
+                                ? "hsl(var(--primary-foreground"
+                                : undefined,
                             }}
                             className="baseFlex !size-11 !rounded-full !p-0"
                             onClick={() => {
@@ -526,14 +521,14 @@ function Tab({ tab }: Tab) {
                   )}
 
                   <Button
-                    variant="playPause"
-                    className="baseFlex gap-3 !rounded-full px-8 py-6 text-lg shadow-lg tablet:px-10 tablet:text-xl"
+                    variant="audio"
+                    className="baseFlex bg-audio gap-3 !rounded-full px-8 py-6 text-lg shadow-lg hover:brightness-90 tablet:px-10 tablet:text-xl"
                     onClick={() => {
                       setShowPlaybackModal(true);
                       setLooping(true);
                     }}
                   >
-                    <Logo className="size-[18px] fill-pink-50 tablet:size-5" />
+                    <Logo className="size-[18px] tablet:size-5" />
                     Practice
                   </Button>
 
@@ -541,8 +536,8 @@ function Tab({ tab }: Tab) {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
-                          variant={"navigation"}
-                          className="baseFlex !size-11 gap-2 !rounded-full !p-0 shadow-lg"
+                          variant={"secondary"}
+                          className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
                           onClick={() => setShowEffectGlossaryDialog(true)}
                         >
                           <FaBook className="size-4" />

@@ -13,15 +13,21 @@ import {
 } from "~/utils/bpmIconRenderingHelpers";
 import { Separator } from "~/components/ui/separator";
 import StaticChordSection from "~/components/Tab/Static/StaticChordSection";
+import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
+import type { COLORS, THEME } from "~/stores/TabStore";
 
 interface StaticSectionContainer {
   sectionData: Section;
   sectionIndex: number;
+  color: COLORS;
+  theme: THEME;
 }
 
 function StaticSectionContainer({
   sectionData,
   sectionIndex,
+  color,
+  theme,
 }: StaticSectionContainer) {
   const [accordionOpen, setAccordionOpen] = useState("opened");
 
@@ -49,12 +55,16 @@ function StaticSectionContainer({
         <AccordionItem value="opened" className="baseVertFlex w-full">
           <div className="baseFlex w-full !justify-start gap-4">
             <div
-              className="baseFlex gap-4 rounded-md bg-pink-600 px-4 py-2"
+              style={{
+                backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-accent"]})`,
+                color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-primary-foreground"]})`,
+              }}
+              className="baseFlex gap-4 rounded-md px-4 py-2"
               onClick={(e) => e.stopPropagation()}
             >
-              <p className="text-lg font-semibold md:text-xl">
+              <span className="text-lg font-semibold md:text-xl">
                 {sectionData.title}
-              </p>
+              </span>
             </div>
           </div>
 
@@ -71,7 +81,7 @@ function StaticSectionContainer({
               id={`sectionIndex${sectionIndex}`}
               className="baseVertFlex w-full gap-3"
             >
-              {sectionData.data.map((subSection, index) => (
+              {sectionData.data.map((subSection) => (
                 <div
                   key={subSection.id}
                   className="baseVertFlex w-full !items-start pb-2"
@@ -79,7 +89,14 @@ function StaticSectionContainer({
                   {(subSection.type === "tab" ||
                     chordSequencesAllHaveSameNoteLength(subSection) ||
                     subSection.repetitions > 1) && (
-                    <div className="baseFlex ml-4 gap-3 rounded-t-md bg-pink-500 px-2 py-1 text-sm !shadow-sm">
+                    <div
+                      style={{
+                        borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
+                        backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.25)`,
+                        color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                      }}
+                      className="baseFlex ml-4 gap-3 rounded-t-md border border-b-0 px-2 py-1 text-sm !shadow-sm"
+                    >
                       {(subSection.type === "tab" ||
                         chordSequencesAllHaveSameNoteLength(subSection)) && (
                         <div className="baseFlex gap-1">
@@ -101,21 +118,29 @@ function StaticSectionContainer({
                               subSection,
                             )) && (
                             <Separator
-                              className="h-4 w-[1px]"
                               orientation="vertical"
+                              className="h-4 w-[1px] bg-gray/50"
                             />
                           )}
 
-                          <p>Repeat {subSection.repetitions}x</p>
+                          <span>Repeat {subSection.repetitions}x</span>
                         </div>
                       )}
                     </div>
                   )}
 
                   {subSection.type === "chord" ? (
-                    <StaticChordSection subSectionData={subSection} />
+                    <StaticChordSection
+                      subSectionData={subSection}
+                      color={color}
+                      theme={theme}
+                    />
                   ) : (
-                    <StaticTabSection subSectionData={subSection} />
+                    <StaticTabSection
+                      subSectionData={subSection}
+                      color={color}
+                      theme={theme}
+                    />
                   )}
                 </div>
               ))}

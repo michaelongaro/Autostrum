@@ -8,10 +8,16 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
 import GridTabCard from "../Search/GridTabCard";
 import TabCardSkeleton from "../Search/TabCardSkeleton";
-import classes from "./Hero.module.css";
+import { useTabStore } from "~/stores/TabStore";
+import { LOGO_PATHS_WITH_TITLE } from "~/utils/logoPaths";
 
 function Hero() {
   const { userId } = useAuth();
+
+  const { color, theme } = useTabStore((state) => ({
+    color: state.color,
+    theme: state.theme,
+  }));
 
   const { data: currentUser } = api.user.getById.useQuery(userId!, {
     enabled: !!userId,
@@ -23,13 +29,13 @@ function Hero() {
   const isAboveExtraLargeViewportWidth = useViewportWidthBreakpoint(1280);
 
   return (
-    <div className="baseVertFlex z-10 my-24 !flex-nowrap gap-16 md:gap-24">
-      <div className="homepageLightGlassmorphic baseVertFlex w-5/6 items-start gap-2 rounded-xl p-4 shadow-sm sm:w-auto md:gap-4 md:p-8">
+    <div className="baseVertFlex z-10 my-24 gap-16 md:gap-24">
+      <div className="baseVertFlex w-5/6 items-start gap-2 rounded-xl border bg-muted p-4 shadow-md sm:w-auto md:gap-4 md:p-8">
         <div className="baseVertFlex gap-4">
           <h1 className="baseVertFlex gap-2 text-3xl font-bold md:text-5xl">
             Welcome to
             <Image
-              src="/logoWithTitle.svg"
+              src={LOGO_PATHS_WITH_TITLE[color]}
               alt="Autostrum logo"
               style={{
                 filter: "drop-shadow(0px 1px 0.5px hsla(336, 84%, 17%, 0.25))",
@@ -42,11 +48,7 @@ function Hero() {
 
           <p className="text-center text-base md:text-lg">
             Create and share your riffs{" "}
-            <span
-              className={`${
-                classes.exactlySpanShadow ?? ""
-              } mx-[1px] italic text-pink-600 underline underline-offset-2`}
-            >
+            <span className="mx-[1px] italic text-primary underline underline-offset-2">
               exactly
             </span>{" "}
             how you want them to sound
@@ -54,14 +56,14 @@ function Hero() {
         </div>
       </div>
 
-      <div className="baseVertFlex homepageLightGlassmorphic w-11/12 !flex-nowrap gap-8 rounded-xl p-4 shadow-sm sm:w-4/5 md:max-w-[550px] md:gap-4 md:p-8 xl:w-[950px] xl:max-w-[950px]">
-        <div className="baseVertFlex !flex-nowrap gap-8 xl:flex-row xl:gap-12">
+      <div className="baseVertFlex w-11/12 gap-8 rounded-xl border bg-muted p-4 shadow-md sm:w-4/5 md:max-w-[550px] md:gap-4 md:p-8 xl:w-[950px] xl:max-w-[950px]">
+        <div className="baseVertFlex gap-8 xl:flex-row xl:gap-12">
           {/* ideally would try to be smarter about mobile vs desktop styles/org rather than repeat
               myself twice here */}
           {isAboveExtraLargeViewportWidth ? (
-            <div className="baseFlex !flex-nowrap gap-3 xl:flex-col xl:!items-start">
+            <div className="baseFlex gap-3 xl:flex-col xl:!items-start">
               <div className="baseFlex w-full !justify-start gap-2">
-                <div className="lightestGlassmorphic mr-2 shrink-0 rounded-md p-2">
+                <div className="mr-2 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
                   <GiMusicalScore className="h-8 w-8" />
                 </div>
                 <p className="text-lg font-bold md:text-xl">Compose</p>
@@ -74,8 +76,8 @@ function Hero() {
               </div>
             </div>
           ) : (
-            <div className="baseFlex !flex-nowrap gap-4 xl:flex-col xl:!items-start">
-              <div className="lightestGlassmorphic shrink-0 rounded-md p-2">
+            <div className="baseFlex !items-start gap-4">
+              <div className="mt-1 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
                 <GiMusicalScore className="h-8 w-8" />
               </div>
               <div className="baseVertFlex !items-start gap-1">
@@ -89,9 +91,9 @@ function Hero() {
           )}
 
           {isAboveExtraLargeViewportWidth ? (
-            <div className="baseFlex !flex-nowrap gap-3 xl:flex-col xl:!items-start">
+            <div className="baseFlex gap-3 xl:flex-col xl:!items-start">
               <div className="baseFlex w-full !justify-start gap-2">
-                <div className="lightestGlassmorphic mr-2 shrink-0 rounded-md p-2">
+                <div className="mr-2 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
                   <HiOutlineLightBulb className="h-8 w-8" />
                 </div>
                 <p className="text-lg font-bold md:text-xl">Find inspiration</p>
@@ -104,8 +106,8 @@ function Hero() {
               </div>
             </div>
           ) : (
-            <div className="baseFlex !flex-nowrap gap-4 xl:flex-col xl:!items-start">
-              <div className="lightestGlassmorphic shrink-0 rounded-md p-2">
+            <div className="baseFlex !items-start gap-4">
+              <div className="mt-1 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
                 <HiOutlineLightBulb className="h-8 w-8" />
               </div>
               <div className="baseVertFlex !items-start gap-1">
@@ -119,9 +121,9 @@ function Hero() {
           )}
 
           {isAboveExtraLargeViewportWidth ? (
-            <div className="baseFlex !flex-nowrap gap-3 xl:flex-col xl:!items-start">
+            <div className="baseFlex gap-3 xl:flex-col xl:!items-start">
               <div className="baseFlex w-full !justify-start gap-2">
-                <div className="lightestGlassmorphic mr-2 shrink-0 rounded-md p-2">
+                <div className="mr-2 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
                   <BsBarChartLine className="h-8 w-8" />
                 </div>
                 <p className="text-lg font-bold md:text-xl">Practice</p>
@@ -135,8 +137,8 @@ function Hero() {
               </div>
             </div>
           ) : (
-            <div className="baseFlex !flex-nowrap gap-4 xl:flex-col xl:!items-start">
-              <div className="lightestGlassmorphic shrink-0 rounded-md p-2">
+            <div className="baseFlex !items-start gap-4">
+              <div className="mt-1 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
                 <BsBarChartLine className="h-8 w-8" />
               </div>
               <div className="baseVertFlex !items-start gap-1">
@@ -158,6 +160,8 @@ function Hero() {
                 minimalTab={fetchedTab}
                 currentUser={currentUser}
                 largeVariant={isAboveMediumViewportWidth}
+                color={color}
+                theme={theme}
               />
             ) : (
               <TabCardSkeleton

@@ -243,18 +243,18 @@ function PalmMuteNode({
       {!editing && (value === "start" || value === "end") && (
         <>
           {value === "start" && (
-            <div className="baseFlex w-full !flex-nowrap">
-              <div className="h-[14px] w-[1px] bg-pink-100"></div>
-              <div className="h-[1px] w-1 bg-pink-100"></div>
+            <div className="baseFlex w-full">
+              <div className="h-[14px] w-[1px] bg-primary-foreground"></div>
+              <div className="h-[1px] w-1 bg-primary-foreground"></div>
               <i className="mx-[0.125rem]">PM</i>
-              <div className="h-[1px] w-[3px] bg-pink-100"></div>
+              <div className="h-[1px] w-[3px] bg-primary-foreground"></div>
             </div>
           )}
 
           {value === "end" && (
-            <div className="baseFlex w-full !flex-nowrap">
-              <div className="h-[1px] w-full bg-pink-100"></div>
-              <div className="h-[14px] w-[1px] bg-pink-100"></div>
+            <div className="baseFlex w-full">
+              <div className="h-[1px] w-full bg-primary-foreground"></div>
+              <div className="h-[14px] w-[1px] bg-primary-foreground"></div>
             </div>
           )}
         </>
@@ -307,8 +307,8 @@ function PalmMuteNode({
         <div
           className={`h-[1px] w-full ${
             !editing || !editingPalmMuteNodes || getButtonOpacity() === "1"
-              ? "bg-pink-100"
-              : "bg-pink-100/50"
+              ? "bg-foreground"
+              : "bg-foreground/50"
           } `}
         ></div>
       )}

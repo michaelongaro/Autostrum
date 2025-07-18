@@ -1,12 +1,20 @@
 import { motion } from "framer-motion";
 import { Fragment } from "react";
 import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
+import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
+import type { COLORS, THEME } from "~/stores/TabStore";
 
 interface StaticTabMeasureLine {
   columnData: string[];
+  color: COLORS;
+  theme: THEME;
 }
 
-function StaticTabMeasureLine({ columnData }: StaticTabMeasureLine) {
+function StaticTabMeasureLine({
+  columnData,
+  color,
+  theme,
+}: StaticTabMeasureLine) {
   return (
     <motion.div
       key={columnData[9]}
@@ -18,7 +26,10 @@ function StaticTabMeasureLine({ columnData }: StaticTabMeasureLine) {
             <>
               {columnData[7] && columnData[7] !== "-1" && (
                 <div
-                  className={`baseFlex absolute !flex-nowrap gap-[0.125rem] text-pink-100 ${
+                  style={{
+                    color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                  }}
+                  className={`baseFlex absolute gap-[0.125rem] ${
                     note === "-" ? "top-[10px]" : "top-[27px]"
                   }`}
                 >
@@ -31,7 +42,12 @@ function StaticTabMeasureLine({ columnData }: StaticTabMeasureLine) {
 
               <div className="baseFlex mb-0 h-0 w-full">
                 {note === "-" && (
-                  <div className="relative top-[-17px] h-[1px] w-full bg-pink-100"></div>
+                  <div
+                    style={{
+                      backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                    }}
+                    className="relative top-[-17px] h-[1px] w-full"
+                  ></div>
                 )}
               </div>
             </>
@@ -39,7 +55,12 @@ function StaticTabMeasureLine({ columnData }: StaticTabMeasureLine) {
 
           {index > 0 && index < 7 && (
             <div className="baseFlex w-full">
-              <div className="h-[28px] w-[2px] bg-pink-100"></div>
+              <div
+                style={{
+                  backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                }}
+                className="h-[28px] w-[2px]"
+              ></div>
             </div>
           )}
         </Fragment>

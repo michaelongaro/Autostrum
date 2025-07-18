@@ -37,7 +37,7 @@ function EditImageModal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="baseFlex fixed left-0 top-0 z-50 h-[100dvh] w-[100vw] bg-black/50"
+      className="baseFlex fixed left-0 top-0 z-50 h-[100dvh] w-[100vw] bg-black/60 backdrop-blur-sm"
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           setShowEditImageModal(false);
@@ -47,7 +47,7 @@ function EditImageModal({
       <FocusLock autoFocus={false} returnFocus={true} persistentFocus={true}>
         <div
           tabIndex={-1}
-          className="baseVertFlex size-[500px] gap-4 rounded-md bg-pink-400 p-4 shadow-sm"
+          className="baseVertFlex modalGradient relative size-[500px] gap-4 rounded-lg border p-4 shadow-sm"
         >
           <EditImage
             imageBeingEdited={imageBeingEdited}

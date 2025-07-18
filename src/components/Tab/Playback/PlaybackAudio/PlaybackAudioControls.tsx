@@ -10,7 +10,7 @@ import {
 } from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
-import ProgressSlider from "~/components/AudioControls/ProgressSlider";
+import PlaybackProgressSlider from "~/components/AudioControls/PlaybackProgressSlider";
 import PlaybackGranularLoopRangeEditor from "~/components/Tab/Playback/PlaybackGranularLoopRangeEditor";
 import { Button } from "~/components/ui/button";
 import { Toggle } from "~/components/ui/toggle";
@@ -201,11 +201,11 @@ function PlaybackAudioControls({
 
           {/* play/pause button*/}
           <Button
-            variant="playPause"
+            variant="audio"
             size={aboveLargeViewportWidth ? "default" : "sm"}
             disabled={disablePlayButton}
             onClick={handlePlayButtonClick}
-            className="size-8 shrink-0 overflow-hidden rounded-full bg-transparent p-0"
+            className="hover:text-audio-foreground hover:bg-audio size-8 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
           >
             <PlayButtonIcon
               uniqueLocationKey="audioControls"
@@ -263,7 +263,7 @@ function PlaybackAudioControls({
             </motion.div>
           </AnimatePresence>
 
-          <div className="baseFlex w-full !flex-nowrap gap-2">
+          <div className="baseFlex w-full gap-2">
             <div className="baseFlex w-9 !justify-start self-start">
               {formatSecondsToMinutes(
                 playbackMetadata?.[
@@ -274,7 +274,7 @@ function PlaybackAudioControls({
               )}
             </div>
 
-            <ProgressSlider
+            <PlaybackProgressSlider
               disabled={disablePlayButton}
               chordDurations={chordDurations}
               loopRange={loopRange}
@@ -316,7 +316,7 @@ function PlaybackAudioControls({
 
       {!viewportLabel.includes("Landscape") && (
         <div className="baseVertFlex w-full max-w-[90vw] gap-2 sm:max-w-xl">
-          <ProgressSlider
+          <PlaybackProgressSlider
             disabled={disablePlayButton}
             chordDurations={chordDurations}
             loopRange={loopRange}
@@ -390,11 +390,11 @@ function PlaybackAudioControls({
                 </Button>
 
                 <Button
-                  variant="playPause"
+                  variant="audio"
                   size={aboveLargeViewportWidth ? "default" : "sm"}
                   disabled={disablePlayButton}
                   onClick={handlePlayButtonClick}
-                  className="size-10 shrink-0 rounded-full bg-transparent p-0"
+                  className="hover:text-audio-foreground hover:bg-audio size-10 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
                 >
                   <PlayButtonIcon
                     uniqueLocationKey="audioControls"

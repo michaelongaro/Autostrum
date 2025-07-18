@@ -25,6 +25,8 @@ import type { Area, Point } from "react-easy-crop";
 import { Check } from "lucide-react";
 import EditImageSelector from "~/components/Profile/EditImageSelector";
 import Ellipsis from "~/components/ui/icons/Ellipsis";
+import { updateCSSThemeVars } from "~/utils/updateCSSThemeVars";
+import { useTabStore } from "~/stores/TabStore";
 
 const EditImageModal = dynamic(
   () => import("~/components/modals/EditImageModal"),
@@ -35,6 +37,30 @@ const PinnedTabModal = dynamic(
 const DeleteAccountModal = dynamic(
   () => import("~/components/modals/DeleteAccountModal"),
 );
+
+const COLORS = [
+  "peony",
+  "quartz",
+  "crimson",
+  "saffron",
+  "pistachio",
+  "verdant",
+  "aqua",
+  "azure",
+  "amethyst",
+] as const;
+
+const COLOR_HEX_VALUES: Record<(typeof COLORS)[number], string> = {
+  peony: "#E93D82",
+  quartz: "#CA244D",
+  crimson: "#CE2C31",
+  saffron: "#F76B15",
+  pistachio: "#46A758",
+  verdant: "#12A594",
+  aqua: "#00A2C7",
+  azure: "#0D74CE",
+  amethyst: "#8E4EC6",
+};
 
 export interface LocalSettings {
   emailAddress: string;
@@ -49,6 +75,22 @@ function UserSettings() {
   const { userId } = useAuth();
   const { user: clerkUser } = useUser();
   const ctx = api.useUtils();
+
+  const {
+    color,
+    setColor,
+    theme,
+    setTheme,
+    followsDeviceTheme,
+    setFollowsDeviceTheme,
+  } = useTabStore((state) => ({
+    color: state.color,
+    setColor: state.setColor,
+    theme: state.theme,
+    setTheme: state.setTheme,
+    followsDeviceTheme: state.followsDeviceTheme,
+    setFollowsDeviceTheme: state.setFollowsDeviceTheme,
+  }));
 
   const [localSettings, setLocalSettings] = useState<LocalSettings | null>(
     null,
@@ -84,6 +126,13 @@ function UserSettings() {
     },
   });
 
+  const { mutate: updateDBColor } = api.user.updateColor.useMutation({
+    // FYI: I don't believe an onSuccess is necessary here
+    onError: (e) => {
+      console.error(e);
+    },
+  });
+
   const [editingPassword, setEditingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -98,6 +147,9 @@ function UserSettings() {
   const [rotation, setRotation] = useState<number>(0);
   const [zoom, setZoom] = useState<number>(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+
+  const [hoveredColor, setHoveredColor] = useState<string | null>(null);
+  const [hoveredTheme, setHoveredTheme] = useState<string | null>(null);
 
   const [showEditImageModal, setShowEditImageModal] = useState(false);
   const [showPinnedTabModal, setShowPinnedTabModal] = useState(false);
@@ -170,7 +222,7 @@ function UserSettings() {
 
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex w-full !justify-between px-4 lg:px-0">
-          <span className="text-3xl font-semibold tracking-tight !text-pink-50 md:text-4xl lg:hidden">
+          <span className="text-3xl font-semibold tracking-tight !text-foreground md:text-4xl lg:hidden">
             Settings
           </span>
 
@@ -179,7 +231,7 @@ function UserSettings() {
               <Link
                 prefetch={false}
                 href={"/profile/settings"}
-                className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50 hover:!text-pink-50 active:!text-pink-50/75 lg:!text-4xl"
+                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
               >
                 Settings
               </Link>
@@ -188,7 +240,7 @@ function UserSettings() {
               <Link
                 prefetch={false}
                 href={"/profile/statistics"}
-                className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50/50 hover:!text-pink-50 active:text-pink-50/75 lg:!text-4xl"
+                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:text-foreground/75 lg:!text-4xl"
               >
                 Statistics
               </Link>
@@ -197,7 +249,7 @@ function UserSettings() {
               <Link
                 prefetch={false}
                 href={"/profile/tabs/filters"}
-                className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50/50 hover:!text-pink-50 active:!text-pink-50/75 lg:!text-4xl"
+                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
               >
                 Tabs
               </Link>
@@ -206,7 +258,7 @@ function UserSettings() {
               <Link
                 prefetch={false}
                 href={"/profile/bookmarks/filters"}
-                className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50/50 hover:!text-pink-50 active:!text-pink-50/75 lg:!text-4xl"
+                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
               >
                 Bookmarks
               </Link>
@@ -219,18 +271,18 @@ function UserSettings() {
           >
             <PopoverTrigger asChild>
               <Button variant={"text"} className="!p-0">
-                <Ellipsis className="size-[18px] text-pink-50 lg:size-5" />
+                <Ellipsis className="size-[18px] text-foreground lg:size-5" />
               </Button>
             </PopoverTrigger>
             <PopoverContent side={"bottom"} align="end" className="w-fit">
               <Button
-                variant={"outline"}
+                variant={"destructive"}
                 disabled={!localSettings}
                 onClick={() => {
                   setShowExtraSettingsPopover(false);
                   setShowDeleteAccountModal(true);
                 }}
-                className="baseFlex gap-2 bg-pink-50 p-4 !text-red-700"
+                className="baseFlex gap-2 p-4"
               >
                 <FaTrashAlt className="size-4" />
                 Delete account
@@ -240,11 +292,11 @@ function UserSettings() {
         </div>
 
         <AnimatePresence mode="popLayout">
-          <div className="baseVertFlex lightGlassmorphic w-full !items-start gap-4 p-4 py-6 md:rounded-lg md:p-8 lg:!flex-row lg:gap-12">
+          <div className="baseVertFlex w-full !items-start gap-4 border-y bg-muted p-4 py-6 shadow-lg md:rounded-lg md:border md:p-8 lg:!flex-row lg:gap-12">
             <div className="baseVertFlex w-full !items-start gap-4 lg:gap-12">
               {/* email */}
               <div className="baseVertFlex w-full !items-start gap-2 lg:!flex-row lg:!items-center lg:!justify-between">
-                <span className="text-xl font-medium !text-pink-50 lg:text-2xl">
+                <span className="text-xl font-medium !text-foreground lg:text-2xl">
                   Email
                 </span>
 
@@ -257,25 +309,25 @@ function UserSettings() {
                   className="baseFlex"
                 >
                   {localSettings ? (
-                    <span className="font-medium italic !text-pink-50/75 lg:text-xl">
+                    <span className="font-medium italic !text-foreground/75 lg:text-xl">
                       {localSettings.emailAddress}
                     </span>
                   ) : (
-                    <div className="pulseAnimation h-6 w-48 rounded-md bg-pink-300 lg:h-7"></div>
+                    <div className="pulseAnimation h-6 w-48 rounded-md bg-foreground/50 lg:h-7"></div>
                   )}
                 </motion.div>
               </div>
 
               <Separator
                 orientation="horizontal"
-                className="h-[1px] w-full bg-pink-50/50"
+                className="h-[1px] w-full bg-foreground/50"
               />
 
               {/* username */}
               <div className="baseVertFlex w-full !items-start gap-2 lg:!flex-row lg:!justify-between">
                 <Label
                   htmlFor={"username"}
-                  className="text-xl font-medium !text-pink-50 lg:text-2xl"
+                  className="text-xl font-medium !text-foreground lg:text-2xl"
                 >
                   Username
                 </Label>
@@ -295,7 +347,7 @@ function UserSettings() {
                         type="text"
                         value={localSettings?.username}
                         placeholder="Enter your username"
-                        className="w-[275px] !text-pink-50"
+                        className="w-[275px] !text-foreground"
                         onFocus={() => setUsernameInputHasReceivedFocus(true)}
                         onChange={(e) => {
                           setLocalSettings((prev) => ({
@@ -305,7 +357,7 @@ function UserSettings() {
                         }}
                       />
                     ) : (
-                      <div className="pulseAnimation h-10 w-[275px] rounded-md bg-pink-300 lg:h-7"></div>
+                      <div className="pulseAnimation h-10 w-[275px] rounded-md bg-foreground/50 lg:h-7"></div>
                     )}
                   </motion.div>
 
@@ -336,7 +388,7 @@ function UserSettings() {
                           },
                         }}
                         transition={{ duration: 0.35 }}
-                        className="baseFlex gap-2 text-nowrap text-sm font-medium !text-pink-50/75"
+                        className="baseFlex gap-2 text-nowrap text-sm font-medium !text-foreground/75"
                       >
                         {localSettings &&
                         (localSettings.username.length < 1 ||
@@ -347,9 +399,9 @@ function UserSettings() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.15 }}
-                            className="rounded-full bg-red-500 p-0.5"
+                            className="rounded-full bg-destructive p-0.5"
                           >
-                            <IoClose className="size-3 text-pink-50" />
+                            <IoClose className="size-3 text-primary-foreground" />
                           </motion.div>
                         ) : (
                           <motion.div
@@ -360,7 +412,7 @@ function UserSettings() {
                             transition={{ duration: 0.15 }}
                             className="rounded-full bg-green-600 p-0.5"
                           >
-                            <Check className="size-3 text-pink-50" />
+                            <Check className="size-3 text-primary-foreground" />
                           </motion.div>
                         )}
                         Must be between 1 - 20 characters
@@ -372,12 +424,12 @@ function UserSettings() {
 
               <Separator
                 orientation="horizontal"
-                className="h-[1px] w-full bg-pink-50/50"
+                className="h-[1px] w-full bg-foreground/50"
               />
 
               {/* password */}
               <div className="baseVertFlex relative w-full !items-start gap-2 lg:!flex-row lg:!items-start lg:!justify-between">
-                <span className="text-xl font-medium !text-pink-50 lg:text-2xl">
+                <span className="text-xl font-medium !text-foreground lg:text-2xl">
                   Password
                 </span>
 
@@ -394,7 +446,7 @@ function UserSettings() {
                     >
                       <Label
                         htmlFor={"newPassword"}
-                        className="font-medium !text-pink-50"
+                        className="font-medium !text-foreground"
                       >
                         New password
                       </Label>
@@ -407,7 +459,7 @@ function UserSettings() {
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
                           placeholder="Enter your new password"
-                          className="w-full max-w-[275px] !text-pink-50 lg:w-[275px]"
+                          className="w-full max-w-[275px] !text-foreground lg:w-[275px]"
                         />
 
                         <Button
@@ -427,14 +479,14 @@ function UserSettings() {
                             transition={{ duration: 0.15 }}
                           >
                             {showPasswords ? (
-                              <FaRegEyeSlash className="size-5 text-pink-50" />
+                              <FaRegEyeSlash className="size-5 text-foreground" />
                             ) : (
-                              <FaRegEye className="size-5 text-pink-50" />
+                              <FaRegEye className="size-5 text-foreground" />
                             )}
                           </motion.div>
                         </Button>
 
-                        <div className="baseFlex gap-2 text-sm font-medium !text-pink-50/75">
+                        <div className="baseFlex gap-2 text-sm font-medium !text-foreground/75">
                           {newPassword.length < 8 ? (
                             <motion.div
                               key={"newPasswordErrorIcon"}
@@ -442,9 +494,9 @@ function UserSettings() {
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.15 }}
-                              className="rounded-full bg-red-500 p-0.5"
+                              className="rounded-full bg-destructive p-0.5"
                             >
-                              <IoClose className="size-3 text-pink-50" />
+                              <IoClose className="size-3 text-primary-foreground" />
                             </motion.div>
                           ) : (
                             <motion.div
@@ -455,7 +507,7 @@ function UserSettings() {
                               transition={{ duration: 0.15 }}
                               className="rounded-full bg-green-600 p-0.5"
                             >
-                              <Check className="size-3 text-pink-50" />
+                              <Check className="size-3 text-primary-foreground" />
                             </motion.div>
                           )}
                           Must be greater than 8 characters
@@ -464,7 +516,7 @@ function UserSettings() {
 
                       <Label
                         htmlFor={"confirmPassword"}
-                        className="mt-2 font-medium !text-pink-50"
+                        className="mt-2 font-medium !text-foreground"
                       >
                         Confirm password
                       </Label>
@@ -476,7 +528,7 @@ function UserSettings() {
                           value={confirmPassword}
                           placeholder="Confirm your new password"
                           maxLength={128}
-                          className="w-full max-w-[275px] !text-pink-50 lg:w-[275px]"
+                          className="w-full max-w-[275px] !text-foreground lg:w-[275px]"
                           onChange={(e) => setConfirmPassword(e.target.value)}
                         />
 
@@ -497,14 +549,14 @@ function UserSettings() {
                             transition={{ duration: 0.15 }}
                           >
                             {showPasswords ? (
-                              <FaRegEyeSlash className="size-5 text-pink-50" />
+                              <FaRegEyeSlash className="size-5 text-foreground" />
                             ) : (
-                              <FaRegEye className="size-5 text-pink-50" />
+                              <FaRegEye className="size-5 text-foreground" />
                             )}
                           </motion.div>
                         </Button>
 
-                        <div className="baseFlex gap-2 text-sm font-medium !text-pink-50/75">
+                        <div className="baseFlex gap-2 text-sm font-medium !text-foreground/75">
                           {confirmPassword.length < 8 ? (
                             <motion.div
                               key={"confirmPasswordLengthErrorIcon"}
@@ -512,9 +564,9 @@ function UserSettings() {
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.15 }}
-                              className="rounded-full bg-red-500 p-0.5"
+                              className="rounded-full bg-destructive p-0.5"
                             >
-                              <IoClose className="size-3 text-pink-50" />
+                              <IoClose className="size-3 text-primary-foreground" />
                             </motion.div>
                           ) : (
                             <motion.div
@@ -525,12 +577,12 @@ function UserSettings() {
                               transition={{ duration: 0.15 }}
                               className="rounded-full bg-green-600 p-0.5"
                             >
-                              <Check className="size-3 text-pink-50" />
+                              <Check className="size-3 text-primary-foreground" />
                             </motion.div>
                           )}
                           Must be greater than 8 characters
                         </div>
-                        <div className="baseFlex gap-2 text-sm font-medium !text-pink-50/75">
+                        <div className="baseFlex gap-2 text-sm font-medium !text-foreground/75">
                           {newPassword !== confirmPassword ? (
                             <motion.div
                               key={"confirmPasswordEqualityErrorIcon"}
@@ -538,9 +590,9 @@ function UserSettings() {
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.15 }}
-                              className="rounded-full bg-red-500 p-0.5"
+                              className="rounded-full bg-destructive p-0.5"
                             >
-                              <IoClose className="size-3 text-pink-50" />
+                              <IoClose className="size-3 text-primary-foreground" />
                             </motion.div>
                           ) : (
                             <motion.div
@@ -551,7 +603,7 @@ function UserSettings() {
                               transition={{ duration: 0.15 }}
                               className="rounded-full bg-green-600 p-0.5"
                             >
-                              <Check className="size-3 text-pink-50" />
+                              <Check className="size-3 text-primary-foreground" />
                             </motion.div>
                           )}
                           Passwords must match
@@ -569,14 +621,14 @@ function UserSettings() {
                     >
                       {localSettings ? (
                         <span
-                          className={`font-medium ${localSettings.passwordEnabled ? "!text-pink-50 lg:text-2xl" : "italic !text-pink-50/75 lg:text-xl"} lg:text-xl`}
+                          className={`font-medium ${localSettings.passwordEnabled ? "!text-foreground lg:text-2xl" : "italic !text-foreground/75 lg:text-xl"} lg:text-xl`}
                         >
                           {localSettings.passwordEnabled
                             ? "********"
                             : "Controlled by attached Google account"}
                         </span>
                       ) : (
-                        <div className="pulseAnimation h-6 w-64 rounded-md bg-pink-300 lg:h-7"></div>
+                        <div className="pulseAnimation h-6 w-64 rounded-md bg-foreground/50 lg:h-7"></div>
                       )}
                     </motion.div>
                   )}
@@ -608,7 +660,7 @@ function UserSettings() {
 
               <Separator
                 orientation="horizontal"
-                className="h-[1px] w-full bg-pink-50/50"
+                className="h-[1px] w-full bg-foreground/50"
               />
 
               {/* profile image */}
@@ -631,13 +683,13 @@ function UserSettings() {
 
               <Separator
                 orientation="horizontal"
-                className="h-[1px] w-full bg-pink-50/50 lg:hidden"
+                className="h-[1px] w-full bg-foreground/50 lg:hidden"
               />
             </div>
 
             <Separator
               orientation="vertical"
-              className="hidden h-[550px] w-[1px] bg-pink-50/50 lg:block"
+              className="hidden h-[550px] w-[1px] bg-foreground/50 lg:block"
             />
 
             <div className="baseVertFlex w-full !items-start gap-4 lg:gap-10">
@@ -652,125 +704,78 @@ function UserSettings() {
 
               <Separator
                 orientation="horizontal"
-                className="h-[1px] w-full bg-pink-50/50"
+                className="h-[1px] w-full bg-foreground/50"
               />
 
               {/* color selector */}
               <div className="baseVertFlex relative w-full !items-start gap-2 lg:!flex-row lg:!justify-between">
-                <span className="text-xl font-medium !text-pink-50 lg:text-2xl">
+                <span className="text-xl font-medium !text-foreground lg:text-2xl">
                   Color
                 </span>
 
-                <div className="grid w-full max-w-[450px] grid-cols-3 grid-rows-3 gap-4 self-center">
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-pink-600 !p-0"
-                    ></Button>
-                    <p className="text-sm font-medium">Peony</p>
-                  </div>
+                <div className="my-2 grid w-full max-w-[450px] grid-cols-3 grid-rows-3 gap-4 self-center sm:my-0">
+                  {COLORS.map((colorString) => (
+                    <div
+                      key={colorString}
+                      className="baseVertFlex w-full gap-1"
+                    >
+                      <Button
+                        variant={"theme"}
+                        onMouseEnter={() => setHoveredColor(colorString)}
+                        onMouseLeave={() => setHoveredColor(null)}
+                        onTouchStart={() => setHoveredColor(colorString)}
+                        onTouchEnd={() => setHoveredColor(null)}
+                        onTouchCancel={() => setHoveredColor(null)}
+                        onClick={() => {
+                          updateCSSThemeVars(colorString, theme);
+                          setColor(colorString);
+                          window.localStorage.setItem(
+                            "autostrum-color",
+                            colorString,
+                          );
 
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-rose-600 !p-0"
-                    ></Button>
-                    <p className="text-sm font-medium opacity-50">Quartz</p>
-                  </div>
-
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-red-600 !p-0"
-                    ></Button>
-                    <p className="text-sm font-medium opacity-50">Crimson</p>
-                  </div>
-
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-amber-600 !p-0"
-                    ></Button>
-                    <p className="text-sm font-medium opacity-50">Saffron</p>
-                  </div>
-
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-lime-600 !p-0"
-                    ></Button>
-                    <p className="text-sm font-medium opacity-50">Pistachio</p>
-                  </div>
-
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-green-600 !p-0"
-                    ></Button>
-                    <p className="text-sm font-medium opacity-50">Verdant</p>
-                  </div>
-
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-cyan-600 !p-0"
-                    ></Button>
-                    <p className="text-sm font-medium opacity-50">Aqua</p>
-                  </div>
-
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-blue-600 !p-0"
-                    ></Button>
-                    <p className="text-sm font-medium opacity-50">Azure</p>
-                  </div>
-
-                  <div className="baseVertFlex w-full gap-1">
-                    <Button
-                      variant={"outline"}
-                      onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
-                      }}
-                      className="!size-12 !rounded-full bg-violet-600 !p-0"
-                    ></Button>
-                    <p className="text-sm font-medium opacity-50">Amethyst</p>
-                  </div>
+                          if (userId) {
+                            updateDBColor({ userId, color: colorString });
+                          }
+                        }}
+                        style={{
+                          backgroundColor: COLOR_HEX_VALUES[colorString],
+                        }}
+                        className={`relative !size-12 !rounded-full !p-0`}
+                      >
+                        <AnimatePresence>
+                          {(color === colorString ||
+                            hoveredColor === colorString) && (
+                            <motion.div
+                              key={`settings-hovered-color-${colorString}`}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="absolute inset-0 rounded-full border border-foreground"
+                            ></motion.div>
+                          )}
+                        </AnimatePresence>
+                      </Button>
+                      <span
+                        className={`text-sm font-medium transition-all ${color === colorString ? "opacity-100" : "opacity-50"}`}
+                      >
+                        {colorString.charAt(0).toUpperCase() +
+                          colorString.slice(1)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               <Separator
                 orientation="horizontal"
-                className="h-[1px] w-full bg-pink-50/50"
+                className="h-[1px] w-full bg-foreground/50"
               />
 
               {/* theme selector */}
               <div className="baseVertFlex relative w-full !items-start gap-2 lg:!flex-row lg:!justify-between">
-                <div className="baseFlex gap-1 text-xl font-medium !text-pink-50 lg:gap-2 lg:text-2xl">
+                <div className="baseFlex gap-1 text-xl font-medium !text-foreground lg:gap-2 lg:text-2xl">
                   Theme
                   <Popover>
                     <PopoverTrigger asChild>
@@ -789,51 +794,145 @@ function UserSettings() {
                     </PopoverContent>
                   </Popover>
                 </div>
-                <div className="grid w-full max-w-[450px] grid-cols-3 grid-rows-1 gap-4 self-center">
+                <div className="my-2 grid w-full max-w-[450px] grid-cols-3 grid-rows-1 gap-4 self-center sm:my-0">
                   <div className="baseVertFlex w-full gap-1">
                     <Button
-                      variant={"outline"}
+                      variant={"theme"}
+                      onMouseEnter={() => setHoveredTheme("light")}
+                      onMouseLeave={() => setHoveredTheme(null)}
+                      onTouchStart={() => setHoveredTheme("light")}
+                      onTouchEnd={() => setHoveredTheme(null)}
+                      onTouchCancel={() => setHoveredTheme(null)}
                       onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
+                        updateCSSThemeVars(color, "light");
+                        setTheme("light");
+                        setFollowsDeviceTheme(false);
+                        window.localStorage.setItem("autostrum-theme", "light");
+                        window.localStorage.setItem(
+                          "autostrum-follows-device-theme",
+                          "false",
+                        );
                       }}
-                      className="!size-12 !rounded-full !p-0"
+                      className="relative !size-12 !rounded-full !p-0"
                     >
-                      <IoSunnyOutline className="size-6" />
+                      <IoSunnyOutline className="size-6 text-foreground" />
+                      <AnimatePresence>
+                        {((theme === "light" && !followsDeviceTheme) ||
+                          hoveredTheme === "light") && (
+                          <motion.div
+                            key={"settings-hovered-theme-light"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute inset-0 rounded-full border border-foreground"
+                          ></motion.div>
+                        )}
+                      </AnimatePresence>
                     </Button>
-                    <p className="text-sm font-medium">Light</p>
+                    <span
+                      className={`text-sm font-medium ${!followsDeviceTheme && theme === "light" ? "" : "opacity-50"}`}
+                    >
+                      Light
+                    </span>
                   </div>
 
                   <div className="baseVertFlex w-full gap-1">
                     <Button
-                      variant={"outline"}
+                      variant={"theme"}
+                      onMouseEnter={() => setHoveredTheme("dark")}
+                      onMouseLeave={() => setHoveredTheme(null)}
+                      onTouchStart={() => setHoveredTheme("dark")}
+                      onTouchEnd={() => setHoveredTheme(null)}
+                      onTouchCancel={() => setHoveredTheme(null)}
                       onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
+                        updateCSSThemeVars(color, "dark");
+                        setTheme("dark");
+                        setFollowsDeviceTheme(false);
+                        window.localStorage.setItem("autostrum-theme", "dark");
+                        window.localStorage.setItem(
+                          "autostrum-follows-device-theme",
+                          "false",
+                        );
                       }}
-                      className="!size-12 !rounded-full !p-0"
+                      className="relative !size-12 !rounded-full !p-0"
                     >
-                      <IoMoonOutline className="size-6" />
+                      <IoMoonOutline className="size-6 text-foreground" />
+                      <AnimatePresence>
+                        {((theme === "dark" && !followsDeviceTheme) ||
+                          hoveredTheme === "dark") && (
+                          <motion.div
+                            key={"settings-hovered-theme-dark"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute inset-0 rounded-full border border-foreground"
+                          ></motion.div>
+                        )}
+                      </AnimatePresence>
                     </Button>
-                    <p className="text-sm font-medium opacity-50">Dark</p>
+                    <span
+                      className={`text-sm font-medium ${!followsDeviceTheme && theme === "dark" ? "" : "opacity-50"}`}
+                    >
+                      Dark
+                    </span>
                   </div>
 
                   <div className="baseVertFlex w-full gap-1">
                     <Button
-                      variant={"outline"}
+                      variant={"theme"}
+                      onMouseEnter={() => setHoveredTheme("system")}
+                      onMouseLeave={() => setHoveredTheme(null)}
+                      onTouchStart={() => setHoveredTheme("system")}
+                      onTouchEnd={() => setHoveredTheme(null)}
+                      onTouchCancel={() => setHoveredTheme(null)}
                       onClick={() => {
-                        // document.documentElement.setAttribute("data-theme", "light");
+                        const systemTheme = window.matchMedia(
+                          "(prefers-color-scheme: dark)",
+                        ).matches
+                          ? "dark"
+                          : "light";
+                        updateCSSThemeVars(color, systemTheme);
+                        setTheme(systemTheme);
+                        setFollowsDeviceTheme(true);
+                        window.localStorage.setItem(
+                          "autostrum-theme",
+                          systemTheme,
+                        );
+                        window.localStorage.setItem(
+                          "autostrum-follows-device-theme",
+                          "true",
+                        );
                       }}
-                      className="!size-12 !rounded-full !p-0"
+                      className="relative !size-12 !rounded-full !p-0"
                     >
-                      <HiMiniComputerDesktop className="size-6" />
+                      <HiMiniComputerDesktop className="size-6 text-foreground" />
+                      <AnimatePresence>
+                        {(hoveredTheme === "system" || followsDeviceTheme) && (
+                          <motion.div
+                            key={"settings-hovered-theme-system"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute inset-0 rounded-full border border-foreground"
+                          ></motion.div>
+                        )}
+                      </AnimatePresence>
                     </Button>
-                    <p className="text-sm font-medium opacity-50">System</p>
+                    <span
+                      className={`text-sm font-medium ${followsDeviceTheme ? "" : "opacity-50"}`}
+                    >
+                      System
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* delete account + save */}
+          {/* save button */}
           <div className="baseFlex w-full sm:!justify-end">
             <Button
               disabled={
@@ -905,7 +1004,7 @@ function UserSettings() {
                   {saveButtonText}
                   {saveButtonText === "Saving" && (
                     <div
-                      className="inline-block size-4 animate-spin rounded-full border-[2px] border-pink-50 border-t-transparent text-pink-50"
+                      className="inline-block size-4 animate-spin rounded-full border-[2px] border-primary-foreground border-t-transparent text-foreground"
                       role="status"
                       aria-label="loading"
                     >
@@ -918,7 +1017,7 @@ function UserSettings() {
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                       strokeWidth={2}
-                      className="size-5 text-pink-50"
+                      className="size-5 text-foreground"
                     >
                       <motion.path
                         initial={{ pathLength: 0 }}

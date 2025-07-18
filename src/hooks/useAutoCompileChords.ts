@@ -69,7 +69,6 @@ function useAutoCompileChords() {
 
     if (wholeTabIsEmpty()) {
       setAudioMetadata({
-        type: "Generated",
         tabId: -1,
         playing: false,
         location: null,

@@ -145,7 +145,7 @@ function UserStatistics() {
 
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex w-full !justify-start md:!hidden">
-          <span className="ml-4 text-3xl font-semibold tracking-tight !text-pink-50 md:text-4xl">
+          <span className="ml-4 text-3xl font-semibold tracking-tight !text-foreground md:text-4xl">
             Statistics
           </span>
         </div>
@@ -155,7 +155,7 @@ function UserStatistics() {
             <Link
               prefetch={false}
               href={"/profile/settings"}
-              className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50/50 hover:!text-pink-50 active:!text-pink-50/75 lg:!text-4xl"
+              className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
             >
               Settings
             </Link>
@@ -164,7 +164,7 @@ function UserStatistics() {
             <Link
               prefetch={false}
               href={"/profile/statistics"}
-              className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50 hover:!text-pink-50 active:text-pink-50/75 lg:!text-4xl"
+              className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground hover:!text-foreground active:text-foreground/75 lg:!text-4xl"
             >
               Statistics
             </Link>
@@ -173,7 +173,7 @@ function UserStatistics() {
             <Link
               prefetch={false}
               href={"/profile/tabs/filters"}
-              className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50/50 hover:!text-pink-50 active:!text-pink-50/75 lg:!text-4xl"
+              className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
             >
               Tabs
             </Link>
@@ -182,35 +182,35 @@ function UserStatistics() {
             <Link
               prefetch={false}
               href={"/profile/bookmarks/filters"}
-              className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50/50 hover:!text-pink-50 active:!text-pink-50/75 lg:!text-4xl"
+              className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
             >
               Bookmarks
             </Link>
           </Button>
         </div>
 
-        <div className="baseVertFlex lightGlassmorphic min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-12 p-4 md:min-h-[calc(100dvh-4rem-12rem-56px)] md:rounded-lg md:p-8 xl:!flex-row">
+        <div className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-12 border-y bg-muted p-4 shadow-lg md:min-h-[calc(100dvh-4rem-12rem-56px)] md:rounded-lg md:border md:p-8 xl:!flex-row">
           <AnimatePresence mode="popLayout">
             {/* main stats */}
             <div className="baseVertFlex w-full gap-4 xl:w-1/2">
               <div className="baseVertFlex w-full gap-2">
                 <div className="baseFlex w-full !justify-start gap-3">
-                  <FaUser className="size-5 text-pink-50 lg:size-6" />
-                  <span className="text-xl font-semibold text-pink-50 lg:text-2xl">
+                  <FaUser className="size-5 text-foreground lg:size-6" />
+                  <span className="text-xl font-semibold text-foreground lg:text-2xl">
                     Overview
                   </span>
                 </div>
                 <Separator
                   orientation="horizontal"
-                  className="h-[2px] w-full bg-pink-50"
+                  className="h-[2px] w-full bg-foreground"
                 />
               </div>
 
               <div className="baseVertFlex w-full !items-start gap-4 md:mt-4 md:gap-8">
                 <div className="baseFlex w-full !justify-between gap-2">
                   <div className="baseFlex gap-3 xs:gap-4">
-                    <TbGuitarPick className="size-5 text-pink-50 lg:size-6" />
-                    <span className="text-xl font-medium text-pink-50 lg:text-2xl">
+                    <TbGuitarPick className="size-5 text-foreground lg:size-6" />
+                    <span className="text-xl font-medium text-foreground lg:text-2xl">
                       Total tabs
                     </span>
                   </div>
@@ -220,7 +220,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="ml-8 text-2xl font-semibold text-pink-50 lg:text-3xl"
+                      className="ml-8 text-2xl font-semibold text-foreground lg:text-3xl"
                     >
                       {currentUser.totalTabs}
                     </motion.span>
@@ -230,20 +230,20 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-pink-300 lg:h-9"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-foreground/50 lg:h-9"
                     ></motion.div>
                   )}
                 </div>
 
                 <Separator
                   orientation="horizontal"
-                  className="h-[1px] w-full bg-pink-50/50"
+                  className="h-[1px] w-full bg-foreground/50"
                 />
 
                 <div className="baseFlex w-full !justify-between gap-2">
                   <div className="baseFlex gap-3 xs:gap-4">
-                    <FaEye className="size-5 text-pink-50 lg:size-6" />
-                    <span className="text-xl font-medium text-pink-50 lg:text-2xl">
+                    <FaEye className="size-5 text-foreground lg:size-6" />
+                    <span className="text-xl font-medium text-foreground lg:text-2xl">
                       Total tab views
                     </span>
                   </div>
@@ -253,7 +253,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="ml-8 text-2xl font-semibold text-pink-50 lg:text-3xl"
+                      className="ml-8 text-2xl font-semibold text-foreground lg:text-3xl"
                     >
                       {currentUser.totalTabViews}
                     </motion.span>
@@ -263,20 +263,20 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-pink-300 lg:h-9"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-foreground/50 lg:h-9"
                     ></motion.div>
                   )}
                 </div>
 
                 <Separator
                   orientation="horizontal"
-                  className="h-[1px] w-full bg-pink-50/50"
+                  className="h-[1px] w-full bg-foreground/50"
                 />
 
                 <div className="baseFlex w-full !justify-between gap-2">
                   <div className="baseFlex gap-3 xs:gap-4">
-                    <FaStar className="size-5 text-pink-50 lg:size-6" />
-                    <span className="text-xl font-medium text-pink-50 lg:text-2xl">
+                    <FaStar className="size-5 text-foreground lg:size-6" />
+                    <span className="text-xl font-medium text-foreground lg:text-2xl">
                       Average rating
                     </span>
                   </div>
@@ -286,7 +286,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="ml-8 text-2xl font-semibold text-pink-50 lg:text-3xl"
+                      className="ml-8 text-2xl font-semibold text-foreground lg:text-3xl"
                     >
                       {currentUser.totalTabRatings > 0
                         ? currentUser.averageTabRating.toFixed(1)
@@ -298,20 +298,20 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-pink-300 lg:h-9"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-foreground/50 lg:h-9"
                     ></motion.div>
                   )}
                 </div>
 
                 <Separator
                   orientation="horizontal"
-                  className="h-[1px] w-full bg-pink-50/50"
+                  className="h-[1px] w-full bg-foreground/50"
                 />
 
                 <div className="baseFlex w-full !justify-between gap-2">
                   <div className="baseFlex gap-3 xs:gap-4">
-                    <IoStatsChart className="size-5 text-pink-50 lg:size-6" />
-                    <span className="text-xl font-medium text-pink-50 lg:text-2xl">
+                    <IoStatsChart className="size-5 text-foreground lg:size-6" />
+                    <span className="text-xl font-medium text-foreground lg:text-2xl">
                       Total ratings
                     </span>
                   </div>
@@ -321,7 +321,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="ml-8 text-2xl font-semibold text-pink-50 lg:text-3xl"
+                      className="ml-8 text-2xl font-semibold text-foreground lg:text-3xl"
                     >
                       {currentUser.totalTabRatings}
                     </motion.span>
@@ -331,20 +331,20 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-pink-300 lg:h-9"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-foreground/50 lg:h-9"
                     ></motion.div>
                   )}
                 </div>
 
                 <Separator
                   orientation="horizontal"
-                  className="h-[1px] w-full bg-pink-50/50"
+                  className="h-[1px] w-full bg-foreground/50"
                 />
 
                 <div className="baseFlex w-full !justify-between gap-2">
                   <div className="baseFlex gap-3 xs:gap-4">
-                    <IoBookmark className="size-5 text-pink-50 lg:size-6" />
-                    <span className="text-xl font-medium text-pink-50 lg:text-2xl">
+                    <IoBookmark className="size-5 text-foreground lg:size-6" />
+                    <span className="text-xl font-medium text-foreground lg:text-2xl">
                       Total bookmarks
                     </span>
                   </div>
@@ -354,7 +354,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="ml-8 text-2xl font-semibold text-pink-50 lg:text-3xl"
+                      className="ml-8 text-2xl font-semibold text-foreground lg:text-3xl"
                     >
                       {currentUser.totalBookmarksReceived}
                     </motion.span>
@@ -364,20 +364,20 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-pink-300 lg:h-9"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-foreground/50 lg:h-9"
                     ></motion.div>
                   )}
                 </div>
 
                 <Separator
                   orientation="horizontal"
-                  className="h-[1px] w-full bg-pink-50/50"
+                  className="h-[1px] w-full bg-foreground/50"
                 />
 
                 <div className="baseFlex w-full !justify-between gap-2">
                   <div className="baseFlex gap-3 xs:gap-4">
-                    <IoCalendarOutline className="size-5 text-pink-50 lg:size-6" />
-                    <span className="text-xl font-medium text-pink-50 lg:text-2xl">
+                    <IoCalendarOutline className="size-5 text-foreground lg:size-6" />
+                    <span className="text-xl font-medium text-foreground lg:text-2xl">
                       Member since
                     </span>
                   </div>
@@ -387,7 +387,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="ml-9 text-lg font-semibold text-pink-50 lg:text-xl"
+                      className="ml-9 text-lg font-semibold text-foreground lg:text-xl"
                     >
                       {currentUser.createdAt.toLocaleDateString("en-US", {
                         year: "numeric",
@@ -401,7 +401,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-9 h-6 w-28 rounded-md bg-pink-300 lg:h-7 lg:w-40"
+                      className="pulseAnimation ml-9 h-6 w-28 rounded-md bg-foreground/50 lg:h-7 lg:w-40"
                     ></motion.div>
                   )}
                 </div>
@@ -416,14 +416,14 @@ function UserStatistics() {
               <div className="baseVertFlex w-full gap-2">
                 <div className="baseVertFlex w-full gap-2">
                   <div className="baseFlex w-full !justify-start gap-3">
-                    <FaTrophy className="size-5 text-pink-50 lg:size-6" />
-                    <span className="text-xl font-semibold text-pink-50 lg:text-2xl">
+                    <FaTrophy className="size-5 text-foreground lg:size-6" />
+                    <span className="text-xl font-semibold text-foreground lg:text-2xl">
                       Top 5
                     </span>
                   </div>
                   <Separator
                     orientation="horizontal"
-                    className="h-[2px] w-full bg-pink-50"
+                    className="h-[2px] w-full bg-foreground"
                   />
                 </div>
 
@@ -442,9 +442,13 @@ function UserStatistics() {
 
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="h-8 px-4">Rank</TableHead>
-                        <TableHead className="h-8 px-4">Title</TableHead>
-                        <TableHead className="h-8 px-4">
+                        <TableHead className="h-8 px-4 text-foreground/80">
+                          Rank
+                        </TableHead>
+                        <TableHead className="h-8 px-4 text-foreground/80">
+                          Title
+                        </TableHead>
+                        <TableHead className="h-8 px-4 text-foreground/80">
                           {topFiveStatsHeaders[topFiveStatsSlide]}
                         </TableHead>
                       </TableRow>
@@ -472,7 +476,7 @@ function UserStatistics() {
                                 transition={{ duration: 0.25 }}
                                 className="w-full"
                               >
-                                <span className="font-semibold text-pink-50">
+                                <span className="font-semibold text-foreground">
                                   {rank}
                                 </span>
                               </motion.div>
@@ -505,7 +509,7 @@ function UserStatistics() {
                                 transition={{ duration: 0.25 }}
                                 className="w-full"
                               >
-                                <span className="font-semibold text-pink-50">
+                                <span className="font-semibold text-foreground">
                                   {tab.value}
                                 </span>
                               </motion.div>
@@ -564,8 +568,8 @@ function UserStatistics() {
                           transition={{ duration: 0.25 }}
                           className="baseVertFlex absolute left-0 top-0 size-full gap-2"
                         >
-                          <Binoculars className="size-8 text-pink-50 md:size-10" />
-                          <span className="text-xl font-semibold text-pink-50 md:text-2xl">
+                          <Binoculars className="size-8 text-foreground md:size-10" />
+                          <span className="text-xl font-semibold text-foreground md:text-2xl">
                             No tabs found
                           </span>
                         </motion.div>
@@ -585,7 +589,7 @@ function UserStatistics() {
                       );
                     }}
                   >
-                    <IoIosArrowBack className="size-4 text-pink-50" />
+                    <IoIosArrowBack className="size-4 text-foreground" />
                   </Button>
 
                   <Carousel
@@ -620,7 +624,7 @@ function UserStatistics() {
                       );
                     }}
                   >
-                    <IoIosArrowBack className="size-4 rotate-180 text-pink-50" />
+                    <IoIosArrowBack className="size-4 rotate-180 text-foreground" />
                   </Button>
                 </div>
               </div>
@@ -628,18 +632,18 @@ function UserStatistics() {
               <div className="baseVertFlex w-full gap-2">
                 <div className="baseVertFlex w-full gap-2">
                   <div className="baseFlex w-full !justify-start gap-3">
-                    <IoDiceOutline className="size-5 text-pink-50 lg:size-6" />
-                    <span className="text-xl font-semibold text-pink-50 lg:text-2xl">
+                    <IoDiceOutline className="size-5 text-foreground lg:size-6" />
+                    <span className="text-xl font-semibold text-foreground lg:text-2xl">
                       Misc.
                     </span>
                   </div>
                   <Separator
                     orientation="horizontal"
-                    className="h-[2px] w-full bg-pink-50"
+                    className="h-[2px] w-full bg-foreground"
                   />
                 </div>
 
-                <div className="baseFlex w-full text-sm text-muted-foreground">
+                <div className="baseFlex w-full text-sm text-foreground/75">
                   <div className="baseFlex ml-4 w-1/2 !justify-start">
                     {miscStatsHeaders[miscStatsSlide]}
                   </div>
@@ -692,7 +696,7 @@ function UserStatistics() {
                                   transition={{ duration: 0.25 }}
                                   className="w-full"
                                 >
-                                  <span className="font-semibold text-pink-50">
+                                  <span className="font-semibold text-foreground">
                                     {category}
                                   </span>
                                 </motion.div>
@@ -707,7 +711,7 @@ function UserStatistics() {
                                   transition={{ duration: 0.25 }}
                                   className="w-full"
                                 >
-                                  <span className="font-semibold text-pink-50">
+                                  <span className="font-semibold text-foreground">
                                     {numberOfTabs}
                                   </span>
                                 </motion.div>
@@ -764,8 +768,8 @@ function UserStatistics() {
                             transition={{ duration: 0.25 }}
                             className="baseVertFlex absolute left-0 top-0 size-full gap-2"
                           >
-                            <Binoculars className="size-8 text-pink-50 md:size-10" />
-                            <span className="text-xl font-semibold text-pink-50 md:text-2xl">
+                            <Binoculars className="size-8 text-foreground md:size-10" />
+                            <span className="text-xl font-semibold text-foreground md:text-2xl">
                               No tabs found
                             </span>
                           </motion.div>
@@ -786,7 +790,7 @@ function UserStatistics() {
                       );
                     }}
                   >
-                    <IoIosArrowBack className="size-4 text-pink-50" />
+                    <IoIosArrowBack className="size-4 text-foreground" />
                   </Button>
 
                   <Carousel
@@ -829,7 +833,7 @@ function UserStatistics() {
                       );
                     }}
                   >
-                    <IoIosArrowBack className="size-4 rotate-180 text-pink-50" />
+                    <IoIosArrowBack className="size-4 rotate-180 text-foreground" />
                   </Button>
                 </div>
               </div>

@@ -1,9 +1,0 @@
-.exactlySpanShadow {
-  text-shadow: 0px 0px 0px hsla(336, 84%, 17%, 0.45);
-}
-
-@media(min-width: 480px) {
-  .exactlySpanShadow {
-    text-shadow: 0px 0px 0px hsla(336, 84%, 17%, 0.35);
-  }
-}

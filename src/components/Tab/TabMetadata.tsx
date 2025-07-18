@@ -30,7 +30,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabStore, type Section } from "~/stores/TabStore";
+import { useTabStore, type Section, type COLORS } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import { genreList } from "~/utils/genreList";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
@@ -74,6 +74,7 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { Badge } from "~/components/ui/badge";
+import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 
 const KEYS_BY_LETTER = {
   A: ["A major", "A minor", "A# minor", "A♭ major", "A♭ minor"],
@@ -266,7 +267,8 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
   const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
   const [takingScreenshot, setTakingScreenshot] = useState(false);
-  const tabPreviewScreenshotRef = useRef(null);
+  const tabPreviewScreenshotLightRef = useRef(null);
+  const tabPreviewScreenshotDarkRef = useRef(null);
 
   const [showPublishPopover, setShowPublishPopover] = useState(false);
 
@@ -294,6 +296,17 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
       }
     };
   }, [artistId, createdByUserId, editing, id, processPageView]);
+
+  useEffect(() => {
+    if (
+      !minifiedTabData &&
+      asPath.includes("screenshot") &&
+      tabData.length > 0
+    ) {
+      // artificially set minifiedTabData so that the light/dark screenshots can be taken
+      setMinifiedTabData(tabData.slice(0, 2));
+    }
+  }, [asPath, tabData, minifiedTabData]);
 
   function handleBpmChange(event: ChangeEvent<HTMLInputElement>) {
     const inputValue = event.target.value;
@@ -344,59 +357,67 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setIsPublishingOrUpdating(true);
     setSaveButtonText(asPath.includes("create") ? "Publishing" : "Saving");
 
-    setMinifiedTabData(tabData);
+    setMinifiedTabData(tabData.slice(0, 2)); // screenshot can never show more than 2 sections
     setTakingScreenshot(true);
 
     const { domToDataUrl } = await import("modern-screenshot");
 
-    setTimeout(() => {
-      void domToDataUrl(tabPreviewScreenshotRef.current!, {
-        quality: 0.75,
-      }).then((base64TabScreenshot) => {
-        if (asPath.includes("create")) {
-          publishTab({
-            createdByUserId: userId,
-            title,
-            artistId,
-            artistName,
-            description,
-            genre,
-            chords,
-            difficulty,
-            strummingPatterns,
-            tabData,
-            sectionProgression,
-            tuning,
-            bpm,
-            capo,
-            key,
-            base64TabScreenshot,
-          });
-        } else {
-          updateTab({
-            id,
-            title,
-            artistId,
-            artistName,
-            description,
-            genre,
-            chords,
-            difficulty,
-            strummingPatterns,
-            tabData,
-            sectionProgression,
-            tuning,
-            bpm,
-            capo,
-            key,
-            base64TabScreenshot,
-          });
-        }
+    // not ideal, but giving DOM extra time to render
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        setMinifiedTabData(undefined);
-        setTakingScreenshot(false);
+    const [lightScreenshot, darkScreenshot] = await Promise.all([
+      domToDataUrl(tabPreviewScreenshotLightRef.current!, {
+        quality: 0.75,
+      }),
+      domToDataUrl(tabPreviewScreenshotDarkRef.current!, {
+        quality: 0.75,
+      }),
+    ]);
+
+    if (asPath.includes("create")) {
+      publishTab({
+        createdByUserId: userId,
+        title,
+        artistId,
+        artistName,
+        description,
+        genre,
+        chords,
+        difficulty,
+        strummingPatterns,
+        tabData,
+        sectionProgression,
+        tuning,
+        bpm,
+        capo,
+        key,
+        lightScreenshot,
+        darkScreenshot,
       });
-    }, 1000); // trying to give ample time for state to update and <TabPreview /> to completely render
+    } else {
+      updateTab({
+        id,
+        title,
+        artistId,
+        artistName,
+        description,
+        genre,
+        chords,
+        difficulty,
+        strummingPatterns,
+        tabData,
+        sectionProgression,
+        tuning,
+        bpm,
+        capo,
+        key,
+        lightScreenshot,
+        darkScreenshot,
+      });
+    }
+
+    setMinifiedTabData(undefined);
+    setTakingScreenshot(false);
   }
 
   function isEqualToOriginalTabState() {
@@ -441,9 +462,9 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
   function renderSavePopoverContent() {
     if (publishErrorOccurred) {
       return (
-        <div className="baseVertFlex w-full !items-start gap-2 bg-pink-100 p-2 text-sm text-pink-950 md:text-base">
+        <div className="baseVertFlex w-full !items-start gap-2 p-2 text-sm md:text-base">
           <div className="baseFlex gap-2">
-            <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
+            <BsPlus className="h-8 w-8 rotate-45 text-destructive" />
             <p>Failed to publish tab. Please try again later.</p>
           </div>
         </div>
@@ -452,31 +473,31 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
     if (userId) {
       return (
-        <div className="baseVertFlex w-full !items-start gap-2 bg-pink-100 p-2 pr-4 text-sm text-pink-950 md:text-base">
+        <div className="baseVertFlex w-full !items-start gap-2 p-2 pr-4 text-sm md:text-base">
           {title === "" && (
             <div className="baseFlex">
-              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 p-0 text-red-600" />
+              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 p-0 text-destructive" />
               <p>Title is missing</p>
             </div>
           )}
 
           {genre === "" && (
             <div className="baseFlex">
-              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
+              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-destructive" />
               <p>Genre hasn&apos;t been selected</p>
             </div>
           )}
 
           {bpm === -1 && (
             <div className="baseFlex">
-              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
+              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-destructive" />
               <p>Tempo isn&apos;t defined</p>
             </div>
           )}
 
           {tabIsEffectivelyEmpty(tabData) && (
-            <div className="baseFlex !flex-nowrap">
-              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-red-600" />
+            <div className="baseFlex">
+              <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-destructive" />
               <p>Tab is empty</p>
             </div>
           )}
@@ -485,12 +506,12 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     }
 
     return (
-      <div className="baseVertFlex w-full max-w-[350px] bg-pink-100 p-2 pt-1 text-sm text-pink-950 md:max-w-[400px] md:text-base">
-        <div className="baseFlex !flex-nowrap">
-          <BsPlus className="h-8 w-8 rotate-45 text-red-600" />
+      <div className="baseVertFlex w-full max-w-[350px] p-2 pt-1 text-sm md:max-w-[400px] md:text-base">
+        <div className="baseFlex">
+          <BsPlus className="h-8 w-8 rotate-45 text-destructive" />
           <p className="mb-[1px]">Only registered users can publish a tab.</p>
         </div>
-        <p className="text-xs text-gray-600 md:text-sm">
+        <p className="text-xs text-gray md:text-sm">
           This tab will be saved for you upon signing in.
         </p>
       </div>
@@ -533,7 +554,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   <DropdownMenuSeparator />
 
                   <DropdownMenuItem
-                    className="baseFlex !justify-between gap-2 focus-within:!bg-[rgb(255,0,0)] focus-within:!text-pink-100 active:!bg-[rgb(255,0,0)] active:!text-pink-100"
+                    className="baseFlex !justify-between gap-2 focus-within:!bg-destructive focus-within:!text-destructive-foreground active:!bg-destructive active:!text-destructive-foreground"
                     onClick={() => {
                       setShowDeleteAlertDialog(true);
                     }}
@@ -600,7 +621,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                       {(saveButtonText === "Publishing" ||
                         saveButtonText === "Saving") && (
                         <div
-                          className="inline-block size-4 animate-spin rounded-full border-[2px] border-pink-50 border-t-transparent text-pink-50"
+                          className="inline-block size-4 animate-spin rounded-full border-[2px] border-foreground border-t-transparent text-foreground"
                           role="status"
                           aria-label="loading"
                         >
@@ -613,7 +634,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           viewBox="0 0 24 24"
                           stroke="currentColor"
                           strokeWidth={2}
-                          className="size-5 text-pink-50"
+                          className="size-5 text-foreground"
                         >
                           <motion.path
                             initial={{ pathLength: 0 }}
@@ -647,7 +668,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               } baseVertFlex w-full !items-start gap-1.5`}
             >
               <Label htmlFor="title">
-                Title <span className="text-destructiveRed">*</span>
+                Title <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="title"
@@ -703,7 +724,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               } baseVertFlex !items-start gap-1.5`}
             >
               <Label>
-                Genre <span className="text-destructiveRed">*</span>
+                Genre <span className="text-destructive">*</span>
               </Label>
               <Select value={genre} onValueChange={(value) => setGenre(value)}>
                 <SelectTrigger
@@ -711,10 +732,13 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                     boxShadow:
                       showPulsingError && genre === ""
                         ? "0 0 0 0.25rem hsl(0deg 100% 50%)"
-                        : "0 0 0 0 transparent",
-                    transitionProperty: "box-shadow",
-                    transitionTimingFunction: "ease-in-out",
-                    transitionDuration: "500ms",
+                        : "",
+                    transitionProperty:
+                      showPulsingError && genre === "" ? "box-shadow" : "",
+                    transitionTimingFunction:
+                      showPulsingError && genre === "" ? "ease-in-out" : "",
+                    transitionDuration:
+                      showPulsingError && genre === "" ? "500ms" : "",
                   }}
                   className={`w-[180px] ${
                     showPulsingError && genre === "" ? "animate-errorShake" : ""
@@ -749,7 +773,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               } baseVertFlex max-w-sm !items-start gap-1.5`}
             >
               <Label htmlFor="tuning">
-                Tuning <span className="text-destructiveRed">*</span>
+                Tuning <span className="text-destructive">*</span>
               </Label>
               <TuningSelect customTuning={customTuning} />
             </div>
@@ -791,7 +815,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               } baseVertFlex relative w-16 max-w-sm !items-start gap-1.5`}
             >
               <Label htmlFor="bpm">
-                Tempo <span className="text-destructiveRed">*</span>
+                Tempo <span className="text-destructive">*</span>
               </Label>
               <div className="baseFlex">
                 <QuarterNote className="-ml-1 size-5" />
@@ -845,7 +869,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               } baseVertFlex !items-start gap-1.5`}
             >
               <Label>
-                Difficulty <span className="text-destructiveRed">*</span>
+                Difficulty <span className="text-destructive">*</span>
               </Label>
               <Select
                 value={difficulty.toString()}
@@ -927,7 +951,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
       {!editing && (
         <div className="min-h-[100px] w-full">
-          <div className="baseVertFlex !flex-start w-full !items-start gap-2 bg-pink-700 px-4 py-4 shadow-md sm:!flex-row sm:!items-center sm:gap-4 md:rounded-t-md tablet:!px-6">
+          <div className="baseVertFlex !flex-start w-full !items-start gap-2 border-b bg-accent px-4 py-4 text-primary-foreground shadow-md sm:!flex-row sm:!items-center sm:gap-4 md:rounded-t-lg tablet:!px-6">
             {overMediumViewportThreshold ? (
               <div className="baseFlex w-full !justify-between gap-4">
                 <div className="baseFlex !justify-start gap-2">
@@ -1018,7 +1042,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-pink-300"
+                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-primary-foreground/50"
                         ></motion.div>
                       )}
 
@@ -1051,12 +1075,13 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-pink-300"
+                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-primary-foreground/50"
                         ></motion.div>
                       )}
 
                       <Button
                         variant={"secondary"}
+                        size={"icon"}
                         disabled={isLoadingARoute}
                         onClick={async () => {
                           try {
@@ -1069,7 +1094,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                             console.error("Error sharing tab:", error);
                           }
                         }}
-                        className="!p-2"
                       >
                         <IoIosShareAlt className="size-5" />
                       </Button>
@@ -1145,7 +1169,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-pink-300"
+                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-primary-foreground/50"
                         ></motion.div>
                       )}
 
@@ -1178,7 +1202,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-pink-300"
+                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-primary-foreground/50"
                         ></motion.div>
                       )}
 
@@ -1244,9 +1268,9 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                       </p>
                     ))
                   ) : (
-                    <p className="italic text-pink-200">
+                    <span className="italic text-foreground/70">
                       No description provided.
-                    </p>
+                    </span>
                   )}
                 </div>
               </div>
@@ -1276,7 +1300,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           className="baseFlex"
                         >
                           {fetchingTabCreator ? (
-                            <div className="pulseAnimation col-start-1 col-end-2 row-start-1 row-end-2 h-6 w-32 rounded-md bg-pink-300"></div>
+                            <div className="pulseAnimation col-start-1 col-end-2 row-start-1 row-end-2 h-6 w-32 rounded-md bg-foreground/50"></div>
                           ) : (
                             <>
                               {tabCreator ? (
@@ -1284,7 +1308,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                                   {tabCreator.username}
                                 </span>
                               ) : (
-                                <span className="italic text-pink-200">
+                                <span className="italic text-foreground/75">
                                   Anonymous
                                 </span>
                               )}
@@ -1298,7 +1322,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   <motion.div
                     layout
                     transition={{ duration: 0.5, ease: "easeInOut" }}
-                    className="mt-[2px] whitespace-nowrap text-sm text-pink-200"
+                    className="mt-[2px] whitespace-nowrap text-sm opacity-80"
                   >
                     {`on ${new Intl.DateTimeFormat("en-US").format(createdAt ?? new Date())}`}
                   </motion.div>
@@ -1333,7 +1357,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               orientation={
                 viewportLabel.includes("mobile") ? "horizontal" : "vertical"
               }
-              className={`${classes.separator} my-4 h-[2px] w-full lg:mx-4 lg:my-0 lg:h-full lg:w-[1px] xl:mx-8`}
+              className={`${classes.separator} my-4 h-[2px] w-full bg-gray/50 lg:mx-4 lg:my-0 lg:h-full lg:w-[1px] xl:mx-8`}
             />
 
             <div className={`${classes.metadataGrid}`}>
@@ -1343,7 +1367,12 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 <div className="font-semibold">Genre</div>
                 <Badge
                   style={{
-                    backgroundColor: genreList.get(genre),
+                    backgroundColor: genreList
+                      .get(genre)
+                      ?.replace(/\)$/, " / 0.07)"),
+                    borderColor: genreList.get(genre),
+                    border: "1px solid",
+                    color: genreList.get(genre),
                   }}
                   className="px-4 py-2.5"
                 >
@@ -1405,17 +1434,17 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
           if (!open) setShowDeleteAlertDialog(false);
         }}
       >
-        <AlertDialogContent className="bg-pink-800">
+        <AlertDialogContent className="border bg-secondary shadow-sm">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-semibold">
               Delete Tab
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-foreground">
               Are you sure you want to delete this tab? This action cannot be
               undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="baseFlex gap-2">
+          <AlertDialogFooter className="baseFlex mt-4 gap-4">
             <Button
               variant={"outline"}
               onClick={() => setShowDeleteAlertDialog(false)}
@@ -1448,7 +1477,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   {deleteButtonText}
                   {deleteButtonText === "Deleting" && (
                     <div
-                      className="inline-block size-4 animate-spin rounded-full border-[2px] border-pink-50 border-t-transparent text-pink-50"
+                      className="inline-block size-4 animate-spin rounded-full border-[2px] border-foreground border-t-transparent text-foreground"
                       role="status"
                       aria-label="loading"
                     >
@@ -1461,7 +1490,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                       strokeWidth={2}
-                      className="size-5 text-pink-50"
+                      className="size-5 text-foreground"
                     >
                       <motion.path
                         initial={{ pathLength: 0 }}
@@ -1489,16 +1518,33 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
         createPortal(
           <div className="size-full overflow-hidden">
             <div
-              ref={tabPreviewScreenshotRef}
+              ref={tabPreviewScreenshotLightRef}
+              id="tabPreviewScreenshotLight"
               style={{
-                background:
-                  "linear-gradient(315deg, hsl(6, 100%, 66%), hsl(340, 100%, 76%), hsl(297, 100%, 87%)) fixed center / cover",
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["light" as "light" | "dark"]["screenshot-muted"]})`,
               }}
-              className="baseFlex h-[615px] w-[1318px]"
+              className="baseFlex h-[615px] w-[1318px] grayscale"
             >
-              <div className="h-[615px] w-[1318px] bg-pink-500 bg-opacity-30">
-                <TabScreenshotPreview tabData={minifiedTabData} />
-              </div>
+              <TabScreenshotPreview
+                tabData={minifiedTabData}
+                color={"peony"}
+                theme={"light"}
+              />
+            </div>
+
+            <div
+              ref={tabPreviewScreenshotDarkRef}
+              id="tabPreviewScreenshotDark"
+              style={{
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["dark" as "light" | "dark"]["screenshot-muted"]})`,
+              }}
+              className="baseFlex h-[615px] w-[1318px] grayscale"
+            >
+              <TabScreenshotPreview
+                tabData={minifiedTabData}
+                color={"peony"}
+                theme={"dark"}
+              />
             </div>
           </div>,
           document.getElementById("mainTabComponent")!,

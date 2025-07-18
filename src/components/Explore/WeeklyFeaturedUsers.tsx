@@ -20,6 +20,7 @@ import { BsMusicNoteBeamed } from "react-icons/bs";
 import { FaEye, FaStar } from "react-icons/fa";
 import { IoBookmark } from "react-icons/io5";
 import type { UserMetadata } from "~/server/api/routers/user";
+import { useTabStore } from "~/stores/TabStore";
 
 // FYI: I recognize this component is a bit of a mess, and also specifically that there are
 // two competing(?) ways that the progress bar's scaleX is being changed (raf vs. CSS animation)
@@ -59,6 +60,11 @@ function WeeklyFeaturedUsers({
   weeklyFeaturedUsers,
   currentUser,
 }: WeeklyFeaturedUsers) {
+  const { color, theme } = useTabStore((state) => ({
+    color: state.color,
+    theme: state.theme,
+  }));
+
   const [profileImageLoadStates, setProfileImageLoadStates] = useState([
     false,
     false,
@@ -386,7 +392,7 @@ function WeeklyFeaturedUsers({
               key={user.userId}
               className="baseFlex basis-full pl-12 md:h-[280px] md:basis-[710px]"
             >
-              <div className="baseFlex lightestGlassmorphic size-full rounded-lg px-4 py-4">
+              <div className="baseFlex size-full rounded-lg border bg-secondary-active/50 px-4 py-4 shadow-sm">
                 <div
                   className={`baseVertFlex min-w-0 gap-8 md:!flex-row ${user.pinnedTab === null ? "md:gap-12" : ""}`}
                 >
@@ -429,13 +435,13 @@ function WeeklyFeaturedUsers({
                                 animate={{ opacity: 0 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.3 }}
-                                className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full bg-pink-300 md:size-10"
+                                className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full bg-foreground/50 md:size-10"
                               ></motion.div>
                             )}
                           </AnimatePresence>
                         </div>
 
-                        <span className="w-full truncate text-2xl font-semibold tracking-tight text-pink-50 md:text-3xl">
+                        <span className="w-full truncate text-2xl font-semibold tracking-tight md:text-3xl">
                           {user.username}
                         </span>
                       </Link>
@@ -486,8 +492,8 @@ function WeeklyFeaturedUsers({
 
                   {/* user's pinned tab / placeholder */}
                   {user.pinnedTab === null ? (
-                    <div className="lightestGlassmorphic baseVertFlex h-[94px] w-[280px] shrink-0 gap-2 rounded-md border-2 md:mt-24">
-                      <TbPinned className="size-5 text-pink-50" />
+                    <div className="baseVertFlex h-[94px] w-[280px] shrink-0 gap-2 rounded-md border bg-secondary-active/50 shadow-sm md:mt-24">
+                      <TbPinned className="size-5" />
                       No active pinned tab
                     </div>
                   ) : (
@@ -497,6 +503,8 @@ function WeeklyFeaturedUsers({
                       pinnedTabType={
                         isAboveMediumViewport ? "full" : "withoutScreenshot"
                       }
+                      color={color}
+                      theme={theme}
                     />
                   )}
                 </div>
@@ -520,7 +528,7 @@ function WeeklyFeaturedUsers({
               width: `${buttonWidths[index]}px`,
               height: "12px",
             }}
-            className="relative overflow-hidden rounded-full bg-pink-800/50 !p-0 hover:bg-pink-800 focus-visible:bg-pink-800/90 active:bg-pink-800/80"
+            className="relative overflow-hidden rounded-full bg-accent/50 !p-0 hover:bg-accent focus-visible:bg-accent/90 active:bg-accent/80"
           >
             <div
               ref={(el) => {
@@ -535,7 +543,7 @@ function WeeklyFeaturedUsers({
                     : "transform 0.2s",
                 opacity: progressBarOpacities[index],
               }}
-              className="absolute left-0 top-0 z-10 h-full w-full rounded-full bg-pink-900"
+              className="absolute left-0 top-0 z-10 h-full w-full rounded-full bg-accent"
             />
           </Button>
         ))}

@@ -123,12 +123,19 @@ function SearchResults({
 }: SearchResults) {
   const { asPath, push, query, pathname } = useRouter();
 
-  const { mobileHeaderModal, setMobileHeaderModal, viewportLabel } =
-    useTabStore((state) => ({
-      mobileHeaderModal: state.mobileHeaderModal,
-      setMobileHeaderModal: state.setMobileHeaderModal,
-      viewportLabel: state.viewportLabel,
-    }));
+  const {
+    mobileHeaderModal,
+    setMobileHeaderModal,
+    viewportLabel,
+    color,
+    theme,
+  } = useTabStore((state) => ({
+    mobileHeaderModal: state.mobileHeaderModal,
+    setMobileHeaderModal: state.setMobileHeaderModal,
+    viewportLabel: state.viewportLabel,
+    color: state.color,
+    theme: state.theme,
+  }));
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerView, setDrawerView] = useState<
@@ -425,7 +432,7 @@ function SearchResults({
     <div className="baseFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-4 md:min-h-[calc(100dvh-4rem-12rem-56px)]">
       {/* tablet+ filters sidebar */}
       <div
-        className={`baseVertFlex sticky top-16 !hidden h-fit w-56 shrink-0 !items-start !justify-start gap-4 rounded-lg bg-pink-800 p-4 transition-all tablet:!flex ${stickyHeaderNotActive ? "" : "rounded-t-none"}`}
+        className={`baseVertFlex sticky top-16 !hidden h-fit w-56 shrink-0 !items-start !justify-start gap-4 rounded-lg border bg-accent p-4 text-primary-foreground transition-all tablet:!flex ${stickyHeaderNotActive ? "" : "rounded-t-none"}`}
       >
         <div className="baseFlex gap-2">
           <LuFilter className="size-5" />
@@ -459,7 +466,7 @@ function SearchResults({
                 </div>
               </SelectItem>
 
-              <Separator className="my-1 w-full bg-pink-600" />
+              <Separator className="my-1 w-full bg-primary" />
 
               {[...genreList.entries()].map(([name, color]) => {
                 return (
@@ -514,18 +521,13 @@ function SearchResults({
                 )}
               </SelectValue>
             </SelectTrigger>
-            <SelectContent
-              style={{
-                textShadow: "none",
-              }}
-              className="w-[300px]"
-            >
+            <SelectContent className="w-[300px]">
               {/* all tunings select item */}
               <SelectItem value={"all"} className="font-medium">
                 All tunings
               </SelectItem>
 
-              <Separator className="my-1 w-full bg-pink-600" />
+              <Separator className="my-1 w-full bg-primary" />
 
               {/* Standard Tunings */}
               {tunings.map((tuningObj) => (
@@ -540,7 +542,7 @@ function SearchResults({
                 </SelectItem>
               ))}
 
-              <Separator className="my-1 w-full bg-pink-600" />
+              <Separator className="my-1 w-full bg-primary" />
 
               {/* custom tuning catch-all selection */}
               <SelectItem value={"custom"} className="font-medium">
@@ -577,7 +579,7 @@ function SearchResults({
             <SelectContent>
               <SelectItem value={"all"}>Capo + Non-capo</SelectItem>
 
-              <Separator className="my-1 w-full bg-pink-600" />
+              <Separator className="my-1 w-full bg-primary" />
 
               <SelectItem value={"true"}>With capo</SelectItem>
               <SelectItem value={"false"}>Without capo</SelectItem>
@@ -619,7 +621,7 @@ function SearchResults({
                   <span className="font-medium">All difficulties</span>
                 </SelectItem>
 
-                <Separator className="my-1 w-full bg-pink-600" />
+                <Separator className="my-1 w-full bg-primary" />
 
                 <SelectItem value={"1"}>
                   <div className="baseVertFlex !items-start gap-1">
@@ -727,6 +729,7 @@ function SearchResults({
             variant="outline"
             disabled={disableApplyFiltersButton()}
             onClick={() => applyFilters()}
+            className="text-primary-foreground hover:text-foreground"
           >
             Apply
           </Button>
@@ -747,7 +750,7 @@ function SearchResults({
                 layoutType.value === "table" ? "0.25rem" : "0.75rem",
             }}
             transition={{ duration: 0.5, ease: "linear" }}
-            className="baseVertFlex sticky top-16 z-10 w-full !justify-between border-b bg-pink-800 pt-3 tablet:!hidden"
+            className="baseVertFlex sticky top-16 z-20 w-full !justify-between border-b-0 border-t bg-accent pt-3 text-primary-foreground tablet:!hidden"
           >
             {/* scroll area + only show on hover for BOTH the header + the table scrollbars */}
             <AnimatePresence initial={false}>
@@ -763,7 +766,7 @@ function SearchResults({
                       exit="closed"
                       transition={{ duration: 0.3 }}
                     >
-                      <div className="pulseAnimation h-6 w-36 rounded-md bg-pink-300"></div>
+                      <div className="pulseAnimation h-6 w-36 rounded-md bg-primary-foreground/50"></div>
                     </motion.div>
                   ) : (
                     <motion.div
@@ -787,7 +790,9 @@ function SearchResults({
                     <Label>Layout</Label>
                     <div className="baseFlex overflow-y-hidden rounded-md border">
                       <Button
-                        variant={"toggledOff"}
+                        variant={
+                          layoutType.value === "grid" ? "toggleOn" : "toggleOff"
+                        }
                         size="sm"
                         disabled={disableFiltersAndLayoutToggle}
                         onClick={() => {
@@ -798,7 +803,7 @@ function SearchResults({
                         {layoutType.value === "grid" && (
                           <motion.span
                             layoutId="animatedToggleIndicator"
-                            className="absolute inset-0 !z-[-1] rounded-sm bg-pink-500"
+                            className="absolute inset-0 !z-[-1] rounded-sm bg-background"
                             transition={{
                               type: "spring",
                               bounce: 0.2,
@@ -808,8 +813,13 @@ function SearchResults({
                         )}
                         <BsGridFill className="size-4" />
                       </Button>
+
                       <Button
-                        variant={"toggledOff"}
+                        variant={
+                          layoutType.value === "table"
+                            ? "toggleOn"
+                            : "toggleOff"
+                        }
                         size="sm"
                         disabled={disableFiltersAndLayoutToggle}
                         onClick={() => {
@@ -820,7 +830,7 @@ function SearchResults({
                         {layoutType.value === "table" && (
                           <motion.span
                             layoutId="animatedToggleIndicator"
-                            className="absolute inset-0 !z-[-1] rounded-sm bg-pink-500"
+                            className="absolute inset-0 !z-[-1] rounded-sm bg-background"
                             transition={{
                               type: "spring",
                               bounce: 0.2,
@@ -848,17 +858,15 @@ function SearchResults({
                     }}
                   >
                     <DrawerTrigger asChild>
-                      <Button variant={"outline"} className="baseFlex w-9">
+                      <Button
+                        variant={"outline"}
+                        className="baseFlex w-9 text-primary-foreground"
+                      >
                         <LuFilter className="size-4 shrink-0" />
                       </Button>
                     </DrawerTrigger>
                     <DrawerPortal>
-                      <DrawerContent
-                        style={{
-                          textShadow: "none",
-                        }}
-                        className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-4 text-pink-950"
-                      >
+                      <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-secondary pt-3">
                         <VisuallyHidden>
                           <DrawerTitle>Search filters</DrawerTitle>
                           <DrawerDescription>
@@ -950,7 +958,7 @@ function SearchResults({
                           </div>
                         </div>
 
-                        <Separator className="mt-2 w-full bg-stone-600" />
+                        <Separator className="mt-2 w-full bg-gray" />
 
                         {/* Main body content */}
                         <div className="baseVertFlex h-[391px] w-full !justify-start overflow-y-auto">
@@ -1600,9 +1608,9 @@ function SearchResults({
                     defer
                     className="w-full"
                   >
-                    <div className="w-full border-pink-700 bg-pink-800">
+                    <div className="w-full bg-accent">
                       <div
-                        className="grid grid-rows-1 items-center text-sm font-medium text-muted-foreground"
+                        className="grid grid-rows-1 items-center text-sm font-medium text-primary-foreground/70"
                         style={{
                           gridTemplateColumns: getDynamicGridTemplateColumns(),
                         }}
@@ -1620,11 +1628,9 @@ function SearchResults({
 
                         <div className="px-4">Rating</div>
 
-                        {!query.difficulty && (
-                          <div className="px-4">Difficulty</div>
-                        )}
+                        <div className="px-4">Difficulty</div>
 
-                        {!query.genre && <div className="px-4">Genre</div>}
+                        <div className="px-4">Genre</div>
 
                         <div className="px-4">Date</div>
 
@@ -1646,7 +1652,7 @@ function SearchResults({
                 layoutType.value === "table" ? "0.25rem" : "0.75rem",
             }}
             transition={{ duration: 0.5, ease: "linear" }}
-            className={`baseVertFlex sticky top-16 z-10 w-full !justify-between border-b bg-pink-800 pt-3 ${stickyHeaderNotActive ? "rounded-t-lg" : "rounded-t-none"}`}
+            className={`baseVertFlex sticky top-16 z-20 w-full !justify-between border bg-accent pt-3 text-primary-foreground ${stickyHeaderNotActive ? "rounded-t-lg" : "rounded-t-none"}`}
           >
             <AnimatePresence initial={false}>
               <div className="baseFlex w-full !justify-between gap-2 px-4">
@@ -1663,7 +1669,7 @@ function SearchResults({
                         duration: 0.3,
                       }}
                     >
-                      <div className="pulseAnimation h-6 w-48 rounded-md bg-pink-300"></div>
+                      <div className="pulseAnimation h-6 w-48 rounded-md bg-primary-foreground/50"></div>
                     </motion.div>
                   ) : (
                     <motion.div
@@ -1686,18 +1692,20 @@ function SearchResults({
                   <Label>Layout</Label>
                   <div className="baseFlex overflow-hidden rounded-md border-2">
                     <Button
-                      variant={"toggledOff"}
+                      variant={
+                        layoutType.value === "grid" ? "toggleOn" : "toggleOff"
+                      }
                       size="sm"
                       disabled={disableFiltersAndLayoutToggle}
                       onClick={() => {
                         layoutType.set("grid");
                       }}
-                      className="baseFlex relative gap-2 border-none"
+                      className="baseFlex relative gap-2 rounded-sm"
                     >
                       {layoutType.value === "grid" && (
                         <motion.span
                           layoutId="animatedToggleIndicator"
-                          className="absolute inset-0 !z-[-1] rounded-sm bg-pink-500"
+                          className="absolute inset-0 !z-[-1] rounded-sm bg-background"
                           transition={{
                             type: "spring",
                             bounce: 0.2,
@@ -1708,19 +1716,22 @@ function SearchResults({
                       <BsGridFill className="size-4" />
                       Grid
                     </Button>
+
                     <Button
-                      variant={"toggledOff"}
+                      variant={
+                        layoutType.value === "table" ? "toggleOn" : "toggleOff"
+                      }
                       size="sm"
                       disabled={disableFiltersAndLayoutToggle}
                       onClick={() => {
                         layoutType.set("table");
                       }}
-                      className="baseFlex relative gap-2 border-none"
+                      className="baseFlex relative gap-2 rounded-sm"
                     >
                       {layoutType.value === "table" && (
                         <motion.span
                           layoutId="animatedToggleIndicator"
-                          className="absolute inset-0 !z-[-1] rounded-sm bg-pink-500"
+                          className="absolute inset-0 !z-[-1] rounded-sm bg-background"
                           transition={{
                             type: "spring",
                             bounce: 0.2,
@@ -1797,9 +1808,9 @@ function SearchResults({
                     defer
                     className="w-full"
                   >
-                    <div className="w-full border-pink-700 bg-pink-800">
+                    <div className="w-full bg-accent">
                       <div
-                        className="grid grid-rows-1 items-center text-sm font-medium text-muted-foreground"
+                        className="grid grid-rows-1 items-center text-sm font-medium text-primary-foreground/75"
                         style={{
                           gridTemplateColumns: getDynamicGridTemplateColumns(),
                         }}
@@ -1835,7 +1846,7 @@ function SearchResults({
         )}
 
         {/* search results body */}
-        <div className="lightGlassmorphic size-full rounded-b-lg">
+        <div className="size-full !border-t-0 border-b bg-muted shadow-lg md:rounded-b-lg md:border">
           <AnimatePresence mode="popLayout">
             {renderSearch404 ? (
               <Render404Page
@@ -1886,7 +1897,7 @@ function SearchResults({
                         transition={{ duration: 0.25 }}
                         className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px-60px)] md:min-h-[calc(100dvh-4rem-12rem-56px-60px)]"
                       >
-                        <div className="baseVertFlex lightestGlassmorphic gap-4 rounded-md px-8 py-4 text-xl">
+                        <div className="baseVertFlex gap-4 rounded-md border bg-secondary-active/50 px-8 py-4 text-xl text-primary-foreground shadow-md">
                           <div className="baseVertFlex gap-4">
                             <Binoculars className="size-9" />
                             No tabs found
@@ -1894,7 +1905,7 @@ function SearchResults({
 
                           {relatedArtists.length === 0 ? (
                             <Button
-                              variant={"navigation"}
+                              variant={"secondary"}
                               asChild
                               className="baseFlex"
                             >
@@ -1918,7 +1929,7 @@ function SearchResults({
                                 {relatedArtists.map((artist) => (
                                   <Button
                                     key={artist.id}
-                                    variant={"navigation"}
+                                    variant={"secondary"}
                                     asChild
                                     className="baseFlex"
                                   >
@@ -1960,7 +1971,7 @@ function SearchResults({
                         transition={{ duration: 0.25 }}
                         className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px-60px)] md:min-h-[calc(100dvh-4rem-12rem-56px-60px)]"
                       >
-                        <div className="baseVertFlex lightestGlassmorphic gap-4 rounded-md px-8 py-4 text-xl">
+                        <div className="baseVertFlex gap-4 rounded-md border bg-secondary-active/50 px-8 py-4 text-xl shadow-md">
                           <div className="baseVertFlex gap-4">
                             <Binoculars className="size-9" />
                             This user does not exist.
@@ -1985,6 +1996,8 @@ function SearchResults({
                               setSearchsearchResultsCountIsLoading={
                                 setSearchsearchResultsCountIsLoading
                               }
+                              color={color}
+                              theme={theme}
                             />
                           )}
 

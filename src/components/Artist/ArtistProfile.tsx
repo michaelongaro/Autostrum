@@ -110,15 +110,15 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
               className="baseVertFlex w-full !items-start gap-2 px-4 md:!flex-row md:!items-end md:!justify-between md:px-0"
             >
               <div className="baseVertFlex !items-start gap-1 sm:gap-0">
-                <div className="baseFlex h-6 gap-1">Artist</div>
+                <div className="baseFlex h-6 gap-1 text-primary">Artist</div>
 
-                <div className="pulseAnimation h-[45px] w-36 rounded-md bg-pink-300 md:h-[54px]"></div>
+                <div className="pulseAnimation h-[45px] w-36 rounded-md bg-foreground/50 md:h-[54px]"></div>
               </div>
 
               <div className="baseFlex gap-4 font-medium sm:text-lg">
                 <div className="baseFlex gap-2">
                   <BsMusicNoteBeamed className="size-4 sm:size-5" />
-                  <div className="pulseAnimation h-5 w-8 rounded-md bg-pink-300"></div>
+                  <div className="pulseAnimation h-5 w-8 rounded-md bg-foreground/50"></div>
                   <span>Songs</span>
                 </div>
 
@@ -129,7 +129,7 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
 
                 <div className="baseFlex gap-2">
                   <FaEye className="size-4 sm:size-5" />
-                  <div className="pulseAnimation h-5 w-10 rounded-md bg-pink-300"></div>
+                  <div className="pulseAnimation h-5 w-10 rounded-md bg-foreground/50"></div>
                   <span>Views</span>
                 </div>
               </div>
@@ -143,7 +143,7 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
               transition={{ duration: 0.25 }}
               className="baseVertFlex w-full !items-start gap-2 px-4 md:!flex-row md:!items-end md:!justify-between md:px-0"
             >
-              <div className="baseVertFlex !items-start gap-1 sm:gap-0">
+              <div className="baseVertFlex !items-start gap-1 text-foreground sm:gap-0">
                 <div className="baseFlex h-6 gap-1">
                   {artist && artist.isVerified && (
                     <Verified className="size-5" />
@@ -160,7 +160,7 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
                       50,
                     ),
                   }}
-                  className="baseFlex font-semibold tracking-tight text-pink-50"
+                  className="baseFlex font-semibold tracking-tight"
                 >
                   {artist ? artist.name : query.name}
                 </h1>

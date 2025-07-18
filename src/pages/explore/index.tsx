@@ -24,6 +24,7 @@ import GridTabCard from "~/components/Search/GridTabCard";
 import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
+import { useTabStore } from "~/stores/TabStore";
 
 const LENGTH_FIFTEEN_ARRAY = Array.from({ length: 15 }, (_, i) => i + 1);
 
@@ -40,6 +41,11 @@ function Explore({ json }: { json: string }) {
   );
 
   const { userId } = useAuth();
+
+  const { color, theme } = useTabStore((state) => ({
+    color: state.color,
+    theme: state.theme,
+  }));
 
   const { data: currentUser } = api.user.getById.useQuery(userId!, {
     enabled: !!userId,
@@ -78,28 +84,28 @@ function Explore({ json }: { json: string }) {
 
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex relative w-full gap-4 px-2 md:px-0">
-          <h1 className="baseFlex absolute left-6 top-8 text-3xl font-semibold tracking-tight text-pink-50 md:left-8 md:top-14 md:text-4xl">
+          <h1 className="baseFlex absolute left-6 top-8 text-3xl font-semibold tracking-tight text-primary-foreground md:left-8 md:top-14 md:text-4xl">
             Explore
           </h1>
 
           <Image
             src={GuitarImage}
             alt={"hi"}
-            className="h-24 w-full rounded-lg object-cover object-top md:h-36"
+            className="h-24 w-full rounded-lg object-cover object-top md:h-36 md:rounded-xl"
           />
         </div>
 
-        <div className="baseVertFlex lightGlassmorphic w-full !items-start !justify-start gap-8 rounded-lg p-4">
+        <div className="baseVertFlex w-full !items-start !justify-start gap-8 border-y bg-muted p-4 shadow-lg md:rounded-xl md:border">
           {/* weekly featured users */}
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
             <div className="baseVertFlex gap-0 md:gap-1">
               <div className="baseFlex gap-2">
-                <FaRankingStar className="size-6 text-pink-50" />
-                <span className="text-xl font-bold md:text-[1.35rem]">
+                <FaRankingStar className="size-5 text-foreground md:size-6" />
+                <span className="text-lg font-bold md:text-[1.35rem]">
                   Weekly featured users
                 </span>
               </div>
-              <Separator className="w-full bg-pink-600" />
+              <Separator className="w-full bg-primary" />
             </div>
 
             <WeeklyFeaturedUsers
@@ -110,22 +116,22 @@ function Explore({ json }: { json: string }) {
 
           {/* Newly added tabs carousel */}
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
-            <div className="baseFlex w-full !items-end !justify-between gap-2">
+            <div className="baseFlex w-full !items-baseline !justify-between gap-2">
               <div className="baseVertFlex gap-0 md:gap-1">
                 <div className="baseFlex gap-2">
-                  <IoFlash className="size-5 text-pink-50" />
-                  <span className="text-xl font-bold md:text-[1.35rem]">
+                  <IoFlash className="size-4 text-foreground md:size-5" />
+                  <span className="text-lg font-bold md:text-[1.35rem]">
                     Newly added tabs
                   </span>
                 </div>
-                <Separator className="w-full bg-pink-600" />
+                <Separator className="w-full bg-primary" />
               </div>
 
               <Button variant={"link"} asChild>
                 <Link
                   prefetch={false}
                   href={"/search/filters"}
-                  className="!h-6 !py-0 text-pink-50"
+                  className="!h-6 !py-0 text-foreground"
                 >
                   View more
                 </Link>
@@ -138,7 +144,7 @@ function Explore({ json }: { json: string }) {
               }}
               className="baseFlex w-full"
             >
-              <CarouselContent>
+              <CarouselContent className="pb-1">
                 {LENGTH_FIFTEEN_ARRAY.map((_, index) => (
                   <CarouselItem key={index} className="basis-auto">
                     {mostRecentAndPopularTabs?.mostRecentTabs ? (
@@ -147,6 +153,8 @@ function Explore({ json }: { json: string }) {
                           mostRecentAndPopularTabs.mostRecentTabs[index]!
                         }
                         currentUser={currentUser}
+                        color={color}
+                        theme={theme}
                       />
                     ) : (
                       <TabCardSkeleton uniqueKey={`mostRecentTabs-${index}`} />
@@ -159,22 +167,22 @@ function Explore({ json }: { json: string }) {
 
           {/* Most popular tabs carousel */}
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
-            <div className="baseFlex w-full !items-end !justify-between gap-2">
+            <div className="baseFlex w-full !items-baseline !justify-between gap-2">
               <div className="baseVertFlex gap-0 md:gap-1">
                 <div className="baseFlex gap-2">
-                  <IoStatsChart className="size-5 text-pink-50" />
-                  <span className="text-xl font-bold md:text-[1.35rem]">
+                  <IoStatsChart className="size-4 text-foreground md:size-5" />
+                  <span className="text-lg font-bold md:text-[1.35rem]">
                     Most popular tabs
                   </span>
                 </div>
-                <Separator className="w-full bg-pink-600" />
+                <Separator className="w-full bg-primary" />
               </div>
 
               <Button variant={"link"} asChild>
                 <Link
                   prefetch={false}
                   href={"/search/filters?sortBy=mostPopular"}
-                  className="!h-6 !py-0 text-pink-50"
+                  className="!h-6 !py-0 text-foreground"
                 >
                   View more
                 </Link>
@@ -187,7 +195,7 @@ function Explore({ json }: { json: string }) {
               }}
               className="baseFlex w-full"
             >
-              <CarouselContent>
+              <CarouselContent className="pb-1">
                 {LENGTH_FIFTEEN_ARRAY.map((_, index) => (
                   <CarouselItem key={index} className="basis-auto">
                     {mostRecentAndPopularTabs?.mostPopularTabs ? (
@@ -196,6 +204,8 @@ function Explore({ json }: { json: string }) {
                           mostRecentAndPopularTabs.mostPopularTabs[index]!
                         }
                         currentUser={currentUser}
+                        color={color}
+                        theme={theme}
                       />
                     ) : (
                       <TabCardSkeleton uniqueKey={`mostPopularTabs-${index}`} />
@@ -209,12 +219,12 @@ function Explore({ json }: { json: string }) {
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
             <div className="baseVertFlex gap-0 md:gap-1">
               <div className="baseFlex gap-2">
-                <BsGridFill className="size-5 text-pink-50" />
-                <span className="text-xl font-bold md:text-[1.35rem]">
+                <BsGridFill className="size-4 text-foreground md:size-5" />
+                <span className="text-lg font-bold md:text-[1.35rem]">
                   Genres
                 </span>
               </div>
-              <Separator className="w-full bg-pink-600" />
+              <Separator className="w-full bg-primary" />
             </div>
 
             <div className="grid w-full grid-cols-2 place-items-center gap-4 lg:grid-cols-3 2xl:grid-cols-4">

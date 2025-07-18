@@ -15,8 +15,8 @@ import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import { Button } from "~/components/ui/button";
 import { formatNumber } from "~/utils/formatNumber";
-import { IoClose } from "react-icons/io5";
 import formatDate from "~/utils/formatDate";
+import { X } from "lucide-react";
 
 interface PinnedTabList {
   userId: string;
@@ -45,7 +45,7 @@ function PinnedTabList({
     <div className="baseVertFlex size-full !items-start !justify-start">
       <div className="baseFlex my-2 w-full !justify-between gap-2 px-2 lg:mt-0 lg:px-0">
         <div className="baseFlex gap-1">
-          <TbPinned className="size-4 stroke-[2.5px] lg:size-5 lg:text-pink-50" />
+          <TbPinned className="size-4 stroke-[2.5px] lg:size-5" />
           <span className="font-medium lg:text-lg">Pinned tab</span>
         </div>
         <div className="baseFlex gap-2">
@@ -72,21 +72,21 @@ function PinnedTabList({
           </Select>
 
           <Button
-            variant={"text"}
-            className="hidden !size-8 shrink-0 !p-0 lg:flex"
+            variant={"modalClose"}
+            className="!hidden shrink-0 lg:!flex"
             onClick={() => {
               setShowPinnedTabModal?.(false);
             }}
           >
-            <IoClose className="size-5 text-pink-50" />
+            <X className="size-5" />
           </Button>
         </div>
       </div>
 
       {/* table headers */}
-      <div className="w-full border-pink-700 bg-pink-800">
+      <div className="w-full bg-accent">
         <div
-          className="grid h-8 grid-rows-1 items-center text-sm font-medium text-muted-foreground"
+          className="grid h-8 grid-rows-1 items-center text-sm font-medium text-muted"
           style={{
             gridTemplateColumns: "50px auto 100px",
           }}
@@ -143,8 +143,8 @@ function PinnedTabList({
             transition={{ duration: 0.2 }}
             className="baseFlex size-full lg:min-h-[350px]"
           >
-            <div className="baseVertFlex lightestGlassmorphic gap-4 rounded-md px-8 py-4 text-xl">
-              <div className="baseVertFlex gap-4 text-pink-50">
+            <div className="baseVertFlex gap-4 rounded-md border bg-secondary-active/50 px-8 py-4 text-xl shadow-lg">
+              <div className="baseVertFlex gap-4">
                 <Binoculars className="size-9" />
                 No results found
               </div>
@@ -159,7 +159,7 @@ function PinnedTabList({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="baseVertFlex h-[336px] gap-2 overflow-hidden lg:h-auto lg:pb-0"
+            className="baseVertFlex h-[336px] !justify-start gap-2 overflow-hidden lg:h-auto lg:pb-0"
           >
             <OverlayScrollbarsComponent
               options={{
@@ -190,11 +190,11 @@ function PinnedTabList({
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.3 }}
-                              className="baseFlex w-full"
+                              className="baseFlex !size-5 w-full !shrink-0 rounded-full outline outline-1"
                             >
                               <Button
-                                variant={"outline"}
-                                className={`!size-5 !shrink-0 rounded-full !p-0 outline outline-1 hover:bg-pink-600 ${tab.id === localPinnedTabId ? "bg-pink-600" : ""} `}
+                                variant={"text"}
+                                className={`!size-4 !shrink-0 rounded-full border-none !p-0 hover:bg-primary ${tab.id === localPinnedTabId ? "bg-primary" : ""} `}
                                 onClick={() => {
                                   setLocalPinnedTabId(tab.id);
                                 }}

@@ -1,169 +1,15 @@
 @tailwind base;
-
-/* still not 100% sure why this works, but fixes alignment
-   issues with text inside of html2canvas "screenshot"  */
-@layer base {
-  img {
-    @apply inline-block;
-  }
-}
-
 @tailwind components;
 @tailwind utilities;
 
-.baseFlex {
-  @apply flex items-center justify-center;
-}
-
-.baseVertFlex {
-  @apply flex flex-col items-center justify-center;
-}
-
-.lightestGlassmorphic {
-  @apply bg-gradient-to-br from-pink-500/50 to-pink-500/90 shadow-lightestGlassmorphic backdrop-blur-sm;
-}
-
-.lightGlassmorphic {
-  @apply bg-gradient-to-br from-pink-200/[0.15] to-pink-200/30 shadow-md backdrop-blur-sm;
-}
-
-.homepageLightGlassmorphic {
-  @apply bg-gradient-to-br from-pink-200/20 to-pink-200/25 shadow-md backdrop-blur-sm;
-}
-
-.autofillResultsGlassmorphic {
-  @apply bg-gradient-to-br from-pink-400 to-pink-500 shadow-sm backdrop-blur-xl;
-}
-
-.chordPreviewGlassmorphic {
-  @apply bg-gradient-to-br from-pink-500/40 via-pink-500/60 to-pink-500/60 backdrop-blur-sm;
-}
-
-/* below are same gradients as background, but up by ~7% on lightness value of hsl to match the
-   glassmorphic effect. Couldn't use glassmorphic since light content bleeding through
-   made for really bad contrast issues with nav links */
-.headerBackgroundGradient {
-  /* need to do this instead of one-liner for safari compatability 
-     with background-attachment: fixed */
-  background: linear-gradient(315deg, hsl(332, 96%, 74%), hsl(298, 100%, 80%));
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-.footerBackgroundGradient {
-  /* need to do this instead of one-liner for safari compatability 
-     with background-attachment: fixed */
-  background: linear-gradient(315deg, hsl(357, 82%, 67%), hsl(346, 90%, 72%));
-  background-repeat: no-repeat;
-  background-position: center;
-  box-shadow: 0 -2px 8px 0 rgb(0 0 0 / 0.06);
-}
-
-/* shadow-md was too harsh for my liking, this is a scaled back version, in-between sm and md */
-.searchInputBoxShadow {
-  box-shadow:
-    0 3px 4px -1px rgb(0 0 0 / 0.1),
-    0 2px 4px -2px rgb(0 0 0 / 0.1);
-}
-
-/* basically just shadow-2xl but with less opacity on background color and slighly less blur  */
-.audioControlsBoxShadow {
-  box-shadow: 0 25px 45px -12px rgb(0 0 0 / 0.4);
-}
-
-@media (min-width: 480px) {
-  .securedByClerkBreakpoint {
-    @apply max-w-[95%];
-  }
-}
-
-@media (min-width: 768px) {
-  .headerBackgroundGradient {
-    background: linear-gradient(315deg,
-        hsl(345, 95%, 69%),
-        hsl(331, 95%, 74%),
-        hsl(298, 100%, 79%));
-  }
-
-  .footerBackgroundGradient {
-    background: linear-gradient(315deg,
-        hsl(359, 83%, 66%),
-        hsl(349, 100%, 73%),
-        hsl(333, 93%, 73%));
-  }
-}
-
 @layer base {
+
   :root {
-    --background: 324 77% 95%;
-    --foreground: 336 84% 17%;
-
-    --muted: 333 71% 51%;
-    --muted-foreground: 327 73% 90%;
-
-    --popover: 324 77% 95%;
-    --popover-foreground: 336 84% 17%;
-
-    --card: 324 77% 95%;
-    --card-foreground: 336 84% 17%;
-
-    --border: 324 77% 95%;
-    --input: 214.3 31.8% 91.4%;
-
-    --primary: 330 81% 60%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 327 87% 82%;
-    --secondary-foreground: 336 69% 30%;
-
-    --toggle-on: 326 78% 95%;
-
-    --accent: 330 81% 60%;
-    --accent-foreground: 324 77% 95%;
-
-    --destructive: 0 90% 50%;
-    --destructive-foreground: 324 77% 95%;
-
-    --ring: 215 20.2% 65.1%;
-
+    --audio: "151.03 54.72% 41.57%";
+    --audio-foreground: "140 60% 99.02%";
     --radius: 0.5rem;
   }
 
-  .dark {
-    --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
-
-    --muted: 223 47% 11%;
-    --muted-foreground: 215.4 16.3% 56.9%;
-
-    --popover: 224 71% 4%;
-    --popover-foreground: 215 20.2% 65.1%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
-
-    --border: 216 34% 17%;
-    --input: 216 34% 17%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 1.2%;
-
-    --secondary: 222.2 47.4% 11.2%;
-    --secondary-foreground: 210 40% 98%;
-
-    --accent: 216 34% 17%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-
-    --ring: 216 34% 17%;
-
-    --radius: 0.5rem;
-  }
-}
-
-@layer base {
   * {
     @apply border-border;
   }
@@ -176,8 +22,9 @@
   }
 }
 
-/* semi hacky way to prevent empty space in gradient while mobile
-   address bar is animating out */
+/* necessary(?) to prevent background gradient disappearing when .noScroll is applied
+   Scrolling seems to be a bit janky on iOS though when gradient is on pseudo ::before rather than
+   actual body */
 body::before {
   content: "";
   position: fixed;
@@ -187,15 +34,42 @@ body::before {
   left: 0;
   z-index: -1;
   background: linear-gradient(145deg,
-      hsl(297, 100%, 73%),
-      hsl(340, 100%, 66%),
-      hsl(0, 84%, 53%)) center / cover;
-  height: 100vh;
+      hsl(var(--gradient-primary)),
+      hsl(var(--gradient-secondary)),
+      hsl(var(--gradient-secondary)),
+      hsl(var(--gradient-primary))) center / cover;
+  height: 100dvh;
+
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  background-image: url('/ui/noise.svg');
+  /* courtesy of https://www.fffuel.co/nnnoise/ */
+}
+
+.modalGradient::after,
+.playbackModalGradient::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  background-image: url('/ui/noise.svg');
+  pointer-events: none;
+  opacity: 0.5;
+  /* courtesy of https://www.fffuel.co/nnnoise/ */
 }
 
 body {
-  color: hsl(324, 77%, 95%);
-  text-shadow: 0 1px 2px hsla(336, 84%, 17%, 0.25);
   min-height: 100dvh;
 }
 
@@ -204,6 +78,73 @@ table {
   width: 100%;
 }
 
+kbd {
+  background-color: #eee;
+  border-radius: 3px;
+  border: 1px solid #b4b4b4;
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.2),
+    0 2px 0 0 rgba(255, 255, 255, 0.7) inset;
+  color: #333;
+  display: inline-block;
+  font-size: 0.85em;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 4px;
+  white-space: nowrap;
+}
+
+.baseFlex {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.baseVertFlex {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.modalGradient {
+  background: linear-gradient(145deg,
+      hsl(var(--modal-gradient-from)),
+      hsl(var(--modal-gradient-to)));
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.mobileHeaderGradient {
+  background: linear-gradient(145deg,
+      hsl(var(--mobile-header-gradient-from)),
+      hsl(var(--mobile-header-gradient-to)));
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.playbackModalGradient {
+  background: linear-gradient(145deg,
+      hsl(var(--gradient-primary)),
+      hsl(var(--gradient-secondary)),
+      hsl(var(--gradient-secondary)),
+      hsl(var(--gradient-secondary)),
+      hsl(var(--gradient-secondary)),
+      hsl(var(--gradient-secondary)),
+      hsl(var(--gradient-primary)));
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.headerAndFooterBackgroundGradient {
+  background: linear-gradient(5deg,
+      hsl(var(--header-footer-gradient-from)),
+      hsl(var(--header-footer-gradient-to)));
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* used to emulate <dialog> behavior */
 .noScroll {
   position: fixed;
   overflow-y: scroll;
@@ -211,21 +152,11 @@ table {
 }
 
 /* used to override radix-ui's "feature"/bug of auto-removing scrollbar
-   on opening of a <Select> */
+   on opening of a <Select>, especially visible when opening a <Select>
+   in a modal */
 html body[data-scroll-locked] {
   overflow: visible !important;
   margin-right: 0 !important;
-}
-
-.cl-internal-uxtgvn {
-  box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.1),
-    0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
-}
-
-.cl-rootBox,
-.cl-userButtonPopoverCard {
-  text-shadow: none;
 }
 
 @keyframes countInAnimation {
@@ -276,21 +207,6 @@ html body[data-scroll-locked] {
   animation: copyAndPasteAnimation 0.35s ease-in-out;
 }
 
-kbd {
-  background-color: #eee;
-  border-radius: 3px;
-  border: 1px solid #b4b4b4;
-  box-shadow:
-    0 1px 1px rgba(0, 0, 0, 0.2),
-    0 2px 0 0 rgba(255, 255, 255, 0.7) inset;
-  color: #333;
-  display: inline-block;
-  font-size: 0.85em;
-  font-weight: 700;
-  line-height: 1;
-  padding: 2px 4px;
-  white-space: nowrap;
-}
 
 /* slightly modified animate-pulse, that doesn't go all the way down to
    0% opacity */

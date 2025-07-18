@@ -4,6 +4,8 @@ import StaticTabMeasureLine from "~/components/Tab/Static/StaticTabMeasureLine";
 import StaticTabNotesColumn from "~/components/Tab/Static/StaticTabNotesColumn";
 import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
 import { useTabStore, type TabSection } from "~/stores/TabStore";
+import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
+import type { COLORS, THEME } from "~/stores/TabStore";
 
 export interface LastModifiedPalmMuteNodeLocation {
   columnIndex: number;
@@ -13,9 +15,11 @@ export interface LastModifiedPalmMuteNodeLocation {
 
 interface StaticTabSection {
   subSectionData: TabSection;
+  color: COLORS;
+  theme: THEME;
 }
 
-function StaticTabSection({ subSectionData }: StaticTabSection) {
+function StaticTabSection({ subSectionData, color, theme }: StaticTabSection) {
   const { tuning } = useTabStore((state) => ({
     tuning: state.tuning,
   }));
@@ -23,7 +27,6 @@ function StaticTabSection({ subSectionData }: StaticTabSection) {
   return (
     <motion.div
       key={subSectionData.id}
-      // variants={opacityAndScaleVariants}
       transition={{
         layout: {
           type: "spring",
@@ -31,15 +34,21 @@ function StaticTabSection({ subSectionData }: StaticTabSection) {
           duration: 1,
         },
       }}
-      className="baseVertFlex lightestGlassmorphic relative h-full !justify-start rounded-md px-4 md:px-8"
+      style={{
+        borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
+        backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]})`,
+      }}
+      className="baseVertFlex relative h-full !justify-start rounded-md border px-4 shadow-md md:px-8"
     >
       <div className="baseFlex relative w-full flex-wrap !justify-start">
         <div
           style={{
             height: "168px",
             marginBottom: "-1px", // necessary anymore?
+            borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+            color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
           }}
-          className="baseVertFlex relative rounded-l-2xl border-2 border-pink-100 p-2"
+          className="baseVertFlex relative rounded-l-2xl border-2 p-2"
         >
           <PrettyVerticalTuning tuning={tuning} height={"150px"} />
         </div>
@@ -47,11 +56,17 @@ function StaticTabSection({ subSectionData }: StaticTabSection) {
         {subSectionData.data.map((column, index) => (
           <Fragment key={column[9]}>
             {column.includes("|") ? (
-              <StaticTabMeasureLine columnData={column} />
+              <StaticTabMeasureLine
+                columnData={column}
+                color={color}
+                theme={theme}
+              />
             ) : (
               <StaticTabNotesColumn
                 columnData={column}
                 columnIndex={index}
+                color={color}
+                theme={theme}
                 isFinalColumn={index === subSectionData.data.length - 1}
               />
             )}

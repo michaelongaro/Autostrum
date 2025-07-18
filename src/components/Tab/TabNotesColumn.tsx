@@ -10,7 +10,6 @@ import {
   memo,
   type Dispatch,
   type SetStateAction,
-  type SVGProps,
 } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
@@ -300,6 +299,7 @@ function TabNotesColumn({
           style={{
             marginTop:
               reorderingColumns || showingDeleteColumnsButtons ? "8px" : "0",
+            backgroundColor: "hsl(var(--primary) / 0.75)",
             transform:
               highlightChord || columnHasBeenPlayed
                 ? `scaleX(${isFinalColumn ? "0.8" : "1"})` // makes sure that "endcap" doesn't get highlighted as well
@@ -309,7 +309,7 @@ function TabNotesColumn({
             msTransitionProperty: "transform",
             transitionTimingFunction: "linear",
           }}
-          className="absolute left-0 h-[276px] w-full bg-pink-700"
+          className="absolute left-0 h-[276px] w-full"
         ></div>
 
         <div className="baseVertFlex mb-[3.2rem] mt-4 gap-2">
@@ -377,8 +377,8 @@ function TabNotesColumn({
                             Add chord after
                             <BsPlus className="h-4 w-4" />
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-pink-600" />
-                          <div className="baseVertFlex w-full !flex-nowrap !items-start">
+                          <DropdownMenuSeparator className="bg-primary" />
+                          <div className="baseVertFlex w-full !items-start">
                             <DropdownMenuLabel>Note length</DropdownMenuLabel>
                             <DropdownMenuRadioGroup
                               value={
@@ -416,20 +416,16 @@ function TabNotesColumn({
               {index > 0 && index < 7 && (
                 <div
                   style={{
-                    borderTop: `${
-                      index === 1 ? "2px solid rgb(253 242 248)" : "none"
-                    }`,
+                    borderTop: `${index === 1 ? "2px solid" : "none"}`,
                     paddingTop: `${index === 1 ? "7px" : "0"}`,
-                    borderBottom: `${
-                      index === 6 ? "2px solid rgb(253 242 248)" : "none"
-                    }`,
+                    borderBottom: `${index === 6 ? "2px solid" : "none"}`,
                     paddingBottom: `${index === 6 ? "7px" : "0"}`,
                     transition: "width 0.15s ease-in-out",
                     // maybe also need "flex-basis: content" here if editing?
                   }}
                   className="baseFlex relative w-12 basis-[content]"
                 >
-                  <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
+                  <div className="h-[1px] flex-[1] bg-foreground/50"></div>
 
                   <TabNote
                     note={note}
@@ -439,7 +435,7 @@ function TabNotesColumn({
                     noteIndex={index}
                   />
 
-                  <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
+                  <div className="h-[1px] flex-[1] bg-foreground/50"></div>
                 </div>
               )}
 
@@ -484,7 +480,7 @@ function TabNotesColumn({
 
         {isFinalColumn && (
           <div
-            className={`${reorderingColumns || showingDeleteColumnsButtons ? "mt-2" : ""} h-[280px] rounded-r-2xl border-2 border-pink-100 p-1`}
+            className={`${reorderingColumns || showingDeleteColumnsButtons ? "mt-2" : ""} h-[280px] rounded-r-2xl border-2 border-foreground p-1`}
           ></div>
         )}
       </Element>
@@ -496,7 +492,7 @@ function TabNotesColumn({
             ref={setActivatorNodeRef}
             {...attributes}
             {...listeners}
-            className={`hover:box-shadow-md absolute bottom-4 left-1/2 right-1/2 w-[1.5rem] -translate-x-1/2 cursor-grab rounded-md text-pink-100 ${
+            className={`hover:box-shadow-md absolute bottom-4 left-1/2 right-1/2 w-[1.5rem] -translate-x-1/2 cursor-grab rounded-md text-foreground ${
               isDragging ? "cursor-grabbing" : "cursor-grab"
             }`}
             onMouseEnter={() => setHoveringOnHandle(true)}
@@ -515,7 +511,7 @@ function TabNotesColumn({
               style={{
                 opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
               }}
-              className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-pink-200/30 p-4 transition-all"
+              className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-primary/20 p-4 transition-all"
             ></div>
           </div>
         </div>

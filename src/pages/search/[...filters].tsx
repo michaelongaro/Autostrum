@@ -40,33 +40,33 @@ function FilteredQueryExplore() {
 
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex w-full !justify-between gap-4 px-4 md:px-0">
-          <h1 className="text-3xl font-semibold tracking-tight text-pink-50 md:text-4xl">
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
             Search
           </h1>
 
           {isAboveMediumViewport ? (
             <div className="baseFlex gap-4">
-              <BiSearchAlt2 className="size-9 -rotate-12 text-pink-50" />
-              <Binoculars className="size-9 rotate-12 text-pink-50" />
-              <FaEye className="size-9 -rotate-12 text-pink-50" />
-              <LuFilter className="size-9 rotate-12 text-pink-50" />
+              <BiSearchAlt2 className="size-9 -rotate-12 text-foreground" />
+              <Binoculars className="size-9 rotate-12 text-foreground" />
+              <FaEye className="size-9 -rotate-12 text-foreground" />
+              <LuFilter className="size-9 rotate-12 text-foreground" />
             </div>
           ) : (
             <div className="baseFlex">
-              <div className="lightGlassmorphic relative -right-6 top-0.5 z-30 -rotate-6 rounded-lg p-2 outline outline-1">
-                <BiSearchAlt2 className="size-6 text-pink-800" />
+              <div className="relative -right-6 top-0.5 z-30 -rotate-6 rounded-lg border bg-muted p-2 shadow-sm">
+                <BiSearchAlt2 className="size-6 text-foreground" />
               </div>
 
-              <div className="lightGlassmorphic relative -right-4 z-20 -rotate-3 rounded-lg p-2 outline outline-1">
-                <Binoculars className="size-6 text-pink-800" />
+              <div className="relative -right-4 z-20 -rotate-3 rounded-lg border bg-muted p-2 shadow-sm">
+                <Binoculars className="size-6 text-foreground" />
               </div>
 
-              <div className="lightGlassmorphic relative -right-2 z-10 rotate-3 rounded-lg p-2 outline outline-1">
-                <FaEye className="size-6 text-pink-800" />
+              <div className="relative -right-2 z-10 rotate-3 rounded-lg border bg-muted p-2 shadow-sm">
+                <FaEye className="size-6 text-foreground" />
               </div>
 
-              <div className="lightGlassmorphic relative top-0.5 rotate-6 rounded-lg p-2 outline outline-1">
-                <LuFilter className="size-6 text-pink-800" />
+              <div className="relative top-0.5 rotate-6 rounded-lg border bg-muted p-2 shadow-sm">
+                <LuFilter className="size-6 text-foreground" />
               </div>
             </div>
           )}

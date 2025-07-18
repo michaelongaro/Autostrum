@@ -6,7 +6,13 @@ import { Separator } from "~/components/ui/separator";
 
 function Footer() {
   return (
-    <footer className="footerBackgroundGradient baseFlex z-30 h-16 w-full gap-2 xs:gap-4">
+    <footer
+      style={{
+        boxShadow:
+          "0 -4px 6px -1px hsl(var(--primary) / 0.1), 0 -2px 4px -2px hsl(var(--primary) / 0.1)",
+      }}
+      className="headerAndFooterBackgroundGradient baseFlex z-30 h-16 w-full gap-2 xs:gap-4"
+    >
       <Button variant={"link"} asChild>
         <a
           href="mailto:michael.ongaro.dev@gmail.com"
@@ -19,7 +25,10 @@ function Footer() {
         </a>
       </Button>
 
-      <Separator orientation="vertical" className="h-4 bg-pink-50/50" />
+      <Separator
+        orientation="vertical"
+        className="h-4 w-[1px] bg-foreground/50"
+      />
 
       <Button variant={"link"} asChild>
         <Link prefetch={false} href={"/privacy"}>
@@ -27,7 +36,10 @@ function Footer() {
         </Link>
       </Button>
 
-      <Separator orientation="vertical" className="h-4 bg-pink-50/50" />
+      <Separator
+        orientation="vertical"
+        className="h-4 w-[1px] bg-foreground/50"
+      />
 
       <Button variant={"link"} asChild>
         <a

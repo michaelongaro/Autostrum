@@ -36,7 +36,7 @@ function SectionProgression() {
       style={{
         minWidth: aboveMediumViewportWidth ? "500px" : "300px",
       }}
-      className="lightestGlassmorphic baseVertFlex w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 !shadow-lighterGlassmorphic md:p-4"
+      className="baseVertFlex relative w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary p-2 text-secondary-foreground !shadow-primaryButton transition-all hover:bg-secondary-hover hover:text-secondary-foreground md:p-4"
     >
       <Accordion
         type="single"
@@ -49,14 +49,7 @@ function SectionProgression() {
       >
         <AccordionItem value="opened" className="w-full">
           <AccordionTrigger className="w-full">
-            <p
-              style={{
-                textShadow: "0 1px 2px hsla(336, 84%, 17%, 0.25)",
-              }}
-              className="text-lg font-bold"
-            >
-              Section progression
-            </p>
+            <span className="text-lg font-bold">Section progression</span>
           </AccordionTrigger>
           <AccordionContent>
             <motion.div
@@ -72,18 +65,18 @@ function SectionProgression() {
                     key={section.id}
                     className="grid w-full grid-cols-2 !place-items-start gap-2"
                   >
-                    <div className="baseFlex gap-2 text-stone-300">
+                    <div className="baseFlex gap-2 text-gray">
                       <p>{formatSecondsToMinutes(section.startSeconds)}</p>
                       <span>-</span>
                       <p>{formatSecondsToMinutes(section.endSeconds)}</p>
                     </div>
 
-                    <div className="baseFlex gap-2">
-                      <p className="text-nowrap font-semibold">
+                    <div className="baseFlex gap-2 text-foreground">
+                      <span className="text-nowrap font-semibold">
                         {section.title}
-                      </p>
+                      </span>
                       {section.repetitions > 1 && (
-                        <p>({section.repetitions}x)</p>
+                        <span>({section.repetitions}x)</span>
                       )}
                     </div>
                   </div>

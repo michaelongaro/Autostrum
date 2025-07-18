@@ -189,7 +189,7 @@ export function handleTabNoteKeyDown(
   }
 
   // Change note length hotkeys
-  if (["t", "y", "u"].includes(e.key.toLowerCase())) {
+  if (["j", "k", "l"].includes(e.key.toLowerCase())) {
     e.preventDefault();
 
     const newTabData = getTabData();
@@ -199,8 +199,8 @@ export function handleTabNoteKeyDown(
 
     let noteLength: "1/4th" | "1/8th" | "1/16th" = "1/4th";
 
-    if (e.key.toLowerCase() === "y") noteLength = "1/8th";
-    if (e.key.toLowerCase() === "u") noteLength = "1/16th";
+    if (e.key.toLowerCase() === "k") noteLength = "1/8th";
+    if (e.key.toLowerCase() === "l") noteLength = "1/16th";
 
     columnData[8] = noteLength;
 

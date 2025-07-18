@@ -57,7 +57,7 @@ function UserBookmarks() {
 
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex w-full !justify-start md:!hidden">
-          <span className="ml-4 text-3xl font-semibold tracking-tight !text-pink-50 md:text-4xl">
+          <span className="ml-4 text-3xl font-semibold tracking-tight !text-foreground md:text-4xl">
             Bookmarks
           </span>
         </div>
@@ -67,7 +67,7 @@ function UserBookmarks() {
             <Link
               prefetch={false}
               href={"/profile/settings"}
-              className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50/50 hover:!text-pink-50 active:!text-pink-50/75 md:!text-4xl"
+              className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 md:!text-4xl"
             >
               Settings
             </Link>
@@ -76,7 +76,7 @@ function UserBookmarks() {
             <Link
               prefetch={false}
               href={"/profile/statistics"}
-              className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50/50 hover:!text-pink-50 active:!text-pink-50/75 md:!text-4xl"
+              className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 md:!text-4xl"
             >
               Statistics
             </Link>
@@ -85,7 +85,7 @@ function UserBookmarks() {
             <Link
               prefetch={false}
               href={"/profile/tabs/filters"}
-              className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50/50 hover:!text-pink-50 active:!text-pink-50/75 md:!text-4xl"
+              className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 md:!text-4xl"
             >
               Tabs
             </Link>
@@ -94,7 +94,7 @@ function UserBookmarks() {
             <Link
               prefetch={false}
               href={"/profile/bookmarks/filters"}
-              className="!p-0 !text-3xl font-semibold tracking-tight !text-pink-50 hover:!text-pink-50 active:!text-pink-50/75 md:!text-4xl"
+              className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground hover:!text-foreground active:!text-foreground/75 md:!text-4xl"
             >
               Bookmarks
             </Link>

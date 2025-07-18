@@ -46,33 +46,33 @@ function Create() {
 
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex w-full !justify-between gap-4 px-4 md:px-0">
-          <h1 className="text-3xl font-semibold tracking-tight text-pink-50 md:text-4xl">
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
             Create
           </h1>
 
           {isAboveMediumViewport ? (
             <div className="baseFlex gap-4">
-              <BsFillPlayFill className="size-9 -rotate-12 text-pink-50" />
-              <QuarterNote className="size-9 rotate-12 text-pink-50" />
-              <GiMusicalScore className="size-9 -rotate-12 text-pink-50" />
-              <EigthNote className="size-9 rotate-12 text-pink-50" />
+              <BsFillPlayFill className="size-9 -rotate-12 text-foreground" />
+              <QuarterNote className="size-9 rotate-12 text-foreground" />
+              <GiMusicalScore className="size-9 -rotate-12 text-foreground" />
+              <EigthNote className="size-9 rotate-12 text-foreground" />
             </div>
           ) : (
             <div className="baseFlex">
-              <div className="lightGlassmorphic relative -right-6 top-0.5 z-30 -rotate-6 rounded-lg p-2 outline outline-1">
-                <BsFillPlayFill className="size-6 text-pink-800" />
+              <div className="relative -right-6 top-0.5 z-30 -rotate-6 rounded-lg border bg-muted p-2 shadow-sm">
+                <BsFillPlayFill className="size-6 text-foreground" />
               </div>
 
-              <div className="lightGlassmorphic relative -right-4 z-20 -rotate-3 rounded-lg p-2 outline outline-1">
-                <QuarterNote className="size-6 text-pink-800" />
+              <div className="relative -right-4 z-20 -rotate-3 rounded-lg border bg-muted p-2 shadow-sm">
+                <QuarterNote className="size-6 text-foreground" />
               </div>
 
-              <div className="lightGlassmorphic relative -right-2 z-10 rotate-3 rounded-lg p-2 outline outline-1">
-                <GiMusicalScore className="size-6 text-pink-800" />
+              <div className="relative -right-2 z-10 rotate-3 rounded-lg border bg-muted p-2 shadow-sm">
+                <GiMusicalScore className="size-6 text-foreground" />
               </div>
 
-              <div className="lightGlassmorphic relative top-0.5 rotate-6 rounded-lg p-2 outline outline-1">
-                <EigthNote className="size-6 text-pink-800" />
+              <div className="relative top-0.5 rotate-6 rounded-lg border bg-muted p-2 shadow-sm">
+                <EigthNote className="size-6 text-foreground" />
               </div>
             </div>
           )}

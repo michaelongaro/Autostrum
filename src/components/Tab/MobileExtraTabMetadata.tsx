@@ -123,7 +123,7 @@ function MobileExtraTabMetadata() {
                   <motion.span
                     layoutId="activeTabUnderline"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-pink-50"
+                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
                   />
                 )}
               </Button>
@@ -144,7 +144,7 @@ function MobileExtraTabMetadata() {
                   <motion.span
                     layoutId="activeTabUnderline"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-pink-50"
+                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
                   />
                 )}
               </Button>
@@ -165,7 +165,7 @@ function MobileExtraTabMetadata() {
                   <motion.span
                     layoutId="activeTabUnderline"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-pink-50"
+                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
                   />
                 )}
               </Button>
@@ -206,7 +206,7 @@ function MobileExtraTabMetadata() {
                   >
                     <div className="baseFlex w-full">
                       {sectionProgression.length === 0 ? (
-                        <p className="baseFlex h-24 text-stone-300">
+                        <p className="baseFlex h-24 text-gray">
                           No section progression specified
                         </p>
                       ) : (
@@ -218,7 +218,7 @@ function MobileExtraTabMetadata() {
                               key={section.id}
                               className="baseFlex w-full !justify-start gap-2"
                             >
-                              <div className="baseFlex w-24 gap-2 text-stone-300">
+                              <div className="baseFlex w-24 gap-2 text-gray">
                                 <p>
                                   {formatSecondsToMinutes(section.startSeconds)}
                                 </p>
@@ -268,11 +268,11 @@ function MobileExtraTabMetadata() {
                     className="baseVertFlex w-full !justify-start overflow-y-hidden"
                   >
                     {chords.length === 0 ? (
-                      <p className="baseFlex h-24 text-stone-300">
+                      <p className="baseFlex h-24 text-gray">
                         No chords specified
                       </p>
                     ) : (
-                      <div className="baseFlex !flex-wrap !items-start gap-8">
+                      <div className="baseFlex flex-wrap !items-start gap-8">
                         {chords.map((chord, index) => (
                           <div
                             key={chord.id}
@@ -282,13 +282,6 @@ function MobileExtraTabMetadata() {
                               <div className="baseFlex w-full !justify-between gap-2 border-b pb-2">
                                 <p
                                   style={{
-                                    textShadow:
-                                      previewMetadata.indexOfPattern ===
-                                        index &&
-                                      previewMetadata.playing &&
-                                      previewMetadata.type === "chord"
-                                        ? "none"
-                                        : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
                                     color:
                                       previewMetadata.indexOfPattern ===
                                         index &&
@@ -304,7 +297,7 @@ function MobileExtraTabMetadata() {
 
                                 {/* preview chord button */}
                                 <Button
-                                  variant={"playPause"}
+                                  variant={"audio"}
                                   disabled={
                                     !currentInstrument ||
                                     (previewMetadata.indexOfPattern === index &&
@@ -380,18 +373,18 @@ function MobileExtraTabMetadata() {
                     className={`baseVertFlex w-full overflow-y-hidden ${strummingPatterns.length > 2 ? "!justify-start" : ""}`}
                   >
                     {strummingPatterns.length === 0 ? (
-                      <p className="baseFlex h-24 text-stone-300">
+                      <p className="baseFlex h-24 text-gray">
                         No strumming patterns specified
                       </p>
                     ) : (
-                      <div className="baseFlex !flex-wrap !items-start gap-8">
+                      <div className="baseFlex flex-wrap !items-start gap-8">
                         {strummingPatterns.map((pattern, index) => (
                           <div
                             key={pattern.id}
                             className="baseVertFlex !items-start"
                           >
                             <Button
-                              variant={"playPause"}
+                              variant={"audio"}
                               size={"sm"}
                               disabled={
                                 !currentInstrument ||
@@ -464,7 +457,7 @@ function MobileExtraTabMetadata() {
                                 previewType="strummingPattern"
                               />
                             </Button>
-                            <div className="baseFlex border-b-none !flex-nowrap rounded-md border-2">
+                            <div className="baseFlex border-b-none rounded-md border-2">
                               <StrummingPattern
                                 data={pattern}
                                 mode="viewing"

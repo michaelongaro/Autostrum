@@ -4,6 +4,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import type { Tab } from "@prisma/client";
+import sharp from "sharp";
 import { z } from "zod";
 import { env } from "~/env";
 
@@ -84,6 +85,13 @@ const sectionSchema = z.object({
   title: z.string(),
   data: z.array(z.union([tabSectionSchema, chordSectionSchema])),
 });
+
+async function resizeImage(buffer: Buffer): Promise<Buffer> {
+  return sharp(buffer)
+    .resize({ width: Math.round(1318 / 3.25) }) // 1318px is the original width of the screenshot
+    .jpeg({ quality: 90 })
+    .toBuffer();
+}
 
 export const tabRouter = createTRPCRouter({
   // Currently not used, but keeping in case we need it in the future
@@ -320,7 +328,8 @@ export const tabRouter = createTRPCRouter({
         strummingPatterns: z.array(strummingPatternSchema),
         tabData: z.array(sectionSchema),
         sectionProgression: z.array(sectionProgressionSchema),
-        base64TabScreenshot: z.string(),
+        lightScreenshot: z.string(),
+        darkScreenshot: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -340,6 +349,8 @@ export const tabRouter = createTRPCRouter({
         strummingPatterns,
         tabData,
         sectionProgression,
+        lightScreenshot,
+        darkScreenshot,
       } = input;
 
       const tab = await ctx.prisma.tab.create({
@@ -387,18 +398,35 @@ export const tabRouter = createTRPCRouter({
         },
       });
 
-      const base64Data = input.base64TabScreenshot.split(",")[1]!;
-      const imageBuffer = Buffer.from(base64Data, "base64");
+      const lightBase64Data = lightScreenshot.split(",")[1]!;
+      const lightImageBuffer = Buffer.from(lightBase64Data, "base64");
 
-      // uploading screenshot to s3 bucket
-      const command = new PutObjectCommand({
-        Bucket: "autostrum-screenshots",
-        Key: `${tab.id}.jpeg`,
-        Body: imageBuffer,
+      const darkBase64Data = darkScreenshot.split(",")[1]!;
+      const darkImageBuffer = Buffer.from(darkBase64Data, "base64");
+
+      // Resize both images, need larger context of original width screenshot, but smaller
+      // file size for better performance and better rendering on client side
+      const [resizedLight, resizedDark] = await Promise.all([
+        resizeImage(lightImageBuffer),
+        resizeImage(darkImageBuffer),
+      ]);
+
+      const lightCommand = new PutObjectCommand({
+        Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
+        Key: `${tab.id}/light.jpeg`,
+        Body: resizedLight,
         ContentType: "image/jpeg",
       });
 
-      s3.send(command).catch((e) => {
+      const darkCommand = new PutObjectCommand({
+        Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
+        Key: `${tab.id}/dark.jpeg`,
+        Body: resizedDark,
+        ContentType: "image/jpeg",
+      });
+
+      // uploading screenshots to s3 bucket
+      Promise.all([s3.send(lightCommand), s3.send(darkCommand)]).catch((e) => {
         console.error(e);
       });
 
@@ -457,7 +485,8 @@ export const tabRouter = createTRPCRouter({
         strummingPatterns: z.array(strummingPatternSchema),
         tabData: z.array(sectionSchema),
         sectionProgression: z.array(sectionProgressionSchema),
-        base64TabScreenshot: z.string(),
+        lightScreenshot: z.string(),
+        darkScreenshot: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -477,6 +506,8 @@ export const tabRouter = createTRPCRouter({
         strummingPatterns,
         tabData,
         sectionProgression,
+        lightScreenshot,
+        darkScreenshot,
       } = input;
 
       // need to know if artistId changed, since we will then need to update the old and new
@@ -534,18 +565,35 @@ export const tabRouter = createTRPCRouter({
         },
       });
 
-      const base64Data = input.base64TabScreenshot.split(",")[1]!;
-      const imageBuffer = Buffer.from(base64Data, "base64");
+      const lightBase64Data = lightScreenshot.split(",")[1]!;
+      const lightImageBuffer = Buffer.from(lightBase64Data, "base64");
 
-      // uploading screenshot to s3 bucket
-      const command = new PutObjectCommand({
-        Bucket: "autostrum-screenshots",
-        Key: `${input.id}.jpeg`,
-        Body: imageBuffer,
+      const darkBase64Data = darkScreenshot.split(",")[1]!;
+      const darkImageBuffer = Buffer.from(darkBase64Data, "base64");
+
+      // Resize both images, need larger context of original width screenshot, but smaller
+      // file size for better performance and better rendering on client side
+      const [resizedLight, resizedDark] = await Promise.all([
+        resizeImage(lightImageBuffer),
+        resizeImage(darkImageBuffer),
+      ]);
+
+      const lightCommand = new PutObjectCommand({
+        Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
+        Key: `${tab.id}/light.jpeg`,
+        Body: resizedLight,
         ContentType: "image/jpeg",
       });
 
-      s3.send(command).catch((e) => {
+      const darkCommand = new PutObjectCommand({
+        Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
+        Key: `${tab.id}/dark.jpeg`,
+        Body: resizedDark,
+        ContentType: "image/jpeg",
+      });
+
+      // uploading screenshots to s3 bucket
+      Promise.all([s3.send(lightCommand), s3.send(darkCommand)]).catch((e) => {
         console.error(e);
       });
 
@@ -610,7 +658,7 @@ export const tabRouter = createTRPCRouter({
       });
 
       const command = new DeleteObjectCommand({
-        Bucket: "autostrum-screenshots",
+        Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
         Key: `${idToDelete}.jpeg`,
       });
 

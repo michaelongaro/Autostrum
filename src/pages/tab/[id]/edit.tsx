@@ -143,7 +143,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
 function TabNotFound() {
   return (
-    <div className="lightGlassmorphic baseVertFlex w-10/12 gap-4 rounded-md p-4 md:w-[500px]">
+    <div className="baseVertFlex w-10/12 gap-4 rounded-md border bg-muted p-4 shadow-lg md:w-[500px]">
       <div className="baseFlex gap-3 sm:gap-4">
         <div className="baseFlex gap-2">
           <BiErrorCircle className="h-6 w-6 sm:h-8 sm:w-8" />
@@ -160,16 +160,16 @@ function TabNotFound() {
 
 function UserNotAllowedToEdit({ tabId }: { tabId: number }) {
   return (
-    <div className="lightGlassmorphic baseVertFlex w-10/12 gap-4 rounded-md p-4 md:w-[550px]">
+    <div className="baseVertFlex w-10/12 gap-4 rounded-md border bg-muted p-4 shadow-lg md:w-[550px]">
       <div className="baseFlex gap-3 sm:gap-4">
         <div className="baseFlex gap-2">
           <BiErrorCircle className="h-6 w-6 sm:h-8 sm:w-8" />
           <h1 className="text-xl font-bold sm:text-2xl">Access denied</h1>
         </div>
       </div>
-      <p className="text-center text-base sm:text-lg">
+      <span className="text-center text-base sm:text-lg">
         You must be logged in as the owner of the tab to edit it.
-      </p>
+      </span>
 
       <Button asChild>
         <Link
@@ -177,7 +177,7 @@ function UserNotAllowedToEdit({ tabId }: { tabId: number }) {
           href={`/tab/${tabId}`}
           className="baseFlex gap-1 pr-6"
         >
-          <BsArrowLeftShort className="h-6 w-8 text-pink-100" />
+          <BsArrowLeftShort className="h-6 w-8" />
           Return to tab
         </Link>
       </Button>

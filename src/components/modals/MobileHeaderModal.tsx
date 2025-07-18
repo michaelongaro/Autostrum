@@ -33,7 +33,7 @@ function MobileHeaderModal({
       style={{
         zIndex: mobileHeaderModal.zIndex,
       }}
-      className="baseFlex fixed left-0 top-0 h-[100dvh] w-[100vw] bg-black/50"
+      className="baseFlex fixed left-0 top-0 h-[100dvh] w-[100vw] bg-black/60 backdrop-blur-sm"
       variants={backdropVariants}
       initial="closed"
       animate="expanded"

@@ -55,7 +55,7 @@ function PlaybackMenuContent() {
           className="baseVertFlex h-full max-h-[calc(100dvh-rem)] w-full gap-2 overflow-y-auto"
         >
           {sectionProgression.length === 0 ? (
-            <p className="text-lg font-semibold text-white">
+            <p className="text-lg font-semibold text-gray">
               No section progression found.
             </p>
           ) : (
@@ -66,13 +66,13 @@ function PlaybackMenuContent() {
                   className="baseFlex w-full !justify-start gap-2"
                 >
                   <div className="baseFlex w-24 gap-2">
-                    <p className="text-stone-400">
+                    <span className="text-gray">
                       {formatSecondsToMinutes(section.startSeconds)}
-                    </p>
-                    <span className="text-stone-400">-</span>
-                    <p className="text-stone-400">
+                    </span>
+                    <span className="text-gray">-</span>
+                    <span className="text-gray">
                       {formatSecondsToMinutes(section.endSeconds)}
-                    </p>
+                    </span>
                   </div>
 
                   <div className="baseFlex gap-2">
@@ -104,12 +104,6 @@ function PlaybackMenuContent() {
                       <div className="baseFlex w-full !justify-between border-b py-2">
                         <p
                           style={{
-                            textShadow:
-                              previewMetadata.indexOfPattern === index &&
-                              previewMetadata.playing &&
-                              previewMetadata.type === "chord"
-                                ? "none"
-                                : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
                             color:
                               previewMetadata.indexOfPattern === index &&
                               previewMetadata.playing &&
@@ -124,7 +118,7 @@ function PlaybackMenuContent() {
 
                         {/* preview chord button */}
                         <Button
-                          variant={"playPause"}
+                          variant={"audio"}
                           disabled={
                             !currentInstrument ||
                             (previewMetadata.indexOfPattern === index &&
@@ -202,7 +196,7 @@ function PlaybackMenuContent() {
                   <div key={pattern.id} className="shrink-0 overflow-hidden">
                     <div className="baseVertFlex !items-start">
                       <Button
-                        variant={"playPause"}
+                        variant={"audio"}
                         size={"sm"}
                         disabled={
                           !currentInstrument ||
@@ -270,7 +264,7 @@ function PlaybackMenuContent() {
                           previewType="strummingPattern"
                         />
                       </Button>
-                      <div className="baseFlex border-b-none !flex-nowrap rounded-md border-2">
+                      <div className="baseFlex border-b-none rounded-md border-2">
                         <StrummingPattern
                           data={pattern}
                           mode="viewing"

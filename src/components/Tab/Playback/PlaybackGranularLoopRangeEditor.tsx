@@ -30,7 +30,7 @@ function PlaybackGranularLoopRangeEditor({
         style={{
           top: viewportLabel.includes("Landscape") ? "-1rem" : "-3rem",
         }}
-        className="baseFlex absolute left-0 w-full text-nowrap text-xs text-stone-400"
+        className="baseFlex absolute left-0 w-full text-nowrap text-xs text-gray"
       >
         Scrub or use the buttons below to modify the loop range
       </div>

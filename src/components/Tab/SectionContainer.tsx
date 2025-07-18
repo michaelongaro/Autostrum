@@ -233,7 +233,7 @@ function SectionContainer({
             {/* map over tab/chord subSections */}
             <div
               id={`sectionIndex${sectionIndex}`}
-              className="baseVertFlex w-full"
+              className="baseVertFlex w-full gap-4"
             >
               {sectionData.data.map((subSection, index) => (
                 <div
@@ -281,7 +281,7 @@ function SectionContainer({
         </AccordionItem>
       </Accordion>
 
-      <Separator />
+      <Separator className="bg-border" />
     </div>
   );
 }

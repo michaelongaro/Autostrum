@@ -50,14 +50,12 @@ function PinnedTabSelector({
 
   return (
     <div className="baseVertFlex w-full !items-start gap-2 lg:!flex-row lg:!justify-between">
-      <span className="text-xl font-medium !text-pink-50 lg:text-2xl">
-        Pinned tab
-      </span>
+      <span className="text-xl font-medium lg:text-2xl">Pinned tab</span>
 
       <div className="baseFlex w-full !justify-between gap-4 lg:w-auto lg:!justify-center">
         <div className="baseFlex gap-2">
           <motion.div layout>
-            <TbPinned className="size-4 text-pink-50 sm:size-5" />
+            <TbPinned className="size-4 sm:size-5" />
           </motion.div>
 
           <motion.div
@@ -79,7 +77,7 @@ function PinnedTabSelector({
                 {pinnedTabTitle ?? "None"}
               </span>
             ) : (
-              <div className="pulseAnimation h-5 w-28 rounded-md bg-pink-300"></div>
+              <div className="pulseAnimation h-5 w-28 rounded-md bg-foreground/50"></div>
             )}
           </motion.div>
         </div>
@@ -94,7 +92,7 @@ function PinnedTabSelector({
                 setLocalPinnedTabId(-1);
               }}
             >
-              <IoClose className="size-5 text-pink-50" />
+              <IoClose className="size-5" />
             </Button>
           )}
 
@@ -124,12 +122,7 @@ function PinnedTabSelector({
                 <Button variant={"outline"}>Edit</Button>
               </DrawerTrigger>
               <DrawerPortal>
-                <DrawerContent
-                  style={{
-                    textShadow: "none",
-                  }}
-                  className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-pink-100 pt-4 text-pink-950"
-                >
+                <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl bg-secondary pt-3">
                   <VisuallyHidden>
                     <DrawerTitle>Pinned tab selector</DrawerTitle>
                     <DrawerDescription>
@@ -137,7 +130,7 @@ function PinnedTabSelector({
                     </DrawerDescription>
                   </VisuallyHidden>
 
-                  <Separator className="mt-2 w-full bg-stone-400" />
+                  <Separator className="mt-2 w-full bg-gray" />
 
                   <PinnedTabList
                     userId={userId}

@@ -144,19 +144,19 @@ function TabMeasureLine({
   function renderMeasureLine(index: number) {
     if (index === 1) {
       return (
-        <div className="baseVertFlex w-full !flex-nowrap">
+        <div className="baseVertFlex w-full">
           {/* top border and vert stub to normalize heights of middle indicies */}
           {(reorderingColumns || showingDeleteColumnsButtons) && (
             <div className="baseVertFlex w-full">
-              <div className="h-[2px] w-full bg-pink-100"></div>
-              <div className="h-[3px] w-[2px] bg-pink-100"></div>
+              <div className="h-[2px] w-full bg-foreground"></div>
+              <div className="h-[3px] w-[2px] bg-foreground"></div>
             </div>
           )}
 
           <div className="baseFlex w-full">
             {/* left dummy string */}
             {(reorderingColumns || showingDeleteColumnsButtons) && (
-              <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
+              <div className="h-[1px] flex-[1] bg-foreground/50"></div>
             )}
 
             {/* measure line */}
@@ -164,23 +164,23 @@ function TabMeasureLine({
               style={{
                 height: getHeightOfMeasureLineSubSection(index),
               }}
-              className="w-[2px] bg-pink-100"
+              className="w-[2px] bg-foreground"
             ></div>
 
             {/* right dummy string */}
             {(reorderingColumns || showingDeleteColumnsButtons) && (
-              <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
+              <div className="h-[1px] flex-[1] bg-foreground/50"></div>
             )}
           </div>
         </div>
       );
     } else if (index === 6) {
       return (
-        <div className="baseVertFlex w-full !flex-nowrap">
+        <div className="baseVertFlex w-full">
           <div className="baseFlex w-full">
             {/* left dummy string */}
             {(reorderingColumns || showingDeleteColumnsButtons) && (
-              <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
+              <div className="h-[1px] flex-[1] bg-foreground/50"></div>
             )}
 
             {/* measure line */}
@@ -188,19 +188,19 @@ function TabMeasureLine({
               style={{
                 height: getHeightOfMeasureLineSubSection(index),
               }}
-              className="w-[2px] bg-pink-100"
+              className="w-[2px] bg-foreground"
             ></div>
 
             {/* right dummy string */}
             {(reorderingColumns || showingDeleteColumnsButtons) && (
-              <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
+              <div className="h-[1px] flex-[1] bg-foreground/50"></div>
             )}
           </div>
           {/* bottom border and vert stub to normalize heights of middle indicies */}
           {(reorderingColumns || showingDeleteColumnsButtons) && (
             <div className="baseVertFlex w-full">
-              <div className="h-[3px] w-[2px] bg-pink-100"></div>
-              <div className="h-[2px] w-full bg-pink-100"></div>
+              <div className="h-[3px] w-[2px] bg-foreground"></div>
+              <div className="h-[2px] w-full bg-foreground"></div>
             </div>
           )}
         </div>
@@ -210,7 +210,7 @@ function TabMeasureLine({
         <div className="baseFlex w-full">
           {/* left dummy string */}
           {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
+            <div className="h-[1px] flex-[1] bg-foreground/50"></div>
           )}
 
           {/* measure line */}
@@ -218,12 +218,12 @@ function TabMeasureLine({
             style={{
               height: getHeightOfMeasureLineSubSection(index),
             }}
-            className="w-[2px] bg-pink-100"
+            className="w-[2px] bg-foreground"
           ></div>
 
           {/* right dummy string */}
           {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="h-[1px] flex-[1] bg-pink-100/50"></div>
+            <div className="h-[1px] flex-[1] bg-foreground/50"></div>
           )}
         </div>
       );
@@ -268,7 +268,7 @@ function TabMeasureLine({
           style={{
             width: columnHasBeenPlayed ? "100%" : "0%",
           }}
-          className="absolute left-0 top-1/2 z-[-1] h-[276px] w-0 -translate-y-1/2 bg-pink-700"
+          className="absolute left-0 top-1/2 z-[-1] h-[276px] w-0 -translate-y-1/2 bg-primary"
         ></div>
       )}
       {columnData.map((note, index) => (
@@ -276,7 +276,7 @@ function TabMeasureLine({
           {index === 0 && (
             <div className="baseFlex mb-0 h-0 w-full">
               {note === "-" && (
-                <div className="relative top-[-26px] h-[1px] w-full bg-pink-100"></div>
+                <div className="relative top-[-26px] h-[1px] w-full bg-foreground"></div>
               )}
             </div>
           )}
@@ -292,14 +292,14 @@ function TabMeasureLine({
                 <PopoverTrigger asChild>
                   <Button
                     id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`}
-                    className="absolute bottom-9 z-50 h-5 w-5 rounded-full p-[0.125rem] text-pink-100"
+                    className="absolute bottom-9 z-50 h-5 w-5 rounded-full p-[0.125rem]"
                     onKeyDown={handleKeyDown}
                   >
                     <QuarterNote className="mr-[1px] h-[1rem]" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
-                  className="baseVertFlex w-52 !flex-nowrap gap-4 p-2"
+                  className="baseVertFlex w-52 gap-4 p-2"
                   side="bottom"
                 >
                   <p className="w-auto text-center text-sm">
@@ -307,7 +307,7 @@ function TabMeasureLine({
                   </p>
 
                   <div className="baseFlex gap-2">
-                    <QuarterNote className="fill-pink-950" />
+                    <QuarterNote className="fill-foreground" />
 
                     <Input
                       type="text"
@@ -341,7 +341,7 @@ function TabMeasureLine({
           {...listeners}
           className={`hover:box-shadow-md ${
             isDragging ? "cursor-grabbing" : "cursor-grab"
-          } absolute bottom-4 z-50 cursor-grab rounded-md text-pink-100 active:cursor-grabbing`}
+          } absolute bottom-4 z-50 cursor-grab rounded-md text-foreground active:cursor-grabbing`}
           onMouseEnter={() => setHoveringOnHandle(true)}
           onMouseDown={() => setGrabbingHandle(true)}
           onMouseLeave={() => {
@@ -358,7 +358,7 @@ function TabMeasureLine({
             style={{
               opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
             }}
-            className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-pink-200/30 p-4 transition-all"
+            className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-primary/20 p-4 transition-all"
           ></div>
         </div>
       )}

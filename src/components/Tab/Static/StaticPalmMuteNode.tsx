@@ -1,31 +1,68 @@
+import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
+import type { COLORS, THEME } from "~/stores/TabStore";
+
 interface StaticPalmMuteNode {
   value: string;
+  color: COLORS;
+  theme: THEME;
 }
 
-function StaticPalmMuteNode({ value }: StaticPalmMuteNode) {
+function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
   return (
     <>
       {(value === "start" || value === "end") && (
         <>
           {value === "start" && (
-            <div className="baseFlex w-full !flex-nowrap">
-              <div className="h-[14px] w-[1px] bg-pink-100"></div>
-              <div className="h-[1px] w-1 bg-pink-100"></div>
-              <i className="mx-[0.125rem]">PM</i>
-              <div className="h-[1px] w-[3px] bg-pink-100"></div>
+            <div className="baseFlex w-full">
+              <div
+                style={{
+                  backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                }}
+                className="h-[14px] w-[1px]"
+              ></div>
+              <div
+                style={{
+                  backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                }}
+                className="h-[1px] w-1"
+              ></div>
+              <i
+                style={{
+                  color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                }}
+                className="mx-[0.125rem]"
+              >
+                PM
+              </i>
+              <div
+                style={{
+                  backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                }}
+                className="h-[1px] w-[3px]"
+              ></div>
             </div>
           )}
 
           {value === "end" && (
-            <div className="baseFlex w-full !flex-nowrap">
-              <div className="h-[1px] w-full bg-pink-100"></div>
-              <div className="h-[14px] w-[1px] bg-pink-100"></div>
+            <div className="baseFlex w-full">
+              <div
+                style={{
+                  backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                }}
+                className="h-[1px] w-full"
+              ></div>
+              <div
+                style={{
+                  backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                }}
+                className="h-[14px] w-[1px]"
+              ></div>
             </div>
           )}
         </>
       )}
 
-      {value === "-" && <div className="h-[1px] w-full bg-pink-100"></div>}
+      {value === "-" && <div className="h-[1px] w-full"></div>}
     </>
   );
 }

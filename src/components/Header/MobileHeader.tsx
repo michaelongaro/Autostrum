@@ -37,18 +37,26 @@ import SearchInput from "~/components/Search/SearchInput";
 import { api } from "~/utils/api";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import ThemePicker from "~/components/Header/ThemePicker";
+import { LOGO_PATHS_WITH_TITLE } from "~/utils/logoPaths";
 
 function MobileHeader() {
   const { userId, isSignedIn } = useAuth();
   const { asPath } = useRouter();
   const router = useRouter();
 
-  const { getStringifiedTabData, mobileHeaderModal, setMobileHeaderModal } =
-    useTabStore((state) => ({
-      getStringifiedTabData: state.getStringifiedTabData,
-      mobileHeaderModal: state.mobileHeaderModal,
-      setMobileHeaderModal: state.setMobileHeaderModal,
-    }));
+  const {
+    getStringifiedTabData,
+    mobileHeaderModal,
+    setMobileHeaderModal,
+    color,
+    theme,
+  } = useTabStore((state) => ({
+    getStringifiedTabData: state.getStringifiedTabData,
+    mobileHeaderModal: state.mobileHeaderModal,
+    setMobileHeaderModal: state.setMobileHeaderModal,
+    color: state.color,
+    theme: state.theme,
+  }));
 
   const { data: currentUser, isInitialLoading: isLoadingCurrentUser } =
     api.user.getById.useQuery(userId!, {
@@ -61,7 +69,7 @@ function MobileHeader() {
 
   const localStorageTabData = useLocalStorageValue("autostrum-tabData");
   const localStorageRedirectRoute = useLocalStorageValue(
-    "autostrum-redirectRoute",
+    "autostrum-redirect-route",
   );
 
   // closes the mobile header when the user taps outside of it
@@ -90,14 +98,14 @@ function MobileHeader() {
 
   return (
     <nav className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full">
-      <div className="headerBackgroundGradient absolute z-[49] flex h-16 w-full items-start justify-between overflow-clip p-2 shadow-md lg:hidden">
+      <div className="headerAndFooterBackgroundGradient absolute z-[49] flex h-16 w-full items-start justify-between overflow-clip p-2 shadow-md shadow-primary/10 lg:hidden">
         <Link
           prefetch={false}
           href={"/"}
           className="baseFlex h-12 pl-2 transition-[filter] hover:brightness-[1.05] active:brightness-[0.95]"
         >
           <Image
-            src="/logoWithTitle.svg"
+            src={LOGO_PATHS_WITH_TITLE[color]}
             alt="Autostrum header logo"
             style={{
               filter: "drop-shadow(0px 1px 0.5px hsla(336, 84%, 17%, 0.25))",
@@ -116,7 +124,7 @@ function MobileHeader() {
           >
             <DialogTrigger asChild>
               <Button
-                variant="link"
+                variant="text"
                 onClick={() => setShowMobileSearch(true)}
                 className="!px-0"
               >
@@ -133,7 +141,7 @@ function MobileHeader() {
 
             <DialogContent
               renderCloseButton={false}
-              className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start !rounded-none bg-gradient-to-b from-pink-400 to-pink-500 p-0"
+              className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start !rounded-none border-none p-0"
             >
               <SearchInput setShowMobileSearch={setShowMobileSearch} />
             </DialogContent>
@@ -149,7 +157,6 @@ function MobileHeader() {
               });
             }}
             easing="ease-in-out"
-            color="#fdf2f8"
             rounded
             size={28}
           />
@@ -182,19 +189,21 @@ function MobileHeader() {
                 opacity: { duration: 0.2, ease: "easeInOut" },
               },
             }}
-            className="baseVertFlex fixed top-16 z-[-1] max-h-[80dvh] w-full max-w-lg !justify-start overflow-y-auto rounded-b-xl bg-pink-400 shadow-lg"
+            className="baseVertFlex mobileHeaderGradient fixed top-16 z-[-1] max-h-[80dvh] w-full max-w-lg !justify-start overflow-y-auto rounded-b-xl border-t border-foreground shadow-lg"
           >
             <div className="baseVertFlex my-4 h-full max-w-[348px] gap-4">
               <div className="baseFlex w-full gap-4">
                 <Button
-                  variant={"navigation"}
+                  variant={"secondary"}
                   size={"lg"}
                   asChild
                   style={{
                     backgroundColor: asPath.includes("/explore")
-                      ? "#be185d"
+                      ? "hsl(var(--accent))"
                       : undefined,
-                    color: asPath.includes("/explore") ? "#fbcfe8" : undefined,
+                    color: asPath.includes("/explore")
+                      ? "hsl(var(--accent-foreground))"
+                      : undefined,
                   }}
                 >
                   <Link
@@ -208,14 +217,16 @@ function MobileHeader() {
                 </Button>
 
                 <Button
-                  variant={"navigation"}
+                  variant={"secondary"}
                   size={"lg"}
                   asChild
                   style={{
                     backgroundColor: asPath.includes("/create")
-                      ? "#be185d"
+                      ? "hsl(var(--accent))"
                       : undefined,
-                    color: asPath.includes("/create") ? "#fbcfe8" : undefined,
+                    color: asPath.includes("/create")
+                      ? "hsl(var(--accent-foreground))"
+                      : undefined,
                   }}
                 >
                   <Link
@@ -232,15 +243,15 @@ function MobileHeader() {
               <div className="baseVertFlex w-full max-w-[348px] gap-2">
                 <div className="baseFlex w-full gap-4">
                   <Button
-                    variant={"navigation"}
+                    variant={"secondary"}
                     size={"lg"}
                     asChild
                     style={{
                       backgroundColor: asPath.includes("/metronome")
-                        ? "#be185d"
+                        ? "hsl(var(--accent))"
                         : undefined,
                       color: asPath.includes("/metronome")
-                        ? "#fbcfe8"
+                        ? "hsl(var(--accent-foreground))"
                         : undefined,
                     }}
                   >
@@ -254,14 +265,16 @@ function MobileHeader() {
                     </Link>
                   </Button>
                   <Button
-                    variant={"navigation"}
+                    variant={"secondary"}
                     size={"lg"}
                     asChild
                     style={{
                       backgroundColor: asPath.includes("/tuner")
-                        ? "#be185d"
+                        ? "hsl(var(--accent))"
                         : undefined,
-                      color: asPath.includes("/tuner") ? "#fbcfe8" : undefined,
+                      color: asPath.includes("/tuner")
+                        ? "hsl(var(--accent-foreground))"
+                        : undefined,
                     }}
                   >
                     <Link
@@ -276,7 +289,7 @@ function MobileHeader() {
                 </div>
               </div>
 
-              <Separator className="h-[1px] w-full" />
+              <Separator className="h-[1px] w-full bg-foreground/75" />
 
               <Accordion
                 type="single"
@@ -289,7 +302,19 @@ function MobileHeader() {
                 >
                   <AccordionTrigger className="baseFlex w-full !justify-start gap-2">
                     <IoColorPalette className="size-5 !rotate-0" />
-                    Peony | Light
+
+                    <span>
+                      {color.charAt(0).toUpperCase() + color.slice(1)}
+                    </span>
+
+                    <Separator
+                      orientation="vertical"
+                      className="h-[100%] w-[1px] bg-foreground/50"
+                    />
+
+                    <span>
+                      {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                    </span>
                   </AccordionTrigger>
 
                   <AccordionContent animated={true} className="w-full">
@@ -298,7 +323,7 @@ function MobileHeader() {
                 </AccordionItem>
               </Accordion>
 
-              <Separator className="h-[1px] w-full" />
+              <Separator className="h-[1px] w-full bg-foreground/75" />
 
               <AnimatePresence mode="popLayout">
                 {(isSignedIn === undefined || isLoadingCurrentUser) && (
@@ -480,7 +505,7 @@ function MobileHeader() {
                                   animate={{ opacity: 0 }}
                                   exit={{ opacity: 0 }}
                                   transition={{ duration: 0.3 }}
-                                  className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-8 rounded-full bg-pink-300"
+                                  className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-8 rounded-full bg-foreground/50"
                                 ></motion.div>
                               )}
                             </AnimatePresence>
@@ -515,15 +540,15 @@ function MobileHeader() {
 
                     <div className="baseFlex w-full gap-4">
                       <Button
-                        variant={"navigation"}
+                        variant={"secondary"}
                         size={"lg"}
                         asChild
                         style={{
                           backgroundColor: asPath.includes("/profile/settings")
-                            ? "#be185d"
+                            ? "hsl(var(--accent))"
                             : undefined,
                           color: asPath.includes("/profile/settings")
-                            ? "#fbcfe8"
+                            ? "hsl(var(--accent-foreground))"
                             : undefined,
                         }}
                       >
@@ -538,17 +563,17 @@ function MobileHeader() {
                       </Button>
 
                       <Button
-                        variant={"navigation"}
+                        variant={"secondary"}
                         size={"lg"}
                         asChild
                         style={{
                           backgroundColor: asPath.includes(
                             "/profile/statistics",
                           )
-                            ? "#be185d"
+                            ? "hsl(var(--accent))"
                             : undefined,
                           color: asPath.includes("/profile/statistics")
-                            ? "#fbcfe8"
+                            ? "hsl(var(--accent-foreground))"
                             : undefined,
                         }}
                       >
@@ -565,15 +590,15 @@ function MobileHeader() {
 
                     <div className="baseFlex w-full gap-4">
                       <Button
-                        variant={"navigation"}
+                        variant={"secondary"}
                         size={"lg"}
                         asChild
                         style={{
                           backgroundColor: asPath.includes("/profile/tabs")
-                            ? "#be185d"
+                            ? "hsl(var(--accent))"
                             : undefined,
                           color: asPath.includes("/profile/tabs")
-                            ? "#fbcfe8"
+                            ? "hsl(var(--accent-foreground))"
                             : undefined,
                         }}
                       >
@@ -588,15 +613,15 @@ function MobileHeader() {
                       </Button>
 
                       <Button
-                        variant={"navigation"}
+                        variant={"secondary"}
                         size={"lg"}
                         asChild
                         style={{
                           backgroundColor: asPath.includes("/profile/bookmarks")
-                            ? "#be185d"
+                            ? "hsl(var(--accent))"
                             : undefined,
                           color: asPath.includes("/profile/bookmarks")
-                            ? "#fbcfe8"
+                            ? "hsl(var(--accent-foreground))"
                             : undefined,
                         }}
                       >

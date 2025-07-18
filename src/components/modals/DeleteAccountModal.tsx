@@ -10,7 +10,7 @@ import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import { IoWarningOutline } from "react-icons/io5";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
-import { IoClose } from "react-icons/io5";
+import { X } from "lucide-react";
 
 const backdropVariants = {
   expanded: {
@@ -63,7 +63,7 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
   return (
     <motion.div
       key={"DeleteAccountModalBackdrop"}
-      className="baseFlex fixed left-0 top-0 z-50 h-[100dvh] w-[100vw] bg-black/50"
+      className="baseFlex fixed left-0 top-0 z-50 h-[100dvh] w-[100vw] bg-black/60 backdrop-blur-sm"
       variants={backdropVariants}
       initial="closed"
       animate="expanded"
@@ -81,7 +81,7 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
       >
         <div
           tabIndex={-1}
-          className="baseVertFlex w-[350px] gap-10 rounded-md bg-pink-400 p-4 shadow-sm sm:w-[500px]"
+          className="baseVertFlex modalGradient relative w-[350px] gap-10 rounded-lg border p-4 shadow-sm sm:w-[500px]"
         >
           <div className="baseFlex w-full !justify-between gap-2">
             <div className="baseFlex gap-2">
@@ -90,13 +90,12 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
             </div>
 
             <Button
-              variant={"text"}
-              className="!size-8 shrink-0 !p-0"
+              variant={"modalClose"}
               onClick={() => {
                 setShowDeleteAccountModal(false);
               }}
             >
-              <IoClose className="size-5 text-pink-50" />
+              <X className="size-5" />
             </Button>
           </div>
 
@@ -110,7 +109,7 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
               </p>
             </div>
 
-            <div className="lightestGlassmorphic baseFlex !flex-nowrap !items-start gap-4 rounded-md p-4">
+            <div className="baseFlex !items-start gap-4 rounded-md border bg-secondary-active/50 p-4 shadow-md">
               <Checkbox
                 id="deleteTabs"
                 checked={anonymizeUserTabs}
@@ -125,7 +124,7 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
                 <label htmlFor="deleteTabs">
                   Anonymize my tabs instead of deleting them
                 </label>
-                <p className="text-sm text-pink-200">
+                <p className="text-sm">
                   Checking this will preserve your tabs, and will display the
                   associated user who created them as &ldquo;Anonymous&rdquo;.
                 </p>
@@ -204,7 +203,7 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                       strokeWidth={2}
-                      className="size-5 text-pink-50"
+                      className="size-5 text-primary-foreground"
                     >
                       <motion.path
                         initial={{ pathLength: 0 }}

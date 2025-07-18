@@ -124,7 +124,7 @@ function PlaybackBottomMetadata({
                 </div>
 
                 <Button variant={"outline"} className="size-9 !p-0">
-                  <TuningFork className="size-4 fill-white" />
+                  <TuningFork className="size-4" />
                 </Button>
               </div>
 
@@ -178,7 +178,7 @@ function PlaybackBottomMetadata({
                           );
                         })}
 
-                        <div className="my-1 h-[1px] w-full bg-pink-800"></div>
+                        <div className="my-1 h-[1px] w-full bg-primary"></div>
                         <SelectItem key={"fullTab"} value={`fullTab`}>
                           Full tab
                         </SelectItem>
@@ -316,7 +316,7 @@ function MobileSettingsPopover({
           </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="baseVertFlex size-full w-[450px] gap-4 bg-black text-white mobilePortrait:w-[300px]">
+      <PopoverContent className="baseVertFlex size-full w-[450px] gap-4 mobilePortrait:w-[300px]">
         <div className="baseVertFlex w-full !items-start gap-2">
           <span className="font-medium">Instrument</span>
 
@@ -429,7 +429,7 @@ function MobileSettingsPopover({
         {!isMobileOnly && (
           <div className="baseVertFlex w-full !items-start gap-2">
             <span className="font-medium">Volume</span>
-            <div className="baseFlex w-full max-w-64 !flex-nowrap gap-2 md:justify-self-end">
+            <div className="baseFlex w-full max-w-64 gap-2 md:justify-self-end">
               <AnimatePresence mode="popLayout">
                 {volume === 0 && (
                   <motion.div
@@ -540,7 +540,7 @@ function MobileMenuDialog() {
           </span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="baseVertFlex size-full max-h-dvh max-w-none !justify-start !rounded-none bg-black pb-0">
+      <DialogContent className="baseVertFlex size-full max-h-dvh max-w-none !justify-start !rounded-none pb-0">
         <AnimatedTabs
           activeTabName={activeTabName}
           setActiveTabName={
@@ -560,7 +560,7 @@ function MobileMenuDialog() {
               className="baseVertFlex h-full max-h-[calc(100dvh-6rem)] w-full gap-2 overflow-y-auto"
             >
               {sectionProgression.length === 0 ? (
-                <p className="text-lg font-semibold text-white">
+                <p className="text-lg font-semibold text-gray">
                   No section progression found.
                 </p>
               ) : (
@@ -571,19 +571,19 @@ function MobileMenuDialog() {
                       className="baseFlex w-full !justify-start gap-2"
                     >
                       <div className="baseFlex w-24 gap-2">
-                        <p className="text-stone-400">
+                        <span className="text-gray">
                           {formatSecondsToMinutes(section.startSeconds)}
-                        </p>
-                        <span className="text-stone-400">-</span>
-                        <p className="text-stone-400">
+                        </span>
+                        <span className="text-gray">-</span>
+                        <span className="text-gray">
                           {formatSecondsToMinutes(section.endSeconds)}
-                        </p>
+                        </span>
                       </div>
 
                       <div className="baseFlex gap-2">
-                        <p className="text-nowrap font-semibold">
+                        <span className="text-nowrap font-semibold">
                           {section.title}
-                        </p>
+                        </span>
                         {section.repetitions > 1 && (
                           <p>({section.repetitions}x)</p>
                         )}
@@ -616,12 +616,6 @@ function MobileMenuDialog() {
                           <div className="baseFlex w-full !justify-between border-b py-2">
                             <p
                               style={{
-                                textShadow:
-                                  previewMetadata.indexOfPattern === index &&
-                                  previewMetadata.playing &&
-                                  previewMetadata.type === "chord"
-                                    ? "none"
-                                    : "0 1px 2px hsla(336, 84%, 17%, 0.25)",
                                 color:
                                   previewMetadata.indexOfPattern === index &&
                                   previewMetadata.playing &&
@@ -636,7 +630,7 @@ function MobileMenuDialog() {
 
                             {/* preview chord button */}
                             <Button
-                              variant={"playPause"}
+                              variant={"audio"}
                               disabled={
                                 !currentInstrument ||
                                 (previewMetadata.indexOfPattern === index &&
@@ -713,7 +707,7 @@ function MobileMenuDialog() {
                     >
                       <div className="baseVertFlex !items-start">
                         <Button
-                          variant={"playPause"}
+                          variant={"audio"}
                           size={"sm"}
                           disabled={
                             !currentInstrument ||
@@ -783,7 +777,7 @@ function MobileMenuDialog() {
                             previewType="strummingPattern"
                           />
                         </Button>
-                        <div className="baseFlex border-b-none !flex-nowrap rounded-md border-2">
+                        <div className="baseFlex border-b-none rounded-md border-2">
                           <StrummingPattern
                             data={pattern}
                             mode="viewing"

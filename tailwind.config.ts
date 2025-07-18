@@ -1,6 +1,5 @@
 import { type Config } from "tailwindcss";
 import defaultTheme from "tailwindcss/defaultTheme";
-import plugin from "tailwindcss/plugin";
 import tailwindcssAnimate from "tailwindcss-animate";
 import containerQueries from "@tailwindcss/container-queries";
 
@@ -37,12 +36,12 @@ module.exports = {
         desktop: { raw: "(min-height: 800px) and (min-width: 1500px)" },
       },
       colors: {
-        destructiveRed: "hsl(0, 90%, 50%)",
         border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        gray: "hsl(var(--gray))",
+        muted: "hsl(var(--muted))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -50,37 +49,29 @@ module.exports = {
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        toggleOn: {
-          DEFAULT: "hsl(var(--toggle-on))",
-          foreground: "hsl(var(--accent-foreground))",
+          hover: "hsl(var(--secondary-hover))",
+          active: "hsl(var(--secondary-active))",
         },
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+        audio: {
+          DEFAULT: "hsl(var(--audio))",
+          foreground: "hsl(var(--audio-foreground))",
         },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+        toggle: {
+          foreground: "hsl(var(--toggle-foreground))",
+          background: "hsl(var(--toggle-background))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
         },
       },
       boxShadow: {
         primaryButton: "0 1px 2px 0 rgb(0 0 0 / 0.25)",
-        lightGlassmorphic: "0 2px 3px 0 rgb(0 0 0 / 0.15)",
         lighterGlassmorphic: "0 2px 3px 0 rgb(0 0 0 / 0.18)",
-        lightestGlassmorphic: "0px 2px 3px 0 rgb(0 0 0 / 0.23)",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -128,10 +119,6 @@ module.exports = {
         colorOscillate: "colorOscillate 1.75s ease-in-out infinite",
         stableSpin: "stableSpin 1s linear infinite",
       },
-      textShadow: {
-        none: "none",
-        DEFAULT: "0 1px 2px hsla(336, 84%, 17%, 0.25)",
-      },
     },
     // mobile safari was glitchy/inconsistent at best with the default
     // cubic-bezier transition timing function, so currently using linear
@@ -139,21 +126,5 @@ module.exports = {
       DEFAULT: "linear",
     },
   },
-  plugins: [
-    tailwindcssAnimate,
-    containerQueries,
-
-    // TODO: probably remove this during UI refactor, since this was
-    // a bit of a hack
-    plugin(function ({ matchUtilities, theme }) {
-      matchUtilities(
-        {
-          "text-shadow": (value) => ({
-            textShadow: value,
-          }),
-        },
-        { values: theme("textShadow") },
-      );
-    }),
-  ],
+  plugins: [tailwindcssAnimate, containerQueries],
 } satisfies Config;

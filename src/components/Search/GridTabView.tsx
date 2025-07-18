@@ -7,6 +7,7 @@ import { api } from "~/utils/api";
 import GridTabCard from "./GridTabCard";
 import NoResultsFound from "./NoResultsFound";
 import type { InfiniteQueryParams } from "~/server/api/routers/search";
+import type { COLORS, THEME } from "~/stores/TabStore";
 
 interface GridTabView {
   searchQuery?: string;
@@ -17,6 +18,8 @@ interface GridTabView {
   sortBy: "relevance" | "newest" | "oldest" | "mostPopular" | "leastPopular";
   setSearchResultsCount: Dispatch<SetStateAction<number>>;
   setSearchsearchResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
+  color: COLORS;
+  theme: THEME;
 }
 
 function GridTabView({
@@ -28,6 +31,8 @@ function GridTabView({
   sortBy,
   setSearchResultsCount,
   setSearchsearchResultsCountIsLoading,
+  color,
+  theme,
 }: GridTabView) {
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
@@ -115,6 +120,8 @@ function GridTabView({
                   key={tab.id}
                   minimalTab={tab}
                   currentUser={currentUser}
+                  color={color}
+                  theme={theme}
                   infiniteQueryParams={getInfiniteQueryParams()}
                   ref={
                     index === page.data.tabs.length - 1

@@ -126,10 +126,6 @@ function StrummingPattern({
     return "0";
   }, [mode, patternHasPalmMuting]);
 
-  // const chordSection = useMemo(() => {
-  //   return getTabData()[sectionIndex ?? 0]?.data[subSectionIndex ?? 0];
-  // }, [getTabData, sectionIndex, subSectionIndex]);
-
   function handleKeyDown(
     e: React.KeyboardEvent<HTMLInputElement>,
     beatIndex: number,
@@ -453,10 +449,6 @@ function StrummingPattern({
     return true;
   }
 
-  // I really feel like there should be some way to declare color/backgroundColor
-  // logic somewhere at a higher parent div, but there is nuance to it so holding
-  // off for later refactor.
-
   return (
     <div
       style={{
@@ -560,11 +552,13 @@ function StrummingPattern({
                             </SelectItem>
                           ))}
 
-                          <SelectSeparator />
+                          {chords.length > 0 && (
+                            <SelectSeparator className="mr-2" />
+                          )}
 
                           <SelectItem
                             value="noChord"
-                            className="italic text-shadow-none hover:text-shadow"
+                            className="hover:text-shadow italic"
                           >
                             No chord
                           </SelectItem>
@@ -575,7 +569,7 @@ function StrummingPattern({
                 </>
               )}
 
-              <div className="baseFlex !flex-nowrap">
+              <div className="baseFlex">
                 <div
                   style={{
                     width:
@@ -599,10 +593,10 @@ function StrummingPattern({
                           : "1px"
                       }`,
                       color: highlightChord(strumIndex, true)
-                        ? "hsl(335, 78%, 42%)"
-                        : "hsl(324, 77%, 95%)",
+                        ? "hsl(var(--primary) / 0.75)"
+                        : "hsl(var(--foreground))",
                     }}
-                    className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm shadow-pink-600"
+                    className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm"
                     onFocus={(e) => {
                       setIsFocused((prev) => {
                         prev[strumIndex] = true;
@@ -625,14 +619,9 @@ function StrummingPattern({
                 ) : (
                   <div
                     style={{
-                      color:
-                        mode === "viewingInSelectDropdown"
-                          ? isBeingHighlightedInDropdown
-                            ? "hsl(324, 77%, 95%)"
-                            : "hsl(336, 84%, 17%)"
-                          : highlightChord(strumIndex, index !== undefined)
-                            ? "hsl(335, 78%, 42%)"
-                            : "hsl(324, 77%, 95%)",
+                      color: highlightChord(strumIndex, index !== undefined)
+                        ? "hsl(var(--primary) / 0.75)"
+                        : "inherit",
                     }}
                     className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
                   >
@@ -701,19 +690,13 @@ function StrummingPattern({
               {/* beat indicator */}
               <p
                 style={{
-                  textShadow: "none",
                   height:
                     getBeatIndicator(data.noteLength, strumIndex) === ""
                       ? "1.25rem"
                       : "auto",
-                  color:
-                    mode === "viewingInSelectDropdown"
-                      ? isBeingHighlightedInDropdown
-                        ? "hsl(324, 77%, 95%)"
-                        : "hsl(336, 84%, 17%)"
-                      : highlightChord(strumIndex, index !== undefined)
-                        ? "hsl(335, 78%, 42%)"
-                        : "hsl(324, 77%, 95%)",
+                  color: highlightChord(strumIndex, index !== undefined)
+                    ? "hsl(var(--primary) / 0.75)"
+                    : "inherit",
                 }}
                 className="text-sm transition-colors"
               >
@@ -730,7 +713,6 @@ function StrummingPattern({
 
               {/* delete strum button */}
               {showingDeleteStrumsButtons && (
-                // can do framer motion here if you want
                 <Button
                   variant={"destructive"}
                   disabled={data.strums.length === 1 || previewMetadata.playing}

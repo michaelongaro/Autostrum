@@ -21,7 +21,7 @@ function renderStrummingGuide(
               ? isBeingHighlightedInDropdown
                 ? "bg-background"
                 : "bg-foreground"
-              : "bg-background"
+              : "bg-foreground"
           }`}
         ></div>
       );
@@ -37,7 +37,7 @@ function renderStrummingGuide(
                 ? isBeingHighlightedInDropdown
                   ? "bg-background"
                   : "bg-foreground"
-                : "bg-background"
+                : "bg-foreground"
             }`}
           ></div>
 
@@ -48,7 +48,7 @@ function renderStrummingGuide(
                   ? isBeingHighlightedInDropdown
                     ? "bg-background"
                     : "bg-foreground"
-                  : "bg-background"
+                  : "bg-foreground"
               }`}
             ></div>
           ) : (
@@ -58,7 +58,7 @@ function renderStrummingGuide(
                   ? isBeingHighlightedInDropdown
                     ? "bg-background"
                     : "bg-foreground"
-                  : "bg-background"
+                  : "bg-foreground"
               }`}
             ></div>
           )}
@@ -75,7 +75,7 @@ function renderStrummingGuide(
                 ? isBeingHighlightedInDropdown
                   ? "bg-background"
                   : "bg-foreground"
-                : "bg-background"
+                : "bg-foreground"
             }`}
           ></div>
 
@@ -87,7 +87,7 @@ function renderStrummingGuide(
                     ? isBeingHighlightedInDropdown
                       ? "bg-background"
                       : "bg-foreground"
-                    : "bg-background"
+                    : "bg-foreground"
                 }`}
               ></div>
               <div
@@ -96,7 +96,7 @@ function renderStrummingGuide(
                     ? isBeingHighlightedInDropdown
                       ? "bg-background"
                       : "bg-foreground"
-                    : "bg-background"
+                    : "bg-foreground"
                 }`}
               ></div>
             </>
@@ -108,7 +108,7 @@ function renderStrummingGuide(
                     ? isBeingHighlightedInDropdown
                       ? "bg-background"
                       : "bg-foreground"
-                    : "bg-background"
+                    : "bg-foreground"
                 }`}
               ></div>
               <div
@@ -117,7 +117,7 @@ function renderStrummingGuide(
                     ? isBeingHighlightedInDropdown
                       ? "bg-background"
                       : "bg-foreground"
-                    : "bg-background"
+                    : "bg-foreground"
                 }`}
               ></div>
             </>
@@ -136,7 +136,7 @@ function renderStrummingGuide(
                 ? isBeingHighlightedInDropdown
                   ? "bg-background"
                   : "bg-foreground"
-                : "bg-background"
+                : "bg-foreground"
             }`}
           ></div>
           {beatIndex % 3 === 1 && (
@@ -167,7 +167,7 @@ function renderStrummingGuide(
                 ? isBeingHighlightedInDropdown
                   ? "bg-background"
                   : "bg-foreground"
-                : "bg-background"
+                : "bg-foreground"
             }`}
           ></div>
           {beatIndex % 3 === 0 && (
@@ -178,7 +178,7 @@ function renderStrummingGuide(
                     ? isBeingHighlightedInDropdown
                       ? "bg-background"
                       : "bg-foreground"
-                    : "bg-background"
+                    : "bg-foreground"
                 }`}
               ></div>
             </>
@@ -192,7 +192,7 @@ function renderStrummingGuide(
                     ? isBeingHighlightedInDropdown
                       ? "bg-background"
                       : "bg-foreground"
-                    : "bg-background"
+                    : "bg-foreground"
                 }`}
               ></div>
               <div
@@ -201,7 +201,7 @@ function renderStrummingGuide(
                     ? isBeingHighlightedInDropdown
                       ? "bg-background"
                       : "bg-foreground"
-                    : "bg-background"
+                    : "bg-foreground"
                 }`}
               ></div>
             </>
@@ -215,7 +215,7 @@ function renderStrummingGuide(
                     ? isBeingHighlightedInDropdown
                       ? "bg-background"
                       : "bg-foreground"
-                    : "bg-background"
+                    : "bg-foreground"
                 }`}
               ></div>
             </>
@@ -247,7 +247,7 @@ function renderStrummingGuide(
                 ? isBeingHighlightedInDropdown
                   ? "bg-background"
                   : "bg-foreground"
-                : "bg-background"
+                : "bg-foreground"
             }`}
           ></div>
           {beatIndex % 3 === 0 && (
@@ -258,7 +258,7 @@ function renderStrummingGuide(
                     ? isBeingHighlightedInDropdown
                       ? "bg-background"
                       : "bg-foreground"
-                    : "bg-background"
+                    : "bg-foreground"
                 }`}
               ></div>
               <div
@@ -267,7 +267,7 @@ function renderStrummingGuide(
                     ? isBeingHighlightedInDropdown
                       ? "bg-background"
                       : "bg-foreground"
-                    : "bg-background"
+                    : "bg-foreground"
                 }`}
               ></div>
             </>
@@ -281,7 +281,7 @@ function renderStrummingGuide(
                     ? isBeingHighlightedInDropdown
                       ? "bg-background"
                       : "bg-foreground"
-                    : "bg-background"
+                    : "bg-foreground"
                 }`}
               ></div>
               <div
@@ -290,7 +290,7 @@ function renderStrummingGuide(
                     ? isBeingHighlightedInDropdown
                       ? "bg-background"
                       : "bg-foreground"
-                    : "bg-background"
+                    : "bg-foreground"
                 }`}
               ></div>
               <div
@@ -299,7 +299,7 @@ function renderStrummingGuide(
                     ? isBeingHighlightedInDropdown
                       ? "bg-background"
                       : "bg-foreground"
-                    : "bg-background"
+                    : "bg-foreground"
                 }`}
               ></div>
               <div
@@ -308,7 +308,7 @@ function renderStrummingGuide(
                     ? isBeingHighlightedInDropdown
                       ? "bg-background"
                       : "bg-foreground"
-                    : "bg-background"
+                    : "bg-foreground"
                 }`}
               ></div>
             </>
@@ -322,7 +322,7 @@ function renderStrummingGuide(
                     ? isBeingHighlightedInDropdown
                       ? "bg-background"
                       : "bg-foreground"
-                    : "bg-background"
+                    : "bg-foreground"
                 }`}
               ></div>
               <div
@@ -331,7 +331,7 @@ function renderStrummingGuide(
                     ? isBeingHighlightedInDropdown
                       ? "bg-background"
                       : "bg-foreground"
-                    : "bg-background"
+                    : "bg-foreground"
                 }`}
               ></div>
             </>

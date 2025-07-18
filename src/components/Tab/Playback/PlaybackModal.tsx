@@ -419,7 +419,7 @@ function PlaybackModal() {
   return (
     <motion.div
       key={"PlaybackModalBackdrop"}
-      className="baseFlex fixed left-0 top-0 z-50 h-[100dvh] w-[100vw] bg-black/50"
+      className="baseFlex fixed left-0 top-0 z-50 h-[100dvh] w-[100vw] bg-black/60 backdrop-blur-sm"
       variants={backdropVariants}
       initial="closed"
       animate="expanded"
@@ -447,7 +447,7 @@ function PlaybackModal() {
         <div
           ref={modalContentRef}
           tabIndex={-1}
-          className="baseVertFlex relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none bg-black p-0 mobileNarrowLandscape:!justify-center tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
+          className="baseVertFlex playbackModalGradient relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none p-0 mobileNarrowLandscape:!justify-center tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
         >
           <PlaybackTopMetadata
             tabProgressValue={tabProgressValue}
@@ -462,7 +462,7 @@ function PlaybackModal() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="absolute left-0 top-0 z-10 size-full bg-black/50 backdrop-blur-sm"
+                className="absolute left-0 top-0 z-10 size-full bg-black/60 backdrop-blur-sm"
               ></motion.div>
             )}
 
@@ -490,7 +490,7 @@ function PlaybackModal() {
                         <div className="mb-6 h-[140px] w-full mobilePortrait:h-[165px]"></div>
                         {/* currently this fixes the highlight line extending past rounded borders of
                         sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
-                        <div className="z-0 mb-6 ml-1 h-[140px] w-[2px] shrink-0 bg-pink-600 mobilePortrait:h-[164px]"></div>
+                        <div className="z-0 mb-6 ml-1 h-[140px] w-[2px] shrink-0 bg-primary mobilePortrait:h-[164px]"></div>
                         <div className="mb-6 h-[140px] w-full mobilePortrait:h-[165px]"></div>
                       </div>
 
@@ -516,7 +516,7 @@ function PlaybackModal() {
                             style={{
                               position: "absolute",
                               zIndex: 2,
-                              backgroundColor: "black",
+                              backgroundColor: "transparent",
                               left: 0,
                               width: `${initialPlaceholderWidth}px`,
                             }}
@@ -602,8 +602,7 @@ function PlaybackModal() {
           )}
 
           <Button
-            variant={"text"}
-            className="baseFlex absolute right-2 top-2 size-8 rounded-sm !p-0 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+            variant={"modalClose"}
             onClick={() => {
               setShowPlaybackModal(false);
               pauseAudio(true);
@@ -754,6 +753,6 @@ function RenderChordByType({
   }
 
   if (type === "loopDelaySpacer") {
-    return <div className="absolute left-0 h-full w-[35px] bg-black"></div>;
+    return <div className="absolute left-0 h-full w-[35px]"></div>;
   }
 }

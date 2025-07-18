@@ -10,18 +10,24 @@ import {
   useTabStore,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
-import renderStrummingGuide from "~/utils/renderStrummingGuide";
 import { Button } from "~/components/ui/button";
 import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
+import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
+import renderStaticStrummingGuide from "~/utils/renderStaticStrummingGuide";
+import type { COLORS, THEME } from "~/stores/TabStore";
 
 interface StaticStrummingPattern {
   data: StrummingPatternType;
   chordSequenceData?: string[];
+  color: COLORS;
+  theme: THEME;
 }
 
 function StaticStrummingPattern({
   data,
   chordSequenceData,
+  color,
+  theme,
 }: StaticStrummingPattern) {
   const { chords } = useTabStore((state) => ({
     chords: state.chords,
@@ -76,7 +82,11 @@ function StaticStrummingPattern({
         {data?.strums?.map((strum, strumIndex) => (
           <div key={strumIndex} className="baseVertFlex relative mt-1">
             {strum.palmMute !== "" ? (
-              <StaticPalmMuteNode value={strum.palmMute} />
+              <StaticPalmMuteNode
+                value={strum.palmMute}
+                color={color}
+                theme={theme}
+              />
             ) : (
               <div
                 style={{
@@ -90,27 +100,24 @@ function StaticStrummingPattern({
               <PopoverTrigger
                 asChild
                 disabled={chordSequenceData?.[strumIndex] === ""}
-                className="baseFlex rounded-md transition-all hover:bg-white/20 active:hover:bg-white/10"
+                className="baseFlex rounded-md transition-all hover:bg-primary/20 active:hover:bg-primary/10"
               >
                 <Button
                   variant={"ghost"}
+                  style={{
+                    color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                  }}
                   className="baseFlex mb-1 h-6 px-1 py-0"
                 >
-                  <p
-                    style={{
-                      textShadow: "0 1px 2px hsla(336, 84%, 17%, 0.25)",
-                      color: "hsl(324, 77%, 95%)",
-                    }}
-                    className="mx-0.5 h-6 text-base font-semibold transition-colors"
-                  >
+                  <span className="mx-0.5 h-6 text-base font-semibold">
                     {chordSequenceData?.[strumIndex]}
-                  </p>
+                  </span>
                 </Button>
               </PopoverTrigger>
               <PopoverContent
                 side="bottom"
                 sideOffset={0}
-                className="z-0 size-40 border-2 bg-pink-300 p-0 py-3 text-pink-900"
+                className="z-0 size-40 border bg-secondary p-0 py-3"
               >
                 <ChordDiagram
                   originalFrets={
@@ -125,14 +132,14 @@ function StaticStrummingPattern({
               </PopoverContent>
             </Popover>
 
-            <div className="baseFlex !flex-nowrap">
+            <div className="baseFlex">
               <div className="gap-1"></div>
               {/* spacer so that PM nodes can be connected seamlessly above */}
               <div
                 style={{
-                  color: "hsl(324, 77%, 95%)",
+                  color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
                 }}
-                className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
+                className="baseVertFlex relative mb-2 h-[20px] text-lg"
               >
                 {strum.strum.includes("v") && (
                   <BsArrowDown
@@ -188,25 +195,25 @@ function StaticStrummingPattern({
             </div>
 
             {/* beat indicator */}
-            <p
+            <span
               style={{
-                textShadow: "none",
                 height:
                   getBeatIndicator(data.noteLength, strumIndex) === ""
                     ? "1.25rem"
                     : "auto",
-                color: "hsl(324, 77%, 95%)",
+                color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
               }}
-              className="text-sm transition-colors"
+              className="text-sm"
             >
               {getBeatIndicator(data.noteLength, strumIndex)}
-            </p>
+            </span>
 
             {/* strumming guide */}
-            {renderStrummingGuide(
+            {renderStaticStrummingGuide(
               data.noteLength,
               strumIndex,
-              "viewingWithChordNames",
+              color,
+              theme,
             )}
           </div>
         ))}

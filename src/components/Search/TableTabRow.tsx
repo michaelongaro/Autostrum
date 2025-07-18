@@ -12,7 +12,7 @@ import type {
 } from "~/server/api/routers/search";
 import type { UserMetadata } from "~/server/api/routers/user";
 import formatDate from "~/utils/formatDate";
-import { genreList } from "~/utils/genreList";
+import { genreList, genreLightList } from "~/utils/genreList";
 import BookmarkToggle from "~/components/ui/BookmarkToggle";
 import { MdModeEditOutline } from "react-icons/md";
 import Verified from "~/components/ui/icons/Verified";
@@ -46,7 +46,7 @@ function TableTabRow({
             transition={{ duration: 0.3 }}
             className="w-full"
           >
-            <Button variant={"navigation"} asChild>
+            <Button variant={"secondary"} asChild>
               <Link
                 prefetch={false}
                 href={`/tab/${minimalTab.id}/edit`}
@@ -176,7 +176,12 @@ function TableTabRow({
         >
           <Badge
             style={{
-              backgroundColor: genreList.get(minimalTab.genre),
+              backgroundColor: genreLightList
+                .get(minimalTab.genre)
+                ?.replace(/\)$/, " / 0.9)"),
+              borderColor: genreList.get(minimalTab.genre),
+              border: "1px solid",
+              color: genreList.get(minimalTab.genre),
             }}
           >
             {minimalTab.genre}

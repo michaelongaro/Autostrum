@@ -31,13 +31,15 @@ import ThemePicker from "~/components/Header/ThemePicker";
 import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
 import Binoculars from "~/components/ui/icons/Binoculars";
+import { LOGO_PATHS_WITH_TITLE } from "~/utils/logoPaths";
 
 function DesktopHeader() {
   const { userId, isSignedIn } = useAuth();
   const { asPath } = useRouter();
 
-  const { getStringifiedTabData } = useTabStore((state) => ({
+  const { getStringifiedTabData, color } = useTabStore((state) => ({
     getStringifiedTabData: state.getStringifiedTabData,
+    color: state.color,
   }));
 
   const { data: currentUser, isInitialLoading: isLoadingCurrentUser } =
@@ -50,15 +52,18 @@ function DesktopHeader() {
 
   const localStorageTabData = useLocalStorageValue("autostrum-tabData");
   const localStorageRedirectRoute = useLocalStorageValue(
-    "autostrum-redirectRoute",
+    "autostrum-redirect-route",
   );
 
   return (
-    <nav className="headerBackgroundGradient baseFlex sticky left-0 top-0 z-[49] h-16 w-full shadow-md">
+    <nav
+      id={"desktopHeader"}
+      className="headerAndFooterBackgroundGradient baseFlex sticky left-0 top-0 z-[49] h-16 w-full shadow-md shadow-primary/10"
+    >
       <div className={classes.desktopHeader}>
         <Link href={"/"} className={`${classes.logo} shrink-0`}>
           <Image
-            src="/logoWithTitle.svg"
+            src={LOGO_PATHS_WITH_TITLE[color]}
             alt="Autostrum header logo"
             style={{
               filter: "drop-shadow(0px 1px 0.5px hsla(336, 84%, 17%, 0.25))",
@@ -73,14 +78,16 @@ function DesktopHeader() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant={"navigation"}
+                variant={"secondary"}
                 size={"lg"}
                 asChild
                 style={{
                   backgroundColor: asPath.includes("/metronome")
-                    ? "#be185d"
+                    ? "hsl(var(--accent))"
                     : undefined,
-                  color: asPath.includes("/metronome") ? "#fbcfe8" : undefined,
+                  color: asPath.includes("/metronome")
+                    ? "hsl(var(--accent-foreground))"
+                    : undefined,
                 }}
                 className={classes.metronome}
               >
@@ -103,14 +110,16 @@ function DesktopHeader() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant={"navigation"}
+                variant={"secondary"}
                 size={"lg"}
                 asChild
                 style={{
                   backgroundColor: asPath.includes("/tuner")
-                    ? "#be185d"
+                    ? "hsl(var(--accent))"
                     : undefined,
-                  color: asPath.includes("/tuner") ? "#fbcfe8" : undefined,
+                  color: asPath.includes("/tuner")
+                    ? "hsl(var(--accent-foreground))"
+                    : undefined,
                 }}
                 className={classes.tuner}
               >
@@ -139,14 +148,16 @@ function DesktopHeader() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant={"navigation"}
+                variant={"secondary"}
                 size={"lg"}
                 asChild
                 style={{
                   backgroundColor: asPath.includes("/explore")
-                    ? "#be185d"
+                    ? "hsl(var(--accent))"
                     : undefined,
-                  color: asPath.includes("/explore") ? "#fbcfe8" : undefined,
+                  color: asPath.includes("/explore")
+                    ? "hsl(var(--accent-foreground))"
+                    : undefined,
                 }}
                 className={classes.explore}
               >
@@ -169,14 +180,16 @@ function DesktopHeader() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant={"navigation"}
+                variant={"secondary"}
                 size={"lg"}
                 asChild
                 style={{
                   backgroundColor: asPath.includes("/create")
-                    ? "#be185d"
+                    ? "hsl(var(--accent))"
                     : undefined,
-                  color: asPath.includes("/create") ? "#fbcfe8" : undefined,
+                  color: asPath.includes("/create")
+                    ? "hsl(var(--accent-foreground))"
+                    : undefined,
                 }}
                 className={classes.create}
               >
@@ -201,7 +214,7 @@ function DesktopHeader() {
               <TooltipTrigger asChild>
                 <PopoverTrigger asChild>
                   <Button
-                    variant={"navigation"}
+                    variant={"secondary"}
                     size={"lg"}
                     className={`${classes.theme} baseFlex !size-12 !rounded-full !p-0`}
                   >
@@ -228,9 +241,9 @@ function DesktopHeader() {
               transition={{
                 opacity: { duration: 0.1, ease: "easeInOut" },
               }}
-              className={`${classes.authentication} pulseAnimation baseFlex size-12 shrink-0`}
+              className={`${classes.authentication} pulseAnimation baseFlex size-12 shrink-0 rounded-full bg-foreground/50`}
             >
-              <div className="pulseAnimation size-10 shrink-0 rounded-full bg-pink-300"></div>
+              <div className="pulseAnimation size-10 shrink-0 rounded-full bg-foreground/50"></div>
             </motion.div>
           )}
 
@@ -328,7 +341,7 @@ function DesktopHeader() {
                               animate={{ opacity: 0 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.3 }}
-                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full bg-pink-300"
+                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full bg-foreground/50"
                             ></motion.div>
                           )}
                         </AnimatePresence>
@@ -391,15 +404,15 @@ function DesktopHeader() {
 
                   <div className="baseFlex w-full gap-4">
                     <Button
-                      variant={"navigation"}
+                      variant={"secondary"}
                       size={"lg"}
                       asChild
                       style={{
                         backgroundColor: asPath.includes("/profile/settings")
-                          ? "#be185d"
+                          ? "hsl(var(--accent))"
                           : undefined,
                         color: asPath.includes("/profile/settings")
-                          ? "#fbcfe8"
+                          ? "hsl(var(--accent-foreground))"
                           : undefined,
                       }}
                     >
@@ -417,15 +430,15 @@ function DesktopHeader() {
                     </Button>
 
                     <Button
-                      variant={"navigation"}
+                      variant={"secondary"}
                       size={"lg"}
                       asChild
                       style={{
                         backgroundColor: asPath.includes("/profile/statistics")
-                          ? "#be185d"
+                          ? "hsl(var(--accent))"
                           : undefined,
                         color: asPath.includes("/profile/statistics")
-                          ? "#fbcfe8"
+                          ? "hsl(var(--accent-foreground))"
                           : undefined,
                       }}
                     >
@@ -445,15 +458,15 @@ function DesktopHeader() {
 
                   <div className="baseFlex w-full gap-4">
                     <Button
-                      variant={"navigation"}
+                      variant={"secondary"}
                       size={"lg"}
                       asChild
                       style={{
                         backgroundColor: asPath.includes("/profile/tabs")
-                          ? "#be185d"
+                          ? "hsl(var(--accent))"
                           : undefined,
                         color: asPath.includes("/profile/tabs")
-                          ? "#fbcfe8"
+                          ? "hsl(var(--accent-foreground))"
                           : undefined,
                       }}
                     >
@@ -471,15 +484,15 @@ function DesktopHeader() {
                     </Button>
 
                     <Button
-                      variant={"navigation"}
+                      variant={"secondary"}
                       size={"lg"}
                       asChild
                       style={{
                         backgroundColor: asPath.includes("/profile/bookmarks")
-                          ? "#be185d"
+                          ? "hsl(var(--accent))"
                           : undefined,
                         color: asPath.includes("/profile/bookmarks")
-                          ? "#fbcfe8"
+                          ? "hsl(var(--accent-foreground))"
                           : undefined,
                       }}
                     >

@@ -3,7 +3,6 @@ import { createTRPCRouter } from "~/server/api/trpc";
 import { userRouter } from "./routers/user";
 import { artistRouter } from "./routers/artist";
 import { bookmarkRouter } from "./routers/bookmark";
-import { postSignUpRegistrationRouter } from "./routers/postSignUpRegistration";
 import { tabRouter } from "./routers/tab";
 import { searchRouter } from "./routers/search";
 import { tabRatingRouter } from "./routers/tabRating";
@@ -21,7 +20,6 @@ export const appRouter = createTRPCRouter({
   user: userRouter,
   artist: artistRouter,
   bookmark: bookmarkRouter,
-  postSignUpRegistration: postSignUpRegistrationRouter,
 });
 
 // export type definition of API

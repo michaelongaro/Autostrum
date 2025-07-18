@@ -132,7 +132,7 @@ function StrummingPatterns() {
       style={{
         minWidth: aboveMediumViewportWidth ? "500px" : "300px",
       }}
-      className="baseVertFlex lightestGlassmorphic w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md p-2 !shadow-lighterGlassmorphic md:p-4"
+      className="baseVertFlex relative w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary p-2 text-secondary-foreground !shadow-primaryButton transition-all hover:bg-secondary-hover hover:text-secondary-foreground md:p-4"
     >
       <Accordion
         type="single"
@@ -145,14 +145,7 @@ function StrummingPatterns() {
       >
         <AccordionItem value="opened" className="w-full">
           <AccordionTrigger className="w-full">
-            <p
-              style={{
-                textShadow: "0 1px 2px hsla(336, 84%, 17%, 0.25)",
-              }}
-              className="text-lg font-bold"
-            >
-              Strumming patterns
-            </p>
+            <span className="text-lg font-bold">Strumming patterns</span>
           </AccordionTrigger>
           <AccordionContent>
             <div
@@ -163,7 +156,7 @@ function StrummingPatterns() {
               }`}
             >
               <div className="baseVertFlex w-full !items-start gap-4">
-                <div className="baseFlex !flex-wrap !items-start !justify-start gap-4">
+                <div className="baseFlex flex-wrap !items-start !justify-start gap-4">
                   {strummingPatterns.map((pattern, index) => (
                     <motion.div
                       key={pattern.id}
@@ -173,8 +166,8 @@ function StrummingPatterns() {
                       exit="closed"
                       className="overflow-hidden"
                     >
-                      <div className="baseFlex !flex-nowrap !items-start">
-                        <div className="baseFlex border-b-none !flex-nowrap rounded-md rounded-tr-none border-2">
+                      <div className="baseFlex !items-start">
+                        <div className="baseFlex border-b-none rounded-md rounded-tr-none border-2 text-foreground">
                           <StrummingPattern
                             data={pattern}
                             mode="viewing"
@@ -224,11 +217,11 @@ function StrummingPatterns() {
                                 <FaTrashAlt className="h-4 w-4" />
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent>
+                            <PopoverContent showArrow>
                               <div className="baseVertFlex gap-4">
                                 <p className="w-auto text-center text-sm">
-                                  Any subsections below that use this pattern
-                                  will be modified.
+                                  Note: any existing strumming sections that use
+                                  this pattern will be modified.
                                 </p>
 
                                 <div className="baseFlex gap-4">

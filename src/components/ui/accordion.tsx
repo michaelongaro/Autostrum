@@ -73,7 +73,7 @@ const AccordionTrigger = React.forwardRef<
               : editingSectionContainer
                 ? "bottom-3 right-1"
                 : "right-4"
-          } h-4 w-4 shrink-0 rounded-md transition-all duration-200 hover:bg-white/20 active:hover:bg-white/10`}
+          } h-4 w-4 shrink-0 rounded-md transition-all duration-200 hover:bg-primary-foreground/20 active:hover:bg-primary-foreground/10`}
         />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
