@@ -496,7 +496,7 @@ function UserSettings() {
                               transition={{ duration: 0.15 }}
                               className="rounded-full bg-destructive p-0.5"
                             >
-                              <IoClose className="size-3 text-foreground" />
+                              <IoClose className="size-3 text-primary-foreground" />
                             </motion.div>
                           ) : (
                             <motion.div
@@ -507,7 +507,7 @@ function UserSettings() {
                               transition={{ duration: 0.15 }}
                               className="rounded-full bg-green-600 p-0.5"
                             >
-                              <Check className="size-3 text-foreground" />
+                              <Check className="size-3 text-primary-foreground" />
                             </motion.div>
                           )}
                           Must be greater than 8 characters
@@ -566,7 +566,7 @@ function UserSettings() {
                               transition={{ duration: 0.15 }}
                               className="rounded-full bg-destructive p-0.5"
                             >
-                              <IoClose className="size-3 text-foreground" />
+                              <IoClose className="size-3 text-primary-foreground" />
                             </motion.div>
                           ) : (
                             <motion.div
@@ -577,7 +577,7 @@ function UserSettings() {
                               transition={{ duration: 0.15 }}
                               className="rounded-full bg-green-600 p-0.5"
                             >
-                              <Check className="size-3 text-foreground" />
+                              <Check className="size-3 text-primary-foreground" />
                             </motion.div>
                           )}
                           Must be greater than 8 characters
@@ -592,7 +592,7 @@ function UserSettings() {
                               transition={{ duration: 0.15 }}
                               className="rounded-full bg-destructive p-0.5"
                             >
-                              <IoClose className="size-3 text-foreground" />
+                              <IoClose className="size-3 text-primary-foreground" />
                             </motion.div>
                           ) : (
                             <motion.div
@@ -603,7 +603,7 @@ function UserSettings() {
                               transition={{ duration: 0.15 }}
                               className="rounded-full bg-green-600 p-0.5"
                             >
-                              <Check className="size-3 text-foreground" />
+                              <Check className="size-3 text-primary-foreground" />
                             </motion.div>
                           )}
                           Passwords must match
@@ -932,7 +932,7 @@ function UserSettings() {
             </div>
           </div>
 
-          {/* delete account + save */}
+          {/* save button */}
           <div className="baseFlex w-full sm:!justify-end">
             <Button
               disabled={

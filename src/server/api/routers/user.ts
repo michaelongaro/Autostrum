@@ -115,6 +115,44 @@ export const userRouter = createTRPCRouter({
       };
     }),
 
+  isUsernameAvailable: protectedProcedure
+    .input(z.string())
+    .query(async ({ input: username, ctx }) => {
+      const user = await ctx.prisma.user.findUnique({
+        where: {
+          username,
+        },
+        select: {
+          userId: true, // prisma throws runtime error if select is empty
+        },
+      });
+
+      return !user;
+    }),
+
+  create: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        username: z.string().min(1).max(20),
+        profileImageUrl: z.string(),
+        color: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { userId, username, profileImageUrl } = input;
+
+      const user = await ctx.prisma.user.create({
+        data: {
+          userId,
+          username,
+          profileImageUrl,
+        },
+      });
+
+      return user;
+    }),
+
   updateColor: protectedProcedure
     .input(
       z.object({

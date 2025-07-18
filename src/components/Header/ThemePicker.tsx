@@ -33,7 +33,11 @@ const COLOR_HEX_VALUES: Record<(typeof COLORS)[number], string> = {
   amethyst: "#8E4EC6",
 };
 
-function ThemePicker() {
+interface ThemePicker {
+  allowUpdateOfDBColor?: boolean;
+}
+
+function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
   const { userId } = useAuth();
 
   const {
@@ -82,7 +86,7 @@ function ThemePicker() {
                 setColor(colorString);
                 window.localStorage.setItem("autostrum-color", colorString);
 
-                if (userId) {
+                if (userId && allowUpdateOfDBColor) {
                   updateDBColor({ userId, color: colorString });
                 }
               }}
