@@ -37,6 +37,7 @@ import SearchInput from "~/components/Search/SearchInput";
 import { api } from "~/utils/api";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import ThemePicker from "~/components/Header/ThemePicker";
+import { LOGO_PATHS_WITH_TITLE } from "~/utils/logoPaths";
 
 function MobileHeader() {
   const { userId, isSignedIn } = useAuth();
@@ -104,7 +105,7 @@ function MobileHeader() {
           className="baseFlex h-12 pl-2 transition-[filter] hover:brightness-[1.05] active:brightness-[0.95]"
         >
           <Image
-            src="/logoWithTitle.svg"
+            src={LOGO_PATHS_WITH_TITLE[color]}
             alt="Autostrum header logo"
             style={{
               filter: "drop-shadow(0px 1px 0.5px hsla(336, 84%, 17%, 0.25))",

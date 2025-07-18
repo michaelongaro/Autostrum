@@ -31,13 +31,15 @@ import ThemePicker from "~/components/Header/ThemePicker";
 import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
 import Binoculars from "~/components/ui/icons/Binoculars";
+import { LOGO_PATHS_WITH_TITLE } from "~/utils/logoPaths";
 
 function DesktopHeader() {
   const { userId, isSignedIn } = useAuth();
   const { asPath } = useRouter();
 
-  const { getStringifiedTabData } = useTabStore((state) => ({
+  const { getStringifiedTabData, color } = useTabStore((state) => ({
     getStringifiedTabData: state.getStringifiedTabData,
+    color: state.color,
   }));
 
   const { data: currentUser, isInitialLoading: isLoadingCurrentUser } =
@@ -61,7 +63,7 @@ function DesktopHeader() {
       <div className={classes.desktopHeader}>
         <Link href={"/"} className={`${classes.logo} shrink-0`}>
           <Image
-            src="/logoWithTitle.svg"
+            src={LOGO_PATHS_WITH_TITLE[color]}
             alt="Autostrum header logo"
             style={{
               filter: "drop-shadow(0px 1px 0.5px hsla(336, 84%, 17%, 0.25))",

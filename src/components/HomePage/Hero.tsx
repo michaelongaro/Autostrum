@@ -9,6 +9,7 @@ import { api } from "~/utils/api";
 import GridTabCard from "../Search/GridTabCard";
 import TabCardSkeleton from "../Search/TabCardSkeleton";
 import { useTabStore } from "~/stores/TabStore";
+import { LOGO_PATHS_WITH_TITLE } from "~/utils/logoPaths";
 
 function Hero() {
   const { userId } = useAuth();
@@ -34,7 +35,7 @@ function Hero() {
           <h1 className="baseVertFlex gap-2 text-3xl font-bold md:text-5xl">
             Welcome to
             <Image
-              src="/logoWithTitle.svg"
+              src={LOGO_PATHS_WITH_TITLE[color]}
               alt="Autostrum logo"
               style={{
                 filter: "drop-shadow(0px 1px 0.5px hsla(336, 84%, 17%, 0.25))",

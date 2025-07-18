@@ -1,4 +1,5 @@
 import type { COLORS, THEME } from "~/stores/TabStore";
+import { LOGO_PATHS_WITHOUT_TITLE } from "~/utils/logoPaths";
 
 export type ScreenshotColorKey =
   | "screenshot-muted"
@@ -741,6 +742,8 @@ export function updateCSSThemeVars(color: COLORS, theme: THEME) {
     document.documentElement.style.setProperty(`--${key}`, `${value}`);
   });
 
+  changeFavicon(LOGO_PATHS_WITHOUT_TITLE[color]);
+
   setTimeout(() => {
     removeGlobalTransition();
   }, 0); // wait for the next event loop tick before removing the transition
@@ -755,6 +758,21 @@ function addGlobalTransition() {
     }
   `;
   document.head.appendChild(style);
+}
+
+function changeFavicon(url: string): void {
+  // Try to find an existing favicon link element
+  let link: HTMLLinkElement | null =
+    document.querySelector("link[rel~='icon']");
+
+  if (!link) {
+    // If not found, create a new link element
+    link = document.createElement("link");
+    link.rel = "icon";
+    document.head.appendChild(link);
+  }
+
+  link.href = url;
 }
 
 function removeGlobalTransition() {
