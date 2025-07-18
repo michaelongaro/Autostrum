@@ -7,7 +7,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { FaArrowLeft } from "react-icons/fa6";
 import { api } from "~/utils/api";
-import { genreList } from "~/utils/genreList";
+import { genreList, genreLightList } from "~/utils/genreList";
 import { Badge } from "~/components/ui/badge";
 import { IoIosMusicalNotes } from "react-icons/io";
 import { AiOutlineUser } from "react-icons/ai";
@@ -443,9 +443,9 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                     </span>
                                     <Badge
                                       style={{
-                                        backgroundColor: genreList
+                                        backgroundColor: genreLightList
                                           .get(song.genre)
-                                          ?.replace(/\)$/, " / 0.15)"),
+                                          ?.replace(/\)$/, " / 0.75)"),
                                         borderColor: genreList.get(song.genre),
                                         border: "1px solid",
                                         color: genreList.get(song.genre),
@@ -638,9 +638,9 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   </span>
                                   <Badge
                                     style={{
-                                      backgroundColor: genreList
+                                      backgroundColor: genreLightList
                                         .get(song.genre)
-                                        ?.replace(/\)$/, " / 0.07)"),
+                                        ?.replace(/\)$/, " / 0.75)"),
                                       borderColor: genreList.get(song.genre),
                                       border: "1px solid",
                                       color: genreList.get(song.genre),

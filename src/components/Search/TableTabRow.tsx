@@ -12,7 +12,7 @@ import type {
 } from "~/server/api/routers/search";
 import type { UserMetadata } from "~/server/api/routers/user";
 import formatDate from "~/utils/formatDate";
-import { genreList } from "~/utils/genreList";
+import { genreList, genreLightList } from "~/utils/genreList";
 import BookmarkToggle from "~/components/ui/BookmarkToggle";
 import { MdModeEditOutline } from "react-icons/md";
 import Verified from "~/components/ui/icons/Verified";
@@ -176,9 +176,9 @@ function TableTabRow({
         >
           <Badge
             style={{
-              backgroundColor: genreList
+              backgroundColor: genreLightList
                 .get(minimalTab.genre)
-                ?.replace(/\)$/, " / 0.07)"),
+                ?.replace(/\)$/, " / 0.9)"),
               borderColor: genreList.get(minimalTab.genre),
               border: "1px solid",
               color: genreList.get(minimalTab.genre),
