@@ -630,7 +630,7 @@ function MobileMenuDialog() {
 
                             {/* preview chord button */}
                             <Button
-                              variant={"playPause"}
+                              variant={"audio"}
                               disabled={
                                 !currentInstrument ||
                                 (previewMetadata.indexOfPattern === index &&
@@ -707,7 +707,7 @@ function MobileMenuDialog() {
                     >
                       <div className="baseVertFlex !items-start">
                         <Button
-                          variant={"playPause"}
+                          variant={"audio"}
                           size={"sm"}
                           disabled={
                             !currentInstrument ||

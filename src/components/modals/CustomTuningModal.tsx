@@ -219,7 +219,7 @@ function CustomTuningModal({
                   (customInputValue) => customInputValue === "",
                 )
               }
-              variant={"playPause"}
+              variant={"audio"}
               className="baseFlex gap-2"
               onClick={() => {
                 setHighlightedNoteInputIndex(0);

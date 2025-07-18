@@ -755,7 +755,7 @@ function AudioControls() {
 
           {/* play/pause button*/}
           <Button
-            variant="playPause"
+            variant="audio"
             size={aboveLargeViewportWidth ? "default" : "sm"}
             disabled={disablePlayButton}
             onClick={handlePlayButtonClick}

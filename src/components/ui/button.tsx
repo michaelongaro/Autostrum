@@ -20,10 +20,10 @@ const buttonVariants = cva(
           "hover:bg-secondary-active hover:!text-foreground shadow-none active:bg-secondary-active/80",
         link: "underline-offset-4 hover:underline shadow-none",
         text: "text-foreground shadow-none hover:text-foreground/80 active:text-foreground/60",
+        audio:
+          "bg-audio/85 border border-audio text-audio-foreground hover:bg-audio shadow-none active:brightness-75 disabled:bg-gray disabled:border-gray",
         destructive:
-          "bg-destructive text-destructive-foreground !shadow-primaryButton hover:bg-destructive/80 active:bg-destructive active:brightness-75",
-        playPause:
-          "bg-green-600 text-primary-foreground hover:bg-green-700 shadow-none active:bg-green-800 disabled:opacity-50 disabled:bg-gray",
+          "bg-destructive/75 border border-destructive text-destructive-foreground !shadow-primaryButton hover:bg-destructive active:brightness-75",
         modalClose:
           "baseFlex !size-5 absolute right-4 top-4 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none",
         toggleOn:
@@ -63,7 +63,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     return (
       <Comp
-        {...(variant === "playPause" ? { "aria-label": "Play/Pause" } : {})}
+        {...(variant === "audio" ? { "aria-label": "Play/Pause" } : {})}
         className={cn(
           buttonVariants({
             variant,

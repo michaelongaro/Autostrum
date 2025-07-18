@@ -609,8 +609,6 @@ export const searchRouter = createTRPCRouter({
         // I think that we just manually do a .sort() on the results for bookmark createdAt date.
         // this means that we need to retrieve the bookmark createdAt date to be able to sort by it.
 
-        console.log();
-
         try {
           const [count, tabs] = await ctx.prisma.$transaction([
             ctx.prisma.tab.count({ where }),

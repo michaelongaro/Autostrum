@@ -343,7 +343,7 @@ function MiscellaneousControls({
     >
       {!hidePlayPauseButton && (
         <Button
-          variant="playPause"
+          variant="audio"
           disabled={
             audioMetadata.editingLoopRange ||
             bpm === -1 ||

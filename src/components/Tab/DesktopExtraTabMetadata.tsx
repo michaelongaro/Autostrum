@@ -196,7 +196,7 @@ function DesktopExtraTabMetadata() {
 
                           {/* preview chord button */}
                           <Button
-                            variant={"playPause"}
+                            variant={"audio"}
                             disabled={
                               !currentInstrument ||
                               (previewMetadata.indexOfPattern === index &&
@@ -275,7 +275,7 @@ function DesktopExtraTabMetadata() {
                   {strummingPatterns.map((pattern, index) => (
                     <div key={pattern.id} className="baseVertFlex !items-start">
                       <Button
-                        variant={"playPause"}
+                        variant={"audio"}
                         size={"sm"}
                         disabled={
                           !currentInstrument ||

@@ -201,11 +201,11 @@ function PlaybackAudioControls({
 
           {/* play/pause button*/}
           <Button
-            variant="playPause"
+            variant="audio"
             size={aboveLargeViewportWidth ? "default" : "sm"}
             disabled={disablePlayButton}
             onClick={handlePlayButtonClick}
-            className="size-8 shrink-0 overflow-hidden rounded-full bg-transparent p-0"
+            className="hover:text-audio-foreground hover:bg-audio size-8 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
           >
             <PlayButtonIcon
               uniqueLocationKey="audioControls"
@@ -390,11 +390,11 @@ function PlaybackAudioControls({
                 </Button>
 
                 <Button
-                  variant="playPause"
+                  variant="audio"
                   size={aboveLargeViewportWidth ? "default" : "sm"}
                   disabled={disablePlayButton}
                   onClick={handlePlayButtonClick}
-                  className="size-10 shrink-0 rounded-full bg-transparent p-0"
+                  className="hover:text-audio-foreground hover:bg-audio size-10 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
                 >
                   <PlayButtonIcon
                     uniqueLocationKey="audioControls"

@@ -521,8 +521,8 @@ function Tab({ tab }: Tab) {
                   )}
 
                   <Button
-                    variant="playPause"
-                    className="baseFlex gap-3 !rounded-full px-8 py-6 text-lg shadow-lg tablet:px-10 tablet:text-xl"
+                    variant="audio"
+                    className="baseFlex bg-audio gap-3 !rounded-full px-8 py-6 text-lg shadow-lg hover:brightness-90 tablet:px-10 tablet:text-xl"
                     onClick={() => {
                       setShowPlaybackModal(true);
                       setLooping(true);

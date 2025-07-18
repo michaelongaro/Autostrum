@@ -52,17 +52,21 @@ module.exports = {
           hover: "hsl(var(--secondary-hover))",
           active: "hsl(var(--secondary-active))",
         },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
+        audio: {
+          DEFAULT: "hsl(var(--audio))",
+          foreground: "hsl(var(--audio-foreground))",
+        },
         toggle: {
           foreground: "hsl(var(--toggle-foreground))",
           background: "hsl(var(--toggle-background))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
         },
       },
       boxShadow: {

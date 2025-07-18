@@ -118,7 +118,7 @@ function PlaybackMenuContent() {
 
                         {/* preview chord button */}
                         <Button
-                          variant={"playPause"}
+                          variant={"audio"}
                           disabled={
                             !currentInstrument ||
                             (previewMetadata.indexOfPattern === index &&
@@ -196,7 +196,7 @@ function PlaybackMenuContent() {
                   <div key={pattern.id} className="shrink-0 overflow-hidden">
                     <div className="baseVertFlex !items-start">
                       <Button
-                        variant={"playPause"}
+                        variant={"audio"}
                         size={"sm"}
                         disabled={
                           !currentInstrument ||

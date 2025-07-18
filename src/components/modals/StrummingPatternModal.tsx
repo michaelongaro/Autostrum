@@ -593,7 +593,7 @@ function StrummingPatternModal({
                   (strum) => strum.strum === "",
                 )
               }
-              variant={"playPause"}
+              variant={"audio"}
               className="baseFlex gap-2"
               onClick={() => {
                 if (

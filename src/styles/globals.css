@@ -5,6 +5,8 @@
 @layer base {
 
   :root {
+    --audio: "151.03 54.72% 41.57%";
+    --audio-foreground: "140 60% 99.02%";
     --radius: 0.5rem;
   }
 

@@ -297,7 +297,7 @@ function MobileExtraTabMetadata() {
 
                                 {/* preview chord button */}
                                 <Button
-                                  variant={"playPause"}
+                                  variant={"audio"}
                                   disabled={
                                     !currentInstrument ||
                                     (previewMetadata.indexOfPattern === index &&
@@ -384,7 +384,7 @@ function MobileExtraTabMetadata() {
                             className="baseVertFlex !items-start"
                           >
                             <Button
-                              variant={"playPause"}
+                              variant={"audio"}
                               size={"sm"}
                               disabled={
                                 !currentInstrument ||

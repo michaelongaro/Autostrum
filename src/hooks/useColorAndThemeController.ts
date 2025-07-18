@@ -42,8 +42,6 @@ function useColorAndThemeController() {
     setFollowsDeviceTheme: state.setFollowsDeviceTheme,
   }));
 
-  console.log(color, followsDeviceTheme);
-
   const { data: currentUser } = api.user.getById.useQuery(userId!, {
     enabled: !!userId,
   });
