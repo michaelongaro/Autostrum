@@ -81,7 +81,7 @@ function StaticSectionContainer({
               id={`sectionIndex${sectionIndex}`}
               className="baseVertFlex w-full gap-3"
             >
-              {sectionData.data.map((subSection, index) => (
+              {sectionData.data.map((subSection) => (
                 <div
                   key={subSection.id}
                   className="baseVertFlex w-full !items-start pb-2"
@@ -95,7 +95,7 @@ function StaticSectionContainer({
                         backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.25)`,
                         color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
                       }}
-                      className="baseFlex ml-4 gap-3 rounded-t-md border border-b-muted px-2 py-1 text-sm !shadow-sm"
+                      className="baseFlex ml-4 gap-3 rounded-t-md border border-b-0 px-2 py-1 text-sm !shadow-sm"
                     >
                       {(subSection.type === "tab" ||
                         chordSequencesAllHaveSameNoteLength(subSection)) && (

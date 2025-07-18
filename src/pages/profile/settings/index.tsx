@@ -313,7 +313,7 @@ function UserSettings() {
                       {localSettings.emailAddress}
                     </span>
                   ) : (
-                    <div className="pulseAnimation h-6 w-48 rounded-md bg-skeleton lg:h-7"></div>
+                    <div className="pulseAnimation h-6 w-48 rounded-md bg-foreground/50 lg:h-7"></div>
                   )}
                 </motion.div>
               </div>
@@ -357,7 +357,7 @@ function UserSettings() {
                         }}
                       />
                     ) : (
-                      <div className="pulseAnimation h-10 w-[275px] rounded-md bg-skeleton lg:h-7"></div>
+                      <div className="pulseAnimation h-10 w-[275px] rounded-md bg-foreground/50 lg:h-7"></div>
                     )}
                   </motion.div>
 
@@ -628,7 +628,7 @@ function UserSettings() {
                             : "Controlled by attached Google account"}
                         </span>
                       ) : (
-                        <div className="pulseAnimation h-6 w-64 rounded-md bg-skeleton lg:h-7"></div>
+                        <div className="pulseAnimation h-6 w-64 rounded-md bg-foreground/50 lg:h-7"></div>
                       )}
                     </motion.div>
                   )}

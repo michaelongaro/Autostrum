@@ -20,6 +20,7 @@ import { BsMusicNoteBeamed } from "react-icons/bs";
 import { FaEye, FaStar } from "react-icons/fa";
 import { IoBookmark } from "react-icons/io5";
 import type { UserMetadata } from "~/server/api/routers/user";
+import { useTabStore } from "~/stores/TabStore";
 
 // FYI: I recognize this component is a bit of a mess, and also specifically that there are
 // two competing(?) ways that the progress bar's scaleX is being changed (raf vs. CSS animation)
@@ -59,6 +60,11 @@ function WeeklyFeaturedUsers({
   weeklyFeaturedUsers,
   currentUser,
 }: WeeklyFeaturedUsers) {
+  const { color, theme } = useTabStore((state) => ({
+    color: state.color,
+    theme: state.theme,
+  }));
+
   const [profileImageLoadStates, setProfileImageLoadStates] = useState([
     false,
     false,
@@ -429,7 +435,7 @@ function WeeklyFeaturedUsers({
                                 animate={{ opacity: 0 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.3 }}
-                                className="pulseAnimation bg-skeleton z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full md:size-10"
+                                className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full bg-foreground/50 md:size-10"
                               ></motion.div>
                             )}
                           </AnimatePresence>
@@ -497,6 +503,8 @@ function WeeklyFeaturedUsers({
                       pinnedTabType={
                         isAboveMediumViewport ? "full" : "withoutScreenshot"
                       }
+                      color={color}
+                      theme={theme}
                     />
                   )}
                 </div>

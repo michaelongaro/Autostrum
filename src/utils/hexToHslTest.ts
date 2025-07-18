@@ -49,7 +49,6 @@ function generateColorValues(
       foreground: { level: 12, theme: "light" },
       gray: { special: "gray" },
       muted: { level: 4, theme: "light" },
-      skeleton: { level: 5, theme: "light" },
       border: { level: 8, theme: "light" },
       ring: { level: 8, theme: "dark" }, // uses dark theme's level 8
       primary: { level: 9, theme: "light" },
@@ -78,7 +77,6 @@ function generateColorValues(
       foreground: { level: 12, theme: "dark" },
       gray: { special: "gray" },
       muted: { level: 2, theme: "dark" },
-      skeleton: { level: 12, theme: "dark" },
       border: { level: 8, theme: "light" }, // uses light theme's level 8
       ring: { level: 8, theme: "dark" },
       modal: { level: 4, theme: "dark" },

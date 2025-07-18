@@ -699,7 +699,7 @@ function RateTabInternals({
               disabled={
                 !selectedRating || !currentUser || userRating === selectedRating
               }
-              className="px-8"
+              className="mb-2 px-8"
               onClick={() => {
                 if (!selectedRating || !currentUser) return;
 

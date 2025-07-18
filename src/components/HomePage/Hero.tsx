@@ -8,9 +8,15 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
 import GridTabCard from "../Search/GridTabCard";
 import TabCardSkeleton from "../Search/TabCardSkeleton";
+import { useTabStore } from "~/stores/TabStore";
 
 function Hero() {
   const { userId } = useAuth();
+
+  const { color, theme } = useTabStore((state) => ({
+    color: state.color,
+    theme: state.theme,
+  }));
 
   const { data: currentUser } = api.user.getById.useQuery(userId!, {
     enabled: !!userId,
@@ -153,6 +159,8 @@ function Hero() {
                 minimalTab={fetchedTab}
                 currentUser={currentUser}
                 largeVariant={isAboveMediumViewportWidth}
+                color={color}
+                theme={theme}
               />
             ) : (
               <TabCardSkeleton

@@ -36,7 +36,7 @@ function StaticTabSection({ subSectionData, color, theme }: StaticTabSection) {
       }}
       style={{
         borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
-        backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.5)`,
+        backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]})`,
       }}
       className="baseVertFlex relative h-full !justify-start rounded-md border px-4 shadow-md md:px-8"
     >

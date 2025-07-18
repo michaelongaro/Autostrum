@@ -30,7 +30,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabStore, type Section } from "~/stores/TabStore";
+import { useTabStore, type Section, type COLORS } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import { genreList } from "~/utils/genreList";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
@@ -74,7 +74,6 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { Badge } from "~/components/ui/badge";
-import Image from "next/image";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 
 const KEYS_BY_LETTER = {
@@ -268,8 +267,8 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
   const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
   const [takingScreenshot, setTakingScreenshot] = useState(false);
-  const tabPreviewScreenshotRef = useRef(null);
-  const tabPreviewScreenshotRefTwo = useRef(null);
+  const tabPreviewScreenshotLightRef = useRef(null);
+  const tabPreviewScreenshotDarkRef = useRef(null);
 
   const [showPublishPopover, setShowPublishPopover] = useState(false);
 
@@ -297,6 +296,17 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
       }
     };
   }, [artistId, createdByUserId, editing, id, processPageView]);
+
+  useEffect(() => {
+    if (
+      !minifiedTabData &&
+      asPath.includes("screenshot") &&
+      tabData.length > 0
+    ) {
+      // artificially set minifiedTabData so that the light/dark screenshots can be taken
+      setMinifiedTabData(tabData.slice(0, 2));
+    }
+  }, [asPath, tabData, minifiedTabData]);
 
   function handleBpmChange(event: ChangeEvent<HTMLInputElement>) {
     const inputValue = event.target.value;
@@ -328,13 +338,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setEditing(false);
   }
 
-  // const [screenshotDataUrl, setScreenshotDataUrl] = useState<string | null>(
-  //   null,
-  // );
-  // const [screenshotDataUrlTwo, setScreenshotDataUrlTwo] = useState<
-  //   string | null
-  // >(null);
-
   async function handleSave() {
     if (
       !userId ||
@@ -363,16 +366,13 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const [lightScreenshot, darkScreenshot] = await Promise.all([
-      domToDataUrl(tabPreviewScreenshotRef.current!, {
+      domToDataUrl(tabPreviewScreenshotLightRef.current!, {
         quality: 0.75,
       }),
-      domToDataUrl(tabPreviewScreenshotRefTwo.current!, {
+      domToDataUrl(tabPreviewScreenshotDarkRef.current!, {
         quality: 0.75,
       }),
     ]);
-
-    // setScreenshotDataUrl(lightScreenshot);
-    // setScreenshotDataUrlTwo(darkScreenshot);
 
     if (asPath.includes("create")) {
       publishTab({
@@ -511,7 +511,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
           <BsPlus className="h-8 w-8 rotate-45 text-destructive" />
           <p className="mb-[1px]">Only registered users can publish a tab.</p>
         </div>
-        <p className="text-gray-600 text-xs md:text-sm">
+        <p className="text-xs text-gray md:text-sm">
           This tab will be saved for you upon signing in.
         </p>
       </div>
@@ -951,7 +951,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
       {!editing && (
         <div className="min-h-[100px] w-full">
-          <div className="baseVertFlex !flex-start w-full !items-start gap-2 border-b bg-accent px-4 py-4 text-primary-foreground shadow-md sm:!flex-row sm:!items-center sm:gap-4 md:rounded-t-xl tablet:!px-6">
+          <div className="baseVertFlex !flex-start w-full !items-start gap-2 border-b bg-accent px-4 py-4 text-primary-foreground shadow-md sm:!flex-row sm:!items-center sm:gap-4 md:rounded-t-lg tablet:!px-6">
             {overMediumViewportThreshold ? (
               <div className="baseFlex w-full !justify-between gap-4">
                 <div className="baseFlex !justify-start gap-2">
@@ -1042,7 +1042,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-skeleton"
+                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-primary-foreground/50"
                         ></motion.div>
                       )}
 
@@ -1075,7 +1075,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-skeleton"
+                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-primary-foreground/50"
                         ></motion.div>
                       )}
 
@@ -1169,7 +1169,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-skeleton"
+                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-primary-foreground/50"
                         ></motion.div>
                       )}
 
@@ -1202,7 +1202,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-skeleton"
+                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-primary-foreground/50"
                         ></motion.div>
                       )}
 
@@ -1300,7 +1300,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                           className="baseFlex"
                         >
                           {fetchingTabCreator ? (
-                            <div className="pulseAnimation col-start-1 col-end-2 row-start-1 row-end-2 h-6 w-32 rounded-md bg-skeleton"></div>
+                            <div className="pulseAnimation col-start-1 col-end-2 row-start-1 row-end-2 h-6 w-32 rounded-md bg-foreground/50"></div>
                           ) : (
                             <>
                               {tabCreator ? (
@@ -1518,9 +1518,10 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
         createPortal(
           <div className="size-full overflow-hidden">
             <div
-              ref={tabPreviewScreenshotRef}
+              ref={tabPreviewScreenshotLightRef}
+              id="tabPreviewScreenshotLight"
               style={{
-                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony"]["light"]["screenshot-muted"]})`,
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["light" as "light" | "dark"]["screenshot-muted"]})`,
               }}
               className="baseFlex h-[615px] w-[1318px] grayscale"
             >
@@ -1532,9 +1533,10 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
             </div>
 
             <div
-              ref={tabPreviewScreenshotRefTwo}
+              ref={tabPreviewScreenshotDarkRef}
+              id="tabPreviewScreenshotDark"
               style={{
-                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony"]["dark"]["screenshot-muted"]})`,
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["dark" as "light" | "dark"]["screenshot-muted"]})`,
               }}
               className="baseFlex h-[615px] w-[1318px] grayscale"
             >
@@ -1544,44 +1546,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 theme={"dark"}
               />
             </div>
-
-            {/* {screenshotDataUrl && (
-              <div className="relative size-full min-h-[615px]">
-                <Image
-                  src={screenshotDataUrl}
-                  alt="Tab screenshot"
-                  width={1300}
-                  height={615}
-                  className="absolute inset-0 size-full"
-                />
-
-                <div
-                  style={{
-                    backgroundColor: `hsl(${SCREENSHOT_COLORS["peony"]["light"]["screenshot-secondary"]})`,
-                  }}
-                  className="absolute inset-0 z-10 size-full mix-blend-color"
-                ></div>
-              </div>
-            )}
-
-            {screenshotDataUrlTwo && (
-              <div className="relative size-full min-h-[615px]">
-                <Image
-                  src={screenshotDataUrlTwo}
-                  alt="Tab screenshot"
-                  width={1300}
-                  height={615}
-                  className="absolute inset-0 size-full"
-                />
-
-                <div
-                  style={{
-                    backgroundColor: `hsl(${SCREENSHOT_COLORS["peony"]["dark"]["screenshot-secondary"]} / 0.5)`,
-                  }}
-                  className="absolute inset-0 z-10 size-full mix-blend-color"
-                ></div>
-              </div>
-            )} */}
           </div>,
           document.getElementById("mainTabComponent")!,
         )}

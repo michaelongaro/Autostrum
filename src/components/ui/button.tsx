@@ -23,7 +23,7 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive text-destructive-foreground !shadow-primaryButton hover:bg-destructive/80 active:bg-destructive active:brightness-75",
         playPause:
-          "bg-green-600 text-primary-foreground hover:bg-green-700 shadow-none active:bg-green-800 disabled:opacity-50 disabled:bg-gray-500",
+          "bg-green-600 text-primary-foreground hover:bg-green-700 shadow-none active:bg-green-800 disabled:opacity-50 disabled:bg-gray",
         modalClose:
           "baseFlex !size-5 absolute right-4 top-4 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none",
         toggleOn:

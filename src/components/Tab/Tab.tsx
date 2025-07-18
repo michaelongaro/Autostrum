@@ -39,7 +39,6 @@ import {
   CarouselItem,
 } from "~/components/ui/carousel";
 import TipsDialog from "~/components/Dialogs/TipsDialog";
-import { useRouter } from "next/router";
 
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
@@ -60,8 +59,6 @@ interface Tab {
 }
 
 function Tab({ tab }: Tab) {
-  const { asPath } = useRouter();
-
   const [customTuning, setCustomTuning] = useState<string | null>(null);
   const [isPublishingOrUpdating, setIsPublishingOrUpdating] = useState(false);
   const [showTipsModal, setShowTipsModal] = useState(false);
@@ -287,12 +284,9 @@ function Tab({ tab }: Tab) {
         style={{
           transition: "filter 0.5s ease-in-out",
         }}
-        className={`baseVertFlex relative w-full border-y bg-muted shadow-lg md:rounded-xl md:border`}
-        // ${
-        //   isPublishingOrUpdating
-        //     ? "pointer-events-none brightness-90"
-        //     : ""
-        // }
+        className={`baseVertFlex relative w-full border-y bg-muted shadow-lg md:rounded-xl md:border ${
+          isPublishingOrUpdating ? "pointer-events-none brightness-90" : ""
+        }`}
       >
         <TabMetadata
           customTuning={customTuning}
@@ -377,10 +371,6 @@ function Tab({ tab }: Tab) {
         />
         <div
           ref={tabContentRef}
-          id={"tabBodyContent"}
-          style={{
-            minHeight: asPath.includes("screenshot") ? "1000px" : "auto",
-          }}
           className="baseVertFlex relative mt-2 size-full scroll-m-24 !justify-start gap-4"
         >
           <AnimatePresence mode="wait">

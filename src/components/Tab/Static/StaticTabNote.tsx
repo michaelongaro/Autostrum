@@ -1,11 +1,12 @@
+import type { COLORS, THEME } from "~/stores/TabStore";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 
 interface StaticTabNote {
   note: string;
   isAccented?: boolean;
   isStaccato?: boolean;
-  color: string;
-  theme: "light" | "dark";
+  color: COLORS;
+  theme: THEME;
 }
 
 function StaticTabNote({

@@ -303,7 +303,7 @@ function EditImage({
 
           <div
             ref={cropperRef}
-            className="baseFlex bg-gray-800 relative h-[70%] w-full overflow-hidden rounded-lg lg:h-[300px]"
+            className="baseFlex relative h-[70%] w-full overflow-hidden rounded-lg bg-gray lg:h-[300px]"
           >
             <Cropper
               image={imageBeingEdited}

@@ -158,9 +158,9 @@ function PlaybackProgressSlider({
                   background: getTrackBackground({
                     values: loopRange,
                     colors: [
-                      disabled ? "#666" : "#ccc",
+                      disabled ? "hsl(var(--gray))" : "hsl(var(--gray))",
                       "hsl(var(--primary))",
-                      "#ccc",
+                      "hsl(var(--gray))",
                     ],
                     min: 0,
                     max: audioMetadata.fullCurrentlyPlayingMetadataLength - 1,
@@ -178,9 +178,9 @@ function PlaybackProgressSlider({
               key={`${props.key}-${index}-toggle`}
               style={{
                 ...props.style,
-                backgroundColor: "hsl(var(--gray))",
+                backgroundColor: "hsl(var(--primary))",
               }}
-              className="z-10 size-[18px] rounded-full will-change-transform"
+              className="z-10 size-[18px] rounded-full border will-change-transform"
             />
           )}
         />
@@ -234,7 +234,10 @@ function PlaybackProgressSlider({
                   borderRadius: "4px",
                   background: getTrackBackground({
                     values: [currentChordIndex],
-                    colors: [disabled ? "#666" : "hsl(var(--primary))", "#ccc"],
+                    colors: [
+                      disabled ? "hsl(var(--gray))" : "hsl(var(--primary))",
+                      "hsl(var(--gray))",
+                    ],
                     min: 0,
                     max: currentlyPlayingMetadata?.length ?? 0,
                   }),
@@ -252,7 +255,9 @@ function PlaybackProgressSlider({
               key={`${props.key}-${index}`}
               style={{
                 ...props.style,
-                backgroundColor: "hsl(var(--gray))",
+                backgroundColor: disabled
+                  ? "hsl(var(--gray))"
+                  : "hsl(var(--primary))",
                 transition: `transform ${
                   currentChordIndex === 0
                     ? 0
@@ -261,7 +266,7 @@ function PlaybackProgressSlider({
                       : 0
                 }s linear`,
               }}
-              className="z-10 size-[18px] rounded-full will-change-transform"
+              className="z-10 size-[18px] rounded-full border will-change-transform"
             />
           )}
         />

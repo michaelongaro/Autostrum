@@ -20,10 +20,14 @@ import { useRouter } from "next/router";
 import { MdModeEditOutline } from "react-icons/md";
 import { TbPinned } from "react-icons/tb";
 import Verified from "~/components/ui/icons/Verified";
+import type { COLORS, THEME } from "~/stores/TabStore";
+import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 
 interface GridTabCard {
   minimalTab: MinimalTabRepresentation;
   currentUser: UserMetadata | null | undefined;
+  color: COLORS;
+  theme: THEME;
   largeVariant?: boolean;
   pinnedTabType?: "full" | "withoutScreenshot";
   infiniteQueryParams?: InfiniteQueryParams;
@@ -33,6 +37,8 @@ interface GridTabCard {
 function GridTabCard({
   minimalTab,
   currentUser,
+  color,
+  theme,
   largeVariant,
   pinnedTabType,
   infiniteQueryParams,
@@ -40,18 +46,21 @@ function GridTabCard({
 }: GridTabCard) {
   const { query, asPath } = useRouter();
 
-  const [tabScreenshot, setTabScreenshot] = useState<string>();
+  const [tabScreenshotLight, setTabScreenshotLight] = useState<string>();
+  const [tabScreenshotDark, setTabScreenshotDark] = useState<string>();
+
+  // TODO: likley need light and dark versions of this
   const [tabScreenshotLoaded, setTabScreenshotLoaded] = useState(false);
   const [isPressingOnScreenshot, setIsPressingOnScreenshot] = useState(false);
 
   const isAboveExtraSmallViewportWidth = useViewportWidthBreakpoint(450);
 
   useEffect(() => {
-    if (tabScreenshot) return;
+    if (tabScreenshotLight || theme === "dark") return;
 
     const fetchImage = async () => {
       try {
-        const res = await fetch(`/api/getTabScreenshot/${minimalTab.id}`);
+        const res = await fetch(`/api/getTabScreenshot/${minimalTab.id}/light`);
         if (!res.ok) {
           console.error("Failed to fetch image");
           return;
@@ -59,19 +68,46 @@ function GridTabCard({
         const blob = await res.blob();
 
         const reader = new FileReader();
+        reader.readAsDataURL(blob);
         reader.onloadend = function () {
           if (typeof reader?.result === "string") {
-            setTabScreenshot(reader.result);
+            setTabScreenshotLight(reader.result);
           }
         };
-        reader.readAsDataURL(blob);
       } catch (error) {
         console.error("Error fetching image:", error, minimalTab.id);
       }
     };
 
     void fetchImage();
-  }, [tabScreenshot, minimalTab.id]);
+  }, [tabScreenshotLight, minimalTab.id, theme]);
+
+  useEffect(() => {
+    if (tabScreenshotDark || theme === "light") return;
+
+    const fetchImage = async () => {
+      try {
+        const res = await fetch(`/api/getTabScreenshot/${minimalTab.id}/dark`);
+        if (!res.ok) {
+          console.error("Failed to fetch image");
+          return;
+        }
+        const blob = await res.blob();
+
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = function () {
+          if (typeof reader?.result === "string") {
+            setTabScreenshotDark(reader.result);
+          }
+        };
+      } catch (error) {
+        console.error("Error fetching image:", error, minimalTab.id);
+      }
+    };
+
+    void fetchImage();
+  }, [tabScreenshotDark, minimalTab.id, theme]);
 
   function allowedToRenderArtistLink() {
     const isArtistPage = asPath.includes("/artist");
@@ -138,28 +174,44 @@ function GridTabCard({
               onTouchStart={() => setIsPressingOnScreenshot(true)}
               onTouchEnd={() => setIsPressingOnScreenshot(false)}
               onTouchCancel={() => setIsPressingOnScreenshot(false)}
-              className="grid grid-cols-1 grid-rows-1"
+              className="relative grid grid-cols-1 grid-rows-1 border-b"
             >
-              {tabScreenshot && (
-                <Image
-                  src={tabScreenshot}
-                  alt={`screenshot of ${minimalTab.title}`}
-                  width={getDynamicWidth()}
-                  height={getDynamicHeight()}
-                  onLoad={() => {
-                    setTimeout(() => {
-                      setTabScreenshotLoaded(true);
-                    }, 100); // unsure if this is necessary, but it felt too flickery without it
-                  }}
-                  style={{
-                    opacity: tabScreenshotLoaded ? 1 : 0,
-                    transition: "opacity 0.3s ease-in-out",
-                    filter: isPressingOnScreenshot ? "brightness(0.8)" : "none",
-                    width: `${getDynamicWidth()}px`,
-                    height: `${getDynamicHeight()}px`,
-                  }}
-                  className="pointer-events-none col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-sm object-cover object-center !transition-all"
-                />
+              {(tabScreenshotLight || tabScreenshotDark) && (
+                <>
+                  <Image
+                    src={
+                      theme === "light"
+                        ? tabScreenshotLight!
+                        : tabScreenshotDark!
+                    }
+                    alt={`screenshot of ${minimalTab.title}`}
+                    width={getDynamicWidth()}
+                    height={getDynamicHeight()}
+                    unoptimized={true}
+                    onLoad={() => {
+                      setTimeout(() => {
+                        setTabScreenshotLoaded(true);
+                      }, 100); // unsure if this is necessary, but it felt too flickery without it
+                    }}
+                    style={{
+                      opacity: tabScreenshotLoaded ? 1 : 0,
+                      transition: "opacity 0.3s ease-in-out",
+                      filter: isPressingOnScreenshot
+                        ? "brightness(0.8)"
+                        : "none",
+                      width: `${getDynamicWidth()}px`,
+                      height: `${getDynamicHeight()}px`,
+                    }}
+                    className="pointer-events-none col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-sm object-cover object-center !transition-all"
+                  />
+
+                  <div
+                    style={{
+                      backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / ${theme === "light" ? "1" : "0.5"})`,
+                    }}
+                    className="absolute inset-0 z-10 size-full mix-blend-color"
+                  ></div>
+                </>
               )}
 
               <AnimatePresence>
@@ -182,7 +234,7 @@ function GridTabCard({
                           ? 152
                           : 129,
                     }}
-                    className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-none bg-skeleton"
+                    className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-none bg-foreground/50"
                   ></motion.div>
                 )}
               </AnimatePresence>
@@ -223,7 +275,7 @@ function GridTabCard({
         </div>
       )}
 
-      <div className="baseVertFlex w-full gap-1 rounded-b-sm bg-secondary-active/50 p-2.5">
+      <div className="baseVertFlex w-full gap-1 rounded-b-sm bg-secondary-active p-2.5">
         {/* title */}
         <div className="baseVertFlex w-full !items-start">
           <Button variant={"link"} asChild>

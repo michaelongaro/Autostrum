@@ -24,6 +24,7 @@ import GridTabCard from "~/components/Search/GridTabCard";
 import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
+import { useTabStore } from "~/stores/TabStore";
 
 const LENGTH_FIFTEEN_ARRAY = Array.from({ length: 15 }, (_, i) => i + 1);
 
@@ -40,6 +41,11 @@ function Explore({ json }: { json: string }) {
   );
 
   const { userId } = useAuth();
+
+  const { color, theme } = useTabStore((state) => ({
+    color: state.color,
+    theme: state.theme,
+  }));
 
   const { data: currentUser } = api.user.getById.useQuery(userId!, {
     enabled: !!userId,
@@ -147,6 +153,8 @@ function Explore({ json }: { json: string }) {
                           mostRecentAndPopularTabs.mostRecentTabs[index]!
                         }
                         currentUser={currentUser}
+                        color={color}
+                        theme={theme}
                       />
                     ) : (
                       <TabCardSkeleton uniqueKey={`mostRecentTabs-${index}`} />
@@ -196,6 +204,8 @@ function Explore({ json }: { json: string }) {
                           mostRecentAndPopularTabs.mostPopularTabs[index]!
                         }
                         currentUser={currentUser}
+                        color={color}
+                        theme={theme}
                       />
                     ) : (
                       <TabCardSkeleton uniqueKey={`mostPopularTabs-${index}`} />

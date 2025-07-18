@@ -123,12 +123,19 @@ function SearchResults({
 }: SearchResults) {
   const { asPath, push, query, pathname } = useRouter();
 
-  const { mobileHeaderModal, setMobileHeaderModal, viewportLabel } =
-    useTabStore((state) => ({
-      mobileHeaderModal: state.mobileHeaderModal,
-      setMobileHeaderModal: state.setMobileHeaderModal,
-      viewportLabel: state.viewportLabel,
-    }));
+  const {
+    mobileHeaderModal,
+    setMobileHeaderModal,
+    viewportLabel,
+    color,
+    theme,
+  } = useTabStore((state) => ({
+    mobileHeaderModal: state.mobileHeaderModal,
+    setMobileHeaderModal: state.setMobileHeaderModal,
+    viewportLabel: state.viewportLabel,
+    color: state.color,
+    theme: state.theme,
+  }));
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerView, setDrawerView] = useState<
@@ -759,7 +766,7 @@ function SearchResults({
                       exit="closed"
                       transition={{ duration: 0.3 }}
                     >
-                      <div className="pulseAnimation h-6 w-36 rounded-md bg-skeleton"></div>
+                      <div className="pulseAnimation h-6 w-36 rounded-md bg-primary-foreground/50"></div>
                     </motion.div>
                   ) : (
                     <motion.div
@@ -1662,7 +1669,7 @@ function SearchResults({
                         duration: 0.3,
                       }}
                     >
-                      <div className="pulseAnimation h-6 w-48 rounded-md bg-skeleton"></div>
+                      <div className="pulseAnimation h-6 w-48 rounded-md bg-primary-foreground/50"></div>
                     </motion.div>
                   ) : (
                     <motion.div
@@ -1989,6 +1996,8 @@ function SearchResults({
                               setSearchsearchResultsCountIsLoading={
                                 setSearchsearchResultsCountIsLoading
                               }
+                              color={color}
+                              theme={theme}
                             />
                           )}
 

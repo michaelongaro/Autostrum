@@ -4,6 +4,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import type { Tab } from "@prisma/client";
+import sharp from "sharp";
 import { z } from "zod";
 import { env } from "~/env";
 
@@ -84,6 +85,13 @@ const sectionSchema = z.object({
   title: z.string(),
   data: z.array(z.union([tabSectionSchema, chordSectionSchema])),
 });
+
+async function resizeImage(buffer: Buffer): Promise<Buffer> {
+  return sharp(buffer)
+    .resize({ width: Math.round(1318 / 3.25) }) // 1318px is the original width of the screenshot
+    .jpeg({ quality: 90 })
+    .toBuffer();
+}
 
 export const tabRouter = createTRPCRouter({
   // Currently not used, but keeping in case we need it in the future
@@ -396,17 +404,24 @@ export const tabRouter = createTRPCRouter({
       const darkBase64Data = darkScreenshot.split(",")[1]!;
       const darkImageBuffer = Buffer.from(darkBase64Data, "base64");
 
+      // Resize both images, need larger context of original width screenshot, but smaller
+      // file size for better performance and better rendering on client side
+      const [resizedLight, resizedDark] = await Promise.all([
+        resizeImage(lightImageBuffer),
+        resizeImage(darkImageBuffer),
+      ]);
+
       const lightCommand = new PutObjectCommand({
-        Bucket: "autostrum-screenshots",
+        Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
         Key: `${tab.id}/light.jpeg`,
-        Body: lightImageBuffer,
+        Body: resizedLight,
         ContentType: "image/jpeg",
       });
 
       const darkCommand = new PutObjectCommand({
-        Bucket: "autostrum-screenshots",
+        Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
         Key: `${tab.id}/dark.jpeg`,
-        Body: darkImageBuffer,
+        Body: resizedDark,
         ContentType: "image/jpeg",
       });
 
@@ -556,17 +571,24 @@ export const tabRouter = createTRPCRouter({
       const darkBase64Data = darkScreenshot.split(",")[1]!;
       const darkImageBuffer = Buffer.from(darkBase64Data, "base64");
 
+      // Resize both images, need larger context of original width screenshot, but smaller
+      // file size for better performance and better rendering on client side
+      const [resizedLight, resizedDark] = await Promise.all([
+        resizeImage(lightImageBuffer),
+        resizeImage(darkImageBuffer),
+      ]);
+
       const lightCommand = new PutObjectCommand({
-        Bucket: "autostrum-screenshots",
+        Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
         Key: `${tab.id}/light.jpeg`,
-        Body: lightImageBuffer,
+        Body: resizedLight,
         ContentType: "image/jpeg",
       });
 
       const darkCommand = new PutObjectCommand({
-        Bucket: "autostrum-screenshots",
+        Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
         Key: `${tab.id}/dark.jpeg`,
-        Body: darkImageBuffer,
+        Body: resizedDark,
         ContentType: "image/jpeg",
       });
 
@@ -636,7 +658,7 @@ export const tabRouter = createTRPCRouter({
       });
 
       const command = new DeleteObjectCommand({
-        Bucket: "autostrum-screenshots",
+        Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
         Key: `${idToDelete}.jpeg`,
       });
 

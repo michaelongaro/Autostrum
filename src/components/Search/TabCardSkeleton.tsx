@@ -18,12 +18,12 @@ function TabCardSkeleton({ uniqueKey, largeVariant }: TabCardSkeleton) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="baseVertFlex !w-min rounded-md border-2 bg-secondary-active/50"
+      className="baseVertFlex !w-min rounded-md border bg-secondary-active/50 shadow-sm"
     >
       <div
         style={{
           width: largeVariant
-            ? 396
+            ? 398
             : isAboveExtraSmallViewportWidth
               ? 330
               : 270,
@@ -33,30 +33,30 @@ function TabCardSkeleton({ uniqueKey, largeVariant }: TabCardSkeleton) {
               ? 151
               : 129,
         }}
-        className="pulseAnimation bg-skeleton rounded-t-sm"
+        className="pulseAnimation rounded-t-sm border-b bg-foreground/50"
       ></div>
 
       <div
-        className={`baseVertFlex h-[90px] w-full !items-start gap-1 rounded-b-md p-2.5`}
+        className={`baseVertFlex h-[94px] w-full !items-start gap-1 rounded-b-md p-2.5`}
       >
         {/* title */}
-        <div className="pulseAnimation bg-skeleton h-6 w-48 rounded-md"></div>
+        <div className="pulseAnimation h-6 w-48 rounded-md bg-foreground/50"></div>
 
         {/* artist + difficulty */}
         <div className="baseFlex w-full !justify-between">
-          <div className="pulseAnimation bg-skeleton h-5 w-16 rounded-md"></div>
-          <div className="pulseAnimation bg-skeleton h-5 w-24 rounded-md"></div>
+          <div className="pulseAnimation h-5 w-24 rounded-md bg-foreground/50"></div>
+          <div className="pulseAnimation h-5 w-24 rounded-md bg-foreground/50"></div>
         </div>
 
         {/* genre + rating/date */}
         <div className="baseFlex w-full !justify-between">
-          <div className="pulseAnimation bg-skeleton h-5 w-12 rounded-full"></div>
+          <div className="pulseAnimation h-5 w-16 rounded-full bg-foreground/50"></div>
 
           <div className="baseFlex gap-2">
             <div className="baseFlex gap-1">
-              <div className="pulseAnimation bg-skeleton h-4 w-8 rounded-md"></div>
+              <div className="pulseAnimation h-4 w-8 rounded-md bg-foreground/50"></div>
               <FaStar className="size-3" />
-              <div className="pulseAnimation bg-skeleton h-4 w-8 rounded-md"></div>
+              <div className="pulseAnimation h-4 w-8 rounded-md bg-foreground/50"></div>
             </div>
 
             <Separator
@@ -64,7 +64,7 @@ function TabCardSkeleton({ uniqueKey, largeVariant }: TabCardSkeleton) {
               orientation="vertical"
             />
 
-            <div className="pulseAnimation bg-skeleton h-5 w-20 rounded-md"></div>
+            <div className="pulseAnimation h-5 w-20 rounded-md bg-foreground/50"></div>
           </div>
         </div>
       </div>

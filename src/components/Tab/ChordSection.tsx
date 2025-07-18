@@ -4,7 +4,6 @@ import { Fragment, memo } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import {
   useTabStore,
   type ChordSection as ChordSectionType,
@@ -109,7 +108,7 @@ function ChordSection({
           duration: 1,
         },
       }}
-      className="baseVertFlex relative h-full w-full !justify-start gap-4 rounded-md border bg-secondary-active/50 p-4 shadow-md md:p-8"
+      className="baseVertFlex relative h-full w-full !justify-start gap-4 rounded-md border bg-secondary-active p-4 shadow-md md:p-8"
     >
       <div className="baseFlex w-full !items-start">
         <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">

@@ -688,7 +688,7 @@ export const userRouter = createTRPCRouter({
           const chunk = tabIds.slice(i, i + chunkSize);
 
           const deleteParams = {
-            Bucket: "autostrum-screenshots",
+            Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
             Delete: {
               Objects: chunk.map(({ id: tabId }) => ({ Key: `${tabId}.jpeg` })),
               Quiet: false,
