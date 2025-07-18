@@ -30,6 +30,18 @@ type ColorValues = Record<COLORS, Record<THEME, ColorScale>>;
 // FYI: these values are all subject to change, whether it's small foreground tweaks
 // or entire rearrangments of color intensities.
 
+export const HEX_COLOR_VALUES: Record<COLORS, string> = {
+  peony: "#E93D82",
+  quartz: "#E54666",
+  crimson: "#E5484D",
+  saffron: "#F76B15",
+  pistachio: "#46A758",
+  verdant: "#12A594",
+  aqua: "#00A2C7",
+  azure: "#0090FF",
+  amethyst: "#8E4EC6",
+} as const satisfies Record<COLORS, string>;
+
 export const SCREENSHOT_COLORS = {
   peony: {
     light: {

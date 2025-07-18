@@ -323,11 +323,6 @@ const initialStoreState = {
     playing: false,
   },
 
-  // theme
-  color: "peony" as COLORS,
-  theme: "light" as "light" | "dark",
-  followsDeviceTheme: true,
-
   isLoadingARoute: false,
   // idk if search needs to be included here
 };
