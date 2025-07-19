@@ -155,18 +155,20 @@ function PlaybackProgressSlider({
                   height: "8px",
                   width: "100%",
                   borderRadius: "4px",
+                  filter: disabled ? "brightness(0.75)" : "none",
                   background: getTrackBackground({
                     values: loopRange,
                     colors: [
-                      disabled ? "hsl(var(--gray))" : "hsl(var(--gray))",
+                      "hsl(var(--gray) / 0.75)",
                       "hsl(var(--primary))",
-                      "hsl(var(--gray))",
+                      "hsl(var(--gray) / 0.75)",
                     ],
                     min: 0,
                     max: audioMetadata.fullCurrentlyPlayingMetadataLength - 1,
                   }),
                   alignSelf: "center",
                 }}
+                className="transition-all"
               >
                 {children}
               </div>
@@ -178,17 +180,16 @@ function PlaybackProgressSlider({
               key={`${props.key}-${index}-toggle`}
               style={{
                 ...props.style,
-                backgroundColor: "hsl(var(--primary))",
               }}
-              className="z-10 size-[18px] rounded-full border will-change-transform"
+              className="z-10 size-[18px] rounded-full border bg-primary will-change-transform"
             />
           )}
         />
       ) : (
         <Range
-          key={"rangeOneThumb"} // needed so thumb(s) are properly initialized
+          key={"rangeOneThumb"} // needed so thumb is properly initialized
           label="Progress within tab"
-          step={1} // 0.1
+          step={1}
           min={0}
           max={
             currentlyPlayingMetadata ? currentlyPlayingMetadata.length - 1 : 0
@@ -208,8 +209,6 @@ function PlaybackProgressSlider({
             }
 
             setCurrentChordIndex(values[0] ?? 0);
-
-            // TODO: add logic for scrubbing through audio playback instead of tab playback
           }}
           renderTrack={({ props, children, disabled }) => (
             <div
@@ -232,18 +231,16 @@ function PlaybackProgressSlider({
                 style={{
                   height: "8px",
                   borderRadius: "4px",
+                  filter: disabled ? "brightness(0.75)" : "none",
                   background: getTrackBackground({
                     values: [currentChordIndex],
-                    colors: [
-                      disabled ? "hsl(var(--gray))" : "hsl(var(--primary))",
-                      "hsl(var(--gray))",
-                    ],
+                    colors: ["hsl(var(--primary))", "hsl(var(--gray) / 0.75)"],
                     min: 0,
                     max: currentlyPlayingMetadata?.length ?? 0,
                   }),
                   alignSelf: "center",
                 }}
-                className="w-full mobileNarrowLandscape:w-[95%] mobileLandscape:w-[95%]"
+                className="mobileNarrowLandscape:w-[95100 w-full transition-all mobileLandscape:w-[95%]"
               >
                 {children}
               </div>
@@ -255,9 +252,6 @@ function PlaybackProgressSlider({
               key={`${props.key}-${index}`}
               style={{
                 ...props.style,
-                backgroundColor: disabled
-                  ? "hsl(var(--gray))"
-                  : "hsl(var(--primary))",
                 transition: `transform ${
                   currentChordIndex === 0
                     ? 0
@@ -266,7 +260,7 @@ function PlaybackProgressSlider({
                       : 0
                 }s linear`,
               }}
-              className="z-10 size-[18px] rounded-full border will-change-transform"
+              className="z-10 size-[18px] rounded-full border bg-primary will-change-transform"
             />
           )}
         />
