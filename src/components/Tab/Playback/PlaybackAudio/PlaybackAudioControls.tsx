@@ -205,7 +205,7 @@ function PlaybackAudioControls({
             size={aboveLargeViewportWidth ? "default" : "sm"}
             disabled={disablePlayButton}
             onClick={handlePlayButtonClick}
-            className="hover:text-audio-foreground hover:bg-audio size-8 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
+            className="size-8 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
           >
             <PlayButtonIcon
               uniqueLocationKey="audioControls"
@@ -222,9 +222,9 @@ function PlaybackAudioControls({
           <AnimatePresence mode={"popLayout"} initial={false}>
             <motion.div
               key={playbackSpeed}
-              initial={{ x: 10, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -10, opacity: 0 }}
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -20, opacity: 0 }}
               transition={{ duration: 0.25 }}
               className="w-[36px]"
             >
@@ -263,7 +263,7 @@ function PlaybackAudioControls({
             </motion.div>
           </AnimatePresence>
 
-          <div className="baseFlex w-full gap-2">
+          <div className="baseFlex w-full gap-4">
             <div className="baseFlex w-9 !justify-start self-start">
               {formatSecondsToMinutes(
                 playbackMetadata?.[
@@ -315,7 +315,7 @@ function PlaybackAudioControls({
       )}
 
       {!viewportLabel.includes("Landscape") && (
-        <div className="baseVertFlex w-full max-w-[90vw] gap-2 sm:max-w-xl">
+        <div className="baseVertFlex w-full max-w-[85vw] gap-2 sm:max-w-xl">
           <PlaybackProgressSlider
             disabled={disablePlayButton}
             chordDurations={chordDurations}
@@ -394,7 +394,7 @@ function PlaybackAudioControls({
                   size={aboveLargeViewportWidth ? "default" : "sm"}
                   disabled={disablePlayButton}
                   onClick={handlePlayButtonClick}
-                  className="hover:text-audio-foreground hover:bg-audio size-10 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
+                  className="size-10 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
                 >
                   <PlayButtonIcon
                     uniqueLocationKey="audioControls"
