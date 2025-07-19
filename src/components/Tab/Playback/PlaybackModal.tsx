@@ -463,6 +463,9 @@ function PlaybackModal() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 className="absolute left-0 top-0 z-10 size-full bg-black/60 backdrop-blur-sm"
+                onClick={() => {
+                  setShowBackgroundBlur(false);
+                }}
               ></motion.div>
             )}
 
@@ -596,6 +599,7 @@ function PlaybackModal() {
                 setLoopRange={setLoopRange}
                 tabProgressValue={tabProgressValue}
                 setTabProgressValue={setTabProgressValue}
+                showBackgroundBlur={showBackgroundBlur}
                 setShowBackgroundBlur={setShowBackgroundBlur}
               />
             </div>

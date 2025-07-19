@@ -1,6 +1,12 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
-import { type Dispatch, type SetStateAction, useMemo, useState } from "react";
+import {
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import { FaBook, FaListUl } from "react-icons/fa";
 import {
@@ -47,6 +53,7 @@ interface PlaybackBottomMetadata {
   setLoopRange: Dispatch<SetStateAction<[number, number]>>;
   tabProgressValue: number;
   setTabProgressValue: Dispatch<SetStateAction<number>>;
+  showBackgroundBlur: boolean;
   setShowBackgroundBlur: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -55,6 +62,7 @@ function PlaybackBottomMetadata({
   setLoopRange,
   tabProgressValue,
   setTabProgressValue,
+  showBackgroundBlur,
   setShowBackgroundBlur,
 }: PlaybackBottomMetadata) {
   const {
@@ -188,6 +196,7 @@ function PlaybackBottomMetadata({
                 )}
 
                 <MobileSettingsPopover
+                  showBackgroundBlur={showBackgroundBlur}
                   setShowBackgroundBlur={setShowBackgroundBlur}
                 />
 
@@ -212,6 +221,7 @@ function PlaybackBottomMetadata({
           {viewportLabel.includes("mobile") ? (
             <div className="baseFlex gap-4">
               <MobileSettingsPopover
+                showBackgroundBlur={showBackgroundBlur}
                 setShowBackgroundBlur={setShowBackgroundBlur}
               />
 
@@ -269,10 +279,12 @@ function PlaybackBottomMetadata({
 export default PlaybackBottomMetadata;
 
 interface MobileSettingsPopover {
+  showBackgroundBlur: boolean;
   setShowBackgroundBlur: Dispatch<SetStateAction<boolean>>;
 }
 
 function MobileSettingsPopover({
+  showBackgroundBlur,
   setShowBackgroundBlur,
 }: MobileSettingsPopover) {
   const {
@@ -296,16 +308,25 @@ function MobileSettingsPopover({
   const volume = useGetLocalStorageValues().volume;
   const localStorageVolume = useLocalStorageValue("autostrum-volume");
 
+  const [open, setOpen] = useState(false);
+
+  // FYI: I really dislike this approach, and would have preferred to use the native
+  // onOpenChange prop from <Popover>, however for whatever reason it would not work
+  // properly on mobile, so I have this workaround instead.
+  useEffect(() => {
+    if (showBackgroundBlur === false) {
+      setOpen(false);
+    }
+  }, [showBackgroundBlur]);
+
   return (
-    <Popover
-      onOpenChange={(open) => {
-        setShowBackgroundBlur(open);
-      }}
-    >
+    <Popover open={open}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           onClick={() => {
+            setOpen((prev) => !prev);
+            setShowBackgroundBlur((prev) => !prev);
             if (audioMetadata.playing) pauseAudio();
           }}
           className="z-50"
