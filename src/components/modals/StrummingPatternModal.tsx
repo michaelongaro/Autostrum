@@ -360,7 +360,17 @@ function StrummingPatternModal({
           tabIndex={-1}
           className="baseVertFlex modalGradient relative max-h-[90vh] min-w-[370px] max-w-[90vw] !justify-start gap-4 rounded-lg border p-4 text-foreground shadow-sm transition-all sm:max-w-[700px]"
         >
-          <div className="baseFlex w-full !items-start !justify-between md:!flex-col md:gap-8">
+          <Button
+            variant={"modalClose"}
+            onClick={() => {
+              if (audioMetadata.playing) pauseAudio();
+              setStrummingPatternBeingEdited(null);
+            }}
+          >
+            <X className="size-5" />
+          </Button>
+
+          <div className="baseFlex mt-8 w-full !items-start !justify-between md:mt-0 md:!flex-col md:gap-8">
             <div className="baseFlex w-full !items-start !justify-between">
               <div className="baseVertFlex !items-start gap-2 md:!flex-row md:!items-center md:!justify-start">
                 <Label>Note length</Label>
@@ -514,19 +524,9 @@ function StrummingPatternModal({
                   </AnimatePresence>
                 </div>
               </div>
-
-              <Button
-                variant={"modalClose"}
-                onClick={() => {
-                  if (audioMetadata.playing) pauseAudio();
-                  setStrummingPatternBeingEdited(null);
-                }}
-              >
-                <X className="size-5" />
-              </Button>
             </div>
 
-            <div className="baseVertFlex mt-[70px] gap-1 rounded-lg border bg-secondary px-4 py-3 text-sm shadow-sm xs:px-8 md:mt-0 md:w-auto md:gap-2 md:self-center md:px-4">
+            <div className="baseVertFlex gap-1 rounded-lg border bg-secondary px-4 py-3 text-sm shadow-sm xs:px-8 md:mt-0 md:w-auto md:gap-2 md:self-center md:px-4">
               <div className="baseFlex w-auto gap-2 font-semibold">
                 <BsKeyboard className="h-6 w-6" />
                 Hotkeys
@@ -534,12 +534,12 @@ function StrummingPatternModal({
 
               <div className="mt-2 grid grid-cols-[46px_5px_70px] !place-items-start gap-2 md:flex md:w-full md:!place-items-end md:gap-2">
                 <div className="baseFlex gap-1">
-                  <kbd>v</kbd> / <kbd>d</kbd>
+                  <kbd>↓</kbd> / <kbd>v</kbd>
                 </div>
                 <p>-</p>
                 <p className="md:mr-4">Downstrum</p>
                 <div className="baseFlex gap-1">
-                  <kbd>^</kbd> / <kbd>u</kbd>
+                  <kbd>↑</kbd> / <kbd>^</kbd>
                 </div>
                 <p>-</p>
                 <p className="md:mr-4">Upstrum</p>
@@ -562,7 +562,7 @@ function StrummingPatternModal({
             </div>
           </div>
 
-          <div className="baseVertFlex max-h-[40vh] !items-start !justify-start">
+          <div className="baseVertFlex max-h-[35vh] !items-start !justify-start">
             <OverlayScrollbarsComponent
               options={{
                 scrollbars: { autoHide: "leave", autoHideDelay: 150 },

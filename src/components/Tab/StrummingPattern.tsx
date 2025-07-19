@@ -133,16 +133,28 @@ function StrummingPattern({
     const newStrummingPattern = structuredClone(data);
 
     // v/d for downstrum, ^/u for upstrum, and s for slap
-    if (e.key.toLowerCase() === "d" || e.key.toLowerCase() === "v") {
+    if (e.key === "ArrowDown" || e.key.toLowerCase() === "v") {
       newStrummingPattern.strums[beatIndex] = {
         ...data.strums[beatIndex]!, // ! because we know it's not undefined
         strum: "v",
       };
-    } else if (e.key.toLowerCase() === "u" || e.key === "^") {
+    } else if (e.key === "ArrowUp" || e.key === "^") {
       newStrummingPattern.strums[beatIndex] = {
         ...data.strums[beatIndex]!, // ! because we know it's not undefined
         strum: "^",
       };
+
+      // Set caret to end after React updates the value
+      setTimeout(() => {
+        const inputElem = document.getElementById(
+          `input-strummingPatternModal-${beatIndex}-1`,
+        ) as HTMLInputElement;
+
+        if (inputElem) {
+          const len = inputElem.value.length;
+          inputElem.setSelectionRange(len, len);
+        }
+      }, 0);
     } else if (e.key.toLowerCase() === "s") {
       newStrummingPattern.strums[beatIndex] = {
         ...data.strums[beatIndex]!, // ! because we know it's not undefined
@@ -150,16 +162,8 @@ function StrummingPattern({
       };
     }
 
-    // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
-    else if (e.key === "ArrowUp") {
-      e.preventDefault(); // prevent cursor from moving
-
-      const newNoteToFocus = document.getElementById(
-        `input-strummingPatternModal-${beatIndex}-0`,
-      );
-
-      newNoteToFocus?.focus();
-    } else if (e.key === "ArrowLeft") {
+    // arrow key navigation
+    else if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
 
       const newNoteToFocus = document.getElementById(
