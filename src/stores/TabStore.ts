@@ -592,8 +592,8 @@ interface TabState {
   // theme
   color: COLORS;
   setColor: (color: COLORS) => void;
-  theme: "light" | "dark";
-  setTheme: (theme: "light" | "dark") => void;
+  theme: THEME;
+  setTheme: (theme: THEME) => void;
   followsDeviceTheme: boolean;
   setFollowsDeviceTheme: (followsDeviceTheme: boolean) => void;
 
