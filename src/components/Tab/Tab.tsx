@@ -503,7 +503,7 @@ function Tab({ tab }: Tab) {
                                 ? "hsl(var(--primary-foreground"
                                 : undefined,
                             }}
-                            className="baseFlex !size-11 !rounded-full !p-0"
+                            className="baseFlex !size-11 !rounded-full border !p-0"
                             onClick={() => {
                               setShowPinnedChords((prev) => !prev);
                             }}
