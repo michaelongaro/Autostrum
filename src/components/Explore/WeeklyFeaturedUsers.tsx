@@ -371,7 +371,7 @@ function WeeklyFeaturedUsers({
     resumeTimer,
   ]);
 
-  const isAboveMediumViewport = useViewportWidthBreakpoint(768);
+  const isAboveLargeViewport = useViewportWidthBreakpoint(1024);
 
   return (
     <div
@@ -390,11 +390,11 @@ function WeeklyFeaturedUsers({
           {weeklyFeaturedUsers.map((user, index) => (
             <CarouselItem
               key={user.userId}
-              className="baseFlex basis-full pl-12 md:h-[280px] md:basis-[710px]"
+              className="baseFlex basis-[90%] pl-12 sm:basis-[70%] lg:h-[280px] lg:basis-[711px]"
             >
               <div className="baseFlex size-full rounded-lg border bg-secondary-active/50 px-4 py-4 shadow-sm">
                 <div
-                  className={`baseVertFlex min-w-0 gap-8 md:!flex-row ${user.pinnedTab === null ? "md:gap-12" : ""}`}
+                  className={`baseVertFlex min-w-0 gap-8 lg:!flex-row ${user.pinnedTab === null ? "lg:gap-12" : ""}`}
                 >
                   <div className="baseVertFlex min-w-0 !items-start gap-2">
                     <div className="baseFlex gap-1">User</div>
@@ -403,7 +403,7 @@ function WeeklyFeaturedUsers({
                       <Link
                         prefetch={false}
                         href={`/user/${user.username}/filters`}
-                        className="baseFlex min-w-0 max-w-[250px] !justify-start gap-2 !p-0 md:max-w-[100%]"
+                        className="baseFlex min-w-0 max-w-[250px] !justify-start gap-2 !p-0 lg:max-w-[100%]"
                       >
                         <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                           <Image
@@ -424,7 +424,7 @@ function WeeklyFeaturedUsers({
                               opacity: profileImageLoadStates[index] ? 1 : 0,
                               transition: "opacity 0.3s ease-in-out",
                             }}
-                            className="col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full object-cover object-center md:size-10"
+                            className="col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full object-cover object-center lg:size-10"
                           />
 
                           <AnimatePresence>
@@ -435,13 +435,13 @@ function WeeklyFeaturedUsers({
                                 animate={{ opacity: 0 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.3 }}
-                                className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full bg-foreground/50 md:size-10"
+                                className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full bg-foreground/50 lg:size-10"
                               ></motion.div>
                             )}
                           </AnimatePresence>
                         </div>
 
-                        <span className="w-full truncate text-2xl font-semibold tracking-tight md:text-3xl">
+                        <span className="w-full truncate text-2xl font-semibold tracking-tight lg:text-3xl">
                           {user.username}
                         </span>
                       </Link>
@@ -492,7 +492,7 @@ function WeeklyFeaturedUsers({
 
                   {/* user's pinned tab / placeholder */}
                   {user.pinnedTab === null ? (
-                    <div className="baseVertFlex h-[94px] w-[280px] shrink-0 gap-2 rounded-md border bg-secondary-active/50 shadow-sm md:mt-24">
+                    <div className="baseVertFlex h-[94px] w-[280px] shrink-0 gap-2 rounded-md border bg-secondary-active/50 shadow-sm lg:mt-24">
                       <TbPinned className="size-5" />
                       No active pinned tab
                     </div>
@@ -501,7 +501,7 @@ function WeeklyFeaturedUsers({
                       minimalTab={user.pinnedTab}
                       currentUser={currentUser}
                       pinnedTabType={
-                        isAboveMediumViewport ? "full" : "withoutScreenshot"
+                        isAboveLargeViewport ? "full" : "withoutScreenshot"
                       }
                       color={color}
                       theme={theme}

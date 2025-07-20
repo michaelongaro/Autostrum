@@ -95,10 +95,10 @@ function Explore({ json }: { json: string }) {
           />
         </div>
 
-        <div className="baseVertFlex w-full !items-start !justify-start gap-8 border-y bg-background p-4 shadow-lg md:rounded-xl md:border">
+        <div className="baseVertFlex w-full !items-start !justify-start gap-8 border-y bg-background py-4 shadow-lg md:rounded-xl md:border">
           {/* weekly featured users */}
-          <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
-            <div className="baseVertFlex gap-0 md:gap-1">
+          <div className="baseVertFlex w-full !items-start gap-4 py-1 md:py-4">
+            <div className="baseVertFlex gap-0 px-5 md:gap-1 md:px-8">
               <div className="baseFlex gap-2">
                 <FaRankingStar className="size-5 text-foreground md:size-6" />
                 <span className="text-lg font-bold md:text-[1.35rem]">
@@ -115,8 +115,8 @@ function Explore({ json }: { json: string }) {
           </div>
 
           {/* Newly added tabs carousel */}
-          <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
-            <div className="baseFlex w-full !items-baseline !justify-between gap-2">
+          <div className="baseVertFlex w-full !items-start gap-4 py-1 md:py-4">
+            <div className="baseFlex w-full !items-baseline !justify-between gap-2 px-5 md:px-8">
               <div className="baseVertFlex gap-0 md:gap-1">
                 <div className="baseFlex gap-2">
                   <IoFlash className="size-4 text-foreground md:size-5" />
@@ -144,9 +144,12 @@ function Explore({ json }: { json: string }) {
               }}
               className="baseFlex w-full"
             >
-              <CarouselContent className="pb-1">
+              <CarouselContent className="mr-4 pb-1 md:mr-8">
                 {LENGTH_FIFTEEN_ARRAY.map((_, index) => (
-                  <CarouselItem key={index} className="basis-auto">
+                  <CarouselItem
+                    key={index}
+                    className="basis-auto first:ml-4 md:first:ml-8"
+                  >
                     {mostRecentAndPopularTabs?.mostRecentTabs ? (
                       <GridTabCard
                         minimalTab={
@@ -166,8 +169,8 @@ function Explore({ json }: { json: string }) {
           </div>
 
           {/* Most popular tabs carousel */}
-          <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
-            <div className="baseFlex w-full !items-baseline !justify-between gap-2">
+          <div className="baseVertFlex w-full !items-start gap-4 py-1 md:py-4">
+            <div className="baseFlex w-full !items-baseline !justify-between gap-2 px-5 md:px-8">
               <div className="baseVertFlex gap-0 md:gap-1">
                 <div className="baseFlex gap-2">
                   <IoStatsChart className="size-4 text-foreground md:size-5" />
@@ -195,9 +198,12 @@ function Explore({ json }: { json: string }) {
               }}
               className="baseFlex w-full"
             >
-              <CarouselContent className="pb-1">
+              <CarouselContent className="mr-4 pb-1 md:mr-8">
                 {LENGTH_FIFTEEN_ARRAY.map((_, index) => (
-                  <CarouselItem key={index} className="basis-auto">
+                  <CarouselItem
+                    key={index}
+                    className="basis-auto first:ml-4 md:first:ml-8"
+                  >
                     {mostRecentAndPopularTabs?.mostPopularTabs ? (
                       <GridTabCard
                         minimalTab={
@@ -216,7 +222,7 @@ function Explore({ json }: { json: string }) {
             </Carousel>
           </div>
 
-          <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
+          <div className="baseVertFlex w-full !items-start gap-4 px-5 py-1 md:px-8 md:py-5">
             <div className="baseVertFlex gap-0 md:gap-1">
               <div className="baseFlex gap-2">
                 <BsGridFill className="size-4 text-foreground md:size-5" />
