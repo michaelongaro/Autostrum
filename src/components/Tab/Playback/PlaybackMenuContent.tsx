@@ -102,19 +102,19 @@ function PlaybackMenuContent() {
                   <div key={chord.id} className="baseFlex">
                     <div className="baseVertFlex gap-3">
                       <div className="baseFlex w-full !justify-between border-b py-2">
-                        <p
+                        <span
                           style={{
                             color:
                               previewMetadata.indexOfPattern === index &&
                               previewMetadata.playing &&
                               previewMetadata.type === "chord"
-                                ? "hsl(335, 78%, 42%)"
-                                : "hsl(324, 77%, 95%)",
+                                ? "hsl(var(--primary))"
+                                : "hsl(var(--foreground))",
                           }}
                           className="px-3 font-semibold transition-colors"
                         >
                           {chord.name}
-                        </p>
+                        </span>
 
                         {/* preview chord button */}
                         <Button
