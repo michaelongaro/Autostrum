@@ -370,7 +370,7 @@ function StrummingPatternModal({
             <X className="size-5" />
           </Button>
 
-          <div className="baseFlex mt-8 w-full !items-start !justify-between md:mt-0 md:!flex-col md:gap-8">
+          <div className="baseFlex mt-2 w-full !items-start !justify-between md:mt-0 md:!flex-col md:gap-8">
             <div className="baseFlex w-full !items-start !justify-between">
               <div className="baseVertFlex !items-start gap-2 md:!flex-row md:!items-center md:!justify-start">
                 <Label>Note length</Label>
@@ -526,7 +526,7 @@ function StrummingPatternModal({
               </div>
             </div>
 
-            <div className="baseVertFlex gap-1 rounded-lg border bg-secondary px-4 py-3 text-sm shadow-sm xs:px-8 md:mt-0 md:w-auto md:gap-2 md:self-center md:px-4">
+            <div className="baseVertFlex mt-[22px] gap-1 rounded-lg border bg-secondary px-4 py-3 text-sm shadow-sm xs:px-8 md:mt-0 md:w-auto md:gap-2 md:self-center md:px-4">
               <div className="baseFlex w-auto gap-2 font-semibold">
                 <BsKeyboard className="h-6 w-6" />
                 Hotkeys
