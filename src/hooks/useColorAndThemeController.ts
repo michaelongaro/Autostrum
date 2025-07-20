@@ -116,7 +116,7 @@ function useColorAndThemeController() {
     if (!currentUser || initializedUserDBColor) return;
 
     setColor(currentUser.color as COLORS);
-    setStorageValue(STORAGE_KEYS.COLOR, currentUser.color);
+    setStorageValue(STORAGE_KEYS.COLOR, currentUser.color as COLORS);
     setInitializedUserDBColor(true);
   }, [currentUser, initializedUserDBColor]);
 
