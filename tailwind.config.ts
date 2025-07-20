@@ -36,12 +36,12 @@ module.exports = {
         desktop: { raw: "(min-height: 800px) and (min-width: 1500px)" },
       },
       colors: {
-        border: "hsl(var(--border))",
-        ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         gray: "hsl(var(--gray))",
-        muted: "hsl(var(--muted))",
+        border: "hsl(var(--border))",
+        ring: "hsl(var(--ring))",
+        header: "hsl(var(--header))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",

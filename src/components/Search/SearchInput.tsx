@@ -167,7 +167,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
       )}
 
       <div
-        className={`baseFlex w-full gap-2 transition-all ${viewportLabel.includes("mobile") ? "rounded-none border-none" : "rounded-md border"} ${showAutofillResults ? "rounded-b-none" : ""}`}
+        className={`baseFlex w-full gap-2 bg-background transition-all ${viewportLabel.includes("mobile") ? "rounded-none border-none" : "rounded-md border"} ${showAutofillResults ? "rounded-b-none" : ""}`}
       >
         <Input
           ref={searchInputRef}
@@ -272,7 +272,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
             transition={{
               duration: 0.2,
             }}
-            className={`absolute left-0 z-50 w-full overflow-hidden rounded-md rounded-t-none border-border bg-muted ${viewportLabel.includes("mobile") ? "top-11 border-t" : "top-[45px] border !shadow-xl"}`}
+            className={`absolute left-0 z-50 w-full overflow-hidden rounded-md rounded-t-none border-border bg-background ${viewportLabel.includes("mobile") ? "top-11 border-t" : "top-[45px] border !shadow-xl"}`}
           >
             <div className="baseFlex w-full !justify-between p-2 text-sm">
               <div className="baseFlex gap-3">

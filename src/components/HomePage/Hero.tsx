@@ -30,7 +30,7 @@ function Hero() {
 
   return (
     <div className="baseVertFlex z-10 my-24 gap-16 md:gap-24">
-      <div className="baseVertFlex w-5/6 items-start gap-2 rounded-xl border bg-muted p-4 shadow-md sm:w-auto md:gap-4 md:p-8">
+      <div className="baseVertFlex w-5/6 items-start gap-2 rounded-xl border bg-background p-4 shadow-md sm:w-auto md:gap-4 md:p-8">
         <div className="baseVertFlex gap-4">
           <h1 className="baseVertFlex gap-2 text-3xl font-bold md:text-5xl">
             Welcome to
@@ -56,7 +56,7 @@ function Hero() {
         </div>
       </div>
 
-      <div className="baseVertFlex w-11/12 gap-8 rounded-xl border bg-muted p-4 shadow-md sm:w-4/5 md:max-w-[550px] md:gap-4 md:p-8 xl:w-[950px] xl:max-w-[950px]">
+      <div className="baseVertFlex w-11/12 gap-8 rounded-xl border bg-background p-4 shadow-md sm:w-4/5 md:max-w-[550px] md:gap-4 md:p-8 xl:w-[950px] xl:max-w-[950px]">
         <div className="baseVertFlex gap-8 xl:flex-row xl:gap-12">
           {/* ideally would try to be smarter about mobile vs desktop styles/org rather than repeat
               myself twice here */}

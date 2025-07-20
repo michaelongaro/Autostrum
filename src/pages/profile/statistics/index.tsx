@@ -189,7 +189,7 @@ function UserStatistics() {
           </Button>
         </div>
 
-        <div className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-12 border-y bg-muted p-4 shadow-lg md:min-h-[calc(100dvh-4rem-12rem-56px)] md:rounded-lg md:border md:p-8 xl:!flex-row">
+        <div className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-12 border-y bg-background p-4 shadow-lg md:min-h-[calc(100dvh-4rem-12rem-56px)] md:rounded-lg md:border md:p-8 xl:!flex-row">
           <AnimatePresence mode="popLayout">
             {/* main stats */}
             <div className="baseVertFlex w-full gap-4 xl:w-1/2">

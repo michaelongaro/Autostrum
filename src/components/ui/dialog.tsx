@@ -64,7 +64,7 @@ const DialogContent = React.forwardRef<
       {children}
 
       {renderCloseButton && (
-        <DialogPrimitive.Close className="baseFlex absolute right-4 top-4 size-5 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-primary data-[state=open]:text-muted">
+        <DialogPrimitive.Close className="baseFlex absolute right-4 top-4 size-5 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-primary data-[state=open]:text-foreground/75">
           <X className="size-5" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
@@ -123,7 +123,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-muted", className)}
+    className={cn("text-sm text-foreground/75", className)}
     {...props}
   />
 ));

@@ -86,7 +86,7 @@ function PinnedTabList({
       {/* table headers */}
       <div className="w-full bg-accent">
         <div
-          className="grid h-8 grid-rows-1 items-center text-sm font-medium text-muted"
+          className="grid h-8 grid-rows-1 items-center text-sm font-medium text-foreground/75"
           style={{
             gridTemplateColumns: "50px auto 100px",
           }}

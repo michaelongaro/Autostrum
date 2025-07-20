@@ -25,7 +25,10 @@ import type { Area, Point } from "react-easy-crop";
 import { Check } from "lucide-react";
 import EditImageSelector from "~/components/Profile/EditImageSelector";
 import Ellipsis from "~/components/ui/icons/Ellipsis";
-import { updateCSSThemeVars } from "~/utils/updateCSSThemeVars";
+import {
+  NEAR_WHITE_COLOR_VALUES,
+  updateCSSThemeVars,
+} from "~/utils/updateCSSThemeVars";
 import { useTabStore } from "~/stores/TabStore";
 
 const EditImageModal = dynamic(
@@ -292,7 +295,7 @@ function UserSettings() {
         </div>
 
         <AnimatePresence mode="popLayout">
-          <div className="baseVertFlex w-full !items-start gap-4 border-y bg-muted p-4 py-6 shadow-lg md:rounded-lg md:border md:p-8 lg:!flex-row lg:gap-12">
+          <div className="baseVertFlex w-full !items-start gap-4 border-y bg-background p-4 py-6 shadow-lg md:rounded-lg md:border md:p-8 lg:!flex-row lg:gap-12">
             <div className="baseVertFlex w-full !items-start gap-4 lg:gap-12">
               {/* email */}
               <div className="baseVertFlex w-full !items-start gap-2 lg:!flex-row lg:!items-center lg:!justify-between">
@@ -752,7 +755,11 @@ function UserSettings() {
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.2 }}
-                              className="absolute inset-0 rounded-full border border-foreground"
+                              style={{
+                                borderColor:
+                                  NEAR_WHITE_COLOR_VALUES[colorString],
+                              }}
+                              className="absolute inset-0 rounded-full border-2"
                             ></motion.div>
                           )}
                         </AnimatePresence>
@@ -825,7 +832,7 @@ function UserSettings() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="absolute inset-0 rounded-full border border-foreground"
+                            className="absolute inset-0 rounded-full border-2 border-foreground"
                           ></motion.div>
                         )}
                       </AnimatePresence>
@@ -867,7 +874,7 @@ function UserSettings() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="absolute inset-0 rounded-full border border-foreground"
+                            className="absolute inset-0 rounded-full border-2 border-foreground"
                           ></motion.div>
                         )}
                       </AnimatePresence>
@@ -916,7 +923,7 @@ function UserSettings() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="absolute inset-0 rounded-full border border-foreground"
+                            className="absolute inset-0 rounded-full border-2 border-foreground"
                           ></motion.div>
                         )}
                       </AnimatePresence>

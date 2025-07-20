@@ -48,7 +48,6 @@ function generateColorValues(
       background: { level: 2, theme: "light" },
       foreground: { level: 12, theme: "light" },
       gray: { special: "gray" },
-      muted: { level: 4, theme: "light" },
       border: { level: 8, theme: "light" },
       ring: { level: 8, theme: "dark" }, // uses dark theme's level 8
       primary: { level: 9, theme: "light" },
@@ -63,20 +62,16 @@ function generateColorValues(
       "toggle-background": { level: 2, theme: "light" },
       destructive: { special: "destructive" },
       "destructive-foreground": { special: "destructiveForeground" },
+      header: { level: 4, theme: "light" },
       "gradient-primary": { level: 6, theme: "light" },
       "gradient-secondary": { level: 3, theme: "light" },
       "modal-gradient-from": { level: 3, theme: "light" },
       "modal-gradient-to": { level: 4, theme: "light" },
-      "mobile-header-gradient-from": { level: 4, theme: "light" },
-      "mobile-header-gradient-to": { level: 4, theme: "light" },
-      "header-footer-gradient-from": { level: 3, theme: "light" },
-      "header-footer-gradient-to": { level: 4, theme: "light" },
     },
     dark: {
       background: { level: 2, theme: "dark" },
       foreground: { level: 12, theme: "dark" },
       gray: { special: "gray" },
-      muted: { level: 2, theme: "dark" },
       border: { level: 8, theme: "light" }, // uses light theme's level 8
       ring: { level: 8, theme: "dark" },
       modal: { level: 4, theme: "dark" },
@@ -92,20 +87,17 @@ function generateColorValues(
       "toggle-background": { level: 1, theme: "light" },
       destructive: { special: "destructive" },
       "destructive-foreground": { special: "destructiveForeground" },
+      header: { level: 2, theme: "dark" },
       "gradient-primary": { level: 4, theme: "dark" },
       "gradient-secondary": { level: 1, theme: "dark" },
       "modal-gradient-from": { level: 1, theme: "dark" },
       "modal-gradient-to": { level: 2, theme: "dark" },
-      "mobile-header-gradient-from": { level: 1, theme: "dark" },
-      "mobile-header-gradient-to": { level: 2, theme: "dark" },
-      "header-footer-gradient-from": { level: 1, theme: "dark" },
-      "header-footer-gradient-to": { level: 2, theme: "dark" },
     },
   };
 
   const screenshotMappings = {
     light: {
-      "screenshot-muted": { level: 4, theme: "light" },
+      "screenshot-background": { level: 4, theme: "light" },
       "screenshot-foreground": { level: 12, theme: "light" },
       "screenshot-primary-foreground": { level: 1, theme: "light" },
       "screenshot-border": { level: 8, theme: "light" },
@@ -113,7 +105,7 @@ function generateColorValues(
       "screenshot-secondary": { level: 5, theme: "light" },
     },
     dark: {
-      "screenshot-muted": { level: 2, theme: "dark" },
+      "screenshot-background": { level: 2, theme: "dark" },
       "screenshot-foreground": { level: 12, theme: "dark" },
       "screenshot-primary-foreground": { level: 1, theme: "light" },
       "screenshot-border": { level: 8, theme: "light" },
@@ -481,6 +473,8 @@ const colorScales = {
   },
 };
 
+// TODO: I changed destructive and destructive-foreground to be all the same values,
+// except for the two red themes, which are special cases. need to update this to account for that
 const specialValues = {
   gray: "249 6% 57%",
   destructive: "0 90% 50%",

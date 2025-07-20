@@ -284,7 +284,7 @@ function Tab({ tab }: Tab) {
         style={{
           transition: "filter 0.5s ease-in-out",
         }}
-        className={`baseVertFlex relative w-full border-y bg-muted shadow-lg md:rounded-xl md:border ${
+        className={`baseVertFlex relative w-full border-y bg-background shadow-lg md:rounded-xl md:border ${
           isPublishingOrUpdating ? "pointer-events-none brightness-90" : ""
         }`}
       >
@@ -395,7 +395,7 @@ function Tab({ tab }: Tab) {
                   paddingBottom: 0,
                 }}
                 transition={{ duration: 0.25 }}
-                className="baseFlex sticky left-0 top-20 z-10 w-[calc(100%-3.45rem)] rounded-xl border bg-muted shadow-lg"
+                className="baseFlex sticky left-0 top-20 z-10 w-[calc(100%-3.45rem)] rounded-xl border bg-background shadow-lg"
               >
                 <Carousel
                   opts={{

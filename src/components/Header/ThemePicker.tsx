@@ -2,7 +2,10 @@ import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { IoSunnyOutline, IoMoonOutline } from "react-icons/io5";
 import { HiMiniComputerDesktop } from "react-icons/hi2";
-import { updateCSSThemeVars } from "~/utils/updateCSSThemeVars";
+import {
+  NEAR_WHITE_COLOR_VALUES,
+  updateCSSThemeVars,
+} from "~/utils/updateCSSThemeVars";
 import { api } from "~/utils/api";
 import { useTabStore } from "~/stores/TabStore";
 import { useAuth } from "@clerk/nextjs";
@@ -101,7 +104,10 @@ function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute inset-0 rounded-full border border-foreground"
+                    style={{
+                      borderColor: NEAR_WHITE_COLOR_VALUES[colorString],
+                    }}
+                    className="absolute inset-0 rounded-full border-2"
                   ></motion.div>
                 )}
               </AnimatePresence>
@@ -149,7 +155,7 @@ function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute inset-0 rounded-full border border-foreground"
+                  className="absolute inset-0 rounded-full border-2 border-foreground"
                 ></motion.div>
               )}
             </AnimatePresence>
@@ -191,7 +197,7 @@ function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute inset-0 rounded-full border border-foreground"
+                  className="absolute inset-0 rounded-full border-2 border-foreground"
                 ></motion.div>
               )}
             </AnimatePresence>
@@ -237,7 +243,7 @@ function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute inset-0 rounded-full border border-foreground"
+                  className="absolute inset-0 rounded-full border-2 border-foreground"
                 ></motion.div>
               )}
             </AnimatePresence>

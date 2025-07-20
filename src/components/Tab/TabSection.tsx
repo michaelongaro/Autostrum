@@ -807,7 +807,7 @@ function TabSection({
       style={{
         padding: aboveMediumViewportWidth ? "2rem" : "1rem 0.5rem 1rem 0.5rem",
       }}
-      className="baseVertFlex relative h-full w-full !justify-start gap-1 rounded-md rounded-tl-md border bg-secondary-active shadow-md"
+      className="baseVertFlex relative h-full w-full !justify-start gap-1 rounded-md rounded-tl-md border bg-secondary-active/50 shadow-md"
     >
       <div className="baseFlex w-full !items-start">
         <div className="baseVertFlex w-5/6 !items-start gap-4 lg:!flex-row lg:!justify-start">

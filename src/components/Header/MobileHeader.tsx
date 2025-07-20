@@ -98,7 +98,7 @@ function MobileHeader() {
 
   return (
     <nav className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full">
-      <div className="headerAndFooterBackgroundGradient absolute z-[49] flex h-16 w-full items-start justify-between overflow-clip p-2 shadow-md shadow-primary/10 lg:hidden">
+      <div className="bg-header absolute z-[49] flex h-16 w-full items-start justify-between overflow-clip p-2 shadow-md shadow-primary/10 lg:hidden">
         <Link
           prefetch={false}
           href={"/"}
@@ -189,7 +189,7 @@ function MobileHeader() {
                 opacity: { duration: 0.2, ease: "easeInOut" },
               },
             }}
-            className="baseVertFlex mobileHeaderGradient fixed top-16 z-[-1] max-h-[80dvh] w-full max-w-lg !justify-start overflow-y-auto rounded-b-xl border-t border-foreground shadow-lg"
+            className="baseVertFlex modalGradient fixed top-16 z-[-1] max-h-[80dvh] w-full max-w-lg !justify-start overflow-y-auto rounded-b-xl border-t border-foreground shadow-lg"
           >
             <div className="baseVertFlex my-4 h-full max-w-[348px] gap-4">
               <div className="baseFlex w-full gap-4">

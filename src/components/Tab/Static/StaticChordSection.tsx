@@ -40,7 +40,7 @@ function StaticChordSection({
       key={subSectionData.id}
       style={{
         borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
-        backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]})`,
+        backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.5)`,
       }}
       className="baseVertFlex relative h-full !justify-start rounded-md border p-4 shadow-md md:p-8"
     >
@@ -49,7 +49,7 @@ function StaticChordSection({
           key={`${subSectionData.id}ChordSectionWrapper`}
           className="baseFlex flex-wrap !items-end !justify-start gap-8"
         >
-          {subSectionData.data.map((chordSequence, index) => (
+          {subSectionData.data.map((chordSequence) => (
             <Fragment key={`${chordSequence.id}wrapper`}>
               {chordSequence.data.length > 0 ? (
                 <div className="baseVertFlex !items-start">
@@ -58,7 +58,7 @@ function StaticChordSection({
                     <div
                       style={{
                         borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
-                        backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.25)`,
+                        backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.15)`,
                         color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
                       }}
                       className="baseFlex ml-4 gap-3 rounded-t-md border px-2 py-1 text-sm !shadow-sm"

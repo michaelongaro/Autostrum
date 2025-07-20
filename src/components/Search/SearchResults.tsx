@@ -1846,7 +1846,7 @@ function SearchResults({
         )}
 
         {/* search results body */}
-        <div className="size-full !border-t-0 border-b bg-muted shadow-lg md:rounded-b-lg md:border">
+        <div className="size-full !border-t-0 border-b bg-background shadow-lg md:rounded-b-lg md:border">
           <AnimatePresence mode="popLayout">
             {renderSearch404 ? (
               <Render404Page

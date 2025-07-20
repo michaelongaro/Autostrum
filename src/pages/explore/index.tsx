@@ -95,7 +95,7 @@ function Explore({ json }: { json: string }) {
           />
         </div>
 
-        <div className="baseVertFlex w-full !items-start !justify-start gap-8 border-y bg-muted p-4 shadow-lg md:rounded-xl md:border">
+        <div className="baseVertFlex w-full !items-start !justify-start gap-8 border-y bg-background p-4 shadow-lg md:rounded-xl md:border">
           {/* weekly featured users */}
           <div className="baseVertFlex w-full !items-start gap-4 p-1 md:p-4">
             <div className="baseVertFlex gap-0 md:gap-1">

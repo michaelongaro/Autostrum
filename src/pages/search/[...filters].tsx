@@ -53,19 +53,19 @@ function FilteredQueryExplore() {
             </div>
           ) : (
             <div className="baseFlex">
-              <div className="relative -right-6 top-0.5 z-30 -rotate-6 rounded-lg border bg-muted p-2 shadow-sm">
+              <div className="relative -right-6 top-0.5 z-30 -rotate-6 rounded-lg border bg-background p-2 shadow-sm">
                 <BiSearchAlt2 className="size-6 text-foreground" />
               </div>
 
-              <div className="relative -right-4 z-20 -rotate-3 rounded-lg border bg-muted p-2 shadow-sm">
+              <div className="relative -right-4 z-20 -rotate-3 rounded-lg border bg-background p-2 shadow-sm">
                 <Binoculars className="size-6 text-foreground" />
               </div>
 
-              <div className="relative -right-2 z-10 rotate-3 rounded-lg border bg-muted p-2 shadow-sm">
+              <div className="relative -right-2 z-10 rotate-3 rounded-lg border bg-background p-2 shadow-sm">
                 <FaEye className="size-6 text-foreground" />
               </div>
 
-              <div className="relative top-0.5 rotate-6 rounded-lg border bg-muted p-2 shadow-sm">
+              <div className="relative top-0.5 rotate-6 rounded-lg border bg-background p-2 shadow-sm">
                 <LuFilter className="size-6 text-foreground" />
               </div>
             </div>

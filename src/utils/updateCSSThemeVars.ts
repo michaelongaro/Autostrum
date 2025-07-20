@@ -2,7 +2,7 @@ import type { COLORS, THEME } from "~/stores/TabStore";
 import { LOGO_PATHS_WITHOUT_TITLE } from "~/utils/logoPaths";
 
 export type ScreenshotColorKey =
-  | "screenshot-muted"
+  | "screenshot-background"
   | "screenshot-foreground"
   | "screenshot-primary-foreground"
   | "screenshot-border"
@@ -45,10 +45,22 @@ export const HEX_COLOR_VALUES: Record<COLORS, string> = {
   amethyst: "#8E4EC6",
 } as const satisfies Record<COLORS, string>;
 
+export const NEAR_WHITE_COLOR_VALUES: Record<COLORS, string> = {
+  peony: "#FEF7F9",
+  quartz: "#FFF7F8",
+  crimson: "#FFF7F7",
+  saffron: "#FFF7ED",
+  pistachio: "#F5FBF5",
+  verdant: "#F2FAFB",
+  aqua: "#F2FAFB",
+  azure: "#E6F4FE",
+  amethyst: "#FBF7FE",
+} as const satisfies Record<COLORS, string>;
+
 export const SCREENSHOT_COLORS = {
   peony: {
     light: {
-      "screenshot-muted": "340.59 94.44% 92.94%",
+      "screenshot-background": "342.86 77.78% 98.24%",
       "screenshot-foreground": "332.37 63.33% 34.53%",
       "screenshot-primary-foreground": "340.00 100.00% 99.41%",
       "screenshot-border": "335.84 55.40% 72.75%",
@@ -56,7 +68,7 @@ export const SCREENSHOT_COLORS = {
       "screenshot-secondary": "339.55 81.48% 89.41%",
     },
     dark: {
-      "screenshot-muted": "336.92 25.49% 10.00%",
+      "screenshot-background": "336.92 25.49% 10.00%",
       "screenshot-foreground": "330.00 91.30% 87.98%",
       "screenshot-primary-foreground": "340.00 100.00% 99.41%",
       "screenshot-border": "335.84 55.40% 72.75%",
@@ -66,7 +78,7 @@ export const SCREENSHOT_COLORS = {
   },
   quartz: {
     light: {
-      "screenshot-muted": "351.43 100.00% 93.14%",
+      "screenshot-background": "352.50 100.00% 98.43%",
       "screenshot-foreground": "344.42 62.60% 34.12%",
       "screenshot-primary-foreground": "340.00 100.00% 99.41%",
       "screenshot-border": "347.71 61.48% 73.53%",
@@ -74,7 +86,7 @@ export const SCREENSHOT_COLORS = {
       "screenshot-secondary": "350.20 100.00% 90.39%",
     },
     dark: {
-      "screenshot-muted": "346.67 17.65% 10.00%",
+      "screenshot-background": "346.67 17.65% 10.00%",
       "screenshot-foreground": "339.55 95.65% 87.98%",
       "screenshot-primary-foreground": "340.00 100.00% 99.41%",
       "screenshot-border": "347.71 61.48% 73.53%",
@@ -84,7 +96,7 @@ export const SCREENSHOT_COLORS = {
   },
   crimson: {
     light: {
-      "screenshot-muted": "358.33 100.00% 92.94%",
+      "screenshot-background": "0.00 100.00% 98.43%",
       "screenshot-foreground": "350.65 62.60% 34.12%",
       "screenshot-primary-foreground": "0.00 100.00% 99.41%",
       "screenshot-border": "358.71 69.92% 73.92%",
@@ -92,7 +104,7 @@ export const SCREENSHOT_COLORS = {
       "screenshot-secondary": "358.80 100.00% 90.20%",
     },
     dark: {
-      "screenshot-muted": "355.38 25.49% 10.00%",
+      "screenshot-background": "355.38 25.49% 10.00%",
       "screenshot-foreground": "349.57 100.00% 87.98%",
       "screenshot-primary-foreground": "0.00 100.00% 99.41%",
       "screenshot-border": "358.71 69.92% 73.92%",
@@ -102,7 +114,7 @@ export const SCREENSHOT_COLORS = {
   },
   saffron: {
     light: {
-      "screenshot-muted": "34.05 100.00% 85.49%",
+      "screenshot-background": "33.33 100.00% 96.47%",
       "screenshot-foreground": "16.27 50.43% 30.94%",
       "screenshot-primary-foreground": "20.00 60.00% 99.02%",
       "screenshot-border": "25.03 79.89% 62.94%",
@@ -110,7 +122,7 @@ export const SCREENSHOT_COLORS = {
       "screenshot-secondary": "32.67 100.00% 80.20%",
     },
     dark: {
-      "screenshot-muted": "28.00 33.33% 8.82%",
+      "screenshot-background": "28.00 33.33% 8.82%",
       "screenshot-foreground": "29.51 100.00% 86.04%",
       "screenshot-primary-foreground": "20.00 60.00% 99.02%",
       "screenshot-border": "25.03 79.89% 62.94%",
@@ -120,7 +132,7 @@ export const SCREENSHOT_COLORS = {
   },
   pistachio: {
     light: {
-      "screenshot-muted": "122.61 45.10% 90.00%",
+      "screenshot-background": "120.00 42.86% 97.25%",
       "screenshot-foreground": "130.71 30.43% 23.04%",
       "screenshot-primary-foreground": "120.00 60.00% 99.02%",
       "screenshot-border": "130.59 38.12% 56.27%",
@@ -128,7 +140,7 @@ export const SCREENSHOT_COLORS = {
       "screenshot-secondary": "121.94 40.26% 84.90%",
     },
     dark: {
-      "screenshot-muted": "130.00 13.04% 9.02%",
+      "screenshot-background": "130.00 13.04% 9.02%",
       "screenshot-foreground": "120.00 60.53% 85.10%",
       "screenshot-primary-foreground": "120.00 60.00% 99.02%",
       "screenshot-border": "130.59 38.12% 56.27%",
@@ -138,7 +150,7 @@ export const SCREENSHOT_COLORS = {
   },
   verdant: {
     light: {
-      "screenshot-muted": "166.15 61.90% 87.65%",
+      "screenshot-background": "165.00 50.00% 96.86%",
       "screenshot-foreground": "173.75 64.86% 18.51%",
       "screenshot-primary-foreground": "165.00 66.67% 98.82%",
       "screenshot-border": "171.76 42.15% 52.55%",
@@ -146,7 +158,7 @@ export const SCREENSHOT_COLORS = {
       "screenshot-secondary": "168.00 54.35% 81.96%",
     },
     dark: {
-      "screenshot-muted": "174.55 24.44% 8.82%",
+      "screenshot-background": "174.55 24.44% 8.82%",
       "screenshot-foreground": "162.99 69.07% 78.98%",
       "screenshot-primary-foreground": "165.00 66.67% 98.82%",
       "screenshot-border": "171.76 42.15% 52.55%",
@@ -156,7 +168,7 @@ export const SCREENSHOT_COLORS = {
   },
   aqua: {
     light: {
-      "screenshot-muted": "186.82 70.97% 87.84%",
+      "screenshot-background": "186.67 52.94% 96.67%",
       "screenshot-foreground": "192.20 69.41% 20.67%",
       "screenshot-primary-foreground": "195.00 66.67% 98.82%",
       "screenshot-border": "189.04 60.33% 52.55%",
@@ -164,7 +176,7 @@ export const SCREENSHOT_COLORS = {
       "screenshot-secondary": "187.12 66.29% 82.55%",
     },
     dark: {
-      "screenshot-muted": "198.75 33.33% 9.41%",
+      "screenshot-background": "198.75 33.33% 9.41%",
       "screenshot-foreground": "190.15 80.25% 82.12%",
       "screenshot-primary-foreground": "195.00 66.67% 98.82%",
       "screenshot-border": "189.04 60.33% 52.55%",
@@ -174,7 +186,7 @@ export const SCREENSHOT_COLORS = {
   },
   azure: {
     light: {
-      "screenshot-muted": "202.86 100.00% 91.76%",
+      "screenshot-background": "207.27 100.00% 97.84%",
       "screenshot-foreground": "216.14 70.94% 26.94%",
       "screenshot-primary-foreground": "210.00 100.00% 99.22%",
       "screenshot-border": "205.66 81.92% 65.29%",
@@ -182,7 +194,7 @@ export const SCREENSHOT_COLORS = {
       "screenshot-secondary": "205.57 100.00% 88.04%",
     },
     dark: {
-      "screenshot-muted": "218.18 39.29% 10.98%",
+      "screenshot-background": "218.18 39.29% 10.98%",
       "screenshot-foreground": "204.59 100.00% 86.04%",
       "screenshot-primary-foreground": "210.00 100.00% 99.22%",
       "screenshot-border": "205.66 81.92% 65.29%",
@@ -192,7 +204,7 @@ export const SCREENSHOT_COLORS = {
   },
   amethyst: {
     light: {
-      "screenshot-muted": "276.92 81.25% 93.73%",
+      "screenshot-background": "274.29 77.78% 98.24%",
       "screenshot-foreground": "270.00 50.00% 32.10%",
       "screenshot-primary-foreground": "300.00 50.00% 99.22%",
       "screenshot-border": "271.85 60.00% 73.53%",
@@ -200,7 +212,7 @@ export const SCREENSHOT_COLORS = {
       "screenshot-secondary": "275.00 75.00% 90.59%",
     },
     dark: {
-      "screenshot-muted": "278.57 25.00% 10.98%",
+      "screenshot-background": "278.57 25.00% 10.98%",
       "screenshot-foreground": "274.55 76.74% 89.57%",
       "screenshot-primary-foreground": "300.00 50.00% 99.22%",
       "screenshot-border": "271.85 60.00% 73.53%",
@@ -216,7 +228,6 @@ const COLOR_VALUES = {
       background: "342.86 77.78% 98.24%",
       foreground: "332.37 63.33% 34.53%",
       gray: "250.91 4.8% 44.9%", // mauve 9
-      muted: "340.59 94.44% 92.94%",
       border: "335.84 55.40% 72.75%",
       ring: "336.33 44.86% 47.65%",
       primary: "335.93 79.63% 57.65%",
@@ -231,20 +242,16 @@ const COLOR_VALUES = {
       "toggle-background": "342.86 77.78% 98.24%",
       destructive: "358.09 75.12% 59.02%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "340.59 94.44% 92.94%",
       "gradient-primary": "338.49 68.83% 84.90%",
       "gradient-secondary": "340.91 100.00% 95.69%",
-      "modal-gradient-from": "340.91 100.00% 95.69%",
+      "modal-gradient-from": "342.86 77.78% 98.24%",
       "modal-gradient-to": "340.59 94.44% 92.94%",
-      "mobile-header-gradient-from": "340.59 94.44% 92.94%",
-      "mobile-header-gradient-to": "340.59 94.44% 92.94%",
-      "header-footer-gradient-from": "340.91 100.00% 95.69%",
-      "header-footer-gradient-to": "340.59 94.44% 92.94%",
     },
     dark: {
       background: "336.92 25.49% 10.00%",
       foreground: "330.00 91.30% 87.98%",
       gray: "250.91 4.8% 44.9%", // muave 9
-      muted: "336.92 25.49% 10.00%",
       border: "335.84 55.40% 72.75%",
       ring: "336.33 44.86% 47.65%",
       modal: "330.51 62.11% 18.63%",
@@ -258,16 +265,13 @@ const COLOR_VALUES = {
       "accent-foreground": "340.00 100.00% 99.41%",
       "toggle-foreground": "340.00 100.00% 99.41%",
       "toggle-background": "340.00 100.00% 99.41%",
-      destructive: "358.09 75.12% 59.02%", //"0 90% 50%",
-      "destructive-foreground": "0 100% 99.41%", //"324 77% 95%",
+      destructive: "358.09 75.12% 59.02%",
+      "destructive-foreground": "0 100% 99.41%",
+      header: "336.92 25.49% 10.00%",
       "gradient-primary": "330.51 62.11% 18.63%",
       "gradient-secondary": "337.50 19.05% 8.24%",
       "modal-gradient-from": "337.50 19.05% 8.24%",
       "modal-gradient-to": "336.92 25.49% 10.00%",
-      "mobile-header-gradient-from": "337.50 19.05% 8.24%",
-      "mobile-header-gradient-to": "336.92 25.49% 10.00%",
-      "header-footer-gradient-from": "337.50 19.05% 8.24%",
-      "header-footer-gradient-to": "336.92 25.49% 10.00%",
     },
   },
   quartz: {
@@ -275,7 +279,6 @@ const COLOR_VALUES = {
       background: "352.50 100.00% 98.43%",
       foreground: "344.42 62.60% 34.12%",
       gray: "250.91 4.8% 44.9%", // mauve 9
-      muted: "351.43 100.00% 93.14%",
       border: "347.71 61.48% 73.53%",
       ring: "348.11 44.94% 48.43%",
       primary: "347.92 75.36% 58.63%",
@@ -290,20 +293,16 @@ const COLOR_VALUES = {
       "toggle-background": "352.50 100.00% 98.43%",
       destructive: "350.65 62.6% 24.12%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "351.43 100.00% 93.14%",
       "gradient-primary": "350.53 80.28% 86.08%",
       "gradient-secondary": "351.00 90.91% 95.69%",
       "modal-gradient-from": "351.00 90.91% 95.69%",
       "modal-gradient-to": "351.43 100.00% 93.14%",
-      "mobile-header-gradient-from": "351.43 100.00% 93.14%",
-      "mobile-header-gradient-to": "351.43 100.00% 93.14%",
-      "header-footer-gradient-from": "351.00 90.91% 95.69%",
-      "header-footer-gradient-to": "351.43 100.00% 93.14%",
     },
     dark: {
       background: "346.67 17.65% 10.00%",
       foreground: "339.55 95.65% 87.98%",
       gray: "250.91 4.8% 44.9%", // mauve 9
-      muted: "346.67 17.65% 10.00%",
       border: "347.71 61.48% 73.53%",
       ring: "348.11 44.94% 48.43%",
       modal: "341.69 60.82% 19.02%",
@@ -319,14 +318,11 @@ const COLOR_VALUES = {
       "toggle-background": "340.00 100.00% 99.41%",
       destructive: "358.15 64.8% 49.02%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "346.67 17.65% 10.00%",
       "gradient-primary": "341.69 60.82% 19.02%",
       "gradient-secondary": "345.00 19.05% 8.24%",
       "modal-gradient-from": "345.00 19.05% 8.24%",
       "modal-gradient-to": "346.67 17.65% 10.00%",
-      "mobile-header-gradient-from": "345.00 19.05% 8.24%",
-      "mobile-header-gradient-to": "346.67 17.65% 10.00%",
-      "header-footer-gradient-from": "345.00 19.05% 8.24%",
-      "header-footer-gradient-to": "346.67 17.65% 10.00%",
     },
   },
   crimson: {
@@ -334,7 +330,6 @@ const COLOR_VALUES = {
       background: "0.00 100.00% 98.43%",
       foreground: "350.65 62.60% 34.12%",
       gray: "250.91 4.8% 44.9%", // mauve 9
-      muted: "358.33 100.00% 92.94%",
       border: "358.71 69.92% 73.92%",
       ring: "358.39 44.80% 49.02%",
       primary: "358.09 75.12% 59.02%",
@@ -349,20 +344,16 @@ const COLOR_VALUES = {
       "toggle-background": "0.00 100.00% 98.43%",
       destructive: "350.65 62.6% 24.12%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "358.33 100.00% 92.94%",
       "gradient-primary": "359.06 94.12% 86.67%",
       "gradient-secondary": "356.84 90.48% 95.88%",
       "modal-gradient-from": "356.84 90.48% 95.88%",
       "modal-gradient-to": "358.33 100.00% 92.94%",
-      "mobile-header-gradient-from": "358.33 100.00% 92.94%",
-      "mobile-header-gradient-to": "358.33 100.00% 92.94%",
-      "header-footer-gradient-from": "356.84 90.48% 95.88%",
-      "header-footer-gradient-to": "358.33 100.00% 92.94%",
     },
     dark: {
       background: "355.38 25.49% 10.00%",
       foreground: "349.57 100.00% 87.98%",
       gray: "250.91 4.8% 44.9%", // mauve 9
-      muted: "355.38 25.49% 10.00%",
       border: "358.71 69.92% 73.92%",
       ring: "358.39 44.80% 49.02%",
       modal: "348.00 68.42% 18.63%",
@@ -378,14 +369,11 @@ const COLOR_VALUES = {
       "toggle-background": "0.00 100.00% 99.41%",
       destructive: "358.15 64.8% 49.02%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "355.38 25.49% 10.00%",
       "gradient-primary": "348.00 68.42% 18.63%",
       "gradient-secondary": "0.00 19.05% 8.24%",
       "modal-gradient-from": "0.00 19.05% 8.24%",
       "modal-gradient-to": "355.38 25.49% 10.00%",
-      "mobile-header-gradient-from": "0.00 19.05% 8.24%",
-      "mobile-header-gradient-to": "355.38 25.49% 10.00%",
-      "header-footer-gradient-from": "0.00 19.05% 8.24%",
-      "header-footer-gradient-to": "355.38 25.49% 10.00%",
     },
   },
   saffron: {
@@ -393,7 +381,6 @@ const COLOR_VALUES = {
       background: "33.33 100.00% 96.47%",
       foreground: "16.27 50.43% 30.94%",
       gray: "46.67 4.23% 41.76%", // sand 9
-      muted: "34.05 100.00% 85.49%",
       border: "25.03 79.89% 62.94%",
       ring: "23.11 59.80% 40.00%",
       primary: "22.83 93.39% 52.55%",
@@ -408,20 +395,16 @@ const COLOR_VALUES = {
       "toggle-background": "33.33 100.00% 96.47%",
       destructive: "358.09 75.12% 59.02%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "34.05 100.00% 85.49%",
       "gradient-primary": "30.24 100.00% 75.49%",
       "gradient-secondary": "36.59 100.00% 91.96%",
       "modal-gradient-from": "36.59 100.00% 91.96%",
       "modal-gradient-to": "34.05 100.00% 85.49%",
-      "mobile-header-gradient-from": "34.05 100.00% 85.49%",
-      "mobile-header-gradient-to": "34.05 100.00% 85.49%",
-      "header-footer-gradient-from": "36.59 100.00% 91.96%",
-      "header-footer-gradient-to": "34.05 100.00% 85.49%",
     },
     dark: {
       background: "28.00 33.33% 8.82%",
       foreground: "29.51 100.00% 86.04%",
       gray: "46.67 4.23% 41.76%", // sand 9
-      muted: "28.00 33.33% 8.82%",
       border: "25.03 79.89% 62.94%",
       ring: "23.11 59.80% 40.00%",
       modal: "28.29 100.00% 13.73%",
@@ -437,14 +420,11 @@ const COLOR_VALUES = {
       "toggle-background": "20.00 60.00% 99.02%",
       destructive: "358.09 75.12% 59.02%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "28.00 33.33% 8.82%",
       "gradient-primary": "28.29 100.00% 13.73%",
       "gradient-secondary": "26.67 24.32% 7.25%",
       "modal-gradient-from": "26.67 24.32% 7.25%",
       "modal-gradient-to": "28.00 33.33% 8.82%",
-      "mobile-header-gradient-from": "26.67 24.32% 7.25%",
-      "mobile-header-gradient-to": "28.00 33.33% 8.82%",
-      "header-footer-gradient-from": "26.67 24.32% 7.25%",
-      "header-footer-gradient-to": "28.00 33.33% 8.82%",
     },
   },
   pistachio: {
@@ -452,7 +432,6 @@ const COLOR_VALUES = {
       background: "120.00 42.86% 97.25%",
       foreground: "130.71 30.43% 23.04%",
       gray: "156.92 6.16% 41.37%", // sage 9
-      muted: "122.61 45.10% 90.00%",
       border: "130.59 38.12% 56.27%",
       ring: "131.19 32.24% 35.88%",
       primary: "131.13 40.93% 46.47%",
@@ -467,20 +446,16 @@ const COLOR_VALUES = {
       "toggle-background": "120.00 42.86% 97.25%",
       destructive: "358.09 75.12% 59.02%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "122.61 45.10% 90.00%",
       "gradient-primary": "124.19 38.74% 78.24%",
       "gradient-secondary": "120.00 41.94% 93.92%",
       "modal-gradient-from": "120.00 41.94% 93.92%",
       "modal-gradient-to": "122.61 45.10% 90.00%",
-      "mobile-header-gradient-from": "122.61 45.10% 90.00%",
-      "mobile-header-gradient-to": "122.61 45.10% 90.00%",
-      "header-footer-gradient-from": "120.00 41.94% 93.92%",
-      "header-footer-gradient-to": "122.61 45.10% 90.00%",
     },
     dark: {
       background: "130.00 13.04% 9.02%",
       foreground: "120.00 60.53% 85.10%",
       gray: "156.92 6.16% 41.37%", // sage 9
-      muted: "130.00 13.04% 9.02%",
       border: "130.59 38.12% 56.27%",
       ring: "131.19 32.24% 35.88%",
       modal: "134.48 33.33% 17.06%",
@@ -496,14 +471,11 @@ const COLOR_VALUES = {
       "toggle-background": "120.00 60.00% 99.02%",
       destructive: "358.09 75.12% 59.02%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "130.00 13.04% 9.02%",
       "gradient-primary": "134.48 33.33% 17.06%",
       "gradient-secondary": "145.71 20.00% 6.86%",
       "modal-gradient-from": "145.71 20.00% 6.86%",
       "modal-gradient-to": "130.00 13.04% 9.02%",
-      "mobile-header-gradient-from": "145.71 20.00% 6.86%",
-      "mobile-header-gradient-to": "130.00 13.04% 9.02%",
-      "header-footer-gradient-from": "145.71 20.00% 6.86%",
-      "header-footer-gradient-to": "130.00 13.04% 9.02%",
     },
   },
   verdant: {
@@ -511,7 +483,6 @@ const COLOR_VALUES = {
       background: "165.00 50.00% 96.86%",
       foreground: "173.75 64.86% 18.51%",
       gray: "156.92 6.16% 41.37%", // sage 9
-      muted: "166.15 61.90% 87.65%",
       border: "171.76 42.15% 52.55%",
       ring: "172.98 59.49% 30.98%",
       primary: "173.06 80.33% 35.88%",
@@ -526,20 +497,16 @@ const COLOR_VALUES = {
       "toggle-background": "165.00 50.00% 96.86%",
       destructive: "358.09 75.12% 59.02%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "166.15 61.90% 87.65%",
       "gradient-primary": "168.20 48.03% 75.10%",
       "gradient-secondary": "167.50 63.16% 92.55%",
       "modal-gradient-from": "167.50 63.16% 92.55%",
       "modal-gradient-to": "166.15 61.90% 87.65%",
-      "mobile-header-gradient-from": "166.15 61.90% 87.65%",
-      "mobile-header-gradient-to": "166.15 61.90% 87.65%",
-      "header-footer-gradient-from": "167.50 63.16% 92.55%",
-      "header-footer-gradient-to": "166.15 61.90% 87.65%",
     },
     dark: {
       background: "174.55 24.44% 8.82%",
       foreground: "162.99 69.07% 78.98%",
       gray: "156.92 6.16% 41.37%", // sage 9
-      muted: "174.55 24.44% 8.82%",
       border: "171.76 42.15% 52.55%",
       ring: "172.98 59.49% 30.98%",
       modal: "175.79 93.44% 11.96%",
@@ -555,14 +522,11 @@ const COLOR_VALUES = {
       "toggle-background": "165.00 66.67% 98.82%",
       destructive: "358.09 75.12% 59.02%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "174.55 24.44% 8.82%",
       "gradient-primary": "175.79 93.44% 11.96%",
       "gradient-secondary": "172.50 23.53% 6.67%",
       "modal-gradient-from": "172.50 23.53% 6.67%",
       "modal-gradient-to": "174.55 24.44% 8.82%",
-      "mobile-header-gradient-from": "172.50 23.53% 6.67%",
-      "mobile-header-gradient-to": "174.55 24.44% 8.82%",
-      "header-footer-gradient-from": "172.50 23.53% 6.67%",
-      "header-footer-gradient-to": "174.55 24.44% 8.82%",
     },
   },
   aqua: {
@@ -570,7 +534,6 @@ const COLOR_VALUES = {
       background: "186.67 52.94% 96.67%",
       foreground: "192.20 69.41% 20.67%",
       gray: "218.57 6.25% 43.92%", // slate 9
-      muted: "186.82 70.97% 87.84%",
       border: "189.04 60.33% 52.55%",
       ring: "192.09 80.35% 33.92%",
       primary: "191.16 100.00% 39.02%",
@@ -585,20 +548,16 @@ const COLOR_VALUES = {
       "toggle-background": "186.67 52.94% 96.67%",
       destructive: "358.09 75.12% 59.02%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "186.82 70.97% 87.84%",
       "gradient-primary": "188.11 60.66% 76.08%",
       "gradient-secondary": "184.44 69.23% 92.35%",
       "modal-gradient-from": "184.44 69.23% 92.35%",
       "modal-gradient-to": "186.82 70.97% 87.84%",
-      "mobile-header-gradient-from": "186.82 70.97% 87.84%",
-      "mobile-header-gradient-to": "186.82 70.97% 87.84%",
-      "header-footer-gradient-from": "184.44 69.23% 92.35%",
-      "header-footer-gradient-to": "186.82 70.97% 87.84%",
     },
     dark: {
       background: "198.75 33.33% 9.41%",
       foreground: "190.15 80.25% 82.12%",
       gray: "218.57 6.25% 43.92%", // slate 9
-      muted: "198.75 33.33% 9.41%",
       border: "189.04 60.33% 52.55%",
       ring: "192.09 80.35% 33.92%",
       modal: "193.33 100.00% 14.12%",
@@ -614,14 +573,11 @@ const COLOR_VALUES = {
       "toggle-background": "195.00 66.67% 98.82%",
       destructive: "358.09 75.12% 59.02%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "198.75 33.33% 9.41%",
       "gradient-primary": "193.33 100.00% 14.12%",
       "gradient-secondary": "196.00 40.54% 7.25%",
       "modal-gradient-from": "196.00 40.54% 7.25%",
       "modal-gradient-to": "198.75 33.33% 9.41%",
-      "mobile-header-gradient-from": "196.00 40.54% 7.25%",
-      "mobile-header-gradient-to": "198.75 33.33% 9.41%",
-      "header-footer-gradient-from": "196.00 40.54% 7.25%",
-      "header-footer-gradient-to": "198.75 33.33% 9.41%",
     },
   },
   azure: {
@@ -629,7 +585,6 @@ const COLOR_VALUES = {
       background: "207.27 100.00% 97.84%",
       foreground: "216.14 70.94% 26.94%",
       gray: "218.57 6.25% 43.92%", // slate 9
-      muted: "202.86 100.00% 91.76%",
       border: "205.66 81.92% 65.29%",
       ring: "211.01 65.07% 44.90%",
       primary: "206.12 100.00% 50.00%",
@@ -644,20 +599,16 @@ const COLOR_VALUES = {
       "toggle-background": "207.27 100.00% 97.84%",
       destructive: "358.09 75.12% 59.02%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "202.86 100.00% 91.76%",
       "gradient-primary": "207.00 93.02% 83.14%",
       "gradient-secondary": "205.00 92.31% 94.90%",
       "modal-gradient-from": "205.00 92.31% 94.90%",
       "modal-gradient-to": "202.86 100.00% 91.76%",
-      "mobile-header-gradient-from": "202.86 100.00% 91.76%",
-      "mobile-header-gradient-to": "202.86 100.00% 91.76%",
-      "header-footer-gradient-from": "205.00 92.31% 94.90%",
-      "header-footer-gradient-to": "202.86 100.00% 91.76%",
     },
     dark: {
       background: "218.18 39.29% 10.98%",
       foreground: "204.59 100.00% 86.04%",
       gray: "218.57 6.25% 43.92%", // slate 9
-      muted: "218.18 39.29% 10.98%",
       border: "205.66 81.92% 65.29%",
       ring: "211.01 65.07% 44.90%",
       modal: "208.78 100.00% 19.22%",
@@ -673,14 +624,11 @@ const COLOR_VALUES = {
       "toggle-background": "210.00 100.00% 99.22%",
       destructive: "358.09 75.12% 59.02%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "218.18 39.29% 10.98%",
       "gradient-primary": "208.78 100.00% 19.22%",
       "gradient-secondary": "214.74 42.22% 8.82%",
       "modal-gradient-from": "214.74 42.22% 8.82%",
       "modal-gradient-to": "218.18 39.29% 10.98%",
-      "mobile-header-gradient-from": "214.74 42.22% 8.82%",
-      "mobile-header-gradient-to": "218.18 39.29% 10.98%",
-      "header-footer-gradient-from": "214.74 42.22% 8.82%",
-      "header-footer-gradient-to": "218.18 39.29% 10.98%",
     },
   },
   amethyst: {
@@ -688,7 +636,6 @@ const COLOR_VALUES = {
       background: "274.29 77.78% 98.24%",
       foreground: "270.00 50.00% 32.10%",
       gray: "250.91 4.8% 44.9%", // mauve 9
-      muted: "276.92 81.25% 93.73%",
       border: "271.85 60.00% 73.53%",
       ring: "272.53 32.81% 50.39%",
       primary: "272.00 51.28% 54.12%",
@@ -703,20 +650,16 @@ const COLOR_VALUES = {
       "toggle-background": "274.29 77.78% 98.24%",
       destructive: "358.09 75.12% 59.02%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "276.92 81.25% 93.73%",
       "gradient-primary": "275.00 68.57% 86.27%",
       "gradient-secondary": "275.29 89.47% 96.27%",
       "modal-gradient-from": "275.29 89.47% 96.27%",
       "modal-gradient-to": "276.92 81.25% 93.73%",
-      "mobile-header-gradient-from": "276.92 81.25% 93.73%",
-      "mobile-header-gradient-to": "276.92 81.25% 93.73%",
-      "header-footer-gradient-from": "275.29 89.47% 96.27%",
-      "header-footer-gradient-to": "276.92 81.25% 93.73%",
     },
     dark: {
       background: "278.57 25.00% 10.98%",
       foreground: "274.55 76.74% 89.57%",
       gray: "250.91 4.8% 44.9%", // mauve 9
-      muted: "278.57 25.00% 10.98%",
       border: "271.85 60.00% 73.53%",
       ring: "272.53 32.81% 50.39%",
       modal: "276.82 39.29% 21.96%",
@@ -732,14 +675,11 @@ const COLOR_VALUES = {
       "toggle-background": "300.00 50.00% 99.22%",
       destructive: "358.09 75.12% 59.02%",
       "destructive-foreground": "0 100% 99.41%",
+      header: "278.57 25.00% 10.98%",
       "gradient-primary": "276.82 39.29% 21.96%",
       "gradient-secondary": "282.00 22.73% 8.63%",
       "modal-gradient-from": "282.00 22.73% 8.63%",
       "modal-gradient-to": "278.57 25.00% 10.98%",
-      "mobile-header-gradient-from": "282.00 22.73% 8.63%",
-      "mobile-header-gradient-to": "278.57 25.00% 10.98%",
-      "header-footer-gradient-from": "282.00 22.73% 8.63%",
-      "header-footer-gradient-to": "278.57 25.00% 10.98%",
     },
   },
 } as const satisfies ColorValues;

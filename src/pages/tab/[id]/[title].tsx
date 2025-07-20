@@ -132,7 +132,7 @@ export async function getStaticPaths() {
 
 function TabNotFound() {
   return (
-    <div className="baseVertFlex my-auto w-10/12 gap-4 rounded-md border bg-muted p-4 shadow-lg md:w-[500px]">
+    <div className="baseVertFlex my-auto w-10/12 gap-4 rounded-md border bg-background p-4 shadow-lg md:w-[500px]">
       <div className="baseFlex gap-3 sm:gap-4">
         <div className="baseVertFlex gap-2">
           <Binoculars className="size-6 sm:size-9" />

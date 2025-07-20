@@ -175,7 +175,7 @@ function SectionProgressionModal() {
 
             <div className="baseFlex mt-8 w-full !justify-between gap-4">
               <Button
-                variant={"secondary"}
+                variant={"outline"}
                 className="baseFlex gap-2 py-4"
                 onClick={addNewSectionToProgression}
               >

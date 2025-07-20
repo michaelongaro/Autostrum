@@ -1521,7 +1521,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               ref={tabPreviewScreenshotLightRef}
               id="tabPreviewScreenshotLight"
               style={{
-                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["light" as "light" | "dark"]["screenshot-muted"]})`,
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["light" as "light" | "dark"]["screenshot-background"]})`,
               }}
               className="baseFlex h-[615px] w-[1318px] grayscale"
             >
@@ -1536,7 +1536,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               ref={tabPreviewScreenshotDarkRef}
               id="tabPreviewScreenshotDark"
               style={{
-                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["dark" as "light" | "dark"]["screenshot-muted"]})`,
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["dark" as "light" | "dark"]["screenshot-background"]})`,
               }}
               className="baseFlex h-[615px] w-[1318px] grayscale"
             >

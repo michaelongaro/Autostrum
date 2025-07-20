@@ -17,7 +17,7 @@ function Render404Page({ layoutType }: Render404Page) {
       transition={{ duration: 0.25 }}
       className={`baseVertFlex size-full ${layoutType === "grid" ? "min-h-[calc(100dvh-4rem-6rem-56px-60px)] md:min-h-[calc(100dvh-4rem-12rem-56px-60px)]" : "min-h-[calc(100dvh-4rem-6rem-56px-60px-45px)] md:min-h-[calc(100dvh-4rem-12rem-56px-60px-45px)]"}`}
     >
-      <div className="baseVertFlex gap-2 rounded-md border bg-muted px-8 py-4 shadow-lg">
+      <div className="baseVertFlex gap-2 rounded-md border bg-background px-8 py-4 shadow-lg">
         <div className="baseFlex gap-4 text-2xl font-bold">
           <div className="baseFlex gap-2">
             <BiErrorCircle className="h-8 w-8" /> Search error
