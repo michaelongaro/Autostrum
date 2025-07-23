@@ -285,20 +285,20 @@ function EditImage({
                 localCroppedAreaPixels ? localCroppedAreaPixels.height : 0,
               )}{" "}
               px
-              <AnimatePresence>
-                {Math.round(
-                  localCroppedAreaPixels ? localCroppedAreaPixels.width : 0,
-                ) < 500 && (
-                  <motion.span
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.25 }}
-                  >
-                    {"≥"} 500px dimensions are preferred.
-                  </motion.span>
-                )}
-              </AnimatePresence>
             </div>
+            <AnimatePresence>
+              {Math.round(
+                localCroppedAreaPixels ? localCroppedAreaPixels.width : 0,
+              ) < 500 && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  {"≥"} 500px dimensions are preferred.
+                </motion.span>
+              )}
+            </AnimatePresence>
           </div>
 
           <div
