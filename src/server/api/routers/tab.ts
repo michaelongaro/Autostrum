@@ -239,6 +239,7 @@ export const tabRouter = createTRPCRouter({
       // make sure that the IP address is not already in the DailyTabView model for this tab
       const existingView = await ctx.prisma.dailyTabView.findUnique({
         where: {
+          tabId,
           userIpAddress: ipAddress,
         },
       });
