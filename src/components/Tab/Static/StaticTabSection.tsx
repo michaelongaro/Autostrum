@@ -67,7 +67,7 @@ function StaticTabSection({ subSectionData, color, theme }: StaticTabSection) {
                 columnIndex={index}
                 color={color}
                 theme={theme}
-                isFinalColumn={index === subSectionData.data.length - 1}
+                isLastColumn={index === subSectionData.data.length - 1}
               />
             )}
           </Fragment>

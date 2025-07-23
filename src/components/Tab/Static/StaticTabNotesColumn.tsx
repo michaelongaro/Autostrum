@@ -10,7 +10,7 @@ import type { COLORS, THEME } from "~/stores/TabStore";
 interface StaticTabNotesColumn {
   columnData: string[];
   columnIndex: number;
-  isFinalColumn: boolean;
+  isLastColumn: boolean;
   color: COLORS;
   theme: THEME;
 }
@@ -18,7 +18,7 @@ interface StaticTabNotesColumn {
 function StaticTabNotesColumn({
   columnData,
   columnIndex,
-  isFinalColumn,
+  isLastColumn,
   color,
   theme,
 }: StaticTabNotesColumn) {
@@ -206,7 +206,7 @@ function StaticTabNotesColumn({
         ))}
       </div>
 
-      {isFinalColumn && (
+      {isLastColumn && (
         <div
           style={{
             borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,

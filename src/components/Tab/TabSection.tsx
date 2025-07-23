@@ -1058,7 +1058,7 @@ function TabSection({
                     subSectionIndex={subSectionIndex}
                     columnIndex={index}
                     columnData={column}
-                    isFinalColumn={index === subSectionData.data.length - 1}
+                    isLastColumn={index === subSectionData.data.length - 1}
                     columnIsBeingPlayed={columnIsBeingPlayed(index)}
                     columnHasBeenPlayed={columnHasBeenPlayed(index)}
                     durationOfChord={getDurationOfCurrentChord()}

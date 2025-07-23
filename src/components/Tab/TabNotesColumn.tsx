@@ -38,7 +38,7 @@ interface TabNotesColumn {
   sectionIndex: number;
   subSectionIndex: number;
   columnIndex: number;
-  isFinalColumn: boolean;
+  isLastColumn: boolean;
 
   columnIsBeingPlayed: boolean;
   columnHasBeenPlayed: boolean;
@@ -62,7 +62,7 @@ function TabNotesColumn({
   sectionIndex,
   subSectionIndex,
   columnIndex,
-  isFinalColumn,
+  isLastColumn,
 
   columnIsBeingPlayed,
   columnHasBeenPlayed,
@@ -299,10 +299,10 @@ function TabNotesColumn({
           style={{
             marginTop:
               reorderingColumns || showingDeleteColumnsButtons ? "8px" : "0",
-            backgroundColor: "hsl(var(--primary) / 0.75)",
+            backgroundColor: "hsl(var(--primary) / 0.25)",
             transform:
               highlightChord || columnHasBeenPlayed
-                ? `scaleX(${isFinalColumn ? "0.8" : "1"})` // makes sure that "endcap" doesn't get highlighted as well
+                ? `scaleX(${isLastColumn ? "0.8" : "1"})` // makes sure that "endcap" doesn't get highlighted as well
                 : "scaleX(0)",
             transformOrigin: "left center",
             transitionDuration: highlightChord ? `${durationOfChord}s` : "0s",
@@ -347,7 +347,7 @@ function TabNotesColumn({
                             ? "32px"
                             : "40px",
                       }}
-                      className={`absolute ${isFinalColumn ? "right-7" : ""} `}
+                      className={`absolute ${isLastColumn ? "right-7" : ""} `}
                     >
                       <DropdownMenu
                         modal={true}
@@ -464,7 +464,7 @@ function TabNotesColumn({
                           ? "-1.5rem"
                           : "-1rem",
                     }}
-                    className={`baseVertFlex absolute ${isFinalColumn ? "left-[42%]" : "left-[53%]"} right-1/2 w-[1.5rem] -translate-x-1/2`}
+                    className={`baseVertFlex absolute ${isLastColumn ? "left-[42%]" : "left-[53%]"} right-1/2 w-[1.5rem] -translate-x-1/2`}
                   >
                     {getDynamicNoteLengthIcon({
                       noteLength: columnData[8],
@@ -478,7 +478,7 @@ function TabNotesColumn({
           ))}
         </div>
 
-        {isFinalColumn && (
+        {isLastColumn && (
           <div
             className={`${reorderingColumns || showingDeleteColumnsButtons ? "mt-2" : ""} h-[280px] rounded-r-2xl border-2 border-foreground p-1`}
           ></div>
@@ -492,7 +492,10 @@ function TabNotesColumn({
             ref={setActivatorNodeRef}
             {...attributes}
             {...listeners}
-            className={`hover:box-shadow-md absolute bottom-4 left-1/2 right-1/2 w-[1.5rem] -translate-x-1/2 cursor-grab rounded-md text-foreground ${
+            style={{
+              left: isLastColumn ? "40%" : "50%",
+            }}
+            className={`hover:box-shadow-md absolute bottom-4 w-[1.5rem] -translate-x-1/2 cursor-grab rounded-md text-foreground ${
               isDragging ? "cursor-grabbing" : "cursor-grab"
             }`}
             onMouseEnter={() => setHoveringOnHandle(true)}
@@ -523,7 +526,10 @@ function TabNotesColumn({
             variant={"destructive"}
             size="sm"
             disabled={deleteColumnButtonDisabled()}
-            className="absolute bottom-4 left-1/2 right-1/2 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
+            style={{
+              left: isLastColumn ? "40%" : "50%",
+            }}
+            className="absolute bottom-4 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
             onClick={handleDeleteChord}
           >
             <IoClose className="h-6 w-6" />
