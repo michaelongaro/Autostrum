@@ -405,7 +405,7 @@ function SearchResults({
       : localFilters.sortBy === "newest";
 
     return (
-      disableFiltersAndLayoutToggle ??
+      disableFiltersAndLayoutToggle ||
       (localFilters.genre === undefined &&
         localFilters.tuning === undefined &&
         localFilters.capo === undefined &&
@@ -416,7 +416,7 @@ function SearchResults({
 
   function disableApplyFiltersButton() {
     return (
-      disableFiltersAndLayoutToggle ??
+      disableFiltersAndLayoutToggle ||
       (localFilters.genre === genre &&
         localFilters.tuning === tuning &&
         localFilters.capo === capo &&
@@ -988,15 +988,19 @@ function SearchResults({
                                     <div className="baseFlex gap-2">
                                       <div
                                         style={{
-                                          backgroundColor: genre
-                                            ? genreColors.get(genre)
+                                          backgroundColor: localFilters.genre
+                                            ? genreColors.get(
+                                                localFilters.genre,
+                                              )
                                             : "gray",
                                           boxShadow:
                                             "0 1px 1px hsla(336, 84%, 17%, 0.9)",
                                         }}
                                         className="h-3 w-3 rounded-full"
                                       ></div>
-                                      {genre ? genre : "All genres"}
+                                      {localFilters.genre
+                                        ? localFilters.genre
+                                        : "All genres"}
                                     </div>
                                   </div>
 
@@ -1014,12 +1018,12 @@ function SearchResults({
                                       Tuning
                                     </span>
                                     <div className="baseFlex gap-2">
-                                      {tuning ? (
-                                        tuning === "custom" ? (
+                                      {localFilters.tuning ? (
+                                        localFilters.tuning === "custom" ? (
                                           "Custom"
                                         ) : (
                                           <PrettyTuning
-                                            tuning={tuning}
+                                            tuning={localFilters.tuning}
                                             displayWithFlex={true}
                                           />
                                         )
@@ -1043,9 +1047,9 @@ function SearchResults({
                                       Capo
                                     </span>
                                     <div className="baseFlex gap-2">
-                                      {capo === true
+                                      {localFilters.capo === true
                                         ? "With capo"
-                                        : capo === false
+                                        : localFilters.capo === false
                                           ? "Without capo"
                                           : "Capo + Non-capo"}
                                     </div>
@@ -1065,12 +1069,18 @@ function SearchResults({
                                       Difficulty
                                     </span>
                                     <div className="baseFlex gap-2">
-                                      {difficulty ? (
+                                      {localFilters.difficulty ? (
                                         <div className="baseFlex gap-2">
                                           <DifficultyBars
-                                            difficulty={difficulty ?? 5}
+                                            difficulty={
+                                              localFilters.difficulty ?? 5
+                                            }
                                           />
-                                          {DIFFICULTIES[(difficulty ?? 5) - 1]}
+                                          {
+                                            DIFFICULTIES[
+                                              (localFilters.difficulty ?? 5) - 1
+                                            ]
+                                          }
                                         </div>
                                       ) : (
                                         "All difficulties"
@@ -1092,15 +1102,18 @@ function SearchResults({
                                       Sort by
                                     </span>
                                     <div className="baseFlex gap-2">
-                                      {sortBy === "relevance" && searchQuery
+                                      {localFilters.sortBy === "relevance" &&
+                                      searchQuery
                                         ? "Relevance"
-                                        : sortBy === "newest"
+                                        : localFilters.sortBy === "newest"
                                           ? "Newest"
-                                          : sortBy === "oldest"
+                                          : localFilters.sortBy === "oldest"
                                             ? "Oldest"
-                                            : sortBy === "mostPopular"
+                                            : localFilters.sortBy ===
+                                                "mostPopular"
                                               ? "Most popular"
-                                              : sortBy === "leastPopular"
+                                              : localFilters.sortBy ===
+                                                  "leastPopular"
                                                 ? "Least popular"
                                                 : ""}
                                     </div>
@@ -1145,7 +1158,7 @@ function SearchResults({
                                     All genres
                                   </div>
 
-                                  {genre === undefined && (
+                                  {localFilters.genre === undefined && (
                                     <Check className="size-4" />
                                   )}
                                 </Button>
@@ -1178,7 +1191,7 @@ function SearchResults({
                                           {name}
                                         </div>
 
-                                        {genre === name && (
+                                        {localFilters.genre === name && (
                                           <Check className="size-4" />
                                         )}
                                       </Button>
@@ -1214,7 +1227,7 @@ function SearchResults({
                                     All tunings
                                   </div>
 
-                                  {tuning === undefined && (
+                                  {localFilters.tuning === undefined && (
                                     <Check className="size-4" />
                                   )}
                                 </Button>
@@ -1242,7 +1255,8 @@ function SearchResults({
                                       />
                                     </div>
 
-                                    {tuning === tuningObj.notes && (
+                                    {localFilters.tuning ===
+                                      tuningObj.notes.toLowerCase() && (
                                       <Check className="size-4" />
                                     )}
                                   </Button>
@@ -1261,7 +1275,7 @@ function SearchResults({
                                 >
                                   <div className="baseFlex gap-2">Custom</div>
 
-                                  {tuning === "custom" && (
+                                  {localFilters.tuning === "custom" && (
                                     <Check className="size-4" />
                                   )}
                                 </Button>
@@ -1294,7 +1308,7 @@ function SearchResults({
                                     Capo + Non-capo
                                   </div>
 
-                                  {capo === undefined && (
+                                  {localFilters.capo === undefined && (
                                     <Check className="size-4" />
                                   )}
                                 </Button>
@@ -1314,7 +1328,7 @@ function SearchResults({
                                     With capo
                                   </div>
 
-                                  {capo === true && (
+                                  {localFilters.capo === true && (
                                     <Check className="size-4" />
                                   )}
                                 </Button>
@@ -1334,7 +1348,7 @@ function SearchResults({
                                     Without capo
                                   </div>
 
-                                  {capo === false && (
+                                  {localFilters.capo === false && (
                                     <Check className="size-4" />
                                   )}
                                 </Button>
@@ -1367,7 +1381,7 @@ function SearchResults({
                                     All difficulties
                                   </div>
 
-                                  {difficulty === undefined && (
+                                  {localFilters.difficulty === undefined && (
                                     <Check className="size-4" />
                                   )}
                                 </Button>
@@ -1400,7 +1414,8 @@ function SearchResults({
                                         </p>
                                       </div>
 
-                                      {difficulty === index + 1 && (
+                                      {localFilters.difficulty ===
+                                        index + 1 && (
                                         <Check className="size-4" />
                                       )}
                                     </Button>
@@ -1439,7 +1454,7 @@ function SearchResults({
                                     Relevance
                                   </div>
 
-                                  {sortBy === "relevance" && (
+                                  {localFilters.sortBy === "relevance" && (
                                     <Check className="size-4" />
                                   )}
                                 </Button>
@@ -1461,7 +1476,7 @@ function SearchResults({
                                 >
                                   <div className="baseFlex gap-2">Newest</div>
 
-                                  {sortBy === "newest" && (
+                                  {localFilters.sortBy === "newest" && (
                                     <Check className="size-4" />
                                   )}
                                 </Button>
@@ -1483,7 +1498,7 @@ function SearchResults({
                                 >
                                   <div className="baseFlex gap-2">Oldest</div>
 
-                                  {sortBy === "oldest" && (
+                                  {localFilters.sortBy === "oldest" && (
                                     <Check className="size-4" />
                                   )}
                                 </Button>
@@ -1507,7 +1522,7 @@ function SearchResults({
                                     Most popular
                                   </div>
 
-                                  {sortBy === "mostPopular" && (
+                                  {localFilters.sortBy === "mostPopular" && (
                                     <Check className="size-4" />
                                   )}
                                 </Button>
@@ -1531,7 +1546,7 @@ function SearchResults({
                                     Least popular
                                   </div>
 
-                                  {sortBy === "leastPopular" && (
+                                  {localFilters.sortBy === "leastPopular" && (
                                     <Check className="size-4" />
                                   )}
                                 </Button>
