@@ -13,7 +13,6 @@ import {
 import { resetTabSliderPosition } from "~/utils/tabSliderHelpers";
 import { parse } from "~/utils/tunings";
 import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
-import { isMobileOnly } from "react-device-detect";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
@@ -820,27 +819,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           visiblePlaybackContainerWidth,
           setPlaybackMetadata,
           loopDelay,
-          setAudioContext,
-          setMasterVolumeGainNode,
         } = get();
-
-        if (!audioContext || !masterVolumeGainNode || !currentInstrument) {
-          const newAudioContext = new AudioContext();
-          void newAudioContext.resume(); // Resume the context to ensure it is active (iOS safari requirement)
-
-          const newMasterVolumeGainNode = newAudioContext.createGain();
-
-          if (isMobileOnly) {
-            // mobile doesn't get access to a volume slider (users expect to use device's volume directly) so initializing at full volume.
-            newMasterVolumeGainNode.gain.value = 2;
-            localStorage.setItem("autostrum-volume", "2");
-          }
-
-          newMasterVolumeGainNode.connect(newAudioContext.destination);
-
-          setAudioContext(newAudioContext);
-          setMasterVolumeGainNode(newMasterVolumeGainNode);
-        }
 
         if (!audioContext || !masterVolumeGainNode) return;
 

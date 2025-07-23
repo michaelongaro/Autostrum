@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import Soundfont from "soundfont-player";
+import Soundfont, { type InstrumentName } from "soundfont-player";
 import { useTabStore } from "~/stores/TabStore";
 import { isIOS, isSafari, isMobileOnly } from "react-device-detect";
 
@@ -29,8 +29,47 @@ export function useInitializeAudioContext() {
     setCountInBuffer: state.setCountInBuffer,
   }));
 
-  // TODO: this is maybe slightly redundant w/ useFetchAndLoadSoundfonts.ts
+  // FYI: this is maybe slightly redundant w/ useFetchAndLoadSoundfonts.ts
   // but we absolutely need to fetch the instrument as soon as AudioContext is available
+
+  // Helper function to load soundfont with fallback
+  const loadSoundfontWithFallback = async (
+    audioContext: AudioContext,
+    instrumentName: InstrumentName,
+    destination: GainNode,
+    format: string,
+  ) => {
+    try {
+      // Try external CDN first
+      return await Soundfont.instrument(audioContext, instrumentName, {
+        soundfont: "MusyngKite",
+        format: format,
+        destination: destination,
+      });
+    } catch (error) {
+      console.warn(
+        `CDN failed for ${instrumentName}, trying local files...`,
+        error,
+      );
+      try {
+        // Fallback to local files
+        return await Soundfont.instrument(audioContext, instrumentName, {
+          soundfont: "MusyngKite",
+          format: format,
+          destination: destination,
+          nameToUrl: (name: string, soundfont: string, format: string) => {
+            return `/sounds/instruments/${name}-${format}.js`;
+          },
+        });
+      } catch (localError) {
+        console.error(
+          `Both CDN and local loading failed for ${instrumentName}:`,
+          localError,
+        );
+        throw localError;
+      }
+    }
+  };
 
   useEffect(() => {
     if (audioContext && masterVolumeGainNode) return;
@@ -60,27 +99,30 @@ export function useInitializeAudioContext() {
         return;
       }
 
-      setCurrentInstrument(null);
+      // If not in cache, fetch it with fallback
+      const format = isSafari || isIOS ? "mp3" : "ogg"; // safari doesn't support .ogg files
 
-      // If not in cache, fetch it
-      setTimeout(
-        () => {
-          void Soundfont.instrument(newAudioContext, currentInstrumentName, {
-            soundfont: "MusyngKite",
-            format: isSafari || isIOS ? "mp3" : "ogg", // safari doesn't support .ogg files
-            destination: masterVolumeGainNode,
-          }).then((player) => {
-            // Update the cache
-            const updatedInstruments = {
-              ...instruments,
-              [currentInstrumentName]: player,
-            };
-            setInstruments(updatedInstruments);
-            setCurrentInstrument(player);
-          });
-        },
-        currentInstrument ? 0 : 3000, // want to reduce inital fetching of instrument when app loads
-      );
+      void loadSoundfontWithFallback(
+        newAudioContext,
+        currentInstrumentName,
+        newMasterVolumeGainNode,
+        format,
+      )
+        .then((player) => {
+          // Update the cache
+          const updatedInstruments = {
+            ...instruments,
+            [currentInstrumentName]: player,
+          };
+          setInstruments(updatedInstruments);
+          setCurrentInstrument(player);
+        })
+        .catch((error) => {
+          console.error(
+            `Failed to load ${currentInstrumentName} from both sources:`,
+            error,
+          );
+        });
 
       async function fetchAudioFile(path: string) {
         const response = await fetch(path);
