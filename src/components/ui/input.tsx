@@ -49,7 +49,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         spellCheck="false"
         style={{
           ...(showingErrorShakeAnimation && {
-            boxShadow: "0 0 0 0.25rem hsl(0deg 100% 50%)",
+            boxShadow: "0 0 0 0.25rem hsl(var(--destructive))",
             transitionProperty: "box-shadow",
             transitionDuration: "500ms",
             transitionTimingFunction: "ease-in-out",

@@ -731,7 +731,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   style={{
                     boxShadow:
                       showPulsingError && genre === ""
-                        ? "0 0 0 0.25rem hsl(0deg 100% 50%)"
+                        ? "0 0 0 0.25rem hsl(var(--destructive))"
                         : "",
                     transitionProperty:
                       showPulsingError && genre === "" ? "box-shadow" : "",
