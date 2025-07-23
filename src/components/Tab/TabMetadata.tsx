@@ -32,7 +32,7 @@ import {
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore, type Section, type COLORS } from "~/stores/TabStore";
 import { api } from "~/utils/api";
-import { genreList } from "~/utils/genreList";
+import { genreColors } from "~/utils/genreColors";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import { tuningNotesToName } from "~/utils/tunings";
 import ArtistCombobox from "~/components/ui/ArtistCombobox";
@@ -747,7 +747,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   <SelectValue placeholder="Select a genre" />
                 </SelectTrigger>
                 <SelectContent>
-                  {[...genreList.entries()].map(([name, color]) => {
+                  {[...genreColors.entries()].map(([name, color]) => {
                     return (
                       <SelectItem key={name} value={name}>
                         <div className="baseFlex gap-2">
@@ -1367,12 +1367,12 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 <div className="font-semibold">Genre</div>
                 <Badge
                   style={{
-                    backgroundColor: genreList
+                    backgroundColor: genreColors
                       .get(genre)
-                      ?.replace(/\)$/, " / 0.07)"),
-                    borderColor: genreList.get(genre),
+                      ?.replace(/\)$/, " / 0.1)"),
+                    borderColor: genreColors.get(genre),
                     border: "1px solid",
-                    color: genreList.get(genre),
+                    color: genreColors.get(genre),
                   }}
                   className="px-4 py-2.5"
                 >

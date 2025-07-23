@@ -7,7 +7,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { FaArrowLeft } from "react-icons/fa6";
 import { api } from "~/utils/api";
-import { genreList, genreLightList } from "~/utils/genreList";
+import { genreColors } from "~/utils/genreColors";
 import { Badge } from "~/components/ui/badge";
 import { IoIosMusicalNotes } from "react-icons/io";
 import { AiOutlineUser } from "react-icons/ai";
@@ -427,12 +427,14 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                     </span>
                                     <Badge
                                       style={{
-                                        backgroundColor: genreLightList
+                                        backgroundColor: genreColors
                                           .get(song.genre)
-                                          ?.replace(/\)$/, " / 0.75)"),
-                                        borderColor: genreList.get(song.genre),
+                                          ?.replace(/\)$/, " / 0.1)"),
+                                        borderColor: genreColors.get(
+                                          song.genre,
+                                        ),
                                         border: "1px solid",
-                                        color: genreList.get(song.genre),
+                                        color: genreColors.get(song.genre),
                                       }}
                                     >
                                       {song.genre}
@@ -622,12 +624,12 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   </span>
                                   <Badge
                                     style={{
-                                      backgroundColor: genreLightList
+                                      backgroundColor: genreColors
                                         .get(song.genre)
-                                        ?.replace(/\)$/, " / 0.75)"),
-                                      borderColor: genreList.get(song.genre),
+                                        ?.replace(/\)$/, " / 0.1)"),
+                                      borderColor: genreColors.get(song.genre),
                                       border: "1px solid",
-                                      color: genreList.get(song.genre),
+                                      color: genreColors.get(song.genre),
                                     }}
                                   >
                                     {song.genre}

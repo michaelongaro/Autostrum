@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { api } from "~/utils/api";
 import { formatNumber } from "~/utils/formatNumber";
-import { genreList } from "~/utils/genreList";
+import { genreColors } from "~/utils/genreColors";
 
 import rockImage from "public/genreThumbnails/rock.webp";
 import indieImage from "public/genreThumbnails/indie.webp";
@@ -50,7 +50,7 @@ function GenreCards() {
 
   return (
     <>
-      {[...genreList.entries()].map(([genre, color]) => (
+      {[...genreColors.entries()].map(([genre, color]) => (
         <GenreCard
           key={genre}
           name={genre}

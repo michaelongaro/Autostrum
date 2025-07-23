@@ -43,7 +43,7 @@ import {
 import { Separator } from "~/components/ui/separator";
 import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
 import { useTabStore } from "~/stores/TabStore";
-import { genreList } from "~/utils/genreList";
+import { genreColors } from "~/utils/genreColors";
 import { tunings } from "~/utils/tunings";
 import GridTabView from "./GridTabView";
 import TableTabView from "./TableTabView";
@@ -458,7 +458,7 @@ function SearchResults({
                   <div
                     style={{
                       backgroundColor: "gray", // TODO: make this a circular gradient rainbow of all
-                      // the colors in genreList
+                      // the colors in genreColors
                       boxShadow: "0 1px 1px hsla(336, 84%, 17%, 0.9)",
                     }}
                     className="h-3 w-3 rounded-full"
@@ -469,7 +469,7 @@ function SearchResults({
 
               <Separator className="my-1 w-full bg-primary" />
 
-              {[...genreList.entries()].map(([name, color]) => {
+              {[...genreColors.entries()].map(([name, color]) => {
                 return (
                   <SelectItem key={name} value={name}>
                     <div className="baseFlex gap-2">
@@ -989,7 +989,7 @@ function SearchResults({
                                       <div
                                         style={{
                                           backgroundColor: genre
-                                            ? genreList.get(genre)
+                                            ? genreColors.get(genre)
                                             : "gray",
                                           boxShadow:
                                             "0 1px 1px hsla(336, 84%, 17%, 0.9)",
@@ -1150,7 +1150,7 @@ function SearchResults({
                                   )}
                                 </Button>
 
-                                {[...genreList.entries()].map(
+                                {[...genreColors.entries()].map(
                                   ([name, color]) => {
                                     return (
                                       <Button
