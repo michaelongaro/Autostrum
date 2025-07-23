@@ -93,7 +93,7 @@ function Chords() {
       style={{
         minWidth: aboveMediumViewportWidth ? "500px" : "300px",
       }}
-      className="baseVertFlex relative w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary p-2 text-secondary-foreground !shadow-primaryButton transition-all hover:bg-secondary-hover hover:text-secondary-foreground md:p-4"
+      className="baseVertFlex relative w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton transition-all hover:bg-secondary-hover hover:text-secondary-foreground"
     >
       <Accordion
         type="single"
@@ -105,11 +105,11 @@ function Chords() {
         className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 xs:px-0"
       >
         <AccordionItem value="opened" className="w-full">
-          <AccordionTrigger>
+          <AccordionTrigger className="p-2 md:p-4">
             <span className="text-lg font-bold">Chords</span>
           </AccordionTrigger>
           <AccordionContent className="w-full">
-            <div className="baseVertFlex w-full !items-start gap-4">
+            <div className="baseVertFlex w-full !items-start gap-4 p-2 !pt-0 md:p-4">
               <div
                 className={`baseFlex flex-wrap !justify-start gap-4 ${chords.length > 0 ? "mt-4" : ""}`}
               >

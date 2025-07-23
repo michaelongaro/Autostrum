@@ -132,7 +132,7 @@ function StrummingPatterns() {
       style={{
         minWidth: aboveMediumViewportWidth ? "500px" : "300px",
       }}
-      className="baseVertFlex relative w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary p-2 text-secondary-foreground !shadow-primaryButton transition-all hover:bg-secondary-hover hover:text-secondary-foreground md:p-4"
+      className="baseVertFlex relative w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton transition-all hover:bg-secondary-hover hover:text-secondary-foreground"
     >
       <Accordion
         type="single"
@@ -144,12 +144,12 @@ function StrummingPatterns() {
         className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 xs:px-0"
       >
         <AccordionItem value="opened" className="w-full">
-          <AccordionTrigger className="w-full">
+          <AccordionTrigger className="w-full p-2 md:p-4">
             <span className="text-lg font-bold">Strumming patterns</span>
           </AccordionTrigger>
           <AccordionContent>
             <div
-              className={`baseFlex !justify-start ${
+              className={`baseFlex !justify-start p-2 !pt-0 md:p-4 ${
                 // just to get around inherent flexbox space that is taken up by children
                 // even when there is no dimensions to them
                 strummingPatterns.length > 0 ? "mt-4 gap-4" : "gap-0"
