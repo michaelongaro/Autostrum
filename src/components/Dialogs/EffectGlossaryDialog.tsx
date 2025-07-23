@@ -340,14 +340,14 @@ function EffectGlossaryDialog() {
                     <BsArrowUp className="size-4" />
                   </span>
                   <span className="col-span-1">-</span>
-                  <span className="col-span-3">Strum up</span>
+                  <span className="col-span-3">Upstrum</span>
                 </div>
                 <div className="grid w-full grid-cols-5 pl-1 text-sm">
                   <span className="col-span-1 -ml-1">
                     <BsArrowDown className="size-4" />
                   </span>
                   <span className="col-span-1">-</span>
-                  <span className="col-span-3">Strum down</span>
+                  <span className="col-span-3">Downstrum</span>
                 </div>
                 <div className="grid w-full grid-cols-5 pl-1 text-sm">
                   <span className="col-span-1">s</span>
