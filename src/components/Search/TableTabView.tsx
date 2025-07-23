@@ -17,6 +17,7 @@ import type { InfiniteQueryParams } from "~/server/api/routers/search";
 import { api } from "~/utils/api";
 import NoResultsFound from "./NoResultsFound";
 import TableTabRow from "./TableTabRow";
+import Spinner from "~/components/ui/Spinner";
 
 interface TableTabView {
   searchQuery?: string;
@@ -242,26 +243,7 @@ function TableTabView({
             // slide back up when it's really supposed to just fade out.
             transition={{ duration: 0.25 }}
           >
-            <svg
-              className={`animate-stableSpin rounded-full bg-inherit fill-none ${
-                tabResults ? "size-6" : "size-8"
-              }`}
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
+            <Spinner className={tabResults ? "size-6" : "size-8"} />
           </motion.div>
         )}
 

@@ -71,7 +71,6 @@ module.exports = {
       },
       boxShadow: {
         primaryButton: "0 1px 2px 0 rgb(0 0 0 / 0.25)",
-        lighterGlassmorphic: "0 2px 3px 0 rgb(0 0 0 / 0.18)",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -101,11 +100,6 @@ module.exports = {
           "60%": { translate: "-3px" },
           "80%": { translate: "4px" },
         },
-        colorOscillate: {
-          "0%": { color: "hsl(324, 77%, 95%)" },
-          "50%": { color: "hsla(324, 77%, 95%, 0.65)" },
-          "100%": { color: "hsl(324, 77%, 95%)" },
-        },
         stableSpin: {
           from: { transform: "rotate(0deg)" },
           to: { transform: "rotate(360deg)" },
@@ -116,7 +110,6 @@ module.exports = {
         "accordion-up": "accordion-up 0.25s ease-out",
         errorShake: "errorShake 0.5s ease-in-out forwards",
         smallErrorShake: "smallErrorShake 0.5s ease-in-out forwards",
-        colorOscillate: "colorOscillate 1.75s ease-in-out infinite",
         stableSpin: "stableSpin 1s linear infinite",
       },
     },

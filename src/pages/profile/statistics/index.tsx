@@ -30,6 +30,7 @@ import { useEffect, useState } from "react";
 import { Separator } from "~/components/ui/separator";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import Spinner from "~/components/ui/Spinner";
 
 function UserStatistics() {
   const { userId } = useAuth();
@@ -520,62 +521,48 @@ function UserStatistics() {
                     </TableBody>
                   </Table>
 
-                  {(!currentUser ||
-                    currentUser.totalTabs === 0 ||
-                    isFetchingCurrentUser) && (
-                    <motion.div
-                      key={"topFiveStatsPlaceholder"}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="baseVertFlex absolute left-0 top-8 h-[calc(100%-2rem)] w-full bg-black/65"
-                    >
-                      {/* <div className="absolute left-0 top-0 size-full blur-sm" /> */}
+                  <AnimatePresence mode="popLayout">
+                    {(!currentUser ||
+                      currentUser.totalTabs === 0 ||
+                      isFetchingCurrentUser) && (
+                      <motion.div
+                        key={"topFiveStatsPlaceholder"}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="baseVertFlex absolute left-0 top-8 h-[calc(100%-2rem)] w-full bg-black/65"
+                      >
+                        {!currentUser && (
+                          <motion.div
+                            key={"topFiveStatsSpinner"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.25 }}
+                          >
+                            <Spinner className="size-4 bg-transparent md:size-6" />
+                          </motion.div>
+                        )}
 
-                      {!currentUser && (
-                        <motion.svg
-                          key={"topFiveStatsSpinner"}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.25 }}
-                          className="size-4 animate-stableSpin rounded-full bg-transparent fill-none md:size-6"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </motion.svg>
-                      )}
-
-                      {currentUser && currentUser.totalTabs === 0 && (
-                        <motion.div
-                          key={"noTabsFound"}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.25 }}
-                          className="baseVertFlex absolute left-0 top-0 size-full gap-2"
-                        >
-                          <Binoculars className="size-8 text-foreground md:size-10" />
-                          <span className="text-xl font-semibold text-foreground md:text-2xl">
-                            No tabs found
-                          </span>
-                        </motion.div>
-                      )}
-                    </motion.div>
-                  )}
+                        {currentUser && currentUser.totalTabs === 0 && (
+                          <motion.div
+                            key={"noTabsFound"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="baseVertFlex absolute left-0 top-0 size-full gap-2"
+                          >
+                            <Binoculars className="size-8 text-foreground md:size-10" />
+                            <span className="text-xl font-semibold text-foreground md:text-2xl">
+                              No tabs found
+                            </span>
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <div className="baseFlex w-full gap-2">
@@ -722,60 +709,48 @@ function UserStatistics() {
                       </TableBody>
                     </Table>
 
-                    {(!currentUser ||
-                      currentUser.totalTabs === 0 ||
-                      isFetchingCurrentUser) && (
-                      <motion.div
-                        key={"miscStatsPlaceholder"}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className="baseVertFlex absolute left-0 top-0 size-full bg-black/65"
-                      >
-                        {!currentUser && (
-                          <motion.svg
-                            key={"miscStatsPlaceholderSpinner"}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.25 }}
-                            className="size-4 animate-stableSpin rounded-full bg-transparent fill-none md:size-6"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                          </motion.svg>
-                        )}
+                    <AnimatePresence mode="popLayout">
+                      {(!currentUser ||
+                        currentUser.totalTabs === 0 ||
+                        isFetchingCurrentUser) && (
+                        <motion.div
+                          key={"miscStatsPlaceholder"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="baseVertFlex absolute left-0 top-0 size-full bg-black/65"
+                        >
+                          {!currentUser && (
+                            <motion.div
+                              key={"miscStatsPlaceholderSpinner"}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.25 }}
+                            >
+                              <Spinner className="size-4 md:size-6" />
+                            </motion.div>
+                          )}
 
-                        {currentUser && currentUser.totalTabs === 0 && (
-                          <motion.div
-                            key={"miscStatsNoTabsFound"}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.25 }}
-                            className="baseVertFlex absolute left-0 top-0 size-full gap-2"
-                          >
-                            <Binoculars className="size-8 text-foreground md:size-10" />
-                            <span className="text-xl font-semibold text-foreground md:text-2xl">
-                              No tabs found
-                            </span>
-                          </motion.div>
-                        )}
-                      </motion.div>
-                    )}
+                          {currentUser && currentUser.totalTabs === 0 && (
+                            <motion.div
+                              key={"miscStatsNoTabsFound"}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.25 }}
+                              className="baseVertFlex absolute left-0 top-0 size-full gap-2"
+                            >
+                              <Binoculars className="size-8 text-foreground md:size-10" />
+                              <span className="text-xl font-semibold text-foreground md:text-2xl">
+                                No tabs found
+                              </span>
+                            </motion.div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </OverlayScrollbarsComponent>
 
