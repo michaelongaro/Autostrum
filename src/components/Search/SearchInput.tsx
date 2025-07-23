@@ -7,7 +7,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { FaArrowLeft } from "react-icons/fa6";
 import { api } from "~/utils/api";
-import { genreColors } from "~/utils/genreColors";
+import { genreColors, genreDarkColors } from "~/utils/genreColors";
 import { Badge } from "~/components/ui/badge";
 import { IoIosMusicalNotes } from "react-icons/io";
 import { AiOutlineUser } from "react-icons/ai";
@@ -24,8 +24,9 @@ interface SearchInput {
 function SearchInput({ setShowMobileSearch }: SearchInput) {
   const { push, query } = useRouter();
 
-  const { viewportLabel } = useTabStore((state) => ({
+  const { viewportLabel, theme } = useTabStore((state) => ({
     viewportLabel: state.viewportLabel,
+    theme: state.theme,
   }));
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -624,9 +625,14 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   </span>
                                   <Badge
                                     style={{
-                                      backgroundColor: genreColors
-                                        .get(song.genre)
-                                        ?.replace(/\)$/, " / 0.1)"),
+                                      backgroundColor:
+                                        theme === "light"
+                                          ? genreColors
+                                              .get(song.genre)
+                                              ?.replace(/\)$/, " / 0.1)")
+                                          : genreDarkColors
+                                              .get(song.genre)
+                                              ?.replace(/\)$/, " / 0.4)"),
                                       borderColor: genreColors.get(song.genre),
                                       border: "1px solid",
                                       color: genreColors.get(song.genre),

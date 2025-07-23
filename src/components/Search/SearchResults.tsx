@@ -2017,6 +2017,7 @@ function SearchResults({
                               activeScrollerRef={activeScrollerRef}
                               handlePointerDown={handlePointerDown}
                               handlePointerUp={handlePointerUp}
+                              theme={theme}
                             />
                           )}
                         </>

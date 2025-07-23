@@ -11,7 +11,7 @@ import type {
 } from "~/server/api/routers/search";
 import type { UserMetadata } from "~/server/api/routers/user";
 import formatDate from "~/utils/formatDate";
-import { genreColors } from "~/utils/genreColors";
+import { genreColors, genreDarkColors } from "~/utils/genreColors";
 import BookmarkToggle from "~/components/ui/BookmarkToggle";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -348,9 +348,14 @@ function GridTabCard({
           <div className="baseFlex gap-2">
             <Badge
               style={{
-                backgroundColor: genreColors
-                  .get(minimalTab.genre)
-                  ?.replace(/\)$/, " / 0.1)"),
+                backgroundColor:
+                  theme === "light"
+                    ? genreColors
+                        .get(minimalTab.genre)
+                        ?.replace(/\)$/, " / 0.1)")
+                    : genreDarkColors
+                        .get(minimalTab.genre)
+                        ?.replace(/\)$/, " / 0.4)"),
                 borderColor: genreColors.get(minimalTab.genre),
                 border: "1px solid",
                 color: genreColors.get(minimalTab.genre),

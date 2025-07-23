@@ -32,7 +32,7 @@ import {
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore, type Section, type COLORS } from "~/stores/TabStore";
 import { api } from "~/utils/api";
-import { genreColors } from "~/utils/genreColors";
+import { genreColors, genreDarkColors } from "~/utils/genreColors";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import { tuningNotesToName } from "~/utils/tunings";
 import ArtistCombobox from "~/components/ui/ArtistCombobox";
@@ -133,6 +133,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setCurrentlyPlayingMetadata,
     setCurrentChordIndex,
     viewportLabel,
+    theme,
   } = useTabStore((state) => ({
     originalTabData: state.originalTabData,
     id: state.id,
@@ -169,6 +170,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
     setCurrentChordIndex: state.setCurrentChordIndex,
     viewportLabel: state.viewportLabel,
+    theme: state.theme,
   }));
 
   const { data: dynamicMetadata } =
@@ -1367,9 +1369,10 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 <div className="font-semibold">Genre</div>
                 <Badge
                   style={{
-                    backgroundColor: genreColors
-                      .get(genre)
-                      ?.replace(/\)$/, " / 0.1)"),
+                    backgroundColor:
+                      theme === "light"
+                        ? genreColors.get(genre)?.replace(/\)$/, " / 0.1)")
+                        : genreDarkColors.get(genre)?.replace(/\)$/, " / 0.4)"),
                     borderColor: genreColors.get(genre),
                     border: "1px solid",
                     color: genreColors.get(genre),

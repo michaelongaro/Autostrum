@@ -12,7 +12,7 @@ import type {
 } from "~/server/api/routers/search";
 import type { UserMetadata } from "~/server/api/routers/user";
 import formatDate from "~/utils/formatDate";
-import { genreColors } from "~/utils/genreColors";
+import { genreColors, genreDarkColors } from "~/utils/genreColors";
 import BookmarkToggle from "~/components/ui/BookmarkToggle";
 import { MdModeEditOutline } from "react-icons/md";
 import Verified from "~/components/ui/icons/Verified";
@@ -23,6 +23,7 @@ interface TableTabRow {
   minimalTab: MinimalTabRepresentation;
   currentUser: UserMetadata | null | undefined;
   infiniteQueryParams?: InfiniteQueryParams;
+  theme: "light" | "dark";
   ref?: React.RefObject<HTMLTableRowElement>;
 }
 
@@ -30,6 +31,7 @@ function TableTabRow({
   minimalTab,
   currentUser,
   infiniteQueryParams,
+  theme,
   ref,
 }: TableTabRow) {
   const { asPath } = useRouter();
@@ -176,9 +178,12 @@ function TableTabRow({
         >
           <Badge
             style={{
-              backgroundColor: genreColors
-                .get(minimalTab.genre)
-                ?.replace(/\)$/, " / 0.1)"),
+              backgroundColor:
+                theme === "light"
+                  ? genreColors.get(minimalTab.genre)?.replace(/\)$/, " / 0.1)")
+                  : genreDarkColors
+                      .get(minimalTab.genre)
+                      ?.replace(/\)$/, " / 0.4)"),
               borderColor: genreColors.get(minimalTab.genre),
               border: "1px solid",
               color: genreColors.get(minimalTab.genre),

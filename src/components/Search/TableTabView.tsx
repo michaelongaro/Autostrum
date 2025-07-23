@@ -33,6 +33,7 @@ interface TableTabView {
   activeScrollerRef: RefObject<"header" | "body" | null>;
   handlePointerDown: (scroller: "header" | "body") => void;
   handlePointerUp: () => void;
+  theme: "light" | "dark";
 }
 
 function TableTabView({
@@ -49,6 +50,7 @@ function TableTabView({
   activeScrollerRef,
   handlePointerDown,
   handlePointerUp,
+  theme,
 }: TableTabView) {
   const { userId } = useAuth();
   const { query, asPath } = useRouter();
@@ -210,6 +212,7 @@ function TableTabView({
                         minimalTab={tab}
                         currentUser={currentUser}
                         infiniteQueryParams={getInfiniteQueryParams()}
+                        theme={theme}
                         ref={
                           index === page.data.tabs.length - 1
                             ? (ref as unknown as React.RefObject<HTMLTableRowElement>)
