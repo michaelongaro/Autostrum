@@ -58,6 +58,8 @@ function GridTabCard({
   useEffect(() => {
     if (tabScreenshotLight || theme === "dark") return;
 
+    setTabScreenshotLoaded(false);
+
     const fetchImage = async () => {
       try {
         const res = await fetch(`/api/getTabScreenshot/${minimalTab.id}/light`);
@@ -84,6 +86,8 @@ function GridTabCard({
 
   useEffect(() => {
     if (tabScreenshotDark || theme === "light") return;
+
+    setTabScreenshotLoaded(false);
 
     const fetchImage = async () => {
       try {
@@ -176,7 +180,8 @@ function GridTabCard({
               onTouchCancel={() => setIsPressingOnScreenshot(false)}
               className="relative grid grid-cols-1 grid-rows-1 border-b"
             >
-              {(tabScreenshotLight || tabScreenshotDark) && (
+              {((theme === "light" && tabScreenshotLight) ||
+                (theme === "dark" && tabScreenshotDark)) && (
                 <>
                   <Image
                     src={
