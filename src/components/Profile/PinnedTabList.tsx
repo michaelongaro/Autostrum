@@ -17,6 +17,7 @@ import { Button } from "~/components/ui/button";
 import { formatNumber } from "~/utils/formatNumber";
 import formatDate from "~/utils/formatDate";
 import { X } from "lucide-react";
+import Spinner from "~/components/ui/Spinner";
 
 interface PinnedTabList {
   userId: string;
@@ -43,12 +44,12 @@ function PinnedTabList({
 
   return (
     <div className="baseVertFlex size-full !items-start !justify-start">
-      <div className="baseFlex my-2 w-full !justify-between gap-2 px-2 lg:mt-0 lg:px-0">
+      <div className="baseFlex my-2 w-full !justify-between gap-2 px-2 lg:mt-0 lg:!items-start lg:px-0">
         <div className="baseFlex gap-1">
           <TbPinned className="size-4 stroke-[2.5px] lg:size-5" />
           <span className="font-medium lg:text-lg">Pinned tab</span>
         </div>
-        <div className="baseFlex gap-2">
+        <div className="baseFlex gap-2 lg:mt-8">
           <Label className="text-nowrap">Sort by</Label>
           <Select
             disabled={isFetchingUserTabs}
@@ -86,7 +87,7 @@ function PinnedTabList({
       {/* table headers */}
       <div className="w-full bg-accent">
         <div
-          className="grid h-8 grid-rows-1 items-center text-sm font-medium text-foreground/75"
+          className="grid h-8 grid-rows-1 items-center text-sm font-medium text-primary-foreground/70"
           style={{
             gridTemplateColumns: "50px auto 100px",
           }}
@@ -113,24 +114,7 @@ function PinnedTabList({
             transition={{ duration: 0.2 }}
             className="baseFlex size-full lg:min-h-[350px]"
           >
-            <svg
-              className="size-8 animate-stableSpin rounded-full bg-inherit fill-none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
+            <Spinner className="size-8" />
           </motion.div>
         )}
 
