@@ -228,16 +228,8 @@ function GridTabCard({
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
                     style={{
-                      width: largeVariant
-                        ? 396
-                        : isAboveExtraSmallViewportWidth
-                          ? 326
-                          : 276,
-                      height: largeVariant
-                        ? 185
-                        : isAboveExtraSmallViewportWidth
-                          ? 152
-                          : 129,
+                      width: getDynamicWidth(),
+                      height: getDynamicHeight(),
                     }}
                     className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-none bg-foreground/50"
                   ></motion.div>
