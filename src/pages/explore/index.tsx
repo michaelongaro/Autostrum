@@ -131,7 +131,7 @@ function Explore({ json }: { json: string }) {
                 <Link
                   prefetch={false}
                   href={"/search/filters"}
-                  className="!h-6 !py-0 text-foreground"
+                  className="!h-6 !px-0 !py-0 text-foreground"
                 >
                   View more
                 </Link>
@@ -185,7 +185,7 @@ function Explore({ json }: { json: string }) {
                 <Link
                   prefetch={false}
                   href={"/search/filters?sortBy=mostPopular"}
-                  className="!h-6 !py-0 text-foreground"
+                  className="!h-6 !px-0 !py-0 text-foreground"
                 >
                   View more
                 </Link>
