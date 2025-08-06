@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 
 const STRING_COUNT = 6;
 
@@ -18,7 +19,13 @@ interface ChordDiagram {
  * Renders a guitar chord diagram based on the provided frets array.
  */
 function ChordDiagram({ originalFrets }: ChordDiagram) {
-  const frets = useMemo(() => [...originalFrets].reverse(), [originalFrets]);
+  const leftHandChordDiagrams =
+    useGetLocalStorageValues().leftHandChordDiagrams;
+  const frets = useMemo(
+    () =>
+      leftHandChordDiagrams ? [...originalFrets] : [...originalFrets].reverse(),
+    [originalFrets, leftHandChordDiagrams],
+  );
 
   // Validate the frets array
   if (!Array.isArray(frets) || frets.length !== STRING_COUNT) {

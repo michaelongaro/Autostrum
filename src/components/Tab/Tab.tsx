@@ -11,6 +11,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import {
+  Drawer,
+  DrawerPortal,
+  DrawerTrigger,
+  DrawerContent,
+  DrawerTitle,
+  DrawerDescription,
+} from "~/components/ui/drawer";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Separator } from "~/components/ui/separator";
 import SectionProgression from "./SectionProgression";
 import TabMetadata from "./TabMetadata";
@@ -30,7 +39,6 @@ import EffectGlossaryDialog from "~/components/Dialogs/EffectGlossaryDialog";
 import Logo from "~/components/ui/icons/Logo";
 import ExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
 import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
-import CChordDiagram from "~/components/ui/icons/CChordDiagram";
 import { useInView } from "react-intersection-observer";
 import ChordDiagram from "~/components/Tab/Playback/ChordDiagram";
 import {
@@ -39,6 +47,11 @@ import {
   CarouselItem,
 } from "~/components/ui/carousel";
 import TipsDialog from "~/components/Dialogs/TipsDialog";
+import { IoMdSettings } from "react-icons/io";
+import { Label } from "~/components/ui/label";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import { Switch } from "~/components/ui/switch";
+import { getTrackBackground, Range } from "react-range";
 
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
@@ -63,7 +76,6 @@ function Tab({ tab }: Tab) {
   const [isPublishingOrUpdating, setIsPublishingOrUpdating] = useState(false);
   const [showTipsModal, setShowTipsModal] = useState(false);
   const [tabContentIsInView, setTabContentIsInView] = useState(false);
-  const [showPinnedChords, setShowPinnedChords] = useState(false);
 
   // true when creating new section, results in way less cpu/ram usage for arguably worse ux
   const [forceCloseSectionAccordions, setForceCloseSectionAccordions] =
@@ -78,6 +90,9 @@ function Tab({ tab }: Tab) {
   });
 
   const localStorageTabData = useLocalStorageValue("autostrum-tabData");
+
+  const [showPinnedChords, setShowPinnedChords] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const {
     setId,
@@ -120,6 +135,7 @@ function Tab({ tab }: Tab) {
     setLooping,
     color,
     theme,
+    setMobileHeaderModal,
   } = useTabStore((state) => ({
     setId: state.setId,
     setCreatedByUserId: state.setCreatedByUserId,
@@ -161,6 +177,7 @@ function Tab({ tab }: Tab) {
     setLooping: state.setLooping,
     color: state.color,
     theme: state.theme,
+    setMobileHeaderModal: state.setMobileHeaderModal,
   }));
 
   useEffect(() => {
@@ -374,7 +391,7 @@ function Tab({ tab }: Tab) {
           className="baseVertFlex relative mt-2 size-full scroll-m-24 !justify-start gap-4"
         >
           <AnimatePresence mode="wait">
-            {showPinnedChords && (
+            {showPinnedChords && chords.length > 0 && (
               <motion.div
                 key={"stickyPinnedChords"}
                 // FYI: tried to animate height too, however idk if it's possible/easy
@@ -474,83 +491,118 @@ function Tab({ tab }: Tab) {
             </Button>
           )}
 
-          <AnimatePresence>
-            {!editing &&
-              audioMetadata.fullCurrentlyPlayingMetadataLength > 0 &&
-              tabContentIsInView && (
-                <motion.div
-                  key="stickyBottomControls"
-                  id="stickyBottomControls"
-                  initial={{ opacity: 0 }}
-                  animate={{
-                    opacity: 1,
-                  }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="baseFlex sticky bottom-4 mb-4 gap-4 tablet:bottom-6"
-                >
-                  {chords.length > 0 && (
-                    <TooltipProvider delayDuration={150}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant={"secondary"}
-                            style={{
-                              backgroundColor: showPinnedChords
-                                ? "hsl(var(--accent))"
-                                : undefined,
-                              color: showPinnedChords
-                                ? "hsl(var(--primary-foreground"
-                                : undefined,
-                            }}
-                            className="baseFlex !size-11 !rounded-full border !p-0"
-                            onClick={() => {
-                              setShowPinnedChords((prev) => !prev);
-                            }}
-                          >
-                            <CChordDiagram />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side={"top"}>
-                          <span>
-                            {showPinnedChords ? "Unpin" : "Pin"} chords
-                          </span>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-
+          <div
+            id="stickyBottomControls"
+            style={{
+              opacity:
+                !editing &&
+                audioMetadata.fullCurrentlyPlayingMetadataLength > 0 &&
+                tabContentIsInView
+                  ? 1
+                  : 0,
+              transition: "opacity 0.2s ease-in-out",
+            }}
+            className="baseFlex sticky bottom-4 mb-4 gap-4 tablet:bottom-6"
+          >
+            <TooltipProvider delayDuration={150}>
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <Button
-                    variant="audio"
-                    className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 tablet:px-10 tablet:text-xl"
-                    onClick={() => {
-                      setShowPlaybackModal(true);
-                      setLooping(true);
-                    }}
+                    variant={"secondary"}
+                    className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
+                    onClick={() => setShowEffectGlossaryDialog(true)}
                   >
-                    <Logo className="size-[18px] tablet:size-5" />
-                    Practice
+                    <FaBook className="size-4" />
                   </Button>
+                </TooltipTrigger>
+                <TooltipContent side={"top"}>
+                  <span>Effect glossary</span>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-                  <TooltipProvider delayDuration={150}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
+            <Button
+              variant="audio"
+              className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 tablet:px-10 tablet:text-xl"
+              onClick={() => {
+                setShowPlaybackModal(true);
+                setLooping(true);
+              }}
+            >
+              <Logo className="size-[18px] tablet:size-5" />
+              Practice
+            </Button>
+
+            {viewportLabel.includes("mobile") ? (
+              <Drawer
+                open={drawerOpen}
+                onOpenChange={(open) => {
+                  setDrawerOpen(open);
+                  setMobileHeaderModal({
+                    showing: open,
+                    zIndex: open ? 49 : 48,
+                  });
+                }}
+              >
+                <DrawerTrigger asChild>
+                  <Button
+                    variant={"secondary"}
+                    className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
+                  >
+                    <IoMdSettings className="size-5" />
+                  </Button>
+                </DrawerTrigger>
+                <DrawerPortal>
+                  <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-2 rounded-t-2xl bg-secondary p-4 pb-6">
+                    <VisuallyHidden>
+                      <DrawerTitle>Tab settings</DrawerTitle>
+                      <DrawerDescription>
+                        Change the tab zoom, whether chords are pinned, and
+                        whether left-hand chord diagrams are shown.
+                      </DrawerDescription>
+                    </VisuallyHidden>
+
+                    <div className="baseFlex gap-2 font-medium">
+                      <IoMdSettings className="size-4" />
+                      Tab settings
+                    </div>
+                    <Separator className="mb-2 w-full bg-primary" />
+
+                    <TabSettings
+                      showPinnedChords={showPinnedChords}
+                      setShowPinnedChords={setShowPinnedChords}
+                    />
+                  </DrawerContent>
+                </DrawerPortal>
+              </Drawer>
+            ) : (
+              <TooltipProvider delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Popover>
+                      <PopoverTrigger asChild>
                         <Button
                           variant={"secondary"}
                           className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
-                          onClick={() => setShowEffectGlossaryDialog(true)}
                         >
-                          <FaBook className="size-4" />
+                          <IoMdSettings className="size-5" />
                         </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side={"top"}>
-                        <span>Effect glossary</span>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </motion.div>
-              )}
-          </AnimatePresence>
+                      </PopoverTrigger>
+                      <PopoverContent className="baseVertFlex p-3" side="top">
+                        <TabSettings
+                          showPinnedChords={showPinnedChords}
+                          setShowPinnedChords={setShowPinnedChords}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </TooltipTrigger>
+                  <TooltipContent side={"top"}>
+                    <span>Tab settings</span>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
         </div>
       </div>
 
@@ -598,3 +650,131 @@ function Tab({ tab }: Tab) {
 }
 
 export default Tab;
+
+interface TabSettings {
+  showPinnedChords: boolean;
+  setShowPinnedChords: (show: boolean) => void;
+}
+
+function TabSettings({ showPinnedChords, setShowPinnedChords }: TabSettings) {
+  const localStorageZoom = useLocalStorageValue("autostrum-zoom");
+  const localStorageLeftHandChordDiagrams = useLocalStorageValue(
+    "autostrum-left-hand-chord-diagrams",
+  );
+
+  const zoom = useGetLocalStorageValues().zoom;
+  const leftHandChordDiagrams =
+    useGetLocalStorageValues().leftHandChordDiagrams;
+
+  // used for range marking conditional background color
+  const indexToZoom = [0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5];
+
+  return (
+    <div className="baseVertFlex w-full gap-2">
+      <div className="baseFlex w-full !justify-between gap-2 text-sm font-medium">
+        <span>Zoom</span>
+        <span>{zoom}x</span>
+      </div>
+
+      <div className="baseFlex w-full">
+        <Range
+          label="Tab zoom level slider"
+          step={0.1}
+          min={0.5}
+          max={1.5}
+          values={[zoom]}
+          renderMark={({ props, index }) => (
+            <div
+              {...props}
+              key={props.key}
+              style={{
+                ...props.style,
+                marginTop: "0px",
+                height: "12px",
+                width: "2px",
+                borderRadius: "25%",
+                backgroundColor:
+                  indexToZoom[index]! <= zoom
+                    ? "hsl(var(--primary))"
+                    : "#939098",
+              }}
+            />
+          )}
+          onChange={(values) => {
+            localStorageZoom.set(`${values[0]}`);
+          }}
+          renderTrack={({ props, children, disabled }) => (
+            <div
+              onMouseDown={props.onMouseDown}
+              onTouchStart={props.onTouchStart}
+              style={{
+                ...props.style,
+                display: "flex",
+                width: "100%",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                ref={props.ref}
+                style={{
+                  height: "8px",
+                  borderRadius: "0px",
+                  filter: disabled ? "brightness(0.75)" : "none",
+                  background: getTrackBackground({
+                    values: [zoom],
+                    colors: ["hsl(var(--primary))", "#939098"],
+                    min: 0.5,
+                    max: 1.5,
+                  }),
+                  alignSelf: "center",
+                }}
+                className="w-full"
+              >
+                {children}
+              </div>
+            </div>
+          )}
+          renderThumb={({ props, index }) => (
+            <div
+              {...props}
+              key={`${props.key}-${index}`}
+              style={{
+                ...props.style,
+              }}
+              className="z-10 size-[18px] rounded-full border bg-primary"
+            />
+          )}
+        />
+      </div>
+
+      <div className="baseFlex w-full !justify-between gap-2 text-xs font-medium">
+        <span>0.5x</span>
+        <span>1x</span>
+        <span>1.5x</span>
+      </div>
+
+      <div className="baseFlex mt-2 w-full !justify-between gap-2">
+        <Label htmlFor="pinChords">Pin chords</Label>
+        <Switch
+          id="pinChords"
+          checked={showPinnedChords}
+          onCheckedChange={(value) => {
+            setShowPinnedChords(value);
+          }}
+        />
+      </div>
+
+      <div className="baseFlex w-full !justify-between gap-2">
+        <Label htmlFor="leftHandChordDiagrams">Left-hand chord diagrams</Label>
+
+        <Switch
+          id="leftHandChordDiagrams"
+          checked={leftHandChordDiagrams}
+          onCheckedChange={(value) =>
+            localStorageLeftHandChordDiagrams.set(String(value))
+          }
+        />
+      </div>
+    </div>
+  );
+}

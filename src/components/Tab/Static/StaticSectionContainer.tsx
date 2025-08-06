@@ -15,6 +15,7 @@ import { Separator } from "~/components/ui/separator";
 import StaticChordSection from "~/components/Tab/Static/StaticChordSection";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type { COLORS, THEME } from "~/stores/TabStore";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 
 interface StaticSectionContainer {
   sectionData: Section;
@@ -35,6 +36,8 @@ function StaticSectionContainer({
     bpm: state.bpm,
     tabData: state.tabData,
   }));
+
+  const zoom = useGetLocalStorageValues().zoom;
 
   return (
     <div
@@ -79,6 +82,9 @@ function StaticSectionContainer({
             {/* map over tab/chord subSections */}
             <div
               id={`sectionIndex${sectionIndex}`}
+              style={{
+                zoom: zoom,
+              }}
               className="baseVertFlex w-full gap-3"
             >
               {sectionData.data.map((subSection) => (
