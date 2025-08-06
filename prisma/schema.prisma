@@ -31,10 +31,12 @@ model WeeklyUserTotalTabView {
 // prevents users from spam-viewing the same tab multiple times in a day
 // (entire model is cleared daily by a cron job)
 model DailyTabView {
-    userIpAddress String   @id // always going to be querying by user IP address
-    createdAt     DateTime @default(now())
+    createdAt DateTime @default(now())
 
-    tabId Int
+    userIpAddress String
+    tabId         Int
+
+    @@id([userIpAddress, tabId]) // composite key because we always are querying by userIpAddress + tabId
 }
 
 // top 5 most popular tabs based on pageViews 

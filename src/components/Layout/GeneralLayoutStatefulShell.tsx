@@ -30,9 +30,9 @@ function GeneralLayoutStatefulShell() {
   const looping = useGetLocalStorageValues().looping;
 
   useColorAndThemeController();
+  useAutoCompileChords();
   useInitializeAudioContext();
   useFetchAndLoadSoundfonts();
-  useAutoCompileChords();
   useDetectRouteChanges();
   useGetViewportLabel();
   useScreenWakeLock();
