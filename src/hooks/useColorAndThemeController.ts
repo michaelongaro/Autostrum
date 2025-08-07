@@ -115,8 +115,13 @@ function useColorAndThemeController() {
   useEffect(() => {
     if (!currentUser || initializedUserDBColor) return;
 
-    setColor(currentUser.color as COLORS);
-    setStorageValue(STORAGE_KEYS.COLOR, currentUser.color as COLORS);
+    const currentTheme = useTabStore.getState().theme;
+    const userColor = currentUser.color as COLORS;
+
+    updateCSSThemeVars(userColor, currentTheme);
+
+    setColor(userColor);
+    setStorageValue(STORAGE_KEYS.COLOR, userColor);
     setInitializedUserDBColor(true);
   }, [currentUser, initializedUserDBColor]);
 
