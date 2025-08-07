@@ -75,3 +75,9 @@ Since different artists can have the same name but with different casings (Sia v
 
 **Extracted in-line functions within `<TabNote>` to utils file**  
 Due to the sheer number of `<TabNote>` components that could reasonably be rendered at one time while creating/editing a tab, I wanted to reduce the overall computation/memory footprint by extracting these rather heavy onKeyDown and onChange functions to a utils file so they could be cached instead of recreated on every render.
+
+**Tab screenshot methodology**  
+From the beginning, I really wanted to include tab screenshots at least as an option when viewing tab search results. I think it is a quite unique feature within the guitar tab scene, and it felt nice to see a small preview of what the tab looks like. Then after the customizable color/theme refactor, the screenshots needed to be dynamic in some way to match the user's current color/theme. Storing every combination of color and theme in S3 seemed ludicrous and wasteful, both on the storage front and extra bandwidth for the user. So then I decided to go with a grayscale light and dark screenshot combined with the current color, leveraging the css property color-mix. Thankfully the effect produces almost the same quality as a proper screenshot does.
+
+**Local fallback soundfont files**  
+I am still perplexed about exactly why the GitHub CDN hosted soundfont files only sporadically loaded on my phone during production testing. I concluded that it likely was some network restrictions that the wifi network had which blocked the downloading of these assets, so I have included logic to fallback to download the locally hosted soundfont files in the /public directory. Also I had to add the /public .js files to my .prettierignore file, as for whatever reason they were not being read properly otherwise by the soundfont-player library.
