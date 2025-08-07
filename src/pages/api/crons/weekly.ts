@@ -23,13 +23,46 @@ export default async function handler(
   const prisma = new PrismaClient();
 
   try {
-    // Get the needed data before starting the transaction
-    const topFiveUsers = await prisma.weeklyUserTotalTabView.findMany({
+    // Get the top users based on weekly tab views
+    const topUsersFromViews = await prisma.weeklyUserTotalTabView.findMany({
       orderBy: {
         totalTabPageViews: "desc",
       },
       take: 5,
     });
+
+    let featuredUsersData = topUsersFromViews.map((user) => ({
+      userId: user.userId,
+    }));
+
+    // Check if we need to add filler users to reach the target of 5
+    const needed = 5 - featuredUsersData.length;
+
+    if (needed > 0) {
+      const existingUserIds = featuredUsersData.map((user) => user.userId);
+
+      // Fetch additional users to fill the remaining spots
+      const fillerUsers = await prisma.user.findMany({
+        take: needed,
+        where: {
+          // Ensure we don't select users who are already in the top list
+          userId: {
+            notIn: existingUserIds,
+          },
+        },
+        // Order by a metric like total views to select other popular users
+        orderBy: {
+          totalTabViews: "desc",
+        },
+      });
+
+      const fillerUsersData = fillerUsers.map((user) => ({
+        userId: user.userId,
+      }));
+
+      // Combine the top users with the filler users
+      featuredUsersData = [...featuredUsersData, ...fillerUsersData];
+    }
 
     // Perform all related write operations within a transaction for consistency
     await prisma.$transaction([
@@ -38,9 +71,8 @@ export default async function handler(
 
       // Set the new weekly featured users
       prisma.weeklyFeaturedUser.createMany({
-        data: topFiveUsers.map((user) => ({
-          userId: user.userId,
-        })),
+        data: featuredUsersData,
+        skipDuplicates: true, // Good practice, though logic should prevent duplicates
       }),
 
       // Clear the source data for the next cycle
