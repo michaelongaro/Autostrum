@@ -992,7 +992,7 @@ function DesktopSettings({
 
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="size-9 !p-0">
+          <Button variant="outline" className="size-10 !p-0">
             <AnimatePresence mode="popLayout">
               {volume === 0 && (
                 <motion.div
@@ -1030,7 +1030,10 @@ function DesktopSettings({
             </AnimatePresence>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="baseVertFlex h-36 w-12 gap-2 p-2" side="top">
+        <PopoverContent
+          className="baseVertFlex h-36 w-[54px] gap-2 p-2"
+          side="top"
+        >
           <VerticalSlider
             value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
             min={0}
