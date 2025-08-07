@@ -152,7 +152,7 @@ const AudioProgressSlider = React.forwardRef<
         onBlur={() => setIsDragging(false)}
         onPointerDown={() => setIsDragging(true)}
         onPointerUp={() => setIsDragging(false)}
-        className="block h-5 w-5 cursor-grab rounded-full border-2 border-primary bg-background shadow-md ring-offset-background transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 active:cursor-grabbing active:shadow-lg disabled:pointer-events-none disabled:opacity-50"
+        className="block h-5 w-5 cursor-grab rounded-full border-2 border-primary bg-background shadow-md ring-offset-background transition-transform duration-75 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 active:cursor-grabbing active:shadow-lg disabled:pointer-events-none disabled:opacity-50"
       />
     </SliderPrimitive.Root>
   );

@@ -21,7 +21,7 @@ const VerticalSlider = React.forwardRef<
     </SliderPrimitive.Track>
     {/* not sure why these arbitary left/top values were necessary to get thumb position where it should
         be, but it works for now */}
-    <SliderPrimitive.Thumb className="absolute left-[-6px] top-[-10px] block h-5 w-5 cursor-grab rounded-full border-2 border-primary bg-background shadow-md ring-offset-background transition-all hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 active:cursor-grabbing active:shadow-lg disabled:pointer-events-none disabled:opacity-50" />
+    <SliderPrimitive.Thumb className="absolute left-[-6px] top-[-10px] block h-5 w-5 cursor-grab rounded-full border-2 border-primary bg-background shadow-md ring-offset-background transition-transform duration-75 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 active:cursor-grabbing active:shadow-lg disabled:pointer-events-none disabled:opacity-50" />
   </SliderPrimitive.Root>
 ));
 VerticalSlider.displayName = SliderPrimitive.Root.displayName;
