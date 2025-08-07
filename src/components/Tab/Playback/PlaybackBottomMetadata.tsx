@@ -329,6 +329,9 @@ function MobileSettingsPopover({
             setShowBackgroundBlur((prev) => !prev);
             if (audioMetadata.playing) pauseAudio();
           }}
+          style={{
+            backgroundColor: open ? "hsl(var(--background))" : "transparent",
+          }}
           className="z-50"
         >
           <IoSettingsOutline className="h-5 w-5" />
