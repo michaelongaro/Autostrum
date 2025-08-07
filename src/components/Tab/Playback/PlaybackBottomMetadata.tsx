@@ -17,7 +17,7 @@ import {
 import { IoSettingsOutline } from "react-icons/io5";
 import { isMobileOnly } from "react-device-detect";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
-import ChordDiagram from "~/components/Tab/Playback/ChordDiagram";
+import ChordDiagram from "~/components/Tab/ChordDiagram";
 import PlaybackGranularLoopRangeEditor from "~/components/Tab/Playback/PlaybackGranularLoopRangeEditor";
 import StrummingPattern from "~/components/Tab/StrummingPattern";
 import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";

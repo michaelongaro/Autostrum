@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { useState } from "react";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
-import ChordDiagram from "~/components/Tab/Playback/ChordDiagram";
+import ChordDiagram from "~/components/Tab/ChordDiagram";
 import StrummingPattern from "~/components/Tab/StrummingPattern";
 import { type LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
 import { Button } from "~/components/ui/button";

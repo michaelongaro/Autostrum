@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
-import ChordDiagram from "~/components/Tab/Playback/ChordDiagram";
+import ChordDiagram from "~/components/Tab/ChordDiagram";
 import {
   Popover,
   PopoverContent,

@@ -3,7 +3,7 @@ import { Button } from "~/components/ui/button";
 import { useTabStore } from "~/stores/TabStore";
 import { AnimatePresence, motion } from "framer-motion";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
-import ChordDiagram from "~/components/Tab/Playback/ChordDiagram";
+import ChordDiagram from "~/components/Tab/ChordDiagram";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import { ChevronDown } from "lucide-react";
 import { BsMusicNoteBeamed } from "react-icons/bs";

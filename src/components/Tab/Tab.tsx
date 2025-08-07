@@ -40,7 +40,7 @@ import Logo from "~/components/ui/icons/Logo";
 import ExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
 import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
 import { useInView } from "react-intersection-observer";
-import ChordDiagram from "~/components/Tab/Playback/ChordDiagram";
+import ChordDiagram from "~/components/Tab/ChordDiagram";
 import {
   Carousel,
   CarouselContent,
