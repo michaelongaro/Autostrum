@@ -155,8 +155,9 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
           {/* chord title */}
           <div className="baseFlex w-full !items-start !justify-between">
             <div className="baseVertFlex !items-start gap-2">
-              <Label>Chord name</Label>
+              <Label htmlFor="chordName">Chord name</Label>
               <Input
+                id="chordName"
                 placeholder="(e.g. Em, Cmaj7)"
                 value={chordBeingEdited?.value?.name}
                 onChange={handleChordNameChange}

@@ -110,7 +110,7 @@ function PostSignupDialog() {
         {/* username input + availability checker */}
         <div className="baseVertFlex w-full !items-start gap-2">
           <Label
-            htmlFor={"username"}
+            htmlFor="username"
             className="text-lg font-medium !text-foreground"
           >
             Username

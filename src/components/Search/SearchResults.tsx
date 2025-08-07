@@ -441,7 +441,7 @@ function SearchResults({
         </div>
         {/* genre selector */}
         <div className="baseVertFlex w-full !items-start gap-1.5">
-          <Label>Genre</Label>
+          <Label htmlFor="genre">Genre</Label>
           <Select
             disabled={disableFiltersAndLayoutToggle}
             value={localFilters.genre ? localFilters.genre : "allGenres"}
@@ -449,7 +449,7 @@ function SearchResults({
               setLocalFilters((prev) => ({ ...prev, genre: value }))
             }
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger id="genre" className="w-full">
               <SelectValue placeholder="Select a genre" />
             </SelectTrigger>
             <SelectContent>
@@ -491,7 +491,7 @@ function SearchResults({
         </div>
 
         <div className="baseVertFlex w-full !items-start gap-1.5">
-          <Label>Tuning</Label>
+          <Label htmlFor="tuning">Tuning</Label>
           <Select
             disabled={disableFiltersAndLayoutToggle}
             value={
@@ -504,7 +504,7 @@ function SearchResults({
               }));
             }}
           >
-            <SelectTrigger className="h-10 w-full">
+            <SelectTrigger id="tuning" className="h-10 w-full">
               <SelectValue placeholder="Select tuning...">
                 {localFilters.tuning ? (
                   <>
@@ -554,7 +554,7 @@ function SearchResults({
         </div>
 
         <div className="baseVertFlex w-full !items-start gap-1.5">
-          <Label>Capo</Label>
+          <Label htmlFor="capo">Capo</Label>
           <Select
             disabled={disableFiltersAndLayoutToggle}
             value={
@@ -574,7 +574,7 @@ function SearchResults({
               }));
             }}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger id="capo" className="w-full">
               <SelectValue placeholder="All" />
             </SelectTrigger>
             <SelectContent>
@@ -589,7 +589,7 @@ function SearchResults({
         </div>
 
         <div className="baseVertFlex w-full !items-start gap-1.5">
-          <Label>Difficulty</Label>
+          <Label htmlFor="difficulty">Difficulty</Label>
           <Select
             disabled={disableFiltersAndLayoutToggle}
             value={
@@ -604,7 +604,7 @@ function SearchResults({
               }));
             }}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger id="difficulty" className="w-full">
               <SelectValue placeholder="Select a difficulty">
                 {localFilters.difficulty ? (
                   <div className="baseFlex gap-2">
@@ -685,7 +685,7 @@ function SearchResults({
         </div>
 
         <div className="baseVertFlex w-full !items-start gap-1.5">
-          <Label>Sort by</Label>
+          <Label htmlFor="sortBy">Sort by</Label>
           <Select
             disabled={disableFiltersAndLayoutToggle}
             value={localFilters.sortBy}
@@ -701,7 +701,7 @@ function SearchResults({
               }))
             }
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger id="sortBy" className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

@@ -12,6 +12,7 @@ import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import { X } from "lucide-react";
 import Spinner from "~/components/ui/Spinner";
+import { Label } from "~/components/ui/label";
 
 const backdropVariants = {
   expanded: {
@@ -102,12 +103,12 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
 
           <div className="baseVertFlex gap-4 text-sm md:text-base">
             <div className="baseVertFlex">
-              <p className="text-center font-medium">
+              <span className="text-center font-medium">
                 Are you sure you want to delete your account?
-              </p>
-              <p className="text-center font-medium">
+              </span>
+              <span className="text-center font-medium">
                 This action cannot be undone.
-              </p>
+              </span>
             </div>
 
             <div className="baseFlex !items-start gap-4 rounded-md border bg-secondary-active/50 p-4 shadow-md">
@@ -122,9 +123,9 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
                 className="mt-1 h-5 w-5"
               />
               <div className="baseVertFlex !items-start gap-2">
-                <label htmlFor="deleteTabs">
+                <Label htmlFor="deleteTabs">
                   Anonymize my tabs instead of deleting them
-                </label>
+                </Label>
                 <p className="text-sm">
                   Checking this will preserve your tabs, and will display the
                   associated user who created them as &ldquo;Anonymous&rdquo;.

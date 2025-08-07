@@ -537,7 +537,9 @@ function AudioControls() {
             {/* instrument, speed selects*/}
             <div className="baseFlex gap-2">
               <div className="baseFlex gap-2">
-                <Label className="shrink-0">Instrument</Label>
+                <Label htmlFor="instrument" className="shrink-0">
+                  Instrument
+                </Label>
                 <Select
                   disabled={
                     countInTimer.showing || audioMetadata.editingLoopRange
@@ -555,7 +557,7 @@ function AudioControls() {
                     );
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="instrument">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -579,7 +581,9 @@ function AudioControls() {
               </div>
 
               <div className="baseFlex gap-2">
-                <Label className="shrink-0">Speed</Label>
+                <Label htmlFor="speed" className="shrink-0">
+                  Speed
+                </Label>
                 <Select
                   disabled={
                     countInTimer.showing || audioMetadata.editingLoopRange
@@ -604,7 +608,7 @@ function AudioControls() {
                     setPlaybackSpeed(newPlaybackSpeed);
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="speed">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -978,7 +982,7 @@ function AudioControls() {
                   <Separator className="mb-2 w-full bg-primary" />
 
                   <div className="baseFlex w-full !justify-between gap-4">
-                    <Label>Instrument</Label>
+                    <Label htmlFor="instrument">Instrument</Label>
                     <Select
                       disabled={countInTimer.showing}
                       onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
@@ -995,7 +999,10 @@ function AudioControls() {
                         );
                       }}
                     >
-                      <SelectTrigger className="w-52 border-ring">
+                      <SelectTrigger
+                        id="instrument"
+                        className="w-52 border-ring"
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1019,7 +1026,7 @@ function AudioControls() {
                   </div>
 
                   <div className="baseFlex w-full !justify-between gap-4">
-                    <Label>Speed</Label>
+                    <Label htmlFor="speed">Speed</Label>
                     <Select
                       disabled={countInTimer.showing}
                       onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
@@ -1044,7 +1051,10 @@ function AudioControls() {
                         setPlaybackSpeed(newPlaybackSpeed);
                       }}
                     >
-                      <SelectTrigger className="w-[85px] border-ring">
+                      <SelectTrigger
+                        id="speed"
+                        className="w-[85px] border-ring"
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1059,7 +1069,7 @@ function AudioControls() {
                   </div>
 
                   <div className="baseFlex w-full !justify-between gap-4">
-                    <Label>Autoscroll</Label>
+                    <Label htmlFor="autoscroll">Autoscroll</Label>
                     <Switch
                       id="autoscroll"
                       checked={autoscrollEnabled}
@@ -1070,7 +1080,7 @@ function AudioControls() {
                   </div>
 
                   <div className="baseFlex w-full !justify-between gap-4">
-                    <Label>Loop</Label>
+                    <Label htmlFor="loop">Loop</Label>
                     <Switch
                       id="loop"
                       disabled={audioMetadata.playing || countInTimer.showing}

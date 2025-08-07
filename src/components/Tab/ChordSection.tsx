@@ -114,12 +114,17 @@ function ChordSection({
         <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
           <div className="baseFlex gap-2">
             <div className="baseFlex gap-2">
-              <Label>BPM</Label>
+              <Label
+                htmlFor={`sectionIndex${sectionIndex}subSectionIndex${subSectionIndex}bpm`}
+              >
+                BPM
+              </Label>
 
               <div className="baseFlex">
                 <QuarterNote className="-ml-1 size-5" />
 
                 <Input
+                  id={`sectionIndex${sectionIndex}subSectionIndex${subSectionIndex}bpm`}
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
@@ -142,10 +147,15 @@ function ChordSection({
             </div>
 
             <div className="baseFlex gap-2">
-              <Label>Repetitions</Label>
+              <Label
+                htmlFor={`sectionIndex${sectionIndex}subSectionIndex${subSectionIndex}repetitions`}
+              >
+                Repetitions
+              </Label>
               <div className="relative w-12">
                 <span className="absolute bottom-[9px] left-2 text-sm">x</span>
                 <Input
+                  id={`sectionIndex${sectionIndex}subSectionIndex${subSectionIndex}repetitions`}
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"

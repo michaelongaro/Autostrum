@@ -234,7 +234,7 @@ function PlaybackTopMetadata({
               {viewportLabel.includes("mobile") && (
                 <div className="baseFlex mt-1.5 w-full !justify-start gap-4">
                   <div className="baseFlex gap-2">
-                    <Label>Speed</Label>
+                    <Label htmlFor="speed">Speed</Label>
                     <Select
                       disabled={
                         countInTimer.showing || audioMetadata.editingLoopRange
@@ -260,7 +260,7 @@ function PlaybackTopMetadata({
                         setPlaybackSpeed(newPlaybackSpeed);
                       }}
                     >
-                      <SelectTrigger className="h-8 w-20">
+                      <SelectTrigger id="speed" className="h-8 w-20">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>

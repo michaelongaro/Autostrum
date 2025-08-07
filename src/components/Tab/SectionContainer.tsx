@@ -203,8 +203,14 @@ function SectionContainer({
                   className="baseFlex gap-2"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <Label className="text-lg font-semibold">Title</Label>
+                  <Label
+                    htmlFor={`sectionTitleInput${sectionIndex}`}
+                    className="text-lg font-semibold"
+                  >
+                    Title
+                  </Label>
                   <Input
+                    id={`sectionTitleInput${sectionIndex}`}
                     value={localTitle}
                     placeholder="Section title"
                     onChange={updateSectionTitle}

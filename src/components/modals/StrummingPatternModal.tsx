@@ -373,12 +373,12 @@ function StrummingPatternModal({
           <div className="baseFlex mt-2 w-full !items-start !justify-between md:mt-0 md:!flex-col md:gap-8">
             <div className="baseFlex w-full !items-start !justify-between">
               <div className="baseVertFlex !items-start gap-2 md:!flex-row md:!items-center md:!justify-start">
-                <Label>Note length</Label>
+                <Label htmlFor="noteLength">Note length</Label>
                 <Select
                   onValueChange={handleNoteLengthChange}
                   value={strummingPatternBeingEdited.value.noteLength}
                 >
-                  <SelectTrigger className="w-[150px]">
+                  <SelectTrigger id="noteLength" className="w-[150px]">
                     <SelectValue placeholder="Select a length" />
                   </SelectTrigger>
                   <SelectContent>

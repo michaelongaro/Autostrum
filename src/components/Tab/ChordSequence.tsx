@@ -256,11 +256,16 @@ function ChordSequence({
           <div className="baseFlex w-full !items-start">
             <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
               <div className="baseFlex gap-2">
-                <Label>BPM</Label>
+                <Label
+                  htmlFor={`chordSequenceBpmInput${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
+                >
+                  BPM
+                </Label>
 
                 <div className="baseFlex">
                   <QuarterNote className="-ml-1 size-5" />
                   <Input
+                    id={`chordSequenceBpmInput${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
@@ -277,12 +282,17 @@ function ChordSequence({
               </div>
 
               <div className="baseFlex gap-2">
-                <Label>Repetitions</Label>
+                <Label
+                  htmlFor={`chordSequenceRepetitionsInput${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
+                >
+                  Repetitions
+                </Label>
                 <div className="relative w-12">
                   <span className="absolute bottom-[9px] left-2 text-sm">
                     x
                   </span>
                   <Input
+                    id={`chordSequenceRepetitionsInput${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
@@ -299,7 +309,11 @@ function ChordSequence({
               </div>
 
               <div className="baseFlex !justify-start gap-2">
-                <Label>Strumming pattern</Label>
+                <Label
+                  htmlFor={`chordSequenceStrummingPatternSelect${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
+                >
+                  Strumming pattern
+                </Label>
 
                 <Select
                   open={selectIsOpen}
@@ -307,7 +321,10 @@ function ChordSequence({
                   onValueChange={handleStrummingPatternChange}
                   value={`${indexOfCurrentlySelectedStrummingPattern}`}
                 >
-                  <SelectTrigger className="w-auto">
+                  <SelectTrigger
+                    id={`chordSequenceStrummingPatternSelect${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
+                    className="w-auto"
+                  >
                     <SelectValue>
                       <StrummingPatternPreview
                         data={

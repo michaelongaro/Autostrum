@@ -870,7 +870,7 @@ function DesktopSettings({
   return (
     <div className="baseFlex w-full !items-end gap-4">
       <div className="baseVertFlex !items-start gap-2">
-        <Label>Instrument</Label>
+        <Label htmlFor="instrument">Instrument</Label>
         <Select
           disabled={countInTimer.showing || audioMetadata.editingLoopRange}
           value={currentInstrumentName}
@@ -886,7 +886,7 @@ function DesktopSettings({
             );
           }}
         >
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger id="instrument" className="w-[200px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -910,7 +910,7 @@ function DesktopSettings({
       </div>
 
       <div className="baseVertFlex !items-start gap-2">
-        <Label>Speed</Label>
+        <Label htmlFor="speed">Speed</Label>
         <Select
           disabled={countInTimer.showing || audioMetadata.editingLoopRange}
           value={`${playbackSpeed}x`}
@@ -932,7 +932,7 @@ function DesktopSettings({
             setPlaybackSpeed(newPlaybackSpeed);
           }}
         >
-          <SelectTrigger className="w-20">
+          <SelectTrigger id="speed" className="w-20">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -947,7 +947,7 @@ function DesktopSettings({
       </div>
 
       <div className="baseVertFlex !items-start gap-2">
-        <Label>Loop delay</Label>
+        <Label htmlFor="loopDelay">Loop delay</Label>
         <Select
           disabled={countInTimer.showing}
           value={`${loopDelay}s`}
@@ -957,7 +957,7 @@ function DesktopSettings({
             setLoopDelay(Number(value[0]));
           }}
         >
-          <SelectTrigger className="w-16">
+          <SelectTrigger id="loopDelay" className="w-16">
             <SelectValue>{`${loopDelay}s`}</SelectValue>
           </SelectTrigger>
           <SelectContent>

@@ -329,7 +329,7 @@ function UserSettings() {
               {/* username */}
               <div className="baseVertFlex w-full !items-start gap-2 lg:!flex-row lg:!justify-between">
                 <Label
-                  htmlFor={"username"}
+                  htmlFor="username"
                   className="text-xl font-medium !text-foreground lg:text-2xl"
                 >
                   Username
@@ -448,7 +448,7 @@ function UserSettings() {
                       className="baseVertFlex !items-start gap-2"
                     >
                       <Label
-                        htmlFor={"newPassword"}
+                        htmlFor="newPassword"
                         className="font-medium !text-foreground"
                       >
                         New password
@@ -518,7 +518,7 @@ function UserSettings() {
                       </div>
 
                       <Label
-                        htmlFor={"confirmPassword"}
+                        htmlFor="confirmPassword"
                         className="mt-2 font-medium !text-foreground"
                       >
                         Confirm password

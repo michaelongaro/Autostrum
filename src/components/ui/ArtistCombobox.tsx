@@ -84,6 +84,7 @@ function ArtistCombobox() {
     >
       <PopoverTrigger asChild>
         <Button
+          id="artistCombobox"
           variant="outline"
           role="combobox"
           aria-expanded={open}

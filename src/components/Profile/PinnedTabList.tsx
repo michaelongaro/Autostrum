@@ -50,7 +50,9 @@ function PinnedTabList({
           <span className="font-medium lg:text-lg">Pinned tab</span>
         </div>
         <div className="baseFlex gap-2 lg:mt-8">
-          <Label className="text-nowrap">Sort by</Label>
+          <Label htmlFor="sortBy" className="text-nowrap">
+            Sort by
+          </Label>
           <Select
             disabled={isFetchingUserTabs}
             value={sortBy}
@@ -58,7 +60,7 @@ function PinnedTabList({
               setSortBy(value as "Newest" | "Oldest" | "Most popular");
             }}
           >
-            <SelectTrigger className="w-40">
+            <SelectTrigger id="sortBy" className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

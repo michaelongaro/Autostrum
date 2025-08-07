@@ -464,14 +464,14 @@ function StrummingPattern({
     >
       <div className="baseFlex relative mb-1 flex-wrap !justify-start">
         {mode === "editingChordSequence" && (
-          <Label
+          <span
             style={{
               top: patternHasPalmMuting() ? "-22px" : "-2rem",
             }}
-            className="relative -top-8 left-0 pr-2"
+            className="relative -top-8 left-0 pr-2 text-sm font-medium"
           >
             Chords
-          </Label>
+          </span>
         )}
         {data?.strums?.map((strum, strumIndex) => (
           <Element

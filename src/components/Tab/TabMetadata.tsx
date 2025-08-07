@@ -691,7 +691,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 classes.artist ?? ""
               } baseVertFlex w-full !items-start gap-1.5`}
             >
-              <Label>Artist</Label>
+              <Label htmlFor="artistCombobox">Artist</Label>
               <ArtistCombobox />
             </div>
 
@@ -725,11 +725,12 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 classes.genre ?? ""
               } baseVertFlex !items-start gap-1.5`}
             >
-              <Label>
+              <Label htmlFor="genre">
                 Genre <span className="text-destructive">*</span>
               </Label>
               <Select value={genre} onValueChange={(value) => setGenre(value)}>
                 <SelectTrigger
+                  id="genre"
                   style={{
                     boxShadow:
                       showPulsingError && genre === ""
@@ -790,7 +791,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 value={capo.toString()}
                 onValueChange={(value) => setCapo(Number(value))}
               >
-                <SelectTrigger className="w-28">
+                <SelectTrigger id="capo" className="w-28">
                   <SelectValue placeholder="None" />
                 </SelectTrigger>
                 <SelectContent>
@@ -822,6 +823,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               <div className="baseFlex">
                 <QuarterNote className="-ml-1 size-5" />
                 <Input
+                  id="bpm"
                   type="text"
                   placeholder="75"
                   inputMode="numeric"
@@ -840,12 +842,12 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 classes.key ?? ""
               } baseVertFlex !items-start gap-1.5`}
             >
-              <Label>Key</Label>
+              <Label htmlFor="key">Key</Label>
               <Select
                 value={key ?? ""}
                 onValueChange={(value) => setKey(value)}
               >
-                <SelectTrigger>
+                <SelectTrigger id="key">
                   <SelectValue placeholder="Select a key" />
                 </SelectTrigger>
                 <SelectContent>
@@ -870,14 +872,14 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 classes.difficulty ?? ""
               } baseVertFlex !items-start gap-1.5`}
             >
-              <Label>
+              <Label htmlFor="difficulty">
                 Difficulty <span className="text-destructive">*</span>
               </Label>
               <Select
                 value={difficulty.toString()}
                 onValueChange={(value) => setDifficulty(Number(value))}
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger id="difficulty" className="w-[180px]">
                   <SelectValue placeholder="Select a difficulty">
                     <div className="baseFlex gap-2">
                       <DifficultyBars difficulty={difficulty} />

@@ -814,11 +814,14 @@ function TabSection({
           <div className="baseFlex gap-2">
             <div className="baseFlex gap-2">
               <div className="baseFlex gap-2">
-                <Label>BPM</Label>
+                <Label htmlFor={`${sectionIndex}${subSectionIndex}bpmInput`}>
+                  BPM
+                </Label>
                 <div className="baseFlex">
                   <QuarterNote className="-ml-1 size-5" />
 
                   <Input
+                    id={`${sectionIndex}${subSectionIndex}bpmInput`}
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
@@ -834,10 +837,15 @@ function TabSection({
                 </div>
               </div>
 
-              <Label>Repetitions</Label>
+              <Label
+                htmlFor={`${sectionIndex}${subSectionIndex}repetitionsInput`}
+              >
+                Repetitions
+              </Label>
               <div className="relative w-12">
                 <span className="absolute bottom-[9px] left-2 text-sm">x</span>
                 <Input
+                  id={`${sectionIndex}${subSectionIndex}repetitionsInput`}
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"

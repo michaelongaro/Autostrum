@@ -19,6 +19,7 @@ import {
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { X } from "lucide-react";
+import { Label } from "~/components/ui/label";
 
 function SectionProgressionModal() {
   const {
@@ -176,7 +177,7 @@ function SectionProgressionModal() {
             <div className="baseFlex mt-8 w-full !justify-between gap-4">
               <Button
                 variant={"outline"}
-                className="baseFlex gap-2 py-4"
+                className="baseFlex gap-2 py-4 pl-2.5"
                 onClick={addNewSectionToProgression}
               >
                 <BsPlus className="size-6" />
@@ -293,7 +294,9 @@ function Section({
       className="baseVertFlex relative w-full gap-2 rounded-lg border bg-secondary p-4 shadow-sm"
     >
       <div className="baseFlex w-full !justify-start gap-2">
-        <span>{getOrdinalSuffix(index + 1)} section</span>
+        <Label htmlFor={`sectionIndex${index}`}>
+          {getOrdinalSuffix(index + 1)} section
+        </Label>
 
         {/* TODO: consider implementing this later, you will have to do some local calculations */}
         {/* <div className="baseFlex gap-2">
@@ -312,7 +315,10 @@ function Section({
       <div className="baseVertFlex gap-6 rounded-md py-1 text-foreground xs:!flex-row xs:!justify-between xs:gap-4">
         <div className="baseVertFlex !items-start gap-4 xs:!flex-row">
           <Select value={sectionId} onValueChange={handleSectionChange}>
-            <SelectTrigger className="w-[218px] xs:w-[218px]">
+            <SelectTrigger
+              id={`sectionIndex${index}`}
+              className="w-[218px] xs:w-[218px]"
+            >
               <SelectValue
                 placeholder="Select a section"
                 className="overflow-x-hidden truncate"

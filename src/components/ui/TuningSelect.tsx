@@ -41,7 +41,7 @@ function TuningSelect({ customTuning }: TuningSelectProps) {
         }
       }}
     >
-      <SelectTrigger className="h-10 w-[175px]">
+      <SelectTrigger id="tuning" className="h-10 w-[175px]">
         <SelectValue placeholder="Select tuning...">
           {tuning ? (
             <PrettyTuning tuning={tuning} displayWithFlex={true} />
