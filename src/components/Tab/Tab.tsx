@@ -672,13 +672,13 @@ function TabSettings({ showPinnedChords, setShowPinnedChords }: TabSettings) {
   return (
     <div className="baseVertFlex w-full gap-2">
       <div className="baseFlex w-full !justify-between gap-2 text-sm font-medium">
-        <span>Zoom</span>
+        <Label id="tabZoomSlider">Zoom</Label>
         <span>{zoom}x</span>
       </div>
 
       <div className="baseFlex w-full">
         <Range
-          label="Tab zoom level slider"
+          labelledBy="tabZoomSlider"
           step={0.1}
           min={0.5}
           max={1.5}

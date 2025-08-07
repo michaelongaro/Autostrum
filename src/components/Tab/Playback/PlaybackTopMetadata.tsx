@@ -110,7 +110,12 @@ function PlaybackTopMetadata({
                       <Separator className="h-6 w-[1px]" />
 
                       <div className="baseFlex gap-2">
-                        <span className="text-sm font-medium">Section</span>
+                        <Label
+                          htmlFor="sectionPicker"
+                          className="text-sm font-medium"
+                        >
+                          Section
+                        </Label>
                         <Select
                           value={
                             audioMetadata.location === null
@@ -138,7 +143,10 @@ function PlaybackTopMetadata({
                             setCurrentChordIndex(0);
                           }}
                         >
-                          <SelectTrigger className="!h-8 max-w-28 sm:max-w-none">
+                          <SelectTrigger
+                            id="sectionPicker"
+                            className="!h-8 max-w-28 sm:max-w-none"
+                          >
                             <SelectValue placeholder="Select a section">
                               {audioMetadata.location === null
                                 ? "Full tab"
@@ -276,7 +284,12 @@ function PlaybackTopMetadata({
 
                   {sectionProgression.length > 1 && (
                     <div className="baseFlex gap-2">
-                      <p className="text-sm font-medium">Section</p>
+                      <Label
+                        htmlFor="sectionPicker"
+                        className="text-sm font-medium"
+                      >
+                        Section
+                      </Label>
                       <Select
                         value={
                           audioMetadata.location === null
@@ -298,7 +311,10 @@ function PlaybackTopMetadata({
                           });
                         }}
                       >
-                        <SelectTrigger className="!h-8 max-w-28 sm:max-w-none">
+                        <SelectTrigger
+                          id="sectionPicker"
+                          className="!h-8 max-w-28 sm:max-w-none"
+                        >
                           <SelectValue placeholder="Select a section">
                             {audioMetadata.location === null
                               ? "Full tab"
