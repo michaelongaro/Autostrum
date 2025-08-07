@@ -106,13 +106,23 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
           isVerified: true,
         },
       },
-      createdBy: {
-        select: {
-          username: true,
-        },
-      },
     },
   });
+
+  if (!tab) {
+    return {
+      props: {
+        json: superjson.stringify({
+          tab: null,
+          openGraphData: {
+            title: "Autostrum",
+            url: "www.autostrum.com/tab/",
+            description: "View and listen to this tab on Autostrum.",
+          },
+        }),
+      },
+    };
+  }
 
   const openGraphData: OpenGraphData = {
     title: "Autostrum",
@@ -122,13 +132,15 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
   if (tab) {
     openGraphData.title = `Edit ${tab.title} | Autostrum`;
-    openGraphData.description = `Edit ${
-      tab.createdBy?.username ? `${tab.createdBy.username}'s tab` : "this tab"
-    } ${tab.title} on Autostrum.`;
+    openGraphData.description = `Edit ${tab.title} on Autostrum.`;
   }
 
-  // removing user from tab object to adhere to TabWithArtistMetadata type
-  const { createdBy, ...tabWithArtistMetadata } = tab || {};
+  const tabWithArtistMetadata: TabWithArtistMetadata = {
+    ...tab,
+    artistId: tab.artist?.id || null,
+    artistName: tab.artist?.name,
+    artistIsVerified: tab.artist?.isVerified,
+  };
 
   return {
     props: {
