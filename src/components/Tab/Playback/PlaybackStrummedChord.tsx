@@ -135,7 +135,7 @@ function PlaybackStrummedChord({
           <div
             style={{
               color: isHighlighted
-                ? "hsl(var(--primary) / 0.75)"
+                ? "hsl(var(--primary))"
                 : "hsl(var(--foreground))",
               transitionDuration: "75ms",
             }}
@@ -157,7 +157,7 @@ function PlaybackStrummedChord({
             <div
               style={{
                 color: isHighlighted
-                  ? "hsl(var(--primary) / 0.75)"
+                  ? "hsl(var(--primary))"
                   : "hsl(var(--foreground))",
               }}
               className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
@@ -215,7 +215,7 @@ function PlaybackStrummedChord({
                   ? "1.25rem"
                   : "auto",
               color: isHighlighted
-                ? "hsl(var(--primary) / 0.75)"
+                ? "hsl(var(--primary))"
                 : "hsl(var(--foreground))",
               transitionDuration: "75ms",
             }}
