@@ -221,7 +221,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="ml-8 text-2xl font-semibold text-foreground lg:text-3xl"
+                      className="ml-8 text-xl font-semibold text-foreground lg:text-3xl"
                     >
                       {currentUser.totalTabs}
                     </motion.span>
@@ -254,7 +254,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="ml-8 text-2xl font-semibold text-foreground lg:text-3xl"
+                      className="ml-8 text-xl font-semibold text-foreground lg:text-3xl"
                     >
                       {currentUser.totalTabViews}
                     </motion.span>
@@ -287,7 +287,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="ml-8 text-2xl font-semibold text-foreground lg:text-3xl"
+                      className="ml-8 text-xl font-semibold text-foreground lg:text-3xl"
                     >
                       {currentUser.totalTabRatings > 0
                         ? currentUser.averageTabRating.toFixed(1)
@@ -322,7 +322,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="ml-8 text-2xl font-semibold text-foreground lg:text-3xl"
+                      className="ml-8 text-xl font-semibold text-foreground lg:text-3xl"
                     >
                       {currentUser.totalTabRatings}
                     </motion.span>
@@ -355,7 +355,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="ml-8 text-2xl font-semibold text-foreground lg:text-3xl"
+                      className="ml-8 text-xl font-semibold text-foreground lg:text-3xl"
                     >
                       {currentUser.totalBookmarksReceived}
                     </motion.span>
