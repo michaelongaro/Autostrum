@@ -266,7 +266,7 @@ function expandFullTab({
   );
   const baselineMetadata = structuredClone(metadataMappedToLoopRange);
 
-  // adding loopDelay in one-off fasion since do-while loop approach caused some clunky issues.
+  // adding loopDelay in one-off fashion since do-while loop approach caused some clunky issues.
   if (loopDelay > 0 && totalChordsWidth >= visiblePlaybackContainerWidth) {
     // add as many spacer chords as needed to fill up the loopDelay
     // (according to the bpm of the very last chord in the loop).

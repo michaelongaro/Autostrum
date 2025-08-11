@@ -117,21 +117,27 @@ function PlaybackProgressSlider({
     prevEditingLoopRangeState.current = audioMetadata.editingLoopRange;
   }, [audioMetadata.editingLoopRange, loopRange, setCurrentChordIndex]); // Dependency array contains the boolean value
 
-  // might want to do something dynamic visually  with isDragged prop for thumbs
+  // might want to do something dynamic visually with isDragged prop for thumbs
+
+  // used to keep currentChordIndex within bounds of the currently playing metadata
+  // when the tab is artifically extended to fit within the user's viewport
+  function wrapNumber(num: number, upperBound: number) {
+    const rangeSize = upperBound + 1;
+    return ((num % rangeSize) + rangeSize) % rangeSize;
+  }
 
   return (
     <>
       {audioMetadata.editingLoopRange ? (
         <Range
           key={"rangeTwoThumbs"} // needed so thumb(s) are properly initialized
-          label="Range to loop within tab"
+          label="Start/end slider to control range to loop within current tab"
           step={1}
           min={0}
           max={audioMetadata.fullCurrentlyPlayingMetadataLength - 1}
           // allowOverlap={true}
           draggableTrack
           values={loopRange}
-          // any use for onFinalChange?
           onChange={(newLoopRange) => {
             // react-range doesn't allow for a range of 0
             if (Math.abs((newLoopRange[0] ?? 0) - (newLoopRange[1] ?? 0)) === 0)
@@ -188,21 +194,26 @@ function PlaybackProgressSlider({
       ) : (
         <Range
           key={"rangeOneThumb"} // needed so thumb is properly initialized
-          label="Progress within tab"
+          label="Slider to control the progress within the current tab"
           step={1}
           min={0}
           max={
             currentlyPlayingMetadata ? currentlyPlayingMetadata.length - 1 : 0
           }
           values={[
-            // bounding the value to the range of the tab
-            Math.min(
-              currentChordIndex + (audioMetadata.playing ? 1 : 0),
-              currentlyPlayingMetadata!.length - 1,
+            wrapNumber(
+              currentChordIndex +
+                (audioMetadata.playing &&
+                currentChordIndex !== currentlyPlayingMetadata!.length - 1
+                  ? 1
+                  : 0),
+
+              currentlyPlayingMetadata
+                ? currentlyPlayingMetadata.length - 1
+                : 0,
             ),
           ]}
           disabled={disabled}
-          // any use for onFinalChange?
           onChange={(values) => {
             if (audioMetadata.playing) {
               pauseAudio();
@@ -232,35 +243,60 @@ function PlaybackProgressSlider({
                   height: "8px",
                   borderRadius: "4px",
                   filter: disabled ? "brightness(0.75)" : "none",
-                  background: getTrackBackground({
-                    values: [currentChordIndex],
-                    colors: ["hsl(var(--primary))", "hsl(var(--gray) / 0.75)"],
-                    min: 0,
-                    max: currentlyPlayingMetadata?.length ?? 0,
-                  }),
                   alignSelf: "center",
                 }}
-                className="mobileNarrowLandscape:w-[95100 w-full transition-all mobileLandscape:w-[95%]"
+                className={`relative w-full bg-[hsl(var(--gray)/0.75)] mobileLandscape:w-[95%]`}
               >
+                <div className="absolute left-0 top-0 h-full w-full overflow-hidden rounded-[4px]">
+                  <div
+                    id="playbackSliderTrack"
+                    style={{
+                      transform: `scaleX(${
+                        wrapNumber(
+                          currentChordIndex +
+                            (audioMetadata.playing &&
+                            currentChordIndex !==
+                              currentlyPlayingMetadata!.length - 1
+                              ? 1
+                              : 0),
+                          currentlyPlayingMetadata
+                            ? currentlyPlayingMetadata.length - 1
+                            : 0,
+                        ) /
+                        (currentlyPlayingMetadata
+                          ? currentlyPlayingMetadata.length - 1
+                          : 0)
+                      })`,
+                      transitionProperty: "transform",
+                      transitionTimingFunction: "linear",
+                      transitionDuration: `${
+                        audioMetadata.playing
+                          ? `${chordDurations[currentChordIndex] ?? 0}s`
+                          : "0s"
+                      }`,
+                    }}
+                    className="absolute left-0 top-0 z-10 h-full w-full origin-left rounded-[4px] bg-primary"
+                  ></div>
+                </div>
                 {children}
               </div>
             </div>
           )}
-          renderThumb={({ props, index }) => (
+          renderThumb={({ props }) => (
             <div
               {...props}
-              key={`${props.key}-${index}`}
+              id="playbackSliderThumb"
               style={{
                 ...props.style,
-                transition: `transform ${
-                  currentChordIndex === 0
-                    ? 0
-                    : audioMetadata.playing
-                      ? (chordDurations[currentChordIndex] ?? 0)
-                      : 0
-                }s linear`,
+                transitionProperty: "transform",
+                transitionTimingFunction: "linear",
+                transitionDuration: `${
+                  audioMetadata.playing
+                    ? `${chordDurations[currentChordIndex] ?? 0}s`
+                    : "0s"
+                }`,
               }}
-              className="z-10 size-[18px] rounded-full border bg-primary will-change-transform"
+              className="!z-20 size-[18px] rounded-full border bg-primary will-change-transform"
             />
           )}
         />

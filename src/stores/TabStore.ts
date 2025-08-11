@@ -10,7 +10,10 @@ import {
   compileStrummingPatternPreview,
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
-import { resetTabSliderPosition } from "~/utils/tabSliderHelpers";
+import {
+  resetPlaybackTabSliderPosition,
+  resetTabSliderPosition,
+} from "~/utils/tabSliderHelpers";
 import { parse } from "~/utils/tunings";
 import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
 
@@ -804,6 +807,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       playTab: async ({ location, tabId }: PlayTab) => {
         const {
           audioMetadata,
+          editing,
           tabData,
           sectionProgression: rawSectionProgression,
           tuning: tuningNotes,
@@ -961,18 +965,22 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             return;
           }
 
-          // TODO: probably want to have reset of slider to beginning at the very first
-          // loop delay spacer chord (if there is one).
-
           // If the current chord is the last in the compiledChords sequence
           if (
             adjustedChordIndex === compiledChords.length - 1 &&
             looping &&
             audioMetadata.playing
           ) {
-            // Reset the slider position for UI consistency
-            resetTabSliderPosition();
+            if (editing) {
+              // Reset the slider position for UI consistency
+              resetTabSliderPosition();
+            } else {
+              resetPlaybackTabSliderPosition();
+            }
           }
+
+          // TODO: probably want to have reset of slider to beginning at the very first
+          // loop delay spacer chord (if there is one).
 
           // Handle the end of the entire repeat sequence
           if (

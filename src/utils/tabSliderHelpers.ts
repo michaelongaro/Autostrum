@@ -4,7 +4,7 @@ function resetTabSliderPosition() {
   const audioSliderNode = document.getElementById("audioSlider");
   if (audioSliderNode) {
     const childElements = Array.from(
-      audioSliderNode.children
+      audioSliderNode.children,
     ) as HTMLSpanElement[];
     childElements[0]!.children[0]!.style.transition = "none";
     childElements[0]!.children[0]!.style.right = "100%";
@@ -21,7 +21,7 @@ function returnTransitionToTabSlider() {
   const audioSliderNode = document.getElementById("audioSlider");
   if (audioSliderNode) {
     const childElements = Array.from(
-      audioSliderNode.children
+      audioSliderNode.children,
     ) as HTMLSpanElement[];
 
     childElements[0]!.children[0]!.style.transition = "right 1s linear";
@@ -29,4 +29,32 @@ function returnTransitionToTabSlider() {
   }
 }
 
-export { resetTabSliderPosition, returnTransitionToTabSlider };
+function resetPlaybackTabSliderPosition() {
+  const playbackSliderTrack = document.getElementById("playbackSliderTrack");
+  const playbackSliderThumb = document.getElementById("playbackSliderThumb");
+
+  if (!playbackSliderTrack || !playbackSliderThumb) return;
+
+  const prevPlaybackTransitionDuration =
+    playbackSliderThumb.style.transitionDuration;
+
+  playbackSliderTrack.style.transitionDuration = "0s";
+  playbackSliderTrack.style.transform = "scaleX(0)";
+
+  playbackSliderThumb.style.transitionDuration = "0s";
+  playbackSliderThumb.style.transform = "translate(-9px, -5px)"; // default px values for "starting" thumb position
+
+  // re-apply the transition on the next frame after resetting the position
+  requestAnimationFrame(() => {
+    playbackSliderTrack.style.transitionDuration =
+      prevPlaybackTransitionDuration;
+    playbackSliderThumb.style.transitionDuration =
+      prevPlaybackTransitionDuration;
+  });
+}
+
+export {
+  resetTabSliderPosition,
+  returnTransitionToTabSlider,
+  resetPlaybackTabSliderPosition,
+};
