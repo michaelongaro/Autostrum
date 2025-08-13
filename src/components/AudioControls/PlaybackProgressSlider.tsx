@@ -115,7 +115,7 @@ function PlaybackProgressSlider({
 
     // Update ref to the current value for the next render
     prevEditingLoopRangeState.current = audioMetadata.editingLoopRange;
-  }, [audioMetadata.editingLoopRange, loopRange, setCurrentChordIndex]); // Dependency array contains the boolean value
+  }, [audioMetadata.editingLoopRange, loopRange, setCurrentChordIndex]);
 
   // might want to do something dynamic visually with isDragged prop for thumbs
 
@@ -275,7 +275,7 @@ function PlaybackProgressSlider({
                           : "0s"
                       }`,
                     }}
-                    className="absolute left-0 top-0 z-10 h-full w-full origin-left rounded-[4px] bg-primary"
+                    className="absolute left-0 top-0 z-10 h-full w-full origin-left rounded-[4px] bg-primary will-change-transform"
                   ></div>
                 </div>
                 {children}
