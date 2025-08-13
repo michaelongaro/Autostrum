@@ -165,7 +165,12 @@ html body[data-scroll-locked] {
     opacity: 0 !important;
   }
 
-  50% {
+  40% {
+    transform: translateY(0px);
+    opacity: 1 !important;
+  }
+
+  60% {
     transform: translateY(0px);
     opacity: 1 !important;
   }
@@ -177,8 +182,8 @@ html body[data-scroll-locked] {
 }
 
 .countIn {
-  /* TODO: change this later to be closer to framer-motion spring easing */
-  animation: countInAnimation 1s ease-in-out;
+  /* rough spring easing */
+  animation: countInAnimation 1s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes copyAndPasteAnimation {
