@@ -419,7 +419,9 @@ function PlaybackModal() {
   return (
     <motion.div
       key={"PlaybackModalBackdrop"}
-      className="baseFlex fixed left-0 top-0 z-50 h-[100dvh] w-[100vw] bg-black/60 backdrop-blur-sm"
+      // FYI: made this bg-black/70 instead of bg-black/60 since the backdrop-blur-sm caused unfortunate
+      // smearing of the noise texture background
+      className="baseFlex fixed left-0 top-0 z-50 h-[100dvh] w-[100vw] bg-black/70 backdrop-blur-sm"
       variants={backdropVariants}
       initial="closed"
       animate="expanded"

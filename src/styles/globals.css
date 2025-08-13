@@ -54,8 +54,7 @@ body::after {
   /* courtesy of https://www.fffuel.co/nnnoise/ */
 }
 
-.modalGradient::after,
-.playbackModalGradient::after {
+.modalGradient::after {
   content: "";
   position: fixed;
   top: 0;
@@ -63,9 +62,24 @@ body::after {
   bottom: 0;
   left: 0;
   z-index: 1;
-  background-image: url('/ui/noise.svg');
   pointer-events: none;
   opacity: 0.5;
+  background-image: url('/ui/noise.svg');
+  /* courtesy of https://www.fffuel.co/nnnoise/ */
+}
+
+.modalGradient::after,
+.playbackModalGradient::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url('/ui/noise.svg');
   /* courtesy of https://www.fffuel.co/nnnoise/ */
 }
 
