@@ -96,7 +96,7 @@ function AudioControls() {
 
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
 
-  useAutoscrollToCurrentChord({ autoscrollEnabled });
+  useAutoscrollToCurrentChord(autoscrollEnabled);
 
   const {
     id,

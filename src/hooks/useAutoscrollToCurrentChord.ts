@@ -1,13 +1,8 @@
 import { useState, useEffect } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { scroller } from "react-scroll";
-interface UseAutoscrollToCurrentChord {
-  autoscrollEnabled: boolean;
-}
 
-function useAutoscrollToCurrentChord({
-  autoscrollEnabled,
-}: UseAutoscrollToCurrentChord) {
+function useAutoscrollToCurrentChord(autoscrollEnabled: boolean) {
   // not my favorite hack: but is used to avoid scrolling when
   // the current chord is still visible but there is small difference
   // in height (<50px) between the current chord and the previous chord
