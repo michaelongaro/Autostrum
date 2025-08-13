@@ -1,7 +1,7 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { isMobileOnly } from "react-device-detect";
 import {
   BsFillVolumeDownFill,
@@ -21,7 +21,6 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "~/components/ui/drawer";
-import { AudioProgressSlider } from "~/components/ui/AudioProgressSlider";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import {
@@ -48,10 +47,10 @@ import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import scrollChordIntoView from "~/utils/scrollChordIntoView";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
-import { returnTransitionToTabSlider } from "~/utils/tabSliderHelpers";
 import { LoopingRangeSlider } from "~/components/ui/LoopingRangeSlider";
 import PlayButtonIcon from "./PlayButtonIcon";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { Range } from "react-range";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -67,24 +66,17 @@ const opacityAndScaleVariants = {
 function AudioControls() {
   const { asPath } = useRouter();
 
-  const [tabProgressValue, setTabProgressValue] = useState(0);
+  const [chordDurations, setChordDurations] = useState<number[]>([]);
   const [wasPlayingBeforeScrubbing, setWasPlayingBeforeScrubbing] =
     useState(false);
-
-  const [previousChordIndex, setPreviousChordIndex] = useState(0);
-  const [previousTabId, setPreviousTabId] = useState(0);
-
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
-
   const [visibility, setVisibility] = useState<"expanded" | "minimized">(
     "expanded",
   );
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandleDisabled, setDrawerHandleDisabled] = useState(false);
-
-  const oneSecondIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const localStorageVolume = useLocalStorageValue("autostrum-volume");
   const localStorageAutoscroll = useLocalStorageValue("autostrum-autoscroll");
@@ -118,8 +110,6 @@ function AudioControls() {
     playTab,
     pauseAudio,
     fetchingFullTabData,
-    countInTimer,
-    setCountInTimer,
     mobileHeaderModal,
     setMobileHeaderModal,
   } = useTabStore((state) => ({
@@ -143,8 +133,6 @@ function AudioControls() {
     playTab: state.playTab,
     pauseAudio: state.pauseAudio,
     fetchingFullTabData: state.fetchingFullTabData,
-    countInTimer: state.countInTimer,
-    setCountInTimer: state.setCountInTimer,
     mobileHeaderModal: state.mobileHeaderModal,
     setMobileHeaderModal: state.setMobileHeaderModal,
   }));
@@ -161,81 +149,19 @@ function AudioControls() {
     masterVolumeGainNode.gain.value = volume;
   }, [volume, masterVolumeGainNode]);
 
+  // initializes the chord durations array
   useEffect(() => {
-    if (currentChordIndex === 0) {
-      setPreviousChordIndex(0);
-      setTabProgressValue(0);
-    } else {
-      setPreviousChordIndex(currentChordIndex - 1);
-    }
-  }, [currentChordIndex]);
+    if (!currentlyPlayingMetadata) return;
 
-  // didn't want to clutter up below effect with more conditions, this just covers
-  // resetting the tab progress value when the tab that is playing changes
-  useEffect(() => {
-    if (audioMetadata.tabId !== previousTabId) {
-      setPreviousTabId(audioMetadata.tabId);
+    const durations = currentlyPlayingMetadata.map((metadata) => {
+      const { bpm, noteLengthMultiplier } = metadata;
+      return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
+    });
 
-      if (oneSecondIntervalRef.current) {
-        clearInterval(oneSecondIntervalRef.current);
-        oneSecondIntervalRef.current = null;
-      }
-
-      setTabProgressValue(0);
-    }
-  }, [audioMetadata.tabId, previousTabId]);
-
-  useEffect(() => {
-    if (audioMetadata.playing && !oneSecondIntervalRef.current) {
-      returnTransitionToTabSlider();
-
-      // feels hacky, but need to have it moving towards one *as soon*
-      // as the play button is pressed, otherwise it will wait a full second
-      // before starting to increment.
-      if (tabProgressValue === 0) setTabProgressValue(1);
-      else setTabProgressValue(tabProgressValue + 1);
-
-      oneSecondIntervalRef.current = setInterval(() => {
-        setTabProgressValue((prev) => prev + 1);
-      }, 1000);
-    } else if (
-      (!audioMetadata.playing ||
-        (currentChordIndex === 0 && previousChordIndex !== 0)) &&
-      oneSecondIntervalRef.current
-    ) {
-      clearInterval(oneSecondIntervalRef.current);
-      oneSecondIntervalRef.current = null;
-
-      if (currentChordIndex === 0) {
-        setTabProgressValue(0);
-      } else {
-        const currentElapsedSeconds =
-          currentlyPlayingMetadata?.[currentChordIndex]?.elapsedSeconds ?? 0;
-
-        if (currentElapsedSeconds === 0) {
-          setTabProgressValue(0);
-          setCurrentChordIndex(0);
-        }
-      }
-    }
-  }, [
-    currentlyPlayingMetadata,
-    audioMetadata.playing,
-    currentChordIndex,
-    previousChordIndex,
-    tabProgressValue,
-    setCurrentChordIndex,
-  ]);
-
-  useEffect(() => {
-    setCurrentChordIndex(0);
-    setTabProgressValue(0);
-  }, [audioMetadata.editingLoopRange, setCurrentChordIndex]);
+    setChordDurations(durations);
+  }, [currentlyPlayingMetadata, playbackSpeed]);
 
   function handlePlayButtonClick() {
-    const isViewingTabPath =
-      asPath.includes("/tab") && !asPath.includes("edit");
-    const delayPlayStart = isViewingTabPath ? 3000 : 0;
     const delayForStoreStateToUpdate = previewMetadata.playing ? 50 : 0;
 
     if (audioMetadata.playing) {
@@ -243,34 +169,17 @@ function AudioControls() {
       setArtificalPlayButtonTimeout(true);
       setTimeout(() => setArtificalPlayButtonTimeout(false), 300);
     } else {
-      if (isViewingTabPath) {
-        if (
-          currentlyPlayingMetadata?.[currentChordIndex] &&
-          autoscrollEnabled
-        ) {
-          scrollChordIntoView({
-            location: currentlyPlayingMetadata[currentChordIndex].location,
-          });
-        }
-        setCountInTimer({
-          ...countInTimer,
-          showing: true,
+      if (currentlyPlayingMetadata?.[currentChordIndex] && autoscrollEnabled) {
+        scrollChordIntoView({
+          location: currentlyPlayingMetadata[currentChordIndex].location,
         });
       }
+
       if (previewMetadata.playing) pauseAudio();
 
       setTimeout(() => {
-        setTimeout(() => {
-          void playTab({ tabId: id, location: audioMetadata.location });
-        }, delayForStoreStateToUpdate);
-
-        if (isViewingTabPath) {
-          setCountInTimer({
-            ...countInTimer,
-            showing: false,
-          });
-        }
-      }, delayPlayStart);
+        void playTab({ tabId: id, location: audioMetadata.location });
+      }, delayForStoreStateToUpdate);
     }
   }
 
@@ -296,7 +205,6 @@ function AudioControls() {
 
   const disablePlayButton = useMemo(() => {
     if (
-      countInTimer.showing ||
       artificalPlayButtonTimeout ||
       fetchingFullTabData ||
       audioMetadata.editingLoopRange
@@ -314,7 +222,6 @@ function AudioControls() {
       (tabIsEffectivelyEmpty(tabData) && !audioMetadata.location)
     );
   }, [
-    countInTimer.showing,
     bpm,
     fetchingFullTabData,
     audioMetadata.location,
@@ -398,11 +305,6 @@ function AudioControls() {
                       <Button
                         variant="ghost" // or secondary maybe
                         onClick={() => {
-                          setCountInTimer({
-                            ...countInTimer,
-                            forSectionContainer: null,
-                          });
-
                           setArtificalPlayButtonTimeout(true);
 
                           setTimeout(() => {
@@ -541,9 +443,7 @@ function AudioControls() {
                   Instrument
                 </Label>
                 <Select
-                  disabled={
-                    countInTimer.showing || audioMetadata.editingLoopRange
-                  }
+                  disabled={audioMetadata.editingLoopRange}
                   value={currentInstrumentName}
                   onValueChange={(value) => {
                     pauseAudio();
@@ -585,9 +485,7 @@ function AudioControls() {
                   Speed
                 </Label>
                 <Select
-                  disabled={
-                    countInTimer.showing || audioMetadata.editingLoopRange
-                  }
+                  disabled={audioMetadata.editingLoopRange}
                   value={`${playbackSpeed}x`}
                   onValueChange={(value) => {
                     pauseAudio();
@@ -596,15 +494,6 @@ function AudioControls() {
                       value.slice(0, value.length - 1),
                     ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
 
-                    // Normalize the progress value to 1x speed
-                    const normalizedProgress = tabProgressValue * playbackSpeed;
-
-                    // Adjust the progress value to the new playback speed
-                    const adjustedProgress =
-                      normalizedProgress / newPlaybackSpeed;
-
-                    // Set the new progress value
-                    setTabProgressValue(adjustedProgress);
                     setPlaybackSpeed(newPlaybackSpeed);
                   }}
                 >
@@ -636,13 +525,7 @@ function AudioControls() {
                 >
                   <Button
                     variant="ghost" // or secondary maybe
-                    disabled={countInTimer.showing}
                     onClick={() => {
-                      setCountInTimer({
-                        ...countInTimer,
-                        forSectionContainer: null,
-                      });
-
                       setArtificalPlayButtonTimeout(true);
 
                       setTimeout(() => {
@@ -771,17 +654,14 @@ function AudioControls() {
               currentInstrument={currentInstrument}
               audioMetadata={audioMetadata}
               forceShowLoadingSpinner={fetchingFullTabData}
-              showCountInTimer={countInTimer.showing}
             />
           </Button>
 
           <div className="baseFlex w-9/12 gap-2">
-            <span>
+            <span className="mr-2">
               {formatSecondsToMinutes(
-                Math.min(
-                  tabProgressValue,
-                  currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0,
-                ),
+                currentlyPlayingMetadata?.[currentChordIndex]?.elapsedSeconds ??
+                  0,
               )}
             </span>
 
@@ -817,69 +697,128 @@ function AudioControls() {
                 }}
               />
             ) : (
-              <AudioProgressSlider
-                value={[tabProgressValue]}
+              <Range
+                key={"rangeOneThumb"} // needed so thumb is properly initialized
+                label="Slider to control the progress within the current tab"
+                step={1}
                 min={0}
-                // radix-slider thumb protrudes from lefthand side of the
-                // track if max has a value of 0...
                 max={
                   currentlyPlayingMetadata
-                    ? currentlyPlayingMetadata.at(-1)?.elapsedSeconds
+                    ? currentlyPlayingMetadata.length - 1
                     : 1
                 }
-                step={1}
+                values={[
+                  currentChordIndex +
+                    (audioMetadata.playing &&
+                    currentChordIndex !== currentlyPlayingMetadata!.length - 1
+                      ? 1
+                      : 0),
+                ]}
                 disabled={disablePlayButton}
-                style={{
-                  pointerEvents: disablePlayButton ? "none" : "auto",
-                }}
-                onPointerDown={() => {
-                  setInteractingWithAudioProgressSlider(true);
-                  setWasPlayingBeforeScrubbing(audioMetadata.playing);
-                  if (audioMetadata.playing) pauseAudio();
-                }}
-                onPointerUp={() => {
-                  setInteractingWithAudioProgressSlider(false);
-                  if (!wasPlayingBeforeScrubbing) return;
-
-                  // waiting; playTab() needs to have currentChordIndex
-                  // updated before it's called so it plays from the correct chord
-                  setTimeout(() => {
-                    void playTab({
-                      tabId: id,
-                      location: audioMetadata.location,
-                    });
-
-                    setArtificalPlayButtonTimeout(true);
-
-                    setTimeout(() => {
-                      setArtificalPlayButtonTimeout(false);
-                    }, 300);
-                  }, 50);
-                }}
-                onValueChange={(value) => {
-                  setTabProgressValue(value[0]!);
-
-                  if (!currentlyPlayingMetadata) return;
-
-                  let newCurrentChordIndex = -1;
-
-                  for (let i = 0; i < currentlyPlayingMetadata.length; i++) {
-                    const metadata = currentlyPlayingMetadata[i]!;
-
-                    if (metadata.elapsedSeconds === value[0]) {
-                      newCurrentChordIndex = i;
-                      break;
-                    }
+                onChange={(values) => {
+                  if (audioMetadata.playing) {
+                    pauseAudio();
                   }
 
-                  if (newCurrentChordIndex !== -1) {
-                    setCurrentChordIndex(newCurrentChordIndex);
-                  }
+                  setCurrentChordIndex(values[0] ?? 0);
                 }}
+                renderTrack={({ props, children, disabled }) => (
+                  <div
+                    onMouseDown={props.onMouseDown}
+                    onTouchStart={props.onTouchStart}
+                    onPointerDown={() => {
+                      setInteractingWithAudioProgressSlider(true);
+                      setWasPlayingBeforeScrubbing(audioMetadata.playing);
+                      if (audioMetadata.playing) pauseAudio();
+                    }}
+                    onPointerUp={() => {
+                      setInteractingWithAudioProgressSlider(false);
+                      if (!wasPlayingBeforeScrubbing) return;
+
+                      // waiting, as playTab() needs to have currentChordIndex
+                      // updated before it's called so it plays from the correct chord
+                      // (really only is necessary for fast click+release cases)
+                      setTimeout(() => {
+                        void playTab({
+                          tabId: id,
+                          location: audioMetadata.location,
+                        });
+
+                        setArtificalPlayButtonTimeout(true);
+
+                        setTimeout(() => {
+                          setArtificalPlayButtonTimeout(false);
+                        }, 300);
+                      }, 50);
+                    }}
+                    style={{
+                      ...props.style,
+                      display: "flex",
+                      width: "100%",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <div
+                      ref={props.ref}
+                      style={{
+                        height: "8px",
+                        borderRadius: "4px",
+                        filter: disabled ? "brightness(0.75)" : "none",
+                        alignSelf: "center",
+                      }}
+                      className={`relative w-full bg-[hsl(var(--gray)/0.75)] mobileLandscape:w-[95%]`}
+                    >
+                      <div className="absolute left-0 top-0 h-full w-full overflow-hidden rounded-[4px]">
+                        <div
+                          id="editingSliderTrack"
+                          style={{
+                            transform: `scaleX(${
+                              (currentChordIndex +
+                                (audioMetadata.playing &&
+                                currentChordIndex !==
+                                  currentlyPlayingMetadata!.length - 1
+                                  ? 1
+                                  : 0)) /
+                              (currentlyPlayingMetadata
+                                ? currentlyPlayingMetadata.length - 1
+                                : 1)
+                            })`,
+                            transitionProperty: "transform",
+                            transitionTimingFunction: "linear",
+                            transitionDuration: `${
+                              audioMetadata.playing
+                                ? `${chordDurations[currentChordIndex] ?? 0}s`
+                                : "0s"
+                            }`,
+                          }}
+                          className="absolute left-0 top-0 z-10 h-full w-full origin-left rounded-[4px] bg-primary will-change-transform"
+                        ></div>
+                      </div>
+                      {children}
+                    </div>
+                  </div>
+                )}
+                renderThumb={({ props }) => (
+                  <div
+                    {...props}
+                    id="editingSliderThumb"
+                    style={{
+                      ...props.style,
+                      transitionProperty: "transform",
+                      transitionTimingFunction: "linear",
+                      transitionDuration: `${
+                        audioMetadata.playing
+                          ? `${chordDurations[currentChordIndex] ?? 0}s`
+                          : "0s"
+                      }`,
+                    }}
+                    className="!z-20 size-[18px] rounded-full border bg-primary will-change-transform"
+                  />
+                )}
               />
             )}
 
-            <span>
+            <span className="ml-2">
               {formatSecondsToMinutes(
                 currentlyPlayingMetadata?.at(-1)?.elapsedSeconds ?? 0,
               )}
@@ -895,17 +834,16 @@ function AudioControls() {
                 <Toggle
                   variant={"outline"}
                   aria-label="Edit loop range"
-                  disabled={
-                    !looping || audioMetadata.playing || countInTimer.showing
-                  }
+                  disabled={!looping || audioMetadata.playing}
                   pressed={audioMetadata.editingLoopRange}
                   className="h-8 w-8 p-1"
-                  onPressedChange={(value) =>
+                  onPressedChange={(value) => {
                     setAudioMetadata({
                       ...audioMetadata,
                       editingLoopRange: value,
-                    })
-                  }
+                    });
+                    setCurrentChordIndex(0); // reset to start of tab when editing loop range
+                  }}
                 >
                   <CgArrowsShrinkH className="h-6 w-6" />
                 </Toggle>
@@ -914,7 +852,7 @@ function AudioControls() {
               <Toggle
                 variant={"outline"}
                 aria-label="Loop toggle"
-                disabled={audioMetadata.playing || countInTimer.showing}
+                disabled={audioMetadata.playing}
                 pressed={looping}
                 className="h-8 w-8 p-1"
                 onPressedChange={(value) => {
@@ -984,7 +922,6 @@ function AudioControls() {
                   <div className="baseFlex w-full !justify-between gap-4">
                     <Label htmlFor="instrument">Instrument</Label>
                     <Select
-                      disabled={countInTimer.showing}
                       onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
                       value={currentInstrumentName}
                       onValueChange={(value) => {
@@ -1028,7 +965,6 @@ function AudioControls() {
                   <div className="baseFlex w-full !justify-between gap-4">
                     <Label htmlFor="speed">Speed</Label>
                     <Select
-                      disabled={countInTimer.showing}
                       onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
                       value={`${playbackSpeed}x`}
                       onValueChange={(value) => {
@@ -1038,16 +974,6 @@ function AudioControls() {
                           value.slice(0, value.length - 1),
                         ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
 
-                        // Normalize the progress value to 1x speed
-                        const normalizedProgress =
-                          tabProgressValue * playbackSpeed;
-
-                        // Adjust the progress value to the new playback speed
-                        const adjustedProgress =
-                          normalizedProgress / newPlaybackSpeed;
-
-                        // Set the new progress value
-                        setTabProgressValue(adjustedProgress);
                         setPlaybackSpeed(newPlaybackSpeed);
                       }}
                     >
@@ -1083,7 +1009,7 @@ function AudioControls() {
                     <Label htmlFor="loop">Loop</Label>
                     <Switch
                       id="loop"
-                      disabled={audioMetadata.playing || countInTimer.showing}
+                      disabled={audioMetadata.playing}
                       checked={looping}
                       onCheckedChange={(value) => {
                         setAudioMetadata({
@@ -1104,7 +1030,6 @@ function AudioControls() {
                         disabled={
                           tabData.length === 0 ||
                           tabData[0]?.data.length === 0 ||
-                          countInTimer.showing ||
                           !looping
                         }
                         onClick={() => {
