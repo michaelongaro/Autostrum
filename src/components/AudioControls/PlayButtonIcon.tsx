@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { BsFillPauseFill, BsStopFill } from "react-icons/bs";
 import type Soundfont from "soundfont-player";
+import PauseIcon from "~/components/ui/icons/PauseIcon";
 import PlayIcon from "~/components/ui/icons/PlayIcon";
+import StopIcon from "~/components/ui/icons/StopIcon";
 import Spinner from "~/components/ui/Spinner";
 import {
   useTabStore,
@@ -188,21 +189,21 @@ function PlayButtonIcon({
           initial="closed"
           animate="expanded"
           transition={{ duration: 0.3 }}
-          className="shrink-0"
+          className="shrink-0 px-1"
         >
           {previewType === "strummingPattern" &&
           previewMetadata?.indexOfPattern === indexOfPattern ? (
-            <BsStopFill
+            <StopIcon
               style={{
-                width: `calc(${size} * 1.5)`, // TODO: probably make custom icon components of these as well w/ better box sizing to avoid this hack
-                height: `calc(${size} * 1.5)`, // TODO: probably make custom icon components of these as well w/ better box sizing to avoid this hack
+                width: size,
+                height: size,
               }}
             />
           ) : (
-            <BsFillPauseFill
+            <PauseIcon
               style={{
-                width: `calc(${size} * 1.5)`, // TODO: probably make custom icon components of these as well w/ better box sizing to avoid this hack
-                height: `calc(${size} * 1.5)`, // TODO: probably make custom icon components of these as well w/ better box sizing to avoid this hack
+                width: size,
+                height: size,
               }}
             />
           )}
