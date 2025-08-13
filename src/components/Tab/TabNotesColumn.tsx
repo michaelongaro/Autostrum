@@ -514,7 +514,7 @@ function TabNotesColumn({
               style={{
                 opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
               }}
-              className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-primary/20 p-4 transition-all"
+              className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-primary/20 p-4 transition-colors"
             ></div>
           </div>
         </div>

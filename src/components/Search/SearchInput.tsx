@@ -169,7 +169,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
       )}
 
       <div
-        className={`baseFlex w-full gap-2 bg-background transition-all ${viewportLabel.includes("mobile") ? "rounded-none border-none" : "rounded-md border"} ${showAutofillResults ? "rounded-b-none" : ""}`}
+        className={`baseFlex w-full gap-2 bg-background transition-[border-radius] ${viewportLabel.includes("mobile") ? "rounded-none border-none" : "rounded-md border"} ${showAutofillResults ? "rounded-b-none" : ""}`}
       >
         <Input
           ref={searchInputRef}

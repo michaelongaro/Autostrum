@@ -65,7 +65,7 @@ function EffectGlossaryDialog() {
                   Hammer-on
                   {editing && (
                     <Popover>
-                      <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-primary/20 active:bg-primary/10">
+                      <PopoverTrigger className="rounded-md p-1 transition-colors hover:bg-primary/20 active:bg-primary/10">
                         <HiOutlineInformationCircle className="h-5 w-5" />
                       </PopoverTrigger>
                       <PopoverContent
@@ -116,7 +116,7 @@ function EffectGlossaryDialog() {
                   Pull-off
                   {editing && (
                     <Popover>
-                      <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-primary/20 active:bg-primary/10">
+                      <PopoverTrigger className="rounded-md p-1 transition-colors hover:bg-primary/20 active:bg-primary/10">
                         <HiOutlineInformationCircle className="h-5 w-5" />
                       </PopoverTrigger>
                       <PopoverContent
@@ -167,7 +167,7 @@ function EffectGlossaryDialog() {
                   Slide up
                   {editing && (
                     <Popover>
-                      <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-primary/20 active:bg-primary/10">
+                      <PopoverTrigger className="rounded-md p-1 transition-colors hover:bg-primary/20 active:bg-primary/10">
                         <HiOutlineInformationCircle className="h-5 w-5" />
                       </PopoverTrigger>
                       <PopoverContent
@@ -218,7 +218,7 @@ function EffectGlossaryDialog() {
                   Slide down
                   {editing && (
                     <Popover>
-                      <PopoverTrigger className="rounded-md p-1 transition-all hover:bg-primary/20 active:bg-primary/10">
+                      <PopoverTrigger className="rounded-md p-1 transition-colors hover:bg-primary/20 active:bg-primary/10">
                         <HiOutlineInformationCircle className="h-5 w-5" />
                       </PopoverTrigger>
                       <PopoverContent
