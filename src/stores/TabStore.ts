@@ -10,10 +10,7 @@ import {
   compileStrummingPatternPreview,
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
-import {
-  resetPlaybackTabSliderPosition,
-  resetTabSliderPosition,
-} from "~/utils/tabSliderHelpers";
+import { resetProgressTabSliderPosition } from "~/utils/tabSliderHelpers";
 import { parse } from "~/utils/tunings";
 import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
 
@@ -709,12 +706,11 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         });
       },
 
+      // FYI: I think this can be removed along with the general store cleanup/refactor
       resetAudioAndMetadataOnRouteChange: () => {
         const { audioMetadata, pauseAudio } = get();
 
-        // radix slider thumb position gets out of whack if
-        // this isn't there
-        resetTabSliderPosition();
+        resetProgressTabSliderPosition("editing");
 
         pauseAudio(true);
 
@@ -971,12 +967,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             looping &&
             audioMetadata.playing
           ) {
-            if (editing) {
-              // Reset the slider position for UI consistency
-              resetTabSliderPosition();
-            } else {
-              resetPlaybackTabSliderPosition();
-            }
+            resetProgressTabSliderPosition(editing ? "editing" : "playback");
           }
 
           // TODO: probably want to have reset of slider to beginning at the very first
@@ -1136,7 +1127,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             });
           }
 
-          resetTabSliderPosition();
+          resetProgressTabSliderPosition("editing");
           set({
             currentChordIndex: 0,
           });
@@ -1159,7 +1150,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           });
 
           if (resetToStart) {
-            resetTabSliderPosition();
+            resetProgressTabSliderPosition("editing");
             set({
               currentChordIndex: 0,
             });
@@ -1175,7 +1166,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           });
 
           if (resetToStart) {
-            resetTabSliderPosition();
+            resetProgressTabSliderPosition("editing");
             set({
               currentChordIndex: 0,
             });
