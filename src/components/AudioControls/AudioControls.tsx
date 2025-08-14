@@ -36,10 +36,8 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Separator } from "~/components/ui/separator";
-import { Slider } from "~/components/ui/slider";
 import { Switch } from "~/components/ui/switch";
 import { Toggle } from "~/components/ui/toggle";
-import { VerticalSlider } from "~/components/ui/verticalSlider";
 import useAutoscrollToCurrentChord from "~/hooks/useAutoscrollToCurrentChord";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
@@ -47,10 +45,9 @@ import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import scrollChordIntoView from "~/utils/scrollChordIntoView";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
-import { LoopingRangeSlider } from "~/components/ui/LoopingRangeSlider";
 import PlayButtonIcon from "./PlayButtonIcon";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { Range } from "react-range";
+import { Direction, getTrackBackground, Range } from "react-range";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -417,15 +414,58 @@ function AudioControls() {
                       ) : null}
                     </AnimatePresence>
 
-                    <Slider
-                      value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
+                    <Range
+                      label="Slider to control the playback volume"
                       min={0}
                       max={100}
                       step={1}
-                      onValueChange={(value) =>
-                        localStorageVolume.set(`${value[0]! / 50}`)
-                      } // 100 felt too quiet/narrow of a volume range
-                    ></Slider>
+                      values={[volume * 50]} // 100 felt too quiet/narrow of a volume range
+                      disabled={disablePlayButton}
+                      onChange={(values) => {
+                        localStorageVolume.set(`${values[0]! / 50}`); // 100 felt too quiet/narrow of a volume range
+                      }}
+                      renderTrack={({ props, children, disabled }) => (
+                        <div
+                          onMouseDown={props.onMouseDown}
+                          onTouchStart={props.onTouchStart}
+                          style={{
+                            ...props.style,
+                            display: "flex",
+                            width: "100%",
+                            justifyContent: "center",
+                            margin: "0 0.35rem",
+                          }}
+                        >
+                          <div
+                            ref={props.ref}
+                            style={{
+                              height: "8px",
+                              borderRadius: "4px",
+                              filter: disabled ? "brightness(0.75)" : "none",
+                              alignSelf: "center",
+                              background: getTrackBackground({
+                                values: [volume * 50],
+                                colors: [
+                                  "hsl(var(--primary))",
+                                  "hsl(var(--gray)/0.75)",
+                                ],
+                                min: 0,
+                                max: 100,
+                              }),
+                            }}
+                            className={`relative w-full`}
+                          >
+                            {children}
+                          </div>
+                        </div>
+                      )}
+                      renderThumb={({ props }) => (
+                        <div
+                          {...props}
+                          className="!z-20 size-[18px] rounded-full border bg-primary"
+                        />
+                      )}
+                    />
                   </div>
                 )}
               </>
@@ -617,19 +657,63 @@ function AudioControls() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
-                  className="baseVertFlex h-36 w-12 gap-2 p-2"
+                  className="baseVertFlex h-40 w-[54px] gap-2 pb-2 pt-4"
                   side="top"
                 >
-                  <VerticalSlider
-                    value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
+                  <Range
+                    label="Slider to control the playback volume"
+                    direction={Direction.Up}
                     min={0}
                     max={100}
                     step={1}
-                    onValueChange={(value) =>
-                      localStorageVolume.set(`${value[0]! / 50}`)
-                    } // 100 felt too quiet/narrow of a volume range
-                  ></VerticalSlider>
-                  <p>{Math.floor(volume * 50)}%</p>
+                    values={[volume * 50]} // 100 felt too quiet/narrow of a volume range
+                    onChange={(values) => {
+                      localStorageVolume.set(`${values[0]! / 50}`); // 100 felt too quiet/narrow of a volume range
+                    }}
+                    renderTrack={({ props, children }) => (
+                      <div
+                        onMouseDown={props.onMouseDown}
+                        onTouchStart={props.onTouchStart}
+                        style={{
+                          ...props.style,
+                          display: "flex",
+                          width: "100%",
+                          height: "100%",
+                          justifyContent: "center",
+                          margin: "0.25rem 0",
+                        }}
+                      >
+                        <div
+                          ref={props.ref}
+                          style={{
+                            width: "8px",
+                            borderRadius: "4px",
+                            alignSelf: "center",
+                            background: getTrackBackground({
+                              values: [volume * 50],
+                              colors: [
+                                "hsl(var(--primary))",
+                                "hsl(var(--gray)/0.75)",
+                              ],
+                              min: 0,
+                              max: 100,
+                              direction: Direction.Up,
+                            }),
+                          }}
+                          className={`relative h-full`}
+                        >
+                          {children}
+                        </div>
+                      </div>
+                    )}
+                    renderThumb={({ props }) => (
+                      <div
+                        {...props}
+                        className="!z-20 size-[18px] rounded-full border bg-primary"
+                      />
+                    )}
+                  />
+                  <span>{Math.floor(volume * 50)}%</span>
                 </PopoverContent>
               </Popover>
             </div>
@@ -666,23 +750,26 @@ function AudioControls() {
             </span>
 
             {audioMetadata.editingLoopRange ? (
-              <LoopingRangeSlider
-                value={[
+              <Range
+                key={"rangeTwoThumbs"} // needed so thumb is properly initialized
+                label="Start/end slider to control range to loop within current tab"
+                step={1}
+                min={0}
+                max={audioMetadata.fullCurrentlyPlayingMetadataLength - 1}
+                values={[
                   audioMetadata.startLoopIndex,
                   audioMetadata.endLoopIndex === -1
                     ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1 // could be jank with total tab length of one or two..
                     : audioMetadata.endLoopIndex,
                 ]}
-                min={0}
-                max={audioMetadata.fullCurrentlyPlayingMetadataLength - 1}
-                step={1}
-                onValueChange={(value) => {
+                draggableTrack
+                onChange={(values) => {
                   const tabLength =
                     audioMetadata.fullCurrentlyPlayingMetadataLength - 1;
 
-                  const newStartLoopIndex = value[0]!;
+                  const newStartLoopIndex = values[0]!;
                   const newEndLoopIndex =
-                    value[1] === tabLength ? -1 : value[1]!;
+                    values[1] === tabLength ? -1 : values[1]!;
 
                   if (
                     newStartLoopIndex !== audioMetadata.startLoopIndex ||
@@ -695,6 +782,55 @@ function AudioControls() {
                     });
                   }
                 }}
+                renderTrack={({ props, children, disabled }) => (
+                  <div
+                    onMouseDown={props.onMouseDown}
+                    onTouchStart={props.onTouchStart}
+                    style={{
+                      ...props.style,
+                      display: "flex",
+                      width: "100%",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <div
+                      ref={props.ref}
+                      style={{
+                        height: "8px",
+                        borderRadius: "4px",
+                        filter: disabled ? "brightness(0.75)" : "none",
+                        background: getTrackBackground({
+                          values: [
+                            audioMetadata.startLoopIndex,
+                            audioMetadata.endLoopIndex === -1
+                              ? audioMetadata.fullCurrentlyPlayingMetadataLength -
+                                1 // could be jank with total tab length of one or two..
+                              : audioMetadata.endLoopIndex,
+                          ],
+                          colors: [
+                            "hsl(var(--gray) / 0.75)",
+                            "hsl(var(--primary))",
+                            "hsl(var(--gray) / 0.75)",
+                          ],
+                          min: 0,
+                          max:
+                            audioMetadata.fullCurrentlyPlayingMetadataLength -
+                            1,
+                        }),
+                        alignSelf: "center",
+                      }}
+                      className={`relative w-full`}
+                    >
+                      {children}
+                    </div>
+                  </div>
+                )}
+                renderThumb={({ props }) => (
+                  <div
+                    {...props}
+                    className="!z-20 size-[18px] rounded-full border bg-primary"
+                  />
+                )}
               />
             ) : (
               <Range

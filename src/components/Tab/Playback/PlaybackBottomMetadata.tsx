@@ -40,13 +40,12 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Toggle } from "~/components/ui/toggle";
-import { VerticalSlider } from "~/components/ui/verticalSlider";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { tuningNotesToName } from "~/utils/tunings";
-import { Slider } from "~/components/ui/slider";
+import { Direction, getTrackBackground, Range } from "react-range";
 
 interface PlaybackBottomMetadata {
   loopRange: [number, number];
@@ -496,15 +495,57 @@ function MobileSettingsPopover({
                 ) : null}
               </AnimatePresence>
 
-              <Slider
-                value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
+              <Range
+                label="Slider to control the playback volume"
                 min={0}
                 max={100}
                 step={1}
-                onValueChange={(value) =>
-                  localStorageVolume.set(`${value[0]! / 50}`)
-                } // 100 felt too quiet/narrow of a volume range
-              ></Slider>
+                values={[volume * 50]} // 100 felt too quiet/narrow of a volume range
+                onChange={(values) => {
+                  localStorageVolume.set(`${values[0]! / 50}`); // 100 felt too quiet/narrow of a volume range
+                }}
+                renderTrack={({ props, children, disabled }) => (
+                  <div
+                    onMouseDown={props.onMouseDown}
+                    onTouchStart={props.onTouchStart}
+                    style={{
+                      ...props.style,
+                      display: "flex",
+                      width: "100%",
+                      justifyContent: "center",
+                      margin: "0 0.35rem",
+                    }}
+                  >
+                    <div
+                      ref={props.ref}
+                      style={{
+                        height: "8px",
+                        borderRadius: "4px",
+                        filter: disabled ? "brightness(0.75)" : "none",
+                        alignSelf: "center",
+                        background: getTrackBackground({
+                          values: [volume * 50],
+                          colors: [
+                            "hsl(var(--primary))",
+                            "hsl(var(--gray)/0.75)",
+                          ],
+                          min: 0,
+                          max: 100,
+                        }),
+                      }}
+                      className={`relative w-full`}
+                    >
+                      {children}
+                    </div>
+                  </div>
+                )}
+                renderThumb={({ props }) => (
+                  <div
+                    {...props}
+                    className="!z-20 size-[18px] rounded-full border bg-primary"
+                  />
+                )}
+              />
             </div>
           </div>
         )}
@@ -1034,19 +1075,60 @@ function DesktopSettings({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="baseVertFlex h-36 w-[54px] gap-2 p-2"
+          className="baseVertFlex h-40 w-[54px] gap-2 pb-2 pt-4"
           side="top"
         >
-          <VerticalSlider
-            value={[volume * 50]} // 100 felt too quiet/narrow of a volume range
+          <Range
+            label="Slider to control the playback volume"
+            direction={Direction.Up}
             min={0}
             max={100}
             step={1}
-            onValueChange={(value) =>
-              localStorageVolume.set(`${value[0]! / 50}`)
-            } // 100 felt too quiet/narrow of a volume range
-          ></VerticalSlider>
-          <p>{Math.floor(volume * 50)}%</p>
+            values={[volume * 50]} // 100 felt too quiet/narrow of a volume range
+            onChange={(values) => {
+              localStorageVolume.set(`${values[0]! / 50}`); // 100 felt too quiet/narrow of a volume range
+            }}
+            renderTrack={({ props, children }) => (
+              <div
+                onMouseDown={props.onMouseDown}
+                onTouchStart={props.onTouchStart}
+                style={{
+                  ...props.style,
+                  display: "flex",
+                  width: "100%",
+                  height: "100%",
+                  justifyContent: "center",
+                  margin: "0.25rem 0",
+                }}
+              >
+                <div
+                  ref={props.ref}
+                  style={{
+                    width: "8px",
+                    borderRadius: "4px",
+                    alignSelf: "center",
+                    background: getTrackBackground({
+                      values: [volume * 50],
+                      colors: ["hsl(var(--primary))", "hsl(var(--gray)/0.75)"],
+                      min: 0,
+                      max: 100,
+                      direction: Direction.Up,
+                    }),
+                  }}
+                  className={`relative h-full`}
+                >
+                  {children}
+                </div>
+              </div>
+            )}
+            renderThumb={({ props }) => (
+              <div
+                {...props}
+                className="!z-20 size-[18px] rounded-full border bg-primary"
+              />
+            )}
+          />
+          <span>{Math.floor(volume * 50)}%</span>
         </PopoverContent>
       </Popover>
     </div>
