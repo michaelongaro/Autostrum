@@ -22,6 +22,10 @@
   }
 }
 
+html {
+  overscroll-behavior: none;
+}
+
 /* necessary(?) to prevent background gradient disappearing when .noScroll is applied
    Scrolling seems to be a bit janky on iOS though when gradient is on pseudo ::before rather than
    actual body */
