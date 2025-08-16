@@ -190,11 +190,7 @@ function AudioControls() {
         bottomValue = "-2.85rem";
       }
     } else if (visibility === "expanded") {
-      if (aboveLargeViewportWidth) {
-        bottomValue = "1rem";
-      } else {
-        bottomValue = "0.5rem";
-      }
+      bottomValue = "1rem";
     }
 
     return bottomValue;
@@ -256,7 +252,7 @@ function AudioControls() {
         style={{
           boxShadow: "0 25px 45px -12px rgb(0 0 0 / 0.4)", // large subtle blur
         }}
-        className="baseVertFlex audioControlsBoxShadow h-full w-[95vw] max-w-[800px] rounded-xl bg-accent p-2 text-primary-foreground transition-opacity lg:rounded-full lg:px-10 lg:py-2 xl:w-10/12"
+        className="baseVertFlex audioControlsBoxShadow h-full w-[95vw] max-w-[500px] rounded-xl bg-accent p-2 text-primary-foreground transition-opacity lg:max-w-[800px] lg:rounded-full lg:px-10 lg:py-2 xl:w-10/12"
       >
         <AnimatePresence mode="sync">
           {aboveLargeViewportWidth && visibility === "minimized" && (
