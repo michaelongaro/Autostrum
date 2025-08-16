@@ -16,6 +16,7 @@ import { useTabStore } from "~/stores/TabStore";
 import Verified from "~/components/ui/icons/Verified";
 import Link from "next/link";
 import Spinner from "~/components/ui/Spinner";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 interface SearchInput {
   setShowMobileSearch?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -24,8 +25,7 @@ interface SearchInput {
 function SearchInput({ setShowMobileSearch }: SearchInput) {
   const { push, query } = useRouter();
 
-  const { viewportLabel, theme } = useTabStore((state) => ({
-    viewportLabel: state.viewportLabel,
+  const { theme } = useTabStore((state) => ({
     theme: state.theme,
   }));
 
@@ -33,8 +33,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [searchType, setSearchType] = useState<"songs" | "artists">("songs");
 
+  const isAboveLgViewportWidth = useViewportWidthBreakpoint(1024);
+
   const [showAutofillResults, setShowAutofillResults] = useState(
-    viewportLabel.includes("mobile"),
+    !isAboveLgViewportWidth,
   );
   const [enterButtonBeingPressed, setEnterButtonBeingPressed] = useState(false);
 
@@ -68,7 +70,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       // Do nothing if the results aren't showing
-      if (!showAutofillResults || viewportLabel.includes("mobile")) return;
+      if (!showAutofillResults || !isAboveLgViewportWidth) return;
 
       if (
         searchContainerRef.current &&
@@ -83,7 +85,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showAutofillResults, viewportLabel]);
+  }, [showAutofillResults, isAboveLgViewportWidth]);
 
   const debouncedSetSearch = useMemo(
     () =>
@@ -142,10 +144,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
       key={"searchContainer"}
       ref={searchContainerRef}
       initial={{
-        width: viewportLabel.includes("mobile") ? "100%" : "95%",
+        width: !isAboveLgViewportWidth ? "100%" : "95%",
       }}
       animate={{
-        width: viewportLabel.includes("mobile")
+        width: !isAboveLgViewportWidth
           ? "100%"
           : showAutofillResults
             ? "100%"
@@ -157,7 +159,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
       }}
       className="baseFlex relative mt-0.5 max-w-lg tablet:mt-0"
     >
-      {viewportLabel.includes("mobile") && (
+      {!isAboveLgViewportWidth && (
         <Button
           variant={"text"}
           onClick={() => {
@@ -169,7 +171,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
       )}
 
       <div
-        className={`baseFlex w-full gap-2 bg-background transition-[border-radius] ${viewportLabel.includes("mobile") ? "rounded-none border-none" : "rounded-md border"} ${showAutofillResults ? "rounded-b-none" : ""}`}
+        className={`baseFlex w-full gap-2 bg-background transition-[border-radius] ${isAboveLgViewportWidth ? "rounded-md border" : "rounded-none border-none"} ${showAutofillResults ? "rounded-b-none" : ""}`}
       >
         <Input
           ref={searchInputRef}
@@ -177,7 +179,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
           maxLength={50}
           placeholder={`Search for your favorite ${searchType === "songs" ? "songs" : "artists"}...`}
           showFocusState={false}
-          autoFocus={viewportLabel.includes("mobile")}
+          autoFocus={!isAboveLgViewportWidth}
           onFocus={() => {
             setShowAutofillResults(true);
           }}
@@ -254,8 +256,8 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
         {/* songs/artists toggle and autofill results */}
         {/* FYI: this is a bit hacky, since "showAutofillResults" doesn't apply to mobile dialog,
             since they are always showing */}
-        {(viewportLabel.includes("mobile") ||
-          (!viewportLabel.includes("mobile") && showAutofillResults)) && (
+        {(!isAboveLgViewportWidth ||
+          (isAboveLgViewportWidth && showAutofillResults)) && (
           <motion.div
             key={"searchAutofillContainer"}
             id="searchTypeContainer"
@@ -274,7 +276,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
             transition={{
               duration: 0.2,
             }}
-            className={`absolute left-0 z-50 w-full overflow-hidden rounded-md rounded-t-none border-border bg-background ${viewportLabel.includes("mobile") ? "top-11 border-t" : "top-[45px] border !shadow-xl"}`}
+            className={`absolute left-0 z-50 w-full overflow-hidden rounded-md rounded-t-none border-border bg-background ${isAboveLgViewportWidth ? "top-[45px] border !shadow-xl" : "top-11 border-t"}`}
           >
             <div className="baseFlex w-full !justify-between p-2 text-sm">
               <div className="baseFlex gap-3">
