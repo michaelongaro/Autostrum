@@ -197,7 +197,7 @@ html body[data-scroll-locked] {
 
 .countIn {
   /* rough spring easing */
-  animation: countInAnimation 1s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: countInAnimation 1s cubic-bezier(1, 1.5, 0.5, 1);
 }
 
 @keyframes copyAndPasteAnimation {
