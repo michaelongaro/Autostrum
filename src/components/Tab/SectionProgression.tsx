@@ -51,48 +51,42 @@ function SectionProgression() {
           <AccordionTrigger className="w-full p-2 md:p-4">
             <span className="text-lg font-bold">Section progression</span>
           </AccordionTrigger>
-          <AccordionContent>
-            <motion.div
-              variants={opacityVariants}
-              initial="closed"
-              animate="open"
-              exit="closed"
-              className="baseVertFlex w-full !items-start p-2 !pt-0 md:p-4"
-            >
-              {sectionProgression.length > 0 && (
-                <div className="mt-4 w-auto gap-2">
-                  {sectionProgression.map((section) => (
-                    <div
-                      key={section.id}
-                      className="grid w-full grid-cols-2 !place-items-start gap-2"
-                    >
-                      <div className="baseFlex gap-2 text-gray">
-                        <p>{formatSecondsToMinutes(section.startSeconds)}</p>
-                        <span>-</span>
-                        <p>{formatSecondsToMinutes(section.endSeconds)}</p>
-                      </div>
-
-                      <div className="baseFlex gap-2 text-foreground">
-                        <span className="text-nowrap font-semibold">
-                          {section.title}
-                        </span>
-                        {section.repetitions > 1 && (
-                          <span>({section.repetitions}x)</span>
-                        )}
-                      </div>
+          <AccordionContent className="w-full">
+            <div className="baseVertFlex w-full !items-start gap-4 p-2 !pt-0 md:p-4">
+              <div
+                className={`w-auto gap-2 ${sectionProgression.length > 0 ? "mt-4" : ""}`}
+              >
+                {sectionProgression.map((section) => (
+                  <div
+                    key={section.id}
+                    className="grid w-full grid-cols-2 !place-items-start gap-2"
+                  >
+                    <div className="baseFlex gap-2 text-gray">
+                      <p>{formatSecondsToMinutes(section.startSeconds)}</p>
+                      <span>-</span>
+                      <p>{formatSecondsToMinutes(section.endSeconds)}</p>
                     </div>
-                  ))}
-                </div>
-              )}
+
+                    <div className="baseFlex gap-2 text-foreground">
+                      <span className="text-nowrap font-semibold">
+                        {section.title}
+                      </span>
+                      {section.repetitions > 1 && (
+                        <span>({section.repetitions}x)</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
 
               <Button
                 size={"sm"}
-                className={`${sectionProgression.length > 0 ? "mt-4" : ""} mb-1`}
+                className="mb-1"
                 onClick={() => setShowSectionProgressionModal(true)}
               >
-                {sectionProgression.length === 0 ? "Add one" : "Edit"}
+                {sectionProgression.length === 0 ? "Add section" : "Edit"}
               </Button>
-            </motion.div>
+            </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
