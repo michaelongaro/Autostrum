@@ -281,16 +281,28 @@ function Section({
   return (
     <motion.div
       key={`sectionProgression${id}`}
-      layout={"position"}
-      initial={{ opacity: 0, height: 0, margin: 0 }}
+      layout
+      initial={{
+        opacity: 0,
+        height: 0,
+        marginTop: 0,
+        marginBottom: 0,
+      }}
       animate={{
         opacity: 1,
         height: "auto",
         marginTop: "0.5rem",
         marginBottom: "0.5rem",
       }}
-      exit={{ opacity: 0, height: 0, margin: 0 }}
-      transition={{ duration: 0.2 }}
+      exit={{
+        opacity: 0,
+        marginTop: 0,
+        marginBottom: 0,
+      }}
+      transition={{
+        default: { duration: 0.2 },
+        layout: { duration: 0.5 },
+      }}
       className="baseVertFlex relative w-full gap-2 rounded-lg border bg-secondary p-4 shadow-sm"
     >
       <div className="baseFlex w-full !justify-start gap-2">
@@ -338,7 +350,7 @@ function Section({
           </Select>
 
           <div className="baseFlex gap-2">
-            <span>Repeat</span>
+            <span className="text-sm">Repeat</span>
 
             <div className="relative w-12">
               <span className="absolute bottom-[10px] left-2 text-sm sm:bottom-[9px]">
@@ -358,20 +370,20 @@ function Section({
             <div className="baseFlex gap-2 xs:!hidden">
               <Button
                 disabled={index === 0}
-                variant="secondary"
-                className="!h-10"
+                variant="outline"
+                className="!size-10"
                 onClick={() => moveSectionUp()}
               >
-                <BiUpArrowAlt className="size-5"></BiUpArrowAlt>
+                <BiUpArrowAlt className="size-5 shrink-0"></BiUpArrowAlt>
               </Button>
 
               <Button
                 disabled={index === localSectionProgression.length - 1}
-                variant="secondary"
-                className="!h-10"
+                variant="outline"
+                className="!size-10"
                 onClick={() => moveSectionDown()}
               >
-                <BiDownArrowAlt className="size-5"></BiDownArrowAlt>
+                <BiDownArrowAlt className="size-5 shrink-0"></BiDownArrowAlt>
               </Button>
 
               <Button
@@ -389,7 +401,7 @@ function Section({
         <div className="baseFlex !hidden w-full !justify-evenly gap-4 xs:!flex xs:w-auto xs:!flex-row xs:!justify-center">
           <Button
             disabled={index === 0}
-            variant="secondary"
+            variant="outline"
             size="sm"
             className="size-10 !p-0"
             onClick={() => moveSectionUp()}
@@ -398,7 +410,7 @@ function Section({
           </Button>
           <Button
             disabled={index === localSectionProgression.length - 1}
-            variant="secondary"
+            variant="outline"
             size="sm"
             className="size-10 !p-0"
             onClick={() => moveSectionDown()}
