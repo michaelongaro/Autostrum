@@ -3,7 +3,7 @@ import { useState } from "react";
 
 function useViewportWidthBreakpoint(width: number) {
   const [viewportLargerThanBreakpoint, setViewportLargerThanBreakpoint] =
-    useState(false);
+    useState<boolean | null>(null);
 
   useIsomorphicLayoutEffect(() => {
     function handleResize() {

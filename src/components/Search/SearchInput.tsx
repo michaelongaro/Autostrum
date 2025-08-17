@@ -36,7 +36,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
   const isAboveLgViewportWidth = useViewportWidthBreakpoint(1024);
 
   const [showAutofillResults, setShowAutofillResults] = useState(
-    !isAboveLgViewportWidth,
+    isAboveLgViewportWidth === false,
   );
   const [enterButtonBeingPressed, setEnterButtonBeingPressed] = useState(false);
 
@@ -70,7 +70,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       // Do nothing if the results aren't showing
-      if (!showAutofillResults || !isAboveLgViewportWidth) return;
+      if (!showAutofillResults || isAboveLgViewportWidth === false) return;
 
       if (
         searchContainerRef.current &&
@@ -144,14 +144,15 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
       key={"searchContainer"}
       ref={searchContainerRef}
       initial={{
-        width: !isAboveLgViewportWidth ? "100%" : "95%",
+        width: isAboveLgViewportWidth === false ? "100%" : "95%",
       }}
       animate={{
-        width: !isAboveLgViewportWidth
-          ? "100%"
-          : showAutofillResults
+        width:
+          isAboveLgViewportWidth === false
             ? "100%"
-            : "98%",
+            : showAutofillResults
+              ? "100%"
+              : "98%",
       }}
       transition={{
         ease: "easeOut",
@@ -159,7 +160,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
       }}
       className="baseFlex relative mt-0.5 max-w-lg tablet:mt-0"
     >
-      {!isAboveLgViewportWidth && (
+      {isAboveLgViewportWidth === false && (
         <Button
           variant={"text"}
           onClick={() => {
@@ -179,7 +180,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
           maxLength={50}
           placeholder={`Search for your favorite ${searchType === "songs" ? "songs" : "artists"}...`}
           showFocusState={false}
-          autoFocus={!isAboveLgViewportWidth}
+          autoFocus={isAboveLgViewportWidth === false}
           onFocus={() => {
             setShowAutofillResults(true);
           }}
@@ -256,7 +257,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
         {/* songs/artists toggle and autofill results */}
         {/* FYI: this is a bit hacky, since "showAutofillResults" doesn't apply to mobile dialog,
             since they are always showing */}
-        {(!isAboveLgViewportWidth ||
+        {(isAboveLgViewportWidth === false ||
           (isAboveLgViewportWidth && showAutofillResults)) && (
           <motion.div
             key={"searchAutofillContainer"}
