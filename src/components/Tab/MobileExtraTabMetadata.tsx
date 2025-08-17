@@ -287,8 +287,8 @@ function MobileExtraTabMetadata() {
                                         index &&
                                       previewMetadata.playing &&
                                       previewMetadata.type === "chord"
-                                        ? "hsl(335, 78%, 42%)"
-                                        : "hsl(324, 77%, 95%)",
+                                        ? "hsl(var(--primary))"
+                                        : "hsl(var(--foreground))",
                                   }}
                                   className="font-semibold transition-colors"
                                 >
