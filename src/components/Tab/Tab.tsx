@@ -486,7 +486,7 @@ function Tab({ tab }: Tab) {
             ))}
 
           {editing && (
-            <Button onClick={addNewSection} className="mb-12">
+            <Button onClick={addNewSection} className="mb-12 px-8">
               Add section
             </Button>
           )}
