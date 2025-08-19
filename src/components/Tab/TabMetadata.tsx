@@ -267,6 +267,9 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
       enabled: !!createdByUserId,
     });
 
+  // hack to prevent createdAt <span> from moving around when <Drawer>
+  // is open on mobile
+  const [disableCreatedAtLayout, setDisableCreatedAtLayout] = useState(false);
   const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
   const [takingScreenshot, setTakingScreenshot] = useState(false);
   const tabPreviewScreenshotLightRef = useRef(null);
@@ -278,6 +281,14 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
   const [showPulsingError, setShowPulsingError] = useState(false);
 
   const overMediumViewportThreshold = useViewportWidthBreakpoint(768);
+
+  useEffect(() => {
+    if (disableCreatedAtLayout || !tabCreator) return;
+
+    setTimeout(() => {
+      setDisableCreatedAtLayout(true);
+    }, 500);
+  }, [tabCreator, disableCreatedAtLayout]);
 
   useEffect(() => {
     if (editing) return;
@@ -1324,7 +1335,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   </Button>
 
                   <motion.div
-                    layout
+                    layout={!disableCreatedAtLayout}
                     transition={{ duration: 0.5, ease: "easeInOut" }}
                     className="mt-[2px] whitespace-nowrap text-sm opacity-80"
                   >
