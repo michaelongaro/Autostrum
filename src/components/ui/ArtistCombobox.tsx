@@ -95,7 +95,11 @@ function ArtistCombobox() {
               {artistIsVerified && (
                 <Verified className="inline size-4 shrink-0" />
               )}
-              <span className="truncate">{artistName}</span>
+              <span
+                className={`truncate ${artistIsVerified ? "max-w-48" : "max-w-52"}`}
+              >
+                {artistName}
+              </span>
             </span>
           ) : (
             <span>Select artist...</span>
@@ -230,7 +234,7 @@ function ArtistCombobox() {
                     >
                       <span className="baseVertFlex w-48">
                         No results found for
-                        <span className="w-full break-all text-center">
+                        <span className="w-full break-words text-center">
                           &ldquo;
                           {searchQuery}
                           &rdquo;
@@ -243,7 +247,7 @@ function ArtistCombobox() {
                           setTimeout(() => {
                             setArtistName(searchQuery);
                             setSearchQuery("");
-                          }, 0); // slightly delay to ensure the popover closes first
+                          }, 0); // slight delay to ensure the popover is closed first
                         }}
                         className="baseFlex gap-1"
                       >
