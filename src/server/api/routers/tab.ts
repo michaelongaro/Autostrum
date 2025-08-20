@@ -372,14 +372,20 @@ export const tabRouter = createTRPCRouter({
           tabData,
           ...(createdByUserId
             ? { createdBy: { connect: { userId: createdByUserId } } }
-            : {}), // FYI: even though createdByUserId will always be provided, since the field is optional
+            : {}),
+          // FYI: even though createdByUserId will always be provided, since the field is optional
           // in our schema, prisma wants us to use the relation field.
           ...(artistId != null
             ? { artist: { connect: { id: artistId } } }
             : artistName
               ? {
                   artist: {
-                    create: { name: artistName, isVerified: false },
+                    create: {
+                      name: artistName,
+                      isVerified: false,
+                      totalTabs: 1,
+                      totalViews: 0,
+                    },
                   },
                 }
               : {}),
@@ -449,12 +455,12 @@ export const tabRouter = createTRPCRouter({
           console.error("Error incrementing tabCreator's totalTabs:", e);
         });
 
-      // increment the artist's number of tabs (if artistId is provided)
-      if (tab.artistId) {
+      // if artistId was passed in, increment the artist's number of tabs
+      if (artistId) {
         ctx.prisma.artist
           .update({
             where: {
-              id: tab.artistId,
+              id: artistId,
             },
             data: {
               totalTabs: {
@@ -515,14 +521,19 @@ export const tabRouter = createTRPCRouter({
 
       // need to know if artistId changed, since we will then need to update the old and new
       // artist's totalTabs
-      const oldTab = await ctx.prisma.tab.findUnique({
+      const prevTabVersion = await ctx.prisma.tab.findUnique({
         where: {
           id,
         },
         select: {
           artistId: true,
+          pageViews: true, // used to update the artist's totalViews
         },
       });
+
+      if (!prevTabVersion) {
+        throw new Error("Tab not found");
+      }
 
       const tab = await ctx.prisma.tab.update({
         where: {
@@ -541,15 +552,20 @@ export const tabRouter = createTRPCRouter({
           chords,
           strummingPatterns,
           tabData,
-          ...(artistId != null
+          ...(artistId !== null
             ? { artist: { connect: { id: artistId } } }
             : artistName
               ? {
                   artist: {
-                    create: { name: artistName, isVerified: false },
+                    create: {
+                      name: artistName,
+                      isVerified: false,
+                      totalTabs: 1,
+                      totalViews: prevTabVersion.pageViews,
+                    },
                   },
                 }
-              : {}),
+              : { artist: { disconnect: true } }),
         },
       });
 
@@ -601,25 +617,28 @@ export const tabRouter = createTRPCRouter({
       });
 
       // check if the artistId has changed
-      if (oldTab?.artistId !== artistId) {
-        // decrement the old artist's totalTabs
-        if (oldTab?.artistId) {
+      if (prevTabVersion.artistId !== artistId) {
+        // decrement the prev artist's totalTabs and totalViews
+        if (prevTabVersion.artistId) {
           ctx.prisma.artist
             .update({
               where: {
-                id: oldTab.artistId,
+                id: prevTabVersion.artistId,
               },
               data: {
                 totalTabs: {
                   decrement: 1,
                 },
+                totalViews: {
+                  decrement: prevTabVersion.pageViews,
+                },
               },
             })
             .catch((e) => {
-              console.error("Error decrementing old artist's totalTabs:", e);
+              console.error("Error decrementing prev artist's totalTabs:", e);
             });
         }
-        // increment the new artist's totalTabs
+        // increment the new artist's totalTabs and totalViews
         if (artistId) {
           ctx.prisma.artist
             .update({
@@ -629,6 +648,9 @@ export const tabRouter = createTRPCRouter({
               data: {
                 totalTabs: {
                   increment: 1,
+                },
+                totalViews: {
+                  increment: prevTabVersion.pageViews,
                 },
               },
             })
