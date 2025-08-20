@@ -166,6 +166,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
           onClick={() => {
             setShowMobileSearch?.(false);
           }}
+          className="mx-1"
         >
           <FaArrowLeft className="size-4" />
         </Button>
