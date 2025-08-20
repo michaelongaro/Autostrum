@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { Separator } from "~/components/ui/separator";
 import { useTabStore } from "~/stores/TabStore";
 import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
@@ -76,11 +77,25 @@ function PlaybackTopMetadata({
       {viewportLabel === "mobileLandscape" ? (
         <div className="baseVertFlex w-full gap-2">
           <div className="baseFlex w-full !justify-start gap-4 px-4 pt-2">
-            <span className="text-lg font-semibold tablet:text-2xl">
-              {title}
-            </span>
+            <div className="baseFlex !justify-start">
+              <OverlayScrollbarsComponent
+                options={{
+                  scrollbars: { autoHide: "leave", autoHideDelay: 150 },
+                  overflow: {
+                    x: "scroll",
+                    y: "hidden",
+                  },
+                }}
+                defer
+                className="size-full max-w-[60vw]"
+              >
+                <span className="whitespace-nowrap text-xl font-bold tablet:text-2xl">
+                  {title}
+                </span>
+              </OverlayScrollbarsComponent>
+            </div>
 
-            <Separator className="h-4 w-[1px]" />
+            <Separator className="h-4 w-[1px] bg-foreground/50" />
 
             <div className="baseFlex w-[79px] flex-nowrap !justify-start gap-1.5 text-nowrap">
               <div className="w-2">
@@ -98,16 +113,30 @@ function PlaybackTopMetadata({
         <div className="baseFlex mt-4 w-full !items-end !justify-between gap-2 px-4">
           <div className="baseFlex w-full !items-end !justify-start gap-2">
             {/* title + auto tuner button */}
-            <div className="baseVertFlex !items-start gap-2">
-              <div className="baseFlex gap-4">
-                <span className="text-xl font-bold tablet:text-2xl">
-                  {title}
-                </span>
+            <div className="baseVertFlex w-full !items-start gap-2">
+              <div className="baseFlex !justify-start gap-4">
+                <div className="baseFlex w-full !justify-start">
+                  <OverlayScrollbarsComponent
+                    options={{
+                      scrollbars: { autoHide: "leave", autoHideDelay: 150 },
+                      overflow: {
+                        x: "scroll",
+                        y: "hidden",
+                      },
+                    }}
+                    defer
+                    className="size-full max-w-[80vw] tablet:max-w-[600px]"
+                  >
+                    <span className="whitespace-nowrap text-xl font-bold tablet:text-2xl">
+                      {title}
+                    </span>
+                  </OverlayScrollbarsComponent>
+                </div>
 
                 {!viewportLabel.includes("mobile") &&
                   sectionProgression.length > 1 && (
                     <>
-                      <Separator className="h-6 w-[1px]" />
+                      <Separator className="h-6 w-[1px] bg-foreground/50" />
 
                       <div className="baseFlex gap-2">
                         <Label
@@ -145,7 +174,7 @@ function PlaybackTopMetadata({
                         >
                           <SelectTrigger
                             id="sectionPicker"
-                            className="!h-8 max-w-28 sm:max-w-none"
+                            className="!h-8 max-w-28 text-nowrap sm:max-w-none"
                           >
                             <SelectValue placeholder="Select a section">
                               {audioMetadata.location === null
@@ -188,174 +217,185 @@ function PlaybackTopMetadata({
                   )}
               </div>
 
-              <div className="baseFlex gap-4">
-                <div className="baseVertFlex !items-start text-nowrap">
-                  <span className="text-sm font-medium">Tempo</span>
-                  <div className="baseFlex w-[79px] !justify-start gap-1.5">
-                    <div className="w-2">
-                      {getDynamicNoteLengthIcon({
-                        noteLength:
-                          playbackMetadata[currentChordIndex]?.noteLength ??
-                          "1/4th",
-                        forInlineTabViewing: true,
-                      })}
+              <div className="baseFlex w-full !justify-between gap-4">
+                <div className="baseVertFlex w-full !items-start gap-4 md:!flex-row md:!items-center md:!justify-start">
+                  <div className="baseFlex gap-4">
+                    <div className="baseVertFlex !items-start text-nowrap">
+                      <span className="text-sm font-medium">Tempo</span>
+                      <div className="baseFlex w-[79px] !justify-start gap-1.5">
+                        <div className="w-2">
+                          {getDynamicNoteLengthIcon({
+                            noteLength:
+                              playbackMetadata[currentChordIndex]?.noteLength ??
+                              "1/4th",
+                            forInlineTabViewing: true,
+                          })}
+                        </div>
+                        {playbackMetadata[currentChordIndex]?.bpm ?? "120"} BPM
+                      </div>
                     </div>
-                    {playbackMetadata[currentChordIndex]?.bpm ?? "120"} BPM
-                  </div>
-                </div>
-                <div className="baseVertFlex !items-start">
-                  <span className="text-sm font-medium">Tuning</span>
-                  <div>
-                    {tuningNotesToName[
-                      tuning.toLowerCase() as keyof typeof tuningNotesToName
-                    ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
-                  </div>
-                </div>
+                    <div className="baseVertFlex !items-start">
+                      <span className="text-sm font-medium">Tuning</span>
+                      <div>
+                        {tuningNotesToName[
+                          tuning.toLowerCase() as keyof typeof tuningNotesToName
+                        ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
+                      </div>
+                    </div>
 
-                <div className="baseVertFlex !items-start">
-                  <span className="text-sm font-medium">Capo</span>
-                  {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
-                </div>
+                    <div className="baseVertFlex !items-start">
+                      <span className="text-sm font-medium">Capo</span>
+                      {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
+                    </div>
 
-                <Button
-                  variant={"outline"}
-                  className="baseFlex h-9 gap-2 !px-2.5 !py-0 sm:!px-4"
-                >
-                  <TuningFork className="size-4" />
-                  <span className="hidden sm:block">Tuner</span>
-                </Button>
-
-                {!viewportLabel.includes("mobile") && (
-                  <Button
-                    variant={"outline"}
-                    className="size-9 !p-0"
-                    onClick={() => {
-                      pauseAudio();
-                      setShowEffectGlossaryDialog(true);
-                    }}
-                  >
-                    <FaBook className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-
-              {viewportLabel.includes("mobile") && (
-                <div className="baseFlex mt-1.5 w-full !justify-start gap-4">
-                  <div className="baseFlex gap-2">
-                    <Label htmlFor="speed">Speed</Label>
-                    <Select
-                      disabled={
-                        countInTimer.showing || audioMetadata.editingLoopRange
-                      }
-                      value={`${playbackSpeed}x`}
-                      onValueChange={(value) => {
-                        pauseAudio();
-
-                        const newPlaybackSpeed = Number(
-                          value.slice(0, value.length - 1),
-                        ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
-
-                        // Normalize the progress value to 1x speed
-                        const normalizedProgress =
-                          tabProgressValue * playbackSpeed;
-
-                        // Adjust the progress value to the new playback speed
-                        const adjustedProgress =
-                          normalizedProgress / newPlaybackSpeed;
-
-                        // Set the new progress value
-                        setTabProgressValue(adjustedProgress);
-                        setPlaybackSpeed(newPlaybackSpeed);
-                      }}
+                    <Button
+                      variant={"outline"}
+                      className="baseFlex h-9 gap-2 !px-2.5 !py-0 sm:!px-4"
                     >
-                      <SelectTrigger id="speed" className="h-8 w-20">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={"0.25x"}>0.25x</SelectItem>
-                        <SelectItem value={"0.5x"}>0.5x</SelectItem>
-                        <SelectItem value={"0.75x"}>0.75x</SelectItem>
-                        <SelectItem value={"1x"}>1x</SelectItem>
-                        <SelectItem value={"1.25x"}>1.25x</SelectItem>
-                        <SelectItem value={"1.5x"}>1.5x</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                      <TuningFork className="size-4" />
+                      <span className="hidden sm:block">Tuner</span>
+                    </Button>
 
-                  {sectionProgression.length > 1 && (
-                    <div className="baseFlex gap-2">
-                      <Label
-                        htmlFor="sectionPicker"
-                        className="text-sm font-medium"
-                      >
-                        Section
-                      </Label>
-                      <Select
-                        value={
-                          audioMetadata.location === null
-                            ? "fullTab"
-                            : tabData[audioMetadata.location?.sectionIndex ?? 0]
-                                ?.id
-                        }
-                        onValueChange={(value) => {
-                          setAudioMetadata({
-                            ...audioMetadata,
-                            location:
-                              value === "fullTab"
-                                ? null
-                                : {
-                                    sectionIndex: sections.findIndex((elem) => {
-                                      return elem.id === value;
-                                    }),
-                                  },
-                          });
+                    {!viewportLabel.includes("mobile") && (
+                      <Button
+                        variant={"outline"}
+                        className="size-9 !p-0"
+                        onClick={() => {
+                          pauseAudio();
+                          setShowEffectGlossaryDialog(true);
                         }}
                       >
-                        <SelectTrigger
-                          id="sectionPicker"
-                          className="!h-8 max-w-28 sm:max-w-none"
-                        >
-                          <SelectValue placeholder="Select a section">
-                            {audioMetadata.location === null
-                              ? "Full tab"
-                              : tabData[
-                                  sections.findIndex((elem) => {
-                                    return (
-                                      elem.id ===
-                                      tabData[
-                                        audioMetadata.location?.sectionIndex ??
-                                          0
-                                      ]?.id
-                                    );
-                                  })
-                                ]?.title}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <>
-                            {sections.map((section) => {
-                              return (
-                                <SelectItem key={section.id} value={section.id}>
-                                  {section.title}
-                                </SelectItem>
-                              );
-                            })}
+                        <FaBook className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
 
-                            <div className="my-1 h-[1px] w-full bg-primary"></div>
-                            <SelectItem key={"fullTab"} value={`fullTab`}>
-                              Full tab
-                            </SelectItem>
-                          </>
-                        </SelectContent>
-                      </Select>
+                  {viewportLabel.includes("mobile") && (
+                    <div className="baseFlex mt-1.5 w-full !justify-start gap-4">
+                      <div className="baseFlex gap-2">
+                        <Label htmlFor="speed">Speed</Label>
+                        <Select
+                          disabled={
+                            countInTimer.showing ||
+                            audioMetadata.editingLoopRange
+                          }
+                          value={`${playbackSpeed}x`}
+                          onValueChange={(value) => {
+                            pauseAudio();
+
+                            const newPlaybackSpeed = Number(
+                              value.slice(0, value.length - 1),
+                            ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
+
+                            // Normalize the progress value to 1x speed
+                            const normalizedProgress =
+                              tabProgressValue * playbackSpeed;
+
+                            // Adjust the progress value to the new playback speed
+                            const adjustedProgress =
+                              normalizedProgress / newPlaybackSpeed;
+
+                            // Set the new progress value
+                            setTabProgressValue(adjustedProgress);
+                            setPlaybackSpeed(newPlaybackSpeed);
+                          }}
+                        >
+                          <SelectTrigger id="speed" className="h-8 w-20">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={"0.25x"}>0.25x</SelectItem>
+                            <SelectItem value={"0.5x"}>0.5x</SelectItem>
+                            <SelectItem value={"0.75x"}>0.75x</SelectItem>
+                            <SelectItem value={"1x"}>1x</SelectItem>
+                            <SelectItem value={"1.25x"}>1.25x</SelectItem>
+                            <SelectItem value={"1.5x"}>1.5x</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {sectionProgression.length > 1 && (
+                        <div className="baseFlex gap-2">
+                          <Label
+                            htmlFor="sectionPicker"
+                            className="text-sm font-medium"
+                          >
+                            Section
+                          </Label>
+                          <Select
+                            value={
+                              audioMetadata.location === null
+                                ? "fullTab"
+                                : tabData[
+                                    audioMetadata.location?.sectionIndex ?? 0
+                                  ]?.id
+                            }
+                            onValueChange={(value) => {
+                              setAudioMetadata({
+                                ...audioMetadata,
+                                location:
+                                  value === "fullTab"
+                                    ? null
+                                    : {
+                                        sectionIndex: sections.findIndex(
+                                          (elem) => {
+                                            return elem.id === value;
+                                          },
+                                        ),
+                                      },
+                              });
+                            }}
+                          >
+                            <SelectTrigger
+                              id="sectionPicker"
+                              className="!h-8 max-w-28 sm:max-w-none"
+                            >
+                              <SelectValue placeholder="Select a section">
+                                {audioMetadata.location === null
+                                  ? "Full tab"
+                                  : tabData[
+                                      sections.findIndex((elem) => {
+                                        return (
+                                          elem.id ===
+                                          tabData[
+                                            audioMetadata.location
+                                              ?.sectionIndex ?? 0
+                                          ]?.id
+                                        );
+                                      })
+                                    ]?.title}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <>
+                                {sections.map((section) => {
+                                  return (
+                                    <SelectItem
+                                      key={section.id}
+                                      value={section.id}
+                                    >
+                                      {section.title}
+                                    </SelectItem>
+                                  );
+                                })}
+
+                                <div className="my-1 h-[1px] w-full bg-primary"></div>
+                                <SelectItem key={"fullTab"} value={`fullTab`}>
+                                  Full tab
+                                </SelectItem>
+                              </>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
+
+                {!viewportLabel.includes("mobile") && <Menu />}
+              </div>
             </div>
           </div>
-
-          {!viewportLabel.includes("mobile") && <Menu />}
         </div>
       )}
     </>
