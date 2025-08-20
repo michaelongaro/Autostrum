@@ -81,3 +81,9 @@ From the beginning, I really wanted to include tab screenshots at least as an op
 
 **Local fallback soundfont files**  
 I am still perplexed about exactly why the GitHub CDN hosted soundfont files only sporadically loaded on my phone during production testing. I concluded that it likely was some network restrictions that the wifi network had which blocked the downloading of these assets, so I have included logic to fallback to download the locally hosted soundfont files in the /public directory. Also I had to add the /public .js files to my .prettierignore file, as for whatever reason they were not being read properly otherwise by the soundfont-player library.
+
+**Custom react-range implementation**  
+I decided to use the react-range library rather than the radix-based shadcn version due to bugs that I had with animating the thumb in Safari. This goes for both playback and editing sliders: we need to simulate as close to a traditional audio playback slider as possible, which required some hacks. Since the thumb position is always exactly in line with the current `value`, we need to artificially increment the `value` by 1 to have the slider moving as soon as the tab begins to play. To offset this, we need to take away this increment of 1 when on the very last chord, otherwise we would go out of bounds of the `max` limit on the <Range>.
+
+**Radix-ui package overrides in package.json**  
+For whatever reason, radix ships their latest packages with inconsistent version of react-dismissable-layer and react-focus-scope, which caused issues with interacting with the `<Select>` component on mobile devices. These overrides manually make sure only one version is installed and used across all packages.
