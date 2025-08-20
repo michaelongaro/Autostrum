@@ -124,6 +124,7 @@ function SectionProgressionModal() {
     >
       <FocusTrap
         focusTrapOptions={{
+          allowOutsideClick: true, // to click on the effect dialog "x"
           initialFocus: false,
         }}
       >
