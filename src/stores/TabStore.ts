@@ -172,10 +172,6 @@ interface PlayPreview {
   customTuning?: string;
   customBpm?: string;
 }
-interface PlayRecordedAudio {
-  audioBuffer: AudioBuffer;
-  secondsElapsed: number;
-}
 
 export interface PlaybackTabChord {
   type: "tab";
@@ -560,10 +556,6 @@ interface TabState {
   // playing/pausing sound functions
   playTab: ({ location, tabId }: PlayTab) => Promise<void>;
   playPreview: ({ data, index, type }: PlayPreview) => Promise<void>;
-  playRecordedAudio: ({
-    audioBuffer,
-    secondsElapsed,
-  }: PlayRecordedAudio) => void;
   pauseAudio: (
     resetToStart?: boolean,
     resetCurrentlyPlayingMetadata?: boolean,
