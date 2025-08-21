@@ -60,7 +60,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               : "150ms",
         }}
         className={cn(
-          `flex h-10 w-full rounded-md border bg-transparent px-3 py-2 text-base ring-offset-background sm:text-base ${
+          `flex h-10 w-full rounded-md border bg-transparent px-3 py-2 text-base ring-offset-background ${
             showingErrorShakeAnimation
               ? smallErrorShakeAnimation
                 ? "animate-smallErrorShake"

@@ -75,6 +75,7 @@ import {
 } from "~/components/ui/alert-dialog";
 import { Badge } from "~/components/ui/badge";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
+import { isMobile } from "react-device-detect";
 
 const KEYS_BY_LETTER = {
   A: ["A major", "A minor", "A# minor", "A♭ major", "A♭ minor"],
@@ -689,7 +690,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 placeholder="My new tab"
                 value={title}
                 showingErrorShakeAnimation={showPulsingError && !title}
-                className="w-full max-w-72"
+                className={`w-full max-w-72 ${isMobile ? "text-base" : "text-sm"}`}
                 onChange={(e) => {
                   if (e.target.value.length > 50) return;
                   setTitle(e.target.value);
@@ -718,7 +719,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 placeholder="Add any extra information about how to play this tab."
                 maxLength={500}
                 value={description ?? ""}
-                className="max-h-[350px] min-h-[122px]"
+                className={`max-h-[350px] min-h-[122px] ${isMobile ? "text-base" : "text-sm"}`}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     // technically allows a *ton* of newlines, messing up ui, but not mission critical
