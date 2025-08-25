@@ -1292,7 +1292,10 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               </div>
 
               <div
-                className={`${classes.createdBy} baseVertFlex w-full !items-start gap-2`}
+                // FYI: weird mt and gap on this one because it felt like there wasn't enough space between
+                // description and created by containers, and also wanted to line it up with right side second
+                // row of metadata
+                className={`${classes.createdBy} baseVertFlex mt-[2px] w-full !items-start gap-1`}
               >
                 <div className="font-semibold">Created by</div>
                 <div className="baseFlex h-6 gap-2">
