@@ -1,9 +1,17 @@
-import { useRef, type PointerEvent, type ReactNode } from "react";
+import {
+  useRef,
+  type Dispatch,
+  type PointerEvent,
+  type ReactNode,
+  type SetStateAction,
+} from "react";
 import { useTabStore } from "~/stores/TabStore";
 
 interface PlaybackScrollingContainerProps {
   children: ReactNode;
   loopCount: number;
+  setChordRepetitions: Dispatch<SetStateAction<number[]>>;
+  scrollPositionsLength: number;
 }
 
 // TODO: still want to avoid "translateX" reliance at all costs, but this approach is inherently
@@ -12,6 +20,8 @@ interface PlaybackScrollingContainerProps {
 function PlaybackScrollingContainer({
   children,
   loopCount,
+  setChordRepetitions,
+  scrollPositionsLength,
 }: PlaybackScrollingContainerProps) {
   const {
     playing,
@@ -69,6 +79,11 @@ function PlaybackScrollingContainer({
     // If we've passed a 15px threshold to the left or right, increment or decrement
     if (deltaX > 15) {
       decrementChordIndex(); // moving right -> chord index goes down
+
+      // virtualization logic is set up to handle "forward" movement only, so we need to reset
+      // whenever we move backwards to ensure the correct chords are rendered
+      setChordRepetitions(new Array(scrollPositionsLength).fill(0));
+
       startXRef.current = e.clientX; // reset the start so you can scroll again
     } else if (deltaX < -15) {
       incrementChordIndex(); // moving left -> chord index goes up

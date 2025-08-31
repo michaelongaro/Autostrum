@@ -897,15 +897,19 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         // note: technically you could have similar duplication logic in regular compilationHelper
         // function, however I think it's cleaner to just augment the loop range with the % operator
         // to achieve the same effect
-        const repeatCount = compiledChords.length * expandedTabData.loopCounter;
+        const repeatedChordCount =
+          compiledChords.length * expandedTabData.loopCounter;
 
         for (
           let chordIndex = currentChordIndex;
-          chordIndex < repeatCount;
+          chordIndex < repeatedChordCount;
           chordIndex++
         ) {
           const adjustedChordIndex = chordIndex % compiledChords.length;
           const currColumn = compiledChords[adjustedChordIndex];
+
+          // TODO: figure out whether we should entirely return early if currColumn === undefined or
+          // currColumn.length <= 0
 
           // Proceed only if the current column is defined and not ornamental (has length > 0)
           if (currColumn && currColumn.length > 0) {
@@ -942,6 +946,16 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             });
           }
 
+          // If the current chord is the last in the compiledChords sequence
+          if (
+            // TODO: probably want to have reset of slider to beginning at the very first
+            // loop delay spacer chord (if there is one).
+            adjustedChordIndex ===
+            compiledChords.length - 1
+          ) {
+            resetProgressTabSliderPosition(editing ? "editing" : "playback");
+          }
+
           // Retrieve the latest state values within the loop
           const { audioMetadata, breakOnNextChord, looping } = get();
 
@@ -953,21 +967,9 @@ export const useTabStore = createWithEqualityFn<TabState>()(
             return;
           }
 
-          // If the current chord is the last in the compiledChords sequence
-          if (
-            adjustedChordIndex === compiledChords.length - 1 &&
-            looping &&
-            audioMetadata.playing
-          ) {
-            resetProgressTabSliderPosition(editing ? "editing" : "playback");
-          }
-
-          // TODO: probably want to have reset of slider to beginning at the very first
-          // loop delay spacer chord (if there is one).
-
           // Handle the end of the entire repeat sequence
           if (
-            chordIndex === repeatCount - 1 &&
+            chordIndex === repeatedChordCount - 1 &&
             looping &&
             audioMetadata.playing
           ) {
@@ -978,7 +980,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
 
             // Reset chordIndex to -1 so that after the loop's increment, it becomes 0
             chordIndex = -1;
-          } else if (chordIndex === repeatCount - 1) {
+          } else if (chordIndex === repeatedChordCount - 1) {
             // If not looping, stop the playback
             set({
               audioMetadata: {

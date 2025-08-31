@@ -7,6 +7,8 @@ interface PlaybackProgressSlider {
   chordDurations: number[];
   loopRange: [number, number];
   setLoopRange: Dispatch<SetStateAction<[number, number]>>;
+  setChordRepetitions: Dispatch<SetStateAction<number[]>>;
+  scrollPositionsLength: number;
 }
 
 function PlaybackProgressSlider({
@@ -14,6 +16,8 @@ function PlaybackProgressSlider({
   chordDurations,
   loopRange,
   setLoopRange,
+  setChordRepetitions,
+  scrollPositionsLength,
 }: PlaybackProgressSlider) {
   const {
     currentChordIndex,
@@ -121,10 +125,19 @@ function PlaybackProgressSlider({
 
   // used to keep currentChordIndex within bounds of the currently playing metadata
   // when the tab is artifically extended to fit within the user's viewport
-  function wrapNumber(num: number, upperBound: number) {
-    const rangeSize = upperBound + 1;
-    return ((num % rangeSize) + rangeSize) % rangeSize;
+  function mapToRange(value: number, min: number, max: number) {
+    const rangeSize = max - min + 1;
+    const normalized = (((value - min) % rangeSize) + rangeSize) % rangeSize;
+    return normalized;
   }
+
+  const isPlayingAndNotAtEnd =
+    audioMetadata.playing &&
+    (currentChordIndex + 1) % currentlyPlayingMetadata!.length !== 0;
+
+  const maxIndex = currentlyPlayingMetadata
+    ? currentlyPlayingMetadata.length - 1
+    : 0;
 
   return (
     <>
@@ -197,20 +210,12 @@ function PlaybackProgressSlider({
           label="Slider to control the progress within the current tab"
           step={1}
           min={0}
-          max={
-            currentlyPlayingMetadata ? currentlyPlayingMetadata.length - 1 : 0
-          }
+          max={maxIndex}
           values={[
-            wrapNumber(
-              currentChordIndex +
-                (audioMetadata.playing &&
-                currentChordIndex !== currentlyPlayingMetadata!.length - 1
-                  ? 1
-                  : 0),
-
-              currentlyPlayingMetadata
-                ? currentlyPlayingMetadata.length - 1
-                : 0,
+            mapToRange(
+              currentChordIndex + (isPlayingAndNotAtEnd ? 1 : 0),
+              0,
+              maxIndex,
             ),
           ]}
           disabled={disabled}
@@ -219,7 +224,15 @@ function PlaybackProgressSlider({
               pauseAudio();
             }
 
-            setCurrentChordIndex(values[0] ?? 0);
+            if (values[0] === undefined) return;
+
+            if (values[0] < currentChordIndex) {
+              // virtualization logic is set up to handle "forward" movement only, so we need to reset
+              // whenever we move backwards to ensure the correct chords are rendered
+              setChordRepetitions(new Array(scrollPositionsLength).fill(0));
+            }
+
+            setCurrentChordIndex(values[0]);
           }}
           renderTrack={({ props, children, disabled }) => (
             <div
@@ -252,20 +265,11 @@ function PlaybackProgressSlider({
                     id="playbackSliderTrack"
                     style={{
                       transform: `scaleX(${
-                        wrapNumber(
-                          currentChordIndex +
-                            (audioMetadata.playing &&
-                            currentChordIndex !==
-                              currentlyPlayingMetadata!.length - 1
-                              ? 1
-                              : 0),
-                          currentlyPlayingMetadata
-                            ? currentlyPlayingMetadata.length - 1
-                            : 0,
-                        ) /
-                        (currentlyPlayingMetadata
-                          ? currentlyPlayingMetadata.length - 1
-                          : 0)
+                        mapToRange(
+                          currentChordIndex + (isPlayingAndNotAtEnd ? 1 : 0),
+                          0,
+                          maxIndex,
+                        ) / maxIndex
                       })`,
                       transitionProperty: "transform",
                       transitionTimingFunction: "linear",

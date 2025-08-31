@@ -319,7 +319,7 @@ function expandFullTab({
   // probably want to gate entire function even being called beforehand?
   while (
     visiblePlaybackContainerWidth > 0 &&
-    totalChordsWidth < visiblePlaybackContainerWidth
+    totalChordsWidth < visiblePlaybackContainerWidth * 2
   ) {
     // adding the loopDelay spacer chords to the very end of the compiledChords
     // make sure that last chord has "isLastChord" set to true, so that it has the rounded right border

@@ -27,6 +27,8 @@ interface PlaybackAudioControls {
   setLoopRange: Dispatch<SetStateAction<[number, number]>>;
   tabProgressValue: number;
   setTabProgressValue: Dispatch<SetStateAction<number>>;
+  setChordRepetitions: Dispatch<SetStateAction<number[]>>;
+  scrollPositionsLength: number;
 }
 
 function PlaybackAudioControls({
@@ -35,6 +37,8 @@ function PlaybackAudioControls({
   setLoopRange,
   tabProgressValue,
   setTabProgressValue,
+  setChordRepetitions,
+  scrollPositionsLength,
 }: PlaybackAudioControls) {
   const { asPath } = useRouter();
 
@@ -279,6 +283,8 @@ function PlaybackAudioControls({
               chordDurations={chordDurations}
               loopRange={loopRange}
               setLoopRange={setLoopRange}
+              setChordRepetitions={setChordRepetitions}
+              scrollPositionsLength={scrollPositionsLength}
             />
 
             <div className="baseFlex w-9 !justify-end self-start">
@@ -321,6 +327,8 @@ function PlaybackAudioControls({
             chordDurations={chordDurations}
             loopRange={loopRange}
             setLoopRange={setLoopRange}
+            setChordRepetitions={setChordRepetitions}
+            scrollPositionsLength={scrollPositionsLength}
           />
 
           <div className="baseFlex w-full !justify-between">

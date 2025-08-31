@@ -18,7 +18,6 @@ import PlaybackMenuContent from "~/components/Tab/Playback/PlaybackMenuContent";
 import PlaybackScrollingContainer from "~/components/Tab/Playback/PlaybackScrollingContainer";
 import { X } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { v4 as randomUUID } from "uuid"; // FYI: crypto randomUUID() wasn't working for whatever reason
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 
 const backdropVariants = {
@@ -32,21 +31,10 @@ const backdropVariants = {
 
 const virtualizationBuffer = 100;
 
-interface ScrollPositions {
-  byId: Record<
-    string,
-    {
-      originalPosition: number;
-      currentPosition: number | null;
-    }
-  >;
-  allIds: string[];
-}
-
 function PlaybackModal() {
   const {
-    expandedTabData,
     currentChordIndex,
+    expandedTabData,
     playbackSpeed,
     playbackMetadata,
     audioMetadata,
@@ -57,6 +45,7 @@ function PlaybackModal() {
     playbackModalViewingState,
     viewportLabel,
     loopDelay,
+    currentlyPlayingMetadata,
     setAudioMetadata,
     setPlaybackModalViewingState,
     pauseAudio,
@@ -73,6 +62,7 @@ function PlaybackModal() {
     playbackModalViewingState: state.playbackModalViewingState,
     viewportLabel: state.viewportLabel,
     loopDelay: state.loopDelay,
+    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     setAudioMetadata: state.setAudioMetadata,
     setPlaybackModalViewingState: state.setPlaybackModalViewingState,
     pauseAudio: state.pauseAudio,
@@ -91,18 +81,25 @@ function PlaybackModal() {
   const [initialPlaceholderWidth, setInitialPlaceholderWidth] = useState(0);
 
   const [chordWidths, setChordWidths] = useState<number[]>([]);
-  const [finalChordWidth, setFinalChordWidth] = useState(0); // used so we don't need to pass entire chordWidths
-  // into the effect to get new currentPosition values
-  const [scrollPositions, setScrollPositions] =
-    useState<ScrollPositions | null>(null);
+  const [finalChordWidth, setFinalChordWidth] = useState(0); // used so we don't need to pass entire chordWidths into the effect to get new currentPosition values
+  const [scrollPositions, setScrollPositions] = useState<number[]>([]);
+  const [chordRepetitions, setChordRepetitions] = useState<number[]>([]);
 
-  const earliestVisibleChordIndexRef = useRef<number>(0);
+  const [chordHighlightRanges, setChordHighlightRanges] = useState<
+    Array<[number, number]>
+  >([]); // inclusive ranges of chord indices to highlight
+
+  // virtualization related indices
+  const [virtualizationIndex, setVirtualizationIndex] = useState<number>(0);
+  const [virtualizationStartIndex, setVirtualizationStartIndex] =
+    useState<number>(0);
+  const [virtualizationCatchupIndex, setVirtualizationCatchupIndex] =
+    useState<number>(0);
 
   const [scrollContainerWidth, setScrollContainerWidth] = useState(0);
-  const [loopCount, setLoopCount] = useState(0);
   const prevCurrentChordIndexRef = useRef<number | null>(null);
 
-  // below two are just here to avoid polluting the store with these extra semi-local values
+  // v avoids polluting the store with these extra semi-local values
   const [loopRange, setLoopRange] = useState<[number, number]>([
     audioMetadata.startLoopIndex,
     audioMetadata.endLoopIndex === -1
@@ -115,6 +112,10 @@ function PlaybackModal() {
   // expandedTabData has changed or looping has changed
   const [expandedTabDataHasChanged, setExpandedTabDataHasChanged] =
     useState(true);
+
+  const loopCount = Math.floor(
+    currentChordIndex / (currentlyPlayingMetadata?.length ?? 1),
+  );
 
   useModalScrollbarHandling();
 
@@ -144,148 +145,7 @@ function PlaybackModal() {
     setVisiblePlaybackContainerWidth,
   ]);
 
-  useEffect(() => {
-    if (scrollPositions === null) return;
-
-    const currentScrollPosition = getScrollPosition({
-      scrollPositions,
-      index: currentChordIndex,
-    });
-
-    const prevScrollPosition =
-      prevCurrentChordIndexRef.current !== null
-        ? getScrollPosition({
-            scrollPositions,
-            index: prevCurrentChordIndexRef.current,
-          })
-        : null;
-
-    if (
-      prevCurrentChordIndexRef.current !== null &&
-      prevScrollPosition !== null &&
-      prevCurrentChordIndexRef.current > currentChordIndex &&
-      prevScrollPosition < currentScrollPosition
-    ) {
-      setLoopCount((prev) => prev + 1);
-    } else if (
-      prevCurrentChordIndexRef.current !== null && // Ensure it's not the initial render
-      prevCurrentChordIndexRef.current > currentChordIndex && // User scrolled backward
-      !audioMetadata.playing
-    ) {
-      // Reset all currentPosition values to null
-      setScrollPositions((prev) => {
-        if (prev === null) return null;
-
-        const newById = { ...prev.byId };
-
-        Object.keys(newById).forEach((itemId) => {
-          newById[itemId] = {
-            ...newById[itemId]!, // this should be safe to assert
-            currentPosition: null,
-          };
-        });
-
-        return {
-          ...prev,
-          byId: newById,
-        };
-      });
-
-      if (loopCount > 0) {
-        setLoopCount(0);
-      }
-
-      earliestVisibleChordIndexRef.current = 0;
-    }
-
-    // Update previous value refs
-    prevCurrentChordIndexRef.current = currentChordIndex;
-  }, [currentChordIndex, audioMetadata.playing, scrollPositions, loopCount]);
-
-  useEffect(() => {
-    earliestVisibleChordIndexRef.current = 0;
-    // need to reset this value when either of these deps change
-    // since expandedTabData will be recomputed, but the currentChordIndex
-    // won't be changed to trigger below effect
-  }, [audioMetadata.editingLoopRange, loopDelay]);
-
-  // chord virtualization effect
-  useEffect(() => {
-    setScrollPositions((prev) => {
-      if (prev === null) return null;
-
-      // value is the new scrollPosition to update currentPosition to
-      const updates: Record<string, number> = {};
-
-      const earliestVisiblePosition =
-        getScrollPosition({
-          scrollPositions: prev,
-          index: currentChordIndex,
-        }) +
-        initialPlaceholderWidth -
-        visiblePlaybackContainerWidth * 0.5 -
-        virtualizationBuffer;
-
-      // can maybe move this out of setState()
-      let localIndex = earliestVisibleChordIndexRef.current;
-
-      while (true) {
-        const position =
-          getScrollPosition({
-            scrollPositions: prev,
-            index: localIndex,
-          }) + initialPlaceholderWidth;
-
-        if (position < earliestVisiblePosition) {
-          const id = prev.allIds[localIndex] ?? 0;
-          updates[id] =
-            position -
-            initialPlaceholderWidth +
-            scrollContainerWidth +
-            finalChordWidth;
-        } else {
-          break;
-        }
-
-        if (localIndex + 1 >= prev.allIds.length) {
-          // wraps back around to beginning of scrollPositions
-          localIndex = 0;
-        } else {
-          localIndex++;
-        }
-      }
-
-      if (Object.keys(updates).length === 0) return prev;
-
-      const newById = { ...prev.byId };
-
-      for (const [id, currentPosition] of Object.entries(updates)) {
-        newById[id] = {
-          ...newById[id]!, // this should be safe to assert
-          currentPosition,
-        };
-      }
-
-      earliestVisibleChordIndexRef.current = localIndex;
-
-      return {
-        ...prev,
-        byId: newById,
-      };
-    });
-  }, [
-    currentChordIndex,
-    scrollContainerWidth,
-    visiblePlaybackContainerWidth,
-    initialPlaceholderWidth,
-    finalChordWidth,
-  ]);
-
-  // TODO: is this necessary?
-  useEffect(() => {
-    setExpandedTabDataHasChanged(true);
-  }, [expandedTabData]);
-
+  // initialization effect
   useEffect(() => {
     if (
       !expandedTabDataHasChanged ||
@@ -297,12 +157,10 @@ function PlaybackModal() {
     )
       return;
 
-    const localScrollPositions: typeof scrollPositions = {
-      byId: {},
-      allIds: [],
-    };
+    const localScrollPositions: number[] = [];
     const chordWidths: number[] = [];
-    let finalElementWidth = 0;
+    const localChordHighlightRanges: Array<[number, number]> = [];
+    let localFinalChordWidth = 0;
     let offsetLeft = 0;
 
     expandedTabData.map((chord, index) => {
@@ -321,19 +179,12 @@ function PlaybackModal() {
             ? 35
             : 40;
 
-      const id = randomUUID();
-
-      localScrollPositions.byId[id] = {
-        originalPosition: offsetLeft,
-        currentPosition: null,
-      };
-
-      localScrollPositions.allIds.push(id);
+      localScrollPositions[index] = offsetLeft;
 
       chordWidths.push(chordWidth);
 
       if (index === expandedTabData.length - 1) {
-        finalElementWidth = chordWidth;
+        localFinalChordWidth = chordWidth;
       }
 
       offsetLeft += chordWidth;
@@ -344,18 +195,135 @@ function PlaybackModal() {
       return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
     });
 
-    const lastChordId = localScrollPositions.allIds.at(-1);
-
     const scrollContainerWidth =
-      localScrollPositions.byId[lastChordId ?? 0]?.originalPosition ??
-      0 + finalElementWidth;
+      (localScrollPositions.at(-1) ?? 0) + localFinalChordWidth;
 
+    const newChordRepetitions = new Array(expandedTabData.length).fill(0);
+
+    // loop backwards through scrollPositions to find the earliest chord index that
+    // would show the final chord in the loop
+    let localVirtualizationIndex = 0;
+    for (let i = expandedTabData.length - 1; i >= 0; i--) {
+      const currentPosition = localScrollPositions[i];
+      const lastChordPosition = localScrollPositions.at(-1);
+
+      if (currentPosition === undefined || lastChordPosition === undefined) {
+        continue;
+      }
+
+      if (
+        currentPosition + visiblePlaybackContainerWidth * 0.5 <=
+        lastChordPosition + localFinalChordWidth
+      ) {
+        localVirtualizationIndex = i;
+        break;
+      }
+    }
+
+    let localVirtualizationStartIndex = 0;
+    for (let i = expandedTabData.length - 1; i >= 0; i--) {
+      const currentPosition = localScrollPositions[i];
+      const lastChordPosition = localScrollPositions.at(-1);
+
+      if (currentPosition === undefined || lastChordPosition === undefined) {
+        continue;
+      }
+
+      if (
+        currentPosition + visiblePlaybackContainerWidth <=
+        lastChordPosition + localFinalChordWidth
+      ) {
+        localVirtualizationStartIndex = i;
+        break;
+      }
+    }
+
+    let localVirtualizationCatchupIndex = 0;
+    for (let i = 0; i < expandedTabData.length - 1; i++) {
+      const currentPosition = localScrollPositions[i];
+
+      if (currentPosition === undefined) {
+        continue;
+      }
+
+      if (currentPosition - visiblePlaybackContainerWidth * 0.5 >= 0) {
+        localVirtualizationCatchupIndex = i;
+        break;
+      }
+    }
+
+    // compute chordHighlightRanges
+    for (let i = 0; i < expandedTabData.length; i++) {
+      let startRangeIndex = 0;
+      let endRangeIndex = 0;
+      let leftIndex = i;
+      let rightIndex = i;
+      const baselineScrollPosition = localScrollPositions[i];
+
+      if (baselineScrollPosition === undefined) {
+        localChordHighlightRanges[i] = [0, 0];
+        continue;
+      }
+
+      // check left of current index
+      while (leftIndex >= 0) {
+        const scrollPosition = localScrollPositions[leftIndex];
+        if (scrollPosition === undefined) {
+          leftIndex--;
+          continue;
+        }
+
+        if (
+          scrollPosition <
+          baselineScrollPosition -
+            (0.5 * visiblePlaybackContainerWidth + virtualizationBuffer)
+        ) {
+          startRangeIndex = leftIndex + 1; // TOOD: maybe drop the +1?
+          break;
+        }
+
+        leftIndex--;
+      }
+
+      // check right of current index
+      while (rightIndex < expandedTabData.length) {
+        const scrollPosition = localScrollPositions[rightIndex];
+        if (scrollPosition === undefined) {
+          rightIndex++;
+          continue;
+        }
+
+        if (
+          scrollPosition >
+          baselineScrollPosition +
+            (0.5 * visiblePlaybackContainerWidth + virtualizationBuffer)
+        ) {
+          endRangeIndex = rightIndex - 1; // TOOD: maybe drop the -1?
+          break;
+        }
+
+        rightIndex++;
+      }
+
+      // fallbacks in case the above conditions never get met
+      if (startRangeIndex === 0 && leftIndex < 0) startRangeIndex = 0;
+      if (endRangeIndex === 0) endRangeIndex = expandedTabData.length - 1;
+
+      localChordHighlightRanges[i] = [startRangeIndex, endRangeIndex];
+    }
+
+    setVirtualizationIndex(localVirtualizationIndex);
+    setVirtualizationStartIndex(localVirtualizationStartIndex);
+    setVirtualizationCatchupIndex(localVirtualizationCatchupIndex);
+
+    setChordRepetitions(newChordRepetitions);
     setExpandedTabDataHasChanged(false);
     setScrollPositions(localScrollPositions);
     setChordWidths(chordWidths);
     setScrollContainerWidth(scrollContainerWidth);
     setChordDurations(durations);
-    setFinalChordWidth(finalElementWidth);
+    setFinalChordWidth(localFinalChordWidth);
+    setChordHighlightRanges(localChordHighlightRanges);
   }, [
     containerElement,
     visiblePlaybackContainerWidth,
@@ -366,12 +334,84 @@ function PlaybackModal() {
     playbackSpeed,
   ]);
 
+  // TODO: is this necessary?
+  useEffect(() => {
+    setExpandedTabDataHasChanged(true);
+  }, [expandedTabData]);
+
+  // primary chord virtualization effect
+  useEffect(() => {
+    if (
+      currentChordIndex < virtualizationIndex ||
+      chordRepetitions[0] !== chordRepetitions.at(-1) // primary virtualization already happened
+    ) {
+      return;
+    }
+
+    setChordRepetitions((prev) => {
+      const newRepetitions = (prev[0] ?? 0) + 1;
+      const oldRepetitions = prev[0] ?? 0;
+      const secondHalfLength = prev.length - virtualizationStartIndex;
+
+      const firstNewHalf = new Array(virtualizationStartIndex).fill(
+        newRepetitions,
+      ) as number[];
+      const secondNewHalf = new Array(secondHalfLength).fill(
+        oldRepetitions,
+      ) as number[];
+
+      return [...firstNewHalf, ...secondNewHalf];
+    });
+  }, [
+    chordRepetitions,
+    currentChordIndex,
+    virtualizationIndex,
+    virtualizationStartIndex,
+  ]);
+
+  // catchup chord virtualization effect
+  useEffect(() => {
+    if (
+      // making sure that this only happens post-primary virtualization and not
+      // before the virtualizationCatchupIndex has been reached
+      currentChordIndex >= virtualizationIndex ||
+      currentChordIndex < virtualizationCatchupIndex ||
+      chordRepetitions[0] === chordRepetitions.at(-1) // all chords are already caught up
+    ) {
+      return;
+    }
+
+    setChordRepetitions((prev) => {
+      const newRepetitions = prev[0] ?? 0;
+
+      const newChordRepetitions = new Array(prev.length).fill(
+        newRepetitions,
+      ) as number[];
+
+      return newChordRepetitions;
+    });
+  }, [
+    chordRepetitions,
+    currentChordIndex,
+    virtualizationIndex,
+    virtualizationCatchupIndex,
+  ]);
+
+  // TODO: maybe increase buffer if you want to get rid of the blank space
+  // when scrubbing quickly?
   function chordIsVisible(index: number) {
     if (scrollPositions === null) return false;
 
-    const chordPosition = getScrollPosition({ scrollPositions, index });
+    const chordPosition = getScrollPosition({
+      scrollPositions,
+      chordRepetitions,
+      scrollContainerWidth,
+      index,
+    });
     const currentPosition = getScrollPosition({
       scrollPositions,
+      chordRepetitions,
+      scrollContainerWidth,
       index: currentChordIndex,
     });
 
@@ -396,24 +436,40 @@ function PlaybackModal() {
     chordIndex: number;
     type: "isBeingPlayed" | "hasBeenPlayed";
   }) {
-    if (scrollPositions === null) return false;
-
-    const scrollPosition = getScrollPosition({
-      scrollPositions,
-      index: chordIndex,
-    });
-    const startPositionOfCurrentLoop = scrollContainerWidth * (loopCount + 1);
-
     if (
-      scrollPosition === undefined ||
-      scrollPosition > startPositionOfCurrentLoop
-    ) {
+      scrollPositions === null ||
+      expandedTabData === null ||
+      currentlyPlayingMetadata === null
+    )
       return false;
+
+    if (type === "isBeingPlayed") {
+      return currentChordIndex === chordIndex;
     }
 
-    return type === "isBeingPlayed"
-      ? currentChordIndex === chordIndex
-      : currentChordIndex >= chordIndex + 1;
+    const rangeStart = chordHighlightRanges[currentChordIndex]?.[0];
+    const rangeEnd = chordHighlightRanges[currentChordIndex]?.[1];
+
+    if (rangeStart === undefined || rangeEnd === undefined) return false;
+
+    // FYI: these two vars are only necessary/relevant if the tab has been artificially
+    // extended, otherwise the rangeStart/rangeEnd checks are sufficient
+    const startingChordIndexForCurrentLoop =
+      loopCount * currentlyPlayingMetadata.length;
+    const endingChordIndexForCurrentLoop =
+      (loopCount + 1) * currentlyPlayingMetadata.length - 1;
+
+    if (
+      startingChordIndexForCurrentLoop <= chordIndex &&
+      chordIndex <= endingChordIndexForCurrentLoop &&
+      chordIndex >= rangeStart &&
+      chordIndex <= rangeEnd &&
+      currentChordIndex >= chordIndex + 1
+    ) {
+      return true;
+    }
+
+    return false;
   }
 
   return (
@@ -430,7 +486,9 @@ function PlaybackModal() {
         if (e.key === "Escape") {
           setShowPlaybackModal(false);
           pauseAudio(true);
-          setPlaybackModalViewingState("Practice");
+          setTimeout(() => {
+            setPlaybackModalViewingState("Practice");
+          }, 150); // waiting for the modal to actually close before changing state
           if (audioMetadata.editingLoopRange) {
             setAudioMetadata({
               ...audioMetadata,
@@ -486,7 +544,11 @@ function PlaybackModal() {
                   }}
                   className="w-full overflow-hidden"
                 >
-                  <PlaybackScrollingContainer loopCount={loopCount}>
+                  <PlaybackScrollingContainer
+                    loopCount={loopCount}
+                    setChordRepetitions={setChordRepetitions}
+                    scrollPositionsLength={scrollPositions.length}
+                  >
                     <div
                       ref={containerRef}
                       className="relative flex h-[247px] w-full overflow-hidden mobilePortrait:h-[267px]"
@@ -505,6 +567,8 @@ function PlaybackModal() {
                             width: `${scrollContainerWidth}px`,
                             transform: getScrollContainerTransform({
                               scrollPositions,
+                              chordRepetitions,
+                              scrollContainerWidth,
                               currentChordIndex,
                               audioMetadata,
                               numberOfChords: playbackMetadata?.length ?? 0,
@@ -537,6 +601,8 @@ function PlaybackModal() {
                                     left: `${
                                       getScrollPosition({
                                         scrollPositions,
+                                        chordRepetitions,
+                                        scrollContainerWidth,
                                         index,
                                       }) + initialPlaceholderWidth
                                     }px`,
@@ -556,7 +622,7 @@ function PlaybackModal() {
                                     }
                                     index={index}
                                     chord={chord}
-                                    scrollPositions={scrollPositions}
+                                    chordRepetitions={chordRepetitions}
                                     audioMetadata={audioMetadata}
                                     loopDelay={loopDelay}
                                     isHighlighted={
@@ -595,7 +661,10 @@ function PlaybackModal() {
                 setLoopRange={setLoopRange}
                 tabProgressValue={tabProgressValue}
                 setTabProgressValue={setTabProgressValue}
+                setChordRepetitions={setChordRepetitions}
+                scrollPositionsLength={scrollPositions.length}
               />
+
               <PlaybackBottomMetadata
                 loopRange={loopRange}
                 setLoopRange={setLoopRange}
@@ -612,7 +681,9 @@ function PlaybackModal() {
             onClick={() => {
               setShowPlaybackModal(false);
               pauseAudio(true);
-              setPlaybackModalViewingState("Practice");
+              setTimeout(() => {
+                setPlaybackModalViewingState("Practice");
+              }, 150); // waiting for the modal to actually close before changing state
               if (audioMetadata.editingLoopRange) {
                 setAudioMetadata({
                   ...audioMetadata,
@@ -634,28 +705,32 @@ export default PlaybackModal;
 
 function getScrollPosition({
   scrollPositions,
+  chordRepetitions,
+  scrollContainerWidth,
   index,
 }: {
-  scrollPositions: ScrollPositions;
+  scrollPositions: number[];
+  chordRepetitions: number[];
+  scrollContainerWidth: number;
   index: number;
 }) {
-  if (scrollPositions === null) return 0;
-
   return (
-    scrollPositions.byId[scrollPositions.allIds[index] ?? 0]?.currentPosition ??
-    scrollPositions.byId[scrollPositions.allIds[index] ?? 0]
-      ?.originalPosition ??
-    0
+    (scrollPositions[index] ?? 0) +
+    (chordRepetitions[index] ?? 0) * scrollContainerWidth
   );
 }
 
 function getScrollContainerTransform({
   scrollPositions,
+  chordRepetitions,
+  scrollContainerWidth,
   currentChordIndex,
   audioMetadata,
   numberOfChords,
 }: {
-  scrollPositions: ScrollPositions;
+  scrollPositions: number[];
+  chordRepetitions: number[];
+  scrollContainerWidth: number;
   currentChordIndex: number;
   audioMetadata: AudioMetadata;
   numberOfChords: number;
@@ -668,9 +743,16 @@ function getScrollContainerTransform({
       : currentChordIndex + (audioMetadata.playing ? 1 : 0);
 
   // needed(?) to prevent index from going out of bounds when looping
-  const clampedIndex = Math.min(index, scrollPositions.allIds.length - 1);
+  const clampedIndex = Math.min(index, scrollPositions.length - 1);
 
-  return `translateX(${getScrollPosition({ scrollPositions, index: clampedIndex }) * -1}px)`;
+  return `translateX(${
+    getScrollPosition({
+      scrollPositions,
+      chordRepetitions,
+      scrollContainerWidth,
+      index: clampedIndex,
+    }) * -1
+  }px)`;
 }
 
 interface RenderChordByType {
@@ -680,7 +762,7 @@ interface RenderChordByType {
     | PlaybackTabChordType
     | PlaybackStrummedChordType
     | PlaybackLoopDelaySpacerChord;
-  scrollPositions: ScrollPositions;
+  chordRepetitions: number[];
   audioMetadata: AudioMetadata;
   loopDelay: number;
   isHighlighted: boolean;
@@ -690,7 +772,7 @@ function RenderChordByType({
   type,
   index,
   chord,
-  scrollPositions,
+  chordRepetitions,
   audioMetadata,
   loopDelay,
   isHighlighted,
@@ -700,10 +782,7 @@ function RenderChordByType({
       <PlaybackTabChord
         columnData={chord?.data.chordData}
         isFirstChordInSection={
-          index === 0 &&
-          (loopDelay !== 0 ||
-            scrollPositions.byId[scrollPositions.allIds[0] ?? 0]
-              ?.currentPosition === null)
+          index === 0 && (loopDelay !== 0 || chordRepetitions[0] === 0)
         }
         isLastChordInSection={chord?.isLastChord && loopDelay !== 0}
         isHighlighted={isHighlighted}
@@ -738,10 +817,7 @@ function RenderChordByType({
         strum={chord?.data.strum || ""}
         palmMute={chord?.data.palmMute || ""}
         isFirstChordInSection={
-          index === 0 &&
-          (loopDelay !== 0 ||
-            scrollPositions.byId[scrollPositions.allIds[0] ?? 0]
-              ?.currentPosition === null)
+          index === 0 && (loopDelay !== 0 || chordRepetitions[0] === 0)
         }
         isLastChordInSection={chord?.isLastChord && loopDelay !== 0}
         noteLength={chord?.data.noteLength || "1/4th"}
