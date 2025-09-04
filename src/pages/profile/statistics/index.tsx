@@ -20,6 +20,7 @@ import { FaEye, FaUser, FaTrophy } from "react-icons/fa";
 import { IoDiceOutline, IoCalendarOutline } from "react-icons/io5";
 import { IoIosArrowBack } from "react-icons/io";
 import Binoculars from "~/components/ui/icons/Binoculars";
+import Verified from "~/components/ui/icons/Verified";
 import {
   Carousel,
   CarouselContent,
@@ -681,11 +682,16 @@ function UserStatistics() {
                                   animate={{ opacity: 1 }}
                                   exit={{ opacity: 0 }}
                                   transition={{ duration: 0.25 }}
-                                  className="w-full"
+                                  className="baseFlex w-full !justify-start gap-1"
                                 >
-                                  <span className="font-semibold text-foreground">
-                                    {category}
-                                  </span>
+                                  {miscStatsSlide === 4 &&
+                                    currentUser?.artistIsVerified.get(
+                                      category,
+                                    ) && (
+                                      <Verified className="size-4 shrink-0" />
+                                    )}
+                                  {category}
+                                  <span className="font-semibold text-foreground"></span>
                                 </motion.div>
                               </TableCell>
 

@@ -323,6 +323,7 @@ export const userRouter = createTRPCRouter({
           artist: {
             select: {
               name: true,
+              isVerified: true,
             },
           },
         },
@@ -481,6 +482,7 @@ export const userRouter = createTRPCRouter({
       ]);
 
       const artists = new Map<string, number>();
+      const artistIsVerified = new Map<string, boolean>();
 
       const difficultyIntToString = {
         0: "Beginner",
@@ -519,7 +521,7 @@ export const userRouter = createTRPCRouter({
         }
 
         const ordinalCapo =
-          stat.capo === 0 ? "None" : getOrdinalSuffix(stat.capo + 1);
+          stat.capo === 0 ? "None" : `${getOrdinalSuffix(stat.capo + 1)} fret`;
         const capoCount = capos.get(ordinalCapo);
         if (capoCount !== undefined) {
           capos.set(ordinalCapo, capoCount + 1);
@@ -532,6 +534,10 @@ export const userRouter = createTRPCRouter({
         } else {
           artists.set(artistName, 1);
         }
+
+        if (stat.artist && !artistIsVerified.has(artistName)) {
+          artistIsVerified.set(artistName, stat.artist.isVerified);
+        }
       }
 
       miscStats.push(genres, tunings, difficulties, capos, artists);
@@ -540,6 +546,7 @@ export const userRouter = createTRPCRouter({
         ...user,
         topFiveStats,
         miscStats,
+        artistIsVerified,
       };
     }),
 
