@@ -52,6 +52,7 @@ import { Label } from "~/components/ui/label";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { Switch } from "~/components/ui/switch";
 import { getTrackBackground, Range } from "react-range";
+import { tuningNotes } from "~/utils/tunings";
 
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
@@ -209,6 +210,8 @@ function Tab({ tab }: Tab) {
     setTabData(tab.tabData);
     // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setSectionProgression(tab.sectionProgression ?? []);
+
+    setCustomTuning(tuningNotes.includes(tab.tuning) ? null : tab.tuning);
   }, [tab]);
 
   useEffect(() => {
