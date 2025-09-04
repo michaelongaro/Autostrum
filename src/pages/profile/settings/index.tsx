@@ -788,9 +788,9 @@ function UserSettings() {
                     <PopoverTrigger asChild>
                       <Button
                         variant="ghost"
-                        className="!size-7 !rounded-full !p-0 lg:!size-8"
+                        className="mt-0.5 !size-7 !rounded-full !p-0 lg:mt-1 lg:!size-7"
                       >
-                        <MdOutlineInfo className="size-[17px] lg:size-5" />
+                        <MdOutlineInfo className="size-[19px] lg:size-5" />
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent
