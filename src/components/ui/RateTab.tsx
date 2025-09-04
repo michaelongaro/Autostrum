@@ -175,7 +175,12 @@ function RateTab({
 
       setTimeout(() => {
         setShowPopover(false);
+
         setShowDrawer(false);
+        setMobileHeaderModal({
+          showing: false,
+          zIndex: 48,
+        });
 
         setTimeout(() => {
           setShowThankYouMessage(false);
