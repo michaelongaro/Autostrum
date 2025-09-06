@@ -95,6 +95,10 @@ function Tab({ tab }: Tab) {
   const [showPinnedChords, setShowPinnedChords] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  // used to artifically keep static tab content visible for a split second longer
+  // while the playback modal is animating in, avoids jarring disappearance
+  const [hideStaticTabContent, setHideStaticTabContent] = useState(false);
+
   const {
     setId,
     setCreatedByUserId,
@@ -276,6 +280,10 @@ function Tab({ tab }: Tab) {
     setSectionProgression,
   ]);
 
+  useEffect(() => {
+    if (showPlaybackModal === false) setHideStaticTabContent(false);
+  }, [showPlaybackModal]);
+
   function addNewSection() {
     const newTabData = getTabData();
 
@@ -444,7 +452,7 @@ function Tab({ tab }: Tab) {
             )}
           </AnimatePresence>
 
-          {!showPlaybackModal &&
+          {!hideStaticTabContent &&
             tabData.map((section, index) => (
               <motion.div
                 key={section.id}
@@ -530,6 +538,9 @@ function Tab({ tab }: Tab) {
               onClick={() => {
                 setShowPlaybackModal(true);
                 setLooping(true);
+                setTimeout(() => {
+                  setHideStaticTabContent(true);
+                }, 500);
               }}
             >
               <Logo className="size-[18px] tablet:size-5" />
