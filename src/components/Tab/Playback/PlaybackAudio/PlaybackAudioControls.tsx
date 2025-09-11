@@ -17,7 +17,7 @@ import { Toggle } from "~/components/ui/toggle";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStore, type Section } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 
@@ -29,6 +29,7 @@ interface PlaybackAudioControls {
   setTabProgressValue: Dispatch<SetStateAction<number>>;
   setChordRepetitions: Dispatch<SetStateAction<number[]>>;
   scrollPositionsLength: number;
+  tabData: Section[];
 }
 
 function PlaybackAudioControls({
@@ -39,6 +40,7 @@ function PlaybackAudioControls({
   setTabProgressValue,
   setChordRepetitions,
   scrollPositionsLength,
+  tabData,
 }: PlaybackAudioControls) {
   const { asPath } = useRouter();
 
@@ -55,7 +57,6 @@ function PlaybackAudioControls({
     setAudioMetadata,
     previewMetadata,
     currentInstrument,
-    tabData,
     playTab,
     pauseAudio,
     fetchingFullTabData,
@@ -77,7 +78,6 @@ function PlaybackAudioControls({
     setAudioMetadata: state.setAudioMetadata,
     previewMetadata: state.previewMetadata,
     currentInstrument: state.currentInstrument,
-    tabData: state.tabData,
     playTab: state.playTab,
     pauseAudio: state.pauseAudio,
     fetchingFullTabData: state.fetchingFullTabData,
@@ -100,7 +100,7 @@ function PlaybackAudioControls({
 
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
 
-  useSpacebarAudioControl();
+  useSpacebarAudioControl({ tabData });
 
   useEffect(() => {
     if (!masterVolumeGainNode) return;
@@ -153,7 +153,11 @@ function PlaybackAudioControls({
 
       setTimeout(() => {
         setTimeout(() => {
-          void playTab({ tabId: id, location: audioMetadata.location });
+          void playTab({
+            tabData,
+            tabId: id,
+            location: audioMetadata.location,
+          });
         }, delayForStoreStateToUpdate);
 
         if (isViewingTabPath) {

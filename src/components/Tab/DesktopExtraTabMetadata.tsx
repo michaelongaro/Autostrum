@@ -352,7 +352,6 @@ function DesktopExtraTabMetadata() {
                           setLastModifiedPalmMuteNode={
                             setLastModifiedPalmMuteNode
                           }
-                          pmNodeOpacities={[]} // placeholder
                         />
                       </div>
                     </div>

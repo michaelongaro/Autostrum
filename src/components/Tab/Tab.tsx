@@ -3,8 +3,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { FaBook } from "react-icons/fa";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
-import { useTabStore } from "~/stores/TabStore";
+import { type Section, useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
+import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import {
   Tooltip,
   TooltipContent,
@@ -46,6 +47,7 @@ import {
   CarouselContent,
   CarouselItem,
 } from "~/components/ui/carousel";
+import { useImmer } from "use-immer";
 import TipsDialog from "~/components/Dialogs/TipsDialog";
 import { IoMdSettings } from "react-icons/io";
 import { Label } from "~/components/ui/label";
@@ -53,6 +55,7 @@ import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { Switch } from "~/components/ui/switch";
 import { getTrackBackground, Range } from "react-range";
 import { tuningNotes } from "~/utils/tunings";
+import AudioControls from "~/components/AudioControls/AudioControls";
 
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
@@ -77,6 +80,8 @@ function Tab({ tab }: Tab) {
   const [isPublishingOrUpdating, setIsPublishingOrUpdating] = useState(false);
   const [showTipsModal, setShowTipsModal] = useState(false);
   const [tabContentIsInView, setTabContentIsInView] = useState(false);
+
+  const [tabData, setTabData] = useImmer<Section[]>([]);
 
   // true when creating new section, results in way less cpu/ram usage for arguably worse ux
   const [forceCloseSectionAccordions, setForceCloseSectionAccordions] =
@@ -117,9 +122,6 @@ function Tab({ tab }: Tab) {
     setDifficulty,
     setChords,
     setStrummingPatterns,
-    tabData,
-    getTabData,
-    setTabData,
     setSectionProgression,
     editing,
     setOriginalTabData,
@@ -141,6 +143,10 @@ function Tab({ tab }: Tab) {
     color,
     theme,
     setMobileHeaderModal,
+    showingAudioControls,
+    snapshotTabInLocalStorage,
+    setSnapshotTabInLocalStorage,
+    getStringifiedTabData,
   } = useTabStore((state) => ({
     setId: state.setId,
     setCreatedByUserId: state.setCreatedByUserId,
@@ -159,9 +165,6 @@ function Tab({ tab }: Tab) {
     setDifficulty: state.setDifficulty,
     setChords: state.setChords,
     setStrummingPatterns: state.setStrummingPatterns,
-    tabData: state.tabData,
-    getTabData: state.getTabData,
-    setTabData: state.setTabData,
     setSectionProgression: state.setSectionProgression,
     editing: state.editing,
     setOriginalTabData: state.setOriginalTabData,
@@ -183,6 +186,10 @@ function Tab({ tab }: Tab) {
     color: state.color,
     theme: state.theme,
     setMobileHeaderModal: state.setMobileHeaderModal,
+    showingAudioControls: state.showingAudioControls,
+    snapshotTabInLocalStorage: state.snapshotTabInLocalStorage,
+    setSnapshotTabInLocalStorage: state.setSnapshotTabInLocalStorage,
+    getStringifiedTabData: state.getStringifiedTabData,
   }));
 
   useEffect(() => {
@@ -284,17 +291,30 @@ function Tab({ tab }: Tab) {
     if (showPlaybackModal === false) setHideStaticTabContent(false);
   }, [showPlaybackModal]);
 
+  useEffect(() => {
+    if (snapshotTabInLocalStorage) {
+      localStorageTabData.set(getStringifiedTabData(tabData));
+      setSnapshotTabInLocalStorage(false);
+    }
+  }, [
+    tabData,
+    snapshotTabInLocalStorage,
+    localStorageTabData,
+    getStringifiedTabData,
+    setSnapshotTabInLocalStorage,
+  ]);
+
+  useAutoCompileChords({ tabData });
+
   function addNewSection() {
-    const newTabData = getTabData();
+    setTabData((draft) => {
+      draft.push({
+        id: crypto.randomUUID(),
+        title: `Section ${draft.length + 1}`,
+        data: [],
+      });
+    });
 
-    const newSectionData = {
-      id: crypto.randomUUID(),
-      title: `Section ${tabData.length + 1}`,
-      data: [],
-    };
-    newTabData.push(newSectionData);
-
-    setTabData(newTabData);
     setForceCloseSectionAccordions(true);
   }
 
@@ -319,7 +339,9 @@ function Tab({ tab }: Tab) {
         <TabMetadata
           customTuning={customTuning}
           setIsPublishingOrUpdating={setIsPublishingOrUpdating}
+          tabData={tabData}
         />
+
         {!editing &&
           sectionProgression.length === 0 &&
           chords.length === 0 &&
@@ -339,11 +361,12 @@ function Tab({ tab }: Tab) {
         <Separator
           className={`mt-2 bg-border ${editing ? "w-[96%]" : "w-full tablet:w-[96%]"}`}
         />
+
         {editing ? (
           <div className="baseVertFlex relative mb-4 mt-6 w-full gap-4 sm:mb-0 sm:mt-4">
             <SectionProgression />
-            <Chords />
-            <StrummingPatterns />
+            <Chords setTabData={setTabData} />
+            <StrummingPatterns setTabData={setTabData} />
 
             <div className="baseFlex gap-4">
               <Button
@@ -394,9 +417,11 @@ function Tab({ tab }: Tab) {
             )}
           </>
         )}
+
         <Separator
           className={`my-2 bg-border ${editing ? "w-[96%]" : "w-full tablet:w-[96%]"}`}
         />
+
         <div
           ref={tabContentRef}
           className="baseVertFlex relative mt-2 size-full scroll-m-24 !justify-start gap-4"
@@ -473,10 +498,6 @@ function Tab({ tab }: Tab) {
                       currentlyPlayingMetadata?.[currentChordIndex]?.location
                         .sectionIndex ?? 0
                     }
-                    currentlyPlayingSubSectionIndex={
-                      currentlyPlayingMetadata?.[currentChordIndex]?.location
-                        .subSectionIndex ?? 0
-                    }
                     forceCloseSectionAccordions={
                       forceCloseSectionAccordions &&
                       index !== tabData.length - 1
@@ -484,6 +505,8 @@ function Tab({ tab }: Tab) {
                     setForceCloseSectionAccordions={
                       setForceCloseSectionAccordions
                     }
+                    tabData={tabData}
+                    setTabData={setTabData}
                   />
                 ) : (
                   <StaticSectionContainer
@@ -491,6 +514,7 @@ function Tab({ tab }: Tab) {
                     sectionData={section}
                     color={color}
                     theme={theme}
+                    tabDataLength={tabData.length}
                   />
                 )}
               </motion.div>
@@ -630,7 +654,9 @@ function Tab({ tab }: Tab) {
       </AnimatePresence>
 
       <AnimatePresence mode="wait">
-        {showSectionProgressionModal && <SectionProgressionModal />}
+        {showSectionProgressionModal && (
+          <SectionProgressionModal tabData={tabData} />
+        )}
       </AnimatePresence>
 
       <TipsDialog
@@ -642,7 +668,10 @@ function Tab({ tab }: Tab) {
 
       <AnimatePresence mode="wait">
         {chordBeingEdited && (
-          <ChordModal chordBeingEdited={structuredClone(chordBeingEdited)} />
+          <ChordModal
+            chordBeingEdited={structuredClone(chordBeingEdited)}
+            setTabData={setTabData}
+          />
         )}
       </AnimatePresence>
 
@@ -652,13 +681,16 @@ function Tab({ tab }: Tab) {
             strummingPatternBeingEdited={structuredClone(
               strummingPatternBeingEdited,
             )}
+            setTabData={setTabData}
           />
         )}
       </AnimatePresence>
 
       <AnimatePresence mode="wait">
-        {showPlaybackModal && <PlaybackModal />}
+        {showPlaybackModal && <PlaybackModal tabData={tabData} />}
       </AnimatePresence>
+
+      {editing && showingAudioControls && <AudioControls tabData={tabData} />}
     </motion.div>
   );
 }

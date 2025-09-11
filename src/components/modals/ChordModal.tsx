@@ -3,13 +3,18 @@ import { motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { BsFillPlayFill, BsKeyboard } from "react-icons/bs";
 import { Label } from "~/components/ui/label";
-import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
+import {
+  useTabStore,
+  type Chord as ChordType,
+  type Section,
+} from "~/stores/TabStore";
 import Chord from "../Tab/Chord";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import { X } from "lucide-react";
+import type { Updater } from "use-immer";
 
 const backdropVariants = {
   expanded: {
@@ -22,15 +27,14 @@ const backdropVariants = {
 
 interface ChordModal {
   chordBeingEdited: { index: number; value: ChordType };
+  setTabData: Updater<Section[]>;
 }
 
-function ChordModal({ chordBeingEdited }: ChordModal) {
+function ChordModal({ chordBeingEdited, setTabData }: ChordModal) {
   const {
     chords,
     setChords,
     setChordBeingEdited,
-    getTabData,
-    setTabData,
     audioMetadata,
     previewMetadata,
     capo,
@@ -40,8 +44,6 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
     chords: state.chords,
     setChords: state.setChords,
     setChordBeingEdited: state.setChordBeingEdited,
-    getTabData: state.getTabData,
-    setTabData: state.setTabData,
     audioMetadata: state.audioMetadata,
     previewMetadata: state.previewMetadata,
     capo: state.capo,
@@ -75,40 +77,46 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       // update chord name of all strumming patterns that use this chord
       // if the chord name has changed.
 
-      if (
-        chords[chordBeingEdited.index]?.name !== chordBeingEdited.value.name
-      ) {
-        const newTabData = getTabData();
+      const oldChordName = chords[chordBeingEdited.index]?.name;
+      if (oldChordName && oldChordName !== chordBeingEdited.value.name) {
+        setTabData((draft) => {
+          for (const [sectionIndex, section] of draft.entries()) {
+            if (!section) continue;
 
-        for (const [sectionIndex, section] of newTabData.entries()) {
-          if (!section) continue;
+            for (const [
+              subSectionIndex,
+              subSection,
+            ] of section.data.entries()) {
+              if (subSection?.type !== "chord") continue;
 
-          for (const [subSectionIndex, subSection] of section.data.entries()) {
-            if (subSection?.type === "chord") {
               for (const [
                 chordSequenceIndex,
                 chordGroup,
               ] of subSection.data.entries()) {
                 if (!chordGroup) continue;
+
                 for (const [
                   chordIndex,
                   chordName,
                 ] of chordGroup.data.entries()) {
-                  if (!chordName) continue;
+                  if (!chordName || chordName !== oldChordName) continue;
 
-                  if (chordName === chords[chordBeingEdited.index]?.name) {
-                    // @ts-expect-error undefined checks are done above
-                    newTabData[sectionIndex].data[subSectionIndex].data[
-                      chordSequenceIndex
-                    ]!.data[chordIndex] = chordBeingEdited.value.name;
-                  }
+                  const sectionData = draft[sectionIndex];
+                  if (!sectionData) continue;
+
+                  const subSectionData = sectionData.data[subSectionIndex];
+                  if (!subSectionData || subSectionData.type !== "chord")
+                    continue;
+
+                  const chordSequence = subSectionData.data[chordSequenceIndex];
+                  if (!chordSequence) continue;
+
+                  chordSequence.data[chordIndex] = chordBeingEdited.value.name;
                 }
               }
             }
           }
-        }
-
-        setTabData(newTabData);
+        });
       }
 
       // save chord

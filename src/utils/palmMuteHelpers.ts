@@ -1,8 +1,8 @@
 import type { Section, StrummingPattern } from "~/stores/TabStore";
+import type { Updater } from "use-immer";
 
 interface AddOrRemovePalmMuteDashes {
-  tabData: Section[];
-  setTabData: (tabData: Section[]) => void;
+  setTabData: Updater<Section[]>;
   sectionIndex: number;
   subSectionIndex: number;
   startColumnIndex: number;
@@ -11,7 +11,6 @@ interface AddOrRemovePalmMuteDashes {
 }
 
 function addOrRemovePalmMuteDashes({
-  tabData,
   setTabData,
   sectionIndex,
   subSectionIndex,
@@ -19,45 +18,52 @@ function addOrRemovePalmMuteDashes({
   prevValue,
   pairNodeValue,
 }: AddOrRemovePalmMuteDashes) {
-  let finishedModification = false;
-  const newTabData = [...tabData];
-  let currentColumnIndex = startColumnIndex;
-  const subSection = newTabData[sectionIndex]!.data[subSectionIndex]!.data;
+  setTabData((draft) => {
+    let finishedModification = false;
+    let currentColumnIndex = startColumnIndex;
+    const subSection = draft[sectionIndex]?.data[subSectionIndex];
 
-  while (!finishedModification) {
-    // only start/end node defined, meaning we clicked on the desired opposite pair node
-    if (pairNodeValue !== undefined) {
-      if (currentColumnIndex === startColumnIndex) {
-        subSection[startColumnIndex]![0] =
-          pairNodeValue === "" ? "end" : pairNodeValue;
+    if (subSection === undefined || subSection.type !== "tab") return;
 
-        pairNodeValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
-      } else if (
-        subSection[currentColumnIndex]![0] ===
-        (pairNodeValue === "" || pairNodeValue === "end" ? "start" : "end")
-      ) {
-        finishedModification = true;
-      } else {
-        subSection[currentColumnIndex]![0] = "-";
-        pairNodeValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
+    const subSectionData = subSection.data;
+
+    while (!finishedModification) {
+      // only start/end node defined, meaning we clicked on the desired opposite pair node
+      if (pairNodeValue !== undefined) {
+        if (currentColumnIndex === startColumnIndex) {
+          subSectionData[startColumnIndex]![0] =
+            pairNodeValue === "" ? "end" : pairNodeValue;
+
+          pairNodeValue === "start"
+            ? currentColumnIndex++
+            : currentColumnIndex--;
+        } else if (
+          subSectionData[currentColumnIndex]![0] ===
+          (pairNodeValue === "" || pairNodeValue === "end" ? "start" : "end")
+        ) {
+          finishedModification = true;
+        } else {
+          subSectionData[currentColumnIndex]![0] = "-";
+          pairNodeValue === "start"
+            ? currentColumnIndex++
+            : currentColumnIndex--;
+        }
+      }
+      // pair already defined, meaning we just removed either the start/end node and need to remove dashes
+      // in between until we hit the other node
+      else {
+        if (
+          subSectionData[currentColumnIndex]?.[0] ===
+          (prevValue === "start" ? "end" : "start")
+        ) {
+          finishedModification = true;
+        } else {
+          subSectionData[currentColumnIndex]![0] = "";
+          prevValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
+        }
       }
     }
-    // pair already defined, meaning we just removed either the start/end node and need to remove dashes
-    // in between until we hit the other node
-    else {
-      if (
-        subSection[currentColumnIndex]?.[0] ===
-        (prevValue === "start" ? "end" : "start")
-      ) {
-        finishedModification = true;
-      } else {
-        subSection[currentColumnIndex]![0] = "";
-        prevValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
-      }
-    }
-  }
-
-  setTabData(newTabData);
+  });
 }
 
 interface AddOrRemoveStrummingPatternPalmMuteDashes {
@@ -69,7 +75,7 @@ interface AddOrRemoveStrummingPatternPalmMuteDashes {
     strummingPatternBeingEdited: {
       index: number;
       value: StrummingPattern;
-    } | null
+    } | null,
   ) => void;
   startColumnIndex: number;
   prevValue: string;
@@ -128,8 +134,7 @@ function addOrRemoveStrummingPatternPalmMuteDashes({
 }
 
 interface TraverseToRemoveHangingPairNode {
-  tabData: Section[];
-  setTabData: (tabData: Section[]) => void;
+  setTabData: Updater<Section[]>;
   sectionIndex: number;
   subSectionIndex: number;
   startColumnIndex: number;
@@ -137,39 +142,41 @@ interface TraverseToRemoveHangingPairNode {
 }
 
 function traverseToRemoveHangingPairNode({
-  tabData,
   setTabData,
   sectionIndex,
   subSectionIndex,
   startColumnIndex,
   pairNodeToRemove,
 }: TraverseToRemoveHangingPairNode) {
-  let pairNodeRemoved = false;
-  const newTabData = [...tabData];
-  let currentColumnIndex = startColumnIndex;
-  const subSection = newTabData[sectionIndex]!.data[subSectionIndex]!.data;
+  setTabData((draft) => {
+    let pairNodeRemoved = false;
+    let currentColumnIndex = startColumnIndex;
+    const subSection = draft[sectionIndex]?.data[subSectionIndex];
 
-  while (!pairNodeRemoved) {
-    if (
-      pairNodeToRemove === "start" &&
-      subSection[currentColumnIndex]?.[0] === "start"
-    ) {
-      subSection[currentColumnIndex]![0] = "";
-      pairNodeRemoved = true;
-    } else if (
-      pairNodeToRemove === "end" &&
-      subSection[currentColumnIndex]?.[0] === "end"
-    ) {
-      subSection[currentColumnIndex]![0] = "";
-      pairNodeRemoved = true;
-    } else {
-      pairNodeToRemove === "start"
-        ? currentColumnIndex--
-        : currentColumnIndex++;
+    if (subSection === undefined || subSection.type !== "tab") return;
+
+    const subSectionData = subSection.data;
+
+    while (!pairNodeRemoved) {
+      if (
+        pairNodeToRemove === "start" &&
+        subSectionData[currentColumnIndex]?.[0] === "start"
+      ) {
+        subSectionData[currentColumnIndex]![0] = "";
+        pairNodeRemoved = true;
+      } else if (
+        pairNodeToRemove === "end" &&
+        subSectionData[currentColumnIndex]?.[0] === "end"
+      ) {
+        subSectionData[currentColumnIndex]![0] = "";
+        pairNodeRemoved = true;
+      } else {
+        pairNodeToRemove === "start"
+          ? currentColumnIndex--
+          : currentColumnIndex++;
+      }
     }
-  }
-
-  setTabData(newTabData);
+  });
 }
 
 interface TraverseToRemoveHangingStrummingPatternPairNode {
@@ -181,7 +188,7 @@ interface TraverseToRemoveHangingStrummingPatternPairNode {
     strummingPatternBeingEdited: {
       index: number;
       value: StrummingPattern;
-    } | null
+    } | null,
   ) => void;
   startColumnIndex: number;
   pairNodeToRemove: "start" | "end";

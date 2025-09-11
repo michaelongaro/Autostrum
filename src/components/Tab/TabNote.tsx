@@ -1,10 +1,11 @@
-import { memo, useState } from "react";
-import { useTabStore } from "~/stores/TabStore";
+import { useState } from "react";
+import { useTabStore, type Section } from "~/stores/TabStore";
 import { Input } from "~/components/ui/input";
 import {
   handleTabNoteChange,
   handleTabNoteKeyDown,
 } from "~/utils/tabNoteHandlers";
+import type { Updater } from "use-immer";
 
 interface TabNote {
   note: string;
@@ -12,6 +13,8 @@ interface TabNote {
   subSectionIndex: number;
   columnIndex: number;
   noteIndex: number;
+  tabData: Section[];
+  setTabData: Updater<Section[]>;
 }
 
 function TabNote({
@@ -20,17 +23,15 @@ function TabNote({
   subSectionIndex,
   columnIndex,
   noteIndex,
+  tabData,
+  setTabData,
 }: TabNote) {
   const {
-    getTabData,
-    setTabData,
     currentlyCopiedChord,
     setCurrentlyCopiedChord,
     chordPulse,
     setChordPulse,
   } = useTabStore((state) => ({
-    getTabData: state.getTabData,
-    setTabData: state.setTabData,
     currentlyCopiedChord: state.currentlyCopiedChord,
     setCurrentlyCopiedChord: state.setCurrentlyCopiedChord,
     chordPulse: state.chordPulse,
@@ -81,7 +82,7 @@ function TabNote({
             subSectionIndex,
             columnIndex,
             noteIndex,
-            getTabData,
+            tabData,
             setTabData,
             currentlyCopiedChord,
             setCurrentlyCopiedChord,
@@ -96,7 +97,7 @@ function TabNote({
             sectionIndex,
             subSectionIndex,
             columnIndex,
-            getTabData,
+            tabData,
             setTabData,
           });
         }}
@@ -105,4 +106,4 @@ function TabNote({
   );
 }
 
-export default memo(TabNote);
+export default TabNote;

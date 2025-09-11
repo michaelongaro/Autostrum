@@ -8,7 +8,6 @@ import React, {
 } from "react";
 import Cropper, { type Area, type Point } from "react-easy-crop";
 import { AnimatePresence, motion } from "framer-motion";
-import { IoClose } from "react-icons/io5";
 import { MdCrop } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";

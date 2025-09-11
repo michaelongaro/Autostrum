@@ -46,15 +46,15 @@ function MobileHeader() {
   const router = useRouter();
 
   const {
-    getStringifiedTabData,
     mobileHeaderModal,
     setMobileHeaderModal,
+    setSnapshotTabInLocalStorage,
     color,
     theme,
   } = useTabStore((state) => ({
-    getStringifiedTabData: state.getStringifiedTabData,
     mobileHeaderModal: state.mobileHeaderModal,
     setMobileHeaderModal: state.setMobileHeaderModal,
+    setSnapshotTabInLocalStorage: state.setSnapshotTabInLocalStorage,
     color: state.color,
     theme: state.theme,
   }));
@@ -68,7 +68,6 @@ function MobileHeader() {
   const [mobileHeaderIsOpen, setMobileHeaderIsOpen] = useState(false);
   const [userProfileImageLoaded, setUserProfileImageLoaded] = useState(false);
 
-  const localStorageTabData = useLocalStorageValue("autostrum-tabData");
   const localStorageRedirectRoute = useLocalStorageValue(
     "autostrum-redirect-route",
   );
@@ -388,9 +387,7 @@ function MobileHeader() {
                       <Button
                         className="baseFlex h-10 gap-2 px-8"
                         onClick={() => {
-                          if (asPath.includes("/create")) {
-                            localStorageTabData.set(getStringifiedTabData());
-                          }
+                          setSnapshotTabInLocalStorage(true);
 
                           // technically can sign in from signup page and vice versa
                           if (!userId) localStorageRedirectRoute.set(asPath);
