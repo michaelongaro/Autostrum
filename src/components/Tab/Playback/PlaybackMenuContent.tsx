@@ -273,7 +273,6 @@ function PlaybackMenuContent() {
                           setLastModifiedPalmMuteNode={
                             setLastModifiedPalmMuteNode
                           }
-                          pmNodeOpacities={[]} //
                         />
                       </div>
                     </div>

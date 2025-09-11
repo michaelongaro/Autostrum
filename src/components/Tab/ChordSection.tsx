@@ -1,6 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import isEqual from "lodash.isequal";
-import { Fragment, memo } from "react";
+import { Fragment } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -8,6 +7,7 @@ import {
   useTabStore,
   type ChordSection as ChordSectionType,
   type ChordSequence as ChordSequenceType,
+  type Section,
 } from "~/stores/TabStore";
 import {
   chordSequencesAllHaveSameNoteLength,
@@ -15,6 +15,7 @@ import {
 } from "~/utils/bpmIconRenderingHelpers";
 import ChordSequence from "./ChordSequence";
 import MiscellaneousControls from "./MiscellaneousControls";
+import type { Updater } from "use-immer";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -35,22 +36,22 @@ const opacityAndScaleVariants = {
   },
 };
 export interface ChordSection {
-  sectionId: string;
   sectionIndex: number;
   subSectionIndex: number;
   subSectionData: ChordSectionType;
+  tabData: Section[];
+  setTabData: Updater<Section[]>;
 }
 
 function ChordSection({
-  sectionId,
   sectionIndex,
   subSectionIndex,
   subSectionData,
+  tabData,
+  setTabData,
 }: ChordSection) {
-  const { bpm, getTabData, setTabData } = useTabStore((state) => ({
+  const { bpm } = useTabStore((state) => ({
     bpm: state.bpm,
-    getTabData: state.getTabData,
-    setTabData: state.setTabData,
   }));
 
   function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -59,38 +60,40 @@ function ChordSection({
 
     if (isNaN(newRepetitions) || newRepetitions > 99) return;
 
-    const newTabData = getTabData();
-
-    newTabData[sectionIndex]!.data[subSectionIndex]!.repetitions =
-      newRepetitions;
-
-    setTabData(newTabData);
+    setTabData((draft) => {
+      const subSection = draft[sectionIndex]!.data[subSectionIndex];
+      if (subSection?.type === "chord") {
+        subSection.repetitions = newRepetitions;
+      }
+    });
   }
 
   function handleBpmChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newBpm = e.target.value.length === 0 ? -1 : parseInt(e.target.value);
     if (isNaN(newBpm) || newBpm > 500) return;
 
-    const newTabData = getTabData();
-
-    newTabData[sectionIndex]!.data[subSectionIndex]!.bpm = newBpm;
-
-    setTabData(newTabData);
+    setTabData((draft) => {
+      const subSection = draft[sectionIndex]!.data[subSectionIndex];
+      if (subSection?.type === "chord") {
+        subSection.bpm = newBpm;
+      }
+    });
   }
 
   function addAnotherChordSequence() {
-    const newTabData = getTabData();
-
-    newTabData[sectionIndex]!.data[subSectionIndex]!.data.push({
-      id: crypto.randomUUID(),
-      repetitions: 1,
-      bpm: -1,
-      // @ts-expect-error the correct strummingPattern will get set in <ChordSequence /> if it is available
-      strummingPattern: {} as StrummingPattern,
-      data: [], // this will also get set in <ChordSequence />
+    setTabData((draft) => {
+      const subSection = draft[sectionIndex]!.data[subSectionIndex];
+      if (subSection?.type === "chord") {
+        subSection.data.push({
+          id: crypto.randomUUID(),
+          repetitions: 1,
+          bpm: -1,
+          // @ts-expect-error the correct strummingPattern will get set in <ChordSequence /> if it is available
+          strummingPattern: {} as StrummingPattern,
+          data: [], // this will also get set in <ChordSequence />
+        });
+      }
     });
-
-    setTabData(newTabData);
   }
 
   return (
@@ -174,9 +177,10 @@ function ChordSection({
         </div>
         <MiscellaneousControls
           type={"chord"}
-          sectionId={sectionId}
           sectionIndex={sectionIndex}
           subSectionIndex={subSectionIndex}
+          tabData={tabData}
+          setTabData={setTabData}
         />
       </div>
 
@@ -202,12 +206,13 @@ function ChordSection({
               <div className="baseVertFlex w-full !items-start">
                 <AnimatePresence mode="wait">
                   <ChordSequence
-                    sectionId={sectionId}
                     sectionIndex={sectionIndex}
                     subSectionIndex={subSectionIndex}
                     chordSequenceIndex={index}
                     chordSequenceData={chordSequence}
                     subSectionData={subSectionData}
+                    tabData={tabData}
+                    setTabData={setTabData}
                   />
                 </AnimatePresence>
               </div>
@@ -221,23 +226,4 @@ function ChordSection({
   );
 }
 
-export default memo(ChordSection, (prevProps, nextProps) => {
-  const { subSectionData: prevSubSectionData, ...restPrev } = prevProps;
-  const { subSectionData: nextSubSectionDataData, ...restNext } = nextProps;
-
-  // Custom comparison for getTabData() related prop
-  if (!isEqual(prevSubSectionData, nextSubSectionDataData)) {
-    return false; // props are not equal, so component should re-render
-  }
-
-  // Default shallow comparison for other props using Object.is()
-  const allKeys = new Set([...Object.keys(restPrev), ...Object.keys(restNext)]);
-  for (const key of allKeys) {
-    // @ts-expect-error we know that these keys are in the objects
-    if (!Object.is(restPrev[key], restNext[key])) {
-      return false; // props are not equal, so component should re-render
-    }
-  }
-
-  return true;
-});
+export default ChordSection;

@@ -22,23 +22,26 @@ import { Separator } from "~/components/ui/separator";
 import ChordSection from "./ChordSection";
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabSection from "./TabSection";
+import { type Updater } from "use-immer";
 
 interface SectionContainer {
   sectionIndex: number;
   sectionData: Section;
   currentlyPlayingSectionIndex: number;
-  currentlyPlayingSubSectionIndex: number;
   forceCloseSectionAccordions: boolean;
   setForceCloseSectionAccordions: Dispatch<SetStateAction<boolean>>;
+  tabData: Section[];
+  setTabData: Updater<Section[]>;
 }
 
 function SectionContainer({
   sectionData,
   sectionIndex,
   currentlyPlayingSectionIndex,
-  currentlyPlayingSubSectionIndex,
   forceCloseSectionAccordions,
   setForceCloseSectionAccordions,
+  tabData,
+  setTabData,
 }: SectionContainer) {
   const [accordionOpen, setAccordionOpen] = useState("opened");
   const [localTitle, setLocalTitle] = useState(sectionData.title);
@@ -46,18 +49,12 @@ function SectionContainer({
   const {
     bpm,
     strummingPatterns,
-    tabData,
-    getTabData,
-    setTabData,
     sectionProgression,
     setSectionProgression,
     audioMetadata,
   } = useTabStore((state) => ({
     bpm: state.bpm,
     strummingPatterns: state.strummingPatterns,
-    tabData: state.tabData,
-    getTabData: state.getTabData,
-    setTabData: state.setTabData,
     sectionProgression: state.sectionProgression,
     setSectionProgression: state.setSectionProgression,
     audioMetadata: state.audioMetadata,
@@ -88,18 +85,18 @@ function SectionContainer({
     // noticeable when updating the title of a section since it can be
     // updated faster than the tab data (in general)
     debounce(() => {
-      const newTabData = getTabData();
+      setTabData((draft) => {
+        draft[sectionIndex]!.title = e.target.value;
+      });
+
       const newSectionProgression = [...sectionProgression];
 
-      newTabData[sectionIndex]!.title = e.target.value;
-
       for (const section of newSectionProgression) {
-        if (section.sectionId === newTabData[sectionIndex]!.id) {
+        if (section.sectionId === tabData[sectionIndex]!.id) {
           section.title = e.target.value;
         }
       }
 
-      setTabData(newTabData);
       setSectionProgression(newSectionProgression);
     }, 1000)();
   }
@@ -169,14 +166,12 @@ function SectionContainer({
   }
 
   function addNewBlock(type: "tab" | "chord") {
-    const newTabData = getTabData();
-
     const newBlockData =
       type === "tab" ? generateNewColumns() : getDefaultStrummingPattern();
 
-    newTabData[sectionIndex]?.data.push(newBlockData);
-
-    setTabData(newTabData);
+    setTabData((draft) => {
+      draft[sectionIndex]?.data.push(newBlockData);
+    });
   }
 
   return (
@@ -222,8 +217,9 @@ function SectionContainer({
               <MiscellaneousControls
                 type={"section"}
                 sectionIndex={sectionIndex}
-                sectionId={sectionData.id}
                 forSectionContainer={true}
+                tabData={tabData}
+                setTabData={setTabData}
               />
             </div>
           </>
@@ -249,17 +245,19 @@ function SectionContainer({
                   <AnimatePresence mode="wait">
                     {subSection.type === "chord" ? (
                       <ChordSection
-                        sectionId={sectionData.id}
                         sectionIndex={sectionIndex}
                         subSectionIndex={index}
                         subSectionData={subSection}
+                        tabData={tabData}
+                        setTabData={setTabData}
                       />
                     ) : (
                       <TabSection
-                        sectionId={sectionData.id}
                         sectionIndex={sectionIndex}
                         subSectionIndex={index}
                         subSectionData={subSection}
+                        tabData={tabData}
+                        setTabData={setTabData}
                       />
                     )}
                   </AnimatePresence>

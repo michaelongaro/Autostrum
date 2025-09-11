@@ -2,7 +2,6 @@ import { AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import useDetectRouteChanges from "~/hooks/useDetectRouteChanges";
 import useFetchAndLoadSoundfonts from "~/hooks/useFetchAndLoadSoundfonts";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
@@ -30,7 +29,6 @@ function GeneralLayoutStatefulShell() {
   const looping = useGetLocalStorageValues().looping;
 
   useColorAndThemeController();
-  useAutoCompileChords();
   useInitializeAudioContext();
   useFetchAndLoadSoundfonts();
   useDetectRouteChanges();

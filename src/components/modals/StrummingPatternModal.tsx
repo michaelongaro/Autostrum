@@ -15,7 +15,9 @@ import {
 } from "~/components/ui/select";
 import {
   useTabStore,
+  type Section,
   type StrummingPattern as StrummingPatternType,
+  type ChordSequence,
 } from "~/stores/TabStore";
 import { traverseToRemoveHangingStrummingPatternPairNode } from "~/utils/palmMuteHelpers";
 import StrummingPattern from "../Tab/StrummingPattern";
@@ -29,6 +31,7 @@ import {
 } from "~/utils/bpmIconRenderingHelpers";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { X } from "lucide-react";
+import type { Updater } from "use-immer";
 
 const backdropVariants = {
   expanded: {
@@ -88,10 +91,12 @@ interface StrummingPatternModal {
     index: number;
     value: StrummingPatternType;
   };
+  setTabData: Updater<Section[]>;
 }
 
 function StrummingPatternModal({
   strummingPatternBeingEdited,
+  setTabData,
 }: StrummingPatternModal) {
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
@@ -107,8 +112,6 @@ function StrummingPatternModal({
     strummingPatterns,
     setStrummingPatterns,
     setStrummingPatternBeingEdited,
-    getTabData,
-    setTabData,
     previewMetadata,
     audioMetadata,
     playPreview,
@@ -117,8 +120,6 @@ function StrummingPatternModal({
     strummingPatterns: state.strummingPatterns,
     setStrummingPatterns: state.setStrummingPatterns,
     setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
-    getTabData: state.getTabData,
-    setTabData: state.setTabData,
     previewMetadata: state.previewMetadata,
     audioMetadata: state.audioMetadata,
     playPreview: state.playPreview,
@@ -273,55 +274,60 @@ function StrummingPatternModal({
       strummingPatterns[strummingPatternBeingEdited.index]?.strums?.length;
 
     if (oldLength !== undefined) {
-      const newTabData = getTabData();
-      for (const [sectionIndex, section] of newTabData.entries()) {
-        if (!section) continue;
+      setTabData((draft) => {
+        for (const [sectionIndex, section] of draft.entries()) {
+          if (!section) continue;
 
-        for (const [subSectionIndex, subSection] of section.data.entries()) {
-          if (subSection?.type === "chord") {
-            for (const [
-              chordSequenceIndex,
-              chordSequence,
-            ] of subSection.data.entries()) {
-              const chordProgression = chordSequence?.data;
-              const strummingPattern = chordSequence?.strummingPattern;
-              if (
-                !chordProgression ||
-                !strummingPattern ||
-                !isEqual(
-                  strummingPattern,
-                  strummingPatterns[strummingPatternBeingEdited.index],
+          for (const [subSectionIndex, subSection] of section.data.entries()) {
+            if (subSection?.type === "chord") {
+              for (const [
+                chordSequenceIndex,
+                chordSequence,
+              ] of subSection.data.entries()) {
+                const chordProgression = chordSequence?.data;
+                const strummingPattern = chordSequence?.strummingPattern;
+                if (
+                  !chordProgression ||
+                  !strummingPattern ||
+                  !isEqual(
+                    strummingPattern,
+                    strummingPatterns[strummingPatternBeingEdited.index],
+                  )
                 )
-              )
-                continue;
+                  continue;
 
-              // pattern.data is what we need to update
-              if (newLength < oldLength) {
-                // delete the last elements
-                newTabData[sectionIndex].data[subSectionIndex].data[
-                  chordSequenceIndex
-                ].data = structuredClone(chordProgression.slice(0, newLength));
-              } else {
-                // new pattern w/ extra empty string elements
-                const newChordProgression = [...chordProgression];
-                for (let i = 0; i < newLength - oldLength; i++) {
-                  newChordProgression.push("");
+                // pattern.data is what we need to update
+                if (newLength < oldLength) {
+                  // delete the last elements
+                  (
+                    draft[sectionIndex]!.data[subSectionIndex]!.data[
+                      chordSequenceIndex
+                    ]! as ChordSequence
+                  ).data = chordProgression.slice(0, newLength);
+                } else {
+                  // new pattern w/ extra empty string elements
+                  const newChordProgression = [...chordProgression];
+                  for (let i = 0; i < newLength - oldLength; i++) {
+                    newChordProgression.push("");
+                  }
+                  (
+                    draft[sectionIndex]!.data[subSectionIndex]!.data[
+                      chordSequenceIndex
+                    ]! as ChordSequence
+                  ).data = newChordProgression;
                 }
-                newTabData[sectionIndex].data[subSectionIndex].data[
-                  chordSequenceIndex
-                ].data = newChordProgression;
-              }
 
-              // updating to new strumming pattern
-              newTabData[sectionIndex].data[subSectionIndex].data[
-                chordSequenceIndex
-              ].strummingPattern = strummingPatternBeingEdited.value;
+                // updating to new strumming pattern
+                (
+                  draft[sectionIndex]!.data[subSectionIndex]!.data[
+                    chordSequenceIndex
+                  ]! as ChordSequence
+                ).strummingPattern = strummingPatternBeingEdited.value;
+              }
             }
           }
         }
-      }
-
-      setTabData(newTabData);
+      });
     }
 
     const newStrummingPatterns = structuredClone(strummingPatterns);

@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
-import { useEffect, useMemo, useState, memo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "~/components/ui/button";
-import isEqual from "lodash.isequal";
 import {
   Select,
   SelectContent,
@@ -16,6 +15,7 @@ import {
   useTabStore,
   type ChordSequence as ChordSequenceData,
   type ChordSection,
+  type Section,
 } from "~/stores/TabStore";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Input } from "~/components/ui/input";
@@ -24,6 +24,7 @@ import MiscellaneousControls from "./MiscellaneousControls";
 import StrummingPattern from "./StrummingPattern";
 import StrummingPatternPreview from "./StrummingPatternPreview";
 import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
+import { type Updater } from "use-immer";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -44,21 +45,23 @@ const opacityAndScaleVariants = {
   },
 };
 export interface ChordSequence {
-  sectionId: string;
   sectionIndex: number;
   subSectionIndex: number;
   chordSequenceIndex: number;
   chordSequenceData: ChordSequenceData;
   subSectionData: ChordSection;
+  tabData: Section[];
+  setTabData: Updater<Section[]>;
 }
 
 function ChordSequence({
-  sectionId,
   sectionIndex,
   subSectionIndex,
   chordSequenceIndex,
   chordSequenceData,
   subSectionData,
+  tabData,
+  setTabData,
 }: ChordSequence) {
   const [selectIsOpen, setSelectIsOpen] = useState(false);
   const [
@@ -76,19 +79,12 @@ function ChordSequence({
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
 
-  const {
-    bpm,
-    strummingPatterns,
-    getTabData,
-    setTabData,
-    setStrummingPatternBeingEdited,
-  } = useTabStore((state) => ({
-    bpm: state.bpm,
-    strummingPatterns: state.strummingPatterns,
-    getTabData: state.getTabData,
-    setTabData: state.setTabData,
-    setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
-  }));
+  const { bpm, strummingPatterns, setStrummingPatternBeingEdited } =
+    useTabStore((state) => ({
+      bpm: state.bpm,
+      strummingPatterns: state.strummingPatterns,
+      setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
+    }));
 
   // sets sequence's strumming pattern to first existing pattern if the current pattern is empty
   useEffect(() => {
@@ -96,25 +92,21 @@ function ChordSequence({
       Object.keys(chordSequenceData.strummingPattern).length === 0 &&
       strummingPatterns[0]
     ) {
-      const newTabData = getTabData();
-
-      // fill in the chord sequence with empty strings the size of the strumming pattern
-      newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-        chordSequenceIndex
-      ] = {
-        id: chordSequenceData.id,
-        repetitions: chordSequenceData.repetitions,
-        bpm: -1,
-        strummingPattern: strummingPatterns[0]!,
-        data: Array.from(
-          { length: strummingPatterns[0]!.strums.length },
-          () => "",
-        ),
-      };
+      setTabData((draft) => {
+        // fill in the chord sequence with empty strings the size of the strumming pattern
+        draft[sectionIndex]!.data[subSectionIndex]!.data[chordSequenceIndex] = {
+          id: chordSequenceData.id,
+          repetitions: chordSequenceData.repetitions,
+          bpm: -1,
+          strummingPattern: strummingPatterns[0]!,
+          data: Array.from(
+            { length: strummingPatterns[0]!.strums.length },
+            () => "",
+          ),
+        };
+      });
 
       setIndexOfCurrentlySelectedStrummingPattern(0);
-
-      setTabData(newTabData);
     }
   }, [
     strummingPatterns,
@@ -123,7 +115,6 @@ function ChordSequence({
     chordSequenceData,
     chordSequenceIndex,
     setTabData,
-    getTabData,
   ]);
 
   const placeholderBpm = useMemo(() => {
@@ -142,27 +133,24 @@ function ChordSequence({
 
     if (isNaN(newRepetitions) || newRepetitions > 99) return;
 
-    const newTabData = getTabData();
-
-    newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-      chordSequenceIndex
-      // @ts-expect-error we know it's the chord type not tab type
-    ]!.repetitions = newRepetitions;
-
-    setTabData(newTabData);
+    setTabData((draft) => {
+      const subSection = draft[sectionIndex]!.data[subSectionIndex];
+      if (subSection?.type === "chord") {
+        subSection.data[chordSequenceIndex]!.repetitions = newRepetitions;
+      }
+    });
   }
 
   function handleBpmChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newBpm = e.target.value.length === 0 ? -1 : parseInt(e.target.value);
     if (isNaN(newBpm) || newBpm > 500) return;
 
-    const newTabData = getTabData();
-
-    newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-      chordSequenceIndex
-    ]!.bpm = newBpm;
-
-    setTabData(newTabData);
+    setTabData((draft) => {
+      const subSection = draft[sectionIndex]!.data[subSectionIndex];
+      if (subSection?.type === "chord") {
+        subSection.data[chordSequenceIndex]!.bpm = newBpm;
+      }
+    });
   }
 
   function handleStrummingPatternChange(value: string) {
@@ -182,21 +170,20 @@ function ChordSequence({
       return;
     }
 
-    const newTabData = getTabData();
-
     const newPattern = strummingPatterns[parseInt(value)];
 
-    newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-      chordSequenceIndex
-    ]!.strummingPattern = newPattern;
-
-    newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-      chordSequenceIndex
-    ]!.data = Array.from({ length: newPattern!.strums.length }, () => "");
+    setTabData((draft) => {
+      const subSection = draft[sectionIndex]!.data[subSectionIndex];
+      if (subSection?.type === "chord" && newPattern) {
+        subSection.data[chordSequenceIndex]!.strummingPattern = newPattern;
+        subSection.data[chordSequenceIndex]!.data = Array.from(
+          { length: newPattern.strums.length },
+          () => "",
+        );
+      }
+    });
 
     setIndexOfCurrentlySelectedStrummingPattern(parseInt(value));
-
-    setTabData(newTabData);
   }
 
   return (
@@ -243,11 +230,12 @@ function ChordSequence({
             <div className="w-5/6"></div>
             <MiscellaneousControls
               type={"chordSequence"}
-              sectionId={sectionId}
               sectionIndex={sectionIndex}
               subSectionIndex={subSectionIndex}
               chordSequenceIndex={chordSequenceIndex}
               hidePlayPauseButton={true}
+              tabData={tabData}
+              setTabData={setTabData}
             />
           </div>
         </div>
@@ -363,6 +351,7 @@ function ChordSequence({
                               setLastModifiedPalmMuteNode={
                                 setLastModifiedPalmMuteNode
                               }
+                              setTabData={setTabData}
                             />
                           </SelectItem>
                         );
@@ -399,10 +388,11 @@ function ChordSequence({
 
             <MiscellaneousControls
               type={"chordSequence"}
-              sectionId={sectionId}
               sectionIndex={sectionIndex}
               subSectionIndex={subSectionIndex}
               chordSequenceIndex={chordSequenceIndex}
+              tabData={tabData}
+              setTabData={setTabData}
             />
           </div>
 
@@ -415,6 +405,7 @@ function ChordSequence({
             chordSequenceIndex={chordSequenceIndex}
             lastModifiedPalmMuteNode={lastModifiedPalmMuteNode} // hopefully this doesn't crash something
             setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode} // hopefully this doesn't crash something
+            setTabData={setTabData}
           />
         </div>
       )}
@@ -422,34 +413,4 @@ function ChordSequence({
   );
 }
 
-export default memo(ChordSequence, (prevProps, nextProps) => {
-  const {
-    chordSequenceData: prevChordSequenceData,
-    subSectionData: prevSubSectionData,
-    ...restPrev
-  } = prevProps;
-  const {
-    chordSequenceData: nextChordSequenceData,
-    subSectionData: nextSubSectionDataData,
-    ...restNext
-  } = nextProps;
-
-  // Custom comparison for object props
-  if (
-    !isEqual(prevChordSequenceData, nextChordSequenceData) ||
-    !isEqual(prevSubSectionData, nextSubSectionDataData)
-  ) {
-    return false; // props are not equal, so component should re-render
-  }
-
-  // Default shallow comparison for other props using Object.is()
-  const allKeys = new Set([...Object.keys(restPrev), ...Object.keys(restNext)]);
-  for (const key of allKeys) {
-    // @ts-expect-error we know that these keys are in the objects
-    if (!Object.is(restPrev[key], restNext[key])) {
-      return false; // props are not equal, so component should re-render
-    }
-  }
-
-  return true;
-});
+export default ChordSequence;

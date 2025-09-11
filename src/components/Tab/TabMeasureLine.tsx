@@ -1,20 +1,20 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
-import { Fragment, useState, memo } from "react";
+import { Fragment, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
-import isEqual from "lodash.isequal";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStore, type Section } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
+import type { Updater } from "use-immer";
 
 interface TabMeasureLine {
   columnData: string[];
@@ -24,6 +24,8 @@ interface TabMeasureLine {
   reorderingColumns: boolean;
   showingDeleteColumnsButtons: boolean;
   columnHasBeenPlayed: boolean;
+  tabData: Section[];
+  setTabData: Updater<Section[]>;
 }
 
 function TabMeasureLine({
@@ -34,6 +36,8 @@ function TabMeasureLine({
   reorderingColumns,
   showingDeleteColumnsButtons,
   columnHasBeenPlayed,
+  tabData,
+  setTabData,
 }: TabMeasureLine) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
@@ -50,36 +54,28 @@ function TabMeasureLine({
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const { audioMetadata, bpm, getTabData, setTabData } = useTabStore(
-    (state) => ({
-      audioMetadata: state.audioMetadata,
-      bpm: state.bpm,
-      getTabData: state.getTabData,
-      setTabData: state.setTabData,
-    }),
-  );
+  const { audioMetadata, bpm } = useTabStore((state) => ({
+    audioMetadata: state.audioMetadata,
+    bpm: state.bpm,
+  }));
 
   function handleDeleteMeasureLine() {
-    const newTabData = getTabData();
-
-    newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
-      columnIndex,
-      1,
-    );
-
-    setTabData(newTabData);
+    setTabData((draft) => {
+      draft[sectionIndex]?.data[subSectionIndex]?.data.splice(columnIndex, 1);
+    });
   }
 
   function handleBpmChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newBpm = e.target.value.length === 0 ? -1 : parseInt(e.target.value);
     if (isNaN(newBpm) || newBpm > 500) return;
 
-    const newTabData = getTabData();
+    setTabData((draft) => {
+      const section = draft[sectionIndex]!.data[subSectionIndex];
 
-    newTabData[sectionIndex]!.data[subSectionIndex]!.data[columnIndex][7] =
-      `${newBpm}`;
+      if (!section || section.type !== "tab") return;
 
-    setTabData(newTabData);
+      section.data[columnIndex]![7] = `${newBpm}`;
+    });
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
@@ -89,14 +85,15 @@ function TabMeasureLine({
       `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`,
     );
 
+    const currentSubSection = tabData[sectionIndex]?.data[subSectionIndex];
+    if (!currentSubSection || currentSubSection.type !== "tab") return;
+
     // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
     if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
 
       const adjColumnIndex =
-        getTabData()[sectionIndex]!.data[subSectionIndex]!.data[
-          columnIndex - 1
-        ]?.[7] === "|"
+        currentSubSection.data[columnIndex - 1]?.[7] === "|"
           ? columnIndex - 2
           : columnIndex - 1;
 
@@ -109,10 +106,7 @@ function TabMeasureLine({
     } else if (e.key === "ArrowRight") {
       e.preventDefault(); // prevent cursor from moving
 
-      if (
-        columnIndex ===
-        getTabData()[sectionIndex]!.data[subSectionIndex]!.data.length - 1
-      ) {
+      if (columnIndex === currentSubSection.data.length - 1) {
         const newNoteToFocus = document.getElementById(
           `${sectionIndex}${subSectionIndex}ExtendTabButton`,
         );
@@ -122,9 +116,7 @@ function TabMeasureLine({
       }
 
       const adjColumnIndex =
-        getTabData()[sectionIndex]!.data[subSectionIndex].data[
-          columnIndex + 1
-        ]?.[7] === "|"
+        currentSubSection.data[columnIndex + 1]?.[7] === "|"
           ? columnIndex + 2
           : columnIndex + 1;
 
@@ -135,10 +127,6 @@ function TabMeasureLine({
       focusAndScrollIntoView(currentNote, newNoteToFocus);
       return;
     }
-
-    const newTabData = getTabData();
-
-    setTabData(newTabData);
   }
 
   function renderMeasureLine(index: number) {
@@ -246,6 +234,14 @@ function TabMeasureLine({
     return height;
   }
 
+  function inputPlaceholder() {
+    const subSectionBpm = tabData[sectionIndex]?.data[subSectionIndex]?.bpm;
+    if (subSectionBpm === -1) {
+      return bpm === -1 ? "" : bpm.toString();
+    }
+    return subSectionBpm?.toString() ?? "";
+  }
+
   return (
     <motion.div
       key={columnData[9]}
@@ -314,14 +310,7 @@ function TabMeasureLine({
                       inputMode="numeric"
                       pattern="[0-9]*"
                       className="placeholder:text-grey-800/50 h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
-                      placeholder={(getTabData()[sectionIndex]?.data[
-                        subSectionIndex
-                      ]?.bpm === -1
-                        ? bpm === -1
-                          ? ""
-                          : bpm.toString()
-                        : getTabData()[sectionIndex]?.data[subSectionIndex]?.bpm
-                      )?.toString()}
+                      placeholder={inputPlaceholder()}
                       value={
                         columnData[7] === "-1" ? "" : columnData[7]!.toString()
                       }
@@ -378,23 +367,4 @@ function TabMeasureLine({
   );
 }
 
-export default memo(TabMeasureLine, (prevProps, nextProps) => {
-  const { columnData: prevColumnData, ...restPrev } = prevProps;
-  const { columnData: nextColumnData, ...restNext } = nextProps;
-
-  // Custom comparison for getTabData() related prop
-  if (!isEqual(prevColumnData, nextColumnData)) {
-    return false; // props are not equal, so component should re-render
-  }
-
-  // Default shallow comparison for other props using Object.is()
-  const allKeys = new Set([...Object.keys(restPrev), ...Object.keys(restNext)]);
-  for (const key of allKeys) {
-    // @ts-expect-error we know that these keys are in the objects
-    if (!Object.is(restPrev[key], restNext[key])) {
-      return false; // props are not equal, so component should re-render
-    }
-  }
-
-  return true;
-});
+export default TabMeasureLine;

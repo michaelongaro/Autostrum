@@ -22,6 +22,7 @@ interface StaticSectionContainer {
   sectionIndex: number;
   color: COLORS;
   theme: THEME;
+  tabDataLength: number;
 }
 
 function StaticSectionContainer({
@@ -29,12 +30,12 @@ function StaticSectionContainer({
   sectionIndex,
   color,
   theme,
+  tabDataLength,
 }: StaticSectionContainer) {
   const [accordionOpen, setAccordionOpen] = useState("opened");
 
-  const { bpm, tabData } = useTabStore((state) => ({
+  const { bpm } = useTabStore((state) => ({
     bpm: state.bpm,
-    tabData: state.tabData,
   }));
 
   const zoom = useGetLocalStorageValues().zoom;
@@ -42,7 +43,7 @@ function StaticSectionContainer({
   return (
     <div
       style={{
-        paddingBottom: sectionIndex === tabData.length - 1 ? "2rem" : 0,
+        paddingBottom: sectionIndex === tabDataLength - 1 ? "2rem" : 0,
       }}
       className="baseVertFlex w-full gap-4 px-2 md:px-7"
     >
@@ -155,7 +156,7 @@ function StaticSectionContainer({
         </AccordionItem>
       </Accordion>
 
-      {sectionIndex < tabData.length - 1 && <Separator />}
+      {sectionIndex < tabDataLength - 1 && <Separator />}
     </div>
   );
 }

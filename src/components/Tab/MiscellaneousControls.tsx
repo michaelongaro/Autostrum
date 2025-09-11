@@ -30,25 +30,28 @@ import isEqual from "lodash.isequal";
 import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 import { Check } from "lucide-react";
+import type { Updater } from "use-immer";
 
 interface MiscellaneousControls {
   type: "section" | "tab" | "chord" | "chordSequence";
   sectionIndex: number;
-  sectionId: string;
   subSectionIndex?: number;
   chordSequenceIndex?: number;
   hidePlayPauseButton?: boolean;
   forSectionContainer?: boolean;
+  tabData: Section[];
+  setTabData: Updater<Section[]>;
 }
 
 function MiscellaneousControls({
   type,
   sectionIndex,
-  sectionId,
   subSectionIndex,
   chordSequenceIndex,
   hidePlayPauseButton,
   forSectionContainer,
+  tabData,
+  setTabData,
 }: MiscellaneousControls) {
   const {
     id,
@@ -58,8 +61,6 @@ function MiscellaneousControls({
     audioMetadata,
     setAudioMetadata,
     currentInstrument,
-    getTabData,
-    setTabData,
     currentlyCopiedData,
     setCurrentlyCopiedData,
     playTab,
@@ -72,8 +73,6 @@ function MiscellaneousControls({
     audioMetadata: state.audioMetadata,
     setAudioMetadata: state.setAudioMetadata,
     currentInstrument: state.currentInstrument,
-    getTabData: state.getTabData,
-    setTabData: state.setTabData,
     currentlyCopiedData: state.currentlyCopiedData,
     setCurrentlyCopiedData: state.setCurrentlyCopiedData,
     playTab: state.playTab,
@@ -87,19 +86,18 @@ function MiscellaneousControls({
 
   function disableMoveDown() {
     if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
-      const chordSequence = getTabData()[sectionIndex]?.data[subSectionIndex]
+      const chordSequence = tabData[sectionIndex]?.data[subSectionIndex]
         ?.data as ChordSequence[];
 
       return chordSequenceIndex === chordSequence.length - 1;
     } else if (subSectionIndex !== undefined) {
-      const subSection = getTabData()[sectionIndex]?.data as (
-        | TabSection
-        | ChordSection
-      )[];
+      const subSection = tabData[sectionIndex]?.data;
+
+      if (!subSection) return true;
 
       return subSectionIndex === subSection.length - 1;
     } else {
-      return sectionIndex === getTabData().length - 1;
+      return sectionIndex === tabData.length - 1;
     }
   }
 
@@ -114,79 +112,77 @@ function MiscellaneousControls({
   }
 
   function moveUp() {
-    let newTabData = getTabData();
+    setTabData((draft) => {
+      if (
+        chordSequenceIndex !== undefined &&
+        subSectionIndex !== undefined &&
+        sectionIndex !== undefined
+      ) {
+        const chordSequence = draft[sectionIndex]?.data[subSectionIndex]
+          ?.data as ChordSequence[];
 
-    if (
-      chordSequenceIndex !== undefined &&
-      subSectionIndex !== undefined &&
-      sectionIndex !== undefined
-    ) {
-      let newChordSequence = newTabData[sectionIndex]?.data[subSectionIndex]
-        ?.data as ChordSequence[];
+        const movedSequence = arrayMove(
+          chordSequence,
+          chordSequenceIndex,
+          chordSequenceIndex - 1,
+        );
 
-      newChordSequence = arrayMove(
-        newChordSequence,
-        chordSequenceIndex,
-        chordSequenceIndex - 1,
-      );
+        draft[sectionIndex]!.data[subSectionIndex]!.data = movedSequence;
+      } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
+        const subSection = draft[sectionIndex]?.data as (
+          | TabSection
+          | ChordSection
+        )[];
 
-      newTabData[sectionIndex]!.data[subSectionIndex]!.data = newChordSequence;
-    } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
-      let newSubSection = newTabData[sectionIndex]?.data as (
-        | TabSection
-        | ChordSection
-      )[];
+        const movedSubSection = arrayMove(
+          subSection,
+          subSectionIndex,
+          subSectionIndex - 1,
+        );
 
-      newSubSection = arrayMove(
-        newSubSection,
-        subSectionIndex,
-        subSectionIndex - 1,
-      );
-
-      newTabData[sectionIndex]!.data = newSubSection;
-    } else if (sectionIndex !== undefined) {
-      newTabData = arrayMove(newTabData, sectionIndex, sectionIndex - 1);
-    }
-
-    setTabData(newTabData);
+        draft[sectionIndex]!.data = movedSubSection;
+      } else if (sectionIndex !== undefined) {
+        const movedSections = arrayMove(draft, sectionIndex, sectionIndex - 1);
+        return movedSections;
+      }
+    });
   }
 
   function moveDown() {
-    let newTabData = getTabData();
+    setTabData((draft) => {
+      if (
+        chordSequenceIndex !== undefined &&
+        subSectionIndex !== undefined &&
+        sectionIndex !== undefined
+      ) {
+        const chordSequence = draft[sectionIndex]?.data[subSectionIndex]
+          ?.data as ChordSequence[];
 
-    if (
-      chordSequenceIndex !== undefined &&
-      subSectionIndex !== undefined &&
-      sectionIndex !== undefined
-    ) {
-      let newChordSequence = newTabData[sectionIndex]?.data[subSectionIndex]
-        ?.data as ChordSequence[];
+        const movedSequence = arrayMove(
+          chordSequence,
+          chordSequenceIndex,
+          chordSequenceIndex + 1,
+        );
 
-      newChordSequence = arrayMove(
-        newChordSequence,
-        chordSequenceIndex,
-        chordSequenceIndex + 1,
-      );
+        draft[sectionIndex]!.data[subSectionIndex]!.data = movedSequence;
+      } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
+        const subSection = draft[sectionIndex]?.data as (
+          | TabSection
+          | ChordSection
+        )[];
 
-      newTabData[sectionIndex]!.data[subSectionIndex]!.data = newChordSequence;
-    } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
-      let newSubSection = newTabData[sectionIndex]?.data as (
-        | TabSection
-        | ChordSection
-      )[];
+        const movedSubSection = arrayMove(
+          subSection,
+          subSectionIndex,
+          subSectionIndex + 1,
+        );
 
-      newSubSection = arrayMove(
-        newSubSection,
-        subSectionIndex,
-        subSectionIndex + 1,
-      );
-
-      newTabData[sectionIndex]!.data = newSubSection;
-    } else if (sectionIndex !== undefined) {
-      newTabData = arrayMove(newTabData, sectionIndex, sectionIndex + 1);
-    }
-
-    setTabData(newTabData);
+        draft[sectionIndex]!.data = movedSubSection;
+      } else if (sectionIndex !== undefined) {
+        const movedSections = arrayMove(draft, sectionIndex, sectionIndex + 1);
+        return movedSections;
+      }
+    });
   }
 
   function copySection() {
@@ -198,7 +194,7 @@ function MiscellaneousControls({
       sectionIndex !== undefined
     ) {
       const newChordSequence = structuredClone(
-        getTabData()[sectionIndex]?.data[subSectionIndex]?.data[
+        tabData[sectionIndex]?.data[subSectionIndex]?.data[
           chordSequenceIndex
         ] as ChordSequence,
       );
@@ -210,7 +206,7 @@ function MiscellaneousControls({
     } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
       if (type === "chord") {
         const newSubSection = structuredClone(
-          getTabData()[sectionIndex]?.data[subSectionIndex] as ChordSection,
+          tabData[sectionIndex]?.data[subSectionIndex] as ChordSection,
         );
 
         setCurrentlyCopiedData({
@@ -220,7 +216,7 @@ function MiscellaneousControls({
       } else if (type === "tab") {
         const newSubSection = replaceIdInTabSection(
           structuredClone(
-            getTabData()[sectionIndex]?.data[subSectionIndex] as TabSection,
+            tabData[sectionIndex]?.data[subSectionIndex] as TabSection,
           ),
         );
 
@@ -232,7 +228,7 @@ function MiscellaneousControls({
     } else if (sectionIndex !== undefined) {
       setCurrentlyCopiedData({
         type: "section",
-        data: structuredClone(getTabData()[sectionIndex]!),
+        data: structuredClone(tabData[sectionIndex]!),
       });
     }
   }
@@ -248,44 +244,41 @@ function MiscellaneousControls({
 
     setShowPasteCheckmark(true);
 
-    const newTabData = getTabData();
-
-    if (
-      currentlyCopiedData.type === "chordSequence" &&
-      sectionIndex !== undefined &&
-      subSectionIndex !== undefined &&
-      chordSequenceIndex !== undefined
-    ) {
-      newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-        chordSequenceIndex
-      ] = replaceIdInChordSequence(currentlyCopiedData.data as ChordSequence);
-    } else if (
-      currentlyCopiedData.type === "chord" &&
-      sectionIndex !== undefined &&
-      subSectionIndex !== undefined
-    ) {
-      newTabData[sectionIndex]!.data[subSectionIndex] = replaceIdInChordSection(
-        currentlyCopiedData.data as ChordSection,
-      );
-    } else if (
-      currentlyCopiedData.type === "tab" &&
-      sectionIndex !== undefined &&
-      subSectionIndex !== undefined
-    ) {
-      newTabData[sectionIndex]!.data[subSectionIndex] = replaceIdInTabSection(
-        currentlyCopiedData.data as TabSection,
-      );
-    } else if (
-      currentlyCopiedData.type === "section" &&
-      sectionIndex !== undefined
-    ) {
-      newTabData[sectionIndex] = {
-        ...getTabData()[sectionIndex],
-        data: replaceIdInSection(currentlyCopiedData.data as Section),
-      } as Section;
-    }
-
-    setTabData(newTabData);
+    setTabData((draft) => {
+      if (
+        currentlyCopiedData.type === "chordSequence" &&
+        sectionIndex !== undefined &&
+        subSectionIndex !== undefined &&
+        chordSequenceIndex !== undefined
+      ) {
+        draft[sectionIndex]!.data[subSectionIndex]!.data[chordSequenceIndex] =
+          replaceIdInChordSequence(currentlyCopiedData.data as ChordSequence);
+      } else if (
+        currentlyCopiedData.type === "chord" &&
+        sectionIndex !== undefined &&
+        subSectionIndex !== undefined
+      ) {
+        draft[sectionIndex]!.data[subSectionIndex] = replaceIdInChordSection(
+          currentlyCopiedData.data as ChordSection,
+        );
+      } else if (
+        currentlyCopiedData.type === "tab" &&
+        sectionIndex !== undefined &&
+        subSectionIndex !== undefined
+      ) {
+        draft[sectionIndex]!.data[subSectionIndex] = replaceIdInTabSection(
+          currentlyCopiedData.data as TabSection,
+        );
+      } else if (
+        currentlyCopiedData.type === "section" &&
+        sectionIndex !== undefined
+      ) {
+        draft[sectionIndex] = {
+          ...tabData[sectionIndex],
+          data: replaceIdInSection(currentlyCopiedData.data as Section),
+        } as Section;
+      }
+    });
   }
 
   function deleteSection() {
@@ -296,40 +289,32 @@ function MiscellaneousControls({
       location: null,
     });
 
-    const newTabData = getTabData();
+    setTabData((draft) => {
+      if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
+        const chordSequenceData = draft[sectionIndex]?.data[subSectionIndex]
+          ?.data as ChordSequence[];
 
-    if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
-      const newChordSequence = newTabData[sectionIndex]?.data[subSectionIndex]
-        ?.data as ChordSequence[];
+        chordSequenceData.splice(chordSequenceIndex, 1);
+      } else if (subSectionIndex !== undefined) {
+        const subSectionData = draft[sectionIndex]?.data as (
+          | TabSection
+          | ChordSection
+        )[];
 
-      newChordSequence.splice(chordSequenceIndex, 1);
+        subSectionData.splice(subSectionIndex, 1);
+      } else {
+        const newSectionProgression = [...sectionProgression];
 
-      newTabData[sectionIndex]!.data[subSectionIndex]!.data = newChordSequence;
-    } else if (subSectionIndex !== undefined) {
-      const newSubSection = newTabData[sectionIndex]?.data as (
-        | TabSection
-        | ChordSection
-      )[];
-
-      newSubSection.splice(subSectionIndex, 1);
-
-      newTabData[sectionIndex]!.data = newSubSection;
-    } else {
-      const newSectionProgression = [...sectionProgression];
-
-      for (let i = newSectionProgression.length - 1; i >= 0; i--) {
-        if (
-          newSectionProgression[i]?.sectionId === newTabData[sectionIndex]?.id
-        ) {
-          newSectionProgression.splice(i, 1);
+        for (let i = newSectionProgression.length - 1; i >= 0; i--) {
+          if (newSectionProgression[i]?.sectionId === draft[sectionIndex]?.id) {
+            newSectionProgression.splice(i, 1);
+          }
         }
+
+        draft.splice(sectionIndex, 1);
+        setSectionProgression(newSectionProgression);
       }
-
-      newTabData.splice(sectionIndex, 1);
-      setSectionProgression(newSectionProgression);
-    }
-
-    setTabData(newTabData);
+    });
   }
 
   return (
@@ -349,11 +334,7 @@ function MiscellaneousControls({
             bpm === -1 ||
             !currentInstrument ||
             artificalPlayButtonTimeout ||
-            sectionIsEffectivelyEmpty(
-              getTabData(),
-              sectionIndex,
-              subSectionIndex,
-            )
+            sectionIsEffectivelyEmpty(tabData, sectionIndex, subSectionIndex)
           }
           onClick={() => {
             const locationIsEqual = isEqual(audioMetadata.location, {
@@ -377,6 +358,7 @@ function MiscellaneousControls({
               setTimeout(
                 () => {
                   void playTab({
+                    tabData,
                     tabId: id,
                     location: {
                       sectionIndex,

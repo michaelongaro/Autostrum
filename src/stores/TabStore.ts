@@ -158,6 +158,7 @@ export interface PreviewMetadata {
 }
 
 interface PlayTab {
+  tabData: Section[];
   tabId: number;
   location: {
     sectionIndex: number;
@@ -263,7 +264,6 @@ const initialStoreState = {
   difficulty: 1,
   chords: [],
   strummingPatterns: [],
-  tabData: [],
   averageRating: 0.0,
   ratingsCount: 0,
   bookmarkCount: 0,
@@ -364,8 +364,6 @@ interface TabState {
   setChords: (chords: Chord[]) => void;
   strummingPatterns: StrummingPattern[];
   setStrummingPatterns: (strummingPatterns: StrummingPattern[]) => void;
-  tabData: Section[];
-  setTabData: (tabData: Section[]) => void;
 
   ratingsCount: number;
   setRatingsCount: (ratingsCount: number) => void;
@@ -382,9 +380,10 @@ interface TabState {
   setCurrentlyCopiedData: (currentlyCopiedData: CopiedData | null) => void;
   currentlyCopiedChord: string[] | null;
   setCurrentlyCopiedChord: (currentlyCopiedChord: string[] | null) => void;
-  getStringifiedTabData: () => string;
+  snapshotTabInLocalStorage: boolean;
+  setSnapshotTabInLocalStorage: (snapshotTabInLocalStorage: boolean) => void;
+  getStringifiedTabData: (tabData: Section[]) => string;
   resetAudioAndMetadataOnRouteChange: () => void;
-  getTabData: () => Section[];
   atomicallyUpdateAudioMetadata: (
     updatedFields: Partial<AudioMetadata>,
   ) => void;
@@ -639,8 +638,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       setChords: (chords) => set({ chords }),
       strummingPatterns: [],
       setStrummingPatterns: (strummingPatterns) => set({ strummingPatterns }),
-      tabData: [],
-      setTabData: (tabData) => set({ tabData }),
       ratingsCount: 0,
       setRatingsCount: (ratingsCount) => set({ ratingsCount }),
       averageRating: 0.0,
@@ -671,7 +668,10 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       countInBuffer: null,
       setCountInBuffer: (countInBuffer) => set({ countInBuffer }),
 
-      getStringifiedTabData: () => {
+      snapshotTabInLocalStorage: false,
+      setSnapshotTabInLocalStorage: (snapshotTabInLocalStorage) =>
+        set({ snapshotTabInLocalStorage }),
+      getStringifiedTabData: (tabData: Section[]) => {
         const {
           title,
           description,
@@ -681,7 +681,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
           capo,
           chords,
           strummingPatterns,
-          tabData,
           sectionProgression,
         } = get();
         return JSON.stringify({
@@ -716,9 +715,6 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         });
       },
 
-      getTabData: () => {
-        return structuredClone(get().tabData);
-      },
       atomicallyUpdateAudioMetadata: (newFields: Partial<AudioMetadata>) => {
         const { audioMetadata } = get();
 
@@ -792,11 +788,10 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       ) => set({ interactingWithAudioProgressSlider }),
 
       // playing/pausing sound functions
-      playTab: async ({ location, tabId }: PlayTab) => {
+      playTab: async ({ tabData, location, tabId }: PlayTab) => {
         const {
           audioMetadata,
           editing,
-          tabData,
           sectionProgression: rawSectionProgression,
           tuning: tuningNotes,
           bpm: baselineBpm,

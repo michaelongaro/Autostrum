@@ -1,19 +1,17 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { AnimatePresence, motion } from "framer-motion";
-import isEqual from "lodash.isequal";
 import { Element } from "react-scroll";
 import {
   Fragment,
   useEffect,
   useState,
-  memo,
   type Dispatch,
   type SetStateAction,
 } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStore, type Section } from "~/stores/TabStore";
 import { BsPlus } from "react-icons/bs";
 import {
   DropdownMenu,
@@ -31,6 +29,7 @@ import PalmMuteNode from "./PalmMuteNode";
 import TabNote from "./TabNote";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 import Ellipsis from "~/components/ui/icons/Ellipsis";
+import type { Updater } from "use-immer";
 
 const noteLengthDurations = ["1/4th", "1/8th", "1/16th"];
 interface TabNotesColumn {
@@ -55,6 +54,8 @@ interface TabNotesColumn {
   showingDeleteColumnsButtons: boolean;
   columnIdxBeingHovered: number | null;
   setColumnIdxBeingHovered: Dispatch<SetStateAction<number | null>>;
+  tabData: Section[];
+  setTabData: Updater<Section[]>;
 }
 
 function TabNotesColumn({
@@ -77,6 +78,8 @@ function TabNotesColumn({
   showingDeleteColumnsButtons,
   columnIdxBeingHovered,
   setColumnIdxBeingHovered,
+  tabData,
+  setTabData,
 }: TabNotesColumn) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
@@ -97,19 +100,13 @@ function TabNotesColumn({
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const {
-    audioMetadata,
-    getTabData,
-    setTabData,
-    pauseAudio,
-    currentChordIndex,
-  } = useTabStore((state) => ({
-    audioMetadata: state.audioMetadata,
-    getTabData: state.getTabData,
-    setTabData: state.setTabData,
-    pauseAudio: state.pauseAudio,
-    currentChordIndex: state.currentChordIndex,
-  }));
+  const { audioMetadata, pauseAudio, currentChordIndex } = useTabStore(
+    (state) => ({
+      audioMetadata: state.audioMetadata,
+      pauseAudio: state.pauseAudio,
+      currentChordIndex: state.currentChordIndex,
+    }),
+  );
 
   // ideally don't need this and can just use prop values passed in, but need to have
   // [0] index special case since when looping it would keep the [0] index at 100% width
@@ -133,9 +130,14 @@ function TabNotesColumn({
   function deleteColumnButtonDisabled() {
     let disabled = false;
 
-    const currentSection = getTabData()[sectionIndex]?.data[subSectionIndex];
+    const currentSection = tabData[sectionIndex]?.data[subSectionIndex];
 
-    if (currentSection === undefined || audioMetadata.playing) return true;
+    if (
+      currentSection === undefined ||
+      audioMetadata.playing ||
+      currentSection.type !== "tab"
+    )
+      return true;
 
     if (currentSection?.data.length === 1) {
       disabled = true;
@@ -163,115 +165,93 @@ function TabNotesColumn({
     return disabled;
   }
 
-  function handleDeletePalmMutedChord() {
-    const newTabData = getTabData();
-    const currentPalmMuteNodeValue =
-      newTabData[sectionIndex]?.data[subSectionIndex]?.data[columnIndex]?.[0];
-    const currentTabSectionLength =
-      newTabData[sectionIndex]?.data[subSectionIndex]?.data.length ?? 0;
-
-    if (currentPalmMuteNodeValue === "start") {
-      let index = 0;
-      while (index < currentTabSectionLength) {
-        if (
-          newTabData[sectionIndex]?.data[subSectionIndex]?.data[index]?.[0] ===
-          "end"
-        ) {
-          newTabData[sectionIndex].data[subSectionIndex].data[index][0] = "";
-          break;
-        }
-
-        newTabData[sectionIndex].data[subSectionIndex].data[index][0] = "";
-
-        index++;
-      }
-    } else if (currentPalmMuteNodeValue === "end") {
-      let index = currentTabSectionLength - 1;
-      while (index >= 0) {
-        if (
-          newTabData[sectionIndex]?.data[subSectionIndex]?.data[index]?.[0] ===
-          "start"
-        ) {
-          newTabData[sectionIndex].data[subSectionIndex].data[index][0] = "";
-          break;
-        }
-
-        newTabData[sectionIndex].data[subSectionIndex].data[index][0] = "";
-
-        index--;
-      }
-    }
-
-    return newTabData;
-  }
-
   function handleDeleteChord() {
     if (currentChordIndex !== 0) {
       pauseAudio(true);
     }
 
-    const newTabData = handleDeletePalmMutedChord();
+    setTabData((draft) => {
+      const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
 
-    newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
-      columnIndex,
-      1,
-    );
+      if (currentSubSection === undefined || currentSubSection.type !== "tab")
+        return;
 
-    setTabData(newTabData);
+      const currentPalmMuteNodeValue = currentSubSection.data[columnIndex]?.[0];
+
+      const currentTabSectionLength =
+        draft[sectionIndex]?.data[subSectionIndex]?.data.length ?? 0;
+
+      if (currentPalmMuteNodeValue === "start") {
+        let index = 0;
+        while (index < currentTabSectionLength) {
+          if (currentSubSection?.data[index]?.[0] === "end") {
+            currentSubSection.data[index]![0] = "";
+            break;
+          }
+
+          currentSubSection.data[index]![0] = "";
+
+          index++;
+        }
+      } else if (currentPalmMuteNodeValue === "end") {
+        let index = currentTabSectionLength - 1;
+        while (index >= 0) {
+          if (currentSubSection?.data[index]?.[0] === "start") {
+            currentSubSection.data[index]![0] = "";
+            break;
+          }
+
+          currentSubSection.data[index]![0] = "";
+
+          index--;
+        }
+      }
+
+      draft[sectionIndex]?.data[subSectionIndex]?.data.splice(columnIndex, 1);
+    });
   }
 
   function addNewColumn(after: boolean) {
-    const newTabData = getTabData();
+    setTabData((draft) => {
+      const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
+      if (currentSubSection === undefined || currentSubSection.type !== "tab")
+        return;
 
-    const newColumnPalmMuteValue =
-      (columnData[0] === "start" && after) ||
-      (columnData[0] === "end" && !after) ||
-      columnData[0] === "-"
-        ? "-"
-        : "";
+      const newColumnPalmMuteValue =
+        (columnData[0] === "start" && after) ||
+        (columnData[0] === "end" && !after) ||
+        columnData[0] === "-"
+          ? "-"
+          : "";
 
-    const newColumnData = [
-      newColumnPalmMuteValue,
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "1/4th", // will be overwritten by note length if it's specified
-      crypto.randomUUID(),
-    ];
+      const newColumnData = [
+        newColumnPalmMuteValue,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "1/4th", // will be overwritten by note length if it's specified
+        crypto.randomUUID(),
+      ];
 
-    if (after) {
-      newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
-        columnIndex + 1,
+      currentSubSection.data.splice(
+        after ? columnIndex + 1 : columnIndex,
         0,
         newColumnData,
       );
-    } else {
-      newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
-        columnIndex,
-        0,
-        newColumnData,
-      );
-    }
-
-    setTabData(newTabData);
+    });
   }
 
   function handleNoteLengthChange(noteLength: "1/4th" | "1/8th" | "1/16th") {
-    const newTabData = getTabData();
-
-    columnData[8] = noteLength;
-
-    newTabData[sectionIndex]?.data[subSectionIndex]?.data.splice(
-      columnIndex,
-      1,
-      columnData,
-    );
-
-    setTabData(newTabData);
+    setTabData((draft) => {
+      const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
+      if (currentSubSection === undefined || currentSubSection.type !== "tab")
+        return;
+      currentSubSection.data[columnIndex]![8] = noteLength;
+    });
   }
 
   return (
@@ -327,6 +307,8 @@ function TabNotesColumn({
                     setEditingPalmMuteNodes={setEditingPalmMuteNodes}
                     lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
                     setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
+                    tabData={tabData}
+                    setTabData={setTabData}
                   />
                 </div>
               )}
@@ -433,6 +415,8 @@ function TabNotesColumn({
                     subSectionIndex={subSectionIndex}
                     columnIndex={columnIndex}
                     noteIndex={index}
+                    tabData={tabData}
+                    setTabData={setTabData}
                   />
 
                   <div className="h-[1px] flex-[1] bg-foreground/50"></div>
@@ -450,6 +434,8 @@ function TabNotesColumn({
                         subSectionIndex={subSectionIndex}
                         columnIndex={columnIndex}
                         noteIndex={index}
+                        tabData={tabData}
+                        setTabData={setTabData}
                       />
                     </div>
                   </div>
@@ -540,35 +526,4 @@ function TabNotesColumn({
   );
 }
 
-export default memo(TabNotesColumn, (prevProps, nextProps) => {
-  const {
-    columnData: prevColumnData,
-    lastModifiedPalmMuteNode: prevLastModifiedPMNode,
-    ...restPrev
-  } = prevProps;
-  const {
-    columnData: nextColumnData,
-    lastModifiedPalmMuteNode: nextLastModifiedPMNode,
-    ...restNext
-  } = nextProps;
-
-  // Custom comparison for getTabData() related prop + lastModifiedPalmMuteNode since their memory addresses
-  // could change across renders, even if values are the same
-  if (
-    !isEqual(prevColumnData, nextColumnData) ||
-    !isEqual(prevLastModifiedPMNode, nextLastModifiedPMNode)
-  ) {
-    return false; // props are not equal, so component should re-render
-  }
-
-  // Default shallow comparison for other props using Object.is()
-  const allKeys = new Set([...Object.keys(restPrev), ...Object.keys(restNext)]);
-  for (const key of allKeys) {
-    // @ts-expect-error we know that these keys are in the objects
-    if (!Object.is(restPrev[key], restNext[key])) {
-      return false; // props are not equal, so component should re-render
-    }
-  }
-
-  return true;
-});
+export default TabNotesColumn;

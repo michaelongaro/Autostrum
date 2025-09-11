@@ -1,4 +1,3 @@
-import type { Tab } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { tuningNotes } from "~/utils/tunings";

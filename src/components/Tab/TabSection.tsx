@@ -8,7 +8,6 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { restrictToParentElement } from "@dnd-kit/modifiers";
-import isEqual from "lodash.isequal";
 import {
   SortableContext,
   arrayMove,
@@ -16,7 +15,7 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useCallback, useState, memo, Fragment } from "react";
+import { useEffect, useCallback, useState, Fragment } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
@@ -24,6 +23,7 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
   useTabStore,
+  type Section,
   type TabSection as TabSectionType,
 } from "~/stores/TabStore";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
@@ -34,6 +34,7 @@ import TabMeasureLine from "./TabMeasureLine";
 import TabNotesColumn from "./TabNotesColumn";
 import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
 import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
+import { type Updater } from "use-immer";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -105,17 +106,19 @@ export interface LastModifiedPalmMuteNodeLocation {
 }
 
 interface TabSection {
-  sectionId: string;
   sectionIndex: number;
   subSectionIndex: number;
   subSectionData: TabSectionType;
+  tabData: Section[];
+  setTabData: Updater<Section[]>;
 }
 
 function TabSection({
-  sectionId,
   sectionIndex,
   subSectionIndex,
   subSectionData,
+  tabData,
+  setTabData,
 }: TabSection) {
   const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
@@ -164,8 +167,6 @@ function TabSection({
   const {
     bpm,
     tuning,
-    getTabData,
-    setTabData,
     currentlyPlayingMetadata,
     currentChordIndex,
     playbackSpeed,
@@ -173,8 +174,6 @@ function TabSection({
   } = useTabStore((state) => ({
     bpm: state.bpm,
     tuning: state.tuning,
-    getTabData: state.getTabData,
-    setTabData: state.setTabData,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     currentChordIndex: state.currentChordIndex,
     playbackSpeed: state.playbackSpeed,
@@ -268,23 +267,24 @@ function TabSection({
   // should these functions below be in zustand?
 
   function addNewColumns() {
-    const newTabData = getTabData();
-
-    for (let i = 0; i < 8; i++) {
-      newTabData[sectionIndex]!.data[subSectionIndex]?.data.push(
-        Array.from({ length: 10 }, (_, index) => {
-          if (index === 8) {
-            return "1/4th";
-          } else if (index === 9) {
-            return crypto.randomUUID();
-          } else {
-            return "";
-          }
-        }),
-      );
-    }
-
-    setTabData(newTabData);
+    setTabData((draft) => {
+      const subSection = draft[sectionIndex]!.data[subSectionIndex];
+      if (subSection?.type === "tab") {
+        for (let i = 0; i < 8; i++) {
+          subSection.data.push(
+            Array.from({ length: 10 }, (_, index) => {
+              if (index === 8) {
+                return "1/4th";
+              } else if (index === 9) {
+                return crypto.randomUUID();
+              } else {
+                return "";
+              }
+            }),
+          );
+        }
+      }
+    });
   }
 
   interface TraverseSectionData {
@@ -541,17 +541,17 @@ function TabSection({
       // if only had a hanging "start" node, then just revert
       // start node to being empty
       if (lastModifiedPalmMuteNode.prevValue === "") {
-        const newTabData = getTabData();
-        newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-          lastModifiedPalmMuteNode.columnIndex
-        ]![0] = "";
+        setTabData((draft) => {
+          const subSection = draft[sectionIndex]!.data[subSectionIndex];
 
-        setTabData(newTabData);
+          if (subSection?.type === "tab") {
+            subSection.data[lastModifiedPalmMuteNode.columnIndex]![0] = "";
+          }
+        });
       }
       // otherwise need to traverse to find + remove pair node
       else {
         traverseToRemoveHangingPairNode({
-          tabData: getTabData(),
           setTabData,
           sectionIndex,
           subSectionIndex,
@@ -569,91 +569,87 @@ function TabSection({
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
 
-    const prevTabData = getTabData();
-    let prevSectionData = prevTabData[sectionIndex]?.data[subSectionIndex];
+    setTabData((draft) => {
+      const prevSectionData = draft[sectionIndex]?.data[subSectionIndex];
 
-    if (
-      prevSectionData === undefined ||
-      prevSectionData.type !== "tab" ||
-      typeof active.id !== "string" ||
-      typeof over?.id !== "string" ||
-      active.id === over?.id
-    )
-      return;
-
-    let startIndex = 0;
-    let endIndex = 0;
-
-    for (let i = 0; i < prevSectionData.data.length; i++) {
-      if (prevSectionData.data[i]?.[9] === active.id) {
-        startIndex = i;
-      } else if (prevSectionData.data[i]?.[9] === over?.id) {
-        endIndex = i;
-      }
-    }
-
-    const startPalmMuteValue = prevSectionData?.data[startIndex]?.[0];
-
-    const { newSectionData, action, pairPalmMuteIndex } =
-      moveAndAssignNewPalmMuteValue({
-        sectionData: prevSectionData,
-        startIndex,
-        endIndex,
-      });
-
-    prevSectionData = newSectionData;
-
-    // making sure there are no occurances of two measure lines right next to each other,
-    // or at the start or end of the section
-    for (let i = 0; i < prevSectionData.data.length - 2; i++) {
       if (
-        (prevSectionData.data[i]?.[8] === "measureLine" &&
-          prevSectionData.data[i + 1]?.[8] === "measureLine") ||
-        prevSectionData.data[0]?.[8] === "measureLine" ||
-        prevSectionData.data[prevSectionData.data.length - 1]?.[8] ===
-          "measureLine"
+        prevSectionData === undefined ||
+        prevSectionData.type !== "tab" ||
+        typeof active.id !== "string" ||
+        typeof over?.id !== "string" ||
+        active.id === over.id
       ) {
         return;
       }
-    }
 
-    if (startPalmMuteValue === "start" || startPalmMuteValue === "end") {
-      let direction: "left" | "right" = "right";
+      let startIndex = 0;
+      let endIndex = 0;
 
-      // is this right?? should it be conditional based on if startPalmMuteValue is "start" or "end"?
-      if (startIndex > endIndex) {
-        direction = "left";
+      for (let i = 0; i < prevSectionData.data.length; i++) {
+        if (prevSectionData.data[i]?.[9] === active.id) {
+          startIndex = i;
+        } else if (prevSectionData.data[i]?.[9] === over.id) {
+          endIndex = i;
+        }
       }
 
-      // currently 01234   6789  5      got rid of 6789 instead of 01234
-      // do same setup, but check what the direction is at all stages here, it REALLY should have been
-      // left but it was in fact right...
+      const startPalmMuteValue = prevSectionData.data[startIndex]?.[0];
 
-      // if we are destroying a palm mute section, we need to instead iterate
-      // through in the opposite direction (to remove the dashed/pair node)
-      if (
-        action === "destroy" &&
-        // don't reverse if "crossing over" a paired node
-        ((startPalmMuteValue === "start" && endIndex < pairPalmMuteIndex) ||
-          (startPalmMuteValue === "end" && endIndex > pairPalmMuteIndex))
-      ) {
-        direction = direction === "left" ? "right" : "left";
+      // Get the result from your helpers, mutate in-place instead of reassigning
+      const { newSectionData, action, pairPalmMuteIndex } =
+        moveAndAssignNewPalmMuteValue({
+          sectionData: prevSectionData,
+          startIndex,
+          endIndex,
+        });
+
+      // Copy props from newSectionData into prevSectionData (immer mutability)
+      prevSectionData.data = newSectionData.data;
+
+      // Prevent two measure lines next to each other or on ends
+      for (let i = 0; i < prevSectionData.data.length - 2; i++) {
+        if (
+          (prevSectionData.data[i]?.[8] === "measureLine" &&
+            prevSectionData.data[i + 1]?.[8] === "measureLine") ||
+          prevSectionData.data[0]?.[8] === "measureLine" ||
+          prevSectionData.data[prevSectionData.data.length - 1]?.[8] ===
+            "measureLine"
+        ) {
+          return;
+        }
       }
 
-      prevSectionData = handlePreviousPalmMuteSection({
-        sectionData: prevSectionData,
-        startIndex,
-        endIndex,
-        direction,
-        action,
-      });
+      // If we are handling palm mute sections, perform the update in-draft
+      if (startPalmMuteValue === "start" || startPalmMuteValue === "end") {
+        let direction: "left" | "right" = "right";
 
-      prevTabData[sectionIndex]!.data[subSectionIndex] = prevSectionData;
-    } else {
-      prevTabData[sectionIndex]!.data[subSectionIndex] = prevSectionData;
-    }
+        if (startIndex > endIndex) {
+          direction = "left";
+        }
 
-    setTabData(prevTabData);
+        if (
+          action === "destroy" &&
+          ((startPalmMuteValue === "start" && endIndex < pairPalmMuteIndex) ||
+            (startPalmMuteValue === "end" && endIndex > pairPalmMuteIndex))
+        ) {
+          direction = direction === "left" ? "right" : "left";
+        }
+
+        // Call helper and mutate in place
+        const handledSection = handlePreviousPalmMuteSection({
+          sectionData: prevSectionData,
+          startIndex,
+          endIndex,
+          direction,
+          action,
+        });
+
+        // Copy data back to the draft's section
+        prevSectionData.data = handledSection.data;
+      }
+      // Otherwise, data was already mutated in-place above
+      // Draft is already mutably updated, just exit
+    });
   }
 
   function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -661,23 +657,24 @@ function TabSection({
       e.target.value.length === 0 ? -1 : parseInt(e.target.value);
     if (isNaN(newRepetitions) || newRepetitions > 99) return;
 
-    const newTabData = getTabData();
-
-    newTabData[sectionIndex]!.data[subSectionIndex]!.repetitions =
-      newRepetitions;
-
-    setTabData(newTabData);
+    setTabData((draft) => {
+      const subSection = draft[sectionIndex]!.data[subSectionIndex];
+      if (subSection?.type === "tab") {
+        subSection.repetitions = newRepetitions;
+      }
+    });
   }
 
   function handleBpmChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newBpm = e.target.value.length === 0 ? -1 : parseInt(e.target.value);
     if (isNaN(newBpm) || newBpm > 500) return;
 
-    const newTabData = getTabData();
-
-    newTabData[sectionIndex]!.data[subSectionIndex]!.bpm = newBpm;
-
-    setTabData(newTabData);
+    setTabData((draft) => {
+      const subSection = draft[sectionIndex]!.data[subSectionIndex];
+      if (subSection?.type === "tab") {
+        subSection.bpm = newBpm;
+      }
+    });
   }
 
   function handleExtendTabButtonKeyDown(
@@ -697,26 +694,26 @@ function TabSection({
 
       focusAndScrollIntoView(currentNote, newNoteToFocus);
     } else if (e.key === "Enter") {
-      const newTabData = getTabData();
-
-      for (let i = 0; i < 8; i++) {
-        newTabData[sectionIndex]!.data[subSectionIndex]?.data.push(
-          Array.from({ length: 10 }, (_, index) => {
-            if (index === 8) {
-              return "1/4th";
-            } else if (index === 9) {
-              return crypto.randomUUID();
-            } else {
-              return "";
-            }
-          }),
-        );
-      }
-
-      setTabData(newTabData);
+      setTabData((draft) => {
+        const subSection = draft[sectionIndex]!.data[subSectionIndex];
+        if (subSection?.type === "tab") {
+          for (let i = 0; i < 8; i++) {
+            subSection.data.push(
+              Array.from({ length: 10 }, (_, index) => {
+                if (index === 8) {
+                  return "1/4th";
+                } else if (index === 9) {
+                  return crypto.randomUUID();
+                } else {
+                  return "";
+                }
+              }),
+            );
+          }
+        }
+      });
 
       const firstNewColumnIndex = subSectionData.data.length;
-
       setInputIdToFocus(
         `input-${sectionIndex}-${subSectionIndex}-${firstNewColumnIndex}-3`,
       );
@@ -1023,9 +1020,10 @@ function TabSection({
 
         <MiscellaneousControls
           type={"tab"}
-          sectionId={sectionId}
           sectionIndex={sectionIndex}
           subSectionIndex={subSectionIndex}
+          tabData={tabData}
+          setTabData={setTabData}
         />
       </div>
 
@@ -1059,6 +1057,8 @@ function TabSection({
                     reorderingColumns={reorderingColumns}
                     showingDeleteColumnsButtons={showingDeleteColumnsButtons}
                     columnHasBeenPlayed={columnHasBeenPlayed(index - 1)} // measure lines aren't "played", so tieing logic to closest previous column
+                    tabData={tabData}
+                    setTabData={setTabData}
                   />
                 ) : (
                   <TabNotesColumn
@@ -1079,6 +1079,8 @@ function TabSection({
                     showingDeleteColumnsButtons={showingDeleteColumnsButtons}
                     columnIdxBeingHovered={columnIdxBeingHovered}
                     setColumnIdxBeingHovered={setColumnIdxBeingHovered}
+                    tabData={tabData}
+                    setTabData={setTabData}
                   />
                 )}
               </Fragment>
@@ -1099,23 +1101,4 @@ function TabSection({
   );
 }
 
-export default memo(TabSection, (prevProps, nextProps) => {
-  const { subSectionData: prevSubSectionData, ...restPrev } = prevProps;
-  const { subSectionData: nextSubSectionDataData, ...restNext } = nextProps;
-
-  // Custom comparison for getTabData() related prop
-  if (!isEqual(prevSubSectionData, nextSubSectionDataData)) {
-    return false; // props are not equal, so component should re-render
-  }
-
-  // Default shallow comparison for other props using Object.is()
-  const allKeys = new Set([...Object.keys(restPrev), ...Object.keys(restNext)]);
-  for (const key of allKeys) {
-    // @ts-expect-error we know that these keys are in the objects
-    if (!Object.is(restPrev[key], restNext[key])) {
-      return false; // props are not equal, so component should re-render
-    }
-  }
-
-  return true;
-});
+export default TabSection;

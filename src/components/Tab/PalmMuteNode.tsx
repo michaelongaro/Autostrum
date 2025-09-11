@@ -1,16 +1,11 @@
-import {
-  useCallback,
-  useEffect,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { BsPlus } from "react-icons/bs";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStore, type Section } from "~/stores/TabStore";
 import { addOrRemovePalmMuteDashes } from "~/utils/palmMuteHelpers";
 import { Button } from "~/components/ui/button";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
+import type { Updater } from "use-immer";
 
 interface PalmMuteNode {
   value: string;
@@ -24,6 +19,8 @@ interface PalmMuteNode {
   setLastModifiedPalmMuteNode: Dispatch<
     SetStateAction<LastModifiedPalmMuteNodeLocation | null>
   >;
+  tabData: Section[];
+  setTabData: Updater<Section[]>;
 }
 
 function PalmMuteNode({
@@ -36,13 +33,13 @@ function PalmMuteNode({
   setEditingPalmMuteNodes,
   lastModifiedPalmMuteNode,
   setLastModifiedPalmMuteNode,
+  tabData,
+  setTabData,
 }: PalmMuteNode) {
   const [hoveringOnPalmMuteNode, setHoveringOnPalmMuteNode] = useState(false);
 
-  const { editing, getTabData, setTabData } = useTabStore((state) => ({
+  const { editing } = useTabStore((state) => ({
     editing: state.editing,
-    getTabData: state.getTabData,
-    setTabData: state.setTabData,
   }));
 
   useEffect(() => {
@@ -52,6 +49,15 @@ function PalmMuteNode({
   function getButtonOpacity() {
     if (!editingPalmMuteNodes) {
       if (value === "start" || value === "end") return "1";
+      return "0";
+    }
+
+    return opacity;
+  }
+
+  function getButtonOpacityForIndex(palmMuteValue: string) {
+    if (!editingPalmMuteNodes) {
+      if (palmMuteValue === "start" || palmMuteValue === "end") return "1";
       return "0";
     }
 
@@ -85,23 +91,17 @@ function PalmMuteNode({
         // if PM node is reachable and not a connecting node between start & end
         // nodes, then focus the PM node
 
-        if (
-          getTabData()[sectionIndex]!.data[subSectionIndex].data[
-            currentIndex
-          ]?.[8] === "measureLine"
-        ) {
+        const currentSubSection = tabData[sectionIndex]?.data[subSectionIndex];
+        if (currentSubSection?.type !== "tab") return;
+
+        if (currentSubSection.data[currentIndex]?.[8] === "measureLine") {
           currentIndex--;
         }
 
         if (
-          getTabData()[sectionIndex]!.data[subSectionIndex].data[
-            currentIndex
-          ]?.[0] !== "-" &&
-          getButtonOpacity(
-            getTabData()[sectionIndex]!.data[subSectionIndex].data[
-              currentIndex
-            ]?.[0] ?? "-",
-            currentIndex,
+          currentSubSection.data[currentIndex]?.[0] !== "-" &&
+          getButtonOpacityForIndex(
+            currentSubSection.data[currentIndex]?.[0] ?? "-",
           ) === "1"
         ) {
           const newNoteToFocus = document.getElementById(
@@ -123,18 +123,14 @@ function PalmMuteNode({
       let currentIndex = columnIndex + 1;
 
       while (!completedSearchOfPalmMuteNodes) {
-        if (
-          getTabData()[sectionIndex]!.data[subSectionIndex].data[
-            currentIndex
-          ]?.[8] === "measureLine"
-        ) {
+        const currentSubSection = tabData[sectionIndex]?.data[subSectionIndex];
+        if (currentSubSection?.type !== "tab") return;
+
+        if (currentSubSection.data[currentIndex]?.[8] === "measureLine") {
           currentIndex++;
         }
 
-        if (
-          currentIndex >=
-          getTabData()[sectionIndex]!.data[subSectionIndex]!.data.length
-        ) {
+        if (currentIndex >= currentSubSection.data.length) {
           const newNoteToFocus = document.getElementById(
             `${sectionIndex}${subSectionIndex}ExtendTabButton`,
           );
@@ -146,14 +142,9 @@ function PalmMuteNode({
         // if PM node is reachable and not a connecting node between start & end
         // nodes, then focus the PM node
         if (
-          getTabData()[sectionIndex]!.data[subSectionIndex].data[
-            currentIndex
-          ]?.[0] !== "-" &&
-          getButtonOpacity(
-            getTabData()[sectionIndex]!.data[subSectionIndex].data[
-              currentIndex
-            ]?.[0] ?? "-",
-            currentIndex,
+          currentSubSection.data[currentIndex]?.[0] !== "-" &&
+          getButtonOpacityForIndex(
+            currentSubSection.data[currentIndex]?.[0] ?? "-",
           ) === "1"
         ) {
           const newNoteToFocus = document.getElementById(
@@ -166,11 +157,7 @@ function PalmMuteNode({
 
         currentIndex++;
 
-        if (
-          currentIndex >
-          getTabData()[sectionIndex]!.data[subSectionIndex]!.data.length
-        )
-          return;
+        if (currentIndex > currentSubSection.data.length) return;
       }
     }
   }
@@ -187,14 +174,19 @@ function PalmMuteNode({
       });
 
       if (value === "") {
-        const newTabData = getTabData();
-        newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex]![0] =
-          "start";
-        setTabData(newTabData);
+        setTabData((draft) => {
+          const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
+          if (
+            currentSubSection === undefined ||
+            currentSubSection.type !== "tab"
+          )
+            return;
+
+          currentSubSection.data[columnIndex]![0] = "start";
+        });
       } else {
         // removing node + dashes in between
         addOrRemovePalmMuteDashes({
-          tabData: getTabData(),
           setTabData,
           sectionIndex,
           subSectionIndex,
@@ -214,10 +206,13 @@ function PalmMuteNode({
       (lastModifiedPalmMuteNode.prevValue !== "" &&
         (value === "start" || value === "end"))
     ) {
-      const newTabData = getTabData();
-      newTabData[sectionIndex]!.data[subSectionIndex].data[columnIndex]![0] =
-        "";
-      setTabData(newTabData);
+      setTabData((draft) => {
+        const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
+        if (currentSubSection === undefined || currentSubSection.type !== "tab")
+          return;
+
+        currentSubSection.data[columnIndex]![0] = "";
+      });
       setLastModifiedPalmMuteNode(null);
     }
 
@@ -225,7 +220,6 @@ function PalmMuteNode({
     else {
       // adding node + dashes in between
       addOrRemovePalmMuteDashes({
-        tabData: getTabData(),
         setTabData,
         sectionIndex,
         subSectionIndex,

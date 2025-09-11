@@ -92,9 +92,14 @@ const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 type TabMetadata = {
   customTuning: string | null;
   setIsPublishingOrUpdating: Dispatch<SetStateAction<boolean>>;
+  tabData: Section[];
 };
 
-function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
+function TabMetadata({
+  customTuning,
+  setIsPublishingOrUpdating,
+  tabData,
+}: TabMetadata) {
   const { userId } = useAuth();
   const { push, asPath } = useRouter();
 
@@ -115,7 +120,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     tuning,
     chords,
     strummingPatterns,
-    tabData,
     sectionProgression,
     bpm,
     setBpm,
@@ -154,7 +158,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setBpm: state.setBpm,
     chords: state.chords,
     strummingPatterns: state.strummingPatterns,
-    tabData: state.tabData,
     sectionProgression: state.sectionProgression,
     capo: state.capo,
     setCapo: state.setCapo,

@@ -37,8 +37,8 @@ function DesktopHeader() {
   const { userId, isSignedIn } = useAuth();
   const { asPath } = useRouter();
 
-  const { getStringifiedTabData, color } = useTabStore((state) => ({
-    getStringifiedTabData: state.getStringifiedTabData,
+  const { setSnapshotTabInLocalStorage, color } = useTabStore((state) => ({
+    setSnapshotTabInLocalStorage: state.setSnapshotTabInLocalStorage,
     color: state.color,
   }));
 
@@ -50,7 +50,6 @@ function DesktopHeader() {
   const [userPopoverOpen, setUserPopoverOpen] = useState(false);
   const [userProfileImageLoaded, setUserProfileImageLoaded] = useState(false);
 
-  const localStorageTabData = useLocalStorageValue("autostrum-tabData");
   const localStorageRedirectRoute = useLocalStorageValue(
     "autostrum-redirect-route",
   );
@@ -58,7 +57,7 @@ function DesktopHeader() {
   return (
     <nav
       id={"desktopHeader"}
-      className="bg-header baseFlex sticky left-0 top-0 z-[49] h-16 w-full shadow-md shadow-primary/20"
+      className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full bg-header shadow-md shadow-primary/20"
     >
       <div className={classes.desktopHeader}>
         <Link href={"/"} className={`${classes.logo} shrink-0`}>
@@ -274,9 +273,7 @@ function DesktopHeader() {
                         variant={"secondary"}
                         className="!size-12 !rounded-full !p-0"
                         onClick={() => {
-                          if (asPath.includes("/create")) {
-                            localStorageTabData.set(getStringifiedTabData());
-                          }
+                          setSnapshotTabInLocalStorage(true);
 
                           // technically can sign in from signup page and vice versa
                           if (!userId) localStorageRedirectRoute.set(asPath);

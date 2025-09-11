@@ -41,7 +41,7 @@ import {
 } from "~/components/ui/select";
 import { Toggle } from "~/components/ui/toggle";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStore, type Section } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { tuningNotesToName } from "~/utils/tunings";
@@ -54,6 +54,7 @@ interface PlaybackBottomMetadata {
   setTabProgressValue: Dispatch<SetStateAction<number>>;
   showBackgroundBlur: boolean;
   setShowBackgroundBlur: Dispatch<SetStateAction<boolean>>;
+  tabData: Section[];
 }
 
 function PlaybackBottomMetadata({
@@ -63,9 +64,9 @@ function PlaybackBottomMetadata({
   setTabProgressValue,
   showBackgroundBlur,
   setShowBackgroundBlur,
+  tabData,
 }: PlaybackBottomMetadata) {
   const {
-    tabData,
     capo,
     tuning,
     sectionProgression,
@@ -79,7 +80,6 @@ function PlaybackBottomMetadata({
     setCurrentChordIndex,
     pauseAudio,
   } = useTabStore((state) => ({
-    tabData: state.tabData,
     capo: state.capo,
     tuning: state.tuning,
     sectionProgression: state.sectionProgression,
@@ -851,7 +851,6 @@ function MobileMenuDialog() {
                             setLastModifiedPalmMuteNode={
                               setLastModifiedPalmMuteNode
                             }
-                            pmNodeOpacities={[]} //
                           />
                         </div>
                       </div>
