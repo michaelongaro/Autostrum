@@ -24,7 +24,6 @@ interface StrummingPatternPalmMuteNode {
   setLastModifiedPalmMuteNode: Dispatch<
     SetStateAction<LastModifiedPalmMuteNodeLocation | null>
   >;
-  darkMode: boolean;
   viewingInSelectDropdown: boolean;
   editing: boolean;
 }
@@ -38,7 +37,6 @@ function StrummingPatternPalmMuteNode({
   setEditingPalmMuteNodes,
   lastModifiedPalmMuteNode,
   setLastModifiedPalmMuteNode,
-  darkMode,
   viewingInSelectDropdown,
   editing,
 }: StrummingPatternPalmMuteNode) {
@@ -79,11 +77,7 @@ function StrummingPatternPalmMuteNode({
         if (
           strummingPatternBeingEdited.value.strums[currentIndex]?.palmMute !==
             "-" &&
-          getButtonOpacity(
-            strummingPatternBeingEdited.value.strums[currentIndex]?.palmMute ??
-              "-",
-            currentIndex,
-          ) === "1"
+          getButtonOpacity() === "1"
         ) {
           const newNoteToFocus = document.getElementById(
             `input-strummingPatternModal-${currentIndex}-${0}`,
@@ -118,11 +112,7 @@ function StrummingPatternPalmMuteNode({
         if (
           strummingPatternBeingEdited.value.strums[currentIndex]?.palmMute !==
             "-" &&
-          getButtonOpacity(
-            strummingPatternBeingEdited.value.strums[currentIndex]?.palmMute ??
-              "-",
-            currentIndex,
-          ) === "1"
+          getButtonOpacity() === "1"
         ) {
           const newNoteToFocus = document.getElementById(
             `input-strummingPatternModal-${currentIndex}-${0}`,
@@ -213,35 +203,17 @@ function StrummingPatternPalmMuteNode({
               }}
               className="baseFlex relative w-full"
             >
-              <div
-                className={`h-4 w-[1px] flex-shrink-0 ${
-                  darkMode ? "bg-foreground" : "bg-background"
-                }`}
-              ></div>
-              <div
-                className={`h-[1px] w-1 flex-shrink-0 ${darkMode ? "bg-foreground" : "bg-background"}`}
-              ></div>
+              <div className="h-4 w-[1px] flex-shrink-0 bg-current"></div>
+              <div className="h-[1px] w-1 flex-shrink-0 bg-current"></div>
               <i className="mx-[0.125rem] flex-shrink-0">PM</i>
-              <div
-                className={`h-[1px] w-full ${
-                  darkMode ? "bg-foreground" : "bg-background"
-                }`}
-              ></div>
+              <div className="h-[1px] w-full bg-current"></div>
             </div>
           )}
 
           {value === "end" && (
             <div className="baseFlex relative my-1 w-full">
-              <div
-                className={`h-[1px] w-full ${
-                  darkMode ? "bg-foreground" : "bg-background"
-                }`}
-              ></div>
-              <div
-                className={`h-4 w-[1px] ${
-                  darkMode ? "bg-foreground" : "bg-background"
-                }`}
-              ></div>
+              <div className="h-[1px] w-full bg-current"></div>
+              <div className="h-4 w-[1px] bg-current"></div>
             </div>
           )}
         </>
@@ -297,11 +269,9 @@ function StrummingPatternPalmMuteNode({
             margin: editing ? "1.1rem 0" : "0.75rem 0", // guessing on 0.75rem value
           }}
           className={`h-[1px] w-full ${
-            darkMode
-              ? "bg-foreground"
-              : !editing || !editingPalmMuteNodes || getButtonOpacity() === "1"
-                ? "bg-background"
-                : "bg-background/50"
+            !editing || !editingPalmMuteNodes || getButtonOpacity() === "1"
+              ? `bg-current`
+              : "bg-foreground/50"
           }`}
         ></div>
       )}

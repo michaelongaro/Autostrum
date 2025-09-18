@@ -21,7 +21,7 @@ function StrummingPatternPreview({ data }: StrummingPatternPreview) {
                 <div className="w-1"></div>
 
                 {/* only rendering v/^/s to keep preview from getting too large */}
-                <div className="baseVertFlex h-full text-lg text-background">
+                <div className="baseVertFlex h-full text-lg text-foreground">
                   {strum.strum.includes("v") && (
                     <BsArrowDown className="h-4 w-4" />
                   )}
@@ -42,7 +42,7 @@ function StrummingPatternPreview({ data }: StrummingPatternPreview) {
             </div>
           </div>
         ))}
-        {/* conditional "+" button to extend pattern if not at max length */}
+
         {data.strums.length >= 8 && <div>...</div>}
       </div>
     </div>

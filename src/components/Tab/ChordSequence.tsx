@@ -370,7 +370,7 @@ function ChordSequence({
 
                       <SelectSeparator />
 
-                      <div className="baseFlex my-2 w-full">
+                      <div className="baseFlex mb-2 mt-3 w-full">
                         <Button
                           size="sm"
                           onClick={() => {

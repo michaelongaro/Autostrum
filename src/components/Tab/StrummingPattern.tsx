@@ -509,10 +509,6 @@ function StrummingPattern({
                   setEditingPalmMuteNodes={setEditingPalmMuteNodes!}
                   lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
                   setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
-                  darkMode={
-                    mode === "viewingInSelectDropdown" &&
-                    !isBeingHighlightedInDropdown
-                  }
                   viewingInSelectDropdown={mode === "viewingInSelectDropdown"}
                   editing={mode === "editingStrummingPattern"}
                 />
@@ -627,7 +623,7 @@ function StrummingPattern({
                         ? "hsl(var(--primary) / 0.75)"
                         : "inherit",
                     }}
-                    className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
+                    className={`baseVertFlex relative mb-2 h-[20px] text-lg ${mode === "viewingInSelectDropdown" ? "" : "transition-colors"}`}
                   >
                     {strum.strum.includes("v") && (
                       <BsArrowDown
@@ -702,18 +698,13 @@ function StrummingPattern({
                     ? "hsl(var(--primary) / 0.75)"
                     : "inherit",
                 }}
-                className="text-sm transition-colors"
+                className={`text-sm ${mode === "viewingInSelectDropdown" ? "" : "transition-colors"}`}
               >
                 {getBeatIndicator(data.noteLength, strumIndex)}
               </p>
 
               {/* strumming guide */}
-              {renderStrummingGuide(
-                data.noteLength,
-                strumIndex,
-                mode,
-                isBeingHighlightedInDropdown,
-              )}
+              {renderStrummingGuide(data.noteLength, strumIndex)}
 
               {/* delete strum button */}
               {showingDeleteStrumsButtons && (

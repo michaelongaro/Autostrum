@@ -1,29 +1,11 @@
-function renderStrummingGuide(
-  noteLength: string,
-  beatIndex: number,
-  mode:
-    | "editingStrummingPattern"
-    | "editingChordSequence"
-    | "viewingWithChordNames"
-    | "viewing"
-    | "viewingInSelectDropdown",
-  isBeingHighlightedInDropdown?: boolean,
-) {
+function renderStrummingGuide(noteLength: string, beatIndex: number) {
   let innermostDiv = <div></div>;
   let height = "7px";
   switch (noteLength) {
     case "1/4th":
       height = "6px";
       innermostDiv = (
-        <div
-          className={`h-full w-[1px] rounded-md ${
-            mode === "viewingInSelectDropdown"
-              ? isBeingHighlightedInDropdown
-                ? "bg-background"
-                : "bg-foreground"
-              : "bg-foreground"
-          }`}
-        ></div>
+        <div className="h-full w-[1px] rounded-md bg-current"></div>
       );
 
       break;
@@ -31,36 +13,12 @@ function renderStrummingGuide(
       height = "7px";
       innermostDiv = (
         <>
-          <div
-            className={`h-full w-[1px] rounded-md ${
-              mode === "viewingInSelectDropdown"
-                ? isBeingHighlightedInDropdown
-                  ? "bg-background"
-                  : "bg-foreground"
-                : "bg-foreground"
-            }`}
-          ></div>
+          <div className="h-full w-[1px] rounded-md bg-current"></div>
 
           {beatIndex % 2 === 0 ? (
-            <div
-              className={`absolute bottom-0 right-0 h-[1px] w-1/2 ${
-                mode === "viewingInSelectDropdown"
-                  ? isBeingHighlightedInDropdown
-                    ? "bg-background"
-                    : "bg-foreground"
-                  : "bg-foreground"
-              }`}
-            ></div>
+            <div className="absolute bottom-0 right-0 h-[1px] w-1/2 bg-current"></div>
           ) : (
-            <div
-              className={`absolute bottom-0 left-0 right-0 h-[1px] w-1/2 ${
-                mode === "viewingInSelectDropdown"
-                  ? isBeingHighlightedInDropdown
-                    ? "bg-background"
-                    : "bg-foreground"
-                  : "bg-foreground"
-              }`}
-            ></div>
+            <div className="absolute bottom-0 left-0 right-0 h-[1px] w-1/2 bg-current"></div>
           )}
         </>
       );
@@ -69,57 +27,17 @@ function renderStrummingGuide(
       height = "7px";
       innermostDiv = (
         <>
-          <div
-            className={`h-full w-[1px] rounded-md ${
-              mode === "viewingInSelectDropdown"
-                ? isBeingHighlightedInDropdown
-                  ? "bg-background"
-                  : "bg-foreground"
-                : "bg-foreground"
-            }`}
-          ></div>
+          <div className="h-full w-[1px] rounded-md bg-current"></div>
 
           {beatIndex % 2 === 0 ? (
             <>
-              <div
-                className={`absolute bottom-[2px] right-0 h-[1px] w-1/2 ${
-                  mode === "viewingInSelectDropdown"
-                    ? isBeingHighlightedInDropdown
-                      ? "bg-background"
-                      : "bg-foreground"
-                    : "bg-foreground"
-                }`}
-              ></div>
-              <div
-                className={`absolute bottom-0 right-0 h-[1px] w-1/2 ${
-                  mode === "viewingInSelectDropdown"
-                    ? isBeingHighlightedInDropdown
-                      ? "bg-background"
-                      : "bg-foreground"
-                    : "bg-foreground"
-                }`}
-              ></div>
+              <div className="absolute bottom-[2px] right-0 h-[1px] w-1/2 bg-current"></div>
+              <div className="absolute bottom-0 right-0 h-[1px] w-1/2 bg-current"></div>
             </>
           ) : (
             <>
-              <div
-                className={`absolute bottom-[2px] left-0 right-0 h-[1px] w-1/2 ${
-                  mode === "viewingInSelectDropdown"
-                    ? isBeingHighlightedInDropdown
-                      ? "bg-background"
-                      : "bg-foreground"
-                    : "bg-foreground"
-                }`}
-              ></div>
-              <div
-                className={`absolute bottom-0 left-0 right-0 h-[1px] w-1/2 ${
-                  mode === "viewingInSelectDropdown"
-                    ? isBeingHighlightedInDropdown
-                      ? "bg-background"
-                      : "bg-foreground"
-                    : "bg-foreground"
-                }`}
-              ></div>
+              <div className="absolute bottom-[2px] left-0 right-0 h-[1px] w-1/2 bg-current"></div>
+              <div className="absolute bottom-0 left-0 right-0 h-[1px] w-1/2 bg-current"></div>
             </>
           )}
         </>
@@ -130,27 +48,9 @@ function renderStrummingGuide(
       height = "25px";
       innermostDiv = (
         <div className="baseVertFlex h-full w-full !flex-nowrap !justify-start">
-          <div
-            className={`h-[7px] w-[1px] rounded-md ${
-              mode === "viewingInSelectDropdown"
-                ? isBeingHighlightedInDropdown
-                  ? "bg-background"
-                  : "bg-foreground"
-                : "bg-foreground"
-            }`}
-          ></div>
+          <div className="h-[7px] w-[1px] rounded-md bg-current"></div>
           {beatIndex % 3 === 1 && (
-            <p
-              className={`mt-[3px] text-xs ${
-                mode === "viewingInSelectDropdown"
-                  ? isBeingHighlightedInDropdown
-                    ? "text-background"
-                    : "text-foreground"
-                  : "text-background"
-              }`}
-            >
-              3
-            </p>
+            <p className="mt-[3px] text-xs text-current">3</p>
           )}
         </div>
       );
@@ -161,78 +61,28 @@ function renderStrummingGuide(
 
       innermostDiv = (
         <div className="baseVertFlex relative h-full w-full !flex-nowrap !justify-start">
-          <div
-            className={`h-[7px] w-[1px] rounded-md ${
-              mode === "viewingInSelectDropdown"
-                ? isBeingHighlightedInDropdown
-                  ? "bg-background"
-                  : "bg-foreground"
-                : "bg-foreground"
-            }`}
-          ></div>
+          <div className="h-[7px] w-[1px] rounded-md bg-current"></div>
           {beatIndex % 3 === 0 && (
             <>
-              <div
-                className={`absolute right-0 top-[6px] h-[1px] w-1/2 ${
-                  mode === "viewingInSelectDropdown"
-                    ? isBeingHighlightedInDropdown
-                      ? "bg-background"
-                      : "bg-foreground"
-                    : "bg-foreground"
-                }`}
-              ></div>
+              <div className="absolute right-0 top-[6px] h-[1px] w-1/2 bg-current"></div>
             </>
           )}
 
           {beatIndex % 3 === 1 && (
             <>
-              <div
-                className={`absolute right-0 top-[6px] h-[1px] w-1/2 ${
-                  mode === "viewingInSelectDropdown"
-                    ? isBeingHighlightedInDropdown
-                      ? "bg-background"
-                      : "bg-foreground"
-                    : "bg-foreground"
-                }`}
-              ></div>
-              <div
-                className={`absolute left-0 top-[6px] h-[1px] w-1/2 ${
-                  mode === "viewingInSelectDropdown"
-                    ? isBeingHighlightedInDropdown
-                      ? "bg-background"
-                      : "bg-foreground"
-                    : "bg-foreground"
-                }`}
-              ></div>
+              <div className="absolute right-0 top-[6px] h-[1px] w-1/2 bg-current"></div>
+              <div className="absolute left-0 top-[6px] h-[1px] w-1/2 bg-current"></div>
             </>
           )}
 
           {beatIndex % 3 === 2 && (
             <>
-              <div
-                className={`absolute left-0 top-[6px] h-[1px] w-1/2 ${
-                  mode === "viewingInSelectDropdown"
-                    ? isBeingHighlightedInDropdown
-                      ? "bg-background"
-                      : "bg-foreground"
-                    : "bg-foreground"
-                }`}
-              ></div>
+              <div className="absolute left-0 top-[6px] h-[1px] w-1/2 bg-current"></div>
             </>
           )}
 
           {beatIndex % 3 === 1 && (
-            <p
-              className={`mt-[3px] text-xs ${
-                mode === "viewingInSelectDropdown"
-                  ? isBeingHighlightedInDropdown
-                    ? "text-background"
-                    : "text-foreground"
-                  : "text-background"
-              }`}
-            >
-              3
-            </p>
+            <p className="mt-[3px] text-xs text-current">3</p>
           )}
         </div>
       );
@@ -241,114 +91,32 @@ function renderStrummingGuide(
       height = "25px";
       innermostDiv = (
         <div className="baseVertFlex relative h-full w-full !flex-nowrap !justify-start">
-          <div
-            className={`h-[7px] w-[1px] rounded-md ${
-              mode === "viewingInSelectDropdown"
-                ? isBeingHighlightedInDropdown
-                  ? "bg-background"
-                  : "bg-foreground"
-                : "bg-foreground"
-            }`}
-          ></div>
+          <div className="h-[7px] w-[1px] rounded-md bg-current"></div>
           {beatIndex % 3 === 0 && (
             <>
-              <div
-                className={`absolute right-0 top-[4px] h-[1px] w-1/2 ${
-                  mode === "viewingInSelectDropdown"
-                    ? isBeingHighlightedInDropdown
-                      ? "bg-background"
-                      : "bg-foreground"
-                    : "bg-foreground"
-                }`}
-              ></div>
-              <div
-                className={`absolute right-0 top-[6px] h-[1px] w-1/2 ${
-                  mode === "viewingInSelectDropdown"
-                    ? isBeingHighlightedInDropdown
-                      ? "bg-background"
-                      : "bg-foreground"
-                    : "bg-foreground"
-                }`}
-              ></div>
+              <div className="absolute right-0 top-[4px] h-[1px] w-1/2 bg-current"></div>
+              <div className="absolute right-0 top-[6px] h-[1px] w-1/2 bg-current"></div>
             </>
           )}
 
           {beatIndex % 3 === 1 && (
             <>
-              <div
-                className={`absolute right-0 top-[4px] h-[1px] w-1/2 ${
-                  mode === "viewingInSelectDropdown"
-                    ? isBeingHighlightedInDropdown
-                      ? "bg-background"
-                      : "bg-foreground"
-                    : "bg-foreground"
-                }`}
-              ></div>
-              <div
-                className={`absolute right-0 top-[6px] h-[1px] w-1/2 ${
-                  mode === "viewingInSelectDropdown"
-                    ? isBeingHighlightedInDropdown
-                      ? "bg-background"
-                      : "bg-foreground"
-                    : "bg-foreground"
-                }`}
-              ></div>
-              <div
-                className={`absolute left-0 top-[4px] h-[1px] w-1/2 ${
-                  mode === "viewingInSelectDropdown"
-                    ? isBeingHighlightedInDropdown
-                      ? "bg-background"
-                      : "bg-foreground"
-                    : "bg-foreground"
-                }`}
-              ></div>
-              <div
-                className={`absolute left-0 top-[6px] h-[1px] w-1/2 ${
-                  mode === "viewingInSelectDropdown"
-                    ? isBeingHighlightedInDropdown
-                      ? "bg-background"
-                      : "bg-foreground"
-                    : "bg-foreground"
-                }`}
-              ></div>
+              <div className="absolute right-0 top-[4px] h-[1px] w-1/2 bg-current"></div>
+              <div className="absolute right-0 top-[6px] h-[1px] w-1/2 bg-current"></div>
+              <div className="absolute left-0 top-[4px] h-[1px] w-1/2 bg-current"></div>
+              <div className="absolute left-0 top-[6px] h-[1px] w-1/2 bg-current"></div>
             </>
           )}
 
           {beatIndex % 3 === 2 && (
             <>
-              <div
-                className={`absolute left-0 top-[4px] h-[1px] w-1/2 ${
-                  mode === "viewingInSelectDropdown"
-                    ? isBeingHighlightedInDropdown
-                      ? "bg-background"
-                      : "bg-foreground"
-                    : "bg-foreground"
-                }`}
-              ></div>
-              <div
-                className={`absolute left-0 top-[6px] h-[1px] w-1/2 ${
-                  mode === "viewingInSelectDropdown"
-                    ? isBeingHighlightedInDropdown
-                      ? "bg-background"
-                      : "bg-foreground"
-                    : "bg-foreground"
-                }`}
-              ></div>
+              <div className="absolute left-0 top-[4px] h-[1px] w-1/2 bg-current"></div>
+              <div className="absolute left-0 top-[6px] h-[1px] w-1/2 bg-current"></div>
             </>
           )}
 
           {beatIndex % 3 === 1 && (
-            <p
-              className={`mt-[3px] text-xs ${
-                mode === "viewingInSelectDropdown"
-                  ? isBeingHighlightedInDropdown
-                    ? "text-background"
-                    : "text-foreground"
-                  : "text-background"
-              }`}
-            >
-              3
-            </p>
+            <p className="mt-[3px] text-xs text-current">3</p>
           )}
         </div>
       );

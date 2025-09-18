@@ -224,12 +224,7 @@ function PlaybackStrummedChord({
             {getBeatIndicator(noteLength, strumIndex)}
           </p>
 
-          {renderStrummingGuide(
-            noteLength,
-            strumIndex,
-            "viewingWithChordNames",
-            false,
-          )}
+          {renderStrummingGuide(noteLength, strumIndex)}
         </div>
       )}
     </>
