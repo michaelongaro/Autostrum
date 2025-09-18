@@ -1,19 +1,12 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
-import AudioControls from "~/components/AudioControls/AudioControls";
 import Tab from "~/components/Tab/Tab";
-import { useTabStore } from "~/stores/TabStore";
 import { GiMusicalScore } from "react-icons/gi";
 import { EigthNote, QuarterNote } from "~/utils/bpmIconRenderingHelpers";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { BsFillPlayFill } from "react-icons/bs";
 
 function Create() {
-  const { editing, showingAudioControls } = useTabStore((state) => ({
-    editing: state.editing,
-    showingAudioControls: state.showingAudioControls,
-  }));
-
   const isAboveMediumViewport = useViewportWidthBreakpoint(768);
 
   return (
@@ -79,8 +72,6 @@ function Create() {
         </div>
 
         <Tab />
-
-        {editing && showingAudioControls && <AudioControls />}
       </div>
     </motion.div>
   );

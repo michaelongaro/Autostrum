@@ -14,7 +14,7 @@ import {
 } from "~/components/ui/select";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { Separator } from "~/components/ui/separator";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStore, type Section } from "~/stores/TabStore";
 import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { tuningNotesToName } from "~/utils/tunings";
@@ -22,14 +22,15 @@ import { tuningNotesToName } from "~/utils/tunings";
 interface PlaybackTopMetadata {
   tabProgressValue: number;
   setTabProgressValue: Dispatch<SetStateAction<number>>;
+  tabData: Section[];
 }
 
 function PlaybackTopMetadata({
   tabProgressValue,
   setTabProgressValue,
+  tabData,
 }: PlaybackTopMetadata) {
   const {
-    tabData,
     title,
     tuning,
     capo,
@@ -46,7 +47,6 @@ function PlaybackTopMetadata({
     setAudioMetadata,
     setCurrentChordIndex,
   } = useTabStore((state) => ({
-    tabData: state.tabData,
     title: state.title,
     tuning: state.tuning,
     capo: state.capo,

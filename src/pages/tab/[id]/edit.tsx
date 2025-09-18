@@ -8,12 +8,10 @@ import { useRouter } from "next/router";
 import { useMemo } from "react";
 import { BiErrorCircle } from "react-icons/bi";
 import { BsArrowLeftShort } from "react-icons/bs";
-import AudioControls from "~/components/AudioControls/AudioControls";
 import Tab from "~/components/Tab/Tab";
 import superjson from "superjson";
 import { Button } from "~/components/ui/button";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
-import { useTabStore } from "~/stores/TabStore";
 
 interface OpenGraphData {
   title: string;
@@ -34,10 +32,6 @@ function EditIndividualTab({ json }: { json: string }) {
   );
 
   const { query } = useRouter();
-
-  const { showingAudioControls } = useTabStore((state) => ({
-    showingAudioControls: state.showingAudioControls,
-  }));
 
   if (!tab) {
     return <TabNotFound />;
@@ -77,10 +71,6 @@ function EditIndividualTab({ json }: { json: string }) {
 
       <AnimatePresence mode="wait">
         <Tab tab={tab} />
-      </AnimatePresence>
-
-      <AnimatePresence mode="wait">
-        {showingAudioControls && <AudioControls />}
       </AnimatePresence>
     </motion.div>
   );

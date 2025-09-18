@@ -5,7 +5,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 import { BsPlus } from "react-icons/bs";
 import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
-import { useTabStore, type SectionProgression } from "~/stores/TabStore";
+import {
+  useTabStore,
+  type Section as SectionType,
+  type SectionProgression,
+} from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
@@ -21,14 +25,16 @@ import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { X } from "lucide-react";
 import { Label } from "~/components/ui/label";
 
-function SectionProgressionModal() {
+interface SectionProgressionModal {
+  tabData: SectionType[];
+}
+
+function SectionProgressionModal({ tabData }: SectionProgressionModal) {
   const {
-    tabData,
     sectionProgression,
     setSectionProgression,
     setShowSectionProgressionModal,
   } = useTabStore((state) => ({
-    tabData: state.tabData,
     sectionProgression: state.sectionProgression,
     setSectionProgression: state.setSectionProgression,
     setShowSectionProgressionModal: state.setShowSectionProgressionModal,

@@ -10,6 +10,7 @@ import {
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import {
   useTabStore,
+  type Section,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
@@ -22,6 +23,7 @@ import {
 } from "~/components/ui/accordion";
 import { motion } from "framer-motion";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
+import type { Updater } from "use-immer";
 
 const opacityVariants = {
   closed: {
@@ -32,7 +34,11 @@ const opacityVariants = {
   },
 };
 
-function StrummingPatterns() {
+interface StrummingPatterns {
+  setTabData: Updater<Section[]>;
+}
+
+function StrummingPatterns({ setTabData }: StrummingPatterns) {
   const [accordionValue, setAccordionValue] = useState("closed");
   const [showingDeletePopover, setShowingDeletePopover] = useState<boolean[]>(
     [],
@@ -49,8 +55,6 @@ function StrummingPatterns() {
     strummingPatterns,
     setStrummingPatterns,
     setStrummingPatternBeingEdited,
-    getTabData,
-    setTabData,
     pauseAudio,
     currentlyCopiedData,
     setCurrentlyCopiedData,
@@ -58,8 +62,6 @@ function StrummingPatterns() {
     strummingPatterns: state.strummingPatterns,
     setStrummingPatterns: state.setStrummingPatterns,
     setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
-    getTabData: state.getTabData,
-    setTabData: state.setTabData,
     pauseAudio: state.pauseAudio,
     currentlyCopiedData: state.currentlyCopiedData,
     setCurrentlyCopiedData: state.setCurrentlyCopiedData,
@@ -69,58 +71,56 @@ function StrummingPatterns() {
     index: number,
     strummingPattern: StrummingPatternType,
   ) {
-    const newTabData = getTabData();
-
-    // fyi: this is lazy, but only a copied type of a tab subsection is guaranteed
-    // to not need to be modified/removed from currentlyCopiedData. Just resetting
-    // to null otherwise
-    if (currentlyCopiedData?.type !== "tab") {
-      setCurrentlyCopiedData(null);
-    }
-
-    for (
-      let sectionIndex = newTabData.length - 1;
-      sectionIndex >= 0;
-      sectionIndex--
-    ) {
-      const section = newTabData[sectionIndex];
-
-      if (!section) continue;
+    setTabData((draft) => {
+      // fyi: this is lazy, but only a copied type of a tab subsection is guaranteed
+      // to not need to be modified/removed from currentlyCopiedData. Just resetting
+      // to null otherwise
+      if (currentlyCopiedData?.type !== "tab") {
+        setCurrentlyCopiedData(null);
+      }
 
       for (
-        let subSectionIndex = section.data.length - 1;
-        subSectionIndex >= 0;
-        subSectionIndex--
+        let sectionIndex = draft.length - 1;
+        sectionIndex >= 0;
+        sectionIndex--
       ) {
-        const subSection = section.data[subSectionIndex];
-        if (subSection?.type === "chord") {
-          for (
-            let chordSequenceIndex = subSection.data.length - 1;
-            chordSequenceIndex >= 0;
-            chordSequenceIndex--
-          ) {
-            const chordGroup = subSection.data[chordSequenceIndex];
+        const section = draft[sectionIndex];
 
-            if (
-              !chordGroup ||
-              !isEqual(chordGroup.strummingPattern, strummingPattern)
-            )
-              continue;
+        if (!section) continue;
 
-            newTabData[sectionIndex]!.data[subSectionIndex]!.data[
-              chordSequenceIndex
-            ] = {
-              ...chordGroup,
-              // @ts-expect-error <ChordSequence /> effect will set to first existing strumming pattern if it exists
-              strummingPattern: {} as StrummingPattern,
-              data: [],
-            };
+        for (
+          let subSectionIndex = section.data.length - 1;
+          subSectionIndex >= 0;
+          subSectionIndex--
+        ) {
+          const subSection = section.data[subSectionIndex];
+          if (subSection?.type === "chord") {
+            for (
+              let chordSequenceIndex = subSection.data.length - 1;
+              chordSequenceIndex >= 0;
+              chordSequenceIndex--
+            ) {
+              const chordGroup = subSection.data[chordSequenceIndex];
+
+              if (
+                !chordGroup ||
+                !isEqual(chordGroup.strummingPattern, strummingPattern)
+              )
+                continue;
+
+              draft[sectionIndex]!.data[subSectionIndex]!.data[
+                chordSequenceIndex
+              ] = {
+                ...chordGroup,
+                // @ts-expect-error useEffect within <ChordSequence /> will set strummingPattern to first existing strumming pattern (if one exists)
+                strummingPattern: {} as StrummingPattern,
+                data: [],
+              };
+            }
           }
         }
       }
-    }
-
-    setTabData(newTabData);
+    });
 
     const prevStrummingPatterns = [...strummingPatterns];
     prevStrummingPatterns.splice(index, 1);
@@ -176,7 +176,6 @@ function StrummingPatterns() {
                             setLastModifiedPalmMuteNode={
                               setLastModifiedPalmMuteNode
                             }
-                            pmNodeOpacities={[]} // placeholder
                           />
                         </div>
 

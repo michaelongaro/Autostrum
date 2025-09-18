@@ -468,7 +468,6 @@ function MobileExtraTabMetadata() {
                                 setLastModifiedPalmMuteNode={
                                   setLastModifiedPalmMuteNode
                                 }
-                                pmNodeOpacities={[]} // placeholder
                               />
                             </div>
                           </div>

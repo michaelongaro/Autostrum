@@ -1,9 +1,4 @@
-import {
-  useCallback,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { BsPlus } from "react-icons/bs";
 import { useTabStore, type StrummingPattern } from "~/stores/TabStore";
 import { addOrRemoveStrummingPatternPalmMuteDashes } from "~/utils/palmMuteHelpers";

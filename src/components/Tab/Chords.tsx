@@ -9,8 +9,9 @@ import {
   AccordionTrigger,
 } from "~/components/ui/accordion";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStore, type Section } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
+import type { Updater } from "use-immer";
 
 const opacityVariants = {
   closed: {
@@ -21,7 +22,11 @@ const opacityVariants = {
   },
 };
 
-function Chords() {
+interface Chords {
+  setTabData: Updater<Section[]>;
+}
+
+function Chords({ setTabData }: Chords) {
   const [accordionValue, setAccordionValue] = useState("closed");
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
@@ -29,8 +34,6 @@ function Chords() {
     chords,
     setChords,
     setChordBeingEdited,
-    getTabData,
-    setTabData,
     pauseAudio,
     currentlyCopiedData,
     setCurrentlyCopiedData,
@@ -38,50 +41,47 @@ function Chords() {
     chords: state.chords,
     setChords: state.setChords,
     setChordBeingEdited: state.setChordBeingEdited,
-    getTabData: state.getTabData,
-    setTabData: state.setTabData,
     pauseAudio: state.pauseAudio,
     currentlyCopiedData: state.currentlyCopiedData,
     setCurrentlyCopiedData: state.setCurrentlyCopiedData,
   }));
 
   function handleDeleteChord(index: number, chordNameToBeDeleted: string) {
-    const newTabData = getTabData();
+    setTabData((draft) => {
+      // fyi: this is lazy, but only a copied type of a tab subsection is guaranteed
+      // to not need to be modified/removed from currentlyCopiedData. Just resetting
+      // to null otherwise
+      if (currentlyCopiedData?.type !== "tab") {
+        setCurrentlyCopiedData(null);
+      }
 
-    // fyi: this is lazy, but only a copied type of a tab subsection is guaranteed
-    // to not need to be modified/removed from currentlyCopiedData. Just resetting
-    // to null otherwise
-    if (currentlyCopiedData?.type !== "tab") {
-      setCurrentlyCopiedData(null);
-    }
+      for (const [sectionIndex, section] of draft.entries()) {
+        if (!section) continue;
 
-    for (const [sectionIndex, section] of newTabData.entries()) {
-      if (!section) continue;
+        for (const [subSectionIndex, subSection] of section.data.entries()) {
+          if (subSection?.type === "chord") {
+            for (const [
+              chordSequenceIndex,
+              chordGroup,
+            ] of subSection.data.entries()) {
+              if (!chordGroup) continue;
 
-      for (const [subSectionIndex, subSection] of section.data.entries()) {
-        if (subSection?.type === "chord") {
-          for (const [
-            chordSequenceIndex,
-            chordGroup,
-          ] of subSection.data.entries()) {
-            if (!chordGroup) continue;
+              for (const [chordIndex, chordName] of chordGroup.data.entries()) {
+                if (!chordName) continue;
 
-            for (const [chordIndex, chordName] of chordGroup.data.entries()) {
-              if (!chordName) continue;
+                if (chordName === chordNameToBeDeleted) {
+                  const section = draft[sectionIndex]!.data[subSectionIndex];
 
-              if (chordName === chordNameToBeDeleted) {
-                // @ts-expect-error undefined checks are done above
-                newTabData[sectionIndex].data[subSectionIndex].data[
-                  chordSequenceIndex
-                ]!.data[chordIndex] = "";
+                  if (!section || section.type !== "chord") continue;
+
+                  section.data[chordSequenceIndex]!.data[chordIndex] = "";
+                }
               }
             }
           }
         }
       }
-    }
-
-    setTabData(newTabData);
+    });
 
     const prevChords = [...chords];
     prevChords.splice(index, 1);

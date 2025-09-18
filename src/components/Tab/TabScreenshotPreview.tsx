@@ -17,6 +17,7 @@ function TabScreenshotPreview({ tabData, color, theme }: TabScreenshotPreview) {
             sectionData={section}
             color={color}
             theme={theme}
+            tabDataLength={tabData.length}
           />
         </div>
       ))}

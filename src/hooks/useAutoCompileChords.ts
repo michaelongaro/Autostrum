@@ -4,14 +4,18 @@ import {
   compileSpecificChordGrouping,
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
-import { useTabStore } from "../stores/TabStore";
+import { useTabStore, type Section } from "../stores/TabStore";
 import {
   expandFullTab,
   updateElapsedSecondsInSectionProgression,
 } from "~/utils/playbackChordCompilationHelpers";
 import debounce from "lodash.debounce";
 
-function useAutoCompileChords() {
+interface UseAutoCompileChords {
+  tabData: Section[];
+}
+
+function useAutoCompileChords({ tabData }: UseAutoCompileChords) {
   const {
     editing,
     setCurrentlyPlayingMetadata,
@@ -19,7 +23,6 @@ function useAutoCompileChords() {
     audioMetadata,
     setAudioMetadata,
     bpm,
-    tabData,
     sectionProgression,
     chords,
     atomicallyUpdateAudioMetadata,
@@ -35,7 +38,6 @@ function useAutoCompileChords() {
     audioMetadata: state.audioMetadata,
     setAudioMetadata: state.setAudioMetadata,
     bpm: state.bpm,
-    tabData: state.tabData,
     sectionProgression: state.sectionProgression,
     chords: state.chords,
     atomicallyUpdateAudioMetadata: state.atomicallyUpdateAudioMetadata,

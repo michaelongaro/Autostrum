@@ -1,6 +1,4 @@
-import isEqual from "lodash.isequal";
 import {
-  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -23,6 +21,7 @@ import {
 } from "~/components/ui/select";
 import {
   useTabStore,
+  type Section,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
@@ -30,7 +29,7 @@ import StrummingPatternPalmMuteNode from "../Tab/StrummingPatternPalmMuteNode";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+import type { Updater } from "use-immer";
 
 interface StrummingPattern {
   data: StrummingPatternType;
@@ -45,12 +44,12 @@ interface StrummingPattern {
   index?: number; // index of strumming pattern in strummingPatterns array (used for editing pattern)
   isBeingHighlightedInDropdown?: boolean;
 
-  // location of strumming pattern in getTabData() array (used for editing chord sequence)
+  // location of strumming pattern (used for editing chord sequence)
   sectionIndex?: number;
   subSectionIndex?: number;
   chordSequenceIndex?: number;
 
-  pmNodeOpacities: string[];
+  pmNodeOpacities?: string[];
   editingPalmMuteNodes?: boolean;
   setEditingPalmMuteNodes?: Dispatch<SetStateAction<boolean>>;
   showingDeleteStrumsButtons?: boolean;
@@ -58,6 +57,7 @@ interface StrummingPattern {
   setLastModifiedPalmMuteNode: Dispatch<
     SetStateAction<LastModifiedPalmMuteNodeLocation | null>
   >;
+  setTabData?: Updater<Section[]>;
 }
 
 function StrummingPattern({
@@ -75,6 +75,7 @@ function StrummingPattern({
   showingDeleteStrumsButtons,
   lastModifiedPalmMuteNode,
   setLastModifiedPalmMuteNode,
+  setTabData,
 }: StrummingPattern) {
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
 
@@ -84,8 +85,6 @@ function StrummingPattern({
 
   const {
     chords,
-    getTabData,
-    setTabData,
     setStrummingPatternBeingEdited,
     currentlyPlayingMetadata,
     currentChordIndex,
@@ -93,8 +92,6 @@ function StrummingPattern({
     audioMetadata,
   } = useTabStore((state) => ({
     chords: state.chords,
-    getTabData: state.getTabData,
-    setTabData: state.setTabData,
     setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     currentChordIndex: state.currentChordIndex,
@@ -377,23 +374,17 @@ function StrummingPattern({
   }
 
   function handleChordChange(value: string, beatIndex: number) {
-    const chordSection =
-      getTabData()[sectionIndex ?? 0]?.data[subSectionIndex ?? 0];
+    setTabData?.((draft) => {
+      const chordSection = draft[sectionIndex ?? 0]?.data[subSectionIndex ?? 0];
 
-    if (chordSection && chordSection.type === "chord") {
-      const newChordSection = { ...chordSection };
-
-      const newChord = value === "noChord" ? "" : value;
-
-      newChordSection.data[chordSequenceIndex ?? 0]!.data[beatIndex] = newChord;
-
-      const newTabData = getTabData();
-
-      newTabData[sectionIndex ?? 0]!.data[subSectionIndex ?? 0] =
-        newChordSection;
-
-      setTabData(newTabData);
-    }
+      if (chordSection && chordSection.type === "chord") {
+        const newChordSection = { ...chordSection };
+        const newChord = value === "noChord" ? "" : value;
+        newChordSection.data[chordSequenceIndex ?? 0]!.data[beatIndex] =
+          newChord;
+        draft[sectionIndex ?? 0]!.data[subSectionIndex ?? 0] = newChordSection;
+      }
+    });
   }
 
   function highlightChord(chordIndex: number, forPreview = false) {
@@ -504,7 +495,9 @@ function StrummingPattern({
                     index: index ?? 0,
                     value: data,
                   }}
-                  opacity={pmNodeOpacities[strumIndex] ?? "1"}
+                  opacity={
+                    pmNodeOpacities ? (pmNodeOpacities[strumIndex] ?? "1") : "1"
+                  }
                   editingPalmMuteNodes={editingPalmMuteNodes!}
                   setEditingPalmMuteNodes={setEditingPalmMuteNodes!}
                   lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
@@ -739,37 +732,4 @@ function StrummingPattern({
   );
 }
 
-export default memo(StrummingPattern, (prevProps, nextProps) => {
-  const {
-    data: prevData,
-    chordSequenceData: prevChordSequenceData,
-    lastModifiedPalmMuteNode: prevLastModifiedPalmMuteNode,
-    ...restPrev
-  } = prevProps;
-  const {
-    data: nextData,
-    chordSequenceData: nextChordSequenceData,
-    lastModifiedPalmMuteNode: nextLastModifiedPalmMuteNode,
-    ...restNext
-  } = nextProps;
-
-  // Custom comparison for props that are objects
-  if (
-    !isEqual(prevData, nextData) ||
-    !isEqual(prevChordSequenceData, nextChordSequenceData) ||
-    !isEqual(prevLastModifiedPalmMuteNode, nextLastModifiedPalmMuteNode)
-  ) {
-    return false; // props are not equal, so component should re-render
-  }
-
-  // Default shallow comparison for other props using Object.is()
-  const allKeys = new Set([...Object.keys(restPrev), ...Object.keys(restNext)]);
-  for (const key of allKeys) {
-    // @ts-expect-error we know that these keys are in the objects
-    if (!Object.is(restPrev[key], restNext[key])) {
-      return false; // props are not equal, so component should re-render
-    }
-  }
-
-  return true;
-});
+export default StrummingPattern;

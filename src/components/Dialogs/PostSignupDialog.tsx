@@ -24,7 +24,7 @@ import ThemePicker from "~/components/Header/ThemePicker";
 function PostSignupDialog() {
   const { user } = useClerk();
   const { isSignedIn } = useAuth();
-  const { push } = useRouter();
+  // const { push } = useRouter();
   const ctx = api.useUtils();
 
   const { color } = useTabStore((state) => ({
@@ -36,9 +36,9 @@ function PostSignupDialog() {
       enabled: isSignedIn,
     });
 
-  const localStorageRedirectRoute = useLocalStorageValue(
-    "autostrum-redirect-route",
-  );
+  // const localStorageRedirectRoute = useLocalStorageValue(
+  //   "autostrum-redirect-route",
+  // );
 
   const [username, setUsername] = useState("");
   const [debouncedUsername, setDebouncedUsername] = useState("");
