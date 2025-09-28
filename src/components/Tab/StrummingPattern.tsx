@@ -42,7 +42,6 @@ interface StrummingPattern {
     | "viewing"
     | "viewingInSelectDropdown";
   index?: number; // index of strumming pattern in strummingPatterns array (used for editing pattern)
-  isBeingHighlightedInDropdown?: boolean;
 
   // location of strumming pattern (used for editing chord sequence)
   sectionIndex?: number;
@@ -65,7 +64,6 @@ function StrummingPattern({
   chordSequenceData,
   mode,
   index,
-  isBeingHighlightedInDropdown,
   sectionIndex,
   subSectionIndex,
   chordSequenceIndex,

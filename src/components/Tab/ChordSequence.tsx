@@ -341,10 +341,6 @@ function ChordSequence({
                             <StrummingPattern
                               data={pattern}
                               mode={"viewingInSelectDropdown"}
-                              isBeingHighlightedInDropdown={
-                                index ===
-                                indexOfCurrentlyFocusedStrummingPattern
-                              }
                               lastModifiedPalmMuteNode={
                                 lastModifiedPalmMuteNode
                               }
