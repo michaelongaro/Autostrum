@@ -23,7 +23,6 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
   useTabStore,
-  type Section,
   type TabSection as TabSectionType,
 } from "~/stores/TabStore";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
@@ -34,7 +33,7 @@ import TabMeasureLine from "./TabMeasureLine";
 import TabNotesColumn from "./TabNotesColumn";
 import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
 import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
-import { type Updater } from "use-immer";
+import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -108,18 +107,9 @@ export interface LastModifiedPalmMuteNodeLocation {
 interface TabSection {
   sectionIndex: number;
   subSectionIndex: number;
-  subSectionData: TabSectionType;
-  tabData: Section[];
-  setTabData: Updater<Section[]>;
 }
 
-function TabSection({
-  sectionIndex,
-  subSectionIndex,
-  subSectionData,
-  tabData,
-  setTabData,
-}: TabSection) {
+function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
@@ -143,6 +133,8 @@ function TabSection({
     }),
   );
 
+  const subSection = useTabSubSectionData(sectionIndex, subSectionIndex);
+
   useEffect(() => {
     if (inputIdToFocus) {
       const currentNote = document.getElementById(
@@ -155,13 +147,7 @@ function TabSection({
   }, [inputIdToFocus, sectionIndex, subSectionIndex]);
 
   function getColumnIds() {
-    const newIds = [];
-
-    for (const columnData of subSectionData.data) {
-      newIds.push(columnData[9]!);
-    }
-
-    return newIds;
+    return subSection.data.map((column) => column[9]!);
   }
 
   const {
@@ -171,6 +157,7 @@ function TabSection({
     currentChordIndex,
     playbackSpeed,
     audioMetadata,
+    setTabData,
   } = useTabStore((state) => ({
     bpm: state.bpm,
     tuning: state.tuning,
@@ -178,14 +165,15 @@ function TabSection({
     currentChordIndex: state.currentChordIndex,
     playbackSpeed: state.playbackSpeed,
     audioMetadata: state.audioMetadata,
+    setTabData: state.setTabData,
   }));
 
   const getPMNodeOpacities = useCallback(() => {
     if (lastModifiedPalmMuteNode === null) {
-      return new Array(subSectionData.data.length).fill("1") as string[];
+      return new Array(subSection.data.length).fill("1") as string[];
     }
 
-    const newOpacities = new Array(subSectionData.data.length).fill(
+    const newOpacities = new Array(subSection.data.length).fill(
       "0.25",
     ) as string[];
 
@@ -194,10 +182,10 @@ function TabSection({
       let nearestStartNodeIndex = lastModifiedPalmMuteNode.columnIndex + 1;
       for (
         let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < subSectionData.data.length;
+        i < subSection.data.length;
         i++
       ) {
-        if (subSectionData.data[i]?.[0] === "start") break;
+        if (subSection.data[i]?.[0] === "start") break;
         nearestStartNodeIndex++;
       }
 
@@ -212,16 +200,16 @@ function TabSection({
       let pairEndNodeIndex = lastModifiedPalmMuteNode.columnIndex + 1;
       for (
         let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < subSectionData.data.length;
+        i < subSection.data.length;
         i++
       ) {
-        if (subSectionData.data[i]?.[0] === "end") break;
+        if (subSection.data[i]?.[0] === "end") break;
         pairEndNodeIndex++;
       }
 
       let nearestPrevEndNodeIndex = lastModifiedPalmMuteNode.columnIndex - 1;
       for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
-        if (subSectionData.data[i]?.[0] === "end") {
+        if (subSection.data[i]?.[0] === "end") {
           nearestPrevEndNodeIndex = i + 1;
           break;
         }
@@ -234,7 +222,7 @@ function TabSection({
     else if (lastModifiedPalmMuteNode.prevValue === "end") {
       let pairStartNodeIndex = lastModifiedPalmMuteNode.columnIndex - 1;
       for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
-        if (subSectionData.data[i]?.[0] === "start") {
+        if (subSection.data[i]?.[0] === "start") {
           pairStartNodeIndex = i;
           break;
         }
@@ -243,10 +231,10 @@ function TabSection({
       let nearestNextStartNodeIndex = lastModifiedPalmMuteNode.columnIndex + 1;
       for (
         let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < subSectionData.data.length;
+        i < subSection.data.length;
         i++
       ) {
-        if (subSectionData.data[i]?.[0] === "start") {
+        if (subSection.data[i]?.[0] === "start") {
           nearestNextStartNodeIndex = i;
           break;
         }
@@ -256,7 +244,7 @@ function TabSection({
     }
 
     return newOpacities;
-  }, [subSectionData.data, lastModifiedPalmMuteNode]);
+  }, [subSection.data, lastModifiedPalmMuteNode]);
 
   useEffect(() => {
     if (editingPalmMuteNodes) {
@@ -683,7 +671,7 @@ function TabSection({
     if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
 
-      const firstNewColumnIndex = subSectionData.data.length - 1; // this will be the first of the 8 new strums added
+      const firstNewColumnIndex = subSection.data.length - 1; // this will be the first of the 8 new strums added
 
       const currentNote = document.getElementById(
         `${sectionIndex}${subSectionIndex}ExtendTabButton`,
@@ -713,7 +701,7 @@ function TabSection({
         }
       });
 
-      const firstNewColumnIndex = subSectionData.data.length;
+      const firstNewColumnIndex = subSection.data.length;
       setInputIdToFocus(
         `input-${sectionIndex}-${subSectionIndex}-${firstNewColumnIndex}-3`,
       );
@@ -788,7 +776,7 @@ function TabSection({
 
   return (
     <motion.div
-      key={subSectionData.id}
+      key={subSection.id}
       layout={"position"}
       variants={opacityAndScaleVariants}
       initial="closed"
@@ -825,9 +813,7 @@ function TabSection({
                     className="w-[52px] px-2.5"
                     placeholder={bpm === -1 ? "" : bpm.toString()}
                     value={
-                      subSectionData.bpm === -1
-                        ? ""
-                        : subSectionData.bpm.toString()
+                      subSection.bpm === -1 ? "" : subSection.bpm.toString()
                     }
                     onChange={handleBpmChange}
                   />
@@ -849,9 +835,9 @@ function TabSection({
                   className="w-[45px] px-2 pl-4"
                   placeholder="1"
                   value={
-                    subSectionData.repetitions === -1
+                    subSection.repetitions === -1
                       ? ""
-                      : subSectionData.repetitions.toString()
+                      : subSection.repetitions.toString()
                   }
                   onChange={handleRepetitionsChange}
                 />
@@ -1022,8 +1008,6 @@ function TabSection({
           type={"tab"}
           sectionIndex={sectionIndex}
           subSectionIndex={subSectionIndex}
-          tabData={tabData}
-          setTabData={setTabData}
         />
       </div>
 
@@ -1046,7 +1030,7 @@ function TabSection({
             items={getColumnIds()}
             strategy={rectSortingStrategy}
           >
-            {subSectionData.data.map((column, index) => (
+            {subSection.data.map((column, index) => (
               <Fragment key={column[9]}>
                 {column.includes("|") ? (
                   <TabMeasureLine
@@ -1057,8 +1041,6 @@ function TabSection({
                     reorderingColumns={reorderingColumns}
                     showingDeleteColumnsButtons={showingDeleteColumnsButtons}
                     columnHasBeenPlayed={columnHasBeenPlayed(index - 1)} // measure lines aren't "played", so tieing logic to closest previous column
-                    tabData={tabData}
-                    setTabData={setTabData}
                   />
                 ) : (
                   <TabNotesColumn
@@ -1066,7 +1048,7 @@ function TabSection({
                     subSectionIndex={subSectionIndex}
                     columnIndex={index}
                     columnData={column}
-                    isLastColumn={index === subSectionData.data.length - 1}
+                    isLastColumn={index === subSection.data.length - 1}
                     columnIsBeingPlayed={columnIsBeingPlayed(index)}
                     columnHasBeenPlayed={columnHasBeenPlayed(index)}
                     durationOfChord={getDurationOfCurrentChord()}
@@ -1079,8 +1061,6 @@ function TabSection({
                     showingDeleteColumnsButtons={showingDeleteColumnsButtons}
                     columnIdxBeingHovered={columnIdxBeingHovered}
                     setColumnIdxBeingHovered={setColumnIdxBeingHovered}
-                    tabData={tabData}
-                    setTabData={setTabData}
                   />
                 )}
               </Fragment>

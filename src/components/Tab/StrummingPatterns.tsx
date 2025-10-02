@@ -10,7 +10,6 @@ import {
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import {
   useTabStore,
-  type Section,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
@@ -23,7 +22,6 @@ import {
 } from "~/components/ui/accordion";
 import { motion } from "framer-motion";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
-import type { Updater } from "use-immer";
 
 const opacityVariants = {
   closed: {
@@ -34,11 +32,7 @@ const opacityVariants = {
   },
 };
 
-interface StrummingPatterns {
-  setTabData: Updater<Section[]>;
-}
-
-function StrummingPatterns({ setTabData }: StrummingPatterns) {
+function StrummingPatterns() {
   const [accordionValue, setAccordionValue] = useState("closed");
   const [showingDeletePopover, setShowingDeletePopover] = useState<boolean[]>(
     [],
@@ -58,6 +52,7 @@ function StrummingPatterns({ setTabData }: StrummingPatterns) {
     pauseAudio,
     currentlyCopiedData,
     setCurrentlyCopiedData,
+    setTabData,
   } = useTabStore((state) => ({
     strummingPatterns: state.strummingPatterns,
     setStrummingPatterns: state.setStrummingPatterns,
@@ -65,6 +60,7 @@ function StrummingPatterns({ setTabData }: StrummingPatterns) {
     pauseAudio: state.pauseAudio,
     currentlyCopiedData: state.currentlyCopiedData,
     setCurrentlyCopiedData: state.setCurrentlyCopiedData,
+    setTabData: state.setTabData,
   }));
 
   function handleDeleteStrummingPattern(

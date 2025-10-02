@@ -14,7 +14,7 @@ import {
 } from "~/components/ui/select";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { Separator } from "~/components/ui/separator";
-import { useTabStore, type Section } from "~/stores/TabStore";
+import { useTabStore } from "~/stores/TabStore";
 import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { tuningNotesToName } from "~/utils/tunings";
@@ -22,13 +22,11 @@ import { tuningNotesToName } from "~/utils/tunings";
 interface PlaybackTopMetadata {
   tabProgressValue: number;
   setTabProgressValue: Dispatch<SetStateAction<number>>;
-  tabData: Section[];
 }
 
 function PlaybackTopMetadata({
   tabProgressValue,
   setTabProgressValue,
-  tabData,
 }: PlaybackTopMetadata) {
   const {
     title,
@@ -66,8 +64,11 @@ function PlaybackTopMetadata({
 
   // idk if best approach, but need unique section titles, not the whole progression
   const sections = useMemo(() => {
-    return tabData.map((section) => ({ id: section.id, title: section.title }));
-  }, [tabData]);
+    return sectionProgression.map((section) => ({
+      id: section.id,
+      title: section.title,
+    }));
+  }, [sectionProgression]);
 
   if (playbackMetadata === null || viewportLabel === "mobileNarrowLandscape")
     return;
@@ -149,7 +150,7 @@ function PlaybackTopMetadata({
                           value={
                             audioMetadata.location === null
                               ? "fullTab"
-                              : tabData[
+                              : sectionProgression[
                                   audioMetadata.location?.sectionIndex ?? 0
                                 ]?.id
                           }
@@ -179,11 +180,11 @@ function PlaybackTopMetadata({
                             <SelectValue placeholder="Select a section">
                               {audioMetadata.location === null
                                 ? "Full tab"
-                                : tabData[
+                                : sectionProgression[
                                     sections.findIndex((elem) => {
                                       return (
                                         elem.id ===
-                                        tabData[
+                                        sectionProgression[
                                           audioMetadata.location
                                             ?.sectionIndex ?? 0
                                         ]?.id
@@ -326,7 +327,7 @@ function PlaybackTopMetadata({
                             value={
                               audioMetadata.location === null
                                 ? "fullTab"
-                                : tabData[
+                                : sectionProgression[
                                     audioMetadata.location?.sectionIndex ?? 0
                                   ]?.id
                             }
@@ -353,11 +354,11 @@ function PlaybackTopMetadata({
                               <SelectValue placeholder="Select a section">
                                 {audioMetadata.location === null
                                   ? "Full tab"
-                                  : tabData[
+                                  : sectionProgression[
                                       sections.findIndex((elem) => {
                                         return (
                                           elem.id ===
-                                          tabData[
+                                          sectionProgression[
                                             audioMetadata.location
                                               ?.sectionIndex ?? 0
                                           ]?.id

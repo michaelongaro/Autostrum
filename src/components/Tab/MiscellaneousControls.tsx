@@ -30,7 +30,13 @@ import isEqual from "lodash.isequal";
 import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 import { Check } from "lucide-react";
-import type { Updater } from "use-immer";
+import {
+  useSectionData,
+  useSubSectionData,
+  useTabDataLength,
+  useTabDataSubSectionLength,
+  useTabSubSectionData,
+} from "~/hooks/useTabDataSelectors";
 
 interface MiscellaneousControls {
   type: "section" | "tab" | "chord" | "chordSequence";
@@ -39,8 +45,6 @@ interface MiscellaneousControls {
   chordSequenceIndex?: number;
   hidePlayPauseButton?: boolean;
   forSectionContainer?: boolean;
-  tabData: Section[];
-  setTabData: Updater<Section[]>;
 }
 
 function MiscellaneousControls({
@@ -50,8 +54,6 @@ function MiscellaneousControls({
   chordSequenceIndex,
   hidePlayPauseButton,
   forSectionContainer,
-  tabData,
-  setTabData,
 }: MiscellaneousControls) {
   const {
     id,
@@ -65,6 +67,7 @@ function MiscellaneousControls({
     setCurrentlyCopiedData,
     playTab,
     pauseAudio,
+    setTabData,
   } = useTabStore((state) => ({
     id: state.id,
     bpm: state.bpm,
@@ -77,7 +80,12 @@ function MiscellaneousControls({
     setCurrentlyCopiedData: state.setCurrentlyCopiedData,
     playTab: state.playTab,
     pauseAudio: state.pauseAudio,
+    setTabData: state.setTabData,
   }));
+
+  const section = useSectionData(sectionIndex);
+  const subSection = useSubSectionData(sectionIndex, subSectionIndex || 0);
+  const tabDataLength = useTabDataLength();
 
   const [artificalPlayButtonTimeout, setArtificialPlayButtonTimeout] =
     useState(false);
@@ -86,18 +94,13 @@ function MiscellaneousControls({
 
   function disableMoveDown() {
     if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
-      const chordSequence = tabData[sectionIndex]?.data[subSectionIndex]
-        ?.data as ChordSequence[];
+      const chordSequence = subSection?.data as ChordSequence[];
 
       return chordSequenceIndex === chordSequence.length - 1;
     } else if (subSectionIndex !== undefined) {
-      const subSection = tabData[sectionIndex]?.data;
-
-      if (!subSection) return true;
-
-      return subSectionIndex === subSection.length - 1;
+      return subSectionIndex === subSection.data.length - 1;
     } else {
-      return sectionIndex === tabData.length - 1;
+      return sectionIndex === tabDataLength - 1;
     }
   }
 
@@ -129,10 +132,7 @@ function MiscellaneousControls({
 
         draft[sectionIndex]!.data[subSectionIndex]!.data = movedSequence;
       } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
-        const subSection = draft[sectionIndex]?.data as (
-          | TabSection
-          | ChordSection
-        )[];
+        const subSection = draft[sectionIndex]!.data;
 
         const movedSubSection = arrayMove(
           subSection,
@@ -166,10 +166,7 @@ function MiscellaneousControls({
 
         draft[sectionIndex]!.data[subSectionIndex]!.data = movedSequence;
       } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
-        const subSection = draft[sectionIndex]?.data as (
-          | TabSection
-          | ChordSection
-        )[];
+        const subSection = draft[sectionIndex]!.data;
 
         const movedSubSection = arrayMove(
           subSection,
@@ -194,9 +191,7 @@ function MiscellaneousControls({
       sectionIndex !== undefined
     ) {
       const newChordSequence = structuredClone(
-        tabData[sectionIndex]?.data[subSectionIndex]?.data[
-          chordSequenceIndex
-        ] as ChordSequence,
+        subSection.data[chordSequenceIndex] as ChordSequence,
       );
 
       setCurrentlyCopiedData({
@@ -205,9 +200,7 @@ function MiscellaneousControls({
       });
     } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
       if (type === "chord") {
-        const newSubSection = structuredClone(
-          tabData[sectionIndex]?.data[subSectionIndex] as ChordSection,
-        );
+        const newSubSection = structuredClone(subSection as ChordSection);
 
         setCurrentlyCopiedData({
           type: "chord",
@@ -215,9 +208,7 @@ function MiscellaneousControls({
         });
       } else if (type === "tab") {
         const newSubSection = replaceIdInTabSection(
-          structuredClone(
-            tabData[sectionIndex]?.data[subSectionIndex] as TabSection,
-          ),
+          structuredClone(subSection as TabSection),
         );
 
         setCurrentlyCopiedData({
@@ -228,7 +219,7 @@ function MiscellaneousControls({
     } else if (sectionIndex !== undefined) {
       setCurrentlyCopiedData({
         type: "section",
-        data: structuredClone(tabData[sectionIndex]!),
+        data: structuredClone(section),
       });
     }
   }
@@ -274,7 +265,7 @@ function MiscellaneousControls({
         sectionIndex !== undefined
       ) {
         draft[sectionIndex] = {
-          ...tabData[sectionIndex],
+          ...section,
           data: replaceIdInSection(currentlyCopiedData.data as Section),
         } as Section;
       }
@@ -296,10 +287,7 @@ function MiscellaneousControls({
 
         chordSequenceData.splice(chordSequenceIndex, 1);
       } else if (subSectionIndex !== undefined) {
-        const subSectionData = draft[sectionIndex]?.data as (
-          | TabSection
-          | ChordSection
-        )[];
+        const subSectionData = draft[sectionIndex]!.data;
 
         subSectionData.splice(subSectionIndex, 1);
       } else {
@@ -311,7 +299,17 @@ function MiscellaneousControls({
           }
         }
 
-        draft.splice(sectionIndex, 1);
+        if (sectionIndex === 0) {
+          draft.length = 0; // Clearing the entire array
+          draft.push({
+            id: crypto.randomUUID(),
+            title: "Section 1",
+            data: [],
+          });
+        } else {
+          draft.splice(sectionIndex, 1);
+        }
+
         setSectionProgression(newSectionProgression);
       }
     });
@@ -334,7 +332,7 @@ function MiscellaneousControls({
             bpm === -1 ||
             !currentInstrument ||
             artificalPlayButtonTimeout ||
-            sectionIsEffectivelyEmpty(tabData, sectionIndex, subSectionIndex)
+            sectionIsEffectivelyEmpty(section, subSectionIndex)
           }
           onClick={() => {
             const locationIsEqual = isEqual(audioMetadata.location, {
@@ -358,7 +356,6 @@ function MiscellaneousControls({
               setTimeout(
                 () => {
                   void playTab({
-                    tabData,
                     tabId: id,
                     location: {
                       sectionIndex,

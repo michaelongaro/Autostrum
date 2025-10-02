@@ -1,5 +1,5 @@
 // ~/utils/tabNoteHandlers.ts
-import type { Section } from "~/stores/TabStore";
+import type { Section, TabSection } from "~/stores/TabStore";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 
 const chordMappings = {
@@ -90,7 +90,7 @@ export interface TabNoteHandlerParams {
   subSectionIndex: number;
   columnIndex: number;
   noteIndex: number;
-  tabData: Section[];
+  subSection: TabSection;
   setTabData: (updater: (draft: Section[]) => void) => void;
   currentlyCopiedChord: string[] | null;
   setCurrentlyCopiedChord: (chord: string[] | null) => void;
@@ -124,7 +124,7 @@ export function handleTabNoteKeyDown(
     subSectionIndex,
     columnIndex,
     noteIndex,
-    tabData,
+    subSection,
     setTabData,
     currentlyCopiedChord,
     setCurrentlyCopiedChord,
@@ -140,50 +140,46 @@ export function handleTabNoteKeyDown(
 
     const after = e.key.toLowerCase() === "w";
 
-    const currentSubSection = tabData[sectionIndex]?.data[subSectionIndex];
+    const currentColumnData = subSection.data[columnIndex];
 
-    if (currentSubSection?.type === "tab") {
-      const currentColumnData = currentSubSection.data[columnIndex];
+    if (currentColumnData) {
+      const newColumnPalmMuteValue =
+        (currentColumnData[0] === "start" && after) ||
+        (currentColumnData[0] === "end" && !after) ||
+        currentColumnData[0] === "-"
+          ? "-"
+          : "";
 
-      if (currentColumnData) {
-        const newColumnPalmMuteValue =
-          (currentColumnData[0] === "start" && after) ||
-          (currentColumnData[0] === "end" && !after) ||
-          currentColumnData[0] === "-"
-            ? "-"
-            : "";
+      const newColumnData = [
+        newColumnPalmMuteValue,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "1/4th",
+        crypto.randomUUID(),
+      ];
 
-        const newColumnData = [
-          newColumnPalmMuteValue,
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "1/4th",
-          crypto.randomUUID(),
-        ];
+      const insertionIndex = after ? columnIndex + 1 : columnIndex;
 
-        const insertionIndex = after ? columnIndex + 1 : columnIndex;
+      setTabData((draft) => {
+        const subSection = draft[sectionIndex]?.data[subSectionIndex];
+        if (subSection?.type === "tab") {
+          subSection.data.splice(insertionIndex, 0, newColumnData);
+        }
+      });
 
-        setTabData((draft) => {
-          const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
-          if (currentSubSection?.type === "tab") {
-            currentSubSection.data.splice(insertionIndex, 0, newColumnData);
-          }
-        });
+      // Focus the newly created column
+      setTimeout(() => {
+        const newNoteToFocus = document.getElementById(
+          `input-${sectionIndex}-${subSectionIndex}-${insertionIndex}-${noteIndex}`,
+        );
 
-        // Focus the newly created column
-        setTimeout(() => {
-          const newNoteToFocus = document.getElementById(
-            `input-${sectionIndex}-${subSectionIndex}-${insertionIndex}-${noteIndex}`,
-          );
-
-          focusAndScrollIntoView(currentNote, newNoteToFocus);
-        }, 0);
-      }
+        focusAndScrollIntoView(currentNote, newNoteToFocus);
+      }, 0);
     }
 
     return;
@@ -199,9 +195,9 @@ export function handleTabNoteKeyDown(
     if (e.key.toLowerCase() === "l") noteLength = "1/16th";
 
     setTabData((draft) => {
-      const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
-      if (currentSubSection?.type === "tab") {
-        const columnData = currentSubSection.data[columnIndex];
+      const subSection = draft[sectionIndex]?.data[subSectionIndex];
+      if (subSection?.type === "tab") {
+        const columnData = subSection.data[columnIndex];
         if (columnData) {
           columnData[8] = noteLength;
         }
@@ -216,9 +212,9 @@ export function handleTabNoteKeyDown(
     e.preventDefault();
 
     setTabData((draft) => {
-      const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
-      if (currentSubSection?.type === "tab") {
-        const column = currentSubSection.data[columnIndex];
+      const subSection = draft[sectionIndex]?.data[subSectionIndex];
+      if (subSection?.type === "tab") {
+        const column = subSection.data[columnIndex];
 
         // Only clear if not a measure line
         if (column && column[8] !== "measureLine") {
@@ -227,7 +223,7 @@ export function handleTabNoteKeyDown(
           const noteLengthModifier = column[8];
           const id = column[9];
 
-          currentSubSection.data[columnIndex] = [
+          subSection.data[columnIndex] = [
             palmMuteNode ?? "",
             "",
             "",
@@ -249,34 +245,31 @@ export function handleTabNoteKeyDown(
   if (e.ctrlKey && e.shiftKey && e.key === "Backspace") {
     e.preventDefault();
 
-    const currentSubSection = tabData[sectionIndex]?.data[subSectionIndex];
+    // Only delete if not a measure line and not the last column
+    if (
+      subSection.data[columnIndex]?.[8] !== "measureLine" &&
+      subSection.data.length > 1
+    ) {
+      setTabData((draft) => {
+        const draftSubSection = draft[sectionIndex]?.data[subSectionIndex];
+        if (draftSubSection?.type === "tab") {
+          draftSubSection.data.splice(columnIndex, 1);
+        }
+      });
 
-    if (currentSubSection?.type === "tab") {
-      // Only delete if not a measure line and not the last column
-      if (
-        currentSubSection.data[columnIndex]?.[8] !== "measureLine" &&
-        currentSubSection.data.length > 1
-      ) {
-        setTabData((draft) => {
-          const draftSubSection = draft[sectionIndex]?.data[subSectionIndex];
-          if (draftSubSection?.type === "tab") {
-            draftSubSection.data.splice(columnIndex, 1);
-          }
-        });
-
-        // Focus the next column, or previous if at end
-        setTimeout(() => {
-          const nextIndex =
-            columnIndex < currentSubSection.data.length - 1
-              ? columnIndex
-              : columnIndex - 1;
-          const newNoteToFocus = document.getElementById(
-            `input-${sectionIndex}-${subSectionIndex}-${nextIndex}-${noteIndex}`,
-          );
-          focusAndScrollIntoView(currentNote, newNoteToFocus);
-        }, 0);
-      }
+      // Focus the next column, or previous if at end
+      setTimeout(() => {
+        const nextIndex =
+          columnIndex < subSection.data.length - 1
+            ? columnIndex
+            : columnIndex - 1;
+        const newNoteToFocus = document.getElementById(
+          `input-${sectionIndex}-${subSectionIndex}-${nextIndex}-${noteIndex}`,
+        );
+        focusAndScrollIntoView(currentNote, newNoteToFocus);
+      }, 0);
     }
+
     return;
   }
 
@@ -306,47 +299,39 @@ export function handleTabNoteKeyDown(
   } else if (e.key === "ArrowLeft") {
     e.preventDefault(); // prevent cursor from moving
 
-    const currentSubSection = tabData[sectionIndex]?.data[subSectionIndex];
+    const adjColumnIndex =
+      subSection.data[columnIndex - 1]?.[noteIndex] === "|"
+        ? columnIndex - 2
+        : columnIndex - 1;
 
-    if (currentSubSection?.type === "tab") {
-      const adjColumnIndex =
-        currentSubSection.data[columnIndex - 1]?.[noteIndex] === "|"
-          ? columnIndex - 2
-          : columnIndex - 1;
+    const newNoteToFocus = document.getElementById(
+      `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`,
+    );
 
-      const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`,
-      );
-
-      focusAndScrollIntoView(currentNote, newNoteToFocus);
-    }
+    focusAndScrollIntoView(currentNote, newNoteToFocus);
     return;
   } else if (e.key === "ArrowRight") {
     e.preventDefault(); // prevent cursor from moving
 
-    const currentSubSection = tabData[sectionIndex]?.data[subSectionIndex];
-
-    if (currentSubSection?.type === "tab") {
-      if (columnIndex === currentSubSection.data.length - 1) {
-        const newNoteToFocus = document.getElementById(
-          `${sectionIndex}${subSectionIndex}ExtendTabButton`,
-        );
-
-        focusAndScrollIntoView(currentNote, newNoteToFocus);
-        return;
-      }
-
-      const adjColumnIndex =
-        currentSubSection.data[columnIndex + 1]?.[noteIndex] === "|"
-          ? columnIndex + 2
-          : columnIndex + 1;
-
+    if (columnIndex === subSection.data.length - 1) {
       const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`,
+        `${sectionIndex}${subSectionIndex}ExtendTabButton`,
       );
 
       focusAndScrollIntoView(currentNote, newNoteToFocus);
+      return;
     }
+
+    const adjColumnIndex =
+      subSection.data[columnIndex + 1]?.[noteIndex] === "|"
+        ? columnIndex + 2
+        : columnIndex + 1;
+
+    const newNoteToFocus = document.getElementById(
+      `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`,
+    );
+
+    focusAndScrollIntoView(currentNote, newNoteToFocus);
     return;
   }
 
@@ -356,20 +341,17 @@ export function handleTabNoteKeyDown(
   ) {
     e.preventDefault();
 
-    const currentSubSection = tabData[sectionIndex]?.data[subSectionIndex];
-    if (currentSubSection?.type === "tab") {
-      const copiedChord = currentSubSection.data[columnIndex]?.slice(1, 9);
+    const copiedChord = subSection.data[columnIndex]?.slice(1, 9);
 
-      setChordPulse({
-        location: {
-          sectionIndex,
-          subSectionIndex,
-          chordIndex: columnIndex,
-        },
-        type: "copy",
-      });
-      setCurrentlyCopiedChord(copiedChord as string[]);
-    }
+    setChordPulse({
+      location: {
+        sectionIndex,
+        subSectionIndex,
+        chordIndex: columnIndex,
+      },
+      type: "copy",
+    });
+    setCurrentlyCopiedChord(copiedChord as string[]);
   } else if (
     currentlyCopiedChord &&
     ((e.ctrlKey && e.key === "v") || // Control + V for Windows/Linux
@@ -378,14 +360,14 @@ export function handleTabNoteKeyDown(
     e.preventDefault();
 
     setTabData((draft) => {
-      const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
-      if (currentSubSection?.type === "tab") {
-        const currentColumn = currentSubSection.data[columnIndex];
+      const subSection = draft[sectionIndex]?.data[subSectionIndex];
+      if (subSection?.type === "tab") {
+        const currentColumn = subSection.data[columnIndex];
         if (currentColumn) {
           const palmMuteNode = currentColumn[0];
           const id = currentColumn[9];
 
-          currentSubSection.data[columnIndex] = [
+          subSection.data[columnIndex] = [
             palmMuteNode ?? "",
             ...currentlyCopiedChord,
             id ?? crypto.randomUUID(),
@@ -415,9 +397,9 @@ export function handleTabNoteKeyDown(
     noteIndex === 7
   ) {
     setTabData((draft) => {
-      const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
-      if (currentSubSection?.type === "tab") {
-        const currentColumn = currentSubSection.data[columnIndex];
+      const subSection = draft[sectionIndex]?.data[subSectionIndex];
+      if (subSection?.type === "tab") {
+        const currentColumn = subSection.data[columnIndex];
         if (currentColumn) {
           if (e.key.toLowerCase() === "d" || e.key.toLowerCase() === "v") {
             currentColumn[noteIndex] = "v";
@@ -439,7 +421,7 @@ export function handleTabNoteChange(
     sectionIndex: number;
     subSectionIndex: number;
     columnIndex: number;
-    tabData: Section[];
+    subSection: TabSection;
     setTabData: (updater: (draft: Section[]) => void) => void;
   },
 ) {
@@ -448,7 +430,7 @@ export function handleTabNoteChange(
     sectionIndex,
     subSectionIndex,
     columnIndex,
-    tabData,
+    subSection,
     setTabData,
   } = params;
 
@@ -468,16 +450,16 @@ export function handleTabNoteChange(
         chordMappings[chordLetter as keyof typeof chordMappings];
 
       setTabData((draft) => {
-        const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
-        if (currentSubSection?.type === "tab") {
-          const currentColumn = currentSubSection.data[columnIndex];
+        const subSection = draft[sectionIndex]?.data[subSectionIndex];
+        if (subSection?.type === "tab") {
+          const currentColumn = subSection.data[columnIndex];
           if (currentColumn) {
             const palmMuteNode = currentColumn[0];
             const chordEffects = currentColumn[7];
             const noteLengthModifier = currentColumn[8];
             const id = currentColumn[9];
 
-            currentSubSection.data[columnIndex] = [
+            subSection.data[columnIndex] = [
               palmMuteNode ?? "",
               ...chordArray.toReversed(),
               chordEffects ?? "",
@@ -497,56 +479,52 @@ export function handleTabNoteChange(
     if (value !== "" && !validNoteInput(value)) return;
 
     if (value === "|") {
-      const currentSubSection = tabData[sectionIndex]?.data[subSectionIndex];
-
-      if (currentSubSection?.type === "tab") {
-        if (
-          columnIndex === 0 ||
-          columnIndex === currentSubSection.data.length - 1 ||
-          currentSubSection.data[columnIndex - 1]?.[8] === "measureLine" ||
-          currentSubSection.data[columnIndex + 1]?.[8] === "measureLine"
-        ) {
-          return;
-        }
-
-        setTabData((draft) => {
-          const draftSubSection = draft[sectionIndex]?.data[subSectionIndex];
-          if (draftSubSection?.type === "tab") {
-            const currentColumn = draftSubSection.data[columnIndex];
-            if (currentColumn) {
-              const palmMuteNode = currentColumn[0];
-              const id = currentColumn[9];
-
-              // this technically is fine, but I don't want to implement it now, also might have
-              // weird ui side effects by having more space on either side of the measure line than
-              // originally planned for
-              if (palmMuteNode === "start" || palmMuteNode === "end") return;
-
-              draftSubSection.data[columnIndex] = [
-                palmMuteNode ?? "",
-                "|",
-                "|",
-                "|",
-                "|",
-                "|",
-                "|",
-                "",
-                "measureLine",
-                id ?? crypto.randomUUID(),
-              ];
-            }
-          }
-        });
-
-        const newNoteToFocus = document.getElementById(
-          `input-${sectionIndex}-${subSectionIndex}-${
-            columnIndex + 1
-          }-${noteIndex}`,
-        );
-
-        newNoteToFocus?.focus();
+      if (
+        columnIndex === 0 ||
+        columnIndex === subSection.data.length - 1 ||
+        subSection.data[columnIndex - 1]?.[8] === "measureLine" ||
+        subSection.data[columnIndex + 1]?.[8] === "measureLine"
+      ) {
         return;
       }
+
+      setTabData((draft) => {
+        const draftSubSection = draft[sectionIndex]?.data[subSectionIndex];
+        if (draftSubSection?.type === "tab") {
+          const currentColumn = draftSubSection.data[columnIndex];
+          if (currentColumn) {
+            const palmMuteNode = currentColumn[0];
+            const id = currentColumn[9];
+
+            // this technically is fine, but I don't want to implement it now, also might have
+            // weird ui side effects by having more space on either side of the measure line than
+            // originally planned for
+            if (palmMuteNode === "start" || palmMuteNode === "end") return;
+
+            draftSubSection.data[columnIndex] = [
+              palmMuteNode ?? "",
+              "|",
+              "|",
+              "|",
+              "|",
+              "|",
+              "|",
+              "",
+              "measureLine",
+              id ?? crypto.randomUUID(),
+            ];
+          }
+        }
+      });
+
+      const newNoteToFocus = document.getElementById(
+        `input-${sectionIndex}-${subSectionIndex}-${
+          columnIndex + 1
+        }-${noteIndex}`,
+      );
+
+      newNoteToFocus?.focus();
+      return;
     }
   }
 
@@ -563,9 +541,9 @@ export function handleTabNoteChange(
   }
 
   setTabData((draft) => {
-    const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
-    if (currentSubSection?.type === "tab") {
-      const currentColumn = currentSubSection.data[columnIndex];
+    const subSection = draft[sectionIndex]?.data[subSectionIndex];
+    if (subSection?.type === "tab") {
+      const currentColumn = subSection.data[columnIndex];
       if (currentColumn) {
         currentColumn[noteIndex] = value;
       }

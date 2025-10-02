@@ -1,8 +1,7 @@
 import type { Section, StrummingPattern } from "~/stores/TabStore";
-import type { Updater } from "use-immer";
 
 interface AddOrRemovePalmMuteDashes {
-  setTabData: Updater<Section[]>;
+  setTabData: (updater: (draft: Section[]) => void) => void;
   sectionIndex: number;
   subSectionIndex: number;
   startColumnIndex: number;
@@ -134,7 +133,7 @@ function addOrRemoveStrummingPatternPalmMuteDashes({
 }
 
 interface TraverseToRemoveHangingPairNode {
-  setTabData: Updater<Section[]>;
+  setTabData: (updater: (draft: Section[]) => void) => void;
   sectionIndex: number;
   subSectionIndex: number;
   startColumnIndex: number;

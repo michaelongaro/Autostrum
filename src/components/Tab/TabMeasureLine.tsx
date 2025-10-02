@@ -9,12 +9,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { useTabStore, type Section } from "~/stores/TabStore";
+import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
-import type { Updater } from "use-immer";
+import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
 
 interface TabMeasureLine {
   columnData: string[];
@@ -24,8 +24,6 @@ interface TabMeasureLine {
   reorderingColumns: boolean;
   showingDeleteColumnsButtons: boolean;
   columnHasBeenPlayed: boolean;
-  tabData: Section[];
-  setTabData: Updater<Section[]>;
 }
 
 function TabMeasureLine({
@@ -36,8 +34,6 @@ function TabMeasureLine({
   reorderingColumns,
   showingDeleteColumnsButtons,
   columnHasBeenPlayed,
-  tabData,
-  setTabData,
 }: TabMeasureLine) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
@@ -54,10 +50,13 @@ function TabMeasureLine({
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const { audioMetadata, bpm } = useTabStore((state) => ({
+  const { audioMetadata, bpm, setTabData } = useTabStore((state) => ({
     audioMetadata: state.audioMetadata,
     bpm: state.bpm,
+    setTabData: state.setTabData,
   }));
+
+  const subSection = useTabSubSectionData(sectionIndex, subSectionIndex);
 
   function handleDeleteMeasureLine() {
     setTabData((draft) => {
@@ -85,15 +84,12 @@ function TabMeasureLine({
       `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`,
     );
 
-    const currentSubSection = tabData[sectionIndex]?.data[subSectionIndex];
-    if (!currentSubSection || currentSubSection.type !== "tab") return;
-
     // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
     if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
 
       const adjColumnIndex =
-        currentSubSection.data[columnIndex - 1]?.[7] === "|"
+        subSection.data[columnIndex - 1]?.[7] === "|"
           ? columnIndex - 2
           : columnIndex - 1;
 
@@ -106,7 +102,7 @@ function TabMeasureLine({
     } else if (e.key === "ArrowRight") {
       e.preventDefault(); // prevent cursor from moving
 
-      if (columnIndex === currentSubSection.data.length - 1) {
+      if (columnIndex === subSection.data.length - 1) {
         const newNoteToFocus = document.getElementById(
           `${sectionIndex}${subSectionIndex}ExtendTabButton`,
         );
@@ -116,7 +112,7 @@ function TabMeasureLine({
       }
 
       const adjColumnIndex =
-        currentSubSection.data[columnIndex + 1]?.[7] === "|"
+        subSection.data[columnIndex + 1]?.[7] === "|"
           ? columnIndex + 2
           : columnIndex + 1;
 
@@ -235,11 +231,11 @@ function TabMeasureLine({
   }
 
   function inputPlaceholder() {
-    const subSectionBpm = tabData[sectionIndex]?.data[subSectionIndex]?.bpm;
+    const subSectionBpm = subSection.bpm;
     if (subSectionBpm === -1) {
       return bpm === -1 ? "" : bpm.toString();
     }
-    return subSectionBpm?.toString() ?? "";
+    return subSectionBpm.toString();
   }
 
   return (

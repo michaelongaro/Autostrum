@@ -14,7 +14,6 @@ import { Label } from "~/components/ui/label";
 import {
   useTabStore,
   type ChordSection as ChordSectionType,
-  type Section,
   type StrummingPattern,
   type TabSection as TabSectionType,
 } from "~/stores/TabStore";
@@ -22,43 +21,43 @@ import { Separator } from "~/components/ui/separator";
 import ChordSection from "./ChordSection";
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabSection from "./TabSection";
-import { type Updater } from "use-immer";
+import { useSectionData } from "~/hooks/useTabDataSelectors";
 
 interface SectionContainer {
   sectionIndex: number;
-  sectionData: Section;
   currentlyPlayingSectionIndex: number;
   forceCloseSectionAccordions: boolean;
   setForceCloseSectionAccordions: Dispatch<SetStateAction<boolean>>;
-  tabData: Section[];
-  setTabData: Updater<Section[]>;
+  tabDataLength: number;
 }
 
 function SectionContainer({
-  sectionData,
   sectionIndex,
   currentlyPlayingSectionIndex,
   forceCloseSectionAccordions,
   setForceCloseSectionAccordions,
-  tabData,
-  setTabData,
+  tabDataLength,
 }: SectionContainer) {
-  const [accordionOpen, setAccordionOpen] = useState("opened");
-  const [localTitle, setLocalTitle] = useState(sectionData.title);
-
   const {
     bpm,
     strummingPatterns,
     sectionProgression,
     setSectionProgression,
     audioMetadata,
+    setTabData,
   } = useTabStore((state) => ({
     bpm: state.bpm,
     strummingPatterns: state.strummingPatterns,
     sectionProgression: state.sectionProgression,
     setSectionProgression: state.setSectionProgression,
     audioMetadata: state.audioMetadata,
+    setTabData: state.setTabData,
   }));
+
+  const section = useSectionData(sectionIndex);
+
+  const [accordionOpen, setAccordionOpen] = useState("opened");
+  const [localTitle, setLocalTitle] = useState(section.title);
 
   useEffect(() => {
     if (forceCloseSectionAccordions) {
@@ -92,7 +91,7 @@ function SectionContainer({
       const newSectionProgression = [...sectionProgression];
 
       for (const section of newSectionProgression) {
-        if (section.sectionId === tabData[sectionIndex]!.id) {
+        if (section.sectionId === section.id) {
           section.title = e.target.value;
         }
       }
@@ -177,7 +176,7 @@ function SectionContainer({
   return (
     <div
       style={{
-        paddingBottom: sectionIndex === tabData.length - 1 ? "2rem" : 0,
+        paddingBottom: sectionIndex === tabDataLength - 1 ? "2rem" : 0,
       }}
       className="baseVertFlex w-full gap-4 px-2 md:px-7"
     >
@@ -218,8 +217,6 @@ function SectionContainer({
                 type={"section"}
                 sectionIndex={sectionIndex}
                 forSectionContainer={true}
-                tabData={tabData}
-                setTabData={setTabData}
               />
             </div>
           </>
@@ -237,7 +234,7 @@ function SectionContainer({
               id={`sectionIndex${sectionIndex}`}
               className="baseVertFlex w-full gap-4"
             >
-              {sectionData.data.map((subSection, index) => (
+              {section.data.map((subSection, index) => (
                 <div
                   key={subSection.id}
                   className="baseVertFlex w-full !items-start pb-2"
@@ -247,17 +244,11 @@ function SectionContainer({
                       <ChordSection
                         sectionIndex={sectionIndex}
                         subSectionIndex={index}
-                        subSectionData={subSection}
-                        tabData={tabData}
-                        setTabData={setTabData}
                       />
                     ) : (
                       <TabSection
                         sectionIndex={sectionIndex}
                         subSectionIndex={index}
-                        subSectionData={subSection}
-                        tabData={tabData}
-                        setTabData={setTabData}
                       />
                     )}
                   </AnimatePresence>

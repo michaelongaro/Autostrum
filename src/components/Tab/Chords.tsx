@@ -9,9 +9,8 @@ import {
   AccordionTrigger,
 } from "~/components/ui/accordion";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabStore, type Section } from "~/stores/TabStore";
+import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
-import type { Updater } from "use-immer";
 
 const opacityVariants = {
   closed: {
@@ -22,11 +21,7 @@ const opacityVariants = {
   },
 };
 
-interface Chords {
-  setTabData: Updater<Section[]>;
-}
-
-function Chords({ setTabData }: Chords) {
+function Chords() {
   const [accordionValue, setAccordionValue] = useState("closed");
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
@@ -37,6 +32,7 @@ function Chords({ setTabData }: Chords) {
     pauseAudio,
     currentlyCopiedData,
     setCurrentlyCopiedData,
+    setTabData,
   } = useTabStore((state) => ({
     chords: state.chords,
     setChords: state.setChords,
@@ -44,6 +40,7 @@ function Chords({ setTabData }: Chords) {
     pauseAudio: state.pauseAudio,
     currentlyCopiedData: state.currentlyCopiedData,
     setCurrentlyCopiedData: state.setCurrentlyCopiedData,
+    setTabData: state.setTabData,
   }));
 
   function handleDeleteChord(index: number, chordNameToBeDeleted: string) {

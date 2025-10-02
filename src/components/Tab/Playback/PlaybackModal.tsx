@@ -13,7 +13,6 @@ import {
   type PlaybackStrummedChord as PlaybackStrummedChordType,
   type PlaybackLoopDelaySpacerChord,
   useTabStore,
-  type Section,
 } from "~/stores/TabStore";
 import PlaybackMenuContent from "~/components/Tab/Playback/PlaybackMenuContent";
 import PlaybackScrollingContainer from "~/components/Tab/Playback/PlaybackScrollingContainer";
@@ -32,11 +31,7 @@ const backdropVariants = {
 
 const virtualizationBuffer = 100;
 
-interface PlaybackModal {
-  tabData: Section[];
-}
-
-function PlaybackModal({ tabData }: PlaybackModal) {
+function PlaybackModal() {
   const {
     currentChordIndex,
     expandedTabData,
@@ -516,7 +511,6 @@ function PlaybackModal({ tabData }: PlaybackModal) {
           <PlaybackTopMetadata
             tabProgressValue={tabProgressValue}
             setTabProgressValue={setTabProgressValue}
-            tabData={tabData}
           />
 
           <AnimatePresence mode="popLayout">
@@ -668,7 +662,6 @@ function PlaybackModal({ tabData }: PlaybackModal) {
                 setTabProgressValue={setTabProgressValue}
                 setChordRepetitions={setChordRepetitions}
                 scrollPositionsLength={scrollPositions.length}
-                tabData={tabData}
               />
 
               <PlaybackBottomMetadata
@@ -678,7 +671,6 @@ function PlaybackModal({ tabData }: PlaybackModal) {
                 setTabProgressValue={setTabProgressValue}
                 showBackgroundBlur={showBackgroundBlur}
                 setShowBackgroundBlur={setShowBackgroundBlur}
-                tabData={tabData}
               />
             </div>
           )}

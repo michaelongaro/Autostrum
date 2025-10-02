@@ -41,7 +41,7 @@ import {
 } from "~/components/ui/select";
 import { Toggle } from "~/components/ui/toggle";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
-import { useTabStore, type Section } from "~/stores/TabStore";
+import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { tuningNotesToName } from "~/utils/tunings";
@@ -54,7 +54,6 @@ interface PlaybackBottomMetadata {
   setTabProgressValue: Dispatch<SetStateAction<number>>;
   showBackgroundBlur: boolean;
   setShowBackgroundBlur: Dispatch<SetStateAction<boolean>>;
-  tabData: Section[];
 }
 
 function PlaybackBottomMetadata({
@@ -64,7 +63,6 @@ function PlaybackBottomMetadata({
   setTabProgressValue,
   showBackgroundBlur,
   setShowBackgroundBlur,
-  tabData,
 }: PlaybackBottomMetadata) {
   const {
     capo,
@@ -96,8 +94,11 @@ function PlaybackBottomMetadata({
 
   // idk if best approach, but need unique section titles, not the whole progression
   const sections = useMemo(() => {
-    return tabData.map((section) => ({ id: section.id, title: section.title }));
-  }, [tabData]);
+    return sectionProgression.map((section) => ({
+      id: section.id,
+      title: section.title,
+    }));
+  }, [sectionProgression]);
 
   // const index = realChordsToFullChordsMap[currentChordIndex];
 
@@ -143,8 +144,9 @@ function PlaybackBottomMetadata({
                       value={
                         audioMetadata.location === null
                           ? "fullTab"
-                          : tabData[audioMetadata.location?.sectionIndex ?? 0]
-                              ?.id
+                          : sectionProgression[
+                              audioMetadata.location?.sectionIndex ?? 0
+                            ]?.id
                       }
                       onValueChange={(value) => {
                         setAudioMetadata({
@@ -164,11 +166,11 @@ function PlaybackBottomMetadata({
                         <SelectValue placeholder="Select a section">
                           {audioMetadata.location === null
                             ? "Full tab"
-                            : tabData[
+                            : sectionProgression[
                                 sections.findIndex((elem) => {
                                   return (
                                     elem.id ===
-                                    tabData[
+                                    sectionProgression[
                                       audioMetadata.location?.sectionIndex ?? 0
                                     ]?.id
                                   );

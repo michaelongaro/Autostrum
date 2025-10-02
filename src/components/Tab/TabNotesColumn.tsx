@@ -11,7 +11,7 @@ import {
 } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
-import { useTabStore, type Section } from "~/stores/TabStore";
+import { useTabStore } from "~/stores/TabStore";
 import { BsPlus } from "react-icons/bs";
 import {
   DropdownMenu,
@@ -29,7 +29,7 @@ import PalmMuteNode from "./PalmMuteNode";
 import TabNote from "./TabNote";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 import Ellipsis from "~/components/ui/icons/Ellipsis";
-import type { Updater } from "use-immer";
+import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
 
 const noteLengthDurations = ["1/4th", "1/8th", "1/16th"];
 interface TabNotesColumn {
@@ -54,8 +54,6 @@ interface TabNotesColumn {
   showingDeleteColumnsButtons: boolean;
   columnIdxBeingHovered: number | null;
   setColumnIdxBeingHovered: Dispatch<SetStateAction<number | null>>;
-  tabData: Section[];
-  setTabData: Updater<Section[]>;
 }
 
 function TabNotesColumn({
@@ -78,8 +76,6 @@ function TabNotesColumn({
   showingDeleteColumnsButtons,
   columnIdxBeingHovered,
   setColumnIdxBeingHovered,
-  tabData,
-  setTabData,
 }: TabNotesColumn) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
@@ -100,13 +96,15 @@ function TabNotesColumn({
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const { audioMetadata, pauseAudio, currentChordIndex } = useTabStore(
+  const { pauseAudio, currentChordIndex, setTabData } = useTabStore(
     (state) => ({
-      audioMetadata: state.audioMetadata,
       pauseAudio: state.pauseAudio,
       currentChordIndex: state.currentChordIndex,
+      setTabData: state.setTabData,
     }),
   );
+
+  const subSection = useTabSubSectionData(sectionIndex, subSectionIndex);
 
   // ideally don't need this and can just use prop values passed in, but need to have
   // [0] index special case since when looping it would keep the [0] index at 100% width
@@ -130,16 +128,7 @@ function TabNotesColumn({
   function deleteColumnButtonDisabled() {
     let disabled = false;
 
-    const currentSection = tabData[sectionIndex]?.data[subSectionIndex];
-
-    if (
-      currentSection === undefined ||
-      audioMetadata.playing ||
-      currentSection.type !== "tab"
-    )
-      return true;
-
-    if (currentSection?.data.length === 1) {
+    if (subSection.data.length === 1) {
       disabled = true;
     }
 
@@ -147,17 +136,17 @@ function TabNotesColumn({
     // right after/before -> disable
     if (
       (columnIndex === 0 &&
-        currentSection.data[columnIndex + 1]?.[8] === "measureLine") ||
-      (columnIndex === currentSection.data.length - 1 &&
-        currentSection.data[columnIndex - 1]?.[8] === "measureLine")
+        subSection.data[columnIndex + 1]?.[8] === "measureLine") ||
+      (columnIndex === subSection.data.length - 1 &&
+        subSection.data[columnIndex - 1]?.[8] === "measureLine")
     ) {
       disabled = true;
     }
 
     // if the current chord is being flanked by two measure lines -> disable
     if (
-      currentSection.data[columnIndex - 1]?.[8] === "measureLine" &&
-      currentSection.data[columnIndex + 1]?.[8] === "measureLine"
+      subSection.data[columnIndex - 1]?.[8] === "measureLine" &&
+      subSection.data[columnIndex + 1]?.[8] === "measureLine"
     ) {
       disabled = true;
     }
@@ -307,8 +296,6 @@ function TabNotesColumn({
                     setEditingPalmMuteNodes={setEditingPalmMuteNodes}
                     lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
                     setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
-                    tabData={tabData}
-                    setTabData={setTabData}
                   />
                 </div>
               )}
@@ -415,8 +402,6 @@ function TabNotesColumn({
                     subSectionIndex={subSectionIndex}
                     columnIndex={columnIndex}
                     noteIndex={index}
-                    tabData={tabData}
-                    setTabData={setTabData}
                   />
 
                   <div className="h-[1px] flex-[1] bg-foreground/50"></div>
@@ -434,8 +419,6 @@ function TabNotesColumn({
                         subSectionIndex={subSectionIndex}
                         columnIndex={columnIndex}
                         noteIndex={index}
-                        tabData={tabData}
-                        setTabData={setTabData}
                       />
                     </div>
                   </div>

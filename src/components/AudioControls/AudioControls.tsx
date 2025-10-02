@@ -41,7 +41,7 @@ import { Toggle } from "~/components/ui/toggle";
 import useAutoscrollToCurrentChord from "~/hooks/useAutoscrollToCurrentChord";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabStore, type Section } from "~/stores/TabStore";
+import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import scrollChordIntoView from "~/utils/scrollChordIntoView";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
@@ -60,11 +60,7 @@ const opacityAndScaleVariants = {
   },
 };
 
-interface AudioControls {
-  tabData: Section[];
-}
-
-function AudioControls({ tabData }: AudioControls) {
+function AudioControls() {
   const { asPath } = useRouter();
 
   const [chordDurations, setChordDurations] = useState<number[]>([]);
@@ -112,6 +108,7 @@ function AudioControls({ tabData }: AudioControls) {
     fetchingFullTabData,
     mobileHeaderModal,
     setMobileHeaderModal,
+    tabData,
   } = useTabStore((state) => ({
     id: state.id,
     bpm: state.bpm,
@@ -134,6 +131,7 @@ function AudioControls({ tabData }: AudioControls) {
     fetchingFullTabData: state.fetchingFullTabData,
     mobileHeaderModal: state.mobileHeaderModal,
     setMobileHeaderModal: state.setMobileHeaderModal,
+    tabData: state.tabData,
   }));
 
   useEffect(() => {
@@ -177,7 +175,7 @@ function AudioControls({ tabData }: AudioControls) {
       if (previewMetadata.playing) pauseAudio();
 
       setTimeout(() => {
-        void playTab({ tabData, tabId: id, location: audioMetadata.location });
+        void playTab({ tabId: id, location: audioMetadata.location });
       }, delayForStoreStateToUpdate);
     }
   }
@@ -874,7 +872,6 @@ function AudioControls({ tabData }: AudioControls) {
                       // (really only is necessary for fast click+release cases)
                       setTimeout(() => {
                         void playTab({
-                          tabData,
                           tabId: id,
                           location: audioMetadata.location,
                         });

@@ -21,7 +21,6 @@ import {
 } from "~/components/ui/select";
 import {
   useTabStore,
-  type Section,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
@@ -29,11 +28,10 @@ import StrummingPatternPalmMuteNode from "../Tab/StrummingPatternPalmMuteNode";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import type { Updater } from "use-immer";
 
 interface StrummingPattern {
   data: StrummingPatternType;
-  chordSequenceData?: string[];
+  chordSequence?: string[];
 
   mode:
     | "editingStrummingPattern"
@@ -56,12 +54,11 @@ interface StrummingPattern {
   setLastModifiedPalmMuteNode: Dispatch<
     SetStateAction<LastModifiedPalmMuteNodeLocation | null>
   >;
-  setTabData?: Updater<Section[]>;
 }
 
 function StrummingPattern({
   data,
-  chordSequenceData,
+  chordSequence,
   mode,
   index,
   sectionIndex,
@@ -73,7 +70,6 @@ function StrummingPattern({
   showingDeleteStrumsButtons,
   lastModifiedPalmMuteNode,
   setLastModifiedPalmMuteNode,
-  setTabData,
 }: StrummingPattern) {
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
 
@@ -88,6 +84,7 @@ function StrummingPattern({
     currentChordIndex,
     previewMetadata,
     audioMetadata,
+    setTabData,
   } = useTabStore((state) => ({
     chords: state.chords,
     setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
@@ -95,6 +92,7 @@ function StrummingPattern({
     currentChordIndex: state.currentChordIndex,
     previewMetadata: state.previewMetadata,
     audioMetadata: state.audioMetadata,
+    setTabData: state.setTabData,
   }));
 
   useEffect(() => {
@@ -523,15 +521,13 @@ function StrummingPattern({
                         handleChordChange(value, strumIndex)
                       }
                       value={
-                        chordSequenceData?.[strumIndex] === ""
+                        chordSequence?.[strumIndex] === ""
                           ? "noChord"
-                          : chordSequenceData?.[strumIndex]
+                          : chordSequence?.[strumIndex]
                       }
                     >
                       <SelectTrigger className="w-fit">
-                        <SelectValue>
-                          {chordSequenceData?.[strumIndex]}
-                        </SelectValue>
+                        <SelectValue>{chordSequence?.[strumIndex]}</SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup className="max-h-60 overflow-y-auto overflow-x-hidden">

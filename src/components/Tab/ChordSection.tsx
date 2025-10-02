@@ -3,19 +3,11 @@ import { Fragment } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import {
-  useTabStore,
-  type ChordSection as ChordSectionType,
-  type ChordSequence as ChordSequenceType,
-  type Section,
-} from "~/stores/TabStore";
-import {
-  chordSequencesAllHaveSameNoteLength,
-  QuarterNote,
-} from "~/utils/bpmIconRenderingHelpers";
+import { useTabStore } from "~/stores/TabStore";
+import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
 import ChordSequence from "./ChordSequence";
 import MiscellaneousControls from "./MiscellaneousControls";
-import type { Updater } from "use-immer";
+import { useChordSubSectionData } from "~/hooks/useTabDataSelectors";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -38,21 +30,15 @@ const opacityAndScaleVariants = {
 export interface ChordSection {
   sectionIndex: number;
   subSectionIndex: number;
-  subSectionData: ChordSectionType;
-  tabData: Section[];
-  setTabData: Updater<Section[]>;
 }
 
-function ChordSection({
-  sectionIndex,
-  subSectionIndex,
-  subSectionData,
-  tabData,
-  setTabData,
-}: ChordSection) {
-  const { bpm } = useTabStore((state) => ({
+function ChordSection({ sectionIndex, subSectionIndex }: ChordSection) {
+  const { bpm, setTabData } = useTabStore((state) => ({
     bpm: state.bpm,
+    setTabData: state.setTabData,
   }));
+
+  const subSection = useChordSubSectionData(sectionIndex, subSectionIndex);
 
   function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newRepetitions =
@@ -98,7 +84,7 @@ function ChordSection({
 
   return (
     <motion.div
-      key={subSectionData.id}
+      key={subSection.id}
       layout={"position"}
       variants={opacityAndScaleVariants}
       initial={"closed"}
@@ -133,17 +119,13 @@ function ChordSection({
                   pattern="[0-9]*"
                   className="w-[52px] px-2.5"
                   placeholder={
-                    subSectionData.bpm === -1
+                    subSection.bpm === -1
                       ? bpm === -1
                         ? ""
                         : bpm.toString()
-                      : subSectionData.bpm.toString()
+                      : subSection.bpm.toString()
                   }
-                  value={
-                    subSectionData.bpm === -1
-                      ? ""
-                      : subSectionData.bpm.toString()
-                  }
+                  value={subSection.bpm === -1 ? "" : subSection.bpm.toString()}
                   onChange={handleBpmChange}
                 />
               </div>
@@ -165,9 +147,9 @@ function ChordSection({
                   placeholder="1"
                   className="w-[45px] pl-4"
                   value={
-                    subSectionData.repetitions === -1
+                    subSection.repetitions === -1
                       ? ""
-                      : subSectionData.repetitions.toString()
+                      : subSection.repetitions.toString()
                   }
                   onChange={handleRepetitionsChange}
                 />
@@ -179,14 +161,12 @@ function ChordSection({
           type={"chord"}
           sectionIndex={sectionIndex}
           subSectionIndex={subSectionIndex}
-          tabData={tabData}
-          setTabData={setTabData}
         />
       </div>
 
       <AnimatePresence mode="wait">
         <motion.div
-          key={`${subSectionData.id}ChordSectionWrapper`}
+          key={`${subSection.id}ChordSectionWrapper`}
           layout={"position"}
           variants={opacityAndScaleVariants}
           initial={"closed"}
@@ -201,7 +181,7 @@ function ChordSection({
           }}
           className="baseVertFlex w-full !items-end !justify-start gap-6"
         >
-          {subSectionData.data.map((chordSequence, index) => (
+          {subSection.data.map((chordSequence, index) => (
             <Fragment key={`${chordSequence.id}wrapper`}>
               <div className="baseVertFlex w-full !items-start">
                 <AnimatePresence mode="wait">
@@ -209,10 +189,6 @@ function ChordSection({
                     sectionIndex={sectionIndex}
                     subSectionIndex={subSectionIndex}
                     chordSequenceIndex={index}
-                    chordSequenceData={chordSequence}
-                    subSectionData={subSectionData}
-                    tabData={tabData}
-                    setTabData={setTabData}
                   />
                 </AnimatePresence>
               </div>

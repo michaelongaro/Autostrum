@@ -92,14 +92,9 @@ const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 type TabMetadata = {
   customTuning: string | null;
   setIsPublishingOrUpdating: Dispatch<SetStateAction<boolean>>;
-  tabData: Section[];
 };
 
-function TabMetadata({
-  customTuning,
-  setIsPublishingOrUpdating,
-  tabData,
-}: TabMetadata) {
+function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
   const { userId } = useAuth();
   const { push, asPath } = useRouter();
 
@@ -139,6 +134,7 @@ function TabMetadata({
     setCurrentChordIndex,
     viewportLabel,
     theme,
+    tabData,
   } = useTabStore((state) => ({
     originalTabData: state.originalTabData,
     id: state.id,
@@ -175,6 +171,7 @@ function TabMetadata({
     setCurrentChordIndex: state.setCurrentChordIndex,
     viewportLabel: state.viewportLabel,
     theme: state.theme,
+    tabData: state.tabData,
   }));
 
   const { data: dynamicMetadata } =

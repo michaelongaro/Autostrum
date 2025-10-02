@@ -11,11 +11,7 @@ import {
 } from "~/utils/playbackChordCompilationHelpers";
 import debounce from "lodash.debounce";
 
-interface UseAutoCompileChords {
-  tabData: Section[];
-}
-
-function useAutoCompileChords({ tabData }: UseAutoCompileChords) {
+function useAutoCompileChords() {
   const {
     editing,
     setCurrentlyPlayingMetadata,
@@ -31,6 +27,7 @@ function useAutoCompileChords({ tabData }: UseAutoCompileChords) {
     setSectionProgression,
     visiblePlaybackContainerWidth,
     loopDelay,
+    tabData,
   } = useTabStore((state) => ({
     editing: state.editing,
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
@@ -46,6 +43,7 @@ function useAutoCompileChords({ tabData }: UseAutoCompileChords) {
     setSectionProgression: state.setSectionProgression,
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
     loopDelay: state.loopDelay,
+    tabData: state.tabData,
   }));
 
   const [

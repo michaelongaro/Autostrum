@@ -3,18 +3,13 @@ import { motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { BsFillPlayFill, BsKeyboard } from "react-icons/bs";
 import { Label } from "~/components/ui/label";
-import {
-  useTabStore,
-  type Chord as ChordType,
-  type Section,
-} from "~/stores/TabStore";
+import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import Chord from "../Tab/Chord";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import { X } from "lucide-react";
-import type { Updater } from "use-immer";
 
 const backdropVariants = {
   expanded: {
@@ -27,10 +22,9 @@ const backdropVariants = {
 
 interface ChordModal {
   chordBeingEdited: { index: number; value: ChordType };
-  setTabData: Updater<Section[]>;
 }
 
-function ChordModal({ chordBeingEdited, setTabData }: ChordModal) {
+function ChordModal({ chordBeingEdited }: ChordModal) {
   const {
     chords,
     setChords,
@@ -40,6 +34,7 @@ function ChordModal({ chordBeingEdited, setTabData }: ChordModal) {
     capo,
     playPreview,
     pauseAudio,
+    setTabData,
   } = useTabStore((state) => ({
     chords: state.chords,
     setChords: state.setChords,
@@ -49,6 +44,7 @@ function ChordModal({ chordBeingEdited, setTabData }: ChordModal) {
     capo: state.capo,
     playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
+    setTabData: state.setTabData,
   }));
 
   useModalScrollbarHandling();

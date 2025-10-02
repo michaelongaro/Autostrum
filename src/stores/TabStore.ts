@@ -3,6 +3,7 @@ import type Soundfont from "soundfont-player";
 import { devtools } from "zustand/middleware";
 import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/shallow";
+import { immer } from "zustand/middleware/immer";
 import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
 import {
   compileFullTab,
@@ -158,7 +159,6 @@ export interface PreviewMetadata {
 }
 
 interface PlayTab {
-  tabData: Section[];
   tabId: number;
   location: {
     sectionIndex: number;
@@ -247,6 +247,13 @@ export type THEME = "light" | "dark";
 const initialStoreState = {
   // tab data
   originalTabData: null,
+  tabData: [
+    {
+      id: crypto.randomUUID(),
+      title: "Section 1",
+      data: [],
+    },
+  ] as Section[],
   id: -1,
   createdByUserId: null,
   createdAt: null,
@@ -364,6 +371,9 @@ interface TabState {
   setChords: (chords: Chord[]) => void;
   strummingPatterns: StrummingPattern[];
   setStrummingPatterns: (strummingPatterns: StrummingPattern[]) => void;
+
+  tabData: Section[];
+  setTabData: (updater: (draft: Section[]) => void) => void;
 
   ratingsCount: number;
   setRatingsCount: (ratingsCount: number) => void;
@@ -591,14 +601,9 @@ interface TabState {
   resetStoreToInitValues: () => void;
 }
 
-// if you ever come across a situation where you need the current value of tabData
-// and can't for w/e reason use it in the component itself, you can try this convention below:
-// although it will prob need to be much more generic given you are updating nested objects (immer?)
-//        increase: (by) => set((state) => ({ bears: state.bears + by })),
-
 export const useTabStore = createWithEqualityFn<TabState>()(
   devtools(
-    (set, get) => ({
+    immer((set, get) => ({
       // used in <Tab />
       originalTabData: null,
       setOriginalTabData: (originalTabData) => set({ originalTabData }),
@@ -612,6 +617,18 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       setUpdatedAt: (updatedAt) => set({ updatedAt }),
       title: "",
       setTitle: (title) => set({ title }),
+
+      tabData: [
+        {
+          id: crypto.randomUUID(),
+          title: "Section 1",
+          data: [],
+        },
+      ],
+      setTabData: (updater) =>
+        set((draft) => {
+          updater(draft.tabData);
+        }),
 
       artistId: null,
       setArtistId: (artistId) => set({ artistId }),
@@ -768,7 +785,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
         fullCurrentlyPlayingMetadataLength: -1,
       },
       setAudioMetadata: (audioMetadata) => set({ audioMetadata }),
-      instruments: {},
+      instruments: {} as Record<InstrumentNames, Soundfont.Player>,
       setInstruments: (instruments) => set({ instruments }),
       currentInstrument: null,
       setCurrentInstrument: (currentInstrument) => set({ currentInstrument }),
@@ -788,8 +805,9 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       ) => set({ interactingWithAudioProgressSlider }),
 
       // playing/pausing sound functions
-      playTab: async ({ tabData, location, tabId }: PlayTab) => {
+      playTab: async ({ location, tabId }: PlayTab) => {
         const {
+          tabData,
           audioMetadata,
           editing,
           sectionProgression: rawSectionProgression,
@@ -1218,7 +1236,7 @@ export const useTabStore = createWithEqualityFn<TabState>()(
 
       // reset
       resetStoreToInitValues: () => set(initialStoreState),
-    }),
+    })),
     shallow,
   ),
 );

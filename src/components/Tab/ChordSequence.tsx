@@ -11,12 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import {
-  useTabStore,
-  type ChordSequence as ChordSequenceData,
-  type ChordSection,
-  type Section,
-} from "~/stores/TabStore";
+import { useTabStore } from "~/stores/TabStore";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -24,7 +19,10 @@ import MiscellaneousControls from "./MiscellaneousControls";
 import StrummingPattern from "./StrummingPattern";
 import StrummingPatternPreview from "./StrummingPatternPreview";
 import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
-import { type Updater } from "use-immer";
+import {
+  useChordSequenceData,
+  useChordSubSectionData,
+} from "~/hooks/useTabDataSelectors";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -48,29 +46,17 @@ export interface ChordSequence {
   sectionIndex: number;
   subSectionIndex: number;
   chordSequenceIndex: number;
-  chordSequenceData: ChordSequenceData;
-  subSectionData: ChordSection;
-  tabData: Section[];
-  setTabData: Updater<Section[]>;
 }
 
 function ChordSequence({
   sectionIndex,
   subSectionIndex,
   chordSequenceIndex,
-  chordSequenceData,
-  subSectionData,
-  tabData,
-  setTabData,
 }: ChordSequence) {
   const [selectIsOpen, setSelectIsOpen] = useState(false);
   const [
     indexOfCurrentlySelectedStrummingPattern,
     setIndexOfCurrentlySelectedStrummingPattern,
-  ] = useState(0);
-  const [
-    indexOfCurrentlyFocusedStrummingPattern,
-    setIndexOfCurrentlyFocusedStrummingPattern,
   ] = useState(0);
 
   // this is hacky dummy state so that the <StrummingPattern /> can render the palm mute node
@@ -79,24 +65,32 @@ function ChordSequence({
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
 
-  const { bpm, strummingPatterns, setStrummingPatternBeingEdited } =
+  const { bpm, strummingPatterns, setStrummingPatternBeingEdited, setTabData } =
     useTabStore((state) => ({
       bpm: state.bpm,
       strummingPatterns: state.strummingPatterns,
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
+      setTabData: state.setTabData,
     }));
+
+  const subSection = useChordSubSectionData(sectionIndex, subSectionIndex);
+  const chordSequence = useChordSequenceData(
+    sectionIndex,
+    subSectionIndex,
+    chordSequenceIndex,
+  );
 
   // sets sequence's strumming pattern to first existing pattern if the current pattern is empty
   useEffect(() => {
     if (
-      Object.keys(chordSequenceData.strummingPattern).length === 0 &&
+      Object.keys(chordSequence.strummingPattern).length === 0 &&
       strummingPatterns[0]
     ) {
       setTabData((draft) => {
         // fill in the chord sequence with empty strings the size of the strumming pattern
         draft[sectionIndex]!.data[subSectionIndex]!.data[chordSequenceIndex] = {
-          id: chordSequenceData.id,
-          repetitions: chordSequenceData.repetitions,
+          id: chordSequence.id,
+          repetitions: chordSequence.repetitions,
           bpm: -1,
           strummingPattern: strummingPatterns[0]!,
           data: Array.from(
@@ -112,20 +106,20 @@ function ChordSequence({
     strummingPatterns,
     subSectionIndex,
     sectionIndex,
-    chordSequenceData,
+    chordSequence,
     chordSequenceIndex,
     setTabData,
   ]);
 
   const placeholderBpm = useMemo(() => {
-    if (chordSequenceData.bpm !== -1) return chordSequenceData.bpm.toString();
+    if (chordSequence.bpm !== -1) return chordSequence.bpm.toString();
 
-    if (subSectionData.bpm !== -1) return subSectionData.bpm.toString();
+    if (subSection.bpm !== -1) return subSection.bpm.toString();
 
     if (bpm !== -1) return bpm.toString();
 
     return "";
-  }, [bpm, subSectionData.bpm, chordSequenceData.bpm]);
+  }, [bpm, subSection.bpm, chordSequence.bpm]);
 
   function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newRepetitions =
@@ -188,7 +182,7 @@ function ChordSequence({
 
   return (
     <motion.div
-      key={chordSequenceData.id}
+      key={chordSequence.id}
       layout={"position"}
       variants={opacityAndScaleVariants}
       initial={"closed"}
@@ -203,7 +197,7 @@ function ChordSequence({
       }}
       className="baseFlex w-full"
     >
-      {Object.keys(chordSequenceData.strummingPattern).length === 0 ? (
+      {Object.keys(chordSequence.strummingPattern).length === 0 ? (
         <div className="baseVertFlex relative h-full w-full gap-2 rounded-md border bg-background px-4 py-8 shadow-sm">
           <p className="mt-8 text-lg font-semibold sm:mt-0">
             No strumming patterns exist
@@ -234,8 +228,6 @@ function ChordSequence({
               subSectionIndex={subSectionIndex}
               chordSequenceIndex={chordSequenceIndex}
               hidePlayPauseButton={true}
-              tabData={tabData}
-              setTabData={setTabData}
             />
           </div>
         </div>
@@ -260,9 +252,9 @@ function ChordSequence({
                     className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
                     placeholder={placeholderBpm}
                     value={
-                      chordSequenceData.bpm === -1
+                      chordSequence.bpm === -1
                         ? ""
-                        : chordSequenceData.bpm.toString()
+                        : chordSequence.bpm.toString()
                     }
                     onChange={handleBpmChange}
                   />
@@ -287,9 +279,9 @@ function ChordSequence({
                     className="w-[45px] pl-4"
                     placeholder="1"
                     value={
-                      chordSequenceData.repetitions === -1
+                      chordSequence.repetitions === -1
                         ? ""
-                        : chordSequenceData.repetitions.toString()
+                        : chordSequence.repetitions.toString()
                     }
                     onChange={handleRepetitionsChange}
                   />
@@ -328,16 +320,7 @@ function ChordSequence({
                       <SelectLabel>Strumming patterns</SelectLabel>
                       {strummingPatterns.map((pattern, index) => {
                         return (
-                          <SelectItem
-                            key={index}
-                            value={`${index}`}
-                            onFocus={() => {
-                              setIndexOfCurrentlyFocusedStrummingPattern(index);
-                            }}
-                            onBlur={() => {
-                              setIndexOfCurrentlyFocusedStrummingPattern(-1);
-                            }}
-                          >
+                          <SelectItem key={index} value={`${index}`}>
                             <StrummingPattern
                               data={pattern}
                               mode={"viewingInSelectDropdown"}
@@ -347,7 +330,6 @@ function ChordSequence({
                               setLastModifiedPalmMuteNode={
                                 setLastModifiedPalmMuteNode
                               }
-                              setTabData={setTabData}
                             />
                           </SelectItem>
                         );
@@ -387,21 +369,18 @@ function ChordSequence({
               sectionIndex={sectionIndex}
               subSectionIndex={subSectionIndex}
               chordSequenceIndex={chordSequenceIndex}
-              tabData={tabData}
-              setTabData={setTabData}
             />
           </div>
 
           <StrummingPattern
-            data={chordSequenceData.strummingPattern}
-            chordSequenceData={chordSequenceData.data}
+            data={chordSequence.strummingPattern}
+            chordSequence={chordSequence.data}
             mode={"editingChordSequence"}
             sectionIndex={sectionIndex}
             subSectionIndex={subSectionIndex}
             chordSequenceIndex={chordSequenceIndex}
             lastModifiedPalmMuteNode={lastModifiedPalmMuteNode} // hopefully this doesn't crash something
             setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode} // hopefully this doesn't crash something
-            setTabData={setTabData}
           />
         </div>
       )}

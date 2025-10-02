@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
-import { useTabStore, type Section } from "~/stores/TabStore";
+import { useTabStore } from "~/stores/TabStore";
 
-interface UseSpacebarAudioControls {
-  tabData: Section[];
-}
-
-function useSpacebarAudioControl({ tabData }: UseSpacebarAudioControls) {
+function useSpacebarAudioControl() {
   const {
     id,
     audioMetadata,
@@ -38,7 +34,7 @@ function useSpacebarAudioControl({ tabData }: UseSpacebarAudioControls) {
       });
 
       setTimeout(() => {
-        void playTab({ tabData, tabId: id, location: audioMetadata.location });
+        void playTab({ tabId: id, location: audioMetadata.location });
 
         setCountInTimer({
           ...countInTimer,
@@ -58,7 +54,6 @@ function useSpacebarAudioControl({ tabData }: UseSpacebarAudioControls) {
     audioMetadata.playing,
     countInTimer,
     id,
-    tabData,
     pauseAudio,
     playTab,
     setCountInTimer,

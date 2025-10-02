@@ -15,7 +15,6 @@ import {
 } from "~/components/ui/select";
 import {
   useTabStore,
-  type Section,
   type StrummingPattern as StrummingPatternType,
   type ChordSequence,
 } from "~/stores/TabStore";
@@ -31,7 +30,6 @@ import {
 } from "~/utils/bpmIconRenderingHelpers";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { X } from "lucide-react";
-import type { Updater } from "use-immer";
 
 const backdropVariants = {
   expanded: {
@@ -91,12 +89,10 @@ interface StrummingPatternModal {
     index: number;
     value: StrummingPatternType;
   };
-  setTabData: Updater<Section[]>;
 }
 
 function StrummingPatternModal({
   strummingPatternBeingEdited,
-  setTabData,
 }: StrummingPatternModal) {
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
@@ -116,6 +112,7 @@ function StrummingPatternModal({
     audioMetadata,
     playPreview,
     pauseAudio,
+    setTabData,
   } = useTabStore((state) => ({
     strummingPatterns: state.strummingPatterns,
     setStrummingPatterns: state.setStrummingPatterns,
@@ -124,6 +121,7 @@ function StrummingPatternModal({
     audioMetadata: state.audioMetadata,
     playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
+    setTabData: state.setTabData,
   }));
 
   const getPMNodeOpacities = useCallback(() => {

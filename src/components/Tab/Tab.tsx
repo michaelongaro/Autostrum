@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { FaBook } from "react-icons/fa";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
-import { type Section, useTabStore } from "~/stores/TabStore";
+import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import {
@@ -47,7 +47,6 @@ import {
   CarouselContent,
   CarouselItem,
 } from "~/components/ui/carousel";
-import { useImmer } from "use-immer";
 import TipsDialog from "~/components/Dialogs/TipsDialog";
 import { IoMdSettings } from "react-icons/io";
 import { Label } from "~/components/ui/label";
@@ -80,8 +79,6 @@ function Tab({ tab }: Tab) {
   const [isPublishingOrUpdating, setIsPublishingOrUpdating] = useState(false);
   const [showTipsModal, setShowTipsModal] = useState(false);
   const [tabContentIsInView, setTabContentIsInView] = useState(false);
-
-  const [tabData, setTabData] = useImmer<Section[]>([]);
 
   // true when creating new section, results in way less cpu/ram usage for arguably worse ux
   const [forceCloseSectionAccordions, setForceCloseSectionAccordions] =
@@ -147,6 +144,8 @@ function Tab({ tab }: Tab) {
     snapshotTabInLocalStorage,
     setSnapshotTabInLocalStorage,
     getStringifiedTabData,
+    tabData,
+    setTabData,
   } = useTabStore((state) => ({
     setId: state.setId,
     setCreatedByUserId: state.setCreatedByUserId,
@@ -190,6 +189,8 @@ function Tab({ tab }: Tab) {
     snapshotTabInLocalStorage: state.snapshotTabInLocalStorage,
     setSnapshotTabInLocalStorage: state.setSnapshotTabInLocalStorage,
     getStringifiedTabData: state.getStringifiedTabData,
+    tabData: state.tabData,
+    setTabData: state.setTabData,
   }));
 
   useEffect(() => {
@@ -217,25 +218,15 @@ function Tab({ tab }: Tab) {
     setChords(tab.chords);
     // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setStrummingPatterns(tab.strummingPatterns);
-    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
-    setTabData(tab.tabData);
+    setTabData((draft) => {
+      // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
+      draft.splice(0, draft.length, ...tab.tabData);
+    });
     // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
     setSectionProgression(tab.sectionProgression ?? []);
 
     setCustomTuning(tuningNotes.includes(tab.tuning) ? null : tab.tuning);
   }, [tab]);
-
-  useEffect(() => {
-    if (!tab && tabData.length === 0) {
-      setTabData([
-        {
-          id: crypto.randomUUID(),
-          title: "Section 1",
-          data: [],
-        },
-      ]);
-    }
-  }, [tab, tabData, setTabData]);
 
   useEffect(() => {
     if (!localStorageTabData.value || tabData.length > 0) return;
@@ -273,7 +264,7 @@ function Tab({ tab }: Tab) {
     localStorageTabData.remove();
   }, [
     localStorageTabData,
-    tabData,
+    tabData.length,
     setBpm,
     setCapo,
     setDescription,
@@ -304,7 +295,7 @@ function Tab({ tab }: Tab) {
     setSnapshotTabInLocalStorage,
   ]);
 
-  useAutoCompileChords({ tabData });
+  useAutoCompileChords();
 
   function addNewSection() {
     setTabData((draft) => {
@@ -339,7 +330,6 @@ function Tab({ tab }: Tab) {
         <TabMetadata
           customTuning={customTuning}
           setIsPublishingOrUpdating={setIsPublishingOrUpdating}
-          tabData={tabData}
         />
 
         {!editing &&
@@ -365,8 +355,8 @@ function Tab({ tab }: Tab) {
         {editing ? (
           <div className="baseVertFlex relative mb-4 mt-6 w-full gap-4 sm:mb-0 sm:mt-4">
             <SectionProgression />
-            <Chords setTabData={setTabData} />
-            <StrummingPatterns setTabData={setTabData} />
+            <Chords />
+            <StrummingPatterns />
 
             <div className="baseFlex gap-4">
               <Button
@@ -493,7 +483,6 @@ function Tab({ tab }: Tab) {
                 {editing ? (
                   <SectionContainer
                     sectionIndex={index}
-                    sectionData={section}
                     currentlyPlayingSectionIndex={
                       currentlyPlayingMetadata?.[currentChordIndex]?.location
                         .sectionIndex ?? 0
@@ -505,8 +494,7 @@ function Tab({ tab }: Tab) {
                     setForceCloseSectionAccordions={
                       setForceCloseSectionAccordions
                     }
-                    tabData={tabData}
-                    setTabData={setTabData}
+                    tabDataLength={tabData.length}
                   />
                 ) : (
                   <StaticSectionContainer
@@ -654,9 +642,7 @@ function Tab({ tab }: Tab) {
       </AnimatePresence>
 
       <AnimatePresence mode="wait">
-        {showSectionProgressionModal && (
-          <SectionProgressionModal tabData={tabData} />
-        )}
+        {showSectionProgressionModal && <SectionProgressionModal />}
       </AnimatePresence>
 
       <TipsDialog
@@ -668,10 +654,7 @@ function Tab({ tab }: Tab) {
 
       <AnimatePresence mode="wait">
         {chordBeingEdited && (
-          <ChordModal
-            chordBeingEdited={structuredClone(chordBeingEdited)}
-            setTabData={setTabData}
-          />
+          <ChordModal chordBeingEdited={structuredClone(chordBeingEdited)} />
         )}
       </AnimatePresence>
 
@@ -681,16 +664,15 @@ function Tab({ tab }: Tab) {
             strummingPatternBeingEdited={structuredClone(
               strummingPatternBeingEdited,
             )}
-            setTabData={setTabData}
           />
         )}
       </AnimatePresence>
 
       <AnimatePresence mode="wait">
-        {showPlaybackModal && <PlaybackModal tabData={tabData} />}
+        {showPlaybackModal && <PlaybackModal />}
       </AnimatePresence>
 
-      {editing && showingAudioControls && <AudioControls tabData={tabData} />}
+      {editing && showingAudioControls && <AudioControls />}
     </motion.div>
   );
 }

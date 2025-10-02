@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useTabStore, type Section } from "~/stores/TabStore";
+import { useTabStore } from "~/stores/TabStore";
 import { Input } from "~/components/ui/input";
 import {
   handleTabNoteChange,
   handleTabNoteKeyDown,
 } from "~/utils/tabNoteHandlers";
-import type { Updater } from "use-immer";
+import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
 
 interface TabNote {
   note: string;
@@ -13,8 +13,6 @@ interface TabNote {
   subSectionIndex: number;
   columnIndex: number;
   noteIndex: number;
-  tabData: Section[];
-  setTabData: Updater<Section[]>;
 }
 
 function TabNote({
@@ -23,20 +21,22 @@ function TabNote({
   subSectionIndex,
   columnIndex,
   noteIndex,
-  tabData,
-  setTabData,
 }: TabNote) {
   const {
     currentlyCopiedChord,
     setCurrentlyCopiedChord,
     chordPulse,
     setChordPulse,
+    setTabData,
   } = useTabStore((state) => ({
     currentlyCopiedChord: state.currentlyCopiedChord,
     setCurrentlyCopiedChord: state.setCurrentlyCopiedChord,
     chordPulse: state.chordPulse,
     setChordPulse: state.setChordPulse,
+    setTabData: state.setTabData,
   }));
+
+  const subSection = useTabSubSectionData(sectionIndex, subSectionIndex);
 
   const [isFocused, setIsFocused] = useState(false);
 
@@ -81,9 +81,9 @@ function TabNote({
             sectionIndex,
             subSectionIndex,
             columnIndex,
-            noteIndex,
-            tabData,
+            subSection,
             setTabData,
+            noteIndex,
             currentlyCopiedChord,
             setCurrentlyCopiedChord,
             chordPulse,
@@ -97,7 +97,7 @@ function TabNote({
             sectionIndex,
             subSectionIndex,
             columnIndex,
-            tabData,
+            subSection,
             setTabData,
           });
         }}

@@ -17,7 +17,7 @@ import { Toggle } from "~/components/ui/toggle";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabStore, type Section } from "~/stores/TabStore";
+import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 
@@ -29,7 +29,6 @@ interface PlaybackAudioControls {
   setTabProgressValue: Dispatch<SetStateAction<number>>;
   setChordRepetitions: Dispatch<SetStateAction<number[]>>;
   scrollPositionsLength: number;
-  tabData: Section[];
 }
 
 function PlaybackAudioControls({
@@ -40,7 +39,6 @@ function PlaybackAudioControls({
   setTabProgressValue,
   setChordRepetitions,
   scrollPositionsLength,
-  tabData,
 }: PlaybackAudioControls) {
   const { asPath } = useRouter();
 
@@ -65,6 +63,7 @@ function PlaybackAudioControls({
     viewportLabel,
     looping,
     playbackMetadata,
+    tabData,
   } = useTabStore((state) => ({
     id: state.id,
     bpm: state.bpm,
@@ -86,6 +85,7 @@ function PlaybackAudioControls({
     viewportLabel: state.viewportLabel,
     looping: state.looping,
     playbackMetadata: state.playbackMetadata,
+    tabData: state.tabData,
   }));
 
   const [previousChordIndex, setPreviousChordIndex] = useState(0);
@@ -100,7 +100,7 @@ function PlaybackAudioControls({
 
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
 
-  useSpacebarAudioControl({ tabData });
+  useSpacebarAudioControl();
 
   useEffect(() => {
     if (!masterVolumeGainNode) return;
@@ -108,6 +108,7 @@ function PlaybackAudioControls({
     masterVolumeGainNode.gain.value = volume;
   }, [volume, masterVolumeGainNode]);
 
+  // TODO: I think this effect below is deprecated.
   // didn't want to clutter up below effect with more conditions, this just covers
   // resetting the tab progress value when the tab that is playing changes
   useEffect(() => {
@@ -154,7 +155,6 @@ function PlaybackAudioControls({
       setTimeout(() => {
         setTimeout(() => {
           void playTab({
-            tabData,
             tabId: id,
             location: audioMetadata.location,
           });
