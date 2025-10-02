@@ -131,7 +131,7 @@ function Chords({ setTabData }: Chords) {
                       <Button
                         variant={"ghost"}
                         size={"sm"}
-                        className="baseFlex h-full w-1/2 gap-2 rounded-none border-l-2 border-r-[1px]"
+                        className="baseFlex h-full w-[52px] gap-2 rounded-none border-l-2 border-r-2"
                         onClick={() => {
                           pauseAudio();
                           setChordBeingEdited({
@@ -141,18 +141,18 @@ function Chords({ setTabData }: Chords) {
                         }}
                       >
                         {/* add the tooltip below for "Edit" */}
-                        <MdModeEditOutline className="h-6 w-6" />
+                        <MdModeEditOutline className="size-5" />
                       </Button>
 
                       {/* delete button */}
                       <Button
                         variant={"destructive"}
                         size="sm"
-                        className="baseFlex h-full w-1/2 rounded-l-none rounded-r-sm border-l-[1px]"
+                        className="baseFlex h-full w-12 rounded-l-none rounded-r-sm"
                         onClick={() => handleDeleteChord(index, chord.name)}
                       >
                         {/* add the tooltip below for "Delete" */}
-                        <FaTrashAlt className="h-4 w-4" />
+                        <FaTrashAlt className="size-4" />
                       </Button>
                     </div>
                   </motion.div>

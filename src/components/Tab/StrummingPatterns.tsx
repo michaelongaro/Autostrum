@@ -184,7 +184,7 @@ function StrummingPatterns({ setTabData }: StrummingPatterns) {
                           <Button
                             variant={"ghost"}
                             size={"sm"}
-                            className="baseFlex h-8 w-10 rounded-none rounded-tr-[1px] border-b-[1px] p-1"
+                            className="baseFlex h-8 w-10 rounded-none rounded-tr-[1px] border-b-[2px] p-1"
                             onClick={() => {
                               pauseAudio();
                               setStrummingPatternBeingEdited({
@@ -193,7 +193,7 @@ function StrummingPatterns({ setTabData }: StrummingPatterns) {
                               });
                             }}
                           >
-                            <MdModeEditOutline className="h-5 w-5" />
+                            <MdModeEditOutline className="size-5" />
                           </Button>
 
                           {/* delete button */}
@@ -211,9 +211,9 @@ function StrummingPatterns({ setTabData }: StrummingPatterns) {
                               <Button
                                 variant={"destructive"}
                                 size="sm"
-                                className="baseFlex h-8 w-10 rounded-none rounded-br-[3px] border-t-[1px] p-0"
+                                className="baseFlex h-8 w-10 rounded-none rounded-br-[3px] p-0"
                               >
-                                <FaTrashAlt className="h-4 w-4" />
+                                <FaTrashAlt className="size-4" />
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent showArrow>
