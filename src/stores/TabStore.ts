@@ -1,8 +1,7 @@
 import type { Tab } from "@prisma/client";
 import type Soundfont from "soundfont-player";
 import { devtools } from "zustand/middleware";
-import { createWithEqualityFn } from "zustand/traditional";
-import { shallow } from "zustand/shallow";
+import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
 import {
@@ -14,6 +13,7 @@ import {
 import { resetProgressTabSliderPosition } from "~/utils/tabSliderHelpers";
 import { parse } from "~/utils/tunings";
 import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
+import { useShallow } from "zustand/shallow";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
@@ -601,7 +601,7 @@ interface TabState {
   resetStoreToInitValues: () => void;
 }
 
-export const useTabStore = createWithEqualityFn<TabState>()(
+const useTabStoreBase = create<TabState>()(
   devtools(
     immer((set, get) => ({
       // used in <Tab />
@@ -1237,6 +1237,9 @@ export const useTabStore = createWithEqualityFn<TabState>()(
       // reset
       resetStoreToInitValues: () => set(initialStoreState),
     })),
-    shallow,
   ),
 );
+
+export const useTabStore = <T>(selector: (state: TabState) => T): T => {
+  return useTabStoreBase(useShallow(selector));
+};
