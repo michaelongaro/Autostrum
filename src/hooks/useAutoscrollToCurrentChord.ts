@@ -38,7 +38,9 @@ function useAutoscrollToCurrentChord(autoscrollEnabled: boolean) {
       !currentlyPlayingMetadata ||
       (!audioMetadata.playing && !interactingWithAudioProgressSlider) ||
       !autoscrollEnabled ||
-      currentChordIndex === currentlyPlayingMetadata.length - 1 // always are going to be scrolling to the next chord (for better ux)
+      currentChordIndex === currentlyPlayingMetadata.length - 1 || // always are going to be scrolling to the next chord (for better ux)
+      !currentlyPlayingMetadata[currentChordIndex] || // Safety check
+      !currentlyPlayingMetadata[currentChordIndex + 1] // Safety check for next chord
     )
       return;
 
