@@ -5,13 +5,9 @@ import {
   type ChordSection,
   type ChordSequence,
 } from "~/stores/TabStore";
-import { shallow } from "zustand/shallow";
 
 export const useSectionData = (sectionIndex: number) => {
-  return useTabStore(
-    (state) => state.tabData[sectionIndex] as Section,
-    shallow,
-  );
+  return useTabStore((state) => state.tabData[sectionIndex] as Section);
 };
 
 export const useSubSectionData = (
@@ -23,7 +19,7 @@ export const useSubSectionData = (
 
     // @ts-expect-error TODO come back later
     return section.data[subSectionIndex] as TabSection | ChordSection;
-  }, shallow);
+  });
 };
 
 export const useTabSubSectionData = (
@@ -35,7 +31,7 @@ export const useTabSubSectionData = (
 
     // @ts-expect-error TODO come back later
     return section.data[subSectionIndex] as TabSection;
-  }, shallow);
+  });
 };
 
 export const useChordSubSectionData = (
@@ -47,7 +43,7 @@ export const useChordSubSectionData = (
 
     // @ts-expect-error TODO come back later
     return section.data[subSectionIndex] as ChordSection;
-  }, shallow);
+  });
 };
 
 export const useChordSequenceData = (
@@ -62,7 +58,7 @@ export const useChordSequenceData = (
     return section.data[subSectionIndex].data[
       chordSequenceIndex
     ] as ChordSequence;
-  }, shallow);
+  });
 };
 
 export const useColumnData = (
@@ -75,7 +71,7 @@ export const useColumnData = (
 
     // @ts-expect-error TODO come back later
     return subSection.data[columnIndex] as string[];
-  }, shallow);
+  });
 };
 
 // TODO: maybe don't need this

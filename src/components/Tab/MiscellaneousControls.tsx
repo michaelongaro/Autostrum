@@ -34,8 +34,6 @@ import {
   useSectionData,
   useSubSectionData,
   useTabDataLength,
-  useTabDataSubSectionLength,
-  useTabSubSectionData,
 } from "~/hooks/useTabDataSelectors";
 
 interface MiscellaneousControls {
