@@ -30,12 +30,14 @@ function useColorAndThemeController() {
 
   const {
     color,
+    theme,
     setColor,
     setTheme,
     followsDeviceTheme,
     setFollowsDeviceTheme,
   } = useTabStore((state) => ({
     color: state.color,
+    theme: state.theme,
     setColor: state.setColor,
     setTheme: state.setTheme,
     followsDeviceTheme: state.followsDeviceTheme,
@@ -115,7 +117,7 @@ function useColorAndThemeController() {
   useEffect(() => {
     if (!currentUser || initializedUserDBColor) return;
 
-    const currentTheme = useTabStore.getState().theme;
+    const currentTheme = theme;
     const userColor = currentUser.color as COLORS;
 
     updateCSSThemeVars(userColor, currentTheme);
