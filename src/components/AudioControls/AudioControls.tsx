@@ -44,7 +44,6 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import scrollChordIntoView from "~/utils/scrollChordIntoView";
-import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import PlayButtonIcon from "./PlayButtonIcon";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Direction, getTrackBackground, Range } from "react-range";
@@ -108,7 +107,7 @@ function AudioControls() {
     fetchingFullTabData,
     mobileHeaderModal,
     setMobileHeaderModal,
-    tabData,
+    tabIsEffectivelyEmpty,
   } = useTabStore((state) => ({
     id: state.id,
     bpm: state.bpm,
@@ -131,7 +130,7 @@ function AudioControls() {
     fetchingFullTabData: state.fetchingFullTabData,
     mobileHeaderModal: state.mobileHeaderModal,
     setMobileHeaderModal: state.setMobileHeaderModal,
-    tabData: state.tabData,
+    tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
   }));
 
   useEffect(() => {
@@ -212,7 +211,7 @@ function AudioControls() {
       // idk why this last condition is going over my head right now, make sure it makes sense before commit
       // maybe doesn't hurt anything, but could be covering some of the statements above,
       // so maybe try to leverage it's "complete"ness of it's check through the tab?
-      (tabIsEffectivelyEmpty(tabData) && !audioMetadata.location)
+      (tabIsEffectivelyEmpty && !audioMetadata.location)
     );
   }, [
     bpm,
@@ -220,9 +219,9 @@ function AudioControls() {
     audioMetadata.location,
     audioMetadata.editingLoopRange,
     currentInstrument,
-    tabData,
     artificalPlayButtonTimeout,
     currentlyPlayingMetadata,
+    tabIsEffectivelyEmpty,
   ]);
 
   const mainAudioControlsVariants = {
@@ -1159,11 +1158,7 @@ function AudioControls() {
                   {(asPath.includes("/tab") || asPath.includes("/create")) && (
                     <div className="baseFlex w-full">
                       <Button
-                        disabled={
-                          tabData.length === 0 ||
-                          tabData[0]?.data.length === 0 ||
-                          !looping
-                        }
+                        disabled={!looping}
                         onClick={() => {
                           setAudioMetadata({
                             ...audioMetadata,

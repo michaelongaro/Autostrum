@@ -328,6 +328,7 @@ const initialStoreState = {
   isLoadingARoute: false,
   // idk if search needs to be included here
 };
+
 interface TabState {
   // this is used to compare the current tabData to the original tabData to see if there are any
   // changes, and if so, enable the "save" button
@@ -398,6 +399,8 @@ interface TabState {
     updatedFields: Partial<AudioMetadata>,
   ) => void;
 
+  tabIsEffectivelyEmpty: boolean;
+  setTabIsEffectivelyEmpty: (tabIsEffectivelyEmpty: boolean) => void;
   fetchingFullTabData: boolean;
   setFetchingFullTabData: (fetchingFullTabData: boolean) => void;
   chordPulse: {
@@ -685,6 +688,9 @@ const useTabStoreBase = create<TabState>()(
       countInBuffer: null,
       setCountInBuffer: (countInBuffer) => set({ countInBuffer }),
 
+      tabIsEffectivelyEmpty: true,
+      setTabIsEffectivelyEmpty: (tabIsEffectivelyEmpty) =>
+        set({ tabIsEffectivelyEmpty }),
       snapshotTabInLocalStorage: false,
       setSnapshotTabInLocalStorage: (snapshotTabInLocalStorage) =>
         set({ snapshotTabInLocalStorage }),

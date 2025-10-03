@@ -33,7 +33,6 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore, type Section, type COLORS } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import { genreColors, genreDarkColors } from "~/utils/genreColors";
-import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import { tuningNotesToName } from "~/utils/tunings";
 import ArtistCombobox from "~/components/ui/ArtistCombobox";
 import BookmarkToggle from "~/components/ui/BookmarkToggle";
@@ -135,6 +134,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     viewportLabel,
     theme,
     tabData,
+    tabIsEffectivelyEmpty,
   } = useTabStore((state) => ({
     originalTabData: state.originalTabData,
     id: state.id,
@@ -172,6 +172,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     viewportLabel: state.viewportLabel,
     theme: state.theme,
     tabData: state.tabData,
+    tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
   }));
 
   const { data: dynamicMetadata } =
@@ -340,7 +341,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
       !tuning ||
       genre === "" ||
       bpm === -1 ||
-      tabIsEffectivelyEmpty(tabData)
+      tabIsEffectivelyEmpty
     ) {
       setShowPulsingError(true);
       setTimeout(() => setShowPulsingError(false), 500);
@@ -359,7 +360,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
       !tuning ||
       genre === "" ||
       bpm === -1 ||
-      tabIsEffectivelyEmpty(tabData)
+      tabIsEffectivelyEmpty
     ) {
       setShowPulsingError(true);
       setShowPublishPopover(true);
@@ -509,7 +510,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
             </div>
           )}
 
-          {tabIsEffectivelyEmpty(tabData) && (
+          {tabIsEffectivelyEmpty && (
             <div className="baseFlex">
               <BsPlus className="mb-[-3px] h-7 w-8 rotate-45 text-destructive" />
               <p>Tab is empty</p>

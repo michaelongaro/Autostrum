@@ -19,7 +19,6 @@ import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
-import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 
 interface PlaybackAudioControls {
   chordDurations: number[];
@@ -63,7 +62,7 @@ function PlaybackAudioControls({
     viewportLabel,
     looping,
     playbackMetadata,
-    tabData,
+    tabIsEffectivelyEmpty,
   } = useTabStore((state) => ({
     id: state.id,
     bpm: state.bpm,
@@ -85,7 +84,7 @@ function PlaybackAudioControls({
     viewportLabel: state.viewportLabel,
     looping: state.looping,
     playbackMetadata: state.playbackMetadata,
-    tabData: state.tabData,
+    tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
   }));
 
   const [previousChordIndex, setPreviousChordIndex] = useState(0);
@@ -187,7 +186,7 @@ function PlaybackAudioControls({
       // idk why this last condition is going over my head right now, make sure it makes sense before commit
       // maybe doesn't hurt anything, but could be covering some of the statements above,
       // so maybe try to leverage it's "complete"ness of it's check through the tab?
-      (tabIsEffectivelyEmpty(tabData) && !audioMetadata.location)
+      (tabIsEffectivelyEmpty && !audioMetadata.location)
     );
   }, [
     countInTimer.showing,
@@ -196,9 +195,9 @@ function PlaybackAudioControls({
     audioMetadata.location,
     audioMetadata.editingLoopRange,
     currentInstrument,
-    tabData,
     artificalPlayButtonTimeout,
     currentlyPlayingMetadata,
+    tabIsEffectivelyEmpty,
   ]);
 
   return (

@@ -4,12 +4,13 @@ import {
   compileSpecificChordGrouping,
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
-import { useTabStore, type Section } from "../stores/TabStore";
+import { useTabStore } from "../stores/TabStore";
 import {
   expandFullTab,
   updateElapsedSecondsInSectionProgression,
 } from "~/utils/playbackChordCompilationHelpers";
 import debounce from "lodash.debounce";
+import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 
 function useAutoCompileChords() {
   const {
@@ -28,6 +29,7 @@ function useAutoCompileChords() {
     visiblePlaybackContainerWidth,
     loopDelay,
     tabData,
+    setTabIsEffectivelyEmpty,
   } = useTabStore((state) => ({
     editing: state.editing,
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
@@ -44,6 +46,7 @@ function useAutoCompileChords() {
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
     loopDelay: state.loopDelay,
     tabData: state.tabData,
+    setTabIsEffectivelyEmpty: state.setTabIsEffectivelyEmpty,
   }));
 
   const [
@@ -80,6 +83,8 @@ function useAutoCompileChords() {
       setCurrentlyPlayingMetadata(null);
       return;
     }
+
+    setTabIsEffectivelyEmpty(tabIsEffectivelyEmpty(tabData));
 
     const sanitizedSectionProgression =
       sectionProgression.length > 0
