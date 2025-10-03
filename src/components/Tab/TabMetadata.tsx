@@ -369,6 +369,10 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
       return;
     }
 
+    // not ideal, but the performance cost of putting this inside of
+    // the disabled field is too high to have it run on every render
+    if (isEqualToOriginalTabState()) return;
+
     setIsPublishingOrUpdating(true);
     setSaveButtonText(asPath.includes("create") ? "Publishing" : "Saving");
 
@@ -608,7 +612,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                   disabled={
                     audioMetadata.playing || // helps with performance when playing audio (while editing)
                     isLoadingARoute ||
-                    isEqualToOriginalTabState() ||
                     showPulsingError ||
                     isPublishing ||
                     isUpdating ||
