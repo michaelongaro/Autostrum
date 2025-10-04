@@ -868,6 +868,9 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
+                    <SelectItem value={"None"}>None</SelectItem>
+                    <Separator className="-ml-2 mt-1 h-[1px] w-full bg-primary" />
+
                     {Object.entries(KEYS_BY_LETTER).map(([letter, keys]) => (
                       <Fragment key={letter}>
                         <SelectLabel>{letter}</SelectLabel>
