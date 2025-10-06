@@ -284,14 +284,14 @@ function TabMeasureLine({
                 <PopoverTrigger asChild>
                   <Button
                     id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`}
-                    className="absolute bottom-9 z-50 h-5 w-5 rounded-full p-[0.125rem]"
+                    className="absolute bottom-9 h-5 w-5 rounded-full p-[0.125rem]"
                     onKeyDown={handleKeyDown}
                   >
                     <QuarterNote className="mr-[1px] h-[1rem]" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
-                  className="baseVertFlex w-52 gap-4 p-2"
+                  className="baseVertFlex !z-10 w-52 gap-4 p-2"
                   side="bottom"
                 >
                   <p className="w-auto text-center text-sm">
