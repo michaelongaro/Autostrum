@@ -185,21 +185,29 @@ export function handleTabNoteKeyDown(
     return;
   }
 
-  // Change note length hotkeys
-  if (["j", "k", "l"].includes(e.key.toLowerCase())) {
+  // Change note length with Shift + ArrowUp/ArrowDown
+  if (e.shiftKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
     e.preventDefault();
-
-    let noteLength: "1/4th" | "1/8th" | "1/16th" = "1/4th";
-
-    if (e.key.toLowerCase() === "k") noteLength = "1/8th";
-    if (e.key.toLowerCase() === "l") noteLength = "1/16th";
 
     setTabData((draft) => {
       const subSection = draft[sectionIndex]?.data[subSectionIndex];
       if (subSection?.type === "tab") {
         const columnData = subSection.data[columnIndex];
-        if (columnData) {
-          columnData[8] = noteLength;
+        if (columnData && columnData[8] !== "measureLine") {
+          const order: Array<"1/4th" | "1/8th" | "1/16th"> = [
+            "1/4th",
+            "1/8th",
+            "1/16th",
+          ];
+          const current =
+            (columnData[8] as "1/4th" | "1/8th" | "1/16th") ?? "1/4th";
+          let idx = order.indexOf(current);
+          if (idx === -1) idx = 0;
+
+          if (e.key === "ArrowUp" && idx < order.length - 1) idx += 1; // increase resolution
+          if (e.key === "ArrowDown" && idx > 0) idx -= 1; // decrease resolution
+
+          columnData[8] = order[idx]!;
         }
       }
     });
@@ -274,7 +282,7 @@ export function handleTabNoteKeyDown(
   }
 
   // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
-  if (e.key === "ArrowDown") {
+  if (e.key === "ArrowDown" && !e.shiftKey) {
     e.preventDefault(); // prevent cursor from moving
 
     const newNoteToFocus = document.getElementById(
@@ -285,7 +293,7 @@ export function handleTabNoteKeyDown(
 
     focusAndScrollIntoView(currentNote, newNoteToFocus);
     return;
-  } else if (e.key === "ArrowUp") {
+  } else if (e.key === "ArrowUp" && !e.shiftKey) {
     e.preventDefault(); // prevent cursor from moving
 
     const newNoteToFocus = document.getElementById(

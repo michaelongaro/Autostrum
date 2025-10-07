@@ -102,10 +102,9 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
               <div className="mt-3 h-[1px] w-3 shrink-0 bg-foreground" />
               <span>
                 Enter
-                <kbd className="ml-1.5">j</kbd> / <kbd>k</kbd> /{" "}
-                <kbd className="mr-1.5">l</kbd>
-                to change the current chord&apos;s note length between 1/4th,
-                1/8th, and 1/16th respectively.
+                <kbd className="ml-1.5">Shift</kbd> + <kbd>↑</kbd> /{" "}
+                <kbd>Shift</kbd> + <kbd className="mr-1.5">↓</kbd>
+                to change the current chord&apos;s note length.
               </span>
             </div>
             <div className="baseFlex !items-start gap-2">
