@@ -330,7 +330,7 @@ function Section({
           <Select value={sectionId} onValueChange={handleSectionChange}>
             <SelectTrigger
               id={`sectionIndex${index}`}
-              className="w-[218px] xs:w-[218px]"
+              className="w-[218px] bg-background/50 xs:w-[218px]"
             >
               <SelectValue
                 placeholder="Select a section"
@@ -358,7 +358,7 @@ function Section({
                 x
               </span>
               <Input
-                className="w-12 pl-4"
+                className="w-12 bg-background/50 pl-4"
                 type="text"
                 inputMode="numeric"
                 autoComplete="off"
@@ -372,7 +372,7 @@ function Section({
               <Button
                 disabled={index === 0}
                 variant="outline"
-                className="!size-10"
+                className="!size-10 bg-background/50"
                 onClick={() => moveSectionUp()}
               >
                 <BiUpArrowAlt className="size-5 shrink-0"></BiUpArrowAlt>
@@ -381,7 +381,7 @@ function Section({
               <Button
                 disabled={index === localSectionProgression.length - 1}
                 variant="outline"
-                className="!size-10"
+                className="!size-10 bg-background/50"
                 onClick={() => moveSectionDown()}
               >
                 <BiDownArrowAlt className="size-5 shrink-0"></BiDownArrowAlt>
