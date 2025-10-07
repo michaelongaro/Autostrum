@@ -15,7 +15,13 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useCallback, useState, Fragment } from "react";
+import { useEffect, useCallback, useState, Fragment, useRef } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 import { FaTrashAlt } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
@@ -114,6 +120,8 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
   const [pmNodeOpacities, setPMNodeOpacities] = useState<string[]>([]);
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [reorderingColumns, setReorderingColumns] = useState(false);
   const [showingDeleteColumnsButtons, setShowingDeleteColumnsButtons] =
@@ -251,6 +259,41 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       setPMNodeOpacities(getPMNodeOpacities());
     }
   }, [editingPalmMuteNodes, lastModifiedPalmMuteNode, getPMNodeOpacities]);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (
+        !containerRef.current?.contains(document.activeElement) &&
+        // mouse isn't within this container
+        !containerRef.current?.matches(":hover")
+      ) {
+        return;
+      }
+
+      if (e.altKey && e.key === "r") {
+        e.preventDefault();
+        setReorderingColumns((prev) => !prev);
+        setShowingDeleteColumnsButtons(false);
+        setEditingPalmMuteNodes(false);
+      } else if (e.altKey && e.key === "d") {
+        e.preventDefault();
+        setShowingDeleteColumnsButtons((prev) => !prev);
+        setReorderingColumns(false);
+        setEditingPalmMuteNodes(false);
+      } else if (e.altKey && e.key === "p") {
+        e.preventDefault();
+        setEditingPalmMuteNodes((prev) => !prev);
+        setLastModifiedPalmMuteNode(null);
+        setReorderingColumns(false);
+        setShowingDeleteColumnsButtons(false);
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   // should these functions below be in zustand?
 
@@ -777,6 +820,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   return (
     <motion.div
       key={subSection.id}
+      ref={containerRef}
       layout={"position"}
       variants={opacityAndScaleVariants}
       initial="closed"
@@ -847,18 +891,29 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
 
           <div className="baseVertFlex !items-start gap-2 lg:!flex-row">
             <div className="baseFlex">
-              <Button
-                disabled={editingPalmMuteNodes}
-                style={{
-                  borderRadius: editingPalmMuteNodes
-                    ? "0.375rem 0 0 0.375rem"
-                    : "0.375rem",
-                  transitionDelay: "0.1s",
-                }}
-                onClick={toggleEditingPalmMuteNodes}
-              >
-                PM Editor
-              </Button>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      disabled={editingPalmMuteNodes}
+                      style={{
+                        borderRadius: editingPalmMuteNodes
+                          ? "0.375rem 0 0 0.375rem"
+                          : "0.375rem",
+                        transitionDelay: "0.1s",
+                      }}
+                      onClick={toggleEditingPalmMuteNodes}
+                    >
+                      PM Editor
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side={"bottom"}>
+                    <p>
+                      Toggle: <kbd className="ml-1">Alt</kbd> + <kbd>p</kbd>
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
               <AnimatePresence>
                 {editingPalmMuteNodes && (
@@ -893,21 +948,32 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
             </div>
 
             <div className="baseFlex">
-              <Button
-                disabled={reorderingColumns}
-                style={{
-                  borderRadius: reorderingColumns
-                    ? "0.375rem 0 0 0.375rem"
-                    : "0.375rem",
-                  transitionDelay: "0.1s",
-                }}
-                onClick={() => {
-                  setReorderingColumns(!reorderingColumns);
-                  setShowingDeleteColumnsButtons(false);
-                }}
-              >
-                Reorder chords
-              </Button>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      disabled={reorderingColumns}
+                      style={{
+                        borderRadius: reorderingColumns
+                          ? "0.375rem 0 0 0.375rem"
+                          : "0.375rem",
+                        transitionDelay: "0.1s",
+                      }}
+                      onClick={() => {
+                        setReorderingColumns(!reorderingColumns);
+                        setShowingDeleteColumnsButtons(false);
+                      }}
+                    >
+                      Reorder chords
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side={"bottom"}>
+                    <p>
+                      Toggle: <kbd className="ml-1">Alt</kbd> + <kbd>r</kbd>
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
               <AnimatePresence>
                 {reorderingColumns && (
@@ -945,24 +1011,37 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
             </div>
 
             <div className="baseFlex">
-              <Button
-                variant={"destructive"}
-                disabled={showingDeleteColumnsButtons}
-                style={{
-                  borderRadius: showingDeleteColumnsButtons
-                    ? "0.375rem 0 0 0.375rem"
-                    : "0.375rem",
-                  transitionDelay: "0.1s",
-                }}
-                className="baseFlex gap-2"
-                onClick={() => {
-                  setShowingDeleteColumnsButtons(!showingDeleteColumnsButtons);
-                  setReorderingColumns(false);
-                }}
-              >
-                Delete chords
-                <FaTrashAlt className="h-4 w-4" />
-              </Button>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={"destructive"}
+                      disabled={showingDeleteColumnsButtons}
+                      style={{
+                        borderRadius: showingDeleteColumnsButtons
+                          ? "0.375rem 0 0 0.375rem"
+                          : "0.375rem",
+                        transitionDelay: "0.1s",
+                      }}
+                      className="baseFlex gap-2"
+                      onClick={() => {
+                        setShowingDeleteColumnsButtons(
+                          !showingDeleteColumnsButtons,
+                        );
+                        setReorderingColumns(false);
+                      }}
+                    >
+                      Delete chords
+                      <FaTrashAlt className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side={"bottom"}>
+                    <p>
+                      Toggle: <kbd className="ml-1">Alt</kbd> + <kbd>d</kbd>
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
               <AnimatePresence>
                 {showingDeleteColumnsButtons && (
