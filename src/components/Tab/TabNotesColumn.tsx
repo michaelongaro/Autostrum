@@ -300,87 +300,81 @@ function TabNotesColumn({
                 </div>
               )}
 
-              <AnimatePresence>
-                {index === 1 &&
-                  (columnIdxBeingHovered === columnIndex ||
-                    chordSettingDropdownIsOpen) && (
-                    <motion.div
-                      key={`${columnData[9]!}chordSettings`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.1 }}
-                      style={{
-                        bottom:
-                          showingDeleteColumnsButtons || reorderingColumns
-                            ? "32px"
-                            : "40px",
-                      }}
-                      className={`absolute ${isLastColumn ? "right-7" : ""} `}
+              {index === 1 &&
+                (columnIdxBeingHovered === columnIndex ||
+                  chordSettingDropdownIsOpen) && (
+                  <div
+                    key={`${columnData[9]!}chordSettings`}
+                    style={{
+                      bottom:
+                        showingDeleteColumnsButtons || reorderingColumns
+                          ? "32px"
+                          : "40px",
+                    }}
+                    className={`absolute ${isLastColumn ? "right-7" : ""} `}
+                  >
+                    <DropdownMenu
+                      modal={true}
+                      open={chordSettingDropdownIsOpen}
+                      onOpenChange={(open) =>
+                        setChordSettingDropdownIsOpen(open)
+                      }
                     >
-                      <DropdownMenu
-                        modal={true}
-                        open={chordSettingDropdownIsOpen}
-                        onOpenChange={(open) =>
-                          setChordSettingDropdownIsOpen(open)
-                        }
-                      >
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="z-50 h-2 w-4 !p-0">
-                            <Ellipsis className="z-50 h-3 w-4 rotate-90" />
-                          </Button>
-                        </DropdownMenuTrigger>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="z-50 h-2 w-4 !p-0">
+                          <Ellipsis className="z-50 h-3 w-4 rotate-90" />
+                        </Button>
+                      </DropdownMenuTrigger>
 
-                        <DropdownMenuContent side={"bottom"}>
-                          <DropdownMenuItem
-                            className="baseFlex !justify-between gap-2"
-                            onClick={() => addNewColumn(false)}
+                      <DropdownMenuContent side={"bottom"}>
+                        <DropdownMenuItem
+                          className="baseFlex !justify-between gap-2"
+                          onClick={() => addNewColumn(false)}
+                        >
+                          Add chord before
+                          <BsPlus className="h-4 w-4" />
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="baseFlex !justify-between gap-2"
+                          onClick={() => addNewColumn(true)}
+                        >
+                          Add chord after
+                          <BsPlus className="h-4 w-4" />
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="bg-primary" />
+                        <div className="baseVertFlex w-full !items-start">
+                          <DropdownMenuLabel>Note length</DropdownMenuLabel>
+                          <DropdownMenuRadioGroup
+                            value={
+                              columnData[8] as "1/4th" | "1/8th" | "1/16th"
+                            }
+                            onValueChange={(value) => {
+                              handleNoteLengthChange(
+                                value as "1/4th" | "1/8th" | "1/16th",
+                              );
+                            }}
                           >
-                            Add chord before
-                            <BsPlus className="h-4 w-4" />
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="baseFlex !justify-between gap-2"
-                            onClick={() => addNewColumn(true)}
-                          >
-                            Add chord after
-                            <BsPlus className="h-4 w-4" />
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-primary" />
-                          <div className="baseVertFlex w-full !items-start">
-                            <DropdownMenuLabel>Note length</DropdownMenuLabel>
-                            <DropdownMenuRadioGroup
-                              value={
-                                columnData[8] as "1/4th" | "1/8th" | "1/16th"
-                              }
-                              onValueChange={(value) => {
-                                handleNoteLengthChange(
-                                  value as "1/4th" | "1/8th" | "1/16th",
-                                );
-                              }}
-                            >
-                              {noteLengthDurations.map((duration) => (
-                                <DropdownMenuRadioItem
-                                  key={duration}
-                                  value={duration}
-                                  className="baseFlex w-[150px] !justify-start gap-2"
-                                >
-                                  {getDynamicNoteLengthIcon({
-                                    noteLength: duration as
-                                      | "1/4th"
-                                      | "1/8th"
-                                      | "1/16th",
-                                  })}
-                                  {duration}
-                                </DropdownMenuRadioItem>
-                              ))}
-                            </DropdownMenuRadioGroup>
-                          </div>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </motion.div>
-                  )}
-              </AnimatePresence>
+                            {noteLengthDurations.map((duration) => (
+                              <DropdownMenuRadioItem
+                                key={duration}
+                                value={duration}
+                                className="baseFlex w-[150px] !justify-start gap-2"
+                              >
+                                {getDynamicNoteLengthIcon({
+                                  noteLength: duration as
+                                    | "1/4th"
+                                    | "1/8th"
+                                    | "1/16th",
+                                })}
+                                {duration}
+                              </DropdownMenuRadioItem>
+                            ))}
+                          </DropdownMenuRadioGroup>
+                        </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
 
               {index > 0 && index < 7 && (
                 <div
