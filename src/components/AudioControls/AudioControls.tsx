@@ -55,7 +55,7 @@ const opacityAndScaleVariants = {
   },
   closed: {
     opacity: 0,
-    scale: 0.5,
+    scale: 0.75,
   },
 };
 
