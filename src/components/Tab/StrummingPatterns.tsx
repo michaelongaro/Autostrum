@@ -207,7 +207,7 @@ function StrummingPatterns() {
                               <Button
                                 variant={"destructive"}
                                 size="sm"
-                                className="baseFlex h-8 w-10 rounded-none rounded-br-[3px] p-0"
+                                className="baseFlex h-8 w-10 rounded-none rounded-br-[3px] border-none p-0"
                               >
                                 <FaTrashAlt className="size-4" />
                               </Button>

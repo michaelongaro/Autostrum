@@ -145,7 +145,7 @@ function Chords() {
                       <Button
                         variant={"destructive"}
                         size="sm"
-                        className="baseFlex h-full w-12 rounded-l-none rounded-r-sm"
+                        className="baseFlex h-full w-12 rounded-l-none rounded-r-sm border-none"
                         onClick={() => handleDeleteChord(index, chord.name)}
                       >
                         {/* add the tooltip below for "Delete" */}
