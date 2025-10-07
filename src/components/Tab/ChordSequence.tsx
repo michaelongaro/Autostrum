@@ -244,12 +244,13 @@ function ChordSequence({
 
                 <div className="baseFlex">
                   <QuarterNote className="-ml-1 size-5" />
+
                   <Input
                     id={`chordSequenceBpmInput${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
-                    className="h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
+                    className="w-[52px] px-2.5"
                     placeholder={placeholderBpm}
                     value={
                       chordSequence.bpm === -1
