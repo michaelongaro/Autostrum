@@ -145,7 +145,7 @@ function ChordSection({ sectionIndex, subSectionIndex }: ChordSection) {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   placeholder="1"
-                  className="w-[45px] pl-4"
+                  className="w-[45px] px-2 pl-4"
                   value={
                     subSection.repetitions === -1
                       ? ""

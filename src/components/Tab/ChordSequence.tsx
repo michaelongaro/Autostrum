@@ -277,7 +277,7 @@ function ChordSequence({
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
-                    className="w-[45px] pl-4"
+                    className="w-[45px] px-2 pl-4"
                     placeholder="1"
                     value={
                       chordSequence.repetitions === -1
