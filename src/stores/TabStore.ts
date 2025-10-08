@@ -295,10 +295,7 @@ const initialStoreState = {
   showingEffectGlossary: false,
   showDeleteAccountModal: false,
   showCustomTuningModal: false,
-  mobileHeaderModal: {
-    showing: false,
-    zIndex: 48,
-  },
+  showMobileHeaderModal: false,
 
   // playback
   playbackModalViewingState: "Practice" as const,
@@ -465,14 +462,8 @@ interface TabState {
   setShowDeleteAccountModal: (showDeleteAccountModal: boolean) => void;
   showCustomTuningModal: boolean;
   setShowCustomTuningModal: (showCustomTuningModal: boolean) => void;
-  mobileHeaderModal: {
-    showing: boolean;
-    zIndex: number;
-  };
-  setMobileHeaderModal: (mobileHeaderModal: {
-    showing: boolean;
-    zIndex: number;
-  }) => void;
+  showMobileHeaderModal: boolean;
+  setShowMobileHeaderModal: (showMobileHeaderModal: boolean) => void;
 
   // below are also used to determine if respective modal should be showing
   chordBeingEdited: {
@@ -1208,11 +1199,9 @@ const useTabStoreBase = create<TabState>()(
       showCustomTuningModal: false,
       setShowCustomTuningModal: (showCustomTuningModal) =>
         set({ showCustomTuningModal }),
-      mobileHeaderModal: {
-        showing: false,
-        zIndex: 48,
-      },
-      setMobileHeaderModal: (mobileHeaderModal) => set({ mobileHeaderModal }),
+      showMobileHeaderModal: false,
+      setShowMobileHeaderModal: (showMobileHeaderModal) =>
+        set({ showMobileHeaderModal }),
 
       // below are also used to determine if respective modal should be showing
       chordBeingEdited: null,

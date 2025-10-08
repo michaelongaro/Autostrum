@@ -43,17 +43,17 @@ import SettingsOutline from "~/components/ui/icons/SettingsOutline";
 function MobileHeader() {
   const { userId, isSignedIn } = useAuth();
   const { asPath } = useRouter();
-  const router = useRouter();
+  const { events } = useRouter();
 
   const {
-    mobileHeaderModal,
-    setMobileHeaderModal,
+    showMobileHeaderModal,
+    setShowMobileHeaderModal,
     setSnapshotTabInLocalStorage,
     color,
     theme,
   } = useTabStore((state) => ({
-    mobileHeaderModal: state.mobileHeaderModal,
-    setMobileHeaderModal: state.setMobileHeaderModal,
+    showMobileHeaderModal: state.showMobileHeaderModal,
+    setShowMobileHeaderModal: state.setShowMobileHeaderModal,
     setSnapshotTabInLocalStorage: state.setSnapshotTabInLocalStorage,
     color: state.color,
     theme: state.theme,
@@ -65,36 +65,24 @@ function MobileHeader() {
     });
 
   const [showMobileSearch, setShowMobileSearch] = useState(false);
-  const [mobileHeaderIsOpen, setMobileHeaderIsOpen] = useState(false);
   const [userProfileImageLoaded, setUserProfileImageLoaded] = useState(false);
 
   const localStorageRedirectRoute = useLocalStorageValue(
     "autostrum-redirect-route",
   );
 
-  // closes the mobile header when the user taps outside of it
-  useEffect(() => {
-    if (!mobileHeaderModal.showing) {
-      setMobileHeaderIsOpen(false);
-    }
-  }, [mobileHeaderModal.showing]);
-
   useEffect(() => {
     function handleRouteChange() {
       setShowMobileSearch(false);
-      setMobileHeaderIsOpen(false);
-      setMobileHeaderModal({
-        showing: false,
-        zIndex: 48,
-      });
+      setShowMobileHeaderModal(false);
     }
 
-    router.events.on("routeChangeStart", handleRouteChange);
+    events.on("routeChangeStart", handleRouteChange);
 
     return () => {
-      router.events.off("routeChangeStart", handleRouteChange);
+      events.off("routeChangeStart", handleRouteChange);
     };
-  }, [router.events]);
+  }, [events]);
 
   return (
     <nav className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full">
@@ -148,14 +136,8 @@ function MobileHeader() {
           </Dialog>
 
           <Hamburger
-            toggled={mobileHeaderIsOpen}
-            onToggle={(open) => {
-              setMobileHeaderIsOpen(open);
-              setMobileHeaderModal({
-                showing: open,
-                zIndex: 48,
-              });
-            }}
+            toggled={showMobileHeaderModal}
+            onToggle={setShowMobileHeaderModal}
             easing="ease-in-out"
             rounded
             size={28}
@@ -164,7 +146,7 @@ function MobileHeader() {
       </div>
 
       <AnimatePresence mode="wait">
-        {mobileHeaderIsOpen && (
+        {showMobileHeaderModal && (
           <motion.div
             key={"mobileHamburgerMenu"}
             initial={{

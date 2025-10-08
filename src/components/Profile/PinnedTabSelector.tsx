@@ -34,10 +34,6 @@ function PinnedTabSelector({
   setShowPinnedTabModal,
   localSettings,
 }: PinnedTabSelector) {
-  const { setMobileHeaderModal } = useTabStore((state) => ({
-    setMobileHeaderModal: state.setMobileHeaderModal,
-  }));
-
   const { data: pinnedTabTitle, isFetching: isFetchingPinnedTabTitle } =
     api.tab.getTitle.useQuery(localPinnedTabId ?? -1, {
       enabled: localPinnedTabId !== null,
@@ -109,10 +105,6 @@ function PinnedTabSelector({
               open={drawerIsOpen}
               onOpenChange={(open) => {
                 setDrawerIsOpen(open);
-                setMobileHeaderModal({
-                  showing: open,
-                  zIndex: open ? 49 : 48,
-                });
               }}
               onClose={() => {
                 // setDrawerView("Search filters");

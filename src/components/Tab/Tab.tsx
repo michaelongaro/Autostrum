@@ -139,7 +139,6 @@ function Tab({ tab }: Tab) {
     setLooping,
     color,
     theme,
-    setMobileHeaderModal,
     showingAudioControls,
     snapshotTabInLocalStorage,
     setSnapshotTabInLocalStorage,
@@ -184,7 +183,6 @@ function Tab({ tab }: Tab) {
     setLooping: state.setLooping,
     color: state.color,
     theme: state.theme,
-    setMobileHeaderModal: state.setMobileHeaderModal,
     showingAudioControls: state.showingAudioControls,
     snapshotTabInLocalStorage: state.snapshotTabInLocalStorage,
     setSnapshotTabInLocalStorage: state.setSnapshotTabInLocalStorage,
@@ -564,10 +562,6 @@ function Tab({ tab }: Tab) {
                 open={drawerOpen}
                 onOpenChange={(open) => {
                   setDrawerOpen(open);
-                  setMobileHeaderModal({
-                    showing: open,
-                    zIndex: open ? 49 : 48,
-                  });
                 }}
               >
                 <DrawerTrigger asChild>

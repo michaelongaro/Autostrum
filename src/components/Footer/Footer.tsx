@@ -11,7 +11,7 @@ function Footer() {
         boxShadow:
           "0 -4px 6px -1px hsl(var(--primary) / 0.1), 0 -2px 4px -2px hsl(var(--primary) / 0.2)",
       }}
-      className="bg-header baseFlex z-30 h-16 w-full gap-2 xs:gap-4"
+      className="baseFlex z-20 h-16 w-full gap-2 bg-header xs:gap-4"
     >
       <Button variant={"link"} asChild>
         <a

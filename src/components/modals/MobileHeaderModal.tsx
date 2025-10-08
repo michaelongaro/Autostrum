@@ -11,39 +11,23 @@ const backdropVariants = {
 };
 
 interface MobileHeaderModal {
-  mobileHeaderModal: {
-    showing: boolean;
-    zIndex: number;
-  };
-  setMobileHeaderModal: (showMobileHeaderModal: {
-    showing: boolean;
-    zIndex: number;
-  }) => void;
+  setShowMobileHeaderModal: (showMobileHeaderModal: boolean) => void;
 }
 
-function MobileHeaderModal({
-  mobileHeaderModal,
-  setMobileHeaderModal,
-}: MobileHeaderModal) {
+function MobileHeaderModal({ setShowMobileHeaderModal }: MobileHeaderModal) {
   useModalScrollbarHandling();
 
   return (
     <motion.div
       key={"MobileHeaderModalBackdrop"}
-      style={{
-        zIndex: mobileHeaderModal.zIndex,
-      }}
-      className="baseFlex fixed left-0 top-0 h-[100dvh] w-[100vw] bg-black/60 backdrop-blur-sm"
+      className="baseFlex fixed left-0 top-0 z-40 h-[100dvh] w-[100vw] bg-black/60 backdrop-blur-sm"
       variants={backdropVariants}
       initial="closed"
       animate="expanded"
       exit="closed"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          setMobileHeaderModal({
-            ...mobileHeaderModal,
-            showing: false,
-          });
+          setShowMobileHeaderModal(false);
         }
       }}
     ></motion.div>

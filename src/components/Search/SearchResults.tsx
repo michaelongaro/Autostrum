@@ -124,15 +124,7 @@ function SearchResults({
 }: SearchResults) {
   const { asPath, push, query, pathname } = useRouter();
 
-  const {
-    mobileHeaderModal,
-    setMobileHeaderModal,
-    viewportLabel,
-    color,
-    theme,
-  } = useTabStore((state) => ({
-    mobileHeaderModal: state.mobileHeaderModal,
-    setMobileHeaderModal: state.setMobileHeaderModal,
+  const { viewportLabel, color, theme } = useTabStore((state) => ({
     viewportLabel: state.viewportLabel,
     color: state.color,
     theme: state.theme,
@@ -153,12 +145,6 @@ function SearchResults({
   useEffect(() => {
     setGateUntilWindowIsAvailable(false);
   }, []);
-
-  useEffect(() => {
-    if (!mobileHeaderModal.showing) {
-      setDrawerOpen(false);
-    }
-  }, [mobileHeaderModal.showing]);
 
   const disableFiltersAndLayoutToggle =
     isFetchingUserMetadata ||
@@ -849,10 +835,6 @@ function SearchResults({
                     open={drawerOpen}
                     onOpenChange={(open) => {
                       setDrawerOpen(open);
-                      setMobileHeaderModal({
-                        showing: open,
-                        zIndex: open ? 49 : 48,
-                      });
                     }}
                     onClose={() => {
                       setDrawerView("Search filters");

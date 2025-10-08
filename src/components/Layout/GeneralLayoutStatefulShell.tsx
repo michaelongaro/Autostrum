@@ -43,8 +43,8 @@ function GeneralLayoutStatefulShell() {
     setAudioMetadata,
     resetAudioAndMetadataOnRouteChange,
     setCurrentlyPlayingMetadata,
-    mobileHeaderModal,
-    setMobileHeaderModal,
+    showMobileHeaderModal,
+    setShowMobileHeaderModal,
   } = useTabStore((state) => ({
     setLooping: state.setLooping,
     setShowingAudioControls: state.setShowingAudioControls,
@@ -54,8 +54,8 @@ function GeneralLayoutStatefulShell() {
     resetAudioAndMetadataOnRouteChange:
       state.resetAudioAndMetadataOnRouteChange,
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
-    mobileHeaderModal: state.mobileHeaderModal,
-    setMobileHeaderModal: state.setMobileHeaderModal,
+    showMobileHeaderModal: state.showMobileHeaderModal,
+    setShowMobileHeaderModal: state.setShowMobileHeaderModal,
   }));
 
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
@@ -99,10 +99,9 @@ function GeneralLayoutStatefulShell() {
       {aboveLargeViewportWidth ? <DesktopHeader /> : <MobileHeader />}
 
       <AnimatePresence mode="wait">
-        {mobileHeaderModal.showing && (
+        {showMobileHeaderModal && (
           <MobileHeaderModal
-            mobileHeaderModal={mobileHeaderModal}
-            setMobileHeaderModal={setMobileHeaderModal}
+            setShowMobileHeaderModal={setShowMobileHeaderModal}
           />
         )}
       </AnimatePresence>

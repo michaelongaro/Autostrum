@@ -105,8 +105,6 @@ function AudioControls() {
     playTab,
     pauseAudio,
     fetchingFullTabData,
-    mobileHeaderModal,
-    setMobileHeaderModal,
     tabIsEffectivelyEmpty,
   } = useTabStore((state) => ({
     id: state.id,
@@ -128,16 +126,8 @@ function AudioControls() {
     playTab: state.playTab,
     pauseAudio: state.pauseAudio,
     fetchingFullTabData: state.fetchingFullTabData,
-    mobileHeaderModal: state.mobileHeaderModal,
-    setMobileHeaderModal: state.setMobileHeaderModal,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
   }));
-
-  useEffect(() => {
-    if (!mobileHeaderModal.showing) {
-      setDrawerOpen(false);
-    }
-  }, [mobileHeaderModal.showing]);
 
   useEffect(() => {
     if (!masterVolumeGainNode) return;
@@ -241,7 +231,7 @@ function AudioControls() {
       style={{
         transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
       }}
-      className="baseFlex fixed z-40 w-[100vw]"
+      className="baseFlex fixed z-30 w-[100vw]"
       variants={mainAudioControlsVariants}
       initial="closed"
       animate="expanded"
@@ -1010,9 +1000,6 @@ function AudioControls() {
             </>
           ) : (
             <Drawer
-              // disablePreventScroll={true}
-              // noBodyStyles={true}
-              preventScrollRestoration={true}
               open={drawerOpen}
               onOpenChange={(open) => {
                 if (open && audioMetadata.playing) {
@@ -1020,10 +1007,6 @@ function AudioControls() {
                 }
 
                 setDrawerOpen(open);
-                // setMobileHeaderModal({
-                //   showing: open,
-                //   zIndex: open ? 49 : 48,
-                // });
               }}
               dismissible={!drawerHandleDisabled} // bad UX to allow drawer to be moved when <Select> is current open
             >

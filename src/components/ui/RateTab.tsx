@@ -69,9 +69,8 @@ function RateTab({
   tabCreatorUserId,
   customClassName,
 }: RateTab) {
-  const { viewportLabel, setMobileHeaderModal } = useTabStore((state) => ({
+  const { viewportLabel } = useTabStore((state) => ({
     viewportLabel: state.viewportLabel,
-    setMobileHeaderModal: state.setMobileHeaderModal,
   }));
 
   const [hoveredRating, setHoveredRating] = useState<number | null>(null);
@@ -177,10 +176,6 @@ function RateTab({
         setShowPopover(false);
 
         setShowDrawer(false);
-        setMobileHeaderModal({
-          showing: false,
-          zIndex: 48,
-        });
 
         setTimeout(() => {
           setShowThankYouMessage(false);
@@ -213,7 +208,6 @@ function RateTab({
           setShowPopover={setShowPopover}
           showDrawer={showDrawer}
           setShowDrawer={setShowDrawer}
-          setMobileHeaderModal={setMobileHeaderModal}
           currentUser={currentUser}
           userRating={userRating}
           showThankYouMessage={showThankYouMessage}
@@ -237,7 +231,6 @@ function RateTab({
           setShowPopover={setShowPopover}
           showDrawer={showDrawer}
           setShowDrawer={setShowDrawer}
-          setMobileHeaderModal={setMobileHeaderModal}
           currentUser={currentUser}
           userRating={userRating}
           showThankYouMessage={showThankYouMessage}
@@ -271,10 +264,6 @@ interface RateTabWrapper {
   setShowPopover: Dispatch<SetStateAction<boolean>>;
   showDrawer: boolean;
   setShowDrawer: Dispatch<SetStateAction<boolean>>;
-  setMobileHeaderModal: (mobileHeaderModal: {
-    showing: boolean;
-    zIndex: number;
-  }) => void;
   currentUser: UserMetadata | null | undefined;
   userRating: number | null;
   showThankYouMessage: boolean;
@@ -417,7 +406,6 @@ function RateTabDrawer({
   lockOutHoveredRatingRef,
   showDrawer,
   setShowDrawer,
-  setMobileHeaderModal,
   currentUser,
   userRating,
   showThankYouMessage,
@@ -427,11 +415,6 @@ function RateTabDrawer({
       open={showDrawer}
       onOpenChange={(open) => {
         setShowDrawer(open);
-
-        setMobileHeaderModal({
-          showing: open,
-          zIndex: open ? 49 : 48,
-        });
 
         if (open === false && showDrawer) {
           setTimeout(() => {
