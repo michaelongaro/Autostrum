@@ -16,7 +16,7 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { BsPlus } from "react-icons/bs";
-import { IoSettingsOutline, IoStatsChart } from "react-icons/io5";
+import { IoStatsChart } from "react-icons/io5";
 import { TbGuitarPick } from "react-icons/tb";
 import { IoBookmarkOutline } from "react-icons/io5";
 import { useTabStore } from "~/stores/TabStore";
@@ -32,6 +32,7 @@ import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import { LOGO_PATHS_WITH_TITLE } from "~/utils/logoPaths";
+import SettingsOutline from "~/components/ui/icons/SettingsOutline";
 
 function DesktopHeader() {
   const { userId, isSignedIn } = useAuth();
@@ -421,7 +422,7 @@ function DesktopHeader() {
                         }}
                         className="baseFlex w-[165px] gap-2"
                       >
-                        <IoSettingsOutline className="size-4" />
+                        <SettingsOutline className="size-4" strokeWidth={40} />
                         Settings
                       </Link>
                     </Button>

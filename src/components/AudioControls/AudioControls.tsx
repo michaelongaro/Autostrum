@@ -10,7 +10,6 @@ import {
 } from "react-icons/bs";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import { GoChevronDown, GoChevronUp } from "react-icons/go";
-import { IoSettingsOutline } from "react-icons/io5";
 import { RiArrowGoBackFill } from "react-icons/ri";
 import { TiArrowLoop } from "react-icons/ti";
 import {
@@ -47,6 +46,7 @@ import scrollChordIntoView from "~/utils/scrollChordIntoView";
 import PlayButtonIcon from "./PlayButtonIcon";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Direction, getTrackBackground, Range } from "react-range";
+import SettingsOutline from "~/components/ui/icons/SettingsOutline";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -1010,6 +1010,9 @@ function AudioControls() {
             </>
           ) : (
             <Drawer
+              // disablePreventScroll={true}
+              // noBodyStyles={true}
+              preventScrollRestoration={true}
               open={drawerOpen}
               onOpenChange={(open) => {
                 if (open && audioMetadata.playing) {
@@ -1017,10 +1020,10 @@ function AudioControls() {
                 }
 
                 setDrawerOpen(open);
-                setMobileHeaderModal({
-                  showing: open,
-                  zIndex: open ? 49 : 48,
-                });
+                // setMobileHeaderModal({
+                //   showing: open,
+                //   zIndex: open ? 49 : 48,
+                // });
               }}
               dismissible={!drawerHandleDisabled} // bad UX to allow drawer to be moved when <Select> is current open
             >
@@ -1031,7 +1034,7 @@ function AudioControls() {
                   variant={"outline"}
                   className="px-2 py-1 text-primary-foreground"
                 >
-                  <IoSettingsOutline className="h-5 w-5" />
+                  <SettingsOutline className="size-[18px]" />
                 </Button>
               </DrawerTrigger>
               <DrawerPortal>
@@ -1044,13 +1047,18 @@ function AudioControls() {
                     </DrawerDescription>
                   </VisuallyHidden>
 
-                  <div className="baseFlex gap-2">
-                    <IoSettingsOutline className="size-4" />
-                    Audio settings
+                  <div className="baseVertFlex w-full !items-start gap-1">
+                    <div className="baseFlex gap-2 font-medium">
+                      <SettingsOutline
+                        className="size-4"
+                        strokeWidth={"45px"}
+                      />
+                      Audio settings
+                    </div>
+                    <Separator className="w-full bg-primary" />
                   </div>
-                  <Separator className="mb-2 w-full bg-primary" />
 
-                  <div className="baseFlex w-full !justify-between gap-4">
+                  <div className="baseFlex mt-2 w-full !justify-between gap-4">
                     <Label htmlFor="instrument">Instrument</Label>
                     <Select
                       onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}

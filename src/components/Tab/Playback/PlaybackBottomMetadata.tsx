@@ -14,7 +14,6 @@ import {
   BsFillVolumeMuteFill,
   BsFillVolumeUpFill,
 } from "react-icons/bs";
-import { IoSettingsOutline } from "react-icons/io5";
 import { isMobileOnly } from "react-device-detect";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
@@ -46,6 +45,7 @@ import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { tuningNotesToName } from "~/utils/tunings";
 import { Direction, getTrackBackground, Range } from "react-range";
+import SettingsOutline from "~/components/ui/icons/SettingsOutline";
 
 interface PlaybackBottomMetadata {
   loopRange: [number, number];
@@ -335,8 +335,8 @@ function MobileSettingsPopover({
           }}
           className="z-50"
         >
-          <IoSettingsOutline className="h-5 w-5" />
-          <span className="ml-0 hidden mobilePortrait:ml-3 mobilePortrait:block">
+          <SettingsOutline className="size-5" />
+          <span className="ml-0 hidden mobilePortrait:ml-2 mobilePortrait:block">
             Settings
           </span>
         </Button>

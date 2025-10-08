@@ -1,5 +1,4 @@
 import { SignInButton, SignOutButton, useAuth } from "@clerk/nextjs";
-import { IoSettingsOutline } from "react-icons/io5";
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import { BiSearchAlt2 } from "react-icons/bi";
@@ -39,6 +38,7 @@ import Binoculars from "~/components/ui/icons/Binoculars";
 import ThemePicker from "~/components/Header/ThemePicker";
 import { LOGO_PATHS_WITH_TITLE } from "~/utils/logoPaths";
 import Spinner from "~/components/ui/Spinner";
+import SettingsOutline from "~/components/ui/icons/SettingsOutline";
 
 function MobileHeader() {
   const { userId, isSignedIn } = useAuth();
@@ -538,7 +538,7 @@ function MobileHeader() {
                           href={`/profile/settings`}
                           className="baseFlex w-[165px] gap-2"
                         >
-                          <IoSettingsOutline className="size-4" />
+                          <SettingsOutline className="size-4" />
                           Settings
                         </Link>
                       </Button>
