@@ -315,10 +315,10 @@ function MiscellaneousControls({
 
   return (
     <div
-      className={`baseFlex !items-end gap-2 ${
+      className={`baseFlex !items-end !justify-end gap-2 ${
         forSectionContainer
-          ? "w-2/6 !justify-end sm:w-1/6 sm:!flex-row sm:!justify-end"
-          : `w-1/6 lg:!justify-end ${type === "tab" || type === "chord" ? "mr-3 mt-0.5 lg:mr-0 lg:mt-0" : "!justify-end"}`
+          ? "w-2/6 sm:w-1/6 sm:!flex-row"
+          : `w-1/6 ${type === "tab" || type === "chord" ? "mt-0.5 lg:mt-0" : ""}`
       }`}
       onClick={(e) => e.stopPropagation()}
     >
