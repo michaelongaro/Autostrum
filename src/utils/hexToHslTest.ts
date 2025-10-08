@@ -5,7 +5,7 @@
 // peony, quartz, crimson, amethyst - mauve 9
 // saffron - sand 9
 // pistachio, verdant - sage 9
-// aqua, azure - slate 9
+// aqua, sapphire - slate 9
 
 type ColorShades = [
   string,
@@ -411,7 +411,7 @@ const colorScales = {
       "#B6ECF7",
     ],
   },
-  azure: {
+  sapphire: {
     light: [
       "#FBFDFF",
       "#F4FAFF",

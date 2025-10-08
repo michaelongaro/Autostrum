@@ -239,7 +239,7 @@ export type COLORS =
   | "pistachio"
   | "verdant"
   | "aqua"
-  | "azure"
+  | "sapphire"
   | "amethyst";
 
 export type THEME = "light" | "dark";

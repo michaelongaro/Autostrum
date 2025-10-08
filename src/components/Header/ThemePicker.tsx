@@ -20,7 +20,7 @@ const COLORS = [
   "pistachio",
   "verdant",
   "aqua",
-  "azure",
+  "sapphire",
   "amethyst",
 ] as const;
 
@@ -28,11 +28,11 @@ const COLOR_HEX_VALUES: Record<(typeof COLORS)[number], string> = {
   peony: "#E93D82",
   quartz: "#CA244D",
   crimson: "#CE2C31",
-  saffron: "#F76B15",
+  saffron: "#E54D2E",
   pistachio: "#46A758",
   verdant: "#12A594",
   aqua: "#00A2C7",
-  azure: "#0D74CE",
+  sapphire: "#3E63DD",
   amethyst: "#8E4EC6",
 };
 

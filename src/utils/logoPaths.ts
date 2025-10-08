@@ -6,7 +6,7 @@ export const LOGO_PATHS_WITH_TITLE = {
   pistachio: "/logos/withTitle/pistachio.svg",
   verdant: "/logos/withTitle/verdant.svg",
   aqua: "/logos/withTitle/aqua.svg",
-  azure: "/logos/withTitle/azure.svg",
+  sapphire: "/logos/withTitle/sapphire.svg",
   amethyst: "/logos/withTitle/amethyst.svg",
 } as const;
 
@@ -18,6 +18,6 @@ export const LOGO_PATHS_WITHOUT_TITLE = {
   pistachio: "/logos/withoutTitle/pistachio.svg",
   verdant: "/logos/withoutTitle/verdant.svg",
   aqua: "/logos/withoutTitle/aqua.svg",
-  azure: "/logos/withoutTitle/azure.svg",
+  sapphire: "/logos/withoutTitle/sapphire.svg",
   amethyst: "/logos/withoutTitle/amethyst.svg",
 } as const;
