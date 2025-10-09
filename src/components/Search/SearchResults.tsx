@@ -775,7 +775,7 @@ function SearchResults({
                   {/* layout type selector */}
                   <div className="baseFlex gap-3">
                     <Label>Layout</Label>
-                    <div className="baseFlex overflow-y-hidden rounded-md border">
+                    <div className="baseFlex relative overflow-y-hidden rounded-md border">
                       <Button
                         variant={
                           layoutType.value === "grid" ? "toggleOn" : "toggleOff"
@@ -787,17 +787,6 @@ function SearchResults({
                         }}
                         className="baseFlex relative gap-2 border-none"
                       >
-                        {layoutType.value === "grid" && (
-                          <motion.span
-                            layoutId="animatedToggleIndicator"
-                            className="absolute inset-0 !z-[-1] rounded-sm bg-background"
-                            transition={{
-                              type: "spring",
-                              bounce: 0.2,
-                              duration: 0.6,
-                            }}
-                          />
-                        )}
                         <BsGridFill className="size-4" />
                       </Button>
 
@@ -814,19 +803,20 @@ function SearchResults({
                         }}
                         className="baseFlex relative gap-2 border-none"
                       >
-                        {layoutType.value === "table" && (
-                          <motion.span
-                            layoutId="animatedToggleIndicator"
-                            className="absolute inset-0 !z-[-1] rounded-sm bg-background"
-                            transition={{
-                              type: "spring",
-                              bounce: 0.2,
-                              duration: 0.6,
-                            }}
-                          />
-                        )}
                         <CiViewTable className="size-4 stroke-[0.5px]" />
                       </Button>
+
+                      <div
+                        style={{
+                          transform:
+                            layoutType.value === "grid"
+                              ? "translateX(0)"
+                              : "translateX(40px)",
+                          transition:
+                            "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                        }}
+                        className="absolute inset-0 !z-[-1] w-[40px] rounded-sm bg-background"
+                      ></div>
                     </div>
                   </div>
 
@@ -1688,7 +1678,7 @@ function SearchResults({
                 {/* layout type toggle */}
                 <div className="baseFlex gap-3">
                   <Label>Layout</Label>
-                  <div className="baseFlex overflow-hidden rounded-md border-2">
+                  <div className="baseFlex relative overflow-hidden rounded-md border-2">
                     <Button
                       variant={
                         layoutType.value === "grid" ? "toggleOn" : "toggleOff"
@@ -1700,17 +1690,6 @@ function SearchResults({
                       }}
                       className="baseFlex relative gap-2 rounded-sm"
                     >
-                      {layoutType.value === "grid" && (
-                        <motion.span
-                          layoutId="animatedToggleIndicator"
-                          className="absolute inset-0 !z-[-1] rounded-sm bg-background"
-                          transition={{
-                            type: "spring",
-                            bounce: 0.2,
-                            duration: 0.6,
-                          }}
-                        />
-                      )}
                       <BsGridFill className="size-4" />
                       Grid
                     </Button>
@@ -1726,20 +1705,22 @@ function SearchResults({
                       }}
                       className="baseFlex relative gap-2 rounded-sm"
                     >
-                      {layoutType.value === "table" && (
-                        <motion.span
-                          layoutId="animatedToggleIndicator"
-                          className="absolute inset-0 !z-[-1] rounded-sm bg-background"
-                          transition={{
-                            type: "spring",
-                            bounce: 0.2,
-                            duration: 0.6,
-                          }}
-                        />
-                      )}
                       <CiViewTable className="size-4 stroke-[0.5px]" />
                       Table
                     </Button>
+
+                    <div
+                      style={{
+                        transform:
+                          layoutType.value === "grid"
+                            ? "translateX(0)"
+                            : "translateX(78px)",
+                        transition:
+                          "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                        width: layoutType.value === "grid" ? "76.5px" : "83px",
+                      }}
+                      className="absolute inset-0 !z-[-1] rounded-sm bg-background"
+                    ></div>
                   </div>
                 </div>
               </div>
