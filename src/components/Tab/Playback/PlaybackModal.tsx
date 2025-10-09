@@ -570,7 +570,7 @@ function PlaybackModal() {
                               scrollContainerWidth,
                               currentChordIndex,
                               audioMetadata,
-                              numberOfChords: playbackMetadata?.length ?? 0,
+                              chordCount: playbackMetadata?.length ?? 0,
                             }),
                             transition: `transform ${
                               audioMetadata.playing
@@ -725,19 +725,19 @@ function getScrollContainerTransform({
   scrollContainerWidth,
   currentChordIndex,
   audioMetadata,
-  numberOfChords,
+  chordCount,
 }: {
   scrollPositions: number[];
   chordRepetitions: number[];
   scrollContainerWidth: number;
   currentChordIndex: number;
   audioMetadata: AudioMetadata;
-  numberOfChords: number;
+  chordCount: number;
 }) {
   // when looping, you want to go back to the first chord position, since it
   // will already be translated to the right side of last chord position in main tab
   const index =
-    audioMetadata.playing && currentChordIndex === numberOfChords - 1
+    audioMetadata.playing && currentChordIndex === chordCount - 1
       ? 0
       : currentChordIndex + (audioMetadata.playing ? 1 : 0);
 

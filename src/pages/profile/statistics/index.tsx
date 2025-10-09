@@ -673,7 +673,7 @@ function UserStatistics() {
                                   miscStatsSlide
                                 ]!.entries(),
                               ]
-                          ).map(([category, numberOfTabs]) => (
+                          ).map(([category, tabCount]) => (
                             <TableRow key={category} className="w-full">
                               <TableCell>
                                 <motion.div
@@ -697,7 +697,7 @@ function UserStatistics() {
 
                               <TableCell>
                                 <motion.div
-                                  key={`${category}NumberOfTabs`}
+                                  key={`${category}tabCount`}
                                   initial={{ opacity: 0 }}
                                   animate={{ opacity: 1 }}
                                   exit={{ opacity: 0 }}
@@ -705,7 +705,7 @@ function UserStatistics() {
                                   className="w-full"
                                 >
                                   <span className="font-semibold text-foreground">
-                                    {numberOfTabs}
+                                    {tabCount}
                                   </span>
                                 </motion.div>
                               </TableCell>
