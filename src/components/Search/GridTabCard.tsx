@@ -167,17 +167,17 @@ function GridTabCard({
           <Link
             href={`/tab/${minimalTab.id}/${encodeURIComponent(minimalTab.title)}`}
             prefetch={false}
-            style={{
-              width: getDynamicWidth(),
-              height: getDynamicHeight(),
-            }}
-            className="w-full cursor-pointer rounded-t-md transition-all hover:brightness-90 active:brightness-[0.8]"
+            className="block cursor-pointer rounded-t-md transition-all hover:brightness-90 active:brightness-[0.8]"
           >
             {/* tab preview screenshot */}
             <div
               onTouchStart={() => setIsPressingOnScreenshot(true)}
               onTouchEnd={() => setIsPressingOnScreenshot(false)}
               onTouchCancel={() => setIsPressingOnScreenshot(false)}
+              style={{
+                width: getDynamicWidth(),
+                height: getDynamicHeight(),
+              }}
               className="relative grid grid-cols-1 grid-rows-1 border-b"
             >
               {((theme === "light" && tabScreenshotLight) ||
@@ -190,8 +190,8 @@ function GridTabCard({
                         : tabScreenshotDark!
                     }
                     alt={`screenshot of ${minimalTab.title}`}
-                    width={getDynamicWidth()}
-                    height={getDynamicHeight()}
+                    fill
+                    sizes={`${getDynamicWidth()}px`} // harmless with data URLs; keeps types happy
                     unoptimized={true}
                     onLoad={() => {
                       setTimeout(() => {
@@ -204,8 +204,6 @@ function GridTabCard({
                       filter: isPressingOnScreenshot
                         ? "brightness(0.8)"
                         : "none",
-                      width: `${getDynamicWidth()}px`,
-                      height: `${getDynamicHeight()}px`,
                     }}
                     className="pointer-events-none col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-sm object-cover object-center !transition-all"
                   />
@@ -227,12 +225,8 @@ function GridTabCard({
                     animate={{ opacity: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    style={{
-                      width: getDynamicWidth(),
-                      height: getDynamicHeight(),
-                    }}
-                    className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-none bg-foreground/50"
-                  ></motion.div>
+                    className="pulseAnimation absolute inset-0 z-10 rounded-t-none bg-foreground/50"
+                  />
                 )}
               </AnimatePresence>
             </div>
