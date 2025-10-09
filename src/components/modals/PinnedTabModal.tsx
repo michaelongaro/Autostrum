@@ -18,6 +18,7 @@ function PinnedTabModal({
 }: PinnedTabModal) {
   return (
     <motion.div
+      key={"pinnedTabModalBackdrop"}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
