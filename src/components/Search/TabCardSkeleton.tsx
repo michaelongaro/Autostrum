@@ -5,7 +5,7 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 interface TabCardSkeleton {
   uniqueKey: string;
-  largeVariant?: boolean;
+  largeVariant?: boolean | null;
 }
 
 function TabCardSkeleton({ uniqueKey, largeVariant }: TabCardSkeleton) {
@@ -25,26 +25,26 @@ function TabCardSkeleton({ uniqueKey, largeVariant }: TabCardSkeleton) {
           width: largeVariant
             ? 398
             : isAboveExtraSmallViewportWidth
-              ? 330
-              : 270,
+              ? 328
+              : 268,
           height: largeVariant
             ? 185
             : isAboveExtraSmallViewportWidth
-              ? 151
+              ? 152
               : 129,
         }}
         className="pulseAnimation rounded-t-sm border-b bg-foreground/50"
       ></div>
 
       <div
-        className={`baseVertFlex h-[94px] w-full !items-start gap-1 rounded-b-md p-2.5`}
+        className={`baseVertFlex h-[92px] w-full !items-start gap-1 rounded-b-md p-2.5`}
       >
         {/* title */}
         <div className="pulseAnimation h-6 w-48 rounded-md bg-foreground/50"></div>
 
         {/* artist + difficulty */}
         <div className="baseFlex w-full !justify-between">
-          <div className="pulseAnimation h-5 w-24 rounded-md bg-foreground/50"></div>
+          <div className="pulseAnimation h-[18px] w-24 rounded-md bg-foreground/50"></div>
           <div className="pulseAnimation h-5 w-24 rounded-md bg-foreground/50"></div>
         </div>
 

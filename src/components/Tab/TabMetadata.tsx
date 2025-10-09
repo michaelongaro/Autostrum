@@ -1401,7 +1401,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                     border: "1px solid",
                     color: genreColors.get(genre),
                   }}
-                  className="px-4 py-2.5"
+                  className="px-4 py-2.5 text-xs"
                 >
                   {genre}
                 </Badge>

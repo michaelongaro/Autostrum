@@ -28,7 +28,7 @@ interface GridTabCard {
   currentUser: UserMetadata | null | undefined;
   color: COLORS;
   theme: THEME;
-  largeVariant?: boolean;
+  largeVariant?: boolean | null;
   pinnedTabType?: "full" | "withoutScreenshot";
   infiniteQueryParams?: InfiniteQueryParams;
   ref?: React.RefObject<HTMLDivElement>;
@@ -352,7 +352,7 @@ function GridTabCard({
 
             {pinnedTabType && (
               <Badge className="baseFlex gap-1 border border-primary bg-primary/10 text-primary">
-                <TbPinned className="size-4" />
+                <TbPinned className="size-3" />
                 Pinned
               </Badge>
             )}
