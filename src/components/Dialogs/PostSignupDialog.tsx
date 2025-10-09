@@ -267,9 +267,9 @@ function PostSignupDialog() {
                 <svg
                   fill="none"
                   viewBox="0 0 24 24"
-                  stroke="hsl(var(--primary-foreground))"
+                  stroke="currentColor"
                   strokeWidth={2}
-                  className="size-5 text-foreground"
+                  className="size-5"
                 >
                   <motion.path
                     initial={{ pathLength: 0 }}
