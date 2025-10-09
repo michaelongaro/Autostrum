@@ -4,7 +4,6 @@ import { useState, type Dispatch, type SetStateAction } from "react";
 import { TbPinned } from "react-icons/tb";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { Button } from "~/components/ui/button";
-import { useTabStore } from "~/stores/TabStore";
 import {
   Drawer,
   DrawerTrigger,
@@ -79,13 +78,13 @@ function PinnedTabSelector({
         </div>
 
         <div className="baseFlex gap-4">
-          {localPinnedTabId !== -1 && (
+          {localPinnedTabId !== -1 && localPinnedTabId !== null && (
             <Button
               variant={"text"}
               disabled={!localSettings}
               className="!size-8 shrink-0 !p-0"
               onClick={() => {
-                setLocalPinnedTabId(-1);
+                setLocalPinnedTabId(null);
               }}
             >
               <IoClose className="size-5" />
