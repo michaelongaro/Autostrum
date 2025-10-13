@@ -154,7 +154,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
       >
         <div
           tabIndex={-1}
-          className="baseVertFlex modalGradient relative min-w-[300px] max-w-[90vw] gap-4 rounded-lg border p-4 shadow-sm xs:max-w-[380px] xs:gap-8"
+          className="baseVertFlex modalGradient relative min-w-[350px] max-w-[90vw] gap-4 rounded-lg border p-4 shadow-sm xs:w-[380px] xs:gap-8"
         >
           {/* chord title */}
           <div className="baseFlex w-full !items-start !justify-between">
@@ -181,8 +181,8 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
             </Button>
           </div>
 
-          <div className="baseVertFlex gap-2">
-            <div className="baseFlex !items-start gap-2">
+          <div className="baseVertFlex w-full gap-2">
+            <div className="baseFlex w-full !items-start !justify-between gap-2">
               <Chord
                 chordBeingEdited={chordBeingEdited}
                 highlightChord={
@@ -193,7 +193,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
               />
 
               {/* ml here seems hacky */}
-              <div className="baseVertFlex ml-0 h-full w-48 gap-4 xs:ml-[30px]">
+              <div className="baseVertFlex h-full w-48 gap-4">
                 <div className="baseVertFlex w-full !items-start gap-2 rounded-lg border bg-secondary p-2 text-sm shadow-sm">
                   <div className="baseFlex w-[160px] gap-2 font-semibold">
                     <BsKeyboard className="h-6 w-6" />

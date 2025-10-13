@@ -128,7 +128,7 @@ function Chord({ chordBeingEdited, highlightChord }: Chord) {
   }
 
   return (
-    <div className="baseFlex w-full">
+    <div className="baseFlex">
       <div className="baseVertFlex relative h-[280px] rounded-l-2xl border-2 border-foreground bg-secondary/50 p-2">
         <PrettyVerticalTuning tuning={tuning} height={"250px"} />
       </div>
