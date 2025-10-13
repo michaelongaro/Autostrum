@@ -48,9 +48,9 @@ function PinnedTabSelector({
       <span className="text-xl font-medium lg:text-2xl">Pinned tab</span>
 
       <div className="baseFlex w-full !justify-between gap-4 lg:w-auto lg:!justify-center">
-        <div className="baseFlex gap-2">
+        <div className="baseFlex gap-1.5">
           <motion.div layout>
-            <TbPinned className="size-4 sm:size-5" />
+            <TbPinned className="size-[18px] sm:size-5" />
           </motion.div>
 
           <motion.div
