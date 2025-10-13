@@ -130,9 +130,9 @@ function PinnedTabList({
             className="baseFlex size-full lg:min-h-[350px]"
           >
             <div className="baseVertFlex gap-4 rounded-md border bg-secondary-active/50 px-8 py-4 text-xl shadow-lg">
-              <div className="baseVertFlex gap-4">
-                <Binoculars className="size-9" />
-                No results found
+              <div className="baseVertFlex gap-2 sm:gap-3">
+                <Binoculars className="size-7 sm:size-9" />
+                <span className="text-lg sm:text-xl">No results found</span>
               </div>
             </div>
           </motion.div>

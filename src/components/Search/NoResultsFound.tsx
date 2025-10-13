@@ -19,15 +19,15 @@ function NoResultsFound({ customKey, searchQueryExists }: NoResultsFound) {
       transition={{ duration: 0.25 }}
       className="baseVertFlex gap-4 rounded-md border bg-secondary-active/50 px-8 py-4 text-xl shadow-lg transition-all"
     >
-      <div className="baseVertFlex gap-4">
-        <Binoculars className="size-9" />
-        No results found
+      <div className="baseVertFlex gap-2 sm:gap-3">
+        <Binoculars className="size-7 sm:size-9" />
+        <span className="text-lg sm:text-xl">No results found</span>
       </div>
 
       {searchQueryExists && (
         <Button variant={"secondary"} asChild>
-          <Link prefetch={false} href="/create" className="baseFlex gap-2">
-            <BsPlus className="size-4" />
+          <Link prefetch={false} href="/create" className="baseFlex gap-1.5">
+            <BsPlus className="size-5" />
             Create the first tab for this song
           </Link>
         </Button>
