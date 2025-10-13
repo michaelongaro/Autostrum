@@ -931,7 +931,7 @@ function SearchResults({
                           </div>
                         </div>
 
-                        <Separator className="mt-2 w-full bg-gray" />
+                        <Separator className="mt-1 w-full bg-gray" />
 
                         {/* Main body content */}
                         <div className="baseVertFlex h-[391px] w-full !justify-start overflow-y-auto">
