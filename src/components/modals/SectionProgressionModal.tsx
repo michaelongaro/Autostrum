@@ -39,6 +39,9 @@ function SectionProgressionModal() {
   >([]);
 
   const scrollableSectionsRef = useRef<HTMLDivElement>(null);
+  const bottomSentinelRef = useRef<HTMLDivElement>(null);
+  const lastAddedIdRef = useRef<string | null>(null);
+  const pendingScrollRef = useRef(false);
 
   useModalScrollbarHandling();
 
@@ -65,27 +68,46 @@ function SectionProgressionModal() {
   }, [tabData]);
 
   function addNewSectionToProgression() {
+    const newId = crypto.randomUUID();
     const newSectionProgression = [...localSectionProgression];
     newSectionProgression.push({
-      id: crypto.randomUUID(),
+      id: newId,
       sectionId: "",
       title: "",
       repetitions: 1,
       startSeconds: 0, // will be overwritten by useAutoCompileChords
       endSeconds: 0, // will be overwritten by useAutoCompileChords
     });
-    setLocalSectionProgression(newSectionProgression);
 
-    // making sure the new section is rendered before scrolling to
-    // the bottom of the sections list
-    setTimeout(() => {
-      if (scrollableSectionsRef.current) {
-        scrollableSectionsRef.current.scrollTo({
-          top: scrollableSectionsRef.current.scrollHeight,
+    // mark that after the new section enters (animation), we should scroll
+    lastAddedIdRef.current = newId;
+    pendingScrollRef.current = true;
+    setLocalSectionProgression(newSectionProgression);
+  }
+
+  // Fallback: if for some reason the animation callback doesn't fire,
+  // try to scroll shortly after the list length changes.
+  useEffect(() => {
+    if (!pendingScrollRef.current) return;
+    const t = setTimeout(() => {
+      if (pendingScrollRef.current) {
+        bottomSentinelRef.current?.scrollIntoView({
           behavior: "smooth",
+          block: "end",
         });
+        pendingScrollRef.current = false;
       }
-    }, 0);
+    }, 300); // a bit longer than the 0.25s animation to ensure final layout
+    return () => clearTimeout(t);
+  }, [localSectionProgression.length]);
+
+  function handleNewSectionEnterComplete() {
+    if (!pendingScrollRef.current) return;
+    bottomSentinelRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+    pendingScrollRef.current = false;
   }
 
   function closeModal() {
@@ -128,11 +150,17 @@ function SectionProgressionModal() {
           initialFocus: false,
         }}
       >
-        <div
+        <motion.div
           tabIndex={-1}
           className="modalGradient relative min-h-[20rem] min-w-[70vw] rounded-lg border p-4 shadow-sm md:min-w-[25rem]"
+          layout
+          transition={{ layout: { duration: 0.25 } }}
         >
-          <div className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full max-w-[90vw] !justify-between">
+          <motion.div
+            className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full max-w-[90vw] !justify-between"
+            layout
+            transition={{ layout: { duration: 0.25 } }}
+          >
             <div className="baseFlex w-full !justify-between">
               <span className="self-start text-lg font-semibold text-foreground">
                 Section progression
@@ -157,7 +185,7 @@ function SectionProgressionModal() {
                 defer
                 className="w-full"
               >
-                <AnimatePresence initial={false}>
+                <AnimatePresence initial={false} mode="sync">
                   {localSectionProgression.map((section, index) => (
                     <Section
                       key={section.id}
@@ -169,9 +197,18 @@ function SectionProgressionModal() {
                       sections={sections}
                       localSectionProgression={localSectionProgression}
                       setLocalSectionProgression={setLocalSectionProgression}
+                      isNew={section.id === lastAddedIdRef.current}
+                      onEnterComplete={handleNewSectionEnterComplete}
                     />
                   ))}
                 </AnimatePresence>
+
+                {/* Sentinel to scroll into view so we always hit the true bottom */}
+                <div
+                  ref={bottomSentinelRef}
+                  className="h-0 w-full"
+                  aria-hidden
+                />
               </OverlayScrollbarsComponent>
             </div>
 
@@ -197,8 +234,8 @@ function SectionProgressionModal() {
                 Save
               </Button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </FocusTrap>
     </motion.div>
   );
@@ -220,6 +257,10 @@ interface Section {
   setLocalSectionProgression: React.Dispatch<
     React.SetStateAction<SectionProgression[]>
   >;
+  // True if this is the most recently added section (used to know when to scroll)
+  isNew?: boolean;
+  // Callback when the entrance animation for a new section completes
+  onEnterComplete?: () => void;
 }
 
 function Section({
@@ -231,6 +272,8 @@ function Section({
   sections,
   localSectionProgression,
   setLocalSectionProgression,
+  isNew,
+  onEnterComplete,
 }: Section) {
   function handleSectionChange(sectionId: string) {
     const indexOfSection = sections.findIndex(
@@ -283,28 +326,14 @@ function Section({
     <motion.div
       key={`sectionProgression${id}`}
       layout
-      initial={{
-        opacity: 0,
-        height: 0,
-        marginTop: 0,
-        marginBottom: 0,
+      initial={{ opacity: 0, marginTop: 0, marginBottom: 0 }}
+      animate={{ opacity: 1, marginTop: "8px", marginBottom: "8px" }}
+      exit={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0 }}
+      transition={{ duration: 0.2, layout: { duration: 0.25 } }}
+      onAnimationComplete={() => {
+        if (isNew) onEnterComplete?.();
       }}
-      animate={{
-        opacity: 1,
-        height: "auto",
-        marginTop: "0.5rem",
-        marginBottom: "0.5rem",
-      }}
-      exit={{
-        opacity: 0,
-        marginTop: 0,
-        marginBottom: 0,
-      }}
-      transition={{
-        default: { duration: 0.2 },
-        layout: { duration: 0.5 },
-      }}
-      className="baseVertFlex relative w-full gap-2 rounded-lg border bg-secondary p-4 shadow-sm"
+      className="baseVertFlex relative w-full gap-2 overflow-hidden rounded-lg border bg-secondary p-4 shadow-sm"
     >
       <div className="baseFlex w-full !justify-start gap-2">
         <Label htmlFor={`sectionIndex${index}`}>
