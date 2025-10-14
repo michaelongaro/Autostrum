@@ -1441,8 +1441,8 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               >
                 <div className="font-semibold">Difficulty</div>
                 <div className="baseFlex gap-2">
-                  <DifficultyBars difficulty={3} />
-                  <span>Intermediate</span>
+                  <DifficultyBars difficulty={difficulty} />
+                  <span>{DIFFICULTIES[difficulty - 1]}</span>
                 </div>
               </div>
 
