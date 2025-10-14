@@ -90,7 +90,7 @@ function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
                 window.localStorage.setItem("autostrum-color", colorString);
 
                 if (userId && allowUpdateOfDBColor) {
-                  updateDBColor({ userId, color: colorString });
+                  updateDBColor(colorString);
                 }
               }}
               style={{ backgroundColor: COLOR_HEX_VALUES[colorString] }}

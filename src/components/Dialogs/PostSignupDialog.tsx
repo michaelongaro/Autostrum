@@ -32,9 +32,7 @@ function PostSignupDialog() {
   }));
 
   const { data: userIsRegistered, isLoading: isLoadingUserRegistrationStatus } =
-    api.user.isUserRegistered.useQuery(user?.id ?? "", {
-      enabled: isSignedIn,
-    });
+    api.user.isUserRegistered.useQuery();
 
   // const localStorageRedirectRoute = useLocalStorageValue(
   //   "autostrum-redirect-route",
@@ -78,7 +76,7 @@ function PostSignupDialog() {
       }, 1000);
 
       setTimeout(() => {
-        void ctx.user.isUserRegistered.invalidate(user?.id);
+        void ctx.user.isUserRegistered.invalidate();
         void ctx.user.getById.invalidate(user?.id);
       }, 2000);
     },
@@ -232,7 +230,6 @@ function PostSignupDialog() {
             setSaveButtonText("Saving");
 
             createUser({
-              userId: user.id,
               profileImageUrl: user.imageUrl,
               username,
               color,

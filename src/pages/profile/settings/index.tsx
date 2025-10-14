@@ -697,7 +697,6 @@ function UserSettings() {
           <div className="baseVertFlex w-full !items-start gap-4 lg:gap-10">
             {/* pinned tab */}
             <PinnedTabSelector
-              userId={userId!}
               localPinnedTabId={localPinnedTabId}
               setLocalPinnedTabId={setLocalPinnedTabId}
               setShowPinnedTabModal={setShowPinnedTabModal}
@@ -734,7 +733,7 @@ function UserSettings() {
                         );
 
                         if (userId) {
-                          updateDBColor({ userId, color: colorString });
+                          updateDBColor(colorString);
                         }
                       }}
                       style={{
@@ -975,7 +974,6 @@ function UserSettings() {
               setSaveButtonText("Saving");
 
               updateUser({
-                userId: userId,
                 username: localSettings.username,
                 newPassword: editingPassword ? newPassword : undefined,
                 confirmPassword: editingPassword ? confirmPassword : undefined,
@@ -1058,7 +1056,6 @@ function UserSettings() {
         )}
         {showPinnedTabModal && (
           <PinnedTabModal
-            userId={userId!}
             localPinnedTabId={localPinnedTabId}
             setLocalPinnedTabId={setLocalPinnedTabId}
             setShowPinnedTabModal={setShowPinnedTabModal}

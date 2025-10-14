@@ -1,4 +1,3 @@
-import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import Head from "next/head";
 import Link from "next/link";
@@ -34,12 +33,8 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import Spinner from "~/components/ui/Spinner";
 
 function UserStatistics() {
-  const { userId } = useAuth();
-
   const { data: currentUser, isFetching: isFetchingCurrentUser } =
-    api.user.getStatistics.useQuery(userId!, {
-      enabled: !!userId,
-    });
+    api.user.getStatistics.useQuery();
 
   const isAboveSmViewport = useViewportWidthBreakpoint(640);
 

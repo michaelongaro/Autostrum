@@ -20,14 +20,12 @@ import { X } from "lucide-react";
 import Spinner from "~/components/ui/Spinner";
 
 interface PinnedTabList {
-  userId: string;
   localPinnedTabId: number | null;
   setLocalPinnedTabId: Dispatch<SetStateAction<number | null>>;
   setShowPinnedTabModal?: Dispatch<SetStateAction<boolean>>;
 }
 
 function PinnedTabList({
-  userId,
   localPinnedTabId,
   setLocalPinnedTabId,
   setShowPinnedTabModal,
@@ -37,10 +35,7 @@ function PinnedTabList({
   >("Most popular");
 
   const { data: userTabs, isFetching: isFetchingUserTabs } =
-    api.tab.getTabsForPinnedTabSelector.useQuery({
-      userId,
-      sortBy,
-    });
+    api.tab.getTabsForPinnedTabSelector.useQuery(sortBy);
 
   return (
     <div className="baseVertFlex size-full !items-start !justify-start">

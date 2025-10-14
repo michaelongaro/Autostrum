@@ -17,7 +17,7 @@ export const tabRatingRouter = createTRPCRouter({
 
       const userAlreadyRated = await ctx.prisma.tabRating.findFirst({
         where: {
-          userId: ctx.auth.userId,
+          userId,
           tabId,
         },
       });

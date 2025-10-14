@@ -4,14 +4,12 @@ import FocusLock from "react-focus-lock";
 import PinnedTabList from "~/components/Profile/PinnedTabList";
 
 interface PinnedTabModal {
-  userId: string;
   localPinnedTabId: number | null;
   setLocalPinnedTabId: Dispatch<SetStateAction<number | null>>;
   setShowPinnedTabModal: Dispatch<SetStateAction<boolean>>;
 }
 
 function PinnedTabModal({
-  userId,
   localPinnedTabId,
   setLocalPinnedTabId,
   setShowPinnedTabModal,
@@ -36,7 +34,6 @@ function PinnedTabModal({
           className="baseVertFlex modalGradient relative h-[500px] w-[500px] gap-4 rounded-lg border p-4 shadow-sm"
         >
           <PinnedTabList
-            userId={userId}
             localPinnedTabId={localPinnedTabId}
             setLocalPinnedTabId={setLocalPinnedTabId}
             setShowPinnedTabModal={setShowPinnedTabModal}

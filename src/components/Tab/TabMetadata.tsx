@@ -395,7 +395,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
     if (asPath.includes("create")) {
       publishTab({
-        createdByUserId: userId,
         title,
         artistId,
         artistName,

@@ -19,7 +19,6 @@ import type { LocalSettings } from "~/pages/profile/settings";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface PinnedTabSelector {
-  userId: string;
   localPinnedTabId: number | null;
   setLocalPinnedTabId: Dispatch<SetStateAction<number | null>>;
   setShowPinnedTabModal: Dispatch<SetStateAction<boolean>>;
@@ -27,7 +26,6 @@ interface PinnedTabSelector {
 }
 
 function PinnedTabSelector({
-  userId,
   localPinnedTabId,
   setLocalPinnedTabId,
   setShowPinnedTabModal,
@@ -124,7 +122,6 @@ function PinnedTabSelector({
                   <Separator className="mt-2 w-full bg-gray" />
 
                   <PinnedTabList
-                    userId={userId}
                     localPinnedTabId={localPinnedTabId}
                     setLocalPinnedTabId={setLocalPinnedTabId}
                   />

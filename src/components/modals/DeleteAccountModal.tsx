@@ -141,10 +141,7 @@ function DeleteAccountModal({ setShowDeleteAccountModal }: DeleteAccountModal) {
             onClick={() => {
               if (!userId) return;
 
-              deleteAccount({
-                userId,
-                anonymizeUserTabs,
-              });
+              deleteAccount(anonymizeUserTabs);
             }}
           >
             <AnimatePresence mode={"wait"} initial={false}>

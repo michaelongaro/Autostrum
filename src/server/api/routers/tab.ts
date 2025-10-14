@@ -120,7 +120,7 @@ export const tabRouter = createTRPCRouter({
   // }),
 
   // only used in <PinnedTabSelector /> on user's settings page,
-  // but doesn't need to be protected
+  // but doesn't strictly need to be a protected procedure
   getTitle: protectedProcedure
     .input(z.number())
     .query(async ({ input: id, ctx }) => {
@@ -139,14 +139,9 @@ export const tabRouter = createTRPCRouter({
     }),
 
   getTabsForPinnedTabSelector: protectedProcedure
-    .input(
-      z.object({
-        userId: z.string(),
-        sortBy: z.enum(["Newest", "Oldest", "Most popular", "Least popular"]),
-      }),
-    )
-    .query(async ({ input, ctx }) => {
-      const { userId, sortBy } = input;
+    .input(z.enum(["Newest", "Oldest", "Most popular", "Least popular"]))
+    .query(async ({ input: sortBy, ctx }) => {
+      const userId = ctx.auth.userId;
 
       const sortOptionsMap = {
         Newest: { createdAt: "desc" as const },
@@ -316,7 +311,6 @@ export const tabRouter = createTRPCRouter({
   create: protectedProcedure
     .input(
       z.object({
-        createdByUserId: z.string(),
         title: z.string().max(50),
         artistId: z.number().nullable(),
         artistName: z.string().max(60).optional(),
@@ -337,7 +331,6 @@ export const tabRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const {
-        createdByUserId,
         title,
         artistId,
         artistName,
@@ -356,6 +349,8 @@ export const tabRouter = createTRPCRouter({
         darkScreenshot,
       } = input;
 
+      const userId = ctx.auth.userId;
+
       const tab = await ctx.prisma.tab.create({
         data: {
           title,
@@ -370,10 +365,8 @@ export const tabRouter = createTRPCRouter({
           chords,
           strummingPatterns,
           tabData,
-          ...(createdByUserId
-            ? { createdBy: { connect: { userId: createdByUserId } } }
-            : {}),
-          // FYI: even though createdByUserId will always be provided, since the field is optional
+          ...(userId ? { createdBy: { connect: { userId: userId } } } : {}),
+          // FYI: even though userId will always be provided, since the field is optional
           // in our schema, prisma wants us to use the relation field.
           ...(artistId != null
             ? { artist: { connect: { id: artistId } } }
@@ -443,7 +436,7 @@ export const tabRouter = createTRPCRouter({
       ctx.prisma.user
         .update({
           where: {
-            userId: createdByUserId,
+            userId,
           },
           data: {
             totalTabs: {
@@ -528,11 +521,16 @@ export const tabRouter = createTRPCRouter({
         select: {
           artistId: true,
           pageViews: true, // used to update the artist's totalViews
+          createdByUserId: true,
         },
       });
 
-      if (!prevTabVersion) {
-        throw new Error("Tab not found");
+      // only the tab creator can update their tab
+      if (
+        !prevTabVersion ||
+        prevTabVersion.createdByUserId !== ctx.auth.userId
+      ) {
+        throw new Error("Unable to find tab or unauthorized");
       }
 
       const tab = await ctx.prisma.tab.update({
@@ -666,13 +664,16 @@ export const tabRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.number())
     .mutation(async ({ input: idToDelete, ctx }) => {
+      const userId = ctx.auth.userId;
+
       const tab = await ctx.prisma.tab.findUnique({
         where: {
           id: idToDelete,
         },
       });
 
-      if (!tab) return null;
+      // only the tab creator can delete their tab
+      if (!tab || tab.createdByUserId !== userId) return null;
 
       const s3 = new S3Client({
         region: "us-east-2",

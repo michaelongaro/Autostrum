@@ -202,13 +202,11 @@ function BookmarkToggle({
               removeBookmark({
                 tabId,
                 tabCreatorUserId: createdByUserId,
-                bookmarkedByUserId: currentUser.userId,
               });
             } else {
               addBookmark({
                 tabId,
                 tabCreatorUserId: createdByUserId,
-                bookmarkedByUserId: currentUser.userId,
               });
             }
           }}

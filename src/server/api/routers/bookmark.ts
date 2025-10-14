@@ -8,15 +8,16 @@ export const bookmarkRouter = createTRPCRouter({
       z.object({
         tabId: z.number(),
         tabCreatorUserId: z.string(),
-        bookmarkedByUserId: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      const userId = ctx.auth.userId;
+
       await ctx.prisma.bookmark.create({
         data: {
           tabId: input.tabId,
           tabCreatorUserId: input.tabCreatorUserId,
-          bookmarkedByUserId: input.bookmarkedByUserId,
+          bookmarkedByUserId: userId,
         },
       });
 
@@ -37,15 +38,16 @@ export const bookmarkRouter = createTRPCRouter({
       z.object({
         tabId: z.number(),
         tabCreatorUserId: z.string(),
-        bookmarkedByUserId: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      const userId = ctx.auth.userId;
+
       await ctx.prisma.bookmark.delete({
         where: {
           bookmarkedByUserId_tabId: {
             tabId: input.tabId,
-            bookmarkedByUserId: input.bookmarkedByUserId,
+            bookmarkedByUserId: userId,
           },
         },
       });
