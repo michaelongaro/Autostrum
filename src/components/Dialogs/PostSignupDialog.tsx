@@ -32,7 +32,9 @@ function PostSignupDialog() {
   }));
 
   const { data: userIsRegistered, isLoading: isLoadingUserRegistrationStatus } =
-    api.user.isUserRegistered.useQuery();
+    api.user.isUserRegistered.useQuery(undefined, {
+      enabled: isSignedIn,
+    });
 
   // const localStorageRedirectRoute = useLocalStorageValue(
   //   "autostrum-redirect-route",
@@ -88,6 +90,8 @@ function PostSignupDialog() {
       enabled: debouncedUsername.length > 0,
     },
   );
+
+  console.log({ userIsRegistered, isSignedIn });
 
   return (
     <AlertDialog open={userIsRegistered === false && isSignedIn}>
