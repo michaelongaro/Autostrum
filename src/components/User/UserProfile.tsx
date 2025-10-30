@@ -134,7 +134,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                   <div className="pulseAnimation h-[38px] w-36 rounded-md bg-foreground/50"></div>
                 </div>
 
-                <div className="baseVertFlex mt-4 !items-start gap-2 pb-[25px] font-medium sm:text-lg lg:pb-0 2xl:hidden">
+                <div className="baseVertFlex mt-6 !items-start gap-2 font-medium sm:text-lg lg:pb-0 2xl:hidden">
                   <div className="baseFlex w-full !justify-between gap-16">
                     <div className="baseFlex gap-2">
                       <BsMusicNoteBeamed className="size-4 sm:size-5" />
@@ -218,20 +218,25 @@ function UserProfile({ uniqueKey }: UserProfile) {
                 </div>
               </div>
 
+              <div className="baseFlex mt-[10px] gap-2 lg:hidden">
+                <div className="h-2 w-8 rounded-full bg-accent" />
+                <div className="h-2 w-8 rounded-full bg-foreground" />
+              </div>
+
               <div className="pulseAnimation hidden h-[94px] w-[330px] rounded-md bg-foreground/50 lg:block"></div>
             </motion.div>
           ) : (
-            <Fragment key="userMetadataLoaded">
+            <motion.div
+              key="userMetadataLoaded"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="baseFlex w-full"
+            >
               {/* mobile <Carousel> layout */}
               {!isAboveLargeViewport && !isAbove2XlViewport && (
-                <motion.div
-                  key={"userMetadataLoaded-mobile"}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="baseVertFlex w-full gap-4 px-2"
-                >
+                <div className="baseVertFlex w-full gap-4 px-2">
                   <Carousel
                     setApi={setMobileHeaderCarouselApi}
                     className="baseFlex w-full"
@@ -386,7 +391,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                     </CarouselContent>
                   </Carousel>
 
-                  <div className="baseFlex gap-2">
+                  <div className="baseFlex mt-[10px] gap-2">
                     <Button asChild>
                       <div
                         className={`!h-2 !w-8 cursor-pointer rounded-full !p-0 ${mobileHeaderSlide === 0 ? "!bg-accent" : "!bg-foreground"}`}
@@ -400,19 +405,12 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       />
                     </Button>
                   </div>
-                </motion.div>
+                </div>
               )}
 
               {/* > lg but < 2xl */}
               {isAboveLargeViewport && !isAbove2XlViewport && (
-                <motion.div
-                  key={"userMetadataLoaded-lg"}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="baseFlex w-full !items-end !justify-between gap-4"
-                >
+                <div className="baseFlex w-full !items-end !justify-between gap-4">
                   <div className="baseVertFlex !items-start gap-2">
                     <div className="baseFlex gap-1">User</div>
 
@@ -546,19 +544,12 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       theme={theme}
                     />
                   )}
-                </motion.div>
+                </div>
               )}
 
               {/* > 2xl */}
               {isAbove2XlViewport && (
-                <motion.div
-                  key={"userMetadataLoaded-2xl"}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="baseFlex w-full !items-end !justify-between gap-4"
-                >
+                <div className="baseFlex w-full !items-end !justify-between gap-4">
                   <div className="baseVertFlex !items-start gap-2">
                     User
                     <div className="baseFlex gap-2">
@@ -694,9 +685,9 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       theme={theme}
                     />
                   )}
-                </motion.div>
+                </div>
               )}
-            </Fragment>
+            </motion.div>
           )}
         </AnimatePresence>
 
