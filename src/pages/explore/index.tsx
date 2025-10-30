@@ -114,14 +114,14 @@ function Explore({ json }: { json: string }) {
             />
           </div>
 
-          {/* Newly added tabs carousel */}
+          {/* Recently added tabs carousel */}
           <div className="baseVertFlex w-full !items-start gap-4 py-1 md:py-4">
             <div className="baseFlex w-full !items-baseline !justify-between gap-2 px-5 md:px-8">
               <div className="baseVertFlex gap-0 md:gap-1">
                 <div className="baseFlex gap-2">
                   <IoFlash className="size-4 text-foreground md:size-5" />
                   <span className="text-lg font-bold md:text-[1.35rem]">
-                    Newly added tabs
+                    Recently added tabs
                   </span>
                 </div>
                 <Separator className="w-full bg-primary" />
