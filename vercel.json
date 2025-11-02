@@ -1,7 +1,4 @@
 {
-  "scripts": {
-    "start": "next start --webpack"
-  },
   "crons": [
     {
       "path": "/api/crons/daily",
