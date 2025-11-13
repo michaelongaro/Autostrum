@@ -3,14 +3,19 @@ import { Fragment } from "react";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
 import StaticTabNote from "~/components/Tab/Static/StaticTabNote";
-import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
+import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
-import type { COLORS, THEME } from "~/stores/TabStore";
+import type { COLORS, FullNoteLengths, THEME } from "~/stores/TabStore";
+import renderStrummingGuide from "~/utils/renderStrummingGuide";
+import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
+import PauseIcon from "~/components/ui/icons/PauseIcon";
 
 interface StaticTabNotesColumn {
   columnData: string[];
   columnIndex: number;
   isLastColumn: boolean;
+  sectionIndex: number;
+  subSectionIndex: number;
   color: COLORS;
   theme: THEME;
 }
@@ -19,44 +24,43 @@ function StaticTabNotesColumn({
   columnData,
   columnIndex,
   isLastColumn,
+  sectionIndex,
+  subSectionIndex,
   color,
   theme,
 }: StaticTabNotesColumn) {
-  function relativelyGetColumn(indexRelativeToCurrentCombo: number): string[] {
-    return (columnData[columnIndex + indexRelativeToCurrentCombo] ??
-      []) as string[];
-  }
+  const subSection = useTabSubSectionData(sectionIndex, subSectionIndex);
 
-  function lineBeforeNoteOpacity(index: number): boolean {
-    const colMinus1 = relativelyGetColumn(-1);
-    const colMinus2 = relativelyGetColumn(-2);
-    const col0 = relativelyGetColumn(0);
+  const previousColumn =
+    columnIndex > 0 ? subSection.data[columnIndex - 1] : undefined;
+  const nextColumn =
+    columnIndex < subSection.data.length - 1
+      ? subSection.data[columnIndex + 1]
+      : undefined;
 
-    return (
-      colMinus1[index] === "" ||
-      (colMinus1[index] === "|" &&
-        (colMinus2[index] === "" || col0[index] === "")) ||
-      colMinus1[index] === "~" ||
-      colMinus1[index] === undefined
-    );
-  }
+  const previousColumnIsPlayable =
+    previousColumn !== undefined && previousColumn[8] !== "measureLine";
+  const nextColumnIsPlayable =
+    nextColumn !== undefined && nextColumn[8] !== "measureLine";
 
-  function lineAfterNoteOpacity(index: number): boolean {
-    const col0 = relativelyGetColumn(0);
-    const col1 = relativelyGetColumn(1);
-    const col2 = relativelyGetColumn(2);
+  const previousNoteLength = previousColumnIsPlayable
+    ? (previousColumn[8] as FullNoteLengths)
+    : undefined;
+  const nextNoteLength = nextColumnIsPlayable
+    ? (nextColumn[8] as FullNoteLengths)
+    : undefined;
 
-    return (
-      col1[index] === "" ||
-      (col1[index] === "|" && (col2[index] === "" || col0[index] === "")) ||
-      col1[index] === "~" ||
-      col1[index] === undefined
-    );
-  }
+  const previousIsRestStrum = previousColumnIsPlayable
+    ? previousColumn[7] === "r"
+    : undefined;
+  const currentIsRestStrum = columnData[7] === "r";
+  const nextIsRestStrum = nextColumnIsPlayable
+    ? nextColumn[7] === "r"
+    : undefined;
 
   return (
     <motion.div
-      key={columnData[9]}
+      key={columnData[10]}
       className="baseFlex h-[285px] cursor-default"
     >
       <div className="baseVertFlex mb-[3.2rem] mt-4">
@@ -81,7 +85,6 @@ function StaticTabNotesColumn({
               >
                 <div
                   style={{
-                    opacity: lineBeforeNoteOpacity(index) ? 1 : 0,
                     backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]} / 0.5)`,
                   }}
                   className="h-[1px] flex-[1]"
@@ -101,17 +104,36 @@ function StaticTabNotesColumn({
                   isStaccato={
                     note.includes(".") && !columnData[7]?.includes(".") // felt distracting to see the staccato on every note w/in the chord
                   }
+                  isRest={index === 4 && columnData[7] === "r"}
                   color={color}
                   theme={theme}
                 />
 
                 <div
                   style={{
-                    opacity: lineAfterNoteOpacity(index) ? 1 : 0,
                     backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]} / 0.5)`,
                   }}
                   className="h-[1px] flex-[1]"
                 ></div>
+              </div>
+            )}
+
+            {index === 8 && (
+              <div className="relative h-0 w-full">
+                <div
+                  className={`baseVertFlex absolute ${isLastColumn ? "left-[42%]" : "left-[53%]"} right-1/2 top-1 h-4 w-full -translate-x-1/2`}
+                >
+                  {renderStrummingGuide({
+                    previousNoteLength,
+                    currentNoteLength: columnData[8] as FullNoteLengths,
+                    nextNoteLength,
+                    previousIsRestStrum,
+                    currentIsRestStrum,
+                    nextIsRestStrum,
+                    color,
+                    theme,
+                  })}
+                </div>
               </div>
             )}
 
@@ -123,7 +145,7 @@ function StaticTabNotesColumn({
                     lineHeight: "16px",
                     color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
                   }}
-                  className="baseVertFlex absolute left-1/2 right-1/2 top-2 w-[1.5rem] -translate-x-1/2"
+                  className="baseVertFlex absolute left-1/2 right-1/2 top-0 mt-6 w-[1.5rem] -translate-x-1/2"
                 >
                   <div className="baseFlex">
                     {chordHasAtLeastOneNote(columnData) &&
@@ -167,7 +189,7 @@ function StaticTabNotesColumn({
                             fontSize: "30px",
                             position: "absolute",
                             top: "-13px",
-                            right: "7px",
+                            right: "6px",
                             width: columnData[7] === "." ? "10px" : "0px",
                           }}
                         >
@@ -175,28 +197,6 @@ function StaticTabNotesColumn({
                         </div>
                       )}
                   </div>
-
-                  {(columnData[8] === "1/8th" ||
-                    columnData[8] === "1/16th") && (
-                    // slaps are treated as regular chords in regards to note length icons
-                    <div
-                      style={{
-                        marginTop:
-                          (columnData[7]?.includes("s") ||
-                            chordHasAtLeastOneNote(columnData)) &&
-                          columnData[7] !== ""
-                            ? "5px"
-                            : "0",
-                      }}
-                    >
-                      {getDynamicNoteLengthIcon({
-                        noteLength: columnData[8],
-                        isARestNote:
-                          !columnData[7]?.includes("s") &&
-                          columnData.slice(1, 7).every((note) => note === ""),
-                      })}
-                    </div>
-                  )}
 
                   {columnData[7] === "" && <div className="h-5 w-4"></div>}
                 </div>

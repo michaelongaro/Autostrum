@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import PlaybackAudioControls from "~/components/Tab/Playback/PlaybackAudio/PlaybackAudioControls";
 import PlaybackBottomMetadata from "~/components/Tab/Playback/PlaybackBottomMetadata";
 import PlaybackStrummedChord from "~/components/Tab/Playback/PlaybackStrummedChord";
@@ -13,6 +13,7 @@ import {
   type PlaybackStrummedChord as PlaybackStrummedChordType,
   type PlaybackLoopDelaySpacerChord,
   useTabStore,
+  type FullNoteLengths,
 } from "~/stores/TabStore";
 import PlaybackMenuContent from "~/components/Tab/Playback/PlaybackMenuContent";
 import PlaybackScrollingContainer from "~/components/Tab/Playback/PlaybackScrollingContainer";
@@ -191,7 +192,8 @@ function PlaybackModal() {
 
     const durations = playbackMetadata.map((metadata) => {
       const { bpm, noteLengthMultiplier } = metadata;
-      return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
+
+      return 60 / ((bpm / noteLengthMultiplier) * playbackSpeed);
     });
 
     const scrollContainerWidth =
@@ -550,14 +552,14 @@ function PlaybackModal() {
                   >
                     <div
                       ref={containerRef}
-                      className="relative flex h-[247px] w-full overflow-hidden mobilePortrait:h-[267px]"
+                      className="relative flex h-[255px] w-full overflow-hidden mobilePortrait:h-[280px]"
                     >
                       <div className="baseFlex absolute left-0 top-0 size-full">
-                        <div className="mb-6 h-[140px] w-full mobilePortrait:h-[165px]"></div>
+                        <div className="mb-[72px] h-[140px] w-full mobilePortrait:h-[165px]"></div>
                         {/* currently this fixes the highlight line extending past rounded borders of
                         sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
-                        <div className="z-0 mb-6 ml-1 h-[140px] w-[2px] shrink-0 bg-primary mobilePortrait:h-[164px]"></div>
-                        <div className="mb-6 h-[140px] w-full mobilePortrait:h-[165px]"></div>
+                        <div className="z-0 mb-[72px] ml-1 h-[140px] w-[2px] shrink-0 bg-primary mobilePortrait:h-[164px]"></div>
+                        <div className="mb-[72px] h-[140px] w-full mobilePortrait:h-[165px]"></div>
                       </div>
 
                       {scrollPositions && expandedTabData && (
@@ -620,7 +622,9 @@ function PlaybackModal() {
                                           : "loopDelaySpacer"
                                     }
                                     index={index}
+                                    prevChord={expandedTabData[index - 1]}
                                     chord={chord}
+                                    nextChord={expandedTabData[index + 1]}
                                     chordRepetitions={chordRepetitions}
                                     audioMetadata={audioMetadata}
                                     loopDelay={loopDelay}
@@ -757,7 +761,15 @@ function getScrollContainerTransform({
 interface RenderChordByType {
   type: "tab" | "measureLine" | "strum" | "loopDelaySpacer";
   index: number;
+  prevChord?:
+    | PlaybackTabChordType
+    | PlaybackStrummedChordType
+    | PlaybackLoopDelaySpacerChord;
   chord:
+    | PlaybackTabChordType
+    | PlaybackStrummedChordType
+    | PlaybackLoopDelaySpacerChord;
+  nextChord?:
     | PlaybackTabChordType
     | PlaybackStrummedChordType
     | PlaybackLoopDelaySpacerChord;
@@ -770,12 +782,52 @@ interface RenderChordByType {
 function RenderChordByType({
   type,
   index,
+  prevChord,
   chord,
+  nextChord,
   chordRepetitions,
   audioMetadata,
   loopDelay,
   isHighlighted,
 }: RenderChordByType) {
+  const prevChordNoteLength = prevChord
+    ? prevChord.type === "strum" && !prevChord.isLastChord // don't want to have separate strumming patterns' strumming guides be connected
+      ? prevChord.data.noteLength
+      : prevChord.type === "tab"
+        ? (prevChord.data.chordData[8] as FullNoteLengths)
+        : undefined
+    : undefined;
+
+  const currentChordNoteLength = chord
+    ? chord.type === "strum"
+      ? chord.data.noteLength
+      : chord.type === "tab"
+        ? (chord.data.chordData[8] as FullNoteLengths)
+        : undefined
+    : undefined;
+
+  const nextChordNoteLength = nextChord
+    ? nextChord.type === "strum" &&
+      (chord.type !== "strum" || !chord.isLastChord) // don't want to have separate strumming patterns' strumming guides be connected
+      ? nextChord.data.noteLength
+      : nextChord.type === "tab"
+        ? (nextChord.data.chordData[8] as FullNoteLengths)
+        : undefined
+    : undefined;
+
+  const prevChordIsRest =
+    prevChord === undefined ||
+    (prevChord.type === "tab" && prevChord.data.chordData[7] === "r") ||
+    (prevChord.type === "strum" && prevChord.data.strum === "r");
+  const currentChordIsRest =
+    chord === undefined ||
+    (chord.type === "tab" && chord.data.chordData[7] === "r") ||
+    (chord.type === "strum" && chord.data.strum === "r");
+  const nextChordIsRest =
+    nextChord === undefined ||
+    (nextChord.type === "tab" && nextChord.data.chordData[7] === "r") ||
+    (nextChord.type === "strum" && nextChord.data.strum === "r");
+
   if (type === "tab" && chord?.type === "tab") {
     return (
       <PlaybackTabChord
@@ -791,6 +843,12 @@ function RenderChordByType({
             (audioMetadata.endLoopIndex !== -1 &&
               index > audioMetadata.endLoopIndex))
         }
+        prevChordNoteLength={prevChordNoteLength}
+        currentChordNoteLength={currentChordNoteLength}
+        nextChordNoteLength={nextChordNoteLength}
+        prevChordIsRest={prevChordIsRest}
+        currentChordIsRest={currentChordIsRest}
+        nextChordIsRest={nextChordIsRest}
       />
     );
   }
@@ -819,16 +877,23 @@ function RenderChordByType({
           index === 0 && (loopDelay !== 0 || chordRepetitions[0] === 0)
         }
         isLastChordInSection={chord?.isLastChord && loopDelay !== 0}
-        noteLength={chord?.data.noteLength || "1/4th"}
+        noteLength={chord?.data.noteLength || "quarter"}
         bpmToShow={chord?.data.showBpm ? chord?.data.bpm : undefined}
         chordName={chord?.data.chordName || ""}
         isHighlighted={isHighlighted}
+        beatIndicator={chord?.data.beatIndicator}
         isDimmed={
           audioMetadata.editingLoopRange &&
           (index < audioMetadata.startLoopIndex ||
             (audioMetadata.endLoopIndex !== -1 &&
               index > audioMetadata.endLoopIndex))
         }
+        prevChordNoteLength={prevChordNoteLength}
+        currentChordNoteLength={currentChordNoteLength}
+        nextChordNoteLength={nextChordNoteLength}
+        prevChordIsRest={prevChordIsRest}
+        currentChordIsRest={currentChordIsRest}
+        nextChordIsRest={nextChordIsRest}
       />
     );
   }

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Fragment } from "react";
-import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
+import { QuarterNote } from "~/utils/noteLengthIcons";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type { COLORS, THEME } from "~/stores/TabStore";
 
@@ -17,8 +17,8 @@ function StaticTabMeasureLine({
 }: StaticTabMeasureLine) {
   return (
     <motion.div
-      key={columnData[9]}
-      className="baseVertFlex relative h-[271px] w-[2px]"
+      key={columnData[10]}
+      className="baseVertFlex relative h-[285px] w-[2px]"
     >
       {columnData.map((note, index) => (
         <Fragment key={index}>
@@ -30,7 +30,7 @@ function StaticTabMeasureLine({
                     color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
                   }}
                   className={`baseFlex absolute gap-[0.125rem] ${
-                    note === "-" ? "top-[10px]" : "top-[27px]"
+                    note === "-" ? "top-[15px]" : "top-[35px]"
                   }`}
                 >
                   <QuarterNote />
@@ -54,7 +54,12 @@ function StaticTabMeasureLine({
           )}
 
           {index > 0 && index < 7 && (
-            <div className="baseFlex w-full">
+            <div
+              style={{
+                marginTop: index === 1 ? "1px" : "0px",
+              }}
+              className="baseFlex w-full"
+            >
               <div
                 style={{
                   backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,

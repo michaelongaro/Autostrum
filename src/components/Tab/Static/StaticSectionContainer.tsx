@@ -10,7 +10,7 @@ import { useTabStore, type Section } from "~/stores/TabStore";
 import {
   chordSequencesAllHaveSameNoteLength,
   getDynamicNoteLengthIcon,
-} from "~/utils/bpmIconRenderingHelpers";
+} from "~/utils/noteLengthIcons";
 import { Separator } from "~/components/ui/separator";
 import StaticChordSection from "~/components/Tab/Static/StaticChordSection";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
@@ -88,7 +88,7 @@ function StaticSectionContainer({
               }}
               className="baseVertFlex w-full gap-3"
             >
-              {sectionData.data.map((subSection) => (
+              {sectionData.data.map((subSection, subSectionIndex) => (
                 <div
                   key={subSection.id}
                   className="baseVertFlex w-full !items-start pb-2"
@@ -110,9 +110,9 @@ function StaticSectionContainer({
                           {getDynamicNoteLengthIcon({
                             noteLength:
                               subSection.type === "tab"
-                                ? "1/4th"
+                                ? "quarter"
                                 : (subSection.data[0]?.strummingPattern
-                                    .noteLength ?? "1/4th"),
+                                    .baseNoteLength ?? "quarter"),
                           })}
                           {subSection.bpm === -1 ? bpm : subSection.bpm} BPM
                         </div>
@@ -145,6 +145,8 @@ function StaticSectionContainer({
                   ) : (
                     <StaticTabSection
                       subSectionData={subSection}
+                      sectionIndex={sectionIndex}
+                      subSectionIndex={subSectionIndex}
                       color={color}
                       theme={theme}
                     />

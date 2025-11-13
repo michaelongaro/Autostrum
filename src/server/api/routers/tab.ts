@@ -19,20 +19,56 @@ export interface TabWithArtistMetadata extends Tab {
   artistIsVerified?: boolean;
 }
 
-// experimentally testing this zod schema from a typescript types -> zod converter online
+const baseNoteLengths = z.union([
+  z.literal("whole"),
+  z.literal("half"),
+  z.literal("quarter"),
+  z.literal("eighth"),
+  z.literal("sixteenth"),
+]);
+
+const fullNoteLengths = z.union([
+  z.literal("whole"),
+  z.literal("whole dotted"),
+  z.literal("whole double-dotted"),
+  z.literal("half"),
+  z.literal("half dotted"),
+  z.literal("half double-dotted"),
+  z.literal("quarter"),
+  z.literal("quarter dotted"),
+  z.literal("quarter double-dotted"),
+  z.literal("eighth"),
+  z.literal("eighth dotted"),
+  z.literal("eighth double-dotted"),
+  z.literal("sixteenth"),
+  z.literal("sixteenth dotted"),
+  z.literal("sixteenth double-dotted"),
+]);
+
+// -----------------------------
+// Section Progression
+// -----------------------------
 const sectionProgressionSchema = z.object({
   id: z.string(),
   sectionId: z.string(),
   title: z.string(),
   repetitions: z.number(),
+  startSeconds: z.number(),
+  endSeconds: z.number(),
 });
 
+// -----------------------------
+// Chord
+// -----------------------------
 const chordSchema = z.object({
   id: z.string(),
   name: z.string(),
-  frets: z.array(z.string()),
+  frets: z.array(z.string()), // keeping as string to match ITabSection
 });
 
+// -----------------------------
+// Strum
+// -----------------------------
 const strumSchema = z.object({
   palmMute: z.union([
     z.literal(""),
@@ -40,38 +76,34 @@ const strumSchema = z.object({
     z.literal("start"),
     z.literal("end"),
   ]),
-  strum: z.string(), // not sure if there is any other way than listing out (basically) every permutation of "vu>.s"
+  strum: z.string(), // effects are v, ^, >, s, ., r
+  noteLength: fullNoteLengths,
+  noteLengthModified: z.boolean(),
 });
 
-const tabSectionSchema = z.object({
-  id: z.string(),
-  type: z.literal("tab"),
-  bpm: z.number(),
-  repetitions: z.number(),
-  data: z.array(z.array(z.string())),
-});
-
+// -----------------------------
+// Strumming Pattern
+// -----------------------------
 const strummingPatternSchema = z.object({
   id: z.string(),
-  noteLength: z.union([
-    z.literal("1/4th"),
-    z.literal("1/4th triplet"),
-    z.literal("1/8th"),
-    z.literal("1/8th triplet"),
-    z.literal("1/16th"),
-    z.literal("1/16th triplet"),
-  ]),
+  baseNoteLength: baseNoteLengths,
   strums: z.array(strumSchema),
 });
 
+// -----------------------------
+// Chord Sequence
+// -----------------------------
 const chordSequenceSchema = z.object({
   id: z.string(),
   strummingPattern: strummingPatternSchema,
   bpm: z.number(),
   repetitions: z.number(),
-  data: z.array(z.string()),
+  data: z.array(z.string()), // array of chord names
 });
 
+// -----------------------------
+// Chord Section
+// -----------------------------
 const chordSectionSchema = z.object({
   id: z.string(),
   type: z.literal("chord"),
@@ -80,6 +112,21 @@ const chordSectionSchema = z.object({
   data: z.array(chordSequenceSchema),
 });
 
+// -----------------------------
+// Tab Section
+// -----------------------------
+const tabSectionSchema = z.object({
+  id: z.string(),
+  type: z.literal("tab"),
+  bpm: z.number(),
+  baseNoteLength: baseNoteLengths,
+  repetitions: z.number(),
+  data: z.array(z.array(z.string())),
+});
+
+// -----------------------------
+// Section
+// -----------------------------
 const sectionSchema = z.object({
   id: z.string(),
   title: z.string(),

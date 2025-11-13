@@ -55,7 +55,7 @@ import classes from "./TabMetadata.module.css";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import TabScreenshotPreview from "./TabScreenshotPreview";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
-import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
+import { QuarterNote } from "~/utils/noteLengthIcons";
 import RateTab from "~/components/ui/RateTab";
 import DifficultyBars from "~/components/ui/DifficultyBars";
 import { formatNumber } from "~/utils/formatNumber";

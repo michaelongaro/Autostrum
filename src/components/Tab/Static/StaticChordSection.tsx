@@ -9,7 +9,7 @@ import {
 import {
   chordSequencesAllHaveSameNoteLength,
   getDynamicNoteLengthIcon,
-} from "~/utils/bpmIconRenderingHelpers";
+} from "~/utils/noteLengthIcons";
 import StaticChordSequence from "~/components/Tab/Static/StaticChordSequence";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type { COLORS, THEME } from "~/stores/TabStore";
@@ -67,7 +67,7 @@ function StaticChordSection({
                         <div className="baseFlex gap-1">
                           {getDynamicNoteLengthIcon({
                             noteLength:
-                              chordSequence.strummingPattern.noteLength,
+                              chordSequence.strummingPattern.baseNoteLength,
                           })}
                           {chordSequence.bpm === -1
                             ? subSectionData.bpm === -1

@@ -396,13 +396,13 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <div
                         className={`!h-2 !w-8 cursor-pointer rounded-full !p-0 ${mobileHeaderSlide === 0 ? "!bg-accent" : "!bg-foreground"}`}
                         onClick={() => mobileHeaderCarouselApi?.scrollTo(0)}
-                      />
+                      ></div>
                     </Button>
                     <Button asChild>
                       <div
                         className={`!h-2 !w-8 cursor-pointer rounded-full !p-0 ${mobileHeaderSlide === 1 ? "!bg-accent" : "!bg-foreground"}`}
                         onClick={() => mobileHeaderCarouselApi?.scrollTo(1)}
-                      />
+                      ></div>
                     </Button>
                   </div>
                 </div>

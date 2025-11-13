@@ -6,6 +6,13 @@ import { BsFillPlayFill, BsKeyboard, BsStopFill } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import { Label } from "~/components/ui/label";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -24,10 +31,12 @@ import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "~/components/ui/button";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import {
-  EigthNote,
+  EighthNote,
+  HalfNote,
   QuarterNote,
   SixteenthNote,
-} from "~/utils/bpmIconRenderingHelpers";
+  WholeNote,
+} from "~/utils/noteLengthIcons";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { X } from "lucide-react";
 
@@ -98,6 +107,15 @@ function StrummingPatternModal({
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
   const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
   const [pmNodeOpacities, setPMNodeOpacities] = useState<string[]>([]);
+
+  const [showNoteLengthChangeDialog, setShowNoteLengthChangeDialog] =
+    useState(false);
+  const [noteLengthChangeType, setNoteLengthChangeType] = useState<
+    "onlyUnchanged" | "all"
+  >("onlyUnchanged");
+  const [proposedNoteLength, setProposedNoteLength] = useState<
+    "whole" | "half" | "quarter" | "eighth" | "sixteenth" | null
+  >(null);
 
   const [showingDeleteStrumsButtons, setShowingDeleteStrumsButtons] =
     useState(false);
@@ -214,20 +232,11 @@ function StrummingPatternModal({
 
   useModalScrollbarHandling();
 
-  function handleNoteLengthChange(
-    value:
-      | "1/4th"
-      | "1/4th triplet"
-      | "1/8th"
-      | "1/8th triplet"
-      | "1/16th"
-      | "1/16th triplet",
+  function handleBaseNoteLengthChange(
+    value: "whole" | "half" | "quarter" | "eighth" | "sixteenth",
   ) {
-    const newStrummingPattern = structuredClone(strummingPatternBeingEdited);
-
-    newStrummingPattern.value.noteLength = value;
-
-    setStrummingPatternBeingEdited(newStrummingPattern);
+    setProposedNoteLength(value);
+    setShowNoteLengthChangeDialog(true);
   }
 
   function toggleEditingPalmMuteNodes() {
@@ -363,7 +372,7 @@ function StrummingPatternModal({
       >
         <div
           tabIndex={-1}
-          className="baseVertFlex modalGradient relative max-h-[90vh] min-w-[370px] max-w-[90vw] !justify-start gap-4 rounded-lg border p-4 text-foreground shadow-sm transition-all sm:max-w-[700px]"
+          className="baseVertFlex modalGradient relative max-h-[90vh] min-w-[370px] max-w-[90vw] !justify-start gap-4 rounded-lg border p-4 text-foreground shadow-sm transition-all sm:max-w-[800px]"
         >
           <Button
             variant={"modalClose"}
@@ -380,47 +389,41 @@ function StrummingPatternModal({
               <div className="baseVertFlex !items-start gap-2 md:!flex-row md:!items-center md:!justify-start">
                 <Label htmlFor="noteLength">Note length</Label>
                 <Select
-                  onValueChange={handleNoteLengthChange}
-                  value={strummingPatternBeingEdited.value.noteLength}
+                  onValueChange={handleBaseNoteLengthChange}
+                  value={strummingPatternBeingEdited.value.baseNoteLength}
                 >
                   <SelectTrigger id="noteLength" className="w-[150px]">
                     <SelectValue placeholder="Select a length" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1/4th">
+                    <SelectItem value="whole">
                       <div className="baseFlex gap-2">
-                        <QuarterNote className="" />
-                        1/4th
+                        <WholeNote />
+                        Whole
                       </div>
                     </SelectItem>
-                    <SelectItem value="1/4th triplet">
+                    <SelectItem value="half">
+                      <div className="baseFlex gap-2">
+                        <HalfNote />
+                        Half
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="quarter">
                       <div className="baseFlex gap-2">
                         <QuarterNote />
-                        1/4th triplet
+                        Quarter
                       </div>
                     </SelectItem>
-                    <SelectItem value="1/8th">
+                    <SelectItem value="eighth">
                       <div className="baseFlex gap-2">
-                        <EigthNote />
-                        1/8th
+                        <EighthNote />
+                        Eighth
                       </div>
                     </SelectItem>
-                    <SelectItem value="1/8th triplet">
-                      <div className="baseFlex gap-2">
-                        <EigthNote />
-                        1/8th triplet
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="1/16th">
+                    <SelectItem value="sixteenth">
                       <div className="baseFlex gap-2">
                         <SixteenthNote />
-                        1/16th
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="1/16th triplet">
-                      <div className="baseFlex gap-2">
-                        <SixteenthNote />
-                        1/16th triplet
+                        Sixteenth
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -543,26 +546,36 @@ function StrummingPatternModal({
                 </div>
                 <p>-</p>
                 <p className="md:mr-4">Downstrum</p>
+
                 <div className="baseFlex gap-1">
                   <kbd>↑</kbd> / <kbd>^</kbd>
                 </div>
                 <p>-</p>
                 <p className="md:mr-4">Upstrum</p>
-                <div className="place-self-end">
-                  <kbd>s</kbd>
-                </div>
-                <p>-</p>
-                <p className="md:mr-4">Slap</p>
+
                 <div className="place-self-end">
                   <kbd>&gt;</kbd>
                 </div>
                 <p>-</p>
                 <p className="md:mr-4">Accented</p>
+
                 <div className="place-self-end">
                   <kbd>.</kbd>
                 </div>
                 <p>-</p>
-                <p>Staccato</p>
+                <p className="md:mr-4">Staccato</p>
+
+                <div className="place-self-end">
+                  <kbd>s</kbd>
+                </div>
+                <p>-</p>
+                <p className="md:mr-4">Slap</p>
+
+                <div className="place-self-end">
+                  <kbd>r</kbd>
+                </div>
+                <p>-</p>
+                <p>Rest</p>
               </div>
             </div>
           </div>
@@ -651,6 +664,99 @@ function StrummingPatternModal({
           </div>
         </div>
       </FocusTrap>
+
+      <AlertDialog
+        open={showNoteLengthChangeDialog}
+        onOpenChange={setShowNoteLengthChangeDialog}
+      >
+        <VisuallyHidden>
+          <AlertDialogTitle>Default note length adjustment</AlertDialogTitle>
+          <AlertDialogDescription>
+            You&apos;re about to change the default note length for this
+            strumming pattern. You can either just change the note length for
+            strums that haven't been modified, or you can choose to update all
+            strum note lengths to the new default.
+          </AlertDialogDescription>
+        </VisuallyHidden>
+
+        <AlertDialogContent className="baseVertFlex modalGradient max-h-[90dvh] max-w-[350px] !justify-start gap-8 overflow-y-auto rounded-lg text-foreground sm:max-w-[500px]">
+          <div className="baseVertFlex !items-start gap-4">
+            <h2 className="text-lg font-semibold">
+              Default note length adjustment
+            </h2>
+            <p className="text-sm">
+              Please choose how you would like to update the note lengths of the
+              strums in this pattern.
+            </p>
+          </div>
+
+          <div className="baseVertFlex w-full gap-4 sm:!flex-row">
+            <Button
+              variant={"outline"}
+              className={`h-20 w-full ${noteLengthChangeType === "onlyUnchanged" ? "bg-secondary-hover" : ""}`}
+              onClick={() => {
+                setNoteLengthChangeType("onlyUnchanged");
+              }}
+            >
+              Only update strums that haven&apos;t had their note lengths
+              modified.
+            </Button>
+
+            <Button
+              variant={"outline"}
+              className={`h-20 w-full ${noteLengthChangeType === "all" ? "bg-secondary-hover" : ""}`}
+              onClick={() => {
+                setNoteLengthChangeType("all");
+              }}
+            >
+              Update all strum note lengths to match the new default.
+            </Button>
+          </div>
+
+          <div className="baseFlex w-full !justify-end gap-4">
+            <Button
+              variant={"secondary"}
+              onClick={() => setShowNoteLengthChangeDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (proposedNoteLength === null) return;
+
+                const newStrummingPattern = structuredClone(
+                  strummingPatternBeingEdited,
+                );
+
+                for (const [
+                  index,
+                  strum,
+                ] of newStrummingPattern.value.strums.entries()) {
+                  if (
+                    noteLengthChangeType === "all" ||
+                    (noteLengthChangeType === "onlyUnchanged" &&
+                      strum.noteLengthModified === false)
+                  ) {
+                    newStrummingPattern.value.strums[index]!.noteLength =
+                      proposedNoteLength;
+
+                    newStrummingPattern.value.strums[
+                      index
+                    ]!.noteLengthModified = false;
+                  }
+                }
+
+                newStrummingPattern.value.baseNoteLength = proposedNoteLength;
+
+                setStrummingPatternBeingEdited(newStrummingPattern);
+                setShowNoteLengthChangeDialog(false);
+              }}
+            >
+              Save
+            </Button>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 }

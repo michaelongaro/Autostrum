@@ -18,7 +18,7 @@ import { Label } from "~/components/ui/label";
 import MiscellaneousControls from "./MiscellaneousControls";
 import StrummingPattern from "./StrummingPattern";
 import StrummingPatternPreview from "./StrummingPatternPreview";
-import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
+import { QuarterNote } from "~/utils/noteLengthIcons";
 import {
   useChordSequenceData,
   useChordSubSectionData,
@@ -154,10 +154,12 @@ function ChordSequence({
         index: strummingPatterns.length,
         value: {
           id: crypto.randomUUID(),
-          noteLength: "1/8th",
+          baseNoteLength: "eighth",
           strums: Array.from({ length: 8 }, () => ({
             palmMute: "",
             strum: "",
+            noteLength: "eighth",
+            noteLengthModified: false,
           })),
         },
       });
@@ -208,10 +210,12 @@ function ChordSequence({
                 index: strummingPatterns.length,
                 value: {
                   id: crypto.randomUUID(),
-                  noteLength: "1/8th",
+                  baseNoteLength: "eighth",
                   strums: Array.from({ length: 8 }, () => ({
                     palmMute: "",
                     strum: "",
+                    noteLength: "eighth",
+                    noteLengthModified: false,
                   })),
                 },
               });
@@ -347,10 +351,12 @@ function ChordSequence({
                               index: strummingPatterns.length,
                               value: {
                                 id: crypto.randomUUID(),
-                                noteLength: "1/8th",
+                                baseNoteLength: "eighth",
                                 strums: Array.from({ length: 8 }, () => ({
                                   palmMute: "",
                                   strum: "",
+                                  noteLength: "eighth",
+                                  noteLengthModified: false,
                                 })),
                               },
                             });

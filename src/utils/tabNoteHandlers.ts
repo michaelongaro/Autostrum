@@ -19,6 +19,26 @@ const chordMappings = {
   g: ["3", "5", "5", "3", "3", "3"],
 };
 
+const noteLengthCycle = [
+  "whole",
+  "whole dotted",
+  "whole double-dotted",
+  "half",
+  "half dotted",
+  "half double-dotted",
+  "quarter",
+  "quarter dotted",
+  "quarter double-dotted",
+  "eighth",
+  "eighth dotted",
+  "eighth double-dotted",
+  "sixteenth",
+  "sixteenth dotted",
+  "sixteenth double-dotted",
+] as const;
+
+type NoteLength = (typeof noteLengthCycle)[number];
+
 function validNoteInput(input: string) {
   // standalone effects
   if (
@@ -159,7 +179,7 @@ export function handleTabNoteKeyDown(
         "",
         "",
         "",
-        "1/4th",
+        "quarter",
         crypto.randomUUID(),
       ];
 
@@ -194,20 +214,17 @@ export function handleTabNoteKeyDown(
       if (subSection?.type === "tab") {
         const columnData = subSection.data[columnIndex];
         if (columnData && columnData[8] !== "measureLine") {
-          const order: Array<"1/4th" | "1/8th" | "1/16th"> = [
-            "1/4th",
-            "1/8th",
-            "1/16th",
-          ];
-          const current =
-            (columnData[8] as "1/4th" | "1/8th" | "1/16th") ?? "1/4th";
+          const order = noteLengthCycle;
+          const current = (columnData[8] as NoteLength) ?? "quarter";
           let idx = order.indexOf(current);
-          if (idx === -1) idx = 0;
+          if (idx === -1) idx = order.indexOf("quarter");
 
           if (e.key === "ArrowUp" && idx < order.length - 1) idx += 1; // increase resolution
           if (e.key === "ArrowDown" && idx > 0) idx -= 1; // decrease resolution
 
-          columnData[8] = order[idx]!;
+          const newLength: NoteLength = order[idx] ?? "quarter";
+          columnData[8] = newLength;
+          columnData[9] = "true"; // noteLengthModified
         }
       }
     });
@@ -228,8 +245,8 @@ export function handleTabNoteKeyDown(
         if (column && column[8] !== "measureLine") {
           // Keep palm mute, note length, id, but clear notes and effects
           const palmMuteNode = column[0];
-          const noteLengthModifier = column[8];
-          const id = column[9];
+          const noteLengthModifier = subSection.baseNoteLength;
+          const id = column[10];
 
           subSection.data[columnIndex] = [
             palmMuteNode ?? "",
@@ -240,7 +257,8 @@ export function handleTabNoteKeyDown(
             "",
             "",
             "", // notes
-            noteLengthModifier ?? "1/4th",
+            noteLengthModifier ?? "quarter",
+            "false", // don't want to carry over noteLengthModified state
             id ?? crypto.randomUUID(),
           ];
         }
@@ -349,7 +367,7 @@ export function handleTabNoteKeyDown(
   ) {
     e.preventDefault();
 
-    const copiedChord = subSection.data[columnIndex]?.slice(1, 9);
+    const copiedChord = subSection.data[columnIndex]?.slice(1, 10);
 
     setChordPulse({
       location: {
@@ -373,7 +391,7 @@ export function handleTabNoteKeyDown(
         const currentColumn = subSection.data[columnIndex];
         if (currentColumn) {
           const palmMuteNode = currentColumn[0];
-          const id = currentColumn[9];
+          const id = currentColumn[10];
 
           subSection.data[columnIndex] = [
             palmMuteNode ?? "",
@@ -444,7 +462,7 @@ export function handleTabNoteChange(
 
   let value = e.target.value;
 
-  // regular notes
+  // regular notes / preset chords / measure line
   if (noteIndex !== 7 || value === "|") {
     // wanted to always allow a-g in regular note even if there was a number
     // present for easy placement of major chords
@@ -463,15 +481,18 @@ export function handleTabNoteChange(
           const currentColumn = subSection.data[columnIndex];
           if (currentColumn) {
             const palmMuteNode = currentColumn[0];
-            const chordEffects = currentColumn[7];
+            const chordEffects =
+              currentColumn[7] !== "r" ? currentColumn[7] : "";
             const noteLengthModifier = currentColumn[8];
-            const id = currentColumn[9];
+            const noteLengthModified = currentColumn[9];
+            const id = currentColumn[10];
 
             subSection.data[columnIndex] = [
               palmMuteNode ?? "",
               ...chordArray.toReversed(),
               chordEffects ?? "",
-              noteLengthModifier ?? "1/4th",
+              noteLengthModifier ?? "quarter",
+              noteLengthModified ?? "false",
               id ?? crypto.randomUUID(),
             ];
           }
@@ -502,7 +523,7 @@ export function handleTabNoteChange(
           const currentColumn = draftSubSection.data[columnIndex];
           if (currentColumn) {
             const palmMuteNode = currentColumn[0];
-            const id = currentColumn[9];
+            const id = currentColumn[10];
 
             // this technically is fine, but I don't want to implement it now, also might have
             // weird ui side effects by having more space on either side of the measure line than
@@ -540,12 +561,42 @@ export function handleTabNoteChange(
   else {
     const combinedEffects = /^[v^s]{1}(>|\.|>\.|\.>)?$/;
     const justAccentedAndStaccato = /^(>|\.|>\.|\.>)$/;
+    const justRest = /^r$/;
     if (
       value !== "" &&
       !combinedEffects.test(value) &&
-      !justAccentedAndStaccato.test(value)
+      !justAccentedAndStaccato.test(value) &&
+      !justRest.test(value)
     )
       return;
+
+    // if note is rest, clear out other note positions
+    if (justRest.test(value)) {
+      setTabData((draft) => {
+        const subSection = draft[sectionIndex]?.data[subSectionIndex];
+        if (subSection?.type === "tab") {
+          const currentColumn = subSection.data[columnIndex];
+          if (currentColumn) {
+            const palmMuteNode = currentColumn[0];
+            const noteLengthModifier = currentColumn[8];
+            const id = currentColumn[10];
+            subSection.data[columnIndex] = [
+              palmMuteNode ?? "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "r",
+              noteLengthModifier ?? "quarter",
+              id ?? crypto.randomUUID(),
+            ];
+          }
+        }
+      });
+      return;
+    }
   }
 
   setTabData((draft) => {
@@ -553,6 +604,11 @@ export function handleTabNoteChange(
     if (subSection?.type === "tab") {
       const currentColumn = subSection.data[columnIndex];
       if (currentColumn) {
+        // if changing from rest to something else, clear out rest
+        if (currentColumn[7] === "r" && value !== "r") {
+          currentColumn[7] = "";
+        }
+
         currentColumn[noteIndex] = value;
       }
     }

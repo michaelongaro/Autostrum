@@ -100,14 +100,17 @@ function SectionContainer({
     }, 1000)();
   }
 
-  function generateNewColumns(): TabSectionType {
-    const baseArray = [];
+  function generateDefaultTabSection(): TabSectionType {
+    const initialChords = [];
+
     for (let i = 0; i < 8; i++) {
-      baseArray.push(
-        Array.from({ length: 10 }, (_, index) => {
+      initialChords.push(
+        Array.from({ length: 11 }, (_, index) => {
           if (index === 8) {
-            return "1/4th";
+            return "quarter";
           } else if (index === 9) {
+            return "false"; // noteLengthModified
+          } else if (index === 10) {
             return crypto.randomUUID();
           } else {
             return "";
@@ -120,12 +123,13 @@ function SectionContainer({
       id: crypto.randomUUID(),
       type: "tab",
       bpm: -1,
+      baseNoteLength: "quarter",
       repetitions: 1,
-      data: baseArray,
+      data: initialChords,
     };
   }
 
-  function getDefaultStrummingPattern(): ChordSectionType {
+  function generateDefaultChordSection(): ChordSectionType {
     if (strummingPatterns.length > 0) {
       return {
         id: crypto.randomUUID(),
@@ -166,7 +170,9 @@ function SectionContainer({
 
   function addNewBlock(type: "tab" | "chord") {
     const newBlockData =
-      type === "tab" ? generateNewColumns() : getDefaultStrummingPattern();
+      type === "tab"
+        ? generateDefaultTabSection()
+        : generateDefaultChordSection();
 
     setTabData((draft) => {
       draft[sectionIndex]?.data.push(newBlockData);

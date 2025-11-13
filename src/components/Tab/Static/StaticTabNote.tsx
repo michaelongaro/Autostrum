@@ -1,3 +1,4 @@
+import PauseIcon from "~/components/ui/icons/PauseIcon";
 import type { COLORS, THEME } from "~/stores/TabStore";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 
@@ -5,6 +6,7 @@ interface StaticTabNote {
   note: string;
   isAccented?: boolean;
   isStaccato?: boolean;
+  isRest?: boolean;
   color: COLORS;
   theme: THEME;
 }
@@ -13,6 +15,7 @@ function StaticTabNote({
   note,
   isAccented,
   isStaccato,
+  isRest,
   color,
   theme,
 }: StaticTabNote) {
@@ -33,7 +36,12 @@ function StaticTabNote({
         }}
         className={`baseFlex relative ${isAccented ? "font-bold" : ""}`}
       >
-        {note}
+        {isRest ? (
+          <PauseIcon className="absolute bottom-1.5 size-3" />
+        ) : (
+          <div>{note}</div>
+        )}
+
         {isStaccato && <div className="relative -top-2">.</div>}
       </div>
       <div

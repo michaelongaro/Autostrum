@@ -15,7 +15,7 @@ import {
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { Separator } from "~/components/ui/separator";
 import { useTabStore } from "~/stores/TabStore";
-import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
+import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { tuningNotesToName } from "~/utils/tunings";
 
@@ -98,14 +98,11 @@ function PlaybackTopMetadata({
 
             <Separator className="h-4 w-[1px] bg-foreground/50" />
 
-            <div className="baseFlex w-[79px] flex-nowrap !justify-start gap-1.5 text-nowrap">
-              <div className="w-2">
-                {getDynamicNoteLengthIcon({
-                  noteLength:
-                    playbackMetadata[currentChordIndex]?.noteLength ?? "1/4th",
-                  forInlineTabViewing: true,
-                })}
-              </div>
+            <div className="baseFlex w-[79px] flex-nowrap !justify-start gap-1 text-nowrap">
+              {getDynamicNoteLengthIcon({
+                noteLength:
+                  playbackMetadata[currentChordIndex]?.noteLength ?? "quarter",
+              })}
               {playbackMetadata[currentChordIndex]?.bpm ?? "120"} BPM
             </div>
           </div>
@@ -223,15 +220,12 @@ function PlaybackTopMetadata({
                   <div className="baseFlex gap-4">
                     <div className="baseVertFlex !items-start text-nowrap">
                       <span className="text-sm font-medium">Tempo</span>
-                      <div className="baseFlex w-[79px] !justify-start gap-1.5">
-                        <div className="w-2">
-                          {getDynamicNoteLengthIcon({
-                            noteLength:
-                              playbackMetadata[currentChordIndex]?.noteLength ??
-                              "1/4th",
-                            forInlineTabViewing: true,
-                          })}
-                        </div>
+                      <div className="baseFlex w-[79px] !justify-start gap-1">
+                        {getDynamicNoteLengthIcon({
+                          noteLength:
+                            playbackMetadata[currentChordIndex]?.noteLength ??
+                            "quarter",
+                        })}
                         {playbackMetadata[currentChordIndex]?.bpm ?? "120"} BPM
                       </div>
                     </div>

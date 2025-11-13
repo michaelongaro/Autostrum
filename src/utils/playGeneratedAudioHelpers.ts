@@ -147,6 +147,7 @@ function applyBendOrReleaseEffect({
   let sourceGain: GainNode | undefined = undefined;
 
   if (!pluckBaseNote && note) {
+    // @ts-expect-error TODO: fix type
     note.source.stop(0);
 
     source = audioContext.createBufferSource();
@@ -157,6 +158,7 @@ function applyBendOrReleaseEffect({
       currentlyPlayingStrings[stringIdx] = source;
     }, when * 1000);
 
+    // @ts-expect-error TODO: fix type
     source.buffer = note.source.buffer as AudioBuffer;
     source.start(0, 0.5, isPalmMuted ? 0.45 : undefined);
 
@@ -179,6 +181,7 @@ function applyBendOrReleaseEffect({
     );
     return sourceGain;
   } else if (note) {
+    // @ts-expect-error TODO: fix type
     note.source.detune.linearRampToValueAtTime(
       detuneValue,
       audioContext.currentTime +
@@ -528,6 +531,7 @@ function applyTetheredEffect({
 }: ApplyTetheredEffect) {
   // immediately stop current note because we don't ever want to hear the pluck on
   // a tethered note
+  // @ts-expect-error TODO: fix type
   note.source.stop(0);
 
   const source = audioContext.createBufferSource();
@@ -538,6 +542,7 @@ function applyTetheredEffect({
     currentlyPlayingStrings[stringIdx] = source;
   }, when * 1000);
 
+  // @ts-expect-error TODO: fix type
   source.buffer = note.source.buffer as AudioBuffer;
   // immediately start detune at the value of the tetheredFret
   source.detune.setValueAtTime(
@@ -628,6 +633,7 @@ function applyVibratoEffect({
   let sourceGain: GainNode | undefined = undefined;
 
   if (!pluckBaseNote && note) {
+    // @ts-expect-error TODO: fix type
     note.source.stop(0);
     source = audioContext.createBufferSource();
     sourceGain = audioContext.createGain();
@@ -637,6 +643,7 @@ function applyVibratoEffect({
       currentlyPlayingStrings[stringIdx] = source;
     }, when * 1000);
 
+    // @ts-expect-error TODO: fix type
     source.buffer = note.source.buffer as AudioBuffer;
     source.start(0, 0.5);
 
@@ -667,6 +674,7 @@ function applyVibratoEffect({
     vibratoDepth.connect(source.detune);
     return sourceGain;
   } else if (note) {
+    // @ts-expect-error TODO: fix type
     vibratoDepth.connect(note.source.detune);
     return note;
   } else if (copiedNote) {
@@ -874,11 +882,15 @@ function playNoteColumn({
       (60 / bpm) * 1000,
     );
 
-    // thinking it's better to group "s" in main if statement here
+    // thinking it's better to group "r" and "s" in main if statement here
     // because I don't think you want to be super aggresive on deleting the prev
     // notes if they exist in column ux wise if someone were to add an "s" to [7]
     // while editing
-    if (columnHasNoNotes(currColumn) || currColumn[7]?.includes("s")) {
+    if (
+      columnHasNoNotes(currColumn) ||
+      currColumn[7]?.includes("s") ||
+      currColumn[7] === "r"
+    ) {
       if (currColumn[7]?.includes("s")) {
         playSlapSound({
           accented: currColumn[7].includes(">"),
@@ -888,6 +900,11 @@ function playNoteColumn({
           masterVolumeGainNode,
           currentlyPlayingStrings,
         });
+      } else if (currColumn[7] === "r") {
+        // stopping all notes currently playing
+        for (const currentlyPlayingString of currentlyPlayingStrings) {
+          currentlyPlayingString?.stop();
+        }
       }
       return;
     }

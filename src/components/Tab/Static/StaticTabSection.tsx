@@ -15,11 +15,19 @@ export interface LastModifiedPalmMuteNodeLocation {
 
 interface StaticTabSection {
   subSectionData: TabSection;
+  sectionIndex: number;
+  subSectionIndex: number;
   color: COLORS;
   theme: THEME;
 }
 
-function StaticTabSection({ subSectionData, color, theme }: StaticTabSection) {
+function StaticTabSection({
+  subSectionData,
+  sectionIndex,
+  subSectionIndex,
+  color,
+  theme,
+}: StaticTabSection) {
   const { tuning } = useTabStore((state) => ({
     tuning: state.tuning,
   }));
@@ -54,7 +62,7 @@ function StaticTabSection({ subSectionData, color, theme }: StaticTabSection) {
         </div>
 
         {subSectionData.data.map((column, index) => (
-          <Fragment key={column[9]}>
+          <Fragment key={column[10]}>
             {column.includes("|") ? (
               <StaticTabMeasureLine
                 columnData={column}
@@ -65,6 +73,8 @@ function StaticTabSection({ subSectionData, color, theme }: StaticTabSection) {
               <StaticTabNotesColumn
                 columnData={column}
                 columnIndex={index}
+                sectionIndex={sectionIndex}
+                subSectionIndex={subSectionIndex}
                 color={color}
                 theme={theme}
                 isLastColumn={index === subSectionData.data.length - 1}

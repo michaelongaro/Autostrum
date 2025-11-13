@@ -1,136 +1,202 @@
-function renderStrummingGuide(noteLength: string, beatIndex: number) {
-  let innermostDiv = <div></div>;
-  let height = "7px";
-  switch (noteLength) {
-    case "1/4th":
-      height = "6px";
-      innermostDiv = (
-        <div className="h-full w-[1px] rounded-md bg-current"></div>
-      );
+import type { CSSProperties } from "react";
+import type { COLORS, FullNoteLengths } from "~/stores/TabStore";
+import { WholeNote, getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
+import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 
-      break;
-    case "1/8th":
-      height = "7px";
-      innermostDiv = (
-        <>
-          <div className="h-full w-[1px] rounded-md bg-current"></div>
+type NoteBase = "whole" | "half" | "quarter" | "eighth" | "sixteenth";
 
-          {beatIndex % 2 === 0 ? (
-            <div className="absolute bottom-0 right-0 h-[1px] w-1/2 bg-current"></div>
-          ) : (
-            <div className="absolute bottom-0 left-0 right-0 h-[1px] w-1/2 bg-current"></div>
-          )}
-        </>
-      );
-      break;
-    case "1/16th":
-      height = "7px";
-      innermostDiv = (
-        <>
-          <div className="h-full w-[1px] rounded-md bg-current"></div>
+interface ParsedNote {
+  base: NoteBase;
+  dotCount: 0 | 1 | 2;
+}
 
-          {beatIndex % 2 === 0 ? (
-            <>
-              <div className="absolute bottom-[2px] right-0 h-[1px] w-1/2 bg-current"></div>
-              <div className="absolute bottom-0 right-0 h-[1px] w-1/2 bg-current"></div>
-            </>
-          ) : (
-            <>
-              <div className="absolute bottom-[2px] left-0 right-0 h-[1px] w-1/2 bg-current"></div>
-              <div className="absolute bottom-0 left-0 right-0 h-[1px] w-1/2 bg-current"></div>
-            </>
-          )}
-        </>
-      );
-      break;
+interface RenderStrummingGuideParams {
+  previousNoteLength?: FullNoteLengths;
+  currentNoteLength?: FullNoteLengths;
+  nextNoteLength?: FullNoteLengths;
+  previousIsRestStrum?: boolean;
+  currentIsRestStrum?: boolean;
+  nextIsRestStrum?: boolean;
+  color?: COLORS;
+  theme?: "light" | "dark";
+}
 
-    case "1/4th triplet":
-      height = "25px";
-      innermostDiv = (
-        <div className="baseVertFlex h-full w-full !flex-nowrap !justify-start">
-          <div className="h-[7px] w-[1px] rounded-md bg-current"></div>
-          {beatIndex % 3 === 1 && (
-            <p className="mt-[3px] text-xs text-current">3</p>
-          )}
-        </div>
-      );
+function parseFullNoteLength(note: FullNoteLengths): ParsedNote {
+  const base = note.split(" ")[0] as NoteBase;
 
-      break;
-    case "1/8th triplet":
-      height = "25px";
-
-      innermostDiv = (
-        <div className="baseVertFlex relative h-full w-full !flex-nowrap !justify-start">
-          <div className="h-[7px] w-[1px] rounded-md bg-current"></div>
-          {beatIndex % 3 === 0 && (
-            <>
-              <div className="absolute right-0 top-[6px] h-[1px] w-1/2 bg-current"></div>
-            </>
-          )}
-
-          {beatIndex % 3 === 1 && (
-            <>
-              <div className="absolute right-0 top-[6px] h-[1px] w-1/2 bg-current"></div>
-              <div className="absolute left-0 top-[6px] h-[1px] w-1/2 bg-current"></div>
-            </>
-          )}
-
-          {beatIndex % 3 === 2 && (
-            <>
-              <div className="absolute left-0 top-[6px] h-[1px] w-1/2 bg-current"></div>
-            </>
-          )}
-
-          {beatIndex % 3 === 1 && (
-            <p className="mt-[3px] text-xs text-current">3</p>
-          )}
-        </div>
-      );
-      break;
-    case "1/16th triplet":
-      height = "25px";
-      innermostDiv = (
-        <div className="baseVertFlex relative h-full w-full !flex-nowrap !justify-start">
-          <div className="h-[7px] w-[1px] rounded-md bg-current"></div>
-          {beatIndex % 3 === 0 && (
-            <>
-              <div className="absolute right-0 top-[4px] h-[1px] w-1/2 bg-current"></div>
-              <div className="absolute right-0 top-[6px] h-[1px] w-1/2 bg-current"></div>
-            </>
-          )}
-
-          {beatIndex % 3 === 1 && (
-            <>
-              <div className="absolute right-0 top-[4px] h-[1px] w-1/2 bg-current"></div>
-              <div className="absolute right-0 top-[6px] h-[1px] w-1/2 bg-current"></div>
-              <div className="absolute left-0 top-[4px] h-[1px] w-1/2 bg-current"></div>
-              <div className="absolute left-0 top-[6px] h-[1px] w-1/2 bg-current"></div>
-            </>
-          )}
-
-          {beatIndex % 3 === 2 && (
-            <>
-              <div className="absolute left-0 top-[4px] h-[1px] w-1/2 bg-current"></div>
-              <div className="absolute left-0 top-[6px] h-[1px] w-1/2 bg-current"></div>
-            </>
-          )}
-
-          {beatIndex % 3 === 1 && (
-            <p className="mt-[3px] text-xs text-current">3</p>
-          )}
-        </div>
-      );
-      break;
+  let dotCount: 0 | 1 | 2 = 0;
+  if (note.includes("double-dotted")) {
+    dotCount = 2;
+  } else if (note.includes("dotted")) {
+    dotCount = 1;
   }
 
+  return {
+    base,
+    dotCount,
+  };
+}
+
+function createBeamSegments(
+  position: "left" | "right",
+  offsets: number[],
+  backgroundColor: string,
+) {
+  return offsets.map((offset) => {
+    const style: CSSProperties = {
+      bottom: offset,
+      width: "50%",
+      backgroundColor,
+    };
+
+    if (position === "left") {
+      style.left = 0;
+    } else {
+      style.right = 0;
+    }
+
+    return (
+      <div
+        key={`${position}-${offset}`}
+        style={style}
+        className="absolute h-[3px]"
+      ></div>
+    );
+  });
+}
+
+function renderDots(
+  dotCount: 0 | 1 | 2,
+  backgroundColor: string,
+  placement: "default" | "centered" = "default",
+) {
+  if (dotCount === 0) {
+    return null;
+  }
+
+  const placementClasses =
+    placement === "centered"
+      ? "absolute left-[70%] top-1/2 ml-[2px] -translate-y-1/2 flex gap-[2px]"
+      : "absolute left-[55%] top-0 ml-[2px] flex gap-[2px]";
+
   return (
+    <div className={placementClasses}>
+      {Array.from({ length: dotCount }).map((_, index) => (
+        <div
+          key={`dot-${index}`}
+          style={{ backgroundColor }}
+          className="h-[3px] w-[3px] rounded-full"
+        ></div>
+      ))}
+    </div>
+  );
+}
+
+function renderStrummingGuide({
+  previousNoteLength,
+  currentNoteLength,
+  nextNoteLength,
+  previousIsRestStrum = false,
+  currentIsRestStrum = false,
+  nextIsRestStrum = false,
+  color,
+  theme,
+}: RenderStrummingGuideParams) {
+  // console.log(currentNoteLength);
+
+  if (!currentNoteLength) {
+    return null;
+  }
+
+  const themeKey = theme ?? "light";
+  const noteColor =
+    color && theme
+      ? `hsl(${SCREENSHOT_COLORS[color][themeKey]["screenshot-foreground"]})`
+      : "currentColor";
+
+  if (currentIsRestStrum) {
+    const restIcon = getDynamicNoteLengthIcon({
+      noteLength: currentNoteLength,
+      isARestNote: true,
+    });
+
+    console.log(restIcon);
+
+    if (!restIcon) {
+      return null;
+    }
+
+    return (
+      <div
+        className="baseFlex relative size-full !flex-nowrap"
+        style={{ color: noteColor }}
+      >
+        {restIcon}
+      </div>
+    );
+  }
+
+  const parsedCurrent = parseFullNoteLength(currentNoteLength);
+
+  if (parsedCurrent.base === "whole") {
+    return (
+      <div
+        className="baseFlex relative size-full !flex-nowrap"
+        style={{ color: noteColor }}
+      >
+        <WholeNote className="h-[10px] w-[12px]" />
+        {renderDots(parsedCurrent.dotCount, noteColor, "centered")}
+      </div>
+    );
+  }
+
+  const isHalfNote = parsedCurrent.base === "half";
+
+  const verticalStem = (
     <div
-      style={{
-        height,
-      }}
-      className="baseFlex relative w-full !flex-nowrap"
-    >
-      {innermostDiv}
+      className={`w-[1px] rounded-md ${isHalfNote ? "h-1/2 self-start" : "h-full"}`}
+      style={{ backgroundColor: noteColor }}
+    ></div>
+  );
+
+  const supportsBeams =
+    parsedCurrent.base === "eighth" || parsedCurrent.base === "sixteenth";
+  const parsedPrev =
+    supportsBeams && previousNoteLength && !previousIsRestStrum
+      ? parseFullNoteLength(previousNoteLength)
+      : null;
+  const parsedNext =
+    supportsBeams && nextNoteLength && !nextIsRestStrum
+      ? parseFullNoteLength(nextNoteLength)
+      : null;
+
+  const connectsLeft =
+    (parsedPrev?.base === "eighth" || parsedPrev?.base === "sixteenth") &&
+    (parsedCurrent?.base === "eighth" || parsedCurrent?.base === "sixteenth");
+  const connectsRight =
+    (parsedNext?.base === "eighth" || parsedNext?.base === "sixteenth") &&
+    (parsedCurrent?.base === "eighth" || parsedCurrent?.base === "sixteenth");
+
+  const beamOffsets = parsedCurrent.base === "sixteenth" ? [5, 0] : [0];
+  const leftBeams = connectsLeft
+    ? createBeamSegments("left", beamOffsets, noteColor)
+    : null;
+  const shouldShowRightBeams =
+    supportsBeams && (connectsRight || !connectsLeft);
+  const rightBeams = shouldShowRightBeams
+    ? createBeamSegments("right", beamOffsets, noteColor)
+    : null;
+
+  return (
+    <div className="baseFlex relative size-full !flex-nowrap">
+      {verticalStem}
+      {leftBeams}
+      {rightBeams}
+      {renderDots(
+        parsedCurrent.dotCount,
+        noteColor,
+        isHalfNote ? "centered" : "default",
+      )}
     </div>
   );
 }

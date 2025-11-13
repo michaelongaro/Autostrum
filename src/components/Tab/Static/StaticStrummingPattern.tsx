@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
 import {
@@ -13,8 +13,10 @@ import {
 import { Button } from "~/components/ui/button";
 import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
-import renderStaticStrummingGuide from "~/utils/renderStaticStrummingGuide";
 import type { COLORS, THEME } from "~/stores/TabStore";
+import renderStrummingGuide from "~/utils/renderStrummingGuide";
+import PauseIcon from "~/components/ui/icons/PauseIcon";
+import { generateBeatLabels } from "~/utils/getBeatIndicator";
 
 interface StaticStrummingPattern {
   data: StrummingPatternType;
@@ -33,108 +35,91 @@ function StaticStrummingPattern({
     chords: state.chords,
   }));
 
-  function getBeatIndicator(noteLength: string, beatIndex: number) {
-    let beat: number | string = "";
-    switch (noteLength) {
-      case "1/4th":
-        beat = beatIndex + 1;
-        break;
-      case "1/8th":
-        beat = beatIndex % 2 === 0 ? beatIndex / 2 + 1 : "&";
-        break;
-      case "1/16th":
-        beat =
-          beatIndex % 4 === 0
-            ? beatIndex / 4 + 1
-            : beatIndex % 2 === 0
-              ? "&"
-              : "";
-        break;
-      case "1/4th triplet":
-        beat = beatIndex % 3 === 0 ? (beatIndex / 3) * 2 + 1 : "";
-        break;
-      case "1/8th triplet":
-        beat = beatIndex % 3 === 0 ? beatIndex / 3 + 1 : "";
-        break;
-      case "1/16th triplet":
-        beat =
-          beatIndex % 3 === 0
-            ? (beatIndex / 3) % 2 === 0
-              ? beatIndex / 3 / 2 + 1
-              : "&"
-            : "";
-        break;
-    }
-    return beat.toString();
-  }
+  const heightOfStrummingPatternFiller = useMemo(() => {
+    const patternHasPalmMuting = data.strums.some(
+      (strum) => strum.palmMute !== "",
+    );
 
-  const patternHasPalmMuting = useCallback(() => {
-    return data.strums.some((strum) => strum.palmMute !== "");
+    return patternHasPalmMuting ? "24px" : "0";
   }, [data]);
 
-  const heightOfStrummingPatternFiller = useMemo(() => {
-    return patternHasPalmMuting() ? "2.2rem" : "0rem";
-  }, [patternHasPalmMuting]);
+  const beatLabels = useMemo(() => {
+    const strumsWithNoteLengths = data.strums.map((strum) => {
+      return strum.noteLength;
+    });
+
+    return generateBeatLabels(strumsWithNoteLengths);
+  }, [data]);
 
   return (
     <div className="baseFlex w-full flex-wrap !justify-start gap-1">
       <div className="baseFlex relative mb-1 flex-wrap !justify-start">
         {data?.strums?.map((strum, strumIndex) => (
-          <div key={strumIndex} className="baseVertFlex relative mt-1">
-            {strum.palmMute !== "" ? (
-              <StaticPalmMuteNode
-                value={strum.palmMute}
-                color={color}
-                theme={theme}
-              />
-            ) : (
-              <div
-                style={{
-                  height: heightOfStrummingPatternFiller,
-                }}
-              ></div>
-            )}
+          <div key={strumIndex} className="baseVertFlex relative">
+            {/* palm mute icon */}
+            <div
+              style={{
+                height: heightOfStrummingPatternFiller,
+              }}
+              className="baseFlex w-full"
+            >
+              {strum.palmMute !== "" && (
+                <StaticPalmMuteNode
+                  value={strum.palmMute}
+                  color={color}
+                  theme={theme}
+                />
+              )}
+            </div>
 
             {/* chord viewer */}
-            <Popover>
-              <PopoverTrigger
-                asChild
-                disabled={chordSequenceData?.[strumIndex] === ""}
-                className="baseFlex rounded-md transition-all hover:bg-primary/20 active:hover:bg-primary/10"
-              >
-                <Button
-                  variant={"ghost"}
-                  style={{
-                    color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
-                  }}
-                  className="baseFlex mb-1 h-6 px-1 py-0"
+            {strum.strum.includes("s") ||
+            strum.strum === "r" ||
+            strum.strum === "" ? (
+              <div className="h-[28px]"></div>
+            ) : (
+              <Popover>
+                <PopoverTrigger
+                  asChild
+                  disabled={chordSequenceData?.[strumIndex] === ""}
+                  className="baseFlex rounded-md transition-all hover:bg-primary/20 active:hover:bg-primary/10"
                 >
-                  <span className="mx-0.5 h-6 text-base font-semibold">
-                    {chordSequenceData?.[strumIndex]}
-                  </span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                side="bottom"
-                sideOffset={0}
-                className="z-0 size-40 border bg-secondary p-0 py-3"
-              >
-                <ChordDiagram
-                  originalFrets={
-                    chords[
-                      chords.findIndex(
-                        (chord) =>
-                          chord.name === chordSequenceData?.[strumIndex],
-                      ) ?? 0
-                    ]?.frets ?? []
-                  }
-                />
-              </PopoverContent>
-            </Popover>
+                  <Button
+                    variant={"ghost"}
+                    style={{
+                      color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                    }}
+                    className="baseFlex mb-1 h-6 px-1 py-0"
+                  >
+                    <span className="mx-0.5 h-6 text-base font-semibold">
+                      {chordSequenceData?.[strumIndex]}
+                    </span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  side="bottom"
+                  sideOffset={0}
+                  className="z-0 size-40 border bg-secondary p-0 py-3"
+                >
+                  <ChordDiagram
+                    originalFrets={
+                      chords[
+                        chords.findIndex(
+                          (chord) =>
+                            chord.name === chordSequenceData?.[strumIndex],
+                        ) ?? 0
+                      ]?.frets ?? []
+                    }
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
 
-            <div className="baseFlex">
-              <div className="gap-1"></div>
+            {/* strum icon */}
+            <div className="baseFlex h-7">
               {/* spacer so that PM nodes can be connected seamlessly above */}
+              <div className="w-1"></div>
+
               <div
                 style={{
                   color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
@@ -181,40 +166,44 @@ function StaticStrummingPattern({
                     style={{
                       fontSize: "30px",
                     }}
-                    className="absolute bottom-[-9px]"
+                    className="absolute bottom-[12px] right-[-2px]"
                   >
                     .
                   </div>
                 )}
 
+                {strum.strum === "r" && <PauseIcon className="size-3" />}
+
                 {strum.strum === "" && <div className="h-5 w-4"></div>}
               </div>
 
-              <div className="w-1"></div>
               {/* spacer so that PM nodes can be connected seamlessly above */}
+              <div className="w-1"></div>
             </div>
 
             {/* beat indicator */}
             <span
               style={{
-                height:
-                  getBeatIndicator(data.noteLength, strumIndex) === ""
-                    ? "1.25rem"
-                    : "auto",
                 color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
               }}
               className="text-sm"
             >
-              {getBeatIndicator(data.noteLength, strumIndex)}
+              {beatLabels[strumIndex]}
             </span>
 
             {/* strumming guide */}
-            {renderStaticStrummingGuide(
-              data.noteLength,
-              strumIndex,
-              color,
-              theme,
-            )}
+            <div className="h-4 w-full">
+              {renderStrummingGuide({
+                previousNoteLength: data.strums[strumIndex - 1]?.noteLength,
+                currentNoteLength: strum.noteLength,
+                nextNoteLength: data.strums[strumIndex + 1]?.noteLength,
+                previousIsRestStrum: data.strums[strumIndex - 1]?.strum === "r",
+                currentIsRestStrum: strum.strum === "r",
+                nextIsRestStrum: data.strums[strumIndex + 1]?.strum === "r",
+                color,
+                theme,
+              })}
+            </div>
           </div>
         ))}
       </div>

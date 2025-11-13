@@ -91,8 +91,6 @@ function PostSignupDialog() {
     },
   );
 
-  console.log({ userIsRegistered, isSignedIn });
-
   return (
     <AlertDialog open={userIsRegistered === false && isSignedIn}>
       <VisuallyHidden>

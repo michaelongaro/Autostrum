@@ -15,6 +15,7 @@ import {
 } from "~/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { FaBook } from "react-icons/fa";
+import PauseIcon from "~/components/ui/icons/PauseIcon";
 
 function EffectGlossaryDialog() {
   const { editing, showEffectGlossaryDialog, setShowEffectGlossaryDialog } =
@@ -332,6 +333,11 @@ function EffectGlossaryDialog() {
                   <span className="col-span-1">-</span>
                   <span className="col-span-3">Stacatto</span>
                 </div>
+                <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                  <span className="col-span-1">r</span>
+                  <span className="col-span-1">-</span>
+                  <span className="col-span-3">Rest</span>
+                </div>
               </div>
             ) : (
               <div className="baseVertFlex w-full gap-2">
@@ -360,6 +366,13 @@ function EffectGlossaryDialog() {
                   </span>
                   <span className="col-span-1">-</span>
                   <span className="col-span-3">Stacatto</span>
+                </div>
+                <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                  <span className="col-span-1">
+                    <PauseIcon className="mt-1.5 size-2.5" />
+                  </span>
+                  <span className="col-span-1">-</span>
+                  <span className="col-span-3">Rest</span>
                 </div>
               </div>
             )}

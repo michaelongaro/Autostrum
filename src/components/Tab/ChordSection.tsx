@@ -4,7 +4,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { useTabStore } from "~/stores/TabStore";
-import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
+import { QuarterNote } from "~/utils/noteLengthIcons";
 import ChordSequence from "./ChordSequence";
 import MiscellaneousControls from "./MiscellaneousControls";
 import { useChordSubSectionData } from "~/hooks/useTabDataSelectors";

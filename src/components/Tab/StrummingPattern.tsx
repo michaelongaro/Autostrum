@@ -10,6 +10,13 @@ import { BsArrowDown, BsArrowUp, BsPlus } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
 import { Element } from "react-scroll";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import {
   Select,
   SelectContent,
   SelectGroup,
@@ -21,6 +28,7 @@ import {
 } from "~/components/ui/select";
 import {
   useTabStore,
+  type FullNoteLengths,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
@@ -28,6 +36,31 @@ import StrummingPatternPalmMuteNode from "../Tab/StrummingPatternPalmMuteNode";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { generateBeatLabels } from "~/utils/getBeatIndicator";
+import PauseIcon from "~/components/ui/icons/PauseIcon";
+import Ellipsis from "~/components/ui/icons/Ellipsis";
+import { NoteLengthDropdown } from "~/components/Tab/NoteLengthDropdown";
+// import { getBeatIndicator } from "~/utils/getBeatIndicator";
+
+const noteLengthCycle = [
+  "whole",
+  "whole dotted",
+  "whole double-dotted",
+  "half",
+  "half dotted",
+  "half double-dotted",
+  "quarter",
+  "quarter dotted",
+  "quarter double-dotted",
+  "eighth",
+  "eighth dotted",
+  "eighth double-dotted",
+  "sixteenth",
+  "sixteenth dotted",
+  "sixteenth double-dotted",
+] as const;
+
+type NoteLength = (typeof noteLengthCycle)[number];
 
 interface StrummingPattern {
   data: StrummingPatternType;
@@ -76,6 +109,11 @@ function StrummingPattern({
   const [isFocused, setIsFocused] = useState<boolean[]>(
     data?.strums?.map(() => false),
   );
+  const [strumIdxBeingHovered, setStrumIdxBeingHovered] = useState<
+    number | null
+  >(null);
+  const [openStrumSettingsDropdownIdx, setOpenStrumSettingsDropdownIdx] =
+    useState<number | null>(null);
 
   const {
     chords,
@@ -110,7 +148,7 @@ function StrummingPattern({
   const heightOfStrummingPatternFiller = useMemo(() => {
     if (patternHasPalmMuting()) {
       if (mode === "editingStrummingPattern") {
-        return "2.2rem";
+        return "36px";
       } else {
         return "1.5rem";
       }
@@ -119,21 +157,29 @@ function StrummingPattern({
     return "0";
   }, [mode, patternHasPalmMuting]);
 
+  const beatLabels = useMemo(() => {
+    const strumsWithNoteLengths = data.strums.map((strum) => {
+      return strum.noteLength;
+    });
+
+    return generateBeatLabels(strumsWithNoteLengths);
+  }, [data]);
+
   function handleKeyDown(
     e: React.KeyboardEvent<HTMLInputElement>,
     beatIndex: number,
   ) {
     const newStrummingPattern = structuredClone(data);
 
-    // v/d for downstrum, ^/u for upstrum, and s for slap
-    if (e.key === "ArrowDown" || e.key.toLowerCase() === "v") {
+    // v/↓ for downstrum, ^/↑ for upstrum, s for slap, r for rest
+    if ((!e.shiftKey && e.key === "ArrowDown") || e.key.toLowerCase() === "v") {
       newStrummingPattern.strums[beatIndex] = {
-        ...data.strums[beatIndex]!, // ! because we know it's not undefined
+        ...data.strums[beatIndex]!,
         strum: "v",
       };
-    } else if (e.key === "ArrowUp" || e.key === "^") {
+    } else if ((!e.shiftKey && e.key === "ArrowUp") || e.key === "^") {
       newStrummingPattern.strums[beatIndex] = {
-        ...data.strums[beatIndex]!, // ! because we know it's not undefined
+        ...data.strums[beatIndex]!,
         strum: "^",
       };
 
@@ -150,9 +196,32 @@ function StrummingPattern({
       }, 0);
     } else if (e.key.toLowerCase() === "s") {
       newStrummingPattern.strums[beatIndex] = {
-        ...data.strums[beatIndex]!, // ! because we know it's not undefined
+        ...data.strums[beatIndex]!,
         strum: "s",
       };
+    } else if (e.key.toLowerCase() === "r") {
+      newStrummingPattern.strums[beatIndex] = {
+        ...data.strums[beatIndex]!,
+        strum: "r",
+      };
+    }
+
+    // Change note length with Shift + ArrowUp/ArrowDown
+    if (e.shiftKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+      e.preventDefault();
+
+      const order = noteLengthCycle;
+      const current =
+        (newStrummingPattern.strums[beatIndex]?.noteLength as NoteLength) ??
+        "quarter";
+      let idx = order.indexOf(current);
+      if (idx === -1) idx = order.indexOf("quarter");
+
+      if (e.key === "ArrowUp" && idx < order.length - 1) idx += 1; // increase resolution
+      if (e.key === "ArrowDown" && idx > 0) idx -= 1; // decrease resolution
+
+      const newLength: NoteLength = order[idx] ?? "quarter";
+      newStrummingPattern.strums[beatIndex]!.noteLength = newLength;
     }
 
     // arrow key navigation
@@ -212,6 +281,8 @@ function StrummingPattern({
         newStrummingPattern.strums.push({
           palmMute: "",
           strum: "",
+          noteLength: data.baseNoteLength,
+          noteLengthModified: false,
         });
       }
 
@@ -261,39 +332,47 @@ function StrummingPattern({
     });
   }
 
-  function getBeatIndicator(noteLength: string, beatIndex: number) {
-    let beat: number | string = "";
-    switch (noteLength) {
-      case "1/4th":
-        beat = beatIndex + 1;
-        break;
-      case "1/8th":
-        beat = beatIndex % 2 === 0 ? beatIndex / 2 + 1 : "&";
-        break;
-      case "1/16th":
-        beat =
-          beatIndex % 4 === 0
-            ? beatIndex / 4 + 1
-            : beatIndex % 2 === 0
-              ? "&"
-              : "";
-        break;
-      case "1/4th triplet":
-        beat = beatIndex % 3 === 0 ? (beatIndex / 3) * 2 + 1 : "";
-        break;
-      case "1/8th triplet":
-        beat = beatIndex % 3 === 0 ? beatIndex / 3 + 1 : "";
-        break;
-      case "1/16th triplet":
-        beat =
-          beatIndex % 3 === 0
-            ? (beatIndex / 3) % 2 === 0
-              ? beatIndex / 3 / 2 + 1
-              : "&"
-            : "";
-        break;
-    }
-    return beat.toString();
+  function addNewChord(after: boolean) {
+    const newStrummingPattern = structuredClone(data);
+
+    newStrummingPattern.strums.splice(
+      after ? strumIdxBeingHovered! + 1 : strumIdxBeingHovered!,
+      0,
+      {
+        palmMute: "" as "" | "start" | "end",
+        strum: "",
+        noteLength: data.baseNoteLength,
+        noteLengthModified: false,
+      },
+    );
+
+    setInputIdToFocus(
+      `input-strummingPatternModal-${
+        after ? strumIdxBeingHovered! + 1 : strumIdxBeingHovered!
+      }-1`,
+    );
+
+    setStrummingPatternBeingEdited({
+      index: index ?? 0,
+      value: newStrummingPattern,
+    });
+  }
+
+  function handleNoteLengthChange(
+    strumIndex: number,
+    noteLength: FullNoteLengths,
+  ) {
+    const newStrummingPattern = structuredClone(data);
+
+    newStrummingPattern.strums[strumIndex] = {
+      ...data.strums[strumIndex]!,
+      noteLength: noteLength,
+      noteLengthModified: true,
+    };
+    setStrummingPatternBeingEdited({
+      index: index ?? 0,
+      value: newStrummingPattern,
+    });
   }
 
   function addStrumsToPattern() {
@@ -306,6 +385,8 @@ function StrummingPattern({
       newStrummingPattern.strums.push({
         palmMute: "",
         strum: "",
+        noteLength: data.baseNoteLength,
+        noteLengthModified: false,
       });
     }
 
@@ -482,6 +563,8 @@ function StrummingPattern({
                     : "0",
               }}
               className="baseVertFlex relative"
+              onMouseEnter={() => setStrumIdxBeingHovered(strumIndex)}
+              onMouseLeave={() => setStrumIdxBeingHovered(null)}
             >
               {strum.palmMute !== "" || editingPalmMuteNodes ? (
                 <StrummingPatternPalmMuteNode
@@ -513,7 +596,9 @@ function StrummingPattern({
               {/* chord selector */}
               {mode === "editingChordSequence" && (
                 <>
-                  {strum.strum.includes("s") || strum.strum === "" ? (
+                  {strum.strum.includes("s") ||
+                  strum.strum === "r" ||
+                  strum.strum === "" ? (
                     <div className="h-[40px] w-[42px]"></div>
                   ) : (
                     <Select
@@ -531,8 +616,6 @@ function StrummingPattern({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup className="max-h-60 overflow-y-auto overflow-x-hidden">
-                          <SelectLabel>Chords</SelectLabel>
-
                           {chords.map((chord) => (
                             <SelectItem key={chord.name} value={chord.name}>
                               {chord.name}
@@ -655,11 +738,13 @@ function StrummingPattern({
                         style={{
                           fontSize: "30px",
                         }}
-                        className="absolute bottom-[-9px]"
+                        className="absolute bottom-[12px] right-[-2px]"
                       >
                         .
                       </div>
                     )}
+
+                    {strum.strum === "r" && <PauseIcon className="size-3" />}
 
                     {strum.strum === "" && <div className="h-5 w-4"></div>}
                   </div>
@@ -674,24 +759,80 @@ function StrummingPattern({
                 {/* spacer so that PM nodes can be connected seamlessly above */}
               </div>
 
+              {/* note length dropdown menu */}
+              {mode === "editingStrummingPattern" && (
+                <>
+                  {strumIdxBeingHovered === strumIndex ||
+                  openStrumSettingsDropdownIdx === strumIndex ? (
+                    <DropdownMenu
+                      modal={true}
+                      open={openStrumSettingsDropdownIdx === strumIndex}
+                      onOpenChange={(open) =>
+                        setOpenStrumSettingsDropdownIdx(
+                          open ? strumIndex : null,
+                        )
+                      }
+                    >
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-1 w-4 !p-0">
+                          <Ellipsis className="h-3 w-4 rotate-90" />
+                        </Button>
+                      </DropdownMenuTrigger>
+
+                      <DropdownMenuContent side={"bottom"}>
+                        <DropdownMenuItem
+                          className="baseFlex !justify-between gap-2"
+                          onClick={() => addNewChord(false)}
+                        >
+                          Add strum before
+                          <BsPlus className="h-4 w-4" />
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="baseFlex !justify-between gap-2"
+                          onClick={() => addNewChord(true)}
+                        >
+                          Add strum after
+                          <BsPlus className="h-4 w-4" />
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="bg-primary" />
+                        <NoteLengthDropdown
+                          value={strum.noteLength}
+                          onValueChange={(value) => {
+                            handleNoteLengthChange(strumIndex, value);
+                          }}
+                        />
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    <div className="h-1"></div>
+                  )}
+                </>
+              )}
+
               {/* beat indicator */}
               <p
                 style={{
-                  height:
-                    getBeatIndicator(data.noteLength, strumIndex) === ""
-                      ? "1.25rem"
-                      : "auto",
                   color: highlightChord(strumIndex, index !== undefined)
                     ? "hsl(var(--primary) / 0.75)"
                     : "inherit",
                 }}
                 className={`text-sm ${mode === "viewingInSelectDropdown" ? "" : "transition-colors"}`}
               >
-                {getBeatIndicator(data.noteLength, strumIndex)}
+                {beatLabels[strumIndex]}
               </p>
 
               {/* strumming guide */}
-              {renderStrummingGuide(data.noteLength, strumIndex)}
+              <div className="h-4 w-full">
+                {renderStrummingGuide({
+                  previousNoteLength: data.strums[strumIndex - 1]?.noteLength,
+                  currentNoteLength: strum.noteLength,
+                  nextNoteLength: data.strums[strumIndex + 1]?.noteLength,
+                  previousIsRestStrum:
+                    data.strums[strumIndex - 1]?.strum === "r",
+                  currentIsRestStrum: strum.strum === "r",
+                  nextIsRestStrum: data.strums[strumIndex + 1]?.strum === "r",
+                })}
+              </div>
 
               {/* delete strum button */}
               {showingDeleteStrumsButtons && (

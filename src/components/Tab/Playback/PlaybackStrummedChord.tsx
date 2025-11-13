@@ -1,61 +1,28 @@
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
-import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
-
+import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
-
-function getBeatIndicator(noteLength: string, beatIndex: number) {
-  let beat: number | string = "";
-  switch (noteLength) {
-    case "1/4th":
-      beat = beatIndex + 1;
-      break;
-    case "1/8th":
-      beat = beatIndex % 2 === 0 ? beatIndex / 2 + 1 : "&";
-      break;
-    case "1/16th":
-      beat =
-        beatIndex % 4 === 0
-          ? beatIndex / 4 + 1
-          : beatIndex % 2 === 0
-            ? "&"
-            : "";
-      break;
-    case "1/4th triplet":
-      beat = beatIndex % 3 === 0 ? (beatIndex / 3) * 2 + 1 : "";
-      break;
-    case "1/8th triplet":
-      beat = beatIndex % 3 === 0 ? beatIndex / 3 + 1 : "";
-      break;
-    case "1/16th triplet":
-      beat =
-        beatIndex % 3 === 0
-          ? (beatIndex / 3) % 2 === 0
-            ? beatIndex / 3 / 2 + 1
-            : "&"
-          : "";
-      break;
-  }
-  return beat.toString();
-}
+import type { BaseNoteLengths, FullNoteLengths } from "~/stores/TabStore";
+import PauseIcon from "~/components/ui/icons/PauseIcon";
 
 interface PlaybackStrummedChord {
   strumIndex: number;
   strum: string;
   palmMute?: string;
   chordName?: string;
-  noteLength:
-    | "1/4th"
-    | "1/4th triplet"
-    | "1/8th"
-    | "1/8th triplet"
-    | "1/16th"
-    | "1/16th triplet";
+  noteLength: FullNoteLengths;
   bpmToShow?: number;
   isFirstChordInSection: boolean;
   isLastChordInSection: boolean;
   isHighlighted?: boolean;
   isDimmed: boolean;
+  beatIndicator: string;
+  prevChordNoteLength?: FullNoteLengths;
+  currentChordNoteLength?: FullNoteLengths;
+  nextChordNoteLength?: FullNoteLengths;
+  prevChordIsRest: boolean;
+  currentChordIsRest: boolean;
+  nextChordIsRest: boolean;
 }
 
 function PlaybackStrummedChord({
@@ -69,9 +36,14 @@ function PlaybackStrummedChord({
   isLastChordInSection,
   isHighlighted = false,
   isDimmed,
+  beatIndicator,
+  prevChordNoteLength,
+  currentChordNoteLength,
+  nextChordNoteLength,
+  prevChordIsRest,
+  currentChordIsRest,
+  nextChordIsRest,
 }: PlaybackStrummedChord) {
-  const heightOfStrummingPatternFiller = "1.5rem";
-
   return (
     <>
       {/* not my favorite, but strumIndex of -1 indicates a physical spacer between strumming
@@ -82,7 +54,7 @@ function PlaybackStrummedChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex mb-[24px] h-[144px] w-4 shrink-0 border-y-2 border-foreground mobilePortrait:h-[168px]"
+          className="baseVertFlex mb-[72px] h-[144px] w-4 shrink-0 border-y-2 border-foreground mobilePortrait:h-[168px]"
         >
           {/* spacer to ease transition from strum -> tab */}
           <div className="my-[10px] h-[1px] w-1/2 self-start bg-gradient-to-r from-foreground/50 to-transparent mobilePortrait:my-3"></div>
@@ -109,28 +81,23 @@ function PlaybackStrummedChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex relative mb-[24px] h-[144px] w-[40px] pb-4 mobilePortrait:h-[168px]"
+          className="baseVertFlex relative mb-[72px] h-[144px] w-[40px] pb-4 mobilePortrait:h-[168px]"
         >
           {bpmToShow && (
-            <div className="baseFlex absolute -top-7 left-2 gap-1 text-nowrap">
+            <div className="baseFlex absolute left-[16px] top-[-1.5rem] gap-[6px] text-nowrap text-xs">
               {getDynamicNoteLengthIcon({
                 noteLength,
-                forInlineTabViewing: true,
               })}
-              <span className="text-xs">{`${bpmToShow} BPM`}</span>
+              <span>{`${bpmToShow} BPM`}</span>
             </div>
           )}
 
-          {palmMute && palmMute !== "" ? (
-            <PlaybackPalmMuteNode value={palmMute} />
-          ) : (
-            <div
-              style={{
-                height: heightOfStrummingPatternFiller,
-              }}
-              className="h-6"
-            ></div>
-          )}
+          {/* palm mute icon */}
+          <div className="baseFlex h-6 w-full">
+            {palmMute && palmMute !== "" && (
+              <PlaybackPalmMuteNode value={palmMute} />
+            )}
+          </div>
 
           <div
             style={{
@@ -145,14 +112,16 @@ function PlaybackStrummedChord({
               // TODO: not sure if this will ever be possible given how it interacts with
               // palm mutes... but the idea is not bad I think.
               // ${isRaised ? "top-[-1rem]" : ""}
-              className={`absolute left-1/2 top-0 -translate-x-1/2 transform`}
+              className={`absolute left-1/2 top-0 -translate-x-1/2 transform text-nowrap`}
             >
               {chordName}
             </div>
           </div>
 
+          {/* strum icon */}
           <div className="baseFlex">
-            <div style={{ width: "0.25rem" }}></div>
+            {/* spacer so that PM nodes can be connected seamlessly above */}
+            <div className="w-1"></div>
 
             <div
               style={{
@@ -202,29 +171,28 @@ function PlaybackStrummedChord({
                 )}
               </div>
 
+              {strum === "r" && <PauseIcon className="size-3" />}
+
               {strum === "" && <div className="h-5 w-4"></div>}
             </div>
 
-            <div style={{ width: "0.25rem" }}></div>
+            {/* spacer so that PM nodes can be connected seamlessly above */}
+            <div className="w-1"></div>
           </div>
 
-          <p
-            style={{
-              height:
-                getBeatIndicator(noteLength, strumIndex) === ""
-                  ? "1.25rem"
-                  : "auto",
-              color: isHighlighted
-                ? "hsl(var(--primary))"
-                : "hsl(var(--foreground))",
-              transitionDuration: "75ms",
-            }}
-            className="text-sm transition-colors"
-          >
-            {getBeatIndicator(noteLength, strumIndex)}
-          </p>
+          {/* beat indicator */}
+          <span className="text-sm">{beatIndicator}</span>
 
-          {renderStrummingGuide(noteLength, strumIndex)}
+          <div className="h-4 w-full">
+            {renderStrummingGuide({
+              previousNoteLength: prevChordNoteLength,
+              currentNoteLength: currentChordNoteLength,
+              nextNoteLength: nextChordNoteLength,
+              previousIsRestStrum: prevChordIsRest,
+              currentIsRestStrum: currentChordIsRest,
+              nextIsRestStrum: nextChordIsRest,
+            })}
+          </div>
         </div>
       )}
     </>

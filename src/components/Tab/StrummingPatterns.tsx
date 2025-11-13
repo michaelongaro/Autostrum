@@ -272,10 +272,11 @@ function StrummingPatterns() {
                       index: strummingPatterns.length,
                       value: {
                         id: crypto.randomUUID(),
-                        noteLength: "1/8th",
+                        baseNoteLength: "eighth",
                         strums: Array.from({ length: 8 }, () => ({
                           palmMute: "",
                           strum: "",
+                          noteLength: "eighth",
                         })),
                       },
                     });

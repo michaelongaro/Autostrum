@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Element } from "react-scroll";
 import {
   Fragment,
@@ -11,7 +11,7 @@ import {
 } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStore, type FullNoteLengths } from "~/stores/TabStore";
 import { BsPlus } from "react-icons/bs";
 import {
   DropdownMenu,
@@ -19,19 +19,17 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuLabel,
 } from "~/components/ui/dropdown-menu";
-import { getDynamicNoteLengthIcon } from "~/utils/bpmIconRenderingHelpers";
 import { Button } from "~/components/ui/button";
 import PalmMuteNode from "./PalmMuteNode";
 import TabNote from "./TabNote";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 import Ellipsis from "~/components/ui/icons/Ellipsis";
 import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
+import { NoteLengthDropdown } from "./NoteLengthDropdown";
+import renderStrummingGuide from "~/utils/renderStrummingGuide";
 
-const noteLengthDurations = ["1/4th", "1/8th", "1/16th"];
+const noteLengthDurations = ["quarter", "eighth", "sixteenth"];
 interface TabNotesColumn {
   columnData: string[];
   sectionIndex: number;
@@ -92,7 +90,7 @@ function TabNotesColumn({
     transition,
     isDragging,
   } = useSortable({
-    id: columnData[9]!,
+    id: columnData[10]!,
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
@@ -105,6 +103,33 @@ function TabNotesColumn({
   );
 
   const subSection = useTabSubSectionData(sectionIndex, subSectionIndex);
+
+  const previousColumn =
+    columnIndex > 0 ? subSection.data[columnIndex - 1] : undefined;
+  const nextColumn =
+    columnIndex < subSection.data.length - 1
+      ? subSection.data[columnIndex + 1]
+      : undefined;
+
+  const previousColumnIsPlayable =
+    previousColumn !== undefined && previousColumn[8] !== "measureLine";
+  const nextColumnIsPlayable =
+    nextColumn !== undefined && nextColumn[8] !== "measureLine";
+
+  const previousNoteLength = previousColumnIsPlayable
+    ? (previousColumn[8] as FullNoteLengths)
+    : undefined;
+  const nextNoteLength = nextColumnIsPlayable
+    ? (nextColumn[8] as FullNoteLengths)
+    : undefined;
+
+  const previousIsRestStrum = previousColumnIsPlayable
+    ? previousColumn[7] === "r"
+    : undefined;
+  const currentIsRestStrum = columnData[7] === "r";
+  const nextIsRestStrum = nextColumnIsPlayable
+    ? nextColumn[7] === "r"
+    : undefined;
 
   // ideally don't need this and can just use prop values passed in, but need to have
   // [0] index special case since when looping it would keep the [0] index at 100% width
@@ -222,7 +247,7 @@ function TabNotesColumn({
         "",
         "",
         "",
-        "1/4th", // will be overwritten by note length if it's specified
+        "quarter", // will be overwritten by note length if it's specified
         crypto.randomUUID(),
       ];
 
@@ -234,18 +259,21 @@ function TabNotesColumn({
     });
   }
 
-  function handleNoteLengthChange(noteLength: "1/4th" | "1/8th" | "1/16th") {
+  function handleNoteLengthChange(noteLength: FullNoteLengths) {
     setTabData((draft) => {
       const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
+
       if (currentSubSection === undefined || currentSubSection.type !== "tab")
         return;
+
       currentSubSection.data[columnIndex]![8] = noteLength;
+      currentSubSection.data[columnIndex]![9] = "true"; // noteLengthModified
     });
   }
 
   return (
     <motion.div
-      key={columnData[9]}
+      key={columnData[10]}
       // id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
       ref={setNodeRef}
       style={{
@@ -304,7 +332,7 @@ function TabNotesColumn({
                 (columnIdxBeingHovered === columnIndex ||
                   chordSettingDropdownIsOpen) && (
                   <div
-                    key={`${columnData[9]!}chordSettings`}
+                    key={`${columnData[10]!}chordSettings`}
                     style={{
                       bottom:
                         showingDeleteColumnsButtons || reorderingColumns
@@ -321,8 +349,8 @@ function TabNotesColumn({
                       }
                     >
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="z-50 h-2 w-4 !p-0">
-                          <Ellipsis className="z-50 h-3 w-4 rotate-90" />
+                        <Button variant="ghost" className="h-2 w-4 !p-0">
+                          <Ellipsis className="h-3 w-4 rotate-90" />
                         </Button>
                       </DropdownMenuTrigger>
 
@@ -342,35 +370,10 @@ function TabNotesColumn({
                           <BsPlus className="h-4 w-4" />
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-primary" />
-                        <div className="baseVertFlex w-full !items-start">
-                          <DropdownMenuLabel>Note length</DropdownMenuLabel>
-                          <DropdownMenuRadioGroup
-                            value={
-                              columnData[8] as "1/4th" | "1/8th" | "1/16th"
-                            }
-                            onValueChange={(value) => {
-                              handleNoteLengthChange(
-                                value as "1/4th" | "1/8th" | "1/16th",
-                              );
-                            }}
-                          >
-                            {noteLengthDurations.map((duration) => (
-                              <DropdownMenuRadioItem
-                                key={duration}
-                                value={duration}
-                                className="baseFlex w-[150px] !justify-start gap-2"
-                              >
-                                {getDynamicNoteLengthIcon({
-                                  noteLength: duration as
-                                    | "1/4th"
-                                    | "1/8th"
-                                    | "1/16th",
-                                })}
-                                {duration}
-                              </DropdownMenuRadioItem>
-                            ))}
-                          </DropdownMenuRadioGroup>
-                        </div>
+                        <NoteLengthDropdown
+                          value={columnData[8]}
+                          onValueChange={handleNoteLengthChange}
+                        />
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -418,25 +421,26 @@ function TabNotesColumn({
                   </div>
                 )}
 
-              {index === 7 &&
-                (columnData[8] === "1/8th" || columnData[8] === "1/16th") && (
-                  <div
-                    style={{
-                      bottom:
-                        showingDeleteColumnsButtons || reorderingColumns
-                          ? "-1.5rem"
-                          : "-1rem",
-                    }}
-                    className={`baseVertFlex absolute ${isLastColumn ? "left-[42%]" : "left-[53%]"} right-1/2 w-[1.5rem] -translate-x-1/2`}
-                  >
-                    {getDynamicNoteLengthIcon({
-                      noteLength: columnData[8],
-                      isARestNote: columnData
-                        .slice(1, 7)
-                        .every((note) => note === ""),
-                    })}
-                  </div>
-                )}
+              {index === 7 && columnData[8] !== "measureLine" && (
+                <div
+                  style={{
+                    bottom:
+                      showingDeleteColumnsButtons || reorderingColumns
+                        ? "-1.5rem"
+                        : "-1rem",
+                  }}
+                  className={`baseVertFlex absolute ${isLastColumn ? "left-[42%]" : "left-[53%]"} right-1/2 h-4 w-full -translate-x-1/2`}
+                >
+                  {renderStrummingGuide({
+                    previousNoteLength,
+                    currentNoteLength: columnData[8] as FullNoteLengths,
+                    nextNoteLength,
+                    previousIsRestStrum,
+                    currentIsRestStrum,
+                    nextIsRestStrum,
+                  })}
+                </div>
+              )}
             </Fragment>
           ))}
         </div>

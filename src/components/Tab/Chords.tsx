@@ -119,7 +119,7 @@ function Chords() {
                     exit="closed"
                     className="baseFlex border-r-none h-10 overflow-hidden rounded-md border-2"
                   >
-                    <span className="px-3 font-semibold text-foreground">
+                    <span className="text-nowrap px-3 font-semibold text-foreground">
                       {chord.name}
                     </span>
 

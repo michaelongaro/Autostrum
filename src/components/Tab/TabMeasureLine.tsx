@@ -13,7 +13,7 @@ import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
-import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
+import { QuarterNote } from "~/utils/noteLengthIcons";
 import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
 
 interface TabMeasureLine {
@@ -46,7 +46,7 @@ function TabMeasureLine({
     transition,
     isDragging,
   } = useSortable({
-    id: columnData[9]!,
+    id: columnData[10]!,
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
@@ -240,7 +240,7 @@ function TabMeasureLine({
 
   return (
     <motion.div
-      key={columnData[9]}
+      key={columnData[10]}
       ref={setNodeRef}
       style={{
         transform: CSS.Transform.toString(

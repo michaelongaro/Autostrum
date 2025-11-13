@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import Head from "next/head";
 import Tab from "~/components/Tab/Tab";
 import { GiMusicalScore } from "react-icons/gi";
-import { EigthNote, QuarterNote } from "~/utils/bpmIconRenderingHelpers";
+import { EighthNote, QuarterNote } from "~/utils/noteLengthIcons";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { BsFillPlayFill } from "react-icons/bs";
 
@@ -48,7 +48,7 @@ function Create() {
               <BsFillPlayFill className="size-9 -rotate-12 text-foreground" />
               <QuarterNote className="size-9 rotate-12 text-foreground" />
               <GiMusicalScore className="size-9 -rotate-12 text-foreground" />
-              <EigthNote className="size-9 rotate-12 text-foreground" />
+              <EighthNote className="size-9 rotate-12 text-foreground" />
             </div>
           ) : (
             <div className="baseFlex">
@@ -65,7 +65,7 @@ function Create() {
               </div>
 
               <div className="relative top-0.5 rotate-6 rounded-lg border bg-background p-2 shadow-sm">
-                <EigthNote className="size-6 text-foreground" />
+                <EighthNote className="size-6 text-foreground" />
               </div>
             </div>
           )}

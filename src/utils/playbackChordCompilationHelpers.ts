@@ -1,15 +1,18 @@
-import type {
-  Chord,
-  ChordSection,
-  ChordSequence,
-  PlaybackMetadata,
-  Section,
-  SectionProgression,
-  StrummingPattern,
-  TabSection,
-  PlaybackTabChord,
-  PlaybackStrummedChord,
-  PlaybackLoopDelaySpacerChord,
+import { generateBeatLabels } from "~/utils/getBeatIndicator";
+import {
+  type Chord,
+  type ChordSection,
+  type ChordSequence,
+  type PlaybackMetadata,
+  type Section,
+  type SectionProgression,
+  type StrummingPattern,
+  type TabSection,
+  type PlaybackTabChord,
+  type PlaybackStrummedChord,
+  type PlaybackLoopDelaySpacerChord,
+  type FullNoteLengths,
+  noteLengthMultipliers,
 } from "../stores/TabStore";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
@@ -167,12 +170,14 @@ function expandFullTab({
             type: "strum",
             isFirstChord: false,
             isLastChord: false,
+            baseNoteLength: "quarter",
             data: {
               strumIndex: -1,
               chordName: "",
               palmMute: "",
               strum: "",
-              noteLength: "1/4th",
+              noteLength: "quarter",
+              beatIndicator: "",
               bpm: compiledChordsMappedToLoopRange[0]?.data.bpm ?? baselineBpm,
               showBpm: false,
               isRaised: true,
@@ -185,14 +190,12 @@ function expandFullTab({
         ...metadataMappedToLoopRange.at(-1)!.location,
         chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
       },
-      bpm: Number(
-        getBpmForChord(
-          compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
-          baselineBpm,
-        ),
+      bpm: getBpmForChord(
+        compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
+        baselineBpm,
       ),
-      noteLengthMultiplier: "1",
-      noteLength: "1/4th",
+      noteLengthMultiplier: 1,
+      noteLength: "quarter",
       elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
       type: "ornamental",
     });
@@ -216,14 +219,13 @@ function expandFullTab({
         ...metadataMappedToLoopRange.at(-1)!.location,
         chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
       },
-      bpm: Number(
-        getBpmForChord(
-          compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
-          baselineBpm,
-        ),
+      bpm: getBpmForChord(
+        compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
+        baselineBpm,
       ),
-      noteLengthMultiplier: "1",
-      noteLength: "1/4th",
+
+      noteLengthMultiplier: 1,
+      noteLength: "quarter",
       elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
       type: "ornamental",
     });
@@ -282,9 +284,9 @@ function expandFullTab({
       );
 
       const lastChordMultiplier =
-        metadataMappedToLoopRange.at(-1)?.noteLengthMultiplier ?? "1";
+        metadataMappedToLoopRange.at(-1)?.noteLengthMultiplier ?? 1;
       const lastChordNoteLength =
-        metadataMappedToLoopRange.at(-1)?.noteLength ?? "1/4th";
+        metadataMappedToLoopRange.at(-1)?.noteLength ?? "quarter";
 
       for (let i = 0; i < numSpacerChordsToAdd; i++) {
         compiledChordsMappedToLoopRange.push({
@@ -300,11 +302,9 @@ function expandFullTab({
             chordIndex:
               metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
           },
-          bpm: Number(
-            getBpmForChord(
-              compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
-              baselineBpm,
-            ),
+          bpm: getBpmForChord(
+            compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
+            baselineBpm,
           ),
           noteLengthMultiplier: lastChordMultiplier,
           noteLength: lastChordNoteLength,
@@ -332,9 +332,9 @@ function expandFullTab({
     );
 
     const lastChordMultiplier =
-      metadataMappedToLoopRange.at(-1)?.noteLengthMultiplier ?? "1";
+      metadataMappedToLoopRange.at(-1)?.noteLengthMultiplier ?? 1;
     const lastChordNoteLength =
-      metadataMappedToLoopRange.at(-1)?.noteLength ?? "1/4th";
+      metadataMappedToLoopRange.at(-1)?.noteLength ?? "quarter";
 
     for (let i = 0; i < numSpacerChordsToAdd; i++) {
       compiledChordsMappedToLoopRange.push({
@@ -349,11 +349,9 @@ function expandFullTab({
           ...metadataMappedToLoopRange.at(-1)!.location,
           chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
         },
-        bpm: Number(
-          getBpmForChord(
-            compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
-            baselineBpm,
-          ),
+        bpm: getBpmForChord(
+          compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
+          baselineBpm,
         ),
         noteLengthMultiplier: lastChordMultiplier,
         noteLength: lastChordNoteLength,
@@ -492,12 +490,10 @@ function expandTabSection({
           "",
           "",
           "",
-          compiledChords.at(-1)!.data.bpm !== Number(currentBpm)
-            ? currentBpm
-            : "",
+          compiledChords.at(-1)!.data.bpm !== currentBpm ? `${currentBpm}` : "",
           "",
         ],
-        bpm: Number(currentBpm),
+        bpm: currentBpm,
       },
     });
     metadata.push({
@@ -508,9 +504,9 @@ function expandTabSection({
         subSectionRepeatIndex,
         chordIndex: compiledChords.length - 1,
       },
-      bpm: Number(currentBpm),
-      noteLengthMultiplier: "1",
-      noteLength: "1/4th",
+      bpm: currentBpm,
+      noteLengthMultiplier: 1,
+      noteLength: "quarter",
       elapsedSeconds: Math.floor(elapsedSeconds.value),
       type: "ornamental",
     });
@@ -524,15 +520,15 @@ function expandTabSection({
   if (
     compiledChords.length > 0 &&
     compiledChords.at(-1) !== undefined &&
-    compiledChords.at(-1)!.data.bpm !== Number(currentBpm)
+    compiledChords.at(-1)!.data.bpm !== currentBpm
   ) {
     compiledChords.push({
       type: "tab",
       isFirstChord: false,
       isLastChord: false,
       data: {
-        chordData: ["", "|", "|", "|", "|", "|", "|", currentBpm, "", "1"],
-        bpm: Number(currentBpm),
+        chordData: ["", "|", "|", "|", "|", "|", "|", `${currentBpm}`, "", "1"],
+        bpm: currentBpm,
       },
     });
     metadata.push({
@@ -543,9 +539,9 @@ function expandTabSection({
         subSectionRepeatIndex,
         chordIndex: compiledChords.length - 1,
       },
-      bpm: Number(currentBpm),
-      noteLengthMultiplier: "1",
-      noteLength: "1/4th",
+      bpm: currentBpm,
+      noteLengthMultiplier: 1,
+      noteLength: "quarter",
       elapsedSeconds: Math.floor(elapsedSeconds.value),
       type: "ornamental",
     });
@@ -558,7 +554,7 @@ function expandTabSection({
       isLastChord: chordIdx === data.length - 1,
       data: {
         chordData: data[chordIdx]!,
-        bpm: Number(currentBpm),
+        bpm: currentBpm,
       },
     };
 
@@ -569,20 +565,17 @@ function expandTabSection({
     if (isAMeasureLine) {
       const newBpmPostMeasureLine = chord?.[7];
       if (newBpmPostMeasureLine && newBpmPostMeasureLine !== "-1") {
-        currentBpm = newBpmPostMeasureLine;
+        currentBpm = Number(newBpmPostMeasureLine);
       } else {
         currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
       }
     }
 
-    let noteLengthMultiplier = "1";
-    const noteLength = chord[8];
+    const noteLength = chord[8] as FullNoteLengths;
 
-    if (chord[8] === "1/8th") noteLengthMultiplier = "0.5";
-    else if (chord[8] === "1/16th") noteLengthMultiplier = "0.25";
+    const noteLengthMultiplier = noteLengthMultipliers[noteLength] ?? 1;
 
-    chord[8] = currentBpm;
-    chord[9] = noteLengthMultiplier;
+    chord[9]! = `${currentBpm}`;
 
     metadata.push({
       location: {
@@ -592,17 +585,16 @@ function expandTabSection({
         subSectionRepeatIndex,
         chordIndex: chordIdx,
       },
-      bpm: Number(currentBpm),
+      bpm: currentBpm,
       noteLengthMultiplier,
-      noteLength: noteLength as StrummingPattern["noteLength"],
+      noteLength,
       elapsedSeconds: Math.floor(elapsedSeconds.value),
       type: isAMeasureLine ? "ornamental" : "tab",
     });
 
     if (!isAMeasureLine) {
       elapsedSeconds.value +=
-        60 /
-        ((Number(currentBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
+        60 / ((currentBpm / noteLengthMultiplier) * playbackSpeed);
     }
 
     chordData.data.chordData = chord; // refactor later to be less split up
@@ -647,17 +639,20 @@ function expandChordSection({
       type: "strum",
       isFirstChord: false,
       isLastChord: false,
+      baseNoteLength: "quarter",
       data: {
         strumIndex: -1,
         chordName: "",
         palmMute: "",
         strum: "",
-        noteLength: "1/4th",
+        noteLength: "quarter",
+        beatIndicator: "",
         bpm: baselineBpm,
         showBpm: false,
         isRaised: false,
       },
     });
+
     metadata.push({
       location: {
         sectionIndex,
@@ -669,8 +664,8 @@ function expandChordSection({
         chordIndex: -1,
       },
       bpm: baselineBpm,
-      noteLengthMultiplier: "1",
-      noteLength: "1/4th",
+      noteLengthMultiplier: 1,
+      noteLength: "quarter",
       elapsedSeconds: Math.floor(elapsedSeconds.value),
       type: "ornamental",
     });
@@ -742,12 +737,21 @@ function expandChordSequence({
   ) {
     let lastSpecifiedChordName: string | undefined = undefined;
 
+    // get the corresponding array of beat indicies, so that you can directly
+    // index for them and attach the correct beat index in playbackChordSequence below.
+    const strumsWithNoteLengths = chordSequence.strummingPattern.strums.map(
+      (strum) => {
+        return strum.noteLength;
+      },
+    );
+    const beatIndicies = generateBeatLabels(strumsWithNoteLengths);
+
     for (let chordIdx = 0; chordIdx < chordSequence.data.length; chordIdx++) {
       // immediately add fake "spacer" strum if chordIdx === 0, excluding the first chord
       // since we want the highlighted line to be right at the start of the first chord
 
       let chordName = chordSequence.data[chordIdx];
-      let chordNameToUse = ""; // This will be the chord name we assign
+      let chordNameToUse = "";
 
       // Check if current chordName is not empty and not the same as the last specified chord
       if (
@@ -769,25 +773,17 @@ function expandChordSequence({
         chordNameToUse = "";
       }
 
-      // Proceed with the rest of your logic using chordNameToUse
       const chordBpm = getBpmForChord(
         chordSequence.bpm,
         baselineBpm,
         subSectionBpm,
       );
 
-      let noteLengthMultiplier = "1";
+      const noteLength =
+        chordSequence.strummingPattern.strums[chordIdx]?.noteLength ??
+        "quarter";
 
-      if (chordSequence.strummingPattern.noteLength === "1/4th triplet")
-        noteLengthMultiplier = "0.6667";
-      else if (chordSequence.strummingPattern.noteLength === "1/8th")
-        noteLengthMultiplier = "0.5";
-      else if (chordSequence.strummingPattern.noteLength === "1/8th triplet")
-        noteLengthMultiplier = "0.3333";
-      else if (chordSequence.strummingPattern.noteLength === "1/16th")
-        noteLengthMultiplier = "0.25";
-      else if (chordSequence.strummingPattern.noteLength === "1/16th triplet")
-        noteLengthMultiplier = "0.1667";
+      const noteLengthMultiplier = noteLengthMultipliers[noteLength];
 
       metadata.push({
         location: {
@@ -799,16 +795,15 @@ function expandChordSequence({
           chordSequenceRepeatIndex: chordSequenceRepeatIdx,
           chordIndex: chordIdx,
         },
-        bpm: Number(chordBpm),
+        bpm: chordBpm,
         noteLengthMultiplier,
-        noteLength: chordSequence.strummingPattern.noteLength,
+        noteLength: noteLength,
         elapsedSeconds: Math.floor(elapsedSeconds.value),
         type: "strum",
       });
 
       elapsedSeconds.value +=
-        60 /
-        ((Number(chordBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
+        60 / ((chordBpm / noteLengthMultiplier) * playbackSpeed);
 
       const previousChordName = chordSequence.data[chordIdx - 1] ?? "";
       const currentChordName = chordSequence.data[chordIdx] ?? "";
@@ -824,13 +819,17 @@ function expandChordSequence({
         type: "strum",
         isFirstChord: chordIdx === 0,
         isLastChord: chordIdx === chordSequence.data.length - 1,
+        baseNoteLength: chordSequence.strummingPattern.baseNoteLength,
         data: {
           strumIndex: chordIdx,
           chordName: chordNameToUse,
           palmMute:
             chordSequence.strummingPattern.strums[chordIdx]?.palmMute ?? "",
           strum: chordSequence.strummingPattern.strums[chordIdx]?.strum ?? "",
-          noteLength: chordSequence.strummingPattern.noteLength,
+          noteLength:
+            chordSequence.strummingPattern.strums[chordIdx]?.noteLength ??
+            "quarter",
+          beatIndicator: beatIndicies[chordIdx] ?? "",
           bpm: Number(
             getBpmForChord(chordSequence.bpm, baselineBpm, subSectionBpm),
           ),
@@ -996,19 +995,18 @@ function updateElapsedTimeForTabSection({
     if (chord[8] === "measureLine") {
       const newBpmPostMeasureLine = chord[7];
       if (newBpmPostMeasureLine && newBpmPostMeasureLine !== "-1") {
-        currentBpm = newBpmPostMeasureLine;
+        currentBpm = Number(newBpmPostMeasureLine);
       } else {
         currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
       }
     }
 
     let noteLengthMultiplier = 1;
-    if (chord[8] === "1/8th") noteLengthMultiplier = 0.5;
-    else if (chord[8] === "1/16th") noteLengthMultiplier = 0.25;
+    if (chord[8] === "eighth") noteLengthMultiplier = 0.5;
+    else if (chord[8] === "sixteenth") noteLengthMultiplier = 0.25;
 
     // Calculate the duration of the chord and update elapsedSeconds
-    const chordDuration =
-      60 / (Number(currentBpm) / Number(noteLengthMultiplier));
+    const chordDuration = 60 / (currentBpm / noteLengthMultiplier);
     elapsedSeconds.value += chordDuration;
   }
 }
@@ -1039,27 +1037,8 @@ function updateElapsedTimeForChordSection({
       chordSequenceRepeatIdx < chordSequenceRepetitions;
       chordSequenceRepeatIdx++
     ) {
-      let noteLengthMultiplier = 1;
-
-      switch (chordSequence.strummingPattern.noteLength) {
-        case "1/4th triplet":
-          noteLengthMultiplier = 0.6667;
-          break;
-        case "1/8th":
-          noteLengthMultiplier = 0.5;
-          break;
-        case "1/8th triplet":
-          noteLengthMultiplier = 0.3333;
-          break;
-        case "1/16th":
-          noteLengthMultiplier = 0.25;
-          break;
-        case "1/16th triplet":
-          noteLengthMultiplier = 0.1667;
-          break;
-        default:
-          noteLengthMultiplier = 1;
-      }
+      const noteLengthMultiplier =
+        noteLengthMultipliers[chordSequence.strummingPattern.baseNoteLength];
 
       const chordBpm = getBpmForChord(
         chordSequence.bpm,
@@ -1069,8 +1048,7 @@ function updateElapsedTimeForChordSection({
 
       // Calculate the duration of each chord in the sequence
       for (let chordIdx = 0; chordIdx < chordSequence.data.length; chordIdx++) {
-        const chordDuration =
-          60 / (Number(chordBpm) / Number(noteLengthMultiplier));
+        const chordDuration = 60 / (chordBpm / noteLengthMultiplier);
         elapsedSeconds.value += chordDuration;
       }
     }

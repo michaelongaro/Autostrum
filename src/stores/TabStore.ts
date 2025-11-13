@@ -32,32 +32,15 @@ export interface Chord {
 
 export interface StrummingPattern {
   id: string;
-  noteLength:
-    | "1/4th"
-    | "1/4th triplet"
-    | "1/8th"
-    | "1/8th triplet"
-    | "1/16th"
-    | "1/16th triplet";
+  baseNoteLength: "whole" | "half" | "quarter" | "eighth" | "sixteenth";
   strums: Strum[];
 }
 
 export interface Strum {
   palmMute: "" | "-" | "start" | "end";
-  strum:
-    | ""
-    | "v"
-    | "^"
-    | "s"
-    | "v>"
-    | "^>"
-    | "s>"
-    | "v.>"
-    | "^.>"
-    | "s.>"
-    | "v>."
-    | "u>."
-    | "s>.";
+  strum: string; // effects are v, ^, >, s, ., r
+  noteLength: FullNoteLengths;
+  noteLengthModified: boolean; // indicates if the note length has been modified from the base note length
 }
 
 export interface ChordSequence {
@@ -80,6 +63,7 @@ export interface TabSection {
   id: string; // used to identify for keys in .map()
   type: "tab";
   bpm: number;
+  baseNoteLength: BaseNoteLengths;
   repetitions: number;
   data: string[][];
 }
@@ -95,6 +79,76 @@ interface CopiedData {
   data: Section | TabSection | ChordSection | ChordSequence;
 }
 
+export type BaseNoteLengths =
+  | "whole"
+  | "half"
+  | "quarter"
+  | "eighth"
+  | "sixteenth";
+
+export type FullNoteLengths =
+  | "whole"
+  | "whole dotted"
+  | "whole double-dotted"
+  | "half"
+  | "half dotted"
+  | "half double-dotted"
+  | "quarter"
+  | "quarter dotted"
+  | "quarter double-dotted"
+  | "eighth"
+  | "eighth dotted"
+  | "eighth double-dotted"
+  | "sixteenth"
+  | "sixteenth dotted"
+  | "sixteenth double-dotted";
+
+export const baseNoteLengthMultipliers: Record<
+  "whole" | "half" | "quarter" | "eighth" | "sixteenth",
+  number
+> = {
+  whole: 4,
+  half: 2,
+  quarter: 1,
+  eighth: 0.5,
+  sixteenth: 0.25,
+};
+
+export const noteLengthMultipliers: Record<
+  | "whole"
+  | "whole dotted"
+  | "whole double-dotted"
+  | "half"
+  | "half dotted"
+  | "half double-dotted"
+  | "quarter"
+  | "quarter dotted"
+  | "quarter double-dotted"
+  | "eighth"
+  | "eighth dotted"
+  | "eighth double-dotted"
+  | "sixteenth"
+  | "sixteenth dotted"
+  | "sixteenth double-dotted",
+  number
+> = {
+  whole: 4,
+  "whole dotted": 6,
+  "whole double-dotted": 7,
+  half: 2,
+  "half dotted": 3,
+  "half double-dotted": 3.5,
+  quarter: 1,
+  "quarter dotted": 1.5,
+  "quarter double-dotted": 1.75,
+  eighth: 0.5,
+  "eighth dotted": 0.75,
+  "eighth double-dotted": 0.875,
+  sixteenth: 0.25,
+  "sixteenth dotted": 0.375,
+  "sixteenth double-dotted": 0.4375,
+};
+
 export interface Metadata {
   location: {
     sectionIndex: number;
@@ -103,7 +157,7 @@ export interface Metadata {
     chordIndex: number;
   };
   bpm: number;
-  noteLengthMultiplier: string;
+  noteLengthMultiplier: number;
   elapsedSeconds: number;
   type: "tab" | "strum" | "ornamental" | "loopDelaySpacer";
 }
@@ -119,14 +173,8 @@ export interface PlaybackMetadata {
     chordIndex: number;
   };
   bpm: number;
-  noteLengthMultiplier: string;
-  noteLength:
-    | "1/4th"
-    | "1/4th triplet"
-    | "1/8th"
-    | "1/8th triplet"
-    | "1/16th"
-    | "1/16th triplet";
+  noteLengthMultiplier: number;
+  noteLength: FullNoteLengths;
   elapsedSeconds: number;
   type: "tab" | "strum" | "ornamental" | "loopDelaySpacer";
 }
@@ -191,6 +239,7 @@ export interface PlaybackStrummedChord {
   isFirstChord: boolean;
   isLastChord: boolean;
   data: PlaybackChord;
+  baseNoteLength: BaseNoteLengths;
 }
 
 export interface PlaybackLoopDelaySpacerChord {
@@ -204,27 +253,9 @@ interface PlaybackChord {
   strumIndex: number;
   chordName: string;
   palmMute: "" | "-" | "start" | "end";
-  strum:
-    | ""
-    | "v"
-    | "^"
-    | "s"
-    | "v>"
-    | "^>"
-    | "s>"
-    | "v.>"
-    | "^.>"
-    | "s.>"
-    | "v>."
-    | "u>."
-    | "s>.";
-  noteLength:
-    | "1/4th"
-    | "1/4th triplet"
-    | "1/8th"
-    | "1/8th triplet"
-    | "1/16th"
-    | "1/16th triplet";
+  strum: string;
+  noteLength: FullNoteLengths;
+  beatIndicator: string; // e.g. "1", "e", "&", "a"
   bpm: number;
   showBpm: boolean; // only want to show bpm on first strummed chord of a strumming pattern and
   // only if it's different from the previous chord
@@ -934,16 +965,17 @@ const useTabStoreBase = create<TabState>()(
             const nextColumn = compiledChords[adjustedChordIndex + 1];
 
             // Calculate the altered BPM using the provided formula
-            const baseBpm = Number(currColumn[8]);
-            const noteLengthMultiplier = Number(currColumn[9]);
-            const alteredBpm =
+            const noteLengthMultiplier =
+              noteLengthMultipliers[currColumn[8] as FullNoteLengths];
+            const baseBpm = Number(currColumn[9]);
+            const effectiveBpm =
               baseBpm * (1 / noteLengthMultiplier) * playbackSpeed;
 
             // Play the current chord
             await playNoteColumn({
               tuning,
               capo: capo ?? 0,
-              bpm: alteredBpm,
+              bpm: effectiveBpm,
               thirdPrevColumn,
               secondPrevColumn,
               prevColumn,
@@ -1037,7 +1069,7 @@ const useTabStoreBase = create<TabState>()(
 
         const compiledChords =
           type === "chord"
-            ? [["", ...(data as string[]), "v", customBpm ?? "58", "1"]]
+            ? [["", ...(data as string[]), "v", "quarter", customBpm ?? "58"]]
             : compileStrummingPatternPreview({
                 strummingPattern: data as StrummingPattern,
               });
@@ -1067,18 +1099,18 @@ const useTabStoreBase = create<TabState>()(
 
           if (currColumn === undefined) continue;
 
-          // alteredBpm = bpm for chord * (1 / noteLengthMultiplier)
           // Calculate the altered BPM using the provided formula
-          const baseBpm = Number(currColumn[8]);
-          const noteLengthMultiplier = Number(currColumn[9]);
-          const alteredBpm = baseBpm * (1 / noteLengthMultiplier);
+          const noteLengthMultiplier =
+            noteLengthMultipliers[currColumn[8] as FullNoteLengths];
+          const baseBpm = Number(currColumn[9]);
+          const effectiveBpm = baseBpm * (1 / noteLengthMultiplier);
 
           await playNoteColumn({
             tuning: parse(
               type === "chord" ? (customTuning ?? tuning) : "e2 a2 d3 g3 b3 e4",
             ),
             capo: type === "chord" ? capo : 0,
-            bpm: alteredBpm,
+            bpm: effectiveBpm,
             secondPrevColumn,
             prevColumn,
             currColumn,

@@ -27,8 +27,23 @@ import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import {
   useTabStore,
+  type BaseNoteLengths,
   type TabSection as TabSectionType,
 } from "~/stores/TabStore";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
@@ -38,7 +53,14 @@ import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import TabMeasureLine from "./TabMeasureLine";
 import TabNotesColumn from "./TabNotesColumn";
 import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
-import { QuarterNote } from "~/utils/bpmIconRenderingHelpers";
+import {
+  EighthNote,
+  getDynamicNoteLengthIcon,
+  HalfNote,
+  QuarterNote,
+  SixteenthNote,
+  WholeNote,
+} from "~/utils/noteLengthIcons";
 import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
 
 const opacityAndScaleVariants = {
@@ -121,6 +143,15 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
   const [pmNodeOpacities, setPMNodeOpacities] = useState<string[]>([]);
 
+  const [showNoteLengthChangeDialog, setShowNoteLengthChangeDialog] =
+    useState(false);
+  const [noteLengthChangeType, setNoteLengthChangeType] = useState<
+    "onlyUnchanged" | "all"
+  >("onlyUnchanged");
+  const [proposedNoteLength, setProposedNoteLength] = useState<
+    "whole" | "half" | "quarter" | "eighth" | "sixteenth" | null
+  >(null);
+
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [reorderingColumns, setReorderingColumns] = useState(false);
@@ -155,7 +186,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   }, [inputIdToFocus, sectionIndex, subSectionIndex]);
 
   function getColumnIds() {
-    return subSection.data.map((column) => column[9]!);
+    return subSection.data.map((column) => column[10]!);
   }
 
   const {
@@ -303,10 +334,12 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       if (subSection?.type === "tab") {
         for (let i = 0; i < 8; i++) {
           subSection.data.push(
-            Array.from({ length: 10 }, (_, index) => {
+            Array.from({ length: 11 }, (_, index) => {
               if (index === 8) {
-                return "1/4th";
+                return subSection.baseNoteLength;
               } else if (index === 9) {
+                return "false";
+              } else if (index === 10) {
                 return crypto.randomUUID();
               } else {
                 return "";
@@ -617,9 +650,9 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       let endIndex = 0;
 
       for (let i = 0; i < prevSectionData.data.length; i++) {
-        if (prevSectionData.data[i]?.[9] === active.id) {
+        if (prevSectionData.data[i]?.[10] === active.id) {
           startIndex = i;
-        } else if (prevSectionData.data[i]?.[9] === over.id) {
+        } else if (prevSectionData.data[i]?.[10] === over.id) {
           endIndex = i;
         }
       }
@@ -732,7 +765,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
             subSection.data.push(
               Array.from({ length: 10 }, (_, index) => {
                 if (index === 8) {
-                  return "1/4th";
+                  return "quarter";
                 } else if (index === 9) {
                   return crypto.randomUUID();
                 } else {
@@ -807,6 +840,13 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     return isSameSection && location.chordIndex > columnIndex;
   }
 
+  function handleBaseNoteLengthChange(
+    value: "whole" | "half" | "quarter" | "eighth" | "sixteenth",
+  ) {
+    setProposedNoteLength(value);
+    setShowNoteLengthChangeDialog(true);
+  }
+
   function getDurationOfCurrentChord() {
     const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
     if (!currentlyPlayingMetadata || !location) return 0;
@@ -839,9 +879,60 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       className="baseVertFlex relative h-full w-full !justify-start gap-1 rounded-md rounded-tl-md border bg-secondary-active/50 shadow-md"
     >
       <div className="baseFlex w-full !items-start">
-        <div className="baseVertFlex w-5/6 !items-start gap-4 lg:!flex-row lg:!justify-start">
+        <div className="baseVertFlex w-5/6 !items-start gap-4 xl:!flex-row xl:!justify-start">
           <div className="baseFlex gap-2">
-            <div className="baseFlex gap-2">
+            <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center">
+              <div className="baseFlex gap-2">
+                <Label
+                  htmlFor={`${sectionIndex}${subSectionIndex}noteLengthSelect`}
+                >
+                  Note length
+                </Label>
+                <Select
+                  value={subSection.baseNoteLength}
+                  onValueChange={handleBaseNoteLengthChange}
+                >
+                  <SelectTrigger
+                    id={`${sectionIndex}${subSectionIndex}noteLengthSelect`}
+                    className="w-[135px]"
+                  >
+                    <SelectValue placeholder="Select a length" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    <SelectItem value="whole">
+                      <div className="baseFlex gap-2">
+                        <WholeNote />
+                        Whole
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="half">
+                      <div className="baseFlex gap-2">
+                        <HalfNote />
+                        Half
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="quarter">
+                      <div className="baseFlex gap-2">
+                        <QuarterNote />
+                        Quarter
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="eighth">
+                      <div className="baseFlex gap-2">
+                        <EighthNote />
+                        Eighth
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="sixteenth">
+                      <div className="baseFlex gap-2">
+                        <SixteenthNote />
+                        Sixteenth
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="baseFlex gap-2">
                 <Label htmlFor={`${sectionIndex}${subSectionIndex}bpmInput`}>
                   BPM
@@ -864,27 +955,31 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
                 </div>
               </div>
 
-              <Label
-                htmlFor={`${sectionIndex}${subSectionIndex}repetitionsInput`}
-              >
-                Repetitions
-              </Label>
-              <div className="relative w-12">
-                <span className="absolute bottom-[9px] left-2 text-sm">x</span>
-                <Input
-                  id={`${sectionIndex}${subSectionIndex}repetitionsInput`}
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  className="w-[45px] px-2 pl-4"
-                  placeholder="1"
-                  value={
-                    subSection.repetitions === -1
-                      ? ""
-                      : subSection.repetitions.toString()
-                  }
-                  onChange={handleRepetitionsChange}
-                />
+              <div className="baseFlex gap-2">
+                <Label
+                  htmlFor={`${sectionIndex}${subSectionIndex}repetitionsInput`}
+                >
+                  Repetitions
+                </Label>
+                <div className="relative w-12">
+                  <span className="absolute bottom-[9px] left-2 text-sm">
+                    x
+                  </span>
+                  <Input
+                    id={`${sectionIndex}${subSectionIndex}repetitionsInput`}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="w-[45px] px-2 pl-4"
+                    placeholder="1"
+                    value={
+                      subSection.repetitions === -1
+                        ? ""
+                        : subSection.repetitions.toString()
+                    }
+                    onChange={handleRepetitionsChange}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -1110,7 +1205,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
             strategy={rectSortingStrategy}
           >
             {subSection.data.map((column, index) => (
-              <Fragment key={column[9]}>
+              <Fragment key={column[10]}>
                 {column.includes("|") ? (
                   <TabMeasureLine
                     columnData={column}
@@ -1152,10 +1247,102 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         id={`${sectionIndex}${subSectionIndex}ExtendTabButton`}
         onKeyDown={handleExtendTabButtonKeyDown}
         onClick={addNewColumns}
-        className="mt-2"
+        className="mt-8"
       >
         Extend tab
       </Button>
+
+      <AlertDialog
+        open={showNoteLengthChangeDialog}
+        onOpenChange={setShowNoteLengthChangeDialog}
+      >
+        <VisuallyHidden>
+          <AlertDialogTitle>Default note length adjustment</AlertDialogTitle>
+          <AlertDialogDescription>
+            You&apos;re about to change the default note length for this
+            strumming pattern. You can either just change the note length for
+            strums that haven't been modified, or you can choose to update all
+            strum note lengths to the new default.
+          </AlertDialogDescription>
+        </VisuallyHidden>
+
+        <AlertDialogContent className="baseVertFlex modalGradient max-h-[90dvh] max-w-[350px] !justify-start gap-8 overflow-y-auto rounded-lg text-foreground sm:max-w-[500px]">
+          <div className="baseVertFlex !items-start gap-4">
+            <h2 className="text-lg font-semibold">
+              Default note length adjustment
+            </h2>
+            <p className="text-sm">
+              Please choose how you would like to update the note lengths of the
+              strums in this pattern.
+            </p>
+          </div>
+
+          <div className="baseVertFlex w-full gap-4 sm:!flex-row">
+            <Button
+              variant={"outline"}
+              className={`h-20 w-full ${noteLengthChangeType === "onlyUnchanged" ? "bg-secondary-hover" : ""}`}
+              onClick={() => {
+                setNoteLengthChangeType("onlyUnchanged");
+              }}
+            >
+              Only update chords in this subsection that haven&apos;t had their
+              note lengths modified.
+            </Button>
+
+            <Button
+              variant={"outline"}
+              className={`h-20 w-full ${noteLengthChangeType === "all" ? "bg-secondary-hover" : ""}`}
+              onClick={() => {
+                setNoteLengthChangeType("all");
+              }}
+            >
+              Update all chord note lengths in this subsection to match the new
+              default.
+            </Button>
+          </div>
+
+          <div className="baseFlex w-full !justify-end gap-4">
+            <Button
+              variant={"secondary"}
+              onClick={() => setShowNoteLengthChangeDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (proposedNoteLength === null) return;
+
+                setTabData((draft) => {
+                  const subSection = draft[sectionIndex]!.data[subSectionIndex];
+                  if (subSection?.type === "tab") {
+                    subSection.baseNoteLength = proposedNoteLength;
+                    for (let i = 0; i < subSection.data.length; i++) {
+                      const column = subSection.data[i]!;
+                      const noteLengthModified = column[9] === "true";
+
+                      if (noteLengthChangeType === "all") {
+                        column[8] = proposedNoteLength;
+                      } else if (noteLengthChangeType === "onlyUnchanged") {
+                        // only change if current note length matches previous base note length
+                        if (!noteLengthModified) {
+                          column[8] = proposedNoteLength;
+                        }
+                      }
+
+                      column[9] = "false"; // reset modification flag
+                    }
+                  }
+                });
+
+                setProposedNoteLength(null);
+                setShowNoteLengthChangeDialog(false);
+              }}
+            >
+              Save
+            </Button>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 }

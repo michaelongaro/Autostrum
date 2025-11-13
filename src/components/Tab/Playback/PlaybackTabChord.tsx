@@ -1,10 +1,10 @@
 import { Fragment } from "react";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
-import {
-  getDynamicNoteLengthIcon,
-  QuarterNote,
-} from "~/utils/bpmIconRenderingHelpers";
+import PauseIcon from "~/components/ui/icons/PauseIcon";
+import type { FullNoteLengths } from "~/stores/TabStore";
+import { getDynamicNoteLengthIcon, QuarterNote } from "~/utils/noteLengthIcons";
+import renderStrummingGuide from "~/utils/renderStrummingGuide";
 
 interface PlaybackTabChord {
   columnData: string[];
@@ -12,6 +12,12 @@ interface PlaybackTabChord {
   isLastChordInSection: boolean;
   isHighlighted: boolean;
   isDimmed: boolean;
+  prevChordNoteLength?: FullNoteLengths;
+  currentChordNoteLength?: FullNoteLengths;
+  nextChordNoteLength?: FullNoteLengths;
+  prevChordIsRest: boolean;
+  currentChordIsRest: boolean;
+  nextChordIsRest: boolean;
 }
 
 function PlaybackTabChord({
@@ -20,7 +26,15 @@ function PlaybackTabChord({
   isLastChordInSection,
   isHighlighted,
   isDimmed,
+  prevChordNoteLength,
+  currentChordNoteLength,
+  nextChordNoteLength,
+  prevChordIsRest,
+  currentChordIsRest,
+  nextChordIsRest,
 }: PlaybackTabChord) {
+  const chordEffect = columnData[7] || "";
+
   return (
     <>
       {/* is a spacer chord, potentially with a new bpm to specify*/}
@@ -30,15 +44,15 @@ function PlaybackTabChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex relative mb-[24px] h-[144px] w-4 border-y-2 border-foreground mobilePortrait:h-[168px]"
+          className="baseVertFlex relative mb-[72px] h-[144px] w-4 border-y-2 border-foreground mobilePortrait:h-[168px]"
         >
           {/* show new current bpm */}
           {columnData[8] !== "" && (
             <div
-              className={`baseFlex absolute -top-7 gap-[0.125rem] text-foreground`}
+              className={`baseFlex absolute left-[28px] top-[-1.5rem] gap-[6px] text-xs text-foreground`}
             >
               <QuarterNote />
-              <span className="text-center text-xs">{columnData[8]}</span>
+              <span>{columnData[8]}</span>
             </div>
           )}
 
@@ -104,11 +118,12 @@ function PlaybackTabChord({
                       }
                       isHighlighted={isHighlighted}
                       isAccented={
-                        note.includes(">") || columnData[7]?.includes(">")
+                        note.includes(">") || columnData[index]?.includes(">")
                       }
                       isStaccato={
-                        note.includes(".") && !columnData[7]?.includes(".") // felt distracting to see the staccato on every note w/in the chord
+                        note.includes(".") && !columnData[index]?.includes(".") // felt distracting to see the staccato on every note w/in the chord
                       }
+                      isRest={index === 4 && columnData[7] === "r"}
                     />
 
                     <div className="h-[1px] flex-[1] bg-foreground/50"></div>
@@ -116,91 +131,70 @@ function PlaybackTabChord({
                 )}
 
                 {index === 7 && (
-                  <div className="relative h-0 w-full">
-                    <div
-                      style={{
-                        top: "0.25rem",
-                        lineHeight: "16px",
-                      }}
-                      className="baseVertFlex absolute left-1/2 right-1/2 top-2 w-[1.5rem] -translate-x-1/2"
-                    >
-                      <div className="baseFlex">
-                        {chordHasAtLeastOneNote(columnData) &&
-                          columnData[7]?.includes("v") && (
-                            <BsArrowDown
-                              style={{
-                                width: "19px",
-                                height: "19px",
-                              }}
-                              strokeWidth={
-                                columnData[7]?.includes(">") ? "1.25px" : "0px"
-                              }
-                            />
-                          )}
-                        {chordHasAtLeastOneNote(columnData) &&
-                          columnData[7]?.includes("^") && (
-                            <BsArrowUp
-                              style={{
-                                width: "19px",
-                                height: "19px",
-                              }}
-                              strokeWidth={
-                                columnData[7]?.includes(">") ? "1.25px" : "0px"
-                              }
-                            />
-                          )}
+                  <div className="baseFlex mt-1 h-4 w-full">
+                    {renderStrummingGuide({
+                      previousNoteLength: prevChordNoteLength,
+                      currentNoteLength: currentChordNoteLength,
+                      nextNoteLength: nextChordNoteLength,
+                      previousIsRestStrum: prevChordIsRest,
+                      currentIsRestStrum: currentChordIsRest,
+                      nextIsRestStrum: nextChordIsRest,
+                    })}
+                  </div>
+                )}
 
-                        {columnData[7]?.includes("s") && (
-                          <div
-                            style={{ fontSize: "18px" }}
-                            className={`baseFlex leading-[19px] ${columnData[7]?.includes(">") ? "font-semibold" : "font-normal"}`}
-                          >
-                            s
-                          </div>
-                        )}
+                {index === 8 && (
+                  <div className="baseFlex relative mt-2 size-5">
+                    {chordHasAtLeastOneNote(columnData) &&
+                      chordEffect?.includes("v") && (
+                        <BsArrowDown
+                          style={{
+                            width: "19px",
+                            height: "19px",
+                          }}
+                          strokeWidth={
+                            chordEffect?.includes(">") ? "1.25px" : "0px"
+                          }
+                        />
+                      )}
+                    {chordHasAtLeastOneNote(columnData) &&
+                      chordEffect?.includes("^") && (
+                        <BsArrowUp
+                          style={{
+                            width: "19px",
+                            height: "19px",
+                          }}
+                          strokeWidth={
+                            chordEffect?.includes(">") ? "1.25px" : "0px"
+                          }
+                        />
+                      )}
 
-                        {chordHasAtLeastOneNote(columnData) &&
-                          columnData[7]?.includes(".") && (
-                            <div
-                              style={{
-                                fontSize: "30px",
-                                position: "absolute",
-                                top: "-13px",
-                                right: "7px",
-                                width: columnData[7] === "." ? "10px" : "0px",
-                              }}
-                            >
-                              .
-                            </div>
-                          )}
+                    {chordEffect?.includes("s") && (
+                      <div
+                        style={{ fontSize: "18px" }}
+                        className={`baseFlex leading-[19px] ${chordEffect?.includes(">") ? "font-semibold" : "font-normal"}`}
+                      >
+                        s
                       </div>
+                    )}
 
-                      {columnData[9] !== "1" && (
-                        // slaps are treated as regular chords in regards to note length icons
+                    {chordHasAtLeastOneNote(columnData) &&
+                      chordEffect?.includes(".") && (
                         <div
                           style={{
-                            marginTop:
-                              (columnData[7]?.includes("s") ||
-                                chordHasAtLeastOneNote(columnData)) &&
-                              columnData[7] !== ""
-                                ? "5px"
-                                : "0",
+                            fontSize: "30px",
+                            position: "absolute",
+                            top: "-28px",
+                            right: "6px",
+                            width: chordEffect === "." ? "10px" : "0px",
                           }}
                         >
-                          {getDynamicNoteLengthIcon({
-                            noteLength:
-                              columnData[9] === "0.5" ? "1/8th" : "1/16th",
-                            isARestNote:
-                              !columnData[7]?.includes("s") &&
-                              columnData
-                                .slice(1, 7)
-                                .every((note) => note === ""),
-                          })}
+                          .
                         </div>
                       )}
 
-                      {columnData[7] === "" && <div className="h-5 w-4"></div>}
-                    </div>
+                    {chordEffect === "" && <div className="size-full"></div>}
                   </div>
                 )}
               </Fragment>
@@ -223,6 +217,7 @@ interface PlaybackTabNote {
   isHighlighted: boolean;
   isAccented?: boolean;
   isStaccato?: boolean;
+  isRest?: boolean;
 }
 
 function PlaybackTabNote({
@@ -230,6 +225,7 @@ function PlaybackTabNote({
   isHighlighted,
   isAccented,
   isStaccato,
+  isRest,
 }: PlaybackTabNote) {
   return (
     <div className="baseFlex w-[35px]">
@@ -247,7 +243,12 @@ function PlaybackTabNote({
         }}
         className={`baseFlex relative h-[20px] transition-colors ${isAccented ? "font-bold" : ""}`}
       >
-        {note}
+        {isRest ? (
+          <PauseIcon className="absolute bottom-1.5 size-3" />
+        ) : (
+          <div>{note}</div>
+        )}
+
         {isStaccato && <div className="relative -top-2">.</div>}
       </div>
       <div className="my-[10px] h-[1px] flex-[1] bg-foreground/50 mobilePortrait:my-3"></div>

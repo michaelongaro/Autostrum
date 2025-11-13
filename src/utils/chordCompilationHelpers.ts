@@ -1,13 +1,16 @@
-import type {
-  AudioMetadata,
-  Chord,
-  ChordSection,
-  ChordSequence,
-  Metadata,
-  Section,
-  SectionProgression,
-  StrummingPattern,
-  TabSection,
+import {
+  noteLengthMultipliers,
+  type AudioMetadata,
+  type BaseNoteLengths,
+  type Chord,
+  type ChordSection,
+  type ChordSequence,
+  type FullNoteLengths,
+  type Metadata,
+  type Section,
+  type SectionProgression,
+  type StrummingPattern,
+  type TabSection,
 } from "../stores/TabStore";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
@@ -17,8 +20,7 @@ interface CompileChord {
   chordIdx: number;
   strummingPattern: StrummingPattern;
   chords: Chord[];
-  stringifiedBpm: string;
-  noteLengthMultiplier: string;
+  bpm: number;
 }
 
 function compileChord({
@@ -26,13 +28,14 @@ function compileChord({
   chordIdx,
   strummingPattern,
   chords,
-  stringifiedBpm,
-  noteLengthMultiplier,
+  bpm,
 }: CompileChord) {
   const chordFrets =
     chords[chords.findIndex((chord) => chord.name === chordName)]?.frets;
 
-  if (chordName === "" || !chordFrets) {
+  const isRestChord = strummingPattern.strums[chordIdx]!.strum === "r";
+
+  if (chordName === "" || !chordFrets || isRestChord) {
     return [
       "",
       "",
@@ -41,9 +44,9 @@ function compileChord({
       "",
       "",
       "",
-      "",
-      stringifiedBpm,
-      noteLengthMultiplier,
+      `${isRestChord ? "r" : ""}`,
+      strummingPattern.strums[chordIdx]!.noteLength,
+      `${bpm}`,
     ];
   }
 
@@ -54,8 +57,8 @@ function compileChord({
     strummingPattern.strums[chordIdx]!.palmMute,
     ...chordFrets,
     chordEffect,
-    stringifiedBpm,
-    noteLengthMultiplier,
+    strummingPattern.strums[chordIdx]!.noteLength,
+    `${bpm}`,
   ];
 }
 
@@ -188,13 +191,11 @@ function compileFullTab({
         ...metadataMappedToLoopRange.at(-1)!.location,
         chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
       },
-      bpm: Number(
-        getBpmForChord(
-          metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm,
-          baselineBpm,
-        ),
+      bpm: getBpmForChord(
+        metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm,
+        baselineBpm,
       ),
-      noteLengthMultiplier: "1",
+      noteLengthMultiplier: 1,
       elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
       type: "ornamental",
     });
@@ -210,13 +211,11 @@ function compileFullTab({
         ...metadataMappedToLoopRange.at(-1)!.location,
         chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
       },
-      bpm: Number(
-        getBpmForChord(
-          metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm,
-          baselineBpm,
-        ),
+      bpm: getBpmForChord(
+        metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm,
+        baselineBpm,
       ),
-      noteLengthMultiplier: "1",
+      noteLengthMultiplier: 1,
       elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
       type: "ornamental",
     });
@@ -232,7 +231,7 @@ function compileFullTab({
     );
 
     const lastChordMultiplier =
-      metadataMappedToLoopRange.at(-1)?.noteLengthMultiplier ?? "1";
+      metadataMappedToLoopRange.at(-1)?.noteLengthMultiplier ?? 1;
 
     for (let i = 0; i < numSpacerChordsToAdd; i++) {
       compiledChordsMappedToLoopRange.push([
@@ -244,9 +243,9 @@ function compileFullTab({
         "",
         "",
         "",
+        "quarter",
         lastChordBpm,
-        lastChordMultiplier,
-      ]); // might need to fill with "" ?
+      ]);
 
       metadataMappedToLoopRange.push({
         location: {
@@ -364,8 +363,8 @@ function compileTabSection({
         subSectionIndex,
         chordIndex: -1,
       },
-      bpm: Number(currentBpm),
-      noteLengthMultiplier: "1",
+      bpm: currentBpm,
+      noteLengthMultiplier: 1,
       elapsedSeconds: Math.floor(elapsedSeconds.value),
       type: "ornamental",
     });
@@ -389,7 +388,7 @@ function compileTabSection({
         chordIndex: -1,
       },
       bpm: Number(currentBpm),
-      noteLengthMultiplier: "1",
+      noteLengthMultiplier: 1,
       elapsedSeconds: Math.floor(elapsedSeconds.value),
       type: "ornamental",
     });
@@ -404,7 +403,7 @@ function compileTabSection({
         specifiedBpmToUsePostMeasureLine &&
         specifiedBpmToUsePostMeasureLine !== "-1"
       ) {
-        currentBpm = specifiedBpmToUsePostMeasureLine;
+        currentBpm = Number(specifiedBpmToUsePostMeasureLine);
       } else {
         currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
       }
@@ -416,21 +415,18 @@ function compileTabSection({
           subSectionIndex,
           chordIndex: chordIdx,
         },
-        bpm: Number(currentBpm),
-        noteLengthMultiplier: "1",
+        bpm: currentBpm,
+        noteLengthMultiplier: 1,
         elapsedSeconds: Math.floor(elapsedSeconds.value),
         type: "ornamental",
       });
       continue;
     }
 
-    let noteLengthMultiplier = "1";
+    const noteLengthMultiplier =
+      noteLengthMultipliers[chord[8] as FullNoteLengths] ?? 1;
 
-    if (chord[8] === "1/8th") noteLengthMultiplier = "0.5";
-    else if (chord[8] === "1/16th") noteLengthMultiplier = "0.25";
-
-    chord[8] = currentBpm;
-    chord[9] = noteLengthMultiplier;
+    chord[9]! = `${currentBpm}`;
 
     metadata.push({
       location: {
@@ -438,15 +434,14 @@ function compileTabSection({
         subSectionIndex,
         chordIndex: chordIdx,
       },
-      bpm: Number(currentBpm),
+      bpm: currentBpm,
       noteLengthMultiplier,
       elapsedSeconds: Math.floor(elapsedSeconds.value),
       type: "tab",
     });
 
     elapsedSeconds.value +=
-      60 /
-      ((Number(currentBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
+      60 / ((currentBpm / noteLengthMultiplier) * playbackSpeed);
 
     compiledChords.push(chord);
   }
@@ -486,8 +481,8 @@ function compileChordSection({
         subSectionIndex,
         chordIndex: -1,
       },
-      bpm: Number(subSection.bpm),
-      noteLengthMultiplier: "1",
+      bpm: subSection.bpm,
+      noteLengthMultiplier: 1,
       elapsedSeconds: Math.floor(elapsedSeconds.value),
       type: "ornamental",
     });
@@ -553,6 +548,7 @@ function compileChordSequence({
     chordSequenceRepeatIdx++
   ) {
     let lastSpecifiedChordName: string | undefined = undefined;
+
     for (let chordIdx = 0; chordIdx < chordSequence.data.length; chordIdx++) {
       let chordName = chordSequence.data[chordIdx];
 
@@ -574,18 +570,8 @@ function compileChordSequence({
         subSectionBpm,
       );
 
-      let noteLengthMultiplier = "1";
-
-      if (chordSequence.strummingPattern.noteLength === "1/4th triplet")
-        noteLengthMultiplier = "0.6667";
-      else if (chordSequence.strummingPattern.noteLength === "1/8th")
-        noteLengthMultiplier = "0.5";
-      else if (chordSequence.strummingPattern.noteLength === "1/8th triplet")
-        noteLengthMultiplier = "0.3333";
-      else if (chordSequence.strummingPattern.noteLength === "1/16th")
-        noteLengthMultiplier = "0.25";
-      else if (chordSequence.strummingPattern.noteLength === "1/16th triplet")
-        noteLengthMultiplier = "0.1667";
+      const noteLengthMultiplier =
+        noteLengthMultipliers[chordSequence.strummingPattern.baseNoteLength];
 
       metadata.push({
         location: {
@@ -594,15 +580,14 @@ function compileChordSequence({
           chordSequenceIndex,
           chordIndex: chordIdx,
         },
-        bpm: Number(chordBpm),
+        bpm: chordBpm,
         noteLengthMultiplier,
         elapsedSeconds: Math.floor(elapsedSeconds.value),
         type: "strum",
       });
 
       elapsedSeconds.value +=
-        60 /
-        ((Number(chordBpm) / Number(noteLengthMultiplier)) * playbackSpeed);
+        60 / ((chordBpm / noteLengthMultiplier) * playbackSpeed);
 
       compiledChords.push(
         compileChord({
@@ -610,58 +595,11 @@ function compileChordSequence({
           chordIdx,
           strummingPattern: chordSequence.strummingPattern,
           chords,
-          stringifiedBpm: chordBpm,
-          noteLengthMultiplier,
+          bpm: chordBpm,
         }),
       );
     }
   }
-}
-
-interface CompileStrummingPatternPreview {
-  strummingPattern: StrummingPattern;
-}
-
-function compileStrummingPatternPreview({
-  strummingPattern,
-}: CompileStrummingPatternPreview) {
-  const compiledChords: string[][] = [];
-
-  let noteLengthMultiplier = "1";
-
-  if (strummingPattern.noteLength === "1/4th triplet")
-    noteLengthMultiplier = "0.6667";
-  else if (strummingPattern.noteLength === "1/8th")
-    noteLengthMultiplier = "0.5";
-  else if (strummingPattern.noteLength === "1/8th triplet")
-    noteLengthMultiplier = "0.3333";
-  else if (strummingPattern.noteLength === "1/16th")
-    noteLengthMultiplier = "0.25";
-  else if (strummingPattern.noteLength === "1/16th triplet")
-    noteLengthMultiplier = "0.1667";
-
-  for (let i = 0; i < strummingPattern.strums.length; i++) {
-    const strumIsEmpty = strummingPattern.strums[i]?.strum === "";
-
-    compiledChords.push(
-      compileChord({
-        chordName: strumIsEmpty ? "" : "C",
-        chordIdx: i,
-        strummingPattern,
-        chords: [
-          {
-            id: "0", // no need for an actual id here
-            name: "C",
-            frets: ["0", "1", "0", "2", "3", ""],
-          },
-        ],
-        stringifiedBpm: "75",
-        noteLengthMultiplier,
-      }),
-    );
-  }
-
-  return compiledChords;
 }
 
 interface CompileSpecificChordGrouping {
@@ -862,7 +800,7 @@ function compileSpecificChordGrouping({
         chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
       },
       bpm: metadataMappedToLoopRange.at(-1)!.bpm,
-      noteLengthMultiplier: "1",
+      noteLengthMultiplier: 1,
       elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
       type: "tab",
     });
@@ -899,6 +837,38 @@ function generateDefaultSectionProgression(tabData: Section[]) {
   }
 
   return sectionProgression;
+}
+
+interface CompileStrummingPatternPreview {
+  strummingPattern: StrummingPattern;
+}
+
+function compileStrummingPatternPreview({
+  strummingPattern,
+}: CompileStrummingPatternPreview) {
+  const compiledChords: string[][] = [];
+
+  for (let i = 0; i < strummingPattern.strums.length; i++) {
+    const strumIsEmpty = strummingPattern.strums[i]?.strum === "";
+
+    compiledChords.push(
+      compileChord({
+        chordName: strumIsEmpty ? "" : "C",
+        chordIdx: i,
+        strummingPattern,
+        chords: [
+          {
+            id: "0", // no need for an actual id here
+            name: "C",
+            frets: ["0", "1", "0", "2", "3", ""],
+          },
+        ],
+        bpm: 75,
+      }),
+    );
+  }
+
+  return compiledChords;
 }
 
 export {
