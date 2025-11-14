@@ -434,13 +434,13 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                       style={{
                                         backgroundColor: genreColors
                                           .get(song.genre)
-                                          ?.replace(/\)$/, " / 0.1)"),
+                                          ?.replace(/\)$/, " / 0.7)"),
+                                        border: "1px solid",
                                         borderColor: genreColors.get(
                                           song.genre,
                                         ),
-                                        border: "1px solid",
-                                        color: genreColors.get(song.genre),
                                       }}
+                                      className="text-primary-foreground"
                                     >
                                       {song.genre}
                                     </Badge>
@@ -629,18 +629,13 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   </span>
                                   <Badge
                                     style={{
-                                      backgroundColor:
-                                        theme === "light"
-                                          ? genreColors
-                                              .get(song.genre)
-                                              ?.replace(/\)$/, " / 0.1)")
-                                          : genreDarkColors
-                                              .get(song.genre)
-                                              ?.replace(/\)$/, " / 0.4)"),
-                                      borderColor: genreColors.get(song.genre),
+                                      backgroundColor: genreColors
+                                        .get(song.genre)
+                                        ?.replace(/\)$/, " / 0.7)"),
                                       border: "1px solid",
-                                      color: genreColors.get(song.genre),
+                                      borderColor: genreColors.get(song.genre),
                                     }}
+                                    className="text-primary-foreground"
                                   >
                                     {song.genre}
                                   </Badge>

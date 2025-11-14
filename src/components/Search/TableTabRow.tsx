@@ -178,16 +178,13 @@ function TableTabRow({
         >
           <Badge
             style={{
-              backgroundColor:
-                theme === "light"
-                  ? genreColors.get(minimalTab.genre)?.replace(/\)$/, " / 0.1)")
-                  : genreDarkColors
-                      .get(minimalTab.genre)
-                      ?.replace(/\)$/, " / 0.4)"),
-              borderColor: genreColors.get(minimalTab.genre),
+              backgroundColor: genreColors
+                .get(minimalTab.genre)
+                ?.replace(/\)$/, " / 0.7)"),
               border: "1px solid",
-              color: genreColors.get(minimalTab.genre),
+              borderColor: genreColors.get(minimalTab.genre),
             }}
+            className="text-primary-foreground"
           >
             {minimalTab.genre}
           </Badge>

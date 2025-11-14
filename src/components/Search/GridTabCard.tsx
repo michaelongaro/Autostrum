@@ -160,8 +160,7 @@ function GridTabCard({
       }}
       className="baseVertFlex overflow-hidden rounded-md border shadow-sm"
     >
-      {/* tab preview */}
-
+      {/* tab preview screenshot */}
       {pinnedTabType !== "withoutScreenshot" && (
         <div className="relative w-full">
           <Link
@@ -266,7 +265,8 @@ function GridTabCard({
         </div>
       )}
 
-      <div className="baseVertFlex w-full gap-1 rounded-b-sm bg-secondary-active/45 p-2.5">
+      {/* tab card body */}
+      <div className="baseVertFlex w-full gap-1 rounded-b-sm bg-secondary-active/65 p-2.5">
         {/* title */}
         <div className="baseVertFlex w-full !items-start">
           <Button variant={"link"} asChild>
@@ -334,24 +334,19 @@ function GridTabCard({
           <div className="baseFlex gap-2">
             <Badge
               style={{
-                backgroundColor:
-                  theme === "light"
-                    ? genreColors
-                        .get(minimalTab.genre)
-                        ?.replace(/\)$/, " / 0.1)")
-                    : genreDarkColors
-                        .get(minimalTab.genre)
-                        ?.replace(/\)$/, " / 0.4)"),
-                borderColor: genreColors.get(minimalTab.genre),
+                backgroundColor: genreColors
+                  .get(minimalTab.genre)
+                  ?.replace(/\)$/, " / 0.7)"),
                 border: "1px solid",
-                color: genreColors.get(minimalTab.genre),
+                borderColor: genreColors.get(minimalTab.genre),
               }}
+              className="text-primary-foreground"
             >
               {minimalTab.genre}
             </Badge>
 
             {pinnedTabType && (
-              <Badge className="baseFlex gap-1 border border-primary bg-primary/10 text-primary">
+              <Badge className="baseFlex gap-1 border border-primary bg-primary/50 text-primary-foreground">
                 <TbPinned className="size-3" />
                 Pinned
               </Badge>
