@@ -191,9 +191,9 @@ function PinnedTabList({
                               transition={{ duration: 1.25 }}
                               className="w-full"
                             >
-                              <span className="max-w-[230px] truncate sm:max-w-[300px]">
+                              <p className="max-w-[230px] truncate sm:max-w-[300px]">
                                 {tab.title}
-                              </span>
+                              </p>
                             </motion.div>
                           </TableCell>
 
