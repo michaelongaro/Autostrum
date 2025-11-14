@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "prisma generate && prisma migrate deploy && next build --webpack",
+    "build": "prisma generate && prisma migrate deploy && next build",
     "dev": "next dev",
     "postinstall": "prisma generate",
     "lint": "next lint",
