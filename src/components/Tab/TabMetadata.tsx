@@ -316,7 +316,8 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     if (
       !minifiedTabData &&
       asPath.includes("screenshot") &&
-      tabData.length > 0
+      tabData[0] &&
+      tabData[0].data.length > 0 // isn't just the default empty section
     ) {
       // artificially set minifiedTabData so that the light/dark screenshots can be taken
       setMinifiedTabData(tabData.slice(0, 2));
