@@ -738,6 +738,7 @@ function UserSettings() {
                       }}
                       style={{
                         backgroundColor: COLOR_HEX_VALUES[colorString],
+                        borderColor: COLOR_HEX_VALUES[colorString],
                       }}
                       className={`relative !size-12 !rounded-full !p-0`}
                     >

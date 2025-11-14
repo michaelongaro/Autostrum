@@ -93,8 +93,11 @@ function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
                   updateDBColor(colorString);
                 }
               }}
-              style={{ backgroundColor: COLOR_HEX_VALUES[colorString] }}
-              className={`relative !size-12 !rounded-full !p-0`}
+              style={{
+                backgroundColor: COLOR_HEX_VALUES[colorString],
+                borderColor: COLOR_HEX_VALUES[colorString],
+              }}
+              className={`relative !size-12 !rounded-full border !p-0`}
             >
               <AnimatePresence>
                 {(color === colorString || hoveredColor === colorString) && (
