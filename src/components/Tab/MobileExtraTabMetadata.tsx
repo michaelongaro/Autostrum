@@ -211,7 +211,7 @@ function MobileExtraTabMetadata() {
                         </p>
                       ) : (
                         <div
-                          className={`baseVertFlex min-h-24 gap-2 ${sectionProgression.length > 3 ? "!justify-start" : ""}`}
+                          className={`baseVertFlex mb-2 min-h-24 gap-2 ${sectionProgression.length > 3 ? "!justify-start" : ""}`}
                         >
                           {sectionProgression.map((section) => (
                             <div
@@ -377,7 +377,7 @@ function MobileExtraTabMetadata() {
                         No strumming patterns specified
                       </p>
                     ) : (
-                      <div className="baseVertFlex !items-start !justify-start gap-8 sm:!flex-row sm:flex-wrap sm:!justify-center">
+                      <div className="baseVertFlex mb-2 !items-start !justify-start gap-8 sm:!flex-row sm:flex-wrap sm:!justify-center">
                         {strummingPatterns.map((pattern, index) => (
                           <div
                             key={pattern.id}
