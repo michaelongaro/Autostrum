@@ -377,7 +377,7 @@ function MobileExtraTabMetadata() {
                         No strumming patterns specified
                       </p>
                     ) : (
-                      <div className="baseFlex flex-wrap !items-start gap-8">
+                      <div className="baseVertFlex !items-start !justify-start gap-8 sm:!flex-row sm:flex-wrap sm:!justify-center">
                         {strummingPatterns.map((pattern, index) => (
                           <div
                             key={pattern.id}
