@@ -798,26 +798,6 @@ const COLOR_VALUES = {
   },
 } as const satisfies ColorValues;
 
-export function updateCSSThemeVars(color: COLORS, theme: THEME) {
-  const colors = COLOR_VALUES[color][theme];
-
-  if (!colors) {
-    throw new Error(`Color "${color}" or theme "${theme}" not found.`);
-  }
-
-  addGlobalTransition();
-
-  Object.entries(colors).forEach(([key, value]) => {
-    document.documentElement.style.setProperty(`--${key}`, `${value}`);
-  });
-
-  changeFavicon(LOGO_PATHS_WITHOUT_TITLE[color]);
-
-  setTimeout(() => {
-    removeGlobalTransition();
-  }, 0); // wait for the next event loop tick before removing the transition
-}
-
 function addGlobalTransition() {
   const style = document.createElement("style");
   style.id = "global-transition-style";
@@ -844,9 +824,46 @@ function changeFavicon(url: string): void {
   link.href = url;
 }
 
+function updateThemeColorMetaTag(color: string): void {
+  let metaThemeColor = document.querySelector<HTMLMetaElement>(
+    'meta[name="theme-color"]',
+  );
+
+  if (!metaThemeColor) {
+    metaThemeColor = document.createElement("meta");
+    metaThemeColor.name = "theme-color";
+    document.head.appendChild(metaThemeColor);
+  }
+
+  metaThemeColor.content = `hsl(${color})`;
+}
+
 function removeGlobalTransition() {
   const style = document.getElementById("global-transition-style");
   if (style) {
     style.remove();
   }
 }
+
+function updateCSSThemeVars(color: COLORS, theme: THEME) {
+  const colors = COLOR_VALUES[color][theme];
+
+  if (!colors) {
+    throw new Error(`Color "${color}" or theme "${theme}" not found.`);
+  }
+
+  addGlobalTransition();
+
+  Object.entries(colors).forEach(([key, value]) => {
+    document.documentElement.style.setProperty(`--${key}`, `${value}`);
+  });
+
+  changeFavicon(LOGO_PATHS_WITHOUT_TITLE[color]);
+  updateThemeColorMetaTag(colors.header);
+
+  setTimeout(() => {
+    removeGlobalTransition();
+  }, 0); // wait for the next event loop tick before removing the transition
+}
+
+export { updateCSSThemeVars };
