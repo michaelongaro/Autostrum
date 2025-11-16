@@ -12,7 +12,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { createPortal } from "react-dom";
+import { createPortal, flushSync } from "react-dom";
 import { FaEye } from "react-icons/fa";
 import { BsPlus } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
@@ -30,7 +30,12 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabStore, type Section, type COLORS } from "~/stores/TabStore";
+import {
+  useTabStore,
+  type Section,
+  type COLORS,
+  getTabData,
+} from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import { genreColors, genreDarkColors } from "~/utils/genreColors";
 import { tuningNotesToName } from "~/utils/tunings";
@@ -88,6 +93,14 @@ const KEYS_BY_LETTER = {
 
 const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 
+function waitForNextPaint() {
+  if (typeof window === "undefined") return Promise.resolve();
+
+  return new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  });
+}
+
 type TabMetadata = {
   customTuning: string | null;
   setIsPublishingOrUpdating: Dispatch<SetStateAction<boolean>>;
@@ -132,8 +145,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setCurrentlyPlayingMetadata,
     setCurrentChordIndex,
     viewportLabel,
-    theme,
-    tabData,
     tabIsEffectivelyEmpty,
   } = useTabStore((state) => ({
     originalTabData: state.originalTabData,
@@ -170,8 +181,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
     setCurrentChordIndex: state.setCurrentChordIndex,
     viewportLabel: state.viewportLabel,
-    theme: state.theme,
-    tabData: state.tabData,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
   }));
 
@@ -313,16 +322,17 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
   }, [artistId, createdByUserId, editing, id, processPageView]);
 
   useEffect(() => {
+    if (minifiedTabData || !asPath.includes("screenshot")) return;
+
+    const tabData = getTabData();
+
     if (
-      !minifiedTabData &&
-      asPath.includes("screenshot") &&
-      tabData[0] &&
-      tabData[0].data.length > 0 // isn't just the default empty section
+      tabData[0]!.data.length > 0 // isn't just the default empty section
     ) {
       // artificially set minifiedTabData so that the light/dark screenshots can be taken
       setMinifiedTabData(tabData.slice(0, 2));
     }
-  }, [asPath, tabData, minifiedTabData]);
+  }, [asPath, minifiedTabData]);
 
   function handleBpmChange(event: ChangeEvent<HTMLInputElement>) {
     const inputValue = event.target.value;
@@ -377,13 +387,16 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setIsPublishingOrUpdating(true);
     setSaveButtonText(asPath.includes("create") ? "Publishing" : "Saving");
 
-    setMinifiedTabData(tabData.slice(0, 2)); // screenshot can never show more than 2 sections
-    setTakingScreenshot(true);
+    const tabData = getTabData();
+
+    flushSync(() => {
+      setMinifiedTabData(tabData.slice(0, 2)); // screenshot can never show more than 2 sections
+      setTakingScreenshot(true);
+    });
 
     const { domToDataUrl } = await import("modern-screenshot");
 
-    // not ideal, but giving DOM extra time to render
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await waitForNextPaint();
 
     const [lightScreenshot, darkScreenshot] = await Promise.all([
       domToDataUrl(tabPreviewScreenshotLightRef.current!, {
@@ -441,6 +454,8 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
   function isEqualToOriginalTabState() {
     if (!originalTabData) return false; // need to make sure this is always populated when editing..
+
+    const tabData = getTabData();
 
     const originalData = {
       id: originalTabData.id,
