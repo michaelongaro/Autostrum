@@ -335,6 +335,8 @@ function SearchResults({
       newQuery.sortBy = localFilters.sortBy;
     }
 
+    setDrawerOpen(false);
+
     void push(
       {
         pathname,
