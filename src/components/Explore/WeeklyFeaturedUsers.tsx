@@ -473,8 +473,14 @@ function WeeklyFeaturedUsers({
                           <FaStar className="size-4 sm:size-5" />
                           <span>Average rating</span>
                         </div>
-                        <span className="w-12 text-end">
-                          {user.averageTabRating}
+                        <span
+                          className={`w-12 text-end ${
+                            user.totalTabRatings > 0 ? "" : "mr-0.5"
+                          }`}
+                        >
+                          {user.totalTabRatings > 0
+                            ? user.averageTabRating.toFixed(1)
+                            : "-"}
                         </span>
                       </div>
 
