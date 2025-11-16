@@ -206,7 +206,7 @@ function UserStatistics() {
               <div className="baseVertFlex w-full !items-start gap-4 md:mt-4 md:gap-8">
                 <div className="baseFlex w-full !justify-between gap-2">
                   <div className="baseFlex gap-3 xs:gap-4">
-                    <TbGuitarPick className="size-5 text-foreground lg:size-6" />
+                    <TbGuitarPick className="size-5 fill-foreground text-foreground lg:size-6" />
                     <span className="text-xl font-medium text-foreground lg:text-2xl">
                       Total tabs
                     </span>
