@@ -349,33 +349,6 @@ function SearchResults({
     );
   }
 
-  // default value changes between "relevance" and "newest"
-  // based on if there is a search query or not.
-  function handleSortByChange(
-    type: "relevance" | "newest" | "oldest" | "mostPopular" | "leastPopular",
-  ) {
-    const newQueries = { ...query };
-
-    if (newQueries.search && type === "relevance") {
-      delete newQueries.sortBy;
-    } else if (!newQueries.search && type === "newest") {
-      delete newQueries.sortBy;
-    } else {
-      newQueries.sortBy = type;
-    }
-
-    void push(
-      {
-        pathname,
-        query: newQueries,
-      },
-      undefined,
-      {
-        scroll: false,
-      },
-    );
-  }
-
   function resetSearchFilters() {
     setLocalFilters({
       genre: undefined,
@@ -1414,14 +1387,10 @@ function SearchResults({
                                   value={"relevance"}
                                   className="baseFlex w-full !justify-between gap-2"
                                   onClick={() =>
-                                    handleSortByChange(
-                                      "relevance" as
-                                        | "relevance"
-                                        | "newest"
-                                        | "oldest"
-                                        | "mostPopular"
-                                        | "leastPopular",
-                                    )
+                                    setLocalFilters((prev) => ({
+                                      ...prev,
+                                      sortBy: "relevance",
+                                    }))
                                   }
                                 >
                                   <div className="baseFlex gap-2">
@@ -1438,14 +1407,10 @@ function SearchResults({
                                   value={"newest"}
                                   className="baseFlex w-full !justify-between gap-2"
                                   onClick={() =>
-                                    handleSortByChange(
-                                      "newest" as
-                                        | "relevance"
-                                        | "newest"
-                                        | "oldest"
-                                        | "mostPopular"
-                                        | "leastPopular",
-                                    )
+                                    setLocalFilters((prev) => ({
+                                      ...prev,
+                                      sortBy: "newest",
+                                    }))
                                   }
                                 >
                                   <div className="baseFlex gap-2">Newest</div>
@@ -1460,14 +1425,10 @@ function SearchResults({
                                   value={"oldest"}
                                   className="baseFlex w-full !justify-between gap-2"
                                   onClick={() =>
-                                    handleSortByChange(
-                                      "oldest" as
-                                        | "relevance"
-                                        | "newest"
-                                        | "oldest"
-                                        | "mostPopular"
-                                        | "leastPopular",
-                                    )
+                                    setLocalFilters((prev) => ({
+                                      ...prev,
+                                      sortBy: "oldest",
+                                    }))
                                   }
                                 >
                                   <div className="baseFlex gap-2">Oldest</div>
@@ -1482,14 +1443,10 @@ function SearchResults({
                                   value={"mostPopular"}
                                   className="baseFlex w-full !justify-between gap-2"
                                   onClick={() =>
-                                    handleSortByChange(
-                                      "mostPopular" as
-                                        | "relevance"
-                                        | "newest"
-                                        | "oldest"
-                                        | "mostPopular"
-                                        | "leastPopular",
-                                    )
+                                    setLocalFilters((prev) => ({
+                                      ...prev,
+                                      sortBy: "mostPopular",
+                                    }))
                                   }
                                 >
                                   <div className="baseFlex gap-2">
@@ -1506,14 +1463,10 @@ function SearchResults({
                                   value={"leastPopular"}
                                   className="baseFlex w-full !justify-between gap-2"
                                   onClick={() =>
-                                    handleSortByChange(
-                                      "leastPopular" as
-                                        | "relevance"
-                                        | "newest"
-                                        | "oldest"
-                                        | "mostPopular"
-                                        | "leastPopular",
-                                    )
+                                    setLocalFilters((prev) => ({
+                                      ...prev,
+                                      sortBy: "leastPopular",
+                                    }))
                                   }
                                 >
                                   <div className="baseFlex gap-2">
