@@ -14,6 +14,7 @@ import {
 } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { FaEye } from "react-icons/fa";
+import { domToDataUrl } from "modern-screenshot";
 import { BsPlus } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
 import { MdModeEditOutline } from "react-icons/md";
@@ -386,15 +387,13 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
     setIsPublishingOrUpdating(true);
     setSaveButtonText(asPath.includes("create") ? "Publishing" : "Saving");
+    setTakingScreenshot(true);
 
     const tabData = getTabData();
 
     flushSync(() => {
       setMinifiedTabData(tabData.slice(0, 2)); // screenshot can never show more than 2 sections
-      setTakingScreenshot(true);
     });
-
-    const { domToDataUrl } = await import("modern-screenshot");
 
     await waitForNextPaint();
 
@@ -1567,6 +1566,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
             >
               <TabScreenshotPreview
                 tabData={minifiedTabData}
+                bpm={bpm}
                 color={"peony"}
                 theme={"light"}
               />
@@ -1582,6 +1582,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
             >
               <TabScreenshotPreview
                 tabData={minifiedTabData}
+                bpm={bpm}
                 color={"peony"}
                 theme={"dark"}
               />
