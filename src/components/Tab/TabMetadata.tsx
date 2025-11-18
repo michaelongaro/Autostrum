@@ -284,8 +284,10 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
   const [disableCreatedAtLayout, setDisableCreatedAtLayout] = useState(false);
   const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
   const [takingScreenshot, setTakingScreenshot] = useState(false);
-  const tabPreviewScreenshotLightRef = useRef(null);
-  const tabPreviewScreenshotDarkRef = useRef(null);
+  const [screenshotTheme, setScreenshotTheme] = useState<"light" | "dark">(
+    "light",
+  );
+  const tabPreviewScreenshotRef = useRef(null);
 
   const [showPublishPopover, setShowPublishPopover] = useState(false);
 
@@ -391,20 +393,34 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
     const tabData = getTabData();
 
+    // Capture light theme screenshot
     flushSync(() => {
+      setScreenshotTheme("light");
       setMinifiedTabData(tabData.slice(0, 2)); // screenshot can never show more than 2 sections
     });
 
     await waitForNextPaint();
 
-    const [lightScreenshot, darkScreenshot] = await Promise.all([
-      domToDataUrl(tabPreviewScreenshotLightRef.current!, {
+    const lightScreenshot = await domToDataUrl(
+      tabPreviewScreenshotRef.current!,
+      {
         quality: 0.75,
-      }),
-      domToDataUrl(tabPreviewScreenshotDarkRef.current!, {
+      },
+    );
+
+    // Capture dark theme screenshot
+    flushSync(() => {
+      setScreenshotTheme("dark");
+    });
+
+    await waitForNextPaint();
+
+    const darkScreenshot = await domToDataUrl(
+      tabPreviewScreenshotRef.current!,
+      {
         quality: 0.75,
-      }),
-    ]);
+      },
+    );
 
     if (asPath.includes("create")) {
       publishTab({
@@ -1557,10 +1573,10 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
         createPortal(
           <div className="size-full overflow-hidden">
             <div
-              ref={tabPreviewScreenshotLightRef}
-              id="tabPreviewScreenshotLight"
+              ref={tabPreviewScreenshotRef}
+              id="tabPreviewScreenshot"
               style={{
-                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["light" as "light" | "dark"]["screenshot-background"]})`,
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS][screenshotTheme]["screenshot-background"]})`,
               }}
               className="baseFlex h-[615px] w-[1318px] grayscale"
             >
@@ -1568,23 +1584,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 tabData={minifiedTabData}
                 bpm={bpm}
                 color={"peony"}
-                theme={"light"}
-              />
-            </div>
-
-            <div
-              ref={tabPreviewScreenshotDarkRef}
-              id="tabPreviewScreenshotDark"
-              style={{
-                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["dark" as "light" | "dark"]["screenshot-background"]})`,
-              }}
-              className="baseFlex h-[615px] w-[1318px] grayscale"
-            >
-              <TabScreenshotPreview
-                tabData={minifiedTabData}
-                bpm={bpm}
-                color={"peony"}
-                theme={"dark"}
+                theme={screenshotTheme}
               />
             </div>
           </div>,
