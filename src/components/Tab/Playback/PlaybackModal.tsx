@@ -539,12 +539,7 @@ function PlaybackModal() {
                 transition={{ duration: 0.2 }}
                 className="baseVertFlex relative size-full select-none"
               >
-                <div
-                  style={{
-                    mask: "linear-gradient(90deg, transparent, white 5%, white 95%, transparent)",
-                  }}
-                  className="w-full overflow-hidden"
-                >
+                <div className="w-full overflow-hidden">
                   <PlaybackScrollingContainer
                     loopCount={loopCount}
                     setChordRepetitions={setChordRepetitions}
