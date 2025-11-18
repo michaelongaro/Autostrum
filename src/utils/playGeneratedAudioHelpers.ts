@@ -1,6 +1,19 @@
 import extractNumber from "~/utils/extractNumber";
 import type Soundfont from "soundfont-player";
 
+/**
+ * Memory management strategy for audio playback
+ *
+ * This file handles audio playback using the Web Audio API and Soundfont.js.
+ * To prevent memory leaks from accumulating AudioBufferSourceNodes:
+ *
+ * 1. All AudioBufferSourceNodes are tracked via the `currentlyPlayingStrings` array
+ * 2. When a note ends (via onended callback), we disconnect all nodes and null buffer references
+ * 3. When manually stopping notes, we use `cleanupAudioSource()` to properly dispose resources
+ * 4. Buffer references are explicitly set to null to help garbage collection
+ * 5. All audio nodes are disconnected after use to break circular references
+ */
+
 interface PlayNoteWithEffects {
   note: GainNode;
   stringIdx: number;
@@ -10,6 +23,7 @@ interface PlayNoteWithEffects {
   effects?: string[];
   tetheredMetadata?: TetheredMetadata;
   pluckBaseNote: boolean;
+  noteDurationSeconds: number;
   audioContext: AudioContext;
   masterVolumeGainNode: GainNode;
   currentlyPlayingStrings: (
@@ -17,6 +31,124 @@ interface PlayNoteWithEffects {
     | AudioBufferSourceNode
     | undefined
   )[];
+}
+
+const DEFAULT_NOTE_DURATION_SECONDS = 3;
+
+type CurrentlyPlayingString =
+  | Soundfont.Player
+  | AudioBufferSourceNode
+  | undefined;
+
+function safeDisconnectNode(node?: AudioNode | null) {
+  if (!node) return;
+  try {
+    node.disconnect();
+  } catch (error) {
+    // node might already be disconnected; ignore
+  }
+}
+
+function safeStopScheduledSource(
+  source?: AudioScheduledSourceNode | null,
+  stopTime?: number,
+) {
+  if (!source) return;
+  try {
+    if (typeof stopTime === "number") {
+      source.stop(stopTime);
+    } else {
+      source.stop();
+    }
+  } catch (error) {
+    // source already stopped
+  }
+}
+
+function cleanupAudioSource(
+  source?: Soundfont.Player | AudioBufferSourceNode | null,
+) {
+  if (!source) return;
+
+  // Stop the source if it's playing
+  safeStopScheduledSource(source as AudioScheduledSourceNode);
+
+  // Disconnect all nodes
+  safeDisconnectNode(source as AudioNode);
+
+  // For AudioBufferSourceNode, explicitly clear buffer reference
+  if ("buffer" in source && source.buffer) {
+    source.buffer = null;
+  }
+
+  // For Soundfont.Player, cleanup internal source
+  const internalSource = (source as { source?: AudioBufferSourceNode }).source;
+  if (internalSource) {
+    safeStopScheduledSource(internalSource);
+    safeDisconnectNode(internalSource);
+    if (internalSource.buffer) {
+      internalSource.buffer = null;
+    }
+  }
+}
+
+function resolveSourceNodeFromHandle(
+  handle?: Soundfont.Player | AudioBufferSourceNode | GainNode,
+) {
+  if (!handle) return undefined;
+
+  if ("start" in handle && "stop" in handle && "buffer" in handle) {
+    return handle as AudioBufferSourceNode;
+  }
+
+  return (handle as { source?: AudioBufferSourceNode }).source;
+}
+
+function attachSourceOnEndedCleanup({
+  sourceNode,
+  nodesToDisconnect = [],
+  currentlyPlayingStrings,
+  stringIdx,
+  expectedHandle,
+  onEnded,
+}: {
+  sourceNode?: AudioScheduledSourceNode | null;
+  nodesToDisconnect?: AudioNode[];
+  currentlyPlayingStrings?: CurrentlyPlayingString[];
+  stringIdx?: number;
+  expectedHandle?: Soundfont.Player | AudioBufferSourceNode;
+  onEnded?: () => void;
+}) {
+  if (!sourceNode) return;
+
+  const cleanup = () => {
+    nodesToDisconnect.forEach((node) => safeDisconnectNode(node));
+    onEnded?.();
+
+    if (
+      typeof stringIdx === "number" &&
+      currentlyPlayingStrings &&
+      expectedHandle &&
+      currentlyPlayingStrings[stringIdx] === expectedHandle
+    ) {
+      currentlyPlayingStrings[stringIdx] = undefined;
+    }
+
+    safeDisconnectNode(sourceNode);
+
+    // Explicitly null buffer reference to help GC
+    if ("buffer" in sourceNode) {
+      sourceNode.buffer = null;
+    }
+
+    sourceNode.onended = null;
+  };
+
+  const previousOnEnded = sourceNode.onended;
+  sourceNode.onended = (event) => {
+    previousOnEnded?.call(sourceNode, event);
+    cleanup();
+  };
 }
 
 function playNoteWithEffects({
@@ -28,6 +160,7 @@ function playNoteWithEffects({
   effects,
   tetheredMetadata,
   pluckBaseNote,
+  noteDurationSeconds,
   audioContext,
   masterVolumeGainNode,
   currentlyPlayingStrings,
@@ -83,6 +216,7 @@ function playNoteWithEffects({
         pluckBaseNote,
         audioContext,
         currentlyPlayingStrings,
+        noteDurationSeconds,
       });
     }
   }
@@ -148,18 +282,21 @@ function applyBendOrReleaseEffect({
 
   if (!pluckBaseNote && note) {
     // @ts-expect-error TODO: fix type
-    note.source.stop(0);
+    const noteSource = note.source as AudioBufferSourceNode;
+    safeStopScheduledSource(noteSource);
 
     source = audioContext.createBufferSource();
     sourceGain = audioContext.createGain();
 
     setTimeout(() => {
-      currentlyPlayingStrings[stringIdx]?.stop();
+      const existingNote = currentlyPlayingStrings[stringIdx];
+      if (existingNote) {
+        cleanupAudioSource(existingNote);
+      }
       currentlyPlayingStrings[stringIdx] = source;
     }, when * 1000);
 
-    // @ts-expect-error TODO: fix type
-    source.buffer = note.source.buffer as AudioBuffer;
+    source.buffer = noteSource.buffer as AudioBuffer;
     source.start(0, 0.5, isPalmMuted ? 0.45 : undefined);
 
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
@@ -168,6 +305,14 @@ function applyBendOrReleaseEffect({
       audioContext.currentTime + when + 0.1, // maybe still need to do arbitrary stuff here?
     );
     source.connect(sourceGain);
+
+    attachSourceOnEndedCleanup({
+      sourceNode: source,
+      nodesToDisconnect: sourceGain ? [sourceGain] : [],
+      currentlyPlayingStrings,
+      stringIdx,
+      expectedHandle: source,
+    });
   }
 
   const detuneValue = (fretToBendTo - baseFret) * 100;
@@ -200,6 +345,12 @@ function applyBendOrReleaseEffect({
     const copiedNoteGain = audioContext.createGain();
     copiedNoteGain.gain.value = 1.35;
     copiedNote.connect(copiedNoteGain);
+
+    attachSourceOnEndedCleanup({
+      sourceNode: copiedNote,
+      nodesToDisconnect: [copiedNoteGain],
+    });
+
     return copiedNoteGain;
   }
 }
@@ -255,7 +406,11 @@ function playDeadNote({
   currentlyPlayingStrings,
 }: PlayDeadNote) {
   // stopping any note on string that is currently playing
-  currentlyPlayingStrings[stringIdx]?.stop();
+  const existingNote = currentlyPlayingStrings[stringIdx];
+  if (existingNote) {
+    cleanupAudioSource(existingNote);
+    currentlyPlayingStrings[stringIdx] = undefined;
+  }
 
   const frequency = mapStringAndFretToOscillatorFrequency(
     stringIdx,
@@ -323,6 +478,11 @@ function playDeadNote({
   highpassFilter.connect(midBoost);
   midBoost.connect(gainNode);
 
+  attachSourceOnEndedCleanup({
+    sourceNode: oscillator,
+    nodesToDisconnect: [highpassFilter, midBoost, gainNode],
+  });
+
   // // Connect the gainNode to the audioContext's destination
   gainNode.connect(masterVolumeGainNode);
   masterVolumeGainNode.connect(audioContext.destination);
@@ -356,8 +516,12 @@ function playSlapSound({
   currentlyPlayingStrings,
 }: PlaySlapSound) {
   // stopping all notes currently playing
-  for (const currentlyPlayingString of currentlyPlayingStrings) {
-    currentlyPlayingString?.stop();
+  for (let i = 0; i < currentlyPlayingStrings.length; i++) {
+    const currentlyPlayingString = currentlyPlayingStrings[i];
+    if (currentlyPlayingString) {
+      cleanupAudioSource(currentlyPlayingString);
+      currentlyPlayingStrings[i] = undefined;
+    }
   }
 
   // Create an OscillatorNode to simulate the slap sound
@@ -430,6 +594,16 @@ function playSlapSound({
   lowPassFilter.connect(midBoost);
   midBoost.connect(gainNode);
 
+  attachSourceOnEndedCleanup({
+    sourceNode: oscillator,
+    nodesToDisconnect: [lowPassFilter, midBoost, gainNode],
+  });
+
+  attachSourceOnEndedCleanup({
+    sourceNode: noise,
+    nodesToDisconnect: [noiseGain],
+  });
+
   // // Connect the gainNode to the audioContext's destination
   gainNode.connect(masterVolumeGainNode);
   masterVolumeGainNode.connect(audioContext.destination);
@@ -493,6 +667,12 @@ function applyPalmMute({
   lowPassFilter.connect(bassBoost);
   bassBoost.connect(gainNode);
 
+  const sourceNode = resolveSourceNodeFromHandle(note);
+  attachSourceOnEndedCleanup({
+    sourceNode,
+    nodesToDisconnect: [lowPassFilter, bassBoost, gainNode],
+  });
+
   return gainNode;
 }
 
@@ -531,19 +711,22 @@ function applyTetheredEffect({
 }: ApplyTetheredEffect) {
   // immediately stop current note because we don't ever want to hear the pluck on
   // a tethered note
-  // @ts-expect-error TODO: fix type
-  note.source.stop(0);
+  // @ts-expect-error note has a source property from Soundfont.Player
+  const noteSource = note.source as AudioBufferSourceNode;
+  safeStopScheduledSource(noteSource);
 
   const source = audioContext.createBufferSource();
   const sourceGain = audioContext.createGain();
 
   setTimeout(() => {
-    currentlyPlayingStrings[stringIdx]?.stop();
+    const existingNote = currentlyPlayingStrings[stringIdx];
+    if (existingNote) {
+      cleanupAudioSource(existingNote);
+    }
     currentlyPlayingStrings[stringIdx] = source;
   }, when * 1000);
 
-  // @ts-expect-error TODO: fix type
-  source.buffer = note.source.buffer as AudioBuffer;
+  source.buffer = noteSource.buffer as AudioBuffer;
   // immediately start detune at the value of the tetheredFret
   source.detune.setValueAtTime(
     (tetheredFret - currentFret) * 100,
@@ -561,6 +744,14 @@ function applyTetheredEffect({
     audioContext.currentTime + when + 0.05,
   );
   source.connect(sourceGain);
+
+  attachSourceOnEndedCleanup({
+    sourceNode: source,
+    nodesToDisconnect: [sourceGain],
+    currentlyPlayingStrings,
+    stringIdx,
+    expectedHandle: source,
+  });
 
   let durationOfTransition = (60 / bpm) * 0.25;
   if (tetheredEffect === "h" || tetheredEffect === "p") {
@@ -583,6 +774,7 @@ function applyTetheredEffect({
         bpm,
         audioContext,
         currentlyPlayingStrings,
+        noteDurationSeconds: isPalmMuted ? 0.45 : undefined,
       });
     } else if (
       currentEffects.includes("b") &&
@@ -617,6 +809,7 @@ interface ApplyVibratoEffect {
     | AudioBufferSourceNode
     | undefined
   )[];
+  noteDurationSeconds?: number;
 }
 
 function applyVibratoEffect({
@@ -628,24 +821,36 @@ function applyVibratoEffect({
   pluckBaseNote = true,
   audioContext,
   currentlyPlayingStrings,
+  noteDurationSeconds,
 }: ApplyVibratoEffect) {
   let source: AudioBufferSourceNode | undefined = undefined;
   let sourceGain: GainNode | undefined = undefined;
 
   if (!pluckBaseNote && note) {
     // @ts-expect-error TODO: fix type
-    note.source.stop(0);
+    const noteSource = note.source as AudioBufferSourceNode;
+    safeStopScheduledSource(noteSource);
+
     source = audioContext.createBufferSource();
     sourceGain = audioContext.createGain();
 
     setTimeout(() => {
-      currentlyPlayingStrings[stringIdx]?.stop();
+      const existingNote = currentlyPlayingStrings[stringIdx];
+      if (existingNote) {
+        cleanupAudioSource(existingNote);
+      }
       currentlyPlayingStrings[stringIdx] = source;
     }, when * 1000);
 
-    // @ts-expect-error TODO: fix type
-    source.buffer = note.source.buffer as AudioBuffer;
+    source.buffer = noteSource.buffer as AudioBuffer;
     source.start(0, 0.5);
+    attachSourceOnEndedCleanup({
+      sourceNode: source,
+      nodesToDisconnect: sourceGain ? [sourceGain] : [],
+      currentlyPlayingStrings,
+      stringIdx,
+      expectedHandle: source,
+    });
 
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
     sourceGain.gain.exponentialRampToValueAtTime(
@@ -668,7 +873,24 @@ function applyVibratoEffect({
   vibratoOscillator.connect(vibratoDepth);
 
   const oscillatorDelay = (60 / bpm) * 0.15;
-  vibratoOscillator.start(audioContext.currentTime + when + oscillatorDelay);
+  const vibratoStartTime = audioContext.currentTime + when + oscillatorDelay;
+  vibratoOscillator.start(vibratoStartTime);
+  const vibratoStopTime =
+    vibratoStartTime + (noteDurationSeconds ?? DEFAULT_NOTE_DURATION_SECONDS);
+  safeStopScheduledSource(vibratoOscillator, vibratoStopTime);
+
+  attachSourceOnEndedCleanup({
+    sourceNode: vibratoOscillator,
+    nodesToDisconnect: [vibratoDepth],
+  });
+
+  const targetSourceNode =
+    source ?? copiedNote ?? resolveSourceNodeFromHandle(note);
+
+  attachSourceOnEndedCleanup({
+    sourceNode: targetSourceNode,
+    onEnded: () => safeStopScheduledSource(vibratoOscillator),
+  });
 
   if (source && sourceGain) {
     vibratoDepth.connect(source.detune);
@@ -770,6 +992,16 @@ function playNote({
     },
   );
 
+  if (note) {
+    const sourceNode = resolveSourceNodeFromHandle(note as unknown as GainNode);
+    attachSourceOnEndedCleanup({
+      sourceNode,
+      currentlyPlayingStrings,
+      stringIdx,
+      expectedHandle: note,
+    });
+  }
+
   if (note && (tetheredMetadata || effects.length > 0)) {
     playNoteWithEffects({
       note: note as unknown as GainNode,
@@ -780,6 +1012,7 @@ function playNote({
       effects,
       tetheredMetadata,
       pluckBaseNote,
+      noteDurationSeconds: duration,
       audioContext,
       masterVolumeGainNode,
       currentlyPlayingStrings,
@@ -795,7 +1028,10 @@ function playNote({
       tetheredMetadata.effect === "r")
   ) {
     setTimeout(() => {
-      currentlyPlayingStrings[stringIdx]?.stop();
+      const existingNote = currentlyPlayingStrings[stringIdx];
+      if (existingNote) {
+        cleanupAudioSource(existingNote);
+      }
       currentlyPlayingStrings[stringIdx] = note;
     }, when * 1000);
   }
@@ -902,8 +1138,12 @@ function playNoteColumn({
         });
       } else if (currColumn[7] === "r") {
         // stopping all notes currently playing
-        for (const currentlyPlayingString of currentlyPlayingStrings) {
-          currentlyPlayingString?.stop();
+        for (let i = 0; i < currentlyPlayingStrings.length; i++) {
+          const currentlyPlayingString = currentlyPlayingStrings[i];
+          if (currentlyPlayingString) {
+            cleanupAudioSource(currentlyPlayingString);
+            currentlyPlayingStrings[i] = undefined;
+          }
         }
       }
       return;
