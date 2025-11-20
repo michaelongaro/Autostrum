@@ -164,7 +164,7 @@ function AudioControls() {
       if (previewMetadata.playing) pauseAudio();
 
       setTimeout(() => {
-        void playTab({ tabId: id, location: audioMetadata.location });
+        void playTab({ location: audioMetadata.location });
       }, delayForStoreStateToUpdate);
     }
   }
@@ -861,7 +861,6 @@ function AudioControls() {
                       // (really only is necessary for fast click+release cases)
                       setTimeout(() => {
                         void playTab({
-                          tabId: id,
                           location: audioMetadata.location,
                         });
 

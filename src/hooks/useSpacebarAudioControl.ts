@@ -2,21 +2,14 @@ import { useCallback, useEffect, useRef } from "react";
 import { useTabStore } from "~/stores/TabStore";
 
 function useSpacebarAudioControl() {
-  const {
-    id,
-    audioMetadata,
-    playTab,
-    pauseAudio,
-    countInTimer,
-    setCountInTimer,
-  } = useTabStore((state) => ({
-    id: state.id,
-    audioMetadata: state.audioMetadata,
-    playTab: state.playTab,
-    pauseAudio: state.pauseAudio,
-    countInTimer: state.countInTimer,
-    setCountInTimer: state.setCountInTimer,
-  }));
+  const { audioMetadata, playTab, pauseAudio, countInTimer, setCountInTimer } =
+    useTabStore((state) => ({
+      audioMetadata: state.audioMetadata,
+      playTab: state.playTab,
+      pauseAudio: state.pauseAudio,
+      countInTimer: state.countInTimer,
+      setCountInTimer: state.setCountInTimer,
+    }));
 
   const isSpacebarPressed = useRef(false);
   const isPlayingStateLocked = useRef(false); // Prevents concurrent executions
@@ -34,7 +27,7 @@ function useSpacebarAudioControl() {
       });
 
       setTimeout(() => {
-        void playTab({ tabId: id, location: audioMetadata.location });
+        void playTab({ location: audioMetadata.location });
 
         setCountInTimer({
           ...countInTimer,
@@ -53,7 +46,6 @@ function useSpacebarAudioControl() {
     audioMetadata.location,
     audioMetadata.playing,
     countInTimer,
-    id,
     pauseAudio,
     playTab,
     setCountInTimer,

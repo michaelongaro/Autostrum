@@ -107,22 +107,6 @@ function PlaybackAudioControls({
     masterVolumeGainNode.gain.value = volume;
   }, [volume, masterVolumeGainNode]);
 
-  // TODO: I think this effect below is deprecated.
-  // didn't want to clutter up below effect with more conditions, this just covers
-  // resetting the tab progress value when the tab that is playing changes
-  useEffect(() => {
-    if (audioMetadata.tabId !== previousTabId) {
-      setPreviousTabId(audioMetadata.tabId);
-
-      if (oneSecondIntervalRef.current) {
-        clearInterval(oneSecondIntervalRef.current);
-        oneSecondIntervalRef.current = null;
-      }
-
-      setTabProgressValue(0);
-    }
-  }, [audioMetadata.tabId, previousTabId]);
-
   useEffect(() => {
     if (currentChordIndex === 0) {
       setPreviousChordIndex(0);
@@ -154,7 +138,6 @@ function PlaybackAudioControls({
       setTimeout(() => {
         setTimeout(() => {
           void playTab({
-            tabId: id,
             location: audioMetadata.location,
           });
         }, delayForStoreStateToUpdate);

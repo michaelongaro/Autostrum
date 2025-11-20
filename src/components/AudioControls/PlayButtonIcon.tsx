@@ -25,7 +25,6 @@ interface PlayButtonIcon {
   uniqueLocationKey: string;
   currentInstrument: Soundfont.Player | null;
   audioMetadata?: AudioMetadata;
-  tabId: number;
   sectionIndex?: number;
   subSectionIndex?: number;
   chordSequenceIndex?: number;
@@ -40,7 +39,6 @@ interface PlayButtonIcon {
 function PlayButtonIcon({
   uniqueLocationKey,
   audioMetadata,
-  tabId,
   sectionIndex,
   subSectionIndex,
   chordSequenceIndex,
@@ -114,7 +112,6 @@ function PlayButtonIcon({
   function shouldShowPauseIcon({
     uniqueLocationKey,
     audioMetadata,
-    tabId,
     sectionIndex,
     subSectionIndex,
     chordSequenceIndex,
@@ -122,10 +119,7 @@ function PlayButtonIcon({
     indexOfPattern,
     previewType,
   }: ShouldShowPauseIcon) {
-    const isAudioPlayingOnCurrentTab =
-      audioMetadata &&
-      audioMetadata?.playing &&
-      (audioMetadata?.tabId === tabId || tabId === -1);
+    const isAudioPlayingOnCurrentTab = audioMetadata && audioMetadata?.playing;
 
     const isAudioPlayingOnCurrentLocation =
       uniqueLocationKey === "audioControls" ||
@@ -173,7 +167,6 @@ function PlayButtonIcon({
       shouldShowPauseIcon({
         audioMetadata,
         uniqueLocationKey,
-        tabId,
         sectionIndex,
         subSectionIndex,
         chordSequenceIndex,

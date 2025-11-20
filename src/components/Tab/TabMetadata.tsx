@@ -141,6 +141,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setEditing,
     setOriginalTabData,
     audioMetadata,
+    setAudioMetadata,
     pauseAudio,
     isLoadingARoute,
     setCurrentlyPlayingMetadata,
@@ -177,6 +178,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setEditing: state.setEditing,
     setOriginalTabData: state.setOriginalTabData,
     audioMetadata: state.audioMetadata,
+    setAudioMetadata: state.setAudioMetadata,
     pauseAudio: state.pauseAudio,
     isLoadingARoute: state.isLoadingARoute,
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
@@ -364,6 +366,14 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     }
 
     pauseAudio(true);
+    setAudioMetadata({
+      playing: false,
+      location: null,
+      startLoopIndex: 0,
+      endLoopIndex: -1,
+      editingLoopRange: false,
+      fullCurrentlyPlayingMetadataLength: -1,
+    });
     setEditing(false);
   }
 

@@ -187,7 +187,6 @@ type InstrumentNames =
 
 export interface AudioMetadata {
   playing: boolean;
-  tabId: number;
   location: {
     sectionIndex: number;
     subSectionIndex?: number;
@@ -207,7 +206,6 @@ export interface PreviewMetadata {
 }
 
 interface PlayTab {
-  tabId: number;
   location: {
     sectionIndex: number;
     subSectionIndex?: number;
@@ -338,7 +336,6 @@ const initialStoreState = {
   loopDelay: 0,
   currentChordIndex: 0,
   audioMetadata: {
-    tabId: -1,
     playing: false,
     location: null,
     startLoopIndex: 0,
@@ -588,7 +585,7 @@ interface TabState {
   ) => void;
 
   // playing/pausing sound functions
-  playTab: ({ location, tabId }: PlayTab) => Promise<void>;
+  playTab: ({ location }: PlayTab) => Promise<void>;
   playPreview: ({ data, index, type }: PlayPreview) => Promise<void>;
   pauseAudio: (
     resetToStart?: boolean,
@@ -804,7 +801,6 @@ const useTabStoreBase = create<TabState>()(
       currentChordIndex: 0,
       setCurrentChordIndex: (currentChordIndex) => set({ currentChordIndex }),
       audioMetadata: {
-        tabId: -1,
         playing: false,
         location: null,
         startLoopIndex: 0,
@@ -833,7 +829,7 @@ const useTabStoreBase = create<TabState>()(
       ) => set({ interactingWithAudioProgressSlider }),
 
       // playing/pausing sound functions
-      playTab: async ({ location, tabId }: PlayTab) => {
+      playTab: async ({ location }: PlayTab) => {
         const {
           tabData,
           audioMetadata,
@@ -872,7 +868,6 @@ const useTabStoreBase = create<TabState>()(
         set({
           audioMetadata: {
             ...audioMetadata,
-            tabId,
             location,
             playing: true,
           },

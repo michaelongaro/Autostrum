@@ -354,7 +354,6 @@ function MiscellaneousControls({
               setTimeout(
                 () => {
                   void playTab({
-                    tabId: id,
                     location: {
                       sectionIndex,
                       subSectionIndex,
