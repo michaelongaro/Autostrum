@@ -540,6 +540,7 @@ export function handleTabNoteChange(
               "|",
               "",
               "measureLine",
+              "",
               id ?? crypto.randomUUID(),
             ];
           }
