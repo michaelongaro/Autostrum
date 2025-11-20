@@ -281,7 +281,7 @@ function TabNotesColumn({
           transform && { ...transform, scaleY: 1, scaleX: 1 },
         ),
         transition,
-        zIndex: isDragging ? 50 : "auto",
+        zIndex: isDragging ? 20 : "auto",
       }}
       onMouseEnter={() => setColumnIdxBeingHovered(columnIndex)}
       onMouseLeave={() => setColumnIdxBeingHovered(null)}

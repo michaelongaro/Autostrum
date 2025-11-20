@@ -251,7 +251,7 @@ function TabMeasureLine({
         width:
           reorderingColumns || showingDeleteColumnsButtons ? "48px" : "2px",
         transition: `${transition ?? ""}, width 0.15s ease-in-out`,
-        zIndex: isDragging ? 50 : "auto",
+        zIndex: isDragging ? 20 : "auto",
       }}
       className="baseVertFlex relative h-[400px]"
     >
@@ -326,7 +326,7 @@ function TabMeasureLine({
           {...listeners}
           className={`hover:box-shadow-md ${
             isDragging ? "cursor-grabbing" : "cursor-grab"
-          } absolute bottom-4 z-50 cursor-grab rounded-md text-foreground active:cursor-grabbing`}
+          } absolute bottom-4 z-20 cursor-grab rounded-md text-foreground active:cursor-grabbing`}
           onMouseEnter={() => setHoveringOnHandle(true)}
           onMouseDown={() => setGrabbingHandle(true)}
           onMouseLeave={() => {
@@ -353,7 +353,7 @@ function TabMeasureLine({
           variant={"destructive"}
           size="sm"
           disabled={audioMetadata.playing}
-          className="absolute bottom-4 left-1/2 right-1/2 z-50 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
+          className="absolute bottom-4 left-1/2 right-1/2 z-20 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
           onClick={handleDeleteMeasureLine}
         >
           <IoClose className="h-6 w-6" />
