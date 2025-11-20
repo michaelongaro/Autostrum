@@ -12,7 +12,6 @@ import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 function PlaybackMenuContent() {
   const {
     sectionProgression,
-    id,
     currentInstrument,
     chords,
     strummingPatterns,
@@ -23,7 +22,6 @@ function PlaybackMenuContent() {
     playbackModalViewingState,
   } = useTabStore((state) => ({
     sectionProgression: state.sectionProgression,
-    id: state.id,
     currentInstrument: state.currentInstrument,
     chords: state.chords,
     strummingPatterns: state.strummingPatterns,
@@ -151,7 +149,6 @@ function PlaybackMenuContent() {
                         >
                           <PlayButtonIcon
                             uniqueLocationKey={`chordPreview${index}`}
-                            tabId={id}
                             currentInstrument={currentInstrument}
                             previewMetadata={previewMetadata}
                             indexOfPattern={index}
@@ -257,7 +254,6 @@ function PlaybackMenuContent() {
                         </p>
                         <PlayButtonIcon
                           uniqueLocationKey={`strummingPatternPreview${index}`}
-                          tabId={id}
                           currentInstrument={currentInstrument}
                           previewMetadata={previewMetadata}
                           indexOfPattern={index}

@@ -20,7 +20,6 @@ function DesktopExtraTabMetadata() {
     previewMetadata,
     currentInstrument,
     audioMetadata,
-    id,
     pauseAudio,
     playPreview,
   } = useTabStore((state) => ({
@@ -30,7 +29,6 @@ function DesktopExtraTabMetadata() {
     previewMetadata: state.previewMetadata,
     currentInstrument: state.currentInstrument,
     audioMetadata: state.audioMetadata,
-    id: state.id,
     pauseAudio: state.pauseAudio,
     playPreview: state.playPreview,
   }));
@@ -229,7 +227,6 @@ function DesktopExtraTabMetadata() {
                           >
                             <PlayButtonIcon
                               uniqueLocationKey={`chordPreview${index}`}
-                              tabId={id}
                               currentInstrument={currentInstrument}
                               previewMetadata={previewMetadata}
                               indexOfPattern={index}
@@ -336,7 +333,6 @@ function DesktopExtraTabMetadata() {
                         </p>
                         <PlayButtonIcon
                           uniqueLocationKey={`strummingPatternPreview${index}`}
-                          tabId={id}
                           currentInstrument={currentInstrument}
                           previewMetadata={previewMetadata}
                           indexOfPattern={index}

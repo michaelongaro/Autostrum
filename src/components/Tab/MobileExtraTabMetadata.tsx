@@ -26,7 +26,6 @@ function MobileExtraTabMetadata() {
     previewMetadata,
     currentInstrument,
     audioMetadata,
-    id,
     pauseAudio,
     playPreview,
   } = useTabStore((state) => ({
@@ -36,7 +35,6 @@ function MobileExtraTabMetadata() {
     previewMetadata: state.previewMetadata,
     currentInstrument: state.currentInstrument,
     audioMetadata: state.audioMetadata,
-    id: state.id,
     pauseAudio: state.pauseAudio,
     playPreview: state.playPreview,
   }));
@@ -331,7 +329,6 @@ function MobileExtraTabMetadata() {
                                 >
                                   <PlayButtonIcon
                                     uniqueLocationKey={`chordPreview${index}`}
-                                    tabId={id}
                                     currentInstrument={currentInstrument}
                                     previewMetadata={previewMetadata}
                                     indexOfPattern={index}
@@ -450,7 +447,6 @@ function MobileExtraTabMetadata() {
                               </p>
                               <PlayButtonIcon
                                 uniqueLocationKey={`strummingPatternPreview${index}`}
-                                tabId={id}
                                 currentInstrument={currentInstrument}
                                 previewMetadata={previewMetadata}
                                 indexOfPattern={index}

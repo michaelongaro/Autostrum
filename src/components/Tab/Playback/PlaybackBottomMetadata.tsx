@@ -731,7 +731,6 @@ function MobileMenuDialog() {
                             >
                               <PlayButtonIcon
                                 uniqueLocationKey={`chordPreview${index}`}
-                                tabId={id}
                                 currentInstrument={currentInstrument}
                                 previewMetadata={previewMetadata}
                                 indexOfPattern={index}
@@ -837,7 +836,6 @@ function MobileMenuDialog() {
                           </p>
                           <PlayButtonIcon
                             uniqueLocationKey={`strummingPatternPreview${index}`}
-                            tabId={id}
                             currentInstrument={currentInstrument}
                             previewMetadata={previewMetadata}
                             indexOfPattern={index}

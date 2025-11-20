@@ -42,7 +42,6 @@ function PlaybackAudioControls({
   const { asPath } = useRouter();
 
   const {
-    id,
     bpm,
     playbackSpeed,
     setPlaybackSpeed,
@@ -64,7 +63,6 @@ function PlaybackAudioControls({
     playbackMetadata,
     tabIsEffectivelyEmpty,
   } = useTabStore((state) => ({
-    id: state.id,
     bpm: state.bpm,
     playbackSpeed: state.playbackSpeed,
     setPlaybackSpeed: state.setPlaybackSpeed,
@@ -199,7 +197,6 @@ function PlaybackAudioControls({
           >
             <PlayButtonIcon
               uniqueLocationKey="audioControls"
-              tabId={id}
               currentInstrument={currentInstrument}
               audioMetadata={audioMetadata}
               forceShowLoadingSpinner={fetchingFullTabData}
@@ -392,7 +389,6 @@ function PlaybackAudioControls({
                 >
                   <PlayButtonIcon
                     uniqueLocationKey="audioControls"
-                    tabId={id}
                     currentInstrument={currentInstrument}
                     audioMetadata={audioMetadata}
                     forceShowLoadingSpinner={fetchingFullTabData}

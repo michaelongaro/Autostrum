@@ -54,7 +54,6 @@ function MiscellaneousControls({
   forSectionContainer,
 }: MiscellaneousControls) {
   const {
-    id,
     bpm,
     sectionProgression,
     setSectionProgression,
@@ -67,7 +66,6 @@ function MiscellaneousControls({
     pauseAudio,
     setTabData,
   } = useTabStore((state) => ({
-    id: state.id,
     bpm: state.bpm,
     sectionProgression: state.sectionProgression,
     setSectionProgression: state.setSectionProgression,
@@ -370,7 +368,6 @@ function MiscellaneousControls({
             uniqueLocationKey={`miscControls${sectionIndex}${
               subSectionIndex ?? ""
             }${chordSequenceIndex ?? ""}`}
-            tabId={id}
             currentInstrument={currentInstrument}
             audioMetadata={audioMetadata}
             sectionIndex={sectionIndex}
