@@ -260,7 +260,7 @@ function TabMeasureLine({
           style={{
             width: columnHasBeenPlayed ? "100%" : "0%",
           }}
-          className="absolute left-0 top-1/2 z-[-1] h-[276px] w-0 -translate-y-1/2 bg-primary"
+          className="absolute left-0 top-1/2 h-[276px] w-0 -translate-y-1/2 bg-primary/25"
         ></div>
       )}
       {columnData.map((note, index) => (
