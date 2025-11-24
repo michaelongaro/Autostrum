@@ -1,7 +1,7 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { DeleteObjectsCommand, S3Client } from "@aws-sdk/client-s3";
-import type { User } from "@prisma/client";
+import type { User } from "~/generated/client";
 import {
   createTRPCRouter,
   protectedProcedure,

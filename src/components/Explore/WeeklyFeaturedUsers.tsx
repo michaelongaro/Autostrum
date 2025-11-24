@@ -13,7 +13,7 @@ import {
 } from "~/components/ui/carousel";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { formatNumber } from "~/utils/formatNumber";
-import type { User } from "@prisma/client";
+import type { User } from "~/generated/client";
 import type { MinimalTabRepresentation } from "~/server/api/routers/search";
 
 import { BsMusicNoteBeamed } from "react-icons/bs";

@@ -1,4 +1,4 @@
-import type { Tab as PrismaTab } from "@prisma/client";
+import type { Tab as PrismaTab } from "~/generated/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { FaBook } from "react-icons/fa";

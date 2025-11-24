@@ -1,4 +1,4 @@
-import type { Tab } from "@prisma/client";
+import type { Tab } from "~/generated/client";
 import type Soundfont from "soundfont-player";
 import { devtools } from "zustand/middleware";
 import { create } from "zustand";

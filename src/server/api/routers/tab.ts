@@ -3,7 +3,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import type { Tab } from "@prisma/client";
+import type { Tab } from "~/generated/client";
 import sharp from "sharp";
 import { z } from "zod";
 import { env } from "~/env";
@@ -15,7 +15,7 @@ import {
 } from "~/server/api/trpc";
 
 export interface TabWithArtistMetadata extends Tab {
-  artistId?: number;
+  artistId: number | null;
   artistName?: string;
   artistIsVerified?: boolean;
 }
