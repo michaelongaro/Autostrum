@@ -45,27 +45,30 @@ function Create() {
 
           {isAboveMediumViewport ? (
             <div className="baseFlex gap-4">
-              <BsFillPlayFill className="size-9 -rotate-12 text-foreground" />
-              <QuarterNote className="size-9 rotate-12 text-foreground" />
-              <GiMusicalScore className="size-9 -rotate-12 text-foreground" />
-              <EighthNote className="size-9 rotate-12 text-foreground" />
+              <BsFillPlayFill className="size-9 -rotate-12" />
+              <QuarterNote className="size-9 rotate-12" />
+              <GiMusicalScore className="size-9 -rotate-12" />
+              <EighthNote
+                className="size-9 rotate-12"
+                viewBox="20 170 110 210"
+              />
             </div>
           ) : (
-            <div className="baseFlex">
+            <div className="baseFlex mr-1">
               <div className="relative -right-6 top-0.5 z-30 -rotate-6 rounded-lg border bg-background p-2 shadow-sm">
-                <BsFillPlayFill className="size-6 text-foreground" />
+                <BsFillPlayFill className="size-6" />
               </div>
 
               <div className="relative -right-4 z-20 -rotate-3 rounded-lg border bg-background p-2 shadow-sm">
-                <QuarterNote className="size-6 text-foreground" />
+                <QuarterNote className="size-6" />
               </div>
 
               <div className="relative -right-2 z-10 rotate-3 rounded-lg border bg-background p-2 shadow-sm">
-                <GiMusicalScore className="size-6 text-foreground" />
+                <GiMusicalScore className="size-6" />
               </div>
 
               <div className="relative top-0.5 rotate-6 rounded-lg border bg-background p-2 shadow-sm">
-                <EighthNote className="size-6 text-foreground" />
+                <EighthNote className="size-6" viewBox="20 170 110 210" />
               </div>
             </div>
           )}
