@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import superjson from "superjson";
 import { Separator } from "~/components/ui/separator";
 import { api } from "~/utils/api";
-import { PrismaClient, type User } from "@prisma/client";
+import { PrismaClient, type User } from "../../generated/client";
 import type { GetStaticProps } from "next";
 import GuitarImage from "public/explore/header.jpg";
 import GenreCards from "~/components/Explore/GenreCards";
@@ -25,6 +25,12 @@ import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { useTabStore } from "~/stores/TabStore";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { env } from "~/env";
+
+const adapter = new PrismaPg({
+  connectionString: env.DATABASE_URL,
+});
 
 const LENGTH_FIFTEEN_ARRAY = Array.from({ length: 15 }, (_, i) => i + 1);
 
@@ -246,7 +252,7 @@ function Explore({ json }: { json: string }) {
 export default Explore;
 
 export const getStaticProps: GetStaticProps = async () => {
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({ adapter });
 
   // get the five weekly featured users' userIds
   const featuredUserIds = await prisma.weeklyFeaturedUser.findMany({

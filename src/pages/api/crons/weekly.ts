@@ -1,6 +1,11 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../../generated/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { env } from "~/env";
+import { PrismaPg } from "@prisma/adapter-pg";
+
+const adapter = new PrismaPg({
+  connectionString: env.DATABASE_URL,
+});
 
 export default async function handler(
   req: NextApiRequest,
@@ -20,7 +25,7 @@ export default async function handler(
     return res.status(405).json({ message: "Method Not Allowed" });
   }
 
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({ adapter });
 
   try {
     // Get the top users based on weekly tab views

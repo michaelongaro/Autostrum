@@ -1,10 +1,15 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../generated/client";
 import { env } from "process";
 import pLimit from "p-limit";
 import sharp from "sharp";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({
+  connectionString: env.DATABASE_URL,
+});
+
+const prisma = new PrismaClient({ adapter });
 
 // FYI: directly running this from node, didn't like the "~/" import of T3 env package,
 // just using process.env directly

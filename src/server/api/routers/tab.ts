@@ -15,6 +15,7 @@ import {
 } from "~/server/api/trpc";
 
 export interface TabWithArtistMetadata extends Tab {
+  artistId?: number;
   artistName?: string;
   artistIsVerified?: boolean;
 }

@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../../generated/client";
 import { z } from "zod";
 import { tuningNotes } from "~/utils/tunings";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
