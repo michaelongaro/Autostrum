@@ -826,11 +826,15 @@ function AudioControls() {
                     : 1
                 }
                 values={[
-                  currentChordIndex +
-                    (audioMetadata.playing &&
-                    currentChordIndex !== currentlyPlayingMetadata!.length - 1
-                      ? 1
-                      : 0),
+                  Math.min(
+                    currentChordIndex +
+                      (audioMetadata.playing &&
+                      currentChordIndex !==
+                        (currentlyPlayingMetadata?.length ?? 1) - 1
+                        ? 1
+                        : 0),
+                    (currentlyPlayingMetadata?.length ?? 1) - 1,
+                  ),
                 ]}
                 disabled={disablePlayButton}
                 onChange={(values) => {
@@ -889,17 +893,17 @@ function AudioControls() {
                         <div
                           id="editingSliderTrack"
                           style={{
-                            transform: `scaleX(${
+                            transform: `scaleX(${Math.min(
                               (currentChordIndex +
                                 (audioMetadata.playing &&
                                 currentChordIndex !==
-                                  currentlyPlayingMetadata!.length - 1
+                                  (currentlyPlayingMetadata?.length ?? 1) - 1
                                   ? 1
                                   : 0)) /
-                              (currentlyPlayingMetadata
-                                ? currentlyPlayingMetadata.length - 1
-                                : 1)
-                            })`,
+                                ((currentlyPlayingMetadata?.length ?? 1) - 1 ||
+                                  1),
+                              1,
+                            )})`,
                             transitionProperty: "transform",
                             transitionTimingFunction: "linear",
                             transitionDuration: `${

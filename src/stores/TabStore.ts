@@ -942,25 +942,28 @@ const useTabStoreBase = create<TabState>()(
             : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
 
         // TODO: add support for specific sections
-        const expandedTabData = expandFullTab({
-          tabData,
-          location: audioMetadata.location,
-          sectionProgression: sanitizedSectionProgression,
-          chords,
-          baselineBpm,
-          playbackSpeed,
-          setPlaybackMetadata,
-          startLoopIndex: adjStartLoopIndex,
-          endLoopIndex: adjEndLoopIndex,
-          loopDelay,
-          visiblePlaybackContainerWidth,
-        });
+        const expandedTabData = editing
+          ? null
+          : expandFullTab({
+              tabData,
+              location: audioMetadata.location,
+              sectionProgression: sanitizedSectionProgression,
+              chords,
+              baselineBpm,
+              playbackSpeed,
+              setPlaybackMetadata,
+              startLoopIndex: adjStartLoopIndex,
+              endLoopIndex: adjEndLoopIndex,
+              loopDelay,
+              visiblePlaybackContainerWidth,
+            });
 
         // note: technically you could have similar duplication logic in regular compilationHelper
         // function, however I think it's cleaner to just augment the loop range with the % operator
         // to achieve the same effect
         const repeatedChordCount =
-          compiledChords.length * expandedTabData.loopCounter;
+          compiledChords.length *
+          (expandedTabData === null ? 1 : expandedTabData.loopCounter);
 
         for (
           let chordIndex = currentChordIndex;
@@ -1043,7 +1046,7 @@ const useTabStoreBase = create<TabState>()(
 
             // Reset chordIndex to -1 so that after the loop's increment, it becomes 0
             chordIndex = -1;
-          } else if (chordIndex === repeatedChordCount - 1) {
+          } else if (!looping && chordIndex === repeatedChordCount - 1) {
             // If not looping, stop the playback
             set({
               audioMetadata: {
