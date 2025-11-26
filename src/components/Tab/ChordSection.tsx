@@ -15,15 +15,15 @@ const opacityAndScaleVariants = {
     scale: 1,
     transition: {
       ease: "easeInOut" as const,
-      duration: 0.25,
+      duration: 0.35,
     },
   },
   closed: {
     opacity: 0,
-    scale: 0.5,
+    scale: 0.75,
     transition: {
       ease: "easeInOut" as const,
-      duration: 0.25,
+      duration: 0.35,
     },
   },
 };
