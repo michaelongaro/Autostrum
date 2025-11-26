@@ -14,7 +14,6 @@ import {
 } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { FaEye } from "react-icons/fa";
-import { domToDataUrl } from "modern-screenshot";
 import { BsPlus } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
 import { MdModeEditOutline } from "react-icons/md";
@@ -286,10 +285,8 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
   const [disableCreatedAtLayout, setDisableCreatedAtLayout] = useState(false);
   const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
   const [takingScreenshot, setTakingScreenshot] = useState(false);
-  const [screenshotTheme, setScreenshotTheme] = useState<"light" | "dark">(
-    "light",
-  );
-  const tabPreviewScreenshotRef = useRef(null);
+  const tabPreviewScreenshotLightRef = useRef(null);
+  const tabPreviewScreenshotDarkRef = useRef(null);
 
   const [showPublishPopover, setShowPublishPopover] = useState(false);
 
@@ -402,35 +399,21 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     setTakingScreenshot(true);
 
     const tabData = getTabData();
+    setMinifiedTabData(tabData.slice(0, 2)); // screenshot can never show more than 2 sections
 
-    // Capture light theme screenshot
-    flushSync(() => {
-      setScreenshotTheme("light");
-      setMinifiedTabData(tabData.slice(0, 2)); // screenshot can never show more than 2 sections
-    });
+    const { domToDataUrl } = await import("modern-screenshot");
 
-    await waitForNextPaint();
+    // not ideal, but giving DOM extra time to render
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    const lightScreenshot = await domToDataUrl(
-      tabPreviewScreenshotRef.current!,
-      {
+    const [lightScreenshot, darkScreenshot] = await Promise.all([
+      domToDataUrl(tabPreviewScreenshotLightRef.current!, {
         quality: 0.75,
-      },
-    );
-
-    // Capture dark theme screenshot
-    flushSync(() => {
-      setScreenshotTheme("dark");
-    });
-
-    await waitForNextPaint();
-
-    const darkScreenshot = await domToDataUrl(
-      tabPreviewScreenshotRef.current!,
-      {
+      }),
+      domToDataUrl(tabPreviewScreenshotDarkRef.current!, {
         quality: 0.75,
-      },
-    );
+      }),
+    ]);
 
     if (asPath.includes("create")) {
       publishTab({
@@ -1583,10 +1566,10 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
         createPortal(
           <div className="size-full overflow-hidden">
             <div
-              ref={tabPreviewScreenshotRef}
-              id="tabPreviewScreenshot"
+              ref={tabPreviewScreenshotLightRef}
+              id="tabPreviewScreenshotLight"
               style={{
-                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS][screenshotTheme]["screenshot-background"]})`,
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["light" as "light" | "dark"]["screenshot-background"]})`,
               }}
               className="baseFlex h-[615px] w-[1318px] grayscale"
             >
@@ -1594,7 +1577,23 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                 tabData={minifiedTabData}
                 bpm={bpm}
                 color={"peony"}
-                theme={screenshotTheme}
+                theme={"light"}
+              />
+            </div>
+
+            <div
+              ref={tabPreviewScreenshotDarkRef}
+              id="tabPreviewScreenshotDark"
+              style={{
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["dark" as "light" | "dark"]["screenshot-background"]})`,
+              }}
+              className="baseFlex h-[615px] w-[1318px] grayscale"
+            >
+              <TabScreenshotPreview
+                tabData={minifiedTabData}
+                bpm={bpm}
+                color={"peony"}
+                theme={"dark"}
               />
             </div>
           </div>,
