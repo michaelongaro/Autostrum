@@ -1,5 +1,6 @@
+import "dotenv/config";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { PrismaClient } from "../generated/client";
+import { PrismaClient } from "../generated/client.js";
 import { env } from "process";
 import pLimit from "p-limit";
 import sharp from "sharp";
