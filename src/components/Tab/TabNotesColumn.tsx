@@ -309,7 +309,7 @@ function TabNotesColumn({
           style={{
             marginTop:
               reorderingColumns || showingDeleteColumnsButtons ? "8px" : "0",
-            backgroundColor: "hsl(var(--primary) / 0.25)",
+            backgroundColor: "hsl(var(--primary) / 0.15)",
             transform:
               highlightChord || columnHasBeenPlayed
                 ? `scaleX(${isLastColumn ? "0.8" : "1"})` // makes sure that "endcap" doesn't get highlighted as well
