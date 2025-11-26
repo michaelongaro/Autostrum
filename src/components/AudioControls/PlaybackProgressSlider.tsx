@@ -258,7 +258,7 @@ function PlaybackProgressSlider({
                   filter: disabled ? "brightness(0.75)" : "none",
                   alignSelf: "center",
                 }}
-                className={`relative w-full bg-[hsl(var(--gray)/0.75)] mobileLandscape:w-[95%]`}
+                className={`relative w-full bg-[hsl(var(--gray)/0.5)] mobileLandscape:w-[95%]`}
               >
                 <div className="absolute left-0 top-0 h-full w-full overflow-hidden rounded-[4px]">
                   <div
