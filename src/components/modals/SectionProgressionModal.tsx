@@ -383,7 +383,7 @@ function Section({
             <span className="text-sm">Repeat</span>
 
             <div className="relative w-12">
-              <span className="absolute bottom-[10px] left-2 text-sm sm:bottom-[9px]">
+              <span className="pointer-events-none absolute bottom-[10px] left-2 text-sm sm:bottom-[9px]">
                 x
               </span>
               <Input

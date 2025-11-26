@@ -273,7 +273,7 @@ function ChordSequence({
                   Repetitions
                 </Label>
                 <div className="relative w-12">
-                  <span className="absolute bottom-[9px] left-2 text-sm">
+                  <span className="pointer-events-none absolute bottom-[9px] left-2 text-sm">
                     x
                   </span>
                   <Input

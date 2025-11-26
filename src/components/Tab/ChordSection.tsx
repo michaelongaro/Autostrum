@@ -138,7 +138,9 @@ function ChordSection({ sectionIndex, subSectionIndex }: ChordSection) {
                 Repetitions
               </Label>
               <div className="relative w-12">
-                <span className="absolute bottom-[9px] left-2 text-sm">x</span>
+                <span className="pointer-events-none absolute bottom-[9px] left-2 text-sm">
+                  x
+                </span>
                 <Input
                   id={`sectionIndex${sectionIndex}subSectionIndex${subSectionIndex}repetitions`}
                   type="text"
