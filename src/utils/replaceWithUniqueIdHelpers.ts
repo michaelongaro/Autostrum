@@ -3,6 +3,8 @@ import {
   type ChordSection,
   type TabSection,
   type Section,
+  type TabNote,
+  type TabMeasureLine,
 } from "~/stores/TabStore";
 
 function replaceIdInChordSequence(seq: ChordSequence): ChordSequence {
@@ -17,16 +19,11 @@ function replaceIdInChordSection(section: ChordSection): ChordSection {
   };
 }
 
-function replaceIdInTabData(data: string[][]): string[][] {
+function replaceIdInTabData(
+  data: (TabNote | TabMeasureLine)[],
+): (TabNote | TabMeasureLine)[] {
   return data.map((item) => {
-    if (item.length > 9) {
-      // Check if index 9 exists
-      return [
-        ...item.slice(0, 9), // Take elements from index 0 to 8
-        crypto.randomUUID(), // Replace 9th index with unique ID
-      ];
-    }
-    return item;
+    return { ...item, id: crypto.randomUUID() };
   });
 }
 

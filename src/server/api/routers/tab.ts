@@ -114,6 +114,39 @@ const chordSectionSchema = z.object({
 });
 
 // -----------------------------
+// Tab Note
+// -----------------------------
+const tabNoteSchema = z.object({
+  type: z.literal("note"),
+  palmMute: z.union([
+    z.literal(""),
+    z.literal("-"),
+    z.literal("start"),
+    z.literal("end"),
+  ]),
+  firstString: z.string(), // low E
+  secondString: z.string(), // A
+  thirdString: z.string(), // D
+  fourthString: z.string(), // G
+  fifthString: z.string(), // B
+  sixthString: z.string(), // high E
+  chordEffects: z.string(),
+  noteLength: fullNoteLengths,
+  noteLengthModified: z.boolean(),
+  id: z.string(),
+});
+
+// -----------------------------
+// Tab Measure Line
+// -----------------------------
+const tabMeasureLineSchema = z.object({
+  type: z.literal("measureLine"),
+  isInPalmMuteSection: z.boolean(),
+  bpmAfterLine: z.number().nullable(),
+  id: z.string(),
+});
+
+// -----------------------------
 // Tab Section
 // -----------------------------
 const tabSectionSchema = z.object({
@@ -122,7 +155,9 @@ const tabSectionSchema = z.object({
   bpm: z.number(),
   baseNoteLength: baseNoteLengths,
   repetitions: z.number(),
-  data: z.array(z.array(z.string())),
+  data: z.array(
+    z.discriminatedUnion("type", [tabNoteSchema, tabMeasureLineSchema]),
+  ),
 });
 
 // -----------------------------

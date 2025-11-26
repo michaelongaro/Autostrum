@@ -2,16 +2,14 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
 import { Element } from "react-scroll";
-import {
-  Fragment,
-  useEffect,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
-import { useTabStore, type FullNoteLengths } from "~/stores/TabStore";
+import {
+  useTabStore,
+  type FullNoteLengths,
+  type TabNote as TabNoteType,
+} from "~/stores/TabStore";
 import { BsPlus } from "react-icons/bs";
 import {
   DropdownMenu,
@@ -28,10 +26,16 @@ import Ellipsis from "~/components/ui/icons/Ellipsis";
 import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
 import { NoteLengthDropdown } from "./NoteLengthDropdown";
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
+import {
+  createTabNote,
+  getStringValue,
+  isTabMeasureLine,
+  isTabNote,
+} from "~/utils/tabNoteHelpers";
 
 const noteLengthDurations = ["quarter", "eighth", "sixteenth"];
-interface TabNotesColumn {
-  columnData: string[];
+interface TabNotesColumnProps {
+  columnData: TabNoteType;
   sectionIndex: number;
   subSectionIndex: number;
   columnIndex: number;
@@ -74,7 +78,7 @@ function TabNotesColumn({
   showingDeleteColumnsButtons,
   columnIdxBeingHovered,
   setColumnIdxBeingHovered,
-}: TabNotesColumn) {
+}: TabNotesColumnProps) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
   const [highlightChord, setHighlightChord] = useState(false);
@@ -90,7 +94,7 @@ function TabNotesColumn({
     transition,
     isDragging,
   } = useSortable({
-    id: columnData[10]!,
+    id: columnData.id,
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
@@ -112,23 +116,23 @@ function TabNotesColumn({
       : undefined;
 
   const previousColumnIsPlayable =
-    previousColumn !== undefined && previousColumn[8] !== "measureLine";
+    previousColumn !== undefined && isTabNote(previousColumn);
   const nextColumnIsPlayable =
-    nextColumn !== undefined && nextColumn[8] !== "measureLine";
+    nextColumn !== undefined && isTabNote(nextColumn);
 
   const previousNoteLength = previousColumnIsPlayable
-    ? (previousColumn[8] as FullNoteLengths)
+    ? previousColumn.noteLength
     : undefined;
   const nextNoteLength = nextColumnIsPlayable
-    ? (nextColumn[8] as FullNoteLengths)
+    ? nextColumn.noteLength
     : undefined;
 
   const previousIsRestStrum = previousColumnIsPlayable
-    ? previousColumn[7] === "r"
+    ? previousColumn.chordEffects === "r"
     : undefined;
-  const currentIsRestStrum = columnData[7] === "r";
+  const currentIsRestStrum = columnData.chordEffects === "r";
   const nextIsRestStrum = nextColumnIsPlayable
-    ? nextColumn[7] === "r"
+    ? nextColumn.chordEffects === "r"
     : undefined;
 
   // ideally don't need this and can just use prop values passed in, but need to have
@@ -157,21 +161,28 @@ function TabNotesColumn({
       disabled = true;
     }
 
+    const prevColumn = subSection.data[columnIndex - 1];
+    const nextColumnData = subSection.data[columnIndex + 1];
+
     // if the current chord is the first/last "elem" in the section and there is a measure line
     // right after/before -> disable
     if (
       (columnIndex === 0 &&
-        subSection.data[columnIndex + 1]?.[8] === "measureLine") ||
+        nextColumnData &&
+        isTabMeasureLine(nextColumnData)) ||
       (columnIndex === subSection.data.length - 1 &&
-        subSection.data[columnIndex - 1]?.[8] === "measureLine")
+        prevColumn &&
+        isTabMeasureLine(prevColumn))
     ) {
       disabled = true;
     }
 
     // if the current chord is being flanked by two measure lines -> disable
     if (
-      subSection.data[columnIndex - 1]?.[8] === "measureLine" &&
-      subSection.data[columnIndex + 1]?.[8] === "measureLine"
+      prevColumn &&
+      isTabMeasureLine(prevColumn) &&
+      nextColumnData &&
+      isTabMeasureLine(nextColumnData)
     ) {
       disabled = true;
     }
@@ -190,7 +201,10 @@ function TabNotesColumn({
       if (currentSubSection === undefined || currentSubSection.type !== "tab")
         return;
 
-      const currentPalmMuteNodeValue = currentSubSection.data[columnIndex]?.[0];
+      const currentColumn = currentSubSection.data[columnIndex];
+      if (!currentColumn || !isTabNote(currentColumn)) return;
+
+      const currentPalmMuteNodeValue = currentColumn.palmMute;
 
       const currentTabSectionLength =
         draft[sectionIndex]?.data[subSectionIndex]?.data.length ?? 0;
@@ -198,24 +212,28 @@ function TabNotesColumn({
       if (currentPalmMuteNodeValue === "start") {
         let index = 0;
         while (index < currentTabSectionLength) {
-          if (currentSubSection?.data[index]?.[0] === "end") {
-            currentSubSection.data[index]![0] = "";
-            break;
+          const col = currentSubSection.data[index];
+          if (col && isTabNote(col)) {
+            if (col.palmMute === "end") {
+              col.palmMute = "";
+              break;
+            }
+            col.palmMute = "";
           }
-
-          currentSubSection.data[index]![0] = "";
 
           index++;
         }
       } else if (currentPalmMuteNodeValue === "end") {
         let index = currentTabSectionLength - 1;
         while (index >= 0) {
-          if (currentSubSection?.data[index]?.[0] === "start") {
-            currentSubSection.data[index]![0] = "";
-            break;
+          const col = currentSubSection.data[index];
+          if (col && isTabNote(col)) {
+            if (col.palmMute === "start") {
+              col.palmMute = "";
+              break;
+            }
+            col.palmMute = "";
           }
-
-          currentSubSection.data[index]![0] = "";
 
           index--;
         }
@@ -231,25 +249,17 @@ function TabNotesColumn({
       if (currentSubSection === undefined || currentSubSection.type !== "tab")
         return;
 
-      const newColumnPalmMuteValue =
-        (columnData[0] === "start" && after) ||
-        (columnData[0] === "end" && !after) ||
-        columnData[0] === "-"
+      const newColumnPalmMuteValue: "" | "-" =
+        (columnData.palmMute === "start" && after) ||
+        (columnData.palmMute === "end" && !after) ||
+        columnData.palmMute === "-"
           ? "-"
           : "";
 
-      const newColumnData = [
-        newColumnPalmMuteValue,
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "quarter", // will be overwritten by note length if it's specified
-        crypto.randomUUID(),
-      ];
+      const newColumnData = createTabNote({
+        palmMute: newColumnPalmMuteValue,
+        noteLength: "quarter", // will be overwritten by note length if it's specified
+      });
 
       currentSubSection.data.splice(
         after ? columnIndex + 1 : columnIndex,
@@ -266,14 +276,17 @@ function TabNotesColumn({
       if (currentSubSection === undefined || currentSubSection.type !== "tab")
         return;
 
-      currentSubSection.data[columnIndex]![8] = noteLength;
-      currentSubSection.data[columnIndex]![9] = "true"; // noteLengthModified
+      const column = currentSubSection.data[columnIndex];
+      if (column && isTabNote(column)) {
+        column.noteLength = noteLength;
+        column.noteLengthModified = true;
+      }
     });
   }
 
   return (
     <motion.div
-      key={columnData[10]}
+      key={columnData.id}
       // id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
       ref={setNodeRef}
       style={{
@@ -310,139 +323,132 @@ function TabNotesColumn({
         ></div>
 
         <div className="baseVertFlex mb-[3.2rem] mt-4 gap-2">
-          {columnData.map((note, index) => (
-            <Fragment key={index}>
-              {index === 0 && (
-                <div className="baseFlex h-9 w-full">
-                  <PalmMuteNode
-                    value={note}
-                    columnIndex={columnIndex}
-                    sectionIndex={sectionIndex}
-                    subSectionIndex={subSectionIndex}
-                    opacity={pmNodeOpacity}
-                    editingPalmMuteNodes={editingPalmMuteNodes}
-                    setEditingPalmMuteNodes={setEditingPalmMuteNodes}
-                    lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
-                    setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
-                  />
-                </div>
-              )}
+          {/* Palm Mute Node */}
+          <div className="baseFlex h-9 w-full">
+            <PalmMuteNode
+              value={columnData.palmMute}
+              columnIndex={columnIndex}
+              sectionIndex={sectionIndex}
+              subSectionIndex={subSectionIndex}
+              opacity={pmNodeOpacity}
+              editingPalmMuteNodes={editingPalmMuteNodes}
+              setEditingPalmMuteNodes={setEditingPalmMuteNodes}
+              lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+              setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
+            />
+          </div>
 
-              {index === 1 &&
-                (columnIdxBeingHovered === columnIndex ||
-                  chordSettingDropdownIsOpen) && (
-                  <div
-                    key={`${columnData[10]!}chordSettings`}
-                    style={{
-                      bottom:
-                        showingDeleteColumnsButtons || reorderingColumns
-                          ? "32px"
-                          : "40px",
-                    }}
-                    className={`absolute ${isLastColumn ? "right-7" : ""} `}
+          {/* Chord Settings Dropdown */}
+          {(columnIdxBeingHovered === columnIndex ||
+            chordSettingDropdownIsOpen) && (
+            <div
+              key={`${columnData.id}chordSettings`}
+              style={{
+                bottom:
+                  showingDeleteColumnsButtons || reorderingColumns
+                    ? "32px"
+                    : "40px",
+              }}
+              className={`absolute ${isLastColumn ? "right-7" : ""} `}
+            >
+              <DropdownMenu
+                modal={true}
+                open={chordSettingDropdownIsOpen}
+                onOpenChange={(open) => setChordSettingDropdownIsOpen(open)}
+              >
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-2 w-4 !p-0">
+                    <Ellipsis className="h-3 w-4 rotate-90" />
+                  </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent side={"bottom"}>
+                  <DropdownMenuItem
+                    className="baseFlex !justify-between gap-2"
+                    onClick={() => addNewColumn(false)}
                   >
-                    <DropdownMenu
-                      modal={true}
-                      open={chordSettingDropdownIsOpen}
-                      onOpenChange={(open) =>
-                        setChordSettingDropdownIsOpen(open)
-                      }
-                    >
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-2 w-4 !p-0">
-                          <Ellipsis className="h-3 w-4 rotate-90" />
-                        </Button>
-                      </DropdownMenuTrigger>
-
-                      <DropdownMenuContent side={"bottom"}>
-                        <DropdownMenuItem
-                          className="baseFlex !justify-between gap-2"
-                          onClick={() => addNewColumn(false)}
-                        >
-                          Add chord before
-                          <BsPlus className="h-4 w-4" />
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="baseFlex !justify-between gap-2"
-                          onClick={() => addNewColumn(true)}
-                        >
-                          Add chord after
-                          <BsPlus className="h-4 w-4" />
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-primary" />
-                        <NoteLengthDropdown
-                          value={columnData[8]}
-                          onValueChange={handleNoteLengthChange}
-                        />
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                )}
-
-              {index > 0 && index < 7 && (
-                <div
-                  style={{
-                    borderTop: `${index === 1 ? "2px solid" : "none"}`,
-                    paddingTop: `${index === 1 ? "7px" : "0"}`,
-                    borderBottom: `${index === 6 ? "2px solid" : "none"}`,
-                    paddingBottom: `${index === 6 ? "7px" : "0"}`,
-                    transition: "width 0.15s ease-in-out",
-                    // maybe also need "flex-basis: content" here if editing?
-                  }}
-                  className="baseFlex relative w-12 basis-[content]"
-                >
-                  <div className="h-[1px] flex-[1] bg-foreground/50"></div>
-
-                  <TabNote
-                    note={note}
-                    sectionIndex={sectionIndex}
-                    subSectionIndex={subSectionIndex}
-                    columnIndex={columnIndex}
-                    noteIndex={index}
+                    Add chord before
+                    <BsPlus className="h-4 w-4" />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="baseFlex !justify-between gap-2"
+                    onClick={() => addNewColumn(true)}
+                  >
+                    Add chord after
+                    <BsPlus className="h-4 w-4" />
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-primary" />
+                  <NoteLengthDropdown
+                    value={columnData.noteLength}
+                    onValueChange={handleNoteLengthChange}
                   />
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
 
-                  <div className="h-[1px] flex-[1] bg-foreground/50"></div>
-                </div>
-              )}
+          {/* String Notes (1-6) */}
+          {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => (
+            <div
+              key={stringIndex}
+              style={{
+                borderTop: `${stringIndex === 1 ? "2px solid" : "none"}`,
+                paddingTop: `${stringIndex === 1 ? "7px" : "0"}`,
+                borderBottom: `${stringIndex === 6 ? "2px solid" : "none"}`,
+                paddingBottom: `${stringIndex === 6 ? "7px" : "0"}`,
+                transition: "width 0.15s ease-in-out",
+                // maybe also need "flex-basis: content" here if editing?
+              }}
+              className="baseFlex relative w-12 basis-[content]"
+            >
+              <div className="h-[1px] flex-[1] bg-foreground/50"></div>
 
-              {index === 7 &&
-                !reorderingColumns &&
-                !showingDeleteColumnsButtons && (
-                  <div className="relative h-0 w-full">
-                    <div className="absolute left-1/2 right-1/2 top-2 w-[29px] -translate-x-1/2">
-                      <TabNote
-                        note={note}
-                        sectionIndex={sectionIndex}
-                        subSectionIndex={subSectionIndex}
-                        columnIndex={columnIndex}
-                        noteIndex={index}
-                      />
-                    </div>
-                  </div>
-                )}
+              <TabNote
+                note={getStringValue(columnData, stringIndex)}
+                sectionIndex={sectionIndex}
+                subSectionIndex={subSectionIndex}
+                columnIndex={columnIndex}
+                noteIndex={stringIndex}
+              />
 
-              {index === 7 && columnData[8] !== "measureLine" && (
-                <div
-                  style={{
-                    bottom:
-                      showingDeleteColumnsButtons || reorderingColumns
-                        ? "-1.5rem"
-                        : "-1rem",
-                  }}
-                  className={`baseVertFlex absolute ${isLastColumn ? "left-[42%]" : "left-[53%]"} right-1/2 h-4 w-full -translate-x-1/2`}
-                >
-                  {renderStrummingGuide({
-                    previousNoteLength,
-                    currentNoteLength: columnData[8] as FullNoteLengths,
-                    nextNoteLength,
-                    previousIsRestStrum,
-                    currentIsRestStrum,
-                    nextIsRestStrum,
-                  })}
-                </div>
-              )}
-            </Fragment>
+              <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+            </div>
           ))}
+
+          {/* Chord Effects */}
+          {!reorderingColumns && !showingDeleteColumnsButtons && (
+            <div className="relative h-0 w-full">
+              <div className="absolute left-1/2 right-1/2 top-2 w-[29px] -translate-x-1/2">
+                <TabNote
+                  note={columnData.chordEffects}
+                  sectionIndex={sectionIndex}
+                  subSectionIndex={subSectionIndex}
+                  columnIndex={columnIndex}
+                  noteIndex={7}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Strumming Guide */}
+          <div
+            style={{
+              bottom:
+                showingDeleteColumnsButtons || reorderingColumns
+                  ? "-1.5rem"
+                  : "-1rem",
+            }}
+            className={`baseVertFlex absolute ${isLastColumn ? "left-[42%]" : "left-[53%]"} right-1/2 h-4 w-full -translate-x-1/2`}
+          >
+            {renderStrummingGuide({
+              previousNoteLength,
+              currentNoteLength: columnData.noteLength,
+              nextNoteLength,
+              previousIsRestStrum,
+              currentIsRestStrum,
+              nextIsRestStrum,
+            })}
+          </div>
         </div>
 
         {isLastColumn && (

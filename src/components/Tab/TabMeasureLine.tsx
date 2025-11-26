@@ -1,7 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import {
@@ -9,15 +9,19 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { useTabStore } from "~/stores/TabStore";
+import {
+  useTabStore,
+  type TabMeasureLine as TabMeasureLineType,
+} from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
+import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
 
-interface TabMeasureLine {
-  columnData: string[];
+interface TabMeasureLineProps {
+  columnData: TabMeasureLineType;
   sectionIndex: number;
   subSectionIndex: number;
   columnIndex: number;
@@ -34,7 +38,7 @@ function TabMeasureLine({
   reorderingColumns,
   showingDeleteColumnsButtons,
   columnHasBeenPlayed,
-}: TabMeasureLine) {
+}: TabMeasureLineProps) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
   const {
@@ -46,7 +50,7 @@ function TabMeasureLine({
     transition,
     isDragging,
   } = useSortable({
-    id: columnData[10]!,
+    id: columnData.id,
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
@@ -65,15 +69,19 @@ function TabMeasureLine({
   }
 
   function handleBpmChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const newBpm = e.target.value.length === 0 ? -1 : parseInt(e.target.value);
-    if (isNaN(newBpm) || newBpm > 500) return;
+    const newBpm =
+      e.target.value.length === 0 ? null : parseInt(e.target.value);
+    if (newBpm !== null && (isNaN(newBpm) || newBpm > 500)) return;
 
     setTabData((draft) => {
       const section = draft[sectionIndex]!.data[subSectionIndex];
 
       if (!section || section.type !== "tab") return;
 
-      section.data[columnIndex]![7] = `${newBpm}`;
+      const column = section.data[columnIndex];
+      if (column && isTabMeasureLine(column)) {
+        column.bpmAfterLine = newBpm;
+      }
     });
   }
 
@@ -88,8 +96,9 @@ function TabMeasureLine({
     if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
 
+      const prevColumn = subSection.data[columnIndex - 1];
       const adjColumnIndex =
-        subSection.data[columnIndex - 1]?.[7] === "|"
+        prevColumn && isTabMeasureLine(prevColumn)
           ? columnIndex - 2
           : columnIndex - 1;
 
@@ -111,8 +120,9 @@ function TabMeasureLine({
         return;
       }
 
+      const nextColumn = subSection.data[columnIndex + 1];
       const adjColumnIndex =
-        subSection.data[columnIndex + 1]?.[7] === "|"
+        nextColumn && isTabMeasureLine(nextColumn)
           ? columnIndex + 2
           : columnIndex + 1;
 
@@ -240,7 +250,7 @@ function TabMeasureLine({
 
   return (
     <motion.div
-      key={columnData[10]}
+      key={columnData.id}
       ref={setNodeRef}
       style={{
         transform: CSS.Transform.toString(
@@ -263,61 +273,61 @@ function TabMeasureLine({
           className="absolute left-0 top-1/2 h-[276px] w-0 -translate-y-1/2 bg-primary/25"
         ></div>
       )}
-      {columnData.map((note, index) => (
-        <Fragment key={index}>
-          {index === 0 && (
-            <div className="baseFlex mb-0 h-0 w-full">
-              {note === "-" && (
-                <div className="relative top-[-26px] h-[1px] w-full bg-foreground"></div>
-              )}
-            </div>
-          )}
 
-          {index > 0 && index < 7 && (
-            <div className="baseFlex w-full">{renderMeasureLine(index)}</div>
-          )}
+      {/* Palm mute connecting line (shown when measure line is inside palm mute section) */}
+      <div className="baseFlex mb-0 h-0 w-full">
+        {columnData.isInPalmMuteSection && (
+          <div className="relative top-[-26px] h-[1px] w-full bg-foreground"></div>
+        )}
+      </div>
 
-          {index === 8 &&
-            !reorderingColumns &&
-            !showingDeleteColumnsButtons && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`}
-                    className="absolute bottom-9 h-5 w-5 rounded-full p-[0.125rem]"
-                    onKeyDown={handleKeyDown}
-                  >
-                    <QuarterNote className="mr-[1px] h-[1rem]" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="baseVertFlex !z-10 w-52 gap-4 p-2"
-                  side="bottom"
-                >
-                  <p className="w-auto text-center text-sm">
-                    Specify a new BPM for the following measure
-                  </p>
-
-                  <div className="baseFlex gap-2">
-                    <QuarterNote className="fill-foreground" />
-
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      className="placeholder:text-grey-800/50 h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
-                      placeholder={inputPlaceholder()}
-                      value={
-                        columnData[7] === "-1" ? "" : columnData[7]!.toString()
-                      }
-                      onChange={handleBpmChange}
-                    />
-                  </div>
-                </PopoverContent>
-              </Popover>
-            )}
-        </Fragment>
+      {/* Render measure line for each string (indices 1-6) */}
+      {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => (
+        <div key={stringIndex} className="baseFlex w-full">
+          {renderMeasureLine(stringIndex)}
+        </div>
       ))}
+
+      {/* BPM popover */}
+      {!reorderingColumns && !showingDeleteColumnsButtons && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`}
+              className="absolute bottom-9 h-5 w-5 rounded-full p-[0.125rem]"
+              onKeyDown={handleKeyDown}
+            >
+              <QuarterNote className="mr-[1px] h-[1rem]" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="baseVertFlex !z-10 w-52 gap-4 p-2"
+            side="bottom"
+          >
+            <p className="w-auto text-center text-sm">
+              Specify a new BPM for the following measure
+            </p>
+
+            <div className="baseFlex gap-2">
+              <QuarterNote className="fill-foreground" />
+
+              <Input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                className="placeholder:text-grey-800/50 h-8 w-11 px-2 md:h-10 md:w-[52px] md:px-3"
+                placeholder={inputPlaceholder()}
+                value={
+                  columnData.bpmAfterLine === null
+                    ? ""
+                    : columnData.bpmAfterLine.toString()
+                }
+                onChange={handleBpmChange}
+              />
+            </div>
+          </PopoverContent>
+        </Popover>
+      )}
 
       {reorderingColumns && (
         <div

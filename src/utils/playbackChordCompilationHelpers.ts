@@ -17,6 +17,11 @@ import {
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
 import isEqual from "lodash.isequal";
+import {
+  isTabMeasureLine,
+  isTabNote,
+  tabColumnToArray,
+} from "./tabNoteHelpers";
 
 interface ExpandFullTab {
   tabData: Section[];
@@ -548,34 +553,38 @@ function expandTabSection({
   }
 
   for (let chordIdx = 0; chordIdx < data.length; chordIdx++) {
+    const column = data[chordIdx]!;
+    const chordArray = tabColumnToArray(column);
+
     const chordData: PlaybackTabChord = {
       type: "tab",
       isFirstChord: chordIdx === 0,
       isLastChord: chordIdx === data.length - 1,
       data: {
-        chordData: data[chordIdx]!,
+        chordData: chordArray,
         bpm: currentBpm,
       },
     };
 
-    const chord = [...data[chordIdx]!];
-
-    const isAMeasureLine = chord[8] === "measureLine";
+    const isAMeasureLine = isTabMeasureLine(column);
 
     if (isAMeasureLine) {
-      const newBpmPostMeasureLine = chord?.[7];
-      if (newBpmPostMeasureLine && newBpmPostMeasureLine !== "-1") {
-        currentBpm = Number(newBpmPostMeasureLine);
+      const newBpmPostMeasureLine = column.bpmAfterLine;
+      if (newBpmPostMeasureLine !== null) {
+        currentBpm = newBpmPostMeasureLine;
       } else {
         currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
       }
     }
 
-    const noteLength = chord[8] as FullNoteLengths;
+    const noteLength = isTabNote(column)
+      ? column.noteLength
+      : ("quarter" as FullNoteLengths);
 
     const noteLengthMultiplier = noteLengthMultipliers[noteLength] ?? 1;
 
-    chord[9]! = `${currentBpm}`;
+    // Update BPM in array for playback
+    chordArray[9] = `${currentBpm}`;
 
     metadata.push({
       location: {
@@ -597,7 +606,7 @@ function expandTabSection({
         60 / ((currentBpm / noteLengthMultiplier) * playbackSpeed);
     }
 
-    chordData.data.chordData = chord; // refactor later to be less split up
+    chordData.data.chordData = chordArray;
 
     compiledChords.push(chordData);
   }
@@ -988,22 +997,24 @@ function updateElapsedTimeForTabSection({
   let currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
 
   for (let chordIdx = 0; chordIdx < subSection.data.length; chordIdx++) {
-    const chord = subSection.data[chordIdx];
-    if (!chord) continue;
+    const column = subSection.data[chordIdx];
+    if (!column) continue;
 
     // Check for measure line that can change BPM
-    if (chord[8] === "measureLine") {
-      const newBpmPostMeasureLine = chord[7];
-      if (newBpmPostMeasureLine && newBpmPostMeasureLine !== "-1") {
-        currentBpm = Number(newBpmPostMeasureLine);
+    if (isTabMeasureLine(column)) {
+      const newBpmPostMeasureLine = column.bpmAfterLine;
+      if (newBpmPostMeasureLine !== null) {
+        currentBpm = newBpmPostMeasureLine;
       } else {
         currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
       }
     }
 
     let noteLengthMultiplier = 1;
-    if (chord[8] === "eighth") noteLengthMultiplier = 0.5;
-    else if (chord[8] === "sixteenth") noteLengthMultiplier = 0.25;
+    if (isTabNote(column)) {
+      if (column.noteLength === "eighth") noteLengthMultiplier = 0.5;
+      else if (column.noteLength === "sixteenth") noteLengthMultiplier = 0.25;
+    }
 
     // Calculate the duration of the chord and update elapsedSeconds
     const chordDuration = 60 / (currentBpm / noteLengthMultiplier);

@@ -23,6 +23,7 @@ next-env.d.ts
 # misc
 .DS_Store
 *.pem
+copilot-instructions.md
 
 # debug
 npm-debug.log*

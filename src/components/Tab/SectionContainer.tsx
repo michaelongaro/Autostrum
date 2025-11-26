@@ -22,6 +22,7 @@ import ChordSection from "./ChordSection";
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabSection from "./TabSection";
 import { useSectionData } from "~/hooks/useTabDataSelectors";
+import { createTabNote } from "~/utils/tabNoteHelpers";
 
 interface SectionContainer {
   sectionIndex: number;
@@ -105,16 +106,8 @@ function SectionContainer({
 
     for (let i = 0; i < 8; i++) {
       initialChords.push(
-        Array.from({ length: 11 }, (_, index) => {
-          if (index === 8) {
-            return "quarter";
-          } else if (index === 9) {
-            return "false"; // noteLengthModified
-          } else if (index === 10) {
-            return crypto.randomUUID();
-          } else {
-            return "";
-          }
+        createTabNote({
+          noteLength: "quarter",
         }),
       );
     }

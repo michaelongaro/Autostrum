@@ -59,13 +59,39 @@ export interface ChordSection {
   data: ChordSequence[];
 }
 
+export interface TabNote {
+  type: "note";
+  palmMute: "" | "-" | "start" | "end";
+  firstString: string; // low E
+  secondString: string; // A
+  thirdString: string; // D
+  fourthString: string; // G
+  fifthString: string; // B
+  sixthString: string; // high E
+  chordEffects: string; // v, ^, s, >, ., r
+  noteLength: FullNoteLengths;
+  noteLengthModified: boolean;
+  id: string;
+}
+
+export interface TabMeasureLine {
+  type: "measureLine";
+  /**
+   * Whether this measure line is inside a palm mute section.
+   * Shows a connecting line above the measure line when true.
+   */
+  isInPalmMuteSection: boolean;
+  bpmAfterLine: number | null; // null means no BPM change
+  id: string;
+}
+
 export interface TabSection {
   id: string; // used to identify for keys in .map()
   type: "tab";
   bpm: number;
   baseNoteLength: BaseNoteLengths;
   repetitions: number;
-  data: string[][];
+  data: (TabNote | TabMeasureLine)[];
 }
 
 export interface Section {

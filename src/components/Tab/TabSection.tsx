@@ -45,6 +45,8 @@ import {
   useTabStore,
   type BaseNoteLengths,
   type TabSection as TabSectionType,
+  type TabNote,
+  type TabMeasureLine as TabMeasureLineType,
 } from "~/stores/TabStore";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { traverseToRemoveHangingPairNode } from "~/utils/palmMuteHelpers";
@@ -62,13 +64,20 @@ import {
   WholeNote,
 } from "~/utils/noteLengthIcons";
 import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
+import {
+  createTabNote,
+  getPalmMuteValue,
+  isTabMeasureLine,
+  isTabNote,
+  setPalmMuteValue,
+} from "~/utils/tabNoteHelpers";
 
 const opacityAndScaleVariants = {
   expanded: {
     opacity: 1,
     scale: 1,
     transition: {
-      ease: "easeInOut",
+      ease: "easeInOut" as const,
       duration: 0.25,
     },
   },
@@ -76,7 +85,7 @@ const opacityAndScaleVariants = {
     opacity: 0,
     scale: 0.5,
     transition: {
-      ease: "easeInOut",
+      ease: "easeInOut" as const,
       duration: 0.25,
     },
   },
@@ -186,7 +195,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   }, [inputIdToFocus, sectionIndex, subSectionIndex]);
 
   function getColumnIds() {
-    return subSection.data.map((column) => column[10]!);
+    return subSection.data.map((column) => column.id);
   }
 
   const {
@@ -216,6 +225,12 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       "0.25",
     ) as string[];
 
+    // Helper to get palmMute value from a column
+    const getPalmMute = (index: number) => {
+      const col = subSection.data[index];
+      return col && isTabNote(col) ? col.palmMute : "";
+    };
+
     // added new "PM Start" node
     if (lastModifiedPalmMuteNode.prevValue === "") {
       let nearestStartNodeIndex = lastModifiedPalmMuteNode.columnIndex + 1;
@@ -224,7 +239,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         i < subSection.data.length;
         i++
       ) {
-        if (subSection.data[i]?.[0] === "start") break;
+        if (getPalmMute(i) === "start") break;
         nearestStartNodeIndex++;
       }
 
@@ -242,13 +257,13 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         i < subSection.data.length;
         i++
       ) {
-        if (subSection.data[i]?.[0] === "end") break;
+        if (getPalmMute(i) === "end") break;
         pairEndNodeIndex++;
       }
 
       let nearestPrevEndNodeIndex = lastModifiedPalmMuteNode.columnIndex - 1;
       for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
-        if (subSection.data[i]?.[0] === "end") {
+        if (getPalmMute(i) === "end") {
           nearestPrevEndNodeIndex = i + 1;
           break;
         }
@@ -261,7 +276,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     else if (lastModifiedPalmMuteNode.prevValue === "end") {
       let pairStartNodeIndex = lastModifiedPalmMuteNode.columnIndex - 1;
       for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
-        if (subSection.data[i]?.[0] === "start") {
+        if (getPalmMute(i) === "start") {
           pairStartNodeIndex = i;
           break;
         }
@@ -273,7 +288,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         i < subSection.data.length;
         i++
       ) {
-        if (subSection.data[i]?.[0] === "start") {
+        if (getPalmMute(i) === "start") {
           nearestNextStartNodeIndex = i;
           break;
         }
@@ -334,16 +349,8 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       if (subSection?.type === "tab") {
         for (let i = 0; i < 8; i++) {
           subSection.data.push(
-            Array.from({ length: 11 }, (_, index) => {
-              if (index === 8) {
-                return subSection.baseNoteLength;
-              } else if (index === 9) {
-                return "false";
-              } else if (index === 10) {
-                return crypto.randomUUID();
-              } else {
-                return "";
-              }
+            createTabNote({
+              noteLength: subSection.baseNoteLength,
             }),
           );
         }
@@ -372,11 +379,13 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       (step > 0 && currentIndex <= pairPalmMuteIndex) ||
       (step < 0 && currentIndex >= pairPalmMuteIndex)
     ) {
-      const value = newSectionData.data[currentIndex]?.[0];
+      const column = newSectionData.data[currentIndex];
+      const value = column ? getPalmMuteValue(column) : "";
 
       // landed outside of a pm section, but broke prev pm section
       if (value === initialPalmMuteValue) {
-        newSectionData.data[endIndex]![0] = "";
+        const endColumn = newSectionData.data[endIndex];
+        if (endColumn) setPalmMuteValue(endColumn, "");
         action = "destroy";
         break;
       }
@@ -387,7 +396,8 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
           (initialPalmMuteValue === "end" && value === "start")) &&
         currentIndex !== pairPalmMuteIndex
       ) {
-        newSectionData.data[endIndex]![0] = "-";
+        const endColumn = newSectionData.data[endIndex];
+        if (endColumn) setPalmMuteValue(endColumn, "-");
         action = "destroy";
         break;
       }
@@ -398,7 +408,8 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
           (initialPalmMuteValue === "start" && endIndex > pairPalmMuteIndex) ||
           (initialPalmMuteValue === "end" && endIndex < pairPalmMuteIndex)
         ) {
-          newSectionData.data[endIndex]![0] = "";
+          const endColumn = newSectionData.data[endIndex];
+          if (endColumn) setPalmMuteValue(endColumn, "");
           action = "destroy";
         } else {
           action = "expand";
@@ -428,14 +439,18 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     action: "expand" | "shrink" | "destroy";
     pairPalmMuteIndex: number;
   } {
-    const initialPalmMuteValue = sectionData.data[startIndex]![0];
+    const startColumn = sectionData.data[startIndex];
+    const initialPalmMuteValue = startColumn
+      ? getPalmMuteValue(startColumn)
+      : "";
     let pairPalmMuteIndex = -1;
 
     if (initialPalmMuteValue === "start") {
       // initial thought was to start +1 from startIndex, but I'm not sure that's necessary
       let index = startIndex;
       while (index < sectionData.data.length) {
-        if (sectionData.data[index]?.[0] === "end") {
+        const col = sectionData.data[index];
+        if (col && getPalmMuteValue(col) === "end") {
           pairPalmMuteIndex = index;
           break;
         }
@@ -444,7 +459,8 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     } else if (initialPalmMuteValue === "end") {
       let index = startIndex;
       while (index >= 0) {
-        if (sectionData.data[index]?.[0] === "start") {
+        const col = sectionData.data[index];
+        if (col && getPalmMuteValue(col) === "start") {
           pairPalmMuteIndex = index;
           break;
         }
@@ -462,13 +478,18 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
 
     if (initialPalmMuteValue === "" || initialPalmMuteValue === "-") {
       while (index >= 0) {
-        if (newSectionData.data[index]?.[0] === "end") {
-          newSectionData.data[endIndex]![0] = "";
+        const col = newSectionData.data[index];
+        const colValue = col ? getPalmMuteValue(col) : "";
+
+        if (colValue === "end") {
+          const endCol = newSectionData.data[endIndex];
+          if (endCol) setPalmMuteValue(endCol, "");
           break;
         }
 
-        if (newSectionData.data[index]?.[0] === "start") {
-          newSectionData.data[endIndex]![0] = "-";
+        if (colValue === "start") {
+          const endCol = newSectionData.data[endIndex];
+          if (endCol) setPalmMuteValue(endCol, "-");
           break;
         }
 
@@ -493,7 +514,8 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
           pairPalmMuteIndex,
         };
       } else if (endIndex === pairPalmMuteIndex) {
-        newSectionData.data[endIndex]![0] = "";
+        const endCol = newSectionData.data[endIndex];
+        if (endCol) setPalmMuteValue(endCol, "");
         return {
           newSectionData,
           action: "destroy",
@@ -542,13 +564,15 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     if (action === "expand") {
       if (direction === "left") {
         while (index > endIndex) {
-          sectionData.data[index]![0] = "-";
+          const col = sectionData.data[index];
+          if (col) setPalmMuteValue(col, "-");
 
           index--;
         }
       } else {
         while (index < endIndex) {
-          sectionData.data[index]![0] = "-";
+          const col = sectionData.data[index];
+          if (col) setPalmMuteValue(col, "-");
 
           index++;
         }
@@ -557,13 +581,15 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       // should basically be right, but is copilot generated
       if (direction === "left") {
         while (index > endIndex) {
-          sectionData.data[index]![0] = "";
+          const col = sectionData.data[index];
+          if (col) setPalmMuteValue(col, "");
 
           index--;
         }
       } else {
         while (index < endIndex) {
-          sectionData.data[index]![0] = "";
+          const col = sectionData.data[index];
+          if (col) setPalmMuteValue(col, "");
 
           index++;
         }
@@ -571,23 +597,25 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     } else {
       if (direction === "left") {
         while (index >= 0) {
-          if (sectionData.data[index]?.[0] === "start") {
-            sectionData.data[index]![0] = "";
+          const col = sectionData.data[index];
+          if (col && getPalmMuteValue(col) === "start") {
+            setPalmMuteValue(col, "");
             break;
           }
 
-          sectionData.data[index]![0] = "";
+          if (col) setPalmMuteValue(col, "");
 
           index--;
         }
       } else {
         while (index < sectionData.data.length) {
-          if (sectionData.data[index]?.[0] === "end") {
-            sectionData.data[index]![0] = "";
+          const col = sectionData.data[index];
+          if (col && getPalmMuteValue(col) === "end") {
+            setPalmMuteValue(col, "");
             break;
           }
 
-          sectionData.data[index]![0] = "";
+          if (col) setPalmMuteValue(col, "");
 
           index++;
         }
@@ -609,7 +637,8 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
           const subSection = draft[sectionIndex]!.data[subSectionIndex];
 
           if (subSection?.type === "tab") {
-            subSection.data[lastModifiedPalmMuteNode.columnIndex]![0] = "";
+            const col = subSection.data[lastModifiedPalmMuteNode.columnIndex];
+            if (col) setPalmMuteValue(col, "");
           }
         });
       }
@@ -650,14 +679,16 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       let endIndex = 0;
 
       for (let i = 0; i < prevSectionData.data.length; i++) {
-        if (prevSectionData.data[i]?.[10] === active.id) {
+        if (prevSectionData.data[i]?.id === active.id) {
           startIndex = i;
-        } else if (prevSectionData.data[i]?.[10] === over.id) {
+        } else if (prevSectionData.data[i]?.id === over.id) {
           endIndex = i;
         }
       }
 
-      const startPalmMuteValue = prevSectionData.data[startIndex]?.[0];
+      const startColumn = prevSectionData.data[startIndex];
+      const startPalmMuteValue =
+        startColumn && isTabNote(startColumn) ? startColumn.palmMute : "";
 
       // Get the result from your helpers, mutate in-place instead of reassigning
       const { newSectionData, action, pairPalmMuteIndex } =
@@ -673,11 +704,12 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       // Prevent two measure lines next to each other or on ends
       for (let i = 0; i < prevSectionData.data.length - 2; i++) {
         if (
-          (prevSectionData.data[i]?.[8] === "measureLine" &&
-            prevSectionData.data[i + 1]?.[8] === "measureLine") ||
-          prevSectionData.data[0]?.[8] === "measureLine" ||
-          prevSectionData.data[prevSectionData.data.length - 1]?.[8] ===
-            "measureLine"
+          (isTabMeasureLine(prevSectionData.data[i]!) &&
+            isTabMeasureLine(prevSectionData.data[i + 1]!)) ||
+          isTabMeasureLine(prevSectionData.data[0]!) ||
+          isTabMeasureLine(
+            prevSectionData.data[prevSectionData.data.length - 1]!,
+          )
         ) {
           return;
         }
@@ -762,17 +794,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         const subSection = draft[sectionIndex]!.data[subSectionIndex];
         if (subSection?.type === "tab") {
           for (let i = 0; i < 8; i++) {
-            subSection.data.push(
-              Array.from({ length: 10 }, (_, index) => {
-                if (index === 8) {
-                  return "quarter";
-                } else if (index === 9) {
-                  return crypto.randomUUID();
-                } else {
-                  return "";
-                }
-              }),
-            );
+            subSection.data.push(createTabNote());
           }
         }
       });
@@ -1205,8 +1227,8 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
             strategy={rectSortingStrategy}
           >
             {subSection.data.map((column, index) => (
-              <Fragment key={column[10]}>
-                {column.includes("|") ? (
+              <Fragment key={column.id}>
+                {isTabMeasureLine(column) ? (
                   <TabMeasureLine
                     columnData={column}
                     sectionIndex={sectionIndex}
@@ -1318,18 +1340,20 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
                     subSection.baseNoteLength = proposedNoteLength;
                     for (let i = 0; i < subSection.data.length; i++) {
                       const column = subSection.data[i]!;
-                      const noteLengthModified = column[9] === "true";
+
+                      // Skip measure lines since they don't have note length
+                      if (isTabMeasureLine(column)) continue;
 
                       if (noteLengthChangeType === "all") {
-                        column[8] = proposedNoteLength;
+                        column.noteLength = proposedNoteLength;
                       } else if (noteLengthChangeType === "onlyUnchanged") {
                         // only change if current note length matches previous base note length
-                        if (!noteLengthModified) {
-                          column[8] = proposedNoteLength;
+                        if (!column.noteLengthModified) {
+                          column.noteLength = proposedNoteLength;
                         }
                       }
 
-                      column[9] = "false"; // reset modification flag
+                      column.noteLengthModified = false; // reset modification flag
                     }
                   }
                 });

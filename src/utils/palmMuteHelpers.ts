@@ -1,4 +1,10 @@
-import type { Section, StrummingPattern } from "~/stores/TabStore";
+import type {
+  Section,
+  StrummingPattern,
+  TabNote,
+  TabMeasureLine,
+} from "~/stores/TabStore";
+import { isTabNote } from "~/utils/tabNoteHelpers";
 
 interface AddOrRemovePalmMuteDashes {
   setTabData: (updater: (draft: Section[]) => void) => void;
@@ -27,22 +33,30 @@ function addOrRemovePalmMuteDashes({
     const subSectionData = subSection.data;
 
     while (!finishedModification) {
+      const currentColumn = subSectionData[currentColumnIndex];
+      if (!currentColumn || !isTabNote(currentColumn)) {
+        finishedModification = true;
+        continue;
+      }
+
       // only start/end node defined, meaning we clicked on the desired opposite pair node
       if (pairNodeValue !== undefined) {
         if (currentColumnIndex === startColumnIndex) {
-          subSectionData[startColumnIndex]![0] =
-            pairNodeValue === "" ? "end" : pairNodeValue;
+          currentColumn.palmMute =
+            pairNodeValue === ""
+              ? "end"
+              : (pairNodeValue as "" | "-" | "start" | "end");
 
           pairNodeValue === "start"
             ? currentColumnIndex++
             : currentColumnIndex--;
         } else if (
-          subSectionData[currentColumnIndex]![0] ===
+          currentColumn.palmMute ===
           (pairNodeValue === "" || pairNodeValue === "end" ? "start" : "end")
         ) {
           finishedModification = true;
         } else {
-          subSectionData[currentColumnIndex]![0] = "-";
+          currentColumn.palmMute = "-";
           pairNodeValue === "start"
             ? currentColumnIndex++
             : currentColumnIndex--;
@@ -52,12 +66,11 @@ function addOrRemovePalmMuteDashes({
       // in between until we hit the other node
       else {
         if (
-          subSectionData[currentColumnIndex]?.[0] ===
-          (prevValue === "start" ? "end" : "start")
+          currentColumn.palmMute === (prevValue === "start" ? "end" : "start")
         ) {
           finishedModification = true;
         } else {
-          subSectionData[currentColumnIndex]![0] = "";
+          currentColumn.palmMute = "";
           prevValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
         }
       }
@@ -157,17 +170,20 @@ function traverseToRemoveHangingPairNode({
     const subSectionData = subSection.data;
 
     while (!pairNodeRemoved) {
-      if (
-        pairNodeToRemove === "start" &&
-        subSectionData[currentColumnIndex]?.[0] === "start"
-      ) {
-        subSectionData[currentColumnIndex]![0] = "";
+      const currentColumn = subSectionData[currentColumnIndex];
+      if (!currentColumn || !isTabNote(currentColumn)) {
+        pairNodeRemoved = true;
+        continue;
+      }
+
+      if (pairNodeToRemove === "start" && currentColumn.palmMute === "start") {
+        currentColumn.palmMute = "";
         pairNodeRemoved = true;
       } else if (
         pairNodeToRemove === "end" &&
-        subSectionData[currentColumnIndex]?.[0] === "end"
+        currentColumn.palmMute === "end"
       ) {
-        subSectionData[currentColumnIndex]![0] = "";
+        currentColumn.palmMute = "";
         pairNodeRemoved = true;
       } else {
         pairNodeToRemove === "start"

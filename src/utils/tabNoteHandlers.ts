@@ -1,6 +1,19 @@
 // ~/utils/tabNoteHandlers.ts
-import type { Section, TabSection } from "~/stores/TabStore";
+import type {
+  Section,
+  TabSection,
+  TabNote,
+  FullNoteLengths,
+} from "~/stores/TabStore";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
+import {
+  createTabNote,
+  createTabMeasureLine,
+  isTabNote,
+  isTabMeasureLine,
+  getStringValue,
+  setStringValue,
+} from "~/utils/tabNoteHelpers";
 
 const chordMappings = {
   A: ["", "0", "2", "2", "2", "0"],
@@ -162,33 +175,25 @@ export function handleTabNoteKeyDown(
 
     const currentColumnData = subSection.data[columnIndex];
 
-    if (currentColumnData) {
-      const newColumnPalmMuteValue =
-        (currentColumnData[0] === "start" && after) ||
-        (currentColumnData[0] === "end" && !after) ||
-        currentColumnData[0] === "-"
+    if (currentColumnData && isTabNote(currentColumnData)) {
+      const newColumnPalmMuteValue: "" | "-" | "start" | "end" =
+        (currentColumnData.palmMute === "start" && after) ||
+        (currentColumnData.palmMute === "end" && !after) ||
+        currentColumnData.palmMute === "-"
           ? "-"
           : "";
 
-      const newColumnData = [
-        newColumnPalmMuteValue,
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "quarter",
-        crypto.randomUUID(),
-      ];
+      const newColumn = createTabNote({
+        palmMute: newColumnPalmMuteValue,
+        noteLength: subSection.baseNoteLength,
+      });
 
       const insertionIndex = after ? columnIndex + 1 : columnIndex;
 
       setTabData((draft) => {
         const subSection = draft[sectionIndex]?.data[subSectionIndex];
         if (subSection?.type === "tab") {
-          subSection.data.splice(insertionIndex, 0, newColumnData);
+          subSection.data.splice(insertionIndex, 0, newColumn);
         }
       });
 
@@ -213,18 +218,18 @@ export function handleTabNoteKeyDown(
       const subSection = draft[sectionIndex]?.data[subSectionIndex];
       if (subSection?.type === "tab") {
         const columnData = subSection.data[columnIndex];
-        if (columnData && columnData[8] !== "measureLine") {
+        if (columnData && isTabNote(columnData)) {
           const order = noteLengthCycle;
-          const current = (columnData[8] as NoteLength) ?? "quarter";
-          let idx = order.indexOf(current);
+          const current = columnData.noteLength ?? "quarter";
+          let idx = order.indexOf(current as NoteLength);
           if (idx === -1) idx = order.indexOf("quarter");
 
           if (e.key === "ArrowUp" && idx < order.length - 1) idx += 1; // increase resolution
           if (e.key === "ArrowDown" && idx > 0) idx -= 1; // decrease resolution
 
           const newLength: NoteLength = order[idx] ?? "quarter";
-          columnData[8] = newLength;
-          columnData[9] = "true"; // noteLengthModified
+          columnData.noteLength = newLength;
+          columnData.noteLengthModified = true;
         }
       }
     });
@@ -242,25 +247,19 @@ export function handleTabNoteKeyDown(
         const column = subSection.data[columnIndex];
 
         // Only clear if not a measure line
-        if (column && column[8] !== "measureLine") {
+        if (column && isTabNote(column)) {
           // Keep palm mute, note length, id, but clear notes and effects
-          const palmMuteNode = column[0];
-          const noteLengthModifier = subSection.baseNoteLength;
-          const id = column[10];
+          const palmMuteNode = column.palmMute;
+          const id = column.id;
 
-          subSection.data[columnIndex] = [
-            palmMuteNode ?? "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "", // notes
-            noteLengthModifier ?? "quarter",
-            "false", // don't want to carry over noteLengthModified state
-            id ?? crypto.randomUUID(),
-          ];
+          const clearedNote = createTabNote({
+            palmMute: palmMuteNode,
+            noteLength: subSection.baseNoteLength,
+          });
+          clearedNote.id = id;
+          clearedNote.noteLengthModified = false;
+
+          subSection.data[columnIndex] = clearedNote;
         }
       }
     });
@@ -271,9 +270,11 @@ export function handleTabNoteKeyDown(
   if (e.ctrlKey && e.shiftKey && e.key === "Backspace") {
     e.preventDefault();
 
+    const currentColumn = subSection.data[columnIndex];
     // Only delete if not a measure line and not the last column
     if (
-      subSection.data[columnIndex]?.[8] !== "measureLine" &&
+      currentColumn &&
+      isTabNote(currentColumn) &&
       subSection.data.length > 1
     ) {
       setTabData((draft) => {
@@ -325,8 +326,9 @@ export function handleTabNoteKeyDown(
   } else if (e.key === "ArrowLeft") {
     e.preventDefault(); // prevent cursor from moving
 
+    const prevColumn = subSection.data[columnIndex - 1];
     const adjColumnIndex =
-      subSection.data[columnIndex - 1]?.[noteIndex] === "|"
+      prevColumn && isTabMeasureLine(prevColumn)
         ? columnIndex - 2
         : columnIndex - 1;
 
@@ -348,8 +350,9 @@ export function handleTabNoteKeyDown(
       return;
     }
 
+    const nextColumn = subSection.data[columnIndex + 1];
     const adjColumnIndex =
-      subSection.data[columnIndex + 1]?.[noteIndex] === "|"
+      nextColumn && isTabMeasureLine(nextColumn)
         ? columnIndex + 2
         : columnIndex + 1;
 
@@ -367,17 +370,32 @@ export function handleTabNoteKeyDown(
   ) {
     e.preventDefault();
 
-    const copiedChord = subSection.data[columnIndex]?.slice(1, 10);
+    const currentColumn = subSection.data[columnIndex];
+    // Only copy if it's a TabNote (not a measure line)
+    if (currentColumn && isTabNote(currentColumn)) {
+      // Copy string values and effects (indices 1-9 in old format)
+      const copiedChord = [
+        currentColumn.firstString,
+        currentColumn.secondString,
+        currentColumn.thirdString,
+        currentColumn.fourthString,
+        currentColumn.fifthString,
+        currentColumn.sixthString,
+        currentColumn.chordEffects,
+        currentColumn.noteLength,
+        String(currentColumn.noteLengthModified),
+      ];
 
-    setChordPulse({
-      location: {
-        sectionIndex,
-        subSectionIndex,
-        chordIndex: columnIndex,
-      },
-      type: "copy",
-    });
-    setCurrentlyCopiedChord(copiedChord as string[]);
+      setChordPulse({
+        location: {
+          sectionIndex,
+          subSectionIndex,
+          chordIndex: columnIndex,
+        },
+        type: "copy",
+      });
+      setCurrentlyCopiedChord(copiedChord);
+    }
   } else if (
     currentlyCopiedChord &&
     ((e.ctrlKey && e.key === "v") || // Control + V for Windows/Linux
@@ -389,15 +407,18 @@ export function handleTabNoteKeyDown(
       const subSection = draft[sectionIndex]?.data[subSectionIndex];
       if (subSection?.type === "tab") {
         const currentColumn = subSection.data[columnIndex];
-        if (currentColumn) {
-          const palmMuteNode = currentColumn[0];
-          const id = currentColumn[10];
-
-          subSection.data[columnIndex] = [
-            palmMuteNode ?? "",
-            ...currentlyCopiedChord,
-            id ?? crypto.randomUUID(),
-          ];
+        if (currentColumn && isTabNote(currentColumn)) {
+          // Paste from copied chord data
+          currentColumn.firstString = currentlyCopiedChord[0] ?? "";
+          currentColumn.secondString = currentlyCopiedChord[1] ?? "";
+          currentColumn.thirdString = currentlyCopiedChord[2] ?? "";
+          currentColumn.fourthString = currentlyCopiedChord[3] ?? "";
+          currentColumn.fifthString = currentlyCopiedChord[4] ?? "";
+          currentColumn.sixthString = currentlyCopiedChord[5] ?? "";
+          currentColumn.chordEffects = currentlyCopiedChord[6] ?? "";
+          currentColumn.noteLength =
+            (currentlyCopiedChord[7] as FullNoteLengths) ?? "quarter";
+          currentColumn.noteLengthModified = currentlyCopiedChord[8] === "true";
         }
       }
     });
@@ -426,13 +447,13 @@ export function handleTabNoteKeyDown(
       const subSection = draft[sectionIndex]?.data[subSectionIndex];
       if (subSection?.type === "tab") {
         const currentColumn = subSection.data[columnIndex];
-        if (currentColumn) {
+        if (currentColumn && isTabNote(currentColumn)) {
           if (e.key.toLowerCase() === "d" || e.key.toLowerCase() === "v") {
-            currentColumn[noteIndex] = "v";
+            currentColumn.chordEffects = "v";
           } else if (e.key.toLowerCase() === "u" || e.key === "^") {
-            currentColumn[noteIndex] = "^";
+            currentColumn.chordEffects = "^";
           } else if (e.key.toLowerCase() === "s") {
-            currentColumn[noteIndex] = "s";
+            currentColumn.chordEffects = "s";
           }
         }
       }
@@ -479,22 +500,22 @@ export function handleTabNoteChange(
         const subSection = draft[sectionIndex]?.data[subSectionIndex];
         if (subSection?.type === "tab") {
           const currentColumn = subSection.data[columnIndex];
-          if (currentColumn) {
-            const palmMuteNode = currentColumn[0];
+          if (currentColumn && isTabNote(currentColumn)) {
             const chordEffects =
-              currentColumn[7] !== "r" ? currentColumn[7] : "";
-            const noteLengthModifier = currentColumn[8];
-            const noteLengthModified = currentColumn[9];
-            const id = currentColumn[10];
+              currentColumn.chordEffects !== "r"
+                ? currentColumn.chordEffects
+                : "";
 
-            subSection.data[columnIndex] = [
-              palmMuteNode ?? "",
-              ...chordArray.toReversed(),
-              chordEffects ?? "",
-              noteLengthModifier ?? "quarter",
-              noteLengthModified ?? "false",
-              id ?? crypto.randomUUID(),
-            ];
+            // chordArray is [low E to high E], reversed gives [high E to low E]
+            // which matches sixthString to firstString order
+            // const reversedChord = chordArray.toReversed();
+            currentColumn.firstString = chordArray[5] ?? "";
+            currentColumn.secondString = chordArray[4] ?? "";
+            currentColumn.thirdString = chordArray[3] ?? "";
+            currentColumn.fourthString = chordArray[2] ?? "";
+            currentColumn.fifthString = chordArray[1] ?? "";
+            currentColumn.sixthString = chordArray[0] ?? "";
+            currentColumn.chordEffects = chordEffects;
           }
         }
       });
@@ -508,11 +529,13 @@ export function handleTabNoteChange(
     if (value !== "" && !validNoteInput(value)) return;
 
     if (value === "|") {
+      const prevColumn = subSection.data[columnIndex - 1];
+      const nextColumn = subSection.data[columnIndex + 1];
       if (
         columnIndex === 0 ||
         columnIndex === subSection.data.length - 1 ||
-        subSection.data[columnIndex - 1]?.[8] === "measureLine" ||
-        subSection.data[columnIndex + 1]?.[8] === "measureLine"
+        (prevColumn && isTabMeasureLine(prevColumn)) ||
+        (nextColumn && isTabMeasureLine(nextColumn))
       ) {
         return;
       }
@@ -521,28 +544,19 @@ export function handleTabNoteChange(
         const draftSubSection = draft[sectionIndex]?.data[subSectionIndex];
         if (draftSubSection?.type === "tab") {
           const currentColumn = draftSubSection.data[columnIndex];
-          if (currentColumn) {
-            const palmMuteNode = currentColumn[0];
-            const id = currentColumn[10];
+          if (currentColumn && isTabNote(currentColumn)) {
+            const palmMuteNode = currentColumn.palmMute;
 
             // this technically is fine, but I don't want to implement it now, also might have
             // weird ui side effects by having more space on either side of the measure line than
             // originally planned for
             if (palmMuteNode === "start" || palmMuteNode === "end") return;
 
-            draftSubSection.data[columnIndex] = [
-              palmMuteNode ?? "",
-              "|",
-              "|",
-              "|",
-              "|",
-              "|",
-              "|",
-              "",
-              "measureLine",
-              "",
-              id ?? crypto.randomUUID(),
-            ];
+            const measureLine = createTabMeasureLine({
+              isInPalmMuteSection: palmMuteNode === "-",
+            });
+            measureLine.id = currentColumn.id;
+            draftSubSection.data[columnIndex] = measureLine;
           }
         }
       });
@@ -577,22 +591,14 @@ export function handleTabNoteChange(
         const subSection = draft[sectionIndex]?.data[subSectionIndex];
         if (subSection?.type === "tab") {
           const currentColumn = subSection.data[columnIndex];
-          if (currentColumn) {
-            const palmMuteNode = currentColumn[0];
-            const noteLengthModifier = currentColumn[8];
-            const id = currentColumn[10];
-            subSection.data[columnIndex] = [
-              palmMuteNode ?? "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "r",
-              noteLengthModifier ?? "quarter",
-              id ?? crypto.randomUUID(),
-            ];
+          if (currentColumn && isTabNote(currentColumn)) {
+            currentColumn.firstString = "";
+            currentColumn.secondString = "";
+            currentColumn.thirdString = "";
+            currentColumn.fourthString = "";
+            currentColumn.fifthString = "";
+            currentColumn.sixthString = "";
+            currentColumn.chordEffects = "r";
           }
         }
       });
@@ -604,13 +610,18 @@ export function handleTabNoteChange(
     const subSection = draft[sectionIndex]?.data[subSectionIndex];
     if (subSection?.type === "tab") {
       const currentColumn = subSection.data[columnIndex];
-      if (currentColumn) {
+      if (currentColumn && isTabNote(currentColumn)) {
         // if changing from rest to something else, clear out rest
-        if (currentColumn[7] === "r" && value !== "r") {
-          currentColumn[7] = "";
+        if (currentColumn.chordEffects === "r" && value !== "r") {
+          currentColumn.chordEffects = "";
         }
 
-        currentColumn[noteIndex] = value;
+        // noteIndex: 1-6 are strings, 7 is chordEffects
+        if (noteIndex >= 1 && noteIndex <= 6) {
+          setStringValue(currentColumn, noteIndex, value);
+        } else if (noteIndex === 7) {
+          currentColumn.chordEffects = value;
+        }
       }
     }
   });

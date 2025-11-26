@@ -6,6 +6,7 @@ import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
 import { useTabStore, type TabSection } from "~/stores/TabStore";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type { COLORS, THEME } from "~/stores/TabStore";
+import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
 
 export interface LastModifiedPalmMuteNodeLocation {
   columnIndex: number;
@@ -62,8 +63,8 @@ function StaticTabSection({
         </div>
 
         {subSectionData.data.map((column, index) => (
-          <Fragment key={column[10]}>
-            {column.includes("|") ? (
+          <Fragment key={column.id}>
+            {isTabMeasureLine(column) ? (
               <StaticTabMeasureLine
                 columnData={column}
                 color={color}

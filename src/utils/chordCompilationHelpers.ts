@@ -11,9 +11,12 @@ import {
   type SectionProgression,
   type StrummingPattern,
   type TabSection,
+  type TabNote,
+  type TabMeasureLine,
 } from "../stores/TabStore";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
+import { isTabMeasureLine, tabNoteToArray } from "./tabNoteHelpers";
 
 interface CompileChord {
   chordName: string;
@@ -395,15 +398,12 @@ function compileTabSection({
   }
 
   for (let chordIdx = 0; chordIdx < data.length; chordIdx++) {
-    const chord = [...data[chordIdx]!];
+    const column = data[chordIdx]!;
 
-    if (chord?.[8] === "measureLine") {
-      const specifiedBpmToUsePostMeasureLine = chord?.[7];
-      if (
-        specifiedBpmToUsePostMeasureLine &&
-        specifiedBpmToUsePostMeasureLine !== "-1"
-      ) {
-        currentBpm = Number(specifiedBpmToUsePostMeasureLine);
+    if (isTabMeasureLine(column)) {
+      const specifiedBpmToUsePostMeasureLine = column.bpmAfterLine;
+      if (specifiedBpmToUsePostMeasureLine !== null) {
+        currentBpm = specifiedBpmToUsePostMeasureLine;
       } else {
         currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
       }
@@ -423,10 +423,12 @@ function compileTabSection({
       continue;
     }
 
-    const noteLengthMultiplier =
-      noteLengthMultipliers[chord[8] as FullNoteLengths] ?? 1;
+    // column is TabNote at this point
+    const noteLengthMultiplier = noteLengthMultipliers[column.noteLength] ?? 1;
 
-    chord[9]! = `${currentBpm}`;
+    // Convert to array format for compiledChords, embedding current BPM
+    const chordArray = tabNoteToArray(column);
+    chordArray[9] = `${currentBpm}`;
 
     metadata.push({
       location: {
@@ -443,7 +445,7 @@ function compileTabSection({
     elapsedSeconds.value +=
       60 / ((currentBpm / noteLengthMultiplier) * playbackSpeed);
 
-    compiledChords.push(chord);
+    compiledChords.push(chordArray);
   }
 }
 
