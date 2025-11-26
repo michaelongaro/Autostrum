@@ -12,7 +12,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { createPortal, flushSync } from "react-dom";
+import { createPortal } from "react-dom";
 import { FaEye } from "react-icons/fa";
 import { BsPlus } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
@@ -37,7 +37,7 @@ import {
   getTabData,
 } from "~/stores/TabStore";
 import { api } from "~/utils/api";
-import { genreColors, genreDarkColors } from "~/utils/genreColors";
+import { genreColors } from "~/utils/genreColors";
 import { tuningNotesToName } from "~/utils/tunings";
 import ArtistCombobox from "~/components/ui/ArtistCombobox";
 import BookmarkToggle from "~/components/ui/BookmarkToggle";
@@ -284,7 +284,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
   // is open on mobile
   const [disableCreatedAtLayout, setDisableCreatedAtLayout] = useState(false);
   const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
-  const [takingScreenshot, setTakingScreenshot] = useState(false);
   const tabPreviewScreenshotLightRef = useRef(null);
   const tabPreviewScreenshotDarkRef = useRef(null);
 
@@ -396,24 +395,8 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
 
     setIsPublishingOrUpdating(true);
     setSaveButtonText(asPath.includes("create") ? "Publishing" : "Saving");
-    setTakingScreenshot(true);
 
     const tabData = getTabData();
-    setMinifiedTabData(tabData.slice(0, 2)); // screenshot can never show more than 2 sections
-
-    const { domToDataUrl } = await import("modern-screenshot");
-
-    // not ideal, but giving DOM extra time to render
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const [lightScreenshot, darkScreenshot] = await Promise.all([
-      domToDataUrl(tabPreviewScreenshotLightRef.current!, {
-        quality: 0.75,
-      }),
-      domToDataUrl(tabPreviewScreenshotDarkRef.current!, {
-        quality: 0.75,
-      }),
-    ]);
 
     if (asPath.includes("create")) {
       publishTab({
@@ -431,8 +414,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
         bpm,
         capo,
         key,
-        lightScreenshot,
-        darkScreenshot,
       });
     } else {
       updateTab({
@@ -451,13 +432,8 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
         bpm,
         capo,
         key,
-        lightScreenshot,
-        darkScreenshot,
       });
     }
-
-    setMinifiedTabData(undefined);
-    setTakingScreenshot(false);
   }
 
   function isEqualToOriginalTabState() {
@@ -639,7 +615,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
                     isPublishing ||
                     isUpdating ||
                     isDeleting ||
-                    takingScreenshot ||
                     (asPath.includes("create") &&
                       saveButtonText !== "Publish") ||
                     (asPath.includes("edit") && saveButtonText !== "Save")

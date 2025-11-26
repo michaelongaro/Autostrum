@@ -18,6 +18,8 @@ export const env = createEnv({
     AWS_ACCESS_KEY_ID: z.string().min(1),
     AWS_SECRET_ACCESS_KEY: z.string().min(1),
     CRON_SECRET: z.string().min(1),
+    SCREENSHOT_SERVER_URL: z.string().url(),
+    SCREENSHOT_SECRET: z.string(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -44,6 +46,8 @@ export const env = createEnv({
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
     CRON_SECRET: process.env.CRON_SECRET,
+    SCREENSHOT_SERVER_URL: process.env.SCREENSHOT_SERVER_URL,
+    SCREENSHOT_SECRET: process.env.SCREENSHOT_SECRET,
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
     NEXT_PUBLIC_DOMAIN_URL: process.env.NEXT_PUBLIC_DOMAIN_URL,

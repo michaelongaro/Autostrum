@@ -176,6 +176,45 @@ async function resizeImage(buffer: Buffer): Promise<Buffer> {
     .toBuffer();
 }
 
+// Helper function to trigger screenshot capture
+async function triggerScreenshotCapture(
+  tabId: number,
+  tabTitle: string,
+): Promise<void> {
+  const screenshotServerUrl = env.SCREENSHOT_SERVER_URL;
+  const screenshotSecret = env.SCREENSHOT_SECRET;
+
+  if (!screenshotServerUrl || !screenshotSecret) {
+    console.warn(
+      "Screenshot server not configured, skipping screenshot capture",
+    );
+    return;
+  }
+
+  try {
+    const response = await fetch(`${screenshotServerUrl}/screenshot/capture`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tabId,
+        tabTitle,
+        type:
+          process.env.NODE_ENV === "development" ? "development" : "production",
+        secret: screenshotSecret,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("Screenshot capture failed:", error);
+    }
+  } catch (error) {
+    console.error("Failed to trigger screenshot capture:", error);
+  }
+}
+
 export const tabRouter = createTRPCRouter({
   // Currently not used, but keeping in case we need it in the future
   // get: publicProcedure.input(z.number()).query(async ({ input: id, ctx }) => {
@@ -408,8 +447,6 @@ export const tabRouter = createTRPCRouter({
         strummingPatterns: z.array(strummingPatternSchema),
         tabData: z.array(sectionSchema),
         sectionProgression: z.array(sectionProgressionSchema),
-        lightScreenshot: z.string(),
-        darkScreenshot: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -428,8 +465,6 @@ export const tabRouter = createTRPCRouter({
         strummingPatterns,
         tabData,
         sectionProgression,
-        lightScreenshot,
-        darkScreenshot,
       } = input;
 
       const userId = ctx.auth.userId;
@@ -468,52 +503,17 @@ export const tabRouter = createTRPCRouter({
         },
       });
 
-      // immediately revalidate the tab's page before s3 upload to improve end user experience
+      // immediately revalidate the tab's page improve end user experience
       ctx.res
         .revalidate(`/tab/${tab.id}/${encodeURIComponent(tab.title)}`)
         .catch((e) => {
           console.error("Error revalidating tab page:", e);
         });
 
-      const s3 = new S3Client({
-        region: "us-east-2",
-        credentials: {
-          accessKeyId: env.AWS_ACCESS_KEY_ID,
-          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-        },
-      });
-
-      const lightBase64Data = lightScreenshot.split(",")[1]!;
-      const lightImageBuffer = Buffer.from(lightBase64Data, "base64");
-
-      const darkBase64Data = darkScreenshot.split(",")[1]!;
-      const darkImageBuffer = Buffer.from(darkBase64Data, "base64");
-
-      // Resize both images, need larger context of original width screenshot, but smaller
-      // file size for better performance and better rendering on client side
-      const [resizedLight, resizedDark] = await Promise.all([
-        resizeImage(lightImageBuffer),
-        resizeImage(darkImageBuffer),
-      ]);
-
-      const lightCommand = new PutObjectCommand({
-        Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
-        Key: `${tab.id}/light.jpeg`,
-        Body: resizedLight,
-        ContentType: "image/jpeg",
-      });
-
-      const darkCommand = new PutObjectCommand({
-        Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
-        Key: `${tab.id}/dark.jpeg`,
-        Body: resizedDark,
-        ContentType: "image/jpeg",
-      });
-
-      // uploading screenshots to s3 bucket
-      Promise.all([s3.send(lightCommand), s3.send(darkCommand)]).catch((e) => {
-        console.error(e);
-      });
+      // Trigger screenshot capture asynchronously (don't await)
+      triggerScreenshotCapture(tab.id, tab.title).catch((e) =>
+        console.error("Screenshot capture error:", e),
+      );
 
       // increment the tabCreator's number of tabs
       ctx.prisma.user
@@ -570,8 +570,6 @@ export const tabRouter = createTRPCRouter({
         strummingPatterns: z.array(strummingPatternSchema),
         tabData: z.array(sectionSchema),
         sectionProgression: z.array(sectionProgressionSchema),
-        lightScreenshot: z.string(),
-        darkScreenshot: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -591,8 +589,6 @@ export const tabRouter = createTRPCRouter({
         strummingPatterns,
         tabData,
         sectionProgression,
-        lightScreenshot,
-        darkScreenshot,
       } = input;
 
       // need to know if artistId changed, since we will then need to update the old and new
@@ -650,52 +646,17 @@ export const tabRouter = createTRPCRouter({
         },
       });
 
-      // immediately revalidate the tab's page before s3 upload to improve end user experience
+      // immediately revalidate the tab's page to improve end user experience
       ctx.res
         .revalidate(`/tab/${tab.id}/${encodeURIComponent(tab.title)}`)
         .catch((e) => {
           console.error("Error revalidating tab page:", e);
         });
 
-      const s3 = new S3Client({
-        region: "us-east-2",
-        credentials: {
-          accessKeyId: env.AWS_ACCESS_KEY_ID,
-          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-        },
-      });
-
-      const lightBase64Data = lightScreenshot.split(",")[1]!;
-      const lightImageBuffer = Buffer.from(lightBase64Data, "base64");
-
-      const darkBase64Data = darkScreenshot.split(",")[1]!;
-      const darkImageBuffer = Buffer.from(darkBase64Data, "base64");
-
-      // Resize both images, need larger context of original width screenshot, but smaller
-      // file size for better performance and better rendering on client side
-      const [resizedLight, resizedDark] = await Promise.all([
-        resizeImage(lightImageBuffer),
-        resizeImage(darkImageBuffer),
-      ]);
-
-      const lightCommand = new PutObjectCommand({
-        Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
-        Key: `${tab.id}/light.jpeg`,
-        Body: resizedLight,
-        ContentType: "image/jpeg",
-      });
-
-      const darkCommand = new PutObjectCommand({
-        Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
-        Key: `${tab.id}/dark.jpeg`,
-        Body: resizedDark,
-        ContentType: "image/jpeg",
-      });
-
-      // uploading screenshots to s3 bucket
-      Promise.all([s3.send(lightCommand), s3.send(darkCommand)]).catch((e) => {
-        console.error(e);
-      });
+      // Trigger screenshot capture asynchronously (don't await)
+      triggerScreenshotCapture(tab.id, tab.title).catch((e) =>
+        console.error("Screenshot capture error:", e),
+      );
 
       // check if the artistId has changed
       if (prevTabVersion.artistId !== artistId) {
