@@ -14,7 +14,7 @@ const opacityAndScaleVariants = {
     opacity: 1,
     scale: 1,
     transition: {
-      ease: "easeInOut",
+      ease: "easeInOut" as const,
       duration: 0.25,
     },
   },
@@ -22,7 +22,7 @@ const opacityAndScaleVariants = {
     opacity: 0,
     scale: 0.5,
     transition: {
-      ease: "easeInOut",
+      ease: "easeInOut" as const,
       duration: 0.25,
     },
   },
