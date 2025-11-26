@@ -97,7 +97,7 @@ function ChordSection({ sectionIndex, subSectionIndex }: ChordSection) {
           duration: 1,
         },
       }}
-      className="baseVertFlex relative h-full w-full !justify-start gap-4 rounded-md border bg-secondary-active/50 p-4 shadow-md md:p-8"
+      className="baseVertFlex relative h-full w-full !justify-start gap-4 rounded-md border bg-secondary-active/25 p-4 shadow-md md:p-8"
     >
       <div className="baseFlex w-full !items-start">
         <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
