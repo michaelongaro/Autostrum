@@ -658,6 +658,7 @@ function StrummingPatternModal({
                 )
               }
               onClick={handleSaveStrummingPattern}
+              className="px-12"
             >
               Save
             </Button>

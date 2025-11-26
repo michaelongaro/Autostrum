@@ -244,7 +244,6 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
                 chordBeingEdited.value.frets.every((fret) => fret === "")
               }
               variant={"audio"}
-              size={"default"}
               className="baseFlex gap-2"
               onClick={() => {
                 void playPreview({
@@ -265,7 +264,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
                 isEqual(chordBeingEdited.value, chords[chordBeingEdited.index])
               }
               onClick={handleSaveChord}
-              className="px-8"
+              className="px-12"
             >
               Save
             </Button>
