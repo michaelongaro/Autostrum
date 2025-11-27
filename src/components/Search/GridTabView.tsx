@@ -44,7 +44,7 @@ function GridTabView({
 
   function getInfiniteQueryParams(): InfiniteQueryParams {
     return {
-      searchQuery,
+      searchQuery: decodeURIComponent(searchQuery ?? ""),
       genre,
       tuning,
       capo: capo ?? undefined,
@@ -85,6 +85,8 @@ function GridTabView({
     // only want to show loading indicator if we're fetching initial "page"
     setSearchsearchResultsCountIsLoading(isFetching && !isFetchingNextPage);
   }, [isFetching, isFetchingNextPage, setSearchsearchResultsCountIsLoading]);
+
+  console.log(tabResults);
 
   const { ref } = useInView({
     threshold: 0.75,

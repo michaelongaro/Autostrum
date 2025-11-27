@@ -61,7 +61,7 @@ function TableTabView({
 
   function getInfiniteQueryParams(): InfiniteQueryParams {
     return {
-      searchQuery,
+      searchQuery: decodeURIComponent(searchQuery ?? ""),
       genre,
       tuning,
       capo: capo ?? undefined,
