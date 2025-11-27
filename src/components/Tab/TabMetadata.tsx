@@ -276,8 +276,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
   // is open on mobile
   const [disableCreatedAtLayout, setDisableCreatedAtLayout] = useState(false);
   const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
-  const tabPreviewScreenshotLightRef = useRef(null);
-  const tabPreviewScreenshotDarkRef = useRef(null);
 
   const [showPublishPopover, setShowPublishPopover] = useState(false);
 
@@ -314,20 +312,13 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
     };
   }, [artistId, createdByUserId, editing, id, processPageView]);
 
+  // for screenshot preview, only show first two sections
   useEffect(() => {
-    if (minifiedTabData || !asPath.includes("screenshot")) return;
+    if (id === -1 || minifiedTabData || !asPath.includes("screenshot")) return;
 
-    setTimeout(() => {
-      const tabData = getTabData();
-
-      if (
-        tabData[0]!.data.length > 0 // isn't just the default empty section
-      ) {
-        // artificially set minifiedTabData so that the light/dark screenshots can be taken
-        setMinifiedTabData(tabData.slice(0, 2));
-      }
-    }, 5000); // hacky, but wait 5 seconds to ensure tabData is fully loaded
-  }, [asPath, minifiedTabData]);
+    const tabData = getTabData();
+    setMinifiedTabData(tabData.slice(0, 2));
+  }, [id, asPath, minifiedTabData]);
 
   function handleBpmChange(event: ChangeEvent<HTMLInputElement>) {
     const inputValue = event.target.value;
@@ -1535,7 +1526,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
         createPortal(
           <div className="size-full overflow-hidden">
             <div
-              ref={tabPreviewScreenshotLightRef}
               id="tabPreviewScreenshotLight"
               style={{
                 backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["light" as "light" | "dark"]["screenshot-background"]})`,
@@ -1551,7 +1541,6 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
             </div>
 
             <div
-              ref={tabPreviewScreenshotDarkRef}
               id="tabPreviewScreenshotDark"
               style={{
                 backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["dark" as "light" | "dark"]["screenshot-background"]})`,
