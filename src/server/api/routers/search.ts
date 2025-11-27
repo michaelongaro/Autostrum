@@ -13,6 +13,22 @@ interface TabWithArtistRank {
   rank: number;
 }
 
+interface RawFtsTabResult {
+  id: number;
+  title: string;
+  genre: string;
+  createdAt: Date;
+  difficulty: number;
+  averageRating: number;
+  ratingsCount: number;
+  artistId: number | null;
+  artistName: string | null;
+  artistIsVerified: boolean | null;
+  createdByUserId: string | null;
+  createdByUsername: string | null;
+  rank: number;
+}
+
 export interface InfiniteQueryParams {
   searchQuery: string | undefined;
   genre: string | undefined;
@@ -497,6 +513,7 @@ export const searchRouter = createTRPCRouter({
           "Tab"."artistId",
           "Artist"."name" AS "artistName",
           "Artist"."isVerified" AS "artistIsVerified",
+          "Tab"."createdByUserId",
           "User"."username" AS "createdByUsername",
           ts_rank_cd("Tab"."searchVector", ${tsQuery}) AS rank
       `;
@@ -519,10 +536,38 @@ export const searchRouter = createTRPCRouter({
       `;
 
         try {
-          const [results, countResult] = await ctx.prisma.$transaction([
-            ctx.prisma.$queryRaw<MinimalTabRepresentation[]>(dataQuery),
+          const [rawResults, countResult] = await ctx.prisma.$transaction([
+            ctx.prisma.$queryRaw<RawFtsTabResult[]>(dataQuery),
             ctx.prisma.$queryRaw<{ count: bigint }[]>(countQuery),
           ]);
+
+          // Transform raw results to MinimalTabRepresentation format
+          const results: MinimalTabRepresentation[] = rawResults.map((row) => ({
+            id: row.id,
+            title: row.title,
+            genre: row.genre,
+            createdAt: row.createdAt,
+            difficulty: row.difficulty,
+            averageRating: row.averageRating,
+            ratingsCount: row.ratingsCount,
+            artist:
+              row.artistId !== null &&
+              row.artistName !== null &&
+              row.artistIsVerified !== null
+                ? {
+                    id: row.artistId,
+                    name: row.artistName,
+                    isVerified: row.artistIsVerified,
+                  }
+                : null,
+            createdBy:
+              row.createdByUserId !== null && row.createdByUsername !== null
+                ? {
+                    userId: row.createdByUserId,
+                    username: row.createdByUsername,
+                  }
+                : null,
+          }));
 
           const totalCount = Number(countResult[0]?.count ?? 0);
           const nextPage =
