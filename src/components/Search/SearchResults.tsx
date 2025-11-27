@@ -1822,7 +1822,7 @@ function SearchResults({
 
                           {relatedArtists.length === 0 ? (
                             <Button
-                              variant={"secondary"}
+                              variant={"outline"}
                               asChild
                               className="baseFlex"
                             >
