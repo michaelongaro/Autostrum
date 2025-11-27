@@ -209,7 +209,7 @@ function GridTabCard({
 
                   <div
                     style={{
-                      backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / ${theme === "light" ? "1" : "0.5"})`,
+                      backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.5)`,
                     }}
                     className="absolute inset-0 z-10 size-full mix-blend-color"
                   ></div>
