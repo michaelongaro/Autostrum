@@ -4,7 +4,6 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import type { Tab } from "~/generated/client";
-import sharp from "sharp";
 import { z } from "zod";
 import { env } from "~/env";
 
@@ -169,13 +168,6 @@ const sectionSchema = z.object({
   data: z.array(z.union([tabSectionSchema, chordSectionSchema])),
 });
 
-async function resizeImage(buffer: Buffer): Promise<Buffer> {
-  return sharp(buffer)
-    .resize({ width: Math.round(1318 / 3.25) }) // 1318px is the original width of the screenshot
-    .jpeg({ quality: 90 })
-    .toBuffer();
-}
-
 // Helper function to trigger screenshot capture
 async function triggerScreenshotCapture(
   tabId: number,
@@ -183,6 +175,13 @@ async function triggerScreenshotCapture(
 ): Promise<void> {
   const screenshotServerUrl = env.SCREENSHOT_SERVER_URL;
   const screenshotSecret = env.SCREENSHOT_SECRET;
+
+  console.log(
+    "screenshotServerUrl:",
+    screenshotServerUrl,
+    "screenshotSecret:",
+    screenshotSecret,
+  );
 
   if (!screenshotServerUrl || !screenshotSecret) {
     console.warn(
@@ -192,6 +191,8 @@ async function triggerScreenshotCapture(
   }
 
   try {
+    console.log("Triggering screenshot capture for tab:", tabId);
+
     const response = await fetch(`${screenshotServerUrl}/screenshot/capture`, {
       method: "POST",
       headers: {
@@ -205,6 +206,8 @@ async function triggerScreenshotCapture(
         secret: screenshotSecret,
       }),
     });
+
+    console.log(response);
 
     if (!response.ok) {
       const error = await response.json();
@@ -652,6 +655,11 @@ export const tabRouter = createTRPCRouter({
         .catch((e) => {
           console.error("Error revalidating tab page:", e);
         });
+
+      console.log(
+        "just about to trigger screenshot capture for updated tab:",
+        tab.id,
+      );
 
       // Trigger screenshot capture asynchronously (don't await)
       triggerScreenshotCapture(tab.id, tab.title).catch((e) =>
