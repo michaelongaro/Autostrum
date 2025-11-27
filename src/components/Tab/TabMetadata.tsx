@@ -93,14 +93,6 @@ const KEYS_BY_LETTER = {
 
 const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 
-function waitForNextPaint() {
-  if (typeof window === "undefined") return Promise.resolve();
-
-  return new Promise<void>((resolve) => {
-    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-  });
-}
-
 type TabMetadata = {
   customTuning: string | null;
   setIsPublishingOrUpdating: Dispatch<SetStateAction<boolean>>;
@@ -325,14 +317,16 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
   useEffect(() => {
     if (minifiedTabData || !asPath.includes("screenshot")) return;
 
-    const tabData = getTabData();
+    setTimeout(() => {
+      const tabData = getTabData();
 
-    if (
-      tabData[0]!.data.length > 0 // isn't just the default empty section
-    ) {
-      // artificially set minifiedTabData so that the light/dark screenshots can be taken
-      setMinifiedTabData(tabData.slice(0, 2));
-    }
+      if (
+        tabData[0]!.data.length > 0 // isn't just the default empty section
+      ) {
+        // artificially set minifiedTabData so that the light/dark screenshots can be taken
+        setMinifiedTabData(tabData.slice(0, 2));
+      }
+    }, 5000); // hacky, but wait 5 seconds to ensure tabData is fully loaded
   }, [asPath, minifiedTabData]);
 
   function handleBpmChange(event: ChangeEvent<HTMLInputElement>) {
