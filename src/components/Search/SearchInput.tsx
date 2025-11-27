@@ -7,12 +7,11 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { FaArrowLeft } from "react-icons/fa6";
 import { api } from "~/utils/api";
-import { genreColors, genreDarkColors } from "~/utils/genreColors";
+import { genreColors } from "~/utils/genreColors";
 import { Badge } from "~/components/ui/badge";
 import { IoIosMusicalNotes } from "react-icons/io";
 import { AiOutlineUser } from "react-icons/ai";
 import { Separator } from "~/components/ui/separator";
-import { useTabStore } from "~/stores/TabStore";
 import Verified from "~/components/ui/icons/Verified";
 import Link from "next/link";
 import Spinner from "~/components/ui/Spinner";
@@ -24,10 +23,6 @@ interface SearchInput {
 
 function SearchInput({ setShowMobileSearch }: SearchInput) {
   const { push, query } = useRouter();
-
-  const { theme } = useTabStore((state) => ({
-    theme: state.theme,
-  }));
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
@@ -64,7 +59,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
     );
 
   useEffect(() => {
-    setSearchQuery((query.search as string) ?? "");
+    setSearchQuery(decodeURIComponent((query.search as string) ?? ""));
   }, [query]);
 
   useEffect(() => {
