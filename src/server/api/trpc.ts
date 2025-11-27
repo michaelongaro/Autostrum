@@ -20,11 +20,13 @@ import { prisma } from "~/server/db";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { waitUntil } from "@vercel/functions";
 
 interface AuthContext {
   auth: ReturnType<typeof getAuth>;
   req: CreateNextContextOptions["req"];
   res: CreateNextContextOptions["res"];
+  waitUntil: typeof waitUntil;
 }
 
 /**
@@ -37,12 +39,13 @@ interface AuthContext {
  *
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
-const createInnerTRPCContext = ({ auth, req, res }: AuthContext) => {
+const createInnerTRPCContext = ({ auth, req, res, waitUntil }: AuthContext) => {
   return {
     auth,
     req,
     res,
     prisma,
+    waitUntil,
   };
 };
 
@@ -57,6 +60,7 @@ export const createTRPCContext = (opts: CreateNextContextOptions) => {
     auth: getAuth(opts.req),
     req: opts.req,
     res: opts.res,
+    waitUntil,
   });
 };
 

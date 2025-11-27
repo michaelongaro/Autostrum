@@ -193,6 +193,10 @@ async function triggerScreenshotCapture(
   try {
     console.log("Triggering screenshot capture for tab:", tabId);
 
+    const testResponse = await fetch(`${screenshotServerUrl}/health`);
+
+    console.log("Screenshot server health check response:", testResponse);
+
     const response = await fetch(`${screenshotServerUrl}/screenshot/capture`, {
       method: "POST",
       headers: {
@@ -513,9 +517,11 @@ export const tabRouter = createTRPCRouter({
           console.error("Error revalidating tab page:", e);
         });
 
-      // Trigger screenshot capture asynchronously (don't await)
-      triggerScreenshotCapture(tab.id, tab.title).catch((e) =>
-        console.error("Screenshot capture error:", e),
+      // Trigger screenshot capture in background (runs after response is sent)
+      ctx.waitUntil(
+        triggerScreenshotCapture(tab.id, tab.title).catch((e) =>
+          console.error("Screenshot capture error:", e),
+        ),
       );
 
       // increment the tabCreator's number of tabs
@@ -661,9 +667,11 @@ export const tabRouter = createTRPCRouter({
         tab.id,
       );
 
-      // Trigger screenshot capture asynchronously (don't await)
-      triggerScreenshotCapture(tab.id, tab.title).catch((e) =>
-        console.error("Screenshot capture error:", e),
+      // Trigger screenshot capture in background (runs after response is sent)
+      ctx.waitUntil(
+        triggerScreenshotCapture(tab.id, tab.title).catch((e) =>
+          console.error("Screenshot capture error:", e),
+        ),
       );
 
       // check if the artistId has changed
