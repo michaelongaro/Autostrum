@@ -176,13 +176,6 @@ async function triggerScreenshotCapture(
   const screenshotServerUrl = env.SCREENSHOT_SERVER_URL;
   const screenshotSecret = env.SCREENSHOT_SECRET;
 
-  console.log(
-    "screenshotServerUrl:",
-    screenshotServerUrl,
-    "screenshotSecret:",
-    screenshotSecret,
-  );
-
   if (!screenshotServerUrl || !screenshotSecret) {
     console.warn(
       "Screenshot server not configured, skipping screenshot capture",
@@ -191,12 +184,6 @@ async function triggerScreenshotCapture(
   }
 
   try {
-    console.log("Triggering screenshot capture for tab:", tabId);
-
-    const testResponse = await fetch(`${screenshotServerUrl}/health`);
-
-    console.log("Screenshot server health check response:", testResponse);
-
     const response = await fetch(`${screenshotServerUrl}/screenshot/capture`, {
       method: "POST",
       headers: {
@@ -210,8 +197,6 @@ async function triggerScreenshotCapture(
         secret: screenshotSecret,
       }),
     });
-
-    console.log(response);
 
     if (!response.ok) {
       const error = await response.json();
