@@ -266,7 +266,7 @@ function GridTabCard({
       )}
 
       {/* tab card body */}
-      <div className="baseVertFlex w-full gap-1 rounded-b-sm bg-secondary-active/65 p-2.5">
+      <div className="baseVertFlex w-full gap-1 rounded-b-sm bg-secondary-active/50 p-2.5">
         {/* title */}
         <div className="baseVertFlex w-full !items-start">
           <Button variant={"link"} asChild>

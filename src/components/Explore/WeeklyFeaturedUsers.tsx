@@ -392,7 +392,7 @@ function WeeklyFeaturedUsers({
               key={user.userId}
               className="baseFlex basis-[95%] pl-12 sm:basis-[70%] lg:h-[280px] lg:basis-[711px]"
             >
-              <div className="baseFlex size-full rounded-lg border bg-secondary-active/50 px-4 py-4 shadow-sm">
+              <div className="baseFlex size-full rounded-lg border bg-secondary px-4 py-4 shadow-sm">
                 <div
                   className={`baseVertFlex min-w-0 gap-8 lg:!flex-row ${user.pinnedTab === null ? "lg:gap-12" : ""}`}
                 >
@@ -498,7 +498,7 @@ function WeeklyFeaturedUsers({
 
                   {/* user's pinned tab / placeholder */}
                   {user.pinnedTab === null ? (
-                    <div className="baseVertFlex h-[94px] w-[280px] shrink-0 gap-2 rounded-md border bg-secondary-active/50 shadow-sm lg:mt-24">
+                    <div className="baseVertFlex h-[94px] w-[280px] shrink-0 gap-2 rounded-md border bg-background/75 shadow-sm lg:mt-24">
                       <TbPinned className="size-5" />
                       No active pinned tab
                     </div>
