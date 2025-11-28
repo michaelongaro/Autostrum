@@ -1047,8 +1047,9 @@ const useTabStoreBase = create<TabState>()(
             // Reset chordIndex to -1 so that after the loop's increment, it becomes 0
             chordIndex = -1;
           } else if (!looping && chordIndex === repeatedChordCount - 1) {
-            // If not looping, stop the playback
+            // If not looping, stop the playback and set currentChordIndex to 0
             set({
+              currentChordIndex: 0,
               audioMetadata: {
                 ...audioMetadata,
                 playing: false,
