@@ -50,6 +50,7 @@ function PlaybackModal() {
     setAudioMetadata,
     setPlaybackModalViewingState,
     pauseAudio,
+    setCurrentChordIndex,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
@@ -67,6 +68,7 @@ function PlaybackModal() {
     setAudioMetadata: state.setAudioMetadata,
     setPlaybackModalViewingState: state.setPlaybackModalViewingState,
     pauseAudio: state.pauseAudio,
+    setCurrentChordIndex: state.setCurrentChordIndex,
   }));
 
   const containerRef = (element: HTMLDivElement | null) => {
@@ -144,6 +146,14 @@ function PlaybackModal() {
     containerElement,
     setVisiblePlaybackContainerWidth,
   ]);
+
+  // reset on modal close
+  useEffect(() => {
+    return () => {
+      setPlaybackModalViewingState("Practice");
+      setCurrentChordIndex(0);
+    };
+  }, []);
 
   // initialization effect
   useEffect(() => {
@@ -678,10 +688,8 @@ function PlaybackModal() {
             variant={"modalClose"}
             onClick={() => {
               setShowPlaybackModal(false);
-              pauseAudio(true);
-              setTimeout(() => {
-                setPlaybackModalViewingState("Practice");
-              }, 150); // waiting for the modal to actually close before changing state
+              pauseAudio();
+
               if (audioMetadata.editingLoopRange) {
                 setAudioMetadata({
                   ...audioMetadata,
