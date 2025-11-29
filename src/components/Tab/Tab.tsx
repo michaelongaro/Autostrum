@@ -684,6 +684,11 @@ function TabSettings({ showPinnedChords, setShowPinnedChords }: TabSettings) {
     "autostrum-left-hand-chord-diagrams",
   );
 
+  const { chordDisplayMode, setChordDisplayMode } = useTabStore((state) => ({
+    chordDisplayMode: state.chordDisplayMode,
+    setChordDisplayMode: state.setChordDisplayMode,
+  }));
+
   const zoom = useGetLocalStorageValues().zoom;
   const leftHandChordDiagrams =
     useGetLocalStorageValues().leftHandChordDiagrams;
@@ -794,6 +799,18 @@ function TabSettings({ showPinnedChords, setShowPinnedChords }: TabSettings) {
           checked={leftHandChordDiagrams}
           onCheckedChange={(value) =>
             localStorageLeftHandChordDiagrams.set(String(value))
+          }
+        />
+      </div>
+
+      <div className="baseFlex w-full !justify-between gap-2">
+        <Label htmlFor="chordDisplayMode">Color chord indicators</Label>
+
+        <Switch
+          id="chordDisplayMode"
+          checked={chordDisplayMode === "color"}
+          onCheckedChange={(checked) =>
+            setChordDisplayMode(checked ? "color" : "text")
           }
         />
       </div>

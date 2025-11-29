@@ -17,6 +17,7 @@ import type { COLORS, THEME } from "~/stores/TabStore";
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { generateBeatLabels } from "~/utils/getBeatIndicator";
+import ColoredChordIndicator from "~/components/ui/ColoredChordIndicator";
 
 interface StaticStrummingPattern {
   data: StrummingPatternType;
@@ -31,8 +32,9 @@ function StaticStrummingPattern({
   color,
   theme,
 }: StaticStrummingPattern) {
-  const { chords } = useTabStore((state) => ({
+  const { chords, chordDisplayMode } = useTabStore((state) => ({
     chords: state.chords,
+    chordDisplayMode: state.chordDisplayMode,
   }));
 
   const heightOfStrummingPatternFiller = useMemo(() => {
@@ -77,6 +79,49 @@ function StaticStrummingPattern({
             strum.strum === "r" ||
             strum.strum === "" ? (
               <div className="h-[28px]"></div>
+            ) : chordDisplayMode === "color" ? (
+              <Popover>
+                <PopoverTrigger
+                  asChild
+                  disabled={chordSequenceData?.[strumIndex] === ""}
+                  className="baseFlex rounded-md transition-all hover:bg-primary/20 active:hover:bg-primary/10"
+                >
+                  <Button
+                    variant={"ghost"}
+                    className="baseFlex mb-1 h-7 px-1 py-0"
+                  >
+                    {(() => {
+                      const chordName = chordSequenceData?.[strumIndex] ?? "";
+                      const chord = chords.find((c) => c.name === chordName);
+                      return chord ? (
+                        <ColoredChordIndicator
+                          color={chord.color}
+                          chordName={chord.name}
+                          size="md"
+                        />
+                      ) : (
+                        <div className="size-6" />
+                      );
+                    })()}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  side="bottom"
+                  sideOffset={0}
+                  className="z-0 size-40 border bg-secondary p-0 py-3"
+                >
+                  <ChordDiagram
+                    originalFrets={
+                      chords[
+                        chords.findIndex(
+                          (chord) =>
+                            chord.name === chordSequenceData?.[strumIndex],
+                        ) ?? 0
+                      ]?.frets ?? []
+                    }
+                  />
+                </PopoverContent>
+              </Popover>
             ) : (
               <Popover>
                 <PopoverTrigger

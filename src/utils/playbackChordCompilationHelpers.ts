@@ -824,6 +824,10 @@ function expandChordSequence({
 
       const prevChord = compiledChords?.at(-1);
 
+      // Look up chord color from the chords array
+      const matchingChord = chords.find((c) => c.name === chordName);
+      const chordColor = matchingChord?.color ?? "";
+
       const playbackChordSequence: PlaybackStrummedChord = {
         type: "strum",
         isFirstChord: chordIdx === 0,
@@ -832,6 +836,7 @@ function expandChordSequence({
         data: {
           strumIndex: chordIdx,
           chordName: chordNameToUse,
+          chordColor,
           palmMute:
             chordSequence.strummingPattern.strums[chordIdx]?.palmMute ?? "",
           strum: chordSequence.strummingPattern.strums[chordIdx]?.strum ?? "",

@@ -11,6 +11,7 @@ import {
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
+import { getNextChordColor } from "~/utils/chordColors";
 
 const opacityVariants = {
   closed: {
@@ -165,6 +166,7 @@ function Chords() {
                       id: crypto.randomUUID(),
                       name: "",
                       frets: ["", "", "", "", "", ""],
+                      color: getNextChordColor(chords),
                     },
                   });
                 }}

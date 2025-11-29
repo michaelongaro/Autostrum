@@ -10,6 +10,7 @@ import { Input } from "~/components/ui/input";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import { X } from "lucide-react";
+import { CHORD_COLORS, getContrastTextColor } from "~/utils/chordColors";
 
 const backdropVariants = {
   expanded: {
@@ -57,6 +58,12 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
     const modifiedChord = structuredClone(chordBeingEdited);
     modifiedChord.value.name = value;
 
+    setChordBeingEdited(modifiedChord);
+  }
+
+  function handleColorChange(color: string) {
+    const modifiedChord = structuredClone(chordBeingEdited);
+    modifiedChord.value.color = color;
     setChordBeingEdited(modifiedChord);
   }
 
@@ -125,6 +132,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
         id: newChord.id,
         name: newChord.name,
         frets: [...newChord.frets],
+        color: newChord.color,
       };
       if (audioMetadata.playing) pauseAudio();
       setChordBeingEdited(null);
@@ -167,6 +175,44 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
                 onChange={handleChordNameChange}
                 className="w-[150px]"
               />
+
+              <div className="baseVertFlex !items-start gap-2 pt-1">
+                <Label>Color</Label>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {CHORD_COLORS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => handleColorChange(color)}
+                      style={{
+                        backgroundColor: color,
+                        color: getContrastTextColor(color),
+                      }}
+                      className={`baseFlex size-7 rounded-full transition-all ${
+                        chordBeingEdited.value.color === color
+                          ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                          : "hover:scale-110"
+                      }`}
+                    >
+                      {chordBeingEdited.value.color === color && (
+                        <svg
+                          className="size-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={3}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <Button

@@ -4,12 +4,15 @@ import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
 import type { BaseNoteLengths, FullNoteLengths } from "~/stores/TabStore";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
+import { useTabStore } from "~/stores/TabStore";
+import ColoredChordIndicator from "~/components/ui/ColoredChordIndicator";
 
 interface PlaybackStrummedChord {
   strumIndex: number;
   strum: string;
   palmMute?: string;
   chordName?: string;
+  chordColor?: string;
   noteLength: FullNoteLengths;
   bpmToShow?: number;
   isFirstChordInSection: boolean;
@@ -30,6 +33,7 @@ function PlaybackStrummedChord({
   strum,
   palmMute,
   chordName = "",
+  chordColor = "",
   noteLength,
   bpmToShow,
   isFirstChordInSection,
@@ -44,6 +48,9 @@ function PlaybackStrummedChord({
   currentChordIsRest,
   nextChordIsRest,
 }: PlaybackStrummedChord) {
+  const { chordDisplayMode } = useTabStore((state) => ({
+    chordDisplayMode: state.chordDisplayMode,
+  }));
   return (
     <>
       {/* not my favorite, but strumIndex of -1 indicates a physical spacer between strumming
@@ -108,14 +115,25 @@ function PlaybackStrummedChord({
             }}
             className="relative mb-2 h-6 w-6 text-sm font-semibold transition-colors"
           >
-            <div
-              // TODO: not sure if this will ever be possible given how it interacts with
-              // palm mutes... but the idea is not bad I think.
-              // ${isRaised ? "top-[-1rem]" : ""}
-              className={`absolute left-1/2 top-0 -translate-x-1/2 transform text-nowrap`}
-            >
-              {chordName}
-            </div>
+            {chordDisplayMode === "color" && chordColor && chordName ? (
+              <div className="absolute left-1/2 top-0 -translate-x-1/2 transform">
+                <ColoredChordIndicator
+                  color={chordColor}
+                  chordName={chordName}
+                  size="sm"
+                  isHighlighted={isHighlighted}
+                />
+              </div>
+            ) : (
+              <div
+                // TODO: not sure if this will ever be possible given how it interacts with
+                // palm mutes... but the idea is not bad I think.
+                // ${isRaised ? "top-[-1rem]" : ""}
+                className={`absolute left-1/2 top-0 -translate-x-1/2 transform text-nowrap`}
+              >
+                {chordName}
+              </div>
+            )}
           </div>
 
           {/* strum icon */}

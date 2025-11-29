@@ -38,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { Switch } from "~/components/ui/switch";
 import { Toggle } from "~/components/ui/toggle";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useTabStore } from "~/stores/TabStore";
@@ -296,6 +297,8 @@ function MobileSettingsPopover({
     countInTimer,
     loopDelay,
     setLoopDelay,
+    chordDisplayMode,
+    setChordDisplayMode,
   } = useTabStore((state) => ({
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
@@ -304,6 +307,8 @@ function MobileSettingsPopover({
     countInTimer: state.countInTimer,
     loopDelay: state.loopDelay,
     setLoopDelay: state.setLoopDelay,
+    chordDisplayMode: state.chordDisplayMode,
+    setChordDisplayMode: state.setChordDisplayMode,
   }));
 
   const volume = useGetLocalStorageValues().volume;
@@ -551,6 +556,17 @@ function MobileSettingsPopover({
             </div>
           </div>
         )}
+
+        <div className="baseFlex w-full !justify-between gap-2">
+          <Label htmlFor="chordDisplayModeMobile">Color chord indicators</Label>
+          <Switch
+            id="chordDisplayModeMobile"
+            checked={chordDisplayMode === "color"}
+            onCheckedChange={(checked) =>
+              setChordDisplayMode(checked ? "color" : "text")
+            }
+          />
+        </div>
       </PopoverContent>
     </Popover>
   );
@@ -892,6 +908,8 @@ function DesktopSettings({
     countInTimer,
     loopDelay,
     setLoopDelay,
+    chordDisplayMode,
+    setChordDisplayMode,
   } = useTabStore((state) => ({
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
@@ -905,6 +923,8 @@ function DesktopSettings({
     countInTimer: state.countInTimer,
     loopDelay: state.loopDelay,
     setLoopDelay: state.setLoopDelay,
+    chordDisplayMode: state.chordDisplayMode,
+    setChordDisplayMode: state.setChordDisplayMode,
   }));
 
   const volume = useGetLocalStorageValues().volume;
@@ -1130,6 +1150,17 @@ function DesktopSettings({
           <span>{Math.floor(volume * 50)}%</span>
         </PopoverContent>
       </Popover>
+
+      <div className="baseFlex gap-2">
+        <Label htmlFor="chordDisplayModeDesktop">Color chords</Label>
+        <Switch
+          id="chordDisplayModeDesktop"
+          checked={chordDisplayMode === "color"}
+          onCheckedChange={(checked) =>
+            setChordDisplayMode(checked ? "color" : "text")
+          }
+        />
+      </div>
     </div>
   );
 }

@@ -28,6 +28,7 @@ export interface Chord {
   id: string;
   name: string;
   frets: string[]; // prob should be number[] but just trying to match what ITabSection looks like
+  color: string; // hex color from CHORD_COLORS palette
 }
 
 export interface StrummingPattern {
@@ -276,6 +277,7 @@ export interface PlaybackLoopDelaySpacerChord {
 interface PlaybackChord {
   strumIndex: number;
   chordName: string;
+  chordColor: string; // hex color for color mode display
   palmMute: "" | "-" | "start" | "end";
   strum: string;
   noteLength: FullNoteLengths;
@@ -423,6 +425,8 @@ interface TabState {
   setChords: (chords: Chord[]) => void;
   strummingPatterns: StrummingPattern[];
   setStrummingPatterns: (strummingPatterns: StrummingPattern[]) => void;
+  chordDisplayMode: "text" | "color";
+  setChordDisplayMode: (chordDisplayMode: "text" | "color") => void;
 
   tabData: Section[];
   setTabData: (updater: (draft: Section[]) => void) => void;
@@ -703,6 +707,8 @@ const useTabStoreBase = create<TabState>()(
       setChords: (chords) => set({ chords }),
       strummingPatterns: [],
       setStrummingPatterns: (strummingPatterns) => set({ strummingPatterns }),
+      chordDisplayMode: "text",
+      setChordDisplayMode: (chordDisplayMode) => set({ chordDisplayMode }),
       ratingsCount: 0,
       setRatingsCount: (ratingsCount) => set({ ratingsCount }),
       averageRating: 0.0,

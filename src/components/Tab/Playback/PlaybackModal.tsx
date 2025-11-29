@@ -20,6 +20,7 @@ import PlaybackScrollingContainer from "~/components/Tab/Playback/PlaybackScroll
 import { X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
+import ChordColorLegend from "~/components/ui/ChordColorLegend";
 
 const backdropVariants = {
   expanded: {
@@ -51,6 +52,8 @@ function PlaybackModal() {
     setPlaybackModalViewingState,
     pauseAudio,
     setCurrentChordIndex,
+    chords,
+    chordDisplayMode,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
@@ -69,6 +72,8 @@ function PlaybackModal() {
     setPlaybackModalViewingState: state.setPlaybackModalViewingState,
     pauseAudio: state.pauseAudio,
     setCurrentChordIndex: state.setCurrentChordIndex,
+    chords: state.chords,
+    chordDisplayMode: state.chordDisplayMode,
   }));
 
   const containerRef = (element: HTMLDivElement | null) => {
@@ -549,6 +554,11 @@ function PlaybackModal() {
                 transition={{ duration: 0.2 }}
                 className="baseVertFlex relative size-full select-none"
               >
+                {chordDisplayMode === "color" && chords.length > 0 && (
+                  <div className="baseFlex mb-2 w-full px-4">
+                    <ChordColorLegend chords={chords} size="sm" />
+                  </div>
+                )}
                 <div className="w-full overflow-hidden">
                   <PlaybackScrollingContainer
                     loopCount={loopCount}
@@ -883,6 +893,7 @@ function RenderChordByType({
         noteLength={chord?.data.noteLength || "quarter"}
         bpmToShow={chord?.data.showBpm ? chord?.data.bpm : undefined}
         chordName={chord?.data.chordName || ""}
+        chordColor={chord?.data.chordColor || ""}
         isHighlighted={isHighlighted}
         beatIndicator={chord?.data.beatIndicator}
         isDimmed={

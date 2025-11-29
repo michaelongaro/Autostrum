@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Fragment } from "react";
+import { Fragment, useMemo } from "react";
 import { Separator } from "~/components/ui/separator";
 import {
   useTabStore,
@@ -13,6 +13,7 @@ import {
 import StaticChordSequence from "~/components/Tab/Static/StaticChordSequence";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type { COLORS, THEME } from "~/stores/TabStore";
+import ChordColorLegend from "~/components/ui/ChordColorLegend";
 
 export interface StaticChordSection {
   subSectionData: ChordSectionType;
@@ -25,9 +26,24 @@ function StaticChordSection({
   color,
   theme,
 }: StaticChordSection) {
-  const { bpm } = useTabStore((state) => ({
+  const { bpm, chords, chordDisplayMode } = useTabStore((state) => ({
     bpm: state.bpm,
+    chords: state.chords,
+    chordDisplayMode: state.chordDisplayMode,
   }));
+
+  // Get unique chord names used in this chord section
+  const sectionChordNames = useMemo(() => {
+    const chordNames = new Set<string>();
+    subSectionData.data.forEach((chordSequence) => {
+      chordSequence.data.forEach((chordName) => {
+        if (chordName && chordName !== "") {
+          chordNames.add(chordName);
+        }
+      });
+    });
+    return Array.from(chordNames);
+  }, [subSectionData]);
 
   function showBpm(chordSequence: ChordSequenceType) {
     if (!chordSequencesAllHaveSameNoteLength(subSectionData)) return true;
@@ -110,6 +126,21 @@ function StaticChordSection({
           ))}
         </motion.div>
       </AnimatePresence>
+
+      {/* Chord color legend - only shown in color mode */}
+      {chordDisplayMode === "color" && sectionChordNames.length > 0 && (
+        <div
+          style={{
+            borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
+          }}
+          className="mt-4 w-full border-t pt-3"
+        >
+          <ChordColorLegend
+            chords={chords}
+            visibleChordNames={sectionChordNames}
+          />
+        </div>
+      )}
     </motion.div>
   );
 }
