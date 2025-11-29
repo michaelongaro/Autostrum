@@ -167,18 +167,21 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
           {/* chord title */}
           <div className="baseFlex w-full !items-start !justify-between">
             <div className="baseVertFlex !items-start gap-2">
-              <Label htmlFor="chordName">Chord name</Label>
-              <Input
-                id="chordName"
-                placeholder="(e.g. Em, Cmaj7)"
-                value={chordBeingEdited?.value?.name}
-                onChange={handleChordNameChange}
-                className="w-[150px]"
-              />
+              <div className="baseFlex gap-2">
+                <Label htmlFor="chordName">Chord name</Label>
+                <Input
+                  id="chordName"
+                  placeholder="(e.g. Em, Cmaj7)"
+                  value={chordBeingEdited?.value?.name}
+                  onChange={handleChordNameChange}
+                  className="w-[150px]"
+                />
+              </div>
 
-              <div className="baseVertFlex !items-start gap-2 pt-1">
-                <Label>Color</Label>
-                <div className="grid grid-cols-5 gap-1.5">
+              <div className="baseFlex mt-1 !items-start gap-3">
+                <Label className="mt-1">Chord color</Label>
+
+                <div className="grid grid-cols-5 gap-2">
                   {CHORD_COLORS.map((color) => (
                     <button
                       key={color}
