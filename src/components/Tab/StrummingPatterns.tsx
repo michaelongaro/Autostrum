@@ -128,7 +128,7 @@ function StrummingPatterns() {
       style={{
         minWidth: aboveMediumViewportWidth ? "500px" : "300px",
       }}
-      className="baseVertFlex relative w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton transition-all hover:bg-secondary-hover hover:text-secondary-foreground"
+      className="baseVertFlex relative w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton"
     >
       <Accordion
         type="single"
