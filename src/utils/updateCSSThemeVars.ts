@@ -35,7 +35,7 @@ type ColorValues = Record<COLORS, Record<THEME, ColorScale>>;
 //     gray: variable,
 //     border: 8,
 //     ring: 11, -20% saturation
-//     primary: 9,
+//     primary: 9, quartz and crimson are light 11
 //     "primary-foreground": 1,
 //     secondary: 3,
 //     "secondary-hover": 4,
@@ -84,7 +84,7 @@ type ColorValues = Record<COLORS, Record<THEME, ColorScale>>;
 //   },
 // }
 
-// screenshot radix color values:
+// FYI: screenshot radix color values:
 // {
 //  light: {
 //     "screenshot-background": 2,
@@ -104,9 +104,20 @@ type ColorValues = Record<COLORS, Record<THEME, ColorScale>>;
 //   },
 // }
 
+// FYI: my color names for each variant:
+// peony - crimson,
+// quartz - ruby,
+// crimson - red,
+// saffron - tomato,
+// pistachio - grass,
+// verdant - teal,
+// aqua - cyan,
+// sapphire - indigo,
+// amethyst - purple,
+
 // FYI: logo gradient is just primary -> primary -10% lightness
 
-// FYI: near white values are all just level two radix colors for each variant
+// FYI: "near white" values are all just level two radix colors for each variant
 
 // FYI: these values are all subject to change, whether it's small foreground tweaks
 // or entire rearrangments of color intensities.
