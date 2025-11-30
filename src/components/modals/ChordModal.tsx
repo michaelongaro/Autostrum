@@ -10,7 +10,11 @@ import { Input } from "~/components/ui/input";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import { X } from "lucide-react";
-import { CHORD_COLORS, getContrastTextColor } from "~/utils/chordColors";
+import {
+  CHORD_COLORS,
+  getContrastTextColor,
+  getColorForChordName,
+} from "~/utils/chordColors";
 
 const backdropVariants = {
   expanded: {
@@ -57,6 +61,12 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
 
     const modifiedChord = structuredClone(chordBeingEdited);
     modifiedChord.value.name = value;
+
+    // Auto-assign color based on chord name
+    const autoColor = getColorForChordName(value);
+    if (autoColor) {
+      modifiedChord.value.color = autoColor;
+    }
 
     setChordBeingEdited(modifiedChord);
   }
@@ -181,7 +191,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
               <div className="baseFlex mt-1 !items-start gap-3">
                 <Label className="mt-1">Chord color</Label>
 
-                <div className="grid grid-cols-5 gap-2">
+                <div className="z-10 grid grid-cols-6 gap-2">
                   {CHORD_COLORS.map((color) => (
                     <button
                       key={color}

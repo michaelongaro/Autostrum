@@ -38,9 +38,12 @@ function ChordColorLegend({
             chordName={chord.name}
             size={size}
           />
-          <span className="text-xs font-medium text-foreground/80">
-            {chord.name}
-          </span>
+
+          {chord.name.length > 1 && (
+            <span className="text-xs font-medium text-foreground/80">
+              {chord.name}
+            </span>
+          )}
         </div>
       ))}
     </div>

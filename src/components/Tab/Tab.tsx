@@ -804,7 +804,7 @@ function TabSettings({ showPinnedChords, setShowPinnedChords }: TabSettings) {
       </div>
 
       <div className="baseFlex w-full !justify-between gap-2">
-        <Label htmlFor="chordDisplayMode">Color chord indicators</Label>
+        <Label htmlFor="chordDisplayMode">Color-coded chords</Label>
 
         <Switch
           id="chordDisplayMode"

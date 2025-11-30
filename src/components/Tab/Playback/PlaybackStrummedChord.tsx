@@ -143,9 +143,12 @@ function PlaybackStrummedChord({
 
             <div
               style={{
-                color: isHighlighted
-                  ? "hsl(var(--primary))"
-                  : "hsl(var(--foreground))",
+                color:
+                  chordDisplayMode === "color" && chordColor
+                    ? chordColor
+                    : isHighlighted
+                      ? "hsl(var(--primary))"
+                      : "hsl(var(--foreground))",
               }}
               className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
             >
@@ -153,6 +156,10 @@ function PlaybackStrummedChord({
                 {strum.includes("v") && (
                   <BsArrowDown
                     style={{
+                      fill:
+                        chordDisplayMode === "color" && chordColor
+                          ? chordColor
+                          : "currentColor",
                       width: strum.includes(">") ? "18.5px" : "20px",
                       height: strum.includes(">") ? "18.5px" : "20px",
                     }}
@@ -162,6 +169,10 @@ function PlaybackStrummedChord({
                 {strum.includes("^") && (
                   <BsArrowUp
                     style={{
+                      fill:
+                        chordDisplayMode === "color" && chordColor
+                          ? chordColor
+                          : "currentColor",
                       width: strum.includes(">") ? "18.5px" : "20px",
                       height: strum.includes(">") ? "18.5px" : "20px",
                     }}
@@ -171,7 +182,13 @@ function PlaybackStrummedChord({
 
                 {strum.includes("s") && (
                   <div
-                    style={{ fontSize: "20px" }}
+                    style={{
+                      fontSize: "20px",
+                      color:
+                        chordDisplayMode === "color" && chordColor
+                          ? chordColor
+                          : "currentColor",
+                    }}
                     className={`baseFlex mb-1 h-5 leading-[0] ${strum.includes(">") ? "font-semibold" : "font-normal"}`}
                   >
                     {strum[0]}
@@ -180,7 +197,13 @@ function PlaybackStrummedChord({
 
                 {strum.includes(".") && (
                   <div
-                    style={{ fontSize: "30px" }}
+                    style={{
+                      fontSize: "30px",
+                      color:
+                        chordDisplayMode === "color" && chordColor
+                          ? chordColor
+                          : "currentColor",
+                    }}
                     // className="absolute bottom-[-9px]"
                     className="relative bottom-0 right-1 w-0"
                   >
@@ -189,7 +212,17 @@ function PlaybackStrummedChord({
                 )}
               </div>
 
-              {strum === "r" && <PauseIcon className="size-3" />}
+              {strum === "r" && (
+                <PauseIcon
+                  className="size-3"
+                  style={{
+                    color:
+                      chordDisplayMode === "color" && chordColor
+                        ? chordColor
+                        : "currentColor",
+                  }}
+                />
+              )}
 
               {strum === "" && <div className="h-5 w-4"></div>}
             </div>
