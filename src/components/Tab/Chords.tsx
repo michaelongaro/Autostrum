@@ -118,18 +118,18 @@ function Chords() {
                     initial="closed"
                     animate="open"
                     exit="closed"
-                    className="baseFlex border-r-none h-10 overflow-hidden rounded-md border-2"
+                    className="baseVertFlex overflow-hidden rounded-md border-2"
                   >
-                    <span className="text-nowrap px-3 font-semibold text-foreground">
+                    <span className="baseFlex h-8 text-nowrap px-3 font-semibold text-foreground">
                       {chord.name}
                     </span>
 
-                    <div className="baseFlex h-full w-full !justify-evenly">
+                    <div className="baseFlex h-8 w-full !justify-evenly border-t-2">
                       {/* edit button */}
                       <Button
                         variant={"ghost"}
                         size={"sm"}
-                        className="baseFlex h-full w-[52px] gap-2 rounded-none border-l-2 border-r-2"
+                        className="baseFlex h-full w-[52px] gap-2 rounded-none border-r-2"
                         onClick={() => {
                           pauseAudio();
                           setChordBeingEdited({
@@ -146,7 +146,7 @@ function Chords() {
                       <Button
                         variant={"destructive"}
                         size="sm"
-                        className="baseFlex h-full w-12 rounded-l-none rounded-r-sm border-none"
+                        className="baseFlex h-full w-12 rounded-none border-none"
                         onClick={() => handleDeleteChord(index, chord.name)}
                       >
                         {/* add the tooltip below for "Delete" */}
