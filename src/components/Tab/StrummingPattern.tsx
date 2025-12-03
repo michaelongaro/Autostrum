@@ -534,9 +534,9 @@ function StrummingPattern({
         {mode === "editingChordSequence" && (
           <span
             style={{
-              top: patternHasPalmMuting() ? "-22px" : "-2rem",
+              top: patternHasPalmMuting() ? "-26px" : "-38px",
             }}
-            className="relative -top-8 left-0 pr-2 text-sm font-medium"
+            className="relative left-0 pr-2 text-sm font-medium"
           >
             Chords
           </span>

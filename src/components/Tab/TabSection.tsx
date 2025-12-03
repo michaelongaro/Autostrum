@@ -1006,7 +1006,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
             </div>
           </div>
 
-          <div className="baseVertFlex !items-start gap-2 lg:!flex-row">
+          <div className="baseVertFlex !items-start gap-2 sm:!flex-row">
             <div className="baseFlex">
               <TooltipProvider delayDuration={0}>
                 <Tooltip>
