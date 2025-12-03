@@ -137,7 +137,7 @@ function StrummingPatterns() {
         onValueChange={(value) => {
           setAccordionValue(value);
         }}
-        className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 xs:px-0"
+        className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 md:px-0"
       >
         <AccordionItem value="opened" className="w-full">
           <AccordionTrigger className="w-full p-2 md:p-4">

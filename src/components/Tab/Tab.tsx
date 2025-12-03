@@ -351,7 +351,7 @@ function Tab({ tab }: Tab) {
         />
 
         {editing ? (
-          <div className="baseVertFlex relative mb-4 mt-6 w-full gap-4 sm:mb-0 sm:mt-4">
+          <div className="baseVertFlex relative mb-4 mt-6 w-full gap-4 tablet:mb-0 tablet:mt-4">
             <SectionProgression />
             <Chords />
             <StrummingPatterns />
