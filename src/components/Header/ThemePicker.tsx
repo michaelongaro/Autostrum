@@ -74,7 +74,7 @@ function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
       <span className="font-medium sm:text-lg">Color</span>
       <Separator className="h-[1px] bg-foreground/50" />
 
-      <div className="mt-2 grid w-full grid-cols-3 grid-rows-3 gap-2">
+      <div className="mt-4 grid w-full grid-cols-3 grid-rows-3 gap-2">
         {COLORS.map((colorString) => (
           <div key={colorString} className="baseVertFlex w-full gap-1">
             <Button
@@ -127,7 +127,7 @@ function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
       <span className="mt-2 font-medium sm:mt-4 sm:text-lg">Theme</span>
       <Separator className="h-[1px] bg-foreground/50" />
 
-      <div className="mt-2 grid w-full grid-cols-3 grid-rows-1 gap-2">
+      <div className="mt-4 grid w-full grid-cols-3 grid-rows-1 gap-2">
         <div className="baseVertFlex w-full gap-1">
           <Button
             variant={"theme"}
