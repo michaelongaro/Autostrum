@@ -443,7 +443,7 @@ function RateTabDrawer({
         </Button>
       </DrawerTrigger>
       <DrawerPortal>
-        <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl bg-secondary p-4 pb-6">
+        <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl p-4 pb-6">
           <VisuallyHidden>
             <DrawerTitle>Rate this tab</DrawerTitle>
             <DrawerDescription>

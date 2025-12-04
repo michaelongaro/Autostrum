@@ -46,11 +46,15 @@ const DrawerContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
   <DrawerPortal>
-    <DrawerOverlay />
+    {/* little hack below here, since the default overlay when scrolling drawer up past base height wouldn't show the border-x that I have on <DrawerContent> */}
+    <DrawerOverlay className="fixed">
+      <div className="absolute bottom-0 left-0 h-[100px] w-full border-x bg-background"></div>
+    </DrawerOverlay>
+
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto w-full max-w-md flex-col place-self-center overflow-hidden rounded-t-[10px] border border-b-0 bg-background",
+        "fixed inset-x-0 bottom-0 z-50 flex h-auto w-full max-w-md flex-col place-self-center overflow-hidden rounded-t-[10px] border border-b-0 bg-background",
         className,
       )}
       {...props}

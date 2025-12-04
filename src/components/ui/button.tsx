@@ -32,7 +32,7 @@ const buttonVariants = cva(
           "text-toggle-background hover:bg-secondary/20 active:bg-secondary/30",
         theme: "border rounded-full hover:brightness-110 active:brightness-100",
         drawer:
-          "w-full !rounded-none font-normal !h-[65px] last-of-type:border-b-none border-b border-gray/50 h-full baseFlex bg-secondary active:brightness-90 relative py-0",
+          "w-full !rounded-none font-normal !h-[65px] last-of-type:border-b-none border-b border-gray/50 h-full baseFlex active:bg-secondary active:brightness-90 relative py-0",
         drawerNavigation:
           "text-primary shadow-none hover:text-primary/80 active:text-primary/60",
       },
