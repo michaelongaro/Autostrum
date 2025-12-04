@@ -1204,7 +1204,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
 
       <div className="baseFlex relative mt-4 w-full flex-wrap !items-start !justify-start">
         {editingPalmMuteNodes && (
-          <p className="absolute left-[6px] top-2 text-sm italic">PM</p>
+          <p className="absolute left-[6px] top-[14px] text-sm italic">PM</p>
         )}
 
         <div className="baseVertFlex">

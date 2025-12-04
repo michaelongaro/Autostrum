@@ -321,7 +321,7 @@ function TabNotesColumn({
 
         <div className="baseVertFlex">
           {/* Palm Mute Node */}
-          <div className="baseFlex h-12 w-full !items-start">
+          <div className="baseFlex h-12 w-full">
             <PalmMuteNode
               value={columnData.palmMute}
               columnIndex={columnIndex}

@@ -337,7 +337,7 @@ function TabMeasureLine({
       {/* Palm mute connecting line (shown when measure line is inside palm mute section) */}
       <div className="baseFlex h-[48px] w-full shrink-0">
         {columnData.isInPalmMuteSection && (
-          <div className="relative top-[-26px] h-[1px] w-full bg-foreground"></div>
+          <div className="h-[1px] w-full bg-foreground"></div>
         )}
       </div>
 
