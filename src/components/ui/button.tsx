@@ -21,7 +21,7 @@ const buttonVariants = cva(
         link: "underline-offset-4 hover:underline active:brightness-75 shadow-none",
         text: "text-foreground shadow-none hover:text-foreground/80 active:text-foreground/60",
         audio:
-          "bg-audio/85 border border-audio text-audio-foreground hover:bg-audio shadow-none active:brightness-75 disabled:bg-gray disabled:border-gray",
+          "bg-audio/85 border border-audio text-audio-foreground hover:bg-audio shadow-none active:brightness-75 disabled:bg-gray disabled:opacity-75 disabled:border-gray",
         destructive:
           "bg-destructive/75 border border-destructive text-destructive-foreground !shadow-primaryButton hover:bg-destructive active:brightness-75",
         modalClose:

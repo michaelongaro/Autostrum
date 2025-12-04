@@ -37,8 +37,8 @@ function ChordName({
     textColor = getContrastTextColor(color);
   } else {
     textColor = isHighlighted
-      ? "hsl(--var(primary))"
-      : "hsl(--var(foreground))";
+      ? "hsl(var(--primary))"
+      : "hsl(var(--foreground))";
   }
 
   const modifiedChordName =
@@ -58,8 +58,12 @@ function ChordName({
         fontSize: truncate ? `${dynamicFontSize(name.length)}px` : "14px",
         lineHeight: "1.25rem",
         borderWidth: chordDisplayMode === "color" ? "1px" : undefined,
+        transform:
+          chordDisplayMode === "color" && isHighlighted
+            ? "scale(1.1)"
+            : "scale(1)",
       }}
-      className={`baseFlex shrink-0 rounded-full border-background px-1.5 font-semibold transition-all ${isHighlighted ? "scale-110" : ""}`}
+      className="baseFlex shrink-0 rounded-full border-background px-1.5 font-semibold transition-all"
     >
       {modifiedChordName}
     </div>

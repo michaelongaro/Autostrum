@@ -705,7 +705,7 @@ function AudioControls() {
 
         {/* bottom layer: play/pause, loop, slider*/}
         <div className="baseFlex mt-2 w-full gap-4">
-          {/* audio source, instrument, speed selects*/}
+          {/* instrument, speed selects*/}
 
           {/* play/pause button*/}
           <Button
