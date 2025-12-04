@@ -810,7 +810,7 @@ function AudioControls() {
                 renderThumb={({ props }) => (
                   <div
                     {...props}
-                    className="!z-20 size-[18px] rounded-full border bg-primary"
+                    className="!z-20 size-[18px] rounded-full border border-foreground/50 bg-primary"
                   />
                 )}
               />
@@ -933,7 +933,7 @@ function AudioControls() {
                           : "0s"
                       }`,
                     }}
-                    className="!z-20 size-[18px] rounded-full border bg-primary will-change-transform"
+                    className="!z-20 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
                   />
                 )}
               />

@@ -515,6 +515,7 @@ function Tab({ tab }: Tab) {
           <div
             id="stickyBottomControls"
             style={{
+              pointerEvents: editing ? "none" : "auto",
               opacity:
                 !editing &&
                 audioMetadata.fullCurrentlyPlayingMetadataLength > 0 &&
@@ -768,7 +769,7 @@ function TabSettings({ showPinnedChords, setShowPinnedChords }: TabSettings) {
               style={{
                 ...props.style,
               }}
-              className="z-10 size-[18px] rounded-full border bg-primary"
+              className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
             />
           )}
         />

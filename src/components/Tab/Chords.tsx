@@ -12,6 +12,7 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { getNextChordColor } from "~/utils/chordColors";
+import { Separator } from "~/components/ui/separator";
 
 const opacityVariants = {
   closed: {
@@ -129,7 +130,7 @@ function Chords() {
                       <Button
                         variant={"ghost"}
                         size={"sm"}
-                        className="baseFlex h-full w-[52px] gap-2 rounded-none border-r-2"
+                        className="baseFlex h-full w-full min-w-[50px] gap-2 rounded-none"
                         onClick={() => {
                           pauseAudio();
                           setChordBeingEdited({
@@ -142,11 +143,16 @@ function Chords() {
                         <MdModeEditOutline className="size-5" />
                       </Button>
 
+                      <Separator
+                        orientation="vertical"
+                        className="h-full w-[2px] bg-border"
+                      />
+
                       {/* delete button */}
                       <Button
                         variant={"destructive"}
                         size="sm"
-                        className="baseFlex h-full w-12 rounded-none border-none"
+                        className="baseFlex h-full w-full min-w-[50px] rounded-none border-none"
                         onClick={() => handleDeleteChord(index, chord.name)}
                       >
                         {/* add the tooltip below for "Delete" */}
