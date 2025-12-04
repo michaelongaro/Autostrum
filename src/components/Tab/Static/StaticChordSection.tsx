@@ -13,7 +13,6 @@ import {
 import StaticChordSequence from "~/components/Tab/Static/StaticChordSequence";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type { COLORS, THEME } from "~/stores/TabStore";
-import ChordColorLegend from "~/components/ui/ChordColorLegend";
 
 export interface StaticChordSection {
   subSectionData: ChordSectionType;
@@ -126,21 +125,6 @@ function StaticChordSection({
           ))}
         </motion.div>
       </AnimatePresence>
-
-      {/* Chord color legend - only shown in color mode */}
-      {chordDisplayMode === "color" && sectionChordNames.length > 0 && (
-        <div
-          style={{
-            borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
-          }}
-          className="mt-4 w-full border-t pt-3"
-        >
-          <ChordColorLegend
-            chords={chords}
-            visibleChordNames={sectionChordNames}
-          />
-        </div>
-      )}
     </motion.div>
   );
 }

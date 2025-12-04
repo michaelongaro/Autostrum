@@ -13,6 +13,7 @@ import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { getNextChordColor } from "~/utils/chordColors";
 import { Separator } from "~/components/ui/separator";
+import ChordName from "~/components/ui/ChordName";
 
 const opacityVariants = {
   closed: {
@@ -29,18 +30,18 @@ function Chords() {
 
   const {
     chords,
+    currentlyCopiedData,
     setChords,
     setChordBeingEdited,
     pauseAudio,
-    currentlyCopiedData,
     setCurrentlyCopiedData,
     setTabData,
   } = useTabStore((state) => ({
     chords: state.chords,
+    currentlyCopiedData: state.currentlyCopiedData,
     setChords: state.setChords,
     setChordBeingEdited: state.setChordBeingEdited,
     pauseAudio: state.pauseAudio,
-    currentlyCopiedData: state.currentlyCopiedData,
     setCurrentlyCopiedData: state.setCurrentlyCopiedData,
     setTabData: state.setTabData,
   }));
@@ -121,9 +122,13 @@ function Chords() {
                     exit="closed"
                     className="baseVertFlex overflow-hidden rounded-md border-2"
                   >
-                    <span className="baseFlex h-8 text-nowrap px-3 font-semibold text-foreground">
-                      {chord.name}
-                    </span>
+                    <div className="baseFlex h-8 text-nowrap px-3">
+                      <ChordName
+                        name={chord.name}
+                        color={chord.color}
+                        truncate={false}
+                      />
+                    </div>
 
                     <div className="baseFlex h-8 w-full !justify-evenly border-t-2">
                       {/* edit button */}

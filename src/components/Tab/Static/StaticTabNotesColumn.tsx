@@ -59,9 +59,9 @@ function StaticTabNotesColumn({
   return (
     <motion.div
       key={columnData.id}
-      className="baseFlex h-[285px] cursor-default"
+      className="baseFlex h-[290px] cursor-default"
     >
-      <div className="baseVertFlex mb-[3.2rem] mt-4">
+      <div className="baseVertFlex mb-[51px] mt-4">
         {/* Palm Mute Node */}
         <div className="baseFlex h-9 w-full">
           <StaticPalmMuteNode
@@ -84,7 +84,7 @@ function StaticTabNotesColumn({
                 paddingBottom: `${stringIndex === 6 ? "7px" : "0"}`,
                 borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
               }}
-              className="baseFlex relative w-[35px] basis-[content]"
+              className="baseFlex relative min-h-[24px] w-[35px] basis-[content] bg-background"
             >
               <div
                 style={{
@@ -140,7 +140,7 @@ function StaticTabNotesColumn({
           </div>
         </div>
 
-        {/* Chord Effects (strum direction, etc.) */}
+        {/* Chord Effects */}
         <div className="relative h-0 w-full">
           <div
             style={{
@@ -210,8 +210,9 @@ function StaticTabNotesColumn({
         <div
           style={{
             borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+            marginBottom: "-1px",
           }}
-          className="h-[168px] rounded-r-2xl border-2 p-1"
+          className="h-[168px] rounded-r-2xl border-2 bg-background p-1"
         ></div>
       )}
     </motion.div>

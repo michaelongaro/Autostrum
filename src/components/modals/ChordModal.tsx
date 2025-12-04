@@ -57,7 +57,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
   function handleChordNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
 
-    if (value.length > 6) return;
+    if (value.length > 16) return;
 
     const modifiedChord = structuredClone(chordBeingEdited);
     modifiedChord.value.name = value;
@@ -78,76 +78,78 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
   }
 
   function handleSaveChord() {
-    const chordNameAlreadyExists = chords.some(
+    const modifiedChord = structuredClone(chordBeingEdited);
+
+    // if the name already exists on a different chord, append " (2)", " (3)", etc.
+    const nameConflict = chords.some(
       (chord, index) =>
-        chord.name === chordBeingEdited.value.name &&
-        index !== chordBeingEdited.index,
+        chord.name === modifiedChord.value.name &&
+        index !== modifiedChord.index,
     );
 
-    if (chordNameAlreadyExists) {
-      // TODO: show error message
-    } else {
-      // update chord name of all strumming patterns that use this chord
-      // if the chord name has changed.
+    if (nameConflict) {
+      const baseName = modifiedChord.value.name;
+      let suffix = 2;
+      let candidate = `${baseName} (${suffix})`;
+      while (chords.some((c) => c.name === candidate)) {
+        suffix += 1;
+        candidate = `${baseName} (${suffix})`;
+      }
+      modifiedChord.value.name = candidate;
+    }
 
-      const oldChordName = chords[chordBeingEdited.index]?.name;
-      if (oldChordName && oldChordName !== chordBeingEdited.value.name) {
-        setTabData((draft) => {
-          for (const [sectionIndex, section] of draft.entries()) {
-            if (!section) continue;
+    // update chord name of all strumming patterns that use this chord
+    const oldChordName = chords[modifiedChord.index]?.name;
+    if (oldChordName && oldChordName !== modifiedChord.value.name) {
+      setTabData((draft) => {
+        for (const [sectionIndex, section] of draft.entries()) {
+          if (!section) continue;
+
+          for (const [subSectionIndex, subSection] of section.data.entries()) {
+            if (subSection?.type !== "chord") continue;
 
             for (const [
-              subSectionIndex,
-              subSection,
-            ] of section.data.entries()) {
-              if (subSection?.type !== "chord") continue;
+              chordSequenceIndex,
+              chordGroup,
+            ] of subSection.data.entries()) {
+              if (!chordGroup) continue;
 
-              for (const [
-                chordSequenceIndex,
-                chordGroup,
-              ] of subSection.data.entries()) {
-                if (!chordGroup) continue;
+              for (const [chordIndex, chordName] of chordGroup.data.entries()) {
+                if (!chordName || chordName !== oldChordName) continue;
 
-                for (const [
-                  chordIndex,
-                  chordName,
-                ] of chordGroup.data.entries()) {
-                  if (!chordName || chordName !== oldChordName) continue;
+                const sectionData = draft[sectionIndex];
+                if (!sectionData) continue;
 
-                  const sectionData = draft[sectionIndex];
-                  if (!sectionData) continue;
+                const subSectionData = sectionData.data[subSectionIndex];
+                if (!subSectionData || subSectionData.type !== "chord")
+                  continue;
 
-                  const subSectionData = sectionData.data[subSectionIndex];
-                  if (!subSectionData || subSectionData.type !== "chord")
-                    continue;
+                const chordSequence = subSectionData.data[chordSequenceIndex];
+                if (!chordSequence) continue;
 
-                  const chordSequence = subSectionData.data[chordSequenceIndex];
-                  if (!chordSequence) continue;
-
-                  chordSequence.data[chordIndex] = chordBeingEdited.value.name;
-                }
+                chordSequence.data[chordIndex] = modifiedChord.value.name;
               }
             }
           }
-        });
-      }
-
-      // save chord
-      const newChords = structuredClone(chords);
-
-      // decomposed shallow copy of frets so that the chord elem won't get updated
-      // when the chord is edited in the chord modal
-      const newChord = structuredClone(chordBeingEdited.value);
-      newChords[chordBeingEdited.index] = {
-        id: newChord.id,
-        name: newChord.name,
-        frets: [...newChord.frets],
-        color: newChord.color,
-      };
-      if (audioMetadata.playing) pauseAudio();
-      setChordBeingEdited(null);
-      setChords(newChords);
+        }
+      });
     }
+
+    // save chord
+    const newChords = structuredClone(chords);
+
+    // decomposed shallow copy of frets so that the chord elem won't get updated
+    // when the chord is edited in the chord modal
+    const newChord = structuredClone(modifiedChord.value);
+    newChords[modifiedChord.index] = {
+      id: newChord.id,
+      name: newChord.name,
+      frets: [...newChord.frets],
+      color: newChord.color,
+    };
+    if (audioMetadata.playing) pauseAudio();
+    setChordBeingEdited(null);
+    setChords(newChords);
   }
 
   return (

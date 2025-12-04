@@ -21,7 +21,7 @@ function StaticChordSequence({
         style={{
           borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
         }}
-        className="baseVertFlex relative !justify-start gap-4 rounded-md border-2 p-1 shadow-sm"
+        className="baseVertFlex relative !justify-start gap-4 rounded-md border-2 bg-background p-1 shadow-sm"
       >
         <StaticStrummingPattern
           data={chordSequenceData.strummingPattern}

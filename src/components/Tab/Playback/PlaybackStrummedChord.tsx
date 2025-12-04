@@ -5,7 +5,7 @@ import renderStrummingGuide from "~/utils/renderStrummingGuide";
 import type { BaseNoteLengths, FullNoteLengths } from "~/stores/TabStore";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { useTabStore } from "~/stores/TabStore";
-import ColoredChordIndicator from "~/components/ui/ColoredChordIndicator";
+import ChordName from "~/components/ui/ChordName";
 
 interface PlaybackStrummedChord {
   strumIndex: number;
@@ -88,7 +88,7 @@ function PlaybackStrummedChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex relative mb-[72px] h-[144px] w-[40px] pb-4 mobilePortrait:h-[168px]"
+          className="baseVertFlex relative mb-[72px] h-[144px] w-[45px] pb-4 mobilePortrait:h-[168px]"
         >
           {bpmToShow && (
             <div className="baseFlex absolute left-[16px] top-[-1.5rem] gap-[6px] text-nowrap text-xs">
@@ -117,10 +117,10 @@ function PlaybackStrummedChord({
           >
             {chordDisplayMode === "color" && chordColor && chordName ? (
               <div className="absolute left-1/2 top-0 -translate-x-1/2 transform">
-                <ColoredChordIndicator
+                <ChordName
                   color={chordColor}
-                  chordName={chordName}
-                  size="sm"
+                  name={chordName}
+                  truncate={true}
                   isHighlighted={isHighlighted}
                 />
               </div>

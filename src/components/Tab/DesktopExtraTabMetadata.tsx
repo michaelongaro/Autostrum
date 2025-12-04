@@ -11,6 +11,8 @@ import StrummingPattern from "~/components/Tab/StrummingPattern";
 import { BsMusicNoteList } from "react-icons/bs";
 import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
 import Logo from "~/components/ui/icons/Logo";
+import { getContrastTextColor } from "~/utils/chordColors";
+import ChordName from "~/components/ui/ChordName";
 
 function DesktopExtraTabMetadata() {
   const {
@@ -22,6 +24,7 @@ function DesktopExtraTabMetadata() {
     audioMetadata,
     pauseAudio,
     playPreview,
+    chordDisplayMode,
   } = useTabStore((state) => ({
     sectionProgression: state.sectionProgression,
     chords: state.chords,
@@ -31,6 +34,7 @@ function DesktopExtraTabMetadata() {
     audioMetadata: state.audioMetadata,
     pauseAudio: state.pauseAudio,
     playPreview: state.playPreview,
+    chordDisplayMode: state.chordDisplayMode,
   }));
 
   const [activeTabName, setActiveTabName] = useState("Section progression");
@@ -175,22 +179,23 @@ function DesktopExtraTabMetadata() {
               ) : (
                 <div className="baseFlex flex-wrap !items-start gap-8">
                   {chords.map((chord, index) => (
-                    <div key={chord.id} className="baseFlex max-w-[175px]">
+                    <div key={chord.id} className="baseFlex">
                       <div className="baseVertFlex gap-3">
                         <div className="baseFlex w-full !justify-between gap-2 border-b pb-2">
-                          <span
-                            style={{
-                              color:
-                                previewMetadata.indexOfPattern === index &&
-                                previewMetadata.playing &&
-                                previewMetadata.type === "chord"
-                                  ? "hsl(var(--primary))"
-                                  : "hsl(var(--foreground))",
-                            }}
-                            className="font-semibold transition-colors"
-                          >
-                            {chord.name}
-                          </span>
+                          <ChordName
+                            name={chord.name}
+                            color={chord.color}
+                            truncate={false}
+                            isHighlighted={
+                              chordDisplayMode === "color"
+                                ? false
+                                : previewMetadata.indexOfPattern === index &&
+                                    previewMetadata.playing &&
+                                    previewMetadata.type === "chord"
+                                  ? true
+                                  : false
+                            }
+                          />
 
                           {/* preview chord button */}
                           <Button

@@ -1202,13 +1202,17 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         />
       </div>
 
-      <div className="baseFlex relative w-full flex-wrap !justify-start">
+      <div className="baseFlex relative mt-4 w-full flex-wrap !items-start !justify-start">
         {editingPalmMuteNodes && (
-          <p className="absolute left-[0.4rem] top-6 text-sm italic">PM</p>
+          <p className="absolute left-[6px] top-2 text-sm italic">PM</p>
         )}
 
-        <div className="baseVertFlex relative h-[280px] rounded-l-2xl border-2 border-foreground p-2">
-          <PrettyVerticalTuning tuning={tuning} height={"250px"} />
+        <div className="baseVertFlex">
+          <div className="h-[48px]"></div>
+          <div className="baseVertFlex relative h-[258px] rounded-l-2xl border-2 border-foreground bg-background p-2">
+            <PrettyVerticalTuning tuning={tuning} height={"230px"} />
+          </div>
+          <div className="h-[74px]"></div>
         </div>
 
         <DndContext

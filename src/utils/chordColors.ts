@@ -3,27 +3,27 @@ import type { Chord } from "~/stores/TabStore";
 /**
  * Chord color palette -
  * Uses 9 theme colors tied to major chords + a lighter version of
- * each theme color for minor chords (lvl 7 dark variants, 8 for quartz and crimson)
+ * each theme color for minor chords (lvl 7 pastel variants, 8 for quartz and crimson)
  */
 export const CHORD_COLORS = [
   "#E93D82", // peony / crimson
-  "#EAACC3", // lighter peony / dark crimson
+  "#EAACC3", // lighter peony / pastel crimson
   "#CA244D", // quartz / ruby
-  "#E592A3", // lighter quartz / dark ruby
+  "#EFACB8", // lighter quartz / pastel ruby
   "#CE2C31", // crimson / red
-  "#EB8E90", // lighter crimson / dark red
+  "#F4A9AA", // lighter crimson / pastel red
   "#E54D2E", // saffron / tomato
-  "#F5A898", // lighter saffron / dark tomato
+  "#F5A898", // lighter saffron / pastel tomato
   "#46A758", // pistachio / grass
-  "#94CE9A", // lighter pistachio / dark grass
+  "#94CE9A", // lighter pistachio / pastel grass
   "#12A594", // verdant / teal
-  "#83CDC1", // lighter verdant / dark teal
+  "#83CDC1", // lighter verdant / pastel teal
   "#00A2C7", // aqua / cyan
-  "#7DCEDC", // lighter aqua / dark cyan
+  "#7DCEDC", // lighter aqua / pastel cyan
   "#3E63DD", // sapphire / indigo
-  "#ABBDF9", // lighter sapphire / dark indigo
+  "#ABBDF9", // lighter sapphire / pastel indigo
   "#8E4EC6", // amethyst / purple
-  "#D1AFEC", // lighter amethyst / dark purple
+  "#D1AFEC", // lighter amethyst / pastel purple
 ] as const;
 
 export type ChordColor = (typeof CHORD_COLORS)[number];
@@ -94,27 +94,18 @@ export function getNextChordColor(existingChords: Chord[]): string {
   return CHORD_COLORS[index]!;
 }
 
-/**
- * Calculate relative luminance of a hex color
- * Based on WCAG 2.0 formula
- */
-function getLuminance(hexColor: string): number {
-  const hex = hexColor.replace("#", "");
-  const r = parseInt(hex.substring(0, 2), 16) / 255;
-  const g = parseInt(hex.substring(2, 4), 16) / 255;
-  const b = parseInt(hex.substring(4, 6), 16) / 255;
+const colorsThatNeedLightText = [
+  "#E93D82", // peony / crimson
+  "#CA244D", // quartz / ruby
+  "#CE2C31", // crimson / red
+  "#E54D2E", // saffron / tomato
+  "#46A758", // pistachio / grass
+  "#12A594", // verdant / teal
+  "#00A2C7", // aqua / cyan
+  "#3E63DD", // sapphire / indigo
+  "#8E4EC6", // amethyst / purple
+];
 
-  const toLinear = (c: number) =>
-    c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-
-  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
-}
-
-/**
- * Get contrasting text color (white or dark gray) based on background luminance
- */
 export function getContrastTextColor(hexColor: string): string {
-  const luminance = getLuminance(hexColor);
-  // Use white text for dark backgrounds, black for light backgrounds
-  return luminance > 0.4 ? "#000000" : "#FFFFFF";
+  return colorsThatNeedLightText.includes(hexColor) ? "#FFFFFF" : "#000000";
 }

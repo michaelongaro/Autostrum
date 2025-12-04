@@ -20,7 +20,6 @@ import PlaybackScrollingContainer from "~/components/Tab/Playback/PlaybackScroll
 import { X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
-import ChordColorLegend from "~/components/ui/ChordColorLegend";
 
 const backdropVariants = {
   expanded: {
@@ -192,7 +191,7 @@ function PlaybackModal() {
           ? 16
           : chord?.type === "tab"
             ? 35
-            : 40;
+            : 45;
 
       localScrollPositions[index] = offsetLeft;
 
@@ -554,11 +553,6 @@ function PlaybackModal() {
                 transition={{ duration: 0.2 }}
                 className="baseVertFlex relative size-full select-none"
               >
-                {chordDisplayMode === "color" && chords.length > 0 && (
-                  <div className="baseFlex mb-2 w-full px-4">
-                    <ChordColorLegend chords={chords} size="sm" />
-                  </div>
-                )}
                 <div className="w-full overflow-hidden">
                   <PlaybackScrollingContainer
                     loopCount={loopCount}
@@ -573,7 +567,7 @@ function PlaybackModal() {
                         <div className="mb-[72px] h-[140px] w-full mobilePortrait:h-[165px]"></div>
                         {/* currently this fixes the highlight line extending past rounded borders of
                         sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
-                        <div className="z-0 mb-[72px] ml-1 h-[140px] w-[2px] shrink-0 bg-primary mobilePortrait:h-[164px]"></div>
+                        <div className="z-10 mb-[72px] ml-1 h-[140px] w-[2px] shrink-0 bg-primary mobilePortrait:h-[164px]"></div>
                         <div className="mb-[72px] h-[140px] w-full mobilePortrait:h-[165px]"></div>
                       </div>
 
