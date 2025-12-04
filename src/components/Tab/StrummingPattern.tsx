@@ -554,13 +554,7 @@ function StrummingPattern({
           >
             <div
               style={{
-                marginTop:
-                  mode === "editingStrummingPattern" ? "1rem" : "0.25rem",
-                gap:
-                  mode === "editingStrummingPattern" ||
-                  mode === "editingChordSequence"
-                    ? "0.5rem"
-                    : "0",
+                marginTop: mode === "editingStrummingPattern" ? "1rem" : "0",
               }}
               className="baseVertFlex relative"
               onMouseEnter={() => setStrumIdxBeingHovered(strumIndex)}
@@ -639,7 +633,7 @@ function StrummingPattern({
                 </>
               )}
 
-              <div className="baseFlex">
+              <div className="baseFlex mb-1 mt-2">
                 <div
                   style={{
                     width:
@@ -774,7 +768,10 @@ function StrummingPattern({
                       }
                     >
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-1 w-4 !p-0">
+                        <Button
+                          variant="ghost"
+                          className="h-2.5 w-5 !p-1 hover:!bg-primary hover:!text-primary-foreground"
+                        >
                           <Ellipsis className="h-3 w-4 rotate-90" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -804,7 +801,7 @@ function StrummingPattern({
                       </DropdownMenuContent>
                     </DropdownMenu>
                   ) : (
-                    <div className="h-1"></div>
+                    <div className="h-2.5"></div>
                   )}
                 </>
               )}

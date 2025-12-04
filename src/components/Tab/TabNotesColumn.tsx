@@ -357,7 +357,10 @@ function TabNotesColumn({
                 onOpenChange={(open) => setChordSettingDropdownIsOpen(open)}
               >
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-2 w-4 !p-0">
+                  <Button
+                    variant="ghost"
+                    className="h-2.5 w-5 !p-1 hover:!bg-primary hover:!text-primary-foreground"
+                  >
                     <Ellipsis className="h-3 w-4 rotate-90" />
                   </Button>
                 </DropdownMenuTrigger>
