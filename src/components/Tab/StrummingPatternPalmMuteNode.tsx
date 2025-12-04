@@ -200,7 +200,7 @@ function StrummingPatternPalmMuteNode({
             >
               <div className="h-4 w-[1px] flex-shrink-0 bg-current"></div>
               <div className="h-[1px] w-1 flex-shrink-0 bg-current"></div>
-              <i className="mx-[0.125rem] flex-shrink-0">PM</i>
+              <i className="mx-[2px] flex-shrink-0">PM</i>
               <div className="h-[1px] w-full bg-current"></div>
             </div>
           )}

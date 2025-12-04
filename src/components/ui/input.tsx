@@ -38,7 +38,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     }, [showingErrorShakeAnimation]);
 
     const focusClasses = showFocusState
-      ? "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      ? "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
       : "";
 
     return (

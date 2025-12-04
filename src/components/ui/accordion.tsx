@@ -60,7 +60,7 @@ const AccordionTrigger = React.forwardRef<
             extraPadding ? "py-2" : "py-0"
           } ${
             showUnderline ? "hover:underline" : ""
-          } rounded-lg font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&[data-state=open]>svg]:rotate-180`,
+          } rounded-lg font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground [&[data-state=open]>svg]:rotate-180`,
           className,
         )}
         {...props}

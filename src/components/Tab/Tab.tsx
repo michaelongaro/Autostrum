@@ -531,6 +531,7 @@ function Tab({ tab }: Tab) {
                 <TooltipTrigger asChild>
                   <Button
                     variant={"secondary"}
+                    disabled={editing}
                     className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
                     onClick={() => setShowEffectGlossaryDialog(true)}
                   >
@@ -568,6 +569,7 @@ function Tab({ tab }: Tab) {
                 <DrawerTrigger asChild>
                   <Button
                     variant={"secondary"}
+                    disabled={editing}
                     className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
                   >
                     <IoMdSettings className="size-5" />
@@ -604,6 +606,7 @@ function Tab({ tab }: Tab) {
                       <PopoverTrigger asChild>
                         <Button
                           variant={"secondary"}
+                          disabled={editing}
                           className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
                         >
                           <IoMdSettings className="size-5" />
