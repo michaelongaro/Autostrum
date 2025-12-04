@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { useEffect, useState, useCallback } from "react";
 import { BsFillPlayFill, BsKeyboard, BsStopFill } from "react-icons/bs";
-import { FaTrashAlt } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import { Label } from "~/components/ui/label";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
@@ -55,8 +54,8 @@ const xVariants = {
     scale: 1,
     opacity: 1,
     transition: {
-      delay: 0.1,
-      duration: 0.2,
+      delay: 0,
+      duration: 0.25,
     },
   },
   exit: {
@@ -70,19 +69,16 @@ const xVariants = {
 };
 
 const containerVariants = {
-  hidden: { x: "-100%", width: 0, opacity: 0, zIndex: -1 },
+  hidden: { width: 0, opacity: 0, zIndex: -1 },
   visible: {
-    x: 0,
     width: "auto",
     opacity: 1,
     zIndex: 1,
     transition: {
-      delay: 0,
       duration: 0.2,
     },
   },
   exit: {
-    x: "-100%",
     width: 0,
     opacity: 0,
     zIndex: -1,
@@ -486,13 +482,12 @@ function StrummingPatternModal({
                         : "0.375rem",
                       transitionDelay: "0.1s",
                     }}
-                    className="baseFlex gap-2 whitespace-nowrap"
+                    className="baseFlex whitespace-nowrap"
                     onClick={() =>
                       setShowingDeleteStrumsButtons(!showingDeleteStrumsButtons)
                     }
                   >
                     Delete strums
-                    <FaTrashAlt className="hidden h-4 w-4 sm:block" />
                   </Button>
 
                   <AnimatePresence>
