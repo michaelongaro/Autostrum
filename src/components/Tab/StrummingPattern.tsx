@@ -836,7 +836,7 @@ function StrummingPattern({
                 <Button
                   variant={"destructive"}
                   disabled={data.strums.length === 1 || previewMetadata.playing}
-                  className="h-6 w-6 p-0"
+                  className="mt-2 h-6 w-6 p-0"
                   onClick={() => deleteStrum(strumIndex)}
                 >
                   <IoClose className="h-4 w-4" />
