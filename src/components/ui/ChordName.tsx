@@ -42,7 +42,7 @@ function ChordName({
   }
 
   const modifiedChordName =
-    truncate && name.length > 10 ? name.slice(0, 7) + "…" : name;
+    truncate && name.length > 7 ? name.slice(0, 5) + "…" : name;
 
   return (
     <div
@@ -55,7 +55,7 @@ function ChordName({
               ? `0 0 0 2px ${color}40`
               : undefined
             : undefined,
-        fontSize: truncate ? `${dynamicFontSize(name.length)}px` : "14px",
+        fontSize: truncate ? `${dynamicFontSize(name.length)}px` : "16px",
         lineHeight: "1.25rem",
         borderWidth: chordDisplayMode === "color" ? "1px" : undefined,
         transform:
@@ -63,7 +63,7 @@ function ChordName({
             ? "scale(1.1)"
             : "scale(1)",
       }}
-      className="baseFlex shrink-0 rounded-full border-background px-1.5 font-semibold transition-all"
+      className="baseFlex shrink-0 rounded-full border-background px-1.5 font-semibold transition-all hover:z-10"
     >
       {modifiedChordName}
     </div>
