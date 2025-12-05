@@ -84,7 +84,7 @@ function StaticStrummingPattern({
     <div className="baseFlex w-full flex-wrap !justify-start gap-1">
       <div className="baseFlex relative mb-1 flex-wrap !justify-start">
         {data?.strums?.map((strum, strumIndex) => (
-          <div key={strumIndex} className="baseVertFlex relative w-[45px]">
+          <div key={strumIndex} className="baseVertFlex relative w-[40px]">
             {/* palm mute icon */}
             <div
               style={{

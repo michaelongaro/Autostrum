@@ -191,7 +191,7 @@ function PlaybackModal() {
           ? 16
           : chord?.type === "tab"
             ? 35
-            : 45;
+            : 40;
 
       localScrollPositions[index] = offsetLeft;
 
