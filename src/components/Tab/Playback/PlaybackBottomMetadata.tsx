@@ -455,6 +455,18 @@ function MobileSettingsPopover({
           </div>
         </div>
 
+        <div className="baseFlex w-full !justify-between gap-2">
+          <Label htmlFor="chordDisplayMode">Color-coded chords</Label>
+
+          <Switch
+            id="chordDisplayMode"
+            checked={chordDisplayMode === "color"}
+            onCheckedChange={(checked) =>
+              setChordDisplayMode(checked ? "color" : "text")
+            }
+          />
+        </div>
+
         {/* gives tablet users ability to still control volume */}
         {!isMobileOnly && (
           <div className="baseVertFlex w-full !items-start gap-2">
@@ -556,17 +568,6 @@ function MobileSettingsPopover({
             </div>
           </div>
         )}
-
-        <div className="baseFlex w-full !justify-between gap-2">
-          <Label htmlFor="chordDisplayModeMobile">Color chord indicators</Label>
-          <Switch
-            id="chordDisplayModeMobile"
-            checked={chordDisplayMode === "color"}
-            onCheckedChange={(checked) =>
-              setChordDisplayMode(checked ? "color" : "text")
-            }
-          />
-        </div>
       </PopoverContent>
     </Popover>
   );
@@ -1151,16 +1152,26 @@ function DesktopSettings({
         </PopoverContent>
       </Popover>
 
-      <div className="baseFlex gap-2">
-        <Label htmlFor="chordDisplayModeDesktop">Color chords</Label>
-        <Switch
-          id="chordDisplayModeDesktop"
-          checked={chordDisplayMode === "color"}
-          onCheckedChange={(checked) =>
-            setChordDisplayMode(checked ? "color" : "text")
-          }
-        />
-      </div>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size={"icon"}>
+            <SettingsOutline className="size-5" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="baseVertFlex size-full gap-4">
+          <div className="baseFlex w-full !justify-between gap-2">
+            <Label htmlFor="chordDisplayMode">Color-coded chords</Label>
+
+            <Switch
+              id="chordDisplayMode"
+              checked={chordDisplayMode === "color"}
+              onCheckedChange={(checked) =>
+                setChordDisplayMode(checked ? "color" : "text")
+              }
+            />
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
