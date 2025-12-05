@@ -1,4 +1,4 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { type Dispatch, type SetStateAction } from "react";
 import { BsPlus } from "react-icons/bs";
 import { useTabStore } from "~/stores/TabStore";
 import { addOrRemovePalmMuteDashes } from "~/utils/palmMuteHelpers";
@@ -6,6 +6,13 @@ import { Button } from "~/components/ui/button";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
+import type { Section } from "~/stores/TabStore";
+import {
+  isTabMeasureLine,
+  isTabNote,
+  getPalmMuteValue,
+  setPalmMuteValue,
+} from "~/utils/tabNoteHelpers";
 
 interface PalmMuteNode {
   value: string;
@@ -32,18 +39,11 @@ function PalmMuteNode({
   lastModifiedPalmMuteNode,
   setLastModifiedPalmMuteNode,
 }: PalmMuteNode) {
-  const [hoveringOnPalmMuteNode, setHoveringOnPalmMuteNode] = useState(false);
-
-  const { editing, setTabData } = useTabStore((state) => ({
-    editing: state.editing,
+  const { setTabData } = useTabStore((state) => ({
     setTabData: state.setTabData,
   }));
 
   const subSection = useTabSubSectionData(sectionIndex, subSectionIndex);
-
-  useEffect(() => {
-    setHoveringOnPalmMuteNode(false);
-  }, [value]);
 
   function getButtonOpacity() {
     if (!editingPalmMuteNodes) {
@@ -68,9 +68,8 @@ function PalmMuteNode({
       `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-0`,
     );
 
-    // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
     if (e.key === "ArrowDown") {
-      e.preventDefault(); // prevent cursor from moving
+      e.preventDefault();
 
       const newNoteToFocus = document.getElementById(
         `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-1`,
@@ -78,30 +77,29 @@ function PalmMuteNode({
 
       focusAndScrollIntoView(currentPalmMuteNode, newNoteToFocus);
     } else if (e.key === "ArrowLeft") {
-      e.preventDefault(); // prevent cursor from moving
+      e.preventDefault();
 
-      const completedSearchOfPalmMuteNodes = false;
       let currentIndex = columnIndex - 1;
 
-      // figure out how to get arrow key nav working across measure line when
-      // left and right nodes are empty (just the "+")
-
-      while (!completedSearchOfPalmMuteNodes) {
-        // if PM node is reachable and not a connecting node between start & end
-        // nodes, then focus the PM node
-
-        if (subSection.data[currentIndex]?.[8] === "measureLine") {
+      while (currentIndex >= 0) {
+        const currentColumn = subSection.data[currentIndex];
+        if (!currentColumn) {
           currentIndex--;
+          continue;
         }
 
+        if (isTabMeasureLine(currentColumn)) {
+          currentIndex--;
+          continue;
+        }
+
+        const palmMuteValue = getPalmMuteValue(currentColumn);
         if (
-          subSection.data[currentIndex]?.[0] !== "-" &&
-          getButtonOpacityForIndex(
-            subSection.data[currentIndex]?.[0] ?? "-",
-          ) === "1"
+          palmMuteValue !== "-" &&
+          getButtonOpacityForIndex(palmMuteValue) === "1"
         ) {
           const newNoteToFocus = document.getElementById(
-            `input-${sectionIndex}-${subSectionIndex}-${currentIndex}-${0}`,
+            `input-${sectionIndex}-${subSectionIndex}-${currentIndex}-0`,
           );
 
           focusAndScrollIntoView(currentPalmMuteNode, newNoteToFocus);
@@ -109,39 +107,31 @@ function PalmMuteNode({
         }
 
         currentIndex--;
-
-        if (currentIndex < 0) return;
       }
     } else if (e.key === "ArrowRight") {
-      e.preventDefault(); // prevent cursor from moving
+      e.preventDefault();
 
-      const completedSearchOfPalmMuteNodes = false;
       let currentIndex = columnIndex + 1;
 
-      while (!completedSearchOfPalmMuteNodes) {
-        if (subSection.data[currentIndex]?.[8] === "measureLine") {
+      while (currentIndex < subSection.data.length) {
+        const currentColumn = subSection.data[currentIndex];
+        if (!currentColumn) {
           currentIndex++;
+          continue;
         }
 
-        if (currentIndex >= subSection.data.length) {
-          const newNoteToFocus = document.getElementById(
-            `${sectionIndex}${subSectionIndex}ExtendTabButton`,
-          );
-
-          focusAndScrollIntoView(currentPalmMuteNode, newNoteToFocus);
-          return;
+        if (isTabMeasureLine(currentColumn)) {
+          currentIndex++;
+          continue;
         }
 
-        // if PM node is reachable and not a connecting node between start & end
-        // nodes, then focus the PM node
+        const palmMuteValue = getPalmMuteValue(currentColumn);
         if (
-          subSection.data[currentIndex]?.[0] !== "-" &&
-          getButtonOpacityForIndex(
-            subSection.data[currentIndex]?.[0] ?? "-",
-          ) === "1"
+          palmMuteValue !== "-" &&
+          getButtonOpacityForIndex(palmMuteValue) === "1"
         ) {
           const newNoteToFocus = document.getElementById(
-            `input-${sectionIndex}-${subSectionIndex}-${currentIndex}-${0}`,
+            `input-${sectionIndex}-${subSectionIndex}-${currentIndex}-0`,
           );
 
           focusAndScrollIntoView(currentPalmMuteNode, newNoteToFocus);
@@ -149,36 +139,163 @@ function PalmMuteNode({
         }
 
         currentIndex++;
+      }
 
-        if (currentIndex > subSection.data.length) return;
+      const newNoteToFocus = document.getElementById(
+        `${sectionIndex}${subSectionIndex}ExtendTabButton`,
+      );
+      focusAndScrollIntoView(currentPalmMuteNode, newNoteToFocus);
+    }
+  }
+
+  function findPairNodeIndex(
+    startIndex: number,
+    nodeType: "start" | "end",
+  ): number {
+    if (nodeType === "start") {
+      // Find the corresponding "end" node to the right
+      for (let i = startIndex + 1; i < subSection.data.length; i++) {
+        const col = subSection.data[i];
+        if (col && isTabNote(col) && col.palmMute === "end") {
+          return i;
+        }
+      }
+    } else {
+      // Find the corresponding "start" node to the left
+      for (let i = startIndex - 1; i >= 0; i--) {
+        const col = subSection.data[i];
+        if (col && isTabNote(col) && col.palmMute === "start") {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }
+
+  // Helper function to get the current subsection safely
+  function getCurrentSubSection(
+    draft: Section[],
+    sectionIndex: number,
+    subSectionIndex: number,
+  ) {
+    const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
+    if (currentSubSection === undefined || currentSubSection.type !== "tab") {
+      return null;
+    }
+    return currentSubSection;
+  }
+
+  // Helper to set palm mute value at a specific column
+  function setPalmMuteAtColumn(
+    draft: Section[],
+    sectionIndex: number,
+    subSectionIndex: number,
+    columnIndex: number,
+    newValue: "" | "start" | "end" | "-",
+  ) {
+    const currentSubSection = getCurrentSubSection(
+      draft,
+      sectionIndex,
+      subSectionIndex,
+    );
+    if (!currentSubSection) return;
+
+    const column = currentSubSection.data[columnIndex];
+    if (column) {
+      if (isTabNote(column)) {
+        setPalmMuteValue(column, newValue);
+      } else if (isTabMeasureLine(column)) {
+        column.isInPalmMuteSection = newValue !== "";
+      }
+    }
+  }
+
+  // Helper to clear a range of palm mute values
+  function clearPalmMuteRange(
+    draft: Section[],
+    sectionIndex: number,
+    subSectionIndex: number,
+    startIdx: number,
+    endIdx: number,
+  ) {
+    const currentSubSection = getCurrentSubSection(
+      draft,
+      sectionIndex,
+      subSectionIndex,
+    );
+    if (!currentSubSection) return;
+
+    for (let i = startIdx; i <= endIdx; i++) {
+      const column = currentSubSection.data[i];
+      if (column && isTabNote(column)) {
+        setPalmMuteValue(column, "");
+      }
+    }
+  }
+
+  // Helper to set a complete palm mute section (start, dashes, end)
+  function setPalmMuteRange(
+    draft: Section[],
+    sectionIndex: number,
+    subSectionIndex: number,
+    startIdx: number,
+    endIdx: number,
+  ) {
+    const currentSubSection = getCurrentSubSection(
+      draft,
+      sectionIndex,
+      subSectionIndex,
+    );
+    if (!currentSubSection) return;
+
+    for (let i = startIdx; i <= endIdx; i++) {
+      const column = currentSubSection.data[i];
+      if (column) {
+        if (i === startIdx) {
+          setPalmMuteValue(column, "start");
+        } else if (i === endIdx) {
+          setPalmMuteValue(column, "end");
+        } else {
+          setPalmMuteValue(column, "-");
+        }
       }
     }
   }
 
   function handlePalmMuteNodeClick() {
-    // forces edit mode when editing placement of a palm mute node
     if (!editingPalmMuteNodes) setEditingPalmMuteNodes(true);
 
-    if (lastModifiedPalmMuteNode === null) {
-      setLastModifiedPalmMuteNode({
-        columnIndex,
-        prevValue: value, // value before clicking
-        currentValue: value === "start" || value === "end" ? "" : "start", // value after clicking
-      });
+    const isStartingFresh = lastModifiedPalmMuteNode === null;
+    const isClickingSameCell =
+      lastModifiedPalmMuteNode?.columnIndex === columnIndex;
+    const wasEmpty = lastModifiedPalmMuteNode?.prevValue === "";
+    const wasNode = lastModifiedPalmMuteNode?.prevValue !== "";
 
+    // Case 1: No active operation - starting fresh
+    if (isStartingFresh) {
       if (value === "") {
+        // Start NEW palm mute section
+        setLastModifiedPalmMuteNode({
+          columnIndex,
+          prevValue: "",
+          currentValue: "start",
+        });
         setTabData((draft) => {
-          const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
-          if (
-            currentSubSection === undefined ||
-            currentSubSection.type !== "tab"
-          )
-            return;
-
-          currentSubSection.data[columnIndex]![0] = "start";
+          setPalmMuteAtColumn(
+            draft,
+            sectionIndex,
+            subSectionIndex,
+            columnIndex,
+            "start",
+          );
         });
       } else {
-        // removing node + dashes in between
+        // Begin REMOVAL operation on existing node
+        setLastModifiedPalmMuteNode({
+          columnIndex,
+          prevValue: value,
+          currentValue: "",
+        });
         addOrRemovePalmMuteDashes({
           setTabData,
           sectionIndex,
@@ -187,113 +304,207 @@ function PalmMuteNode({
           prevValue: value,
         });
       }
+      return;
     }
 
-    // removing start node that was just added
-    //    we know it's a start node because the lastModifiedPalmMuteNode isn't null
-    //    and the only available nodes to click on is the corresponding node
-    //    to the lastModifiedPalmMuteNode
-    else if (
-      (lastModifiedPalmMuteNode.prevValue === "" &&
-        lastModifiedPalmMuteNode.columnIndex === columnIndex) ||
-      (lastModifiedPalmMuteNode.prevValue !== "" &&
-        (value === "start" || value === "end"))
-    ) {
+    // Case 2: Cancel adding new start - clicked same empty cell again
+    if (wasEmpty && isClickingSameCell) {
       setTabData((draft) => {
-        const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
-        if (currentSubSection === undefined || currentSubSection.type !== "tab")
-          return;
-
-        currentSubSection.data[columnIndex]![0] = "";
+        setPalmMuteAtColumn(
+          draft,
+          sectionIndex,
+          subSectionIndex,
+          columnIndex,
+          "",
+        );
       });
       setLastModifiedPalmMuteNode(null);
+      return;
     }
 
-    // adding end node
-    else {
-      // adding node + dashes in between
+    // Case 3: Cancel removal - clicked same start/end node again
+    if (wasNode && isClickingSameCell) {
+      const prevValue = lastModifiedPalmMuteNode.prevValue as "start" | "end";
+      setTabData((draft) => {
+        setPalmMuteAtColumn(
+          draft,
+          sectionIndex,
+          subSectionIndex,
+          columnIndex,
+          prevValue,
+        );
+      });
       addOrRemovePalmMuteDashes({
         setTabData,
         sectionIndex,
         subSectionIndex,
         startColumnIndex: columnIndex,
-        prevValue: value,
-        pairNodeValue: lastModifiedPalmMuteNode.prevValue,
+        prevValue: lastModifiedPalmMuteNode.prevValue,
+      });
+      return;
+    }
+
+    // Case 4: Complete removal - clicked on the PAIR node
+    if (wasNode && (value === "start" || value === "end")) {
+      const startIdx = Math.min(
+        lastModifiedPalmMuteNode.columnIndex,
+        columnIndex,
+      );
+      const endIdx = Math.max(
+        lastModifiedPalmMuteNode.columnIndex,
+        columnIndex,
+      );
+
+      setTabData((draft) => {
+        clearPalmMuteRange(
+          draft,
+          sectionIndex,
+          subSectionIndex,
+          startIdx,
+          endIdx,
+        );
+      });
+      setLastModifiedPalmMuteNode(null);
+      return;
+    }
+
+    // Case 5: Complete palm mute section (new or altered)
+    if (lastModifiedPalmMuteNode.prevValue !== null && value === "") {
+      const result = calculatePalmMuteRange(
+        lastModifiedPalmMuteNode,
+        columnIndex,
+        findPairNodeIndex,
+      );
+      if (!result) return;
+
+      let { startIdx, endIdx, clearRangeStart, clearRangeEnd } = result;
+
+      // Swap if clicked "before" the anchor point
+      if (startIdx > endIdx) {
+        [startIdx, endIdx] = [endIdx, startIdx];
+      }
+
+      setTabData((draft) => {
+        // Clear old range if altering existing section
+        if (clearRangeStart !== null && clearRangeEnd !== null) {
+          const clearStart = Math.min(clearRangeStart, startIdx);
+          const clearEnd = Math.max(clearRangeEnd, endIdx);
+          clearPalmMuteRange(
+            draft,
+            sectionIndex,
+            subSectionIndex,
+            clearStart,
+            clearEnd,
+          );
+        }
+
+        // Set the new range
+        setPalmMuteRange(
+          draft,
+          sectionIndex,
+          subSectionIndex,
+          startIdx,
+          endIdx,
+        );
       });
 
       setLastModifiedPalmMuteNode(null);
     }
   }
 
+  // Helper to calculate the range for Case 5
+  function calculatePalmMuteRange(
+    lastModified: NonNullable<typeof lastModifiedPalmMuteNode>,
+    columnIndex: number,
+    findPairNodeIndex: (idx: number, type: "start" | "end") => number,
+  ): {
+    startIdx: number;
+    endIdx: number;
+    clearRangeStart: number | null;
+    clearRangeEnd: number | null;
+  } | null {
+    if (
+      lastModified.prevValue === "" &&
+      lastModified.currentValue === "start"
+    ) {
+      // Adding new section
+      return {
+        startIdx: lastModified.columnIndex,
+        endIdx: columnIndex,
+        clearRangeStart: null,
+        clearRangeEnd: null,
+      };
+    }
+
+    if (lastModified.prevValue === "end") {
+      // Moving end node
+      const existingStartIdx = findPairNodeIndex(
+        lastModified.columnIndex,
+        "end",
+      );
+      if (existingStartIdx === -1) return null;
+
+      return {
+        startIdx: existingStartIdx,
+        endIdx: columnIndex,
+        clearRangeStart: existingStartIdx,
+        clearRangeEnd: lastModified.columnIndex,
+      };
+    }
+
+    if (lastModified.prevValue === "start") {
+      // Moving start node
+      const existingEndIdx = findPairNodeIndex(
+        lastModified.columnIndex,
+        "start",
+      );
+      if (existingEndIdx === -1) return null;
+
+      return {
+        startIdx: columnIndex,
+        endIdx: existingEndIdx,
+        clearRangeStart: lastModified.columnIndex,
+        clearRangeEnd: existingEndIdx,
+      };
+    }
+
+    return null;
+  }
   return (
     <>
-      {!editing && (value === "start" || value === "end") && (
-        <>
+      {(value === "start" ||
+        value === "end" ||
+        (editingPalmMuteNodes && value === "")) && (
+        <Button
+          id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-0`}
+          disabled={getButtonOpacity() !== "1"}
+          size={"sm"}
+          onKeyDown={handleKeyDown}
+          onClick={handlePalmMuteNodeClick}
+          className="min-w-[2.25rem] rounded-full px-1 py-0 transition-all"
+        >
           {value === "start" && (
-            <div className="baseFlex w-full">
-              <div className="h-[14px] w-[1px] bg-primary-foreground"></div>
-              <div className="h-[1px] w-1 bg-primary-foreground"></div>
-              <i className="mx-[0.125rem]">PM</i>
-              <div className="h-[1px] w-[3px] bg-primary-foreground"></div>
+            <div className="baseVertFlex text-[10px]">
+              <span className="h-[12px] leading-[1.35]">PM</span>
+              <span className="h-[12px] leading-[1.35]">start</span>
             </div>
           )}
-
           {value === "end" && (
-            <div className="baseFlex w-full">
-              <div className="h-[1px] w-full bg-primary-foreground"></div>
-              <div className="h-[14px] w-[1px] bg-primary-foreground"></div>
+            <div className="baseVertFlex text-[10px]">
+              <span className="h-[12px] leading-[1.35]">PM</span>
+              <span className="h-[12px] leading-[1.35]">end</span>
             </div>
           )}
-        </>
-      )}
-
-      {editing && (
-        <>
-          {(value === "start" ||
-            value === "end" ||
-            (editingPalmMuteNodes && value === "")) && (
-            <Button
-              id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-0`}
-              style={{
-                pointerEvents: getButtonOpacity() === "1" ? "all" : "none",
-                boxShadow: hoveringOnPalmMuteNode
-                  ? "0 0 2px 2px hsl(var(--primary))"
-                  : "",
-                opacity: getButtonOpacity(),
-              }}
-              size={"sm"}
-              className="min-w-[2.25rem] rounded-full px-1 py-0 transition-all"
-              onMouseEnter={() => setHoveringOnPalmMuteNode(true)}
-              onTouchStart={() => setHoveringOnPalmMuteNode(true)}
-              onMouseLeave={() => setHoveringOnPalmMuteNode(false)}
-              onTouchEnd={() => setHoveringOnPalmMuteNode(false)}
-              onKeyDown={handleKeyDown}
-              onClick={handlePalmMuteNodeClick}
-            >
-              {value === "start" && (
-                <div className="baseVertFlex text-[0.65rem]">
-                  <span className="h-[13px] leading-[1.35]">PM</span>
-                  <span className="h-[13px] leading-[1.35]">start</span>
-                </div>
-              )}
-              {value === "end" && (
-                <div className="baseVertFlex text-[0.65rem]">
-                  <span className="h-[13px] leading-[1.35]">PM</span>
-                  <span className="h-[13px] leading-[1.35]">end</span>
-                </div>
-              )}
-              {editingPalmMuteNodes && value === "" && (
-                <BsPlus className="h-5 w-5" />
-              )}
-            </Button>
+          {editingPalmMuteNodes && value === "" && (
+            <BsPlus className="size-5" />
           )}
-        </>
+        </Button>
       )}
 
       {value === "-" && (
         <div
-          className={`h-[1px] w-full ${
-            !editing || !editingPalmMuteNodes || getButtonOpacity() === "1"
+          className={`h-[1px] w-full transition-colors ${
+            !editingPalmMuteNodes || getButtonOpacity() === "1"
               ? "bg-foreground"
               : "bg-foreground/50"
           } `}

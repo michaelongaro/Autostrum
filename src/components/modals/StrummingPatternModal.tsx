@@ -102,7 +102,6 @@ function StrummingPatternModal({
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
   const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
-  const [pmNodeOpacities, setPMNodeOpacities] = useState<string[]>([]);
 
   const [showNoteLengthChangeDialog, setShowNoteLengthChangeDialog] =
     useState(false);
@@ -137,94 +136,6 @@ function StrummingPatternModal({
     pauseAudio: state.pauseAudio,
     setTabData: state.setTabData,
   }));
-
-  const getPMNodeOpacities = useCallback(() => {
-    if (lastModifiedPalmMuteNode === null) {
-      return new Array(strummingPatternBeingEdited.value.strums.length).fill(
-        "1",
-      ) as string[];
-    }
-
-    const newOpacities = new Array(
-      strummingPatternBeingEdited.value.strums.length,
-    ).fill("0.25") as string[];
-
-    // added new "PM Start" node
-    if (lastModifiedPalmMuteNode.prevValue === "") {
-      let nearestStartNodeIndex = lastModifiedPalmMuteNode.columnIndex + 1;
-      for (
-        let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < strummingPatternBeingEdited.value.strums.length;
-        i++
-      ) {
-        if (strummingPatternBeingEdited.value.strums[i]?.palmMute === "start")
-          break;
-        nearestStartNodeIndex++;
-      }
-
-      newOpacities.fill(
-        "1",
-        lastModifiedPalmMuteNode.columnIndex,
-        nearestStartNodeIndex,
-      );
-    }
-    // removed "PM Start" node
-    else if (lastModifiedPalmMuteNode.prevValue === "start") {
-      let pairEndNodeIndex = lastModifiedPalmMuteNode.columnIndex + 1;
-      for (
-        let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < strummingPatternBeingEdited.value.strums.length;
-        i++
-      ) {
-        if (strummingPatternBeingEdited.value.strums[i]?.palmMute === "end")
-          break;
-        pairEndNodeIndex++;
-      }
-
-      let nearestPrevEndNodeIndex = lastModifiedPalmMuteNode.columnIndex - 1;
-      for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
-        if (strummingPatternBeingEdited.value.strums[i]?.palmMute === "end") {
-          nearestPrevEndNodeIndex = i + 1;
-          break;
-        }
-        if (nearestPrevEndNodeIndex !== 0) nearestPrevEndNodeIndex--;
-      }
-
-      newOpacities.fill("1", nearestPrevEndNodeIndex, pairEndNodeIndex + 1);
-    }
-    // removed "PM End" node
-    else if (lastModifiedPalmMuteNode.prevValue === "end") {
-      let pairStartNodeIndex = lastModifiedPalmMuteNode.columnIndex - 1;
-      for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
-        if (strummingPatternBeingEdited.value.strums[i]?.palmMute === "start") {
-          pairStartNodeIndex = i;
-          break;
-        }
-      }
-
-      let nearestNextStartNodeIndex = lastModifiedPalmMuteNode.columnIndex + 1;
-      for (
-        let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < strummingPatternBeingEdited.value.strums.length;
-        i++
-      ) {
-        if (strummingPatternBeingEdited.value.strums[i]?.palmMute === "start") {
-          nearestNextStartNodeIndex = i;
-          break;
-        }
-      }
-
-      newOpacities.fill("1", pairStartNodeIndex, nearestNextStartNodeIndex);
-    }
-
-    return newOpacities;
-  }, [strummingPatternBeingEdited.value.strums, lastModifiedPalmMuteNode]);
-
-  useEffect(() => {
-    if (editingPalmMuteNodes) {
-      setPMNodeOpacities(getPMNodeOpacities());
-    }
-  }, [editingPalmMuteNodes, lastModifiedPalmMuteNode, getPMNodeOpacities]);
 
   useModalScrollbarHandling();
 
@@ -588,7 +499,6 @@ function StrummingPatternModal({
                 data={strummingPatternBeingEdited.value}
                 mode={"editingStrummingPattern"}
                 index={strummingPatternBeingEdited.index}
-                pmNodeOpacities={pmNodeOpacities}
                 editingPalmMuteNodes={editingPalmMuteNodes}
                 setEditingPalmMuteNodes={setEditingPalmMuteNodes}
                 showingDeleteStrumsButtons={showingDeleteStrumsButtons}
