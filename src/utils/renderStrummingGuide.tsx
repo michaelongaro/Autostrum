@@ -120,8 +120,6 @@ function renderStrummingGuide({
       isARestNote: true,
     });
 
-    console.log(restIcon);
-
     if (!restIcon) {
       return null;
     }
