@@ -341,7 +341,7 @@ function Tab({ tab }: Tab) {
                 onClick={() => setShowEffectGlossaryDialog(true)}
               >
                 <FaBook className="h-4 w-4" />
-                Effect glossary
+                Glossary
               </Button>
             </div>
           )}
@@ -372,7 +372,7 @@ function Tab({ tab }: Tab) {
                 onClick={() => setShowEffectGlossaryDialog(true)}
               >
                 <FaBook className="size-4" />
-                Effect glossary
+                Glossary
               </Button>
 
               <Popover>
@@ -539,7 +539,7 @@ function Tab({ tab }: Tab) {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side={"top"}>
-                  <span>Effect glossary</span>
+                  <span>Glossary</span>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
