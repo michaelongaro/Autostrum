@@ -62,7 +62,7 @@ function DesktopExtraTabMetadata() {
           Section progression
           {activeTabName === "Section progression" && (
             <motion.span
-              layoutId="activeTabUnderline"
+              layoutId="desktopActiveTabUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-primary-foreground"
             />
@@ -78,7 +78,7 @@ function DesktopExtraTabMetadata() {
           Chords
           {activeTabName === "Chords" && (
             <motion.span
-              layoutId="activeTabUnderline"
+              layoutId="desktopActiveTabUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-primary-foreground"
             />
@@ -94,7 +94,7 @@ function DesktopExtraTabMetadata() {
           Strumming patterns
           {activeTabName === "Strumming patterns" && (
             <motion.span
-              layoutId="activeTabUnderline"
+              layoutId="desktopActiveTabUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-primary-foreground"
             />

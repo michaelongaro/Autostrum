@@ -122,7 +122,7 @@ function MobileExtraTabMetadata() {
                 Section progression
                 {activeTabName === "Section progression" && (
                   <motion.span
-                    layoutId="activeTabUnderline"
+                    layoutId="mobileActiveTabUnderline"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
                   />
@@ -143,7 +143,7 @@ function MobileExtraTabMetadata() {
                 Chords
                 {activeTabName === "Chords" && (
                   <motion.span
-                    layoutId="activeTabUnderline"
+                    layoutId="mobileActiveTabUnderline"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
                   />
@@ -164,7 +164,7 @@ function MobileExtraTabMetadata() {
                 Strumming patterns
                 {activeTabName === "Strumming patterns" && (
                   <motion.span
-                    layoutId="activeTabUnderline"
+                    layoutId="mobileActiveTabUnderline"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
                   />
