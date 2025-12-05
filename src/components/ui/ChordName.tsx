@@ -55,7 +55,11 @@ function ChordName({
               ? `0 0 0 2px ${color}40`
               : undefined
             : undefined,
-        fontSize: truncate ? `${dynamicFontSize(name.length)}px` : "16px",
+        fontSize: truncate
+          ? `${dynamicFontSize(name.length)}px`
+          : chordDisplayMode === "color"
+            ? "14px"
+            : "16px",
         lineHeight: "1.25rem",
         borderWidth: chordDisplayMode === "color" ? "1px" : undefined,
         transform:
