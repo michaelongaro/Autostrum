@@ -347,7 +347,7 @@ function TabNotesColumn({
                 transition: "width 0.15s ease-in-out",
                 // maybe also need "flex-basis: content" here if editing?
               }}
-              className="baseFlex relative !h-[41px] min-h-[41px] w-12 basis-[content] bg-background"
+              className="baseFlex relative !h-[41px] min-h-[41px] w-12 basis-[content] bg-background/75"
             >
               <div className="h-[1px] flex-[1] bg-foreground/50"></div>
 
@@ -484,7 +484,7 @@ function TabNotesColumn({
         </div>
 
         {isLastColumn && (
-          <div className="mb-[26px] h-[258px] rounded-r-2xl border-2 border-foreground p-1"></div>
+          <div className="mb-[26px] h-[258px] rounded-r-2xl border-2 border-foreground bg-background/75 p-1"></div>
         )}
       </Element>
     </motion.div>

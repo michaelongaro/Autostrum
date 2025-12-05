@@ -141,7 +141,7 @@ function TabMeasureLine({
   function renderMeasureLine(index: number) {
     if (index === 1) {
       return (
-        <div className="baseVertFlex w-full bg-background">
+        <div className="baseVertFlex w-full bg-background/75">
           {/* top border */}
           <div className="baseVertFlex w-full">
             <div className="h-[2px] w-full bg-foreground"></div>
@@ -170,7 +170,7 @@ function TabMeasureLine({
       );
     } else if (index === 2) {
       return (
-        <div className="baseFlex w-full bg-background">
+        <div className="baseFlex w-full bg-background/75">
           {/* left dummy string */}
           {(reorderingColumns || showingDeleteColumnsButtons) && (
             <div className="mt-[4px] h-[1px] flex-[1] bg-foreground/50"></div>
@@ -190,7 +190,7 @@ function TabMeasureLine({
       );
     } else if (index === 3) {
       return (
-        <div className="baseFlex w-full bg-background">
+        <div className="baseFlex w-full bg-background/75">
           {/* left dummy string */}
           {(reorderingColumns || showingDeleteColumnsButtons) && (
             <div className="h-[1px] flex-[1] bg-foreground/50"></div>
@@ -210,7 +210,7 @@ function TabMeasureLine({
       );
     } else if (index === 4) {
       return (
-        <div className="baseFlex w-full bg-background">
+        <div className="baseFlex w-full bg-background/75">
           {/* left dummy string */}
           {(reorderingColumns || showingDeleteColumnsButtons) && (
             <div className="mb-[3px] h-[1px] flex-[1] bg-foreground/50"></div>
@@ -230,7 +230,7 @@ function TabMeasureLine({
       );
     } else if (index === 5) {
       return (
-        <div className="baseFlex w-full bg-background">
+        <div className="baseFlex w-full bg-background/75">
           {/* left dummy string */}
           {(reorderingColumns || showingDeleteColumnsButtons) && (
             <div className="mb-[5px] h-[1px] flex-[1] bg-foreground/50"></div>
@@ -250,7 +250,7 @@ function TabMeasureLine({
       );
     } else if (index === 6) {
       return (
-        <div className="baseVertFlex w-full bg-background">
+        <div className="baseVertFlex w-full bg-background/75">
           <div className="baseFlex w-full">
             {/* left dummy string */}
             {(reorderingColumns || showingDeleteColumnsButtons) && (

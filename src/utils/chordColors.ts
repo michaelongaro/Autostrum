@@ -3,17 +3,17 @@ import type { Chord } from "~/stores/TabStore";
 /**
  * Chord color palette -
  * Uses 9 theme colors tied to major chords + a lighter version of
- * each theme color for minor chords (lvl 7 pastel variants, 8 for quartz and crimson)
+ * each theme color for minor chords (lvl 8 pastel variants, 7 for pistachio, verdant, aqua)
  */
 export const CHORD_COLORS = [
   "#E93D82", // peony / crimson
-  "#EAACC3", // lighter peony / pastel crimson
+  "#E093B2", // lighter peony / pastel crimson
   "#CA244D", // quartz / ruby
-  "#EFACB8", // lighter quartz / pastel ruby
+  "#E592A3", // lighter quartz / pastel ruby
   "#CE2C31", // crimson / red
-  "#F4A9AA", // lighter crimson / pastel red
+  "#EB8E90", // lighter crimson / pastel red
   "#E54D2E", // saffron / tomato
-  "#F5A898", // lighter saffron / pastel tomato
+  "#EC8E7B", // lighter saffron / pastel tomato
   "#46A758", // pistachio / grass
   "#94CE9A", // lighter pistachio / pastel grass
   "#12A594", // verdant / teal
@@ -21,9 +21,9 @@ export const CHORD_COLORS = [
   "#00A2C7", // aqua / cyan
   "#7DCEDC", // lighter aqua / pastel cyan
   "#3E63DD", // sapphire / indigo
-  "#ABBDF9", // lighter sapphire / pastel indigo
+  "#8DA4EF", // lighter sapphire / pastel indigo
   "#8E4EC6", // amethyst / purple
-  "#D1AFEC", // lighter amethyst / pastel purple
+  "#BE93E4", // lighter amethyst / pastel purple
 ] as const;
 
 export type ChordColor = (typeof CHORD_COLORS)[number];

@@ -106,33 +106,14 @@ function PlaybackStrummedChord({
             )}
           </div>
 
-          <div
-            style={{
-              color: isHighlighted
-                ? "hsl(var(--primary))"
-                : "hsl(var(--foreground))",
-              transitionDuration: "75ms",
-            }}
-            className="relative mb-2 h-6 w-6 text-sm font-semibold transition-colors"
-          >
-            {chordDisplayMode === "color" && chordColor && chordName ? (
-              <div className="absolute left-1/2 top-0 -translate-x-1/2 transform">
-                <ChordName
-                  color={chordColor}
-                  name={chordName}
-                  truncate={true}
-                  isHighlighted={isHighlighted}
-                />
-              </div>
-            ) : (
-              <div
-                // TODO: not sure if this will ever be possible given how it interacts with
-                // palm mutes... but the idea is not bad I think.
-                // ${isRaised ? "top-[-1rem]" : ""}
-                className={`absolute left-1/2 top-0 -translate-x-1/2 transform text-nowrap`}
-              >
-                {chordName}
-              </div>
+          <div className="baseFlex h-8">
+            {chordName && (
+              <ChordName
+                color={chordColor}
+                name={chordName}
+                truncate={true}
+                isHighlighted={isHighlighted}
+              />
             )}
           </div>
 

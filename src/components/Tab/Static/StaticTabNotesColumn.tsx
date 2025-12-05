@@ -83,8 +83,9 @@ function StaticTabNotesColumn({
                 borderBottom: `${stringIndex === 6 ? "2px solid" : "none"}`,
                 paddingBottom: `${stringIndex === 6 ? "7px" : "0"}`,
                 borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-background"]} / 0.75)`,
               }}
-              className="baseFlex relative min-h-[24px] w-[35px] basis-[content] bg-background"
+              className="baseFlex relative min-h-[24px] w-[35px] basis-[content]"
             >
               <div
                 style={{
@@ -209,10 +210,11 @@ function StaticTabNotesColumn({
       {isLastColumn && (
         <div
           style={{
-            borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
             marginBottom: "-1px",
+            borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+            backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-background"]} / 0.75)`,
           }}
-          className="h-[168px] rounded-r-2xl border-2 bg-background p-1"
+          className="h-[168px] rounded-r-2xl border-2 p-1"
         ></div>
       )}
     </motion.div>

@@ -84,7 +84,7 @@ function StaticStrummingPattern({
     <div className="baseFlex w-full flex-wrap !justify-start gap-1">
       <div className="baseFlex relative mb-1 flex-wrap !justify-start">
         {data?.strums?.map((strum, strumIndex) => (
-          <div key={strumIndex} className="baseVertFlex relative w-[40px]">
+          <div key={strumIndex} className="baseVertFlex relative my-1 w-[40px]">
             {/* palm mute icon */}
             <div
               style={{
@@ -124,7 +124,7 @@ function StaticStrummingPattern({
                 <PopoverContent
                   side="bottom"
                   sideOffset={0}
-                  className="z-0 size-40 border bg-secondary p-0 py-3"
+                  className="z-0 size-40 border bg-background p-0 py-3 shadow-lg"
                 >
                   <ChordDiagram
                     originalFrets={
@@ -156,7 +156,7 @@ function StaticStrummingPattern({
                         : `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`
                       : `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
                 }}
-                className="baseVertFlex relative mb-2 h-[20px] text-lg"
+                className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
               >
                 {strum.strum.includes("v") && (
                   <BsArrowDown

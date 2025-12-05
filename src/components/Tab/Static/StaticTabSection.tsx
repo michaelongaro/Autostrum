@@ -55,8 +55,9 @@ function StaticTabSection({
             marginBottom: "-1px",
             borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
             color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+            backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-background"]} / 0.75)`,
           }}
-          className="baseVertFlex relative h-[168px] rounded-l-2xl border-2 bg-background p-2"
+          className="baseVertFlex relative h-[168px] rounded-l-2xl border-2 p-2"
         >
           <PrettyVerticalTuning tuning={tuning} height={"150px"} />
         </div>

@@ -1231,7 +1231,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
 
         <div className="baseVertFlex">
           <div className="h-[48px]"></div>
-          <div className="baseVertFlex relative h-[258px] rounded-l-2xl border-2 border-foreground bg-background p-2">
+          <div className="baseVertFlex relative h-[258px] rounded-l-2xl border-2 border-foreground bg-background/75 p-2">
             <PrettyVerticalTuning tuning={tuning} height={"230px"} />
           </div>
           <div className="h-[74px]"></div>

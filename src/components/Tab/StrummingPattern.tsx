@@ -657,7 +657,7 @@ function StrummingPattern({
             id={`section${sectionIndex ?? ""}-subSection${
               subSectionIndex ?? ""
             }-chordSequence${chordSequenceIndex ?? ""}-chord${strumIndex}`}
-            className="baseFlex"
+            className="baseFlex my-1"
           >
             <div
               style={{
@@ -712,7 +712,7 @@ function StrummingPattern({
                           : chordSequence?.[strumIndex]
                       }
                     >
-                      <SelectTrigger className="w-fit">
+                      <SelectTrigger className="mx-1 w-fit">
                         <SelectValue>{chordSequence?.[strumIndex]}</SelectValue>
                       </SelectTrigger>
                       <SelectContent>
