@@ -460,7 +460,7 @@ function MobileSettingsPopover({
           <div className="baseVertFlex w-full !items-start gap-2">
             <span className="font-medium">Volume</span>
             <div className="baseFlex w-full max-w-64 gap-2 md:justify-self-end">
-              <AnimatePresence mode="popLayout">
+              <AnimatePresence mode="popLayout" initial={false}>
                 {volume === 0 && (
                   <motion.div
                     key="muteIcon"
@@ -1056,7 +1056,7 @@ function DesktopSettings({
       <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline" className="size-10 !p-0">
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence mode="popLayout" initial={false}>
               {volume === 0 && (
                 <motion.div
                   key="muteIcon"
