@@ -291,7 +291,7 @@ interface PlaybackChord {
 export type COLORS =
   | "peony"
   | "quartz"
-  | "crimson"
+  | "maple"
   | "saffron"
   | "pistachio"
   | "verdant"

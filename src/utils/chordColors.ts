@@ -10,10 +10,10 @@ export const CHORD_COLORS = [
   "#E093B2", // lighter peony / pastel crimson
   "#CA244D", // quartz / ruby
   "#E592A3", // lighter quartz / pastel ruby
-  "#CE2C31", // crimson / red
-  "#EB8E90", // lighter crimson / pastel red
   "#E54D2E", // saffron / tomato
   "#EC8E7B", // lighter saffron / pastel tomato
+  "#A18072", // maple / bronze
+  "#C2A499", // lighter maple / pastel bronze
   "#46A758", // pistachio / grass
   "#94CE9A", // lighter pistachio / pastel grass
   "#12A594", // verdant / teal
@@ -97,7 +97,7 @@ export function getNextChordColor(existingChords: Chord[]): string {
 const colorsThatNeedLightText = [
   "#E93D82", // peony / crimson
   "#CA244D", // quartz / ruby
-  "#CE2C31", // crimson / red
+  "#CE2C31", // maple / bronze
   "#E54D2E", // saffron / tomato
   "#46A758", // pistachio / grass
   "#12A594", // verdant / teal

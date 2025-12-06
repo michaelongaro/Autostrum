@@ -44,7 +44,7 @@ const DeleteAccountModal = dynamic(
 const COLORS = [
   "peony",
   "quartz",
-  "crimson",
+  "maple",
   "saffron",
   "pistachio",
   "verdant",
@@ -56,7 +56,7 @@ const COLORS = [
 const COLOR_HEX_VALUES: Record<(typeof COLORS)[number], string> = {
   peony: "#E93D82",
   quartz: "#CA244D",
-  crimson: "#CE2C31",
+  maple: "#CE2C31",
   saffron: "#E54D2E",
   pistachio: "#46A758",
   verdant: "#12A594",
