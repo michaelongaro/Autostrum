@@ -41,7 +41,7 @@ function PlaybackTopMetadata({
     playbackSpeed,
     pauseAudio,
     setPlaybackSpeed,
-    setShowEffectGlossaryDialog,
+    setShowGlossaryDialog,
     setAudioMetadata,
     setCurrentChordIndex,
   } = useTabStore((state) => ({
@@ -57,7 +57,7 @@ function PlaybackTopMetadata({
     playbackSpeed: state.playbackSpeed,
     pauseAudio: state.pauseAudio,
     setPlaybackSpeed: state.setPlaybackSpeed,
-    setShowEffectGlossaryDialog: state.setShowEffectGlossaryDialog,
+    setShowGlossaryDialog: state.setShowGlossaryDialog,
     setAudioMetadata: state.setAudioMetadata,
     setCurrentChordIndex: state.setCurrentChordIndex,
   }));
@@ -257,7 +257,7 @@ function PlaybackTopMetadata({
                         className="size-9 !p-0"
                         onClick={() => {
                           pauseAudio();
-                          setShowEffectGlossaryDialog(true);
+                          setShowGlossaryDialog(true);
                         }}
                       >
                         <FaBook className="h-4 w-4" />

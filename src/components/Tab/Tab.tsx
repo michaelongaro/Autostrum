@@ -36,7 +36,7 @@ import SectionContainer from "./SectionContainer";
 import StrummingPatterns from "./StrummingPatterns";
 import dynamic from "next/dynamic";
 import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
-import EffectGlossaryDialog from "~/components/Dialogs/EffectGlossaryDialog";
+import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
 import Logo from "~/components/ui/icons/Logo";
 import ExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
 import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
@@ -123,7 +123,7 @@ function Tab({ tab }: Tab) {
     editing,
     setOriginalTabData,
     showSectionProgressionModal,
-    setShowEffectGlossaryDialog,
+    setShowGlossaryDialog,
     chordBeingEdited,
     strummingPatternBeingEdited,
     showCustomTuningModal,
@@ -167,7 +167,7 @@ function Tab({ tab }: Tab) {
     editing: state.editing,
     setOriginalTabData: state.setOriginalTabData,
     showSectionProgressionModal: state.showSectionProgressionModal,
-    setShowEffectGlossaryDialog: state.setShowEffectGlossaryDialog,
+    setShowGlossaryDialog: state.setShowGlossaryDialog,
     chordBeingEdited: state.chordBeingEdited,
     strummingPatternBeingEdited: state.strummingPatternBeingEdited,
     showCustomTuningModal: state.showCustomTuningModal,
@@ -338,7 +338,7 @@ function Tab({ tab }: Tab) {
               <Button
                 variant={"secondary"}
                 className="baseFlex gap-2 lg:absolute lg:right-7 lg:top-0"
-                onClick={() => setShowEffectGlossaryDialog(true)}
+                onClick={() => setShowGlossaryDialog(true)}
               >
                 <FaBook className="h-4 w-4" />
                 Glossary
@@ -369,7 +369,7 @@ function Tab({ tab }: Tab) {
               <Button
                 variant={"secondary"}
                 className="baseFlex gap-2 lg:absolute lg:right-7 lg:top-0"
-                onClick={() => setShowEffectGlossaryDialog(true)}
+                onClick={() => setShowGlossaryDialog(true)}
               >
                 <FaBook className="size-4" />
                 Glossary
@@ -533,7 +533,7 @@ function Tab({ tab }: Tab) {
                     variant={"secondary"}
                     disabled={editing}
                     className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
-                    onClick={() => setShowEffectGlossaryDialog(true)}
+                    onClick={() => setShowGlossaryDialog(true)}
                   >
                     <FaBook className="size-4" />
                   </Button>
@@ -648,7 +648,7 @@ function Tab({ tab }: Tab) {
         setShowTipsDialog={setShowTipsModal}
       />
 
-      <EffectGlossaryDialog />
+      <GlossaryDialog />
 
       <AnimatePresence mode="wait">
         {chordBeingEdited && (

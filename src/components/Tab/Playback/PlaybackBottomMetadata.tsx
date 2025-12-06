@@ -72,7 +72,7 @@ function PlaybackBottomMetadata({
     audioMetadata,
     playbackMetadata,
     viewportLabel,
-    setShowEffectGlossaryDialog,
+    setShowGlossaryDialog,
     setAudioMetadata,
     looping,
     countInTimer,
@@ -85,7 +85,7 @@ function PlaybackBottomMetadata({
     audioMetadata: state.audioMetadata,
     playbackMetadata: state.playbackMetadata,
     viewportLabel: state.viewportLabel,
-    setShowEffectGlossaryDialog: state.setShowEffectGlossaryDialog,
+    setShowGlossaryDialog: state.setShowGlossaryDialog,
     setAudioMetadata: state.setAudioMetadata,
     looping: state.looping,
     countInTimer: state.countInTimer,
@@ -209,7 +209,7 @@ function PlaybackBottomMetadata({
                   className="size-9 !p-0"
                   onClick={() => {
                     pauseAudio();
-                    setShowEffectGlossaryDialog(true);
+                    setShowGlossaryDialog(true);
                   }}
                 >
                   <FaBook className="h-4 w-4" />
@@ -258,7 +258,7 @@ function PlaybackBottomMetadata({
                 className="size-9 !p-0"
                 onClick={() => {
                   pauseAudio();
-                  setShowEffectGlossaryDialog(true);
+                  setShowGlossaryDialog(true);
                 }}
               >
                 <FaBook className="h-4 w-4" />

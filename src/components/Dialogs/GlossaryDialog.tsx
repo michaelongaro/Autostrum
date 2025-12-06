@@ -40,13 +40,14 @@ import {
   WholeRest,
 } from "~/utils/noteLengthIcons";
 
-function EffectGlossaryDialog() {
-  const { editing, showEffectGlossaryDialog, setShowEffectGlossaryDialog } =
-    useTabStore((state) => ({
+function GlossaryDialog() {
+  const { editing, showGlossaryDialog, setShowGlossaryDialog } = useTabStore(
+    (state) => ({
       editing: state.editing,
-      showEffectGlossaryDialog: state.showEffectGlossaryDialog,
-      setShowEffectGlossaryDialog: state.setShowEffectGlossaryDialog,
-    }));
+      showGlossaryDialog: state.showGlossaryDialog,
+      setShowGlossaryDialog: state.setShowGlossaryDialog,
+    }),
+  );
 
   const [currentPane, setCurrentPane] = useState<"effects" | "noteLengths">(
     "effects",
@@ -58,9 +59,9 @@ function EffectGlossaryDialog() {
   return (
     <Dialog
       onOpenChange={(open) => {
-        setShowEffectGlossaryDialog(open);
+        setShowGlossaryDialog(open);
       }}
-      open={showEffectGlossaryDialog}
+      open={showGlossaryDialog}
     >
       <VisuallyHidden>
         <DialogTitle>Effect glossary</DialogTitle>
@@ -71,13 +72,13 @@ function EffectGlossaryDialog() {
       </VisuallyHidden>
 
       <DialogContent
-        className={`baseVertFlex max-h-[90dvh] !justify-start gap-4 overflow-y-auto overflow-x-hidden rounded-lg px-2 transition-all xs:p-4 ${currentPane === "effects" ? "max-w-[350px] xs:max-w-[450px]" : "max-w-[365px] xs:max-w-[400px]"}`}
+        className={`baseVertFlex max-h-[90dvh] !justify-start gap-4 rounded-lg p-4 transition-all ${currentPane === "effects" ? "max-w-[350px] xs:max-w-[420px]" : "max-w-[350px] xs:max-w-[420px]"}`}
       >
-        <div className="baseFlex w-full gap-4">
+        <div className="baseFlex w-full !justify-start gap-4">
           <Button
             variant={"text"}
             onClick={() => setCurrentPane("effects")}
-            className="relative px-1"
+            className="relative h-8 px-0"
           >
             <span className="baseFlex gap-2 font-semibold">
               Effect Glossary
@@ -86,7 +87,7 @@ function EffectGlossaryDialog() {
               <motion.span
                 layoutId="glossaryActiveTabUnderline"
                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                className="absolute bottom-[6px] left-0 z-0 h-[2px] w-full rounded-full bg-primary"
+                className="absolute bottom-[0px] left-0 z-0 h-[2px] w-full rounded-full bg-primary"
               />
             )}
           </Button>
@@ -94,14 +95,14 @@ function EffectGlossaryDialog() {
           <Button
             variant={"text"}
             onClick={() => setCurrentPane("noteLengths")}
-            className="relative px-1"
+            className="relative h-8 px-0"
           >
             <span className="baseFlex gap-2 font-semibold">Note Lengths</span>
             {currentPane === "noteLengths" && (
               <motion.span
                 layoutId="glossaryActiveTabUnderline"
                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                className="absolute bottom-[6px] left-0 z-0 h-[2px] w-full rounded-full bg-primary"
+                className="absolute bottom-[0px] left-0 z-0 h-[2px] w-full rounded-full bg-primary"
               />
             )}
           </Button>
@@ -110,12 +111,12 @@ function EffectGlossaryDialog() {
         <motion.div
           animate={{ minHeight: targetMinHeight }}
           transition={{ duration: 0.25, ease: "easeInOut" }}
-          className="w-full overflow-hidden"
+          className="w-full overflow-y-auto overflow-x-hidden"
         >
           <AnimatePresence mode="wait" initial={false}>
             {currentPane === "effects" && (
               <motion.div
-                key={"EffectGlossaryDialogEffectsPane"}
+                key={"GlossaryDialogEffectsPane"}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -497,8 +498,8 @@ function EffectGlossaryDialog() {
                   </div>
                 </div>
 
-                <div className="baseVertFlex w-full gap-2">
-                  <Separator className="w-full max-w-[300px] bg-primary xs:max-w-none" />
+                <div className="baseVertFlex mt-2 w-full gap-2 xs:mt-0">
+                  <Separator className="h-[1px] w-full bg-primary" />
                   <p className="text-sm">
                     <span className="font-semibold">Bolded</span> effects are
                     accented.
@@ -509,12 +510,12 @@ function EffectGlossaryDialog() {
 
             {currentPane === "noteLengths" && (
               <motion.div
-                key={"EffectGlossaryDialogNoteLengthsPane"}
+                key={"GlossaryDialogNoteLengthsPane"}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
-                className="baseVertFlex min-h-[408px] w-[350px] !items-start gap-4 xs:gap-4"
+                className="baseVertFlex min-h-[408px] w-full !items-start gap-4 xs:gap-4"
               >
                 <div className="baseVertFlex !items-start gap-0">
                   <div className="baseVertFlex gap-1">
@@ -524,19 +525,21 @@ function EffectGlossaryDialog() {
                     <Separator className="mb-2 w-full bg-primary" />
                   </div>
 
-                  <Table>
+                  <Table className="w-[300px] xs:w-full">
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[90px] pl-4">Name</TableHead>
-                        <TableHead className="pl-4">Duration</TableHead>
-                        <TableHead className="pl-4">Notation</TableHead>
+                        <TableHead className="px-0">Name</TableHead>
+                        <TableHead className="px-0">Duration</TableHead>
+                        <TableHead className="px-0">Notation</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       <TableRow>
-                        <TableCell className="font-medium">Whole</TableCell>
-                        <TableCell>Four beats</TableCell>
-                        <TableCell>
+                        <TableCell className="px-0 font-medium">
+                          Whole
+                        </TableCell>
+                        <TableCell className="px-0">Four beats</TableCell>
+                        <TableCell className="px-0">
                           <div className="baseFlex !justify-start gap-4">
                             <WholeNote className="scale-150" />
                             <Separator
@@ -548,9 +551,9 @@ function EffectGlossaryDialog() {
                         </TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell className="font-medium">Half</TableCell>
-                        <TableCell>Two beats</TableCell>
-                        <TableCell>
+                        <TableCell className="px-0 font-medium">Half</TableCell>
+                        <TableCell className="px-0">Two beats</TableCell>
+                        <TableCell className="px-0">
                           <div className="baseFlex !justify-start gap-4">
                             <HalfNote />
 
@@ -568,9 +571,11 @@ function EffectGlossaryDialog() {
                         </TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell className="font-medium">Quarter</TableCell>
-                        <TableCell>One beat</TableCell>
-                        <TableCell>
+                        <TableCell className="px-0 font-medium">
+                          Quarter
+                        </TableCell>
+                        <TableCell className="px-0">One beat</TableCell>
+                        <TableCell className="px-0">
                           <div className="baseFlex !justify-start gap-4">
                             <QuarterNote />
                             <Separator
@@ -587,9 +592,11 @@ function EffectGlossaryDialog() {
                         </TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell className="font-medium">Eighth</TableCell>
-                        <TableCell>1/2 of a beat</TableCell>
-                        <TableCell>
+                        <TableCell className="px-0 font-medium">
+                          Eighth
+                        </TableCell>
+                        <TableCell className="px-0">1/2 beat</TableCell>
+                        <TableCell className="px-0">
                           <div className="baseFlex !justify-start gap-4">
                             <EighthNote />
                             <Separator
@@ -609,9 +616,11 @@ function EffectGlossaryDialog() {
                         </TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell className="font-medium">Sixteenth</TableCell>
-                        <TableCell>1/4 of a beat</TableCell>
-                        <TableCell>
+                        <TableCell className="px-0 font-medium">
+                          Sixteenth
+                        </TableCell>
+                        <TableCell className="px-0">1/4 beat</TableCell>
+                        <TableCell className="px-0">
                           <div className="baseFlex !justify-start gap-4">
                             <SixteenthNote />
                             <Separator
@@ -658,4 +667,4 @@ function EffectGlossaryDialog() {
   );
 }
 
-export default EffectGlossaryDialog;
+export default GlossaryDialog;

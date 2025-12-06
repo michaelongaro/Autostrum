@@ -352,7 +352,7 @@ function AudioControls() {
                       visibility === "minimized" ? "opacity-0" : "opacity-100"
                     } transition-opacity`}
                   >
-                    <AnimatePresence mode="popLayout">
+                    <AnimatePresence mode="popLayout" initial={false}>
                       {volume === 0 && (
                         <motion.div
                           key="muteIcon"
@@ -593,7 +593,7 @@ function AudioControls() {
                     variant="outline"
                     className="p-2 text-primary-foreground"
                   >
-                    <AnimatePresence mode="popLayout">
+                    <AnimatePresence mode="popLayout" initial={false}>
                       {volume === 0 && (
                         <motion.div
                           key="muteIcon"
