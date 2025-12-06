@@ -727,10 +727,7 @@ function StrummingPattern({
                             <SelectSeparator className="mr-2" />
                           )}
 
-                          <SelectItem
-                            value="noChord"
-                            className="hover:text-shadow italic"
-                          >
+                          <SelectItem value="noChord" className="italic">
                             No chord
                           </SelectItem>
                         </SelectGroup>
