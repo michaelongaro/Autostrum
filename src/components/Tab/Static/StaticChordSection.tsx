@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Fragment, useMemo } from "react";
+import { Fragment } from "react";
 import { Separator } from "~/components/ui/separator";
 import {
   useTabStore,
@@ -25,24 +25,9 @@ function StaticChordSection({
   color,
   theme,
 }: StaticChordSection) {
-  const { bpm, chords, chordDisplayMode } = useTabStore((state) => ({
+  const { bpm } = useTabStore((state) => ({
     bpm: state.bpm,
-    chords: state.chords,
-    chordDisplayMode: state.chordDisplayMode,
   }));
-
-  // Get unique chord names used in this chord section
-  const sectionChordNames = useMemo(() => {
-    const chordNames = new Set<string>();
-    subSectionData.data.forEach((chordSequence) => {
-      chordSequence.data.forEach((chordName) => {
-        if (chordName && chordName !== "") {
-          chordNames.add(chordName);
-        }
-      });
-    });
-    return Array.from(chordNames);
-  }, [subSectionData]);
 
   function showBpm(chordSequence: ChordSequenceType) {
     if (!chordSequencesAllHaveSameNoteLength(subSectionData)) return true;

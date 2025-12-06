@@ -27,8 +27,8 @@ export interface SectionProgression {
 export interface Chord {
   id: string;
   name: string;
-  frets: string[]; // prob should be number[] but just trying to match what ITabSection looks like
   color: string; // hex color from CHORD_COLORS palette
+  frets: string[]; // prob should be number[] but just trying to match what ITabSection looks like
 }
 
 export interface StrummingPattern {

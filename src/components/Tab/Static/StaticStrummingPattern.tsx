@@ -118,6 +118,8 @@ function StaticStrummingPattern({
                       }
                       name={strumChords[strumIndex]!}
                       truncate={true}
+                      screenshotColor={color}
+                      screenshotTheme={theme}
                     />
                   </Button>
                 </PopoverTrigger>

@@ -1,5 +1,6 @@
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStore, type COLORS, type THEME } from "~/stores/TabStore";
 import { getContrastTextColor } from "~/utils/chordColors";
+import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 
 function dynamicFontSize(chordNameLength: number): number {
   const inMin = 1;
@@ -19,6 +20,8 @@ interface ChordName {
   color: string;
   truncate: boolean;
   isHighlighted?: boolean;
+  screenshotColor?: COLORS;
+  screenshotTheme?: THEME;
 }
 
 function ChordName({
@@ -26,6 +29,8 @@ function ChordName({
   color,
   truncate,
   isHighlighted = false,
+  screenshotColor,
+  screenshotTheme,
 }: ChordName) {
   const chordDisplayMode = useTabStore((state) => {
     return state.chordDisplayMode;
@@ -33,7 +38,9 @@ function ChordName({
 
   let textColor = "";
 
-  if (chordDisplayMode === "color") {
+  if (screenshotColor && screenshotTheme) {
+    textColor = `hsl(${SCREENSHOT_COLORS[screenshotColor][screenshotTheme]["screenshot-foreground"]})`;
+  } else if (chordDisplayMode === "color") {
     textColor = getContrastTextColor(color);
   } else {
     textColor = isHighlighted
