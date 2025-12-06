@@ -8,8 +8,8 @@ import type { Chord } from "~/stores/TabStore";
 export const CHORD_COLORS = [
   "#E93D82", // peony / crimson
   "#E093B2", // lighter peony / pastel crimson
-  "#CA244D", // quartz / ruby
-  "#E592A3", // lighter quartz / pastel ruby
+  "#E5484D", // coral / red
+  "#EB8E90", // lighter coral / pastel red
   "#E54D2E", // saffron / tomato
   "#EC8E7B", // lighter saffron / pastel tomato
   "#A18072", // maple / bronze
@@ -96,8 +96,8 @@ export function getNextChordColor(existingChords: Chord[]): string {
 
 const colorsThatNeedLightText = [
   "#E93D82", // peony / crimson
-  "#CA244D", // quartz / ruby
-  "#CE2C31", // maple / bronze
+  "#E5484D", // coral / red
+  "#A18072", // maple / bronze
   "#E54D2E", // saffron / tomato
   "#46A758", // pistachio / grass
   "#12A594", // verdant / teal

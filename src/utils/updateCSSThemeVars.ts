@@ -18,11 +18,11 @@ type ScreenshotColorValues = Record<
 type ColorScale = Record<string, string>;
 type ColorValues = Record<COLORS, Record<THEME, ColorScale>>;
 
-// FYI: destructive is the same for all, except for quartz and maple since they are so red already
+// FYI: destructive is the same for all, except for coral and maple since they are so red already
 // we are using a very dark shade of red for light mode, and a slightly lighter shade for dark mode
 
 // FYI: grays are as follows
-// peony, quartz, amethyst - mauve 9
+// peony, coral, amethyst - mauve 9
 // saffron, maple - sand 9
 // pistachio, verdant - sage 9
 // aqua, sapphire - slate 9
@@ -34,8 +34,8 @@ type ColorValues = Record<COLORS, Record<THEME, ColorScale>>;
 //     foreground: 12, roughly +10% lightness
 //     gray: variable,
 //     border: 8,
-//     ring: 11, -20% saturation
-//     primary: 9, quartz and maple are light 11
+//     ring: 11, -20% saturation (except for maple)
+//     primary: 9,
 //     "primary-foreground": 1,
 //     secondary: 3,
 //     "secondary-hover": 4,
@@ -60,7 +60,7 @@ type ColorValues = Record<COLORS, Record<THEME, ColorScale>>;
 //     foreground: 12, roughly -3% lightness)
 //     gray: variable,
 //     border: 8, // from light mode
-//     ring: 11, // from light mode, -20% saturation
+//     ring: 11, // from light mode, -20% saturation (except for maple)
 //     modal: 4,
 //     primary: 9,
 //     "primary-foreground": 1, from light mode
@@ -106,7 +106,7 @@ type ColorValues = Record<COLORS, Record<THEME, ColorScale>>;
 
 // FYI: my color names for each variant:
 // peony - crimson,
-// quartz - ruby,
+// coral - red,
 // saffron - tomato,
 // maple - bronze,
 // pistachio - grass,
@@ -124,7 +124,7 @@ type ColorValues = Record<COLORS, Record<THEME, ColorScale>>;
 
 export const HEX_COLOR_VALUES: Record<COLORS, string> = {
   peony: "#E93D82",
-  quartz: "#E54666",
+  coral: "#E5484D",
   maple: "#A18072",
   saffron: "#E54D2E",
   pistachio: "#46A758",
@@ -136,7 +136,7 @@ export const HEX_COLOR_VALUES: Record<COLORS, string> = {
 
 export const NEAR_WHITE_COLOR_VALUES: Record<COLORS, string> = {
   peony: "#FEF7F9",
-  quartz: "#FFF7F8",
+  coral: "#FFF7F7",
   maple: "#FDF7F5",
   saffron: "#FFF8F7",
   pistachio: "#F5FBF5",
@@ -165,22 +165,22 @@ export const SCREENSHOT_COLORS = {
       "screenshot-secondary": "330.88 58.62% 22.75%",
     },
   },
-  quartz: {
+  coral: {
     light: {
-      "screenshot-background": "352.50 100.00% 98.43%",
-      "screenshot-foreground": "344.42 62.60% 34.12%",
-      "screenshot-primary-foreground": "340.00 100.00% 99.41%",
-      "screenshot-border": "347.71 61.48% 73.53%",
-      "screenshot-accent": "345.18 69.75% 46.67%",
-      "screenshot-secondary": "350.20 100.00% 90.39%",
+      "screenshot-background": "0.00 100.00% 98.43%",
+      "screenshot-foreground": "350.65 62.60% 34.12%",
+      "screenshot-primary-foreground": "0.00 100.00% 99.41%",
+      "screenshot-border": "358.71 69.92% 73.92%",
+      "screenshot-accent": "358.15 64.80% 49.02%",
+      "screenshot-secondary": "358.80 100.00% 90.20%",
     },
     dark: {
-      "screenshot-background": "346.67 17.65% 10.00%",
-      "screenshot-foreground": "339.55 95.65% 87.98%",
-      "screenshot-primary-foreground": "340.00 100.00% 99.41%",
-      "screenshot-border": "347.71 61.48% 73.53%",
-      "screenshot-accent": "342.35 56.67% 23.53%",
-      "screenshot-secondary": "342.35 56.67% 23.53%",
+      "screenshot-background": "355.38 25.49% 10.00%",
+      "screenshot-foreground": "349.57 100.00% 87.98%",
+      "screenshot-primary-foreground": "0.00 100.00% 99.41%",
+      "screenshot-border": "358.71 69.92% 73.92%",
+      "screenshot-accent": "349.60 63.03% 23.33%",
+      "screenshot-secondary": "349.60 63.03% 23.33%",
     },
   },
   saffron: {
@@ -367,59 +367,59 @@ const COLOR_VALUES = {
       "mobile-header-gradient-to": "336.92 25.49% 10.00%",
     },
   },
-  quartz: {
+  coral: {
     light: {
-      background: "352.50 100.00% 98.43%",
-      foreground: "344.42 62.60% 34.12%",
+      background: "0.00 100.00% 98.43%",
+      foreground: "350.65 62.60% 34.12%",
       gray: "250.91 4.8% 44.9%", // mauve 9
-      border: "347.71 61.48% 73.53%",
-      ring: "348.11 44.94% 48.43%",
-      primary: "347.92 75.36% 58.63%",
-      "primary-foreground": "340.00 100.00% 99.41%",
-      secondary: "351.00 90.91% 95.69%",
-      "secondary-hover": "351.43 100.00% 93.14%",
-      "secondary-active": "350.20 100.00% 90.39%",
-      "secondary-foreground": "345.18 69.75% 46.67%",
-      accent: "345.18 69.75% 46.67%",
-      "accent-foreground": "340.00 100.00% 99.41%",
-      "toggle-foreground": "344.42 62.60% 24.12%",
-      "toggle-background": "352.50 100.00% 98.43%",
+      border: "358.71 69.92% 73.92%",
+      ring: "358.39 44.80% 49.02%",
+      primary: "358.09 75.12% 59.02%",
+      "primary-foreground": "0.00 100.00% 99.41%",
+      secondary: "356.84 90.48% 95.88%",
+      "secondary-hover": "358.33 100.00% 92.94%",
+      "secondary-active": "358.80 100.00% 90.20%",
+      "secondary-foreground": "358.15 64.80% 49.02%",
+      accent: "358.15 64.80% 49.02%",
+      "accent-foreground": "0.00 100.00% 99.41%",
+      "toggle-foreground": "350.65 62.60% 34.12%",
+      "toggle-background": "0.00 100.00% 98.43%",
       destructive: "350.65 62.6% 24.12%",
       "destructive-foreground": "0 100% 99.41%",
-      header: "351.43 100.00% 93.14%",
-      "gradient-primary": "350.53 80.28% 86.08%",
-      "gradient-secondary": "351.00 90.91% 95.69%",
-      "modal-gradient-from": "352.50 100.00% 98.43%",
-      "modal-gradient-to": "351.00 90.91% 95.69%",
-      "mobile-header-gradient-from": "351.00 90.91% 95.69%",
-      "mobile-header-gradient-to": "351.43 100.00% 93.14%",
+      header: "358.33 100.00% 92.94%",
+      "gradient-primary": "359.06 94.12% 86.67%",
+      "gradient-secondary": "356.84 90.48% 95.88%",
+      "modal-gradient-from": "0.00 100.00% 98.43%",
+      "modal-gradient-to": "356.84 90.48% 95.88%",
+      "mobile-header-gradient-from": "356.84 90.48% 95.88%",
+      "mobile-header-gradient-to": "358.33 100.00% 92.94%",
     },
     dark: {
-      background: "346.67 17.65% 10.00%",
-      foreground: "339.55 95.65% 87.98%",
+      background: "355.38 25.49% 10.00%",
+      foreground: "349.57 100.00% 87.98%",
       gray: "250.91 4.8% 44.9%", // mauve 9
-      border: "347.71 61.48% 73.53%",
-      ring: "348.11 44.94% 48.43%",
-      modal: "341.69 60.82% 19.02%",
-      primary: "347.92 75.36% 58.63%",
-      "primary-foreground": "340.00 100.00% 99.41%",
-      secondary: "344.21 48.72% 15.29%",
-      "secondary-hover": "341.69 60.82% 19.02%",
-      "secondary-active": "342.35 56.67% 23.53%",
-      "secondary-foreground": "339.55 95.65% 87.98%",
-      accent: "342.35 56.67% 23.53%",
-      "accent-foreground": "340.00 100.00% 99.41%",
-      "toggle-foreground": "340.00 100.00% 99.41%",
-      "toggle-background": "340.00 100.00% 99.41%",
+      border: "358.71 69.92% 73.92%",
+      ring: "358.39 44.80% 49.02%",
+      modal: "348.00 68.42% 18.63%",
+      primary: "358.09 75.12% 59.02%",
+      "primary-foreground": "0.00 100.00% 99.41%",
+      secondary: "349.76 53.25% 15.10%",
+      "secondary-hover": "348.00 68.42% 18.63%",
+      "secondary-active": "349.60 63.03% 23.33%",
+      "secondary-foreground": "349.57 100.00% 87.98%",
+      accent: "349.60 63.03% 23.33%",
+      "accent-foreground": "0.00 100.00% 99.41%",
+      "toggle-foreground": "0.00 100.00% 99.41%",
+      "toggle-background": "0.00 100.00% 99.41%",
       destructive: "358.15 64.8% 49.02%",
       "destructive-foreground": "0 100% 99.41%",
-      header: "346.67 17.65% 10.00%",
-      "gradient-primary": "341.69 60.82% 19.02%",
-      "gradient-secondary": "345.00 19.05% 8.24%",
-      "modal-gradient-from": "345.00 19.05% 8.24%",
-      "modal-gradient-to": "346.67 17.65% 10.00%",
-      "mobile-header-gradient-from": "345.00 19.05% 8.24%",
-      "mobile-header-gradient-to": "346.67 17.65% 10.00%",
+      header: "355.38 25.49% 10.00%",
+      "gradient-primary": "348.00 68.42% 18.63%",
+      "gradient-secondary": "0.00 19.05% 8.24%",
+      "modal-gradient-from": "0.00 19.05% 8.24%",
+      "modal-gradient-to": "355.38 25.49% 10.00%",
+      "mobile-header-gradient-from": "0.00 19.05% 8.24%",
+      "mobile-header-gradient-to": "355.38 25.49% 10.00%",
     },
   },
   saffron: {

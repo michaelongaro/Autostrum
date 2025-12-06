@@ -2,7 +2,7 @@
 
 // in updateCSSThemeVars.ts:
 // grays should be as follows
-// peony, quartz, maple, amethyst - mauve 9
+// peony, coral, maple, amethyst - mauve 9
 // saffron - sand 9
 // pistachio, verdant - sage 9
 // aqua, sapphire - slate 9
@@ -231,7 +231,7 @@ const colorScales = {
       "#FDD3E8",
     ],
   },
-  quartz: {
+  coral: {
     light: [
       "#FFFCFD",
       "#FFF7F8",

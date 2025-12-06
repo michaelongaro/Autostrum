@@ -1,6 +1,6 @@
 export const LOGO_PATHS_WITH_TITLE = {
   peony: "/logos/withTitle/peony.svg",
-  quartz: "/logos/withTitle/quartz.svg",
+  coral: "/logos/withTitle/coral.svg",
   maple: "/logos/withTitle/maple.svg",
   saffron: "/logos/withTitle/saffron.svg",
   pistachio: "/logos/withTitle/pistachio.svg",
@@ -12,7 +12,7 @@ export const LOGO_PATHS_WITH_TITLE = {
 
 export const LOGO_PATHS_WITHOUT_TITLE = {
   peony: "/logos/withoutTitle/peony.svg",
-  quartz: "/logos/withoutTitle/quartz.svg",
+  coral: "/logos/withoutTitle/coral.svg",
   maple: "/logos/withoutTitle/maple.svg",
   saffron: "/logos/withoutTitle/saffron.svg",
   pistachio: "/logos/withoutTitle/pistachio.svg",

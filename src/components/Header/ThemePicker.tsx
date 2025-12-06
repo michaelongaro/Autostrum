@@ -14,7 +14,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 const COLORS = [
   "peony",
-  "quartz",
+  "coral",
   "saffron",
   "maple",
   "pistachio",
@@ -26,7 +26,7 @@ const COLORS = [
 
 const COLOR_HEX_VALUES: Record<(typeof COLORS)[number], string> = {
   peony: "#E93D82",
-  quartz: "#CA244D",
+  coral: "#E5484D",
   saffron: "#E54D2E",
   maple: "#A18072",
   pistachio: "#46A758",
