@@ -480,7 +480,10 @@ function AudioControls() {
                     );
                   }}
                 >
-                  <SelectTrigger id="instrument">
+                  <SelectTrigger
+                    id="instrument"
+                    className="focus:ring-2 focus:ring-primary-foreground/50"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -520,7 +523,10 @@ function AudioControls() {
                     setPlaybackSpeed(newPlaybackSpeed);
                   }}
                 >
-                  <SelectTrigger id="speed">
+                  <SelectTrigger
+                    id="speed"
+                    className="focus:ring-2 focus:ring-primary-foreground/50"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
