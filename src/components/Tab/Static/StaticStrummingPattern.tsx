@@ -68,9 +68,7 @@ function StaticStrummingPattern({
         const chord = chords.find((c) => c.name === chordName);
         currentChordColor = chord?.color ?? null;
       }
-      strumChords.push(
-        lastChordName !== chordName ? (chordName ?? null) : null,
-      );
+      strumChords.push(lastChordName !== chordName ? (chordName ?? "") : "");
       colors.push(currentChordColor);
       if (chordName && chordName !== "" && lastChordName !== chordName) {
         lastChordName = chordName;
