@@ -220,7 +220,7 @@ function pruneChordSections(
           let prevChord = "";
 
           for (const chord of chordSequence.data) {
-            if (chord !== prevChord) {
+            if (chord !== prevChord && chord !== "") {
               prunedChordData.push(chord);
               prevChord = chord;
             } else {
