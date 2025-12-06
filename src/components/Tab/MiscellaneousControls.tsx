@@ -139,7 +139,8 @@ function MiscellaneousControls({
         draft[sectionIndex]!.data = movedSubSection;
       } else if (sectionIndex !== undefined) {
         const movedSections = arrayMove(draft, sectionIndex, sectionIndex - 1);
-        return movedSections;
+        draft.length = 0; // need to clear out the existing draft first
+        draft.push(...movedSections);
       }
     });
   }
@@ -173,7 +174,8 @@ function MiscellaneousControls({
         draft[sectionIndex]!.data = movedSubSection;
       } else if (sectionIndex !== undefined) {
         const movedSections = arrayMove(draft, sectionIndex, sectionIndex + 1);
-        return movedSections;
+        draft.length = 0; // need to clear out the existing draft first
+        draft.push(...movedSections);
       }
     });
   }
