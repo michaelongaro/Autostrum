@@ -38,14 +38,14 @@ function ChordName({
 
   let textColor = "";
 
-  if (screenshotColor && screenshotTheme) {
-    textColor = `hsl(${SCREENSHOT_COLORS[screenshotColor][screenshotTheme]["screenshot-foreground"]})`;
-  } else if (chordDisplayMode === "color") {
+  if (chordDisplayMode === "color") {
     textColor = getContrastTextColor(color);
   } else {
     textColor = isHighlighted
       ? "hsl(var(--primary))"
-      : "hsl(var(--foreground))";
+      : screenshotColor && screenshotTheme
+        ? `hsl(${SCREENSHOT_COLORS[screenshotColor][screenshotTheme]["screenshot-foreground"]})`
+        : "hsl(var(--foreground))";
   }
 
   const modifiedChordName =
