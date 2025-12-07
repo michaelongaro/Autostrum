@@ -6,7 +6,7 @@
    version="1.1"
    id="svg8"
    inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
-   sodipodi:docname="peony.svg"
+   sodipodi:docname="coral.svg"
    inkscape:export-filename="fullNameAndPickLogoTest.png"
    inkscape:export-xdpi="23.220886"
    inkscape:export-ydpi="23.220886"
@@ -28,7 +28,7 @@
          offset="0"
          id="stop4" />
       <stop
-         style="stop-color:#da2026;stop-opacity:1;"
+         style="stop-color:#db1f25;stop-opacity:1;"
          offset="1"
          id="stop5" />
     </linearGradient>
@@ -50,7 +50,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.70710678"
-     inkscape:cx="583.36309"
+     inkscape:cx="581.94888"
      inkscape:cy="3.5355339"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"

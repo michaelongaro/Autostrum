@@ -1,8 +1,4 @@
-import {
-  DeleteObjectCommand,
-  PutObjectCommand,
-  S3Client,
-} from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { Tab } from "~/generated/client";
 import { z } from "zod";
 import { env } from "~/env";
@@ -63,6 +59,7 @@ const sectionProgressionSchema = z.object({
 const chordSchema = z.object({
   id: z.string(),
   name: z.string(),
+  color: z.string(),
   frets: z.array(z.string()), // keeping as string to match ITabSection
 });
 
@@ -205,6 +202,40 @@ async function triggerScreenshotCapture(
   } catch (error) {
     console.error("Failed to trigger screenshot capture:", error);
   }
+}
+
+// Helper function to prune redundant chord repetitions in ChordSections
+function pruneChordSections(
+  sections: z.infer<typeof sectionSchema>[],
+): z.infer<typeof sectionSchema>[] {
+  return sections.map((section) => ({
+    ...section,
+    data: section.data.map((subsection) => {
+      if (subsection.type !== "chord") return subsection;
+
+      return {
+        ...subsection,
+        data: subsection.data.map((chordSequence) => {
+          const prunedChordData: string[] = [];
+          let prevChord = "";
+
+          for (const chord of chordSequence.data) {
+            if (chord !== prevChord && chord !== "") {
+              prunedChordData.push(chord);
+              prevChord = chord;
+            } else {
+              prunedChordData.push("");
+            }
+          }
+
+          return {
+            ...chordSequence,
+            data: prunedChordData,
+          };
+        }),
+      };
+    }),
+  }));
 }
 
 export const tabRouter = createTRPCRouter({
@@ -442,6 +473,8 @@ export const tabRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      const prunedTabData = pruneChordSections(input.tabData);
+
       const {
         title,
         artistId,
@@ -455,9 +488,10 @@ export const tabRouter = createTRPCRouter({
         difficulty,
         chords,
         strummingPatterns,
-        tabData,
         sectionProgression,
       } = input;
+
+      const tabData = prunedTabData;
 
       const userId = ctx.auth.userId;
 
@@ -567,6 +601,8 @@ export const tabRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      const prunedTabData = pruneChordSections(input.tabData);
+
       const {
         id,
         title,
@@ -581,9 +617,10 @@ export const tabRouter = createTRPCRouter({
         difficulty,
         chords,
         strummingPatterns,
-        tabData,
         sectionProgression,
       } = input;
+
+      const tabData = prunedTabData;
 
       // need to know if artistId changed, since we will then need to update the old and new
       // artist's totalTabs

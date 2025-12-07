@@ -51,6 +51,8 @@ function PlaybackModal() {
     setPlaybackModalViewingState,
     pauseAudio,
     setCurrentChordIndex,
+    chords,
+    chordDisplayMode,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
@@ -69,6 +71,8 @@ function PlaybackModal() {
     setPlaybackModalViewingState: state.setPlaybackModalViewingState,
     pauseAudio: state.pauseAudio,
     setCurrentChordIndex: state.setCurrentChordIndex,
+    chords: state.chords,
+    chordDisplayMode: state.chordDisplayMode,
   }));
 
   const containerRef = (element: HTMLDivElement | null) => {
@@ -883,6 +887,7 @@ function RenderChordByType({
         noteLength={chord?.data.noteLength || "quarter"}
         bpmToShow={chord?.data.showBpm ? chord?.data.bpm : undefined}
         chordName={chord?.data.chordName || ""}
+        chordColor={chord?.data.chordColor || ""}
         isHighlighted={isHighlighted}
         beatIndicator={chord?.data.beatIndicator}
         isDimmed={

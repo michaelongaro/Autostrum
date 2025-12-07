@@ -22,7 +22,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import { FaTrashAlt } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -97,8 +96,8 @@ const xVariants = {
     scale: 1,
     opacity: 1,
     transition: {
-      delay: 0.1,
-      duration: 0.2,
+      delay: 0,
+      duration: 0.25,
     },
   },
   exit: {
@@ -112,19 +111,16 @@ const xVariants = {
 };
 
 const containerVariants = {
-  hidden: { x: "-100%", width: 0, opacity: 0, zIndex: -1 },
+  hidden: { width: 0, opacity: 0, zIndex: -1 },
   visible: {
-    x: 0,
     width: "auto",
     opacity: 1,
     zIndex: 1,
     transition: {
-      delay: 0,
       duration: 0.2,
     },
   },
   exit: {
-    x: "-100%",
     width: 0,
     opacity: 0,
     zIndex: -1,
@@ -225,76 +221,98 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       "0.25",
     ) as string[];
 
-    // Helper to get palmMute value from a column
     const getPalmMute = (index: number) => {
       const col = subSection.data[index];
       return col && isTabNote(col) ? col.palmMute : "";
     };
 
-    // added new "PM Start" node
+    // Case 1: Added new "PM Start" node - show valid end positions
     if (lastModifiedPalmMuteNode.prevValue === "") {
-      let nearestStartNodeIndex = lastModifiedPalmMuteNode.columnIndex + 1;
+      // The start node itself should be fully visible (to allow cancel)
+      newOpacities[lastModifiedPalmMuteNode.columnIndex] = "1";
+
+      // Find the nearest existing "start" node to the right (can't place end past it)
+      let nearestStartNodeIndex = subSection.data.length;
       for (
         let i = lastModifiedPalmMuteNode.columnIndex + 1;
         i < subSection.data.length;
         i++
       ) {
-        if (getPalmMute(i) === "start") break;
-        nearestStartNodeIndex++;
+        const pm = getPalmMute(i);
+        if (pm === "start") {
+          nearestStartNodeIndex = i;
+          break;
+        }
       }
 
-      newOpacities.fill(
-        "1",
-        lastModifiedPalmMuteNode.columnIndex,
-        nearestStartNodeIndex,
-      );
+      // Enable all empty nodes between the new start and the nearest start node/end of section
+      for (
+        let i = lastModifiedPalmMuteNode.columnIndex + 1;
+        i < nearestStartNodeIndex;
+        i++
+      ) {
+        const pm = getPalmMute(i);
+        // Only enable empty nodes (and the start node we placed)
+        if (pm === "" || i === lastModifiedPalmMuteNode.columnIndex) {
+          newOpacities[i] = "1";
+        }
+      }
     }
-    // removed "PM Start" node
+
+    // Case 2: Removed "PM Start" node - enable all nodes to the left (until an end node is found) and all the way right until the pair end node is found.
     else if (lastModifiedPalmMuteNode.prevValue === "start") {
-      let pairEndNodeIndex = lastModifiedPalmMuteNode.columnIndex + 1;
+      // The removed start node should be visible (to allow cancel/restore)
+      newOpacities[lastModifiedPalmMuteNode.columnIndex] = "1";
+
+      // Enable all empty nodes to the left until an "end" node is found
+      for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
+        const pm = getPalmMute(i);
+        if (pm === "end") {
+          break;
+        }
+        newOpacities[i] = "1";
+      }
+      // Enable all empty nodes to the right until the pair "end" node is found
       for (
         let i = lastModifiedPalmMuteNode.columnIndex + 1;
         i < subSection.data.length;
         i++
       ) {
-        if (getPalmMute(i) === "end") break;
-        pairEndNodeIndex++;
-      }
-
-      let nearestPrevEndNodeIndex = lastModifiedPalmMuteNode.columnIndex - 1;
-      for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
-        if (getPalmMute(i) === "end") {
-          nearestPrevEndNodeIndex = i + 1;
+        const pm = getPalmMute(i);
+        if (pm === "end") {
+          newOpacities[i] = "1";
           break;
         }
-        if (nearestPrevEndNodeIndex !== 0) nearestPrevEndNodeIndex--;
+        newOpacities[i] = "1";
       }
-
-      newOpacities.fill("1", nearestPrevEndNodeIndex, pairEndNodeIndex + 1);
     }
-    // removed "PM End" node
-    else if (lastModifiedPalmMuteNode.prevValue === "end") {
-      let pairStartNodeIndex = lastModifiedPalmMuteNode.columnIndex - 1;
-      for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
-        if (getPalmMute(i) === "start") {
-          pairStartNodeIndex = i;
-          break;
-        }
-      }
 
-      let nearestNextStartNodeIndex = lastModifiedPalmMuteNode.columnIndex + 1;
+    // Case 3: Removed "PM End" node - enable all nodes to the right (until a start node is found) and all the way left until the pair start node is found.
+    else if (lastModifiedPalmMuteNode.prevValue === "end") {
+      // The removed end node should be visible (to allow cancel/restore)
+      newOpacities[lastModifiedPalmMuteNode.columnIndex] = "1";
+
+      // Enable all empty nodes to the right until a "start" node is found
       for (
         let i = lastModifiedPalmMuteNode.columnIndex + 1;
         i < subSection.data.length;
         i++
       ) {
-        if (getPalmMute(i) === "start") {
-          nearestNextStartNodeIndex = i;
+        const pm = getPalmMute(i);
+        if (pm === "start") {
           break;
         }
+        newOpacities[i] = "1";
       }
-
-      newOpacities.fill("1", pairStartNodeIndex, nearestNextStartNodeIndex);
+      // Enable all empty nodes to the left until the pair "start" node is found
+      for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
+        const pm = getPalmMute(i);
+        if (pm === "start") {
+          newOpacities[i] = "1";
+          break;
+        }
+        newOpacities[i] = "1";
+      }
     }
 
     return newOpacities;
@@ -1006,7 +1024,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
             </div>
           </div>
 
-          <div className="baseVertFlex !items-start gap-2 lg:!flex-row">
+          <div className="baseVertFlex !items-start gap-2 sm:!flex-row">
             <div className="baseFlex">
               <TooltipProvider delayDuration={0}>
                 <Tooltip>
@@ -1140,7 +1158,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
                           : "0.375rem",
                         transitionDelay: "0.1s",
                       }}
-                      className="baseFlex gap-2"
+                      className="baseFlex"
                       onClick={() => {
                         setShowingDeleteColumnsButtons(
                           !showingDeleteColumnsButtons,
@@ -1149,7 +1167,6 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
                       }}
                     >
                       Delete chords
-                      <FaTrashAlt className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side={"bottom"}>
@@ -1207,13 +1224,17 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         />
       </div>
 
-      <div className="baseFlex relative w-full flex-wrap !justify-start">
+      <div className="baseFlex relative mt-4 w-full flex-wrap !items-start !justify-start">
         {editingPalmMuteNodes && (
-          <p className="absolute left-[0.4rem] top-6 text-sm italic">PM</p>
+          <p className="absolute left-[6px] top-[14px] text-sm italic">PM</p>
         )}
 
-        <div className="baseVertFlex relative h-[280px] rounded-l-2xl border-2 border-foreground p-2">
-          <PrettyVerticalTuning tuning={tuning} height={"250px"} />
+        <div className="baseVertFlex">
+          <div className="h-[48px]"></div>
+          <div className="baseVertFlex relative h-[258px] rounded-l-2xl border-2 border-foreground bg-background/75 p-2">
+            <PrettyVerticalTuning tuning={tuning} height={"230px"} />
+          </div>
+          <div className="h-[74px]"></div>
         </div>
 
         <DndContext
@@ -1236,7 +1257,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
                     columnIndex={index}
                     reorderingColumns={reorderingColumns}
                     showingDeleteColumnsButtons={showingDeleteColumnsButtons}
-                    columnHasBeenPlayed={columnHasBeenPlayed(index - 1)} // measure lines aren't "played", so tieing logic to closest previous column
+                    columnHasBeenPlayed={columnHasBeenPlayed(index - 1)} // measure lines aren't "played", so tying logic to closest previous column
                   />
                 ) : (
                   <TabNotesColumn

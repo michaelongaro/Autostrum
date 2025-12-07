@@ -14,9 +14,9 @@ import { AnimatePresence, motion } from "framer-motion";
 
 const COLORS = [
   "peony",
-  "quartz",
-  "crimson",
+  "coral",
   "saffron",
+  "maple",
   "pistachio",
   "verdant",
   "aqua",
@@ -26,9 +26,9 @@ const COLORS = [
 
 const COLOR_HEX_VALUES: Record<(typeof COLORS)[number], string> = {
   peony: "#E93D82",
-  quartz: "#CA244D",
-  crimson: "#CE2C31",
+  coral: "#E5484D",
   saffron: "#E54D2E",
+  maple: "#A18072",
   pistachio: "#46A758",
   verdant: "#12A594",
   aqua: "#00A2C7",
@@ -74,7 +74,7 @@ function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
       <span className="font-medium sm:text-lg">Color</span>
       <Separator className="h-[1px] bg-foreground/50" />
 
-      <div className="mt-2 grid w-full grid-cols-3 grid-rows-3 gap-2">
+      <div className="mt-4 grid w-full grid-cols-3 grid-rows-3 gap-2">
         {COLORS.map((colorString) => (
           <div key={colorString} className="baseVertFlex w-full gap-1">
             <Button
@@ -127,7 +127,7 @@ function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
       <span className="mt-2 font-medium sm:mt-4 sm:text-lg">Theme</span>
       <Separator className="h-[1px] bg-foreground/50" />
 
-      <div className="mt-2 grid w-full grid-cols-3 grid-rows-1 gap-2">
+      <div className="mt-4 grid w-full grid-cols-3 grid-rows-1 gap-2">
         <div className="baseVertFlex w-full gap-1">
           <Button
             variant={"theme"}

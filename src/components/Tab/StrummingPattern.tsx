@@ -21,7 +21,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectSeparator,
   SelectTrigger,
   SelectValue,
@@ -79,7 +78,6 @@ interface StrummingPattern {
   subSectionIndex?: number;
   chordSequenceIndex?: number;
 
-  pmNodeOpacities?: string[];
   editingPalmMuteNodes?: boolean;
   setEditingPalmMuteNodes?: Dispatch<SetStateAction<boolean>>;
   showingDeleteStrumsButtons?: boolean;
@@ -97,7 +95,6 @@ function StrummingPattern({
   sectionIndex,
   subSectionIndex,
   chordSequenceIndex,
-  pmNodeOpacities,
   editingPalmMuteNodes,
   setEditingPalmMuteNodes,
   showingDeleteStrumsButtons,
@@ -105,6 +102,7 @@ function StrummingPattern({
   setLastModifiedPalmMuteNode,
 }: StrummingPattern) {
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
+  const [pmNodeOpacities, setPMNodeOpacities] = useState<string[]>([]);
 
   const [isFocused, setIsFocused] = useState<boolean[]>(
     data?.strums?.map(() => false),
@@ -140,6 +138,115 @@ function StrummingPattern({
       setInputIdToFocus(null);
     }
   }, [inputIdToFocus]);
+
+  const getPMNodeOpacities = useCallback(() => {
+    const strums = data.strums;
+
+    if (lastModifiedPalmMuteNode === null) {
+      return new Array(strums.length).fill("1") as string[];
+    }
+
+    const newOpacities = new Array(strums.length).fill("0.25") as string[];
+
+    const getPalmMute = (index: number) => strums[index]?.palmMute ?? "";
+
+    // Case 1: Added new "PM Start" node - show valid end positions
+    if (lastModifiedPalmMuteNode.prevValue === "") {
+      // The start node itself should be fully visible (to allow cancel)
+      newOpacities[lastModifiedPalmMuteNode.columnIndex] = "1";
+
+      // Find the nearest existing "start" node to the right (can't place end past it)
+      let nearestStartNodeIndex = strums.length;
+      for (
+        let i = lastModifiedPalmMuteNode.columnIndex + 1;
+        i < strums.length;
+        i++
+      ) {
+        if (getPalmMute(i) === "start") {
+          nearestStartNodeIndex = i;
+          break;
+        }
+      }
+
+      // Enable all empty nodes between the new start and the nearest start node/end of section
+      for (
+        let i = lastModifiedPalmMuteNode.columnIndex + 1;
+        i < nearestStartNodeIndex;
+        i++
+      ) {
+        const pm = getPalmMute(i);
+        if (pm === "") {
+          newOpacities[i] = "1";
+        }
+      }
+    }
+
+    // Case 2: Removed "PM Start" node - enable nodes left (until end) and right (until pair end)
+    else if (lastModifiedPalmMuteNode.prevValue === "start") {
+      // The removed start node should be visible (to allow cancel/restore)
+      newOpacities[lastModifiedPalmMuteNode.columnIndex] = "1";
+
+      // Enable all empty nodes to the left until an "end" node is found
+      for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
+        const pm = getPalmMute(i);
+        if (pm === "end") {
+          break;
+        }
+        newOpacities[i] = "1";
+      }
+
+      // Enable all empty nodes to the right until the pair "end" node is found
+      for (
+        let i = lastModifiedPalmMuteNode.columnIndex + 1;
+        i < strums.length;
+        i++
+      ) {
+        const pm = getPalmMute(i);
+        if (pm === "end") {
+          newOpacities[i] = "1";
+          break;
+        }
+        newOpacities[i] = "1";
+      }
+    }
+
+    // Case 3: Removed "PM End" node - enable nodes right (until start) and left (until pair start)
+    else if (lastModifiedPalmMuteNode.prevValue === "end") {
+      // The removed end node should be visible (to allow cancel/restore)
+      newOpacities[lastModifiedPalmMuteNode.columnIndex] = "1";
+
+      // Enable all empty nodes to the right until a "start" node is found
+      for (
+        let i = lastModifiedPalmMuteNode.columnIndex + 1;
+        i < strums.length;
+        i++
+      ) {
+        const pm = getPalmMute(i);
+        if (pm === "start") {
+          break;
+        }
+        newOpacities[i] = "1";
+      }
+
+      // Enable all empty nodes to the left until the pair "start" node is found
+      for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
+        const pm = getPalmMute(i);
+        if (pm === "start") {
+          newOpacities[i] = "1";
+          break;
+        }
+        newOpacities[i] = "1";
+      }
+    }
+
+    return newOpacities;
+  }, [data.strums, lastModifiedPalmMuteNode]);
+
+  useEffect(() => {
+    if (editingPalmMuteNodes) {
+      setPMNodeOpacities(getPMNodeOpacities());
+    }
+  }, [editingPalmMuteNodes, lastModifiedPalmMuteNode, getPMNodeOpacities]);
 
   const patternHasPalmMuting = useCallback(() => {
     return data.strums.some((strum) => strum.palmMute !== "");
@@ -534,9 +641,9 @@ function StrummingPattern({
         {mode === "editingChordSequence" && (
           <span
             style={{
-              top: patternHasPalmMuting() ? "-22px" : "-2rem",
+              top: patternHasPalmMuting() ? "-26px" : "-38px",
             }}
-            className="relative -top-8 left-0 pr-2 text-sm font-medium"
+            className="relative left-0 pr-2 text-sm font-medium"
           >
             Chords
           </span>
@@ -550,17 +657,11 @@ function StrummingPattern({
             id={`section${sectionIndex ?? ""}-subSection${
               subSectionIndex ?? ""
             }-chordSequence${chordSequenceIndex ?? ""}-chord${strumIndex}`}
-            className="baseFlex"
+            className="baseFlex my-1"
           >
             <div
               style={{
-                marginTop:
-                  mode === "editingStrummingPattern" ? "1rem" : "0.25rem",
-                gap:
-                  mode === "editingStrummingPattern" ||
-                  mode === "editingChordSequence"
-                    ? "0.5rem"
-                    : "0",
+                marginTop: mode === "editingStrummingPattern" ? "1rem" : "0",
               }}
               className="baseVertFlex relative"
               onMouseEnter={() => setStrumIdxBeingHovered(strumIndex)}
@@ -611,7 +712,7 @@ function StrummingPattern({
                           : chordSequence?.[strumIndex]
                       }
                     >
-                      <SelectTrigger className="w-fit">
+                      <SelectTrigger className="mx-1 w-fit">
                         <SelectValue>{chordSequence?.[strumIndex]}</SelectValue>
                       </SelectTrigger>
                       <SelectContent>
@@ -626,10 +727,7 @@ function StrummingPattern({
                             <SelectSeparator className="mr-2" />
                           )}
 
-                          <SelectItem
-                            value="noChord"
-                            className="hover:text-shadow italic"
-                          >
+                          <SelectItem value="noChord" className="italic">
                             No chord
                           </SelectItem>
                         </SelectGroup>
@@ -639,7 +737,7 @@ function StrummingPattern({
                 </>
               )}
 
-              <div className="baseFlex">
+              <div className="baseFlex mb-1 mt-2">
                 <div
                   style={{
                     width:
@@ -774,7 +872,10 @@ function StrummingPattern({
                       }
                     >
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-1 w-4 !p-0">
+                        <Button
+                          variant="ghost"
+                          className="h-2.5 w-5 !p-1 hover:!bg-primary hover:!text-primary-foreground"
+                        >
                           <Ellipsis className="h-3 w-4 rotate-90" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -804,7 +905,7 @@ function StrummingPattern({
                       </DropdownMenuContent>
                     </DropdownMenu>
                   ) : (
-                    <div className="h-1"></div>
+                    <div className="h-2.5"></div>
                   )}
                 </>
               )}
@@ -839,7 +940,7 @@ function StrummingPattern({
                 <Button
                   variant={"destructive"}
                   disabled={data.strums.length === 1 || previewMetadata.playing}
-                  className="h-6 w-6 p-0"
+                  className="mt-2 h-6 w-6 p-0"
                   onClick={() => deleteStrum(strumIndex)}
                 >
                   <IoClose className="h-4 w-4" />

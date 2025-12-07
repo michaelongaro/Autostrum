@@ -5,7 +5,7 @@ import { cn } from "~/utils/cn";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm shadow-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center rounded-md text-sm shadow-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 disabled:pointer-events-none disabled:opacity-50",
   {
     // might want to make separate variants for "primaryOutline" and "primaryGhost" so you don't need the "!"
     variants: {
@@ -17,22 +17,22 @@ const buttonVariants = cva(
         outline:
           "border text-foreground hover:bg-secondary-hover hover:!text-foreground active:bg-secondary-hover/60",
         ghost:
-          "hover:bg-secondary-active hover:!text-foreground shadow-none active:bg-secondary-active/80",
+          "hover:bg-primary/50 hover:!text-primary-foreground shadow-none active:bg-primary/40",
         link: "underline-offset-4 hover:underline active:brightness-75 shadow-none",
         text: "text-foreground shadow-none hover:text-foreground/80 active:text-foreground/60",
         audio:
-          "bg-audio/85 border border-audio text-audio-foreground hover:bg-audio shadow-none active:brightness-75 disabled:bg-gray disabled:border-gray",
+          "bg-audio/85 border border-audio text-audio-foreground hover:bg-audio shadow-none active:brightness-75 disabled:bg-gray disabled:opacity-75 disabled:border-gray",
         destructive:
           "bg-destructive/75 border border-destructive text-destructive-foreground !shadow-primaryButton hover:bg-destructive active:brightness-75",
         modalClose:
-          "baseFlex !size-5 absolute right-4 top-4 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring  disabled:pointer-events-none",
+          "baseFlex !size-5 absolute right-4 top-4 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-foreground/50 disabled:pointer-events-none",
         toggleOn:
           "text-toggle-foreground hover:bg-secondary/20 active:bg-secondary/30",
         toggleOff:
           "text-toggle-background hover:bg-secondary/20 active:bg-secondary/30",
         theme: "border rounded-full hover:brightness-110 active:brightness-100",
         drawer:
-          "w-full !rounded-none font-normal !h-[65px] last-of-type:border-b-none border-b border-gray/50 h-full baseFlex bg-secondary active:brightness-90 relative py-0",
+          "w-full !rounded-none font-normal !h-[65px] last-of-type:border-b-none border-b border-gray/50 h-full baseFlex active:bg-secondary active:brightness-90 relative py-0",
         drawerNavigation:
           "text-primary shadow-none hover:text-primary/80 active:text-primary/60",
       },

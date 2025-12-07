@@ -8,11 +8,8 @@ const Dialog = DialogPrimitive.Root;
 
 const DialogTrigger = DialogPrimitive.Trigger;
 
-const DialogPortal = ({
-  className,
-  ...props
-}: DialogPrimitive.DialogPortalProps) => (
-  <DialogPrimitive.Portal className={cn(className)} {...props} />
+const DialogPortal = ({ ...props }: DialogPrimitive.DialogPortalProps) => (
+  <DialogPrimitive.Portal {...props} />
 );
 DialogPortal.displayName = DialogPrimitive.Portal.displayName;
 
@@ -64,7 +61,7 @@ const DialogContent = React.forwardRef<
       {children}
 
       {renderCloseButton && (
-        <DialogPrimitive.Close className="baseFlex absolute right-4 top-4 size-5 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring disabled:pointer-events-none data-[state=open]:bg-primary data-[state=open]:text-foreground/75">
+        <DialogPrimitive.Close className="baseFlex absolute right-4 top-4 size-5 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-foreground/50 disabled:pointer-events-none data-[state=open]:bg-primary data-[state=open]:text-foreground/75">
           <X className="size-5" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>

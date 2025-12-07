@@ -9,7 +9,7 @@ function PlaybackPalmMuteNode({ value }: PlaybackPalmMuteNode) {
         <div className="baseFlex w-full">
           <div className="h-[14px] w-[1px] bg-foreground"></div>
           <div className="h-[1px] w-full bg-foreground"></div>
-          <i className="mx-[0.125rem]">PM</i>
+          <i className="mx-[2px]">PM</i>
           <div className="h-[1px] w-full bg-foreground"></div>
         </div>
       )}

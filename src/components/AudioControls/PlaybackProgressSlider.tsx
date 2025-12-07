@@ -200,7 +200,7 @@ function PlaybackProgressSlider({
               style={{
                 ...props.style,
               }}
-              className="z-10 size-[18px] rounded-full border bg-primary will-change-transform"
+              className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
             />
           )}
         />
@@ -300,7 +300,7 @@ function PlaybackProgressSlider({
                     : "0s"
                 }`,
               }}
-              className="!z-20 size-[18px] rounded-full border bg-primary will-change-transform"
+              className="!z-20 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
             />
           )}
         />

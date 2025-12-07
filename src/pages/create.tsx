@@ -8,6 +8,7 @@ import { BsFillPlayFill } from "react-icons/bs";
 
 function Create() {
   const isAboveMediumViewport = useViewportWidthBreakpoint(768);
+  const isAboveArbitrary2xlViewport = useViewportWidthBreakpoint(1600); // 2xl breakpoint was just barely too small
 
   return (
     <motion.div
@@ -16,7 +17,10 @@ function Create() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="baseVertFlex my-12 min-h-[650px] w-full !justify-start md:my-24 md:w-[85%] md:p-0 2xl:w-[70%]"
+      style={{
+        width: isAboveArbitrary2xlViewport ? "70%" : "",
+      }}
+      className="baseVertFlex my-12 min-h-[650px] w-full !justify-start md:my-24 md:w-[85%] md:p-0"
     >
       <Head>
         <title>Create | Autostrum</title>

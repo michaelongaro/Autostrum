@@ -38,7 +38,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     }, [showingErrorShakeAnimation]);
 
     const focusClasses = showFocusState
-      ? "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      ? "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50"
       : "";
 
     return (
@@ -48,12 +48,17 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         autoCorrect="off"
         spellCheck="false"
         style={{
-          ...(showingErrorShakeAnimation && {
-            boxShadow: "0 0 0 0.25rem hsl(var(--destructive))",
-            transitionProperty: "box-shadow",
-            transitionDuration: "500ms",
-            transitionTimingFunction: "ease-in-out",
-          }),
+          ...(showingErrorShakeAnimation
+            ? {
+                boxShadow: "0 0 0 0.25rem hsl(var(--destructive))",
+                transitionProperty: "box-shadow",
+                transitionDuration: "500ms",
+                transitionTimingFunction: "ease-in-out",
+              }
+            : {
+                transitionProperty: "box-shadow",
+                transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+              }),
           transitionDuration:
             showingErrorShakeAnimation || extraTimeoutForShakeAnimation
               ? "500ms"

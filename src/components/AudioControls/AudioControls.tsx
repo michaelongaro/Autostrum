@@ -352,7 +352,7 @@ function AudioControls() {
                       visibility === "minimized" ? "opacity-0" : "opacity-100"
                     } transition-opacity`}
                   >
-                    <AnimatePresence mode="popLayout">
+                    <AnimatePresence mode="popLayout" initial={false}>
                       {volume === 0 && (
                         <motion.div
                           key="muteIcon"
@@ -480,7 +480,10 @@ function AudioControls() {
                     );
                   }}
                 >
-                  <SelectTrigger id="instrument">
+                  <SelectTrigger
+                    id="instrument"
+                    className="focus:ring-2 focus:ring-primary-foreground/50"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -520,7 +523,10 @@ function AudioControls() {
                     setPlaybackSpeed(newPlaybackSpeed);
                   }}
                 >
-                  <SelectTrigger id="speed">
+                  <SelectTrigger
+                    id="speed"
+                    className="focus:ring-2 focus:ring-primary-foreground/50"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -593,7 +599,7 @@ function AudioControls() {
                     variant="outline"
                     className="p-2 text-primary-foreground"
                   >
-                    <AnimatePresence mode="popLayout">
+                    <AnimatePresence mode="popLayout" initial={false}>
                       {volume === 0 && (
                         <motion.div
                           key="muteIcon"
@@ -705,7 +711,7 @@ function AudioControls() {
 
         {/* bottom layer: play/pause, loop, slider*/}
         <div className="baseFlex mt-2 w-full gap-4">
-          {/* audio source, instrument, speed selects*/}
+          {/* instrument, speed selects*/}
 
           {/* play/pause button*/}
           <Button
@@ -810,7 +816,7 @@ function AudioControls() {
                 renderThumb={({ props }) => (
                   <div
                     {...props}
-                    className="!z-20 size-[18px] rounded-full border bg-primary"
+                    className="!z-20 size-[18px] rounded-full border border-foreground/50 bg-primary"
                   />
                 )}
               />
@@ -933,7 +939,7 @@ function AudioControls() {
                           : "0s"
                       }`,
                     }}
-                    className="!z-20 size-[18px] rounded-full border bg-primary will-change-transform"
+                    className="!z-20 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
                   />
                 )}
               />
@@ -1021,7 +1027,7 @@ function AudioControls() {
                 </Button>
               </DrawerTrigger>
               <DrawerPortal>
-                <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl bg-secondary p-4 pb-6">
+                <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-4 rounded-t-2xl p-4 pb-6">
                   <VisuallyHidden>
                     <DrawerTitle>Audio settings</DrawerTitle>
                     <DrawerDescription>

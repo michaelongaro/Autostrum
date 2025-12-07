@@ -17,6 +17,7 @@ import type { COLORS, THEME } from "~/stores/TabStore";
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { generateBeatLabels } from "~/utils/getBeatIndicator";
+import ChordName from "~/components/ui/ChordName";
 
 interface StaticStrummingPattern {
   data: StrummingPatternType;
@@ -31,8 +32,9 @@ function StaticStrummingPattern({
   color,
   theme,
 }: StaticStrummingPattern) {
-  const { chords } = useTabStore((state) => ({
+  const { chords, chordDisplayMode } = useTabStore((state) => ({
     chords: state.chords,
+    chordDisplayMode: state.chordDisplayMode,
   }));
 
   const heightOfStrummingPatternFiller = useMemo(() => {
@@ -51,11 +53,36 @@ function StaticStrummingPattern({
     return generateBeatLabels(strumsWithNoteLengths);
   }, [data]);
 
+  // Compute the active chord color for each strum position (only when color mode is active)
+  // Chords only appear at positions where they change, so we track the "current" chord
+  const [strumChords, strumColors] = useMemo(() => {
+    const strumChords: (string | null)[] = [];
+    const colors: (string | null)[] = [];
+    let currentChordColor: string | null = null;
+    let lastChordName: string | null = null;
+
+    for (let i = 0; i < data.strums.length; i++) {
+      const chordName = chordSequenceData?.[i];
+      if (chordName && chordName !== "") {
+        // Find the chord and get its color
+        const chord = chords.find((c) => c.name === chordName);
+        currentChordColor = chord?.color ?? null;
+      }
+      strumChords.push(lastChordName !== chordName ? (chordName ?? "") : "");
+      colors.push(currentChordColor);
+      if (chordName && chordName !== "" && lastChordName !== chordName) {
+        lastChordName = chordName;
+      }
+    }
+
+    return [strumChords, colors];
+  }, [data.strums.length, chordSequenceData, chords, chordDisplayMode]);
+
   return (
     <div className="baseFlex w-full flex-wrap !justify-start gap-1">
       <div className="baseFlex relative mb-1 flex-wrap !justify-start">
         {data?.strums?.map((strum, strumIndex) => (
-          <div key={strumIndex} className="baseVertFlex relative">
+          <div key={strumIndex} className="baseVertFlex relative my-1 w-[40px]">
             {/* palm mute icon */}
             <div
               style={{
@@ -73,33 +100,31 @@ function StaticStrummingPattern({
             </div>
 
             {/* chord viewer */}
-            {strum.strum.includes("s") ||
-            strum.strum === "r" ||
-            strum.strum === "" ? (
-              <div className="h-[28px]"></div>
-            ) : (
+            {strumChords[strumIndex] !== "" ? (
               <Popover>
                 <PopoverTrigger
                   asChild
-                  disabled={chordSequenceData?.[strumIndex] === ""}
                   className="baseFlex rounded-md transition-all hover:bg-primary/20 active:hover:bg-primary/10"
                 >
                   <Button
                     variant={"ghost"}
-                    style={{
-                      color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
-                    }}
-                    className="baseFlex mb-1 h-6 px-1 py-0"
+                    className="baseFlex relative mb-1 h-7 px-1 py-0"
                   >
-                    <span className="mx-0.5 h-6 text-base font-semibold">
-                      {chordSequenceData?.[strumIndex]}
-                    </span>
+                    <ChordName
+                      color={
+                        strumColors[strumIndex] ?? "hsl(var(--foreground))"
+                      }
+                      name={strumChords[strumIndex]!}
+                      truncate={true}
+                      screenshotColor={color}
+                      screenshotTheme={theme}
+                    />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
                   side="bottom"
                   sideOffset={0}
-                  className="z-0 size-40 border bg-secondary p-0 py-3"
+                  className="z-0 size-40 border bg-background p-0 py-3 shadow-lg"
                 >
                   <ChordDiagram
                     originalFrets={
@@ -113,6 +138,8 @@ function StaticStrummingPattern({
                   />
                 </PopoverContent>
               </Popover>
+            ) : (
+              <div className="h-[32px]"></div>
             )}
 
             {/* strum icon */}
@@ -122,13 +149,22 @@ function StaticStrummingPattern({
 
               <div
                 style={{
-                  color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                  color:
+                    chordDisplayMode === "color"
+                      ? strumColors[strumIndex]
+                        ? strumColors[strumIndex]
+                        : `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`
+                      : `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
                 }}
-                className="baseVertFlex relative mb-2 h-[20px] text-lg"
+                className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
               >
                 {strum.strum.includes("v") && (
                   <BsArrowDown
                     style={{
+                      fill:
+                        chordDisplayMode === "color"
+                          ? (strumColors[strumIndex] ?? "currentColor")
+                          : "currentColor",
                       width: strum.strum.includes(">") ? "18.5px" : "20px",
                       height: strum.strum.includes(">") ? "18.5px" : "20px",
                     }}
@@ -139,6 +175,10 @@ function StaticStrummingPattern({
                 {strum.strum.includes("^") && (
                   <BsArrowUp
                     style={{
+                      fill:
+                        chordDisplayMode === "color"
+                          ? (strumColors[strumIndex] ?? "currentColor")
+                          : "currentColor",
                       width: strum.strum.includes(">") ? "18.5px" : "20px",
                       height: strum.strum.includes(">") ? "18.5px" : "20px",
                     }}
@@ -150,6 +190,10 @@ function StaticStrummingPattern({
                   <div
                     style={{
                       fontSize: "20px",
+                      color:
+                        chordDisplayMode === "color"
+                          ? (strumColors[strumIndex] ?? "currentColor")
+                          : "currentColor",
                     }}
                     className={`baseFlex mb-1 h-5 leading-[0] ${
                       strum.strum.includes(">")
@@ -165,6 +209,10 @@ function StaticStrummingPattern({
                   <div
                     style={{
                       fontSize: "30px",
+                      color:
+                        chordDisplayMode === "color"
+                          ? (strumColors[strumIndex] ?? "currentColor")
+                          : "currentColor",
                     }}
                     className="absolute bottom-[12px] right-[-2px]"
                   >
@@ -172,7 +220,17 @@ function StaticStrummingPattern({
                   </div>
                 )}
 
-                {strum.strum === "r" && <PauseIcon className="size-3" />}
+                {strum.strum === "r" && (
+                  <PauseIcon
+                    className="size-3"
+                    style={{
+                      color:
+                        chordDisplayMode === "color"
+                          ? (strumColors[strumIndex] ?? "currentColor")
+                          : "currentColor",
+                    }}
+                  />
+                )}
 
                 {strum.strum === "" && <div className="h-5 w-4"></div>}
               </div>

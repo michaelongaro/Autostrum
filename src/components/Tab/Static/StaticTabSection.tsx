@@ -52,12 +52,12 @@ function StaticTabSection({
       <div className="baseFlex relative w-full flex-wrap !justify-start">
         <div
           style={{
-            height: "168px",
-            marginBottom: "-1px", // necessary anymore?
+            marginBottom: "-1px",
             borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
             color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+            backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-background"]} / 0.75)`,
           }}
-          className="baseVertFlex relative rounded-l-2xl border-2 p-2"
+          className="baseVertFlex relative h-[168px] rounded-l-2xl border-2 p-2"
         >
           <PrettyVerticalTuning tuning={tuning} height={"150px"} />
         </div>

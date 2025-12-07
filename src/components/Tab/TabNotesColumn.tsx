@@ -298,7 +298,7 @@ function TabNotesColumn({
       }}
       onMouseEnter={() => setColumnIdxBeingHovered(columnIndex)}
       onMouseLeave={() => setColumnIdxBeingHovered(null)}
-      className="baseVertFlex h-[400px] cursor-default"
+      className="baseVertFlex h-[380px] cursor-default"
     >
       <Element
         name={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
@@ -307,9 +307,6 @@ function TabNotesColumn({
       >
         <div
           style={{
-            marginTop:
-              reorderingColumns || showingDeleteColumnsButtons ? "8px" : "0",
-            backgroundColor: "hsl(var(--primary) / 0.15)",
             transform:
               highlightChord || columnHasBeenPlayed
                 ? `scaleX(${isLastColumn ? "0.8" : "1"})` // makes sure that "endcap" doesn't get highlighted as well
@@ -319,12 +316,12 @@ function TabNotesColumn({
             msTransitionProperty: "transform",
             transitionTimingFunction: "linear",
           }}
-          className="absolute left-0 h-[276px] w-full"
+          className="pointer-events-none absolute left-0 z-10 mb-8 h-[260px] w-full bg-primary/15"
         ></div>
 
-        <div className="baseVertFlex mb-[3.2rem] mt-4 gap-2">
+        <div className="baseVertFlex">
           {/* Palm Mute Node */}
-          <div className="baseFlex h-9 w-full">
+          <div className="baseFlex h-12 w-full">
             <PalmMuteNode
               value={columnData.palmMute}
               columnIndex={columnIndex}
@@ -338,68 +335,19 @@ function TabNotesColumn({
             />
           </div>
 
-          {/* Chord Settings Dropdown */}
-          {(columnIdxBeingHovered === columnIndex ||
-            chordSettingDropdownIsOpen) && (
-            <div
-              key={`${columnData.id}chordSettings`}
-              style={{
-                bottom:
-                  showingDeleteColumnsButtons || reorderingColumns
-                    ? "32px"
-                    : "40px",
-              }}
-              className={`absolute ${isLastColumn ? "right-7" : ""} `}
-            >
-              <DropdownMenu
-                modal={true}
-                open={chordSettingDropdownIsOpen}
-                onOpenChange={(open) => setChordSettingDropdownIsOpen(open)}
-              >
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-2 w-4 !p-0">
-                    <Ellipsis className="h-3 w-4 rotate-90" />
-                  </Button>
-                </DropdownMenuTrigger>
-
-                <DropdownMenuContent side={"bottom"}>
-                  <DropdownMenuItem
-                    className="baseFlex !justify-between gap-2"
-                    onClick={() => addNewColumn(false)}
-                  >
-                    Add chord before
-                    <BsPlus className="h-4 w-4" />
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="baseFlex !justify-between gap-2"
-                    onClick={() => addNewColumn(true)}
-                  >
-                    Add chord after
-                    <BsPlus className="h-4 w-4" />
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-primary" />
-                  <NoteLengthDropdown
-                    value={columnData.noteLength}
-                    onValueChange={handleNoteLengthChange}
-                  />
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )}
-
           {/* String Notes (1-6) */}
           {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => (
             <div
               key={stringIndex}
               style={{
                 borderTop: `${stringIndex === 1 ? "2px solid" : "none"}`,
-                paddingTop: `${stringIndex === 1 ? "7px" : "0"}`,
+                paddingTop: `${stringIndex === 1 ? "7px" : stringIndex === 6 ? "3px" : "0px"}`,
                 borderBottom: `${stringIndex === 6 ? "2px solid" : "none"}`,
-                paddingBottom: `${stringIndex === 6 ? "7px" : "0"}`,
+                paddingBottom: `${stringIndex === 6 ? "7px" : stringIndex === 1 ? "3px" : "0px"}`,
                 transition: "width 0.15s ease-in-out",
                 // maybe also need "flex-basis: content" here if editing?
               }}
-              className="baseFlex relative w-12 basis-[content]"
+              className="baseFlex relative !h-[41px] min-h-[41px] w-12 basis-[content] bg-background/75"
             >
               <div className="h-[1px] flex-[1] bg-foreground/50"></div>
 
@@ -415,31 +363,115 @@ function TabNotesColumn({
             </div>
           ))}
 
+          {/* Chord Settings Dropdown */}
+          {columnIdxBeingHovered === columnIndex ||
+          chordSettingDropdownIsOpen ? (
+            <DropdownMenu
+              modal={true}
+              open={chordSettingDropdownIsOpen}
+              onOpenChange={(open) => setChordSettingDropdownIsOpen(open)}
+            >
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="my-1 h-2.5 w-5 !p-1 hover:!bg-primary hover:!text-primary-foreground"
+                >
+                  <Ellipsis className="h-3 w-4 rotate-90" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent side={"bottom"}>
+                <DropdownMenuItem
+                  className="baseFlex !justify-between gap-2"
+                  onClick={() => addNewColumn(false)}
+                >
+                  Add chord before
+                  <BsPlus className="h-4 w-4" />
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="baseFlex !justify-between gap-2"
+                  onClick={() => addNewColumn(true)}
+                >
+                  Add chord after
+                  <BsPlus className="h-4 w-4" />
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-primary" />
+                <NoteLengthDropdown
+                  value={columnData.noteLength}
+                  onValueChange={handleNoteLengthChange}
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="my-1 h-2.5 w-5"></div>
+          )}
+
           {/* Chord Effects */}
           {!reorderingColumns && !showingDeleteColumnsButtons && (
-            <div className="relative h-0 w-full">
-              <div className="absolute left-1/2 right-1/2 top-2 w-[29px] -translate-x-1/2">
-                <TabNote
-                  note={columnData.chordEffects}
-                  sectionIndex={sectionIndex}
-                  subSectionIndex={subSectionIndex}
-                  columnIndex={columnIndex}
-                  noteIndex={7}
-                />
+            <div className="h-8 w-[29px]">
+              <TabNote
+                note={columnData.chordEffects}
+                sectionIndex={sectionIndex}
+                subSectionIndex={subSectionIndex}
+                columnIndex={columnIndex}
+                noteIndex={7}
+              />
+            </div>
+          )}
+
+          {reorderingColumns && (
+            <div className="baseFlex relative h-8 w-full">
+              <div
+                ref={setActivatorNodeRef}
+                {...attributes}
+                {...listeners}
+                style={{
+                  left: isLastColumn ? "40%" : "50%",
+                }}
+                className={`hover:box-shadow-md w-[1.5rem] cursor-grab rounded-md text-foreground ${
+                  isDragging ? "cursor-grabbing" : "cursor-grab"
+                }`}
+                onMouseEnter={() => setHoveringOnHandle(true)}
+                onMouseDown={() => setGrabbingHandle(true)}
+                onMouseLeave={() => {
+                  setGrabbingHandle(false);
+                  setHoveringOnHandle(false);
+                }}
+                onMouseUp={() => {
+                  setGrabbingHandle(false);
+                  setHoveringOnHandle(false);
+                }}
+              >
+                <RxDragHandleDots2 className="h-8 w-6" />
+                <div
+                  style={{
+                    opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
+                  }}
+                  className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-primary/20 p-4 transition-colors"
+                ></div>
               </div>
             </div>
           )}
 
+          {showingDeleteColumnsButtons && (
+            <div className="baseFlex h-8 w-full">
+              <Button
+                variant={"destructive"}
+                size="sm"
+                disabled={deleteColumnButtonDisabled()}
+                style={{
+                  left: isLastColumn ? "40%" : "50%",
+                }}
+                className="h-[1.75rem] w-[1.75rem] p-1"
+                onClick={handleDeleteChord}
+              >
+                <IoClose className="size-6" />
+              </Button>
+            </div>
+          )}
+
           {/* Strumming Guide */}
-          <div
-            style={{
-              bottom:
-                showingDeleteColumnsButtons || reorderingColumns
-                  ? "-1.5rem"
-                  : "-1rem",
-            }}
-            className={`baseVertFlex absolute ${isLastColumn ? "left-[42%]" : "left-[53%]"} right-1/2 h-4 w-full -translate-x-1/2`}
-          >
+          <div className="baseVertFlex mt-2 h-4 w-full">
             {renderStrummingGuide({
               previousNoteLength,
               currentNoteLength: columnData.noteLength,
@@ -452,63 +484,9 @@ function TabNotesColumn({
         </div>
 
         {isLastColumn && (
-          <div
-            className={`${reorderingColumns || showingDeleteColumnsButtons ? "mt-2" : ""} h-[280px] rounded-r-2xl border-2 border-foreground p-1`}
-          ></div>
+          <div className="mb-[26px] h-[258px] rounded-r-2xl border-2 border-foreground bg-background/75 p-1"></div>
         )}
       </Element>
-
-      {/* drag handle / delete button */}
-      {reorderingColumns && (
-        <div className="relative h-2 w-full">
-          <div
-            ref={setActivatorNodeRef}
-            {...attributes}
-            {...listeners}
-            style={{
-              left: isLastColumn ? "40%" : "50%",
-            }}
-            className={`hover:box-shadow-md absolute bottom-4 w-[1.5rem] -translate-x-1/2 cursor-grab rounded-md text-foreground ${
-              isDragging ? "cursor-grabbing" : "cursor-grab"
-            }`}
-            onMouseEnter={() => setHoveringOnHandle(true)}
-            onMouseDown={() => setGrabbingHandle(true)}
-            onMouseLeave={() => {
-              setGrabbingHandle(false);
-              setHoveringOnHandle(false);
-            }}
-            onMouseUp={() => {
-              setGrabbingHandle(false);
-              setHoveringOnHandle(false);
-            }}
-          >
-            <RxDragHandleDots2 className="h-8 w-6" />
-            <div
-              style={{
-                opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
-              }}
-              className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-primary/20 p-4 transition-colors"
-            ></div>
-          </div>
-        </div>
-      )}
-
-      {showingDeleteColumnsButtons && (
-        <div className="relative h-2 w-full">
-          <Button
-            variant={"destructive"}
-            size="sm"
-            disabled={deleteColumnButtonDisabled()}
-            style={{
-              left: isLastColumn ? "40%" : "50%",
-            }}
-            className="absolute bottom-4 h-[1.75rem] w-[1.75rem] -translate-x-1/2 p-1"
-            onClick={handleDeleteChord}
-          >
-            <IoClose className="h-6 w-6" />
-          </Button>
-        </div>
-      )}
     </motion.div>
   );
 }

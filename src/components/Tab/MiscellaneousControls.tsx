@@ -139,7 +139,8 @@ function MiscellaneousControls({
         draft[sectionIndex]!.data = movedSubSection;
       } else if (sectionIndex !== undefined) {
         const movedSections = arrayMove(draft, sectionIndex, sectionIndex - 1);
-        return movedSections;
+        draft.length = 0; // need to clear out the existing draft first
+        draft.push(...movedSections);
       }
     });
   }
@@ -173,7 +174,8 @@ function MiscellaneousControls({
         draft[sectionIndex]!.data = movedSubSection;
       } else if (sectionIndex !== undefined) {
         const movedSections = arrayMove(draft, sectionIndex, sectionIndex + 1);
-        return movedSections;
+        draft.length = 0; // need to clear out the existing draft first
+        draft.push(...movedSections);
       }
     });
   }
@@ -314,9 +316,7 @@ function MiscellaneousControls({
   return (
     <div
       className={`baseFlex !items-end !justify-end gap-2 ${
-        forSectionContainer
-          ? "w-2/6 sm:w-1/6 sm:!flex-row"
-          : `w-1/6 ${type === "tab" || type === "chord" ? "mt-0.5 lg:mt-0" : ""}`
+        forSectionContainer ? "w-2/6 sm:w-1/6 sm:!flex-row" : "w-1/6"
       }`}
       onClick={(e) => e.stopPropagation()}
     >

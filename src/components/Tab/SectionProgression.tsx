@@ -36,7 +36,7 @@ function SectionProgression() {
       style={{
         minWidth: aboveMediumViewportWidth ? "500px" : "300px",
       }}
-      className="baseVertFlex relative w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton transition-all hover:bg-secondary-hover hover:text-secondary-foreground"
+      className="baseVertFlex relative w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton"
     >
       <Accordion
         type="single"
@@ -45,7 +45,7 @@ function SectionProgression() {
         onValueChange={(value) => {
           setAccordionValue(value);
         }}
-        className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 xs:px-0"
+        className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 md:px-0"
       >
         <AccordionItem value="opened" className="w-full">
           <AccordionTrigger className="w-full p-2 md:p-4">

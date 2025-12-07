@@ -6,6 +6,7 @@ import ChordDiagram from "~/components/Tab/ChordDiagram";
 import StrummingPattern from "~/components/Tab/StrummingPattern";
 import { type LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
 import { Button } from "~/components/ui/button";
+import ChordName from "~/components/ui/ChordName";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 
@@ -20,6 +21,7 @@ function PlaybackMenuContent() {
     playPreview,
     pauseAudio,
     playbackModalViewingState,
+    chordDisplayMode,
   } = useTabStore((state) => ({
     sectionProgression: state.sectionProgression,
     currentInstrument: state.currentInstrument,
@@ -30,6 +32,7 @@ function PlaybackMenuContent() {
     playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
     playbackModalViewingState: state.playbackModalViewingState,
+    chordDisplayMode: state.chordDisplayMode,
   }));
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] = useState<
@@ -100,19 +103,20 @@ function PlaybackMenuContent() {
                   <div key={chord.id} className="baseFlex">
                     <div className="baseVertFlex gap-3">
                       <div className="baseFlex w-full !justify-between border-b py-2">
-                        <span
-                          style={{
-                            color:
-                              previewMetadata.indexOfPattern === index &&
-                              previewMetadata.playing &&
-                              previewMetadata.type === "chord"
-                                ? "hsl(var(--primary))"
-                                : "hsl(var(--foreground))",
-                          }}
-                          className="px-3 font-semibold transition-colors"
-                        >
-                          {chord.name}
-                        </span>
+                        <ChordName
+                          name={chord.name}
+                          color={chord.color}
+                          truncate={false}
+                          isHighlighted={
+                            chordDisplayMode === "color"
+                              ? false
+                              : previewMetadata.indexOfPattern === index &&
+                                  previewMetadata.playing &&
+                                  previewMetadata.type === "chord"
+                                ? true
+                                : false
+                          }
+                        />
 
                         {/* preview chord button */}
                         <Button

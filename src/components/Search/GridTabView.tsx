@@ -86,8 +86,6 @@ function GridTabView({
     setSearchsearchResultsCountIsLoading(isFetching && !isFetchingNextPage);
   }, [isFetching, isFetchingNextPage, setSearchsearchResultsCountIsLoading]);
 
-  console.log(tabResults);
-
   const { ref } = useInView({
     threshold: 0.75,
     onChange: (inView) => {

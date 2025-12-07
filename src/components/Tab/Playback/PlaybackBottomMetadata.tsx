@@ -38,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { Switch } from "~/components/ui/switch";
 import { Toggle } from "~/components/ui/toggle";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useTabStore } from "~/stores/TabStore";
@@ -71,7 +72,7 @@ function PlaybackBottomMetadata({
     audioMetadata,
     playbackMetadata,
     viewportLabel,
-    setShowEffectGlossaryDialog,
+    setShowGlossaryDialog,
     setAudioMetadata,
     looping,
     countInTimer,
@@ -84,7 +85,7 @@ function PlaybackBottomMetadata({
     audioMetadata: state.audioMetadata,
     playbackMetadata: state.playbackMetadata,
     viewportLabel: state.viewportLabel,
-    setShowEffectGlossaryDialog: state.setShowEffectGlossaryDialog,
+    setShowGlossaryDialog: state.setShowGlossaryDialog,
     setAudioMetadata: state.setAudioMetadata,
     looping: state.looping,
     countInTimer: state.countInTimer,
@@ -208,7 +209,7 @@ function PlaybackBottomMetadata({
                   className="size-9 !p-0"
                   onClick={() => {
                     pauseAudio();
-                    setShowEffectGlossaryDialog(true);
+                    setShowGlossaryDialog(true);
                   }}
                 >
                   <FaBook className="h-4 w-4" />
@@ -257,7 +258,7 @@ function PlaybackBottomMetadata({
                 className="size-9 !p-0"
                 onClick={() => {
                   pauseAudio();
-                  setShowEffectGlossaryDialog(true);
+                  setShowGlossaryDialog(true);
                 }}
               >
                 <FaBook className="h-4 w-4" />
@@ -296,6 +297,8 @@ function MobileSettingsPopover({
     countInTimer,
     loopDelay,
     setLoopDelay,
+    chordDisplayMode,
+    setChordDisplayMode,
   } = useTabStore((state) => ({
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
@@ -304,6 +307,8 @@ function MobileSettingsPopover({
     countInTimer: state.countInTimer,
     loopDelay: state.loopDelay,
     setLoopDelay: state.setLoopDelay,
+    chordDisplayMode: state.chordDisplayMode,
+    setChordDisplayMode: state.setChordDisplayMode,
   }));
 
   const volume = useGetLocalStorageValues().volume;
@@ -450,12 +455,24 @@ function MobileSettingsPopover({
           </div>
         </div>
 
+        <div className="baseFlex w-full !justify-between gap-2">
+          <Label htmlFor="chordDisplayMode">Color-coded chords</Label>
+
+          <Switch
+            id="chordDisplayMode"
+            checked={chordDisplayMode === "color"}
+            onCheckedChange={(checked) =>
+              setChordDisplayMode(checked ? "color" : "text")
+            }
+          />
+        </div>
+
         {/* gives tablet users ability to still control volume */}
         {!isMobileOnly && (
           <div className="baseVertFlex w-full !items-start gap-2">
             <span className="font-medium">Volume</span>
             <div className="baseFlex w-full max-w-64 gap-2 md:justify-self-end">
-              <AnimatePresence mode="popLayout">
+              <AnimatePresence mode="popLayout" initial={false}>
                 {volume === 0 && (
                   <motion.div
                     key="muteIcon"
@@ -892,6 +909,8 @@ function DesktopSettings({
     countInTimer,
     loopDelay,
     setLoopDelay,
+    chordDisplayMode,
+    setChordDisplayMode,
   } = useTabStore((state) => ({
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
@@ -905,6 +924,8 @@ function DesktopSettings({
     countInTimer: state.countInTimer,
     loopDelay: state.loopDelay,
     setLoopDelay: state.setLoopDelay,
+    chordDisplayMode: state.chordDisplayMode,
+    setChordDisplayMode: state.setChordDisplayMode,
   }));
 
   const volume = useGetLocalStorageValues().volume;
@@ -1036,7 +1057,7 @@ function DesktopSettings({
       <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline" className="size-10 !p-0">
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence mode="popLayout" initial={false}>
               {volume === 0 && (
                 <motion.div
                   key="muteIcon"
@@ -1128,6 +1149,27 @@ function DesktopSettings({
             )}
           />
           <span>{Math.floor(volume * 50)}%</span>
+        </PopoverContent>
+      </Popover>
+
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size={"icon"}>
+            <SettingsOutline className="size-5" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="baseVertFlex size-full gap-4">
+          <div className="baseFlex w-full !justify-between gap-2">
+            <Label htmlFor="chordDisplayMode">Color-coded chords</Label>
+
+            <Switch
+              id="chordDisplayMode"
+              checked={chordDisplayMode === "color"}
+              onCheckedChange={(checked) =>
+                setChordDisplayMode(checked ? "color" : "text")
+              }
+            />
+          </div>
         </PopoverContent>
       </Popover>
     </div>

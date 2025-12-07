@@ -11,6 +11,9 @@ import {
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
+import { getNextChordColor } from "~/utils/chordColors";
+import { Separator } from "~/components/ui/separator";
+import ChordName from "~/components/ui/ChordName";
 
 const opacityVariants = {
   closed: {
@@ -27,18 +30,18 @@ function Chords() {
 
   const {
     chords,
+    currentlyCopiedData,
     setChords,
     setChordBeingEdited,
     pauseAudio,
-    currentlyCopiedData,
     setCurrentlyCopiedData,
     setTabData,
   } = useTabStore((state) => ({
     chords: state.chords,
+    currentlyCopiedData: state.currentlyCopiedData,
     setChords: state.setChords,
     setChordBeingEdited: state.setChordBeingEdited,
     pauseAudio: state.pauseAudio,
-    currentlyCopiedData: state.currentlyCopiedData,
     setCurrentlyCopiedData: state.setCurrentlyCopiedData,
     setTabData: state.setTabData,
   }));
@@ -90,7 +93,7 @@ function Chords() {
       style={{
         minWidth: aboveMediumViewportWidth ? "500px" : "300px",
       }}
-      className="baseVertFlex relative w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton transition-all hover:bg-secondary-hover hover:text-secondary-foreground"
+      className="baseVertFlex relative w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton"
     >
       <Accordion
         type="single"
@@ -99,7 +102,7 @@ function Chords() {
         onValueChange={(value) => {
           setAccordionValue(value);
         }}
-        className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 xs:px-0"
+        className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 md:px-0"
       >
         <AccordionItem value="opened" className="w-full">
           <AccordionTrigger className="p-2 md:p-4">
@@ -117,18 +120,22 @@ function Chords() {
                     initial="closed"
                     animate="open"
                     exit="closed"
-                    className="baseFlex border-r-none h-10 overflow-hidden rounded-md border-2"
+                    className="baseVertFlex overflow-hidden rounded-md border-2"
                   >
-                    <span className="text-nowrap px-3 font-semibold text-foreground">
-                      {chord.name}
-                    </span>
+                    <div className="baseFlex h-8 text-nowrap px-3">
+                      <ChordName
+                        name={chord.name}
+                        color={chord.color}
+                        truncate={false}
+                      />
+                    </div>
 
-                    <div className="baseFlex h-full w-full !justify-evenly">
+                    <div className="baseFlex h-8 w-full !justify-evenly border-t-2">
                       {/* edit button */}
                       <Button
                         variant={"ghost"}
                         size={"sm"}
-                        className="baseFlex h-full w-[52px] gap-2 rounded-none border-l-2 border-r-2"
+                        className="baseFlex h-full w-full min-w-[50px] gap-2 rounded-none"
                         onClick={() => {
                           pauseAudio();
                           setChordBeingEdited({
@@ -141,11 +148,16 @@ function Chords() {
                         <MdModeEditOutline className="size-5" />
                       </Button>
 
+                      <Separator
+                        orientation="vertical"
+                        className="h-full w-[2px] bg-border"
+                      />
+
                       {/* delete button */}
                       <Button
                         variant={"destructive"}
                         size="sm"
-                        className="baseFlex h-full w-12 rounded-l-none rounded-r-sm border-none"
+                        className="baseFlex h-full w-full min-w-[50px] rounded-none border-none"
                         onClick={() => handleDeleteChord(index, chord.name)}
                       >
                         {/* add the tooltip below for "Delete" */}
@@ -165,6 +177,7 @@ function Chords() {
                       id: crypto.randomUUID(),
                       name: "",
                       frets: ["", "", "", "", "", ""],
+                      color: getNextChordColor(chords),
                     },
                   });
                 }}

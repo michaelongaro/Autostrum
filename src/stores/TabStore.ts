@@ -27,6 +27,7 @@ export interface SectionProgression {
 export interface Chord {
   id: string;
   name: string;
+  color: string; // hex color from CHORD_COLORS palette
   frets: string[]; // prob should be number[] but just trying to match what ITabSection looks like
 }
 
@@ -276,6 +277,7 @@ export interface PlaybackLoopDelaySpacerChord {
 interface PlaybackChord {
   strumIndex: number;
   chordName: string;
+  chordColor: string; // hex color for color mode display
   palmMute: "" | "-" | "start" | "end";
   strum: string;
   noteLength: FullNoteLengths;
@@ -288,8 +290,8 @@ interface PlaybackChord {
 
 export type COLORS =
   | "peony"
-  | "quartz"
-  | "crimson"
+  | "coral"
+  | "maple"
   | "saffron"
   | "pistachio"
   | "verdant"
@@ -344,10 +346,10 @@ const initialStoreState = {
   // modals
   showAudioRecorderModal: false,
   showSectionProgressionModal: false,
-  showEffectGlossaryDialog: false,
+  showGlossaryDialog: false,
   chordBeingEdited: null,
   strummingPatternBeingEdited: null,
-  showingEffectGlossary: false,
+  showingGlossary: false,
   showDeleteAccountModal: false,
   showCustomTuningModal: false,
   showMobileHeaderModal: false,
@@ -423,6 +425,8 @@ interface TabState {
   setChords: (chords: Chord[]) => void;
   strummingPatterns: StrummingPattern[];
   setStrummingPatterns: (strummingPatterns: StrummingPattern[]) => void;
+  chordDisplayMode: "text" | "color";
+  setChordDisplayMode: (chordDisplayMode: "text" | "color") => void;
 
   tabData: Section[];
   setTabData: (updater: (draft: Section[]) => void) => void;
@@ -510,8 +514,8 @@ interface TabState {
   setShowSectionProgressionModal: (
     showSectionProgressionModal: boolean,
   ) => void;
-  showEffectGlossaryDialog: boolean;
-  setShowEffectGlossaryDialog: (showEffectGlossaryDialog: boolean) => void;
+  showGlossaryDialog: boolean;
+  setShowGlossaryDialog: (showGlossaryDialog: boolean) => void;
   showDeleteAccountModal: boolean;
   setShowDeleteAccountModal: (showDeleteAccountModal: boolean) => void;
   showCustomTuningModal: boolean;
@@ -703,6 +707,8 @@ const useTabStoreBase = create<TabState>()(
       setChords: (chords) => set({ chords }),
       strummingPatterns: [],
       setStrummingPatterns: (strummingPatterns) => set({ strummingPatterns }),
+      chordDisplayMode: "text",
+      setChordDisplayMode: (chordDisplayMode) => set({ chordDisplayMode }),
       ratingsCount: 0,
       setRatingsCount: (ratingsCount) => set({ ratingsCount }),
       averageRating: 0.0,
@@ -1247,9 +1253,9 @@ const useTabStoreBase = create<TabState>()(
       showSectionProgressionModal: false,
       setShowSectionProgressionModal: (showSectionProgressionModal) =>
         set({ showSectionProgressionModal }),
-      showEffectGlossaryDialog: false,
-      setShowEffectGlossaryDialog: (showEffectGlossaryDialog) =>
-        set({ showEffectGlossaryDialog }),
+      showGlossaryDialog: false,
+      setShowGlossaryDialog: (showGlossaryDialog) =>
+        set({ showGlossaryDialog }),
       showDeleteAccountModal: false,
       setShowDeleteAccountModal: (showDeleteAccountModal) =>
         set({ showDeleteAccountModal }),

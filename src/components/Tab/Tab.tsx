@@ -36,7 +36,7 @@ import SectionContainer from "./SectionContainer";
 import StrummingPatterns from "./StrummingPatterns";
 import dynamic from "next/dynamic";
 import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
-import EffectGlossaryDialog from "~/components/Dialogs/EffectGlossaryDialog";
+import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
 import Logo from "~/components/ui/icons/Logo";
 import ExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
 import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
@@ -123,7 +123,7 @@ function Tab({ tab }: Tab) {
     editing,
     setOriginalTabData,
     showSectionProgressionModal,
-    setShowEffectGlossaryDialog,
+    setShowGlossaryDialog,
     chordBeingEdited,
     strummingPatternBeingEdited,
     showCustomTuningModal,
@@ -167,7 +167,7 @@ function Tab({ tab }: Tab) {
     editing: state.editing,
     setOriginalTabData: state.setOriginalTabData,
     showSectionProgressionModal: state.showSectionProgressionModal,
-    setShowEffectGlossaryDialog: state.setShowEffectGlossaryDialog,
+    setShowGlossaryDialog: state.setShowGlossaryDialog,
     chordBeingEdited: state.chordBeingEdited,
     strummingPatternBeingEdited: state.strummingPatternBeingEdited,
     showCustomTuningModal: state.showCustomTuningModal,
@@ -338,10 +338,10 @@ function Tab({ tab }: Tab) {
               <Button
                 variant={"secondary"}
                 className="baseFlex gap-2 lg:absolute lg:right-7 lg:top-0"
-                onClick={() => setShowEffectGlossaryDialog(true)}
+                onClick={() => setShowGlossaryDialog(true)}
               >
                 <FaBook className="h-4 w-4" />
-                Effect glossary
+                Glossary
               </Button>
             </div>
           )}
@@ -351,7 +351,7 @@ function Tab({ tab }: Tab) {
         />
 
         {editing ? (
-          <div className="baseVertFlex relative mb-4 mt-6 w-full gap-4 sm:mb-0 sm:mt-4">
+          <div className="baseVertFlex relative mb-4 mt-6 w-full gap-4 tablet:mb-0 tablet:mt-4">
             <SectionProgression />
             <Chords />
             <StrummingPatterns />
@@ -369,10 +369,10 @@ function Tab({ tab }: Tab) {
               <Button
                 variant={"secondary"}
                 className="baseFlex gap-2 lg:absolute lg:right-7 lg:top-0"
-                onClick={() => setShowEffectGlossaryDialog(true)}
+                onClick={() => setShowGlossaryDialog(true)}
               >
                 <FaBook className="size-4" />
-                Effect glossary
+                Glossary
               </Button>
 
               <Popover>
@@ -515,6 +515,7 @@ function Tab({ tab }: Tab) {
           <div
             id="stickyBottomControls"
             style={{
+              pointerEvents: editing ? "none" : "auto",
               opacity:
                 !editing &&
                 audioMetadata.fullCurrentlyPlayingMetadataLength > 0 &&
@@ -530,14 +531,15 @@ function Tab({ tab }: Tab) {
                 <TooltipTrigger asChild>
                   <Button
                     variant={"secondary"}
+                    disabled={editing}
                     className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
-                    onClick={() => setShowEffectGlossaryDialog(true)}
+                    onClick={() => setShowGlossaryDialog(true)}
                   >
                     <FaBook className="size-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side={"top"}>
-                  <span>Effect glossary</span>
+                  <span>Glossary</span>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -567,13 +569,14 @@ function Tab({ tab }: Tab) {
                 <DrawerTrigger asChild>
                   <Button
                     variant={"secondary"}
+                    disabled={editing}
                     className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
                   >
                     <IoMdSettings className="size-5" />
                   </Button>
                 </DrawerTrigger>
                 <DrawerPortal>
-                  <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-2 rounded-t-2xl bg-secondary p-4 pb-6">
+                  <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-2 rounded-t-2xl p-4 pb-6">
                     <VisuallyHidden>
                       <DrawerTitle>Tab settings</DrawerTitle>
                       <DrawerDescription>
@@ -603,6 +606,7 @@ function Tab({ tab }: Tab) {
                       <PopoverTrigger asChild>
                         <Button
                           variant={"secondary"}
+                          disabled={editing}
                           className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
                         >
                           <IoMdSettings className="size-5" />
@@ -644,7 +648,7 @@ function Tab({ tab }: Tab) {
         setShowTipsDialog={setShowTipsModal}
       />
 
-      <EffectGlossaryDialog />
+      <GlossaryDialog />
 
       <AnimatePresence mode="wait">
         {chordBeingEdited && (
@@ -683,6 +687,11 @@ function TabSettings({ showPinnedChords, setShowPinnedChords }: TabSettings) {
   const localStorageLeftHandChordDiagrams = useLocalStorageValue(
     "autostrum-left-hand-chord-diagrams",
   );
+
+  const { chordDisplayMode, setChordDisplayMode } = useTabStore((state) => ({
+    chordDisplayMode: state.chordDisplayMode,
+    setChordDisplayMode: state.setChordDisplayMode,
+  }));
 
   const zoom = useGetLocalStorageValues().zoom;
   const leftHandChordDiagrams =
@@ -763,7 +772,7 @@ function TabSettings({ showPinnedChords, setShowPinnedChords }: TabSettings) {
               style={{
                 ...props.style,
               }}
-              className="z-10 size-[18px] rounded-full border bg-primary"
+              className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
             />
           )}
         />
@@ -794,6 +803,18 @@ function TabSettings({ showPinnedChords, setShowPinnedChords }: TabSettings) {
           checked={leftHandChordDiagrams}
           onCheckedChange={(value) =>
             localStorageLeftHandChordDiagrams.set(String(value))
+          }
+        />
+      </div>
+
+      <div className="baseFlex w-full !justify-between gap-2">
+        <Label htmlFor="chordDisplayMode">Color-coded chords</Label>
+
+        <Switch
+          id="chordDisplayMode"
+          checked={chordDisplayMode === "color"}
+          onCheckedChange={(checked) =>
+            setChordDisplayMode(checked ? "color" : "text")
           }
         />
       </div>

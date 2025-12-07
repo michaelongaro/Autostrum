@@ -153,7 +153,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
         ease: "easeOut",
         duration: 0.35,
       }}
-      className="baseFlex relative mt-0.5 max-w-lg tablet:mt-0"
+      className="baseFlex relative mt-0.5 max-w-lg rounded-md bg-background tablet:mt-0"
     >
       {isAboveLgViewportWidth === false && (
         <Button
@@ -161,14 +161,14 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
           onClick={() => {
             setShowMobileSearch?.(false);
           }}
-          className="mx-1"
+          className="ml-1"
         >
           <FaArrowLeft className="size-4" />
         </Button>
       )}
 
       <div
-        className={`baseFlex w-full gap-2 bg-background transition-[border-radius] ${isAboveLgViewportWidth ? "rounded-md border" : "rounded-none border-none"} ${showAutofillResults ? "rounded-b-none" : ""}`}
+        className={`baseFlex w-full gap-2 transition-[border-radius] ${isAboveLgViewportWidth ? "rounded-md border" : "rounded-none border-none"} ${showAutofillResults ? "rounded-b-none" : ""}`}
       >
         <Input
           ref={searchInputRef}

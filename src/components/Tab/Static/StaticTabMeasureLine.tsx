@@ -21,7 +21,7 @@ function StaticTabMeasureLine({
   return (
     <motion.div
       key={columnData.id}
-      className="baseVertFlex relative h-[285px] w-[2px]"
+      className="baseVertFlex relative h-[290px] w-[2px]"
     >
       {/* BPM indicator */}
       {columnData.bpmAfterLine !== null && (

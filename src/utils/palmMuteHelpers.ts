@@ -4,7 +4,7 @@ import type {
   TabNote,
   TabMeasureLine,
 } from "~/stores/TabStore";
-import { isTabNote } from "~/utils/tabNoteHelpers";
+import { isTabMeasureLine, isTabNote } from "~/utils/tabNoteHelpers";
 
 interface AddOrRemovePalmMuteDashes {
   setTabData: (updater: (draft: Section[]) => void) => void;
@@ -24,56 +24,69 @@ function addOrRemovePalmMuteDashes({
   pairNodeValue,
 }: AddOrRemovePalmMuteDashes) {
   setTabData((draft) => {
-    let finishedModification = false;
-    let currentColumnIndex = startColumnIndex;
     const subSection = draft[sectionIndex]?.data[subSectionIndex];
-
     if (subSection === undefined || subSection.type !== "tab") return;
 
     const subSectionData = subSection.data;
+    const isAdding = pairNodeValue !== undefined;
 
-    while (!finishedModification) {
+    // Determine direction of traversal
+    const direction = isAdding
+      ? pairNodeValue === "start"
+        ? 1
+        : -1
+      : prevValue === "start"
+        ? 1
+        : -1;
+
+    // Determine what palm mute value signals we've reached the pair node
+    const stopAtNodeType = isAdding
+      ? pairNodeValue === "" || pairNodeValue === "end"
+        ? "start"
+        : "end"
+      : prevValue === "start"
+        ? "end"
+        : "start";
+
+    let currentColumnIndex = startColumnIndex;
+
+    while (true) {
       const currentColumn = subSectionData[currentColumnIndex];
-      if (!currentColumn || !isTabNote(currentColumn)) {
-        finishedModification = true;
+      if (currentColumn === undefined) break;
+
+      // Handle TabMeasureLine - update isInPalmMuteSection and continue traversal
+      if (currentColumn.type === "measureLine") {
+        currentColumn.isInPalmMuteSection = isAdding;
+        currentColumnIndex += direction;
         continue;
       }
 
-      // only start/end node defined, meaning we clicked on the desired opposite pair node
-      if (pairNodeValue !== undefined) {
+      // Handle TabNote
+      if (isAdding) {
         if (currentColumnIndex === startColumnIndex) {
+          // Set the clicked node
           currentColumn.palmMute =
             pairNodeValue === ""
               ? "end"
               : (pairNodeValue as "" | "-" | "start" | "end");
-
-          pairNodeValue === "start"
-            ? currentColumnIndex++
-            : currentColumnIndex--;
-        } else if (
-          currentColumn.palmMute ===
-          (pairNodeValue === "" || pairNodeValue === "end" ? "start" : "end")
-        ) {
-          finishedModification = true;
+        } else if (currentColumn.palmMute === stopAtNodeType) {
+          // Found the pair node, stop
+          break;
         } else {
+          // Set intermediate nodes to dash
           currentColumn.palmMute = "-";
-          pairNodeValue === "start"
-            ? currentColumnIndex++
-            : currentColumnIndex--;
         }
-      }
-      // pair already defined, meaning we just removed either the start/end node and need to remove dashes
-      // in between until we hit the other node
-      else {
-        if (
-          currentColumn.palmMute === (prevValue === "start" ? "end" : "start")
-        ) {
-          finishedModification = true;
-        } else {
-          currentColumn.palmMute = "";
-          prevValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
+      } else {
+        // Removing dashes
+        if (currentColumn.palmMute === stopAtNodeType) {
+          // Found the pair node, stop without clearing it
+          break;
         }
+        // Clear this node
+        currentColumn.palmMute = "";
       }
+
+      currentColumnIndex += direction;
     }
   });
 }

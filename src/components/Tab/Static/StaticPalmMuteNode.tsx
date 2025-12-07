@@ -28,7 +28,7 @@ function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
             style={{
               color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
             }}
-            className="mx-[0.125rem]"
+            className="mx-[2px]"
           >
             PM
           </i>

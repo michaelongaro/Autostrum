@@ -5,7 +5,7 @@ import { addOrRemoveStrummingPatternPalmMuteDashes } from "~/utils/palmMuteHelpe
 import { Button } from "~/components/ui/button";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 
-interface StrummingPatternPalmMuteNode {
+interface StrummingPatternPalmMuteNodeProps {
   value: string;
   beatIndex: number;
   strummingPatternBeingEdited: {
@@ -23,6 +23,17 @@ interface StrummingPatternPalmMuteNode {
   editing: boolean;
 }
 
+// Helper to create updated strumming pattern with new palm mute value
+function createUpdatedStrummingPattern(
+  strummingPattern: StrummingPatternPalmMuteNodeProps["strummingPatternBeingEdited"],
+  beatIndex: number,
+  newValue: "" | "start" | "end" | "-",
+) {
+  const newStrummingPattern = { ...strummingPattern };
+  newStrummingPattern.value.strums[beatIndex]!.palmMute = newValue;
+  return newStrummingPattern;
+}
+
 function StrummingPatternPalmMuteNode({
   value,
   beatIndex,
@@ -34,115 +45,99 @@ function StrummingPatternPalmMuteNode({
   setLastModifiedPalmMuteNode,
   viewingInSelectDropdown,
   editing,
-}: StrummingPatternPalmMuteNode) {
-  const [hoveringOnPalmMuteNode, setHoveringOnPalmMuteNode] = useState(false);
-
+}: StrummingPatternPalmMuteNodeProps) {
   const { setStrummingPatternBeingEdited } = useTabStore((state) => ({
     setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
   }));
 
   function getButtonOpacity() {
     if (!editingPalmMuteNodes) {
-      if (value === "start" || value === "end") return "1";
-      return "0";
+      return value === "start" || value === "end" ? "1" : "0";
     }
-
     return opacity;
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
-    // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
     if (e.key === "ArrowDown") {
-      e.preventDefault(); // prevent cursor from moving
-
+      e.preventDefault();
       const newNoteToFocus = document.getElementById(
         `input-strummingPatternModal-${beatIndex}-1`,
       );
-
       newNoteToFocus?.focus();
-    } else if (e.key === "ArrowLeft") {
-      e.preventDefault(); // prevent cursor from moving
+      return;
+    }
 
-      const completedSearchOfPalmMuteNodes = false;
-      let currentIndex = beatIndex - 1;
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      navigateToPalmMuteNode(-1);
+      return;
+    }
 
-      while (!completedSearchOfPalmMuteNodes) {
-        // if PM node is reachable and not a connecting node between start & end
-        // nodes, then focus the PM node
-        if (
-          strummingPatternBeingEdited.value.strums[currentIndex]?.palmMute !==
-            "-" &&
-          getButtonOpacity() === "1"
-        ) {
-          const newNoteToFocus = document.getElementById(
-            `input-strummingPatternModal-${currentIndex}-${0}`,
-          );
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      navigateToPalmMuteNode(1);
+    }
+  }
 
-          newNoteToFocus?.focus();
-          return;
-        }
+  function navigateToPalmMuteNode(direction: -1 | 1) {
+    let currentIndex = beatIndex + direction;
+    const strums = strummingPatternBeingEdited.value.strums;
 
-        currentIndex--;
+    while (currentIndex >= 0 && currentIndex < strums.length) {
+      const palmMuteValue = strums[currentIndex]?.palmMute;
 
-        if (currentIndex < 0) return;
+      if (palmMuteValue !== "-" && getButtonOpacity() === "1") {
+        const newNoteToFocus = document.getElementById(
+          `input-strummingPatternModal-${currentIndex}-0`,
+        );
+        newNoteToFocus?.focus();
+        return;
       }
-    } else if (e.key === "ArrowRight") {
-      e.preventDefault(); // prevent cursor from moving
 
-      const completedSearchOfPalmMuteNodes = false;
-      let currentIndex = beatIndex + 1;
+      currentIndex += direction;
+    }
 
-      while (!completedSearchOfPalmMuteNodes) {
-        if (currentIndex >= strummingPatternBeingEdited.value.strums.length) {
-          const newNoteToFocus = document.getElementById(
-            "strummingPatternExtendPatternButton",
-          );
-
-          newNoteToFocus?.focus();
-          return;
-        }
-
-        // if PM node is reachable and not a connecting node between start & end
-        // nodes, then focus the PM node
-        if (
-          strummingPatternBeingEdited.value.strums[currentIndex]?.palmMute !==
-            "-" &&
-          getButtonOpacity() === "1"
-        ) {
-          const newNoteToFocus = document.getElementById(
-            `input-strummingPatternModal-${currentIndex}-${0}`,
-          );
-
-          newNoteToFocus?.focus();
-          return;
-        }
-
-        currentIndex++;
-      }
+    // If navigating right and reached the end, focus extend button
+    if (direction === 1) {
+      const extendButton = document.getElementById(
+        "strummingPatternExtendPatternButton",
+      );
+      extendButton?.focus();
     }
   }
 
   function handlePalmMuteNodeClick() {
-    // forces edit mode when editing placement of a palm mute node
     if (!editingPalmMuteNodes) setEditingPalmMuteNodes(true);
 
-    if (lastModifiedPalmMuteNode === null) {
-      setLastModifiedPalmMuteNode({
-        columnIndex: beatIndex,
-        prevValue: value, // value before clicking
-        currentValue: value === "start" || value === "end" ? "" : "start", // value after clicking
-      });
+    const isStartingFresh = lastModifiedPalmMuteNode === null;
+    const isClickingSameCell =
+      lastModifiedPalmMuteNode?.columnIndex === beatIndex;
+    const wasEmpty = lastModifiedPalmMuteNode?.prevValue === "";
+    const isClickingNode = value === "start" || value === "end";
 
+    // Case 1: No active operation - starting fresh
+    if (isStartingFresh) {
       if (value === "") {
-        const newStrummingPattern = {
-          ...strummingPatternBeingEdited,
-        };
-
-        newStrummingPattern.value.strums[beatIndex]!.palmMute = "start";
-
-        setStrummingPatternBeingEdited(newStrummingPattern);
+        // Start NEW palm mute section
+        setLastModifiedPalmMuteNode({
+          columnIndex: beatIndex,
+          prevValue: "",
+          currentValue: "start",
+        });
+        setStrummingPatternBeingEdited(
+          createUpdatedStrummingPattern(
+            strummingPatternBeingEdited,
+            beatIndex,
+            "start",
+          ),
+        );
       } else {
-        // removing node + dashes in between
+        // Begin REMOVAL operation on existing node
+        setLastModifiedPalmMuteNode({
+          columnIndex: beatIndex,
+          prevValue: value,
+          currentValue: "",
+        });
         addOrRemoveStrummingPatternPalmMuteDashes({
           strummingPatternBeingEdited,
           setStrummingPatternBeingEdited,
@@ -150,41 +145,44 @@ function StrummingPatternPalmMuteNode({
           prevValue: value,
         });
       }
+      return;
     }
 
-    // removing start node that was just added
-    //    we know it's a start node because the lastModifiedPalmMuteNode isn't null
-    //    and the only available nodes to click on is the corresponding node
-    //    to the lastModifiedPalmMuteNode
-    else if (
-      (lastModifiedPalmMuteNode.prevValue === "" &&
-        lastModifiedPalmMuteNode.columnIndex === beatIndex) ||
-      (lastModifiedPalmMuteNode.prevValue !== "" &&
-        (value === "start" || value === "end"))
-    ) {
-      const newStrummingPattern = {
-        ...strummingPatternBeingEdited,
-      };
-
-      newStrummingPattern.value.strums[beatIndex]!.palmMute = "";
-
-      setStrummingPatternBeingEdited(newStrummingPattern);
+    // Case 2: Cancel adding new start - clicked same empty cell again
+    if (wasEmpty && isClickingSameCell) {
+      setStrummingPatternBeingEdited(
+        createUpdatedStrummingPattern(
+          strummingPatternBeingEdited,
+          beatIndex,
+          "",
+        ),
+      );
       setLastModifiedPalmMuteNode(null);
+      return;
     }
 
-    // adding end node
-    else {
-      // adding node + dashes in between
-      addOrRemoveStrummingPatternPalmMuteDashes({
-        strummingPatternBeingEdited,
-        setStrummingPatternBeingEdited,
-        startColumnIndex: beatIndex,
-        prevValue: value,
-        pairNodeValue: lastModifiedPalmMuteNode.prevValue,
-      });
-
+    // Case 3: Complete removal - clicked on any start/end node
+    if (!wasEmpty && isClickingNode) {
+      setStrummingPatternBeingEdited(
+        createUpdatedStrummingPattern(
+          strummingPatternBeingEdited,
+          beatIndex,
+          "",
+        ),
+      );
       setLastModifiedPalmMuteNode(null);
+      return;
     }
+
+    // Case 4: Complete palm mute section - adding end node with dashes
+    addOrRemoveStrummingPatternPalmMuteDashes({
+      strummingPatternBeingEdited,
+      setStrummingPatternBeingEdited,
+      startColumnIndex: beatIndex,
+      prevValue: value,
+      pairNodeValue: lastModifiedPalmMuteNode.prevValue,
+    });
+    setLastModifiedPalmMuteNode(null);
   }
 
   return (
@@ -200,7 +198,7 @@ function StrummingPatternPalmMuteNode({
             >
               <div className="h-4 w-[1px] flex-shrink-0 bg-current"></div>
               <div className="h-[1px] w-1 flex-shrink-0 bg-current"></div>
-              <i className="mx-[0.125rem] flex-shrink-0">PM</i>
+              <i className="mx-[2px] flex-shrink-0">PM</i>
               <div className="h-[1px] w-full bg-current"></div>
             </div>
           )}
@@ -221,36 +219,26 @@ function StrummingPatternPalmMuteNode({
             (editingPalmMuteNodes && value === "")) && (
             <Button
               id={`input-strummingPatternModal-${beatIndex}-0`}
-              style={{
-                pointerEvents: getButtonOpacity() === "1" ? "all" : "none",
-                boxShadow: hoveringOnPalmMuteNode
-                  ? "0 0 2px 2px hsl(var(--primary))"
-                  : "",
-                opacity: getButtonOpacity(),
-              }}
+              disabled={getButtonOpacity() !== "1"}
               size={"sm"}
               className="min-w-[2.25rem] rounded-full px-1 py-0 transition-all"
-              onMouseEnter={() => setHoveringOnPalmMuteNode(true)}
-              onTouchStart={() => setHoveringOnPalmMuteNode(true)}
-              onMouseLeave={() => setHoveringOnPalmMuteNode(false)}
-              onTouchEnd={() => setHoveringOnPalmMuteNode(false)}
               onKeyDown={handleKeyDown}
               onClick={handlePalmMuteNodeClick}
             >
               {value === "start" && (
-                <div className="baseVertFlex text-[0.65rem]">
-                  <span className="h-[13px] leading-[1.35]">PM</span>
-                  <span className="h-[13px] leading-[1.35]">start</span>
+                <div className="baseVertFlex text-[10px]">
+                  <span className="h-[12px] leading-[1.35]">PM</span>
+                  <span className="h-[12px] leading-[1.35]">start</span>
                 </div>
               )}
               {value === "end" && (
-                <div className="baseVertFlex text-[0.65rem]">
-                  <span className="h-[13px] leading-[1.35]">PM</span>
-                  <span className="h-[13px] leading-[1.35]">end</span>
+                <div className="baseVertFlex text-[10px]">
+                  <span className="h-[12px] leading-[1.35]">PM</span>
+                  <span className="h-[12px] leading-[1.35]">end</span>
                 </div>
               )}
               {editingPalmMuteNodes && value === "" && (
-                <BsPlus className="h-5 w-5" />
+                <BsPlus className="size-5" />
               )}
             </Button>
           )}
@@ -259,13 +247,12 @@ function StrummingPatternPalmMuteNode({
 
       {value === "-" && (
         <div
-          // height may have to be conditional based on if it is being edited or not
           style={{
-            margin: editing ? "1.1rem 0" : "0.75rem 0", // guessing on 0.75rem value
+            margin: editing ? "1.1rem 0" : "0.75rem 0",
           }}
           className={`h-[1px] w-full ${
             !editing || !editingPalmMuteNodes || getButtonOpacity() === "1"
-              ? `bg-current`
+              ? "bg-current"
               : "bg-foreground/50"
           }`}
         ></div>

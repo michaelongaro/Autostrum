@@ -10,6 +10,11 @@ import { Input } from "~/components/ui/input";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import { X } from "lucide-react";
+import {
+  CHORD_COLORS,
+  getContrastTextColor,
+  getColorForChordName,
+} from "~/utils/chordColors";
 
 const backdropVariants = {
   expanded: {
@@ -52,84 +57,99 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
   function handleChordNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
 
-    if (value.length > 6) return;
+    if (value.length > 16) return;
 
     const modifiedChord = structuredClone(chordBeingEdited);
     modifiedChord.value.name = value;
 
+    // Auto-assign color based on chord name
+    const autoColor = getColorForChordName(value);
+    if (autoColor) {
+      modifiedChord.value.color = autoColor;
+    }
+
+    setChordBeingEdited(modifiedChord);
+  }
+
+  function handleColorChange(color: string) {
+    const modifiedChord = structuredClone(chordBeingEdited);
+    modifiedChord.value.color = color;
     setChordBeingEdited(modifiedChord);
   }
 
   function handleSaveChord() {
-    const chordNameAlreadyExists = chords.some(
+    const modifiedChord = structuredClone(chordBeingEdited);
+
+    // if the name already exists on a different chord, append " (2)", " (3)", etc.
+    const nameConflict = chords.some(
       (chord, index) =>
-        chord.name === chordBeingEdited.value.name &&
-        index !== chordBeingEdited.index,
+        chord.name === modifiedChord.value.name &&
+        index !== modifiedChord.index,
     );
 
-    if (chordNameAlreadyExists) {
-      // TODO: show error message
-    } else {
-      // update chord name of all strumming patterns that use this chord
-      // if the chord name has changed.
+    if (nameConflict) {
+      const baseName = modifiedChord.value.name;
+      let suffix = 2;
+      let candidate = `${baseName} (${suffix})`;
+      while (chords.some((c) => c.name === candidate)) {
+        suffix += 1;
+        candidate = `${baseName} (${suffix})`;
+      }
+      modifiedChord.value.name = candidate;
+    }
 
-      const oldChordName = chords[chordBeingEdited.index]?.name;
-      if (oldChordName && oldChordName !== chordBeingEdited.value.name) {
-        setTabData((draft) => {
-          for (const [sectionIndex, section] of draft.entries()) {
-            if (!section) continue;
+    // update chord name of all strumming patterns that use this chord
+    const oldChordName = chords[modifiedChord.index]?.name;
+    if (oldChordName && oldChordName !== modifiedChord.value.name) {
+      setTabData((draft) => {
+        for (const [sectionIndex, section] of draft.entries()) {
+          if (!section) continue;
+
+          for (const [subSectionIndex, subSection] of section.data.entries()) {
+            if (subSection?.type !== "chord") continue;
 
             for (const [
-              subSectionIndex,
-              subSection,
-            ] of section.data.entries()) {
-              if (subSection?.type !== "chord") continue;
+              chordSequenceIndex,
+              chordGroup,
+            ] of subSection.data.entries()) {
+              if (!chordGroup) continue;
 
-              for (const [
-                chordSequenceIndex,
-                chordGroup,
-              ] of subSection.data.entries()) {
-                if (!chordGroup) continue;
+              for (const [chordIndex, chordName] of chordGroup.data.entries()) {
+                if (!chordName || chordName !== oldChordName) continue;
 
-                for (const [
-                  chordIndex,
-                  chordName,
-                ] of chordGroup.data.entries()) {
-                  if (!chordName || chordName !== oldChordName) continue;
+                const sectionData = draft[sectionIndex];
+                if (!sectionData) continue;
 
-                  const sectionData = draft[sectionIndex];
-                  if (!sectionData) continue;
+                const subSectionData = sectionData.data[subSectionIndex];
+                if (!subSectionData || subSectionData.type !== "chord")
+                  continue;
 
-                  const subSectionData = sectionData.data[subSectionIndex];
-                  if (!subSectionData || subSectionData.type !== "chord")
-                    continue;
+                const chordSequence = subSectionData.data[chordSequenceIndex];
+                if (!chordSequence) continue;
 
-                  const chordSequence = subSectionData.data[chordSequenceIndex];
-                  if (!chordSequence) continue;
-
-                  chordSequence.data[chordIndex] = chordBeingEdited.value.name;
-                }
+                chordSequence.data[chordIndex] = modifiedChord.value.name;
               }
             }
           }
-        });
-      }
-
-      // save chord
-      const newChords = structuredClone(chords);
-
-      // decomposed shallow copy of frets so that the chord elem won't get updated
-      // when the chord is edited in the chord modal
-      const newChord = structuredClone(chordBeingEdited.value);
-      newChords[chordBeingEdited.index] = {
-        id: newChord.id,
-        name: newChord.name,
-        frets: [...newChord.frets],
-      };
-      if (audioMetadata.playing) pauseAudio();
-      setChordBeingEdited(null);
-      setChords(newChords);
+        }
+      });
     }
+
+    // save chord
+    const newChords = structuredClone(chords);
+
+    // decomposed shallow copy of frets so that the chord elem won't get updated
+    // when the chord is edited in the chord modal
+    const newChord = structuredClone(modifiedChord.value);
+    newChords[modifiedChord.index] = {
+      id: newChord.id,
+      name: newChord.name,
+      frets: [...newChord.frets],
+      color: newChord.color,
+    };
+    if (audioMetadata.playing) pauseAudio();
+    setChordBeingEdited(null);
+    setChords(newChords);
   }
 
   return (
@@ -159,14 +179,55 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
           {/* chord title */}
           <div className="baseFlex w-full !items-start !justify-between">
             <div className="baseVertFlex !items-start gap-2">
-              <Label htmlFor="chordName">Chord name</Label>
-              <Input
-                id="chordName"
-                placeholder="(e.g. Em, Cmaj7)"
-                value={chordBeingEdited?.value?.name}
-                onChange={handleChordNameChange}
-                className="w-[150px]"
-              />
+              <div className="baseFlex gap-2">
+                <Label htmlFor="chordName">Chord name</Label>
+                <Input
+                  id="chordName"
+                  placeholder="(e.g. Em, Cmaj7)"
+                  value={chordBeingEdited?.value?.name}
+                  onChange={handleChordNameChange}
+                  className="w-[150px]"
+                />
+              </div>
+
+              <div className="baseFlex mt-1 !items-start gap-3">
+                <Label className="mt-1">Chord color</Label>
+
+                <div className="z-10 grid grid-cols-6 gap-2">
+                  {CHORD_COLORS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => handleColorChange(color)}
+                      style={{
+                        backgroundColor: color,
+                        color: getContrastTextColor(color),
+                      }}
+                      className={`baseFlex size-7 rounded-full transition-all ${
+                        chordBeingEdited.value.color === color
+                          ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                          : "hover:scale-110"
+                      }`}
+                    >
+                      {chordBeingEdited.value.color === color && (
+                        <svg
+                          className="size-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={3}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <Button

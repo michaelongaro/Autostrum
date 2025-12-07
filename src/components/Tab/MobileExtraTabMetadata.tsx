@@ -17,6 +17,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "~/components/ui/carousel";
+import ChordName from "~/components/ui/ChordName";
 
 function MobileExtraTabMetadata() {
   const {
@@ -26,6 +27,7 @@ function MobileExtraTabMetadata() {
     previewMetadata,
     currentInstrument,
     audioMetadata,
+    chordDisplayMode,
     pauseAudio,
     playPreview,
   } = useTabStore((state) => ({
@@ -35,6 +37,7 @@ function MobileExtraTabMetadata() {
     previewMetadata: state.previewMetadata,
     currentInstrument: state.currentInstrument,
     audioMetadata: state.audioMetadata,
+    chordDisplayMode: state.chordDisplayMode,
     pauseAudio: state.pauseAudio,
     playPreview: state.playPreview,
   }));
@@ -119,7 +122,7 @@ function MobileExtraTabMetadata() {
                 Section progression
                 {activeTabName === "Section progression" && (
                   <motion.span
-                    layoutId="activeTabUnderline"
+                    layoutId="mobileActiveTabUnderline"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
                   />
@@ -140,7 +143,7 @@ function MobileExtraTabMetadata() {
                 Chords
                 {activeTabName === "Chords" && (
                   <motion.span
-                    layoutId="activeTabUnderline"
+                    layoutId="mobileActiveTabUnderline"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
                   />
@@ -161,7 +164,7 @@ function MobileExtraTabMetadata() {
                 Strumming patterns
                 {activeTabName === "Strumming patterns" && (
                   <motion.span
-                    layoutId="activeTabUnderline"
+                    layoutId="mobileActiveTabUnderline"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
                   />
@@ -278,20 +281,21 @@ function MobileExtraTabMetadata() {
                           >
                             <div className="baseVertFlex gap-3">
                               <div className="baseFlex w-full !justify-between gap-2 border-b pb-2">
-                                <p
-                                  style={{
-                                    color:
-                                      previewMetadata.indexOfPattern ===
-                                        index &&
-                                      previewMetadata.playing &&
-                                      previewMetadata.type === "chord"
-                                        ? "hsl(var(--primary))"
-                                        : "hsl(var(--foreground))",
-                                  }}
-                                  className="font-semibold transition-colors"
-                                >
-                                  {chord.name}
-                                </p>
+                                <ChordName
+                                  name={chord.name}
+                                  color={chord.color}
+                                  truncate={false}
+                                  isHighlighted={
+                                    chordDisplayMode === "color"
+                                      ? false
+                                      : previewMetadata.indexOfPattern ===
+                                            index &&
+                                          previewMetadata.playing &&
+                                          previewMetadata.type === "chord"
+                                        ? true
+                                        : false
+                                  }
+                                />
 
                                 {/* preview chord button */}
                                 <Button
