@@ -336,6 +336,7 @@ function SearchResults({
     }
 
     setDrawerOpen(false);
+    setDrawerView("Search filters");
 
     void push(
       {
@@ -414,22 +415,26 @@ function SearchResults({
               id="genre"
               className="w-full focus:ring-primary-foreground/75"
             >
-              <SelectValue placeholder="Select a genre" />
+              <SelectValue placeholder="Select a genre">
+                {localFilters.genre && localFilters.genre !== "allGenres" ? (
+                  <div className="baseFlex gap-2">
+                    <div
+                      style={{
+                        backgroundColor:
+                          genreColors.get(localFilters.genre) || "",
+                        boxShadow: "0 1px 1px hsla(336, 84%, 17%, 0.9)",
+                      }}
+                      className="h-3 w-3 rounded-full"
+                    ></div>
+                    {localFilters.genre}
+                  </div>
+                ) : (
+                  <span>All genres</span>
+                )}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={"allGenres"}>
-                <div className="baseFlex gap-2">
-                  <div
-                    style={{
-                      backgroundColor: "gray", // TODO: make this a circular gradient rainbow of all
-                      // the colors in genreColors
-                      boxShadow: "0 1px 1px hsla(336, 84%, 17%, 0.9)",
-                    }}
-                    className="h-3 w-3 rounded-full"
-                  ></div>
-                  All genres
-                </div>
-              </SelectItem>
+              <SelectItem value={"allGenres"}>All genres</SelectItem>
 
               <Separator className="my-1 w-full bg-primary" />
 
@@ -491,9 +496,7 @@ function SearchResults({
             </SelectTrigger>
             <SelectContent className="w-[300px]">
               {/* all tunings select item */}
-              <SelectItem value={"all"} className="font-medium">
-                All tunings
-              </SelectItem>
+              <SelectItem value={"all"}>All tunings</SelectItem>
 
               <Separator className="my-1 w-full bg-primary" />
 
@@ -513,9 +516,7 @@ function SearchResults({
               <Separator className="my-1 w-full bg-primary" />
 
               {/* custom tuning catch-all selection */}
-              <SelectItem value={"custom"} className="font-medium">
-                Custom tunings
-              </SelectItem>
+              <SelectItem value={"custom"}>Custom tunings</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -592,7 +593,7 @@ function SearchResults({
             <SelectContent className="w-[350px]">
               <SelectGroup>
                 <SelectItem value={"all"}>
-                  <span className="font-medium">All difficulties</span>
+                  <span>All difficulties</span>
                 </SelectItem>
 
                 <Separator className="my-1 w-full bg-primary" />
@@ -947,23 +948,26 @@ function SearchResults({
                                     <span className="w-[75px] text-left font-semibold">
                                       Genre
                                     </span>
-                                    <div className="baseFlex gap-2">
-                                      <div
-                                        style={{
-                                          backgroundColor: localFilters.genre
-                                            ? genreColors.get(
-                                                localFilters.genre,
-                                              )
-                                            : "gray",
-                                          boxShadow:
-                                            "0 1px 1px hsla(336, 84%, 17%, 0.9)",
-                                        }}
-                                        className="h-3 w-3 rounded-full"
-                                      ></div>
-                                      {localFilters.genre
-                                        ? localFilters.genre
-                                        : "All genres"}
-                                    </div>
+
+                                    {localFilters.genre === undefined ? (
+                                      <span>All genres</span>
+                                    ) : (
+                                      <div className="baseFlex gap-2">
+                                        <div
+                                          style={{
+                                            backgroundColor: localFilters.genre
+                                              ? genreColors.get(
+                                                  localFilters.genre,
+                                                )
+                                              : "gray",
+                                            boxShadow:
+                                              "0 1px 1px hsla(336, 84%, 17%, 0.9)",
+                                          }}
+                                          className="h-3 w-3 rounded-full"
+                                        ></div>
+                                        {localFilters.genre}
+                                      </div>
+                                    )}
                                   </div>
 
                                   <GoChevronRight className="size-4" />
