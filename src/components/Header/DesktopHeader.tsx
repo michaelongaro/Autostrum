@@ -16,9 +16,8 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { BsPlus } from "react-icons/bs";
-import { IoStatsChart } from "react-icons/io5";
-import { TbGuitarPick } from "react-icons/tb";
-import { IoBookmarkOutline } from "react-icons/io5";
+import { IoMdSettings } from "react-icons/io";
+import { IoBookmark, IoStatsChart } from "react-icons/io5";
 import { useTabStore } from "~/stores/TabStore";
 import { PiMetronome } from "react-icons/pi";
 import { IoColorPalette } from "react-icons/io5";
@@ -32,7 +31,7 @@ import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import { LOGO_PATHS_WITH_TITLE } from "~/utils/logoPaths";
-import SettingsOutline from "~/components/ui/icons/SettingsOutline";
+import Logo from "~/components/ui/icons/Logo";
 
 function DesktopHeader() {
   const { userId, isSignedIn } = useAuth();
@@ -422,7 +421,7 @@ function DesktopHeader() {
                         }}
                         className="baseFlex w-[165px] gap-2"
                       >
-                        <SettingsOutline className="size-4" strokeWidth={40} />
+                        <IoMdSettings className="size-[18px]" />
                         Settings
                       </Link>
                     </Button>
@@ -476,7 +475,7 @@ function DesktopHeader() {
                         }}
                         className="baseFlex w-[165px] gap-2"
                       >
-                        <TbGuitarPick className="size-4" />
+                        <Logo className="size-3.5" />
                         Tabs
                       </Link>
                     </Button>
@@ -502,7 +501,7 @@ function DesktopHeader() {
                         }}
                         className="baseFlex w-[165px] gap-2 !px-0"
                       >
-                        <IoBookmarkOutline className="size-4 shrink-0" />
+                        <IoBookmark className="size-4 shrink-0" />
                         Bookmarks
                       </Link>
                     </Button>

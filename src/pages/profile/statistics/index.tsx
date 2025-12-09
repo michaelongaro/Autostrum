@@ -14,9 +14,9 @@ import {
 import { FaStar } from "react-icons/fa6";
 import { IoStatsChart } from "react-icons/io5";
 import { IoBookmark } from "react-icons/io5";
-import { TbGuitarPick } from "react-icons/tb";
 import { FaEye, FaUser, FaTrophy } from "react-icons/fa";
-import { IoDiceOutline, IoCalendarOutline } from "react-icons/io5";
+import { IoCalendarOutline } from "react-icons/io5";
+import { GiPerspectiveDiceSixFacesTwo } from "react-icons/gi";
 import { IoIosArrowBack } from "react-icons/io";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import Verified from "~/components/ui/icons/Verified";
@@ -31,12 +31,13 @@ import { Separator } from "~/components/ui/separator";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import Spinner from "~/components/ui/Spinner";
+import Logo from "~/components/ui/icons/Logo";
 
 function UserStatistics() {
   const { data: currentUser, isFetching: isFetchingCurrentUser } =
     api.user.getStatistics.useQuery();
 
-  const isAboveSmViewport = useViewportWidthBreakpoint(640);
+  const isAboveXsViewport = useViewportWidthBreakpoint(450);
 
   const [topFiveStatsCarouselApi, setTopFiveStatsCarouselApi] =
     useState<CarouselApi>();
@@ -206,7 +207,7 @@ function UserStatistics() {
               <div className="baseVertFlex w-full !items-start gap-4 md:mt-4 md:gap-8">
                 <div className="baseFlex w-full !justify-between gap-2">
                   <div className="baseFlex gap-3 xs:gap-4">
-                    <TbGuitarPick className="size-5 fill-foreground text-foreground lg:size-6" />
+                    <Logo className="size-[18px] lg:size-[22px]" />
                     <span className="text-xl font-medium text-foreground lg:text-2xl">
                       Total tabs
                     </span>
@@ -388,7 +389,7 @@ function UserStatistics() {
                     >
                       {currentUser.createdAt.toLocaleDateString("en-US", {
                         year: "numeric",
-                        month: isAboveSmViewport ? "long" : "short",
+                        month: isAboveXsViewport ? "long" : "short",
                         day: "numeric",
                       })}
                     </motion.span>
@@ -615,7 +616,7 @@ function UserStatistics() {
               <div className="baseVertFlex w-full gap-2">
                 <div className="baseVertFlex w-full gap-2">
                   <div className="baseFlex w-full !justify-start gap-3">
-                    <IoDiceOutline className="size-5 text-foreground lg:size-6" />
+                    <GiPerspectiveDiceSixFacesTwo className="size-6 text-foreground lg:size-7" />
                     <span className="text-xl font-semibold text-foreground lg:text-2xl">
                       Misc.
                     </span>

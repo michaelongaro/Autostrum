@@ -19,10 +19,11 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { BsPlus } from "react-icons/bs";
-import { IoBookmarkOutline } from "react-icons/io5";
 import { PiMetronome } from "react-icons/pi";
 import { useTabStore } from "~/stores/TabStore";
-import { IoStatsChart } from "react-icons/io5";
+import { IoMdSettings } from "react-icons/io";
+import { IoBookmark, IoStatsChart } from "react-icons/io5";
+import Logo from "~/components/ui/icons/Logo";
 import { Button } from "~/components/ui/button";
 import {
   Accordion,
@@ -38,7 +39,6 @@ import Binoculars from "~/components/ui/icons/Binoculars";
 import ThemePicker from "~/components/Header/ThemePicker";
 import { LOGO_PATHS_WITH_TITLE } from "~/utils/logoPaths";
 import Spinner from "~/components/ui/Spinner";
-import SettingsOutline from "~/components/ui/icons/SettingsOutline";
 
 function MobileHeader() {
   const { userId, isSignedIn } = useAuth();
@@ -520,7 +520,7 @@ function MobileHeader() {
                           href={`/profile/settings`}
                           className="baseFlex w-[165px] gap-2"
                         >
-                          <SettingsOutline className="size-4" />
+                          <IoMdSettings className="size-[18px]" />
                           Settings
                         </Link>
                       </Button>
@@ -570,7 +570,7 @@ function MobileHeader() {
                           href={`/profile/tabs/filters`}
                           className="baseFlex w-[165px] gap-2"
                         >
-                          <TbGuitarPick className="size-4" />
+                          <Logo className="size-3.5" />
                           Tabs
                         </Link>
                       </Button>
@@ -593,7 +593,7 @@ function MobileHeader() {
                           href={`/profile/bookmarks/filters`}
                           className="baseFlex w-[165px] gap-2 !px-0"
                         >
-                          <IoBookmarkOutline className="size-4 shrink-0" />
+                          <IoBookmark className="size-4 shrink-0" />
                           Bookmarks
                         </Link>
                       </Button>
