@@ -410,7 +410,10 @@ function SearchResults({
               setLocalFilters((prev) => ({ ...prev, genre: value }))
             }
           >
-            <SelectTrigger id="genre" className="w-full">
+            <SelectTrigger
+              id="genre"
+              className="w-full focus:ring-primary-foreground/75"
+            >
               <SelectValue placeholder="Select a genre" />
             </SelectTrigger>
             <SelectContent>
@@ -465,7 +468,10 @@ function SearchResults({
               }));
             }}
           >
-            <SelectTrigger id="tuning" className="h-10 w-full">
+            <SelectTrigger
+              id="tuning"
+              className="h-10 w-full focus:ring-primary-foreground/75"
+            >
               <SelectValue placeholder="Select tuning...">
                 {localFilters.tuning ? (
                   <>
@@ -535,7 +541,10 @@ function SearchResults({
               }));
             }}
           >
-            <SelectTrigger id="capo" className="w-full">
+            <SelectTrigger
+              id="capo"
+              className="w-full focus:ring-primary-foreground/75"
+            >
               <SelectValue placeholder="All" />
             </SelectTrigger>
             <SelectContent>
@@ -565,7 +574,10 @@ function SearchResults({
               }));
             }}
           >
-            <SelectTrigger id="difficulty" className="w-full">
+            <SelectTrigger
+              id="difficulty"
+              className="w-full focus:ring-primary-foreground/75"
+            >
               <SelectValue placeholder="Select a difficulty">
                 {localFilters.difficulty ? (
                   <div className="baseFlex gap-2">
@@ -662,7 +674,10 @@ function SearchResults({
               }))
             }
           >
-            <SelectTrigger id="sortBy" className="w-full">
+            <SelectTrigger
+              id="sortBy"
+              className="w-full focus:ring-primary-foreground/75"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

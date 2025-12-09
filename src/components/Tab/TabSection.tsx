@@ -1290,7 +1290,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         id={`${sectionIndex}${subSectionIndex}ExtendTabButton`}
         onKeyDown={handleExtendTabButtonKeyDown}
         onClick={addNewColumns}
-        className="mt-8"
+        className="mt-8 px-4"
       >
         Extend tab
       </Button>
