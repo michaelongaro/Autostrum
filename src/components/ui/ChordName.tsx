@@ -22,15 +22,17 @@ interface ChordName {
   isHighlighted?: boolean;
   screenshotColor?: COLORS;
   screenshotTheme?: THEME;
+  showFullName?: boolean;
 }
 
 function ChordName({
   name,
   color,
   truncate,
-  isHighlighted = false,
+  isHighlighted,
   screenshotColor,
   screenshotTheme,
+  showFullName,
 }: ChordName) {
   const chordDisplayMode = useTabStore((state) => {
     return state.chordDisplayMode;
@@ -49,7 +51,9 @@ function ChordName({
   }
 
   const modifiedChordName =
-    truncate && name.length > 7 ? name.slice(0, 5) + "…" : name;
+    !showFullName && truncate && name.length > 7
+      ? name.slice(0, 5) + "…"
+      : name;
 
   return (
     <div
@@ -73,6 +77,7 @@ function ChordName({
           chordDisplayMode === "color" && isHighlighted
             ? "scale(1.1)"
             : "scale(1)",
+        zIndex: showFullName ? 9 : undefined, // still want hover to take priority over chord popover being open
       }}
       className="baseFlex shrink-0 rounded-full border-background px-1.5 font-semibold transition-all hover:z-10"
     >

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
 import {
@@ -36,6 +36,8 @@ function StaticStrummingPattern({
     chords: state.chords,
     chordDisplayMode: state.chordDisplayMode,
   }));
+
+  const [strumIndexPopoverOpen, setStrumIndexPopoverOpen] = useState(-1);
 
   const heightOfStrummingPatternFiller = useMemo(() => {
     const patternHasPalmMuting = data.strums.some(
@@ -101,7 +103,11 @@ function StaticStrummingPattern({
 
             {/* chord viewer */}
             {strumChords[strumIndex] !== "" ? (
-              <Popover>
+              <Popover
+                onOpenChange={(open) => {
+                  setStrumIndexPopoverOpen(open ? strumIndex : -1);
+                }}
+              >
                 <PopoverTrigger
                   asChild
                   className="baseFlex rounded-md transition-all hover:bg-primary/20 active:hover:bg-primary/10"
@@ -118,6 +124,7 @@ function StaticStrummingPattern({
                       truncate={true}
                       screenshotColor={color}
                       screenshotTheme={theme}
+                      showFullName={strumIndex === strumIndexPopoverOpen}
                     />
                   </Button>
                 </PopoverTrigger>
