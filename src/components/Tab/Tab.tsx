@@ -55,6 +55,7 @@ import { Switch } from "~/components/ui/switch";
 import { getTrackBackground, Range } from "react-range";
 import { tuningNotes } from "~/utils/tunings";
 import AudioControls from "~/components/AudioControls/AudioControls";
+import ChordName from "~/components/ui/ChordName";
 
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
@@ -436,14 +437,14 @@ function Tab({ tab }: Tab) {
                   paddingBottom: 0,
                 }}
                 transition={{ duration: 0.25 }}
-                className="baseFlex sticky left-0 top-20 z-10 w-[calc(100%-3.45rem)] rounded-xl border bg-background shadow-lg"
+                className="baseFlex sticky left-0 top-20 z-10 max-w-[calc(100%-1.75rem)] rounded-xl border bg-background shadow-xl"
               >
                 <Carousel
                   opts={{
                     dragFree: true,
                     align: "start",
                   }}
-                  className="baseFlex max-w-[90%]"
+                  className="baseFlex max-w-[100%]"
                 >
                   <CarouselContent>
                     {chords.map((chord) => (
@@ -451,9 +452,12 @@ function Tab({ tab }: Tab) {
                         key={chord.id}
                         className="baseVertFlex basis-[96px] gap-2 text-foreground md:basis-[134px]"
                       >
-                        <span className="text-sm font-medium">
-                          {chord.name}
-                        </span>
+                        <ChordName
+                          name={chord.name}
+                          color={chord.color}
+                          truncate={false}
+                        />
+
                         <div className="h-[80px] tablet:h-[118px]">
                           <ChordDiagram originalFrets={chord.frets} />
                         </div>
