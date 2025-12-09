@@ -79,7 +79,7 @@ function ChordName({
             : "scale(1)",
         zIndex: showFullName ? 9 : undefined, // still want hover to take priority over chord popover being open
       }}
-      className="baseFlex shrink-0 rounded-full border-background px-1.5 font-semibold transition-all hover:z-10"
+      className="baseFlex h-5 shrink-0 rounded-full border-background px-1.5 font-semibold transition-all hover:z-10"
     >
       {modifiedChordName}
     </div>
