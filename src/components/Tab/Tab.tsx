@@ -97,6 +97,7 @@ function Tab({ tab }: Tab) {
 
   const [showPinnedChords, setShowPinnedChords] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [settingsPopoverIsOpen, setSettingsPopoverIsOpen] = useState(false);
 
   // used to artifically keep static tab content visible for a split second longer
   // while the playback modal is animating in, avoids jarring disappearance
@@ -604,28 +605,34 @@ function Tab({ tab }: Tab) {
               </Drawer>
             ) : (
               <TooltipProvider delayDuration={150}>
-                <Tooltip>
+                <Tooltip open={settingsPopoverIsOpen ? false : undefined}>
                   <TooltipTrigger asChild>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={"secondary"}
-                          disabled={editing}
-                          className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
-                        >
-                          <IoMdSettings className="size-5" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="baseVertFlex p-3" side="top">
-                        <TabSettings
-                          showPinnedChords={showPinnedChords}
-                          setShowPinnedChords={setShowPinnedChords}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    {/* directly rendering popover inside of TooltipTrigger didn't work, so adding shell <div> */}
+                    <div className="baseFlex">
+                      <Popover
+                        open={settingsPopoverIsOpen}
+                        onOpenChange={setSettingsPopoverIsOpen}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"secondary"}
+                            disabled={editing}
+                            className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
+                          >
+                            <IoMdSettings className="size-5" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="baseVertFlex p-3" side="top">
+                          <TabSettings
+                            showPinnedChords={showPinnedChords}
+                            setShowPinnedChords={setShowPinnedChords}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent side={"top"}>
-                    <span>Tab settings</span>
+                    <span>Settings</span>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
