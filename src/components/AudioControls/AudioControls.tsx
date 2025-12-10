@@ -46,7 +46,7 @@ import scrollChordIntoView from "~/utils/scrollChordIntoView";
 import PlayButtonIcon from "./PlayButtonIcon";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Direction, getTrackBackground, Range } from "react-range";
-import SettingsOutline from "~/components/ui/icons/SettingsOutline";
+import { IoMdSettings } from "react-icons/io";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -1023,7 +1023,7 @@ function AudioControls() {
                   variant={"outline"}
                   className="px-2 py-1 text-primary-foreground"
                 >
-                  <SettingsOutline className="size-[18px]" />
+                  <IoMdSettings className="size-[18px]" />
                 </Button>
               </DrawerTrigger>
               <DrawerPortal>
@@ -1038,10 +1038,7 @@ function AudioControls() {
 
                   <div className="baseVertFlex w-full !items-start gap-1">
                     <div className="baseFlex gap-2 font-medium">
-                      <SettingsOutline
-                        className="size-4"
-                        strokeWidth={"45px"}
-                      />
+                      <IoMdSettings className="size-4" />
                       Audio settings
                     </div>
                     <Separator className="w-full bg-primary" />
