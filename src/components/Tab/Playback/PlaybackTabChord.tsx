@@ -118,10 +118,10 @@ function PlaybackTabChord({
                       }
                       isHighlighted={isHighlighted}
                       isAccented={
-                        note.includes(">") || columnData[index]?.includes(">")
+                        note.includes(">") || columnData[7]?.includes(">")
                       }
                       isStaccato={
-                        note.includes(".") && !columnData[index]?.includes(".") // felt distracting to see the staccato on every note w/in the chord
+                        note.includes(".") && !columnData[7]?.includes(".") // felt distracting to see the staccato on every note w/in the chord
                       }
                       isRest={index === 4 && columnData[7] === "r"}
                     />
