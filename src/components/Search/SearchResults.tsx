@@ -728,7 +728,7 @@ function SearchResults({
                 layoutType.value === "table" ? "0.25rem" : "0.75rem",
             }}
             transition={{ duration: 0.5, ease: "linear" }}
-            className="baseVertFlex sticky top-16 z-20 w-full !justify-between border-b-0 border-t bg-accent pt-3 text-primary-foreground tablet:!hidden"
+            className={`baseVertFlex sticky top-16 z-20 w-full !justify-between border-b-0 border-t bg-accent pt-3 text-primary-foreground md:border-x tablet:!hidden ${stickyHeaderNotActive ? "md:rounded-t-lg" : "rounded-t-none"}`}
           >
             {/* scroll area + only show on hover for BOTH the header + the table scrollbars */}
             <AnimatePresence initial={false}>
@@ -1652,7 +1652,7 @@ function SearchResults({
                 {/* layout type toggle */}
                 <div className="baseFlex gap-3">
                   <Label>Layout</Label>
-                  <div className="baseFlex relative overflow-hidden rounded-md border-2">
+                  <div className="baseFlex relative overflow-hidden rounded-md border">
                     <Button
                       variant={
                         layoutType.value === "grid" ? "toggleOn" : "toggleOff"
