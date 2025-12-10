@@ -176,7 +176,7 @@ function MobileHeader() {
             <div className="baseVertFlex my-4 h-full max-w-[348px] gap-4">
               <div className="baseFlex w-full gap-4">
                 <Button
-                  variant={"secondary"}
+                  variant={"headerNavigation"}
                   size={"lg"}
                   asChild
                   style={{
@@ -199,7 +199,7 @@ function MobileHeader() {
                 </Button>
 
                 <Button
-                  variant={"secondary"}
+                  variant={"headerNavigation"}
                   size={"lg"}
                   asChild
                   style={{
@@ -225,7 +225,7 @@ function MobileHeader() {
               <div className="baseVertFlex w-full max-w-[348px] gap-2">
                 <div className="baseFlex w-full gap-4">
                   <Button
-                    variant={"secondary"}
+                    variant={"headerNavigation"}
                     size={"lg"}
                     asChild
                     style={{
@@ -247,7 +247,7 @@ function MobileHeader() {
                     </Link>
                   </Button>
                   <Button
-                    variant={"secondary"}
+                    variant={"headerNavigation"}
                     size={"lg"}
                     asChild
                     style={{
@@ -367,6 +367,7 @@ function MobileHeader() {
                       // }${asPath}`}
                     >
                       <Button
+                        variant={"headerNavigation"}
                         className="baseFlex h-10 gap-2 px-8"
                         onClick={() => {
                           setSnapshotTabInLocalStorage(true);
@@ -503,7 +504,7 @@ function MobileHeader() {
 
                     <div className="baseFlex w-full gap-4">
                       <Button
-                        variant={"secondary"}
+                        variant={"headerNavigation"}
                         size={"lg"}
                         asChild
                         style={{
@@ -526,7 +527,7 @@ function MobileHeader() {
                       </Button>
 
                       <Button
-                        variant={"secondary"}
+                        variant={"headerNavigation"}
                         size={"lg"}
                         asChild
                         style={{
@@ -553,7 +554,7 @@ function MobileHeader() {
 
                     <div className="baseFlex w-full gap-4">
                       <Button
-                        variant={"secondary"}
+                        variant={"headerNavigation"}
                         size={"lg"}
                         asChild
                         style={{
@@ -576,7 +577,7 @@ function MobileHeader() {
                       </Button>
 
                       <Button
-                        variant={"secondary"}
+                        variant={"headerNavigation"}
                         size={"lg"}
                         asChild
                         style={{

@@ -77,7 +77,7 @@ function DesktopHeader() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant={"secondary"}
+                variant={"headerNavigation"}
                 size={"lg"}
                 asChild
                 style={{
@@ -109,7 +109,7 @@ function DesktopHeader() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant={"secondary"}
+                variant={"headerNavigation"}
                 size={"lg"}
                 asChild
                 style={{
@@ -147,7 +147,7 @@ function DesktopHeader() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant={"secondary"}
+                variant={"headerNavigation"}
                 size={"lg"}
                 asChild
                 style={{
@@ -179,7 +179,7 @@ function DesktopHeader() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant={"secondary"}
+                variant={"headerNavigation"}
                 size={"lg"}
                 asChild
                 style={{
@@ -213,7 +213,7 @@ function DesktopHeader() {
               <TooltipTrigger asChild>
                 <PopoverTrigger asChild>
                   <Button
-                    variant={"secondary"}
+                    variant={"headerNavigation"}
                     size={"lg"}
                     className={`${classes.theme} baseFlex !size-12 !rounded-full !p-0`}
                   >
@@ -270,7 +270,7 @@ function DesktopHeader() {
                       // }${asPath}`}
                     >
                       <Button
-                        variant={"secondary"}
+                        variant={"headerNavigation"}
                         className="!size-12 !rounded-full !p-0"
                         onClick={() => {
                           setSnapshotTabInLocalStorage(true);
@@ -401,7 +401,7 @@ function DesktopHeader() {
 
                   <div className="baseFlex w-full gap-4">
                     <Button
-                      variant={"secondary"}
+                      variant={"headerNavigation"}
                       size={"lg"}
                       asChild
                       style={{
@@ -427,7 +427,7 @@ function DesktopHeader() {
                     </Button>
 
                     <Button
-                      variant={"secondary"}
+                      variant={"headerNavigation"}
                       size={"lg"}
                       asChild
                       style={{
@@ -455,7 +455,7 @@ function DesktopHeader() {
 
                   <div className="baseFlex w-full gap-4">
                     <Button
-                      variant={"secondary"}
+                      variant={"headerNavigation"}
                       size={"lg"}
                       asChild
                       style={{
@@ -481,7 +481,7 @@ function DesktopHeader() {
                     </Button>
 
                     <Button
-                      variant={"secondary"}
+                      variant={"headerNavigation"}
                       size={"lg"}
                       asChild
                       style={{

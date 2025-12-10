@@ -26,6 +26,8 @@ const buttonVariants = cva(
           "bg-destructive/75 border border-destructive text-destructive-foreground !shadow-primaryButton hover:bg-destructive active:brightness-75",
         modalClose:
           "baseFlex !size-5 absolute right-4 top-4 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-foreground/70 disabled:pointer-events-none",
+        headerNavigation:
+          "bg-secondary text-secondary-foreground hover:bg-accent !shadow-primaryButton hover:text-accent-foreground active:brightness-90",
         toggleOn:
           "text-toggle-foreground hover:bg-secondary/20 active:bg-secondary/30",
         toggleOff:
