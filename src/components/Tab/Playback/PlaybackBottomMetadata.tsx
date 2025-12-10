@@ -46,7 +46,7 @@ import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { tuningNotesToName } from "~/utils/tunings";
 import { Direction, getTrackBackground, Range } from "react-range";
-import SettingsOutline from "~/components/ui/icons/SettingsOutline";
+import { IoMdSettings } from "react-icons/io";
 
 interface PlaybackBottomMetadata {
   loopRange: [number, number];
@@ -340,7 +340,7 @@ function MobileSettingsPopover({
           }}
           className="z-50"
         >
-          <SettingsOutline className="size-5" />
+          <IoMdSettings className="size-5" />
           <span className="ml-0 hidden mobilePortrait:ml-2 mobilePortrait:block">
             Settings
           </span>
@@ -1155,13 +1155,12 @@ function DesktopSettings({
       <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline" size={"icon"}>
-            <SettingsOutline className="size-5" />
+            <IoMdSettings className="size-5" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="baseVertFlex size-full gap-4">
           <div className="baseFlex w-full !justify-between gap-2">
             <Label htmlFor="chordDisplayMode">Color-coded chords</Label>
-
             <Switch
               id="chordDisplayMode"
               checked={chordDisplayMode === "color"}
