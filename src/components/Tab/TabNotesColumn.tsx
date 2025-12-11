@@ -279,7 +279,6 @@ function TabNotesColumn({
       const column = currentSubSection.data[columnIndex];
       if (column && isTabNote(column)) {
         column.noteLength = noteLength;
-        column.noteLengthModified = true;
       }
     });
   }

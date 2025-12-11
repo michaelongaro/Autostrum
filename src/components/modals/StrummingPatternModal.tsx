@@ -1,17 +1,13 @@
 import { FocusTrap } from "focus-trap-react";
 import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
-import { useEffect, useState, useCallback } from "react";
+import { X } from "lucide-react";
+import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
+import { useState } from "react";
 import { BsFillPlayFill, BsKeyboard, BsStopFill } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
+import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogTitle,
-} from "~/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -19,16 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import {
   useTabStore,
-  type StrummingPattern as StrummingPatternType,
   type ChordSequence,
+  type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
-import { traverseToRemoveHangingStrummingPatternPairNode } from "~/utils/palmMuteHelpers";
-import StrummingPattern from "../Tab/StrummingPattern";
-import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
-import { Button } from "~/components/ui/button";
-import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import {
   EighthNote,
   HalfNote,
@@ -36,8 +28,9 @@ import {
   SixteenthNote,
   WholeNote,
 } from "~/utils/noteLengthIcons";
-import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
-import { X } from "lucide-react";
+import { traverseToRemoveHangingStrummingPatternPairNode } from "~/utils/palmMuteHelpers";
+import StrummingPattern from "../Tab/StrummingPattern";
+import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 
 const backdropVariants = {
   expanded: {
@@ -140,10 +133,17 @@ function StrummingPatternModal({
   useModalScrollbarHandling();
 
   function handleBaseNoteLengthChange(
-    value: "whole" | "half" | "quarter" | "eighth" | "sixteenth",
+    newNoteLength: "whole" | "half" | "quarter" | "eighth" | "sixteenth",
   ) {
-    setProposedNoteLength(value);
-    setShowNoteLengthChangeDialog(true);
+    const newStrummingPattern = structuredClone(strummingPatternBeingEdited);
+
+    for (const strum of newStrummingPattern.value.strums) {
+      strum.noteLength = newNoteLength;
+    }
+
+    newStrummingPattern.value.baseNoteLength = newNoteLength;
+
+    setStrummingPatternBeingEdited(newStrummingPattern);
   }
 
   function toggleEditingPalmMuteNodes() {
@@ -570,99 +570,6 @@ function StrummingPatternModal({
           </div>
         </div>
       </FocusTrap>
-
-      <AlertDialog
-        open={showNoteLengthChangeDialog}
-        onOpenChange={setShowNoteLengthChangeDialog}
-      >
-        <VisuallyHidden>
-          <AlertDialogTitle>Default note length adjustment</AlertDialogTitle>
-          <AlertDialogDescription>
-            You&apos;re about to change the default note length for this
-            strumming pattern. You can either just change the note length for
-            strums that haven't been modified, or you can choose to update all
-            strum note lengths to the new default.
-          </AlertDialogDescription>
-        </VisuallyHidden>
-
-        <AlertDialogContent className="baseVertFlex modalGradient max-h-[90dvh] max-w-[350px] !justify-start gap-8 overflow-y-auto rounded-lg text-foreground sm:max-w-[500px]">
-          <div className="baseVertFlex !items-start gap-4">
-            <h2 className="text-lg font-semibold">
-              Default note length adjustment
-            </h2>
-            <p className="text-sm">
-              Please choose how you would like to update the note lengths of the
-              strums in this pattern.
-            </p>
-          </div>
-
-          <div className="baseVertFlex w-full gap-4 sm:!flex-row">
-            <Button
-              variant={"outline"}
-              className={`h-20 w-full ${noteLengthChangeType === "onlyUnchanged" ? "bg-secondary-hover" : ""}`}
-              onClick={() => {
-                setNoteLengthChangeType("onlyUnchanged");
-              }}
-            >
-              Only update strums that haven&apos;t had their note lengths
-              modified.
-            </Button>
-
-            <Button
-              variant={"outline"}
-              className={`h-20 w-full ${noteLengthChangeType === "all" ? "bg-secondary-hover" : ""}`}
-              onClick={() => {
-                setNoteLengthChangeType("all");
-              }}
-            >
-              Update all strum note lengths to match the new default.
-            </Button>
-          </div>
-
-          <div className="baseFlex w-full !justify-end gap-4">
-            <Button
-              variant={"secondary"}
-              onClick={() => setShowNoteLengthChangeDialog(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (proposedNoteLength === null) return;
-
-                const newStrummingPattern = structuredClone(
-                  strummingPatternBeingEdited,
-                );
-
-                for (const [
-                  index,
-                  strum,
-                ] of newStrummingPattern.value.strums.entries()) {
-                  if (
-                    noteLengthChangeType === "all" ||
-                    (noteLengthChangeType === "onlyUnchanged" &&
-                      strum.noteLengthModified === false)
-                  ) {
-                    newStrummingPattern.value.strums[index]!.noteLength =
-                      proposedNoteLength;
-
-                    newStrummingPattern.value.strums[
-                      index
-                    ]!.noteLengthModified = false;
-                  }
-                }
-
-                newStrummingPattern.value.baseNoteLength = proposedNoteLength;
-
-                setStrummingPatternBeingEdited(newStrummingPattern);
-                setShowNoteLengthChangeDialog(false);
-              }}
-            >
-              Save
-            </Button>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
     </motion.div>
   );
 }

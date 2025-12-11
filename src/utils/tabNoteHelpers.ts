@@ -27,7 +27,6 @@ export function createTabNote(options?: {
   sixthString?: string;
   chordEffects?: string;
   noteLength?: FullNoteLengths;
-  noteLengthModified?: boolean;
 }): TabNote {
   return {
     type: "note",
@@ -40,7 +39,6 @@ export function createTabNote(options?: {
     sixthString: options?.sixthString ?? "",
     chordEffects: options?.chordEffects ?? "",
     noteLength: options?.noteLength ?? "quarter",
-    noteLengthModified: options?.noteLengthModified ?? false,
     id: crypto.randomUUID(),
   };
 }
@@ -99,7 +97,7 @@ export function setStringValue(
 
 // Legacy array conversion for playGeneratedAudioHelpers.ts
 // Array format: [0]=palmMute, [1]=firstString(lowE), [2]=secondString, ..., [6]=sixthString(highE),
-//               [7]=chordEffects, [8]=noteLength, [9]=noteLengthModified, [10]=id
+//               [7]=chordEffects, [8]=noteLength, [9]=id
 export function tabNoteToArray(note: TabNote): string[] {
   return [
     note.palmMute,
@@ -111,7 +109,6 @@ export function tabNoteToArray(note: TabNote): string[] {
     note.sixthString,
     note.chordEffects,
     note.noteLength,
-    String(note.noteLengthModified),
     note.id,
   ];
 }
@@ -127,7 +124,6 @@ export function tabMeasureLineToArray(line: TabMeasureLine): string[] {
     "|", // sixthString
     line.bpmAfterLine !== null ? String(line.bpmAfterLine) : "-1", // chordEffects slot used for BPM
     "measureLine", // noteLength slot
-    "false", // noteLengthModified placeholder
     line.id,
   ];
 }

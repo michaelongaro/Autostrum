@@ -159,7 +159,6 @@ function ChordSequence({
             palmMute: "",
             strum: "",
             noteLength: "eighth",
-            noteLengthModified: false,
           })),
         },
       });
@@ -215,7 +214,6 @@ function ChordSequence({
                     palmMute: "",
                     strum: "",
                     noteLength: "eighth",
-                    noteLengthModified: false,
                   })),
                 },
               });
@@ -356,7 +354,6 @@ function ChordSequence({
                                   palmMute: "",
                                   strum: "",
                                   noteLength: "eighth",
-                                  noteLengthModified: false,
                                 })),
                               },
                             });

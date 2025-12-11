@@ -229,7 +229,6 @@ export function handleTabNoteKeyDown(
 
           const newLength: NoteLength = order[idx] ?? "quarter";
           columnData.noteLength = newLength;
-          columnData.noteLengthModified = true;
         }
       }
     });
@@ -257,7 +256,6 @@ export function handleTabNoteKeyDown(
             noteLength: subSection.baseNoteLength,
           });
           clearedNote.id = id;
-          clearedNote.noteLengthModified = false;
 
           subSection.data[columnIndex] = clearedNote;
         }
@@ -383,7 +381,6 @@ export function handleTabNoteKeyDown(
         currentColumn.sixthString,
         currentColumn.chordEffects,
         currentColumn.noteLength,
-        String(currentColumn.noteLengthModified),
       ];
 
       setChordPulse({
@@ -418,7 +415,6 @@ export function handleTabNoteKeyDown(
           currentColumn.chordEffects = currentlyCopiedChord[6] ?? "";
           currentColumn.noteLength =
             (currentlyCopiedChord[7] as FullNoteLengths) ?? "quarter";
-          currentColumn.noteLengthModified = currentlyCopiedChord[8] === "true";
         }
       }
     });

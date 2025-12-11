@@ -9,30 +9,18 @@ import {
 } from "@dnd-kit/core";
 import { restrictToParentElement } from "@dnd-kit/modifiers";
 import {
-  SortableContext,
   arrayMove,
   rectSortingStrategy,
+  SortableContext,
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useCallback, useState, Fragment, useRef } from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogTitle,
-} from "~/components/ui/alert-dialog";
+import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
 import {
   Select,
   SelectContent,
@@ -41,28 +29,26 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import {
-  useTabStore,
-  type BaseNoteLengths,
-  type TabSection as TabSectionType,
-  type TabNote,
-  type TabMeasureLine as TabMeasureLineType,
-} from "~/stores/TabStore";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
+import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { traverseToRemoveHangingPairNode } from "~/utils/palmMuteHelpers";
-import MiscellaneousControls from "./MiscellaneousControls";
+import {
+  useTabStore,
+  type TabSection as TabSectionType,
+} from "~/stores/TabStore";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
-import TabMeasureLine from "./TabMeasureLine";
-import TabNotesColumn from "./TabNotesColumn";
-import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
 import {
   EighthNote,
-  getDynamicNoteLengthIcon,
   HalfNote,
   QuarterNote,
   SixteenthNote,
   WholeNote,
 } from "~/utils/noteLengthIcons";
-import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
+import { traverseToRemoveHangingPairNode } from "~/utils/palmMuteHelpers";
 import {
   createTabNote,
   getPalmMuteValue,
@@ -70,6 +56,9 @@ import {
   isTabNote,
   setPalmMuteValue,
 } from "~/utils/tabNoteHelpers";
+import MiscellaneousControls from "./MiscellaneousControls";
+import TabMeasureLine from "./TabMeasureLine";
+import TabNotesColumn from "./TabNotesColumn";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -881,10 +870,22 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   }
 
   function handleBaseNoteLengthChange(
-    value: "whole" | "half" | "quarter" | "eighth" | "sixteenth",
+    newNoteLength: "whole" | "half" | "quarter" | "eighth" | "sixteenth",
   ) {
-    setProposedNoteLength(value);
-    setShowNoteLengthChangeDialog(true);
+    setTabData((draft) => {
+      const subSection = draft[sectionIndex]!.data[subSectionIndex];
+      if (subSection?.type === "tab") {
+        subSection.baseNoteLength = newNoteLength;
+        for (let i = 0; i < subSection.data.length; i++) {
+          const column = subSection.data[i]!;
+
+          // Skip measure lines since they don't have a note length
+          if (isTabMeasureLine(column)) continue;
+
+          column.noteLength = newNoteLength;
+        }
+      }
+    });
   }
 
   function getDurationOfCurrentChord() {
@@ -1294,100 +1295,6 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       >
         Extend tab
       </Button>
-
-      <AlertDialog
-        open={showNoteLengthChangeDialog}
-        onOpenChange={setShowNoteLengthChangeDialog}
-      >
-        <VisuallyHidden>
-          <AlertDialogTitle>Default note length adjustment</AlertDialogTitle>
-          <AlertDialogDescription>
-            You&apos;re about to change the default note length for this
-            strumming pattern. You can either just change the note length for
-            strums that haven't been modified, or you can choose to update all
-            strum note lengths to the new default.
-          </AlertDialogDescription>
-        </VisuallyHidden>
-
-        <AlertDialogContent className="baseVertFlex modalGradient max-h-[90dvh] max-w-[350px] !justify-start gap-8 overflow-y-auto rounded-lg text-foreground sm:max-w-[500px]">
-          <div className="baseVertFlex !items-start gap-4">
-            <h2 className="text-lg font-semibold">
-              Default note length adjustment
-            </h2>
-            <p className="text-sm">
-              Please choose how you would like to update the note lengths of the
-              strums in this pattern.
-            </p>
-          </div>
-
-          <div className="baseVertFlex w-full gap-4 sm:!flex-row">
-            <Button
-              variant={"outline"}
-              className={`h-20 w-full ${noteLengthChangeType === "onlyUnchanged" ? "bg-secondary-hover" : ""}`}
-              onClick={() => {
-                setNoteLengthChangeType("onlyUnchanged");
-              }}
-            >
-              Only update chords in this subsection that haven&apos;t had their
-              note lengths modified.
-            </Button>
-
-            <Button
-              variant={"outline"}
-              className={`h-20 w-full ${noteLengthChangeType === "all" ? "bg-secondary-hover" : ""}`}
-              onClick={() => {
-                setNoteLengthChangeType("all");
-              }}
-            >
-              Update all chord note lengths in this subsection to match the new
-              default.
-            </Button>
-          </div>
-
-          <div className="baseFlex w-full !justify-end gap-4">
-            <Button
-              variant={"secondary"}
-              onClick={() => setShowNoteLengthChangeDialog(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (proposedNoteLength === null) return;
-
-                setTabData((draft) => {
-                  const subSection = draft[sectionIndex]!.data[subSectionIndex];
-                  if (subSection?.type === "tab") {
-                    subSection.baseNoteLength = proposedNoteLength;
-                    for (let i = 0; i < subSection.data.length; i++) {
-                      const column = subSection.data[i]!;
-
-                      // Skip measure lines since they don't have note length
-                      if (isTabMeasureLine(column)) continue;
-
-                      if (noteLengthChangeType === "all") {
-                        column.noteLength = proposedNoteLength;
-                      } else if (noteLengthChangeType === "onlyUnchanged") {
-                        // only change if current note length matches previous base note length
-                        if (!column.noteLengthModified) {
-                          column.noteLength = proposedNoteLength;
-                        }
-                      }
-
-                      column.noteLengthModified = false; // reset modification flag
-                    }
-                  }
-                });
-
-                setProposedNoteLength(null);
-                setShowNoteLengthChangeDialog(false);
-              }}
-            >
-              Save
-            </Button>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
     </motion.div>
   );
 }

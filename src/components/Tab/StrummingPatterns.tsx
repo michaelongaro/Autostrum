@@ -277,7 +277,6 @@ function StrummingPatterns() {
                           palmMute: "",
                           strum: "",
                           noteLength: "eighth",
-                          noteLengthModified: false,
                         })),
                       },
                     });

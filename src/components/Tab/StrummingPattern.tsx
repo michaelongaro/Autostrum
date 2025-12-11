@@ -39,7 +39,6 @@ import { generateBeatLabels } from "~/utils/getBeatIndicator";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import Ellipsis from "~/components/ui/icons/Ellipsis";
 import { NoteLengthDropdown } from "~/components/Tab/NoteLengthDropdown";
-// import { getBeatIndicator } from "~/utils/getBeatIndicator";
 
 const noteLengthCycle = [
   "whole",
@@ -389,7 +388,6 @@ function StrummingPattern({
           palmMute: "",
           strum: "",
           noteLength: data.baseNoteLength,
-          noteLengthModified: false,
         });
       }
 
@@ -449,7 +447,6 @@ function StrummingPattern({
         palmMute: "" as "" | "start" | "end",
         strum: "",
         noteLength: data.baseNoteLength,
-        noteLengthModified: false,
       },
     );
 
@@ -474,7 +471,6 @@ function StrummingPattern({
     newStrummingPattern.strums[strumIndex] = {
       ...data.strums[strumIndex]!,
       noteLength: noteLength,
-      noteLengthModified: true,
     };
     setStrummingPatternBeingEdited({
       index: index ?? 0,
@@ -493,7 +489,6 @@ function StrummingPattern({
         palmMute: "",
         strum: "",
         noteLength: data.baseNoteLength,
-        noteLengthModified: false,
       });
     }
 

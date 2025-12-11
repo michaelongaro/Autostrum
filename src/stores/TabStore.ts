@@ -41,7 +41,6 @@ export interface Strum {
   palmMute: "" | "-" | "start" | "end";
   strum: string; // effects are v, ^, >, s, ., r
   noteLength: FullNoteLengths;
-  noteLengthModified: boolean; // indicates if the note length has been modified from the base note length
 }
 
 export interface ChordSequence {
@@ -71,7 +70,6 @@ export interface TabNote {
   sixthString: string; // high E
   chordEffects: string; // v, ^, s, >, ., r
   noteLength: FullNoteLengths;
-  noteLengthModified: boolean;
   id: string;
 }
 
