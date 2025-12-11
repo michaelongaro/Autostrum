@@ -11,11 +11,11 @@ function isIOS() {
   return iOS || macTouch;
 }
 
-function useModalScrollbarHandling() {
+function useModalScrollbarHandling(force = false) {
   useEffect(() => {
     // FYI: This allows scrolling to occur while modal is open on iOS,
     // but I think the tradeoff is worth it to prevent the flicker.
-    if (isIOS()) return;
+    if (!force && isIOS()) return;
 
     // lock
     const offsetY = window.scrollY;

@@ -123,7 +123,7 @@ function PlaybackModal() {
     currentChordIndex / (currentlyPlayingMetadata?.length ?? 1),
   );
 
-  useModalScrollbarHandling();
+  useModalScrollbarHandling(true);
 
   useEffect(() => {
     // this feels a bit like a bandaid fix
