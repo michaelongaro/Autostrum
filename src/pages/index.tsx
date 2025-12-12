@@ -19,11 +19,12 @@ function Home() {
           content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music. Practice any tab alongside our realistic generated audio and convenient audio controls."
         />
         <meta property="og:title" content="Autostrum"></meta>
-        <meta property="og:url" content="www.autostrum.com" />
+        <meta property="og:url" content="https://www.autostrum.com" />
         <meta
           property="og:description"
           content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music. Practice any tab alongside our realistic generated audio and convenient audio controls."
         />
+        <meta property="og:site_name" content="Autostrum" />
         <meta property="og:type" content="website" />
         <meta
           property="og:image"

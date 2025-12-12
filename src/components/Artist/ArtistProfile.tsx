@@ -83,8 +83,9 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
         ></meta>
         <meta
           property="og:url"
-          content={`www.autostrum.com/artist/${artist?.name}`}
+          content={`https://www.autostrum.com/artist/${artist?.name}`}
         />
+        <meta property="og:site_name" content="Autostrum" />
         <meta
           property="og:description"
           content={`Check out ${

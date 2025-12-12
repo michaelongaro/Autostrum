@@ -29,11 +29,12 @@ function Create() {
           content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music."
         />
         <meta property="og:title" content="Create | Autostrum"></meta>
-        <meta property="og:url" content="www.autostrum.com/create" />
+        <meta property="og:url" content="https://www.autostrum.com/create" />
         <meta
           property="og:description"
           content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music."
         />
+        <meta property="og:site_name" content="Autostrum" />
         <meta property="og:type" content="website" />
         <meta
           property="og:image"

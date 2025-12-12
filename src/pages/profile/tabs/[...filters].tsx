@@ -23,31 +23,21 @@ function UserTabs() {
       className="baseVertFlex my-12 min-h-[650px] w-full max-w-[1400px] !justify-start md:my-24 md:w-3/4 md:p-0"
     >
       <Head>
-        <title>{`${currentUser?.username ? `${currentUser.username}` : "Tabs"} | Autostrum`}</title>
+        <title>My tabs | Autostrum</title>
         <meta
           name="description"
-          content={`Check out ${
-            currentUser?.username
-              ? `${currentUser.username}'s songs`
-              : "this currentUser"
-          } on Autostrum.`}
+          content="View and sort through all of the tabs you've created on Autostrum."
         />
-        <meta
-          property="og:title"
-          content={`${currentUser?.username ? `${currentUser.username}` : "Artist"} | Autostrum`}
-        ></meta>
+        <meta property="og:title" content="My tabs | Autostrum"></meta>
         <meta
           property="og:url"
-          content={`www.autostrum.com/currentUser/${currentUser?.username}`}
+          content="https://www.autostrum.com/profile/tabs"
         />
         <meta
           property="og:description"
-          content={`Check out ${
-            currentUser?.username
-              ? `${currentUser.username}'s songs`
-              : "this currentUser"
-          } on Autostrum.`}
+          content="View and sort through all of the tabs you've created on Autostrum."
         />
+        <meta property="og:site_name" content="Autostrum" />
         <meta property="og:type" content="website" />
         <meta
           property="og:image"

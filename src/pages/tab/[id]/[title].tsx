@@ -52,9 +52,10 @@ function ViewIndividualTab({ json }: { json: string }) {
       <Head>
         <title>{openGraphData.title}</title>
         <meta name="description" content={openGraphData.description} />
-        <meta property="og:title" content={openGraphData.title}></meta>
+        <meta property="og:title" content={openGraphData.title} />
         <meta property="og:url" content={openGraphData.url} />
         <meta property="og:description" content={openGraphData.description} />
+        <meta property="og:site_name" content="Autostrum" />
         <meta property="og:type" content="website" />
         <meta
           property="og:image"

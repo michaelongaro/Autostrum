@@ -191,31 +191,21 @@ function UserSettings() {
       className="baseVertFlex my-12 min-h-[650px] w-full max-w-[1400px] !justify-start md:my-24 md:w-3/4 md:p-0"
     >
       <Head>
-        <title>{`${localSettings?.username ? `${localSettings.username}` : "Tabs"} | Autostrum`}</title>
+        <title>Settings | Autostrum</title>
         <meta
           name="description"
-          content={`Check out ${
-            localSettings?.username
-              ? `${localSettings.username}'s songs`
-              : "this localSettings"
-          } on Autostrum.`}
+          content="Update your username, password, profile image, and more."
         />
-        <meta
-          property="og:title"
-          content={`${localSettings?.username ? `${localSettings.username}` : "Artist"} | Autostrum`}
-        ></meta>
+        <meta property="og:title" content="Settings | Autostrum"></meta>
         <meta
           property="og:url"
-          content={`www.autostrum.com/localSettings/${localSettings?.username}`}
+          content="https://www.autostrum.com/profile/settings"
         />
         <meta
           property="og:description"
-          content={`Check out ${
-            localSettings?.username
-              ? `${localSettings.username}'s songs`
-              : "this currentUser"
-          } on Autostrum.`}
+          content="Update your username, password, profile image, and more."
         />
+        <meta property="og:site_name" content="Autostrum" />
         <meta property="og:type" content="website" />
         <meta
           property="og:image"

@@ -97,7 +97,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
         ></meta>
         <meta
           property="og:url"
-          content={`www.autostrum.com/user/${userMetadata?.user.username}`}
+          content={`https://www.autostrum.com/user/${userMetadata?.user.username}`}
         />
         <meta
           property="og:description"
@@ -107,6 +107,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
               : "this user"
           } on Autostrum.`}
         />
+        <meta property="og:site_name" content="Autostrum" />
         <meta property="og:type" content="website" />
         <meta
           property="og:image"

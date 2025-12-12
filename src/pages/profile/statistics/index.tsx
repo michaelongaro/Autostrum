@@ -109,30 +109,23 @@ function UserStatistics() {
       className="baseVertFlex my-12 min-h-[650px] w-full max-w-[1400px] !justify-start md:my-24 md:w-3/4 md:p-0"
     >
       <Head>
-        <title>{`${currentUser?.username ? `${currentUser.username}` : "Tabs"} | Autostrum`}</title>
+        <title>Statistics | Autostrum</title>
         <meta
           name="description"
-          content={`Check out ${
-            currentUser?.username
-              ? `${currentUser.username}'s songs`
-              : "this currentUser"
-          } on Autostrum.`}
+          content="Discover detailed statistics on your guitar tabs, including total tabs, views, ratings, bookmarks, top songs, and genre breakdowns"
         />
         <meta
           property="og:title"
           content={`${currentUser?.username ? `${currentUser.username}` : "Artist"} | Autostrum`}
         ></meta>
+        <meta property="og:site_name" content="Autostrum" />
         <meta
           property="og:url"
-          content={`www.autostrum.com/currentUser/${currentUser?.username}`}
+          content="https://www.autostrum.com/profile/statistics"
         />
         <meta
           property="og:description"
-          content={`Check out ${
-            currentUser?.username
-              ? `${currentUser.username}'s songs`
-              : "this currentUser"
-          } on Autostrum.`}
+          content="Discover detailed statistics on your guitar tabs, including total tabs, views, ratings, bookmarks, top songs, and genre breakdowns"
         />
         <meta property="og:type" content="website" />
         <meta

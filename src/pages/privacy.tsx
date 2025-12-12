@@ -15,11 +15,12 @@ function Privacy() {
         <title>Privacy | Autostrum</title>
         <meta name="description" content="Our privacy policy at Autostrum." />
         <meta property="og:title" content="Privacy | Autostrum"></meta>
-        <meta property="og:url" content="www.autostrum.com/privacy" />
+        <meta property="og:url" content="https://www.autostrum.com/privacy" />
         <meta
           property="og:description"
           content="Our privacy policy at Autostrum."
         />
+        <meta property="og:site_name" content="Autostrum" />
         <meta property="og:type" content="website" />
         <meta
           property="og:image"

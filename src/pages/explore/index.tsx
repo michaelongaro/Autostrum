@@ -76,11 +76,12 @@ function Explore({ json }: { json: string }) {
           content="Find inspiration from our evergrowing library of tabs and discover new talents in our weekly featured user section."
         />
         <meta property="og:title" content="Explore | Autostrum"></meta>
-        <meta property="og:url" content="www.autostrum.com/explore" />
+        <meta property="og:url" content="https://www.autostrum.com/explore" />
         <meta
           property="og:description"
           content="Find inspiration from our evergrowing library of tabs and discover new talents in our weekly featured user section."
         />
+        <meta property="og:site_name" content="Autostrum" />
         <meta property="og:type" content="website" />
         <meta
           property="og:image"
