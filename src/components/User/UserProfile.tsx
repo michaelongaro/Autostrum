@@ -110,7 +110,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
         <meta property="og:type" content="website" />
         <meta
           property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/userProfile.png"
+          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
         ></meta>
       </Head>
 

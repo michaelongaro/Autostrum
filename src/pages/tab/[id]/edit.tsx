@@ -71,7 +71,7 @@ function EditIndividualTab({ json }: { json: string }) {
         <meta property="og:type" content="website" />
         <meta
           property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/editingTab.png"
+          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
         ></meta>
       </Head>
 

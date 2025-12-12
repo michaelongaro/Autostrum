@@ -51,7 +51,7 @@ function UserTabs() {
         <meta property="og:type" content="website" />
         <meta
           property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/artistProfile.png"
+          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
         ></meta>
       </Head>
 

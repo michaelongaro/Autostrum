@@ -34,7 +34,7 @@ function FilteredQueryExplore() {
         <meta property="og:type" content="website" />
         <meta
           property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/explore.png"
+          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
         ></meta>
       </Head>
 
