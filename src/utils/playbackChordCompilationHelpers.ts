@@ -179,6 +179,7 @@ function expandFullTab({
             data: {
               strumIndex: -1,
               chordName: "",
+              chordColor: "",
               palmMute: "",
               strum: "",
               noteLength: "quarter",
@@ -652,6 +653,7 @@ function expandChordSection({
       data: {
         strumIndex: -1,
         chordName: "",
+        chordColor: "",
         palmMute: "",
         strum: "",
         noteLength: "quarter",

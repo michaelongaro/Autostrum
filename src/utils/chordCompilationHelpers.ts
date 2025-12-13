@@ -862,6 +862,7 @@ function compileStrummingPatternPreview({
           {
             id: "0", // no need for an actual id here
             name: "C",
+            color: "#000000", // no need for an actual color here
             frets: ["0", "1", "0", "2", "3", ""],
           },
         ],
