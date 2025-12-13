@@ -122,7 +122,19 @@ type ColorValues = Record<COLORS, Record<THEME, ColorScale>>;
 // FYI: these values are all subject to change, whether it's small foreground tweaks
 // or entire rearrangments of color intensities.
 
-export const HEX_COLOR_VALUES: Record<COLORS, string> = {
+const COLORS = [
+  "peony",
+  "coral",
+  "saffron",
+  "maple",
+  "pistachio",
+  "verdant",
+  "aqua",
+  "sapphire",
+  "amethyst",
+] as const;
+
+export const COLOR_HEX_VALUES: Record<(typeof COLORS)[number], string> = {
   peony: "#E93D82",
   coral: "#E5484D",
   maple: "#A18072",

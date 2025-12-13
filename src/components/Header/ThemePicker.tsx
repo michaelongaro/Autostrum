@@ -3,6 +3,7 @@ import { Separator } from "~/components/ui/separator";
 import { IoSunnyOutline, IoMoonOutline } from "react-icons/io5";
 import { HiMiniComputerDesktop } from "react-icons/hi2";
 import {
+  COLOR_HEX_VALUES,
   NEAR_WHITE_COLOR_VALUES,
   updateCSSThemeVars,
 } from "~/utils/updateCSSThemeVars";
@@ -23,18 +24,6 @@ const COLORS = [
   "sapphire",
   "amethyst",
 ] as const;
-
-const COLOR_HEX_VALUES: Record<(typeof COLORS)[number], string> = {
-  peony: "#E93D82",
-  coral: "#E5484D",
-  saffron: "#E54D2E",
-  maple: "#A18072",
-  pistachio: "#46A758",
-  verdant: "#12A594",
-  aqua: "#00A2C7",
-  sapphire: "#3E63DD",
-  amethyst: "#8E4EC6",
-};
 
 interface ThemePicker {
   allowUpdateOfDBColor?: boolean;

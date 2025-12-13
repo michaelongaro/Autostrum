@@ -26,6 +26,7 @@ import { Check } from "lucide-react";
 import EditImageSelector from "~/components/Profile/EditImageSelector";
 import Ellipsis from "~/components/ui/icons/Ellipsis";
 import {
+  COLOR_HEX_VALUES,
   NEAR_WHITE_COLOR_VALUES,
   updateCSSThemeVars,
 } from "~/utils/updateCSSThemeVars";
@@ -44,26 +45,14 @@ const DeleteAccountModal = dynamic(
 const COLORS = [
   "peony",
   "coral",
-  "maple",
   "saffron",
+  "maple",
   "pistachio",
   "verdant",
   "aqua",
   "sapphire",
   "amethyst",
 ] as const;
-
-const COLOR_HEX_VALUES: Record<(typeof COLORS)[number], string> = {
-  peony: "#E93D82",
-  coral: "#CA244D",
-  maple: "#CE2C31",
-  saffron: "#E54D2E",
-  pistachio: "#46A758",
-  verdant: "#12A594",
-  aqua: "#00A2C7",
-  sapphire: "#3E63DD",
-  amethyst: "#8E4EC6",
-};
 
 export interface LocalSettings {
   emailAddress: string;
@@ -779,7 +768,7 @@ function UserSettings() {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent
-                    className="baseVertFlex p-2 text-center"
+                    className="baseVertFlex p-2 text-center text-sm sm:text-base"
                     side="bottom"
                   >
                     Chosen theme is tied to your device, not your account.

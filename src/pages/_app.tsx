@@ -6,7 +6,7 @@ import GeneralLayout from "~/components/Layout/GeneralLayout";
 import "~/styles/globals.css";
 import "overlayscrollbars/overlayscrollbars.css";
 import { useTabStore } from "~/stores/TabStore";
-import { HEX_COLOR_VALUES } from "~/utils/updateCSSThemeVars";
+import { COLOR_HEX_VALUES } from "~/utils/updateCSSThemeVars";
 import { dark } from "@clerk/themes";
 
 // might in some way mess with t3 bootstrapping, be wary
@@ -32,7 +32,7 @@ function App({ Component, pageProps }: ComponentWithPageLayout) {
     >
       <NextProgress
         key={color}
-        color={HEX_COLOR_VALUES[color]}
+        color={COLOR_HEX_VALUES[color]}
         height={4}
         delay={300}
         disableSameRoute
