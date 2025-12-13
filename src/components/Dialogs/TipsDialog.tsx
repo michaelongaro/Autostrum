@@ -82,8 +82,8 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
             <div className="baseFlex !items-start gap-2">
               <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
               <span>
-                Copying ( <kbd>Ctrl</kbd> + <kbd>C</kbd> ) & pasting ({" "}
-                <kbd>Ctrl</kbd> + <kbd>V</kbd> ) chords works as expected.
+                Copying ( <kbd>Ctrl</kbd> <kbd>C</kbd> ) & pasting ({" "}
+                <kbd>Ctrl</kbd> <kbd>V</kbd> ) chords works as expected.
               </span>
             </div>
             <div className="baseFlex !items-start gap-2">
@@ -110,8 +110,8 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
               <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
               <span>
                 Enter
-                <kbd className="ml-1.5">Shift</kbd> + <kbd>↑</kbd> /{" "}
-                <kbd>Shift</kbd> + <kbd className="mr-1.5">↓</kbd>
+                <kbd className="ml-1.5">Shift</kbd> <kbd>↑</kbd> /{" "}
+                <kbd>Shift</kbd> <kbd className="mr-1.5">↓</kbd>
                 to change the current chord&apos;s note length.
               </span>
             </div>
@@ -119,8 +119,8 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
               <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
               <span>
                 Enter
-                <kbd className="ml-1.5">Ctrl</kbd> + <kbd>Backspace</kbd> or
-                <kbd className="ml-1.5">Ctrl</kbd> + <kbd>Shift</kbd> +{" "}
+                <kbd className="ml-1.5">Ctrl</kbd> <kbd>Backspace</kbd> or
+                <kbd className="ml-1.5">Ctrl</kbd> <kbd>Shift</kbd>{" "}
                 <kbd>Backspace</kbd> to clear / delete current chord.
               </span>
             </div>

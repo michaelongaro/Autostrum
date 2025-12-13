@@ -1045,7 +1045,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
                   </TooltipTrigger>
                   <TooltipContent side={"bottom"}>
                     <p>
-                      Toggle: <kbd className="ml-1">Alt</kbd> + <kbd>p</kbd>
+                      Toggle: <kbd className="ml-1">Alt</kbd> <kbd>p</kbd>
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -1105,7 +1105,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
                   </TooltipTrigger>
                   <TooltipContent side={"bottom"}>
                     <p>
-                      Toggle: <kbd className="ml-1">Alt</kbd> + <kbd>r</kbd>
+                      Toggle: <kbd className="ml-1">Alt</kbd> <kbd>r</kbd>
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -1172,7 +1172,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
                   </TooltipTrigger>
                   <TooltipContent side={"bottom"}>
                     <p>
-                      Toggle: <kbd className="ml-1">Alt</kbd> + <kbd>d</kbd>
+                      Toggle: <kbd className="ml-1">Alt</kbd> <kbd>d</kbd>
                     </p>
                   </TooltipContent>
                 </Tooltip>
