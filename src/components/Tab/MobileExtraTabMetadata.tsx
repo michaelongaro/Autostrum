@@ -371,7 +371,7 @@ function MobileExtraTabMetadata() {
                     }}
                     exit={{ opacity: 0, height: "6rem" }}
                     transition={{ duration: 0.3, opacity: { duration: 0.15 } }}
-                    className={`baseVertFlex w-full overflow-y-hidden ${strummingPatterns.length > 2 ? "!justify-start" : ""}`}
+                    className={`baseVertFlex w-full overflow-y-hidden ${strummingPatterns.length > 0 ? "!justify-start" : ""}`}
                   >
                     {strummingPatterns.length === 0 ? (
                       <p className="baseFlex h-24 text-gray">
