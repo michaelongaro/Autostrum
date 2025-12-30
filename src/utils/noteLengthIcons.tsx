@@ -262,17 +262,16 @@ function HalfRest(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width={"1rem"}
-      height={"1rem"}
-      viewBox="0 0 43.039 13.406"
+      width="1rem"
+      height="1rem"
       stroke="currentColor"
       fill="currentColor"
+      viewBox="0 0 43.039 13.406"
       xmlSpace="preserve"
-      transform="rotate(180)"
       {...props}
     >
       <path
-        d="M0 1.235v1.234h8.114v10.937h26.775l.107-5.398.105-5.362 3.987-.106 3.95-.106V0H0Z"
+        d="m -0.01127887,12.1236 0.0011435,-1.234 8.11399657,0.0075 0.010135,-10.93699536 26.7749888,0.02481 0.101998,5.39809646 0.100031,5.3620949 3.9869,0.109695 3.9499,0.10966 -0.0023,2.433999 -43.03793734,-0.03988 z"
         style={{
           stroke: "none",
           strokeWidth: 0.0352778,
