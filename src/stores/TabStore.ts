@@ -342,7 +342,6 @@ const initialStoreState = {
   },
 
   // modals
-  showAudioRecorderModal: false,
   showSectionProgressionModal: false,
   showGlossaryDialog: false,
   chordBeingEdited: null,
@@ -506,8 +505,6 @@ interface TabState {
   setPlaybackMetadata: (playbackMetadata: PlaybackMetadata[] | null) => void;
 
   // modals
-  showAudioRecorderModal: boolean;
-  setShowAudioRecorderModal: (showAudioRecorderModal: boolean) => void;
   showSectionProgressionModal: boolean;
   setShowSectionProgressionModal: (
     showSectionProgressionModal: boolean,
@@ -1245,9 +1242,6 @@ const useTabStoreBase = create<TabState>()(
       setExpandedTabData: (expandedTabData) => set({ expandedTabData }),
 
       // modals
-      showAudioRecorderModal: false,
-      setShowAudioRecorderModal: (showAudioRecorderModal) =>
-        set({ showAudioRecorderModal }),
       showSectionProgressionModal: false,
       setShowSectionProgressionModal: (showSectionProgressionModal) =>
         set({ showSectionProgressionModal }),
