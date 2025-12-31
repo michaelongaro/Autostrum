@@ -6,6 +6,15 @@ import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
+import { Separator } from "~/components/ui/separator";
+import SectionProgression from "./SectionProgression";
+import TabMetadata from "./TabMetadata";
+import { HiOutlineLightBulb, HiOutlineInformationCircle } from "react-icons/hi";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
@@ -21,15 +30,6 @@ import {
   DrawerDescription,
 } from "~/components/ui/drawer";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { Separator } from "~/components/ui/separator";
-import SectionProgression from "./SectionProgression";
-import TabMetadata from "./TabMetadata";
-import { HiOutlineLightBulb, HiOutlineInformationCircle } from "react-icons/hi";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
 import { useLocalStorageValue } from "@react-hookz/web";
 import Chords from "./Chords";
 import SectionContainer from "./SectionContainer";
@@ -37,25 +37,16 @@ import StrummingPatterns from "./StrummingPatterns";
 import dynamic from "next/dynamic";
 import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
 import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
-import Logo from "~/components/ui/icons/Logo";
 import ExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
 import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
-import { useInView } from "react-intersection-observer";
-import ChordDiagram from "~/components/Tab/ChordDiagram";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "~/components/ui/carousel";
 import TipsDialog from "~/components/Dialogs/TipsDialog";
-import { IoMdSettings } from "react-icons/io";
-import { Label } from "~/components/ui/label";
-import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
-import { Switch } from "~/components/ui/switch";
-import { getTrackBackground, Range } from "react-range";
 import { tuningNotes } from "~/utils/tunings";
 import AudioControls from "~/components/AudioControls/AudioControls";
-import ChordName from "~/components/ui/ChordName";
+import PinnedChordsCarousel from "~/components/Tab/PinnedChordsCarousel";
+import Logo from "~/components/ui/icons/Logo";
+import { useInView } from "react-intersection-observer";
+import { IoMdSettings } from "react-icons/io";
+import TabSettings from "~/components/Tab/TabSettings";
 
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
@@ -80,28 +71,19 @@ function Tab({ tab }: Tab) {
   const [isPublishingOrUpdating, setIsPublishingOrUpdating] = useState(false);
   const [showTipsModal, setShowTipsModal] = useState(false);
   const [tabContentIsInView, setTabContentIsInView] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [settingsPopoverIsOpen, setSettingsPopoverIsOpen] = useState(false);
+  // used to artificially keep static tab content visible for a split second longer
+  // while the playback modal is animating in, avoids jarring disappearance
+  const [hideStaticTabContent, setHideStaticTabContent] = useState(false);
 
   // true when creating new section, results in way less cpu/ram usage for arguably worse ux
   const [forceCloseSectionAccordions, setForceCloseSectionAccordions] =
     useState(false);
 
-  const { ref: tabContentRef } = useInView({
-    rootMargin: "-300px 0px -300px 0px",
-    threshold: 0,
-    onChange: (inView) => {
-      setTabContentIsInView(inView);
-    },
-  });
-
   const localStorageTabData = useLocalStorageValue("autostrum-tabData");
 
   const [showPinnedChords, setShowPinnedChords] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [settingsPopoverIsOpen, setSettingsPopoverIsOpen] = useState(false);
-
-  // used to artifically keep static tab content visible for a split second longer
-  // while the playback modal is animating in, avoids jarring disappearance
-  const [hideStaticTabContent, setHideStaticTabContent] = useState(false);
 
   const {
     setId,
@@ -134,11 +116,8 @@ function Tab({ tab }: Tab) {
     sectionProgression,
     chords,
     strummingPatterns,
-    audioMetadata,
     showPlaybackModal,
     viewportLabel,
-    setShowPlaybackModal,
-    setLooping,
     color,
     theme,
     showingAudioControls,
@@ -147,6 +126,9 @@ function Tab({ tab }: Tab) {
     getStringifiedTabData,
     tabData,
     setTabData,
+    audioMetadata,
+    setShowPlaybackModal,
+    setLooping,
   } = useTabStore((state) => ({
     setId: state.setId,
     setCreatedByUserId: state.setCreatedByUserId,
@@ -178,11 +160,8 @@ function Tab({ tab }: Tab) {
     sectionProgression: state.sectionProgression,
     chords: state.chords,
     strummingPatterns: state.strummingPatterns,
-    audioMetadata: state.audioMetadata,
     showPlaybackModal: state.showPlaybackModal,
     viewportLabel: state.viewportLabel,
-    setShowPlaybackModal: state.setShowPlaybackModal,
-    setLooping: state.setLooping,
     color: state.color,
     theme: state.theme,
     showingAudioControls: state.showingAudioControls,
@@ -191,6 +170,9 @@ function Tab({ tab }: Tab) {
     getStringifiedTabData: state.getStringifiedTabData,
     tabData: state.tabData,
     setTabData: state.setTabData,
+    audioMetadata: state.audioMetadata,
+    setShowPlaybackModal: state.setShowPlaybackModal,
+    setLooping: state.setLooping,
   }));
 
   useEffect(() => {
@@ -279,10 +261,6 @@ function Tab({ tab }: Tab) {
   ]);
 
   useEffect(() => {
-    if (showPlaybackModal === false) setHideStaticTabContent(false);
-  }, [showPlaybackModal]);
-
-  useEffect(() => {
     if (snapshotTabInLocalStorage) {
       localStorageTabData.set(getStringifiedTabData(tabData));
       setSnapshotTabInLocalStorage(false);
@@ -295,7 +273,19 @@ function Tab({ tab }: Tab) {
     setSnapshotTabInLocalStorage,
   ]);
 
+  useEffect(() => {
+    if (showPlaybackModal === false) setHideStaticTabContent(false);
+  }, [showPlaybackModal]);
+
   useAutoCompileChords();
+
+  const { ref: tabContentRef } = useInView({
+    rootMargin: "-300px 0px -300px 0px",
+    threshold: 0,
+    onChange: (inView) => {
+      setTabContentIsInView(inView);
+    },
+  });
 
   function addNewSection() {
     setTabData((draft) => {
@@ -416,59 +406,10 @@ function Tab({ tab }: Tab) {
           ref={tabContentRef}
           className="baseVertFlex relative mt-2 size-full scroll-m-24 !justify-start gap-4"
         >
-          <AnimatePresence mode="wait">
-            {showPinnedChords && chords.length > 0 && (
-              <motion.div
-                key={"stickyPinnedChords"}
-                // FYI: tried to animate height too, however idk if it's possible/easy
-                // given that this is a sticky element. (worked fine when not sticky)
-                initial={{
-                  opacity: 0,
-                  paddingTop: 0,
-                  paddingBottom: 0,
-                }}
-                animate={{
-                  opacity: 1,
-                  paddingTop: "0.5rem",
-                  paddingBottom: "0.5rem",
-                }}
-                exit={{
-                  opacity: 0,
-                  paddingTop: 0,
-                  paddingBottom: 0,
-                }}
-                transition={{ duration: 0.25 }}
-                className="baseFlex sticky left-0 top-20 z-10 max-w-[calc(100%-1.75rem)] rounded-xl border bg-background shadow-xl"
-              >
-                <Carousel
-                  opts={{
-                    dragFree: true,
-                    align: "start",
-                  }}
-                  className="baseFlex max-w-[100%]"
-                >
-                  <CarouselContent>
-                    {chords.map((chord) => (
-                      <CarouselItem
-                        key={chord.id}
-                        className="baseVertFlex basis-[96px] gap-2 text-foreground md:basis-[134px]"
-                      >
-                        <ChordName
-                          name={chord.name}
-                          color={chord.color}
-                          truncate={false}
-                        />
-
-                        <div className="h-[80px] tablet:h-[118px]">
-                          <ChordDiagram originalFrets={chord.frets} />
-                        </div>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                </Carousel>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <PinnedChordsCarousel
+            chords={chords}
+            showPinnedChords={showPinnedChords}
+          />
 
           {!hideStaticTabContent &&
             tabData.map((section, index) => (
@@ -520,9 +461,7 @@ function Tab({ tab }: Tab) {
           <div
             id="stickyBottomControls"
             style={{
-              pointerEvents: editing ? "none" : "auto",
               opacity:
-                !editing &&
                 audioMetadata.fullCurrentlyPlayingMetadataLength > 0 &&
                 tabContentIsInView
                   ? 1
@@ -536,7 +475,6 @@ function Tab({ tab }: Tab) {
                 <TooltipTrigger asChild>
                   <Button
                     variant={"secondary"}
-                    disabled={editing}
                     className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
                     onClick={() => setShowGlossaryDialog(true)}
                   >
@@ -554,7 +492,6 @@ function Tab({ tab }: Tab) {
               className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 tablet:px-10 tablet:text-xl"
               onClick={() => {
                 setShowPlaybackModal(true);
-                setLooping(true);
                 setTimeout(() => {
                   setHideStaticTabContent(true);
                 }, 500);
@@ -574,7 +511,6 @@ function Tab({ tab }: Tab) {
                 <DrawerTrigger asChild>
                   <Button
                     variant={"secondary"}
-                    disabled={editing}
                     className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
                   >
                     <IoMdSettings className="size-5" />
@@ -607,7 +543,6 @@ function Tab({ tab }: Tab) {
               <TooltipProvider delayDuration={150}>
                 <Tooltip open={settingsPopoverIsOpen ? false : undefined}>
                   <TooltipTrigger asChild>
-                    {/* directly rendering popover inside of TooltipTrigger didn't work, so adding shell <div> */}
                     <div className="baseFlex">
                       <Popover
                         open={settingsPopoverIsOpen}
@@ -616,7 +551,6 @@ function Tab({ tab }: Tab) {
                         <PopoverTrigger asChild>
                           <Button
                             variant={"secondary"}
-                            disabled={editing}
                             className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
                           >
                             <IoMdSettings className="size-5" />
@@ -687,148 +621,3 @@ function Tab({ tab }: Tab) {
 }
 
 export default Tab;
-
-interface TabSettings {
-  showPinnedChords: boolean;
-  setShowPinnedChords: (show: boolean) => void;
-}
-
-function TabSettings({ showPinnedChords, setShowPinnedChords }: TabSettings) {
-  const localStorageZoom = useLocalStorageValue("autostrum-zoom");
-  const localStorageLeftHandChordDiagrams = useLocalStorageValue(
-    "autostrum-left-hand-chord-diagrams",
-  );
-
-  const { chordDisplayMode, setChordDisplayMode } = useTabStore((state) => ({
-    chordDisplayMode: state.chordDisplayMode,
-    setChordDisplayMode: state.setChordDisplayMode,
-  }));
-
-  const zoom = useGetLocalStorageValues().zoom;
-  const leftHandChordDiagrams =
-    useGetLocalStorageValues().leftHandChordDiagrams;
-
-  // used for range marking conditional background color
-  const indexToZoom = [0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5];
-
-  return (
-    <div className="baseVertFlex w-full gap-2">
-      <div className="baseFlex w-full !justify-between gap-2 text-sm font-medium">
-        <Label id="tabZoomSlider">Zoom</Label>
-        <span>{zoom}x</span>
-      </div>
-
-      <div className="baseFlex w-full">
-        <Range
-          labelledBy="tabZoomSlider"
-          step={0.1}
-          min={0.5}
-          max={1.5}
-          values={[zoom]}
-          renderMark={({ props, index }) => (
-            <div
-              {...props}
-              key={props.key}
-              style={{
-                ...props.style,
-                marginTop: "0px",
-                height: "12px",
-                width: "2px",
-                borderRadius: "25%",
-                backgroundColor:
-                  indexToZoom[index]! <= zoom
-                    ? "hsl(var(--primary))"
-                    : "#939098",
-              }}
-            />
-          )}
-          onChange={(values) => {
-            localStorageZoom.set(`${values[0]}`);
-          }}
-          renderTrack={({ props, children, disabled }) => (
-            <div
-              onMouseDown={props.onMouseDown}
-              onTouchStart={props.onTouchStart}
-              style={{
-                ...props.style,
-                display: "flex",
-                width: "100%",
-                justifyContent: "center",
-              }}
-            >
-              <div
-                ref={props.ref}
-                style={{
-                  height: "8px",
-                  borderRadius: "0px",
-                  filter: disabled ? "brightness(0.75)" : "none",
-                  background: getTrackBackground({
-                    values: [zoom],
-                    colors: ["hsl(var(--primary))", "#939098"],
-                    min: 0.5,
-                    max: 1.5,
-                  }),
-                  alignSelf: "center",
-                }}
-                className="w-full"
-              >
-                {children}
-              </div>
-            </div>
-          )}
-          renderThumb={({ props, index }) => (
-            <div
-              {...props}
-              key={`${props.key}-${index}`}
-              style={{
-                ...props.style,
-              }}
-              className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
-            />
-          )}
-        />
-      </div>
-
-      <div className="baseFlex w-full !justify-between gap-2 text-xs font-medium">
-        <span>0.5x</span>
-        <span>1x</span>
-        <span>1.5x</span>
-      </div>
-
-      <div className="baseFlex mt-2 w-full !justify-between gap-2">
-        <Label htmlFor="pinChords">Pin chords</Label>
-        <Switch
-          id="pinChords"
-          checked={showPinnedChords}
-          onCheckedChange={(value) => {
-            setShowPinnedChords(value);
-          }}
-        />
-      </div>
-
-      <div className="baseFlex w-full !justify-between gap-2">
-        <Label htmlFor="leftHandChordDiagrams">Left-hand chord diagrams</Label>
-
-        <Switch
-          id="leftHandChordDiagrams"
-          checked={leftHandChordDiagrams}
-          onCheckedChange={(value) =>
-            localStorageLeftHandChordDiagrams.set(String(value))
-          }
-        />
-      </div>
-
-      <div className="baseFlex w-full !justify-between gap-2">
-        <Label htmlFor="chordDisplayMode">Color-coded chords</Label>
-
-        <Switch
-          id="chordDisplayMode"
-          checked={chordDisplayMode === "color"}
-          onCheckedChange={(checked) =>
-            setChordDisplayMode(checked ? "color" : "text")
-          }
-        />
-      </div>
-    </div>
-  );
-}

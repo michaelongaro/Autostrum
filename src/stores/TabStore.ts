@@ -1024,7 +1024,12 @@ const useTabStoreBase = create<TabState>()(
           }
 
           // Retrieve the latest state values within the loop
-          const { audioMetadata, breakOnNextChord, looping } = get();
+          const {
+            audioMetadata,
+            breakOnNextChord,
+            looping,
+            showPlaybackModal,
+          } = get();
 
           // Handle the condition to break the loop early
           if (breakOnNextChord) {
@@ -1037,7 +1042,7 @@ const useTabStoreBase = create<TabState>()(
           // Handle the end of the entire repeat sequence
           if (
             chordIndex === repeatedChordCount - 1 &&
-            looping &&
+            (looping || showPlaybackModal) &&
             audioMetadata.playing
           ) {
             // Reset the current chord index to 0 to start over

@@ -2,9 +2,8 @@ import { PrismaClient } from "../../../generated/client";
 import { motion } from "framer-motion";
 import type { GetStaticProps } from "next";
 import Head from "next/head";
-import { useEffect, useMemo } from "react";
-import Tab from "~/components/Tab/Tab";
-import { useTabStore } from "~/stores/TabStore";
+import { useMemo } from "react";
+import StaticTab from "~/components/Tab/Static/StaticTab";
 import superjson from "superjson";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import Binoculars from "~/components/ui/icons/Binoculars";
@@ -32,14 +31,6 @@ function ViewIndividualTab({ json }: { json: string }) {
     [json],
   );
 
-  const { setEditing } = useTabStore((state) => ({
-    setEditing: state.setEditing,
-  }));
-
-  useEffect(() => {
-    setEditing(false);
-  }, []);
-
   return (
     <motion.div
       key={"viewingTab"}
@@ -63,7 +54,7 @@ function ViewIndividualTab({ json }: { json: string }) {
         ></meta>
       </Head>
 
-      {tab ? <Tab tab={tab} /> : <TabNotFound />}
+      {tab ? <StaticTab tab={tab} /> : <TabNotFound />}
     </motion.div>
   );
 }

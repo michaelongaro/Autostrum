@@ -344,7 +344,6 @@ function PlaybackModal() {
     visiblePlaybackContainerWidth,
     expandedTabData,
     expandedTabDataHasChanged,
-    chordDurations,
     playbackMetadata,
     playbackSpeed,
   ]);
