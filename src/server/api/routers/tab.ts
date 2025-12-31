@@ -466,8 +466,8 @@ export const tabRouter = createTRPCRouter({
         difficulty: z.number(),
         chords: z.array(chordSchema),
         strummingPatterns: z.array(strummingPatternSchema),
-        tabData: z.array(sectionSchema),
         sectionProgression: z.array(sectionProgressionSchema),
+        tabData: z.array(sectionSchema),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -594,8 +594,8 @@ export const tabRouter = createTRPCRouter({
         difficulty: z.number(),
         chords: z.array(chordSchema),
         strummingPatterns: z.array(strummingPatternSchema),
-        tabData: z.array(sectionSchema),
         sectionProgression: z.array(sectionProgressionSchema),
+        tabData: z.array(sectionSchema),
       }),
     )
     .mutation(async ({ input, ctx }) => {

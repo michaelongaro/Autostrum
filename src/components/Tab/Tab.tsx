@@ -1,8 +1,6 @@
-import type { Tab as PrismaTab } from "~/generated/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { FaBook } from "react-icons/fa";
-import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
@@ -30,7 +28,6 @@ import {
   DrawerDescription,
 } from "~/components/ui/drawer";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { useLocalStorageValue } from "@react-hookz/web";
 import Chords from "./Chords";
 import SectionContainer from "./SectionContainer";
 import StrummingPatterns from "./StrummingPatterns";
@@ -40,7 +37,6 @@ import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
 import ExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
 import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
 import TipsDialog from "~/components/Dialogs/TipsDialog";
-import { tuningNotes } from "~/utils/tunings";
 import AudioControls from "~/components/AudioControls/AudioControls";
 import PinnedChordsCarousel from "~/components/Tab/PinnedChordsCarousel";
 import Logo from "~/components/ui/icons/Logo";
@@ -62,17 +58,19 @@ const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
 );
 
-interface Tab {
-  tab?: TabWithArtistMetadata | null;
+interface TabProps {
+  customTuning: string | null;
+  setCustomTuning: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
-function Tab({ tab }: Tab) {
-  const [customTuning, setCustomTuning] = useState<string | null>(null);
+function Tab({ customTuning, setCustomTuning }: TabProps) {
   const [isPublishingOrUpdating, setIsPublishingOrUpdating] = useState(false);
   const [showTipsModal, setShowTipsModal] = useState(false);
   const [tabContentIsInView, setTabContentIsInView] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [settingsPopoverIsOpen, setSettingsPopoverIsOpen] = useState(false);
+  const [showPinnedChords, setShowPinnedChords] = useState(false);
+
   // used to artificially keep static tab content visible for a split second longer
   // while the playback modal is animating in, avoids jarring disappearance
   const [hideStaticTabContent, setHideStaticTabContent] = useState(false);
@@ -81,31 +79,7 @@ function Tab({ tab }: Tab) {
   const [forceCloseSectionAccordions, setForceCloseSectionAccordions] =
     useState(false);
 
-  const localStorageTabData = useLocalStorageValue("autostrum-tabData");
-
-  const [showPinnedChords, setShowPinnedChords] = useState(false);
-
   const {
-    setId,
-    setCreatedByUserId,
-    setCreatedAt,
-    setUpdatedAt,
-    setTitle,
-    setArtistId,
-    setArtistName,
-    setArtistIsVerified,
-    setDescription,
-    setGenre,
-    setTuning,
-    setBpm,
-    setCapo,
-    setKey,
-    setDifficulty,
-    setChords,
-    setStrummingPatterns,
-    setSectionProgression,
-    editing,
-    setOriginalTabData,
     showSectionProgressionModal,
     setShowGlossaryDialog,
     chordBeingEdited,
@@ -121,35 +95,12 @@ function Tab({ tab }: Tab) {
     color,
     theme,
     showingAudioControls,
-    snapshotTabInLocalStorage,
-    setSnapshotTabInLocalStorage,
-    getStringifiedTabData,
     tabData,
     setTabData,
     audioMetadata,
     setShowPlaybackModal,
-    setLooping,
+    editing,
   } = useTabStore((state) => ({
-    setId: state.setId,
-    setCreatedByUserId: state.setCreatedByUserId,
-    setCreatedAt: state.setCreatedAt,
-    setUpdatedAt: state.setUpdatedAt,
-    setTitle: state.setTitle,
-    setArtistId: state.setArtistId,
-    setArtistName: state.setArtistName,
-    setArtistIsVerified: state.setArtistIsVerified,
-    setDescription: state.setDescription,
-    setGenre: state.setGenre,
-    setTuning: state.setTuning,
-    setBpm: state.setBpm,
-    setCapo: state.setCapo,
-    setKey: state.setKey,
-    setDifficulty: state.setDifficulty,
-    setChords: state.setChords,
-    setStrummingPatterns: state.setStrummingPatterns,
-    setSectionProgression: state.setSectionProgression,
-    editing: state.editing,
-    setOriginalTabData: state.setOriginalTabData,
     showSectionProgressionModal: state.showSectionProgressionModal,
     setShowGlossaryDialog: state.setShowGlossaryDialog,
     chordBeingEdited: state.chordBeingEdited,
@@ -165,113 +116,12 @@ function Tab({ tab }: Tab) {
     color: state.color,
     theme: state.theme,
     showingAudioControls: state.showingAudioControls,
-    snapshotTabInLocalStorage: state.snapshotTabInLocalStorage,
-    setSnapshotTabInLocalStorage: state.setSnapshotTabInLocalStorage,
-    getStringifiedTabData: state.getStringifiedTabData,
     tabData: state.tabData,
     setTabData: state.setTabData,
     audioMetadata: state.audioMetadata,
     setShowPlaybackModal: state.setShowPlaybackModal,
-    setLooping: state.setLooping,
+    editing: state.editing,
   }));
-
-  useEffect(() => {
-    if (!tab) return;
-
-    setOriginalTabData(structuredClone(tab));
-
-    setId(tab.id);
-    setCreatedByUserId(tab.createdByUserId);
-    setCreatedAt(tab.createdAt);
-    setUpdatedAt(tab.updatedAt);
-    setTitle(tab.title);
-    setArtistId(tab.artistId);
-    setArtistName(tab.artistName);
-    setArtistIsVerified(tab.artistIsVerified);
-    setDescription(tab.description);
-    setGenre(tab.genre);
-    setTuning(tab.tuning);
-    setBpm(tab.bpm);
-    setCapo(tab.capo);
-    setKey(tab.key);
-    setDifficulty(tab.difficulty);
-
-    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
-    setChords(tab.chords);
-    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
-    setStrummingPatterns(tab.strummingPatterns);
-    setTabData((draft) => {
-      // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
-      draft.splice(0, draft.length, ...tab.tabData);
-    });
-    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
-    setSectionProgression(tab.sectionProgression ?? []);
-
-    setCustomTuning(tuningNotes.includes(tab.tuning) ? null : tab.tuning);
-  }, [tab]);
-
-  useEffect(() => {
-    if (!localStorageTabData.value || tabData.length > 0) return;
-
-    // not sure of best way to check/validate types of localStorageTabData.value here..
-
-    const {
-      title,
-      description,
-      genre,
-      tuning,
-      bpm,
-      capo,
-      chords,
-      strummingPatterns,
-      tabData: localStorageTabDataValue, // avoids name conflict with actual tabData
-      sectionProgression,
-    } = JSON.parse(localStorageTabData.value as string) as PrismaTab;
-
-    setTitle(title);
-    setDescription(description);
-    setGenre(genre);
-    setTuning(tuning);
-    setBpm(bpm);
-    setCapo(capo);
-    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
-    setChords(chords);
-    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
-    setStrummingPatterns(strummingPatterns);
-    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
-    setTabData(localStorageTabDataValue);
-    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
-    setSectionProgression(sectionProgression ?? []);
-
-    localStorageTabData.remove();
-  }, [
-    localStorageTabData,
-    tabData.length,
-    setBpm,
-    setCapo,
-    setDescription,
-    setGenre,
-    setChords,
-    setStrummingPatterns,
-    setTabData,
-    setTitle,
-    setOriginalTabData,
-    setTuning,
-    setSectionProgression,
-  ]);
-
-  useEffect(() => {
-    if (snapshotTabInLocalStorage) {
-      localStorageTabData.set(getStringifiedTabData(tabData));
-      setSnapshotTabInLocalStorage(false);
-    }
-  }, [
-    tabData,
-    snapshotTabInLocalStorage,
-    localStorageTabData,
-    getStringifiedTabData,
-    setSnapshotTabInLocalStorage,
-  ]);
 
   useEffect(() => {
     if (showPlaybackModal === false) setHideStaticTabContent(false);

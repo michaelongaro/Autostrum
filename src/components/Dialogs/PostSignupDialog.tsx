@@ -7,8 +7,6 @@ import {
 import { FaUser } from "react-icons/fa";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useAuth, useClerk } from "@clerk/nextjs";
-import { useLocalStorageValue } from "@react-hookz/web";
-import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
@@ -24,7 +22,6 @@ import ThemePicker from "~/components/Header/ThemePicker";
 function PostSignupDialog() {
   const { user } = useClerk();
   const { isSignedIn } = useAuth();
-  // const { push } = useRouter();
   const ctx = api.useUtils();
 
   const { color } = useTabStore((state) => ({
@@ -35,10 +32,6 @@ function PostSignupDialog() {
     api.user.isUserRegistered.useQuery(undefined, {
       enabled: isSignedIn,
     });
-
-  // const localStorageRedirectRoute = useLocalStorageValue(
-  //   "autostrum-redirect-route",
-  // );
 
   const [username, setUsername] = useState("");
   const [debouncedUsername, setDebouncedUsername] = useState("");
@@ -63,15 +56,6 @@ function PostSignupDialog() {
 
   const { mutate: createUser } = api.user.create.useMutation({
     onSettled: async () => {
-      // if (localStorageRedirectRoute.value) {
-      //   void push(localStorageRedirectRoute.value as string);
-      //   localStorageRedirectRoute.remove();
-
-      //   // should invalidate the user registration status query
-      // } else {
-      //   void push("/");
-      // }
-
       // show checkmark for a second
       setTimeout(() => {
         setSaveButtonText("");

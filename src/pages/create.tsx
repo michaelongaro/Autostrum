@@ -1,13 +1,30 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
+import { useEffect, useState } from "react";
 import Tab from "~/components/Tab/Tab";
 import { GiMusicalScore } from "react-icons/gi";
 import { EighthNote, QuarterNote } from "~/utils/noteLengthIcons";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { useHydrateTabStore } from "~/hooks/useHydrateTabStore";
 import { BsFillPlayFill } from "react-icons/bs";
+import { useTabStore } from "~/stores/TabStore";
 
 function Create() {
+  const [customTuning, setCustomTuning] = useState<string | null>(null);
   const isAboveMediumViewport = useViewportWidthBreakpoint(768);
+
+  const { setEditing } = useTabStore((state) => ({
+    setEditing: state.setEditing,
+  }));
+
+  useEffect(() => {
+    setEditing(true);
+  }, [setEditing]);
+
+  useHydrateTabStore({
+    fetchedTab: undefined,
+    setCustomTuning,
+  });
   const isAboveArbitrary2xlViewport = useViewportWidthBreakpoint(1600); // 2xl breakpoint was just barely too small
 
   return (
@@ -79,7 +96,7 @@ function Create() {
           )}
         </div>
 
-        <Tab />
+        <Tab customTuning={customTuning} setCustomTuning={setCustomTuning} />
       </div>
     </motion.div>
   );

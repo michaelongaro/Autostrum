@@ -5,7 +5,7 @@ import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BiErrorCircle } from "react-icons/bi";
 import { BsArrowLeftShort } from "react-icons/bs";
 import Tab from "~/components/Tab/Tab";
@@ -14,6 +14,8 @@ import { Button } from "~/components/ui/button";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { env } from "~/env";
+import { useHydrateTabStore } from "~/hooks/useHydrateTabStore";
+import { useTabStore } from "~/stores/TabStore";
 
 const adapter = new PrismaPg({
   connectionString: env.DATABASE_URL,
@@ -38,6 +40,20 @@ function EditIndividualTab({ json }: { json: string }) {
   );
 
   const { query } = useRouter();
+  const [customTuning, setCustomTuning] = useState<string | null>(null);
+
+  const { setEditing } = useTabStore((state) => ({
+    setEditing: state.setEditing,
+  }));
+
+  useEffect(() => {
+    setEditing(true);
+  }, [setEditing]);
+
+  useHydrateTabStore({
+    fetchedTab: tab,
+    setCustomTuning,
+  });
 
   if (!tab) {
     return <TabNotFound />;
@@ -77,7 +93,7 @@ function EditIndividualTab({ json }: { json: string }) {
       </Head>
 
       <AnimatePresence mode="wait">
-        <Tab tab={tab} />
+        <Tab customTuning={customTuning} setCustomTuning={setCustomTuning} />
       </AnimatePresence>
     </motion.div>
   );

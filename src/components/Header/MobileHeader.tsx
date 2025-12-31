@@ -1,9 +1,7 @@
 import { SignInButton, SignOutButton, useAuth } from "@clerk/nextjs";
-import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import { BiSearchAlt2 } from "react-icons/bi";
 import { Squash as Hamburger } from "hamburger-react";
-import { TbGuitarPick } from "react-icons/tb";
 import { IoColorPalette } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
 import {
@@ -20,7 +18,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { BsPlus } from "react-icons/bs";
 import { PiMetronome } from "react-icons/pi";
-import { useTabStore } from "~/stores/TabStore";
+import { stringifyFullTabState, useTabStore } from "~/stores/TabStore";
 import { IoMdSettings } from "react-icons/io";
 import { IoBookmark, IoStatsChart } from "react-icons/io5";
 import Logo from "~/components/ui/icons/Logo";
@@ -45,19 +43,13 @@ function MobileHeader() {
   const { asPath } = useRouter();
   const { events } = useRouter();
 
-  const {
-    showMobileHeaderModal,
-    setShowMobileHeaderModal,
-    setSnapshotTabInLocalStorage,
-    color,
-    theme,
-  } = useTabStore((state) => ({
-    showMobileHeaderModal: state.showMobileHeaderModal,
-    setShowMobileHeaderModal: state.setShowMobileHeaderModal,
-    setSnapshotTabInLocalStorage: state.setSnapshotTabInLocalStorage,
-    color: state.color,
-    theme: state.theme,
-  }));
+  const { showMobileHeaderModal, setShowMobileHeaderModal, color, theme } =
+    useTabStore((state) => ({
+      showMobileHeaderModal: state.showMobileHeaderModal,
+      setShowMobileHeaderModal: state.setShowMobileHeaderModal,
+      color: state.color,
+      theme: state.theme,
+    }));
 
   const { data: currentUser, isInitialLoading: isLoadingCurrentUser } =
     api.user.getById.useQuery(userId!, {
@@ -66,10 +58,6 @@ function MobileHeader() {
 
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [userProfileImageLoaded, setUserProfileImageLoaded] = useState(false);
-
-  const localStorageRedirectRoute = useLocalStorageValue(
-    "autostrum-redirect-route",
-  );
 
   useEffect(() => {
     function handleRouteChange() {
@@ -357,24 +345,17 @@ function MobileHeader() {
                     }}
                     className="baseFlex h-[50px] w-full"
                   >
-                    <SignInButton
-                      mode="modal"
-                      // afterSignUpUrl={`${
-                      //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                      // }/postSignUpRegistration`}
-                      // afterSignInUrl={`${
-                      //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                      // }${asPath}`}
-                    >
+                    <SignInButton mode="modal">
                       <Button
                         variant={"headerNavigation"}
                         className="baseFlex h-10 gap-2 px-8"
                         onClick={() => {
-                          setSnapshotTabInLocalStorage(true);
-
-                          // technically can sign in from signup page and vice versa
-                          if (!userId) localStorageRedirectRoute.set(asPath);
-                          // ^^ but technically could just append it onto the postSignupRegistration route right?
+                          // snapshotting current tabData into localStorage for when
+                          // user is redirected back onto site
+                          localStorage.setItem(
+                            "autostrum-tabData",
+                            stringifyFullTabState(),
+                          );
                         }}
                       >
                         <FaUser className="size-4" />

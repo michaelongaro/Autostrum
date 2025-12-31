@@ -374,6 +374,7 @@ const initialStoreState = {
     type: "chord" as const,
     playing: false,
   },
+  resetProgressTabSliderPosition: "editing",
 
   isLoadingARoute: false,
   // idk if search needs to be included here
@@ -443,10 +444,6 @@ interface TabState {
   setCurrentlyCopiedData: (currentlyCopiedData: CopiedData | null) => void;
   currentlyCopiedChord: string[] | null;
   setCurrentlyCopiedChord: (currentlyCopiedChord: string[] | null) => void;
-  snapshotTabInLocalStorage: boolean;
-  setSnapshotTabInLocalStorage: (snapshotTabInLocalStorage: boolean) => void;
-  getStringifiedTabData: (tabData: Section[]) => string;
-  resetAudioAndMetadataOnRouteChange: () => void;
   atomicallyUpdateAudioMetadata: (
     updatedFields: Partial<AudioMetadata>,
   ) => void;
@@ -737,52 +734,6 @@ const useTabStoreBase = create<TabState>()(
       tabIsEffectivelyEmpty: true,
       setTabIsEffectivelyEmpty: (tabIsEffectivelyEmpty) =>
         set({ tabIsEffectivelyEmpty }),
-      snapshotTabInLocalStorage: false,
-      setSnapshotTabInLocalStorage: (snapshotTabInLocalStorage) =>
-        set({ snapshotTabInLocalStorage }),
-      getStringifiedTabData: (tabData: Section[]) => {
-        const {
-          title,
-          description,
-          genre,
-          tuning,
-          bpm,
-          capo,
-          chords,
-          strummingPatterns,
-          sectionProgression,
-        } = get();
-        return JSON.stringify({
-          title,
-          description,
-          genre,
-          tuning,
-          bpm,
-          capo,
-          chords,
-          strummingPatterns,
-          tabData,
-          sectionProgression,
-        });
-      },
-
-      // FYI: I think this can be removed along with the general store cleanup/refactor
-      resetAudioAndMetadataOnRouteChange: () => {
-        const { audioMetadata, pauseAudio } = get();
-
-        resetProgressTabSliderPosition("editing");
-
-        pauseAudio(true);
-
-        set({
-          audioMetadata: {
-            ...audioMetadata,
-            location: null,
-            playing: false,
-          },
-          currentChordIndex: 0,
-        });
-      },
 
       atomicallyUpdateAudioMetadata: (newFields: Partial<AudioMetadata>) => {
         const { audioMetadata } = get();
@@ -1297,6 +1248,30 @@ const useTabStoreBase = create<TabState>()(
 
 export const useTabStore = <T>(selector: (state: TabState) => T): T => {
   return useTabStoreBase(useShallow(selector));
+};
+
+export const stringifyFullTabState = () => {
+  const store = useTabStoreBase.getState();
+
+  const fullTabState = {
+    title: store.title,
+    artistId: store.artistId,
+    artistName: store.artistName,
+    artistIsVerified: store.artistIsVerified,
+    description: store.description,
+    genre: store.genre,
+    tuning: store.tuning,
+    bpm: store.bpm,
+    capo: store.capo,
+    key: store.key,
+    difficulty: store.difficulty,
+    chords: store.chords,
+    strummingPatterns: store.strummingPatterns,
+    sectionProgression: store.sectionProgression,
+    tabData: store.tabData,
+  };
+
+  return JSON.stringify(fullTabState);
 };
 
 export const getTabData = () => useTabStoreBase.getState().tabData;

@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useEffect, useLayoutEffect } from "react";
+import { useState, useEffect } from "react";
 import { FaBook } from "react-icons/fa";
-import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import {
   getTabData,
   useTabStore,
@@ -51,11 +50,7 @@ const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
 );
 
-interface StaticTabProps {
-  tab: TabWithArtistMetadata;
-}
-
-function StaticTab({ tab }: StaticTabProps) {
+function StaticTab() {
   const { asPath } = useRouter();
 
   const [tabContentIsInView, setTabContentIsInView] = useState(false);
@@ -77,27 +72,6 @@ function StaticTab({ tab }: StaticTabProps) {
   });
 
   const {
-    // Hydration setters
-    setId,
-    setCreatedByUserId,
-    setCreatedAt,
-    setUpdatedAt,
-    setTitle,
-    setArtistId,
-    setArtistName,
-    setArtistIsVerified,
-    setDescription,
-    setGenre,
-    setTuning,
-    setBpm,
-    setCapo,
-    setKey,
-    setDifficulty,
-    setChords,
-    setStrummingPatterns,
-    setSectionProgression,
-    setTabData,
-    setEditing,
     // Read-only state
     id,
     bpm,
@@ -112,31 +86,9 @@ function StaticTab({ tab }: StaticTabProps) {
     // Playback controls
     showPlaybackModal,
     setShowPlaybackModal,
-    setLooping,
     // UI controls
     setShowGlossaryDialog,
   } = useTabStore((state) => ({
-    // Hydration setters
-    setId: state.setId,
-    setCreatedByUserId: state.setCreatedByUserId,
-    setCreatedAt: state.setCreatedAt,
-    setUpdatedAt: state.setUpdatedAt,
-    setTitle: state.setTitle,
-    setArtistId: state.setArtistId,
-    setArtistName: state.setArtistName,
-    setArtistIsVerified: state.setArtistIsVerified,
-    setDescription: state.setDescription,
-    setGenre: state.setGenre,
-    setTuning: state.setTuning,
-    setBpm: state.setBpm,
-    setCapo: state.setCapo,
-    setKey: state.setKey,
-    setDifficulty: state.setDifficulty,
-    setChords: state.setChords,
-    setStrummingPatterns: state.setStrummingPatterns,
-    setSectionProgression: state.setSectionProgression,
-    setTabData: state.setTabData,
-    setEditing: state.setEditing,
     // Read-only state
     id: state.id,
     bpm: state.bpm,
@@ -151,50 +103,9 @@ function StaticTab({ tab }: StaticTabProps) {
     // Playback controls
     showPlaybackModal: state.showPlaybackModal,
     setShowPlaybackModal: state.setShowPlaybackModal,
-    setLooping: state.setLooping,
     // UI controls
     setShowGlossaryDialog: state.setShowGlossaryDialog,
   }));
-
-  // Hydrate store from tab prop
-  useLayoutEffect(() => {
-    if (!tab) return;
-
-    setId(tab.id);
-    setCreatedByUserId(tab.createdByUserId);
-    setCreatedAt(tab.createdAt);
-    setUpdatedAt(tab.updatedAt);
-    setTitle(tab.title);
-    setArtistId(tab.artistId);
-    setArtistName(tab.artistName);
-    setArtistIsVerified(tab.artistIsVerified);
-    setDescription(tab.description);
-    setGenre(tab.genre);
-    setTuning(tab.tuning);
-    setBpm(tab.bpm);
-    setCapo(tab.capo);
-    setKey(tab.key);
-    setDifficulty(tab.difficulty);
-
-    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
-    setChords(tab.chords);
-    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
-    setStrummingPatterns(tab.strummingPatterns);
-    setTabData((draft) => {
-      draft.splice(
-        0,
-        draft.length,
-        // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
-        ...tab.tabData,
-      );
-    });
-    // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
-    setSectionProgression(tab.sectionProgression ?? []);
-  }, [tab]);
-
-  useLayoutEffect(() => {
-    setEditing(false);
-  }, []);
 
   useEffect(() => {
     if (showPlaybackModal === false) setHideStaticTabContent(false);

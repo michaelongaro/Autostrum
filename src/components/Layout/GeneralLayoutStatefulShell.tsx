@@ -41,21 +41,20 @@ function GeneralLayoutStatefulShell() {
     resetStoreToInitValues,
     setEditing,
     setAudioMetadata,
-    resetAudioAndMetadataOnRouteChange,
     setCurrentlyPlayingMetadata,
     showMobileHeaderModal,
     setShowMobileHeaderModal,
+    pauseAudio,
   } = useTabStore((state) => ({
     setLooping: state.setLooping,
     setShowingAudioControls: state.setShowingAudioControls,
     resetStoreToInitValues: state.resetStoreToInitValues,
     setEditing: state.setEditing,
     setAudioMetadata: state.setAudioMetadata,
-    resetAudioAndMetadataOnRouteChange:
-      state.resetAudioAndMetadataOnRouteChange,
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
     showMobileHeaderModal: state.showMobileHeaderModal,
     setShowMobileHeaderModal: state.setShowMobileHeaderModal,
+    pauseAudio: state.pauseAudio,
   }));
 
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
@@ -67,13 +66,11 @@ function GeneralLayoutStatefulShell() {
 
   // route change state reset handling
   useEffect(() => {
-    resetAudioAndMetadataOnRouteChange();
+    pauseAudio(true);
 
-    if (asPath.includes("/edit") || asPath.includes("/create")) {
-      setShowingAudioControls(true);
-    } else {
-      setShowingAudioControls(false);
-    }
+    setShowingAudioControls(
+      asPath.includes("/edit") || asPath.includes("/create"),
+    );
 
     // only case where we want to keep tab state is when we are navigating onto a tab
     // page, or going to /edit from a tab page, etc.
@@ -86,11 +83,11 @@ function GeneralLayoutStatefulShell() {
     }
   }, [
     asPath,
+    pauseAudio,
     resetStoreToInitValues,
     setEditing,
     setShowingAudioControls,
     setAudioMetadata,
-    resetAudioAndMetadataOnRouteChange,
     setCurrentlyPlayingMetadata,
   ]);
 

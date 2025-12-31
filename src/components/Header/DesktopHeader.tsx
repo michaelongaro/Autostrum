@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { SignInButton, SignOutButton, useAuth } from "@clerk/nextjs";
-import { useLocalStorageValue } from "@react-hookz/web";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -18,7 +17,7 @@ import {
 import { BsPlus } from "react-icons/bs";
 import { IoMdSettings } from "react-icons/io";
 import { IoBookmark, IoStatsChart } from "react-icons/io5";
-import { useTabStore } from "~/stores/TabStore";
+import { stringifyFullTabState, useTabStore } from "~/stores/TabStore";
 import { PiMetronome } from "react-icons/pi";
 import { IoColorPalette } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
@@ -37,8 +36,7 @@ function DesktopHeader() {
   const { userId, isSignedIn } = useAuth();
   const { asPath } = useRouter();
 
-  const { setSnapshotTabInLocalStorage, color } = useTabStore((state) => ({
-    setSnapshotTabInLocalStorage: state.setSnapshotTabInLocalStorage,
+  const { color } = useTabStore((state) => ({
     color: state.color,
   }));
 
@@ -49,10 +47,6 @@ function DesktopHeader() {
 
   const [userPopoverOpen, setUserPopoverOpen] = useState(false);
   const [userProfileImageLoaded, setUserProfileImageLoaded] = useState(false);
-
-  const localStorageRedirectRoute = useLocalStorageValue(
-    "autostrum-redirect-route",
-  );
 
   return (
     <nav
@@ -260,24 +254,17 @@ function DesktopHeader() {
               <TooltipProvider delayDuration={150}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <SignInButton
-                      mode="modal"
-                      // afterSignUpUrl={`${
-                      //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                      // }/postSignUpRegistration`}
-                      // afterSignInUrl={`${
-                      //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                      // }${asPath}`}
-                    >
+                    <SignInButton mode="modal">
                       <Button
                         variant={"headerNavigation"}
                         className="!size-12 !rounded-full !p-0"
                         onClick={() => {
-                          setSnapshotTabInLocalStorage(true);
-
-                          // technically can sign in from signup page and vice versa
-                          if (!userId) localStorageRedirectRoute.set(asPath);
-                          // ^^ but technically could just append it onto the postSignupRegistration route right?
+                          // snapshotting current tabData into localStorage for when
+                          // user is redirected back onto site
+                          localStorage.setItem(
+                            "autostrum-tabData",
+                            stringifyFullTabState(),
+                          );
                         }}
                       >
                         <FaUser className="size-5" />
