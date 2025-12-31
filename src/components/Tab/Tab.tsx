@@ -458,120 +458,125 @@ function Tab({ tab }: Tab) {
             </Button>
           )}
 
-          <div
-            id="stickyBottomControls"
-            style={{
-              opacity:
-                audioMetadata.fullCurrentlyPlayingMetadataLength > 0 &&
-                tabContentIsInView
-                  ? 1
-                  : 0,
-              transition: "opacity 0.2s ease-in-out",
-            }}
-            className="baseFlex sticky bottom-4 mb-4 gap-4 tablet:bottom-6"
-          >
-            <TooltipProvider delayDuration={150}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={"secondary"}
-                    className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
-                    onClick={() => setShowGlossaryDialog(true)}
-                  >
-                    <FaBook className="size-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side={"top"}>
-                  <span>Glossary</span>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <Button
-              variant="audio"
-              className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 tablet:px-10 tablet:text-xl"
-              onClick={() => {
-                setShowPlaybackModal(true);
-                setTimeout(() => {
-                  setHideStaticTabContent(true);
-                }, 500);
+          {!editing && (
+            <div
+              id="stickyBottomControls"
+              style={{
+                opacity:
+                  audioMetadata.fullCurrentlyPlayingMetadataLength > 0 &&
+                  tabContentIsInView
+                    ? 1
+                    : 0,
+                transition: "opacity 0.2s ease-in-out",
               }}
+              className="baseFlex sticky bottom-4 mb-4 gap-4 tablet:bottom-6"
             >
-              <Logo className="size-[18px] tablet:size-5" />
-              Practice
-            </Button>
-
-            {viewportLabel.includes("mobile") ? (
-              <Drawer
-                open={drawerOpen}
-                onOpenChange={(open) => {
-                  setDrawerOpen(open);
-                }}
-              >
-                <DrawerTrigger asChild>
-                  <Button
-                    variant={"secondary"}
-                    className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
-                  >
-                    <IoMdSettings className="size-5" />
-                  </Button>
-                </DrawerTrigger>
-                <DrawerPortal>
-                  <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-2 rounded-t-2xl p-4 pb-6">
-                    <VisuallyHidden>
-                      <DrawerTitle>Tab settings</DrawerTitle>
-                      <DrawerDescription>
-                        Change the tab zoom, whether chords are pinned, and
-                        whether left-hand chord diagrams are shown.
-                      </DrawerDescription>
-                    </VisuallyHidden>
-
-                    <div className="baseFlex gap-2 font-medium">
-                      <IoMdSettings className="size-4" />
-                      Tab settings
-                    </div>
-                    <Separator className="mb-2 w-full bg-primary" />
-
-                    <TabSettings
-                      showPinnedChords={showPinnedChords}
-                      setShowPinnedChords={setShowPinnedChords}
-                    />
-                  </DrawerContent>
-                </DrawerPortal>
-              </Drawer>
-            ) : (
               <TooltipProvider delayDuration={150}>
-                <Tooltip open={settingsPopoverIsOpen ? false : undefined}>
+                <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="baseFlex">
-                      <Popover
-                        open={settingsPopoverIsOpen}
-                        onOpenChange={setSettingsPopoverIsOpen}
-                      >
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant={"secondary"}
-                            className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
-                          >
-                            <IoMdSettings className="size-5" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="baseVertFlex p-3" side="top">
-                          <TabSettings
-                            showPinnedChords={showPinnedChords}
-                            setShowPinnedChords={setShowPinnedChords}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
+                    <Button
+                      variant={"secondary"}
+                      className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
+                      onClick={() => setShowGlossaryDialog(true)}
+                    >
+                      <FaBook className="size-4" />
+                    </Button>
                   </TooltipTrigger>
                   <TooltipContent side={"top"}>
-                    <span>Settings</span>
+                    <span>Glossary</span>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            )}
-          </div>
+
+              <Button
+                variant="audio"
+                className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 tablet:px-10 tablet:text-xl"
+                onClick={() => {
+                  setShowPlaybackModal(true);
+                  setTimeout(() => {
+                    setHideStaticTabContent(true);
+                  }, 500);
+                }}
+              >
+                <Logo className="size-[18px] tablet:size-5" />
+                Practice
+              </Button>
+
+              {viewportLabel.includes("mobile") ? (
+                <Drawer
+                  open={drawerOpen}
+                  onOpenChange={(open) => {
+                    setDrawerOpen(open);
+                  }}
+                >
+                  <DrawerTrigger asChild>
+                    <Button
+                      variant={"secondary"}
+                      className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
+                    >
+                      <IoMdSettings className="size-5" />
+                    </Button>
+                  </DrawerTrigger>
+                  <DrawerPortal>
+                    <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 z-50 !items-start gap-2 rounded-t-2xl p-4 pb-6">
+                      <VisuallyHidden>
+                        <DrawerTitle>Tab settings</DrawerTitle>
+                        <DrawerDescription>
+                          Change the tab zoom, whether chords are pinned, and
+                          whether left-hand chord diagrams are shown.
+                        </DrawerDescription>
+                      </VisuallyHidden>
+
+                      <div className="baseFlex gap-2 font-medium">
+                        <IoMdSettings className="size-4" />
+                        Tab settings
+                      </div>
+                      <Separator className="mb-2 w-full bg-primary" />
+
+                      <TabSettings
+                        showPinnedChords={showPinnedChords}
+                        setShowPinnedChords={setShowPinnedChords}
+                      />
+                    </DrawerContent>
+                  </DrawerPortal>
+                </Drawer>
+              ) : (
+                <TooltipProvider delayDuration={150}>
+                  <Tooltip open={settingsPopoverIsOpen ? false : undefined}>
+                    <TooltipTrigger asChild>
+                      <div className="baseFlex">
+                        <Popover
+                          open={settingsPopoverIsOpen}
+                          onOpenChange={setSettingsPopoverIsOpen}
+                        >
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant={"secondary"}
+                              className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
+                            >
+                              <IoMdSettings className="size-5" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="baseVertFlex p-3"
+                            side="top"
+                          >
+                            <TabSettings
+                              showPinnedChords={showPinnedChords}
+                              setShowPinnedChords={setShowPinnedChords}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side={"top"}>
+                      <span>Settings</span>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
