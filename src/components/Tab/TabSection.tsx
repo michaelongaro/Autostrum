@@ -348,8 +348,6 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     };
   }, []);
 
-  // should these functions below be in zustand?
-
   function addNewColumns() {
     setTabData((draft) => {
       const subSection = draft[sectionIndex]!.data[subSectionIndex];
@@ -797,14 +795,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
 
       focusAndScrollIntoView(currentNote, newNoteToFocus);
     } else if (e.key === "Enter") {
-      setTabData((draft) => {
-        const subSection = draft[sectionIndex]!.data[subSectionIndex];
-        if (subSection?.type === "tab") {
-          for (let i = 0; i < 8; i++) {
-            subSection.data.push(createTabNote());
-          }
-        }
-      });
+      addNewColumns();
 
       const firstNewColumnIndex = subSection.data.length;
       setInputIdToFocus(
