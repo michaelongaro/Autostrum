@@ -1036,7 +1036,7 @@ function DesktopSettings({
       <Toggle
         variant={"outline"}
         aria-label="Edit loop range"
-        disabled={!looping || audioMetadata.playing || countInTimer.showing}
+        disabled={audioMetadata.playing || countInTimer.showing}
         pressed={audioMetadata.editingLoopRange}
         className="baseFlex gap-2"
         onPressedChange={(value) => {
