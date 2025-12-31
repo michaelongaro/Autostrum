@@ -6,7 +6,11 @@ import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type { COLORS, THEME, TabNote as TabNoteType } from "~/stores/TabStore";
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
 import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
-import { getStringValue, isTabNote } from "~/utils/tabNoteHelpers";
+import {
+  getStringValue,
+  isTabMeasureLine,
+  isTabNote,
+} from "~/utils/tabNoteHelpers";
 
 interface StaticTabNotesColumnProps {
   columnData: TabNoteType;
@@ -55,6 +59,15 @@ function StaticTabNotesColumn({
   const nextIsRestStrum = nextColumnIsPlayable
     ? nextColumn.chordEffects === "r"
     : undefined;
+
+  // Determine group boundaries for strumming guide beam rendering
+  const isFirstInGroup =
+    columnIndex === 0 ||
+    (previousColumn !== undefined && isTabMeasureLine(previousColumn));
+  const isLastInGroup =
+    isLastColumn ||
+    columnIndex === subSection.data.length - 1 ||
+    (nextColumn !== undefined && isTabMeasureLine(nextColumn));
 
   return (
     <motion.div
@@ -137,6 +150,8 @@ function StaticTabNotesColumn({
               nextIsRestStrum,
               color,
               theme,
+              isFirstInGroup,
+              isLastInGroup,
             })}
           </div>
         </div>

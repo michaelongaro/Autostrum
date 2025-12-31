@@ -139,6 +139,8 @@ function PlaybackTabChord({
                       previousIsRestStrum: prevChordIsRest,
                       currentIsRestStrum: currentChordIsRest,
                       nextIsRestStrum: nextChordIsRest,
+                      isFirstInGroup: isFirstChordInSection,
+                      isLastInGroup: isLastChordInSection,
                     })}
                   </div>
                 )}

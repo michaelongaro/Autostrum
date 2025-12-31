@@ -267,6 +267,8 @@ function StaticStrummingPattern({
                 nextIsRestStrum: data.strums[strumIndex + 1]?.strum === "r",
                 color,
                 theme,
+                isFirstInGroup: strumIndex === 0,
+                isLastInGroup: strumIndex === data.strums.length - 1,
               })}
             </div>
           </div>

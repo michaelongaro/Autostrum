@@ -10,17 +10,6 @@ interface ParsedNote {
   dotCount: 0 | 1 | 2;
 }
 
-interface RenderStrummingGuideParams {
-  previousNoteLength?: FullNoteLengths;
-  currentNoteLength?: FullNoteLengths;
-  nextNoteLength?: FullNoteLengths;
-  previousIsRestStrum?: boolean;
-  currentIsRestStrum?: boolean;
-  nextIsRestStrum?: boolean;
-  color?: COLORS;
-  theme?: "light" | "dark";
-}
-
 function parseFullNoteLength(note: FullNoteLengths): ParsedNote {
   const base = note.split(" ")[0] as NoteBase;
 
@@ -92,6 +81,21 @@ function renderDots(
   );
 }
 
+interface RenderStrummingGuide {
+  previousNoteLength?: FullNoteLengths;
+  currentNoteLength?: FullNoteLengths;
+  nextNoteLength?: FullNoteLengths;
+  previousIsRestStrum?: boolean;
+  currentIsRestStrum?: boolean;
+  nextIsRestStrum?: boolean;
+  color?: COLORS;
+  theme?: "light" | "dark";
+  /** True if this is the first strum in a chord sequence or after a measure line */
+  isFirstInGroup?: boolean;
+  /** True if this is the last strum in a chord sequence or before a measure line */
+  isLastInGroup?: boolean;
+}
+
 function renderStrummingGuide({
   previousNoteLength,
   currentNoteLength,
@@ -101,9 +105,9 @@ function renderStrummingGuide({
   nextIsRestStrum = false,
   color,
   theme,
-}: RenderStrummingGuideParams) {
-  // console.log(currentNoteLength);
-
+  isFirstInGroup = false,
+  isLastInGroup = false,
+}: RenderStrummingGuide) {
   if (!currentNoteLength) {
     return null;
   }
@@ -159,37 +163,120 @@ function renderStrummingGuide({
 
   const supportsBeams =
     parsedCurrent.base === "eighth" || parsedCurrent.base === "sixteenth";
+
+  // Determine if neighbors exist and what they are (respecting group boundaries)
+  const hasPreviousNote =
+    !isFirstInGroup && previousNoteLength && !previousIsRestStrum;
+  const hasNextNote = !isLastInGroup && nextNoteLength && !nextIsRestStrum;
+
   const parsedPrev =
-    supportsBeams && previousNoteLength && !previousIsRestStrum
+    supportsBeams && hasPreviousNote
       ? parseFullNoteLength(previousNoteLength)
       : null;
   const parsedNext =
-    supportsBeams && nextNoteLength && !nextIsRestStrum
-      ? parseFullNoteLength(nextNoteLength)
+    supportsBeams && hasNextNote ? parseFullNoteLength(nextNoteLength) : null;
+
+  // Check if neighbors support beaming (eighth or sixteenth)
+  const prevSupportsBeams =
+    parsedPrev?.base === "eighth" || parsedPrev?.base === "sixteenth";
+  const nextSupportsBeams =
+    parsedNext?.base === "eighth" || parsedNext?.base === "sixteenth";
+
+  // Check if neighbors are specifically sixteenth notes
+  const prevIsSixteenth = parsedPrev?.base === "sixteenth";
+  const nextIsSixteenth = parsedNext?.base === "sixteenth";
+
+  // First beam (shared by eighth and sixteenth): connects to any beamable neighbor
+  const connectsLeftFirstBeam = prevSupportsBeams;
+  const connectsRightFirstBeam = nextSupportsBeams;
+
+  // For eighth notes: only one beam level
+  if (parsedCurrent.base === "eighth") {
+    const leftBeams = connectsLeftFirstBeam
+      ? createBeamSegments("left", [0], noteColor)
       : null;
+    const rightBeams =
+      connectsRightFirstBeam || !connectsLeftFirstBeam
+        ? createBeamSegments("right", [0], noteColor)
+        : null;
 
-  const connectsLeft =
-    (parsedPrev?.base === "eighth" || parsedPrev?.base === "sixteenth") &&
-    (parsedCurrent?.base === "eighth" || parsedCurrent?.base === "sixteenth");
-  const connectsRight =
-    (parsedNext?.base === "eighth" || parsedNext?.base === "sixteenth") &&
-    (parsedCurrent?.base === "eighth" || parsedCurrent?.base === "sixteenth");
+    return (
+      <div className="baseFlex relative size-full !flex-nowrap">
+        {verticalStem}
+        {leftBeams}
+        {rightBeams}
+        {renderDots(parsedCurrent.dotCount, noteColor, "default")}
+      </div>
+    );
+  }
 
-  const beamOffsets = parsedCurrent.base === "sixteenth" ? [5, 0] : [0];
-  const leftBeams = connectsLeft
-    ? createBeamSegments("left", beamOffsets, noteColor)
-    : null;
-  const shouldShowRightBeams =
-    supportsBeams && (connectsRight || !connectsLeft);
-  const rightBeams = shouldShowRightBeams
-    ? createBeamSegments("right", beamOffsets, noteColor)
-    : null;
+  // For sixteenth notes: two beam levels with intelligent second beam rendering
+  if (parsedCurrent.base === "sixteenth") {
+    // First beam: standard beaming to any eighth/sixteenth neighbor
+    const showLeftFirstBeam = connectsLeftFirstBeam;
+    const showRightFirstBeam = connectsRightFirstBeam || !connectsLeftFirstBeam;
 
+    // Second beam (sixteenth-specific): only connects to other sixteenths
+    // If no adjacent sixteenth, show as a flag on one side only
+    let showLeftSecondBeam = false;
+    let showRightSecondBeam = false;
+
+    if (prevIsSixteenth && nextIsSixteenth) {
+      // Connected to sixteenths on both sides
+      showLeftSecondBeam = true;
+      showRightSecondBeam = true;
+    } else if (prevIsSixteenth && !nextIsSixteenth) {
+      // Only left neighbor is sixteenth - extend left beam only
+      showLeftSecondBeam = true;
+      showRightSecondBeam = false;
+    } else if (!prevIsSixteenth && nextIsSixteenth) {
+      // Only right neighbor is sixteenth - extend right beam only
+      showLeftSecondBeam = false;
+      showRightSecondBeam = true;
+    } else {
+      // No adjacent sixteenths - show flag
+      // Prefer right flag, unless at end of group (then left flag)
+      if (isLastInGroup || !hasNextNote) {
+        showLeftSecondBeam = true;
+        showRightSecondBeam = false;
+      } else {
+        showLeftSecondBeam = false;
+        showRightSecondBeam = true;
+      }
+    }
+
+    // Build the beam segments
+    const leftOffsets: number[] = [];
+    if (showLeftFirstBeam) leftOffsets.push(0);
+    if (showLeftSecondBeam) leftOffsets.push(5);
+
+    const rightOffsets: number[] = [];
+    if (showRightFirstBeam) rightOffsets.push(0);
+    if (showRightSecondBeam) rightOffsets.push(5);
+
+    const leftBeams =
+      leftOffsets.length > 0
+        ? createBeamSegments("left", leftOffsets, noteColor)
+        : null;
+    const rightBeams =
+      rightOffsets.length > 0
+        ? createBeamSegments("right", rightOffsets, noteColor)
+        : null;
+
+    return (
+      <div className="baseFlex relative size-full !flex-nowrap">
+        {verticalStem}
+        {leftBeams}
+        {rightBeams}
+        {renderDots(parsedCurrent.dotCount, noteColor, "default")}
+      </div>
+    );
+  }
+
+  // Quarter and half notes: just the stem (and dots)
   return (
     <div className="baseFlex relative size-full !flex-nowrap">
       {verticalStem}
-      {leftBeams}
-      {rightBeams}
       {renderDots(
         parsedCurrent.dotCount,
         noteColor,

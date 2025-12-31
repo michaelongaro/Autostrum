@@ -927,6 +927,8 @@ function StrummingPattern({
                     data.strums[strumIndex - 1]?.strum === "r",
                   currentIsRestStrum: strum.strum === "r",
                   nextIsRestStrum: data.strums[strumIndex + 1]?.strum === "r",
+                  isFirstInGroup: strumIndex === 0,
+                  isLastInGroup: strumIndex === data.strums.length - 1,
                 })}
               </div>
 
