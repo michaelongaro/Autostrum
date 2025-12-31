@@ -2,7 +2,12 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect, useLayoutEffect } from "react";
 import { FaBook } from "react-icons/fa";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
-import { useTabStore } from "~/stores/TabStore";
+import {
+  getTabData,
+  useTabStore,
+  type COLORS,
+  type Section,
+} from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import {
   Tooltip,
@@ -37,6 +42,10 @@ import { IoMdSettings } from "react-icons/io";
 import TabSettings from "~/components/Tab/TabSettings";
 import PinnedChordsCarousel from "~/components/Tab/PinnedChordsCarousel";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
+import { useRouter } from "next/router";
+import { createPortal } from "react-dom";
+import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
+import TabScreenshotPreview from "~/components/Tab/TabScreenshotPreview";
 
 const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
@@ -47,10 +56,13 @@ interface StaticTabProps {
 }
 
 function StaticTab({ tab }: StaticTabProps) {
+  const { asPath } = useRouter();
+
   const [tabContentIsInView, setTabContentIsInView] = useState(false);
   const [showPinnedChords, setShowPinnedChords] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [settingsPopoverIsOpen, setSettingsPopoverIsOpen] = useState(false);
+  const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
 
   // used to artificially keep static tab content visible for a split second longer
   // while the playback modal is animating in, avoids jarring disappearance
@@ -87,6 +99,8 @@ function StaticTab({ tab }: StaticTabProps) {
     setTabData,
     setEditing,
     // Read-only state
+    id,
+    bpm,
     sectionProgression,
     chords,
     strummingPatterns,
@@ -124,6 +138,8 @@ function StaticTab({ tab }: StaticTabProps) {
     setTabData: state.setTabData,
     setEditing: state.setEditing,
     // Read-only state
+    id: state.id,
+    bpm: state.bpm,
     sectionProgression: state.sectionProgression,
     chords: state.chords,
     strummingPatterns: state.strummingPatterns,
@@ -183,6 +199,14 @@ function StaticTab({ tab }: StaticTabProps) {
   useEffect(() => {
     if (showPlaybackModal === false) setHideStaticTabContent(false);
   }, [showPlaybackModal]);
+
+  // for screenshot preview, only show first two sections
+  useEffect(() => {
+    if (id === -1 || minifiedTabData || !asPath.includes("screenshot")) return;
+
+    const tabData = getTabData();
+    setMinifiedTabData(tabData.slice(0, 2));
+  }, [id, asPath, minifiedTabData]);
 
   useAutoCompileChords();
 
@@ -380,6 +404,42 @@ function StaticTab({ tab }: StaticTabProps) {
       <AnimatePresence mode="wait">
         {showPlaybackModal && <PlaybackModal />}
       </AnimatePresence>
+
+      {minifiedTabData &&
+        createPortal(
+          <div className="size-full overflow-hidden">
+            <div
+              id="tabPreviewScreenshotLight"
+              style={{
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["light" as "light" | "dark"]["screenshot-background"]})`,
+              }}
+              className="baseFlex h-[615px] w-[1318px] grayscale"
+            >
+              <TabScreenshotPreview
+                tabData={minifiedTabData}
+                bpm={bpm}
+                color={"peony"}
+                theme={"light"}
+              />
+            </div>
+
+            <div
+              id="tabPreviewScreenshotDark"
+              style={{
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["dark" as "light" | "dark"]["screenshot-background"]})`,
+              }}
+              className="baseFlex h-[615px] w-[1318px] grayscale"
+            >
+              <TabScreenshotPreview
+                tabData={minifiedTabData}
+                bpm={bpm}
+                color={"peony"}
+                theme={"dark"}
+              />
+            </div>
+          </div>,
+          document.getElementById("mainTabComponent")!,
+        )}
     </motion.div>
   );
 }
