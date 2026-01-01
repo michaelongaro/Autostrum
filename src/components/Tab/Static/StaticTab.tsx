@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { FaBook } from "react-icons/fa";
 import {
   getTabData,
@@ -58,10 +58,23 @@ function StaticTab() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [settingsPopoverIsOpen, setSettingsPopoverIsOpen] = useState(false);
   const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
+  const [sectionHeights, setSectionHeights] = useState<Record<string, number>>(
+    {},
+  );
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // used to artificially keep static tab content visible for a split second longer
-  // while the playback modal is animating in, avoids jarring disappearance
-  const [hideStaticTabContent, setHideStaticTabContent] = useState(false);
+  const measureSectionHeight = useCallback(
+    (sectionId: string, element: HTMLDivElement | null) => {
+      if (element && !sectionHeights[sectionId]) {
+        sectionRefs.current[sectionId] = element;
+        const height = element.getBoundingClientRect().height;
+        if (height > 0) {
+          setSectionHeights((prev) => ({ ...prev, [sectionId]: height }));
+        }
+      }
+    },
+    [sectionHeights],
+  );
 
   const { ref: tabContentRef } = useInView({
     rootMargin: "-300px 0px -300px 0px",
@@ -106,10 +119,6 @@ function StaticTab() {
     // UI controls
     setShowGlossaryDialog: state.setShowGlossaryDialog,
   }));
-
-  useEffect(() => {
-    if (showPlaybackModal === false) setHideStaticTabContent(false);
-  }, [showPlaybackModal]);
 
   // for screenshot preview, only show first two sections
   useEffect(() => {
@@ -170,10 +179,17 @@ function StaticTab() {
             showPinnedChords={showPinnedChords}
           />
 
-          {!hideStaticTabContent &&
-            tabData.map((section, index) => (
+          {tabData.map((section, index) =>
+            showPlaybackModal ? (
+              <div
+                key={section.id}
+                style={{ height: sectionHeights[section.id] ?? 0 }}
+                className="w-full"
+              />
+            ) : (
               <motion.div
                 key={section.id}
+                ref={(el) => measureSectionHeight(section.id, el)}
                 transition={{
                   layout: {
                     type: "spring",
@@ -191,7 +207,8 @@ function StaticTab() {
                   tabDataLength={tabData.length}
                 />
               </motion.div>
-            ))}
+            ),
+          )}
 
           <div
             id="stickyBottomControls"
@@ -227,9 +244,6 @@ function StaticTab() {
               className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 tablet:px-10 tablet:text-xl"
               onClick={() => {
                 setShowPlaybackModal(true);
-                setTimeout(() => {
-                  setHideStaticTabContent(true);
-                }, 500);
               }}
             >
               <Logo className="size-[18px] tablet:size-5" />

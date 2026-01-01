@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { FaBook } from "react-icons/fa";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
@@ -71,13 +71,27 @@ function Tab({ customTuning, setCustomTuning }: TabProps) {
   const [settingsPopoverIsOpen, setSettingsPopoverIsOpen] = useState(false);
   const [showPinnedChords, setShowPinnedChords] = useState(false);
 
-  // used to artificially keep static tab content visible for a split second longer
-  // while the playback modal is animating in, avoids jarring disappearance
-  const [hideStaticTabContent, setHideStaticTabContent] = useState(false);
-
   // true when creating new section, results in way less cpu/ram usage for arguably worse ux
   const [forceCloseSectionAccordions, setForceCloseSectionAccordions] =
     useState(false);
+
+  const [sectionHeights, setSectionHeights] = useState<Record<string, number>>(
+    {},
+  );
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const measureSectionHeight = useCallback(
+    (sectionId: string, element: HTMLDivElement | null) => {
+      if (element && !sectionHeights[sectionId]) {
+        sectionRefs.current[sectionId] = element;
+        const height = element.getBoundingClientRect().height;
+        if (height > 0) {
+          setSectionHeights((prev) => ({ ...prev, [sectionId]: height }));
+        }
+      }
+    },
+    [sectionHeights],
+  );
 
   const {
     showSectionProgressionModal,
@@ -122,10 +136,6 @@ function Tab({ customTuning, setCustomTuning }: TabProps) {
     setShowPlaybackModal: state.setShowPlaybackModal,
     editing: state.editing,
   }));
-
-  useEffect(() => {
-    if (showPlaybackModal === false) setHideStaticTabContent(false);
-  }, [showPlaybackModal]);
 
   useAutoCompileChords();
 
@@ -261,46 +271,51 @@ function Tab({ customTuning, setCustomTuning }: TabProps) {
             showPinnedChords={showPinnedChords}
           />
 
-          {!hideStaticTabContent &&
-            tabData.map((section, index) => (
-              <motion.div
-                key={section.id}
-                transition={{
-                  layout: {
-                    type: "spring",
-                    bounce: 0.15,
-                    duration: 1,
-                  },
-                }}
-                className="baseFlex w-full"
-              >
-                {editing ? (
-                  <SectionContainer
-                    sectionIndex={index}
-                    currentlyPlayingSectionIndex={
-                      currentlyPlayingMetadata?.[currentChordIndex]?.location
-                        .sectionIndex ?? 0
-                    }
-                    forceCloseSectionAccordions={
-                      forceCloseSectionAccordions &&
-                      index !== tabData.length - 1
-                    }
-                    setForceCloseSectionAccordions={
-                      setForceCloseSectionAccordions
-                    }
-                    tabDataLength={tabData.length}
-                  />
-                ) : (
-                  <StaticSectionContainer
-                    sectionIndex={index}
-                    sectionData={section}
-                    color={color}
-                    theme={theme}
-                    tabDataLength={tabData.length}
-                  />
-                )}
-              </motion.div>
-            ))}
+          {tabData.map((section, index) => (
+            <motion.div
+              key={section.id}
+              ref={(el) => measureSectionHeight(section.id, el)}
+              transition={{
+                layout: {
+                  type: "spring",
+                  bounce: 0.15,
+                  duration: 1,
+                },
+              }}
+              className="baseFlex w-full"
+            >
+              {editing ? (
+                <SectionContainer
+                  sectionIndex={index}
+                  currentlyPlayingSectionIndex={
+                    currentlyPlayingMetadata?.[currentChordIndex]?.location
+                      .sectionIndex ?? 0
+                  }
+                  forceCloseSectionAccordions={
+                    forceCloseSectionAccordions && index !== tabData.length - 1
+                  }
+                  setForceCloseSectionAccordions={
+                    setForceCloseSectionAccordions
+                  }
+                  tabDataLength={tabData.length}
+                />
+              ) : showPlaybackModal ? (
+                <div
+                  key={section.id}
+                  style={{ height: sectionHeights[section.id] ?? 0 }}
+                  className="w-full"
+                />
+              ) : (
+                <StaticSectionContainer
+                  sectionIndex={index}
+                  sectionData={section}
+                  color={color}
+                  theme={theme}
+                  tabDataLength={tabData.length}
+                />
+              )}
+            </motion.div>
+          ))}
 
           {editing && (
             <Button onClick={addNewSection} className="mb-12 px-8">
@@ -343,9 +358,6 @@ function Tab({ customTuning, setCustomTuning }: TabProps) {
                 className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 tablet:px-10 tablet:text-xl"
                 onClick={() => {
                   setShowPlaybackModal(true);
-                  setTimeout(() => {
-                    setHideStaticTabContent(true);
-                  }, 500);
                 }}
               >
                 <Logo className="size-[18px] tablet:size-5" />
