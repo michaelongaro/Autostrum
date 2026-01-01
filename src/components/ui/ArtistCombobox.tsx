@@ -109,7 +109,7 @@ function ArtistCombobox() {
       </PopoverTrigger>
       <PopoverContent side="bottom" className="w-[300px] p-0">
         <div className="baseFlex border-b px-3">
-          <BiSearchAlt2 className="mr-2 mt-1 size-5 shrink-0 opacity-50" />
+          <BiSearchAlt2 className="mt-1 size-5 shrink-0 opacity-50" />
           <Input
             placeholder="Enter artist name..."
             maxLength={60}
@@ -124,7 +124,7 @@ function ArtistCombobox() {
             }}
             value={searchQuery}
             showFocusState={false}
-            className="flex h-11 w-full rounded-md !border-none bg-transparent py-3 text-base outline-none placeholder:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-11 w-full rounded-md !border-none bg-transparent py-3 text-base outline-none placeholder:text-foreground/50 disabled:cursor-not-allowed disabled:opacity-50"
           />
 
           <AnimatePresence>
