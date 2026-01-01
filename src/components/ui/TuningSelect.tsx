@@ -9,15 +9,11 @@ import {
   SelectSeparator,
 } from "~/components/ui/select";
 import { useTabStore } from "~/stores/TabStore";
-import { tunings } from "~/utils/tunings";
+import { tuningNotes, tunings } from "~/utils/tunings";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import { useState } from "react";
 
-interface TuningSelectProps {
-  customTuning: string | null;
-}
-
-function TuningSelect({ customTuning }: TuningSelectProps) {
+function TuningSelect() {
   const { tuning, setTuning, setShowCustomTuningModal } = useTabStore(
     (state) => ({
       tuning: state.tuning,
@@ -67,15 +63,12 @@ function TuningSelect({ customTuning }: TuningSelectProps) {
 
         <SelectSeparator />
 
-        {/* Custom tuning (if it exists) */}
-        {customTuning && (
-          <SelectItem
-            key="custom-tuning"
-            value={customTuning} // Use the custom tuning string as the value
-          >
+        {/* Custom tuning (if it is defined) */}
+        {!tuningNotes.includes(tuning) && (
+          <SelectItem key="custom-tuning" value={tuning}>
             <div className="baseFlex w-[235px] !justify-between">
               <span className="font-medium">Custom</span>
-              <PrettyTuning tuning={customTuning} width="w-36" />
+              <PrettyTuning tuning={tuning} width="w-36" />
             </div>
           </SelectItem>
         )}
@@ -97,13 +90,13 @@ function TuningSelect({ customTuning }: TuningSelectProps) {
             }}
           >
             <>
-              {customTuning ? (
+              {tuningNotes.includes(tuning) ? (
+                "Create custom tuning"
+              ) : (
                 <>
                   Edit custom tuning
                   <MdModeEditOutline className="size-4" />
                 </>
-              ) : (
-                "Create custom tuning"
               )}
             </>
           </Button>

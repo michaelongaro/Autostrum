@@ -10,7 +10,6 @@ import { BsFillPlayFill } from "react-icons/bs";
 import { useTabStore } from "~/stores/TabStore";
 
 function Create() {
-  const [customTuning, setCustomTuning] = useState<string | null>(null);
   const isAboveMediumViewport = useViewportWidthBreakpoint(768);
 
   const { setEditing } = useTabStore((state) => ({
@@ -23,7 +22,6 @@ function Create() {
 
   useHydrateTabStore({
     fetchedTab: undefined,
-    setCustomTuning,
   });
   const isAboveArbitrary2xlViewport = useViewportWidthBreakpoint(1600); // 2xl breakpoint was just barely too small
 
@@ -96,7 +94,7 @@ function Create() {
           )}
         </div>
 
-        <Tab customTuning={customTuning} setCustomTuning={setCustomTuning} />
+        <Tab />
       </div>
     </motion.div>
   );

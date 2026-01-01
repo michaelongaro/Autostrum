@@ -94,11 +94,10 @@ const KEYS_BY_LETTER = {
 const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 
 type TabMetadata = {
-  customTuning: string | null;
   setIsPublishingOrUpdating: Dispatch<SetStateAction<boolean>>;
 };
 
-function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
+function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
   const { userId } = useAuth();
   const { push, asPath } = useRouter();
 
@@ -777,7 +776,7 @@ function TabMetadata({ customTuning, setIsPublishingOrUpdating }: TabMetadata) {
               <Label htmlFor="tuning">
                 Tuning <span className="text-destructive">*</span>
               </Label>
-              <TuningSelect customTuning={customTuning} />
+              <TuningSelect />
             </div>
 
             <div

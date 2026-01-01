@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { FaBook } from "react-icons/fa";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
@@ -58,12 +58,7 @@ const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
 );
 
-interface TabProps {
-  customTuning: string | null;
-  setCustomTuning: React.Dispatch<React.SetStateAction<string | null>>;
-}
-
-function Tab({ customTuning, setCustomTuning }: TabProps) {
+function Tab() {
   const [isPublishingOrUpdating, setIsPublishingOrUpdating] = useState(false);
   const [showTipsModal, setShowTipsModal] = useState(false);
   const [tabContentIsInView, setTabContentIsInView] = useState(false);
@@ -177,10 +172,7 @@ function Tab({ customTuning, setCustomTuning }: TabProps) {
           isPublishingOrUpdating ? "pointer-events-none brightness-90" : ""
         }`}
       >
-        <TabMetadata
-          customTuning={customTuning}
-          setIsPublishingOrUpdating={setIsPublishingOrUpdating}
-        />
+        <TabMetadata setIsPublishingOrUpdating={setIsPublishingOrUpdating} />
 
         {!editing &&
           sectionProgression.length === 0 &&
@@ -443,12 +435,7 @@ function Tab({ customTuning, setCustomTuning }: TabProps) {
       </div>
 
       <AnimatePresence mode="wait">
-        {showCustomTuningModal && (
-          <CustomTuningModal
-            customTuning={customTuning}
-            setCustomTuning={setCustomTuning}
-          />
-        )}
+        {showCustomTuningModal && <CustomTuningModal />}
       </AnimatePresence>
 
       <AnimatePresence mode="wait">

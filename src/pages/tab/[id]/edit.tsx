@@ -40,7 +40,6 @@ function EditIndividualTab({ json }: { json: string }) {
   );
 
   const { query } = useRouter();
-  const [customTuning, setCustomTuning] = useState<string | null>(null);
 
   const { setEditing } = useTabStore((state) => ({
     setEditing: state.setEditing,
@@ -52,7 +51,6 @@ function EditIndividualTab({ json }: { json: string }) {
 
   useHydrateTabStore({
     fetchedTab: tab,
-    setCustomTuning,
   });
 
   if (!tab) {
@@ -93,7 +91,7 @@ function EditIndividualTab({ json }: { json: string }) {
       </Head>
 
       <AnimatePresence mode="wait">
-        <Tab customTuning={customTuning} setCustomTuning={setCustomTuning} />
+        <Tab />
       </AnimatePresence>
     </motion.div>
   );

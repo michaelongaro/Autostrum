@@ -16,6 +16,7 @@ import { IoSettingsSharp } from "react-icons/io5";
 import { BsFillPlayFill } from "react-icons/bs";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import { X } from "lucide-react";
+import { tuningNotes } from "~/utils/tunings";
 
 const backdropVariants = {
   expanded: {
@@ -26,20 +27,26 @@ const backdropVariants = {
   },
 };
 
-interface CustomTuningModal {
-  customTuning: string | null;
-  setCustomTuning: React.Dispatch<React.SetStateAction<string | null>>;
-}
+function CustomTuningModal() {
+  const {
+    previewMetadata,
+    playPreview,
+    tuning,
+    setTuning,
+    setShowCustomTuningModal,
+  } = useTabStore((state) => ({
+    previewMetadata: state.previewMetadata,
+    playPreview: state.playPreview,
+    tuning: state.tuning,
+    setTuning: state.setTuning,
+    setShowCustomTuningModal: state.setShowCustomTuningModal,
+  }));
 
-function CustomTuningModal({
-  customTuning,
-  setCustomTuning,
-}: CustomTuningModal) {
-  const [customInputValues, setCustomInputValues] = useState<string[]>(
-    customTuning && customTuning.length > 0
-      ? customTuning.split(" ")
-      : ["", "", "", "", "", ""],
+  const [newTuning, setNewTuning] = useState<string[]>(
+    tuningNotes.includes(tuning) ? ["", "", "", "", "", ""] : tuning.split(" "),
   );
+
+  const placeholderNotes = ["E2", "A2", "D3", "G3", "B3", "E4"];
 
   const [showInvalidInputPerIndex, setShowInvalidInputPerIndex] = useState([
     false,
@@ -54,16 +61,6 @@ function CustomTuningModal({
     number | null
   >(null);
 
-  const placeholderNotes = ["E2", "A2", "D3", "G3", "B3", "E4"];
-
-  const { previewMetadata, playPreview, setTuning, setShowCustomTuningModal } =
-    useTabStore((state) => ({
-      previewMetadata: state.previewMetadata,
-      playPreview: state.playPreview,
-      setTuning: state.setTuning,
-      setShowCustomTuningModal: state.setShowCustomTuningModal,
-    }));
-
   useModalScrollbarHandling();
 
   function getInvalidInputIndicies() {
@@ -72,7 +69,7 @@ function CustomTuningModal({
     const validNotationRegex =
       /^(A[0-7]|A#[0-7]|B[0-7]|C[1-8]|C#[1-8]|D[1-7]|D#[1-7]|E[1-7]|F[1-7]|F#[1-7]|G[1-7]|G#[1-7])$/;
 
-    customInputValues.forEach((value) => {
+    newTuning.forEach((value) => {
       invalidInputs.push(!validNotationRegex.test(value.toUpperCase()));
     });
 
@@ -92,8 +89,7 @@ function CustomTuningModal({
       return;
     }
 
-    const sanitizedTuning = customInputValues.join(" ");
-    setCustomTuning(sanitizedTuning);
+    const sanitizedTuning = newTuning.join(" ");
     setTuning(sanitizedTuning);
     setShowCustomTuningModal(false);
   }
@@ -185,7 +181,7 @@ function CustomTuningModal({
           </div>
 
           <div className="baseFlex gap-1 xs:gap-2">
-            {customInputValues.map((value, index) => (
+            {newTuning.map((value, index) => (
               <Input
                 key={index}
                 placeholder={placeholderNotes[index]}
@@ -202,9 +198,9 @@ function CustomTuningModal({
                 onChange={(e) => {
                   if (e.target.value.length > 3) return;
 
-                  const newCustomInputValues = [...customInputValues];
-                  newCustomInputValues[index] = e.target.value.toLowerCase();
-                  setCustomInputValues(newCustomInputValues);
+                  const newTuningValues = [...newTuning];
+                  newTuningValues[index] = e.target.value.toLowerCase();
+                  setNewTuning(newTuningValues);
                 }}
               />
             ))}
@@ -215,9 +211,7 @@ function CustomTuningModal({
               disabled={
                 highlightedNoteInputIndex !== null ||
                 (previewMetadata.playing && previewMetadata.type === "chord") ||
-                customInputValues.some(
-                  (customInputValue) => customInputValue === "",
-                )
+                newTuning.some((customInputValue) => customInputValue === "")
               }
               variant={"audio"}
               className="baseFlex gap-2"
@@ -228,7 +222,7 @@ function CustomTuningModal({
                   data: ["0", "0", "0", "0", "0", "0"],
                   index: -1,
                   type: "chord",
-                  customTuning: customInputValues.join(" "),
+                  customTuning: newTuning.join(" "),
                   customBpm: "40",
                 });
 
@@ -263,9 +257,8 @@ function CustomTuningModal({
 
             <Button
               disabled={
-                customInputValues.some(
-                  (customInputValue) => customInputValue === "",
-                ) || isEqual(customTuning, customInputValues.join(" "))
+                newTuning.some((customInputValue) => customInputValue === "") ||
+                isEqual(tuning, newTuning.join(" "))
               }
               onClick={handleSaveCustomTuning}
               className="px-8"

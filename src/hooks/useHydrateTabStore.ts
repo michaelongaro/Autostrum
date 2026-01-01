@@ -23,7 +23,6 @@ export interface LocalStorageTabData {
 
 interface UseHydrateTabStoreOptions {
   fetchedTab?: TabWithArtistMetadata | null;
-  setCustomTuning?: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 /**
@@ -37,10 +36,7 @@ interface UseHydrateTabStoreOptions {
  * This hook should be called at the page level (create.tsx, edit.tsx, [title].tsx)
  * to ensure the store is hydrated before any child components render.
  */
-export function useHydrateTabStore({
-  fetchedTab,
-  setCustomTuning,
-}: UseHydrateTabStoreOptions) {
+export function useHydrateTabStore({ fetchedTab }: UseHydrateTabStoreOptions) {
   const {
     setId,
     setCreatedByUserId,
@@ -137,16 +133,10 @@ export function useHydrateTabStore({
       // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
       setSectionProgression(tab.sectionProgression ?? []);
 
-      // Set custom tuning if applicable
-      if (setCustomTuning) {
-        setCustomTuning(tuningNotes.includes(tab.tuning) ? null : tab.tuning);
-      }
-
       localStorage.removeItem("autostrum-tabData");
     }
   }, [
     fetchedTab,
-    setCustomTuning,
     setId,
     setCreatedByUserId,
     setCreatedAt,
