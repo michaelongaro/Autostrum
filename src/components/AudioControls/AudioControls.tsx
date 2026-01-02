@@ -226,20 +226,20 @@ function AudioControls() {
   return (
     <motion.div
       key={"audioControls"}
-      style={{
-        transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-      }}
-      className="baseFlex fixed z-30 w-[100vw]"
       variants={mainAudioControlsVariants}
       initial="closed"
       animate="expanded"
       exit="closed"
+      style={{
+        transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+      }}
+      className="baseFlex fixed w-[95vw] max-w-[500px] lg:max-w-[800px] xl:w-10/12"
     >
       <div
         style={{
           boxShadow: "0 25px 45px -12px rgb(0 0 0 / 0.4)", // large subtle blur
         }}
-        className="baseVertFlex audioControlsBoxShadow h-full w-[95vw] max-w-[500px] rounded-xl bg-accent p-2 text-primary-foreground transition-opacity lg:max-w-[800px] lg:rounded-full lg:px-10 lg:py-2 xl:w-10/12"
+        className="baseVertFlex audioControlsBoxShadow z-30 size-full rounded-xl bg-accent p-2 text-primary-foreground transition-opacity lg:rounded-full lg:px-10 lg:py-2"
       >
         <AnimatePresence mode="sync">
           {aboveLargeViewportWidth && visibility === "minimized" && (
