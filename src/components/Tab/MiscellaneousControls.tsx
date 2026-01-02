@@ -278,6 +278,10 @@ function MiscellaneousControls({
       location: null,
     });
 
+    // Capture the section ID before modifying tabData, so we can filter
+    // the section progression outside the setTabData immer callback
+    const sectionIdToDelete = section?.id;
+
     setTabData((draft) => {
       if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
         const chordSequenceData = draft[sectionIndex]?.data[subSectionIndex]
@@ -289,14 +293,6 @@ function MiscellaneousControls({
 
         subSectionData.splice(subSectionIndex, 1);
       } else {
-        const newSectionProgression = [...sectionProgression];
-
-        for (let i = newSectionProgression.length - 1; i >= 0; i--) {
-          if (newSectionProgression[i]?.sectionId === draft[sectionIndex]?.id) {
-            newSectionProgression.splice(i, 1);
-          }
-        }
-
         if (sectionIndex === 0) {
           draft.length = 0; // Clearing the entire array
           draft.push({
@@ -307,10 +303,16 @@ function MiscellaneousControls({
         } else {
           draft.splice(sectionIndex, 1);
         }
-
-        setSectionProgression(newSectionProgression);
       }
     });
+
+    // Update section progression after setTabData to avoid nested state updates
+    if (chordSequenceIndex === undefined && subSectionIndex === undefined) {
+      const newSectionProgression = sectionProgression.filter(
+        (item) => item.sectionId !== sectionIdToDelete,
+      );
+      setSectionProgression(newSectionProgression);
+    }
   }
 
   return (
