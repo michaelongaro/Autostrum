@@ -310,10 +310,12 @@ function Tab() {
           ))}
 
           {editing && (
-            <Button onClick={addNewSection} className="mb-12 px-8">
+            <Button onClick={addNewSection} className="mb-8 px-8">
               Add section
             </Button>
           )}
+
+          {editing && showingAudioControls && <AudioControls />}
 
           {!editing && (
             <div
@@ -468,8 +470,6 @@ function Tab() {
       <AnimatePresence mode="wait">
         {showPlaybackModal && <PlaybackModal />}
       </AnimatePresence>
-
-      {editing && showingAudioControls && <AudioControls />}
     </motion.div>
   );
 }
