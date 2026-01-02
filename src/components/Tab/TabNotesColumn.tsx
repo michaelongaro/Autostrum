@@ -313,18 +313,19 @@ function TabNotesColumn({
         id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
         className="baseFlex relative"
       >
+        {/* absolutely positioned chord highlight */}
         <div
           style={{
             transform:
               highlightChord || columnHasBeenPlayed
-                ? `scaleX(${isLastColumn ? "0.8" : "1"})` // makes sure that "endcap" doesn't get highlighted as well
+                ? `scaleX(${isLastColumn ? "0.8" : "1"})` // makes sure that final column "endcap" doesn't get highlighted as well
                 : "scaleX(0)",
             transformOrigin: "left center",
             transitionDuration: highlightChord ? `${durationOfChord}s` : "0s",
             msTransitionProperty: "transform",
             transitionTimingFunction: "linear",
           }}
-          className="pointer-events-none absolute left-0 z-10 mb-8 h-[260px] w-full bg-primary/15"
+          className="pointer-events-none absolute left-0 z-0 mb-[26px] h-[254px] w-full bg-primary"
         ></div>
 
         <div className="baseVertFlex">
