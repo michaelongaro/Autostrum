@@ -326,14 +326,17 @@ function TabMeasureLine({
       className="baseVertFlex relative h-[380px]"
     >
       {/* absolutely positioned highlight */}
-      {(reorderingColumns || showingDeleteColumnsButtons) && (
-        <div
-          style={{
-            width: columnHasBeenPlayed ? "100%" : "0%",
-          }}
-          className="absolute left-0 top-[177px] h-[254px] w-0 -translate-y-1/2 bg-primary/25"
-        ></div>
-      )}
+      <div
+        style={{
+          opacity:
+            (reorderingColumns || showingDeleteColumnsButtons) &&
+            columnHasBeenPlayed
+              ? "100%"
+              : "0%",
+          transition: "opacity 0.15s ease-in-out",
+        }}
+        className="absolute left-0 top-[177px] h-[254px] w-full -translate-y-1/2 bg-primary/25"
+      ></div>
 
       {/* Palm mute connecting line (shown when measure line is inside palm mute section) */}
       <div className="baseFlex h-[48px] w-full shrink-0">
