@@ -31,6 +31,7 @@ const backdropVariants = {
 };
 
 const virtualizationBuffer = 100;
+const scrubDebounceDelay = 300; // ms to wait after scrubbing stops before re-enabling virtualization
 
 function PlaybackModal() {
   const {
@@ -83,6 +84,7 @@ function PlaybackModal() {
   const [containerElement, setContainerElement] =
     useState<HTMLDivElement | null>(null);
   const [showBackgroundBlur, setShowBackgroundBlur] = useState(false);
+  const [isScrubbing, setIsScrubbing] = useState(false);
 
   const [chordDurations, setChordDurations] = useState<number[]>([]);
   const [initialPlaceholderWidth, setInitialPlaceholderWidth] = useState(0);
@@ -124,6 +126,23 @@ function PlaybackModal() {
   );
 
   useModalScrollbarHandling(true);
+
+  // Detect scrubbing and disable virtualization
+  useEffect(() => {
+    if (audioMetadata.playing) {
+      setIsScrubbing(false);
+      return;
+    }
+
+    // User is changing position while not playing (scrubbing)
+    setIsScrubbing(true);
+
+    const timeout = setTimeout(() => {
+      setIsScrubbing(false);
+    }, scrubDebounceDelay);
+
+    return () => clearTimeout(timeout);
+  }, [currentChordIndex, audioMetadata.playing]);
 
   useEffect(() => {
     // this feels a bit like a bandaid fix
@@ -411,10 +430,11 @@ function PlaybackModal() {
     virtualizationCatchupIndex,
   ]);
 
-  // TODO: maybe increase buffer if you want to get rid of the blank space
-  // when scrubbing quickly?
   function chordIsVisible(index: number) {
     if (scrollPositions === null) return false;
+
+    // Disable virtualization while scrubbing to prevent rendering trail
+    if (isScrubbing) return true;
 
     const chordPosition = getScrollPosition({
       scrollPositions,
