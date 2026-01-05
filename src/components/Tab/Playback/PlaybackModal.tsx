@@ -152,7 +152,7 @@ function PlaybackModal() {
         : isSpacerChord
           ? 16
           : chord?.type === "tab"
-            ? 35
+            ? 34
             : 40;
 
       scrollPositions[i] = offsetLeft;
@@ -880,6 +880,6 @@ function RenderChordByType({
   }
 
   if (type === "loopDelaySpacer") {
-    return <div className="absolute left-0 h-full w-[35px]"></div>;
+    return <div className="absolute left-0 h-full w-[34px]"></div>;
   }
 }

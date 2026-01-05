@@ -20,7 +20,7 @@ function StaticTabNote({
   theme,
 }: StaticTabNote) {
   return (
-    <div className="baseFlex w-[35px]">
+    <div className="baseFlex w-full">
       <div
         style={{
           backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]} / 0.5)`,

@@ -72,7 +72,7 @@ function StaticTabNotesColumn({
   return (
     <motion.div
       key={columnData.id}
-      className="baseFlex h-[290px] cursor-default"
+      className="baseFlex h-[290px] w-[34px] cursor-default"
     >
       <div className="baseVertFlex mb-[51px] mt-4">
         {/* Palm Mute Node */}
@@ -98,7 +98,7 @@ function StaticTabNotesColumn({
                 borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
                 backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-background"]} / 0.75)`,
               }}
-              className="baseFlex relative min-h-[24px] w-[35px] basis-[content]"
+              className="baseFlex relative min-h-[24px] w-[34px] basis-[content]"
             >
               <div
                 style={{

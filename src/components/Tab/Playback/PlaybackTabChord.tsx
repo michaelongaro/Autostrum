@@ -230,7 +230,7 @@ function PlaybackTabNote({
   isRest,
 }: PlaybackTabNote) {
   return (
-    <div className="baseFlex w-[35px]">
+    <div className="baseFlex w-[34px]">
       <div className="my-[10px] h-[1px] flex-[1] bg-foreground/50 mobilePortrait:my-3"></div>
       <div
         style={{
