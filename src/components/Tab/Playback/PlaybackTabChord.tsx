@@ -3,7 +3,7 @@ import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import type { FullNoteLengths } from "~/stores/TabStore";
-import { getDynamicNoteLengthIcon, QuarterNote } from "~/utils/noteLengthIcons";
+import { QuarterNote } from "~/utils/noteLengthIcons";
 import renderStrummingGuide from "~/utils/renderStrummingGuide";
 
 interface PlaybackTabChord {
@@ -73,7 +73,7 @@ function PlaybackTabChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex relative w-[35px]"
+          className="baseVertFlex relative w-[34px]"
         >
           <div className="baseVertFlex mb-[3.2rem]">
             {columnData.map((note, index) => (
@@ -104,7 +104,7 @@ function PlaybackTabChord({
                       borderBottom: `${index === 6 ? "2px solid" : "none"}`,
                       paddingBottom: `${index === 6 ? "7px" : "0"}`,
                     }}
-                    className="baseFlex headerModalGradient relative w-[35px] basis-[content]"
+                    className="baseFlex headerModalGradient relative w-[34px] basis-[content]"
                   >
                     <div className="h-[1px] flex-[1] bg-foreground/50"></div>
 
