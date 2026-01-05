@@ -29,12 +29,18 @@ function Privacy() {
       </Head>
       <div className="baseVertFlex z-10 my-24 gap-16">
         <div className="baseVertFlex baseVertFlex w-5/6 items-start gap-4 rounded-xl border bg-background p-4 shadow-lg sm:w-auto md:p-8">
-          <h1 className="text-3xl font-bold">Privacy Policy for Autostrum</h1>
-          <p>Last updated - July 16th, 2025</p>
+          <div className="baseVertFlex !items-start gap-2 md:!items-center">
+            <h1 className="text-2xl font-bold md:text-3xl">
+              Privacy Policy for Autostrum
+            </h1>
+            <p className="text-foreground/70">Last updated - July 16th, 2025</p>
+          </div>
 
-          <div className="baseVertFlex w-full !items-start gap-8">
+          <div className="baseVertFlex mt-4 w-full !items-start gap-8">
             <div className="baseVertFlex !items-start gap-2">
-              <h2 className="border-b-2 text-xl font-semibold">Introduction</h2>
+              <p className="border-b-2 text-lg font-semibold md:text-xl">
+                Introduction
+              </p>
               <p>
                 Welcome to Autostrum. This Privacy Policy outlines how we
                 collect, use, and handle your information when you use our
@@ -43,24 +49,24 @@ function Privacy() {
             </div>
 
             <div className="baseVertFlex !items-start gap-2">
-              <h2 className="border-b-2 text-xl font-semibold">
+              <p className="border-b-2 text-lg font-semibold md:text-xl">
                 Information We Collect
-              </h2>
+              </p>
               <ol className="ml-8 list-disc md:ml-12">
                 <li>
-                  <div className="baseFlex !justify-start gap-2">
+                  <div className="baseFlex flex-wrap !justify-start gap-2">
                     <p className="font-semibold">Email Address:</p>
                     Used for identification and communication.
                   </div>
                 </li>
                 <li>
-                  <div className="baseFlex !justify-start gap-2">
+                  <div className="baseFlex mt-2 flex-wrap !justify-start gap-2">
                     <p className="font-semibold">Name:</p>
                     Used for identification and personalization.
                   </div>
                 </li>
                 <li>
-                  <div className="baseFlex !justify-start gap-2">
+                  <div className="baseFlex mt-2 flex-wrap !justify-start gap-2">
                     <p className="font-semibold">Profile Picture:</p>
                     Used for identification and to enhance user experience.
                   </div>
@@ -69,13 +75,13 @@ function Privacy() {
             </div>
 
             <div className="baseVertFlex !items-start gap-2">
-              <h2 className="border-b-2 text-xl font-semibold">
+              <p className="border-b-2 text-lg font-semibold md:text-xl">
                 How We Use Your Information
-              </h2>
+              </p>
               <p>Your information is used for the following purposes:</p>
               <ol className="ml-8 list-disc md:ml-12">
                 <li>
-                  <div className="baseFlex !justify-start gap-2">
+                  <div className="baseFlex flex-wrap !justify-start gap-2">
                     <p className="font-semibold">
                       Identification and Authentication:
                     </p>
@@ -83,7 +89,7 @@ function Privacy() {
                   </div>
                 </li>
                 <li>
-                  <div className="baseFlex !justify-start gap-2">
+                  <div className="baseFlex mt-2 flex-wrap !justify-start gap-2">
                     <p className="font-semibold">User Experience:</p>
                     Your profile picture may be displayed in your user profile
                     or other areas within the Autostrum application.
@@ -93,9 +99,9 @@ function Privacy() {
             </div>
 
             <div className="baseVertFlex !items-start gap-2">
-              <h2 className="border-b-2 text-xl font-semibold">
+              <p className="border-b-2 text-lg font-semibold md:text-xl">
                 Data Storage and Security
-              </h2>
+              </p>
               <p>
                 We share your data with Clerk, an external service that manages
                 our authentication process.
@@ -103,9 +109,9 @@ function Privacy() {
             </div>
 
             <div className="baseVertFlex !items-start gap-2">
-              <h2 className="border-b-2 text-xl font-semibold">
+              <p className="border-b-2 text-lg font-semibold md:text-xl">
                 Data Retention and Deletion
-              </h2>
+              </p>
               <p>
                 Your information is retained until you choose to delete your
                 account. Deleting your account will remove your information from
@@ -114,9 +120,9 @@ function Privacy() {
             </div>
 
             <div className="baseVertFlex !items-start gap-2">
-              <h2 className="border-b-2 text-xl font-semibold">
+              <p className="border-b-2 text-lg font-semibold md:text-xl">
                 Changes to This Policy
-              </h2>
+              </p>
               <p>
                 We may update this Privacy Policy. We will notify you of any
                 changes by posting the new Privacy Policy on this page.
@@ -124,8 +130,10 @@ function Privacy() {
             </div>
 
             <div className="baseVertFlex !items-start gap-2">
-              <h2 className="border-b-2 text-xl font-semibold">Contact Us</h2>
-              <div className="baseFlex gap-2">
+              <p className="border-b-2 text-lg font-semibold md:text-xl">
+                Contact Us
+              </p>
+              <div className="baseFlex flex-wrap !justify-start gap-2">
                 <p>
                   For any questions about this Privacy Policy, please contact us
                   at:
@@ -134,7 +142,7 @@ function Privacy() {
                   href="mailto:michael.ongaro.dev@gmail.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="baseFlex gap-2 underline"
+                  className="underline"
                 >
                   <p>michael.ongaro.dev@gmail.com</p>
                 </a>
