@@ -246,7 +246,7 @@ function PlaybackTabNote({
         className={`baseFlex relative h-[20px] transition-colors ${isAccented ? "font-bold" : ""}`}
       >
         {isRest ? (
-          <PauseIcon className="absolute bottom-1.5 size-3" />
+          <PauseIcon className="absolute bottom-[17px] size-3" />
         ) : (
           <div>{note}</div>
         )}
