@@ -32,46 +32,6 @@ const backdropVariants = {
 
 const VIRTUALIZATION_BUFFER = 100;
 
-// Binary search to find the first index where scrollPosition >= targetPosition
-function findFirstVisibleIndex(
-  scrollPositions: number[],
-  targetPosition: number,
-): number {
-  let left = 0;
-  let right = scrollPositions.length - 1;
-
-  while (left < right) {
-    const mid = Math.floor((left + right) / 2);
-    if ((scrollPositions[mid] ?? 0) < targetPosition) {
-      left = mid + 1;
-    } else {
-      right = mid;
-    }
-  }
-
-  return left;
-}
-
-// Binary search to find the last index where scrollPosition <= targetPosition
-function findLastVisibleIndex(
-  scrollPositions: number[],
-  targetPosition: number,
-): number {
-  let left = 0;
-  let right = scrollPositions.length - 1;
-
-  while (left < right) {
-    const mid = Math.ceil((left + right) / 2);
-    if ((scrollPositions[mid] ?? 0) > targetPosition) {
-      right = mid - 1;
-    } else {
-      left = mid;
-    }
-  }
-
-  return left;
-}
-
 interface ChordLayoutData {
   scrollPositions: number[];
   chordWidths: number[];
