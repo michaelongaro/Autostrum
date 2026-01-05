@@ -1,7 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import { useTabStore, type Section } from "~/stores/TabStore";
-import { tuningNotes } from "~/utils/tunings";
 
 export interface LocalStorageTabData {
   title: string;

@@ -2,7 +2,7 @@ import { PrismaClient } from "../../../generated/client";
 import { motion } from "framer-motion";
 import type { GetStaticProps } from "next";
 import Head from "next/head";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import StaticTab from "~/components/Tab/Static/StaticTab";
 import superjson from "superjson";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
@@ -10,7 +10,6 @@ import Binoculars from "~/components/ui/icons/Binoculars";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { env } from "~/env";
 import { useHydrateTabStore } from "~/hooks/useHydrateTabStore";
-import { useTabStore } from "~/stores/TabStore";
 
 const adapter = new PrismaPg({
   connectionString: env.DATABASE_URL,
@@ -32,14 +31,6 @@ function ViewIndividualTab({ json }: { json: string }) {
     () => superjson.parse<PageData>(json),
     [json],
   );
-
-  const { setEditing } = useTabStore((state) => ({
-    setEditing: state.setEditing,
-  }));
-
-  useEffect(() => {
-    setEditing(false);
-  }, [setEditing]);
 
   useHydrateTabStore({
     fetchedTab: tab,

@@ -71,16 +71,9 @@ function GeneralLayoutStatefulShell() {
     setShowingAudioControls(
       asPath.includes("/edit") || asPath.includes("/create"),
     );
+    setEditing(asPath.includes("/create") || asPath.includes("edit"));
 
-    // only case where we want to keep tab state is when we are navigating onto a tab
-    // page, or going to /edit from a tab page, etc.
-    if (!asPath.includes("/tab/")) {
-      resetStoreToInitValues();
-    }
-
-    if (asPath.includes("/create") || asPath.includes("edit")) {
-      setEditing(true);
-    }
+    resetStoreToInitValues();
   }, [
     asPath,
     pauseAudio,

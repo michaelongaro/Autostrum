@@ -329,7 +329,6 @@ const initialStoreState = {
   averageRating: 0.0,
   ratingsCount: 0,
   bookmarkCount: 0,
-  editing: false,
   sectionProgression: [],
   currentlyCopiedData: null,
   currentlyCopiedChord: null,
