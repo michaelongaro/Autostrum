@@ -1,7 +1,5 @@
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
-import { motion } from "framer-motion";
 import {
   Accordion,
   AccordionContent,
@@ -10,6 +8,8 @@ import {
 } from "~/components/ui/accordion";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { useState } from "react";
+import { BsMusicNoteList } from "react-icons/bs";
+import { motion } from "framer-motion";
 
 const opacityVariants = {
   closed: {
@@ -22,7 +22,6 @@ const opacityVariants = {
 
 function SectionProgression() {
   const [accordionValue, setAccordionValue] = useState("closed");
-  const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const { sectionProgression, setShowSectionProgressionModal } = useTabStore(
     (state) => ({
@@ -32,12 +31,7 @@ function SectionProgression() {
   );
 
   return (
-    <div
-      style={{
-        minWidth: aboveMediumViewportWidth ? "500px" : "300px",
-      }}
-      className="baseVertFlex relative w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton"
-    >
+    <div className="baseVertFlex relative w-1/2 min-w-[300px] max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton sm:min-w-[500px]">
       <Accordion
         type="single"
         collapsible
@@ -45,20 +39,29 @@ function SectionProgression() {
         onValueChange={(value) => {
           setAccordionValue(value);
         }}
-        className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 md:px-0"
+        className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 sm:px-0"
       >
         <AccordionItem value="opened" className="w-full">
-          <AccordionTrigger className="w-full p-2 md:p-4">
-            <span className="text-lg font-bold">Section progression</span>
+          <AccordionTrigger className="w-full p-2 sm:p-4">
+            <div className="baseFlex gap-2">
+              <BsMusicNoteList className="size-4" />
+              <span className="my-1 text-base font-bold xs:my-0 xs:text-lg">
+                Section progression
+              </span>
+            </div>
           </AccordionTrigger>
           <AccordionContent className="w-full">
-            <div className="baseVertFlex w-full !items-start gap-4 p-2 !pt-0 md:p-4">
+            <div className="baseVertFlex w-full !items-start gap-4 p-2 !pt-0 sm:p-4">
               <div
                 className={`w-auto gap-2 ${sectionProgression.length > 0 ? "mt-4" : ""}`}
               >
                 {sectionProgression.map((section) => (
-                  <div
+                  <motion.div
                     key={section.id}
+                    variants={opacityVariants}
+                    initial="closed"
+                    animate="open"
+                    exit="closed"
                     className="grid w-full grid-cols-2 !place-items-start gap-2"
                   >
                     <div className="baseFlex gap-2 text-gray">
@@ -75,7 +78,7 @@ function SectionProgression() {
                         <span>({section.repetitions}x)</span>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
 

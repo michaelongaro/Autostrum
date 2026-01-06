@@ -8,12 +8,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { getNextChordColor } from "~/utils/chordColors";
 import { Separator } from "~/components/ui/separator";
 import ChordName from "~/components/ui/ChordName";
+import { BsMusicNoteBeamed } from "react-icons/bs";
 
 const opacityVariants = {
   closed: {
@@ -26,7 +26,6 @@ const opacityVariants = {
 
 function Chords() {
   const [accordionValue, setAccordionValue] = useState("closed");
-  const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const {
     chords,
@@ -89,12 +88,7 @@ function Chords() {
   }
 
   return (
-    <div
-      style={{
-        minWidth: aboveMediumViewportWidth ? "500px" : "300px",
-      }}
-      className="baseVertFlex relative w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton"
-    >
+    <div className="baseVertFlex relative w-1/2 min-w-[300px] max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton sm:min-w-[500px]">
       <Accordion
         type="single"
         collapsible
@@ -102,14 +96,19 @@ function Chords() {
         onValueChange={(value) => {
           setAccordionValue(value);
         }}
-        className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 md:px-0"
+        className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 sm:px-0"
       >
         <AccordionItem value="opened" className="w-full">
-          <AccordionTrigger className="p-2 md:p-4">
-            <span className="text-lg font-bold">Chords</span>
+          <AccordionTrigger className="p-2 sm:p-4">
+            <div className="baseFlex gap-2">
+              <BsMusicNoteBeamed className="size-4" />
+              <span className="my-1 text-base font-bold xs:my-0 xs:text-lg">
+                Chords
+              </span>
+            </div>
           </AccordionTrigger>
           <AccordionContent className="w-full">
-            <div className="baseVertFlex w-full !items-start gap-4 p-2 !pt-0 md:p-4">
+            <div className="baseVertFlex w-full !items-start gap-4 p-2 !pt-0 sm:p-4">
               <div
                 className={`baseFlex flex-wrap !justify-start gap-4 ${chords.length > 0 ? "mt-4" : ""}`}
               >

@@ -7,7 +7,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import {
   useTabStore,
   type StrummingPattern as StrummingPatternType,
@@ -22,6 +21,7 @@ import {
 } from "~/components/ui/accordion";
 import { motion } from "framer-motion";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
+import Logo from "~/components/ui/icons/Logo";
 
 const opacityVariants = {
   closed: {
@@ -42,8 +42,6 @@ function StrummingPatterns() {
   // we are only ever rendering the static palm mute data visually and never modifying it.
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
-
-  const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const {
     strummingPatterns,
@@ -124,12 +122,7 @@ function StrummingPatterns() {
   }
 
   return (
-    <div
-      style={{
-        minWidth: aboveMediumViewportWidth ? "500px" : "300px",
-      }}
-      className="baseVertFlex relative w-1/2 max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton"
-    >
+    <div className="baseVertFlex relative w-1/2 min-w-[300px] max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton sm:min-w-[500px]">
       <Accordion
         type="single"
         collapsible
@@ -137,15 +130,20 @@ function StrummingPatterns() {
         onValueChange={(value) => {
           setAccordionValue(value);
         }}
-        className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 md:px-0"
+        className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 sm:px-0"
       >
         <AccordionItem value="opened" className="w-full">
-          <AccordionTrigger className="w-full p-2 md:p-4">
-            <span className="text-lg font-bold">Strumming patterns</span>
+          <AccordionTrigger className="w-full p-2 sm:p-4">
+            <div className="baseFlex gap-2">
+              <Logo className="z-0 size-4" />
+              <span className="my-1 text-base font-bold xs:my-0 xs:text-lg">
+                Strumming patterns
+              </span>
+            </div>
           </AccordionTrigger>
           <AccordionContent>
             <div
-              className={`baseFlex !justify-start p-2 !pt-0 md:p-4 ${
+              className={`baseFlex !justify-start p-2 !pt-0 sm:p-4 ${
                 // just to get around inherent flexbox space that is taken up by children
                 // even when there is no dimensions to them
                 strummingPatterns.length > 0 ? "mt-4 gap-4" : "gap-0"
