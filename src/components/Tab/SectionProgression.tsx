@@ -83,7 +83,6 @@ function SectionProgression() {
               </div>
 
               <Button
-                size={"sm"}
                 className="mb-1"
                 onClick={() => setShowSectionProgressionModal(true)}
               >
