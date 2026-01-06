@@ -15,7 +15,6 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { FaBook } from "react-icons/fa";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -60,6 +59,12 @@ function GlossaryDialog() {
     <Dialog
       onOpenChange={(open) => {
         setShowGlossaryDialog(open);
+
+        if (!open) {
+          setTimeout(() => {
+            setCurrentPane("effects");
+          }, 175);
+        }
       }}
       open={showGlossaryDialog}
     >
@@ -71,9 +76,7 @@ function GlossaryDialog() {
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent
-        className={`baseVertFlex max-h-[90dvh] !justify-start gap-4 rounded-lg p-4 transition-all ${currentPane === "effects" ? "max-w-[350px] xs:max-w-[420px]" : "max-w-[350px] xs:max-w-[420px]"}`}
-      >
+      <DialogContent className="baseVertFlex max-h-[90dvh] max-w-[350px] !justify-start gap-4 rounded-lg p-4 transition-all xs:max-w-[420px]">
         <div className="baseFlex w-full !justify-start gap-4">
           <Button
             variant={"text"}
@@ -109,9 +112,9 @@ function GlossaryDialog() {
         </div>
 
         <motion.div
-          animate={{ minHeight: targetMinHeight }}
+          animate={{ height: targetMinHeight }}
           transition={{ duration: 0.25, ease: "easeInOut" }}
-          className="w-full overflow-y-auto overflow-x-hidden"
+          className="w-full overflow-y-auto overflow-x-hidden xs:overflow-y-hidden"
         >
           <AnimatePresence mode="wait" initial={false}>
             {currentPane === "effects" && (
@@ -121,7 +124,7 @@ function GlossaryDialog() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
-                className={`baseVertFlex w-full !justify-start gap-4 ${editing ? "min-h-[408px]" : "min-h-[350px]"}`}
+                className={`baseVertFlex w-full !justify-start gap-4 ${editing ? "h-[408px]" : "h-[350px]"}`}
               >
                 <div
                   className={`baseFlex !items-start gap-4 xs:gap-8 ${editing ? "!flex-col xs:!flex-row" : ""}`}
