@@ -277,11 +277,7 @@ function renderStrummingGuide({
   return (
     <div className="baseFlex relative size-full !flex-nowrap">
       {verticalStem}
-      {renderDots(
-        parsedCurrent.dotCount,
-        noteColor,
-        isHalfNote ? "centered" : "default",
-      )}
+      {renderDots(parsedCurrent.dotCount, noteColor, "default")}
     </div>
   );
 }
