@@ -829,7 +829,7 @@ function generateDefaultSectionProgression(tabData: Section[]) {
 
   for (let i = 0; i < tabData.length; i++) {
     sectionProgression.push({
-      id: `${i}`,
+      id: crypto.randomUUID(),
       sectionId: tabData[i]?.id ?? "",
       title: tabData[i]?.title ?? "",
       repetitions: 1,

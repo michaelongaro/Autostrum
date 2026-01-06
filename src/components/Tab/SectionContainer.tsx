@@ -89,13 +89,9 @@ function SectionContainer({
         draft[sectionIndex]!.title = e.target.value;
       });
 
-      const newSectionProgression = [...sectionProgression];
-
-      for (const section of newSectionProgression) {
-        if (section.sectionId === section.id) {
-          section.title = e.target.value;
-        }
-      }
+      const newSectionProgression = sectionProgression.map((s) =>
+        s.sectionId === section.id ? { ...s, title: e.target.value } : s,
+      );
 
       setSectionProgression(newSectionProgression);
     }, 1000)();
