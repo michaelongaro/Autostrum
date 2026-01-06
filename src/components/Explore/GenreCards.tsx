@@ -114,7 +114,7 @@ function GenreCard({ name, color, image, totalTabs }: GenreCard) {
       style={{
         backgroundColor: color,
       }}
-      className={`baseVertFlex group relative h-36 w-full cursor-pointer !items-start !justify-start gap-1 overflow-hidden rounded-lg p-4 text-primary-foreground shadow-md transition-all hover:shadow-lg sm:!justify-center sm:p-6 md:gap-2 ${
+      className={`baseVertFlex group relative h-36 w-full cursor-pointer !items-start !justify-start overflow-hidden rounded-lg p-4 text-primary-foreground shadow-md transition-all hover:shadow-lg sm:p-6 ${
         darkenCard ? "brightness-75" : "brightness-100"
       }`}
       onPointerLeave={() => {
@@ -152,11 +152,13 @@ function GenreCard({ name, color, image, totalTabs }: GenreCard) {
         className="absolute inset-0 z-10 size-full opacity-50 blur-sm lg:hidden"
       ></div>
 
-      {/* z-index as fallback just incase for weird safari positioning */}
-      <p className="z-10 text-lg font-semibold">{name}</p>
+      {/* z-index as fallback just in case for weird safari positioning */}
+      <p className="z-10 text-lg font-semibold drop-shadow-xl lg:drop-shadow-none">
+        {name}
+      </p>
 
-      {/* z-index as fallback just incase for weird safari positioning */}
-      <p className="z-10">{`${formatNumber(totalTabs)} ${
+      {/* z-index as fallback just in case for weird safari positioning */}
+      <p className="z-10 drop-shadow-xl lg:text-primary-foreground/75 lg:drop-shadow-none">{`${formatNumber(totalTabs)} ${
         totalTabs === 1 ? "tab" : "tabs"
       }`}</p>
 
