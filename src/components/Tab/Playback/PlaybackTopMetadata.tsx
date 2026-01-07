@@ -62,16 +62,24 @@ function PlaybackTopMetadata({
     setCurrentChordIndex: state.setCurrentChordIndex,
   }));
 
-  // idk if best approach, but need unique section titles, not the whole progression
-  const sections = useMemo(() => {
-    return sectionProgression.map((section) => ({
-      id: section.id,
-      title: section.title,
-    }));
+  const uniqueSections = useMemo(() => {
+    const sections: Record<string, { sectionId: string; title: string }> = {};
+
+    for (const section of sectionProgression) {
+      if (!sections[section.sectionId]) {
+        sections[section.sectionId] = {
+          sectionId: section.sectionId,
+          title: section.title,
+        };
+      }
+    }
+
+    return Object.values(sections);
   }, [sectionProgression]);
 
-  if (playbackMetadata === null || viewportLabel === "mobileNarrowLandscape")
-    return;
+  if (playbackMetadata === null || viewportLabel === "mobileNarrowLandscape") {
+    return null;
+  }
 
   return (
     <>
@@ -149,7 +157,7 @@ function PlaybackTopMetadata({
                               ? "fullTab"
                               : sectionProgression[
                                   audioMetadata.location?.sectionIndex ?? 0
-                                ]?.id
+                                ]?.sectionId
                           }
                           onValueChange={(value) => {
                             setAudioMetadata({
@@ -158,9 +166,9 @@ function PlaybackTopMetadata({
                                 value === "fullTab"
                                   ? null
                                   : {
-                                      sectionIndex: sections.findIndex(
+                                      sectionIndex: uniqueSections.findIndex(
                                         (elem) => {
-                                          return elem.id === value;
+                                          return elem.sectionId === value;
                                         },
                                       ),
                                     },
@@ -178,13 +186,13 @@ function PlaybackTopMetadata({
                               {audioMetadata.location === null
                                 ? "Full tab"
                                 : sectionProgression[
-                                    sections.findIndex((elem) => {
+                                    uniqueSections.findIndex((elem) => {
                                       return (
-                                        elem.id ===
+                                        elem.sectionId ===
                                         sectionProgression[
                                           audioMetadata.location
                                             ?.sectionIndex ?? 0
-                                        ]?.id
+                                        ]?.sectionId
                                       );
                                     })
                                   ]?.title}
@@ -192,11 +200,11 @@ function PlaybackTopMetadata({
                           </SelectTrigger>
                           <SelectContent>
                             <>
-                              {sections.map((section) => {
+                              {uniqueSections.map((section) => {
                                 return (
                                   <SelectItem
-                                    key={section.id}
-                                    value={section.id}
+                                    key={section.sectionId}
+                                    value={section.sectionId}
                                   >
                                     {section.title}
                                   </SelectItem>
@@ -323,7 +331,7 @@ function PlaybackTopMetadata({
                                 ? "fullTab"
                                 : sectionProgression[
                                     audioMetadata.location?.sectionIndex ?? 0
-                                  ]?.id
+                                  ]?.sectionId
                             }
                             onValueChange={(value) => {
                               setAudioMetadata({
@@ -332,9 +340,9 @@ function PlaybackTopMetadata({
                                   value === "fullTab"
                                     ? null
                                     : {
-                                        sectionIndex: sections.findIndex(
+                                        sectionIndex: uniqueSections.findIndex(
                                           (elem) => {
-                                            return elem.id === value;
+                                            return elem.sectionId === value;
                                           },
                                         ),
                                       },
@@ -343,31 +351,38 @@ function PlaybackTopMetadata({
                           >
                             <SelectTrigger
                               id="sectionPicker"
-                              className="!h-8 max-w-28 sm:max-w-none"
+                              className="!h-8 max-w-32 sm:max-w-none"
                             >
-                              <SelectValue placeholder="Select a section">
-                                {audioMetadata.location === null
-                                  ? "Full tab"
-                                  : sectionProgression[
-                                      sections.findIndex((elem) => {
-                                        return (
-                                          elem.id ===
-                                          sectionProgression[
-                                            audioMetadata.location
-                                              ?.sectionIndex ?? 0
-                                          ]?.id
-                                        );
-                                      })
-                                    ]?.title}
+                              <SelectValue
+                                placeholder="Select a section"
+                                asChild
+                              >
+                                <p className="truncate">
+                                  {audioMetadata.location === null
+                                    ? "Full tab"
+                                    : `${
+                                        sectionProgression[
+                                          uniqueSections.findIndex((elem) => {
+                                            return (
+                                              elem.sectionId ===
+                                              sectionProgression[
+                                                audioMetadata.location
+                                                  ?.sectionIndex ?? 0
+                                              ]?.sectionId
+                                            );
+                                          })
+                                        ]?.title
+                                      }`}
+                                </p>
                               </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                               <>
-                                {sections.map((section) => {
+                                {uniqueSections.map((section) => {
                                   return (
                                     <SelectItem
-                                      key={section.id}
-                                      value={section.id}
+                                      key={section.sectionId}
+                                      value={section.sectionId}
                                     >
                                       {section.title}
                                     </SelectItem>
