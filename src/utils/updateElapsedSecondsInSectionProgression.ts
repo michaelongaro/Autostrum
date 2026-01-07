@@ -185,10 +185,6 @@ function updateElapsedTimeForChordSection({
       chordSequenceRepeatIdx < chordSequenceRepetitions;
       chordSequenceRepeatIdx++
     ) {
-      const noteLengthMultiplier =
-        noteLengthMultipliers[chordSequence.strummingPattern.baseNoteLength] ??
-        1;
-
       const chordBpm = getBpmForChord(
         chordSequence.bpm,
         baselineBpm,
@@ -197,6 +193,14 @@ function updateElapsedTimeForChordSection({
 
       // Calculate the duration of each chord in the sequence
       for (let chordIdx = 0; chordIdx < chordSequence.data.length; chordIdx++) {
+        const strum = chordSequence.strummingPattern.strums[chordIdx];
+
+        const noteLengthMultiplier = strum
+          ? (noteLengthMultipliers[strum.noteLength] ?? 1)
+          : (noteLengthMultipliers[
+              chordSequence.strummingPattern.baseNoteLength
+            ] ?? 1);
+
         const chordDuration = 60 / (chordBpm / noteLengthMultiplier);
         elapsedSeconds.value += chordDuration;
       }
