@@ -203,7 +203,7 @@ function Tab() {
             <div className="baseFlex gap-4">
               <Button
                 variant={"secondary"}
-                className="baseFlex gap-2 lg:absolute lg:left-7 lg:top-0"
+                className="baseFlex mt-2 gap-2 lg:absolute lg:left-7 lg:top-0 lg:mt-0"
                 onClick={() => setShowTipsModal(true)}
               >
                 <HiOutlineInformationCircle className="size-4" />
@@ -212,7 +212,7 @@ function Tab() {
 
               <Button
                 variant={"secondary"}
-                className="baseFlex gap-2 lg:absolute lg:right-7 lg:top-0"
+                className="baseFlex mt-2 gap-2 lg:absolute lg:right-7 lg:top-0 lg:mt-0"
                 onClick={() => setShowGlossaryDialog(true)}
               >
                 <FaBook className="size-4" />
@@ -220,19 +220,19 @@ function Tab() {
               </Button>
 
               <Popover>
-                <PopoverTrigger className="baseFlex size-8 rounded-md transition-all hover:bg-primary-foreground/20 hover:text-yellow-300 active:hover:bg-primary-foreground/10 sm:absolute sm:bottom-0 sm:right-4 lg:right-6">
+                <PopoverTrigger className="baseFlex mt-2 size-8 rounded-md transition-all hover:bg-primary-foreground/20 hover:text-yellow-300 active:hover:bg-primary-foreground/10 sm:absolute sm:bottom-0 sm:right-4 lg:right-6 lg:mt-0">
                   <HiOutlineLightBulb className="h-5 w-5" />
                 </PopoverTrigger>
                 <PopoverContent
-                  side="left"
-                  className="baseVertFlex w-72 gap-2 p-2 text-sm shadow-lg"
+                  side="top"
+                  className="baseVertFlex gap-2 p-2 text-sm shadow-lg"
                 >
                   <div className="baseFlex gap-2 font-semibold">
                     <HiOutlineInformationCircle className="size-4" />
                     Tip
                   </div>
                   <p>
-                    If performance degrades while playing generated audio, try
+                    If performance degrades while playing back your tab, try
                     minimizing sections that aren&apos;t being played or opt to
                     listen in preview mode.
                   </p>
