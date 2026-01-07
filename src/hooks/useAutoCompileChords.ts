@@ -5,12 +5,10 @@ import {
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
 import { useTabStore } from "../stores/TabStore";
-import {
-  expandFullTab,
-  updateElapsedSecondsInSectionProgression,
-} from "~/utils/playbackChordCompilationHelpers";
+import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
 import debounce from "lodash.debounce";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
+import { updateElapsedSecondsInSectionProgression } from "~/utils/updateElapsedSecondsInSectionProgression";
 
 function useAutoCompileChords() {
   const {
