@@ -26,7 +26,7 @@ export const userRouter = createTRPCRouter({
   isUserRegistered: publicProcedure.query(async ({ ctx }) => {
     const userId = ctx.auth.userId;
 
-    if (!userId) return undefined;
+    if (!userId) return false;
 
     const user = await ctx.prisma.user.findFirst({
       where: {

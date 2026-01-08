@@ -21,7 +21,7 @@ import ThemePicker from "~/components/Header/ThemePicker";
 
 function PostSignupDialog() {
   const { user } = useClerk();
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const ctx = api.useUtils();
 
   const { color } = useTabStore((state) => ({
@@ -30,7 +30,7 @@ function PostSignupDialog() {
 
   const { data: userIsRegistered, isLoading: isLoadingUserRegistrationStatus } =
     api.user.isUserRegistered.useQuery(undefined, {
-      enabled: isSignedIn,
+      enabled: isLoaded && isSignedIn,
     });
 
   const [username, setUsername] = useState("");
