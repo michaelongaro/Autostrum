@@ -1034,6 +1034,7 @@ function UserSettings() {
             setCroppedAreaPixels={setCroppedAreaPixels}
           />
         )}
+
         {showPinnedTabModal && (
           <PinnedTabModal
             localPinnedTabId={localPinnedTabId}
@@ -1041,12 +1042,12 @@ function UserSettings() {
             setShowPinnedTabModal={setShowPinnedTabModal}
           />
         )}
-        {showDeleteAccountModal && (
-          <DeleteAccountModal
-            setShowDeleteAccountModal={setShowDeleteAccountModal}
-          />
-        )}
       </AnimatePresence>
+
+      <DeleteAccountModal
+        showDeleteAccountModal={showDeleteAccountModal}
+        setShowDeleteAccountModal={setShowDeleteAccountModal}
+      />
     </motion.div>
   );
 }
