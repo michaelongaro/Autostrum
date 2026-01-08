@@ -366,7 +366,7 @@ function TabMeasureLine({
               </Button>
             </PopoverTrigger>
             <PopoverContent
-              className="baseVertFlex !z-10 w-52 gap-4 p-2"
+              className="baseVertFlex z-40 w-52 gap-4 p-2"
               side="bottom"
             >
               <p className="w-auto text-center text-sm">
