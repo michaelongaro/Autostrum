@@ -421,8 +421,8 @@ export const searchRouter = createTRPCRouter({
         artistIdToSelectFrom: z.number().optional(), // Filter by artist
         bookmarkedByUserId: z.string().optional(), // Filter by bookmarker
         limit: z.number().min(1).max(50).optional().default(15),
-        // Cursor can be ID (for Prisma findMany) or page number (for raw FTS)
-        // We'll treat null/undefined as the first page (page 0 or no ID cursor)
+        // Cursor is a page number for both Prisma and raw FTS paths
+        // We'll treat null/undefined as the first page (page 0)
         cursor: z.number().nullish(),
       }),
     )
@@ -532,6 +532,8 @@ export const searchRouter = createTRPCRouter({
         const countQuery = Prisma.sql`
         SELECT COUNT(*)
         FROM "Tab"
+        LEFT JOIN "Artist" ON "Tab"."artistId" = "Artist"."id"
+        LEFT JOIN "User" ON "Tab"."createdByUserId" = "User"."userId"
         ${whereClause};
       `;
 
@@ -590,6 +592,8 @@ export const searchRouter = createTRPCRouter({
 
       // --- Standard Prisma findMany Path (Non-FTS or no query) ---
       else {
+        const page = cursor ?? 0; // Treat cursor as page number for non-FTS too
+        const offset = page * limit;
         const where: Prisma.TabWhereInput = {};
 
         // Apply filters
@@ -660,7 +664,7 @@ export const searchRouter = createTRPCRouter({
               where,
               orderBy,
               take: limit + 1, // Fetch one extra to determine next cursor
-              cursor: cursor ? { id: cursor } : undefined, // ID-based cursor
+              skip: offset,
               select: {
                 id: true,
                 title: true,
@@ -696,10 +700,8 @@ export const searchRouter = createTRPCRouter({
 
           let nextCursor: number | null = null;
           if (tabs.length > limit) {
-            const nextItem = tabs.pop(); // Remove the extra item
-            if (nextItem) {
-              nextCursor = nextItem.id; // Use its ID as the next cursor
-            }
+            tabs.pop(); // Remove the extra item
+            nextCursor = page + 1;
           }
 
           let sanitizedTabs: MinimalTabRepresentation[] = tabs.map((tab) => {
