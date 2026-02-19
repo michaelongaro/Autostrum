@@ -23,12 +23,12 @@ function UserBookmarks() {
       className="baseVertFlex my-12 min-h-[650px] w-full max-w-[1400px] !justify-start md:my-24 md:w-3/4 md:p-0"
     >
       <Head>
-        <title>My bookmarks | Autostrum</title>
+        <title>My Bookmarks | Autostrum</title>
         <meta
           name="description"
           content="View and sort through all of your bookmarked tabs."
         />
-        <meta property="og:title" content="My bookmarks | Autostrum"></meta>
+        <meta property="og:title" content="My Bookmarks | Autostrum"></meta>
         <meta
           property="og:url"
           content="https://www.autostrum.com/profile/bookmarks"

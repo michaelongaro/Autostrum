@@ -23,12 +23,12 @@ function UserTabs() {
       className="baseVertFlex my-12 min-h-[650px] w-full max-w-[1400px] !justify-start md:my-24 md:w-3/4 md:p-0"
     >
       <Head>
-        <title>My tabs | Autostrum</title>
+        <title>My Tabs | Autostrum</title>
         <meta
           name="description"
           content="View and sort through all of the tabs you've created on Autostrum."
         />
-        <meta property="og:title" content="My tabs | Autostrum"></meta>
+        <meta property="og:title" content="My Tabs | Autostrum"></meta>
         <meta
           property="og:url"
           content="https://www.autostrum.com/profile/tabs"
