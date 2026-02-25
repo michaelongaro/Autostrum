@@ -84,11 +84,16 @@ export function useInitializeAudioContext() {
 
       if (isMobileOnly) {
         // mobile doesn't get access to a volume slider (users expect to use device's volume directly) so initializing at full volume.
-        newMasterVolumeGainNode.gain.value = 2;
-        localStorage.setItem("autostrum-volume", "2");
+        newMasterVolumeGainNode.gain.value = 1.25;
+        localStorage.setItem("autostrum-volume", "1.25");
       }
 
       newMasterVolumeGainNode.connect(newAudioContext.destination);
+      (
+        newMasterVolumeGainNode as GainNode & {
+          __autostrumConnectedToDestination?: boolean;
+        }
+      ).__autostrumConnectedToDestination = true;
 
       setAudioContext(newAudioContext);
       setMasterVolumeGainNode(newMasterVolumeGainNode);

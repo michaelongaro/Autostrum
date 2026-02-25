@@ -34,6 +34,7 @@ interface PlayNoteWithEffects {
 }
 
 const DEFAULT_NOTE_DURATION_SECONDS = 3;
+const ANTI_POP_FADE_SECONDS = 0.008;
 
 type CurrentlyPlayingString =
   | Soundfont.Player
@@ -41,6 +42,7 @@ type CurrentlyPlayingString =
   | undefined;
 
 const activePlaybackSources = new Set<AudioScheduledSourceNode>();
+const sourceSoftStopGainMap = new WeakMap<AudioScheduledSourceNode, GainNode>();
 
 interface ScheduledAudioCallback {
   cancelled: boolean;
@@ -177,6 +179,26 @@ function cleanupAudioSource(
 ) {
   if (!source) return;
 
+  const resolvedSource = resolveSourceNodeFromHandle(source);
+
+  if (resolvedSource) {
+    const softStopGain = sourceSoftStopGainMap.get(resolvedSource);
+    if (softStopGain) {
+      const now = softStopGain.context.currentTime;
+      const currentGain = Math.max(softStopGain.gain.value, 0.0001);
+
+      softStopGain.gain.cancelScheduledValues(now);
+      softStopGain.gain.setValueAtTime(currentGain, now);
+      softStopGain.gain.linearRampToValueAtTime(
+        0.0001,
+        now + ANTI_POP_FADE_SECONDS,
+      );
+
+      safeStopScheduledSource(resolvedSource, now + ANTI_POP_FADE_SECONDS);
+      return;
+    }
+  }
+
   // Stop the source if it's playing
   safeStopScheduledSource(source as AudioScheduledSourceNode);
 
@@ -214,6 +236,7 @@ function resolveSourceNodeFromHandle(
 function attachSourceOnEndedCleanup({
   sourceNode,
   nodesToDisconnect = [],
+  softStopGainNode,
   currentlyPlayingStrings,
   stringIdx,
   expectedHandle,
@@ -221,6 +244,7 @@ function attachSourceOnEndedCleanup({
 }: {
   sourceNode?: AudioScheduledSourceNode | null;
   nodesToDisconnect?: AudioNode[];
+  softStopGainNode?: GainNode;
   currentlyPlayingStrings?: CurrentlyPlayingString[];
   stringIdx?: number;
   expectedHandle?: Soundfont.Player | AudioBufferSourceNode;
@@ -229,9 +253,13 @@ function attachSourceOnEndedCleanup({
   if (!sourceNode) return;
 
   activePlaybackSources.add(sourceNode);
+  if (softStopGainNode) {
+    sourceSoftStopGainMap.set(sourceNode, softStopGainNode);
+  }
 
   const cleanup = () => {
     activePlaybackSources.delete(sourceNode);
+    sourceSoftStopGainMap.delete(sourceNode);
     nodesToDisconnect.forEach((node) => safeDisconnectNode(node));
     onEnded?.();
 
@@ -454,6 +482,7 @@ function applyBendOrReleaseEffect({
     attachSourceOnEndedCleanup({
       sourceNode: source,
       nodesToDisconnect: sourceGain ? [sourceGain] : [],
+      softStopGainNode: sourceGain,
       currentlyPlayingStrings,
       stringIdx,
       expectedHandle: source,
@@ -488,12 +517,13 @@ function applyBendOrReleaseEffect({
     );
     // increasing gain to match level set in applyTetheredEffect()
     const copiedNoteGain = audioContext.createGain();
-    copiedNoteGain.gain.value = 1.35;
+    copiedNoteGain.gain.value = 1.15;
     copiedNote.connect(copiedNoteGain);
 
     attachSourceOnEndedCleanup({
       sourceNode: copiedNote,
       nodesToDisconnect: [copiedNoteGain],
+      softStopGainNode: copiedNoteGain,
     });
 
     return copiedNoteGain;
@@ -788,22 +818,22 @@ function applyPalmMute({
     lowPassFilter.frequency.value = 1000;
   }
   lowPassFilter.type = "lowpass";
-  lowPassFilter.Q.value = 5;
+  lowPassFilter.Q.value = 1.5;
 
   // Adjust bassBoost based on whether it's a high or low string
   if (isHighString) {
-    bassBoost.gain.value = 10;
+    bassBoost.gain.value = 4;
   } else {
-    bassBoost.gain.value = 20;
+    bassBoost.gain.value = 6;
   }
   bassBoost.type = "peaking";
   bassBoost.frequency.value = 120;
-  bassBoost.Q.value = 10;
+  bassBoost.Q.value = 1.2;
 
-  let gainValue = inlineEffects?.includes(">") ? 100 : 70;
+  let gainValue = inlineEffects?.includes(">") ? 48 : 34;
 
   if (isATetheredEffect) {
-    gainValue = inlineEffects?.includes(">") ? 1 : 0.7;
+    gainValue = inlineEffects?.includes(">") ? 0.95 : 0.7;
   }
 
   gainNode.gain.value = gainValue;
@@ -885,7 +915,7 @@ function applyTetheredEffect({
 
   sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
   sourceGain.gain.linearRampToValueAtTime(
-    tetheredEffect === "p" ? 1 : tetheredEffect === "h" ? 1.1 : 1.3,
+    tetheredEffect === "p" ? 0.95 : tetheredEffect === "h" ? 1.05 : 1.15,
     audioContext.currentTime + when + 0.05,
   );
   source.connect(sourceGain);
@@ -893,6 +923,7 @@ function applyTetheredEffect({
   attachSourceOnEndedCleanup({
     sourceNode: source,
     nodesToDisconnect: [sourceGain],
+    softStopGainNode: sourceGain,
     currentlyPlayingStrings,
     stringIdx,
     expectedHandle: source,
@@ -993,6 +1024,7 @@ function applyVibratoEffect({
     attachSourceOnEndedCleanup({
       sourceNode: source,
       nodesToDisconnect: sourceGain ? [sourceGain] : [],
+      softStopGainNode: sourceGain,
       currentlyPlayingStrings,
       stringIdx,
       expectedHandle: source,
@@ -1001,7 +1033,7 @@ function applyVibratoEffect({
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime);
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
     sourceGain.gain.exponentialRampToValueAtTime(
-      1.3,
+      1.15,
       audioContext.currentTime + when + 0.1,
     );
     source.connect(sourceGain);
@@ -1050,12 +1082,13 @@ function applyVibratoEffect({
     vibratoDepth.connect(copiedNote.detune);
     // increasing gain to match level set in applyTetheredEffect
     const copiedNoteGain = audioContext.createGain();
-    copiedNoteGain.gain.value = 1.35;
+    copiedNoteGain.gain.value = 1.15;
     copiedNote.connect(copiedNoteGain);
 
     attachSourceOnEndedCleanup({
       sourceNode: copiedNote,
       nodesToDisconnect: [copiedNoteGain],
+      softStopGainNode: copiedNoteGain,
     });
 
     return copiedNoteGain;
