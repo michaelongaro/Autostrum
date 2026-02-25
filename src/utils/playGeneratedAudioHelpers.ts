@@ -40,6 +40,96 @@ type CurrentlyPlayingString =
   | AudioBufferSourceNode
   | undefined;
 
+const activePlaybackSources = new Set<AudioScheduledSourceNode>();
+
+interface ScheduledAudioCallback {
+  cancelled: boolean;
+  rafId?: number;
+  timeoutId?: ReturnType<typeof setTimeout>;
+}
+
+const scheduledAudioCallbacks = new Set<ScheduledAudioCallback>();
+
+function scheduleAtAudioTime({
+  audioContext,
+  when,
+  callback,
+}: {
+  audioContext: AudioContext;
+  when: number;
+  callback: () => void;
+}) {
+  if (when <= 0) {
+    callback();
+    return;
+  }
+
+  const task: ScheduledAudioCallback = {
+    cancelled: false,
+  };
+
+  const targetTime = audioContext.currentTime + when;
+
+  const cleanupTask = () => {
+    if (typeof task.rafId === "number" && globalThis.cancelAnimationFrame) {
+      globalThis.cancelAnimationFrame(task.rafId);
+    }
+    if (task.timeoutId) {
+      clearTimeout(task.timeoutId);
+    }
+    scheduledAudioCallbacks.delete(task);
+  };
+
+  const tick = () => {
+    if (task.cancelled) {
+      cleanupTask();
+      return;
+    }
+
+    if (audioContext.currentTime >= targetTime) {
+      cleanupTask();
+      callback();
+      return;
+    }
+
+    if (globalThis.requestAnimationFrame) {
+      task.rafId = globalThis.requestAnimationFrame(tick);
+    } else {
+      task.timeoutId = setTimeout(tick, 5);
+    }
+  };
+
+  scheduledAudioCallbacks.add(task);
+  tick();
+}
+
+function scheduleStringOwnershipUpdate({
+  audioContext,
+  when,
+  currentlyPlayingStrings,
+  stringIdx,
+  nextHandle,
+}: {
+  audioContext: AudioContext;
+  when: number;
+  currentlyPlayingStrings: CurrentlyPlayingString[];
+  stringIdx: number;
+  nextHandle: CurrentlyPlayingString;
+}) {
+  scheduleAtAudioTime({
+    audioContext,
+    when,
+    callback: () => {
+      const existingNote = currentlyPlayingStrings[stringIdx];
+      if (existingNote && existingNote !== nextHandle) {
+        cleanupAudioSource(existingNote);
+      }
+
+      currentlyPlayingStrings[stringIdx] = nextHandle;
+    },
+  });
+}
+
 function safeDisconnectNode(node?: AudioNode | null) {
   if (!node) return;
   try {
@@ -47,6 +137,23 @@ function safeDisconnectNode(node?: AudioNode | null) {
   } catch (error) {
     // node might already be disconnected; ignore
   }
+}
+
+function ensureMasterConnected({
+  audioContext,
+  masterVolumeGainNode,
+}: {
+  audioContext: AudioContext;
+  masterVolumeGainNode: GainNode;
+}) {
+  const nodeWithFlag = masterVolumeGainNode as GainNode & {
+    __autostrumConnectedToDestination?: boolean;
+  };
+
+  if (nodeWithFlag.__autostrumConnectedToDestination) return;
+
+  masterVolumeGainNode.connect(audioContext.destination);
+  nodeWithFlag.__autostrumConnectedToDestination = true;
 }
 
 function safeStopScheduledSource(
@@ -121,7 +228,10 @@ function attachSourceOnEndedCleanup({
 }) {
   if (!sourceNode) return;
 
+  activePlaybackSources.add(sourceNode);
+
   const cleanup = () => {
+    activePlaybackSources.delete(sourceNode);
     nodesToDisconnect.forEach((node) => safeDisconnectNode(node));
     onEnded?.();
 
@@ -209,7 +319,7 @@ function playNoteWithEffects({
     // it gets handled from applyTetheredEffect() above
     if (effects?.includes("~")) {
       noteWithEffectApplied = applyVibratoEffect({
-        when: 0,
+        when,
         note,
         bpm,
         stringIdx,
@@ -240,8 +350,41 @@ function playNoteWithEffects({
       effects?.includes("PM"))
   ) {
     noteWithEffectApplied.connect(masterVolumeGainNode);
-    masterVolumeGainNode.connect(audioContext.destination);
+    ensureMasterConnected({ audioContext, masterVolumeGainNode });
   }
+}
+
+function stopAllScheduledAudioCallbacks() {
+  for (const task of scheduledAudioCallbacks) {
+    task.cancelled = true;
+
+    if (typeof task.rafId === "number" && globalThis.cancelAnimationFrame) {
+      globalThis.cancelAnimationFrame(task.rafId);
+    }
+
+    if (task.timeoutId) {
+      clearTimeout(task.timeoutId);
+    }
+  }
+
+  scheduledAudioCallbacks.clear();
+}
+
+function stopAllActivePlaybackSources() {
+  stopAllScheduledAudioCallbacks();
+
+  for (const source of activePlaybackSources) {
+    safeStopScheduledSource(source);
+    safeDisconnectNode(source);
+
+    if ("buffer" in source && source.buffer) {
+      source.buffer = null;
+    }
+
+    source.onended = null;
+  }
+
+  activePlaybackSources.clear();
 }
 
 interface ApplyBendEffect {
@@ -288,17 +431,19 @@ function applyBendOrReleaseEffect({
     source = audioContext.createBufferSource();
     sourceGain = audioContext.createGain();
 
-    setTimeout(() => {
-      const existingNote = currentlyPlayingStrings[stringIdx];
-      if (existingNote) {
-        cleanupAudioSource(existingNote);
-      }
-      currentlyPlayingStrings[stringIdx] = source;
-    }, when * 1000);
+    scheduleStringOwnershipUpdate({
+      audioContext,
+      when,
+      currentlyPlayingStrings,
+      stringIdx,
+      nextHandle: source,
+    });
 
     source.buffer = noteSource.buffer as AudioBuffer;
-    source.start(0, 0.5, isPalmMuted ? 0.45 : undefined);
+    const sourceStartTime = audioContext.currentTime + when;
+    source.start(sourceStartTime, 0.5, isPalmMuted ? 0.45 : undefined);
 
+    sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime);
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
     sourceGain.gain.linearRampToValueAtTime(
       1.1,
@@ -485,7 +630,7 @@ function playDeadNote({
 
   // // Connect the gainNode to the audioContext's destination
   gainNode.connect(masterVolumeGainNode);
-  masterVolumeGainNode.connect(audioContext.destination);
+  ensureMasterConnected({ audioContext, masterVolumeGainNode });
 
   // Start the oscillator and noise now
   oscillator.start(audioContext.currentTime);
@@ -606,7 +751,7 @@ function playSlapSound({
 
   // // Connect the gainNode to the audioContext's destination
   gainNode.connect(masterVolumeGainNode);
-  masterVolumeGainNode.connect(audioContext.destination);
+  ensureMasterConnected({ audioContext, masterVolumeGainNode });
 
   // Start the oscillator and noise now
   oscillator.start(audioContext.currentTime);
@@ -718,13 +863,13 @@ function applyTetheredEffect({
   const source = audioContext.createBufferSource();
   const sourceGain = audioContext.createGain();
 
-  setTimeout(() => {
-    const existingNote = currentlyPlayingStrings[stringIdx];
-    if (existingNote) {
-      cleanupAudioSource(existingNote);
-    }
-    currentlyPlayingStrings[stringIdx] = source;
-  }, when * 1000);
+  scheduleStringOwnershipUpdate({
+    audioContext,
+    when,
+    currentlyPlayingStrings,
+    stringIdx,
+    nextHandle: source,
+  });
 
   source.buffer = noteSource.buffer as AudioBuffer;
   // immediately start detune at the value of the tetheredFret
@@ -834,16 +979,17 @@ function applyVibratoEffect({
     source = audioContext.createBufferSource();
     sourceGain = audioContext.createGain();
 
-    setTimeout(() => {
-      const existingNote = currentlyPlayingStrings[stringIdx];
-      if (existingNote) {
-        cleanupAudioSource(existingNote);
-      }
-      currentlyPlayingStrings[stringIdx] = source;
-    }, when * 1000);
+    scheduleStringOwnershipUpdate({
+      audioContext,
+      when,
+      currentlyPlayingStrings,
+      stringIdx,
+      nextHandle: source,
+    });
 
     source.buffer = noteSource.buffer as AudioBuffer;
-    source.start(0, 0.5);
+    const sourceStartTime = audioContext.currentTime + when;
+    source.start(sourceStartTime, 0.5);
     attachSourceOnEndedCleanup({
       sourceNode: source,
       nodesToDisconnect: sourceGain ? [sourceGain] : [],
@@ -852,6 +998,7 @@ function applyVibratoEffect({
       expectedHandle: source,
     });
 
+    sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime);
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
     sourceGain.gain.exponentialRampToValueAtTime(
       1.3,
@@ -905,6 +1052,12 @@ function applyVibratoEffect({
     const copiedNoteGain = audioContext.createGain();
     copiedNoteGain.gain.value = 1.35;
     copiedNote.connect(copiedNoteGain);
+
+    attachSourceOnEndedCleanup({
+      sourceNode: copiedNote,
+      nodesToDisconnect: [copiedNoteGain],
+    });
+
     return copiedNoteGain;
   }
 }
@@ -1027,13 +1180,13 @@ function playNote({
       tetheredMetadata.effect === "b" ||
       tetheredMetadata.effect === "r")
   ) {
-    setTimeout(() => {
-      const existingNote = currentlyPlayingStrings[stringIdx];
-      if (existingNote) {
-        cleanupAudioSource(existingNote);
-      }
-      currentlyPlayingStrings[stringIdx] = note;
-    }, when * 1000);
+    scheduleStringOwnershipUpdate({
+      audioContext,
+      when,
+      currentlyPlayingStrings,
+      stringIdx,
+      nextHandle: note,
+    });
   }
 }
 
@@ -1465,4 +1618,4 @@ function playNoteColumn({
   });
 }
 
-export { playNoteColumn };
+export { playNoteColumn, stopAllActivePlaybackSources };

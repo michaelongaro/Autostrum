@@ -3,7 +3,10 @@ import type Soundfont from "soundfont-player";
 import { devtools } from "zustand/middleware";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
+import {
+  playNoteColumn,
+  stopAllActivePlaybackSources,
+} from "~/utils/playGeneratedAudioHelpers";
 import {
   compileFullTab,
   compileSpecificChordGrouping,
@@ -829,6 +832,8 @@ const useTabStoreBase = create<TabState>()(
 
         if (!audioContext || !masterVolumeGainNode) return;
 
+        stopAllActivePlaybackSources();
+
         const currentlyPlayingStrings: (
           | Soundfont.Player
           | AudioBufferSourceNode
@@ -1035,6 +1040,8 @@ const useTabStoreBase = create<TabState>()(
         if (!audioContext || !masterVolumeGainNode || !currentInstrument)
           return;
 
+        stopAllActivePlaybackSources();
+
         const currentlyPlayingStrings: (
           | Soundfont.Player
           | AudioBufferSourceNode
@@ -1132,6 +1139,8 @@ const useTabStoreBase = create<TabState>()(
 
       pauseAudio: (resetToStart, resetCurrentlyPlayingMetadata) => {
         const { audioMetadata, previewMetadata, currentInstrument } = get();
+
+        stopAllActivePlaybackSources();
 
         if (
           !audioMetadata.playing &&
