@@ -390,7 +390,7 @@ function WeeklyFeaturedUsers({
           {weeklyFeaturedUsers.map((user, index) => (
             <CarouselItem
               key={user.userId}
-              className="baseFlex basis-[95%] pl-12 sm:basis-[70%] lg:h-[280px] lg:basis-[711px]"
+              className="baseFlex basis-[93%] pl-12 sm:basis-[70%] lg:h-[280px] lg:basis-[711px]"
             >
               <div className="baseFlex size-full rounded-lg border bg-secondary px-4 py-4 shadow-sm">
                 <div

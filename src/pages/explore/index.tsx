@@ -109,7 +109,7 @@ function Explore({ json }: { json: string }) {
               <div className="baseFlex gap-2">
                 <FaRankingStar className="size-5 text-foreground md:size-6" />
                 <span className="text-lg font-bold md:text-[1.35rem]">
-                  Weekly featured users
+                  Weekly Featured Users
                 </span>
               </div>
               <Separator className="w-full bg-primary" />
@@ -128,7 +128,7 @@ function Explore({ json }: { json: string }) {
                 <div className="baseFlex gap-2">
                   <IoFlash className="size-4 text-foreground md:size-5" />
                   <span className="text-lg font-bold md:text-[1.35rem]">
-                    Recently added tabs
+                    Recently Added
                   </span>
                 </div>
                 <Separator className="w-full bg-primary" />
@@ -182,7 +182,7 @@ function Explore({ json }: { json: string }) {
                 <div className="baseFlex gap-2">
                   <IoStatsChart className="size-4 text-foreground md:size-5" />
                   <span className="text-lg font-bold md:text-[1.35rem]">
-                    Most popular tabs
+                    Most Popular
                   </span>
                 </div>
                 <Separator className="w-full bg-primary" />
