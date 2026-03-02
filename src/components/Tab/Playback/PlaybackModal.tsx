@@ -115,6 +115,15 @@ function PlaybackModal() {
 
   useModalScrollbarHandling(true);
 
+  useEffect(() => {
+    const html = document.documentElement;
+    html.classList.add("disablePullToRefresh");
+
+    return () => {
+      html.classList.remove("disablePullToRefresh");
+    };
+  }, []);
+
   // Initialize chordRepetitions when expandedTabData changes
   useEffect(() => {
     if (expandedTabData && expandedTabData.length > 0) {

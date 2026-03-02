@@ -22,7 +22,7 @@
   }
 }
 
-html {
+html.disablePullToRefresh {
   overscroll-behavior: none;
 }
 
