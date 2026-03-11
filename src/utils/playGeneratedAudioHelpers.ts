@@ -44,6 +44,18 @@ type CurrentlyPlayingString =
 const activePlaybackSources = new Set<AudioScheduledSourceNode>();
 const sourceSoftStopGainMap = new WeakMap<AudioScheduledSourceNode, GainNode>();
 const slapNoiseBufferCache = new WeakMap<AudioContext, AudioBuffer>();
+type PalmMuteNodeChain = {
+  lowPassFilter: BiquadFilterNode;
+  bassBoost: BiquadFilterNode;
+  gainNode: GainNode;
+};
+type DeadNoteNodeChain = {
+  highpassFilter: BiquadFilterNode;
+  midBoost: BiquadFilterNode;
+  gainNode: GainNode;
+};
+const palmMuteNodePool = new WeakMap<AudioContext, PalmMuteNodeChain[]>();
+const deadNoteNodePool = new WeakMap<AudioContext, DeadNoteNodeChain[]>();
 
 interface ScheduledAudioCallback {
   cancelled: boolean;
@@ -278,6 +290,50 @@ function getOrCreateSlapNoiseBuffer(audioContext: AudioContext) {
   slapNoiseBufferCache.set(audioContext, noiseBuffer);
 
   return noiseBuffer;
+}
+
+function acquirePalmMuteNodeChain(audioContext: AudioContext) {
+  const pool = palmMuteNodePool.get(audioContext);
+  if (pool && pool.length > 0) {
+    return pool.pop()!;
+  }
+
+  return {
+    lowPassFilter: audioContext.createBiquadFilter(),
+    bassBoost: audioContext.createBiquadFilter(),
+    gainNode: audioContext.createGain(),
+  };
+}
+
+function releasePalmMuteNodeChain(
+  audioContext: AudioContext,
+  chain: PalmMuteNodeChain,
+) {
+  const pool = palmMuteNodePool.get(audioContext) ?? [];
+  pool.push(chain);
+  palmMuteNodePool.set(audioContext, pool);
+}
+
+function acquireDeadNoteNodeChain(audioContext: AudioContext) {
+  const pool = deadNoteNodePool.get(audioContext);
+  if (pool && pool.length > 0) {
+    return pool.pop()!;
+  }
+
+  return {
+    highpassFilter: audioContext.createBiquadFilter(),
+    midBoost: audioContext.createBiquadFilter(),
+    gainNode: audioContext.createGain(),
+  };
+}
+
+function releaseDeadNoteNodeChain(
+  audioContext: AudioContext,
+  chain: DeadNoteNodeChain,
+) {
+  const pool = deadNoteNodePool.get(audioContext) ?? [];
+  pool.push(chain);
+  deadNoteNodePool.set(audioContext, pool);
 }
 
 function attachSourceOnEndedCleanup({
@@ -641,8 +697,8 @@ function playDeadNote({
   oscillator.type = "sine";
   oscillator.frequency.value = frequency;
 
-  // Create a GainNode to control the volume
-  const gainNode = audioContext.createGain();
+  const { highpassFilter, midBoost, gainNode } =
+    acquireDeadNoteNodeChain(audioContext);
 
   // had to crank these values down by a ton since they were so prominent
   let gainTarget = 0.00875;
@@ -680,13 +736,9 @@ function playDeadNote({
     audioContext.currentTime + 0.1,
   );
 
-  // Create a BiquadFilterNode for a low-pass filter
-  const highpassFilter = audioContext.createBiquadFilter();
   highpassFilter.type = "highpass";
   highpassFilter.frequency.value = 100; // TODO: still have to play around with this value
 
-  // Create a BiquadFilterNode for boosting the mid frequencies
-  const midBoost = audioContext.createBiquadFilter();
   midBoost.type = "peaking";
   midBoost.frequency.value = 1200; // Frequency to boost
   midBoost.gain.value = 1; // Amount of boost in dB
@@ -700,6 +752,12 @@ function playDeadNote({
   attachSourceOnEndedCleanup({
     sourceNode: oscillator,
     nodesToDisconnect: [highpassFilter, midBoost, gainNode],
+    onEnded: () =>
+      releaseDeadNoteNodeChain(audioContext, {
+        highpassFilter,
+        midBoost,
+        gainNode,
+      }),
   });
 
   // // Connect the gainNode to the audioContext's destination
@@ -840,9 +898,8 @@ function applyPalmMute({
   isHighString,
   isATetheredEffect,
 }: ApplyPalmMute) {
-  const lowPassFilter = audioContext.createBiquadFilter();
-  const bassBoost = audioContext.createBiquadFilter();
-  const gainNode = audioContext.createGain();
+  const { lowPassFilter, bassBoost, gainNode } =
+    acquirePalmMuteNodeChain(audioContext);
 
   // Adjust lowPassFilter based on whether it's a high or low string
   if (isHighString) {
@@ -879,6 +936,12 @@ function applyPalmMute({
   attachSourceOnEndedCleanup({
     sourceNode,
     nodesToDisconnect: [lowPassFilter, bassBoost, gainNode],
+    onEnded: () =>
+      releasePalmMuteNodeChain(audioContext, {
+        lowPassFilter,
+        bassBoost,
+        gainNode,
+      }),
   });
 
   return gainNode;
