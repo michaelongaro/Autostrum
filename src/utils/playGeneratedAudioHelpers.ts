@@ -43,6 +43,7 @@ type CurrentlyPlayingString =
 
 const activePlaybackSources = new Set<AudioScheduledSourceNode>();
 const sourceSoftStopGainMap = new WeakMap<AudioScheduledSourceNode, GainNode>();
+const slapNoiseBufferCache = new WeakMap<AudioContext, AudioBuffer>();
 
 interface ScheduledAudioCallback {
   cancelled: boolean;
@@ -257,6 +258,26 @@ function resolveSourceNodeFromHandle(
   }
 
   return (handle as { source?: AudioBufferSourceNode }).source;
+}
+
+function getOrCreateSlapNoiseBuffer(audioContext: AudioContext) {
+  const cachedBuffer = slapNoiseBufferCache.get(audioContext);
+  if (cachedBuffer) return cachedBuffer;
+
+  const noiseBuffer = audioContext.createBuffer(
+    1,
+    audioContext.sampleRate * 0.2,
+    audioContext.sampleRate,
+  );
+
+  const output = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < output.length; i++) {
+    output[i] = Math.random() * 2 - 1;
+  }
+
+  slapNoiseBufferCache.set(audioContext, noiseBuffer);
+
+  return noiseBuffer;
 }
 
 function attachSourceOnEndedCleanup({
@@ -727,20 +748,9 @@ function playSlapSound({
   oscillator.type = "sine";
   oscillator.frequency.value = 100;
 
-  // Create a buffer for noise
-  const noiseBuffer = audioContext.createBuffer(
-    1,
-    audioContext.sampleRate * 0.2,
-    audioContext.sampleRate,
-  );
-  const output = noiseBuffer.getChannelData(0);
-  for (let i = 0; i < output.length; i++) {
-    output[i] = Math.random() * 2 - 1;
-  }
-
   // Create buffer source for noise
   const noise = audioContext.createBufferSource();
-  noise.buffer = noiseBuffer;
+  noise.buffer = getOrCreateSlapNoiseBuffer(audioContext);
 
   // Create a GainNode to control the volume
   const gainNode = audioContext.createGain();
