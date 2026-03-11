@@ -2,7 +2,7 @@ import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { MdModeEditOutline } from "react-icons/md";
 import { IoIosShareAlt } from "react-icons/io";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
@@ -88,18 +88,9 @@ function StaticTabMetadata() {
       enabled: !!createdByUserId,
     });
 
-  // hack to prevent createdAt <span> from moving around when <Drawer> is open on mobile
-  const [disableCreatedAtLayout, setDisableCreatedAtLayout] = useState(false);
+  const isMetaFieldsLoading = fetchingTabCreator || !dynamicMetadata;
 
   const overMediumViewportThreshold = useViewportWidthBreakpoint(768);
-
-  useEffect(() => {
-    if (disableCreatedAtLayout || !tabCreator) return;
-
-    setTimeout(() => {
-      setDisableCreatedAtLayout(true);
-    }, 500);
-  }, [tabCreator, disableCreatedAtLayout]);
 
   useEffect(() => {
     let processPageViewTimeout: NodeJS.Timeout | null = null;
@@ -427,72 +418,83 @@ function StaticTabMetadata() {
             className={`${classes.createdBy} baseVertFlex mt-[2px] w-full !items-start gap-1`}
           >
             <div className="font-semibold">Created by</div>
-            <div className="baseFlex h-6 gap-2">
-              <Button
-                disabled={!tabCreator}
-                variant={"link"}
-                className="h-6 !py-0 px-0 text-base"
-              >
-                <Link
-                  prefetch={false}
-                  href={`/user/${tabCreator?.username ?? ""}/filters`}
-                  className="baseFlex gap-2"
+            <AnimatePresence mode="wait" initial={false}>
+              {isMetaFieldsLoading ? (
+                <motion.div
+                  key="createdByAndDateLoading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="h-6"
                 >
-                  <AnimatePresence mode="popLayout">
-                    <motion.div
-                      key={fetchingTabCreator ? "loading" : "loaded"}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="baseFlex"
+                  <div className="pulseAnimation h-6 w-48 rounded-md bg-foreground/45" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="createdByAndDateLoaded"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="baseFlex h-6 gap-2"
+                >
+                  <Button
+                    disabled={!tabCreator}
+                    variant={"link"}
+                    className="h-6 !py-0 px-0 text-base"
+                  >
+                    <Link
+                      prefetch={false}
+                      href={`/user/${tabCreator?.username ?? ""}/filters`}
+                      className="baseFlex gap-2"
                     >
-                      {fetchingTabCreator ? (
-                        <div className="pulseAnimation col-start-1 col-end-2 row-start-1 row-end-2 h-6 w-32 rounded-md bg-foreground/50"></div>
+                      {tabCreator ? (
+                        <span className="max-w-[100%] truncate text-left">
+                          {tabCreator.username}
+                        </span>
                       ) : (
-                        <>
-                          {tabCreator ? (
-                            <span className="col-start-1 col-end-2 row-start-1 row-end-2 max-w-[100%] truncate">
-                              {tabCreator.username}
-                            </span>
-                          ) : (
-                            <span className="italic text-foreground/75">
-                              Anonymous
-                            </span>
-                          )}
-                        </>
+                        <span className="italic text-foreground/75">
+                          Anonymous
+                        </span>
                       )}
-                    </motion.div>
-                  </AnimatePresence>
-                </Link>
-              </Button>
+                    </Link>
+                  </Button>
 
-              <motion.div
-                layout={!disableCreatedAtLayout}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-                className="mt-[2px] whitespace-nowrap text-sm opacity-80"
-              >
-                {`on ${new Intl.DateTimeFormat("en-US").format(createdAt ?? new Date())}`}
-              </motion.div>
-            </div>
+                  <div className="mt-[2px] whitespace-nowrap text-sm opacity-80">
+                    {`on ${new Intl.DateTimeFormat("en-US").format(createdAt ?? new Date())}`}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className={`${classes.pageViews} self-end text-sm opacity-80`}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={"dynamicPageViews"}
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: "auto" }}
-                exit={{ opacity: 0, width: 0 }}
-                transition={{
-                  duration: 0.25,
-                }}
-                className="baseFlex gap-1"
-              >
-                {dynamicMetadata?.pageViews &&
-                  formatNumber(dynamicMetadata?.pageViews)}
-                <span>view{dynamicMetadata?.pageViews === 1 ? "" : "s"}</span>
-              </motion.div>
+            <AnimatePresence mode="wait" initial={false}>
+              {!isMetaFieldsLoading && dynamicMetadata ? (
+                <motion.div
+                  key={`dynamicPageViews-${dynamicMetadata.pageViews}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{
+                    duration: 0.25,
+                  }}
+                  className="baseFlex min-w-[78px] justify-end gap-1"
+                >
+                  {formatNumber(dynamicMetadata.pageViews)}
+                  <span>view{dynamicMetadata.pageViews === 1 ? "" : "s"}</span>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="dynamicPageViewsLoading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="pulseAnimation h-5 min-w-[78px] rounded-md bg-foreground/35"
+                />
+              )}
             </AnimatePresence>
           </div>
         </div>
