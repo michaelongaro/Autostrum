@@ -1,6 +1,18 @@
 **Guitar effect audio recreation methodology**  
 All guitar effects are recreated using the Web Audio API with Soundfont.js providing the base guitar samples. The implementation prioritizes realistic sound reproduction while managing memory efficiently through proper cleanup of AudioBufferSourceNodes.
 
+- **Runtime architecture updates (performance + lifecycle)**
+  - Active source lifecycle is centralized through `attachSourceOnEndedCleanup()` and `cleanupAudioSource()`
+  - A shared timer-driven callback scheduler coordinates audio-time callbacks instead of spawning per-callback RAF polling loops
+  - Active sources are tracked in a global set for deterministic stop/pause cleanup (`stopAllActivePlaybackSources()`)
+  - String ownership is tracked separately to prevent overlapping stale handles when effects replace note sources mid-playback
+  - Soft-stop anti-pop behavior is preserved via gain ramping and source-to-gain association (`sourceSoftStopGainMap`)
+  - Frequently used effect-processing chains are pooled per `AudioContext`:
+    - Palm mute: low-pass + bass boost + gain
+    - Dead note: high-pass + mid boost + gain
+    - Slap: low-pass + mid boost + gain + noise gain
+  - Slap noise generation now uses one cached noise `AudioBuffer` per `AudioContext` (rather than random regeneration on every slap)
+
 - **Bends/Releases (b/r)**
   - Uses the `detune` property on AudioBufferSourceNode to gradually change pitch
   - Detune value calculated as `(fretToBendTo - baseFret) * 100` cents (100 cents = 1 semitone)
@@ -38,6 +50,7 @@ All guitar effects are recreated using the Web Audio API with Soundfont.js provi
   - Gain multiplier of 70 (normal) or 100 (accented), reduced to 0.7/1.0 for tethered effects
   - Note duration shortened to 0.45s for muted sustain characteristic
   - Original note gain reduced to 0.01 with duration of 0.45s when palm muting is present
+  - Filter/gain nodes for palm muting are reused from a per-context pool to reduce per-note allocations
 
 - **Dead Notes (x)**
   - Synthesized using a sine wave oscillator instead of sampled audio
@@ -48,16 +61,18 @@ All guitar effects are recreated using the Web Audio API with Soundfont.js provi
   - Base gain of 0.00875, increased to 0.0125 for accented, reduced to 0.005 for palm muted
   - Uses highpass filter at 100Hz and peaking filter at 1200Hz (+1dB, Q=1) for mid-range clarity
   - Exponential gain ramp to 0.0001 over 0.1s for natural decay
+  - Filter/gain nodes for dead notes are reused from a per-context pool
 
 - **Slap (s)**
   - Stops all currently playing strings to create percussive effect
   - Combines sine oscillator (100Hz) with white noise buffer for realistic slap texture
-  - Noise buffer: 0.2s duration filled with random values between -1 and 1
+  - Noise buffer: 0.2s duration filled with random values between -1 and 1, cached per `AudioContext`
   - Lowpass filter at 2200Hz to remove harsh high frequencies
   - Peaking filter at 800Hz (+8dB, Q=1) for characteristic mid-range "snap"
   - Base gain of 0.25, increased to 0.45 for accented, reduced to 0.1 for palm muted
   - Duration of 0.1s for staccato/palm muted, 0.25s for normal (gain increased 1.25x for shorter duration)
   - Both oscillator and noise use exponential decay to 0.01 over the duration
+  - Slap filter/gain processing nodes are reused from a per-context pool
 
 - **Staccato (.)**
   - Implemented at note generation level by reducing duration to 0.25s

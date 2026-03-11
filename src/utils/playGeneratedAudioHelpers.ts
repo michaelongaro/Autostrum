@@ -2,16 +2,19 @@ import extractNumber from "~/utils/extractNumber";
 import type Soundfont from "soundfont-player";
 
 /**
- * Memory management strategy for audio playback
+ * Runtime + memory strategy for generated audio playback
  *
  * This file handles audio playback using the Web Audio API and Soundfont.js.
- * To prevent memory leaks from accumulating AudioBufferSourceNodes:
+ * Current approach focuses on leak prevention and allocation/callback churn reduction:
  *
- * 1. All AudioBufferSourceNodes are tracked via the `currentlyPlayingStrings` array
- * 2. When a note ends (via onended callback), we disconnect all nodes and null buffer references
- * 3. When manually stopping notes, we use `cleanupAudioSource()` to properly dispose resources
- * 4. Buffer references are explicitly set to null to help garbage collection
- * 5. All audio nodes are disconnected after use to break circular references
+ * 1. Active playback sources are centrally tracked in `activePlaybackSources`
+ * 2. String ownership is tracked via `currentlyPlayingStrings` to avoid overlap/leaks per string
+ * 3. Source/node teardown is consolidated in `attachSourceOnEndedCleanup()` + `cleanupAudioSource()`
+ * 4. Soft-stop gain ramps (anti-pop) are tracked via `sourceSoftStopGainMap`
+ * 5. Scheduled ownership/callback work uses one shared timer-driven scheduler (not per-callback RAF loops)
+ * 6. Frequently used effect chains (palm mute/dead note/slap) reuse pooled nodes per AudioContext
+ * 7. Slap noise uses a cached AudioBuffer per AudioContext instead of regenerating random noise per hit
+ * 8. Buffer references are nulled when possible to improve GC behavior
  */
 
 interface PlayNoteWithEffects {
