@@ -54,8 +54,15 @@ type DeadNoteNodeChain = {
   midBoost: BiquadFilterNode;
   gainNode: GainNode;
 };
+type SlapNodeChain = {
+  lowPassFilter: BiquadFilterNode;
+  midBoost: BiquadFilterNode;
+  gainNode: GainNode;
+  noiseGain: GainNode;
+};
 const palmMuteNodePool = new WeakMap<AudioContext, PalmMuteNodeChain[]>();
 const deadNoteNodePool = new WeakMap<AudioContext, DeadNoteNodeChain[]>();
+const slapNodePool = new WeakMap<AudioContext, SlapNodeChain[]>();
 
 interface ScheduledAudioCallback {
   cancelled: boolean;
@@ -334,6 +341,29 @@ function releaseDeadNoteNodeChain(
   const pool = deadNoteNodePool.get(audioContext) ?? [];
   pool.push(chain);
   deadNoteNodePool.set(audioContext, pool);
+}
+
+function acquireSlapNodeChain(audioContext: AudioContext) {
+  const pool = slapNodePool.get(audioContext);
+  if (pool && pool.length > 0) {
+    return pool.pop()!;
+  }
+
+  return {
+    lowPassFilter: audioContext.createBiquadFilter(),
+    midBoost: audioContext.createBiquadFilter(),
+    gainNode: audioContext.createGain(),
+    noiseGain: audioContext.createGain(),
+  };
+}
+
+function releaseSlapNodeChain(
+  audioContext: AudioContext,
+  chain: SlapNodeChain,
+) {
+  const pool = slapNodePool.get(audioContext) ?? [];
+  pool.push(chain);
+  slapNodePool.set(audioContext, pool);
 }
 
 function attachSourceOnEndedCleanup({
@@ -810,8 +840,8 @@ function playSlapSound({
   const noise = audioContext.createBufferSource();
   noise.buffer = getOrCreateSlapNoiseBuffer(audioContext);
 
-  // Create a GainNode to control the volume
-  const gainNode = audioContext.createGain();
+  const { lowPassFilter, midBoost, gainNode, noiseGain } =
+    acquireSlapNodeChain(audioContext);
 
   let gainTarget = 0.25;
 
@@ -833,20 +863,14 @@ function playSlapSound({
     audioContext.currentTime + duration,
   );
 
-  // Create a BiquadFilterNode for a low-pass filter
-  const lowPassFilter = audioContext.createBiquadFilter();
   lowPassFilter.type = "lowpass";
   lowPassFilter.frequency.value = 2200; // TODO: still have to play around with this value
 
-  // Create a BiquadFilterNode for boosting the mid frequencies
-  const midBoost = audioContext.createBiquadFilter();
   midBoost.type = "peaking";
   midBoost.frequency.value = 800; // Frequency to boost
   midBoost.gain.value = 8; // Amount of boost in dB
   midBoost.Q.value = 1; // Quality factor
 
-  // Create a GainNode for the noise volume
-  const noiseGain = audioContext.createGain();
   noiseGain.gain.setValueAtTime(0.2, audioContext.currentTime);
   noiseGain.gain.exponentialRampToValueAtTime(
     0.01,
@@ -860,14 +884,28 @@ function playSlapSound({
   lowPassFilter.connect(midBoost);
   midBoost.connect(gainNode);
 
+  let releasedSlapNodeChain = false;
+  const releaseChainOnce = () => {
+    if (releasedSlapNodeChain) return;
+    releasedSlapNodeChain = true;
+    releaseSlapNodeChain(audioContext, {
+      lowPassFilter,
+      midBoost,
+      gainNode,
+      noiseGain,
+    });
+  };
+
   attachSourceOnEndedCleanup({
     sourceNode: oscillator,
     nodesToDisconnect: [lowPassFilter, midBoost, gainNode],
+    onEnded: releaseChainOnce,
   });
 
   attachSourceOnEndedCleanup({
     sourceNode: noise,
     nodesToDisconnect: [noiseGain],
+    onEnded: releaseChainOnce,
   });
 
   // // Connect the gainNode to the audioContext's destination
