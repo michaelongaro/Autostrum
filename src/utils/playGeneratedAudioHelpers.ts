@@ -46,11 +46,65 @@ const sourceSoftStopGainMap = new WeakMap<AudioScheduledSourceNode, GainNode>();
 
 interface ScheduledAudioCallback {
   cancelled: boolean;
-  rafId?: number;
-  timeoutId?: ReturnType<typeof setTimeout>;
+  targetTime: number;
+  callback: () => void;
+  audioContext: AudioContext;
 }
 
 const scheduledAudioCallbacks = new Set<ScheduledAudioCallback>();
+let scheduledAudioCallbacksTimeout: ReturnType<typeof setTimeout> | undefined;
+
+function getNextScheduledCallbackDelayMs() {
+  let nextDelayMs: number | null = null;
+
+  for (const task of scheduledAudioCallbacks) {
+    if (task.cancelled) continue;
+
+    const delayMs = Math.max(
+      0,
+      (task.targetTime - task.audioContext.currentTime) * 1000,
+    );
+
+    if (nextDelayMs === null || delayMs < nextDelayMs) {
+      nextDelayMs = delayMs;
+    }
+  }
+
+  return nextDelayMs;
+}
+
+function queueScheduledAudioCallbacksTick() {
+  if (scheduledAudioCallbacksTimeout) {
+    clearTimeout(scheduledAudioCallbacksTimeout);
+    scheduledAudioCallbacksTimeout = undefined;
+  }
+
+  const nextDelayMs = getNextScheduledCallbackDelayMs();
+
+  if (nextDelayMs === null) return;
+
+  const clampedDelayMs = Math.min(25, Math.max(0, Math.floor(nextDelayMs)));
+
+  scheduledAudioCallbacksTimeout = setTimeout(() => {
+    scheduledAudioCallbacksTimeout = undefined;
+
+    const tasksSnapshot = Array.from(scheduledAudioCallbacks);
+
+    for (const task of tasksSnapshot) {
+      if (task.cancelled) {
+        scheduledAudioCallbacks.delete(task);
+        continue;
+      }
+
+      if (task.audioContext.currentTime >= task.targetTime) {
+        scheduledAudioCallbacks.delete(task);
+        task.callback();
+      }
+    }
+
+    queueScheduledAudioCallbacksTick();
+  }, clampedDelayMs);
+}
 
 function scheduleAtAudioTime({
   audioContext,
@@ -68,41 +122,13 @@ function scheduleAtAudioTime({
 
   const task: ScheduledAudioCallback = {
     cancelled: false,
-  };
-
-  const targetTime = audioContext.currentTime + when;
-
-  const cleanupTask = () => {
-    if (typeof task.rafId === "number" && globalThis.cancelAnimationFrame) {
-      globalThis.cancelAnimationFrame(task.rafId);
-    }
-    if (task.timeoutId) {
-      clearTimeout(task.timeoutId);
-    }
-    scheduledAudioCallbacks.delete(task);
-  };
-
-  const tick = () => {
-    if (task.cancelled) {
-      cleanupTask();
-      return;
-    }
-
-    if (audioContext.currentTime >= targetTime) {
-      cleanupTask();
-      callback();
-      return;
-    }
-
-    if (globalThis.requestAnimationFrame) {
-      task.rafId = globalThis.requestAnimationFrame(tick);
-    } else {
-      task.timeoutId = setTimeout(tick, 5);
-    }
+    targetTime: audioContext.currentTime + when,
+    callback,
+    audioContext,
   };
 
   scheduledAudioCallbacks.add(task);
-  tick();
+  queueScheduledAudioCallbacksTick();
 }
 
 function scheduleStringOwnershipUpdate({
@@ -385,17 +411,14 @@ function playNoteWithEffects({
 function stopAllScheduledAudioCallbacks() {
   for (const task of scheduledAudioCallbacks) {
     task.cancelled = true;
-
-    if (typeof task.rafId === "number" && globalThis.cancelAnimationFrame) {
-      globalThis.cancelAnimationFrame(task.rafId);
-    }
-
-    if (task.timeoutId) {
-      clearTimeout(task.timeoutId);
-    }
   }
 
   scheduledAudioCallbacks.clear();
+
+  if (scheduledAudioCallbacksTimeout) {
+    clearTimeout(scheduledAudioCallbacksTimeout);
+    scheduledAudioCallbacksTimeout = undefined;
+  }
 }
 
 function stopAllActivePlaybackSources() {
