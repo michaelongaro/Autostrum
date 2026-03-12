@@ -16,7 +16,7 @@ import { IoSettingsSharp } from "react-icons/io5";
 import { BsFillPlayFill } from "react-icons/bs";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import { X } from "lucide-react";
-import { tuningNotes } from "~/utils/tunings";
+import { normalizeCustomTuningInput, tuningNotes } from "~/utils/tunings";
 
 const backdropVariants = {
   expanded: {
@@ -46,6 +46,14 @@ function CustomTuningModal() {
     tuningNotes.includes(tuning) ? ["", "", "", "", "", ""] : tuning.split(" "),
   );
 
+  const [quickTuningInput, setQuickTuningInput] = useState(
+    tuningNotes.includes(tuning) ? "" : tuning,
+  );
+
+  const [inputMode, setInputMode] = useState<"auto" | "manual">(
+    tuningNotes.includes(tuning) ? "auto" : "manual",
+  );
+
   const placeholderNotes = ["E2", "A2", "D3", "G3", "B3", "E4"];
 
   const [showInvalidInputPerIndex, setShowInvalidInputPerIndex] = useState([
@@ -56,6 +64,8 @@ function CustomTuningModal() {
     false,
     false,
   ]);
+
+  const [showInvalidQuickInput, setShowInvalidQuickInput] = useState(false);
 
   const [highlightedNoteInputIndex, setHighlightedNoteInputIndex] = useState<
     number | null
@@ -92,6 +102,25 @@ function CustomTuningModal() {
     const sanitizedTuning = newTuning.join(" ");
     setTuning(sanitizedTuning);
     setShowCustomTuningModal(false);
+  }
+
+  function handleConvertQuickTuningInput() {
+    const normalizedTuning = normalizeCustomTuningInput(quickTuningInput);
+
+    if (!normalizedTuning) {
+      setShowInvalidQuickInput(true);
+
+      setTimeout(() => {
+        setShowInvalidQuickInput(false);
+      }, 500);
+
+      return;
+    }
+
+    setShowInvalidQuickInput(false);
+    setNewTuning(normalizedTuning);
+    setQuickTuningInput(normalizedTuning.join(" "));
+    setInputMode("manual");
   }
 
   return (
@@ -133,82 +162,157 @@ function CustomTuningModal() {
             </Button>
           </div>
 
-          <div className="baseVertFlex max-w-[23rem] gap-2 rounded-lg border bg-secondary p-2 text-sm shadow-sm sm:max-w-[30rem]">
-            <div className="baseFlex gap-4 px-4 sm:gap-2">
-              <HiOutlineInformationCircle className="size-5" />
-              <p className="max-w-[14rem] sm:max-w-[20rem] sm:text-center">
-                Tuning notes must be written in Scientific Pitch Notation, you
-                can find the format below.
-              </p>
+          <div className="baseFlex w-full !justify-center">
+            <div className="baseFlex gap-1 rounded-md border bg-secondary p-1">
+              <Button
+                type="button"
+                size="sm"
+                variant={inputMode === "auto" ? "default" : "ghost"}
+                className="px-6"
+                onClick={() => {
+                  setInputMode("auto");
+                }}
+              >
+                Auto
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={inputMode === "manual" ? "default" : "ghost"}
+                className="px-6"
+                onClick={() => {
+                  setInputMode("manual");
+                }}
+              >
+                Manual
+              </Button>
             </div>
-            <div className="baseFlex mt-2 gap-2 sm:gap-6">
-              <div className="baseVertFlex gap-2">
-                <div className="grid w-full grid-cols-3 place-items-center text-sm font-semibold">
-                  <span>A-G</span>
-                  <span>(#)</span>
-                  <span>0-7 or 1-8</span>
+          </div>
+
+          {inputMode === "auto" ? (
+            <>
+              <div className="baseVertFlex max-w-[23rem] gap-2 rounded-lg border bg-secondary p-2 text-sm shadow-sm sm:max-w-[30rem]">
+                <div className="baseFlex gap-4 px-4 sm:gap-2">
+                  <HiOutlineInformationCircle className="size-5" />
+                  <p className="max-w-[14rem] sm:max-w-[20rem] sm:text-center">
+                    Enter six notes (such as C# B E F A E) and we will choose
+                    valid octaves for guitar string ranges.
+                  </p>
                 </div>
-                <div className="grid w-full grid-cols-3 place-items-center text-xs">
-                  <span>Root note</span>
-                  <span className="baseFlex">
-                    Optional sharp
-                    <TooltipProvider delayDuration={150}>
-                      <Tooltip>
-                        <TooltipTrigger>*</TooltipTrigger>
-                        <TooltipContent side={"bottom"}>
-                          <p>B and E notes cannot have sharps.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </span>
-                  <span className="baseFlex">
-                    Octave
-                    <TooltipProvider delayDuration={150}>
-                      <Tooltip>
-                        <TooltipTrigger>*</TooltipTrigger>
-                        <TooltipContent side={"bottom"}>
-                          <div className="baseVertFlex z-50 gap-0">
-                            <p>Octaves 0-7 apply to all notes,</p>
-                            <p>but 1-8 apply only to the note C.</p>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </span>
+                <div className="baseFlex px-4 text-xs sm:justify-center">
+                  <p>Use spaces between notes.</p>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="baseFlex gap-1 xs:gap-2">
-            {newTuning.map((value, index) => (
-              <Input
-                key={index}
-                placeholder={placeholderNotes[index]}
-                value={value.toUpperCase()}
-                showingErrorShakeAnimation={showInvalidInputPerIndex[index]}
-                smallErrorShakeAnimation={true}
-                style={{
-                  color:
-                    highlightedNoteInputIndex === index
-                      ? "hsl(var(--primary))"
-                      : "hsl(var(--foreground))",
-                }}
-                className="w-[52px] p-2 text-center"
-                onChange={(e) => {
-                  if (e.target.value.length > 3) return;
+              <div className="baseFlex w-64 gap-2">
+                <Input
+                  placeholder="C# B E F# A# E"
+                  value={quickTuningInput.toUpperCase()}
+                  showingErrorShakeAnimation={showInvalidQuickInput}
+                  smallErrorShakeAnimation={true}
+                  onChange={(e) => {
+                    setQuickTuningInput(e.target.value.toLowerCase());
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleConvertQuickTuningInput();
+                    }
+                  }}
+                />
 
-                  const newTuningValues = [...newTuning];
-                  newTuningValues[index] = e.target.value.toLowerCase();
-                  setNewTuning(newTuningValues);
-                }}
-              />
-            ))}
-          </div>
+                <Button
+                  type="button"
+                  disabled={quickTuningInput.length < 6}
+                  variant="secondary"
+                  onClick={handleConvertQuickTuningInput}
+                >
+                  Convert
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="baseVertFlex max-w-[23rem] gap-2 rounded-lg border bg-secondary p-2 text-sm shadow-sm sm:max-w-[30rem]">
+                <div className="baseFlex gap-4 px-4 sm:gap-2">
+                  <HiOutlineInformationCircle className="size-5" />
+                  <p className="max-w-[14rem] sm:max-w-[20rem] sm:text-center">
+                    Scientific Pitch Notation is required here. You can preview
+                    and tweak before saving.
+                  </p>
+                </div>
+                <div className="baseFlex mt-2 gap-2 sm:gap-6">
+                  <div className="baseVertFlex gap-2">
+                    <div className="grid w-full grid-cols-3 place-items-center text-sm font-semibold">
+                      <span>A-G</span>
+                      <span>(#)</span>
+                      <span>0-7 or 1-8</span>
+                    </div>
+                    <div className="grid w-full grid-cols-3 place-items-center text-xs">
+                      <span>Root note</span>
+                      <span className="baseFlex">
+                        Optional sharp
+                        <TooltipProvider delayDuration={150}>
+                          <Tooltip>
+                            <TooltipTrigger>*</TooltipTrigger>
+                            <TooltipContent side={"bottom"}>
+                              <p>B and E notes cannot have sharps.</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </span>
+                      <span className="baseFlex">
+                        Octave
+                        <TooltipProvider delayDuration={150}>
+                          <Tooltip>
+                            <TooltipTrigger>*</TooltipTrigger>
+                            <TooltipContent side={"bottom"}>
+                              <div className="baseVertFlex z-50 gap-0">
+                                <p>Octaves 0-7 apply to all notes,</p>
+                                <p>but 1-8 apply only to the note C.</p>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="baseFlex gap-1 xs:gap-2">
+                {newTuning.map((value, index) => (
+                  <Input
+                    key={index}
+                    placeholder={placeholderNotes[index]}
+                    value={value.toUpperCase()}
+                    showingErrorShakeAnimation={showInvalidInputPerIndex[index]}
+                    smallErrorShakeAnimation={true}
+                    style={{
+                      color:
+                        highlightedNoteInputIndex === index
+                          ? "hsl(var(--primary))"
+                          : "hsl(var(--foreground))",
+                    }}
+                    className="w-[52px] p-2 text-center"
+                    onChange={(e) => {
+                      if (e.target.value.length > 3) return;
+
+                      const newTuningValues = [...newTuning];
+                      newTuningValues[index] = e.target.value.toLowerCase();
+                      setNewTuning(newTuningValues);
+                      setQuickTuningInput(newTuningValues.join(" "));
+                    }}
+                  />
+                ))}
+              </div>
+            </>
+          )}
 
           <div className="baseFlex w-full !justify-between">
             <Button
               disabled={
+                inputMode !== "manual" ||
                 highlightedNoteInputIndex !== null ||
                 (previewMetadata.playing && previewMetadata.type === "chord") ||
                 newTuning.some((customInputValue) => customInputValue === "")
@@ -257,6 +361,7 @@ function CustomTuningModal() {
 
             <Button
               disabled={
+                inputMode !== "manual" ||
                 newTuning.some((customInputValue) => customInputValue === "") ||
                 isEqual(tuning, newTuning.join(" "))
               }

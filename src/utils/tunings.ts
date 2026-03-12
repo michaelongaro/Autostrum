@@ -42,6 +42,117 @@ function parse(notes: string) {
     .reverse();
 }
 
+const NOTE_ONLY_TOKEN_REGEX = /^(?<note>[A-G](?:#)?)(?<octave>[0-8])?$/i;
+const STANDARD_TUNING_MIDI = [40, 45, 50, 55, 59, 64];
+const STRING_MIDI_RANGES: [number, number][] = [
+  [28, 52],
+  [33, 57],
+  [38, 62],
+  [43, 67],
+  [47, 71],
+  [52, 76],
+];
+
+function getMidiCandidatesForString({
+  note,
+  stringIndex,
+}: {
+  note: string;
+  stringIndex: number;
+}) {
+  const [minMidi, maxMidi] = STRING_MIDI_RANGES[stringIndex] ?? [0, 127];
+  const candidates: number[] = [];
+
+  for (let octave = 0; octave <= 8; octave++) {
+    const midi = get(`${note}${octave}`).midi;
+    if (midi === null) continue;
+
+    if (midi >= minMidi && midi <= maxMidi) {
+      candidates.push(midi);
+    }
+  }
+
+  return candidates;
+}
+
+function getBestStringMidi({
+  note,
+  octave,
+  stringIndex,
+  previousMidi,
+}: {
+  note: string;
+  octave?: number;
+  stringIndex: number;
+  previousMidi?: number;
+}) {
+  if (octave !== undefined) {
+    const explicitMidi = get(`${note}${octave}`).midi;
+    if (explicitMidi === null) return null;
+
+    const [minMidi, maxMidi] = STRING_MIDI_RANGES[stringIndex] ?? [0, 127];
+    if (explicitMidi < minMidi || explicitMidi > maxMidi) return null;
+
+    if (previousMidi !== undefined && explicitMidi <= previousMidi) {
+      return null;
+    }
+
+    return explicitMidi;
+  }
+
+  const candidates = getMidiCandidatesForString({ note, stringIndex }).filter(
+    (candidateMidi) =>
+      previousMidi === undefined || candidateMidi > previousMidi,
+  );
+
+  if (candidates.length === 0) return null;
+
+  const preferredMidi = STANDARD_TUNING_MIDI[stringIndex] ?? 0;
+
+  return candidates.reduce((closest, candidate) => {
+    const currentDistance = Math.abs(candidate - preferredMidi);
+    const closestDistance = Math.abs(closest - preferredMidi);
+
+    return currentDistance < closestDistance ? candidate : closest;
+  });
+}
+
+function normalizeCustomTuningInput(input: string) {
+  const tokens = input.trim().split(/\s+/).filter(Boolean);
+
+  if (tokens.length !== 6) return null;
+
+  const normalized: string[] = [];
+  let previousMidi: number | undefined;
+
+  for (let stringIndex = 0; stringIndex < tokens.length; stringIndex++) {
+    const token = tokens[stringIndex]!;
+    const match = token.match(NOTE_ONLY_TOKEN_REGEX);
+
+    if (!match?.groups?.note) return null;
+
+    const note = match.groups.note.toUpperCase();
+    const octave =
+      match.groups.octave !== undefined
+        ? Number(match.groups.octave)
+        : undefined;
+
+    const midi = getBestStringMidi({
+      note,
+      octave,
+      stringIndex,
+      previousMidi,
+    });
+
+    if (midi === null) return null;
+
+    previousMidi = midi;
+    normalized.push(midiToNoteName(midi, { sharps: true }).toLowerCase());
+  }
+
+  return normalized;
+}
+
 const tunings: Tuning[] = [
   {
     name: "Standard",
@@ -192,4 +303,11 @@ const tuningNotes = [
   "d2 a2 d3 g3 a3 d4",
 ];
 
-export { toString, parse, tunings, tuningNotes, tuningNotesToName };
+export {
+  toString,
+  parse,
+  tunings,
+  tuningNotes,
+  tuningNotesToName,
+  normalizeCustomTuningInput,
+};
