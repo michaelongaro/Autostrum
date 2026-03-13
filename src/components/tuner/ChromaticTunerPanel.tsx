@@ -153,11 +153,10 @@ function ChromaticTunerPanel({
                 <p className="font-semibold text-foreground">
                   {formatNoteLabel(currentTarget)}
                 </p>
-                <p>{`${currentTargetFrequency.toFixed(1)} Hz`}</p>
               </div>
 
               <div className="absolute right-3 top-3 text-xs font-semibold text-foreground/80 sm:text-sm">
-                {`#${stringLabels[currentTargetIndex]}`}
+                <p>{`${currentTargetFrequency.toFixed(1)} Hz`}</p>
               </div>
 
               <div className="absolute left-1/2 top-3 -translate-x-1/2 rounded-md border bg-background px-2 py-1 text-xs font-semibold text-foreground sm:text-sm">
@@ -181,7 +180,7 @@ function ChromaticTunerPanel({
                   }}
                 />
 
-                <div className="absolute bottom-0 left-1/2 size-3 -translate-x-1/2 rounded-full border border-primary/60 bg-background sm:size-3.5" />
+                <div className="absolute bottom-0 left-1/2 size-3 -translate-x-1/2 rounded-full border border-primary/60 bg-background sm:size-5" />
 
                 {regularArcMarkers.map((marker) => {
                   const angleRadians = (marker / 50) * (Math.PI / 2);
