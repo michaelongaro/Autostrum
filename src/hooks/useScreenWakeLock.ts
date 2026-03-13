@@ -1,10 +1,11 @@
 import { useEffect, useRef } from "react";
 import { useTabStore } from "~/stores/TabStore";
 
-function useScreenWakeLock() {
+function useScreenWakeLock(enabledOverride?: boolean) {
   const { showPlaybackModal } = useTabStore((state) => ({
     showPlaybackModal: state.showPlaybackModal,
   }));
+  const shouldEnableWakeLock = enabledOverride ?? showPlaybackModal;
 
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
@@ -37,7 +38,7 @@ function useScreenWakeLock() {
       }
     }
 
-    if (showPlaybackModal) {
+    if (shouldEnableWakeLock) {
       void requestWakeLock();
     } else {
       wakeLockRef.current
@@ -66,7 +67,7 @@ function useScreenWakeLock() {
 
       document.removeEventListener("visibilitychange", reaquireWakeLock);
     };
-  }, [showPlaybackModal]);
+  }, [shouldEnableWakeLock]);
 }
 
 export default useScreenWakeLock;

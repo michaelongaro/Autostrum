@@ -5,6 +5,7 @@ import ChromaticTunerPanel from "~/components/tuner/ChromaticTunerPanel";
 import { useTabStore } from "~/stores/TabStore";
 import CustomTuningModal from "~/components/modals/CustomTuningModal";
 import { useChromaticTuner } from "~/hooks/useChromaticTuner";
+import useScreenWakeLock from "~/hooks/useScreenWakeLock";
 
 function Tuner() {
   const { tuning, showCustomTuningModal, audioContext } = useTabStore(
@@ -39,6 +40,8 @@ function Tuner() {
     minimumClarity: 0.84,
     audioContext,
   });
+
+  useScreenWakeLock(isListening);
 
   return (
     <motion.div

@@ -83,7 +83,7 @@ function ChromaticTunerPanel({
     : 0;
   const absoluteTargetCents = Math.abs(clampedTargetCents);
   const clampedDetectedCents = Math.max(-50, Math.min(50, detectedCents ?? 0));
-  const regularNeedleDegrees = (clampedTargetCents / 50) * 75;
+  const regularNeedleDegrees = (clampedTargetCents / 50) * 90;
   const chromaticMarkerLeftPercent = ((clampedDetectedCents + 50) / 100) * 100;
   const regularNeedleStyle = !hasRegularPitch
     ? {
@@ -185,7 +185,7 @@ function ChromaticTunerPanel({
                 <p>{`${currentTargetFrequency.toFixed(1)} Hz`}</p>
               </div>
 
-              <div className="absolute left-1/2 top-3 -translate-x-1/2 rounded-md border bg-background px-2 py-1 text-xs font-semibold text-foreground sm:text-sm">
+              <div className="absolute left-1/2 top-3 w-[104px] -translate-x-1/2 rounded-md border bg-background px-2 py-1 text-center text-xs font-semibold tabular-nums text-foreground sm:w-[118px] sm:text-sm">
                 {`${currentMicFrequency.toFixed(1)} Hz`}
               </div>
 
@@ -200,6 +200,8 @@ function ChromaticTunerPanel({
                   style={{
                     left: "calc(50% - 1.5px)",
                     transformOrigin: "bottom center",
+                    transition:
+                      "background-color 0.6s ease, box-shadow 0.6s ease",
                     ...regularNeedleStyle,
                   }}
                   animate={{ rotate: regularNeedleDegrees }}
@@ -313,7 +315,7 @@ function ChromaticTunerPanel({
           </div>
 
           <div className="relative mt-4 w-full">
-            <div className="absolute left-1/2 top-0 z-10 -translate-x-1/2 rounded-md border bg-background px-3 py-1 text-sm font-semibold text-foreground sm:text-base">
+            <div className="absolute left-1/2 top-0 z-10 w-[104px] -translate-x-1/2 rounded-md border bg-background px-3 py-1 text-center text-sm font-semibold tabular-nums text-foreground sm:w-[118px] sm:text-base">
               {`${currentMicFrequency.toFixed(1)} Hz`}
             </div>
 
@@ -400,7 +402,7 @@ function ChromaticTunerPanel({
                     }}
                   />
 
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-md border bg-background px-2 py-1 text-sm font-semibold text-primary">
+                  <div className="absolute bottom-3 left-1/2 w-[88px] -translate-x-1/2 rounded-md border bg-background px-2 py-1 text-center text-sm font-semibold tabular-nums text-primary">
                     {`${clampedDetectedCents > 0 ? "+" : ""}${clampedDetectedCents.toFixed(1)}¢`}
                   </div>
                 </div>
