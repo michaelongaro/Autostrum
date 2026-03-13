@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import { useMemo, useState } from "react";
 import { get } from "@tonaljs/note";
 import { Button } from "~/components/ui/button";
+import TuningSelect from "~/components/ui/TuningSelect";
 
 const stringLabels = ["6", "5", "4", "3", "2", "1"];
 const centsTicks = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50];
@@ -87,9 +88,10 @@ function ChromaticTunerPanel({
   return (
     <div className="baseVertFlex w-full gap-4 rounded-lg border bg-secondary p-3 shadow-sm sm:p-5 md:p-6">
       <div className="baseVertFlex w-full gap-3 sm:flex-row sm:!items-center sm:!justify-between">
-        <p className="text-sm font-semibold uppercase tracking-wide text-foreground/80">
-          Guitar tuner
-        </p>
+        <div className="baseFlex gap-4">
+          <p className="text-sm font-semibold text-foreground/80">Tuning</p>
+          <TuningSelect />
+        </div>
 
         <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-2">
           <div className="col-span-2 grid grid-cols-2 gap-1 rounded-md border bg-background p-1 sm:col-span-1 sm:w-[190px]">

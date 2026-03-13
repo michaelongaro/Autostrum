@@ -48,7 +48,7 @@ function Tuner() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1600px] md:my-16 md:min-h-[calc(100dvh-4rem-8rem)]"
+      className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1000px] md:my-16 md:min-h-[calc(100dvh-4rem-8rem)]"
     >
       <Head>
         <title>Tuner | Autostrum</title>
@@ -71,13 +71,11 @@ function Tuner() {
       </Head>
 
       <div className="baseVertFlex w-full gap-4 px-3 pb-4 sm:px-6 md:px-8">
-        <div className="baseFlex w-full !justify-between rounded-lg border bg-secondary p-4 shadow-sm">
+        <div className="baseFlex w-full !justify-start">
           <div className="baseFlex gap-2">
-            <TuningFork className="size-6 md:size-7" />
-            <p className="text-lg font-semibold">Guitar tuner</p>
+            <TuningFork className="size-5" />
+            <p className="text-lg font-semibold">Guitar Tuner</p>
           </div>
-
-          <TuningSelect />
         </div>
 
         <ChromaticTunerPanel
