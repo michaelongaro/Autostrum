@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Head from "next/head";
 import TuningFork from "~/components/ui/icons/TuningFork";
-import TuningSelect from "~/components/ui/TuningSelect";
 import ChromaticTunerPanel from "~/components/tuner/ChromaticTunerPanel";
 import { useTabStore } from "~/stores/TabStore";
 import CustomTuningModal from "~/components/modals/CustomTuningModal";

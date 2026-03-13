@@ -81,9 +81,19 @@ function ChromaticTunerPanel({
     -50,
     Math.min(50, targetCentsOffset ?? 0),
   );
+  const absoluteTargetCents = Math.abs(clampedTargetCents);
   const clampedDetectedCents = Math.max(-50, Math.min(50, detectedCents ?? 0));
   const regularNeedleDegrees = (clampedTargetCents / 50) * 75;
   const chromaticMarkerLeftPercent = ((clampedDetectedCents + 50) / 100) * 100;
+  const regularNeedleColorClass = !signalDetected
+    ? "bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+    : absoluteTargetCents <= 5
+      ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.45)]"
+      : absoluteTargetCents <= 10
+        ? "bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.45)]"
+        : absoluteTargetCents <= 25
+          ? "bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.45)]"
+          : "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.45)]";
 
   return (
     <div className="baseVertFlex w-full gap-4 rounded-lg border bg-secondary p-3 shadow-sm sm:p-5 md:p-6">
@@ -169,8 +179,11 @@ function ChromaticTunerPanel({
                 <div className="absolute bottom-0 left-1/2 h-[122px] w-px -translate-x-1/2 bg-foreground/25 sm:h-[146px]" />
 
                 <motion.div
-                  className="absolute bottom-0 left-1/2 h-[108px] w-[3px] -translate-x-1/2 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.45)] sm:h-[130px]"
-                  style={{ transformOrigin: "bottom center" }}
+                  className={`absolute bottom-0 h-[108px] w-[3px] rounded-full sm:h-[130px] ${regularNeedleColorClass}`}
+                  style={{
+                    left: "calc(50% - 1.5px)",
+                    transformOrigin: "bottom center",
+                  }}
                   animate={{ rotate: regularNeedleDegrees }}
                   transition={{
                     type: "spring",
@@ -184,13 +197,33 @@ function ChromaticTunerPanel({
 
                 {regularArcMarkers.map((marker) => {
                   const angleRadians = (marker / 50) * (Math.PI / 2);
-                  const xOffset = Math.sin(angleRadians) * 120;
-                  const yOffset = Math.cos(angleRadians) * 128;
+                  const xOffset = Math.sin(angleRadians) * 124;
+                  const yOffset = Math.cos(angleRadians) * 136;
 
                   return (
                     <div
-                      key={`regular-marker-${marker}`}
-                      className={`absolute text-[10px] font-medium sm:text-xs ${marker === 0 ? "text-foreground/80" : "text-foreground/60"}`}
+                      key={`regular-marker-mobile-${marker}`}
+                      className={`absolute text-[10px] font-medium sm:hidden ${marker === 0 ? "text-foreground/80" : "text-foreground/60"}`}
+                      style={{
+                        left: `calc(50% + ${xOffset}px)`,
+                        bottom: `${yOffset}px`,
+                        transform: "translate(-50%, 50%)",
+                      }}
+                    >
+                      {marker > 0 ? `+${marker}` : marker}
+                    </div>
+                  );
+                })}
+
+                {regularArcMarkers.map((marker) => {
+                  const angleRadians = (marker / 50) * (Math.PI / 2);
+                  const xOffset = Math.sin(angleRadians) * 152;
+                  const yOffset = Math.cos(angleRadians) * 164;
+
+                  return (
+                    <div
+                      key={`regular-marker-desktop-${marker}`}
+                      className={`absolute hidden text-xs font-medium sm:block ${marker === 0 ? "text-foreground/80" : "text-foreground/60"}`}
                       style={{
                         left: `calc(50% + ${xOffset}px)`,
                         bottom: `${yOffset}px`,
