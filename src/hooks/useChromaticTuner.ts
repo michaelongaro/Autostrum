@@ -8,6 +8,7 @@ type UseChromaticTunerParams = {
   targetTuning: string;
   toleranceCents?: number;
   stableFrameCount?: number;
+  stableHoldDurationMs?: number;
   minimumClarity?: number;
   audioContext?: AudioContext | null;
 };
@@ -29,13 +30,12 @@ type UseChromaticTunerResult = {
   startListening: () => Promise<void>;
   stopListening: () => void;
   resetProgress: () => void;
-  playCurrentReferenceTone: () => Promise<void>;
 };
 
 const DEFAULT_TUNING = ["e2", "a2", "d3", "g3", "b3", "e4"];
-const RMS_NOISE_GATE = 0.0035;
 const ANALYSIS_GAIN = 3.2;
 const MIN_CLARITY_FLOOR = 0.66;
+const MIN_INPUT_GATE_RMS = 0.001;
 
 function midiFromFrequency(frequency: number) {
   return Math.round(69 + 12 * Math.log2(frequency / 440));
@@ -57,6 +57,7 @@ export function useChromaticTuner({
   targetTuning,
   toleranceCents = 8,
   stableFrameCount = 16,
+  stableHoldDurationMs,
   minimumClarity = 0.84,
   audioContext,
 }: UseChromaticTunerParams): UseChromaticTunerResult {
@@ -83,10 +84,14 @@ export function useChromaticTuner({
   const detectorRef = useRef<PitchDetector<Float32Array> | null>(null);
   const bufferRef = useRef<Float32Array | null>(null);
   const rafRef = useRef<number | null>(null);
-  const settleFrameCountRef = useRef(0);
+  const stableMatchStartTimeRef = useRef<number | null>(null);
+  const lastFrequencyUpdateTimeRef = useRef(0);
   const centsHistoryRef = useRef<number[]>([]);
   const localAudioContextRef = useRef<AudioContext | null>(null);
   const currentTargetIndexRef = useRef(0);
+
+  const requiredStableHoldMs =
+    stableHoldDurationMs ?? (stableFrameCount / 60) * 1000;
 
   const targetNotes = useMemo(
     () => resolveTargetNotes(targetTuning),
@@ -112,7 +117,7 @@ export function useChromaticTuner({
   }, []);
 
   const resetProgress = useCallback(() => {
-    settleFrameCountRef.current = 0;
+    stableMatchStartTimeRef.current = null;
     centsHistoryRef.current = [];
     setCurrentTargetIndex(0);
     setCompleted(false);
@@ -142,7 +147,8 @@ export function useChromaticTuner({
 
     detectorRef.current = null;
     bufferRef.current = null;
-    settleFrameCountRef.current = 0;
+    stableMatchStartTimeRef.current = null;
+    lastFrequencyUpdateTimeRef.current = 0;
     centsHistoryRef.current = [];
 
     setIsListening(false);
@@ -236,8 +242,9 @@ export function useChromaticTuner({
         }
         const rms = Math.sqrt(meanSquare / activeBuffer.length);
 
-        if (rms < RMS_NOISE_GATE) {
-          settleFrameCountRef.current = 0;
+        if (rms < MIN_INPUT_GATE_RMS) {
+          stableMatchStartTimeRef.current = null;
+          lastFrequencyUpdateTimeRef.current = 0;
           setSignalDetected(false);
           setDetectedFrequency(null);
           setDetectedNote(null);
@@ -248,10 +255,7 @@ export function useChromaticTuner({
           return;
         }
 
-        const quietnessWeight = Math.max(
-          0,
-          Math.min(1, (0.02 - rms) / (0.02 - RMS_NOISE_GATE)),
-        );
+        const quietnessWeight = Math.max(0, Math.min(1, (0.02 - rms) / 0.02));
 
         const effectiveMinimumClarity =
           minimumClarity -
@@ -267,7 +271,8 @@ export function useChromaticTuner({
           pitch <= 0 ||
           foundClarity < effectiveMinimumClarity
         ) {
-          settleFrameCountRef.current = 0;
+          stableMatchStartTimeRef.current = null;
+          lastFrequencyUpdateTimeRef.current = 0;
           setSignalDetected(false);
           setDetectedFrequency(null);
           setDetectedNote(null);
@@ -303,8 +308,13 @@ export function useChromaticTuner({
         const targetFrequency = frequencyFromMidi(targetMidi);
         const centsFromTarget = centsBetweenFrequencies(pitch, targetFrequency);
 
+        const now = performance.now();
+
         setSignalDetected(true);
-        setDetectedFrequency(pitch);
+        if (now - lastFrequencyUpdateTimeRef.current >= 100) {
+          setDetectedFrequency(pitch);
+          lastFrequencyUpdateTimeRef.current = now;
+        }
         setDetectedNote(resolvedDetectedNote);
         setDetectedCents(smoothedDetectedCents);
         setTargetCentsOffset(centsFromTarget);
@@ -314,13 +324,19 @@ export function useChromaticTuner({
         const isWithinTolerance = Math.abs(centsFromTarget) <= toleranceCents;
 
         if (isMatchingTargetNote && isWithinTolerance) {
-          settleFrameCountRef.current += 1;
+          if (stableMatchStartTimeRef.current === null) {
+            stableMatchStartTimeRef.current = performance.now();
+          }
         } else {
-          settleFrameCountRef.current = 0;
+          stableMatchStartTimeRef.current = null;
         }
 
-        if (settleFrameCountRef.current >= stableFrameCount) {
-          settleFrameCountRef.current = 0;
+        if (
+          stableMatchStartTimeRef.current !== null &&
+          performance.now() - stableMatchStartTimeRef.current >=
+            requiredStableHoldMs
+        ) {
+          stableMatchStartTimeRef.current = null;
 
           if (currentTargetIndexRef.current >= targetMidis.length - 1) {
             setCompleted(true);
@@ -343,51 +359,12 @@ export function useChromaticTuner({
     audioContext,
     isListening,
     minimumClarity,
+    requiredStableHoldMs,
     setCurrentTargetIndex,
-    stableFrameCount,
     stopListening,
     targetMidis,
     toleranceCents,
   ]);
-
-  const playCurrentReferenceTone = useCallback(async () => {
-    const targetMidi =
-      targetMidis[currentTargetIndexRef.current] ?? targetMidis[0] ?? 40;
-    const targetFrequency = frequencyFromMidi(targetMidi);
-
-    let activeAudioContext = audioContext;
-
-    if (!activeAudioContext) {
-      if (!localAudioContextRef.current) {
-        localAudioContextRef.current = new AudioContext();
-      }
-
-      activeAudioContext = localAudioContextRef.current;
-    }
-
-    if (!activeAudioContext) return;
-
-    if (activeAudioContext.state === "suspended") {
-      await activeAudioContext.resume();
-    }
-
-    const now = activeAudioContext.currentTime;
-    const oscillator = activeAudioContext.createOscillator();
-    const gain = activeAudioContext.createGain();
-
-    oscillator.type = "triangle";
-    oscillator.frequency.setValueAtTime(targetFrequency, now);
-
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.linearRampToValueAtTime(0.08, now + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
-
-    oscillator.connect(gain);
-    gain.connect(activeAudioContext.destination);
-
-    oscillator.start(now);
-    oscillator.stop(now + 1.1);
-  }, [audioContext, targetMidis]);
 
   useEffect(() => {
     currentTargetIndexRef.current = currentTargetIndex;
@@ -420,6 +397,5 @@ export function useChromaticTuner({
     startListening,
     stopListening,
     resetProgress,
-    playCurrentReferenceTone,
   };
 }
