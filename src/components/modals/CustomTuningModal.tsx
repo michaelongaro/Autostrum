@@ -195,8 +195,8 @@ function CustomTuningModal() {
                 <div className="baseFlex gap-4 px-4 sm:gap-2">
                   <HiOutlineInformationCircle className="size-5" />
                   <p className="max-w-[14rem] sm:max-w-[20rem] sm:text-center">
-                    Enter six notes (such as C# B E F A E) and we will choose
-                    valid octaves for guitar string ranges.
+                    Enter six notes and we will choose valid octaves for guitar
+                    string ranges.
                   </p>
                 </div>
                 <div className="baseFlex px-4 text-xs sm:justify-center">
