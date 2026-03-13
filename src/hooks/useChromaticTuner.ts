@@ -311,7 +311,7 @@ export function useChromaticTuner({
         const now = performance.now();
 
         setSignalDetected(true);
-        if (now - lastFrequencyUpdateTimeRef.current >= 100) {
+        if (now - lastFrequencyUpdateTimeRef.current >= 500) {
           setDetectedFrequency(pitch);
           lastFrequencyUpdateTimeRef.current = now;
         }
