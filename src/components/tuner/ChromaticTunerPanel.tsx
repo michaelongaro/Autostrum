@@ -77,23 +77,38 @@ function ChromaticTunerPanel({
   const currentMicFrequency = detectedFrequency ?? 0;
   const isInTune =
     targetCentsOffset !== null && Math.abs(targetCentsOffset) <= toleranceCents;
-  const clampedTargetCents = Math.max(
-    -50,
-    Math.min(50, targetCentsOffset ?? 0),
-  );
+  const hasRegularPitch = signalDetected && targetCentsOffset !== null;
+  const clampedTargetCents = hasRegularPitch
+    ? Math.max(-50, Math.min(50, targetCentsOffset))
+    : 0;
   const absoluteTargetCents = Math.abs(clampedTargetCents);
   const clampedDetectedCents = Math.max(-50, Math.min(50, detectedCents ?? 0));
   const regularNeedleDegrees = (clampedTargetCents / 50) * 75;
   const chromaticMarkerLeftPercent = ((clampedDetectedCents + 50) / 100) * 100;
-  const regularNeedleColorClass = !signalDetected
-    ? "bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+  const regularNeedleStyle = !hasRegularPitch
+    ? {
+        backgroundColor: "hsl(var(--primary))",
+        boxShadow: "0 0 10px hsl(var(--primary) / 0.45)",
+      }
     : absoluteTargetCents <= 5
-      ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.45)]"
+      ? {
+          backgroundColor: "rgb(34 197 94)",
+          boxShadow: "0 0 10px rgba(34, 197, 94, 0.45)",
+        }
       : absoluteTargetCents <= 10
-        ? "bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.45)]"
+        ? {
+            backgroundColor: "rgb(250 204 21)",
+            boxShadow: "0 0 10px rgba(250, 204, 21, 0.45)",
+          }
         : absoluteTargetCents <= 25
-          ? "bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.45)]"
-          : "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.45)]";
+          ? {
+              backgroundColor: "rgb(249 115 22)",
+              boxShadow: "0 0 10px rgba(249, 115, 22, 0.45)",
+            }
+          : {
+              backgroundColor: "rgb(239 68 68)",
+              boxShadow: "0 0 10px rgba(239, 68, 68, 0.45)",
+            };
 
   return (
     <div className="baseVertFlex w-full gap-4 rounded-lg border bg-secondary p-3 shadow-sm sm:p-5 md:p-6">
@@ -180,10 +195,12 @@ function ChromaticTunerPanel({
                 <div className="absolute bottom-0 left-1/2 h-[122px] w-px -translate-x-1/2 bg-foreground/25 sm:h-[146px]" />
 
                 <motion.div
-                  className={`absolute bottom-0 h-[108px] w-[3px] rounded-full sm:h-[130px] ${regularNeedleColorClass}`}
+                  className="absolute bottom-0 h-[108px] w-[3px] rounded-full sm:h-[130px]"
+                  initial={false}
                   style={{
                     left: "calc(50% - 1.5px)",
                     transformOrigin: "bottom center",
+                    ...regularNeedleStyle,
                   }}
                   animate={{ rotate: regularNeedleDegrees }}
                   transition={{
@@ -300,19 +317,19 @@ function ChromaticTunerPanel({
               {`${currentMicFrequency.toFixed(1)} Hz`}
             </div>
 
-            <div className="baseFlex mt-10 w-full !justify-between px-[1px] text-xs text-foreground/70 sm:hidden">
+            <div className="baseFlex mt-12 w-full !justify-between px-[1px] text-xs text-foreground/70 sm:hidden">
               {mobileLabelTicks.map((tick) => (
                 <span key={`mobile-label-${tick}`}>{tick}</span>
               ))}
             </div>
 
-            <div className="baseFlex mt-10 !hidden w-full !justify-between px-[1px] text-xs text-foreground/70 sm:!flex">
+            <div className="baseFlex mt-14 !hidden w-full !justify-between px-[1px] text-xs text-foreground/70 sm:!flex">
               {centsTicks.map((tick) => (
                 <span key={tick}>{tick}</span>
               ))}
             </div>
 
-            <div className="relative mt-4 h-[180px] w-full rounded-md border bg-secondary px-4 py-6">
+            <div className="relative mt-0 h-[180px] w-full rounded-md border bg-secondary px-4 py-6">
               <motion.div
                 className="absolute inset-0 rounded-md"
                 style={{
@@ -355,7 +372,7 @@ function ChromaticTunerPanel({
               })}
 
               <motion.div
-                className="absolute top-1/2 -translate-y-1/2"
+                className="absolute inset-y-0"
                 animate={{ left: `${chromaticMarkerLeftPercent}%` }}
                 transition={{
                   type: "spring",
@@ -364,9 +381,9 @@ function ChromaticTunerPanel({
                   mass: 0.55,
                 }}
               >
-                <div className="relative flex -translate-x-1/2 flex-col items-center gap-2">
+                <div className="relative h-full -translate-x-1/2">
                   <motion.div
-                    className="h-14 w-[3px] rounded-full bg-primary"
+                    className="absolute top-1/2 h-14 w-[3px] -translate-y-1/2 rounded-full bg-primary"
                     animate={{
                       boxShadow: signalDetected
                         ? [
@@ -382,7 +399,8 @@ function ChromaticTunerPanel({
                       ease: "linear",
                     }}
                   />
-                  <div className="rounded-md border bg-background px-2 py-1 text-sm font-semibold text-primary">
+
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-md border bg-background px-2 py-1 text-sm font-semibold text-primary">
                     {`${clampedDetectedCents > 0 ? "+" : ""}${clampedDetectedCents.toFixed(1)}¢`}
                   </div>
                 </div>
