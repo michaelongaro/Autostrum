@@ -103,14 +103,14 @@ function ChromaticTunerPanel({
           <TuningSelect />
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-2">
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-4">
           <div className="col-span-2 grid grid-cols-2 gap-1 rounded-md border bg-background p-1 sm:col-span-1 sm:w-[190px]">
             <button
               type="button"
               onClick={() => {
                 setMode("regular");
               }}
-              className={`rounded-md px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "regular" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
+              className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "regular" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
             >
               Regular
             </button>
@@ -119,7 +119,7 @@ function ChromaticTunerPanel({
               onClick={() => {
                 setMode("chromatic");
               }}
-              className={`rounded-md px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "chromatic" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
+              className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "chromatic" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
             >
               Chromatic
             </button>
@@ -128,7 +128,7 @@ function ChromaticTunerPanel({
           {isListening ? (
             <Button
               size="sm"
-              variant="secondary"
+              variant="outline"
               className="w-full sm:w-auto"
               onClick={onStopListening}
             >
@@ -146,6 +146,7 @@ function ChromaticTunerPanel({
 
           <Button
             size="sm"
+            disabled={mode === "chromatic" || currentTargetIndex === 0}
             variant="outline"
             className="w-full sm:w-auto"
             onClick={onResetProgress}
@@ -158,7 +159,7 @@ function ChromaticTunerPanel({
       {mode === "regular" ? (
         <>
           <div className="baseVertFlex w-full rounded-md border bg-background p-3 sm:p-5">
-            <div className="relative mt-1 h-[230px] w-full rounded-md border bg-secondary p-3 sm:h-[280px]">
+            <div className="relative h-[230px] w-full sm:h-[280px]">
               <div className="absolute left-3 top-3 text-xs font-medium text-foreground/80 sm:text-sm">
                 <p className="font-semibold text-foreground">
                   {formatNoteLabel(currentTarget)}
