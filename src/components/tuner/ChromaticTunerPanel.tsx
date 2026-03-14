@@ -129,49 +129,70 @@ function ChromaticTunerPanel({
   return (
     <div className="baseVertFlex w-full gap-4 border-y bg-secondary p-3 shadow-sm xs:rounded-lg xs:border sm:p-5 md:p-6">
       <div className="baseVertFlex w-full gap-3 sm:flex-row sm:!items-center sm:!justify-between">
-        <div className="baseFlex gap-4">
-          <p className="text-sm font-semibold text-foreground/80">Tuning</p>
-          <TuningSelect />
+        <div className="col-span-2 grid w-full grid-cols-2 gap-1 rounded-md border bg-background p-1 sm:col-span-1 sm:w-[190px]">
+          <button
+            type="button"
+            onClick={() => {
+              setMode("regular");
+            }}
+            className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "regular" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
+          >
+            Regular
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode("chromatic");
+            }}
+            className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "chromatic" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
+          >
+            Chromatic
+          </button>
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-4">
-          <div className="col-span-2 grid grid-cols-2 gap-1 rounded-md border bg-background p-1 sm:col-span-1 sm:w-[190px]">
-            <button
-              type="button"
-              onClick={() => {
-                setMode("regular");
-              }}
-              className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "regular" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
-            >
-              Regular
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode("chromatic");
-              }}
-              className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "chromatic" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
-            >
-              Chromatic
-            </button>
+        <div className="baseFlex w-full !justify-between gap-4 sm:w-auto">
+          <div className="baseFlex gap-2 sm:gap-4">
+            <p className="text-sm font-semibold text-foreground/80">Tuning</p>
+            <TuningSelect />
           </div>
 
           {isListening ? (
             <Button
               size="sm"
               variant="outline"
-              className="w-full sm:w-auto"
+              className="w-full sm:hidden sm:w-auto"
               onClick={onStopListening}
             >
-              Stop listening
+              Stop
             </Button>
           ) : (
             <Button
               size="sm"
-              className="w-full sm:w-auto"
+              className="w-full sm:hidden sm:w-auto"
               onClick={() => void onStartListening()}
             >
-              Start listening
+              Start
+            </Button>
+          )}
+        </div>
+
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-4">
+          {isListening ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="hidden w-full sm:block sm:w-auto"
+              onClick={onStopListening}
+            >
+              Stop
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              className="hidden w-full sm:block sm:w-auto"
+              onClick={() => void onStartListening()}
+            >
+              Start
             </Button>
           )}
 
@@ -179,7 +200,7 @@ function ChromaticTunerPanel({
             size="sm"
             disabled={mode === "chromatic" || currentTargetIndex === 0}
             variant="outline"
-            className="w-full sm:w-auto"
+            className="hidden w-full sm:block sm:w-auto"
             onClick={onResetProgress}
           >
             Reset
@@ -335,6 +356,16 @@ function ChromaticTunerPanel({
               );
             })}
           </div>
+
+          <Button
+            size="sm"
+            disabled={currentTargetIndex === 0}
+            variant="outline"
+            className="w-full sm:hidden sm:w-auto"
+            onClick={onResetProgress}
+          >
+            Reset
+          </Button>
         </>
       ) : (
         <div className="baseVertFlex w-full rounded-md border bg-background p-4 md:px-6 md:py-8">
