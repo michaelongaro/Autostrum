@@ -8,7 +8,7 @@ import TuningSelect from "~/components/ui/TuningSelect";
 const stringLabels = ["6", "5", "4", "3", "2", "1"];
 const centsTicks = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50];
 const mobileLabelTicks = [-50, -25, 0, 25, 50];
-const regularArcMarkers = [-50, -25, -10, -5, 0, 5, 10, 25, 50];
+const regularArcMarkerRatios = [-1, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1];
 const stringThicknesses = [8, 7, 6, 5, 4, 3];
 
 function frequencyFromMidi(midi: number) {
@@ -75,17 +75,33 @@ function ChromaticTunerPanel({
     [currentTarget],
   );
   const currentMicFrequency = detectedFrequency ?? 0;
+  const regularMaxHzOffset = useMemo(() => {
+    if (currentTargetFrequency <= 0) return 1;
+
+    return currentTargetFrequency * (Math.pow(2, 50 / 1200) - 1);
+  }, [currentTargetFrequency]);
+  const regularRawHzOffset =
+    signalDetected && detectedFrequency !== null
+      ? detectedFrequency - currentTargetFrequency
+      : 0;
+  const clampedRegularHzOffset = Math.max(
+    -regularMaxHzOffset,
+    Math.min(regularMaxHzOffset, regularRawHzOffset),
+  );
   const isInTune =
     targetCentsOffset !== null && Math.abs(targetCentsOffset) <= toleranceCents;
-  const hasRegularPitch = signalDetected && targetCentsOffset !== null;
-  const clampedTargetCents = hasRegularPitch
+  const hasRegularCents = signalDetected && targetCentsOffset !== null;
+  const clampedTargetCents = hasRegularCents
     ? Math.max(-50, Math.min(50, targetCentsOffset))
     : 0;
   const absoluteTargetCents = Math.abs(clampedTargetCents);
   const clampedDetectedCents = Math.max(-50, Math.min(50, detectedCents ?? 0));
-  const regularNeedleDegrees = (clampedTargetCents / 50) * 90;
+  const regularNeedleDegrees =
+    regularMaxHzOffset > 0
+      ? (clampedRegularHzOffset / regularMaxHzOffset) * 90
+      : 0;
   const chromaticMarkerLeftPercent = ((clampedDetectedCents + 50) / 100) * 100;
-  const regularNeedleStyle = !hasRegularPitch
+  const regularNeedleStyle = !hasRegularCents
     ? {
         backgroundColor: "hsl(var(--primary))",
         boxShadow: "0 0 10px hsl(var(--primary) / 0.45)",
@@ -213,44 +229,56 @@ function ChromaticTunerPanel({
                   }}
                 />
 
-                <div className="absolute bottom-0 left-1/2 size-3 -translate-x-1/2 rounded-full border border-primary/60 bg-background sm:size-5" />
+                <div className="absolute bottom-0 left-1/2 flex size-7 -translate-x-1/2 items-center justify-center rounded-full border border-primary/60 bg-background text-[9px] font-semibold text-foreground/70 sm:size-9 sm:text-[10px]">
+                  Hz
+                </div>
 
-                {regularArcMarkers.map((marker) => {
-                  const angleRadians = (marker / 50) * (Math.PI / 2);
+                {regularArcMarkerRatios.map((markerRatio) => {
+                  const angleRadians = markerRatio * (Math.PI / 2);
                   const xOffset = Math.sin(angleRadians) * 124;
                   const yOffset = Math.cos(angleRadians) * 136;
+                  const markerValue = markerRatio * regularMaxHzOffset;
+                  const markerLabel =
+                    Math.abs(markerValue) < 0.05
+                      ? "0"
+                      : `${markerValue > 0 ? "+" : ""}${markerValue.toFixed(1)}`;
 
                   return (
                     <div
-                      key={`regular-marker-mobile-${marker}`}
-                      className={`absolute text-[10px] font-medium sm:hidden ${marker === 0 ? "text-foreground/80" : "text-foreground/60"}`}
+                      key={`regular-marker-mobile-${markerRatio}`}
+                      className={`absolute text-[10px] font-medium tabular-nums sm:hidden ${markerRatio === 0 ? "text-foreground/80" : "text-foreground/60"}`}
                       style={{
                         left: `calc(50% + ${xOffset}px)`,
                         bottom: `${yOffset}px`,
                         transform: "translate(-50%, 50%)",
                       }}
                     >
-                      {marker > 0 ? `+${marker}` : marker}
+                      {markerLabel}
                     </div>
                   );
                 })}
 
-                {regularArcMarkers.map((marker) => {
-                  const angleRadians = (marker / 50) * (Math.PI / 2);
+                {regularArcMarkerRatios.map((markerRatio) => {
+                  const angleRadians = markerRatio * (Math.PI / 2);
                   const xOffset = Math.sin(angleRadians) * 152;
                   const yOffset = Math.cos(angleRadians) * 164;
+                  const markerValue = markerRatio * regularMaxHzOffset;
+                  const markerLabel =
+                    Math.abs(markerValue) < 0.05
+                      ? "0"
+                      : `${markerValue > 0 ? "+" : ""}${markerValue.toFixed(1)}`;
 
                   return (
                     <div
-                      key={`regular-marker-desktop-${marker}`}
-                      className={`absolute hidden text-xs font-medium sm:block ${marker === 0 ? "text-foreground/80" : "text-foreground/60"}`}
+                      key={`regular-marker-desktop-${markerRatio}`}
+                      className={`absolute hidden text-xs font-medium tabular-nums sm:block ${markerRatio === 0 ? "text-foreground/80" : "text-foreground/60"}`}
                       style={{
                         left: `calc(50% + ${xOffset}px)`,
                         bottom: `${yOffset}px`,
                         transform: "translate(-50%, 50%)",
                       }}
                     >
-                      {marker > 0 ? `+${marker}` : marker}
+                      {markerLabel}
                     </div>
                   );
                 })}
