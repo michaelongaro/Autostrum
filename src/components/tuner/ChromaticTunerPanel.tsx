@@ -111,7 +111,7 @@ function ChromaticTunerPanel({
             };
 
   return (
-    <div className="baseVertFlex w-full gap-4 rounded-lg border bg-secondary p-3 shadow-sm sm:p-5 md:p-6">
+    <div className="baseVertFlex w-full gap-4 border-y bg-secondary p-3 shadow-sm xs:rounded-lg xs:border sm:p-5 md:p-6">
       <div className="baseVertFlex w-full gap-3 sm:flex-row sm:!items-center sm:!justify-between">
         <div className="baseFlex gap-4">
           <p className="text-sm font-semibold text-foreground/80">Tuning</p>

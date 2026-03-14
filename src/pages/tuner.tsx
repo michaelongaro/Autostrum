@@ -72,8 +72,8 @@ function Tuner() {
         ></meta>
       </Head>
 
-      <div className="baseVertFlex w-full gap-4 px-3 pb-4 sm:px-6 md:px-8">
-        <div className="baseFlex w-full !justify-start">
+      <div className="baseVertFlex w-full gap-4 pb-4 xs:px-3 sm:px-6 md:px-8">
+        <div className="baseFlex w-full !justify-start px-3 xs:px-0">
           <div className="baseFlex gap-2">
             <TuningFork className="size-5" />
             <p className="text-lg font-semibold">Guitar Tuner</p>
