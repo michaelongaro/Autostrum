@@ -36,6 +36,7 @@ const DEFAULT_TUNING = ["e2", "a2", "d3", "g3", "b3", "e4"];
 const ANALYSIS_GAIN = 3.2;
 const MIN_CLARITY_FLOOR = 0.66;
 const MIN_INPUT_GATE_RMS = 0.001;
+const UI_UPDATE_INTERVAL_MS = 500;
 
 function midiFromFrequency(frequency: number) {
   return Math.round(69 + 12 * Math.log2(frequency / 440));
@@ -85,7 +86,7 @@ export function useChromaticTuner({
   const bufferRef = useRef<Float32Array | null>(null);
   const rafRef = useRef<number | null>(null);
   const stableMatchStartTimeRef = useRef<number | null>(null);
-  const lastFrequencyUpdateTimeRef = useRef(0);
+  const lastUiUpdateTimeRef = useRef(0);
   const centsHistoryRef = useRef<number[]>([]);
   const localAudioContextRef = useRef<AudioContext | null>(null);
   const currentTargetIndexRef = useRef(0);
@@ -148,7 +149,7 @@ export function useChromaticTuner({
     detectorRef.current = null;
     bufferRef.current = null;
     stableMatchStartTimeRef.current = null;
-    lastFrequencyUpdateTimeRef.current = 0;
+    lastUiUpdateTimeRef.current = 0;
     centsHistoryRef.current = [];
 
     setIsListening(false);
@@ -244,7 +245,7 @@ export function useChromaticTuner({
 
         if (rms < MIN_INPUT_GATE_RMS) {
           stableMatchStartTimeRef.current = null;
-          lastFrequencyUpdateTimeRef.current = 0;
+          lastUiUpdateTimeRef.current = 0;
           setSignalDetected(false);
           setDetectedFrequency(null);
           setDetectedNote(null);
@@ -272,7 +273,7 @@ export function useChromaticTuner({
           foundClarity < effectiveMinimumClarity
         ) {
           stableMatchStartTimeRef.current = null;
-          lastFrequencyUpdateTimeRef.current = 0;
+          lastUiUpdateTimeRef.current = 0;
           setSignalDetected(false);
           setDetectedFrequency(null);
           setDetectedNote(null);
@@ -309,16 +310,19 @@ export function useChromaticTuner({
         const centsFromTarget = centsBetweenFrequencies(pitch, targetFrequency);
 
         const now = performance.now();
+        const shouldUpdateUi =
+          lastUiUpdateTimeRef.current === 0 ||
+          now - lastUiUpdateTimeRef.current >= UI_UPDATE_INTERVAL_MS;
 
         setSignalDetected(true);
-        if (now - lastFrequencyUpdateTimeRef.current >= 500) {
+        if (shouldUpdateUi) {
           setDetectedFrequency(pitch);
-          lastFrequencyUpdateTimeRef.current = now;
+          setDetectedNote(resolvedDetectedNote);
+          setDetectedCents(smoothedDetectedCents);
+          setTargetCentsOffset(centsFromTarget);
+          setClarity(foundClarity);
+          lastUiUpdateTimeRef.current = now;
         }
-        setDetectedNote(resolvedDetectedNote);
-        setDetectedCents(smoothedDetectedCents);
-        setTargetCentsOffset(centsFromTarget);
-        setClarity(foundClarity);
 
         const isMatchingTargetNote = nearestMidi === targetMidi;
         const isWithinTolerance = Math.abs(centsFromTarget) <= toleranceCents;
