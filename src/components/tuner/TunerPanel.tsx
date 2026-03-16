@@ -30,7 +30,7 @@ function frequencyFromNote(note: string) {
   return frequencyFromMidi(midi);
 }
 
-type ChromaticTunerPanelProps = {
+type TunerPanelProps = {
   targetNotes: string[];
   currentTargetIndex: number;
   detectedNote: string | null;
@@ -50,7 +50,7 @@ type ChromaticTunerPanelProps = {
   onSetCurrentTargetIndex: (index: number) => void;
 };
 
-function ChromaticTunerPanel({
+function TunerPanel({
   targetNotes,
   currentTargetIndex,
   detectedNote,
@@ -68,7 +68,7 @@ function ChromaticTunerPanel({
   onStopListening,
   onResetProgress,
   onSetCurrentTargetIndex,
-}: ChromaticTunerPanelProps) {
+}: TunerPanelProps) {
   const [mode, setMode] = useState<"regular" | "chromatic">("regular");
   const currentTarget = targetNotes[currentTargetIndex] ?? "e2";
   const currentTargetFrequency = useMemo(
@@ -524,4 +524,4 @@ function ChromaticTunerPanel({
   );
 }
 
-export default ChromaticTunerPanel;
+export default TunerPanel;

@@ -1,10 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Head from "next/head";
 import TuningFork from "~/components/ui/icons/TuningFork";
-import ChromaticTunerPanel from "~/components/tuner/ChromaticTunerPanel";
+import TunerPanel from "~/components/tuner/TunerPanel";
 import { useTabStore } from "~/stores/TabStore";
 import CustomTuningModal from "~/components/modals/CustomTuningModal";
-import { useChromaticTuner } from "~/hooks/useChromaticTuner";
+import { useTuner } from "~/hooks/useTuner";
 import useScreenWakeLock from "~/hooks/useScreenWakeLock";
 
 function Tuner() {
@@ -33,7 +33,7 @@ function Tuner() {
     startListening,
     stopListening,
     resetProgress,
-  } = useChromaticTuner({
+  } = useTuner({
     targetTuning: tuning,
     toleranceCents: 5,
     stableHoldDurationMs: 1500,
@@ -80,7 +80,7 @@ function Tuner() {
           </div>
         </div>
 
-        <ChromaticTunerPanel
+        <TunerPanel
           targetNotes={targetNotes}
           currentTargetIndex={currentTargetIndex}
           detectedNote={detectedNote}

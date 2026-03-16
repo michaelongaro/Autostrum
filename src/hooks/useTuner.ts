@@ -4,7 +4,7 @@ import { get } from "@tonaljs/note";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { normalizeCustomTuningInput } from "~/utils/tunings";
 
-type UseChromaticTunerParams = {
+type UseTunerParams = {
   targetTuning: string;
   toleranceCents?: number;
   stableFrameCount?: number;
@@ -13,7 +13,7 @@ type UseChromaticTunerParams = {
   audioContext?: AudioContext | null;
 };
 
-type UseChromaticTunerResult = {
+type UseTunerResult = {
   isListening: boolean;
   signalDetected: boolean;
   permissionDenied: boolean;
@@ -54,14 +54,14 @@ function resolveTargetNotes(targetTuning: string) {
   return normalizeCustomTuningInput(targetTuning) ?? DEFAULT_TUNING;
 }
 
-export function useChromaticTuner({
+export function useTuner({
   targetTuning,
   toleranceCents = 8,
   stableFrameCount = 16,
   stableHoldDurationMs,
   minimumClarity = 0.84,
   audioContext,
-}: UseChromaticTunerParams): UseChromaticTunerResult {
+}: UseTunerParams): UseTunerResult {
   const [isListening, setIsListening] = useState(false);
   const [signalDetected, setSignalDetected] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
